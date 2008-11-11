@@ -64,15 +64,22 @@ void		WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-struct wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers);
-void		WM_event_remove_keymap_handler(ListBase *keymap, ListBase *handlers);
+struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
+void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 struct wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op);
 void		WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op);
+void		WM_event_remove_handlers(ListBase *handlers);
+
+void		WM_event_add_message(wmWindowManager *wm, void *customdata,
+                                 short customdatafree);
 
 void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
 					int swinid, int type,
 					int value, void *data);
 
+			/* one-shot timer, returns wmTimerData.handle */
+struct wmTimerHandle *WM_event_add_window_timer(wmWindow *win, int delay_ms, int interval_ms);
+void		WM_event_remove_window_timer(wmWindow *wm, struct wmTimerHandle *handle);
 
 			/* operator api, default callbacks */
 			/* confirm menu + exec */
@@ -83,6 +90,9 @@ int			WM_operator_winactive	(struct bContext *C);
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append(void (*opfunc)(wmOperatorType*));
+
+int			WM_operator_invoke(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
+void		WM_operator_cancel(struct bContext *C, ListBase *modalops, wmOperatorType *ot);
 
 /* 
  * Operator property api

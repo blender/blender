@@ -405,12 +405,11 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 			for(wm= wmlist->first; wm; wm= wm->id.next) {
 				for(win= wm->windows.first; win; win= win->next) {
 					win->screen= (bScreen *)find_id("SR", win->screenname);
-					if(win->screen->winid==0) {
-						if(win->screen==NULL)
-							win->screen= C->screen; /* active screen */
-						
+					if(win->screen==NULL)
+						win->screen= C->screen; /* active screen */
+
+					if(win->screen->winid==0)
 						win->screen->winid= win->winid;
-					}
 				}
 			}
 			/* XXX still solve, case where multiple windows open */

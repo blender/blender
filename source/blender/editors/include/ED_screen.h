@@ -38,9 +38,11 @@ struct wmWindow;
 struct wmNotifier;
 
 /* regions */
+void	ED_region_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ARegion *ar);
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, ARegion *ar);
 void	ED_region_do_refresh(struct bContext *C, ARegion *ar);
+void	ED_region_exit(struct bContext *C, ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);
@@ -48,6 +50,7 @@ void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
+void	ED_area_exit(struct bContext *C, ScrArea *sa);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);
@@ -58,6 +61,7 @@ void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
 bScreen *ED_screen_riparea(struct wmWindow *win, bScreen *sc, struct ScrArea *sa);
 void	ED_screen_set_subwinactive(struct wmWindow *win);
+void	ED_screen_exit(struct bContext *C, struct wmWindow *window, bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);

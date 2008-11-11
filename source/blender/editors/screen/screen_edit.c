@@ -37,7 +37,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -389,7 +388,6 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
 {
-	AZone *az= NULL;
 	ScrArea *sa= MEM_callocN(sizeof(ScrArea), "addscrarea");
 	sa->v1= v1;
 	sa->v2= v2;
@@ -404,7 +402,8 @@ static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v
 }
 
 static void screen_delarea(bScreen *sc, ScrArea *sa)
-{	
+{
+	/* XXX need context to cancel operators ED_area_exit(C, sa); */
 	BKE_screen_area_free(sa);
 	BLI_remlink(&sc->areabase, sa);
 	MEM_freeN(sa);
@@ -456,6 +455,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 	BLI_duplicatelist(&to->vertbase, &from->vertbase);
 	BLI_duplicatelist(&to->edgebase, &from->edgebase);
 	BLI_duplicatelist(&to->areabase, &from->areabase);
+	to->regionbase.first= to->regionbase.last= NULL;
 	
 	s2= to->vertbase.first;
 	for(s1= from->vertbase.first; s1; s1= s1->next, s2= s2->next) {
@@ -808,11 +808,8 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	/* test for collapsed areas. This could happen in some blender version... */
 	for(sa= sc->areabase.first; sa; sa= san) {
 		san= sa->next;
-		if(sa->v1==sa->v2 || sa->v3==sa->v4 || sa->v2==sa->v3) {
-			BKE_screen_area_free(sa);
-			BLI_remlink(&sc->areabase, sa);
-			MEM_freeN(sa);
-		}
+		if(sa->v1==sa->v2 || sa->v3==sa->v4 || sa->v2==sa->v3)
+			screen_delarea(sc, sa);
 	}
 }
 
@@ -1123,6 +1120,7 @@ void ED_screen_gesture(wmWindow *win)
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {
 	ScrArea *sa;
+	ARegion *ar;
 	rcti winrct= {0, win->sizex, 0, win->sizey};
 	
 	screen_test_scale(win->screen, win->sizex, win->sizey);
@@ -1136,6 +1134,11 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		/* set spacetype and region callbacks */
 		/* sets subwindow */
 		ED_area_initialize(wm, win, sa);
+	}
+
+	for(ar= win->screen->regionbase.first; ar; ar= ar->next) {
+		/* set subwindow */
+		ED_region_initialize(wm, win, ar);
 	}
 	
 	if(G.f & G_DEBUG) printf("set screen\n");
@@ -1155,6 +1158,38 @@ void ED_screens_initialize(wmWindowManager *wm)
 		
 		ED_screen_refresh(wm, win);
 	}
+}
+
+void ED_region_exit(bContext *C, ARegion *ar)
+{
+	WM_operator_cancel(C, &ar->modalops, NULL);
+	WM_event_remove_handlers(&ar->handlers);
+}
+
+void ED_area_exit(bContext *C, ScrArea *sa)
+{
+	ARegion *ar;
+
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		ED_region_exit(C, ar);
+
+	WM_operator_cancel(C, &sa->modalops, NULL);
+	WM_event_remove_handlers(&sa->handlers);
+}
+
+void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
+{
+	ScrArea *sa;
+	ARegion *ar;
+
+	for(ar= screen->regionbase.first; ar; ar= ar->next)
+		ED_region_exit(C, ar);
+
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		ED_area_exit(C, sa);
+
+	WM_operator_cancel(C, &window->modalops, NULL);
+	WM_event_remove_handlers(&window->handlers);
 }
 
 void placeholder()

@@ -38,6 +38,8 @@
 /* custom data type */
 #define EVT_TABLET	1
 #define EVT_GESTURE	2
+#define EVT_TIMER	3
+#define EVT_MESSAGE	4
 
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
@@ -56,16 +58,18 @@
 
 
 /* SYSTEM : 0x01x */
-#define KEYBD			0x010	/* keyboard */
-#define RAWKEYBD		0x011	/* raw keyboard for keyboard manager */
-#define REDRAW			0x012	/* used by port manager to signal redraws */
-#define	INPUTCHANGE		0x013	/* input connected or disconnected */
-#define	QFULL			0x014	/* queue was filled */
-#define WINFREEZE		0x015	/* user wants process in this win to shut up */
-#define WINTHAW			0x016	/* user wants process in this win to go again */
-#define WINCLOSE		0x017	/* window close */
-#define WINQUIT			0x018	/* signal from user that app is to go away */
-#define Q_FIRSTTIME		0x019	/* on startup */
+#define KEYBD			0x0100	/* keyboard */
+#define RAWKEYBD		0x0101	/* raw keyboard for keyboard manager */
+#define REDRAW			0x0102	/* used by port manager to signal redraws */
+#define	INPUTCHANGE		0x0103	/* input connected or disconnected */
+#define	QFULL			0x0104	/* queue was filled */
+#define WINFREEZE		0x0105	/* user wants process in this win to shut up */
+#define WINTHAW			0x0106	/* user wants process in this win to go again */
+#define WINCLOSE		0x0107	/* window close */
+#define WINQUIT			0x0108	/* signal from user that app is to go away */
+#define Q_FIRSTTIME		0x0109	/* on startup */
+#define TIMER			0x0110	/* timer event */
+#define MESSAGE			0x0111	/* message event */
 
 /* standard keyboard */
 

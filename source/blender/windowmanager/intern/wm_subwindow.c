@@ -46,6 +46,7 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+#include "wm_subwindow.h"
 #include "wm_window.h"
 
 /* wmSubWindow stored in wmWindow... but not exposed outside this C file */
@@ -88,24 +89,6 @@ void wm_subwindows_free(wmWindow *win)
 }
 
 
-void wm_subwindow_getsize(wmWindow *win, int *x, int *y) 
-{
-	if(win->curswin) {
-		wmSubWindow *swin= win->curswin;
-		*x= swin->winrct.xmax - swin->winrct.xmin + 1;
-		*y= swin->winrct.ymax - swin->winrct.ymin + 1;
-	}
-}
-
-void wm_subwindow_getorigin(wmWindow *win, int *x, int *y)
-{
-	if(win->curswin) {
-		wmSubWindow *swin= win->curswin;
-		*x= swin->winrct.xmin;
-		*y= swin->winrct.ymin;
-	}
-}
-
 int wm_subwindow_get(wmWindow *win)	
 {
 	if(win->curswin)
@@ -123,6 +106,34 @@ static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 	return swin;
 }
 
+void wm_subwindow_getsize(wmWindow *win, int swinid, int *x, int *y) 
+{
+	wmSubWindow *swin= swin_from_swinid(win, swinid);
+
+	if(swin) {
+		*x= swin->winrct.xmax - swin->winrct.xmin + 1;
+		*y= swin->winrct.ymax - swin->winrct.ymin + 1;
+	}
+}
+
+void wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y)
+{
+	wmSubWindow *swin= swin_from_swinid(win, swinid);
+
+	if(swin) {
+		*x= swin->winrct.xmin;
+		*y= swin->winrct.ymin;
+	}
+}
+
+void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
+{
+	wmSubWindow *swin= swin_from_swinid(win, swinid);
+
+	if(swin)
+		Mat4MulMat4(mat, swin->viewmat, swin->winmat);
+}
+
 void wm_subwindow_set(wmWindow *win, int swinid)
 {
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
@@ -134,7 +145,7 @@ void wm_subwindow_set(wmWindow *win, int swinid)
 	}
 	
 	win->curswin= swin;
-	wm_subwindow_getsize(win, &width, &height);
+	wm_subwindow_getsize(win, swinid, &width, &height);
 
 	glViewport(swin->winrct.xmin, swin->winrct.ymin, width, height);
 	glScissor(swin->winrct.xmin, swin->winrct.ymin, width, height);
@@ -174,7 +185,7 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	wm_subwindow_set(win, swin->swinid);
 	
 	/* extra service */
-	wm_subwindow_getsize(win, &width, &height);
+	wm_subwindow_getsize(win, swin->swinid, &width, &height);
 	wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
 	wmLoadIdentity(win);
 
@@ -229,7 +240,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		
 		/* extra service */
 		wm_subwindow_set(win, swinid);
-		wm_subwindow_getsize(win, &width, &height);
+		wm_subwindow_getsize(win, swinid, &width, &height);
 		wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
 	}
 	else {
@@ -513,20 +524,5 @@ void myswapbuffers(void)	/* XXX */
 #else
 //	window_swap_buffers(winlay_mainwindow);
 #endif
-}
-
-
-/* *********************** PATTERNS ETC ***************** */
-
-void setlinestyle(int nr)	/* Move? XXX */
-{
-	if(nr==0) {
-		glDisable(GL_LINE_STIPPLE);
-	}
-	else {
-		
-		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(nr, 0xAAAA);
-	}
 }
 

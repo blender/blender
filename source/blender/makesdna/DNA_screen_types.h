@@ -46,7 +46,9 @@ struct wmWindowManager;
 typedef struct bScreen {
 	ID id;
 	
-	ListBase vertbase, edgebase, areabase;
+	ListBase vertbase, edgebase;
+	ListBase areabase;
+	ListBase regionbase;				/* screen level regions, runtime only */
 	struct Scene *scene;
 	
 	short scenenr, screennr;			/* only for pupmenu */
@@ -127,6 +129,7 @@ typedef struct ScrArea {
 	ListBase panels;
 	ListBase regionbase;	/* ARegion */
 	ListBase handlers;		/* wmEventHandler */
+	ListBase modalops;		/* wmOperator */
 	
 	ListBase actionzones;	/* AZone */
 } ScrArea;
@@ -149,8 +152,11 @@ typedef struct ARegion {
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
-	ListBase handlers;
+	ListBase uiblocks;
+	ListBase handlers;			/* wmEventHandler */
+	ListBase modalops;			/* wmOperator */
 	
+	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;
 
 /* area->flag */
@@ -205,6 +211,7 @@ typedef struct ARegion {
 /* regiontype, first two are the default set */
 #define RGN_TYPE_WINDOW		0
 #define RGN_TYPE_HEADER		1
+#define RGN_TYPE_TEMPORARY	2
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0
@@ -214,6 +221,7 @@ typedef struct ARegion {
 #define RGN_ALIGN_RIGHT		4
 #define RGN_ALIGN_HSPLIT	5
 #define RGN_ALIGN_VSPLIT	6
+#define RGN_ALIGN_FLOAT		7
 
 /* region flag */
 #define RGN_FLAG_HIDDEN		1

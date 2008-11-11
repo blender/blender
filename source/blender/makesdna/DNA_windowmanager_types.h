@@ -78,10 +78,8 @@ typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 	
 	void *ghostwin;		/* dont want to include ghost.h stuff */
-	void *timer;
-	int timer_event;
 	
-	int winid;	/* winid also in screens, is for retrieving this window after read */
+	int winid, pad;		/* winid also in screens, is for retrieving this window after read */
 	
 	struct bScreen *screen;	/* active screen */
 	char screenname[32];	/* MAX_ID_NAME for matching window with active screen after file read */
@@ -96,11 +94,12 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 	
-	ListBase queue;			/* all events (ghost level events were handled) */
-	ListBase handlers;		/* window+screen handlers, overriding all queues */
+	ListBase queue;				/* all events (ghost level events were handled) */
+	ListBase handlers;			/* window+screen handlers, overriding all queues */
+	ListBase modalops;			/* wmOperator, operators running modal */
 	
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
-	ListBase gesture;	/* gesture stuff */
+	ListBase gesture;		/* gesture stuff */
 } wmWindow;
 
 #
@@ -169,13 +168,16 @@ typedef struct wmOperator {
 	/* or IDproperty list */
 	IDProperty *properties;
 
+	/* runtime */
+	ListBase *modallist;
 } wmOperator;
 
-/* operator type exec(), invoke() modal(), cancel() return values */
-#define OPERATOR_PASS_THROUGH	0
+/* operator type exec(), invoke() modal(), return values */
 #define OPERATOR_RUNNING_MODAL	1
 #define OPERATOR_CANCELLED		2
-#define OPERATOR_FINISHED		3
+#define OPERATOR_FINISHED		4
+/* add this flag if the event should pass through */
+#define OPERATOR_PASS_THROUGH	8
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

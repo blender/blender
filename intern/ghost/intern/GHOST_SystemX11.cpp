@@ -309,7 +309,10 @@ processEvents(
 			if (next==GHOST_kFireTimeNever) {
 				SleepTillEvent(m_display, -1);
 			} else {
-				SleepTillEvent(m_display, next - getMilliSeconds());
+				GHOST_TInt64 maxSleep = next - getMilliSeconds();
+
+				if(maxSleep >= 0)
+					SleepTillEvent(m_display, next - getMilliSeconds());
 			}
 		}
 		

@@ -90,11 +90,21 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 	}
 }
 
+/* not region itself */
+void BKE_area_region_free(ARegion *ar)
+{
+	if(ar->type && ar->type->free)
+		ar->type->free(ar);
+}
 
 /* not area itself */
 void BKE_screen_area_free(ScrArea *sa)
 {
+	ARegion *ar;
 	
+	for(ar=sa->regionbase.first; ar; ar=ar->next)
+		BKE_area_region_free(ar);
+
 	BKE_spacedata_freelist(&sa->spacedata);
 	
 	BLI_freelistN(&sa->regionbase);

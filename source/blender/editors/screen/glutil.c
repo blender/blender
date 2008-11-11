@@ -151,6 +151,18 @@ void sdrawbox(short x1, short y1, short x2, short y2)
 
 /* ******************************************** */
 
+void setlinestyle(int nr)
+{
+	if(nr==0) {
+		glDisable(GL_LINE_STIPPLE);
+	}
+	else {
+		
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(nr, 0xAAAA);
+	}
+}
+
 	/* Invert line handling */
 	
 #define glToggle(mode, onoff)	(((onoff)?glEnable:glDisable)(mode))

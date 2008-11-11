@@ -423,17 +423,15 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 		GHOST_TimerManager* timerMgr = getTimerManager();
 
 		if (waitForEvent) {
-			GHOST_TUns64 curtime = getMilliSeconds();
 			GHOST_TUns64 next = timerMgr->nextFireTime();
 			double timeOut;
 			
 			if (next == GHOST_kFireTimeNever) {
 				timeOut = kEventDurationForever;
 			} else {
-				if (next<=curtime)
+				timeOut = (double)(next - getMilliSeconds())/1000.0;
+				if (timeOut < 0.0)
 					timeOut = 0.0;
-				else
-					timeOut = (double) (next - getMilliSeconds())/1000.0;
 			}
 			
 			::ReceiveNextEvent(0, NULL, timeOut, false, &event);

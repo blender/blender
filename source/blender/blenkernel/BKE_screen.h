@@ -82,10 +82,12 @@ typedef struct ARegionType {
 	void		(*draw)(const struct bContext *, struct ARegion *);		/* draw entirely, windowsize changes should be handled here */
 	
 	void		(*listener)(struct ARegion *, struct wmNotifier *);
+	void		(*free)(struct ARegion *);
 } ARegionType;
 
 
 void BKE_screen_area_free(struct ScrArea *sa);
+void BKE_area_region_free(struct ARegion *ar);
 void free_screen(struct bScreen *sc); 
 
 struct SpaceType *BKE_spacetype_from_id(int spaceid);

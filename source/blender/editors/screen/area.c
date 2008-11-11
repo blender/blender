@@ -173,6 +173,8 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	
 	/* hidden is user flag */
 	if(ar->flag & RGN_FLAG_HIDDEN);
+	/* XXX floating area region, not handled yet here */
+	else if(ar->alignment == RGN_ALIGN_FLOAT);
 	/* remainder is too small for any usage */
 	else if( rct_fits(remainder, 'v', 1)==0 || rct_fits(remainder, 'h', 1) < 0 ) {
 		ar->flag |= RGN_FLAG_TOO_SMALL;
@@ -189,7 +191,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 		}
 		else {
 			int fac= rct_fits(remainder, 'v', ar->size);
-			
+
 			if(fac < 0 )
 				ar->size += fac;
 			
@@ -352,6 +354,20 @@ void area_azone_initialize(ScrArea *sa) {
 	}
 }
 
+/* used for area and screen regions */
+void ED_region_initialize(wmWindowManager *wm, wmWindow *win, ARegion *ar)
+{
+	if(ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
+		if(ar->swinid)
+			wm_subwindow_close(win, ar->swinid);
+		ar->swinid= 0;
+	}
+	else if(ar->swinid==0)
+		ar->swinid= wm_subwindow_open(win, &ar->winrct);
+	else 
+		wm_subwindow_position(win, ar->swinid, &ar->winrct);
+}
+
 /* called in screen_refresh, or screens_init */
 void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
@@ -376,17 +392,8 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	region_rect_recursive(sa->regionbase.first, &rect);
 	
 	/* region windows */
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
-			if(ar->swinid)
-				wm_subwindow_close(win, ar->swinid);
-			ar->swinid= 0;
-		}
-		else if(ar->swinid==0)
-			ar->swinid= wm_subwindow_open(win, &ar->winrct);
-		else 
-			wm_subwindow_position(win, ar->swinid, &ar->winrct);
-	}
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		ED_region_initialize(wm, win, ar);
 	
 	area_azone_initialize(sa);
 }
@@ -435,8 +442,11 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	/* regions */
 	BLI_freelistN(&sa1->regionbase);
 	BLI_duplicatelist(&sa1->regionbase, &sa2->regionbase);
-	for(ar= sa1->regionbase.first; ar; ar= ar->next)
+	for(ar= sa1->regionbase.first; ar; ar= ar->next) {
+		ar->handlers.first= ar->handlers.last= NULL;
+		ar->uiblocks.first= ar->uiblocks.last= NULL;
 		ar->swinid= 0;
+	}
 		
 	/* scripts */
 	BPY_free_scriptlink(&sa1->scriptlink);

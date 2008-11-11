@@ -206,6 +206,7 @@ void bglVertex2fv(float *vec);
 void bglFlush(void);
 int is_a_really_crappy_intel_card(void);
 void set_inverted_drawing(int enable);
+void setlinestyle(int nr);
 
 
 /* own working polygon offset */

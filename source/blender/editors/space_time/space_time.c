@@ -202,7 +202,7 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 	/* add types to regions */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype == RGN_TYPE_WINDOW) {
-			static ARegionType mainart={NULL, NULL, NULL, NULL};
+			static ARegionType mainart={NULL, NULL, NULL, NULL, NULL};
 
 			mainart.init= time_main_area_init;
 			mainart.refresh= time_main_area_refresh;
@@ -216,11 +216,11 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			 * to add the keymap handler, also will need to take care of
 			 * area type changes, etc, basically space callbacks need to
 			 * be looked at further */
-			WM_event_remove_keymap_handler(&wm->timekeymap, &ar->handlers);
-			WM_event_add_keymap_handler(&wm->timekeymap, &ar->handlers);
+			WM_event_remove_keymap_handler(&ar->handlers, &wm->timekeymap);
+			WM_event_add_keymap_handler(&ar->handlers, &wm->timekeymap);
 		}
 		else {
-			static ARegionType art={NULL, NULL, NULL, NULL};
+			static ARegionType art={NULL, NULL, NULL, NULL, NULL};
 
 			/* for time being; register 1 type */
 			ar->type= &art;

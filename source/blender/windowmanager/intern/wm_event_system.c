@@ -73,7 +73,8 @@ wmEvent *wm_event_next(wmWindow *win)
 
 static void wm_event_free(wmEvent *event)
 {
-	if(event->customdata) MEM_freeN(event->customdata);
+	if(event->customdata && event->customdatafree)
+		MEM_freeN(event->customdata);
 	MEM_freeN(event);
 }
 
@@ -121,6 +122,7 @@ void wm_event_do_notifiers(bContext *C)
 		
 		for(win= C->wm->windows.first; win; win= win->next) {
 			ScrArea *sa;
+			ARegion *ar;
 
 			C->window= win;
 			C->screen= win->screen;
@@ -130,15 +132,22 @@ void wm_event_do_notifiers(bContext *C)
 			if(win->screen==NULL)
 				continue;
 
-			printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2);
+			/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
 			ED_screen_do_listen(win, note);
+
+			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
+				if(note->swinid && note->swinid!=ar->swinid)
+					continue;
+
+				C->region= ar;
+				ED_region_do_listen(ar, note);
+				C->region= NULL;
+			}
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				ARegion *ar= sa->regionbase.first;
-				
 				C->area= sa;
 
-				for(; ar; ar= ar->next) {
+				for(ar=sa->regionbase.first; ar; ar= ar->next) {
 					if(note->swinid && note->swinid!=ar->swinid)
 						continue;
 
@@ -163,6 +172,7 @@ void wm_event_do_notifiers(bContext *C)
 static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
+	ARegion *ar;
 	
 	if(win->screen->do_refresh)
 		return 1;
@@ -171,10 +181,16 @@ static int wm_draw_update_test_window(wmWindow *win)
 	if(win->screen->do_gesture)
 		return 1;
 
+	for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
+		/* cached notifiers */
+		if(ar->do_refresh)
+			return 1;
+		if(ar->swinid && ar->do_draw)
+			return 1;
+	}
+
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		ARegion *ar= sa->regionbase.first;
-		
-		for(; ar; ar= ar->next) {
+		for(ar=sa->regionbase.first; ar; ar= ar->next) {
 			/* cached notifiers */
 			if(ar->do_refresh)
 				return 1;
@@ -192,6 +208,7 @@ void wm_draw_update(bContext *C)
 	for(win= C->wm->windows.first; win; win= win->next) {
 		if(wm_draw_update_test_window(win)) {
 			ScrArea *sa;
+			ARegion *ar;
 
 			C->window= win;
 			C->screen= win->screen;
@@ -202,16 +219,11 @@ void wm_draw_update(bContext *C)
 			/* notifiers for screen redraw */
 			if(win->screen->do_refresh)
 				ED_screen_refresh(C->wm, win);
-			
-			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				ARegion *ar= sa->regionbase.first;
-				int hasdrawn= 0;
 
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				C->area= sa;
 				
-				for(; ar; ar= ar->next) {
-					hasdrawn |= ar->do_draw;
-
+				for(ar=sa->regionbase.first; ar; ar= ar->next) {
 					C->region= ar;
 					
 					/* cached notifiers */
@@ -230,6 +242,19 @@ void wm_draw_update(bContext *C)
 			/* move this here so we can do area 'overlay' drawing */
 			if(win->screen->do_draw)
 				ED_screen_draw(win);
+
+			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
+				C->region= ar;
+				
+				/* cached notifiers */
+				if(ar->do_refresh)
+					ED_region_do_refresh(C, ar);
+				
+				if(ar->swinid && ar->do_draw)
+					ED_region_do_draw(C, ar);
+
+				C->region= NULL;
+			}
 			
 			if(win->screen->do_gesture)
 				ED_screen_gesture(win);
@@ -238,6 +263,73 @@ void wm_draw_update(bContext *C)
 
 			C->window= NULL;
 			C->screen= NULL;
+		}
+	}
+}
+
+/* ********************* operators ******************* */
+
+static ListBase *wm_modalops_list(bContext *C)
+{
+	if(C->region)
+		return &C->region->modalops;
+	else if(C->area)
+		return &C->area->modalops;
+	else if(C->window)
+		return &C->window->modalops;
+	else
+		return NULL;
+}
+
+int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
+{
+	int retval= OPERATOR_PASS_THROUGH;
+
+	if(ot->poll==NULL || ot->poll(C)) {
+		wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
+
+		op->type= ot;
+
+		if(op->type->invoke)
+			retval= (*op->type->invoke)(C, op, event);
+		else if(op->type->exec)
+			retval= op->type->exec(C, op);
+
+		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
+			wm_operator_register(C->wm, op);
+		}
+		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
+			wm_operator_free(op);
+		}
+		else {
+			op->modallist= wm_modalops_list(C);
+			BLI_addtail(op->modallist, op);
+		}
+	}
+
+	return retval;
+}
+
+void WM_operator_cancel(bContext *C, ListBase *lb, wmOperatorType *type)
+{
+	wmOperator *op, *nextop;
+
+	if(!lb)
+		lb= wm_modalops_list(C);
+	if(!lb)
+		return;
+
+	for(op=lb->first; op; op=nextop) {
+		nextop= op->next;
+
+		if(type == NULL || op->type == type) {
+			if(op->type->cancel)
+				op->type->cancel(C, op);
+
+			BLI_remlink(op->modallist, op);
+			op->modallist= NULL;
+
+			wm_operator_free(op);
 		}
 	}
 }
@@ -257,6 +349,11 @@ void wm_event_free_handlers(ListBase *lb)
 		wm_event_free_handler(handler);
 	
 	BLI_freelistN(lb);
+}
+
+void WM_event_remove_handlers(ListBase *handlers)
+{
+	wm_event_free_handlers(handlers);
 }
 
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
@@ -289,13 +386,18 @@ static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEven
 		wmOperatorType *ot= op->type;
 
 		if(ot->modal) {
-
 			retval= ot->modal(C, op, event);
 
-			if(retval == OPERATOR_FINISHED && (ot->flag & OPTYPE_REGISTER))
+			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
+				BLI_remlink(op->modallist, op);
+				op->modallist= NULL;
 				wm_operator_register(C->wm, op);
-			else if(retval == OPERATOR_CANCELLED || retval == OPERATOR_FINISHED)
+			}
+			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+				BLI_remlink(op->modallist, op);
+				op->modallist= NULL;
 				wm_operator_free(op);
+			}
 		}
 		else
 			printf("wm_handler_operator_call error\n");
@@ -303,36 +405,27 @@ static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEven
 	else {
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
 
-		if(ot) {
-			if(ot->poll==NULL || ot->poll(C)) {
-				wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
-
-				op->type= ot;
-
-				if(op->type->invoke)
-					retval= (*op->type->invoke)(C, op, event);
-				else if(op->type->exec)
-					retval= op->type->exec(C, op);
-
-				if(retval == OPERATOR_FINISHED && (ot->flag & OPTYPE_REGISTER))
-					wm_operator_register(C->wm, op);
-				else if(retval != OPERATOR_RUNNING_MODAL)
-					wm_operator_free(op);
-			}
-		}
+		if(ot)
+			retval= WM_operator_invoke(C, ot, event);
 	}
 
-	if(retval == OPERATOR_PASS_THROUGH)
+	if(retval & OPERATOR_PASS_THROUGH)
 		return WM_HANDLER_CONTINUE;
 
 	return WM_HANDLER_BREAK;
+}
+
+static int wm_event_always_pass(wmEvent *event)
+{
+	/* some events we always pass on, to ensure proper communication */
+	return (event->type == TIMER || event->type == MESSAGE);
 }
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
-	
+
 	if(handlers==NULL) return action;
 	
 	/* in this loop, the handler might be freed in wm_handler_operator_call,
@@ -349,13 +442,13 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			
 			for(km= handler->keymap->first; km; km= km->next) {
 				if(wm_eventmatch(event, km)) {
-					if(event->type!=MOUSEMOVE)
-						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname);
+					/*if(event->type!=MOUSEMOVE)
+						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname);*/
 					
 					event->keymap_idname= km->idname;	/* weak, but allows interactive callback to not use rawkey */
 					
 					action= wm_handler_operator_call(C, handler, event);
-					if(action==WM_HANDLER_BREAK)
+					if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
 						break;
 				}
 			}
@@ -365,7 +458,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			action= wm_handler_operator_call(C, handler, event);
 		}
 
-		if(action==WM_HANDLER_BREAK)
+		if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
 			break;
 		
 	}
@@ -401,30 +494,55 @@ void wm_event_do_handlers(bContext *C)
 			
 			action= wm_handlers_do(C, event, &win->handlers);
 			
-			if(action==WM_HANDLER_CONTINUE) {
-				ScrArea *sa= win->screen->areabase.first;
-				
-				for(; sa; sa= sa->next) {
-					if(wm_event_inside_i(event, &sa->totrct)) {
-						
+			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
+				ARegion *ar;
+
+				/* region are in drawing order, i.e. frontmost region last so
+				 * we handle events in the opposite order last to first */
+				for(ar=win->screen->regionbase.last; ar; ar= ar->prev) {
+					if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
+						C->region= ar;
+						wm_handlers_do(C, event, &ar->handlers);
+						C->region= NULL;
+
+						if(!wm_event_always_pass(event)) {
+							action= WM_HANDLER_BREAK;
+							break;
+						}
+					}
+				}
+			}
+	
+			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
+				ScrArea *sa;
+				ARegion *ar;
+
+				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+					if(wm_event_always_pass(event) || wm_event_inside_i(event, &sa->totrct)) {
 						C->area= sa;
 						action= wm_handlers_do(C, event, &sa->handlers);
-						if(action==WM_HANDLER_CONTINUE) {
-							ARegion *ar= sa->regionbase.first;
-							
-							for(; ar; ar= ar->next) {
-								if(wm_event_inside_i(event, &ar->winrct)) {
+
+						if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
+							for(ar=sa->regionbase.first; ar; ar= ar->next) {
+								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
 									C->region= ar;
 									action= wm_handlers_do(C, event, &ar->handlers);
 									C->region= NULL;
-									if(action==WM_HANDLER_BREAK)
+
+									if(!wm_event_always_pass(event)) {
+										action= WM_HANDLER_BREAK;
 										break;
+									}
 								}
 							}
 						}
+
 						C->area= NULL;
-						if(action==WM_HANDLER_BREAK)
+
+						if(!wm_event_always_pass(event)) {
+							action= WM_HANDLER_BREAK;
 							break;
+						}
 					}
 				}
 			}
@@ -472,7 +590,7 @@ void WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op)
 	}
 }
 
-wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers)
+wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)
 {
 	wmEventHandler *handler;
 	
@@ -484,11 +602,11 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers
 	handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
-	
+
 	return handler;
 }
 
-void WM_event_remove_keymap_handler(ListBase *keymap, ListBase *handlers)
+void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
 {
 	wmEventHandler *handler;
 	
@@ -499,6 +617,24 @@ void WM_event_remove_keymap_handler(ListBase *keymap, ListBase *handlers)
 			MEM_freeN(handler);
 			break;
 		}
+	}
+}
+
+void WM_event_add_message(wmWindowManager *wm, void *customdata, short customdatafree)
+{
+	wmEvent event;
+	wmWindow *win;
+
+	for(win=wm->windows.first; win; win=win->next) {
+		event= *(win->eventstate);
+
+		event.type= MESSAGE;
+		if(customdata) {
+			event.custom= EVT_MESSAGE;
+			event.customdata= customdata;
+			event.customdatafree= customdatafree;
+		}
+		wm_event_add(win, &event);
 	}
 }
 
@@ -596,6 +732,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		
 		event->custom= EVT_TABLET;
 		event->customdata= wmtab;
+		event->customdatafree= 1;
 	} 
 }
 
@@ -688,6 +825,15 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			
 			break;
 		}
+		case GHOST_kEventTimer: {
+			event.type= TIMER;
+			event.custom= EVT_TIMER;
+			event.customdata= customdata;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
 		case GHOST_kEventUnknown:
 		case GHOST_kNumEventTypes:
 			break;

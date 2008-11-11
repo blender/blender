@@ -76,12 +76,6 @@ static void wm_get_screensize(int *width_r, int *height_r)
 
 static void wm_ghostwindow_destroy(wmWindow *win) 
 {
-	
-	if (win->timer) {
-		GHOST_RemoveTimer(g_system, (GHOST_TimerTaskHandle)win->timer);
-		win->timer= NULL;
-	}
-	
 	if(win->ghostwin) {
 		GHOST_DisposeWindow(g_system, win->ghostwin);
 		win->ghostwin= NULL;
@@ -91,6 +85,7 @@ static void wm_ghostwindow_destroy(wmWindow *win)
 /* including window itself */
 void wm_window_free(bContext *C, wmWindow *win)
 {
+	ED_screen_exit(C, win, win->screen);
 	
 	/* update context */
 	if(C) {
@@ -103,12 +98,12 @@ void wm_window_free(bContext *C, wmWindow *win)
 		if(C->screen==win->screen)
 			C->screen= NULL;
 	}	
+
 	/* XXX free screens */
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
 
 	WM_gesture_free(win);
-	wm_event_free_handlers(&win->handlers);
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
 	
@@ -276,8 +271,8 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
 		/* add keymap handlers (1 for all keys in map!) */
-		WM_event_add_keymap_handler(&wm->windowkeymap, &win->handlers);
-		WM_event_add_keymap_handler(&wm->screenkeymap, &win->handlers);
+		WM_event_add_keymap_handler(&win->handlers, &wm->windowkeymap);
+		WM_event_add_keymap_handler(&win->handlers, &wm->screenkeymap);
 		
 		/* until screens get drawn, make it nice grey */
 		glClearColor(.55, .55, .55, 0.0);
@@ -523,19 +518,24 @@ void wm_ghost_init(bContext *C)
 
 /* **************** timer ********************** */
 
-static void window_timer_proc(GHOST_TimerTaskHandle timer, GHOST_TUns64 time)
+static void window_event_timer_proc(GHOST_TimerTaskHandle timer, GHOST_TUns64 time)
 {
-	wmWindow *win= GHOST_GetTimerTaskUserData(timer);
-	
-	wm_event_add_ghostevent(win, win->timer_event, NULL);
+	wmWindow *window;
+
+	window= GHOST_GetTimerTaskUserData(timer);
+
+	wm_event_add_ghostevent(window, GHOST_kEventTimer, (wmTimerHandle*)timer);
 }
 
-void wm_window_set_timer(wmWindow *win, int delay_ms, int event)
+wmTimerHandle *WM_event_add_window_timer(wmWindow *win, int delay_ms, int interval_ms)
 {
-	if (win->timer) GHOST_RemoveTimer(g_system, win->timer);
-	
-	win->timer_event= event;
-	win->timer= GHOST_InstallTimer(g_system, delay_ms, delay_ms, window_timer_proc, win);
+	return (wmTimerHandle*)GHOST_InstallTimer(g_system, delay_ms, interval_ms,
+		window_event_timer_proc, win);
+}
+
+void WM_event_remove_window_timer(wmWindow *wm, wmTimerHandle *handle)
+{
+	GHOST_RemoveTimer(g_system, (GHOST_TimerTaskHandle)handle);
 }
 
 /* ************************************ */

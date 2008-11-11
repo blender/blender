@@ -128,7 +128,7 @@ static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
 	
 	/* add types to regions */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		static ARegionType art={NULL, NULL, NULL, NULL};
+		static ARegionType art={NULL, NULL, NULL, NULL, NULL};
 		
 		/* for time being; register 1 type */
 		ar->type= &art;

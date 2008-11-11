@@ -63,6 +63,7 @@ typedef struct wmEvent {
 	/* custom data */
 	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
 	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	short customdatafree;
 	
 } wmEvent;
 
@@ -137,6 +138,9 @@ typedef struct wmBorderSelect {
 	short x1, y1;
 	short x2, y2;
 } wmBorderSelect;
+
+struct wmTimerHandle;
+typedef struct wmTimerHandle wmTimerHandle;
 
 /* ****************** Messages ********************* */
 

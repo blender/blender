@@ -190,11 +190,12 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 			::Sleep(1);
 #else
 			GHOST_TUns64 next = timerMgr->nextFireTime();
+			GHOST_TInt64 maxSleep = next - getMilliSeconds();
 			
 			if (next == GHOST_kFireTimeNever) {
 				::WaitMessage();
-			} else {
-				::SetTimer(NULL, 0, next - getMilliSeconds(), NULL);
+			} else if(maxSleep >= 0.0) {
+				::SetTimer(NULL, 0, maxSleep, NULL);
 				::WaitMessage();
 				::KillTimer(NULL, 0);
 			}

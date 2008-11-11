@@ -3492,6 +3492,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
+		win->modalops.first= win->modalops.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
 	}
 	
@@ -3836,7 +3837,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->vertbase));
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
-	
+	sc->regionbase.first= sc->regionbase.last= NULL;
+
 	sc->mainwin= sc->subwinactive= 0;	/* indices */
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
@@ -3875,6 +3877,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		link_list(fd, &(sa->regionbase));
 
 		sa->handlers.first= sa->handlers.last= NULL;
+		sa->modalops.first= sa->modalops.last= NULL;
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		sa->type= NULL;	/* spacetype callbacks */
 		
@@ -3937,6 +3940,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		
 		for(ar= sa->regionbase.first; ar; ar= ar->next) {
 			ar->handlers.first= ar->handlers.last= NULL;
+			ar->modalops.first= ar->modalops.last= NULL;
+			ar->uiblocks.first= ar->uiblocks.last= NULL;
+			ar->regiondata= NULL;
 			ar->swinid= 0;
 			ar->type= NULL;
 		}
