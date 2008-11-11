@@ -47,9 +47,10 @@
 #include "WM_types.h"
 #include "wm_subwindow.h"
 
-#include "BIF_resources.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "UI_resources.h"
 
 #include "BPY_extern.h"
 
@@ -112,9 +113,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	wm_subwindow_set(C->window, ar->swinid);
 	
 	if(ar->swinid && at->draw) {
-		BIF_SetTheme(C->area);
+		UI_SetTheme(C->area);
 		at->draw(C, ar);
-		BIF_SetTheme(NULL);
+		UI_SetTheme(NULL);
 	}
 	else {
 		float fac= 0.1*ar->swinid;

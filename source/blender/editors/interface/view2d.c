@@ -13,8 +13,9 @@
 #include "WM_api.h"
 
 #include "BIF_gl.h"
-#include "BIF_resources.h"
-#include "BIF_view2d.h"
+
+#include "UI_resources.h"
+#include "UI_view2d.h"
 
 /* minimum pixels per gridstep */
 #define IPOSTEP 35
@@ -24,11 +25,65 @@ struct View2DGrid {
 	int machtx, machty;
 };
 
-/* OpenGL setup */
+/* Setup */
 
-void BIF_view2d_ortho(const bContext *C, View2D *v2d)
+void UI_view2d_ortho(const bContext *C, View2D *v2d)
 {
 	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
+}
+
+void UI_view2d_update_size(View2D *v2d, int winx, int winy)
+{
+	v2d->mask.xmin= v2d->mask.ymin= 0;
+	v2d->mask.xmax= winx;
+	v2d->mask.ymax= winy;
+	
+#if 0
+	if(sa->spacetype==SPACE_ACTION) {
+		if(sa->winx > ACTWIDTH+50) { 
+			v2d->mask.xmin+= ACTWIDTH;
+			v2d->hor.xmin+=ACTWIDTH;
+		}
+	}
+	else if(sa->spacetype==SPACE_NLA){
+		if(sa->winx > NLAWIDTH+50) { 
+			v2d->mask.xmin+= NLAWIDTH;
+			v2d->hor.xmin+=NLAWIDTH;
+		}
+	}
+	else if(sa->spacetype==SPACE_IPO) {
+		int ipobutx = calc_ipobuttonswidth(sa);
+		
+		v2d->mask.xmax-= ipobutx;
+		
+		if(v2d->mask.xmax<ipobutx)
+			v2d->mask.xmax= winx;
+	}
+#endif
+	
+	if(v2d->scroll) {
+		if(v2d->scroll & L_SCROLL) {
+			v2d->vert= v2d->mask;
+			v2d->vert.xmax= SCROLLB;
+			v2d->mask.xmin= SCROLLB;
+		}
+		else if(v2d->scroll & R_SCROLL) {
+			v2d->vert= v2d->mask;
+			v2d->vert.xmin= v2d->vert.xmax-SCROLLB;
+			v2d->mask.xmax= v2d->vert.xmin;
+		}
+		
+		if((v2d->scroll & B_SCROLL) || (v2d->scroll & B_SCROLLO)) {
+			v2d->hor= v2d->mask;
+			v2d->hor.ymax= SCROLLH;
+			v2d->mask.ymin= SCROLLH;
+		}
+		else if(v2d->scroll & T_SCROLL) {
+			v2d->hor= v2d->mask;
+			v2d->hor.ymin= v2d->hor.ymax-SCROLLH;
+			v2d->mask.ymax= v2d->hor.ymin;
+		}
+	}
 }
 
 /* Grid */
@@ -71,7 +126,7 @@ static void step_to_grid(float *step, int *macht, int unit)
 	}
 }
 
-View2DGrid *BIF_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int clamp, int winx, int winy)
+View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int clamp, int winx, int winy)
 {
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
@@ -123,7 +178,7 @@ View2DGrid *BIF_view2d_calc_grid(const bContext *C, View2D *v2d, int unit, int c
 	return grid;
 }
 
-void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
+void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
@@ -136,7 +191,7 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int 
 		
 		step= (v2d->mask.xmax - v2d->mask.xmin+1)/IPOSTEP;
 		
-		BIF_ThemeColor(TH_GRID);
+		UI_ThemeColor(TH_GRID);
 		
 		for(a=0; a<step; a++) {
 			glBegin(GL_LINE_STRIP);
@@ -147,7 +202,7 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int 
 		
 		vec2[0]= vec1[0]-= 0.5*grid->dx;
 		
-		BIF_ThemeColorShade(TH_GRID, 16);
+		UI_ThemeColorShade(TH_GRID, 16);
 		
 		step++;
 		for(a=0; a<=step; a++) {
@@ -166,7 +221,7 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int 
 		
 		step= (C->area->winy+1)/IPOSTEP;
 		
-		BIF_ThemeColor(TH_GRID);
+		UI_ThemeColor(TH_GRID);
 		for(a=0; a<=step; a++) {
 			glBegin(GL_LINE_STRIP);
 			glVertex2fv(vec1); glVertex2fv(vec2);
@@ -177,7 +232,7 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int 
 		step++;
 	}
 	
-	BIF_ThemeColorShade(TH_GRID, -50);
+	UI_ThemeColorShade(TH_GRID, -50);
 	
 	if(flag & V2D_HORIZONTAL_AXIS) {
 		/* horizontal axis */
@@ -203,14 +258,14 @@ void BIF_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int 
 	}
 }
 
-void BIF_view2d_free_grid(View2DGrid *grid)
+void UI_view2d_free_grid(View2DGrid *grid)
 {
 	MEM_freeN(grid);
 }
 
 /* Coordinate conversion */
 
-void BIF_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, float *viewy)
+void UI_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, float *viewy)
 {
 	float div, ofs;
 
@@ -229,7 +284,7 @@ void BIF_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, floa
 	}
 }
 
-void BIF_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, short *regiony)
+void UI_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, short *regiony)
 {
 	*regionx= V2D_IS_CLIPPED;
 	*regiony= V2D_IS_CLIPPED;
@@ -247,7 +302,7 @@ void BIF_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, sh
 	}
 }
 
-void BIF_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, short *regiony)
+void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, short *regiony)
 {
 	x= (x - v2d->cur.xmin)/(v2d->cur.xmax-v2d->cur.xmin);
 	y= (x - v2d->cur.ymin)/(v2d->cur.ymax-v2d->cur.ymin);
@@ -267,4 +322,5 @@ void BIF_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx,
 		else *regiony= y;
 	}
 }
+
 

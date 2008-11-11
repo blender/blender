@@ -45,7 +45,9 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../ftfont
 
 # own include 
 

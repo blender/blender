@@ -74,9 +74,10 @@
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
-// XXX #include "BPY_extern.h"
+#include "ED_datafiles.h"
+#include "UI_interface.h"
 
-//XXX #include "datatoc.h"
+// XXX #include "BPY_extern.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -90,8 +91,8 @@
 /* patching UserDef struct and Themes */
 static void init_userdef_themes(void)
 {
-	
-// XXX	BIF_InitTheme();	// sets default again
+	// sets themes, fonts, .. from userdef
+	UI_init_userdef();
 	
 //	countall();
 	
@@ -556,8 +557,6 @@ int WM_read_homefile(bContext *C, int from_memory)
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL);
 	} else {
-		extern int datatoc_B_blend_size;
-		extern char datatoc_B_blend[];
 		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
 		/* outliner patch for 2.42 .b.blend */
 		outliner_242_patch();

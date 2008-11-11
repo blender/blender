@@ -29,17 +29,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_rand.h"
 
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -51,8 +46,10 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_resources.h"
-#include "BIF_view2d.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "time_intern.h"
 
@@ -64,14 +61,13 @@ static void time_draw_cfra_time(const bContext *C, SpaceTime *stime)
 	Scene *scene= C->scene;
 	float vec[2];
 	
-	vec[0]= scene->r.cfra;
-	vec[0]*= scene->r.framelen;
+	vec[0]= scene->r.cfra*scene->r.framelen;
 
-	vec[1]= stime->v2d.cur.ymin;
-	BIF_ThemeColor(TH_CFRAME);	// no theme, should be global color once...
+	UI_ThemeColor(TH_CFRAME);	// no theme, should be global color once...
 	glLineWidth(3.0);
 
 	glBegin(GL_LINES);
+		vec[1]= stime->v2d.cur.ymin;
 		glVertex2fv(vec);
 		vec[1]= stime->v2d.cur.ymax;
 		glVertex2fv(vec);
@@ -84,7 +80,7 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime)
 {
     /* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
-	BIF_ThemeColorShade(TH_BACK, -25);
+	UI_ThemeColorShade(TH_BACK, -25);
 
 	if (PSFRA < PEFRA) {
 		glRectf(stime->v2d.cur.xmin, stime->v2d.cur.ymin, PSFRA, stime->v2d.cur.ymax);
@@ -94,7 +90,7 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime)
 		glRectf(stime->v2d.cur.xmin, stime->v2d.cur.ymin, stime->v2d.cur.xmax, stime->v2d.cur.ymax);
 	}
 
-	BIF_ThemeColorShade(TH_BACK, -60);
+	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
 	fdrawline(PSFRA, stime->v2d.cur.ymin, PSFRA, stime->v2d.cur.ymax);
 	fdrawline(PEFRA, stime->v2d.cur.ymin, PEFRA, stime->v2d.cur.ymax);
@@ -121,21 +117,23 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	winx= ar->winrct.xmax-ar->winrct.xmin;
 	winy= ar->winrct.ymax-ar->winrct.ymin;
 
+	UI_view2d_update_size(&stime->v2d, winx, winy);
+
 	/* clear and setup matrix */
-	BIF_GetThemeColor3fv(TH_BACK, col);
+	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	BIF_view2d_ortho(C, &stime->v2d);
+	UI_view2d_ortho(C, &stime->v2d);
 
 	/* start and end frame */
 	time_draw_sfra_efra(C, stime);
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= BIF_view2d_calc_grid(C, &stime->v2d, unit, V2D_GRID_CLAMP, winx, winy);
-	BIF_view2d_draw_grid(C, &stime->v2d, grid, V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS);
-	BIF_view2d_free_grid(grid);
+	grid= UI_view2d_calc_grid(C, &stime->v2d, unit, V2D_GRID_CLAMP, winx, winy);
+	UI_view2d_draw_grid(C, &stime->v2d, grid, V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS);
+	UI_view2d_free_grid(grid);
 
 	/* current frame */
 	time_draw_cfra_time(C, stime);
@@ -144,6 +142,25 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* draw entirely, windowsize changes should be handled here */
+}
+
+/* ************************ header time area region *********************** */
+
+static void time_header_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+
+	/* clear */
+	UI_GetThemeColor3fv(TH_HEADER, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	uiTestRegion(C);
+}
+
+static void time_header_area_free(ARegion *ar)
+{
+	uiFreeBlocks(&ar->uiblocks);
 }
 
 /* ******************** default callbacks for time space ***************** */
@@ -218,6 +235,15 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			 * be looked at further */
 			WM_event_remove_keymap_handler(&ar->handlers, &wm->timekeymap);
 			WM_event_add_keymap_handler(&ar->handlers, &wm->timekeymap);
+		}
+		else if(ar->regiontype == RGN_TYPE_HEADER) {
+			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
+
+			headerart.draw= time_header_area_draw;
+			headerart.free= time_header_area_free;
+
+			ar->type= &headerart;
+			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
 		}
 		else {
 			static ARegionType art={NULL, NULL, NULL, NULL, NULL};

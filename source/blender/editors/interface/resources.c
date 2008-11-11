@@ -51,8 +51,9 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_resources.h"
-#include "BIF_interface_icons.h"
+
+#include "UI_resources.h"
+//#include "UI_icons.h"
 
 #include "BLI_blenlib.h"
 
@@ -63,14 +64,14 @@ static bTheme *theme_active=NULL;
 static int theme_spacetype= SPACE_VIEW3D;
 
 
-void BIF_resources_init(void)
+void ui_resources_init(void)
 {
-	BIF_icons_init(BIFICONID_LAST+1);
+	// XXX 2.50 missing UI_icons_init(BIFICONID_LAST+1);
 }
 
-void BIF_resources_free(void)
+void ui_resources_free(void)
 {
-	BIF_icons_free();
+	// XXX 2.50 missing UI_icons_free();
 }
 
 
@@ -78,7 +79,7 @@ void BIF_resources_free(void)
 /*    THEMES */
 /* ******************************************************** */
 
-char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
+char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 {
 	ThemeSpace *ts= NULL;
 	static char error[4]={240, 0, 240, 255};
@@ -328,7 +329,7 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
    Note: when you add new colors, created & saved themes need initialized
    in usiblender.c, search for "versionfile"
 */
-void BIF_InitTheme(void)
+void ui_theme_init_userdef(void)
 {
 	bTheme *btheme= U.themes.first;
 	
@@ -343,7 +344,7 @@ void BIF_InitTheme(void)
 		strcpy(btheme->name, "Default");
 	}
 	
-	BIF_SetTheme(NULL);	// make sure the global used in this file is set
+	UI_SetTheme(NULL);	// make sure the global used in this file is set
 
 	/* UI buttons (todo) */
 	SETCOL(btheme->tui.outline, 	0xA0,0xA0,0xA0, 255);
@@ -542,7 +543,7 @@ void BIF_InitTheme(void)
 
 }
 
-char *BIF_ThemeColorsPup(int spacetype)
+char *UI_ThemeColorsPup(int spacetype)
 {
 	char *cp= MEM_callocN(32*32, "theme pup");
 	char *str = cp;
@@ -713,7 +714,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 	return cp;
 }
 
-void BIF_SetTheme(ScrArea *sa)
+void UI_SetTheme(ScrArea *sa)
 {
 	if(sa==NULL) {	// called for safety, when delete themes
 		theme_active= U.themes.first;
@@ -728,32 +729,32 @@ void BIF_SetTheme(ScrArea *sa)
 }
 
 // for space windows only
-void BIF_ThemeColor(int colorid)
+void UI_ThemeColor(int colorid)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	glColor3ub(cp[0], cp[1], cp[2]);
 
 }
 
 // plus alpha
-void BIF_ThemeColor4(int colorid)
+void UI_ThemeColor4(int colorid)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	glColor4ub(cp[0], cp[1], cp[2], cp[3]);
 
 }
 
 // set the color with offset for shades
-void BIF_ThemeColorShade(int colorid, int offset)
+void UI_ThemeColorShade(int colorid, int offset)
 {
 	int r, g, b;
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	r= offset + (int) cp[0];
 	CLAMP(r, 0, 255);
 	g= offset + (int) cp[1];
@@ -763,12 +764,12 @@ void BIF_ThemeColorShade(int colorid, int offset)
 	//glColor3ub(r, g, b);
 	glColor4ub(r, g, b, cp[3]);
 }
-void BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
+void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
 	int r, g, b, a;
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	r= coloffset + (int) cp[0];
 	CLAMP(r, 0, 255);
 	g= coloffset + (int) cp[1];
@@ -781,13 +782,13 @@ void BIF_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 }
 
 // blend between to theme colors, and set it
-void BIF_ThemeColorBlend(int colorid1, int colorid2, float fac)
+void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 {
 	int r, g, b;
 	char *cp1, *cp2;
 	
-	cp1= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
-	cp2= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
+	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
+	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
 	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
 	r= floor((1.0-fac)*cp1[0] + fac*cp2[0]);
@@ -798,13 +799,13 @@ void BIF_ThemeColorBlend(int colorid1, int colorid2, float fac)
 }
 
 // blend between to theme colors, shade it, and set it
-void BIF_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
+void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 {
 	int r, g, b;
 	char *cp1, *cp2;
 	
-	cp1= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
-	cp2= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
+	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
+	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
 
 	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
 	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
@@ -819,65 +820,65 @@ void BIF_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 }
 
 // get individual values, not scaled
-float BIF_GetThemeValuef(int colorid)
+float UI_GetThemeValuef(int colorid)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((float)cp[0]);
 
 }
 
 // get individual values, not scaled
-int BIF_GetThemeValue(int colorid)
+int UI_GetThemeValue(int colorid)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((int) cp[0]);
 
 }
 
 
 // get the color, range 0.0-1.0
-void BIF_GetThemeColor3fv(int colorid, float *col)
+void UI_GetThemeColor3fv(int colorid, float *col)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= ((float)cp[0])/255.0;
 	col[1]= ((float)cp[1])/255.0;
 	col[2]= ((float)cp[2])/255.0;
 }
 
 // get the color, in char pointer
-void BIF_GetThemeColor3ubv(int colorid, char *col)
+void UI_GetThemeColor3ubv(int colorid, char *col)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= cp[0];
 	col[1]= cp[1];
 	col[2]= cp[2];
 }
 
 // get the color, in char pointer
-void BIF_GetThemeColor4ubv(int colorid, char *col)
+void UI_GetThemeColor4ubv(int colorid, char *col)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	col[0]= cp[0];
 	col[1]= cp[1];
 	col[2]= cp[2];
 	col[3]= cp[3];
 }
 
-void BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
+void UI_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
 {
 	char *cp;
 	
-	cp= BIF_ThemeGetColorPtr(theme_active, spacetype, colorid);
+	cp= UI_ThemeGetColorPtr(theme_active, spacetype, colorid);
 	col[0]= cp[0];
 	col[1]= cp[1];
 	col[2]= cp[2];
@@ -885,7 +886,7 @@ void BIF_GetThemeColorType4ubv(int colorid, int spacetype, char *col)
 }
 
 // blends and shades between two char color pointers
-void BIF_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
+void UI_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
 {
 	int r, g, b;
 	
@@ -902,7 +903,7 @@ void BIF_ColorPtrBlendShade3ubv(char *cp1, char *cp2, float fac, int offset)
 }
 
 // get a 3 byte color, blended and shaded between two other char color pointers
-void BIF_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, int offset)
 {
 	int r, g, b;
 	
@@ -919,3 +920,4 @@ void BIF_GetColorPtrBlendShade3ubv(char *cp1, char *cp2, char *col, float fac, i
 	col[1] = g;
 	col[2] = b;
 }
+

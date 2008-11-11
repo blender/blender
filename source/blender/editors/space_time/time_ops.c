@@ -39,7 +39,8 @@
 
 #include "BKE_global.h"
 
-#include "BIF_view2d.h"
+#include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -110,10 +111,9 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	int x, y;
 	float viewx;
 
-	/* XXX region->winrect isn't updated on window changes */
 	x= event->x - region->winrct.xmin;
 	y= event->y - region->winrct.ymin;
-	BIF_view2d_region_to_view(&stime->v2d, x, y, &viewx, NULL);
+	UI_view2d_region_to_view(&stime->v2d, x, y, &viewx, NULL);
 
 	return (int)(viewx+0.5f);
 }
@@ -157,7 +157,6 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* Operator for joining two areas (space types) */
 void ED_TIME_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */

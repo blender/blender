@@ -67,6 +67,7 @@ typedef struct wmWindowManager {
 	/* custom keymaps */
 	ListBase windowkeymap;
 	ListBase screenkeymap;
+	ListBase uikeymap;
 	ListBase timekeymap;
 	
 	

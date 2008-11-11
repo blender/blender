@@ -149,6 +149,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	}
 
 	BLI_freelistN(&wm->timekeymap);
+	BLI_freelistN(&wm->uikeymap);
 	BLI_freelistN(&wm->windowkeymap);
 	BLI_freelistN(&wm->screenkeymap);
 	

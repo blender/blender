@@ -30,6 +30,8 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
+#include "UI_interface.h"
+
 #include "BIF_gl.h"
 
 #include "WM_api.h"
@@ -68,6 +70,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	SpaceType *type;
 
 	ED_keymap_screen(wm);
+	UI_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)

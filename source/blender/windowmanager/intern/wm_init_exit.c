@@ -68,6 +68,8 @@
 
 #include "SYS_System.h"
 
+#include "UI_interface.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -78,16 +80,7 @@
 
 static void initbuttons(void)
 {
-//	uiDefFont(UI_HELVB, 
-//			  BMF_GetFont(BMF_kHelveticaBold14), 
-//			  BMF_GetFont(BMF_kHelveticaBold12), 
-//			  BMF_GetFont(BMF_kHelveticaBold10), 
-//			  BMF_GetFont(BMF_kHelveticaBold8));
-//	uiDefFont(UI_HELV, 
-//			  BMF_GetFont(BMF_kHelvetica12), 
-//			  BMF_GetFont(BMF_kHelvetica12), 
-//			  BMF_GetFont(BMF_kHelvetica10), 
-//			  BMF_GetFont(BMF_kHelveticaBold8));
+	UI_init();
 	
 //	glClearColor(.7f, .7f, .6f, 0.0);
 	
@@ -133,10 +126,7 @@ void WM_init(bContext *C)
 	
 // XXX	BIF_preview_init_dbase();
 	
-	
-// XXX	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
-	
-// XXX	BIF_filelist_init_icons();
+// XXX	UI_filelist_init_icons();
 	
 //	init_gl_stuff();	/* drawview.c, after homefile */
 	read_Blog();
@@ -228,9 +218,7 @@ void WM_exit(bContext *C)
 #endif
 	
 	if (!G.background) {
-// XXX		BIF_resources_free();
-		
-// XXX		BIF_filelist_free_icons();
+// XXX		UI_filelist_free_icons();
 	}
 	
 #ifdef INTERNATIONAL
@@ -246,6 +234,7 @@ void WM_exit(bContext *C)
 	BKE_undo_save_quit();	// saves quit.blend if global undo is on
 	BKE_reset_undo(); 
 	
+	UI_exit();
 	BLI_freelistN(&U.themes);
 // XXX	BIF_preview_free_dbase();
 	

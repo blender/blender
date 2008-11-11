@@ -4,6 +4,6 @@ Import ('env')
 sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc'
+incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc #intern/bmfont'
 
 env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), [], libtype=['core','intern'], priority=[40, 45] )
