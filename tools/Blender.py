@@ -443,7 +443,13 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(CFLAGS = lenv['C_WARN'])
 			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
-			lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
+			
+			targetdir = root_build_dir+'lib/' + libname
+			if root_build_dir[0]==os.sep or root_build_dir[1]==':':
+				pass
+			else:
+				targetdir = '#'+targetdir
+			lib = lenv.Library(target= targetdir, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
 		else:
 			print bc.WARNING+'Not building '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC+' for '+bc.OKBLUE+'BF_QUICK'+bc.ENDC
