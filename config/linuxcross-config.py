@@ -144,7 +144,7 @@ CC_WARN = [ '-Wall' ]
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS= []
+BF_DEBUG_CCFLAGS= []
 
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'

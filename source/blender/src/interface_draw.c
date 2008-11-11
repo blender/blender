@@ -68,6 +68,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
+#include "BKE_texture.h"
 
 #include "datatoc.h"            /* std font */
 
@@ -1978,6 +1979,7 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	CBData *cbd;
 	float x1, y1, sizex, sizey;
 	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
+	float pos, colf[4];
 	int a;
 		
 	if(coba==NULL) return;
@@ -1998,7 +2000,7 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 		v1[0]+= dx;
 	}
 	
-	glShadeModel(GL_SMOOTH);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_BLEND);
 	
 	cbd= coba->data;
@@ -2012,17 +2014,16 @@ static void ui_draw_but_COLORBAND(uiBut *but)
 	glColor4fv( &cbd->r );
 	glVertex2fv(v1); glVertex2fv(v2);
 	
-	for(a=0; a<coba->tot; a++, cbd++) {
-		
-		v1[0]=v2[0]= x1+ cbd->pos*sizex;
-		
-		glColor4fv( &cbd->r );
+	for( a = 1; a < sizex; a++ ) {
+		pos = ((float)a) / (sizex-1);
+		do_colorband( coba, pos, colf );
+
+		v1[0]=v2[0]= x1 + a;
+
+		glColor4fv( colf );
 		glVertex2fv(v1); glVertex2fv(v2);
 	}
-	
-	v1[0]=v2[0]= x1+ sizex;
-	glVertex2fv(v1); glVertex2fv(v2);
-	
+
 	glEnd();
 	glShadeModel(GL_FLAT);
 	glDisable(GL_BLEND);

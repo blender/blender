@@ -93,16 +93,14 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 */
 /* function assumes out to be zero'ed, only does RGBA */
 static float P(float k){
-	float aux;
-	aux=(float)(1.0f/6.0f)*( pow( MAX2(k+2.0f,0) , 3.0f ) - 4.0f * pow( MAX2(k+1.0f,0) , 3.0f ) + 6.0f * pow( MAX2(k,0) , 3.0f ) - 4.0f * pow( MAX2(k-1.0f,0) , 3.0f));
-	return aux ;
+	return (float)(1.0f/6.0f)*( pow( MAX2(k+2.0f,0) , 3.0f ) - 4.0f * pow( MAX2(k+1.0f,0) , 3.0f ) + 6.0f * pow( MAX2(k,0) , 3.0f ) - 4.0f * pow( MAX2(k-1.0f,0) , 3.0f));
 }
 
 void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
 {
 	int i,j,n,m,x1,y1;
 	unsigned char *dataI,*outI;
-	float a,b, outR,outG,outB,outA,*dataF,*outF;
+	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF,*outF;
 	int do_rect, do_float;
 
 	if (in == NULL) return;
@@ -120,24 +118,39 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 	outG= 0.0f;
 	outB= 0.0f;
 	outA= 0.0f;
+	
+	/* avoid calling multiple times */
+	wy[0] = P(b-(-1));
+	wy[1] = P(b-  0);
+	wy[2] = P(b-  1);
+	wy[3] = P(b-  2);
+	
 	for(n= -1; n<= 2; n++){
-		for(m= -1; m<= 2; m++){
-			x1= i+n;
-			y1= j+m;
-			if (x1>0 && x1 < in->x && y1>0 && y1<in->y) {
-				if (do_float) {
-					dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
-					outR+= dataF[0] * P(n-a) * P(b-m);
-					outG+= dataF[1] * P(n-a) * P(b-m);
-					outB+= dataF[2] * P(n-a) * P(b-m);
-					outA+= dataF[3] * P(n-a) * P(b-m);
-				}
-				if (do_rect) {
-					dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
-					outR+= dataI[0] * P(n-a) * P(b-m);
-					outG+= dataI[1] * P(n-a) * P(b-m);
-					outB+= dataI[2] * P(n-a) * P(b-m);
-					outA+= dataI[3] * P(n-a) * P(b-m);
+		x1= i+n;
+		if (x1>0 && x1 < in->x) {
+			wx = P(n-a);
+			for(m= -1; m<= 2; m++){
+				y1= j+m;
+				if (y1>0 && y1<in->y) {
+					/* normally we could do this */
+					/* w = P(n-a) * P(b-m); */
+					/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
+					w = wx * wy[m+1];
+					
+					if (do_float) {
+						dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
+						outR+= dataF[0] * w;
+						outG+= dataF[1] * w;
+						outB+= dataF[2] * w;
+						outA+= dataF[3] * w;
+					}
+					if (do_rect) {
+						dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
+						outR+= dataI[0] * w;
+						outG+= dataI[1] * w;
+						outB+= dataI[2] * w;
+						outA+= dataI[3] * w;
+					}
 				}
 			}
 		}

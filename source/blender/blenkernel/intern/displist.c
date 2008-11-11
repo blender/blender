@@ -1381,7 +1381,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
 			if(nu->pntsv==1) {
-				len= nu->resolu*SEGMENTSU(nu)+1;
+				len= nu->pntsu*nu->resolu;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");

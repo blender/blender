@@ -54,22 +54,34 @@ void VideoBase::process (BYTE * sample)
 	if (m_image != NULL && !m_avail)
 	{
 		// filters used
-		FilterRGB24 filtRGB;
-		FilterYV12 filtYUV;
 		// convert video format to image
 		switch (m_format)
 		{
+		case RGBA32:
+			{
+				FilterRGBA32 filtRGBA;
+				// use filter object for format to convert image
+				filterImage(filtRGBA, sample, m_orgSize);
+				// finish
+				break;
+			}
 		case RGB24:
-			// use filter object for format to convert image
-			filterImage(filtRGB, sample, m_orgSize);
-			// finish
-			break;
+			{
+				FilterRGB24 filtRGB;
+				// use filter object for format to convert image
+				filterImage(filtRGB, sample, m_orgSize);
+				// finish
+				break;
+			}
 		case YV12:
-			// use filter object for format to convert image
-			filtYUV.setBuffs(sample, m_orgSize);
-			filterImage(filtYUV, sample, m_orgSize);
-			// finish
-			break;
+			{
+				// use filter object for format to convert image
+				FilterYV12 filtYUV;
+				filtYUV.setBuffs(sample, m_orgSize);
+				filterImage(filtYUV, sample, m_orgSize);
+				// finish
+				break;
+			}
 		}
 	}
 }

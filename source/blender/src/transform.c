@@ -2486,25 +2486,28 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		Mat3CpyMat4(pmtx, t->poseobj->obmat);
 		Mat3Inv(imtx, pmtx);
 		
-		VecSubf(vec, td->center, center);
-		
-		Mat3MulVecfl(pmtx, vec);	// To Global space
-		Mat3MulVecfl(mat, vec);		// Applying rotation
-		Mat3MulVecfl(imtx, vec);	// To Local space
-
-		VecAddf(vec, vec, center);
-		/* vec now is the location where the object has to be */
-		
-		VecSubf(vec, vec, td->center); // Translation needed from the initial location
-		
-		Mat3MulVecfl(pmtx, vec);	// To Global space
-		Mat3MulVecfl(td->smtx, vec);// To Pose space
-
-		protectedTransBits(td->protectflag, vec);
-
-		VecAddf(td->loc, td->iloc, vec);
-		
-		constraintTransLim(t, td);
+		if ((td->flag & TD_NO_LOC) == 0)
+		{
+			VecSubf(vec, td->center, center);
+			
+			Mat3MulVecfl(pmtx, vec);	// To Global space
+			Mat3MulVecfl(mat, vec);		// Applying rotation
+			Mat3MulVecfl(imtx, vec);	// To Local space
+	
+			VecAddf(vec, vec, center);
+			/* vec now is the location where the object has to be */
+			
+			VecSubf(vec, vec, td->center); // Translation needed from the initial location
+			
+			Mat3MulVecfl(pmtx, vec);	// To Global space
+			Mat3MulVecfl(td->smtx, vec);// To Pose space
+	
+			protectedTransBits(td->protectflag, vec);
+	
+			VecAddf(td->loc, td->iloc, vec);
+			
+			constraintTransLim(t, td);
+		}
 		
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
@@ -2520,23 +2523,28 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 	}
 	else {
-		/* translation */
-		VecSubf(vec, td->center, center);
-		Mat3MulVecfl(mat, vec);
-		VecAddf(vec, vec, center);
-		/* vec now is the location where the object has to be */
-		VecSubf(vec, vec, td->center);
-		Mat3MulVecfl(td->smtx, vec);
 		
-		protectedTransBits(td->protectflag, vec);
-		
-		if(td->tdi) {
-			TransDataIpokey *tdi= td->tdi;
-			add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
-			add_tdi_poin(tdi->locy, tdi->oldloc+1, vec[1]);
-			add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
+		if ((td->flag & TD_NO_LOC) == 0)
+		{
+			/* translation */
+			VecSubf(vec, td->center, center);
+			Mat3MulVecfl(mat, vec);
+			VecAddf(vec, vec, center);
+			/* vec now is the location where the object has to be */
+			VecSubf(vec, vec, td->center);
+			Mat3MulVecfl(td->smtx, vec);
+			
+			protectedTransBits(td->protectflag, vec);
+			
+			if(td->tdi) {
+				TransDataIpokey *tdi= td->tdi;
+				add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
+				add_tdi_poin(tdi->locy, tdi->oldloc+1, vec[1]);
+				add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
+			}
+			else VecAddf(td->loc, td->iloc, vec);
 		}
-		else VecAddf(td->loc, td->iloc, vec);
+		
 		
 		constraintTransLim(t, td);
 

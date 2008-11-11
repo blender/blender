@@ -169,11 +169,11 @@ LLIBS = 'c m dl pthread stdc++'
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE_CCFLAGS = ['-pg','-g']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = []
+BF_DEBUG_CCFLAGS = []
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'

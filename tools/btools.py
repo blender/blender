@@ -59,7 +59,7 @@ def validate_arguments(args, bc):
             'C_WARN', 'CC_WARN', 'CXX_WARN',
             'LLIBS', 'PLATFORM_LINKFLAGS',
             'LCGDIR',
-            'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC'
+            'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
             'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',

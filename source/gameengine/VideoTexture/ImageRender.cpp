@@ -38,6 +38,11 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "BlendType.h"
 #include "Exception.h"
 
+ExceptionID SceneInvalid, CameraInvalid;
+ExpDesc SceneInvalidDesc (SceneInvalid, "Scene object is invalid");
+ExpDesc CameraInvalidDesc (CameraInvalid, "Camera object is invalid");
+
+#if 0   // not yet supported
 
 // constructor
 ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) : m_scene(scene),
@@ -123,10 +128,6 @@ BlendType<KX_Scene> sceneType ("KX_Scene");
 // Blender Camera type
 BlendType<KX_Camera> cameraType ("KX_Camera");
 
-
-ExceptionID SceneInvalid, CameraInvalid;
-ExpDesc SceneInvalidDesc (SceneInvalid, "Scene object is invalid");
-ExpDesc CameraInvalidDesc (CameraInvalid, "Camera object is invalid");
 
 // object initialization
 static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
@@ -263,3 +264,4 @@ PyTypeObject ImageRenderType =
 };
 
 
+#endif  // #if 0
