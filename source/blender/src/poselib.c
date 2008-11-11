@@ -508,7 +508,7 @@ void poselib_rename_pose (Object *ob)
 	if (marker == NULL) return;
 	
 	/* get name of pose */
-	sprintf(name, marker->name);
+	strncpy(name, marker->name, sizeof(name));
 	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
 		return;
 	
