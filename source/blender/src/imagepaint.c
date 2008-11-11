@@ -181,10 +181,11 @@ typedef struct ProjectPaintState {
 	LinkNode **projectBuckets;		/* screen sized 2D array, each pixel has a linked list of ProjectPixel's */
 	LinkNode **projectFaces;		/* projectBuckets alligned array linkList of faces overlapping each bucket */
 	char *projectBucketFlags;		/* store if the bucks have been initialized  */
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	char *projectFaceSeamFlags;		/* store info about faces, if they are initialized etc*/
 	float (*projectFaceSeamUVs)[4][2];	/* expanded UVs for faces to use as seams */
 	LinkNode **projectVertFaces;	/* Only needed for when projectSeamBleed is enabled, use to find UV seams */
-	
+#endif
 	int bucketsX;					/* The size of the bucket grid, the grid span's viewMin2D/viewMax2D so you can paint outsize the screen or with 2 brushes at once */
 	int bucketsY;
 	
@@ -217,10 +218,12 @@ typedef struct ProjectPaintState {
 	float viewHeight;
 } ProjectPaintState;
 
+#ifndef PROJ_DEBUG_NOSCANLINE
 typedef struct ProjectScanline {
 	int v[3]; /* verts for this scanline, 0,1,2 or 0,2,3 */
 	float x_limits[2]; /* UV min|max for this scanline */
 } ProjectScanline;
+#endif
 
 typedef struct ProjectPixel {
 	float projCo2D[2]; /* the floating point screen projection of this pixel */
@@ -867,6 +870,7 @@ static int line_isect_x(float p1[2], float p2[2], float x_level, float *y_isect)
 	}
 }
 
+#ifndef PROJ_DEBUG_NOSCANLINE
 static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2], float v2[2], float v3[2], float v4[2])
 {	
 	/* Create a scanlines for the face at this Y level 
@@ -961,12 +965,42 @@ static int project_face_scanline(ProjectScanline *sc, float y_level, float v1[2]
 	/* done setting up scanlines */
 	return totscanlines;
 }
-
+#endif // PROJ_DEBUG_NOSCANLINE
 static int cmp_uv(float vec2a[2], float vec2b[2])
 {
 	return ((fabs(vec2a[0]-vec2b[0]) < 0.0001) && (fabs(vec2a[1]-vec2b[1]) < 0.0001)) ? 1:0;
 }
+
+/* return zero if there is no area in the returned rectangle */
+static int uv_image_rect(float uv1[2], float uv2[2], float uv3[2], float uv4[2], int min_px[2], int max_px[2], int x_px, int y_px, int is_quad)
+{
+	float min_uv[2], max_uv[2]; /* UV bounds */
+	int i;
 	
+	INIT_MINMAX2(min_uv, max_uv);
+	
+	DO_MINMAX2(uv1, min_uv, max_uv);
+	DO_MINMAX2(uv2, min_uv, max_uv);
+	DO_MINMAX2(uv3, min_uv, max_uv);
+	if (is_quad)
+		DO_MINMAX2(uv4, min_uv, max_uv);
+	
+	min_px[0] = (int)(x_px * min_uv[0]);
+	min_px[1] = (int)(y_px * min_uv[1]);
+	
+	max_px[0] = (int)(x_px * max_uv[0]) +1;
+	max_px[1] = (int)(y_px * max_uv[1]) +1;
+	
+	/*printf("%d %d %d %d \n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
+	CLAMP(min_px[0], 0, x_px);
+	CLAMP(max_px[0], 0, x_px);
+	
+	CLAMP(min_px[1], 0, y_px);
+	CLAMP(max_px[1], 0, y_px);
+	
+	/* face uses no UV area when quantized to pixels? */
+	return (min_px[0] == max_px[0] || min_px[1] == max_px[1]) ? 0 : 1;
+}
 
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 /* TODO - set the seam flag on the other face to avoid double lookups */
@@ -1054,37 +1088,6 @@ static float angleToLength(float angle)
 	x = x*fac;
 	y = y*fac;
 	return sqrt((x*x)+(y*y));
-}
-
-/* return zero if there is no area in the returned rectangle */
-static int uv_image_rect(float uv1[2], float uv2[2], float uv3[2], float uv4[2], int min_px[2], int max_px[2], int x_px, int y_px, int is_quad)
-{
-	float min_uv[2], max_uv[2]; /* UV bounds */
-	int i;
-	
-	INIT_MINMAX2(min_uv, max_uv);
-	
-	DO_MINMAX2(uv1, min_uv, max_uv);
-	DO_MINMAX2(uv2, min_uv, max_uv);
-	DO_MINMAX2(uv3, min_uv, max_uv);
-	if (is_quad)
-		DO_MINMAX2(uv4, min_uv, max_uv);
-	
-	min_px[0] = (int)(x_px * min_uv[0]);
-	min_px[1] = (int)(y_px * min_uv[1]);
-	
-	max_px[0] = (int)(x_px * max_uv[0]) +1;
-	max_px[1] = (int)(y_px * max_uv[1]) +1;
-	
-	/*printf("%d %d %d %d \n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
-	CLAMP(min_px[0], 0, x_px);
-	CLAMP(max_px[0], 0, x_px);
-	
-	CLAMP(min_px[1], 0, y_px);
-	CLAMP(max_px[1], 0, y_px);
-	
-	/* face uses no UV area when quantized to pixels? */
-	return (min_px[0] == max_px[0] || min_px[1] == max_px[1]) ? 0 : 1;
 }
 
 /* takes a faces UV's and assigns outset coords to outset_uv */
@@ -1610,7 +1613,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 			}
 		}
 	} while(i--);
-	
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->projectSeamBleed > 0.0) {
 		
 		int flag = ps->projectFaceSeamFlags[face_index];
@@ -1743,7 +1746,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int bucket_index, int
 			}
 		}
 	}
-	return;	
+#endif // PROJ_DEBUG_NOSEAMBLEED
 }
 
 
@@ -1931,12 +1934,14 @@ static void project_paint_delayed_face_init(ProjectPaintState *ps, MFace *mf, MT
 		}
 	}
 	
+#ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->projectSeamBleed > 0.0) {
 		if (!mf->v4) {
 			ps->projectFaceSeamFlags[face_index] |= PROJ_FACE_NOSEAM4; /* so this wont show up as an untagged egde */
 		}
 		**ps->projectFaceSeamUVs[face_index] = MAXFLOAT; /* set as uninitialized */
 	}
+#endif
 }
 
 static int BLI_linklist_index(struct LinkNode *list, void *ptr)
@@ -2039,9 +2044,10 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	memset(ps->projectBuckets,		0, tot_bucketMem);
 	memset(ps->projectFaces,		0, tot_faceListMem);
-	memset(ps->projectFaceSeamFlags,0, tot_faceSeamFlagMem);
 	memset(ps->projectBucketFlags,	0, tot_bucketFlagMem);
 #ifndef PROJ_DEBUG_NOSEAMBLEED
+	memset(ps->projectFaceSeamFlags,0, tot_faceSeamFlagMem);
+	
 	if (ps->projectSeamBleed > 0.0) {
 		memset(ps->projectVertFaces,	0, tot_bucketVertFacesMem);
 		/* TODO dosnt need zeroing? */
@@ -3031,6 +3037,80 @@ static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *p
 	}
 }
 
+static int imapaint_paint_gp_to_stroke(float **points_gp) {
+	bGPdata *gpd;
+	bGPDlayer *gpl;
+	bGPDframe *gpf;
+	bGPDstroke *gps;
+	tGPspoint *pt;
+	
+	int stroke_gp = 0;
+	int index_gp = 0;
+	int tot_gp = 0;
+	float *vec_gp;
+	
+
+	
+	gpd = gpencil_data_getactive(NULL);
+	
+	if (gpd==NULL)
+		return 0;
+
+	
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+
+		
+		if (gpl->flag & GP_LAYER_HIDE) continue;
+		
+		gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+		if (gpf==NULL)	continue;
+		
+		for (gps= gpf->strokes.first; gps; gps= gps->next) {
+			//if (gps->flag & GP_STROKE_2DSPACE) {
+				tot_gp += gps->totpoints;
+			//}
+		}
+	}
+	
+	if (tot_gp==0)
+		return 0;
+	
+	*points_gp = MEM_mallocN(tot_gp*sizeof(float)*2, "gp_points");
+	vec_gp = *points_gp;
+	
+	printf("%d\n" ,tot_gp);
+	
+	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+		bGPDframe *gpf;
+		bGPDstroke *gps;
+		bGPDspoint *pt;
+		
+		if (gpl->flag & GP_LAYER_HIDE) continue;
+		
+		gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+		if (gpf==NULL)	continue;
+		
+		for (gps= gpf->strokes.first; gps; gps= gps->next) {
+			//if (gps->flag & GP_STROKE_2DSPACE) {
+				int i;
+
+				/* fill up the array with points */
+				for (i=0, pt=gps->points; i < gps->totpoints && pt; i++, pt++) {
+					//printf("- %f %f\n", pt->x, pt->y);
+					
+					vec_gp[0] = pt->x;
+					vec_gp[1] = pt->y;
+					//printf("%f %f\n", vec_gp[0], vec_gp[1]);
+					
+					vec_gp+=2;
+				}
+			//}
+		}
+	}
+	
+	return tot_gp;
+}
+
 void imagepaint_paint(short mousebutton, short texpaint)
 {
 	ImagePaintState s;
@@ -3042,13 +3122,12 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	float pressure;
 	
 	/* optional grease pencil stroke path */
-	bGPdata *gpd;
-	bGPDlayer *gpl;
-	int stroke_gp = 0;
-	int index_gp = 0;
-	int tot_gp = 0;
-	float *points_gp=NULL;
+	float *points_gp = NULL;
 	float *vec_gp;
+	int tot_gp = 0, index_gp=0;
+	int stroke_gp = 0;
+	
+	double benchmark_time;
 	
 	if(!settings->imapaint.brush)
 		return;
@@ -3062,8 +3141,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	}
 	
 	/* TODO - add UI */
-	stroke_gp = 0;
-	
+	if (G.rt==123) {
+		stroke_gp = 1;
+	}
 	
 	/* initialize state */
 	memset(&s, 0, sizeof(s));
@@ -3112,7 +3192,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	pressure = get_pressure();
 	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 	
-	time= PIL_check_seconds_timer();
+	time= benchmark_time = PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
 	
@@ -3125,72 +3205,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 #endif
 		project_paint_begin(&ps, mval);
 		
-		if (stroke_gp && (gpd = gpencil_data_getactive(NULL))) {
-		} else {
-			stroke_gp = 0;
+		if (stroke_gp) {
+			tot_gp = imapaint_paint_gp_to_stroke(&points_gp);
+			vec_gp = points_gp;
 		}
-		
-		if (stroke_gp) { 
-			
-			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-				bGPDframe *gpf;
-				bGPDstroke *gps;
-				tGPspoint *pt;
-				
-				if (gpl->flag & GP_LAYER_HIDE) continue;
-				
-				gpf= gpencil_layer_getframe(gpl, CFRA, 0);
-				if (gpf==NULL)	continue;
-				
-				for (gps= gpf->strokes.first; gps; gps= gps->next) {
-					//if (gps->flag & GP_STROKE_2DSPACE) {
-						tot_gp += gps->totpoints;
-					//}
-				}
-			}
-			
-			
-			if (tot_gp) {
-				points_gp = MEM_mallocN(tot_gp*sizeof(float)*2, "gp_points");
-				vec_gp = points_gp;
-				
-				printf("%d\n" ,tot_gp);
-				
-				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-					bGPDframe *gpf;
-					bGPDstroke *gps;
-					bGPDspoint *pt;
-					
-					if (gpl->flag & GP_LAYER_HIDE) continue;
-					
-					gpf= gpencil_layer_getframe(gpl, CFRA, 0);
-					if (gpf==NULL)	continue;
-					
-					for (gps= gpf->strokes.first; gps; gps= gps->next) {
-						//if (gps->flag & GP_STROKE_2DSPACE) {
-							int i;
-							//gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
-							
-							/* fill up the array with points */
-							for (i=0, pt=gps->points; i < gps->totpoints && pt; i++, pt++) {
-								printf("- %f %f\n", pt->x, pt->y);
-								
-								vec_gp[0] = pt->x;
-								vec_gp[1] = pt->y;
-								//printf("%f %f\n", vec_gp[0], vec_gp[1]);
-								
-								vec_gp+=2;
-							}
-						//}
-					}
-				}
-				
-				vec_gp = points_gp;
-			}
-		}
-		
-		
-		
 	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
 			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
@@ -3257,6 +3275,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	
 	if (points_gp)
 		MEM_freeN(points_gp);
+	
+	printf("timed test %f\n", (float)(PIL_check_seconds_timer() - benchmark_time));
 	
 	imapaint_redraw(1, texpaint, s.image);
 	undo_imagepaint_push_end();
