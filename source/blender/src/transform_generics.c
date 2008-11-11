@@ -876,12 +876,16 @@ void calculateCenterCursor2D(TransInfo *t)
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
+	int total = 0;
 	int i;
 	
 	for(i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
 			if (!(t->data[i].flag & TD_NOCENTER))
+			{
 				VecAddf(partial, partial, t->data[i].center);
+				total++;
+			}
 		}
 		else {
 			/* 
@@ -892,7 +896,7 @@ void calculateCenterMedian(TransInfo *t)
 		}
 	}
 	if(i)
-		VecMulf(partial, 1.0f / i);
+		VecMulf(partial, 1.0f / total);
 	VECCOPY(t->center, partial);
 
 	calculateCenter2D(t);
