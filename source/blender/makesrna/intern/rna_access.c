@@ -166,6 +166,23 @@ void RNA_property_string_get(PropertyRNA *prop, PointerRNA *ptr, char *value)
 	sprop->get(ptr, value);
 }
 
+char *RNA_property_string_get_alloc(PropertyRNA *prop, PointerRNA *ptr, char *fixedbuf, int fixedlen)
+{
+	char *buf;
+	int length;
+
+	length= RNA_property_string_length(prop, ptr);
+
+	if(length+1 < fixedlen)
+		buf= fixedbuf;
+	else
+		buf= MEM_callocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+
+	RNA_property_string_get(prop, ptr, buf);
+
+	return buf;
+}
+
 int RNA_property_string_length(PropertyRNA *prop, PointerRNA *ptr)
 {
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;

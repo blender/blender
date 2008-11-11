@@ -1,13 +1,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
-
-#include "BKE_main.h"
 
 typedef struct RNAGenDeps {
 	void *udata;

@@ -66,6 +66,7 @@ float RNA_property_float_get_array(struct PropertyRNA *prop, struct PointerRNA *
 void RNA_property_float_set_array(struct PropertyRNA *prop, struct PointerRNA *ptr, int index, float value);
 
 void RNA_property_string_get(struct PropertyRNA *prop, struct PointerRNA *ptr, char *value);
+char *RNA_property_string_get_alloc(struct PropertyRNA *prop, struct PointerRNA *ptr, char *fixedbuf, int fixedlen);
 int RNA_property_string_length(struct PropertyRNA *prop, struct PointerRNA *ptr);
 void RNA_property_string_set(struct PropertyRNA *prop, struct PointerRNA *ptr, const char *value);
 

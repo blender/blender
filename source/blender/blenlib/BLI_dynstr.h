@@ -56,7 +56,15 @@ DynStr*	BLI_dynstr_new					(void);
 	 * @param ds The DynStr to append to.
 	 * @param cstr The c-string to append.
 	 */
-void	BLI_dynstr_append				(DynStr *ds, char *cstr);
+void	BLI_dynstr_append				(DynStr *ds, const char *cstr);
+
+	/**
+	 * Append a c-string to a DynStr, but with formatting like printf.
+	 * 
+	 * @param ds The DynStr to append to.
+	 * @param format The printf format string to use.
+	 */
+void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...);
 
 	/**
 	 * Find the length of a DynStr.
@@ -69,7 +77,7 @@ int		BLI_dynstr_get_len				(DynStr *ds);
 	/**
 	 * Get a DynStr's contents as a c-string.
 	 * <i> The returned c-string should be free'd
-	 * using BLI_freeN. </i>
+	 * using MEM_freeN. </i>
 	 * 
 	 * @param ds The DynStr of interest.
 	 * @return The contents of @a ds as a c-string.
