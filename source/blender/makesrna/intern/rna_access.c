@@ -27,13 +27,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
+
 #include "RNA_access.h"
 #include "RNA_types.h"
 
 #include "rna_internal.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 
 /* Pointer */
 
@@ -374,7 +374,7 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 	else {
 		/* no callback defined, compare with name properties if they exist */
 		CollectionPropertyIterator iter;
-		PropertyRNA *prop;
+		PropertyRNA *nameprop;
 		PointerRNA iterptr;
 		char name[256], *nameptr;
 		int length, alloc, found= 0;
@@ -384,9 +384,9 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 			RNA_property_collection_get(prop, &iter, &iterptr);
 
 			if(iterptr.data && iterptr.type->nameproperty) {
-				prop= iterptr.type->nameproperty;
+				nameprop= iterptr.type->nameproperty;
 
-				length= RNA_property_string_length(prop, &iterptr);
+				length= RNA_property_string_length(nameprop, &iterptr);
 
 				if(sizeof(name)-1 < length) {
 					nameptr= name;
@@ -397,7 +397,7 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 					alloc= 1;
 				}
 
-				RNA_property_string_get(prop, &iterptr, nameptr);
+				RNA_property_string_get(nameprop, &iterptr, nameptr);
 
 				if(strcmp(nameptr, key) == 0) {
 					*r_ptr= iterptr;

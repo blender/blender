@@ -61,7 +61,7 @@ clean::
 # is done quite intentionally. If there is a bug in that lib, it needs
 # to be fixed by the module maintainer.
 
-RNAOBJS = $(filter-out %RNA.o, $(OBJS))
+RNAOBJS = $(filter-out %rna_dependency.o, $(filter-out %rna_access.o, $(filter-out %RNA.o, $(OBJS))))
 
 $(DIR)/$(DEBUG_DIR)makesrna: $(RNAOBJS) $(DIR)/$(DEBUG_DIR)makesrna.o $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 	$(CC) $(LDFLAGS) -o $@ $(WINLIBS) $^
