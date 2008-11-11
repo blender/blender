@@ -25,15 +25,16 @@ if env['OURPLATFORM'] == 'linuxcross':
 if sys.platform != 'cygwin':
 	makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
-makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
+targetdir = root_build_dir+'/lib'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	targetdir = '#'+targetdir
+makesdna_tool.Append (LIBPATH = targetdir)
 if env['BF_PROFILE']:
 	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
 
 targetdir = root_build_dir + '/makesdna'
 
-if root_build_dir[0]==os.sep or root_build_dir[1]==':':
-	pass
-else:
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetdir = '#' + targetdir
 
 makesdna = makesdna_tool.Program (target = targetdir, source = source_files, LIBS=['bf_guardedalloc'])

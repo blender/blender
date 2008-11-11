@@ -99,7 +99,10 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			lst.append('#' + root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			target = root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX']
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+				target = '#'+target
+			lst.append(target)
 
 	return lst
 
@@ -445,9 +448,7 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
 			
 			targetdir = root_build_dir+'lib/' + libname
-			if root_build_dir[0]==os.sep or root_build_dir[1]==':':
-				pass
-			else:
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 				targetdir = '#'+targetdir
 			lib = lenv.Library(target= targetdir, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
@@ -481,6 +482,8 @@ class BlenderEnvironment(SConsEnvironment):
 		if lenv['BF_PROFILE']:
 				lenv.Append(LINKFLAGS = lenv['BF_PROFILE_FLAGS'])
 		lenv.Append(CPPPATH=includes)
+		if root_build_dir[0]==os.sep or root_build_dir[1]==':':
+			lenv.Append(LIBPATH=root_build_dir + '/lib')
 		lenv.Append(LIBPATH=libpath)
 		lenv.Append(LIBS=libs)
 		if lenv['WITH_BF_QUICKTIME']:
