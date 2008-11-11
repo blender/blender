@@ -64,6 +64,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_global.h"
@@ -87,7 +88,7 @@
 
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
-
+#include "BDR_gpencil.h"
 #include "GPU_draw.h"
 
 #include "GHOST_Types.h"
@@ -1300,6 +1301,8 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, int x
 			}
 		} else if (ps->tool==PAINT_TOOL_SMEAR) {
 			size = sizeof(ProjectPixelClone);
+		} else {
+			size = sizeof(ProjectPixel);
 		}
 		
 		projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, size);
@@ -3013,16 +3016,16 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	}
 }
 
-static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short *prevmval, short *mval, double time, float pressure)
+static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short *prevmval, short *mval, short redraw, double time, float pressure)
 {
-	int redraw = 0;
+	int redraw_flag = 0;
 	
 	/* TODO - support more brush operations, airbrush etc */
 	{
-		redraw |= imapaint_paint_sub_stroke_project(ps, painter, prevmval, mval, time, 1, pressure);
+		redraw_flag |= imapaint_paint_sub_stroke_project(ps, painter, prevmval, mval, time, 1, pressure);
 	}
 	
-	if (redraw) {
+	if (redraw && redraw_flag) {
 		imapaint_redraw(0, 1/*texpaint*/, NULL);
 		imapaint_clear_partial_redraw();
 	}
@@ -3037,7 +3040,16 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	short prevmval[2], mval[2], project = 0;
 	double time;
 	float pressure;
-
+	
+	/* optional grease pencil stroke path */
+	bGPdata *gpd;
+	bGPDlayer *gpl;
+	int stroke_gp = 0;
+	int index_gp = 0;
+	int tot_gp = 0;
+	float *points_gp=NULL;
+	float *vec_gp;
+	
 	if(!settings->imapaint.brush)
 		return;
 	
@@ -3048,6 +3060,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		mouse_cursor();
 		return;
 	}
+	
+	/* TODO - add UI */
+	stroke_gp = 0;
+	
 	
 	/* initialize state */
 	memset(&s, 0, sizeof(s));
@@ -3109,6 +3125,72 @@ void imagepaint_paint(short mousebutton, short texpaint)
 #endif
 		project_paint_begin(&ps, mval);
 		
+		if (stroke_gp && (gpd = gpencil_data_getactive(NULL))) {
+		} else {
+			stroke_gp = 0;
+		}
+		
+		if (stroke_gp) { 
+			
+			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+				bGPDframe *gpf;
+				bGPDstroke *gps;
+				tGPspoint *pt;
+				
+				if (gpl->flag & GP_LAYER_HIDE) continue;
+				
+				gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+				if (gpf==NULL)	continue;
+				
+				for (gps= gpf->strokes.first; gps; gps= gps->next) {
+					//if (gps->flag & GP_STROKE_2DSPACE) {
+						tot_gp += gps->totpoints;
+					//}
+				}
+			}
+			
+			
+			if (tot_gp) {
+				points_gp = MEM_mallocN(tot_gp*sizeof(float)*2, "gp_points");
+				vec_gp = points_gp;
+				
+				printf("%d\n" ,tot_gp);
+				
+				for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
+					bGPDframe *gpf;
+					bGPDstroke *gps;
+					bGPDspoint *pt;
+					
+					if (gpl->flag & GP_LAYER_HIDE) continue;
+					
+					gpf= gpencil_layer_getframe(gpl, CFRA, 0);
+					if (gpf==NULL)	continue;
+					
+					for (gps= gpf->strokes.first; gps; gps= gps->next) {
+						//if (gps->flag & GP_STROKE_2DSPACE) {
+							int i;
+							//gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
+							
+							/* fill up the array with points */
+							for (i=0, pt=gps->points; i < gps->totpoints && pt; i++, pt++) {
+								printf("- %f %f\n", pt->x, pt->y);
+								
+								vec_gp[0] = pt->x;
+								vec_gp[1] = pt->y;
+								//printf("%f %f\n", vec_gp[0], vec_gp[1]);
+								
+								vec_gp+=2;
+							}
+						//}
+					}
+				}
+				
+				vec_gp = points_gp;
+			}
+		}
+		
+		
+		
 	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
 			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
@@ -3116,7 +3198,16 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	}
 	/* paint loop */
 	do {
-		getmouseco_areawin(mval);
+		if (stroke_gp) {
+			/* Stroke grease pencil path */
+			mval[0]= (short)vec_gp[0];
+			mval[1]= (short)vec_gp[1];
+			//printf("%d %d\n", mval[0], mval[1]);
+			vec_gp+=2;
+			index_gp++;
+		} else {
+			getmouseco_areawin(mval);
+		}
 
 		pressure = get_pressure();
 		s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
@@ -3132,11 +3223,13 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			persp(PERSP_VIEW);
 			*/
 			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
-				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, time, pressure);
+				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, stroke_gp ? 0 : 1, time, pressure);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
-			} else
-				BIF_wait_for_statechange();
+			} else {
+				if (stroke_gp==0)
+					BIF_wait_for_statechange();
+			}
 		} else {
 			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
 				imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
@@ -3150,7 +3243,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		}
 		/* do mouse checking at the end, so don't check twice, and potentially
 		   miss a short tap */
-	} while(get_mbut() & mousebutton);
+	} while( (stroke_gp && index_gp < tot_gp) || (stroke_gp==0 && (get_mbut() & mousebutton)));
+	//} while(get_mbut() & mousebutton);
 
 	/* clean up */
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
@@ -3160,6 +3254,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	if (project) {
 		project_paint_end(&ps);
 	}
+	
+	if (points_gp)
+		MEM_freeN(points_gp);
 	
 	imapaint_redraw(1, texpaint, s.image);
 	undo_imagepaint_push_end();
