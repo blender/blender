@@ -7,8 +7,10 @@ cflags=''
 incs = '. ../makesdna ../blenkernel #/intern/guardedalloc ../include'
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-incs += ' ' + env['BF_SDL_INC']
 defs = ''
+
+if env['WITH_BF_SDL']:
+	incs += ' ' + env['BF_SDL_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
     defs = 'WITH_FREETYPE2'

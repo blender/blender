@@ -174,8 +174,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BIF_verse.h"
 #endif
 
-#include "GEN_messaging.h"
-
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"

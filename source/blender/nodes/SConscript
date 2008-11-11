@@ -7,21 +7,21 @@ sources += env.Glob('intern/SHD_nodes/*.c')
 
 incs = '. ./intern '
 incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'
-incs += ' ../python ../render/extern/include '
+incs += ' ../render/extern/include '
 incs += ' ../imbuf ../avi '
-incs += ' ../blenloader ../quicktime'
+incs += ' ../blenloader'
 incs += ' ../blenkernel ../renderconverter '
 incs += ' ../gpu #/extern/glew/include '
 
-
-incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-incs += ' ' + env['BF_SDL_INC']
 
 defs = ''
 
-if not env['WITH_BF_PYTHON']:
+if env['WITH_BF_PYTHON']:
+    incs += ' ' + env['BF_PYTHON_INC']
+    incs += ' ../python'
+else:
     defs += 'DISABLE_PYTHON'
 
 if env['WITH_BF_INTERNATIONAL']:
