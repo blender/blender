@@ -98,12 +98,13 @@
 
 /* Defines and Structs */
 
-#define IMAPAINT_CHAR_TO_FLOAT(c) (c/255.0f)
+#define IMAPAINT_CHAR_TO_FLOAT(c) ((c)/255.0f)
 
-#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f) { c[0]=FTOCHAR(f[0]); \
-	c[1]=FTOCHAR(f[1]); c[2]=FTOCHAR(f[2]); }
-#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c) { f[0]=IMAPAINT_CHAR_TO_FLOAT(c[0]); \
-	f[1]=IMAPAINT_CHAR_TO_FLOAT(c[1]); f[2]=IMAPAINT_CHAR_TO_FLOAT(c[2]); }
+#define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f) { (c)[0]=FTOCHAR((f)[0]); (c)[1]=FTOCHAR((f)[1]); (c)[2]=FTOCHAR((f)[2]); }
+#define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f) { (c)[0]=FTOCHAR((f)[0]); (c)[1]=FTOCHAR((f)[1]); (c)[2]=FTOCHAR((f)[2]); (c)[3]=FTOCHAR((f)[3]); }
+
+#define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c) { (f)[0]=IMAPAINT_CHAR_TO_FLOAT((c)[0]); (f)[1]=IMAPAINT_CHAR_TO_FLOAT((c)[1]); (f)[2]=IMAPAINT_CHAR_TO_FLOAT((c)[2]); }
+#define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c) { (f)[0]=IMAPAINT_CHAR_TO_FLOAT((c)[0]); (f)[1]=IMAPAINT_CHAR_TO_FLOAT((c)[1]); (f)[2]=IMAPAINT_CHAR_TO_FLOAT((c)[2]); (f)[3]=IMAPAINT_CHAR_TO_FLOAT((c)[3]); }
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) VECCOPY(a, b)
 
 #define IMAPAINT_TILE_BITS			6
@@ -187,6 +188,7 @@ typedef struct ProjectPaintState {
 	int bucketsY;
 	
 	Image **projectImages;			/* array of images we are painting onto while, use so we can tag for updates */
+	ImBuf **projectImBufs;			/* array of imbufs we are painting onto while, use so we can get the rect and rect_float quickly */
 	
 	int projectImageTotal;			/* size of projectImages array */
 	int imaContextIndex;			/* current image, use for context switching */
@@ -221,16 +223,19 @@ typedef struct ProjectScanline {
 
 typedef struct ProjectPixel {
 	float projCo2D[2]; /* the floating point screen projection of this pixel */
-	char *pixel;
+	void *pixel;
 	int image_index;
 } ProjectPixel;
 
 typedef struct ProjectPixelClone {
 	struct ProjectPixel __pp;
-	/*char backbuf[4];	*//* TODO - float buffer? */
-	char clonebuf[4];
-	//void *source;		/* pointer to source pixels */
+	char clonepx[4];
 } ProjectPixelClone;
+
+typedef struct ProjectPixelCloneFloat {
+	struct ProjectPixel __pp;
+	float clonepx[4];
+} ProjectPixelCloneFloat;
 
 /* Finish projection painting structs */
 
@@ -391,7 +396,7 @@ static void undo_imagepaint_push_end()
 }
 
 
-static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
+static int project_paint_BucketOffset(ProjectPaintState *ps, float projCo2D[2])
 {
 	/* If we were not dealing with screenspace 2D coords we could simple do...
 	 * ps->projectBuckets[x + (y*ps->bucketsY)] */
@@ -407,7 +412,7 @@ static int project_paint_BucketOffset(ProjectPaintState *ps, float *projCo2D)
 		(	(	(int)(( (projCo2D[1] - ps->viewMin2D[1])  / ps->viewHeight) * ps->bucketsY)) * ps->bucketsX );
 }
 
-static int project_paint_BucketOffsetSafe(ProjectPaintState *ps, float *projCo2D)
+static int project_paint_BucketOffsetSafe(ProjectPaintState *ps, float projCo2D[2])
 {
 	int bucket_index = project_paint_BucketOffset(ps, projCo2D);
 	
@@ -556,16 +561,105 @@ static int screenco_pickface(ProjectPaintState *ps, float pt[2], float w[3], int
 	return best_face_index; /* will be -1 or a valid face */
 }
 
+/**************************************************************************
+*                            INTERPOLATIONS 
+*
+* Reference and docs:
+* http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
+***************************************************************************/
+
+/* BICUBIC Interpolation functions */
+/*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
+*/
+/* function assumes out to be zero'ed, only does RGBA */
+static float P(float k){
+	return (float)(1.0f/6.0f)*( pow( MAX2(k+2.0f,0) , 3.0f ) - 4.0f * pow( MAX2(k+1.0f,0) , 3.0f ) + 6.0f * pow( MAX2(k,0) , 3.0f ) - 4.0f * pow( MAX2(k-1.0f,0) , 3.0f));
+}
+
+static void bicubic_interpolation_px(ImBuf *in, float x, float y, float rgba_fp[4], char rgba[4])
+{
+	int i,j,n,m,x1,y1;
+	unsigned char *dataI;
+	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF,*outF;
+	int do_rect=0, do_float=0;
+
+	if (in == NULL) return;
+	if (in->rect == NULL && in->rect_float == NULL) return;
+
+	if (in->rect_float)	do_float = 1;
+	else				do_rect = 1;
+	
+	i= (int)floor(x);
+	j= (int)floor(y);
+	a= x - i;
+	b= y - j;
+
+	outR= 0.0f;
+	outG= 0.0f;
+	outB= 0.0f;
+	outA= 0.0f;
+	
+	/* avoid calling multiple times */
+	wy[0] = P(b-(-1));
+	wy[1] = P(b-  0);
+	wy[2] = P(b-  1);
+	wy[3] = P(b-  2);
+	
+	for(n= -1; n<= 2; n++){
+		x1= i+n;
+		if (x1>0 && x1 < in->x) {
+			wx = P(n-a);
+			for(m= -1; m<= 2; m++){
+				y1= j+m;
+				if (y1>0 && y1<in->y) {
+					/* normally we could do this */
+					/* w = P(n-a) * P(b-m); */
+					/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
+					w = wx * wy[m+1];
+					
+					if (do_float) {
+						dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
+						outR+= dataF[0] * w;
+						outG+= dataF[1] * w;
+						outB+= dataF[2] * w;
+						outA+= dataF[3] * w;
+					}
+					if (do_rect) {
+						dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
+						outR+= dataI[0] * w;
+						outG+= dataI[1] * w;
+						outB+= dataI[2] * w;
+						outA+= dataI[3] * w;
+					}
+				}
+			}
+		}
+	}
+	if (do_rect) {
+		rgba[0]= (int)outR;
+		rgba[1]= (int)outG;
+		rgba[2]= (int)outB;
+		rgba[3]= (int)outA;
+	}
+	if (do_float) {
+		rgba_fp[0]= outR;
+		rgba_fp[1]= outG;
+		rgba_fp[2]= outB;
+		rgba_fp[3]= outA;
+	}
+}
+
 /* bucket_index is optional, since in some cases we know it */
-static int screenco_pickcol(ProjectPaintState *ps, float pt[2], char rgba[4], int interp)
+/* TODO FLOAT */ /* add a function that does this for float buffers */
+static int screenco_pickcol(ProjectPaintState *ps, float pt[2], float *rgba_fp, char *rgba, int interp)
 {
 	float w[3], uv[2];
 	int side;
 	int face_index;
 	MTFace *tf;
 	ImBuf *ibuf;
-	int x,y;
-	char *pixel;
+	int xi,yi;
+	
 	
 	face_index = screenco_pickface(ps,pt,w, &side);
 	
@@ -584,17 +678,51 @@ static int screenco_pickcol(ProjectPaintState *ps, float pt[2], char rgba[4], in
 	
 	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
 	
-	x = uv[0]*ibuf->x;
-	y = uv[1]*ibuf->y;
+
 	
-	if (x<0 || x>=ibuf->x  ||  y<0 || y>=ibuf->y) return 0;
-	
-	pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * 4);
-	
-	rgba[0] = pixel[0];
-	rgba[1] = pixel[1];
-	rgba[2] = pixel[2];
-	rgba[3] = pixel[3];
+	if (interp) {
+		float x,y;
+		x = uv[0]*ibuf->x;
+		y = uv[1]*ibuf->y;
+		if (ibuf->rect_float) {
+			if (rgba_fp) {
+				bicubic_interpolation_px(ibuf, x, y, rgba_fp, NULL);
+			} else {
+				float rgba_tmp_fp[4];
+				bicubic_interpolation_px(ibuf, x, y, rgba_tmp_fp, NULL);
+				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, rgba_tmp_fp);
+			}
+		} else {
+			if (rgba) {
+				bicubic_interpolation_px(ibuf, x, y, NULL, rgba);
+			} else {
+				char rgba_tmp[4];
+				bicubic_interpolation_px(ibuf, x, y, NULL, rgba_tmp);
+				IMAPAINT_CHAR_RGBA_TO_FLOAT( rgba_fp,  rgba_tmp);
+			}
+		}
+	} else {
+		xi = uv[0]*ibuf->x;
+		yi = uv[1]*ibuf->y;
+		
+		if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
+		
+		if (rgba) {
+			if (ibuf->rect_float) {
+				IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba, ((( float * ) ibuf->rect_float) + (( xi + yi * ibuf->x ) * 4)));
+			} else {
+				*((unsigned int *)rgba) = *(unsigned int *) ((( char * ) ibuf->rect) + (( xi + yi * ibuf->x ) * 4));
+			}
+		}
+		
+		if (rgba_fp) {
+			if (ibuf->rect_float) {
+				QUATCOPY(rgba_fp, ((( float * ) ibuf->rect_float) + (( xi + yi * ibuf->x ) * 4)));
+			} else {
+				IMAPAINT_CHAR_RGBA_TO_FLOAT( rgba_fp,  ((( char * ) ibuf->rect) + (( xi + yi * ibuf->x ) * 4)));
+			}
+		}
+	}
 	return 1;
 }
 
@@ -1151,6 +1279,7 @@ static screen_px_from_persp(
 static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, int x, int y, int bucket_index, int face_index, float pixelScreenCo[4])
 {
 	ProjectPixel *projPixel;
+	short size;
 	
 	// printf("adding px (%d %d), (%f %f)\n", x,y,uv[0],uv[1]);
 	
@@ -1162,18 +1291,30 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, int x
 	/* screenco_pickface is less complex, use for testing */
 	//if (screenco_pickface(ps, pixelScreenCo, w, &side) == face_index) {
 	if (ps->projectIsOcclude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
+		
+		if (ps->tool==PAINT_TOOL_CLONE) {
+			if (ibuf->rect_float) {
+				size = sizeof(ProjectPixelCloneFloat);
+			} else {
+				size = sizeof(ProjectPixelClone);
+			}
+		} else if (ps->tool==PAINT_TOOL_SMEAR) {
+			size = sizeof(ProjectPixelClone);
+		}
+		
+		projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, size);
+		
+		if (ibuf->rect_float) {
+			projPixel->pixel = (void *) ((( float * ) ibuf->rect_float) + (( x + y * ibuf->x ) * pixel_size));
+		} else {
+			projPixel->pixel = (void *) ((( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size));
+		}
+		
+		VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
+		
 		/* done with view3d_project_float inline */
 		if (ps->tool==PAINT_TOOL_CLONE) {
 			float co[2];
-			
-			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, sizeof(ProjectPixelClone));
-			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
-			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
-			
-			/* copy pixel color to backbuf - not used yet */
-			/* memcpy( &(((ProjectPixelClone *)projPixel)->backbuf), projPixel->pixel, pixel_size); */
-			//((ProjectPixelClone *)projPixel)->source = NULL; /* must be set later */
-			
 			
 			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
 			/* TODO - possibly only run this for directly ativated buckets when cloning */
@@ -1181,20 +1322,22 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, ImBuf *ibuf, int x
 			
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
 			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
-			if (!screenco_pickcol(ps, co, ((ProjectPixelClone *)projPixel)->clonebuf, 1)) {
-				((ProjectPixelClone *)projPixel)->clonebuf[3] = 0; /* zero alpha - ignore */
+			if (ibuf->rect_float) {
+				if (!screenco_pickcol(ps, co, ((ProjectPixelCloneFloat *)projPixel)->clonepx, NULL, 1)) {
+					((ProjectPixelCloneFloat *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+				}
+			} else {
+				if (!screenco_pickcol(ps, co, NULL, ((ProjectPixelClone *)projPixel)->clonepx, 1)) {
+					((ProjectPixelClone *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+				}
 			}
-		} else {
-			/* smear needs the buffer from a clone pixel */
-			projPixel = (ProjectPixel *)BLI_memarena_alloc(ps->projectArena, (ps->tool==PAINT_TOOL_SMEAR) ? sizeof(ProjectPixelClone) : sizeof(ProjectPixel));
-			projPixel->pixel = (( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size);
-			VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
 		}
 		
 		/* screenspace unclamped */
 		
 #ifdef PROJ_DEBUG_PAINT
-		projPixel->pixel[1] = 0;
+		if (ibuf->rect_float)	((float *)projPixel->pixel)[1] = 0;
+		else					((char *)projPixel->pixel)[1] = 0;
 #endif
 		projPixel->image_index = ps->imaContextIndex;
 		
@@ -1943,7 +2086,7 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 		float projCo[4];
 		float *curs= give_cursor();
 		VECCOPY(projCo, curs);
-		Mat4MulVec4fl(ps->ob->imat, projCo);
+		Mat4MulVecfl(ps->ob->imat, projCo);
 		VecSubf(projCo, projCo, ps->ob->obmat[3]);
 		projCo[3] = 1.0;
 		Mat4MulVec4fl(ps->projectMat, projCo);
@@ -2039,12 +2182,13 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	/* build an array of images we use*/
 	ps->projectImages = BLI_memarena_alloc( ps->projectArena, sizeof(Image *) * ps->projectImageTotal);
+	ps->projectImBufs = BLI_memarena_alloc( ps->projectArena, sizeof(ImBuf *) * ps->projectImageTotal);
 	
 	for (node= image_LinkList, i=0; node; node= node->next, i++) {
-		
 		ps->projectImages[i] = node->link;
 		ps->projectImages[i]->id.flag &= ~LIB_DOIT;
-		// printf("'%s' %d\n", ps->projectImages[i]->id.name+2, i);
+		
+		ps->projectImBufs[i] = BKE_image_get_ibuf(ps->projectImages[i], NULL);
 	}
 	/* we have built the array, discard the linked list */
 	BLI_linklist_free(image_LinkList, NULL);
@@ -2572,13 +2716,17 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	int last_index = -1;
 	float rgba[4], alpha, dist, dist_nosqrt;
 	char rgba_ub[4];
+	float rgba_fp[4];
 	float brush_size_sqared;
 	float min[2], max[2]; /* brush bounds in screenspace */
 	int bucket_min[2], bucket_max[2]; /* brush bounds in bucket grid space */
 	int bucket_index;
 	int a;
+	int is_floatbuf = 0;
 	short blend= ps->blend;
+	/* pixel values */
 	char *cp;
+	float *fp;
 	
 	float bucket_bounds[4];
 	int bucket_x, bucket_y;
@@ -2588,6 +2736,7 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 	float mval_ofs[2]; 
 	float co[2];
 	LinkNode *smearPixels = NULL;
+	LinkNode *smearPixels_float = NULL;
 	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
 	
 	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
@@ -2646,9 +2795,6 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 				
 					do {
 						projPixel = (ProjectPixel *)node->link;
-#ifdef PROJ_DEBUG_PAINT
-						projPixel->pixel[0] = 0; // use for checking if the starting radius is too big
-#endif
 						
 						/*dist = Vec2Lenf(projPixel->projCo2D, mval_f);*/ /* correct but uses a sqrt */
 						dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCo2D, mval_f);
@@ -2656,72 +2802,94 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 						/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
 						if (dist_nosqrt < brush_size_sqared) {
 							
+							if (last_index != projPixel->image_index) {
+								last_index = projPixel->image_index;
+								ps->projectImages[last_index]->id.flag |= LIB_DOIT;
+								is_floatbuf = ps->projectImBufs[last_index]->rect_float ? 1 : 0;
+							}
+							
 							dist = (float)sqrt(dist_nosqrt);
 							
 							switch(ps->tool) {
 							case PAINT_TOOL_CLONE:
-								if (((char *)((ProjectPixelClone*)projPixel)->clonebuf)[3]) {
-									alpha = brush_sample_falloff(ps->brush, dist);
-									if (alpha <= 0.0) {
-										/* do nothing */
-									} else {
-										cp = (char *)((ProjectPixelClone*)projPixel)->clonebuf;
+								if (is_floatbuf) {
+									if (((ProjectPixelCloneFloat*)projPixel)->clonepx[3]) {
+										alpha = brush_sample_falloff(ps->brush, dist);
+										fp = ((ProjectPixelCloneFloat *)projPixel)->clonepx;
 										if (alpha >= 1.0) {
-											projPixel->pixel[0] = cp[0];
-											projPixel->pixel[1] = cp[1];
-											projPixel->pixel[2] = cp[2];
+											VECCOPY((float *)projPixel->pixel, ((ProjectPixelCloneFloat *)projPixel)->clonepx );
 										} else {
-											projPixel->pixel[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((projPixel->pixel[0])/255.0)*(1.0-alpha))) );
-											projPixel->pixel[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((projPixel->pixel[1])/255.0)*(1.0-alpha))) );
-											projPixel->pixel[2] = FTOCHAR( (((cp[2]/255.0) * alpha) + (((projPixel->pixel[2])/255.0)*(1.0-alpha))) );
+											((float *)projPixel->pixel)[0] = (fp[0] * alpha) + ((((float *)projPixel->pixel)[0])*(1.0-alpha));
+											((float *)projPixel->pixel)[1] = (fp[1] * alpha) + ((((float *)projPixel->pixel)[1])*(1.0-alpha));
+											((float *)projPixel->pixel)[2] = (fp[2] * alpha) + ((((float *)projPixel->pixel)[2])*(1.0-alpha));
 										}
 									}
-									
+								} else {
+									if (((ProjectPixelClone*)projPixel)->clonepx[3]) {
+										alpha = brush_sample_falloff(ps->brush, dist);
+										cp = (char *)((ProjectPixelClone*)projPixel)->clonepx;
+										if (alpha >= 1.0) {
+											((char *)projPixel->pixel)[0] = cp[0];
+											((char *)projPixel->pixel)[1] = cp[1];
+											((char *)projPixel->pixel)[2] = cp[2];
+										} else {
+											((char *)projPixel->pixel)[0] = FTOCHAR( (((cp[0]/255.0) * alpha) + (((((char *)projPixel->pixel)[0])/255.0)*(1.0-alpha))) );
+											((char *)projPixel->pixel)[1] = FTOCHAR( (((cp[1]/255.0) * alpha) + (((((char *)projPixel->pixel)[1])/255.0)*(1.0-alpha))) );
+											((char *)projPixel->pixel)[2] = FTOCHAR( (((cp[2]/255.0) * alpha) + (((((char *)projPixel->pixel)[2])/255.0)*(1.0-alpha))) );
+										}
+									}
 								}
 								break;
 							case PAINT_TOOL_SMEAR:
 								Vec2Subf(co, projPixel->projCo2D, mval_ofs);
-								if (screenco_pickcol(ps, co, rgba_ub, 1)) {
+								if (screenco_pickcol(ps, co, NULL, rgba_ub, 0)) { /* Note, no interpolation here, only needed for clone, nearest should be is OK */
 									brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 									alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
 									/* drat! - this could almost be very simple if we ignore
 									 * the fact that applying the color directly gives feedback,
 									 * instead, collect the colors and apply after :/ */
 									
-#if 0								/* looks OK but not correct */
+#if 0								/* looks OK but not correct - also would need float buffer */
 									*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
 #endif
 									
 									/* add to memarena instead */
-									*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonebuf) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-									BLI_linklist_prepend_arena(
-										&smearPixels,
-										(void *)projPixel,
-										smearArena
-									);
-									
+									if (is_floatbuf) {
+										/* TODO FLOAT */ /* Smear wont do float properly yet */
+										char rgba_smear[4];
+										IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, (float *)projPixel->pixel);
+										*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+										BLI_linklist_prepend_arena( &smearPixels_float, (void *)projPixel, smearArena );
+									} else {
+										*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+										BLI_linklist_prepend_arena( &smearPixels, (void *)projPixel, smearArena );
+									}
 								}
 								break;
 							default:
 								brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 								alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
 								if (alpha > 0.0) {
-									rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
-									rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
-									rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
-									rgba_ub[3] = FTOCHAR(rgba[3]);
-									
-									*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+									if (is_floatbuf) {
+										rgba_fp[0] = rgba[0] * ps->brush->rgb[0];
+										rgba_fp[1] = rgba[1] * ps->brush->rgb[1];
+										rgba_fp[2] = rgba[2] * ps->brush->rgb[2];
+										rgba_fp[3] = rgba[3];
+										IMB_blend_color_float( (float *)projPixel->pixel, (float *)projPixel->pixel, rgba_fp, alpha, blend);
+									} else {
+										rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
+										rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
+										rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
+										rgba_ub[3] = FTOCHAR(rgba[3]);
+										
+										*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+									}
 								}
 								break;
 								
 							}
 							
-							
-							if (last_index != projPixel->image_index) {
-								last_index = projPixel->image_index;
-								ps->projectImages[last_index]->id.flag |= LIB_DOIT;
-							}
+							/* done painting */
 						}
 						
 						node = node->next;
@@ -2736,7 +2904,15 @@ static int imapaint_paint_sub_stroke_project(ProjectPaintState *ps, BrushPainter
 		if ((node = smearPixels)) {
 			do {
 				projPixel = node->link;
-				*((unsigned int *)projPixel->pixel) = *((unsigned int *)(((ProjectPixelClone *)projPixel)->clonebuf));
+				*((unsigned int *)projPixel->pixel) = *((unsigned int *)(((ProjectPixelClone *)projPixel)->clonepx));
+				node = node->next;
+			} while (node);
+		}
+		
+		if ((node = smearPixels_float)) {
+			do {
+				projPixel = node->link;
+				IMAPAINT_CHAR_RGBA_TO_FLOAT((float *)projPixel->pixel,  (char *)(((ProjectPixelClone *)projPixel)->clonepx) );
 				node = node->next;
 			} while (node);
 		}
