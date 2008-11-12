@@ -516,24 +516,21 @@ else:
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 	dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
-						'${LCGDIR}/png/lib/libpng.dll',
-						'#release/windows/extra/zlib.pyd',
-						'${LCGDIR}/zlib/lib/zlib.dll',
-						'${LCGDIR}/tiff/lib/libtiff.dll']
+						'${BF_PNG_LIBPATH}/libpng.dll',
+						'${BF_ZLIB_LIBPATH}/zlib.dll',
+						'${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
+	dllsources += ['${BF_PTHREADS_LIBPATH}/${BF_PTHREADS_LIB}.dll']
 	if env['WITH_BF_SDL']:
-		dllsources.append('${LCGDIR}/sdl/lib/SDL.dll')
+		dllsources.append('${BF_SDL_LIBPATH}/SDL.dll')
 	if env['WITH_BF_PYTHON']:
 		dllsources.append('#release/windows/extra/python25.zip')
+		dllsources.append('#release/windows/extra/zlib.pyd')
 		if env['BF_DEBUG']:
-			dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}_d.dll')
+			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}_d.dll')
 		else:
-			dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}.dll')
-	if env['OURPLATFORM'] == 'win32-mingw':
-		dllsources += ['${LCGDIR}/pthreads/lib/pthreadGC2.dll']
-	else:
-		dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
+			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}.dll')
 	if env['WITH_BF_ICONV']:
-		dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
+		dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
 	if env['WITH_BF_FFMPEG']:
 		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
