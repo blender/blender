@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/nodes
-DIRS = intern
+DIRS = intern intern/CMP_nodes intern/SHD_nodes intern/TEX_nodes
 
 include nan_subdirs.mk

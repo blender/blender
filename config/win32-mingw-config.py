@@ -9,7 +9,7 @@ BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
-BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
@@ -64,6 +64,8 @@ BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
+BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'

@@ -647,7 +647,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 				if(pass[3]<1.0f) {
 					
 					if(done==0) {
-						shadeSkyPixel(col, x, y);
+						shadeSkyPixel(col, x, y, pa->thread);
 						done= 1;
 					}
 					
