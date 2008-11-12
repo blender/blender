@@ -316,6 +316,10 @@
 				RelativePath="..\..\..\source\blender\nodes\intern\SHD_util.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\nodes\intern\TEX_util.c"
+				>
+			</File>
 			<Filter
 				Name="CMP_nodes"
 				>
@@ -600,6 +604,70 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="TEX_nodes"
+				>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_bricks.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_checker.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_curves.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_hueSatVal.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_image.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_invert.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_math.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_mixRgb.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_output.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_proc.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_rotate.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_texture.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_translate.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_valToRgb.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_viewer.c"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -612,6 +680,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\nodes\SHD_node.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\nodes\TEX_node.h"
 				>
 			</File>
 			<Filter
@@ -627,6 +699,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_util.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_util.h"
 					>
 				</File>
 			</Filter>
