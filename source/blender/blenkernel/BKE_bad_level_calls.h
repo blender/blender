@@ -235,8 +235,6 @@ struct Tex;
 struct TexResult;
 int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
 
-/* previewrender.c */
-void BIF_preview_changed(short id_code);
 
 
 #endif

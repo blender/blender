@@ -348,9 +348,5 @@ void txt_copy_clipboard (struct Text *text){}
 char stipple_quarttone[1];
 
 /* texture.c */
-int multitex_thread(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output) {}
-
-/* previewrender.c */
-void BIF_preview_changed(short id_code) {}
-
+int multitex_thread(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output) {return 0;}
 

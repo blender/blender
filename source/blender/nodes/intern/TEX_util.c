@@ -209,7 +209,6 @@ void ntreeTexUpdatePreviews(bNodeTree* nodetree)
 	ntreeTexExecTree(nodetree, &dummy_texres, coord, 1, 0, tex, 0);
 	ntreeEndExecTree(nodetree);
 	
-	BIF_preview_changed(ID_TE);
 }
 
 char* ntreeTexOutputMenu(bNodeTree *ntree)
