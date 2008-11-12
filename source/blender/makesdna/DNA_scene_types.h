@@ -865,7 +865,6 @@ typedef struct Scene {
 #define SKGEN_DISP_ORIG			(1 << 12)
 #define SKGEN_DISP_EMBED		(1 << 13)
 #define SKGEN_DISP_INDEX		(1 << 14)
-#define	SKGEN_CUT_FIXED			64
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1
@@ -889,6 +888,7 @@ typedef struct Scene {
 
 /* toolsettings->skgen_retarget_options */
 #define	SK_RETARGET_ROLL				1
+#define	SK_RETARGET_AUTONAME			2
 
 
 #ifdef __cplusplus

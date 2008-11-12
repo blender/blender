@@ -2354,7 +2354,6 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(), 10,yco,150,19, &template_index, 0, 0, 0, 0, "Template");
 		uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
 		
-		//uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_DIFF, "OB:", 10, yco, 150, 19, &G.scene->toolsettings->skgen_template, "Template Object"); 
 		yco -= 20;
 		
 		uiDefButF(block, NUM, B_DIFF, 							"Ang:",			10, yco, 50,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
@@ -2362,8 +2361,11 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiDefButF(block, NUM, B_DIFF, 							"Dist:",		110,yco, 50,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 		yco -= 20;
 		
-		uiDefBut(block, TEX,0,"S:",							10, yco, 75, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace %S with");
-		uiDefBut(block, TEX,0,"N:",							85, yco, 75, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace %N with");
+		uiDefBut(block, TEX,0,"S:",							10, yco, 65, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace %S with");
+		uiDefBut(block, TEX,0,"N:",							75, yco, 65, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace %N with");
+		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,140,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+
+		/* auto renaming magic */
 
 		uiBlockEndAlign(block);
 

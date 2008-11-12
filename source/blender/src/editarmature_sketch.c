@@ -178,6 +178,11 @@ char *BIF_listTemplates()
 	char menu_header[] = "Template%t|None%x0|";
 	char *p;
 	
+	if (TEMPLATES_MENU != NULL)
+	{
+		MEM_freeN(TEMPLATES_MENU);
+	}
+	
 	TEMPLATES_MENU = MEM_callocN(sizeof(char) * (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30), "skeleton template menu");
 	
 	p = TEMPLATES_MENU;
@@ -472,6 +477,53 @@ int peelObjects(ListBase *depth_peels, short mval[2])
 }
 /*********************** CONVERSION ***************************/
 
+void sk_autoname(ReebArc *arc)
+{
+	if (G.scene->toolsettings->skgen_retarget_options & SK_RETARGET_AUTONAME)
+	{
+		if (arc == NULL)
+		{
+			char *num = G.scene->toolsettings->skgen_num_string;
+			int i = atoi(num);
+			i++;
+			BLI_snprintf(num, 8, "%i", i);
+		}
+		else
+		{
+			char *side = G.scene->toolsettings->skgen_side_string;
+			int valid = 0;
+			int caps = 0;
+			
+			if (BLI_streq(side, ""))
+			{
+				valid = 1;
+			}
+			else if (BLI_streq(side, "R") || BLI_streq(side, "L"))
+			{
+				valid = 1;
+				caps = 1;
+			}
+			else if (BLI_streq(side, "r") || BLI_streq(side, "l"))
+			{
+				valid = 1;
+				caps = 0;
+			}
+			
+			if (valid)
+			{
+				if (arc->head->p[0] < 0)
+				{
+					BLI_snprintf(side, 8, caps?"R":"r");
+				}
+				else
+				{
+					BLI_snprintf(side, 8, caps?"L":"l");
+				}
+			}
+		}
+	}
+}
+
 ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
 {
 	ReebNode *node;
@@ -529,7 +581,11 @@ void sk_retargetStroke(SK_Stroke *stk)
 
 	arc = sk_strokeToArc(stk, imat, tmat);
 	
+	sk_autoname(arc);
+
 	BIF_retargetArc(arc);
+	
+	sk_autoname(NULL);
 	
 	MEM_freeN(arc->head);
 	MEM_freeN(arc->tail);
