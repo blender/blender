@@ -82,6 +82,9 @@ class KX_SceneActuator : public SCA_IActuator
 	virtual ~KX_SceneActuator();
 
 	virtual CValue* GetReplica();
+	virtual void ProcessReplica();
+	virtual bool UnlinkObject(SCA_IObject* clientobj);
+	virtual void Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	virtual bool Update();
 	

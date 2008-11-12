@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c)
+SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
 
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
 

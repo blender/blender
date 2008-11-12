@@ -47,19 +47,55 @@ typedef struct StripElem {
 
 typedef struct TStripElem {
 	struct ImBuf *ibuf;
+	struct ImBuf *ibuf_comp;
 	struct TStripElem *se1, *se2, *se3;
 	short ok;
-	short pad;
+	short flag;
 	int nr;
 } TStripElem;
+
+typedef struct StripCrop {
+	int top;
+	int bottom;
+	int left;
+	int right;
+} StripCrop;
+
+typedef struct StripTransform {
+	int xofs;
+	int yofs;
+} StripTransform;
+
+typedef struct StripColorBalance {
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+	int flag;
+	int pad;
+	float exposure;
+	float saturation;
+} StripColorBalance;
+
+typedef struct StripProxy {
+	char dir[160];
+} StripProxy;
 
 typedef struct Strip {
 	struct Strip *next, *prev;
 	int rt, len, us, done;
+	int startstill, endstill;
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	StripProxy *proxy;
+	StripCrop *crop;
+	StripTransform *transform;
+	StripColorBalance *color_balance;
 	TStripElem *tstripdata;
+	TStripElem *tstripdata_startstill;
+	TStripElem *tstripdata_endstill;
+	struct ImBuf *ibuf_startstill;
+	struct ImBuf *ibuf_endstill;
 } Strip;
 
 
@@ -93,7 +129,7 @@ typedef struct Sequence {
 	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
 	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
-	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
+	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
 	int len; /* the length of the contense of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
@@ -102,6 +138,7 @@ typedef struct Sequence {
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */
+	int anim_preseek;
 
 	Strip *strip;
 
@@ -125,7 +162,13 @@ typedef struct Sequence {
 
 	void *effectdata;	/* Struct pointer for effect settings */
 
-	int anim_preseek;
+	int anim_startofs;    /* only use part of animation file */
+	int anim_endofs;      /* is subtle different to startofs / endofs */
+
+	int blend_mode;
+	float blend_opacity;
+
+	int scenenr;          /* for scene selection */
 	int pad;
 } Sequence;
 
@@ -207,6 +250,18 @@ typedef struct SpeedControlVars {
 #define SEQ_FLAG_DELETE			1024
 #define SEQ_FLIPX				2048
 #define SEQ_FLIPY				4096
+#define SEQ_MAKE_FLOAT				8192
+#define SEQ_LOCK				16384
+#define SEQ_USE_PROXY                           32768
+#define SEQ_USE_TRANSFORM                       65536
+#define SEQ_USE_CROP                           131072
+#define SEQ_USE_COLOR_BALANCE                  262144
+#define SEQ_USE_PROXY_CUSTOM_DIR               524288
+#define SEQ_ACTIVE                            1048576
+
+#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
+#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
+#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
@@ -232,10 +287,18 @@ typedef struct SpeedControlVars {
 #define SEQ_TRANSFORM		27
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
+#define SEQ_EFFECT_MAX          29
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
-#define STRIPELEM_META         2
+
+#define STRIPELEM_PREVIEW_DONE  1
+
+#define SEQ_BLEND_REPLACE      0
+/* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical
+   to the table above. (Only those effects that handle _exactly_ two inputs,
+   otherwise, you can't really blend, right :) !)
+*/
 
 #endif
 

@@ -13,7 +13,7 @@ from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
 
 __author__ = "Bruce Merry"
-__version__ = "0.92"
+__version__ = "0.93"
 __bpydoc__ = """\
 This script exports Stanford PLY files from Blender. It supports normals, 
 colours, and texture coordinates per face or per vertex.
@@ -37,6 +37,8 @@ Only one mesh can be exported at a time.
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # Vector rounding se we can use as keys
 #
+# Updated on Aug 11, 2008 by Campbell Barton
+#    - added 'comment' prefix to comments - Needed to comply with the PLY spec.
 #
 # Updated on Jan 1, 2007 by Gabe Ghearing
 #    - fixed normals so they are correctly smooth/flat
@@ -141,10 +143,10 @@ def file_callback(filename):
 				normal_key = rvec3d(normal)
 			
 			if faceUV:
-				uvcoord=	tuple(uv[j])
+				uvcoord=	uv[j][0], 1.0-uv[j][1]
 				uvcoord_key = rvec2d(uvcoord)
 			elif vertexUV:
-				uvcoord=	tuple(v.uvco)
+				uvcoord=	v.uvco[0], 1.0-v.uvco[1]
 				uvcoord_key = rvec2d(uvcoord)
 			
 			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
@@ -162,7 +164,7 @@ def file_callback(filename):
 	
 	file.write('ply\n')
 	file.write('format ascii 1.0\n')
-	file.write('Created by Blender3D %s - www.blender.org, source file: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
+	file.write('comment Created by Blender3D %s - www.blender.org, source file: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
 	
 	file.write('element vertex %d\n' % len(verts))
 	
@@ -207,10 +209,9 @@ def file_callback(filename):
 		for j, v in enumerate(f):
 			if f.smooth:		normal=		rvec3d(v.no)
 			else:				normal=		no
-			if faceUV:			uvcoord=	rvec2d(uv[j])
-			elif vertexUV:		uvcoord=	rvec2d(v.uvco)
+			if faceUV:			uvcoord=	rvec2d((uv[j][0], 1.0-uv[j][1]))
+			elif vertexUV:		uvcoord=	rvec2d((v.uvco[0], 1.0-v.uvco[1]))
 			if vertexColors:	color=		col[j].r, col[j].g, col[j].b
-			co = v.co
 			
 			file.write('%d ' % vdict[v.index][normal, uvcoord, color])
 			

@@ -41,23 +41,26 @@
 struct ColorBlock
 {
 	ColorBlock();
+	ColorBlock(const uint * linearImage);
 	ColorBlock(const ColorBlock & block);
-	ColorBlock(const Image * img, unsigned int x, unsigned int y);
+	ColorBlock(const Image * img, uint x, uint y);
 	
-	void init(const Image * img, unsigned int x, unsigned int y);
+	void init(const Image * img, uint x, uint y);
 	
 	void swizzleDXT5n();
 	void splatX();
 	void splatY();
 	
-	unsigned int countUniqueColors() const;
+	bool isSingleColor() const;
+	bool isSingleColorNoAlpha() const;
+	uint countUniqueColors() const;
 	Color32 averageColor() const;
+	bool hasAlpha() const;
 	
 	void diameterRange(Color32 * start, Color32 * end) const;
 	void luminanceRange(Color32 * start, Color32 * end) const;
 	void boundsRange(Color32 * start, Color32 * end) const;
 	void boundsRangeAlpha(Color32 * start, Color32 * end) const;
-	void bestFitRange(Color32 * start, Color32 * end) const;
 	
 	void sortColorsByAbsoluteValue();
 
@@ -66,11 +69,11 @@ struct ColorBlock
 	// Accessors
 	const Color32 * colors() const;
 
-	Color32 color(unsigned int i) const;
-	Color32 & color(unsigned int i);
+	Color32 color(uint i) const;
+	Color32 & color(uint i);
 	
-	Color32 color(unsigned int x, unsigned int y) const;
-	Color32 & color(unsigned int x, unsigned int y);
+	Color32 color(uint x, uint y) const;
+	Color32 & color(uint x, uint y);
 	
 private:
 	
@@ -86,25 +89,25 @@ inline const Color32 * ColorBlock::colors() const
 }
 
 /// Get block color.
-inline Color32 ColorBlock::color(unsigned int i) const
+inline Color32 ColorBlock::color(uint i) const
 {
 	return m_color[i];
 }
 
 /// Get block color.
-inline Color32 & ColorBlock::color(unsigned int i)
+inline Color32 & ColorBlock::color(uint i)
 {
 	return m_color[i];
 }
 
 /// Get block color.
-inline Color32 ColorBlock::color(unsigned int x, unsigned int y) const
+inline Color32 ColorBlock::color(uint x, uint y) const
 {
 	return m_color[y * 4 + x];
 }
 
 /// Get block color.
-inline Color32 & ColorBlock::color(unsigned int x, unsigned int y)
+inline Color32 & ColorBlock::color(uint x, uint y)
 {
 	return m_color[y * 4 + x];
 }

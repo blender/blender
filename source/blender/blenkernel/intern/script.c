@@ -32,18 +32,21 @@
  */
 
 #include "BKE_script.h"
-//XXX #include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
 
-
+/*
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" // Blender Python library
+#endif
+*/
 
 /* XXX this function and so also the file should not be needed anymore,
  * since we have to force clearing all Python related data before freeing
@@ -54,13 +57,8 @@
 void free_script (Script *script)
 {
 	if (!script) return;
-
-	if (script->py_globaldict || script->py_button ||
-			script->py_event || script->py_draw)
-	{
-		BPY_clear_script(script);
-	}
-
-	return;
+#ifndef DISABLE_PYTHON
+	BPY_clear_script(script);
+#endif
 }
 #endif

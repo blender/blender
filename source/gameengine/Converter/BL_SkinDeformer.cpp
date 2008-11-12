@@ -57,86 +57,96 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
+BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+								struct Object *bmeshobj, 
+								class BL_SkinMeshObject *mesh,
+								BL_ArmatureObject* arma)
+							:	//
+							BL_MeshDeformer(gameobj, bmeshobj, mesh),
+							m_armobj(arma),
+							m_lastArmaUpdate(-1),
+							m_defbase(&bmeshobj->defbase),
+							m_releaseobject(false),
+							m_poseApplied(false)
+{
+	Mat4CpyMat4(m_obmat, bmeshobj->obmat);
+};
+
+BL_SkinDeformer::BL_SkinDeformer(
+	BL_DeformableGameObject *gameobj,
+	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
+	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
+	class BL_SkinMeshObject *mesh,
+	bool release_object,
+	BL_ArmatureObject* arma)	:	
+		BL_MeshDeformer(gameobj, bmeshobj_old, mesh),
+		m_armobj(arma),
+		m_lastArmaUpdate(-1),
+		m_defbase(&bmeshobj_old->defbase),
+		m_releaseobject(release_object)
+	{
+		// this is needed to ensure correct deformation of mesh:
+		// the deformation is done with Blender's armature_deform_verts() function
+		// that takes an object as parameter and not a mesh. The object matrice is used
+		// in the calculation, so we must use the matrix of the original object to
+		// simulate a pure replacement of the mesh.
+		Mat4CpyMat4(m_obmat, bmeshobj_new->obmat);
+	}
+
 BL_SkinDeformer::~BL_SkinDeformer()
 {
 	if(m_releaseobject && m_armobj)
 		m_armobj->Release();
-};
+}
 
-/* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
+void BL_SkinDeformer::Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
+{
+	if (m_armobj) {
+		void **h_obj = (*map)[m_armobj];
+
+		if (h_obj)
+			SetArmature( (BL_ArmatureObject*)(*h_obj) );
+		else
+			m_armobj=NULL;
+	}
+
+	BL_MeshDeformer::Relink(map);
+}
 
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
-	size_t			i, j, index;
-	vecVertexArray	array;
-#ifdef __NLA_OLDDEFORM
-	vecMVertArray	mvarray;
-#else
-	vecIndexArrays	mvarray;
-#endif
-	vecMDVertArray	dvarray;
-	vecIndexArrays	diarray;
+	RAS_MeshSlot::iterator it;
+	RAS_MeshMaterial *mmat;
+	RAS_MeshSlot *slot;
+	size_t i;
 
-	RAS_TexVert *tv;
-#ifdef __NLA_OLDDEFORM
-	MVert	*mvert;
-	MDeformVert	*dvert;
-#endif
-	MT_Point3 pt;
-//	float co[3];
-
-	if (!m_armobj)
-		return false;
-
+	// update the vertex in m_transverts
 	Update();
 
-	array = m_pMeshObject->GetVertexCache(mat);
-#ifdef __NLA_OLDDEFORM
-	dvarray = m_pMeshObject->GetDVertCache(mat);
-#endif
-	mvarray = m_pMeshObject->GetMVertCache(mat);
-	diarray = m_pMeshObject->GetDIndexCache(mat);
-	
+	// The vertex cache can only be updated for this deformer:
+	// Duplicated objects with more than one ploymaterial (=multiple mesh slot per object)
+	// share the same mesh (=the same cache). As the rendering is done per polymaterial
+	// cycling through the objects, the entire mesh cache cannot be updated in one shot.
+	mmat = m_pMeshObject->GetMeshMaterial(mat);
+	if(!mmat->m_slots[(void*)m_gameobj])
+		return true;
 
-	// For each array
-	for (i=0; i<array.size(); i++){
-		//	For each vertex
-		for (j=0; j<array[i]->size(); j++){
+	slot = *mmat->m_slots[(void*)m_gameobj];
 
-			tv = &((*array[i])[j]);
-			
-			index = ((*diarray[i])[j]);
-#ifdef __NLA_OLDDEFORM
-			pt = tv->xyz();
-			mvert = ((*mvarray[i])[index]);
-			dvert = ((*dvarray[i])[index]);
-#endif
-			
-			//	Copy the untransformed data from the original mvert
-#ifdef __NLA_OLDDEFORM
-			co[0]=mvert->co[0];
-			co[1]=mvert->co[1];
-			co[2]=mvert->co[2];
-
-			//	Do the deformation
-/* XXX note, doesnt exist anymore */
-//			GB_calc_armature_deform(co, dvert);
-			tv->SetXYZ(co);
-#else
-			//	Set the data
-			tv->SetXYZ(m_transverts[((*mvarray[i])[index])]);
-#ifdef __NLA_DEFNORMALS
-
-			tv->SetNormal(m_transnors[((*mvarray[i])[index])]);
-#endif
-#endif
+	// for each array
+	for(slot->begin(it); !slot->end(it); slot->next(it)) {
+		// for each vertex
+		// copy the untransformed data from the original mvert
+		for(i=it.startvertex; i<it.endvertex; i++) {
+			RAS_TexVert& v = it.vertex[i];
+			v.SetXYZ(m_transverts[v.getOrigIndex()]);
 		}
 	}
-	
+
 	return true;
 }
 
-RAS_Deformer *BL_SkinDeformer::GetReplica()
+RAS_Deformer *BL_SkinDeformer::GetReplica(class KX_GameObject* replica)
 {
 	BL_SkinDeformer *result;
 
@@ -151,19 +161,15 @@ void BL_SkinDeformer::ProcessReplica()
 
 //void where_is_pose (Object *ob);
 //void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag); 
-void BL_SkinDeformer::Update(void)
+bool BL_SkinDeformer::Update(void)
 {
 	/* See if the armature has been updated for this frame */
-	if (m_lastUpdate!=m_armobj->GetLastFrame()){	
-		
-		/* Do all of the posing necessary */
-		m_armobj->ApplyPose();
-		
+	if (PoseUpdated()){	
+		float obmat[4][4];	// the original object matrice 
+
 		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
 		/* but it requires the blender object pointer... */
-
 		Object* par_arma = m_armobj->GetArmatureObject();
-		where_is_pose( par_arma ); 
 
 		/* store verts locally */
 		VerifyStorage();
@@ -172,12 +178,32 @@ void BL_SkinDeformer::Update(void)
 		for (int v =0; v<m_bmesh->totvert; v++)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
+		m_armobj->ApplyPose();
+
+		// save matrix first
+		Mat4CpyMat4(obmat, m_objMesh->obmat);
+		// set reference matrix
+		Mat4CpyMat4(m_objMesh->obmat, m_obmat);
+
 		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
+		
+		// restore matrix 
+		Mat4CpyMat4(m_objMesh->obmat, obmat);
+
+#ifdef __NLA_DEFNORMALS
 		RecalcNormals();
+#endif
 
 		/* Update the current frame */
-		m_lastUpdate=m_armobj->GetLastFrame();
+		m_lastArmaUpdate=m_armobj->GetLastFrame();
+
+		m_armobj->RestorePose();
+
+		/* indicate that the m_transverts and normals are up to date */
+		return true;
 	}
+
+	return false;
 }
 
 /* XXX note: I propose to drop this function */

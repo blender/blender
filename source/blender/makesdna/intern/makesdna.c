@@ -55,6 +55,8 @@
 #include "MEM_guardedalloc.h"
 #include "DNA_sdna_types.h"
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -125,6 +127,8 @@ char *includefiles[] = {
 	"DNA_brush_types.h",
 	"DNA_customdata_types.h",
 	"DNA_particle_types.h",
+	"DNA_cloth_types.h",
+	"DNA_gpencil_types.h",
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
 	"DNA_windowmanager_types.h",
@@ -688,18 +692,18 @@ static int calculate_structlens(int firststruct)
 						/* 4-8 aligned/ */
 						if(sizeof(void *) == 4) {
 							if (len % 4) {
-								printf("Align pointer error in struct: %s %s\n", types[structtype], cp);
+								printf("Align pointer error in struct (len4): %s %s\n", types[structtype], cp);
 								dna_error = 1;
 							}
 						} else {
 							if (len % 8) {
-								printf("Align pointer error in struct: %s %s\n", types[structtype], cp);
+								printf("Align pointer error in struct (len8): %s %s\n", types[structtype], cp);
 								dna_error = 1;
 							}
 						}
 
 						if (alphalen % 8) {
-							printf("Align pointer error in struct: %s %s\n", types[structtype],cp);
+							printf("Align pointer error in struct (alphalen8): %s %s\n", types[structtype],cp);
 							dna_error = 1;
 						}
 
@@ -748,13 +752,13 @@ static int calculate_structlens(int firststruct)
 					// has_pointer is set or alphalen != len
 					if (has_pointer || alphalen != len) {
 						if (alphalen % 8) {
-							printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], alphalen%8);
+							printf("Sizeerror 8 in struct: %s (add %d bytes)\n", types[structtype], alphalen%8);
 							dna_error = 1;
 						}
 					}
 					
 					if(len % 4) {
-						printf("Sizeerror in struct: %s (add %d bytes)\n", types[structtype], len%4);
+						printf("Sizeerror 4 in struct: %s (add %d bytes)\n", types[structtype], len%4);
 						dna_error = 1;
 					}
 					
@@ -954,7 +958,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calculate size of datablock with strings */
 		cp= names[nr_names-1];
 		cp+= strlen(names[nr_names-1]) + 1;			/* +1: null-terminator */
-		len= (long) (cp - (char*) names[0]);
+		len= (intptr_t) (cp - (char*) names[0]);
 		len= (len+3) & ~3;
 		dna_write(file, names[0], len);
 		
@@ -967,7 +971,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calculate datablock size */
 		cp= types[nr_types-1];
 		cp+= strlen(types[nr_types-1]) + 1;		/* +1: null-terminator */
-		len= (long) (cp - (char*) types[0]);
+		len= (intptr_t) (cp - (char*) types[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, types[0], len);
@@ -989,7 +993,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		/* calc datablock size */
 		sp= structs[nr_structs-1];
 		sp+= 2+ 2*( sp[1] );
-		len= (long) ((char*) sp - (char*) structs[0]);
+		len= (intptr_t) ((char*) sp - (char*) structs[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, structs[0], len);
@@ -1146,6 +1150,7 @@ int main(int argc, char ** argv)
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_cloth_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
-
 /* end of list */

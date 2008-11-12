@@ -22,7 +22,12 @@ subject to the following restrictions:
   can be used by probes that are checking whether the
   library is actually installed.
 */
-extern "C" void btBulletMathProbe () {}
+extern "C"
+{	
+	void btBulletMathProbe ();
+
+	void btBulletMathProbe () {}
+}
 
 
 bool	btGeometryUtil::isPointInsidePlanes(const btAlignedObjectArray<btVector3>& planeEquations, const btVector3& point, btScalar	margin)
@@ -56,6 +61,8 @@ bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const 
 	}
 	return true;
 }
+
+bool notExist(const btVector3& planeEquation,const btAlignedObjectArray<btVector3>& planeEquations);
 
 bool notExist(const btVector3& planeEquation,const btAlignedObjectArray<btVector3>& planeEquations)
 {

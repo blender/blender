@@ -34,7 +34,7 @@ SOURCEDIR = source/gameengine/GamePlayer
 DIR = $(OCGDIR)/gameengine/GamePlayer
 DIRS = common ghost
 
-ifneq ($(NAN_NO_PLUGIN),true)
+ifeq ($(WITH_BF_WEBPLUGIN),true)
 ifeq ($(OS),$(findstring $(OS), "freebsd irix windows"))
 	ifneq ($(FREE_WINDOWS),true)
 	    DIRS += netscape

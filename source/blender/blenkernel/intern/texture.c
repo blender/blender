@@ -52,6 +52,9 @@
 #include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_node_types.h"
+#include "DNA_color_types.h"
+#include "DNA_scene_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -71,6 +74,7 @@
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_brush.h"
+#include "BKE_node.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -103,6 +107,7 @@ void open_plugin_tex(PluginTex *pit)
 	pit->result= 0;
 	pit->cfra= 0;
 	pit->version= 0;
+	pit->instance_init= 0;
 	
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -122,7 +127,7 @@ void open_plugin_tex(PluginTex *pit)
 		
 		if (version != 0) {
 			pit->version= version();
-			if (pit->version>=2 && pit->version<=5) {
+			if( pit->version >= 2 && pit->version <=6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
@@ -342,6 +347,15 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 				else
 					fac= 0.0f;
 				
+				if (coba->ipotype==4) {
+					/* constant */
+					out[0]= cbd2->r;
+					out[1]= cbd2->g;
+					out[2]= cbd2->b;
+					out[3]= cbd2->a;
+					return 1;
+				}
+				
 				if(coba->ipotype>=2) {
 					/* ipo from right to left: 3 2 1 0 */
 					
@@ -383,6 +397,17 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 		}
 	}
 	return 1;	/* OK */
+}
+
+void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "ColorBand");
+
+	for(a=0; a<*size; a++)
+		do_colorband(coba, (float)a/(float)CM_TABLE, &(*array)[a*4]);
 }
 
 /* ******************* TEX ************************ */
@@ -539,6 +564,8 @@ Tex *copy_texture(Tex *tex)
 	texn= copy_libblock(tex);
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
+	
+	id_us_plus((ID *)texn->ipo);
 	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
@@ -724,9 +751,10 @@ Tex *give_current_texture(Object *ob, int act)
 	Lamp *la = 0;
 	MTex *mtex = 0;
 	Tex *tex = 0;
+	bNode *node;
 	
 	if(ob==0) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
 		la=(Lamp *)ob->data;
@@ -734,7 +762,6 @@ Tex *give_current_texture(Object *ob, int act)
 			mtex= la->mtex[(int)(la->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	} else {
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
@@ -747,18 +774,42 @@ Tex *give_current_texture(Object *ob, int act)
 			
 			if(matarar && *matarar) ma= (*matarar)[act-1];
 			else ma= 0;
-			
+		}
+
+		if(ma && ma->use_nodes && ma->nodetree) {
+			node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+			if(node) {
+				tex= (Tex *)node->id;
+				ma= NULL;
+			}
+			else {
+				node= nodeGetActiveID(ma->nodetree, ID_MA);
+				if(node)
+					ma= (Material*)node->id;
+			}
 		}
 		if(ma) {
 			mtex= ma->mtex[(int)(ma->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	}
 	
 	return tex;
 }
 
+Tex *give_current_world_texture(void)
+{
+	MTex *mtex = 0;
+	Tex *tex = 0;
+	
+	if(!(G.scene->world)) return 0;
+	
+	mtex= G.scene->world->mtex[(int)(G.scene->world->texact)];
+	if(mtex) tex= mtex->tex;
+	
+	return tex;
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -813,6 +864,22 @@ void BKE_free_envmap(EnvMap *env)
 	BKE_free_envmapdata(env);
 	MEM_freeN(env);
 	
+}
+
+/* ------------------------------------------------------------------------- */
+int BKE_texture_dependsOnTime(const struct Tex *texture)
+{
+	if(texture->plugin) {
+		// assume all plugins depend on time
+		return 1;
+	} else if(	texture->ima && 
+			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		return 1;
+	} else if(texture->ipo) {
+		// assume any ipo means the texture is animated
+		return 1;
+	}
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

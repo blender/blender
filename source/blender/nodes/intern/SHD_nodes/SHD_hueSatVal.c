@@ -54,9 +54,7 @@ static void do_hue_sat_fac(bNode *node, float *out, float *hue, float *sat, floa
 		hsv[0]+= (*hue - 0.5f);
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv[1]*= *sat;
-		if(hsv[1]>1.0) hsv[1]= 1.0; else if(hsv[1]<0.0) hsv[1]= 0.0;
 		hsv[2]*= *val;
-		if(hsv[2]>1.0) hsv[2]= 1.0; else if(hsv[2]<0.0) hsv[2]= 0.0;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
 		out[0]= mfac*in[0] + *fac*col[0];
@@ -73,6 +71,12 @@ static void node_shader_exec_hue_sat(void *data, bNode *node, bNodeStack **in, b
 	do_hue_sat_fac(node, out[0]->vec, in[0]->vec, in[1]->vec, in[2]->vec, in[4]->vec, in[3]->vec);
 }
 
+
+static int gpu_shader_hue_sat(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "hue_sat", in, out);
+}
+
 bNodeType sh_node_hue_sat= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_HUE_SAT,
@@ -87,7 +91,8 @@ bNodeType sh_node_hue_sat= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_hue_sat
 	
 };
 

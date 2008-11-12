@@ -28,8 +28,10 @@
  */
 
 #include <stdio.h> 
+#include <stddef.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include "MEM_guardedalloc.h"
 //XXX #include "nla.h"
@@ -63,8 +65,9 @@
 #include "BKE_library.h"
 #include "BKE_idprop.h"
 
-
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -78,10 +81,10 @@
 /* ******************* Constraint Channels ********************** */
 /* Constraint Channels exist in one of two places:
  *	- Under Action Channels in an Action  (act->chanbase->achan->constraintChannels)
- *	- Under Object without object-level action yet (ob->constraintChannels)
+ *	- Under Object without Object-level Action yet (ob->constraintChannels)
  * 
- * The main purpose that constraint channels serve is to act as a link
- * between an IPO-block which 
+ * The main purpose that Constraint Channels serve is to act as a link
+ * between an IPO-block (which provides values to interpolate between for some settings)
  */
 
 /* ------------ Data Management ----------- */
@@ -137,7 +140,7 @@ bConstraintChannel *get_constraint_channel (ListBase *list, const char name[])
 {
 	bConstraintChannel *chan;
 
-	if(list) {
+	if (list) {
 		for (chan = list->first; chan; chan=chan->next) {
 			if (!strcmp(name, chan->name)) {
 				return chan;
@@ -177,11 +180,11 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 	for (con=conbase->first; con; con=con->next) {
 		Ipo *ipo= NULL;
 		
-		if(con->flag & CONSTRAINT_OWN_IPO)
+		if (con->flag & CONSTRAINT_OWN_IPO)
 			ipo= con->ipo;
 		else {
 			bConstraintChannel *chan = get_constraint_channel(chanbase, con->name);
-			if(chan) ipo= chan->ipo;
+			if (chan) ipo= chan->ipo;
 		}
 		
 		if (ipo) {
@@ -200,7 +203,24 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 							break;
 						case CO_HEADTAIL:
 						{
-							con->headtail = icu->curval;
+							/* we need to check types of constraints that can get this here, as user
+							 * may have created an IPO-curve for this from IPO-editor but for a constraint
+							 * that cannot support this
+							 */
+							switch (con->type) {
+								/* supported constraints go here... */
+								case CONSTRAINT_TYPE_LOCLIKE:
+								case CONSTRAINT_TYPE_TRACKTO:
+								case CONSTRAINT_TYPE_MINMAX:
+								case CONSTRAINT_TYPE_STRETCHTO:
+								case CONSTRAINT_TYPE_DISTLIMIT:
+									con->headtail = icu->curval;
+									break;
+									
+								default:
+									/* not supported */
+									break;
+							}
 						}
 							break;
 					}
@@ -221,55 +241,7 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 /* Find the first available, non-duplicate name for a given constraint */
 void unique_constraint_name (bConstraint *con, ListBase *list)
 {
-	bConstraint *curcon;
-	char tempname[64];
-	int	number = 1, exists = 0;
-	char *dot;
-	
-	/* See if we are given an empty string */
-	if (con->name[0] == '\0') {
-		/* give it default name first */
-		strcpy(con->name, "Const");
-	}
-	
-	/* See if we even need to do this */
-	if (list == NULL)
-		return;
-	
-	for (curcon = list->first; curcon; curcon=curcon->next) {
-		if (curcon != con) {
-			if (!strcmp(curcon->name, con->name)) {
-				exists = 1;
-				break;
-			}
-		}
-	}
-	
-	if (exists == 0)
-		return;
-
-	/*	Strip off the suffix */
-	dot = strchr(con->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <= 999; number++) {
-		sprintf(tempname, "%s.%03d", con->name, number);
-		
-		exists = 0;
-		for (curcon=list->first; curcon; curcon=curcon->next) {
-			if (con != curcon) {
-				if (strcmp(curcon->name, tempname)==0) {
-					exists = 1;
-					break;
-				}
-			}
-		}
-		if (exists == 0) {
-			strcpy(con->name, tempname);
-			return;
-		}
-	}
+	BLI_uniquename(list, con, "Const", offsetof(bConstraint, name), 32);
 }
 
 /* ----------------- Evaluation Loop Preparation --------------- */
@@ -337,7 +309,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 	
 	/* calculate delta of constraints evaluation */
 	Mat4Invert(imat, cob->startmat);
-	Mat4MulMat4(delta, cob->matrix, imat);
+	Mat4MulMat4(delta, imat, cob->matrix);
 	
 	/* copy matrices back to source */
 	switch (cob->type) {
@@ -395,19 +367,12 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 			case CONSTRAINT_SPACE_WORLD: /* ---------- FROM WORLDSPACE ---------- */
 			{
 				/* world to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_LOCAL || to==CONSTRAINT_SPACE_PARLOCAL) {
-					Mat4Invert(imat, ob->obmat);
-					Mat4CpyMat4(tempmat, mat);
-					Mat4MulMat4(mat, tempmat, imat);
-				}
+				Mat4Invert(imat, ob->obmat);
+				Mat4CpyMat4(tempmat, mat);
+				Mat4MulMat4(mat, tempmat, imat);
 				
-				/* pose to local */
-				if (to == CONSTRAINT_SPACE_LOCAL) {
-					/* call self with slightly different values */
-					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}
-				/* pose to local + parent */
-				else if (to == CONSTRAINT_SPACE_PARLOCAL) {
+				/* use pose-space as stepping stone for other spaces... */
+				if (ELEM(to, CONSTRAINT_SPACE_LOCAL, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
@@ -473,69 +438,66 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 				break;
 			case CONSTRAINT_SPACE_LOCAL: /* ------------ FROM LOCALSPACE --------- */
 			{
-				/* local to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_WORLD) {
-					/* do inverse procedure that was done for pose to local */
-					if (pchan->bone) {
-						/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
-						if (pchan->parent) {
-							float offs_bone[4][4];
-								
-							/* construct offs_bone the same way it is done in armature.c */
-							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
-							VECCOPY(offs_bone[3], pchan->bone->head);
-							offs_bone[3][1]+= pchan->bone->parent->length;
+				/* local to pose - do inverse procedure that was done for pose to local */
+				if (pchan->bone) {
+					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */						
+					if (pchan->parent) {
+						float offs_bone[4][4];
+						
+						/* construct offs_bone the same way it is done in armature.c */
+						Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+						VECCOPY(offs_bone[3], pchan->bone->head);
+						offs_bone[3][1]+= pchan->bone->parent->length;
+						
+						if (pchan->bone->flag & BONE_HINGE) {
+							/* pose_mat = par_pose-space_location * chan_mat */
+							float tmat[4][4];
 							
-							if (pchan->bone->flag & BONE_HINGE) {
-								/* pose_mat = par_pose-space_location * chan_mat */
-								float tmat[4][4];
-								
-								/* the rotation of the parent restposition */
-								Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
-								
-								/* the location of actual parent transform */
-								VECCOPY(tmat[3], offs_bone[3]);
-								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
-								
-								Mat4MulMat4(diff_mat, offs_bone, tmat);
-								Mat4CpyMat4(tempmat, mat);
-								Mat4MulMat4(mat, tempmat, diff_mat);
-							}
-							else {
-								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
-								Mat4CpyMat4(tempmat, mat);
-								Mat4MulMat4(mat, tempmat, diff_mat);
-							}
+							/* the rotation of the parent restposition */
+							Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
+							
+							/* the location of actual parent transform */
+							VECCOPY(tmat[3], offs_bone[3]);
+							offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
+							Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
+							
+							Mat4MulMat4(diff_mat, offs_bone, tmat);
+							Mat4CpyMat4(tempmat, mat);
+							Mat4MulMat4(mat, tempmat, diff_mat);
 						}
 						else {
-							Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
-							
+							/* pose_mat = par_pose_mat * bone_mat * chan_mat */
+							Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
 							Mat4CpyMat4(tempmat, mat);
 							Mat4MulMat4(mat, tempmat, diff_mat);
 						}
 					}
+					else {
+						Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
+						
+						Mat4CpyMat4(tempmat, mat);
+						Mat4MulMat4(mat, tempmat, diff_mat);
+					}
 				}
-				/* local to world */
-				if (to == CONSTRAINT_SPACE_WORLD) {
+				
+				/* use pose-space as stepping stone for other spaces */
+				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}
+				}				
 			}
 				break;
 			case CONSTRAINT_SPACE_PARLOCAL: /* -------------- FROM LOCAL WITH PARENT ---------- */
 			{
-				/* local to pose */
-				if (to==CONSTRAINT_SPACE_POSE || to==CONSTRAINT_SPACE_WORLD) {
-					if (pchan->bone) {					
-						Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
-						Mat4CpyMat4(tempmat, mat);
-						Mat4MulMat4(mat, diff_mat, tempmat);
-					}
+				/* local + parent to pose */
+				if (pchan->bone) {					
+					Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);
+					Mat4CpyMat4(tempmat, mat);
+					Mat4MulMat4(mat, diff_mat, tempmat);
 				}
-				/* local to world */
-				if (to == CONSTRAINT_SPACE_WORLD) {
+				
+				/* use pose-space as stepping stone for other spaces */
+				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
 				}
@@ -586,8 +548,8 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
-	if (G.obedit && G.editMesh) {
-		/* we are in editmode, so get a special derived mesh */
+	if ((G.obedit == ob) && (G.editMesh)) {
+		/* target is in editmode, so get a special derived mesh */
 		dm = CDDM_from_editmesh(G.editMesh, ob->data);
 	}
 	else {
@@ -880,7 +842,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
 				strcpy(datasubtarget, ct->subtarget); \
-				con->tarspace= ct->space; \
+				con->tarspace= (char)ct->space; \
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
@@ -900,7 +862,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
-				con->tarspace= ct->space; \
+				con->tarspace= (char)ct->space; \
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
@@ -920,7 +882,7 @@ static void childof_new_data (void *cdata)
 	Mat4One(data->invmat);
 }
 
-static void childof_get_tars (bConstraint *con, ListBase *list)
+static int childof_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bChildOfConstraint *data= con->data;
@@ -928,7 +890,11 @@ static void childof_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void childof_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1018,7 +984,7 @@ static void trackto_new_data (void *cdata)
 	data->reserved2 = UP_Z;
 }	
 
-static void trackto_get_tars (bConstraint *con, ListBase *list)
+static int trackto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bTrackToConstraint *data= con->data;
@@ -1026,7 +992,11 @@ static void trackto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void trackto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1124,9 +1094,9 @@ static void vectomat (float *vec, float *target_up, short axis, short upflag, sh
 	/* identity matrix - don't do anything if the two axes are the same */
 	else {
 		m[0][0]= m[1][1]= m[2][2]= 1.0;
-		m[0][1]= m[0][2]= m[0][3]= 0.0;
-		m[1][0]= m[1][2]= m[1][3]= 0.0;
-		m[2][0]= m[2][1]= m[2][3]= 0.0;
+		m[0][1]= m[0][2]= 0.0;
+		m[1][0]= m[1][2]= 0.0;
+		m[2][0]= m[2][1]= 0.0;
 	}
 }
 
@@ -1195,16 +1165,20 @@ static void kinematic_new_data (void *cdata)
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
 }
 
-static void kinematic_get_tars (bConstraint *con, ListBase *list)
+static int kinematic_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bKinematicConstraint *data= con->data;
 		bConstraintTarget *ct;
 		
-		/* standard target-getting macro for single-target constraints */
+		/* standard target-getting macro for single-target constraints is used twice here */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
 		SINGLETARGET_GET_TARS(con, data->poletar, data->polesubtarget, ct, list)
+		
+		return 2;
 	}
+	
+	return 0;
 }
 
 static void kinematic_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1273,7 +1247,7 @@ static void followpath_new_data (void *cdata)
 	data->followflag = 0;
 }
 
-static void followpath_get_tars (bConstraint *con, ListBase *list)
+static int followpath_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bFollowPathConstraint *data= con->data;
@@ -1281,7 +1255,11 @@ static void followpath_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void followpath_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1301,7 +1279,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 	
 	if (VALID_CONS_TARGET(ct)) {
 		Curve *cu= ct->tar->data;
-		float q[4], vec[4], dir[3], *quat, x1;
+		float q[4], vec[4], dir[3], quat[4], x1;
 		float totmat[4][4];
 		float curvetime;
 		
@@ -1326,7 +1304,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
 				if (data->followflag) {
-					quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
+					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
 					q[0]= (float)cos(0.5*vec[3]);
@@ -1456,9 +1434,9 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	Mat4ToEul(cob->matrix, eul);
 	
 	/* eulers: radians to degrees! */
-	eul[0] = (eul[0] / M_PI * 180);
-	eul[1] = (eul[1] / M_PI * 180);
-	eul[2] = (eul[2] / M_PI * 180);
+	eul[0] = (float)(eul[0] / M_PI * 180);
+	eul[1] = (float)(eul[1] / M_PI * 180);
+	eul[2] = (float)(eul[2] / M_PI * 180);
 	
 	/* limiting of euler values... */
 	if (data->flag & LIMIT_XROT) {
@@ -1484,9 +1462,9 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	}
 		
 	/* eulers: degrees to radians ! */
-	eul[0] = (eul[0] / 180 * M_PI); 
-	eul[1] = (eul[1] / 180 * M_PI);
-	eul[2] = (eul[2] / 180 * M_PI);
+	eul[0] = (float)(eul[0] / 180 * M_PI); 
+	eul[1] = (float)(eul[1] / 180 * M_PI);
+	eul[2] = (float)(eul[2] / 180 * M_PI);
 	
 	LocEulSizeToMat4(cob->matrix, loc, eul, size);
 }
@@ -1574,7 +1552,7 @@ static void loclike_new_data (void *cdata)
 	data->flag = LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
 }
 
-static void loclike_get_tars (bConstraint *con, ListBase *list)
+static int loclike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bLocateLikeConstraint *data= con->data;
@@ -1582,7 +1560,11 @@ static void loclike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void loclike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1652,7 +1634,7 @@ static void rotlike_new_data (void *cdata)
 	data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
 }
 
-static void rotlike_get_tars (bConstraint *con, ListBase *list)
+static int rotlike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bRotateLikeConstraint *data= con->data;
@@ -1660,7 +1642,11 @@ static void rotlike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void rotlike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1749,7 +1735,7 @@ static void sizelike_new_data (void *cdata)
 	data->flag = SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
 }
 
-static void sizelike_get_tars (bConstraint *con, ListBase *list)
+static int sizelike_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bSizeLikeConstraint *data= con->data;
@@ -1757,7 +1743,11 @@ static void sizelike_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void sizelike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -1824,6 +1814,7 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	sizelike_evaluate /* evaluate */
 };
 
+
 /* ----------- Python Constraint -------------- */
 
 static void pycon_free (bConstraint *con)
@@ -1863,14 +1854,18 @@ static void pycon_new_data (void *cdata)
 	data->prop->type = IDP_GROUP;
 }
 
-static void pycon_get_tars (bConstraint *con, ListBase *list)
+static int pycon_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bPythonConstraint *data= con->data;
 		
 		list->first = data->targets.first;
 		list->last = data->targets.last;
+		
+		return data->tarnum;
 	}
+	
+	return 0;
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
@@ -1892,7 +1887,12 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		 * this matrix if it needs to do so
 		 */
 		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
-		BPY_pyconstraint_target(data, ct);
+		
+		/* only execute target calculation if allowed */
+#ifndef DISABLE_PYTHON
+		if (G.f & G_DOSCRIPTLINKS)
+			BPY_pyconstraint_target(data, ct);
+#endif
 	}
 	else if (ct)
 		Mat4One(ct->matrix);
@@ -1900,7 +1900,13 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 
 static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
+#ifdef DISABLE_PYTHON
+	return;
+#else
 	bPythonConstraint *data= con->data;
+	
+	/* only evaluate in python if we're allowed to do so */
+	if ((G.f & G_DOSCRIPTLINKS)==0)  return;
 	
 /* currently removed, until I this can be re-implemented for multiple targets */
 #if 0
@@ -1913,6 +1919,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 	
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
 	BPY_pyconstraint_eval(data, cob, targets);
+#endif /* DISABLE_PYTHON */
 }
 
 static bConstraintTypeInfo CTI_PYTHON = {
@@ -1946,7 +1953,7 @@ static void actcon_new_data (void *cdata)
 	data->type = 20;
 }
 
-static void actcon_get_tars (bConstraint *con, ListBase *list)
+static int actcon_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bActionConstraint *data= con->data;
@@ -1954,7 +1961,11 @@ static void actcon_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void actcon_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2031,8 +2042,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			Mat4CpyMat4(ct->matrix, tchan->chan_mat);
 			
 			/* Clean up */
-			free_pose_channels(pose);
-			MEM_freeN(pose);
+			free_pose(pose);
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			/* evaluate using workob */
@@ -2086,7 +2096,7 @@ static void locktrack_new_data (void *cdata)
 	data->lockflag = LOCK_Z;
 }	
 
-static void locktrack_get_tars (bConstraint *con, ListBase *list)
+static int locktrack_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bLockTrackConstraint *data= con->data;
@@ -2094,7 +2104,11 @@ static void locktrack_get_tars (bConstraint *con, ListBase *list)
 		
 		/* the following macro is used for all standard single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void locktrack_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2425,6 +2439,122 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 	locktrack_evaluate /* evaluate */
 };
 
+/* ---------- Limit Distance Constraint ----------- */
+
+static void distlimit_new_data (void *cdata)
+{
+	bDistLimitConstraint *data= (bDistLimitConstraint *)cdata;
+	
+	data->dist= 0.0;
+}
+
+static int distlimit_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bDistLimitConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void distlimit_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bDistLimitConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bDistLimitConstraint *data= con->data;
+	bConstraintTarget *ct= targets->first;
+	
+	/* only evaluate if there is a target */
+	if (VALID_CONS_TARGET(ct)) {
+		float dvec[3], dist=0.0f, sfac=1.0f;
+		short clamp_surf= 0;
+		
+		/* calculate our current distance from the target */
+		dist= VecLenf(cob->matrix[3], ct->matrix[3]);
+		
+		/* set distance (flag is only set when user demands it) */
+		if (data->dist == 0)
+			data->dist= dist;
+		
+		/* check if we're which way to clamp from, and calculate interpolation factor (if needed) */
+		if (data->mode == LIMITDIST_OUTSIDE) {
+			/* if inside, then move to surface */
+			if (dist <= data->dist) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+			/* if soft-distance is enabled, start fading once owner is dist+softdist from the target */
+			else if (data->flag & LIMITDIST_USESOFT) {
+				if (dist <= (data->dist + data->soft)) {
+					
+				}
+			}
+		}
+		else if (data->mode == LIMITDIST_INSIDE) {
+			/* if outside, then move to surface */
+			if (dist >= data->dist) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
+			else if (data->flag & LIMITDIST_USESOFT) {
+				// FIXME: there's a problem with "jumping" when this kicks in
+				if (dist >= (data->dist - data->soft)) {
+					sfac = (float)( data->soft*(1.0 - exp(-(dist - data->dist)/data->soft)) + data->dist );
+					sfac /= dist;
+					
+					clamp_surf= 1;
+				}
+			}
+		}
+		else {
+			if (IS_EQ(dist, data->dist)==0) {
+				clamp_surf= 1;
+				sfac= data->dist / dist;
+			}
+		}
+		
+		/* clamp to 'surface' (i.e. move owner so that dist == data->dist) */
+		if (clamp_surf) {
+			/* simply interpolate along line formed by target -> owner */
+			VecLerpf(dvec, ct->matrix[3], cob->matrix[3], sfac);
+			
+			/* copy new vector onto owner */
+			VECCOPY(cob->matrix[3], dvec);
+		}
+	}
+}
+
+static bConstraintTypeInfo CTI_DISTLIMIT = {
+	CONSTRAINT_TYPE_DISTLIMIT, /* type */
+	sizeof(bDistLimitConstraint), /* size */
+	"Limit Distance", /* name */
+	"bDistLimitConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	distlimit_new_data, /* new data */
+	distlimit_get_tars, /* get constraint targets */
+	distlimit_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get a target matrix */
+	distlimit_evaluate /* evaluate */
+};
+
 /* ---------- Stretch To ------------ */
 
 static void stretchto_new_data (void *cdata)
@@ -2437,7 +2567,7 @@ static void stretchto_new_data (void *cdata)
 	data->bulge = 1.0;
 }
 
-static void stretchto_get_tars (bConstraint *con, ListBase *list)
+static int stretchto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bStretchToConstraint *data= con->data;
@@ -2445,7 +2575,11 @@ static void stretchto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void stretchto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2613,7 +2747,7 @@ static void minmax_new_data (void *cdata)
 	data->flag = 0;
 }
 
-static void minmax_get_tars (bConstraint *con, ListBase *list)
+static int minmax_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bMinMaxConstraint *data= con->data;
@@ -2621,7 +2755,11 @@ static void minmax_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void minmax_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2743,7 +2881,7 @@ static void rbj_new_data (void *cdata)
     data->type=1;
 }
 
-static void rbj_get_tars (bConstraint *con, ListBase *list)
+static int rbj_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bRigidBodyJointConstraint *data= con->data;
@@ -2751,7 +2889,11 @@ static void rbj_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void rbj_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2782,7 +2924,7 @@ static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 
 /* -------- Clamp To ---------- */
 
-static void clampto_get_tars (bConstraint *con, ListBase *list)
+static int clampto_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bClampToConstraint *data= con->data;
@@ -2790,7 +2932,11 @@ static void clampto_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
 		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void clampto_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2955,7 +3101,7 @@ static void transform_new_data (void *cdata)
 	data->map[2]= 2;
 }
 
-static void transform_get_tars (bConstraint *con, ListBase *list)
+static int transform_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
 		bTransformConstraint *data= con->data;
@@ -2963,7 +3109,11 @@ static void transform_get_tars (bConstraint *con, ListBase *list)
 		
 		/* standard target-getting macro for single-target constraints */
 		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
 	}
+	
+	return 0;
 }
 
 static void transform_flush_tars (bConstraint *con, ListBase *list, short nocopy)
@@ -2990,11 +3140,13 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* obtain target effect */
 		switch (data->from) {
-			case 2:	/* scale */
+			case 2: /* scale */
 				Mat4ToSize(ct->matrix, dvec);
 				break;
-			case 1: /* rotation */
+			case 1: /* rotation (convert to degrees first) */
 				Mat4ToEul(ct->matrix, dvec);
+				for (i=0; i<3; i++)
+					dvec[i] = (float)(dvec[i] / M_PI * 180);
 				break;
 			default: /* location */
 				VecCopyf(dvec, ct->matrix[3]);
@@ -3004,7 +3156,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		/* extract components of owner's matrix */
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToEul(cob->matrix, eul);
-		Mat4ToSize(cob->matrix, size);
+		Mat4ToSize(cob->matrix, size);	
 		
 		/* determine where in range current transforms lie */
 		if (data->expo) {
@@ -3026,17 +3178,6 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			}
 		}
 		
-		/* convert radian<->degree */
-		if (data->from==1 && data->to==0) {
-			/* from radians to degrees */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / M_PI * 180;
-		}
-		else if (data->from==0 && data->to==1) {
-			/* from degrees to radians */
-			for (i=0; i<3; i++) 
-				sval[i] = sval[i] / 180 * M_PI;
-		}
 		
 		/* apply transforms */
 		switch (data->to) {
@@ -3048,11 +3189,14 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				for (i=0; i<3; i++) {
 					float tmin, tmax;
 					
-					/* convert destination min/max ranges from degrees to radians */
-					tmin= data->to_min[i] / M_PI * 180;
-					tmax= data->to_max[i] / M_PI * 180;
+					tmin= data->to_min[i];
+					tmax= data->to_max[i];
 					
+					/* all values here should be in degrees */
 					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+					
+					/* now convert final value back to radians */
+					eul[i] = (float)(eul[i] / 180 * M_PI);
 				}
 				break;
 			default: /* location */
@@ -3110,12 +3254,12 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[11]= &CTI_PYTHON;			/* Python/Script Constraint */
 	constraintsTypeInfo[12]= &CTI_ACTION;			/* Action Constraint */
 	constraintsTypeInfo[13]= &CTI_LOCKTRACK;		/* Locked-Track Constraint */
-	constraintsTypeInfo[14]= NULL;					/* 'Distance Limit' Constraint */
+	constraintsTypeInfo[14]= &CTI_DISTLIMIT;		/* Limit Distance Constraint */
 	constraintsTypeInfo[15]= &CTI_STRETCHTO; 		/* StretchTo Constaint */ 
 	constraintsTypeInfo[16]= &CTI_MINMAX;  			/* Floor Constraint */
 	constraintsTypeInfo[17]= &CTI_RIGIDBODYJOINT;	/* RigidBody Constraint */
 	constraintsTypeInfo[18]= &CTI_CLAMPTO; 			/* ClampTo Constraint */	
-	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */	
+	constraintsTypeInfo[19]= &CTI_TRANSFORM;		/* Transformation Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -3239,6 +3383,46 @@ void copy_constraints (ListBase *dst, ListBase *src)
 		if (cti && cti->copy_data)
 			cti->copy_data(con, srccon);
 	}
+}
+
+/* -------- Constraints and Proxies ------- */
+
+/* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL (i.e. added to bone that's proxy-synced in this file) */
+void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
+{
+	bConstraint *con, *next;
+	
+	/* for each tagged constraint, remove from src and move to dst */
+	for (con= src->first; con; con= next) {
+		next= con->next;
+		
+		/* check if tagged */
+		if (con->flag & CONSTRAINT_PROXY_LOCAL) {
+			BLI_remlink(src, con);
+			BLI_addtail(dst, con);
+		}
+	}
+}
+
+/* Returns if the owner of the constraint is proxy-protected */
+short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
+{
+	/* Currently, constraints can only be on object or bone level */
+	if (ob && ob->proxy) {
+		if (ob->pose && pchan) {
+			bArmature *arm= ob->data;
+			
+			/* On bone-level, check if bone is on proxy-protected layer */
+			if ((pchan->bone) && (pchan->bone->layer & arm->layer_protected))
+				return 1;
+		}
+		else {
+			/* FIXME: constraints on object-level are not handled well yet */
+			return 1;
+		}	
+	}
+	
+	return 0;
 }
 
 /* -------- Target-Matrix Stuff ------- */

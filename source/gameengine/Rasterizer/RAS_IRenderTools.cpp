@@ -28,41 +28,21 @@
 
 #include "RAS_IRenderTools.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-void RAS_IRenderTools::SetViewMat(const MT_Transform& trans)
-{
-	trans.getValue(m_viewmat);
-}
-	
-
-
-void RAS_IRenderTools::SetClientObject(void* obj)
+void RAS_IRenderTools::SetClientObject(RAS_IRasterizer* rasty, void *obj)
 {
 	if (m_clientobject != obj)
-	{
 		m_clientobject = obj;
-		m_modified = true;
-	}
 }
-
-
 
 void RAS_IRenderTools::SetAuxilaryClientInfo(void* inf)
 {
 	m_auxilaryClientInfo = inf;
 }
 
-
-
 void RAS_IRenderTools::AddLight(struct RAS_LightObject* lightobject)
 {
 	m_lights.push_back(lightobject);
 }
-
-
 
 void RAS_IRenderTools::RemoveLight(struct RAS_LightObject* lightobject)
 {
@@ -71,5 +51,5 @@ void RAS_IRenderTools::RemoveLight(struct RAS_LightObject* lightobject)
 
 	if (!(lit==m_lights.end()))
 		m_lights.erase(lit);
-
 }
+

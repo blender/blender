@@ -422,7 +422,6 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf)
 {
 	float *rf;

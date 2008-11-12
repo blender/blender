@@ -30,6 +30,8 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 //XXX #include "nla.h"
@@ -354,6 +356,117 @@ void bone_flip_name (char *name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
+/* Finds the best possible extension to the name on a particular axis. (For renaming, check for unique names afterwards)
+ * This assumes that bone names are at most 32 chars long!
+ * 	strip_number: removes number extensions  (TODO: not used)
+ *	axis: the axis to name on
+ *	head/tail: the head/tail co-ordinate of the bone on the specified axis
+ */
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail)
+{
+	int		len;
+	char	basename[32]={""};
+	char 	extension[5]={""};
+
+	len= strlen(name);
+	if (len == 0) return;
+	strcpy(basename, name);
+	
+	/* Figure out extension to append: 
+	 *	- The extension to append is based upon the axis that we are working on.
+	 *	- If head happens to be on 0, then we must consider the tail position as well to decide
+	 *	  which side the bone is on
+	 *		-> If tail is 0, then it's bone is considered to be on axis, so no extension should be added
+	 *		-> Otherwise, extension is added from perspective of object based on which side tail goes to
+	 *	- If head is non-zero, extension is added from perspective of object based on side head is on
+	 */
+	if (axis == 2) {
+		/* z-axis - vertical (top/bottom) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, "Bot");
+			else if (tail > 0)
+				strcpy(extension, "Top");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, "Bot");
+			else
+				strcpy(extension, "Top");
+		}
+	}
+	else if (axis == 1) {
+		/* y-axis - depth (front/back) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, "Fr");
+			else if (tail > 0)
+				strcpy(extension, "Bk");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, "Fr");
+			else
+				strcpy(extension, "Bk");
+		}
+	}
+	else {
+		/* x-axis - horizontal (left/right) */
+		if (IS_EQ(head, 0)) {
+			if (tail < 0)
+				strcpy(extension, "R");
+			else if (tail > 0)
+				strcpy(extension, "L");
+		}
+		else {
+			if (head < 0)
+				strcpy(extension, "R");
+			else if (head > 0)
+				strcpy(extension, "L");
+		}
+	}
+
+	/* Simple name truncation 
+	 *	- truncate if there is an extension and it wouldn't be able to fit
+	 *	- otherwise, just append to end
+	 */
+	if (extension[0]) {
+		int change = 1;
+		
+		while (change) { /* remove extensions */
+			change = 0;
+			if (len > 2 && basename[len-2]=='.') {
+				if (basename[len-1]=='L' || basename[len-1] == 'R' ) { /* L R */
+					basename[len-2] = '\0';
+					len-=2;
+					change= 1;
+				}
+			} else if (len > 3 && basename[len-3]=='.') {
+				if (	(basename[len-2]=='F' && basename[len-1] == 'r') ||	/* Fr */
+						(basename[len-2]=='B' && basename[len-1] == 'k')	/* Bk */
+				) {
+					basename[len-3] = '\0';
+					len-=3;
+					change= 1;
+				}
+			} else if (len > 4 && basename[len-4]=='.') {
+				if (	(basename[len-3]=='T' && basename[len-2]=='o' && basename[len-1] == 'p') ||	/* Top */
+						(basename[len-3]=='B' && basename[len-2]=='o' && basename[len-1] == 't')	/* Bot */
+				) {
+					basename[len-4] = '\0';
+					len-=4;
+					change= 1;
+				}
+			}
+		}
+		
+		if ((32 - len) < strlen(extension) + 1) { /* add 1 for the '.' */
+			strncpy(name, basename, len-strlen(extension));
+		}
+	}
+
+	sprintf(name, "%s.%s", basename, extension);
+}
 
 /* ************* B-Bone support ******************* */
 
@@ -1305,18 +1418,27 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
 	
-	if(frompose==NULL) return;
+	if (frompose==NULL) return;
 	
 	/* exception, armature local layer should be proxied too */
-	if(pose->proxy_layer)
+	if (pose->proxy_layer)
 		((bArmature *)ob->data)->layer= pose->proxy_layer;
 	
 	/* clear all transformation values from library */
 	rest_pose(frompose);
 	
-	pchan= pose->chanbase.first;
-	for(; pchan; pchan= pchan->next) {
-		if(pchan->bone->layer & layer_protected) {
+	/* copy over all of the proxy's bone groups */
+		/* TODO for later - implement 'local' bone groups as for constraints
+		 *	Note: this isn't trivial, as bones reference groups by index not by pointer, 
+		 *		 so syncing things correctly needs careful attention
+		 */
+	BLI_freelistN(&pose->agroups);
+	BLI_duplicatelist(&pose->agroups, &frompose->agroups);
+	pose->active_group= frompose->active_group;
+	
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & layer_protected) {
+			ListBase proxylocal_constraints = {NULL, NULL};
 			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
@@ -1327,9 +1449,16 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
-			/* constraints, set target ob pointer to own object */
+			/* constraints - proxy constraints are flushed... local ones are added after 
+			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
+			 *	2. copy proxy-pchan's constraints on-to new
+			 *	3. add extracted local constraints back on top 
+			 */
+			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
+			addlisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
+			/* constraints - set target ob pointer to own object */
 			for (con= pchanw.constraints.first; con; con= con->next) {
 				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
@@ -1444,20 +1573,15 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			data=(bKinematicConstraint*)con->data;
+			if (data->flag & CONSTRAINT_IK_AUTO) break;
+			if (data->tar==NULL) continue;
+			if (data->tar->type==OB_ARMATURE && data->subtarget[0]==0) continue;
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) break;
+		}
 	}
 	if(con==NULL) return;
-	
-	data=(bKinematicConstraint*)con->data;
-	
-	/* two types of targets */
-	if(data->flag & CONSTRAINT_IK_AUTO);
-	else {
-		if(con->flag & CONSTRAINT_DISABLE) return;	/* checked in editconstraint.c */
-		if(con->enforce == 0.0f) return;
-		if(data->tar==NULL) return;
-		if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
-	}
 	
 	/* exclude tip from chain? */
 	if(!(data->flag & CONSTRAINT_IK_TIP))
@@ -1561,7 +1685,7 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 were executed & assigned. Now as last we do an IK pass */
 static void execute_posetree(Object *ob, PoseTree *tree)
 {
-	float R_parmat[3][3];
+	float R_parmat[3][3], identity[3][3];
 	float iR_parmat[3][3];
 	float R_bonemat[3][3];
 	float goalrot[3][3], goalpos[3];
@@ -1570,7 +1694,8 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	float irest_basis[3][3], full_basis[3][3];
 	float end_pose[4][4], world_pose[4][4];
 	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
-	int a, flag, hasstretch=0;
+	float resultinf=0.0f;
+	int a, flag, hasstretch=0, resultblend=0;
 	bPoseChannel *pchan;
 	IK_Segment *seg, *parent, **iktree, *iktarget;
 	IK_Solver *solver;
@@ -1580,13 +1705,13 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 	if (tree->totchannel == 0)
 		return;
-
+	
 	iktree= MEM_mallocN(sizeof(void*)*tree->totchannel, "ik tree");
 
 	for(a=0; a<tree->totchannel; a++) {
 		pchan= tree->pchan[a];
 		bone= pchan->bone;
-
+		
 		/* set DoF flag */
 		flag= 0;
 		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
@@ -1595,32 +1720,32 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 			flag |= IK_YDOF;
 		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
 			flag |= IK_ZDOF;
-
+		
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			flag |= IK_TRANS_YDOF;
 			hasstretch = 1;
 		}
-
+		
 		seg= iktree[a]= IK_CreateSegment(flag);
-
+		
 		/* find parent */
 		if(a == 0)
 			parent= NULL;
 		else
 			parent= iktree[tree->parent[a]];
-
+			
 		IK_SetParent(seg, parent);
-	
+			
 		/* get the matrix that transforms from prevbone into this bone */
 		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
-
+		
 		/* gather transformations for this IK segment */
-
+		
 		if (pchan->parent)
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
 		else
 			Mat3One(R_parmat);
-
+		
 		/* bone offset */
 		if (pchan->parent && (a > 0))
 			VecSubf(start, pchan->pose_head, pchan->parent->pose_tail);
@@ -1630,40 +1755,40 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		
 		/* change length based on bone size */
 		length= bone->length*VecLength(R_bonemat[1]);
-
+		
 		/* compute rest basis and its inverse */
 		Mat3CpyMat3(rest_basis, bone->bone_mat);
 		Mat3CpyMat3(irest_basis, bone->bone_mat);
 		Mat3Transp(irest_basis);
-
+		
 		/* compute basis with rest_basis removed */
 		Mat3Inv(iR_parmat, R_parmat);
 		Mat3MulMat3(full_basis, iR_parmat, R_bonemat);
 		Mat3MulMat3(basis, irest_basis, full_basis);
-
+		
 		/* basis must be pure rotation */
 		Mat3Ortho(basis);
-
+		
 		/* transform offset into local bone space */
 		Mat3Ortho(iR_parmat);
 		Mat3MulVecfl(iR_parmat, start);
-
+		
 		IK_SetTransform(seg, start, rest_basis, basis, length);
-
+		
 		if (pchan->ikflag & BONE_IK_XLIMIT)
 			IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
 		if (pchan->ikflag & BONE_IK_YLIMIT)
 			IK_SetLimit(seg, IK_Y, pchan->limitmin[1], pchan->limitmax[1]);
 		if (pchan->ikflag & BONE_IK_ZLIMIT)
 			IK_SetLimit(seg, IK_Z, pchan->limitmin[2], pchan->limitmax[2]);
-
+		
 		IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
-
+		
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.999));
+			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
 			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
 		}
 	}
@@ -1689,7 +1814,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	for (target=tree->targets.first; target; target=target->next) {
 		float polepos[3];
 		int poleconstrain= 0;
-
+		
 		data= (bKinematicConstraint*)target->con->data;
 		
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
@@ -1706,7 +1831,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		/* same for pole vector target */
 		if(data->poletar) {
 			get_constraint_target_matrix(target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
-
+			
 			if(data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */
 				break;
@@ -1716,6 +1841,12 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 				VECCOPY(polepos, goal[3]);
 				poleconstrain= 1;
 
+				/* for pole targets, we blend the result of the ik solver
+				 * instead of the target position, otherwise we can't get
+				 * a smooth transition */
+				resultblend= 1;
+				resultinf= target->con->enforce;
+				
 				if(data->flag & CONSTRAINT_IK_GETANGLE) {
 					poleangledata= data;
 					data->flag &= ~CONSTRAINT_IK_GETANGLE;
@@ -1724,7 +1855,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		}
 
 		/* do we need blending? */
-		if (target->con->enforce!=1.0) {
+		if (!resultblend && target->con->enforce!=1.0) {
 			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
@@ -1774,36 +1905,41 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	tree->basis_change= MEM_mallocN(sizeof(float[3][3])*tree->totchannel, "ik basis change");
 	if(hasstretch)
 		ikstretch= MEM_mallocN(sizeof(float)*tree->totchannel, "ik stretch");
-
+	
 	for(a=0; a<tree->totchannel; a++) {
 		IK_GetBasisChange(iktree[a], tree->basis_change[a]);
-
+		
 		if(hasstretch) {
 			/* have to compensate for scaling received from parent */
 			float parentstretch, stretch;
-
+			
 			pchan= tree->pchan[a];
 			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0;
-
+			
 			if(tree->stretch && (pchan->ikstretch > 0.0)) {
 				float trans[3], length;
-
+				
 				IK_GetTranslationChange(iktree[a], trans);
 				length= pchan->bone->length*VecLength(pchan->pose_mat[1]);
-
+				
 				ikstretch[a]= (length == 0.0)? 1.0: (trans[1]+length)/length;
 			}
 			else
 				ikstretch[a] = 1.0;
-
+			
 			stretch= (parentstretch == 0.0)? 1.0: ikstretch[a]/parentstretch;
-
+			
 			VecMulf(tree->basis_change[a][0], stretch);
 			VecMulf(tree->basis_change[a][1], stretch);
 			VecMulf(tree->basis_change[a][2], stretch);
-
 		}
 
+		if(resultblend && resultinf!=1.0f) {
+			Mat3One(identity);
+			Mat3BlendMat3(tree->basis_change[a], identity,
+				tree->basis_change[a], resultinf);
+		}
+		
 		IK_FreeSegment(iktree[a]);
 	}
 	
@@ -2072,8 +2208,10 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	}
 	else {
 		Mat4MulMat4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
-		/* only rootbones get the cyclic offset */
-		VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
+		
+		/* only rootbones get the cyclic offset (unless user doesn't want that) */
+		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)
+			VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
 	/* do NLA strip modifiers - i.e. curve follow */

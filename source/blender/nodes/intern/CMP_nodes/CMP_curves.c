@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Björn C. Schaefer
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -123,6 +123,8 @@ bNodeType cmp_node_curve_vec= {
 static bNodeSocketType cmp_node_curve_rgb_in[]= {
 	{	SOCK_VALUE, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Black Level",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "White Level",	1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -157,7 +159,7 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 
 static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order input:  fac, image */
+	/* stack order input:  fac, image, black level, white level */
 	/* stack order output: image */
 	
 	if(out[0]->hasoutput==0)
@@ -171,6 +173,8 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		
+		curvemapping_set_black_white(node->storage, in[2]->vec, in[3]->vec);
 		
 		if(in[0]->vec[0] == 1.0)
 			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);

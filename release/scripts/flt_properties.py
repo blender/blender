@@ -197,7 +197,10 @@ def write_prop(fw,type,value,length):
 	elif type == 'i':
 		fw.write_int(value)
 	elif type == 'I':
-		fw.write_uint(value)
+		#NOTE!:
+		#there is no unsigned int type in python, but we can only store signed ints in ID props
+		newvalue = struct.unpack('>I', struct.pack('>i', value))[0]
+		fw.write_uint(newvalue)
 	elif type == 'd':
 		fw.write_double(value)
 	elif type == 'f':
@@ -227,6 +230,14 @@ def read_prop(fw,type,length):
 		rval = fw.read_string(length)
 	return rval
 	
+	
+FLTExt = {
+	'3t8!id' : 'Ext',
+	'4t8!sid' : '',
+	'5c!reserved': 0,
+	'6c!revision' : 0,
+	'7S!recordcode' : 0
+}
 FLTGroup = {
 	'3t8!id' : 'G',
 	'4s!priority' : 0, 
@@ -259,16 +270,16 @@ FLTObjectDisplay = [10]
 FLTLOD = {
 	'3t8!id' : 'L',
 	'4i!reserved' : 0,
-	'5d!switch in' : 0,
-	'6d!switch out' : 0,
+	'5d!switch in' : 0.0,
+	'6d!switch out' : 0.0,
 	'7s!sfx ID1' : 0,
 	'8s!sfx ID2' : 0,
 	'9I!flags' : 0,
-	'10d!X co' : 0,
-	'11d!Y co' : 0,
-	'12d!Z co' : 0,
-	'13d!Transition' : 0,
-	'14d!Sig Size' : 0
+	'10d!X co' : 0.0,
+	'11d!Y co' : 0.0,
+	'12d!Z co' : 0.0,
+	'13d!Transition' : 0.0,
+	'14d!Sig Size' : 0.0
 }
 FLTLODDisplay = [4]
 
@@ -280,7 +291,7 @@ FLTInlineLP = {
 	'7C!back color: b' : 255,
 	'8C!back color: g' : 255,
 	'9C!back color: r' : 255,
-	'10i!display mode' : 255,
+	'10i!display mode' : 0,
 	'11f!intensity' : 1.0,
 	'12f!back intensity' : 0.0,
 	'13f!minimum defocus' : 0.0,
@@ -305,15 +316,15 @@ FLTInlineLP = {
 	'32f!lobe roll angle' : 0.0,
 	'33f!dir falloff exponent' : 1.0,
 	'34f!dir ambient intensity' : 0.1,
-	'35f!anim period' : 0,
+	'35f!anim period' : 2,
 	'36f!anim phase' : 0,
-	'37f!anim enabled' : 0,
+	'37f!anim enabled' : 1.0,
 	'38f!significance' : 0.0,
 	'39i!draw order' : 0,
-	'40I!flags' : 813875616, 
+	'40I!flags' : 277004288, 
 	'41f!roti' : 0,
 	'42f!rotj' : 0,
-	'43f!rotk' : 0
+	'43f!rotk' : 1.0
 }
 
 FLTInlineLPDisplay = [35,36,37,41,42,43]
@@ -388,7 +399,7 @@ FLTImage = {
 	'5i!UpX' : 0, 
 	'6i!UpY' : 0, 
 	'7i!File Format' : 0, 
-	'8i!Min Filter' : 1, 
+	'8i!Min Filter' : 6, 
 	'9i!Mag Filter' : 1, 
 	'10i!Wrap' : 0, 
 	'11i!WrapU' : 0, 
@@ -587,6 +598,7 @@ FLT_Records = {
 		14 : FLTDOF,
 		1 : FLTHeader,
 		111 : FLTInlineLP,
+		100 : FLTExt,
 		'Image'	: FLTImage
 }
 

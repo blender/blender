@@ -158,6 +158,9 @@ PyObject* KX_NetworkMessageActuator::PySetToPropName(
 	if (PyArg_ParseTuple(args, "s", &ToPropName)) {
 	     m_toPropName = ToPropName;
 	}
+	else {
+		return NULL;
+	}
 
 	Py_Return;
 }
@@ -173,7 +176,10 @@ PyObject* KX_NetworkMessageActuator::PySetSubject(
 	if (PyArg_ParseTuple(args, "s", &Subject)) {
 	     m_subject = Subject;
 	}
-
+	else {
+		return NULL;
+	}
+	
 	Py_Return;
 }
 
@@ -187,6 +193,9 @@ PyObject* KX_NetworkMessageActuator::PySetBodyType(
 
 	if (PyArg_ParseTuple(args, "i", &BodyType)) {
 	     m_bodyType = BodyType;
+	}
+	else {
+		return NULL;
 	}
 
 	Py_Return;
@@ -202,6 +211,9 @@ PyObject* KX_NetworkMessageActuator::PySetBody(
 
 	if (PyArg_ParseTuple(args, "s", &Body)) {
 	     m_body = Body;
+	}
+	else {
+		return NULL;
 	}
 
 	Py_Return;

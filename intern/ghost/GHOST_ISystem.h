@@ -224,13 +224,15 @@ public:
 	 * @param	state		The state of the window when opened.
 	 * @param	type		The type of drawing context installed in this window.
 	 * @param	stereoVisual	Create a stereo visual for quad buffered stereo.
+	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow* createWindow(
 		const STR_String& title,
 		GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 		GHOST_TWindowState state, GHOST_TDrawingContextType type,
-		const bool stereoVisual) = 0;
+		const bool stereoVisual,
+		const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
 
 	/**
 	 * Dispose a window.
@@ -292,6 +294,22 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
 	
+	 /***************************************************************************************
+	 ** N-degree of freedom device management functionality
+	 ***************************************************************************************/
+
+   /**
+    * Starts the N-degree of freedom device manager
+    */
+   virtual int openNDOF(GHOST_IWindow*,
+       GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+       GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+       // original patch only
+      // GHOST_NDOFEventHandler_fp setNdofEventHandler
+       ) = 0;
+
+
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
@@ -332,6 +350,18 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
+
+	/**
+	 * Returns the selection buffer
+	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
+	 *
+	 */
+	 virtual GHOST_TUns8* getClipboard(int flag) const = 0;
+
+	/**
+	 * Put data to the Clipboard
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const = 0;
 
 protected:
 	/**

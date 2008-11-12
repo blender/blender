@@ -8,7 +8,7 @@ Tip: 'Adds Widgets for Driven Shapes'
 """
 
 __author__ = ["Johnny Matthews (guitargeek)"]
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "0.0.9 12/15/05"
 
 __bpydoc__ = """\

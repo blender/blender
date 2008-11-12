@@ -89,3 +89,22 @@ bool BOP_Vertex::containsEdge(BOP_Index i)
 	
 	return false;
 }
+
+#ifdef BOP_DEBUG
+/**
+ * Implements operator <<.
+ */
+#include <iomanip>
+
+ostream &operator<<(ostream &stream, BOP_Vertex *v)
+{
+	char aux[20];
+	BOP_stringTAG(v->m_tag,aux);
+	MT_Point3 point = v->getPoint();
+	stream << setprecision(6) << showpoint << fixed;
+	stream << "Vertex[" << point[0] << "," << point[1] << ",";
+	stream << point[2] << "] ("  <<  aux  <<  ")";
+	return stream;
+}
+#endif
+

@@ -109,13 +109,13 @@ PackedFile* sound_find_packedfile(bSound *sound)
 	
 	// convert sound->name to abolute filename
 	strcpy(soundname, sound->name);
-	BLI_convertstringcode(soundname, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(soundname, G.sce);
 	
 	search = G.main->sound.first;
 	while (search) {
 		if (search->sample && search->sample->packedfile) {
 			strcpy(searchname, search->sample->name);
-			BLI_convertstringcode(searchname, G.sce, G.scene->r.cfra);
+			BLI_convertstringcode(searchname, G.sce);
 			
 			if (BLI_streq(searchname, soundname)) {
 				pf = search->sample->packedfile;
@@ -125,7 +125,7 @@ PackedFile* sound_find_packedfile(bSound *sound)
 		
 		if (search->newpackedfile) {
 			strcpy(searchname, search->name);
-			BLI_convertstringcode(searchname, G.sce, G.scene->r.cfra);
+			BLI_convertstringcode(searchname, G.sce);
 			if (BLI_streq(searchname, soundname)) {
 				pf = search->newpackedfile;
 				break;

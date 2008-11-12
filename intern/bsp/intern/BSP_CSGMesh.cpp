@@ -197,7 +197,7 @@ BuildEdges(
 
 		for (int vert = 0; vert < vertex_num; ++vert) {
 
-			BSP_FaceInd fi(f_it - f_it_begin);
+			BSP_FaceInd fi(size_t (f_it - f_it_begin));
 			InsertEdge(prev_vi,face.m_verts[vert],fi,dummy);
 			prev_vi = face.m_verts[vert];
 		}

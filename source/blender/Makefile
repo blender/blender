@@ -32,11 +32,10 @@ include nan_definitions.mk
 
 DIRS = windowmanager editors blenloader readblenfile
 DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += nodes
 DIRS += makesdna makesrna yafray
-DIRS += python
+DIRS += python nodes gpu
 
-ifeq ($(INTERNATIONAL), true)
+ifeq ($(WITH_FREETYPE2), true)
 	DIRS += ftfont
 endif
 

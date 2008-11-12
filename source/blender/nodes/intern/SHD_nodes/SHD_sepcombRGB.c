@@ -48,6 +48,11 @@ static void node_shader_exec_seprgb(void *data, bNode *node, bNodeStack **in, bN
 	out[2]->vec[0] = in[0]->vec[2];
 }
 
+static int gpu_shader_seprgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "separate_rgb", in, out);
+}
+
 bNodeType sh_node_seprgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_SEPRGB,
@@ -62,7 +67,8 @@ bNodeType sh_node_seprgb= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_seprgb
 	
 };
 
@@ -86,6 +92,11 @@ static void node_shader_exec_combrgb(void *data, bNode *node, bNodeStack **in, b
 	out[0]->vec[2] = in[2]->vec[0];
 }
 
+static int gpu_shader_combrgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	return GPU_stack_link(mat, "combine_rgb", in, out);
+}
+
 bNodeType sh_node_combrgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_COMBRGB,
@@ -100,6 +111,7 @@ bNodeType sh_node_combrgb= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_combrgb
 	
 };

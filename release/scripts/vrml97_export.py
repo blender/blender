@@ -3,14 +3,11 @@
 Name: 'VRML97 (.wrl)...'
 Blender: 241
 Group: 'Export'
-Submenu: 'All Objects...' all
-Submenu: 'All Objects compressed...' comp
-Submenu: 'Selected Objects...' selected
 Tooltip: 'Export to VRML97 file (.wrl)'
 """
 
 __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews", "Bart")
-__url__ = ["blender", "elysiun",
+__url__ = ["blender", "blenderartists.org",
 "Author's (Rick) homepage, http://kimballsoftware.com/blender",
 "Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
 __email__ = ["Bart, bart:neeneenee*de"]
@@ -55,7 +52,7 @@ want to export only selected or all relevant objects.
 
 import Blender
 from Blender import Object, Mesh, Lamp, Draw, BGL, \
-	 Image, Text, sys, Mathutils
+	 Image, Text, sys, Mathutils, Registry
 from Blender.Scene import Render
 
 import math
@@ -70,8 +67,9 @@ worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
 extension = ''
-ARG=''
 
+# Matrices below are used only when export_rotate_z_to_y.val:
+#
 # Blender is Z up, VRML is Y up, both are right hand coordinate
 # systems, so to go from Blender coords to VRML coords we rotate
 # by 90 degrees around the X axis. In matrix notation, we have a
@@ -208,7 +206,7 @@ class VRML2Export:
 		if scene != inlines[0]:
 			return
 		else:
-			for i in range(allinlines):
+			for i in xrange(allinlines):
 				nameinline=inlines[i].getName()
 				if (nameinline not in self.namesStandard) and (i > 0):
 					self.writeIndented("DEF %s Inline {\n" % \
@@ -221,7 +219,7 @@ class VRML2Export:
 	def writeScript(self):
 		textEditor = Blender.Text.Get() 
 		alltext = len(textEditor)
-		for i in range(alltext):
+		for i in xrange(alltext):
 			nametext = textEditor[i].getName()
 			nlines = textEditor[i].getNLines()
 			if (self.proto == 1):
@@ -229,14 +227,14 @@ class VRML2Export:
 					nametext == "proto.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 			elif (self.proto == 0):
 				if (nametext == "route" or nametext == "route.js" or \
 					nametext == "route.txt") and (nlines != None):
 					nalllines = len(textEditor[i].asLines())
 					alllines = textEditor[i].asLines()
-					for j in range(nalllines):
+					for j in xrange(nalllines):
 						self.writeIndented(alllines[j] + "\n")
 		self.writeIndented("\n")
 
@@ -456,6 +454,8 @@ class VRML2Export:
 				if mat:
 					if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
 						self.vcolors = 1
+		else:
+			self.vcolors = 0
 			
 		# check if object is wireframe only
 		if ob.drawType == Blender.Object.DrawTypes.WIRE:
@@ -556,31 +556,28 @@ class VRML2Export:
 		issmooth = 0
 
 		maters = me.materials
-		nummats = self.getNumMaterials(me)
+		nummats = len(me.materials)
 
 		# Vertex and Face colors trump materials and image textures
 		if (self.facecolors or self.vcolors):
 			if nummats > 0:
-				if maters[0]:
-					self.writeShape(ob, me, 0, None)
-				else:
-					self.writeShape(ob, me, -1, None)
+				self.writeShape(ob, me, 0, None)
 			else:
 				self.writeShape(ob, me, -1, None)
-		# Do meshes with materials, possible with image textures
+
+		# Do meshes with materials, possibly with image textures
 		elif nummats > 0:
-			for matnum in range(len(maters)):
-				if maters[matnum]:
-					images = []
-					if me.faceUV:
-						images = self.getImages(me, matnum)
-						if len(images) > 0:
-							for image in images:
-								self.writeShape(ob, me, matnum, image)
-						else:
-							self.writeShape(ob, me, matnum, None)
+			for matnum in xrange(len(maters)):
+				images = []
+				if me.faceUV:
+					images = self.getImages(me, matnum)
+					if len(images) > 0:
+						for image in images:
+							self.writeShape(ob, me, matnum, image)
 					else:
 						self.writeShape(ob, me, matnum, None)
+				else:
+					self.writeShape(ob, me, matnum, None)
 		else:
 			if me.faceUV:
 				images = self.getImages(me, -1)
@@ -608,15 +605,6 @@ class VRML2Export:
 						imageNames[imName]=1
 		return images
 
-	def getNumMaterials(self, me):
-		# Oh silly Blender, why do you sometimes have 'None' as
-		# a member of the me.materials array?
-		num = 0
-		for mat in me.materials:
-			if mat:
-				num = num + 1
-		return num
-
 	def writeCoordinates(self, me, meshName):
 		coordName = "coord_%s" % (meshName)
 		# look up coord name, use it if available
@@ -633,8 +621,9 @@ class VRML2Export:
 		meshVertexList = me.verts
 
 		for vertex in meshVertexList:
-			blenvert = Mathutils.Vector(vertex.co)
-			vrmlvert = M_blen2vrml * blenvert
+			vrmlvert = blenvert = Mathutils.Vector(vertex.co)
+			if export_rotate_z_to_y.val:
+				vrmlvert = M_blen2vrml * vrmlvert
 			self.writeUnindented("%s %s %s\n " % \
 								 (vrmlvert[0], \
 								  vrmlvert[1], \
@@ -643,20 +632,43 @@ class VRML2Export:
 		self.writeIndented("}\n", -1)
 		self.writeIndented("\n")
 
+	def testShape(self, ob, me, matnum, image):
+		if ( (matnum == -1) and (image == None) ):
+			if ( len(me.faces) > 0 ):
+				return True
+		# Check if any faces the material or image
+		for face in me.faces:
+			if (matnum == -1):
+				if (face.image == image):
+					return True
+			elif (image == None):
+				if (face.mat == matnum):
+					return True
+			else:
+				if ((face.image == image) and (face.mat == matnum)):
+					return True
+
+		return False
+
 	def writeShape(self, ob, me, matnum, image):
-		# Note: at this point it is assumed for matnum!=-1 that the 
-		# material in me.materials[matnum] is not equal to 'None'.
-		# Such validation should be performed by the function that
-		# calls this one.
+		# matnum == -1  means don't check the face.mat
+		# image == None means don't check face.image
+
+		if ( not self.testShape(ob, me, matnum, image) ):
+			return False
+
 		self.writeIndented("Shape {\n",1)
 
 		self.writeIndented("appearance Appearance {\n", 1)
 		if (matnum != -1):
 			mater = me.materials[matnum]
-			self.writeMaterial(mater, self.cleanStr(mater.name,''))
-			if (mater.mode & Blender.Material.Modes['TEXFACE']):
-				if image != None:
-					self.writeImageTexture(image.name, image.filename)
+			if (mater):
+				self.writeMaterial(mater, self.cleanStr(mater.name,''))
+				if (mater.mode & Blender.Material.Modes['TEXFACE']):
+					if image != None:
+						self.writeImageTexture(image.name, image.filename)
+			else:
+				self.writeDefaultMaterial()	
 		else:
 			if image != None:
 				self.writeImageTexture(image.name, image.filename)
@@ -666,6 +678,8 @@ class VRML2Export:
 		self.writeGeometry(ob, me, matnum, image)
 
 		self.writeIndented("}\n", -1)
+
+		return True
 
 	def writeGeometry(self, ob, me, matnum, image):
 
@@ -722,7 +736,7 @@ class VRML2Export:
 			indexStr = ""
 			if (matnum == -1) or (face.mat == matnum):
 				if (face.image == image):
-					for i in range(len(face.verts)):
+					for i in xrange(len(face.verts)):
 						uv = face.uv[i]
 						indexStr += "%s " % (j)
 						coordStr += "%s %s, " % \
@@ -730,8 +744,8 @@ class VRML2Export:
 									 round(uv[1], self.tp))
 						j=j+1
 					indexStr += "-1"
-			texIndexList.append(indexStr)
-			texCoordList.append(coordStr)
+					texIndexList.append(indexStr)
+					texCoordList.append(coordStr)
 
 		self.writeIndented("texCoord TextureCoordinate {\n", 1)
 		self.writeIndented("point [\n", 1)
@@ -769,18 +783,35 @@ class VRML2Export:
 		cols = [None] * len(me.verts)
 
 		for face in me.faces:
-			for vind in range(len(face.v)):
+			for vind in xrange(len(face.v)):
 				vertex = face.v[vind]
 				i = vertex.index
 				if cols[i] == None:
 					cols[i] = face.col[vind]
 					
-		for i in range(len(me.verts)):
+		for i in xrange(len(me.verts)):
 			aColor = self.rgbToFS(cols[i])
 			self.writeUnindented("%s\n" % aColor)
 
 		self.writeIndented("\n", 0)
 		self.writeIndented("]\n",-1)
+		self.writeIndented("}\n",-1)
+
+	def writeDefaultMaterial(self):
+		matName = "default"
+
+		# look up material name, use it if available
+		if self.matNames.has_key(matName):
+			self.writeIndented("material USE MA_%s\n" % matName)
+			self.matNames[matName]+=1
+			return;
+
+		self.matNames[matName]=1
+		self.writeIndented("material DEF MA_%s Material {\n" % matName, 1)
+		self.writeIndented("diffuseColor 0.8 0.8 0.8\n")
+		self.writeIndented("specularColor 1.0 1.0 1.0\n")
+		self.writeIndented("shininess 0.5\n")
+		self.writeIndented("transparency 0.0\n")
 		self.writeIndented("}\n",-1)
 
 	def writeMaterial(self, mat, matName):
@@ -1016,7 +1047,10 @@ class VRML2Export:
 			return
 
 		ob_matrix = Mathutils.Matrix(ob.getMatrix('worldspace'))
-		matrix = M_blen2vrml * ob_matrix * M_vrml2blen
+		if export_rotate_z_to_y.val:
+			matrix = M_blen2vrml * ob_matrix * M_vrml2blen
+		else:
+			matrix = ob_matrix
 		e      = matrix.rotationPart().toEuler()
 
 		v = matrix.translationPart()
@@ -1089,7 +1123,7 @@ class VRML2Export:
 		self.writeFog()
 		self.proto = 0
 		allObj = []
-		if ARG == 'selected':
+		if export_selection_only.val:
 			allObj = list(scene.objects.context)
 		else:
 			allObj = list(scene.objects)
@@ -1098,7 +1132,7 @@ class VRML2Export:
 		for thisObj in allObj:
 			self.writeObject(thisObj)
 
-		if ARG != 'selected':
+		if not export_selection_only.val:
 			self.writeScript()
 		self.cleanup()
 
@@ -1213,26 +1247,54 @@ def select_file(filename):
 	wrlexport=VRML2Export(filename)
 	wrlexport.export(scene, world, worldmat)
 
+#########################################################
+# UI and Registry utilities
+#########################################################
+
+export_selection_only = Draw.Create(0)
+export_rotate_z_to_y = Draw.Create(1)
+export_compressed = Draw.Create(0)
+
+def save_to_registry():
+	d = {}
+	d['selection_only'] = export_selection_only.val
+	d['rotate_z_to_y'] = export_rotate_z_to_y.val
+	d['compressed'] = export_compressed.val
+	Registry.SetKey('vrml97_export', d, True)
+
+def load_from_registry():
+	d = Registry.GetKey('vrml97_export', True)
+	if d:
+		try:
+			export_selection_only.val = d['selection_only']
+			export_rotate_z_to_y.val = d['rotate_z_to_y']
+			export_compressed.val = d['compressed']
+		except: save_to_registry() # If data is not valid, rewrite it.
+
+def show_popup():
+	pup_block = [
+		('Selection Only', export_selection_only, 'Only export objects in visible selection. Else export whole scene.'),
+		('Rotate +Z to +Y', export_rotate_z_to_y, 'Rotate such that +Z axis (Blender up) becomes +Y (VRML up).'),
+		('Compress', export_compressed, 'Generate a .wrz file (normal VRML compressed by gzip).')
+		]
+	return Draw.PupBlock('Export VRML 97...', pup_block) 
 
 #########################################################
 # main routine
 #########################################################
 
-try:
-	ARG = __script__['arg'] # user selected argument
-except:
-	print "older version"
+load_from_registry()
 
-if Blender.Get('version') < 235:
-	print "Warning: VRML97 export failed, wrong blender version!"
-	print " You aren't running blender version 2.35 or greater"
-	print " download a newer version from http://blender3d.org/"
-else:
-	if ARG == 'comp':
+# Note that show_popup must be done before Blender.Window.FileSelector,
+# because export_compressed affects the suggested extension of resulting
+# file.
+
+if show_popup():
+	save_to_registry()
+	if export_compressed.val:
 		extension=".wrz"
 		from gzip import *
 	else:
 		extension=".wrl"
 	Blender.Window.FileSelector(select_file, "Export VRML97", \
 								sys.makename(ext=extension))
-

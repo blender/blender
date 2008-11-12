@@ -30,11 +30,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef WIN32 
-    #include <unistd.h> // for read close
-    #include <sys/param.h> // for MAXPATHLEN
+#ifndef _WIN32 
+	#include <unistd.h> // for read close
+	#include <sys/param.h> // for MAXPATHLEN
 #else
-    #include <io.h> // for open close read
+	#include <io.h> // for open close read
+	#define open _open
+	#define read _read
+	#define close _close
+	#define write _write
 #endif
 
 #include <stdlib.h>
@@ -61,6 +65,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -282,7 +287,6 @@ static void clean_paths(Main *main)
 		}
 		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
-		BLI_clean(scene->r.ftype);
 		
 		scene= scene->id.next;
 	}
@@ -313,6 +317,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		extern void lib_link_screen_restore(Main *, Scene *);
 		
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
+		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
 		curscreen= C->screen;
@@ -366,7 +371,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
-	if (!(G.f & G_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
+
+	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
 
@@ -376,6 +382,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(C->scene);
+
+	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
+	framechange_poses_clear_unkeyed();
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
@@ -393,7 +402,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	
-	strcpy(G.main->name, filename); /* is guaranteed current file */
+	BLI_strncpy(G.main->name, filename, FILE_MAX); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);
 }
@@ -445,8 +454,8 @@ int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *
 	BlendFileData *bfd;
 			
 	bfd= BLO_read_from_memory(filebuf, filelength, &bre);
-	if (bfd) {		
-		setup_app_data(C, bfd, "<memory>");
+	if (bfd) {
+		setup_app_data(C, bfd, "<memory2>");
 	} else {
 // XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -462,7 +471,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 	
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
-		setup_app_data(C, bfd, "<memory>");
+		setup_app_data(C, bfd, "<memory1>");
 	} else {
 // XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -481,6 +490,7 @@ typedef struct UndoElem {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 	char name[MAXUNDONAME];
 	MemFile memfile;
+	uintptr_t undosize;
 } UndoElem;
 
 static ListBase undobase={NULL, NULL};
@@ -511,6 +521,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 /* name can be a dynamic string */
 void BKE_write_undo(bContext *C, char *name)
 {
+	uintptr_t maxmem, totmem, memused;
 	int nr, success;
 	UndoElem *uel;
 	
@@ -560,7 +571,7 @@ void BKE_write_undo(bContext *C, char *name)
 		counter= counter % U.undosteps;	
 	
 		sprintf(numstr, "%d.blend", counter);
-		BLI_make_file_string("/", tstr, U.tempdir, numstr);
+		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		success= BLO_write_file(C, tstr, G.fileflags, &err);
 		
@@ -572,12 +583,41 @@ void BKE_write_undo(bContext *C, char *name)
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
+		memused= MEM_get_memory_in_use();
 		success= BLO_write_file_mem(C, prevfile, &curundo->memfile, G.fileflags, &err);
-		
+		curundo->undosize= MEM_get_memory_in_use() - memused;
+	}
+
+	if(U.undomemory != 0) {
+		/* limit to maximum memory (afterwards, we can't know in advance) */
+		totmem= 0;
+		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
+
+		/* keep at least two (original + other) */
+		uel= undobase.last;
+		while(uel && uel->prev) {
+			totmem+= uel->undosize;
+			if(totmem>maxmem) break;
+			uel= uel->prev;
+		}
+
+		if(uel) {
+			if(uel->prev && uel->prev->prev)
+				uel= uel->prev;
+
+			while(undobase.first!=uel) {
+				UndoElem *first= undobase.first;
+				BLI_remlink(&undobase, first);
+				/* the merge is because of compression */
+				BLO_merge_memfile(&first->memfile, &first->next->memfile);
+				MEM_freeN(first);
+			}
+		}
 	}
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation
+ * Note, ALWAYS call sound_initialize_sounds after BKE_undo_step() */
 void BKE_undo_step(bContext *C, int step)
 {
 	
@@ -638,14 +678,14 @@ char *BKE_undo_menu_string(void)
 	UndoElem *uel;
 	DynStr *ds= BLI_dynstr_new();
 	char *menu;
-	
+
 	BLI_dynstr_append(ds, "Global Undo History %t");
 	
 	for(uel= undobase.first; uel; uel= uel->next) {
 		BLI_dynstr_append(ds, "|");
 		BLI_dynstr_append(ds, uel->name);
 	}
-	
+
 	menu= BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 
@@ -671,11 +711,11 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+	BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
-		printf("Unable to save %s\n", str);
+		//XXX error("Unable to save %s, check you have permissions", str);
 		return;
 	}
 
@@ -687,7 +727,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) printf("Unable to save %s\n", str);
+	if(chunk) ; //XXX error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
 }
 

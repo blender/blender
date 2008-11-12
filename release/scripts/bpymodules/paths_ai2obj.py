@@ -1,3 +1,4 @@
+# -*- coding: latin-1 -*-
 """
 paths_ai2obj.py
 # ---------------------------------------------------------------
@@ -42,10 +43,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #----------------------------------------------
+
+#Changelog
 #----------------------------------------------
-#Chagelog
-#----------------------------------------------
-# 0.1.1 : 2004/08/03, bug in boudingbox reading when Value are negative
+# 0.1.1 : 2004/08/03, bug in boundingbox reading when Value are negative
 # 0.1.2 : 2005/06/12, gmove tranformation properties
 # 0.1.3 : 2005/06/25, added a __name__ test to use the script alone
 # 0.1.4 : 2005/06/25, closepath improvements 
@@ -57,6 +58,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # 0.1.8 : 2006/07/03, two more closepath improvements 
 # 0.1.9 : 2007/05/06, modif on the method that gets the last object on 
                       the list data
+#         2008/03/12, Added character encoding line so french text
+#                       does not break python interpreters.
+
 """
 SHARP_IMPORT=0
 SCALE=1

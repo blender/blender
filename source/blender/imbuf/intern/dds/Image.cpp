@@ -45,7 +45,7 @@ Image::~Image()
 	free();
 }
 
-void Image::allocate(unsigned int w, unsigned int h)
+void Image::allocate(uint w, uint h)
 {
 	free();
 	m_width = w;
@@ -60,17 +60,17 @@ void Image::free()
 }
 
 
-unsigned int Image::width() const
+uint Image::width() const
 {
 	return m_width;
 }
 
-unsigned int Image::height() const
+uint Image::height() const
 {
 	return m_height;
 }
 
-const Color32 * Image::scanline(unsigned int h) const
+const Color32 * Image::scanline(uint h) const
 {
 	if (h >= m_height) {
 		printf("DDS: scanline beyond dimensions of image");
@@ -79,7 +79,7 @@ const Color32 * Image::scanline(unsigned int h) const
 	return m_data + h * m_width;
 }
 
-Color32 * Image::scanline(unsigned int h)
+Color32 * Image::scanline(uint h)
 {
 	if (h >= m_height) {
 		printf("DDS: scanline beyond dimensions of image");
@@ -98,7 +98,7 @@ Color32 * Image::pixels()
 	return m_data;
 }
 
-const Color32 & Image::pixel(unsigned int idx) const
+const Color32 & Image::pixel(uint idx) const
 {
 	if (idx >= m_width * m_height) {
 		printf("DDS: pixel beyond dimensions of image");
@@ -107,7 +107,7 @@ const Color32 & Image::pixel(unsigned int idx) const
 	return m_data[idx];
 }
 
-Color32 & Image::pixel(unsigned int idx)
+Color32 & Image::pixel(uint idx)
 {
 	if (idx >= m_width * m_height) {
 		printf("DDS: pixel beyond dimensions of image");

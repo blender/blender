@@ -262,6 +262,19 @@ extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
 	
 
+/***************************************************************************************
+ ** N-degree of freedom device management functionality
+ ***************************************************************************************/
+ 
+/**
+* Open N-degree of freedom devices
+ */
+extern int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, 
+                           GHOST_WindowHandle windowhandle,
+                          GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+                          GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+                          );
 
 /***************************************************************************************
  ** Cursor management functionality
@@ -755,6 +768,18 @@ extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
  */
 extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 										  GHOST_RectangleHandle anotherrectanglehandle);
+
+/**
+ * Return the data from the clipboad
+ * @return clipboard data
+ */
+extern GHOST_TUns8* GHOST_getClipboard(int flag);
+
+/**
+ * Put data to the Clipboard
+ */
+extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag);
+
 #ifdef __cplusplus
 }
 #endif

@@ -27,25 +27,40 @@
  */
 
 #include "SCA_IScene.h"
+#include "Value.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+SCA_DebugProp::SCA_DebugProp(): m_obj(NULL)
+{
+}
+
+SCA_DebugProp::~SCA_DebugProp()
+{
+	if (m_obj) 
+		m_obj->Release(); 
+}
+
 SCA_IScene::SCA_IScene()
 {
 }
 
-
-
-SCA_IScene::~SCA_IScene()
+void SCA_IScene::RemoveAllDebugProperties()
 {
-	// release debugprop list
 	for (std::vector<SCA_DebugProp*>::iterator it = m_debugList.begin();
 		!(it==m_debugList.end());it++)
 	{
 		delete (*it);
 	}
+	m_debugList.clear();
+}
+
+
+SCA_IScene::~SCA_IScene()
+{
+	RemoveAllDebugProperties();
 }
 
 
@@ -61,6 +76,7 @@ void SCA_IScene::AddDebugProperty(class CValue* debugprop,
 {
 	SCA_DebugProp* dprop = new SCA_DebugProp();
 	dprop->m_obj = debugprop;
+	debugprop->AddRef();
 	dprop->m_name = name;
 	m_debugList.push_back(dprop);
 }

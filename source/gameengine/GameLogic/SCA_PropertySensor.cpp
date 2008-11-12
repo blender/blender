@@ -54,47 +54,65 @@ SCA_PropertySensor::SCA_PropertySensor(SCA_EventManager* eventmgr,
 	  m_checkpropval(propval),
 	  m_checkpropmaxval(propmaxval),
 	  m_checkpropname(propname),
-	  m_lastresult(false),
 	  m_range_expr(NULL)
 {
-	m_recentresult=false;
 	//CParser pars;
 	//pars.SetContext(this->AddRef());
 	//CValue* resultval = m_rightexpr->Calculate();
 
 	CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
-	if (orgprop)
+	if (!orgprop->IsError())
 	{
 		m_previoustext = orgprop->GetText();
-		orgprop->Release();
 	}
+	orgprop->Release();
 
 	if (m_checktype==KX_PROPSENSOR_INTERVAL)
 	{
 		PrecalculateRangeExpression();
 	}
+	Init();
+}
 
+void SCA_PropertySensor::Init()
+{
+	m_recentresult = false;
+	m_lastresult = m_invert?true:false;
+	m_reset = true;
 }
 
 void SCA_PropertySensor::PrecalculateRangeExpression()
 {
 		CParser pars;
+		//The context is needed to retrieve the property at runtime but it creates
+		//loop of references
 		pars.SetContext(this->AddRef());
 		STR_String checkstr = "(" + m_checkpropval + " <= " 
 							+ m_checkpropname + ") && ( " 
 							+ m_checkpropname + " <= " 
-							+ m_checkpropmaxval;
+							+ m_checkpropmaxval + ")";
 
 		m_range_expr = pars.ProcessText(checkstr);
 }
 
-
+// Forced deletion of precalculated range expression to break reference loop
+// Use this function when you know that you won't use the sensor anymore
+void SCA_PropertySensor::Delete()
+{
+	if (m_range_expr)
+	{
+		m_range_expr->Release();
+		m_range_expr = NULL;
+	}
+	Release();
+}
 
 CValue* SCA_PropertySensor::GetReplica()
 {
 	SCA_PropertySensor* replica = new SCA_PropertySensor(*this);
 	// m_range_expr must be recalculated on replica!
 	CValue::AddDataToReplica(replica);
+	replica->Init();
 
 	replica->m_range_expr = NULL;
 	if (replica->m_checktype==KX_PROPSENSOR_INTERVAL)
@@ -137,14 +155,15 @@ SCA_PropertySensor::~SCA_PropertySensor()
 bool SCA_PropertySensor::Evaluate(CValue* event)
 {
 	bool result = CheckPropertyCondition();
+	bool reset = m_reset && m_level;
 	
+	m_reset = false;
 	if (m_lastresult!=result)
 	{
 		m_lastresult = result;
 		return true;
 	}
-
-	return false;
+	return (reset) ? true : false;
 }
 
 
@@ -161,7 +180,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 	case KX_PROPSENSOR_EQUAL:
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
-			if (orgprop)
+			if (!orgprop->IsError())
 			{
 				STR_String testprop = orgprop->GetText();
 				// Force strings to upper case, to avoid confusion in
@@ -174,9 +193,8 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				} else {
 					result = (orgprop->GetText() == m_checkpropval);
 				}
-				orgprop->Release();
-
 			}
+			orgprop->Release();
 
 			if (reverse)
 				result = !result;
@@ -241,15 +259,15 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 		{
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
 				
-			if (orgprop)
+			if (!orgprop->IsError())
 			{
 				if (m_previoustext != orgprop->GetText())
 				{
 					m_previoustext = orgprop->GetText();
 					result = true;
 				}
-				orgprop->Release();
 			}
+			orgprop->Release();
 
 			//cout << " \nSens:Prop:changed!"; /* need implementation here!!! */
 			break;
@@ -315,12 +333,12 @@ PyParentObject SCA_PropertySensor::Parents[] = {
 };
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
-	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_VARARGS, GetType_doc},
-	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, SetType_doc},
-	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_VARARGS, GetValue_doc},
-	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, SetValue_doc},
+	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_VARARGS, (PY_METHODCHAR)GetType_doc},
+	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
+	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
+	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -329,7 +347,7 @@ PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
 }
 
 /* 1. getType */
-char SCA_PropertySensor::GetType_doc[] = 
+const char SCA_PropertySensor::GetType_doc[] = 
 "getType()\n"
 "\tReturns the type of check this sensor performs.\n";
 PyObject* SCA_PropertySensor::PyGetType(PyObject* self, PyObject* args, PyObject* kwds)
@@ -338,7 +356,7 @@ PyObject* SCA_PropertySensor::PyGetType(PyObject* self, PyObject* args, PyObject
 }
 
 /* 2. setType */
-char SCA_PropertySensor::SetType_doc[] = 
+const char SCA_PropertySensor::SetType_doc[] = 
 "setType(type)\n"
 "\t- type: KX_PROPSENSOR_EQUAL, KX_PROPSENSOR_NOTEQUAL,\n"
 "\t        KX_PROPSENSOR_INTERVAL, KX_PROPSENSOR_CHANGED,\n"
@@ -361,7 +379,7 @@ PyObject* SCA_PropertySensor::PySetType(PyObject* self, PyObject* args, PyObject
 }
 
 /* 3. getProperty */
-char SCA_PropertySensor::GetProperty_doc[] = 
+const char SCA_PropertySensor::GetProperty_doc[] = 
 "getProperty()\n"
 "\tReturn the property with which the sensor operates.\n";
 PyObject* SCA_PropertySensor::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds) 
@@ -370,7 +388,7 @@ PyObject* SCA_PropertySensor::PyGetProperty(PyObject* self, PyObject* args, PyOb
 }
 
 /* 4. setProperty */
-char SCA_PropertySensor::SetProperty_doc[] = 
+const char SCA_PropertySensor::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSets the property with which to operate. If there is no property\n"
@@ -385,17 +403,18 @@ PyObject* SCA_PropertySensor::PySetProperty(PyObject* self, PyObject* args, PyOb
 		return NULL;
 	}
 
-	if (FindIdentifier(STR_String(propNameArg))) {
+	CValue *prop = FindIdentifier(STR_String(propNameArg));
+	if (!prop->IsError()) {
 		m_checkpropname = propNameArg;
 	} else {
 		; /* error: bad property name */
 	}
-
+	prop->Release();
 	Py_Return;
 }
 
 /* 5. getValue */
-char SCA_PropertySensor::GetValue_doc[] = 
+const char SCA_PropertySensor::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the sensor operates.\n";
 PyObject* SCA_PropertySensor::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds) 
@@ -404,7 +423,7 @@ PyObject* SCA_PropertySensor::PyGetValue(PyObject* self, PyObject* args, PyObjec
 }
 
 /* 6. setValue */
-char SCA_PropertySensor::SetValue_doc[] = 
+const char SCA_PropertySensor::SetValue_doc[] = 
 "setValue(value)\n"
 "\t- value: string\n"
 "\tSet the value with which the sensor operates. If the value\n"

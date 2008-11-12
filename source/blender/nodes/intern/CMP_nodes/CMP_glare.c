@@ -424,15 +424,18 @@ static void fglow(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 
 static void node_composit_exec_glare(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	CompBuf *new, *img = in[0]->data;
+	CompBuf *new, *src, *img = in[0]->data;
 	NodeGlare* ndg = node->storage;
 
 	if ((img == NULL) || (out[0]->hasoutput == 0)) return;
 
-	if (img->type != CB_RGBA)
+	if (img->type != CB_RGBA) {
 		new = typecheck_compbuf(img, CB_RGBA);
-	else
+		src = typecheck_compbuf(img, CB_RGBA);
+	} else {
 		new = dupalloc_compbuf(img);
+		src = dupalloc_compbuf(img);
+	}
 
 	{
 		int x, y;
@@ -448,19 +451,20 @@ static void node_composit_exec_glare(void *data, bNode *node, bNodeStack **in, b
 
 	switch (ndg->type) {
 		case 0:
-			star4(ndg, new, img);
+			star4(ndg, new, src);
 			break;
 		case 1:
-			fglow(ndg, new, img);
+			fglow(ndg, new, src);
 			break;
 		case 3:
-			ghosts(ndg, new, img);
+			ghosts(ndg, new, src);
 			break;
 		case 2:
 		default:
-			streaks(ndg, new, img);
+			streaks(ndg, new, src);
 	}
 
+	free_compbuf(src);
 	out[0]->data = new;
 }
 

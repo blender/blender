@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef COLLISION_CREATE_FUNC
 #define COLLISION_CREATE_FUNC
 
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 typedef btAlignedObjectArray<class btCollisionObject*> btCollisionObjectArray;
 class btCollisionAlgorithm;
 class btCollisionObject;

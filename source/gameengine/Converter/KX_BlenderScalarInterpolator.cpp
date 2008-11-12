@@ -28,13 +28,10 @@
 
 #include "KX_BlenderScalarInterpolator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-extern "C" int IPO_GetChannels(struct Ipo *ipo, short *channels);
-extern "C" float IPO_GetFloatValue(struct Ipo *ipo, /*IPO_Channel*/ short channel, float ctime);
-
+extern "C" {
+#include "DNA_ipo_types.h"
+#include "BKE_ipo.h"
+}
 
 static const int BL_MAX_CHANNELS = 32;
 
@@ -42,7 +39,7 @@ float BL_ScalarInterpolator::GetValue(float currentTime) const {
 	return IPO_GetFloatValue(m_blender_ipo, m_channel, currentTime);
 }
 
-typedef short IPO_Channel;  
+ 
 
 BL_InterpolatorList::BL_InterpolatorList(struct Ipo *ipo) {
 	IPO_Channel channels[BL_MAX_CHANNELS];

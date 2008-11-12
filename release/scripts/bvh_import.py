@@ -231,7 +231,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	
 	bvh_nodes_list= bvh_nodes.values()
 	
-	while lineIdx < len(file_lines) -1:
+	while lineIdx < len(file_lines):
 		line= file_lines[lineIdx]
 		for bvh_node in bvh_nodes_list:
 			#for bvh_node in bvh_nodes_serial:
@@ -726,7 +726,7 @@ def load_bvh_ui(file, PREF_UI= True):
 	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
 	t1= Blender.sys.time()
-	print '\tpassing bvh...',
+	print '\tparsing bvh...',
 	bvh_nodes= read_bvh(file, IMPORT_SCALE)
 	print '%.4f' % (Blender.sys.time()-t1)
 	t1= Blender.sys.time()

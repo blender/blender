@@ -45,7 +45,6 @@ public:
 		  m_logicmgr(logicmgr)
 	{}
 	virtual void NextFrame();
-	virtual void	RegisterSensor(SCA_ISensor* sensor);
 };
 
 #endif //__KX_RAYEVENTMGR

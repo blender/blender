@@ -240,8 +240,8 @@ void WM_exit(bContext *C)
 	
 	MEM_freeN(C);
 	
-	if(totblock!=0) {
-		printf("Error Totblock: %d\n",totblock);
+	if(MEM_get_memory_blocks_in_use()!=0) {
+		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
 	}
 //	delete_autosave();

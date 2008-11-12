@@ -82,7 +82,6 @@ class PHY_IPhysicsController
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 		virtual	void		setRigidBody(bool rigid)=0;
-
 		// clientinfo for raycasts for example
 		virtual	void*				getNewClientInfo()=0;
 		virtual	void				setNewClientInfo(void* clientinfo)=0;
@@ -91,7 +90,8 @@ class PHY_IPhysicsController
 		virtual void	calcXform() =0;
 		virtual void SetMargin(float margin) =0;
 		virtual float GetMargin() const=0;
-		virtual float GetRadius() const { return 0.f;}
+		virtual float GetRadius() const=0;
+		virtual void  SetRadius(float margin) = 0;
 		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
 
 };

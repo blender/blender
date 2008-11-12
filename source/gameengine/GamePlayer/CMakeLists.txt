@@ -25,3 +25,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 SUBDIRS(common ghost)
+
+IF(WITH_WEBPLUGIN) 
+  SUBDIRS(xembed)
+ENDIF(WITH_WEBPLUGIN)

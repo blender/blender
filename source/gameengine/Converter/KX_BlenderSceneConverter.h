@@ -45,13 +45,17 @@ class BL_Material;
 struct IpoCurve;
 struct Main;
 struct SpaceIpo;
+struct Scene;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
 {
-	vector<KX_WorldInfo*>	m_worldinfos;
-	vector<RAS_IPolyMaterial*> m_polymaterials;
-	vector<RAS_MeshObject*> m_meshobjects;
-	vector<BL_Material *>	m_materials;
+	// Use vector of pairs to allow removal of entities between scene switch
+	vector<pair<KX_Scene*,KX_WorldInfo*> >	m_worldinfos;
+	vector<pair<KX_Scene*,RAS_IPolyMaterial*> > m_polymaterials;
+	vector<pair<KX_Scene*,RAS_MeshObject*> > m_meshobjects;
+	vector<pair<KX_Scene*,BL_Material *> >	m_materials;
+	// Should also have a list of collision shapes. 
+	// For the time being this is held in KX_Scene::m_shapes
 
 	GEN_Map<CHashedPtr,struct Object*> m_map_gameobject_to_blender;
 	GEN_Map<CHashedPtr,KX_GameObject*> m_map_blender_to_gameobject;
@@ -69,8 +73,10 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
+	class KX_Scene*			m_currentScene;	// Scene being converted
 	bool					m_alwaysUseExpandFraming;
 	bool					m_usemat;
+	bool					m_useglslmat;
 
 	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
 //	struct Ipo* findIpoForName(char* objName);
@@ -96,6 +102,7 @@ public:
 						class RAS_IRenderTools* rendertools,
 						class RAS_ICanvas* canvas
 					);
+	virtual void RemoveScene(class KX_Scene *scene);
 
 	void SetNewFileName(const STR_String& filename);
 	bool TryAndLoadNewFile();
@@ -103,6 +110,7 @@ public:
 	void SetAlwaysUseExpandFraming(bool to_what);
 	
 	void RegisterGameObject(KX_GameObject *gameobject, struct Object *for_blenderobject);
+	void UnregisterGameObject(KX_GameObject *gameobject);
 	KX_GameObject *FindGameObject(struct Object *for_blenderobject);
 	struct Object *FindBlenderObject(KX_GameObject *for_gameobject);
 
@@ -140,6 +148,11 @@ public:
 	virtual void SetMaterials(bool val);
 	virtual bool GetMaterials();
 
+	// use blender glsl materials
+	virtual void SetGLSLMaterials(bool val);
+	virtual bool GetGLSLMaterials();
+
+	struct Scene* GetBlenderSceneForName(const STR_String& name);
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

@@ -29,7 +29,7 @@ FILE(GLOB SRC intern/source/*.c)
 SET(INC 
   intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
   extern/include ../blenkernel ../radiosity/extern/include ../imbuf
-  ../quicktime ../include ../../kernel/gen_messaging ../yafray
+  ../quicktime ../include ../../kernel/gen_messaging ../yafray ../blenloader
 )
 
 IF(WITH_OPENEXR)

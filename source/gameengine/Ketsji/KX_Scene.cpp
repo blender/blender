@@ -32,10 +32,12 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+
 #include "KX_Scene.h"
 #include "MT_assert.h"
 
 #include "KX_KetsjiEngine.h"
+#include "KX_BlenderMaterial.h"
 #include "RAS_IPolygonMaterial.h"
 #include "ListValue.h"
 #include "SCA_LogicManager.h"
@@ -47,6 +49,7 @@
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
 #include "SCA_PropertyEventManager.h"
+#include "SCA_ActuatorEventManager.h"
 #include "KX_Camera.h"
 #include "SCA_JoystickManager.h"
 
@@ -64,6 +67,9 @@
 #include "SG_Controller.h"
 #include "SG_IObject.h"
 #include "SG_Tree.h"
+#include "DNA_group_types.h"
+#include "DNA_scene_types.h"
+#include "BKE_anim.h"
 
 #include "KX_SG_NodeRelationships.h"
 
@@ -71,14 +77,25 @@
 #include "NG_NetworkScene.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_IPhysicsController.h"
+#include "KX_BlenderSceneConverter.h"
 
-#include "BL_SkinDeformer.h"
+#include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
 
+// to get USE_BULLET!
+#include "KX_ConvertPhysicsObject.h"
+
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#include "CcdPhysicsController.h"
+#endif
 
 void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
+
+	if(replica)
+		replica->Release();
 
 	return (void*)replica;
 }
@@ -100,16 +117,19 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SCA_IInputDevice* mousedevice,
 				   class NG_NetworkDeviceInterface *ndi,
 				   class SND_IAudioDevice* adi,
-				   const STR_String& sceneName): 
+				   const STR_String& sceneName,
+				   Scene *scene): 
 	PyObjectPlus(&KX_Scene::Type),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
+	m_sceneConverter(NULL),
 	m_physicsEnvironment(0),
 	m_sceneName(sceneName),
 	m_adi(adi),
 	m_networkDeviceInterface(ndi),
 	m_active_camera(NULL),
-	m_ueberExecutionPriority(0)
+	m_ueberExecutionPriority(0),
+	m_blenderScene(scene)
 {
 	m_suspendedtime = 0.0;
 	m_suspendeddelta = 0.0;
@@ -121,6 +141,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_objectlist = new CListValue();
 	m_parentlist = new CListValue();
 	m_lightlist= new CListValue();
+	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
 	m_delayReleaseObjects = new CListValue();
 
@@ -132,22 +153,32 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	
 	SCA_AlwaysEventManager* alwaysmgr = new SCA_AlwaysEventManager(m_logicmgr);
 	SCA_PropertyEventManager* propmgr = new SCA_PropertyEventManager(m_logicmgr);
+	SCA_ActuatorEventManager* actmgr = new SCA_ActuatorEventManager(m_logicmgr);
 	SCA_RandomEventManager* rndmgr = new SCA_RandomEventManager(m_logicmgr);
 	KX_RayEventManager* raymgr = new KX_RayEventManager(m_logicmgr);
 
 	KX_NetworkEventManager* netmgr = new KX_NetworkEventManager(m_logicmgr, ndi);
 	
-	SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+	
 
 	m_logicmgr->RegisterEventManager(alwaysmgr);
 	m_logicmgr->RegisterEventManager(propmgr);
+	m_logicmgr->RegisterEventManager(actmgr);
 	m_logicmgr->RegisterEventManager(m_keyboardmgr);
 	m_logicmgr->RegisterEventManager(m_mousemgr);
 	m_logicmgr->RegisterEventManager(m_timemgr);
 	m_logicmgr->RegisterEventManager(rndmgr);
 	m_logicmgr->RegisterEventManager(raymgr);
 	m_logicmgr->RegisterEventManager(netmgr);
-	m_logicmgr->RegisterEventManager(joymgr);
+
+
+	SYS_SystemHandle hSystem = SYS_GetSystem();
+	bool nojoystick= SYS_GetCommandLineInt(hSystem,"nojoystick",0);
+	if (!nojoystick)
+	{
+		SCA_JoystickManager *joymgr	= new SCA_JoystickManager(m_logicmgr);
+		m_logicmgr->RegisterEventManager(joymgr);
+	}
 
 	m_soundScene = new SND_Scene(adi);
 	MT_assert (m_networkDeviceInterface != NULL);
@@ -167,13 +198,14 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 
 KX_Scene::~KX_Scene()
 {
-	
-//	int numobj = m_objectlist->GetCount();
+	// The release of debug properties used to be in SCA_IScene::~SCA_IScene
+	// It's still there but we remove all properties here otherwise some
+	// reference might be hanging and causing late release of objects
+	RemoveAllDebugProperties();
 
-	//int numrootobjects = GetRootParentList()->GetCount();
-	for (int i = 0; i < GetRootParentList()->GetCount(); i++)
+	while (GetRootParentList()->GetCount() > 0) 
 	{
-		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(i);
+		KX_GameObject* parentobj = (KX_GameObject*) GetRootParentList()->GetValue(0);
 		this->RemoveObject(parentobj);
 	}
 
@@ -183,6 +215,9 @@ KX_Scene::~KX_Scene()
 	if (m_parentlist)
 		m_parentlist->Release();
 	
+	if (m_inactivelist)
+		m_inactivelist->Release();
+
 	if (m_lightlist)
 		m_lightlist->Release();
 	
@@ -210,12 +245,8 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-
 	//Py_DECREF(m_attrlist);
 }
-
-
-
 
 void KX_Scene::SetProjectionMatrix(MT_CmMatrix4x4& pmat)
 {
@@ -243,6 +274,11 @@ CListValue* KX_Scene::GetRootParentList()
 	return m_parentlist;
 }
 
+CListValue* KX_Scene::GetInactiveList()
+{
+	return m_inactivelist;
+}
+
 
 
 CListValue* KX_Scene::GetLightList()
@@ -263,7 +299,7 @@ SCA_TimeEventManager* KX_Scene::GetTimeEventManager()
 
 
  
-set<class KX_Camera*>* KX_Scene::GetCameras()
+list<class KX_Camera*>* KX_Scene::GetCameras()
 {
 	return &m_cameras;
 }
@@ -364,14 +400,26 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
-	NewRemoveObject(orgobj);
-
+	if (NewRemoveObject(orgobj) != 0)
+	{
+		// object is not yet deleted (this can happen when it hangs in an add object actuator
+		// last object created reference. It's a bad situation, don't know how to fix it exactly
+		// The least I can do, is remove the reference to the node in the object as the node
+		// will in any case be deleted. This ensures that the object will not try to use the node
+		// when it is finally deleted (see KX_GameObject destructor)
+		orgobj->SetSGNode(NULL);
+	}
 	if (node)
 		delete node;
 }
 
 KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CValue* gameobj)
 {
+	// for group duplication, limit the duplication of the hierarchy to the
+	// objects that are part of the group. 
+	if (!IsObjectInGroup(gameobj))
+		return NULL;
+	
 	KX_GameObject* orgobj = (KX_GameObject*)gameobj;
 	KX_GameObject* newobj = (KX_GameObject*)orgobj->GetReplica();
 	m_map_gameobject_to_replica.insert(orgobj, newobj);
@@ -415,8 +463,8 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 	replicanode->SetSGClientObject(newobj);
 
 	// this is the list of object that are send to the graphics pipeline
-	m_objectlist->Add(newobj);
-	newobj->Bucketize();
+	m_objectlist->Add(newobj->AddRef());
+	newobj->AddMeshUser();
 
 	// logic cannot be replicated, until the whole hierarchy is replicated.
 	m_logicHierarchicalGameObjects.push_back(newobj);
@@ -449,6 +497,11 @@ KX_GameObject* KX_Scene::AddNodeReplicaObject(class SG_IObject* node, class CVal
 // hierarchy that's because first ALL bricks must exist in the new
 // replica of the hierarchy in order to make cross-links work properly
 // !
+// It is VERY important that the order of sensors and actuators in
+// the replicated object is preserved: it is is used to reconnect the logic.
+// This method is more robust then using the bricks name in case of complex 
+// group replication. The replication of logic bricks is done in 
+// SCA_IObject::ReParentLogic(), make sure it preserves the order of the bricks.
 void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 {
 	// also relink the controller to sensors/actuators
@@ -471,37 +524,38 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_ISensor*>::iterator its = linkedsensors.begin();!(its==linkedsensors.end());its++)
 		{
 			SCA_ISensor* oldsensor = (*its);
-			STR_String name = oldsensor->GetName();
-			//find this name in the list
-			SCA_ISensor* newsensor = newobj->FindSensor(name);
+			SCA_IObject* oldsensorobj = oldsensor->GetParent();
+			SCA_IObject* newsensorobj = NULL;
 		
-			if (newsensor)
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldsensorobj];
+			if (h_obj)
+				newsensorobj = (SCA_IObject*)(*h_obj);
+			if (!newsensorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToSensor(cont,newsensor);
+				// no, then the sensor points outside the hierachy, keep it the same
+				if (m_objectlist->SearchValue(oldsensorobj))
+					// only replicate links that points to active objects
+					m_logicmgr->RegisterToSensor(cont,oldsensor);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newsensor = (*git)->FindSensor(name);
-					if (newsensor)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_SensorList& sensorlist = oldsensorobj->GetSensors();
+				SCA_SensorList::iterator sit;
+				SCA_ISensor* newsensor = NULL;
+				int sensorpos;
 
-				if (newsensor)
+				for (sensorpos=0, sit=sensorlist.begin(); sit!=sensorlist.end(); sit++, sensorpos++)
 				{
-					// relink this newsensor to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToSensor(cont,newsensor);
+					if ((*sit) == oldsensor) 
+					{
+						newsensor = newsensorobj->GetSensors().at(sensorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external sensor, so...
-					m_logicmgr->RegisterToSensor(cont,oldsensor);
-				}
+				assert(newsensor != NULL);
+				m_logicmgr->RegisterToSensor(cont,newsensor);
 			}
 		}
 		
@@ -509,43 +563,189 @@ void KX_Scene::ReplicateLogic(KX_GameObject* newobj)
 		for (vector<SCA_IActuator*>::iterator ita = linkedactuators.begin();!(ita==linkedactuators.end());ita++)
 		{
 			SCA_IActuator* oldactuator = (*ita);
-			STR_String name = oldactuator->GetName();
-			//find this name in the list
-			SCA_IActuator* newactuator = newobj->FindActuator(name);
-			if (newactuator)
+			SCA_IObject* oldactuatorobj = oldactuator->GetParent();
+			SCA_IObject* newactuatorobj = NULL;
+
+			// the original owner of the sensor has been replicated?
+			void **h_obj = m_map_gameobject_to_replica[oldactuatorobj];
+			if (h_obj)
+				newactuatorobj = (SCA_IObject*)(*h_obj);
+
+			if (!newactuatorobj)
 			{
-				// relink this newsensor to the controller
-				m_logicmgr->RegisterToActuator(cont,newactuator);
-				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+				// no, then the sensor points outside the hierachy, keep it the same
+				if (m_objectlist->SearchValue(oldactuatorobj))
+					// only replicate links that points to active objects
+					m_logicmgr->RegisterToActuator(cont,oldactuator);
 			}
 			else
 			{
-				// it can be linked somewhere in the hierarchy or...
-				for (vector<KX_GameObject*>::iterator git = m_logicHierarchicalGameObjects.begin();
-				!(git==m_logicHierarchicalGameObjects.end());++git)
-				{
-					newactuator= (*git)->FindActuator(name);
-					if (newactuator)
-						break;
-				} 
+				// yes, then the new sensor has the same position
+				SCA_ActuatorList& actuatorlist = oldactuatorobj->GetActuators();
+				SCA_ActuatorList::iterator ait;
+				SCA_IActuator* newactuator = NULL;
+				int actuatorpos;
 
-				if (newactuator)
+				for (actuatorpos=0, ait=actuatorlist.begin(); ait!=actuatorlist.end(); ait++, actuatorpos++)
 				{
-					// relink this actuator to the controller somewhere else within this
-					// hierarchy
-					m_logicmgr->RegisterToActuator(cont,newactuator);
-					newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
+					if ((*ait) == oldactuator) 
+					{
+						newactuator = newactuatorobj->GetActuators().at(actuatorpos);
+						break;
+					}
 				}
-				else
-				{
-					// must be an external actuator, so...
-					m_logicmgr->RegisterToActuator(cont,oldactuator);
-				}
+				assert(newactuator != NULL);
+				m_logicmgr->RegisterToActuator(cont,newactuator);
+				newactuator->SetUeberExecutePriority(m_ueberExecutionPriority);
 			}
 		}
 	}
+	// ready to set initial state
+	newobj->ResetState();
 }
 
+void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
+{
+	KX_GameObject* groupobj = (KX_GameObject*) obj;
+	KX_GameObject* replica;
+	KX_GameObject* gameobj;
+	Object* blgroupobj = groupobj->GetBlenderObject();
+	Group* group;
+	GroupObject *go;
+	vector<KX_GameObject*> duplilist;
+
+	if (!groupobj->GetSGNode() ||
+		!groupobj->IsDupliGroup() ||
+		level>MAX_DUPLI_RECUR)
+		return;
+
+	// we will add one group at a time
+	m_logicHierarchicalGameObjects.clear();
+	m_map_gameobject_to_replica.clear();
+	m_ueberExecutionPriority++;
+	// for groups will do something special: 
+	// we will force the creation of objects to those in the group only
+	// Again, this is match what Blender is doing (it doesn't care of parent relationship)
+	m_groupGameObjects.clear();
+
+	group = blgroupobj->dup_group;
+	for(go=(GroupObject*)group->gobject.first; go; go=(GroupObject*)go->next) 
+	{
+		Object* blenderobj = go->ob;
+		if (blgroupobj == blenderobj)
+			// this check is also in group_duplilist()
+			continue;
+
+		gameobj = (KX_GameObject*)m_logicmgr->FindGameObjByBlendObj(blenderobj);
+		if (gameobj == NULL) 
+		{
+			// this object has not been converted!!!
+			// Should not happen as dupli group are created automatically 
+			continue;
+		}
+
+		gameobj->SetBlenderGroupObject(blgroupobj);
+
+		if ((blenderobj->lay & group->layer)==0)
+		{
+			// object is not visible in the 3D view, will not be instantiated
+			continue;
+		}
+		m_groupGameObjects.insert(gameobj);
+	}
+
+	set<CValue*>::iterator oit;
+	for (oit=m_groupGameObjects.begin(); oit != m_groupGameObjects.end(); oit++)
+	{
+		gameobj = (KX_GameObject*)(*oit);
+
+		KX_GameObject *parent = gameobj->GetParent();
+		if (parent != NULL)
+		{
+			parent->Release(); // GetParent() increased the refcount
+
+			// this object is not a top parent. Either it is the child of another
+			// object in the group and it will be added automatically when the parent
+			// is added. Or it is the child of an object outside the group and the group
+			// is inconsistent, skip it anyway
+			continue;
+		}
+		replica = (KX_GameObject*) AddNodeReplicaObject(NULL,gameobj);
+		// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
+		m_parentlist->Add(replica->AddRef());
+
+		// recurse replication into children nodes
+		NodeList& children = gameobj->GetSGNode()->GetSGChildren();
+
+		replica->GetSGNode()->ClearSGChildren();
+		for (NodeList::iterator childit = children.begin();!(childit==children.end());++childit)
+		{
+			SG_Node* orgnode = (*childit);
+			SG_Node* childreplicanode = orgnode->GetSGReplica();
+			if (childreplicanode)
+				replica->GetSGNode()->AddChild(childreplicanode);
+		}
+		// don't replicate logic now: we assume that the objects in the group can have
+		// logic relationship, even outside parent relationship
+		// In order to match 3D view, the position of groupobj is used as a 
+		// transformation matrix instead of the new position. This means that 
+		// the group reference point is 0,0,0
+
+		// get the rootnode's scale
+		MT_Vector3 newscale = groupobj->NodeGetWorldScaling();
+		// set the replica's relative scale with the rootnode's scale
+		replica->NodeSetRelativeScale(newscale);
+
+		MT_Matrix3x3 newori = groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldOrientation();
+		replica->NodeSetLocalOrientation(newori);
+
+		MT_Point3 newpos = groupobj->NodeGetWorldPosition() + 
+			newscale*(groupobj->NodeGetWorldOrientation() * gameobj->NodeGetWorldPosition());
+		replica->NodeSetLocalPosition(newpos);
+
+		replica->GetSGNode()->UpdateWorldData(0);
+		replica->GetSGNode()->SetBBox(gameobj->GetSGNode()->BBox());
+		replica->GetSGNode()->SetRadius(gameobj->GetSGNode()->Radius());
+		// done with replica
+		replica->Release();
+	}
+
+	// the logic must be replicated first because we need
+	// the new logic bricks before relinking
+	vector<KX_GameObject*>::iterator git;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		(*git)->ReParentLogic();
+	}
+	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuator to objects within the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(groupobj->GetLayer());
+	}
+
+	// replicate crosslinks etc. between logic bricks
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		ReplicateLogic((*git));
+	}
+	
+	// now look if object in the hierarchy have dupli group and recurse
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git) != groupobj && (*git)->IsDupliGroup())
+			// can't instantiate group immediately as it destroys m_logicHierarchicalGameObjects
+			duplilist.push_back((*git));
+	}
+
+	for (git = duplilist.begin(); !(git == duplilist.end()); ++git)
+	{
+		DupliGroupRecurse((*git), level+1);
+	}
+}
 
 
 SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
@@ -555,6 +755,7 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 
 	m_logicHierarchicalGameObjects.clear();
 	m_map_gameobject_to_replica.clear();
+	m_groupGameObjects.clear();
 
 	// todo: place a timebomb in the object, for temporarily objects :)
 	// lifespan of zero means 'this object lives forever'
@@ -571,7 +772,9 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 		// add a timebomb to this object
 		// for now, convert between so called frames and realtime
 		m_tempObjectList->Add(replica->AddRef());
-		replica->SetProperty("::timebomb",new CFloatValue(lifespan*0.02));
+		CValue *fval = new CFloatValue(lifespan*0.02);
+		replica->SetProperty("::timebomb",fval);
+		fval->Release();
 	}
 
 	// add to 'rootparent' list (this is the list of top hierarchy objects, updated each frame)
@@ -586,22 +789,26 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	{
 		SG_Node* orgnode = (*childit);
 		SG_Node* childreplicanode = orgnode->GetSGReplica();
-		replica->GetSGNode()->AddChild(childreplicanode);
-	}
-
-	//	relink any pointers as necessary, sort of a temporary solution
-	vector<KX_GameObject*>::iterator git;
-	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
-	{
-		(*git)->Relink(&m_map_gameobject_to_replica);
+		if (childreplicanode)
+			replica->GetSGNode()->AddChild(childreplicanode);
 	}
 
 	// now replicate logic
+	vector<KX_GameObject*>::iterator git;
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
 		(*git)->ReParentLogic();
 	}
 	
+	//	relink any pointers as necessary, sort of a temporary solution
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		// this will also relink the actuators in the hierarchy
+		(*git)->Relink(&m_map_gameobject_to_replica);
+		// add the object in the layer of the parent
+		(*git)->SetLayer(parentobj->GetLayer());
+	}
+
 	// replicate crosslinks etc. between logic bricks
 	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
 	{
@@ -620,21 +827,24 @@ SCA_IObject* KX_Scene::AddReplicaObject(class CValue* originalobject,
 	// set the replica's relative scale with the rootnode's scale
 	replica->NodeSetRelativeScale(newscale);
 
-	if (replica->GetPhysicsController())
-	{
-		replica->GetPhysicsController()->setPosition(newpos);
-		replica->GetPhysicsController()->setOrientation(newori.getRotation());
-		replica->GetPhysicsController()->setScaling(newscale);
-	}
-
-	// here we want to set the relative scale: the rootnode's scale will override all other
-	// scalings, so lets better prepare for it
-
-
 	replica->GetSGNode()->UpdateWorldData(0);
 	replica->GetSGNode()->SetBBox(originalobj->GetSGNode()->BBox());
 	replica->GetSGNode()->SetRadius(originalobj->GetSGNode()->Radius());
-	
+	// check if there are objects with dupligroup in the hierarchy
+	vector<KX_GameObject*> duplilist;
+	for (git = m_logicHierarchicalGameObjects.begin();!(git==m_logicHierarchicalGameObjects.end());++git)
+	{
+		if ((*git)->IsDupliGroup())
+		{
+			// separate list as m_logicHierarchicalGameObjects is also used by DupliGroupRecurse()
+			duplilist.push_back(*git);
+		}
+	}
+	for (git = duplilist.begin();!(git==duplilist.end());++git)
+	{
+		DupliGroupRecurse(*git, 0);
+	}
+	//	don't release replica here because we are returning it, not done with it...
 	return replica;
 }
 
@@ -654,7 +864,8 @@ void KX_Scene::RemoveObject(class CValue* gameobj)
 		// recursively destruct
 		node->Destruct();
 	}
-	newobj->SetSGNode(0);
+	//no need to do that: the object is destroyed and memory released 
+	//newobj->SetSGNode(0);
 }
 
 void KX_Scene::DelayedReleaseObject(CValue* gameobj)
@@ -674,9 +885,16 @@ void KX_Scene::DelayedRemoveObject(class CValue* gameobj)
 
 
 
-void KX_Scene::NewRemoveObject(class CValue* gameobj)
+int KX_Scene::NewRemoveObject(class CValue* gameobj)
 {
+	int ret;
 	KX_GameObject* newobj = (KX_GameObject*) gameobj;
+
+	// keep the blender->game object association up to date
+	// note that all the replicas of an object will have the same
+	// blender object, that's why we need to check the game object
+	// as only the deletion of the original object must be recorded
+	m_logicmgr->UnregisterGameObj(newobj->GetBlenderObject(), gameobj);
 
 	//todo: look at this
 	//GetPhysicsEnvironment()->RemovePhysicsController(gameobj->getPhysicsController());
@@ -694,8 +912,7 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	for (SCA_ControllerList::iterator itc = controllers.begin();
 		 !(itc==controllers.end());itc++)
 	{
-		(*itc)->UnlinkAllSensors();
-		(*itc)->UnlinkAllActuators();
+		m_logicmgr->RemoveController(*itc);
 	}
 
 	SCA_ActuatorList& actuators = newobj->GetActuators();
@@ -704,6 +921,7 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	{
 		m_logicmgr->RemoveDestroyedActuator(*ita);
 	}
+	// the sensors/controllers/actuators must also be released, this is done in ~SCA_IObject
 
 	// now remove the timer properties from the time manager
 	int numprops = newobj->GetPropertyCount();
@@ -718,113 +936,138 @@ void KX_Scene::NewRemoveObject(class CValue* gameobj)
 	}
 	
 	newobj->RemoveMeshes();
+	ret = 1;
+	if (m_lightlist->RemoveValue(newobj)) // TODO - use newobj->IsLight() test when its merged in from apricot. - Campbell
+		ret = newobj->Release();
 	if (m_objectlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_tempObjectList->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 	if (m_parentlist->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
+	if (m_inactivelist->RemoveValue(newobj))
+		ret = newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
-		newobj->Release();
+		ret = newobj->Release();
 		
 	if (newobj == m_active_camera)
 	{
-		m_active_camera->Release();
+		//no AddRef done on m_active_camera so no Release
+		//m_active_camera->Release();
 		m_active_camera = NULL;
 	}
+
+	// in case this is a camera
+	m_cameras.remove((KX_Camera*)newobj);
+
+	if (m_sceneConverter)
+		m_sceneConverter->UnregisterGameObject(newobj);
+	// return value will be 0 if the object is actually deleted (all reference gone)
+	return ret;
 }
 
 
 
-void KX_Scene::ReplaceMesh(class CValue* gameobj,void* meshobj)
+void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 {
-	KX_GameObject* newobj = static_cast<KX_GameObject*>(gameobj);
+	KX_GameObject* gameobj = static_cast<KX_GameObject*>(obj);
 	RAS_MeshObject* mesh = static_cast<RAS_MeshObject*>(meshobj);
 
-	const STR_String origMeshName = newobj->GetMesh(0)->GetName();
-
-	if( !newobj || !mesh ) 
+	if(!gameobj || !mesh)
 	{
 		std::cout << "warning: invalid object, mesh will not be replaced" << std::endl;
 		return;
 	}
 
-	newobj->RemoveMeshes();
-	newobj->AddMesh(mesh);
-
-	bool isDeformer = (newobj->m_isDeformable && mesh->m_class == 1);
-	if(isDeformer)
-	{
-		/* FindBlendObjByGameObj() can return 0... 
-			In the case of 0 here,
-			the replicated object that is calling this function
-			is some how not in the map. (which is strange because it's added)
-			So we will search the map by the first mesh name
-			to try to locate it there. If its still not found 
-			spit some message rather than crash 
-		*/
-		Object* blendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameObj(newobj));
-		Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
+	gameobj->RemoveMeshes();
+	gameobj->AddMesh(mesh);
 	
-		bool parSkin = blendobj && blendobj->parent && blendobj->parent->type == OB_ARMATURE && blendobj->partype==PARSKEL;
-		bool releaseParent = true;
-		KX_GameObject* parentobj = newobj->GetParent();
-
-
-		// lookup by mesh name if blendobj is 0 
-		if( !blendobj &&  parentobj )
+	if (gameobj->m_isDeformable)
+	{
+		BL_DeformableGameObject* newobj = static_cast<BL_DeformableGameObject*>( gameobj );
+		
+		if (newobj->GetDeformer())
 		{
-			blendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(origMeshName));
-
-			// replace the mesh on the parent armature 
-			if( blendobj )
-				parSkin = parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE;
-
-			// can't do it 
-			else 
-				std::cout << "warning: child object for " << parentobj->GetName().ReadPtr() 
-					<< " not found, and can't create!" << std::endl;
+			delete newobj->GetDeformer();
+			newobj->SetDeformer(NULL);
 		}
 
-		if( blendobj && oldblendobj )
+		if (mesh->IsDeformed())
 		{
-			isDeformer = (static_cast<Mesh*>(blendobj->data)->dvert != 0);
-			BL_DeformableGameObject* deformIter =0;
+			// we must create a new deformer but which one?
+			KX_GameObject* parentobj = newobj->GetParent();
+			// this always return the original game object (also for replicate)
+			Object* blendobj = newobj->GetBlenderObject();
+			// object that owns the new mesh
+			Object* oldblendobj = static_cast<struct Object*>(m_logicmgr->FindBlendObjByGameMeshName(mesh->GetName()));
+			Mesh* blendmesh = mesh->GetMesh();
 
-			// armature parent
-			if( parSkin && isDeformer )
+			bool bHasShapeKey = blendmesh->key != NULL && blendmesh->key->type==KEY_RELATIVE;
+			bool bHasDvert = blendmesh->dvert != NULL;
+			bool bHasArmature = 
+				parentobj &&								// current parent is armature
+				parentobj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE &&
+				oldblendobj &&								// needed for mesh deform
+				blendobj->parent &&							// original object had armature (not sure this test is needed)
+				blendobj->parent->type == OB_ARMATURE && 
+				blendobj->partype==PARSKEL && 
+				blendmesh->dvert!=NULL;						// mesh has vertex group
+			bool releaseParent = true;
+
+			if (bHasShapeKey)
 			{
-				deformIter = static_cast<BL_DeformableGameObject*>( newobj );
-				delete deformIter->m_pDeformer;
-
+				BL_ShapeDeformer* shapeDeformer;
+				if (bHasArmature) 
+				{
+					shapeDeformer = new BL_ShapeDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						true,
+						static_cast<BL_ArmatureObject*>( parentobj )
+					);
+					releaseParent= false;
+					shapeDeformer->LoadShapeDrivers(blendobj->parent);
+				}
+				else
+				{
+					shapeDeformer = new BL_ShapeDeformer(
+						newobj,
+						oldblendobj, blendobj,
+						static_cast<BL_SkinMeshObject*>(mesh),
+						false,
+						NULL
+					);
+				}
+				newobj->SetDeformer( shapeDeformer);
+			}
+			else if (bHasArmature) 
+			{
 				BL_SkinDeformer* skinDeformer = new BL_SkinDeformer(
+					newobj,
 					oldblendobj, blendobj,
 					static_cast<BL_SkinMeshObject*>(mesh),
 					true,
 					static_cast<BL_ArmatureObject*>( parentobj )
 				);
 				releaseParent= false;
-				deformIter->m_pDeformer = skinDeformer;
+				newobj->SetDeformer(skinDeformer);
 			}
-
-			// normal deformer
-			if( !parSkin && isDeformer)
+			else if (bHasDvert)
 			{
-				deformIter = static_cast<BL_DeformableGameObject*>( newobj );
-				delete deformIter->m_pDeformer;
-
 				BL_MeshDeformer* meshdeformer = new BL_MeshDeformer(
-					oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
+					newobj, oldblendobj, static_cast<BL_SkinMeshObject*>(mesh)
 				);
-
-				deformIter->m_pDeformer = meshdeformer;
+				newobj->SetDeformer(meshdeformer);
 			}
+
+			// release parent reference if its not being used 
+			if( releaseParent && parentobj)
+				parentobj->Release();
 		}
-		// release parent reference if its not being used 
-		if( releaseParent && parentobj)
-			parentobj->Release();
 	}
-	newobj->Bucketize();
+
+	gameobj->AddMeshUser();
 }
 
 
@@ -847,7 +1090,7 @@ MT_CmMatrix4x4& KX_Scene::GetProjectionMatrix()
 
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it) != cam) ) {
@@ -860,7 +1103,7 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 
 KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
-	set<KX_Camera*>::iterator it = m_cameras.begin();
+	list<KX_Camera*>::iterator it = m_cameras.begin();
 
 	while ( (it != m_cameras.end()) 
 			&& ((*it)->GetName() != name) ) {
@@ -872,8 +1115,10 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 
 void KX_Scene::AddCamera(KX_Camera* cam)
 {
-	m_cameras.insert(cam);
+	if (!FindCamera(cam))
+		m_cameras.push_back(cam);
 }
+
 
 KX_Camera* KX_Scene::GetActiveCamera()
 {	
@@ -893,6 +1138,17 @@ void KX_Scene::SetActiveCamera(KX_Camera* cam)
 	m_active_camera = cam;
 }
 
+void KX_Scene::SetCameraOnTop(KX_Camera* cam)
+{
+	if (!FindCamera(cam)){
+		// adding is always done at the back, so that's all that needs to be done
+		AddCamera(cam);
+		if (cam) std::cout << "Added cam " << cam->GetName() << std::endl;
+	} else {
+		m_cameras.remove(cam);
+		m_cameras.push_back(cam);
+	}
+}
 
 
 void KX_Scene::UpdateMeshTransformations()
@@ -906,12 +1162,13 @@ void KX_Scene::UpdateMeshTransformations()
 	}
 }
 
-void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam)
+void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam, int layer)
 {
 	int intersect = KX_Camera::INTERSECT;
 	KX_GameObject *gameobj = node->Client()?(KX_GameObject*) node->Client()->GetSGClientObject():NULL;
-	bool dotest = (gameobj && gameobj->GetVisible()) || node->Left() || node->Right();
-	
+	bool visible = (gameobj && gameobj->GetVisible() && (!layer || (gameobj->GetLayer() & layer)));
+	bool dotest = visible || node->Left() || node->Right();
+
 	/* If the camera is inside the box, assume intersect. */
 	if (dotest && !node->inside( cam->NodeGetWorldPosition()))
 	{
@@ -935,19 +1192,19 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam
 			break;
 		case KX_Camera::INTERSECT:
 			if (gameobj)
-				MarkVisible(rasty, gameobj,cam);
+				MarkVisible(rasty, gameobj, cam, layer);
 			if (node->Left())
-				MarkVisible(node->Left(), rasty,cam);
+				MarkVisible(node->Left(), rasty, cam, layer);
 			if (node->Right())
-				MarkVisible(node->Right(), rasty,cam);
+				MarkVisible(node->Right(), rasty, cam, layer);
 			break;
 		case KX_Camera::INSIDE:
-			MarkSubTreeVisible(node, rasty, true,cam);
+			MarkSubTreeVisible(node, rasty, true, cam, layer);
 			break;
 	}
 }
 
-void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible,KX_Camera* cam)
+void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera* cam, int layer)
 {
 	if (node->Client())
 	{
@@ -957,29 +1214,35 @@ void KX_Scene::MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool vi
 			if (visible)
 			{
 				int nummeshes = gameobj->GetMeshCount();
-				MT_Transform t( cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
-	
 				
+				// this adds the vertices to the display list
 				for (int m=0;m<nummeshes;m++)
-				{
-					// this adds the vertices to the display list
-					(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
-				}
+					(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 			}
-			gameobj->MarkVisible(visible);
+
+			gameobj->SetCulled(!visible);
+			gameobj->UpdateBuckets(false);
 		}
 	}
 	if (node->Left())
-		MarkSubTreeVisible(node->Left(), rasty, visible,cam);
+		MarkSubTreeVisible(node->Left(), rasty, visible, cam, layer);
 	if (node->Right())
-		MarkSubTreeVisible(node->Right(), rasty, visible,cam);
+		MarkSubTreeVisible(node->Right(), rasty, visible, cam, layer);
 }
 
-void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam)
+void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Camera*  cam,int layer)
 {
 	// User (Python/Actuator) has forced object invisible...
-	if (!gameobj->GetVisible())
+	if (!gameobj->GetSGNode() || !gameobj->GetVisible())
 		return;
+	
+	// Shadow lamp layers
+	if(layer && !(gameobj->GetLayer() & layer)) {
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
+		return;
+	}
+
 	// If Frustum culling is off, the object is always visible.
 	bool vis = !cam->GetFrustumCulling();
 	
@@ -1014,35 +1277,36 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	if (vis)
 	{
 		int nummeshes = gameobj->GetMeshCount();
-		MT_Transform t(cam->GetWorldToCamera() * gameobj->GetSGNode()->GetWorldTransform());
 		
 		for (int m=0;m<nummeshes;m++)
 		{
 			// this adds the vertices to the display list
-			(gameobj->GetMesh(m))->SchedulePolygons(t, rasty->GetDrawingMode());
+			(gameobj->GetMesh(m))->SchedulePolygons(rasty->GetDrawingMode());
 		}
 		// Visibility/ non-visibility are marked
 		// elsewhere now.
-		gameobj->MarkVisible();
+		gameobj->SetCulled(false);
+		gameobj->UpdateBuckets(false);
 	} else {
-		gameobj->MarkVisible(false);
+		gameobj->SetCulled(true);
+		gameobj->UpdateBuckets(false);
 	}
 }
 
-void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam)
+void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int layer)
 {
 // FIXME: When tree is operational
 #if 1
 	// do this incrementally in the future
 	for (int i = 0; i < m_objectlist->GetCount(); i++)
 	{
-		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam);
+		MarkVisible(rasty, static_cast<KX_GameObject*>(m_objectlist->GetValue(i)), cam, layer);
 	}
 #else
 	if (cam->GetFrustumCulling())
-		MarkVisible(m_objecttree, rasty, cam);
+		MarkVisible(m_objecttree, rasty, cam, layer);
 	else
-		MarkSubTreeVisible(m_objecttree, rasty, true, cam);
+		MarkSubTreeVisible(m_objecttree, rasty, true, cam, layer);
 #endif
 }
 
@@ -1096,6 +1360,8 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj - 1; i >= 0; i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_euthanasyobjects->GetValue(i);
+		// KX_Scene::RemoveObject will also remove the object from this list
+		// that's why we start from the end
 		this->RemoveObject(gameobj);
 	}
 
@@ -1103,11 +1369,11 @@ void KX_Scene::LogicEndFrame()
 	for (i = numobj-1;i>=0;i--)
 	{
 		KX_GameObject* gameobj = (KX_GameObject*)m_delayReleaseObjects->GetValue(i);
-		m_delayReleaseObjects->RemoveValue(gameobj);	
-		
+		// This list is not for object removal, but just object release
+		gameobj->Release();
 	}
-	
-
+	// empty the list as we have removed all references
+	m_delayReleaseObjects->Resize(0);	
 }
 
 
@@ -1128,9 +1394,9 @@ void KX_Scene::UpdateParents(double curtime)
 
 
 
-RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat)
+RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool &bucketCreated)
 {
-	return m_bucketmanager->RAS_BucketManagerFindBucket(polymat);
+	return m_bucketmanager->FindBucket(polymat, bucketCreated);
 }
 
 
@@ -1140,9 +1406,8 @@ void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
 							 class RAS_IRenderTools* rendertools)
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
+	KX_BlenderMaterial::EndFrame();
 }
-
-
 
 void KX_Scene::UpdateObjectActivity(void) 
 {
@@ -1210,6 +1475,11 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 void KX_Scene::SetNodeTree(SG_Tree* root)
 {
 	m_objecttree = root;
+}
+
+void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
+{
+	m_sceneConverter = sceneConverter;
 }
 
 void KX_Scene::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment* physEnv)

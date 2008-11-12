@@ -101,7 +101,7 @@ void	KX_SumoPhysicsController::SetSumoTransform(bool nondynaonly)
 
 }
 
-void	KX_SumoPhysicsController::SuspendDynamics()
+void	KX_SumoPhysicsController::SuspendDynamics(bool)
 {
 	SumoPhysicsController::SuspendDynamics();
 }
@@ -170,8 +170,9 @@ void	KX_SumoPhysicsController::setMargin(float collisionMargin)
 }
 
 
-void KX_SumoPhysicsController::setOrientation(const MT_Quaternion& orn)
+void KX_SumoPhysicsController::setOrientation(const MT_Matrix3x3& rot)
 {
+	MT_Quaternion orn = rot.getRotation();
 	SumoPhysicsController::setOrientation(
 		orn[0],orn[1],orn[2],orn[3]);
 
@@ -202,6 +203,11 @@ void KX_SumoPhysicsController::setScaling(const MT_Vector3& scaling)
 MT_Scalar	KX_SumoPhysicsController::GetMass()
 {
 	return SumoPhysicsController::getMass();
+}
+
+MT_Scalar	KX_SumoPhysicsController::GetRadius()
+{
+	return SumoPhysicsController::GetRadius();
 }
 
 MT_Vector3	KX_SumoPhysicsController::getReactionForce()

@@ -307,6 +307,7 @@ static void QT_EndCreateMyVideoTrack(void)
 
 static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
 {
+	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
 
 	qtexport->ibuf = IMB_allocImBuf (rectx, recty, 32, IB_rect, 0);
@@ -325,7 +326,18 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 
 	SCDefaultPixMapSettings (qtdata->theComponent, qtexport->thePixMap, true);
 
-	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+	// workaround for crash with H.264, which requires an upgrade to
+	// the new callback based api for proper encoding, but that's not
+	// really compatible with rendering out frames sequentially
+	gTemporalSettings = qtdata->gTemporalSettings;
+	if(qtdata->gSpatialSettings.codecType == kH264CodecType) {
+		if(gTemporalSettings.temporalQuality != codecMinQuality) {
+			fprintf(stderr, "Only minimum quality compression supported for QuickTime H.264.\n");
+			gTemporalSettings.temporalQuality = codecMinQuality;
+		}
+	}
+
+	SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&gTemporalSettings);
 	SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 
@@ -415,7 +427,7 @@ void makeqtstring (char *string) {
 	if (string==0) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -569,13 +581,13 @@ static void check_renderbutton_framerate(void) {
 	CheckError( err, "SCSetInfo error" );
 
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
-		qtdata->kVideoTimeScale = 2400;
+		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 3000;
+		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 6000;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 	} else {
 		qtdata->kVideoTimeScale = (qtdata->gTemporalSettings.frameRate >> 16) * 100;
@@ -644,13 +656,13 @@ int get_qtcodec_settings(void)
 		G.scene->r.frs_sec = 24;
 		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 1964113) {	// 29.97 fps
-		qtdata->kVideoTimeScale = 3000;
+		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 30;
 		G.scene->r.frs_sec_base = 1.001;
 	} else if (qtdata->gTemporalSettings.frameRate == 3928227) {	// 59.94 fps
-		qtdata->kVideoTimeScale = 6000;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 
 		G.scene->r.frs_sec = 60;
@@ -658,7 +670,7 @@ int get_qtcodec_settings(void)
 	} else {
 		double fps = qtdata->gTemporalSettings.frameRate;
 
-		qtdata->kVideoTimeScale = 600;
+		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = qtdata->kVideoTimeScale / (qtdata->gTemporalSettings.frameRate / 65536);
 
 		if ((qtdata->gTemporalSettings.frameRate & 0xffff) == 0) {

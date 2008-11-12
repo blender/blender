@@ -42,7 +42,7 @@ typedef struct MFace {
 
 typedef struct MEdge {
 	unsigned int v1, v2;
-	char crease, pad;
+	char crease, bweight;
 	short flag;
 } MEdge;
 
@@ -60,7 +60,7 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr;
+	char flag, mat_nr, bweight, pad[3];
 } MVert;
 
 /* at the moment alpha is abused for vertex painting
@@ -68,6 +68,22 @@ typedef struct MVert {
 typedef struct MCol {
 	char a, r, g, b;	
 } MCol;
+
+/*bmesh custom data stuff*/
+typedef struct MTexPoly{
+	struct Image *tpage;
+	char flag, transp;
+	short mode,tile,unwrap;
+}MTexPoly;
+
+typedef struct MLoopUV{
+	float uv[2];
+}MLoopUV;
+
+typedef struct MLoopCol{
+	char a, r, g, b;
+	int pad;  /*waste!*/
+}MLoopCol;
 
 typedef struct MSticky {
 	float co[2];
@@ -143,7 +159,7 @@ typedef struct Multires {
 	MVert *verts;
 
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
-	unsigned char use_col, pad;
+	unsigned char use_col, flag;
 
 	/* Special level 1 data that cannot be modified from other levels */
 	CustomData vdata;
@@ -213,7 +229,7 @@ typedef struct PartialVisibility {
 
 /* mtface->mode */
 #define TF_DYNAMIC		1
-#define TF_DEPRECATED	2
+#define TF_ALPHASORT	2
 #define TF_TEX			4
 #define TF_SHAREDVERT	8
 #define TF_LIGHT		16
@@ -229,13 +245,15 @@ typedef struct PartialVisibility {
 #define TF_SHADOW		8192
 #define TF_BMFONT		16384
 
-/* mtface->transp */
+/* mtface->transp, values 1-4 are used as flags in the GL, WARNING, TF_SUB cant work with this */
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+#define TF_CLIP		4 /* clipmap alpha/binary alpha all or nothing! */
 
 /* sub is not available in the user interface anymore */
 #define TF_SUB		3
+
 
 /* mtface->unwrap */
 #define TF_DEPRECATED1	1
@@ -246,5 +264,8 @@ typedef struct PartialVisibility {
 #define TF_PIN2		    32
 #define TF_PIN3	   		64
 #define TF_PIN4	    	128
+
+/* multires->flag */
+#define MULTIRES_NO_RENDER 1
 
 #endif

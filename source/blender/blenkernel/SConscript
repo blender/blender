@@ -4,19 +4,33 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
-incs += ' ../python ../render/extern/include #/intern/decimation/extern'
+incs += ' ../render/extern/include #/intern/decimation/extern'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
-incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
+incs += ' #/intern/iksolver/extern ../blenloader'
+incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
+incs += ' #/intern/opennl/extern'
+incs += ' ../gpu #/extern/glew/include'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-incs += ' ' + env['BF_SDL_INC']
 
 defs = ''
 
+if not env['WITH_BF_PYTHON']:
+	defs += 'DISABLE_PYTHON'
+else:
+	incs += ' ../python'
+	incs += ' ' + env['BF_PYTHON_INC']
+
+if env['WITH_BF_QUICKTIME']:
+    incs += ' ../quicktime'
+
+if env['WITH_BF_SDL']:
+	incs += ' ' + env['BF_SDL_INC']
+
 if env['WITH_BF_INTERNATIONAL']:
-	defs += 'WITH_FREETYPE2'
+	defs += ' WITH_FREETYPE2'
 
 if env['WITH_BF_VERSE']:
 	defs += ' WITH_VERSE'
@@ -25,23 +39,24 @@ if env['WITH_BF_VERSE']:
 if env['WITH_BF_VERSE']:
 	defs += ' WITH_VERSE'
 	
-if env['WITH_BF_OPENEXR'] == 1:
-	defs += ' WITH_OPENEXR'
+if env['WITH_BF_OPENEXR']:
+    defs += ' WITH_OPENEXR'
 
-if env['WITH_BF_DDS'] == 1:
-	defs += ' WITH_DDS'
+if env['WITH_BF_DDS']:
+    defs += ' WITH_DDS'
 
-if env['WITH_BF_FFMPEG'] == 1:
-	defs += ' WITH_FFMPEG'
-	incs += ' ' + env['BF_FFMPEG_INC']
+if env['WITH_BF_FFMPEG']:
+    defs += ' WITH_FFMPEG'
+    incs += ' ' + env['BF_FFMPEG_INC']
 
-if env['WITH_BF_QUICKTIME'] == 1:
-	defs += ' WITH_QUICKTIME'
-	incs += ' ' + env['BF_QUICKTIME_INC']
+if env['WITH_BF_QUICKTIME']:
+    defs += ' WITH_QUICKTIME'
+    incs += ' ' + env['BF_QUICKTIME_INC']
 
-defs += ' WITH_CCGSUBSURF'
+if env['BF_NO_ELBEEM']:
+    defs += ' DISABLE_ELBEEM'
 
 if env['WITH_BF_PLAYER']:
-	SConscript(['bad_level_call_stubs/SConscript'])
+    SConscript(['bad_level_call_stubs/SConscript'])
 
-env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [75, 10] )
+env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )

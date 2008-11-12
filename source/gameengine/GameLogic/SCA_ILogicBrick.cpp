@@ -27,6 +27,7 @@
  */
 
 #include "SCA_ILogicBrick.h"
+#include "PyObjectPlus.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -82,7 +83,10 @@ void SCA_ILogicBrick::ReParent(SCA_IObject* parent)
 	m_gameobj = parent;
 }
 
-
+void SCA_ILogicBrick::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	// nothing to do
+}
 
 CValue* SCA_ILogicBrick::Calc(VALUE_OPERATOR op, CValue *val)
 {
@@ -242,8 +246,8 @@ PyParentObject SCA_ILogicBrick::Parents[] = {
 
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
-  {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_VARARGS},
-  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
+  {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
+  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_NOARGS},
   {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
   {NULL,NULL} //Sentinel
 };
@@ -258,9 +262,7 @@ SCA_ILogicBrick::_getattr(const STR_String& attr)
 
 
 
-PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
 {
 	CValue* parent = GetParent();
 	if (parent)
@@ -270,8 +272,7 @@ PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self,
 	}
 
 	printf("ERROR: Python scriptblock without owner\n");
-	Py_INCREF(Py_None);
-	return Py_None;//Int_FromLong(IsPositiveTrigger());
+	Py_RETURN_NONE; //Int_FromLong(IsPositiveTrigger());
 }
 
 
@@ -294,9 +295,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 
 
 
-PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self, 
-			       PyObject* args, 
-			       PyObject* kwds)
+PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self)
 {
 	return PyInt_FromLong(m_Execute_Ueber_Priority);
 }

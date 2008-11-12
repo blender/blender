@@ -40,6 +40,11 @@ struct Object;
 struct Lattice;
 struct Mesh;
 
+/* Kernel prototypes */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void free_key(struct Key *sc); 
 struct Key *add_key(struct ID *id);
 struct Key *copy_key(struct Key *key);
@@ -57,6 +62,12 @@ int do_ob_key(struct Object *ob);
 struct Key *ob_get_key(struct Object *ob);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);
 struct KeyBlock *key_get_keyblock(struct Key *key, int index);
+// needed for the GE
+void do_rel_key(int start, int end, int tot, char *basispoin, struct Key *key, int mode);
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
 

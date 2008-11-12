@@ -18,9 +18,9 @@ struct EnvMap;
 	this will default to users available units
 	to build with more available, just increment this value
 	although the more you add the slower the search time will be.
-	we will go for three, which should be enough
+	we will go for eight, which should be enough
 */
-#define MAXTEX			3//match in RAS_TexVert & RAS_OpenGLRasterizer
+#define MAXTEX			8	//match in RAS_TexVert & RAS_OpenGLRasterizer
 
 // different mapping modes
 class BL_Mapping
@@ -47,6 +47,7 @@ public:
 
 	int IdMode;
 	unsigned int ras_mode;
+	bool glslmat;
 
 	STR_String texname[MAXTEX];
 	unsigned int flag[MAXTEX];
@@ -82,13 +83,16 @@ public:
 	MT_Point2 uv[4];
 	MT_Point2 uv2[4];
 
+	STR_String uvName;
+	STR_String uv2Name;
+
 	void SetConversionRGB(unsigned int *rgb);
 	void GetConversionRGB(unsigned int *rgb);
 
-	void SetConversionUV(MT_Point2 *uv);
+	void SetConversionUV(const STR_String& name, MT_Point2 *uv);
 	void GetConversionUV(MT_Point2 *uv);
 
-	void SetConversionUV2(MT_Point2 *uv);
+	void SetConversionUV2(const STR_String& name, MT_Point2 *uv);
 	void GetConversionUV2(MT_Point2 *uv);
 
 	void SetSharedMaterial(bool v);
@@ -125,8 +129,7 @@ enum BL_flag
 	TEXALPHA=8,		// use alpha combiner functions
 	TEXNEG=16,		// negate blending
 	HASIPO=32,
-	USENEGALPHA=64,
-	ALPHA_TEST=128
+	USENEGALPHA=64
 };
 
 // BL_Material::ras_mode
@@ -135,8 +138,8 @@ enum BL_ras_mode
 	POLY_VIS=1,
 	COLLIDER=2,
 	ZSORT=4,
-	TRANSP=8,
-	TRIANGLE=16,
+	ALPHA=8,
+	// TRIANGLE=16,
 	USE_LIGHT=32,
 	WIRE=64
 };

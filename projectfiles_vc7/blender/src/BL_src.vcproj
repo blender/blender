@@ -21,8 +21,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_7\extern\verse\include;..\..\..\..\lib\windows\pthreads\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL;WITH_VERSE;WITH_OPENEXR;WITH_DDS"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_7\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\blender\gpu"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER=1;WITH_QUICKTIME;INTERNATIONAL;WITH_VERSE;WITH_OPENEXR;WITH_DDS;WITH_BULLET=1;WITH_FFMPEG"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -73,8 +73,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_7\extern\verse\include;..\..\..\..\lib\windows\pthreads\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER;WITH_QUICKTIME;INTERNATIONAL;WITH_VERSE;WITH_OPENEXR;WITH_DDS"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\QTDevWin\CIncludes;..\..\..\..\lib\windows\sdl\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\ghost\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\opennl\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\blenkey\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\source\blender;..\..\..\source\blender\img;..\..\..\source\blender\verify;..\..\..\source\blender\ftfont;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\renderui;..\..\..\source\blender\blenloader;..\..\..\source\blender\quicktime;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenpluginapi;..\..\..\source\blender\renderconverter;..\..\..\source\blender\readstreamglue;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\network;..\..\..\source\gameengine\soundsystem\snd_openal;..\..\..\..\build\msvc_7\extern\verse\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\build\msvc_7\extern\glew\include;..\..\..\source\blender\gpu"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;_CONSOLE;GAMEBLENDER;WITH_QUICKTIME;INTERNATIONAL;WITH_VERSE;WITH_OPENEXR;WITH_DDS;WITH_BULLET = 1;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -121,6 +121,9 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\..\source\blender\src\autoarmature.c">
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\B.blend.c">
 			</File>
@@ -182,6 +185,9 @@
 				RelativePath="..\..\..\source\blender\src\drawdeps.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\drawgpencil.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\drawimage.c">
 			</File>
 			<File
@@ -231,6 +237,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\editaction.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editaction_gpencil.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\editarmature.c">
@@ -350,6 +359,9 @@
 				RelativePath="..\..\..\source\blender\src\glutil.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\gpencil.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\hddaudio.c">
 			</File>
 			<File
@@ -422,6 +434,9 @@
 				RelativePath="..\..\..\source\blender\src\interface_panel.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\keyframing.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\keyval.c">
 			</File>
 			<File
@@ -438,9 +453,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\meshtools.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\src\multires-firstlevel.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\multires.c">
@@ -464,6 +476,9 @@
 				RelativePath="..\..\..\source\blender\blenpluginapi\intern\pluginapi.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\poselib.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\poseobject.c">
 			</File>
 			<File
@@ -474,6 +489,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\prvicons.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\radialcontrol.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\reeb.c">
@@ -545,7 +563,13 @@
 				RelativePath="..\..\..\source\blender\src\transform_manipulator.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\transform_ndofinput.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\transform_numinput.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\transform_orientations.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\transform_snap.c">
@@ -609,6 +633,9 @@
 				RelativePath="..\..\..\source\blender\include\BDR_editobject.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\include\BDR_gpencil.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\include\BDR_imagepaint.h">
 			</File>
 			<File
@@ -625,6 +652,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_cursors.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_drawgpencil.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_drawimage.h">
@@ -723,6 +753,9 @@
 				RelativePath="..\..\..\source\blender\include\BIF_interface_icons.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\include\BIF_keyframing.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\include\BIF_keyval.h">
 			</File>
 			<File
@@ -751,6 +784,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_previewrender.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_radialcontrol.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_renderwin.h">

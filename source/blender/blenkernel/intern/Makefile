@@ -36,6 +36,7 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # OpenGL and Python
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
@@ -66,6 +67,7 @@ CPPFLAGS +=  $(NAN_SDLCFLAGS)
 CPPFLAGS += -I$(NAN_IKSOLVER)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_ELBEEM)/include
+CPPFLAGS += -I$(NAN_OPENNL)/include
 
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
@@ -73,8 +75,14 @@ CPPFLAGS += -I$(NAN_ZLIB)/include
 #path to nodes
 CPPFLAGS += -I../../nodes
 
+#path to gpu
+CPPFLAGS += -I../../gpu
+
 # path to our own external headerfiles
 CPPFLAGS += -I..
+
+# path to bullet2, for cloth
+CPPFLAGS += -I../../../../extern/bullet2/src
 
 ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -DWITH_FREETYPE2

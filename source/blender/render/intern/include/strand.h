@@ -41,6 +41,9 @@ struct RenderBuckets;
 struct RenderPrimitiveIterator;
 struct ZSpan;
 struct ObjectInstanceRen;
+struct StrandSurface;
+struct DerivedMesh;
+struct ObjectRen;
 
 typedef struct StrandPoint {
 	/* position within segment */
@@ -61,6 +64,7 @@ typedef struct StrandPoint {
 	float co1[3], co2[3];
 	float hoco1[4], hoco2[4];
 	float zco1[3], zco2[3];
+	int clip1, clip2;
 
 	/* screen space */
 	float hoco[4];
@@ -81,9 +85,20 @@ typedef struct StrandSegment {
 	int shaded;
 } StrandSegment;
 
+struct StrandShadeCache;
+typedef struct StrandShadeCache StrandShadeCache;
+
 void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint);
-void render_strand_segment(struct Render *re, float winmat[][4], struct StrandPart *spart, struct ZSpan *zspan, StrandSegment *sseg);
-void project_strands(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, int do_buckets);
+void render_strand_segment(struct Render *re, float winmat[][4], struct StrandPart *spart, struct ZSpan *zspan, int totzspan, StrandSegment *sseg);
+void strand_minmax(struct StrandRen *strand, float *min, float *max);
+
+struct StrandSurface *cache_strand_surface(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, float mat[][4], int timeoffset);
+void free_strand_surface(struct Render *re);
+
+struct StrandShadeCache *strand_shade_cache_create(void);
+void strand_shade_cache_free(struct StrandShadeCache *cache);
+void strand_shade_segment(struct Render *re, struct StrandShadeCache *cache, struct StrandSegment *sseg, struct ShadeSample *ssamp, float t, float s, int addpassflag);
+void strand_shade_unref(struct StrandShadeCache *cache, struct StrandVert *svert);
 
 struct RenderBuckets *init_buckets(struct Render *re);
 void add_buckets_primitive(struct RenderBuckets *buckets, float *min, float *max, void *prim);

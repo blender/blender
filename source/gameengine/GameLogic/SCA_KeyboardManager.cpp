@@ -62,22 +62,13 @@ void SCA_KeyboardManager::NextFrame()
 {
 	//const SCA_InputEvent& event =	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
   //	cerr << "SCA_KeyboardManager::NextFrame"<< endl;
-	for (unsigned int i=0;i<m_sensors.size();i++)
+	set<SCA_ISensor*>::iterator it;
+	for (it=m_sensors.begin(); it != m_sensors.end(); it++)
 	{
-		SCA_KeyboardSensor* keysensor = (SCA_KeyboardSensor*)m_sensors[i];
-		keysensor->Activate(m_logicmanager,NULL);
+		(*it)->Activate(m_logicmanager,NULL);
 	}
 
 }
-
-
-
-void  SCA_KeyboardManager::RegisterSensor(SCA_ISensor* keysensor)
-{
-	m_sensors.push_back(keysensor);
-}
-
-
 
 bool SCA_KeyboardManager::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {

@@ -36,6 +36,7 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 # not very neat....
@@ -44,6 +45,7 @@ CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../makesdna
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../
+CPPFLAGS += -I../../../blenloader
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # first /include is my own includes, second are the external includes

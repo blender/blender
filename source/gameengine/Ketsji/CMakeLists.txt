@@ -26,6 +26,19 @@
 
 FILE(GLOB SRC *.cpp)
 
+#XXX disabled for 2.5 because of missing python
+#SET(SRC 
+#  ${SRC}
+#  ../../../source/blender/python/api2_2x/Mathutils.c
+#  ../../../source/blender/python/api2_2x/constant.c
+#  ../../../source/blender/python/api2_2x/euler.c
+#  ../../../source/blender/python/api2_2x/gen_utils.c
+#  ../../../source/blender/python/api2_2x/matrix.c
+#  ../../../source/blender/python/api2_2x/point.c
+#  ../../../source/blender/python/api2_2x/quat.c
+#  ../../../source/blender/python/api2_2x/vector.c
+#)
+
 SET(INC
   .
   ../../../source/kernel/gen_system
@@ -39,7 +52,8 @@ SET(INC
   ../../../intern/moto/include
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
-  ../../../source/blender/blenkernel 
+  ../../../source/blender/blenkernel
+  ../../../source/blender/python/api2_2x
   ../../../source/blender 
   ../../../source/blender/include
   ../../../source/blender/makesdna 
@@ -57,8 +71,10 @@ SET(INC
   ../../../intern/SoundSystem 
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
+  ../../../source/blender/gpu
   ../../../extern/bullet2/src
   ../../../extern/solid
+  ../../../extern/glew/include
   ${PYTHON_INC}
   ${SDL_INC}
 )

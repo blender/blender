@@ -61,7 +61,6 @@ typedef struct ThemeUI {
 	char but_drawtype;
 	char pad[3];
 	char iconfile[80];	// FILE_MAXFILE length
-
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
@@ -102,15 +101,27 @@ typedef struct ThemeSpace {
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
+
+	char handle_vertex[4];
+	char handle_vertex_select[4];
+	char handle_vertex_size;
+	char hpad[7];
 } ThemeSpace;
+
 
 /* set of colors for use as a custom color set for Objects/Bones wire drawing */
 typedef struct ThemeWireColor {
-	char 	unselected[3];
-	char	selected[3];
-	char 	active[3];
-	char	pad[7];
+	char 	solid[4];
+	char	select[4];
+	char 	active[4];
+	
+	short 	flag;
+	short 	pad;
 } ThemeWireColor; 
+
+/* flags for ThemeWireColor */
+#define TH_WIRECOLOR_CONSTCOLS	(1<<0)
+#define TH_WIRECOLOR_TEXTCOLS	(1<<1)
 
 /* A theme */
 typedef struct bTheme {
@@ -177,7 +188,9 @@ typedef struct UserDef {
 	char fontname[256];		// FILE_MAXDIR+FILE length
 	struct ListBase themes;
 	short undosteps;
-	short curssize;
+	short undomemory;
+	short gp_manhattendist, gp_euclideandist, gp_eraser;
+	short gp_settings;
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
@@ -192,9 +205,15 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
+	short ndof_pan, ndof_rotate;
+	short curssize, pad;
+//	char pad[8];
 	char versemaster[160];
 	char verseuser[160];
-	float glalphaclip, pad;
+	float glalphaclip;
+	
+	short autokey_mode;		/* autokeying mode */
+	short autokey_flag;		/* flags for autokeying */
 	
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
@@ -213,7 +232,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_DUPLILINK			(1 << 6)
 #define USER_FSCOLLUM			(1 << 7)
 #define USER_MAT_ON_OB			(1 << 8)
-#define USER_NO_CAPSLOCK		(1 << 9)
+/*#define USER_NO_CAPSLOCK		(1 << 9)*/ /* not used anywhere */
 #define USER_VIEWMOVE			(1 << 10)
 #define USER_TOOLTIPS			(1 << 11)
 #define USER_TWOBUTTONMOUSE		(1 << 12)
@@ -224,8 +243,9 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_CUSTOM_RANGE		(1 << 17)
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
-#define USER_ADD_VIEWALIGNED	(1 << 19)
-
+#define USER_RELPATHS			(1 << 20)
+#define USER_DRAGIMMEDIATE		(1 << 21)
+#define USER_DONT_DOSCRIPTLINKS	(1 << 22)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -233,9 +253,8 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ZOOM_DOLLY			2
 
 /* uiflag */
-
-#define	USER_KEYINSERTACT		(1 << 0)
-#define	USER_KEYINSERTOBJ		(1 << 1)
+// old flag for #define	USER_KEYINSERTACT		(1 << 0)
+// old flag for #define	USER_KEYINSERTOBJ		(1 << 1)
 #define USER_WHEELZOOMDIR		(1 << 2)
 #define USER_FILTERFILEEXTS		(1 << 3)
 #define USER_DRAWVIEWINFO		(1 << 4)
@@ -249,16 +268,30 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
 #define USER_ORBIT_SELECTION	(1 << 14)
-#define USER_KEYINSERTAVAI		(1 << 15)
+// old flag for #define USER_KEYINSERTAVAI		(1 << 15)
+#define USER_ORBIT_ZBUF			(1 << 15)
 #define USER_HIDE_DOT			(1 << 16)
 #define USER_SHOW_ROTVIEWICON	(1 << 17)
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)
-#define USER_KEYINSERTNEED		(1 << 19)
+// old flag for #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
-#define USER_SHOW_FPS	(1 << 21)
+#define USER_SHOW_FPS			(1 << 21)
+#define USER_MMB_PASTE			(1 << 22)
+
+/* Auto-Keying mode */
+	/* AUTOKEY_ON is a bitflag */
+#define 	AUTOKEY_ON				1
+	/* AUTOKEY_ON + 2**n...  (i.e. AUTOKEY_MODE_NORMAL = AUTOKEY_ON + 2) to preserve setting, even when autokey turned off  */
+#define		AUTOKEY_MODE_NORMAL		3
+#define		AUTOKEY_MODE_EDITKEYS	5
+
+/* Auto-Keying flag */
+#define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
+#define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
+#define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+
 
 /* transopts */
-
 #define	USER_TR_TOOLTIPS		(1 << 0)
 #define	USER_TR_BUTTONS			(1 << 1)
 #define USER_TR_MENUS			(1 << 2)
@@ -269,7 +302,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define CONVERT_TO_UTF8			(1 << 7)
 
 /* dupflag */
-
 #define USER_DUP_MESH			(1 << 0)
 #define USER_DUP_CURVE			(1 << 1)
 #define USER_DUP_SURF			(1 << 2)
@@ -283,18 +315,20 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
-
-#define USER_VERTEX_ARRAYS		1
+#define USER_DEPRECATED_FLAG	1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 
 /* vrml flag */
-
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4
 
 /* tw_flag (transform widget) */
+
+/* gp_settings (Grease Pencil Settings) */
+#define GP_PAINT_DOSMOOTH		(1<<0)
+#define GP_PAINT_DOSIMPLIFY		(1<<1)
 
 
 #endif

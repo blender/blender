@@ -54,7 +54,8 @@ static char idp_size_table[] = {
 	sizeof(float)*16, /*Matrix type, deprecated*/
 	0, /*arrays don't have a fixed size*/
 	sizeof(ListBase), /*Group type*/
-	sizeof(void*)
+	sizeof(void*),
+	sizeof(double)
 };
 
 
@@ -110,6 +111,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	newp->type = prop->type;
 	newp->flag = prop->flag;
 	newp->data.val = prop->data.val;
+	newp->data.val2 = prop->data.val2;
 
 	return newp;
  }
@@ -209,7 +211,8 @@ void IDP_UnlinkID(IDProperty *prop)
 IDProperty *IDP_CopyGroup(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop), *link;
-
+	newp->len = prop->len;
+	
 	for (link=prop->data.group.first; link; link=link->next) {
 		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
 	}
@@ -217,6 +220,10 @@ IDProperty *IDP_CopyGroup(IDProperty *prop)
 	return newp;
 }
 
+/*
+ replaces a property with the same name in a group, or adds 
+ it if the propery doesn't exist.
+*/
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
@@ -224,10 +231,10 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 		if (BSTR_EQ(loop->name, prop->name)) {
 			if (loop->next) BLI_insertlinkbefore(&group->data.group, loop->next, prop);
 			else BLI_addtail(&group->data.group, prop);
+			
 			BLI_remlink(&group->data.group, loop);
 			IDP_FreeProperty(loop);
-			MEM_freeN(loop);
-			group->len++;
+			MEM_freeN(loop);			
 			return;
 		}
 	}
@@ -259,7 +266,7 @@ int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
 	}
 	
 	group->len++;
-	
+
 	BLI_insertlink(&group->data.group, previous, pnew);
 	return 1;
 }
@@ -314,7 +321,7 @@ void IDP_FreeIterBeforeEnd(void *vself)
   This is because all ID Property freeing functions free only direct data (not the ID Property
   struct itself), but for Groups the child properties *are* considered
   direct data.*/
-void IDP_FreeGroup(IDProperty *prop)
+static void IDP_FreeGroup(IDProperty *prop)
 {
 	IDProperty *loop, *next;
 	for (loop=prop->data.group.first; loop; loop=next)
@@ -345,6 +352,10 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 		if (create_if_needed) {
 			id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
 			id->properties->type = IDP_GROUP;
+			/* dont overwite the data's name and type
+			 * some functions might need this if they
+			 * dont have a real ID, should be named elsewhere - Campbell */
+			/* strcpy(id->name, "top_level_group");*/
 		}
 		return id->properties;
 	}
@@ -363,10 +374,14 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
 			*(float*)&prop->data.val = val.f;
 			break;
+		case IDP_DOUBLE:
+			prop = MEM_callocN(sizeof(IDProperty), "IDProperty float");
+			*(double*)&prop->data.val = val.d;
+			break;		
 		case IDP_ARRAY:
 		{
-			/*for now, we only support float and int arrays*/
-			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT) {
+			/*for now, we only support float and int and double arrays*/
+			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE) {
 				prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
 				prop->len = prop->totallen = val.array.len;
 				prop->subtype = val.array.type;
@@ -409,10 +424,14 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 
 	prop->type = type;
 	strncpy(prop->name, name, MAX_IDPROP_NAME);
+	
+	/*security null byte*/
+	prop->name[MAX_IDPROP_NAME-1] = 0;
+	
 	return prop;
 }
 
-/*NOTE: this will free all child properties of list arrays and groups!
+/*NOTE: this will free all child properties including list arrays and groups!
   Also, note that this does NOT unlink anything!  Plus it doesn't free
   the actual IDProperty struct either.*/
 void IDP_FreeProperty(IDProperty *prop)
@@ -430,7 +449,8 @@ void IDP_FreeProperty(IDProperty *prop)
 	}
 }
 
-/*Unlinks any IDProperty<->ID linkage that might be going on.*/
+/*Unlinks any IDProperty<->ID linkage that might be going on.
+  note: currently unused.*/
 void IDP_UnlinkProperty(IDProperty *prop)
 {
 	switch (prop->type) {

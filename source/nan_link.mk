@@ -87,7 +87,7 @@ ifeq ($(OS),linux)
     LLIBS += -lc -lm -ldl -lutil
     LOPTS = -export-dynamic
   endif
-  ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64"))
+  ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64 parisc64 powerpc sparc64"))
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
     LLIBS += -lutil -lc -lm -ldl -lpthread 
@@ -96,13 +96,6 @@ ifeq ($(OS),linux)
     DADD = -lGL -lGLU
     SADD = $(NAN_MESA)/lib/libGL.a $(NAN_MESA)/lib/libGLU.a
     DYNLDFLAGS = -shared $(LDFLAGS)
-  endif
-  ifeq ($(CPU),$(findstring $(CPU), "powerpc sparc64"))
-    LLIBS = -L/usr/X11R6/lib/ -lXmu -lXext -lX11 -lc -ldl -lm -lutil
-    DADD = -lGL -lGLU
-    SADD = /usr/lib/libGL.a /usr/lib/libGLU.a
-    LOPTS = -export-dynamic
-	DYNLDFLAGS = -shared $(LDFLAGS)
   endif
     LLIBS += -lz
 endif
@@ -116,8 +109,12 @@ endif
 ifeq ($(OS),solaris)
     ifeq (x86_64, $(findstring x86_64, $(CPU)))
         LLIBS = -lrt
+        LLIBS += -L$(NAN_MESA)/lib/amd64
+    else
+        LLIBS += -L$(NAN_MESA)/lib
     endif
-    LLIBS += -L$(NAN_MESA)/lib -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
+    
+    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
@@ -164,6 +161,10 @@ endif
 
 ifeq ($(INTERNATIONAL),true)
    LLIBS += $(NAN_GETTEXT_LIB)
+endif
+
+ifeq ($(WITH_BF_OPENMP),true)
+   LLIBS += -lgomp
 endif
 
 LLIBS += $(NAN_PYTHON_LIB)

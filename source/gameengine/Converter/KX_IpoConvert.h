@@ -46,7 +46,7 @@ void BL_ConvertCameraIpos(struct Camera* blendercamera,
 	class KX_GameObject* cameraobj, 
 	class KX_BlenderSceneConverter *converter);
 
-void BL_ConvertMaterialIpos(struct Material* blendermaterial,
+void BL_ConvertMaterialIpos(struct Object* blenderobject,
 	class KX_GameObject* materialobj, 
 	class KX_BlenderSceneConverter *converter);
 

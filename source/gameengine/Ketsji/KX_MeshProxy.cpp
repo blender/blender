@@ -35,12 +35,15 @@
 #include "RAS_MeshObject.h"
 
 #include "KX_VertexProxy.h"
+#include "KX_PolyProxy.h"
 
 #include "KX_PolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 
 #include "KX_PyMath.h"
 #include "KX_ConvertPhysicsObject.h"
+
+#include "PyObjectPlus.h" 
 
 PyTypeObject KX_MeshProxy::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -71,10 +74,12 @@ PyParentObject KX_MeshProxy::Parents[] = {
 
 PyMethodDef KX_MeshProxy::Methods[] = {
 {"getNumMaterials", (PyCFunction)KX_MeshProxy::sPyGetNumMaterials,METH_VARARGS},
+{"getNumPolygons", (PyCFunction)KX_MeshProxy::sPyGetNumPolygons,METH_NOARGS},
 {"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
 {"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 {"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
+{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
 KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 //{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 
@@ -93,10 +98,11 @@ KX_MeshProxy::_getattr(const STR_String& attr)
 	if (attr == "materials")
 	{
 		PyObject *materials = PyList_New(0);
-		RAS_MaterialBucket::Set::iterator mit = m_meshobj->GetFirstMaterial();
+		list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
 		for(; mit != m_meshobj->GetLastMaterial(); ++mit)
 		{
-			RAS_IPolyMaterial *polymat = (*mit)->GetPolyMaterial();
+			RAS_IPolyMaterial *polymat = mit->m_bucket->GetPolyMaterial();
+
 			if(polymat->GetFlag() & RAS_BLENDERMAT)
 			{
 				KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat);
@@ -146,6 +152,12 @@ PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* self,
 	return PyInt_FromLong(num);
 }
 
+PyObject* KX_MeshProxy::PyGetNumPolygons(PyObject* self)
+{
+	int num = m_meshobj->NumPolygons();
+	return PyInt_FromLong(num);
+}
+
 PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self, 
 			       PyObject* args, 
 			       PyObject* kwds)
@@ -156,6 +168,9 @@ PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* self,
 	if (PyArg_ParseTuple(args,"i",&matid))
 	{
 		matname = m_meshobj->GetMaterialName(matid);
+	}
+	else {
+		return NULL;
 	}
 
 	return PyString_FromString(matname.Ptr());
@@ -174,6 +189,9 @@ PyObject* KX_MeshProxy::PyGetTextureName(PyObject* self,
 	{
 		matname = m_meshobj->GetTextureName(matid);
 	}
+	else {
+		return NULL;
+	}
 
 	return PyString_FromString(matname.Ptr());
 		
@@ -189,11 +207,14 @@ PyObject* KX_MeshProxy::PyGetVertexArrayLength(PyObject* self,
 	
 	if (PyArg_ParseTuple(args,"i",&matid))
 	{
-		RAS_IPolyMaterial* mat = m_meshobj->GetMaterialBucket(matid)->GetPolyMaterial();
+		RAS_MeshMaterial *mmat = m_meshobj->GetMeshMaterial(matid);
+		RAS_IPolyMaterial* mat = mmat->m_bucket->GetPolyMaterial();
+
 		if (mat)
-		{
-			length = m_meshobj->GetVertexArrayLength(mat);
-		}
+			length = m_meshobj->NumVertices(mat);
+	}
+	else {
+		return NULL;
 	}
 
 	return PyInt_FromLong(length);
@@ -217,14 +238,39 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 			vertexob = new KX_VertexProxy(this, vertex);
 		}
 	}
+	else {
+		return NULL;
+	}
 
 	return vertexob;
 		
+}
+
+PyObject* KX_MeshProxy::PyGetPolygon(PyObject* self,
+			       PyObject* args, 
+			       PyObject* kwds)
+{
+    int polyindex= 1;
+	PyObject* polyob = NULL;
+
+	if (!PyArg_ParseTuple(args,"i",&polyindex))
+		return NULL;
+
+	RAS_Polygon* polygon = m_meshobj->GetPolygon(polyindex);
+	if (polygon)
+	{
+		polyob = new KX_PolyProxy(m_meshobj, polygon);
+	}
+	else
+	{
+		PyErr_SetString(PyExc_AttributeError, "Invalid polygon index");
+	}
+	return polyob;
 }
 
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
 	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
-	return Py_None;//Py_Success(KX_ReInstanceShapeFromMesh(m_meshobj));
+	Py_RETURN_NONE;//(KX_ReInstanceShapeFromMesh(m_meshobj)) ? Py_RETURN_TRUE : Py_RETURN_FALSE;
 }

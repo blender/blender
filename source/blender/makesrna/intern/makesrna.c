@@ -798,8 +798,7 @@ static void make_bad_file(char *file)
 int main(int argc, char **argv)
 {
 	FILE *file;
-	int return_status = 0;
-	extern int totblock;
+	int totblock, return_status = 0;
 
 	if (argc!=2 && argc!=3) {
 		printf("Usage: %s outfile.c [base directory]\n", argv[0]);
@@ -833,6 +832,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	totblock= MEM_get_memory_blocks_in_use();
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();

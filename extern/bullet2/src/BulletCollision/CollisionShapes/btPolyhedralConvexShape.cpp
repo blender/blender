@@ -13,7 +13,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include <BulletCollision/CollisionShapes/btPolyhedralConvexShape.h>
+#include "BulletCollision/CollisionShapes/btPolyhedralConvexShape.h"
 
 btPolyhedralConvexShape::btPolyhedralConvexShape()
 :m_localAabbMin(1,1,1),
@@ -95,7 +95,7 @@ void	btPolyhedralConvexShape::batchedUnitVectorGetSupportingVertexWithoutMargin(
 
 
 
-void	btPolyhedralConvexShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btPolyhedralConvexShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//not yet, return box inertia
 
@@ -128,10 +128,46 @@ void btPolyhedralConvexShape::getAabb(const btTransform& trans,btVector3& aabbMi
 
 
 
+void	btPolyhedralConvexShape::setLocalScaling(const btVector3& scaling)
+{
+	btConvexInternalShape::setLocalScaling(scaling);
+	recalcLocalAabb();
+}
 
 void	btPolyhedralConvexShape::recalcLocalAabb()
 {
 	m_isLocalAabbValid = true;
+	
+	#if 1
+	static const btVector3 _directions[] =
+	{
+		btVector3( 1.,  0.,  0.),
+		btVector3( 0.,  1.,  0.),
+		btVector3( 0.,  0.,  1.),
+		btVector3( -1., 0.,  0.),
+		btVector3( 0., -1.,  0.),
+		btVector3( 0.,  0., -1.)
+	};
+	
+	btVector3 _supporting[] =
+	{
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.),
+		btVector3( 0., 0., 0.)
+	};
+	
+	batchedUnitVectorGetSupportingVertexWithoutMargin(_directions, _supporting, 6);
+	
+	for ( int i = 0; i < 3; ++i )
+	{
+		m_localAabbMax[i] = _supporting[i][i] + m_collisionMargin;
+		m_localAabbMin[i] = _supporting[i + 3][i] - m_collisionMargin;
+	}
+	
+	#else
 
 	for (int i=0;i<3;i++)
 	{
@@ -143,6 +179,8 @@ void	btPolyhedralConvexShape::recalcLocalAabb()
 		tmp = localGetSupportingVertex(vec);
 		m_localAabbMin[i] = tmp[i]-m_collisionMargin;
 	}
+	#endif
 }
+
 
 

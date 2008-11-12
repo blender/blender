@@ -6,7 +6,7 @@ Group: 'Mesh'
 Tip: 'Edges not used by a face are converted into polyline(s)'
 """
 __author__ = ("Campbell Barton")
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0 2006/02/08"
 
 __bpydoc__ = """\

@@ -31,10 +31,12 @@ FILE(GLOB SRC
   src/BulletCollision/BroadphaseCollision/*.cpp
   src/BulletCollision/CollisionShapes/*.cpp
   src/BulletCollision/NarrowPhaseCollision/*.cpp
+  src/BulletCollision/Gimpact/*.cpp
   src/BulletCollision//CollisionDispatch/*.cpp
   src/BulletDynamics/ConstraintSolver/*.cpp
   src/BulletDynamics/Vehicle/*.cpp
   src/BulletDynamics/Dynamics/*.cpp
+  src/BulletSoftBody/*.cpp
 )
 
 ADD_DEFINITIONS(-D_LIB)

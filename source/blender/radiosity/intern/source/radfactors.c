@@ -51,9 +51,9 @@
 #include "RE_render_ext.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 
 /* locals */
-void rad_setmatrices(RadView *vw);
-void clearsubflagelem(RNode *rn);
-void setsubflagelem(RNode *rn);
+static void rad_setmatrices(RadView *vw);
+static void clearsubflagelem(RNode *rn);
+static void setsubflagelem(RNode *rn);
 
 RadView hemitop, hemiside;
 
@@ -252,7 +252,7 @@ void rad_make_hocos(RadView *vw)
 	/* } */
 }
 
-void rad_setmatrices(RadView *vw)	    /* for hemi's */
+static void rad_setmatrices(RadView *vw)	    /* for hemi's */
 {
 	float up1[3], len, twist;
 
@@ -626,7 +626,7 @@ void minmaxradelemfilt(RNode *rn, float *min, float *max, float *errmin, float *
 	}
 }
 
-void setsubflagelem(RNode *rn)
+static void setsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {
@@ -638,7 +638,7 @@ void setsubflagelem(RNode *rn)
 	}
 }
 
-void clearsubflagelem(RNode *rn)
+static void clearsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {
@@ -739,11 +739,9 @@ void subdivideshootElements(int it)
 					}
 				}
 				if(rn) {
-					min[0]= min[1]= min[2]= 1.0e10;
-					max[0]= max[1]= max[2]= -1.0e10;
+					INIT_MINMAX(min, max);
 					/* errmin and max are the filtered colors */
-					errmin[0]= errmin[1]= errmin[2]= 1.0e10;
-					errmax[0]= errmax[1]= errmax[2]= -1.0e10;
+					INIT_MINMAX(errmin, errmax);
 					minmaxradelemfilt(rp->first, min, max, errmin, errmax);
 					
 					/* if small difference between colors: no subdiv */

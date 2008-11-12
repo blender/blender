@@ -61,6 +61,7 @@ struct Object;
 struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
+struct BME_Glob;
 
 /* former global stuff. context is derived, not storage! */
 typedef struct bContext {
@@ -131,6 +132,9 @@ typedef struct Global {
 
 	/* Editmode lists */
 	struct EditMesh *editMesh;
+	
+	/* Used for BMesh transformations */
+	struct BME_Glob *editBMesh;
     
 	float textcurs[4][2];
     
@@ -165,6 +169,9 @@ typedef struct Global {
 	int compat;      /* toggle compatibility mode for edge rendering */
 	int notonlysolid;/* T-> also edge-render transparent faces       */
 	
+	/* ndof device found ? */
+	int ndofdevice;
+	
 	/* confusing... G.f and G.flags */
 	int flags;
 
@@ -173,10 +180,10 @@ typedef struct Global {
 /* **************** GLOBAL ********************* */
 
 /* G.f */
-#define G_DISABLE_OK	(1 <<  0)
+#define G_RENDER_OGL	(1 <<  0)
 #define G_PLAYANIM		(1 <<  1)
 /* also uses G_FILE_AUTOPLAY */
-#define G_SIMULATION	(1 <<  3)
+#define G_RENDER_SHADOW	(1 <<  3)
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
 #define G_DRAWNORMALS	(1 <<  6)
@@ -191,6 +198,7 @@ typedef struct Global {
 #define G_WEIGHTPAINT	(1 << 15)	
 #define G_TEXTUREPAINT	(1 << 16)
 /* #define G_NOFROZEN	(1 << 17) also removed */
+#define G_GREASEPENCIL 	(1 << 17)
 #define G_DRAWEDGES		(1 << 18)
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
@@ -200,7 +208,7 @@ typedef struct Global {
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
-#define G_RECORDKEYS	(1 << 25)
+/* #define G_RECORDKEYS	(1 << 25)   also removed */
 /*#ifdef WITH_VERSE*/
 #define G_VERSE_CONNECTED  (1 << 26)
 #define G_DRAW_VERSE_DEBUG (1 << 27)
@@ -209,8 +217,9 @@ typedef struct Global {
 #define G_SCULPTMODE    (1 << 29)
 #define G_PARTICLEEDIT	(1 << 30)
 
-#define G_AUTOMATKEYS	(1 << 30)
+/* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
+#define G_DRAWBWEIGHTS	(1 << 31)
 
 /* macro for testing face select mode
  * Texture paint could be removed since selected faces are not used
@@ -232,8 +241,15 @@ typedef struct Global {
 #define G_FILE_NO_UI			 (1 << 10)
 #define G_FILE_GAME_TO_IPO		 (1 << 11)
 #define G_FILE_GAME_MAT			 (1 << 12)
-#define G_FILE_DIAPLAY_LISTS	 (1 << 13)
+#define G_FILE_DISPLAY_LISTS	 (1 << 13)
 #define G_FILE_SHOW_PHYSICS		 (1 << 14)
+#define G_FILE_GAME_MAT_GLSL	 (1 << 15)
+#define G_FILE_GLSL_NO_LIGHTS	 (1 << 16)
+#define G_FILE_GLSL_NO_SHADERS	 (1 << 17)
+#define G_FILE_GLSL_NO_SHADOWS	 (1 << 18)
+#define G_FILE_GLSL_NO_RAMPS	 (1 << 19)
+#define G_FILE_GLSL_NO_NODES	 (1 << 20)
+#define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0
@@ -279,4 +295,5 @@ extern Global G;
 #endif
 	
 #endif
+
 

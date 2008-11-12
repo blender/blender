@@ -83,6 +83,10 @@ public:
 	SetParentRelation(
 		SG_ParentRelation *relation
 	);
+	
+		SG_ParentRelation *
+	GetParentRelation(
+	);
 
 
 	/**

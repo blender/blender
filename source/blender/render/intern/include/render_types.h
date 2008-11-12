@@ -42,6 +42,9 @@
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
+#include "sunsky.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 struct Object;
 struct MemArena;
@@ -64,8 +67,10 @@ typedef struct SampleTables
 
 typedef struct QMCSampler
 {
+	struct QMCSampler *next, *prev;
 	int type;
 	int tot;
+	int used;
 	double *samp2d;
 	double offs[BLENDER_MAX_THREADS][2];
 } QMCSampler;
@@ -79,17 +84,18 @@ typedef struct RenderPart
 {
 	struct RenderPart *next, *prev;
 	
-	/* result of part rendering */
-	RenderResult *result;
+	RenderResult *result;			/* result of part rendering */
+	ListBase fullresult;			/* optional full sample buffers */
 	
 	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
-	long *rectdaps;					/* delta acum buffer for pixel structs */
+	int *rectmask;					/* negative zmask */
+	intptr_t *rectdaps;					/* delta acum buffer for pixel structs */
 	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */
 	int *rectbackz;					/* zbuffer for backside sss */
-	long *rectall;					/* buffer for all faces for sss */
+	intptr_t *rectall;					/* buffer for all faces for sss */
 
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
@@ -113,6 +119,8 @@ struct Render
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */
 	RenderResult *pushedresult;
+	/* a list of RenderResults, for fullsample */
+	ListBase fullresult;	
 	
 	/* window size, display rect, viewplane */
 	int winx, winy;
@@ -147,7 +155,10 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
-	QMCSampler *qsa;
+	ListBase *qmcsamplers;
+	
+	/* shadow counter, detect shadow-reuse for shaders */
+	int shadowsamplenr[BLENDER_MAX_THREADS];
 	
 	/* scene, and its full copy of renderdata and world */
 	Scene *scene;
@@ -158,6 +169,10 @@ struct Render
 	
 	/* octree tables and variables for raytrace */
 	void *raytree;
+
+	/* occlusion tree */
+	void *occlusiontree;
+	ListBase strandsurface;
 	
 	/* use this instead of R.r.cfra */
 	float cfra;	
@@ -170,11 +185,9 @@ struct Render
 	ListBase lampren;	/* storage, for free */
 	
 	ListBase objecttable;
-	struct RenderBuckets *strandbuckets;
 
 	struct ObjectInstanceRen *objectinstance;
 	ListBase instancetable;
-	struct GHash *objecthash;
 	int totinstance;
 
 	struct Image *backbuf, *bakebuf;
@@ -215,7 +228,7 @@ struct ISBData;
 
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
-	long *zbuf;
+	intptr_t *zbuf;
 	char *cbuf;
 } ShadSampleBuf;
 
@@ -241,7 +254,9 @@ typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
 	struct Scene *sce;
-	int index, psysindex;
+	int index, psysindex, flag, lay;
+
+	float boundbox[2][3];
 
 	int totvert, totvlak, totstrand, tothalo;
 	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
@@ -249,11 +264,13 @@ typedef struct ObjectRen {
 	struct VlakTableNode *vlaknodes;
 	struct StrandTableNode *strandnodes;
 	struct HaloRen **bloha;
-	ListBase strandbufs;
+	struct StrandBuffer *strandbuf;
 
 	char (*mtface)[32];
 	char (*mcol)[32];
-	int  actmtface, actmcol;
+	int  actmtface, actmcol, bakemtface;
+
+	float obmat[4][4];	/* only used in convertblender.c, for instancing */
 } ObjectRen;
 
 typedef struct ObjectInstanceRen {
@@ -261,10 +278,13 @@ typedef struct ObjectInstanceRen {
 
 	ObjectRen *obr;
 	Object *ob, *par;
-	int index, psysindex;
+	int index, psysindex, lay;
 
-	float mat[4][4], imat[3][3];
+	float mat[4][4], nmat[3][3]; /* nmat is inverse mat tranposed */
 	short flag;
+
+	float dupliorco[3], dupliuv[2];
+	float (*duplitexmat)[4];
 
 	float *vectors;
 	int totvector;
@@ -302,13 +322,10 @@ typedef struct RadFace {
 
 typedef struct VlakRen {
 	struct VertRen *v1, *v2, *v3, *v4;	/* keep in order for ** addressing */
-	unsigned int lay;
 	float n[3];
 	struct Material *mat;
 	char puno;
 	char flag, ec;
-	RadFace *radface;
-	ObjectRen *obr;
 	int index;
 } VlakRen;
 
@@ -328,22 +345,43 @@ typedef struct HaloRen
     struct Material *mat;
 } HaloRen;
 
+/* ------------------------------------------------------------------------- */
+
 typedef struct StrandVert {
 	float co[3];
 	float strandco;
 } StrandVert;
 
+typedef struct StrandSurface {
+	struct StrandSurface *next, *prev;
+	ObjectRen obr;
+	int (*face)[4];
+	float (*co)[3];
+	/* for occlusion caching */
+	float (*col)[3];
+	/* for speedvectors */
+	float (*prevco)[3], (*nextco)[3];
+	int totvert, totface;
+} StrandSurface;
+
+typedef struct StrandBound {
+	int start, end;
+	float boundbox[2][3];
+} StrandBound;
+
 typedef struct StrandBuffer {
 	struct StrandBuffer *next, *prev;
 	struct StrandVert *vert;
-	int totvert;
+	struct StrandBound *bound;
+	int totvert, totbound;
 
 	struct ObjectRen *obr;
 	struct Material *ma;
+	struct StrandSurface *surface;
 	unsigned int lay;
 	int overrideuv;
 	int flag, maxdepth;
-	float adaptcos, minwidth;
+	float adaptcos, minwidth, widthfade;
 
 	float winmat[4][4];
 	int winx, winy;
@@ -380,8 +418,10 @@ typedef struct LampRen {
 	
 	float xs, ys, dist;
 	float co[3];
-	short type, mode;
+	short type;
+	int mode;
 	float r, g, b, k;
+	float shdwr, shdwg, shdwb;
 	float energy, haint;
 	int lay;
 	float spotsi,spotbl;
@@ -420,9 +460,11 @@ typedef struct LampRen {
 	float area_size, area_sizey, area_sizez;
 	float adapt_thresh;
 
+	/* sun/sky */
+	struct SunSky *sunsky;
+	
 	struct ShadBuf *shb;
 	float *jitter;
-	QMCSampler *qsa;
 	
 	float imat[3][3];
 	float spottexfac;
@@ -463,6 +505,9 @@ typedef struct LampRen {
 #define R_LAMPHALO		8
 #define R_GLOB_NOPUNOFLIP	16
 #define R_NEED_TANGENT	32
+#define R_SKIP_MULTIRES	64
+#define R_BAKE_TRACE	128
+#define R_BAKING		256
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
@@ -481,10 +526,14 @@ typedef struct LampRen {
 #define R_STRAND_BSPLINE	1
 #define R_STRAND_B_UNITS	2
 
+/* objectren->flag */
+#define R_INSTANCEABLE		1
+
 /* objectinstance->flag */
 #define R_DUPLI_TRANSFORMED	1
 #define R_ENV_TRANSFORMED	2
 #define R_TRANSFORMED		(1|2)
+#define R_NEED_VECTORS		4
 
 #endif /* RENDER_TYPES_H */
 

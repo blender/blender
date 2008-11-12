@@ -21,6 +21,7 @@ subject to the following restrictions:
 
 btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 {
+	m_upAxis = 1;
 	m_implicitShapeDimensions.setValue(radius,0.5f*height,radius);
 }
 
@@ -50,7 +51,9 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 
 
 	{
-		btVector3 pos(0,getHalfHeight(),0);
+		btVector3 pos(0,0,0);
+		pos[getUpAxis()] = getHalfHeight();
+
 		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 		newDot = vec.dot(vtx);
 		if (newDot > maxDot)
@@ -60,7 +63,9 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 		}
 	}
 	{
-		btVector3 pos(0,-getHalfHeight(),0);
+		btVector3 pos(0,0,0);
+		pos[getUpAxis()] = -getHalfHeight();
+
 		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 		newDot = vec.dot(vtx);
 		if (newDot > maxDot)
@@ -88,7 +93,8 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 		btVector3 vtx;
 		btScalar newDot;
 		{
-			btVector3 pos(0,getHalfHeight(),0);
+			btVector3 pos(0,0,0);
+			pos[getUpAxis()] = getHalfHeight();
 			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
@@ -98,7 +104,8 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 			}
 		}
 		{
-			btVector3 pos(0,-getHalfHeight(),0);
+			btVector3 pos(0,0,0);
+			pos[getUpAxis()] = -getHalfHeight();
 			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
@@ -112,7 +119,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 }
 
 
-void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//as an approximation, take the inertia of the box that bounds the spheres
 
@@ -122,7 +129,8 @@ void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 	
 	btScalar radius = getRadius();
 
-	btVector3 halfExtents(radius,radius+getHalfHeight(),radius);
+	btVector3 halfExtents(radius,radius,radius);
+	halfExtents[getUpAxis()]+=getHalfHeight();
 
 	btScalar margin = CONVEX_DISTANCE_MARGIN;
 
@@ -140,6 +148,22 @@ void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 
 }
 
+btCapsuleShapeX::btCapsuleShapeX(btScalar radius,btScalar height)
+{
+	m_upAxis = 0;
+	m_implicitShapeDimensions.setValue(0.5f*height, radius,radius);
+}
+
+
+
+
+
+
+btCapsuleShapeZ::btCapsuleShapeZ(btScalar radius,btScalar height)
+{
+	m_upAxis = 2;
+	m_implicitShapeDimensions.setValue(radius,radius,0.5f*height);
+}
 
 
 

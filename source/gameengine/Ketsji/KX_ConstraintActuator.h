@@ -34,19 +34,40 @@
 
 #include "SCA_IActuator.h"
 #include "MT_Scalar.h"
+#include "MT_Vector3.h"
+#include "KX_ClientObjectInfo.h"
+
+class KX_RayCast;
+class KX_GameObject;
 
 class KX_ConstraintActuator : public SCA_IActuator
 {
 	Py_Header;
 protected:	
 	// Damp time (int),
-	int m_dampTime;
-	// min (float),
+	int m_posDampTime;
+	int m_rotDampTime;
+	// min (float) 
 	float m_minimumBound;
-	// max (float),
+	// max (float)
 	float m_maximumBound;
+	// sinus of minimum angle
+	float m_minimumSine;
+	// sinus of maximum angle
+	float m_maximumSine;
+	// reference direction
+	MT_Vector3 m_refDirection;
 	// locrotxyz choice (pick one): only one choice allowed at a time!
 	int m_locrot;
+	// active time of actuator
+	int m_activeTime;
+	int m_currentTime;
+	// option
+	int m_option;
+	// property to check
+	char m_property[32];
+	// hit object
+	KX_GameObject* m_hitObject;
 
 	/**
 	 * Clamp <var> to <min>, <max>. Borders are included (in as far as
@@ -56,6 +77,7 @@ protected:
 
 	
  public:
+	 //  m_locrot
 	enum KX_CONSTRAINTTYPE {
 		KX_ACT_CONSTRAINT_NODEF = 0,
 		KX_ACT_CONSTRAINT_LOCX,
@@ -64,16 +86,46 @@ protected:
 		KX_ACT_CONSTRAINT_ROTX,
 		KX_ACT_CONSTRAINT_ROTY,
 		KX_ACT_CONSTRAINT_ROTZ,
+		KX_ACT_CONSTRAINT_DIRPX,
+		KX_ACT_CONSTRAINT_DIRPY,
+		KX_ACT_CONSTRAINT_DIRPZ,
+		KX_ACT_CONSTRAINT_DIRNX,
+		KX_ACT_CONSTRAINT_DIRNY,
+		KX_ACT_CONSTRAINT_DIRNZ,
+		KX_ACT_CONSTRAINT_ORIX,
+		KX_ACT_CONSTRAINT_ORIY,
+		KX_ACT_CONSTRAINT_ORIZ,
+		KX_ACT_CONSTRAINT_FHPX,
+		KX_ACT_CONSTRAINT_FHPY,
+		KX_ACT_CONSTRAINT_FHPZ,
+		KX_ACT_CONSTRAINT_FHNX,
+		KX_ACT_CONSTRAINT_FHNY,
+		KX_ACT_CONSTRAINT_FHNZ,
 		KX_ACT_CONSTRAINT_MAX
 	};
-
+	// match ACT_CONST_... values from BIF_interface.h
+	enum KX_CONSTRAINTOPT {
+		KX_ACT_CONSTRAINT_NORMAL = 64,
+		KX_ACT_CONSTRAINT_MATERIAL = 128,
+		KX_ACT_CONSTRAINT_PERMANENT = 256,
+		KX_ACT_CONSTRAINT_DISTANCE = 512,
+		KX_ACT_CONSTRAINT_LOCAL = 1024,
+		KX_ACT_CONSTRAINT_DOROTFH = 2048
+	};
 	bool IsValidMode(KX_CONSTRAINTTYPE m); 
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo*);
 
 	KX_ConstraintActuator(SCA_IObject* gameobj,
-						  int damptime,
+						  int posDamptime,
+						  int rotDampTime,
 						  float min,
 						  float max,
+						  float refDir[3],
 						  int locrot,
+						  int time,
+						  int option,
+						  char *property,
 						  PyTypeObject* T=&Type);
 	virtual ~KX_ConstraintActuator();
 	virtual CValue* GetReplica() {
@@ -93,14 +145,27 @@ protected:
 	virtual PyObject* _getattr(const STR_String& attr);
 
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDamp);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetDamp);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDamp);
+	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetRotDamp);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetRotDamp);
+	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetDirection);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetDirection);
+	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetOption);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetOption);
+	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetTime);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetTime);
+	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetProperty);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetProperty);
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMin);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetMin);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMin);
+	static const char SetDistance_doc[];
+	static const char GetDistance_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetMax);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetMax);
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetMax);
+	static const char SetRayLength_doc[];
+	static const char GetRayLength_doc[];
 	KX_PYMETHOD_DOC(KX_ConstraintActuator,SetLimit);
-	KX_PYMETHOD_DOC(KX_ConstraintActuator,GetLimit);
-
+	KX_PYMETHOD_DOC_NOARGS(KX_ConstraintActuator,GetLimit);
 };
 
 #endif //__KX_CONSTRAINTACTUATOR

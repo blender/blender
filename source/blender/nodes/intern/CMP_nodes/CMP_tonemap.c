@@ -63,7 +63,7 @@ static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 }
 
 
-void static tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
+static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 {
 	int x, y;
 	float dr, dg, db, al, igm = (ntm->gamma==0.f) ? 1 : (1.f / ntm->gamma);
@@ -130,13 +130,16 @@ static void node_composit_exec_tonemap(void *data, bNode *node, bNodeStack **in,
 	if ((img==NULL) || (out[0]->hasoutput==0)) return;
 
 	if (img->type != CB_RGBA)
-		new = typecheck_compbuf(img, CB_RGBA);
-	else
-		new = dupalloc_compbuf(img);
+		img = typecheck_compbuf(img, CB_RGBA);
+	
+	new = dupalloc_compbuf(img);
 
 	tonemap(node->storage, new, img);
 
 	out[0]->data = new;
+	
+	if(img!=in[0]->data)
+		free_compbuf(img);
 }
 
 static void node_composit_init_tonemap(bNode* node)

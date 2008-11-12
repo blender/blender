@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -56,6 +56,8 @@
 #include "BKE_utildefines.h"
 #include <errno.h>
 
+#include "BLO_sys_types.h" // for intptr_t support
+
 /* implementations: */
 char *first_slash(char *string) {
 	char *ffslash, *fbslash;
@@ -66,11 +68,11 @@ char *first_slash(char *string) {
 	if (!ffslash) return fbslash;
 	else if (!fbslash) return ffslash;
 	
-	if ((long)ffslash < (long)fbslash) return ffslash;
+	if ((intptr_t)ffslash < (intptr_t)fbslash) return ffslash;
 	else return fbslash;
 }
 
-char *BLI_last_slash(char *string) {
+char *BLI_last_slash(const char *string) {
 	char *lfslash, *lbslash;
 	
 	lfslash= strrchr(string, '/');	
@@ -79,8 +81,41 @@ char *BLI_last_slash(char *string) {
 	if (!lfslash) return lbslash; 
 	else if (!lbslash) return lfslash;
 	
-	if ((long)lfslash < (long)lbslash) return lbslash;
+	if ((intptr_t)lfslash < (intptr_t)lbslash) return lbslash;
 	else return lfslash;
+}
+
+/* adds a slash if there isnt one there alredy */
+void BLI_add_slash(char *string) {
+	int len = strlen(string);
+#ifdef WIN32
+	if (len==0 || string[len-1]!='\\') {
+		string[len] = '\\';
+		string[len+1] = '\0';
+	}
+#else
+	if (len==0 || string[len-1]!='/') {
+		string[len] = '/';
+		string[len+1] = '\0';
+	}
+#endif
+}
+
+/* removes a slash if there is one */
+void BLI_del_slash(char *string) {
+	int len = strlen(string);
+	while (len) {
+#ifdef WIN32
+		if (string[len-1]=='\\') {
+#else
+		if (string[len-1]=='/') {
+#endif
+			string[len-1] = '\0';
+			len--;
+		} else {
+			break;
+		}
+	}
 }
 
 /* gzip the file in from and write it to "to". 
@@ -131,6 +166,23 @@ int BLI_is_writable(char *filename)
 	}
 }
 
+int BLI_touch(const char *file)
+{
+   FILE *f = fopen(file,"r+b");
+   if (f != NULL) {
+		char c = getc(f);
+		rewind(f);
+		putc(c,f);
+	} else {
+	   f = fopen(file,"wb");
+	}
+	if (f) {
+		fclose(f);
+		return 1;
+	}
+	return 0;
+}
+
 #ifdef WIN32
 
 static char str[MAXPATHLEN+12];
@@ -150,12 +202,6 @@ int BLI_delete(char *file, int dir, int recursive) {
 	}
 
 	return err;
-}
-
-int BLI_touch(char *file) {
-	callLocalErrorCallBack("Touching files is unsupported on Windows");
-	
-	return 1;
 }
 
 int BLI_move(char *file, char *to) {
@@ -214,12 +260,6 @@ int BLI_link(char *file, char *to) {
 	return 1;
 }
 
-int BLI_backup(char *file, char *from, char *to) {
-	callLocalErrorCallBack("Backing up files is unsupported on Windows");
-	
-	return 1;
-}
-
 int BLI_exists(char *file) {
 	return (GetFileAttributes(file) != 0xFFFFFFFF);
 }
@@ -257,7 +297,8 @@ void BLI_recurdir_fileops(char *dirname) {
 int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 
-	if (BLI_exists(to))
+	/* make sure the filenames are different (case insensitive) before removing */
+	if (BLI_exists(to) && BLI_strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
 		
 	return rename(from, to);
@@ -278,24 +319,19 @@ int BLI_delete(char *file, int dir, int recursive)
 		printf("Error: not deleted file %s because of quote!\n", file);
 	}
 	else {
-		if (recursive) sprintf(str, "/bin/rm -rf \"%s\"", file);
-		else if (dir) sprintf(str, "/bin/rmdir \"%s\"", file);
-		else sprintf(str, "/bin/rm -f \"%s\"", file);
-
-		return system(str);
+		if (recursive) {
+			sprintf(str, "/bin/rm -rf \"%s\"", file);
+			return system(str);
+		}
+		else if (dir) {
+			sprintf(str, "/bin/rmdir \"%s\"", file);
+			return system(str);
+		}
+		else {
+			return remove(file); //sprintf(str, "/bin/rm -f \"%s\"", file);
+		}
 	}
 	return -1;
-}
-
-int BLI_touch(char *file) 
-{
-	
-	if( BLI_exists("/bin/touch") )
-		sprintf(str, "/bin/touch %s", file);
-	else
-		sprintf(str, "/usr/bin/touch %s", file);
-	
-	return system(str);
 }
 
 int BLI_move(char *file, char *to) {
@@ -312,12 +348,6 @@ int BLI_copy_fileops(char *file, char *to) {
 
 int BLI_link(char *file, char *to) {
 	sprintf(str, "/bin/ln -f \"%s\" \"%s\"", file, to);
-	
-	return system(str);
-}
-
-int BLI_backup(char *file, char *from, char *to) {
-	sprintf(str, "/bin/su root -c 'cd %s; /bin/tar cf - \"%s\" | (/bin/cd %s; /bin/tar xf -)'", from, file, to);
 	
 	return system(str);
 }

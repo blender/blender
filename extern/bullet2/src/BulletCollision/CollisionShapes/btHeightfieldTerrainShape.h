@@ -18,7 +18,8 @@ subject to the following restrictions:
 
 #include "btConcaveShape.h"
 
-///btHeightfieldTerrainShape simulates a 2D heightfield terrain 
+///The btHeightfieldTerrainShape simulates a 2D heightfield terrain collision shape. You can also use the more general btBvhTriangleMeshShape instead.
+///An example implementation of btHeightfieldTerrainShape is provided in Demos/VehicleDemo/VehicleDemo.cpp
 class btHeightfieldTerrainShape : public btConcaveShape
 {
 protected:
@@ -26,9 +27,11 @@ protected:
 	btVector3	m_localAabbMax;
 	
 	///terrain data
-	int	m_width;
-	int m_length;
+	int	m_heightStickWidth;
+	int m_heightStickLength;
 	btScalar	m_maxHeight;
+	btScalar m_width;
+	btScalar m_length;
 	union
 	{
 		unsigned char*	m_heightfieldDataUnsignedChar;
@@ -45,7 +48,7 @@ protected:
 	btVector3	m_localScaling;
 
 	virtual btScalar	getHeightFieldValue(int x,int y) const;
-	void		quantizeWithClamp(int* out, const btVector3& point) const;
+	void		quantizeWithClamp(int* out, const btVector3& point,int isMax) const;
 	void		getVertex(int x,int y,btVector3& vertex) const;
 
 	inline bool testQuantizedAabbAgainstQuantizedAabb(int* aabbMin1, int* aabbMax1,const  int* aabbMin2,const  int* aabbMax2) const
@@ -58,7 +61,7 @@ protected:
 	}
 
 public:
-	btHeightfieldTerrainShape(int width,int height,void* heightfieldData, btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges);
+	btHeightfieldTerrainShape(int heightStickWidth,int heightStickHeight,void* heightfieldData, btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges);
 
 	virtual ~btHeightfieldTerrainShape();
 
@@ -74,14 +77,14 @@ public:
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	virtual void	setLocalScaling(const btVector3& scaling);
 	
 	virtual const btVector3& getLocalScaling() const;
 	
 	//debugging
-	virtual char*	getName()const {return "HEIGHTFIELD";}
+	virtual const char*	getName()const {return "HEIGHTFIELD";}
 
 };
 

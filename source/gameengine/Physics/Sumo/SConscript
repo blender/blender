@@ -1,22 +1,21 @@
 #!/usr/bin/python
 Import ('env')
 
-sumoenv = env.Clone()
 sources = ['SumoPHYCallbackBridge.cpp',
-				'SumoPhysicsController.cpp',
-				'SumoPhysicsEnvironment.cpp',
-				'Fuzzics/src/SM_FhObject.cpp',
-				'Fuzzics/src/SM_Object.cpp',
-				'Fuzzics/src/SM_Scene.cpp',
-				'Fuzzics/src/SM_MotionState.cpp'
-			]
+                'SumoPhysicsController.cpp',
+                'SumoPhysicsEnvironment.cpp',
+                'Fuzzics/src/SM_FhObject.cpp',
+                'Fuzzics/src/SM_Object.cpp',
+                'Fuzzics/src/SM_Scene.cpp',
+                'Fuzzics/src/SM_MotionState.cpp'
+               ]
 
 incs =['.',
 	'../common',
 	'Fuzzics/include',
 	'#/intern/moto/include'
 	]
-incs += [sumoenv['BF_SOLID_INC']]
+incs += [env['BF_SOLID_INC']]
 
 cflags = []
 if env['OURPLATFORM']=='win32-vc':

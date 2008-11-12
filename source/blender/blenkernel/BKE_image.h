@@ -44,7 +44,7 @@ struct anim;
 void	free_image(struct Image *me);
 
 void	BKE_stamp_info(struct ImBuf *ibuf);
-void	BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height);
+void	BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int channels);
 int		BKE_write_ibuf(struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
 void	BKE_makepicstring(char *string, char *base, int frame, int imtype);
 void	BKE_add_image_extension(char *string, int imtype);
@@ -111,7 +111,7 @@ struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
 struct Image *BKE_add_image_file(const char *name);
 
 /* adds image, adds ibuf, generates color or pattern */
-struct Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, float color[4]);
+struct Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4]);
 
 /* for reload, refresh, pack */
 void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);
@@ -144,6 +144,9 @@ void	BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 void BKE_image_all_free_anim_ibufs(int except_frame);
 
 void BKE_image_memorypack(struct Image *ima);
+
+/* prints memory statistics for images */
+void BKE_image_print_memlist(void);
 
 #ifdef __cplusplus
 }

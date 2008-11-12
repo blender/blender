@@ -36,7 +36,7 @@
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 struct MTex;
@@ -76,21 +76,23 @@ typedef struct Material {
 	float aniso_gloss_mir;
 	float dist_mir;
 	short fadeto_mir;
-	short pad1;
+	short shade_flag;		/* like Cubic interpolation */
 		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease, strand_surfnor;
-	float strand_min, strand_pad;
+	float strand_min, strand_widthfade;
 	char strand_uvname[32];
 	
-	float sbias;			/* shadow bias */
+	float sbias;			/* shadow bias to prevent terminator prob */
+	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
 	float shad_alpha;		/* in use for irregular shadowbuffer */
+	int	septex;
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, septex, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
@@ -108,7 +110,7 @@ typedef struct Material {
 	short ramp_show, pad3;
 	float rampfac_col, rampfac_spec;
 
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
@@ -131,6 +133,8 @@ typedef struct Material {
 	int YF_dsmp, YF_preset, YF_djit;
 	
 	ScriptLink scriptlink;
+
+	ListBase gpumaterial;		/* runtime */
 } Material;
 
 /* **************** MATERIAL ********************* */
@@ -156,6 +160,7 @@ typedef struct Material {
 #define MA_SHLESS		4
 #define MA_WIRE			8
 #define MA_VERTEXCOL	16
+#define MA_HALO_SOFT	16
 #define MA_HALO			32
 #define MA_ZTRA			64
 #define MA_VERTEXCOLP	128
@@ -192,11 +197,15 @@ typedef struct Material {
 #define MA_STR_B_UNITS	0x40000000
 #define MA_STR_SURFDIFF 0x80000000
 
-#define	MA_MODE_MASK	0x4fffffff	/* all valid mode bits */
+#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
 
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0
 #define MA_RAYMIR_FADETOMAT	1
+
+/* shade_flag */
+#define MA_CUBIC			1
+#define MA_OBCOLOR			2
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -311,6 +320,7 @@ typedef struct Material {
 #define MA_LAMP			6
 #define MA_SKY			7
 #define MA_HAIR			10
+#define MA_ATMOS		11
 
 /* pr_back */
 #define MA_DARK			1

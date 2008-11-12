@@ -257,7 +257,7 @@ void make_sample_tables(Render *re)
 {
 	static int firsttime= 1;
 	SampleTables *st;
-	float flweight[32], fmask[256];
+	float flweight[32];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
 	int i, j, a;
 
@@ -298,11 +298,6 @@ void make_sample_tables(Render *re)
 	
 	for(a=0; a<16; a++) {
 		st->centLut[a]= -0.45+((float)a)/16.0;
-	}
-
-	val= 1.0/((float)re->osa);
-	for(a=0; a<256; a++) {
-		fmask[a]= ((float)st->cmask[a])*val;
 	}
 
 	/* calculate totw */
@@ -459,7 +454,10 @@ void RE_SetCamera(Render *re, Object *camera)
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
 		
-		/* solve this too... all time depending stuff is in convertblender.c? */
+		/* solve this too... all time depending stuff is in convertblender.c?
+		 * Need to update the camera early because it's used for projection matrices
+		 * and other stuff BEFORE the animation update loop is done 
+		 * */
 		if(cam->ipo) {
 			calc_ipo(cam->ipo, frame_to_float(re->r.cfra));
 			execute_ipo(&cam->id, cam->ipo);
@@ -603,24 +601,20 @@ void initparts(Render *re)
 	/* mininum part size, but for exr tile saving it was checked already */
 	if(!(re->r.scemode & R_EXR_TILE_FILE)) {
 		if(re->r.mode & R_PANORAMA) {
-			if(re->rectx/xparts < 8) 
+			if(ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;
 		}
 		else
-			if(re->rectx/xparts < 64) 
+			if(ceil(re->rectx/(float)xparts) < 64) 
 				xparts= 1 + re->rectx/64;
 		
-		if(re->recty/yparts < 64) 
+		if(ceil(re->recty/(float)yparts) < 64) 
 			yparts= 1 + re->recty/64;
 	}
 	
 	/* part size */
-	partx= re->rectx/xparts;
-	party= re->recty/yparts;
-	
-	/* if remainder pixel, add one, then parts are more equal in size for large panoramas */
-	if(re->rectx % partx)
-		partx++;
+	partx= ceil(re->rectx/(float)xparts);
+	party= ceil(re->recty/(float)yparts);
 	
 	re->xparts= xparts;
 	re->yparts= yparts;

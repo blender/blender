@@ -14,47 +14,120 @@ subject to the following restrictions:
 */
 
 #include "btTriangleMesh.h"
-#include <assert.h>
 
 
-btTriangleMesh::btTriangleMesh ()
+
+btTriangleMesh::btTriangleMesh (bool use32bitIndices,bool use4componentVertices)
+:m_use32bitIndices(use32bitIndices),
+m_use4componentVertices(use4componentVertices),
+m_weldingThreshold(0.0)
 {
+	btIndexedMesh meshIndex;
+	meshIndex.m_numTriangles = 0;
+	meshIndex.m_numVertices = 0;
+	meshIndex.m_indexType = PHY_INTEGER;
+	meshIndex.m_triangleIndexBase = 0;
+	meshIndex.m_triangleIndexStride = 3*sizeof(int);
+	meshIndex.m_vertexBase = 0;
+	meshIndex.m_vertexStride = sizeof(btVector3);
+	m_indexedMeshes.push_back(meshIndex);
+
+	if (m_use32bitIndices)
+	{
+		m_indexedMeshes[0].m_numTriangles = m_32bitIndices.size()/3;
+		m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*) &m_32bitIndices[0];
+		m_indexedMeshes[0].m_indexType = PHY_INTEGER;
+		m_indexedMeshes[0].m_triangleIndexStride = 3*sizeof(int);
+	} else
+	{
+		m_indexedMeshes[0].m_numTriangles = m_16bitIndices.size()/3;
+		m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*) &m_16bitIndices[0];
+		m_indexedMeshes[0].m_indexType = PHY_SHORT;
+		m_indexedMeshes[0].m_triangleIndexStride = 3*sizeof(short int);
+	}
+
+	if (m_use4componentVertices)
+	{
+		m_indexedMeshes[0].m_numVertices = m_4componentVertices.size();
+		m_indexedMeshes[0].m_vertexBase = (unsigned char*)&m_4componentVertices[0];
+		m_indexedMeshes[0].m_vertexStride = sizeof(btVector3);
+	} else
+	{
+		m_indexedMeshes[0].m_numVertices = m_3componentVertices.size()/3;
+		m_indexedMeshes[0].m_vertexBase = (unsigned char*)&m_3componentVertices[0];
+		m_indexedMeshes[0].m_vertexStride = 3*sizeof(btScalar);
+	}
+
 
 }
 
-void	btTriangleMesh::getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart)
+void	btTriangleMesh::addIndex(int index)
 {
-	(void)subpart;
-	numverts = m_vertices.size();
-	*vertexbase = (unsigned char*)&m_vertices[0];
-	type = PHY_FLOAT;
-	stride = sizeof(btVector3);
-
-	numfaces = m_indices.size()/3;
-	*indexbase = (unsigned char*) &m_indices[0];
-	indicestype = PHY_INTEGER;
-	indexstride = 3*sizeof(int);
-
+	if (m_use32bitIndices)
+	{
+		m_32bitIndices.push_back(index);
+		m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*) &m_32bitIndices[0];
+	} else
+	{
+		m_16bitIndices.push_back(index);
+		m_indexedMeshes[0].m_triangleIndexBase = (unsigned char*) &m_16bitIndices[0];
+	}
 }
 
-void	btTriangleMesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart) const
+int	btTriangleMesh::findOrAddVertex(const btVector3& vertex)
 {
-	(void)subpart;
-	numverts = m_vertices.size();
-	*vertexbase = (unsigned char*)&m_vertices[0];
-	type = PHY_FLOAT;
-	stride = sizeof(btVector3);
+	//return index of new/existing vertex
+	//todo: could use acceleration structure for this
+	if (m_use4componentVertices)
+	{
+		for (int i=0;i< m_4componentVertices.size();i++)
+		{
+			if ((m_4componentVertices[i]-vertex).length2() <= m_weldingThreshold)
+			{
+				return i;
+			}
+		}
+		m_indexedMeshes[0].m_numVertices++;
+		m_4componentVertices.push_back(vertex);
+		m_indexedMeshes[0].m_vertexBase = (unsigned char*)&m_4componentVertices[0];
 
-	numfaces = m_indices.size()/3;
-	*indexbase = (unsigned char*) &m_indices[0];
-	indicestype = PHY_INTEGER;
-	indexstride = 3*sizeof(int);
+		return m_4componentVertices.size()-1;
+		
+	} else
+	{
+		
+		for (int i=0;i< m_3componentVertices.size();i+=3)
+		{
+			btVector3 vtx(m_3componentVertices[i],m_3componentVertices[i+1],m_3componentVertices[i+2]);
+			if ((vtx-vertex).length2() <= m_weldingThreshold)
+			{
+				return i/3;
+			}
+		}
+		m_3componentVertices.push_back(vertex.getX());
+		m_3componentVertices.push_back(vertex.getY());
+		m_3componentVertices.push_back(vertex.getZ());
+		m_indexedMeshes[0].m_numVertices++;
+		m_indexedMeshes[0].m_vertexBase = (unsigned char*)&m_3componentVertices[0];
+		return (m_3componentVertices.size()/3)-1;
+	}
 
 }
-
-
-
-int		btTriangleMesh::getNumSubParts() const
+		
+void	btTriangleMesh::addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2)
 {
-	return 1;
+	m_indexedMeshes[0].m_numTriangles++;
+		
+	addIndex(findOrAddVertex(vertex0));
+	addIndex(findOrAddVertex(vertex1));
+	addIndex(findOrAddVertex(vertex2));
+}
+
+int btTriangleMesh::getNumTriangles() const
+{
+	if (m_use32bitIndices)
+	{
+		return m_32bitIndices.size() / 3;
+	}
+	return m_16bitIndices.size() / 3;
 }

@@ -35,6 +35,8 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS +=  -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+CPPFLAGS += -I../../../python
 CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../../makesdna
@@ -42,3 +44,6 @@ CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../editors/include
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../render/extern/include
+CPPFLAGS += -I../../../gpu
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)

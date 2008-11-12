@@ -33,8 +33,11 @@
 #include "SCA_LogicManager.h"
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
+#include "PyObjectPlus.h"
 #include "compile.h"
 #include "eval.h"
+#include <algorithm>
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -116,7 +119,7 @@ CValue* SCA_PythonController::GetReplica()
 
 void SCA_PythonController::SetScriptText(const STR_String& text)
 { 
-	m_scriptText = "import GameLogic\n" + text;
+	m_scriptText = text;
 	m_bModified = true;
 }
 
@@ -139,28 +142,33 @@ void SCA_PythonController::SetDictionary(PyObject*	pythondictionary)
 	m_pythondictionary = PyDict_Copy(pythondictionary); /* new reference */
 }
 
+int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
+{
+	if (std::find(m_triggeredSensors.begin(), m_triggeredSensors.end(), sensor) != 
+		m_triggeredSensors.end())
+		return 1;
+	return 0;
+}
+
 #if 0
-static char* sPyGetCurrentController__doc__;
+static const char* sPyGetCurrentController__doc__;
 #endif
 
 
-PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds)
+PyObject* SCA_PythonController::sPyGetCurrentController(PyObject* self)
 {
 	m_sCurrentController->AddRef();
 	return m_sCurrentController;
 }
 
 #if 0
-static char* sPyAddActiveActuator__doc__;
+static const char* sPyAddActiveActuator__doc__;
 #endif
 
 PyObject* SCA_PythonController::sPyAddActiveActuator(
 	  
 		PyObject* self, 
-		PyObject* args, 
-		PyObject* kwds)
+		PyObject* args)
 {
 	
 	PyObject* ob1;
@@ -187,14 +195,13 @@ PyObject* SCA_PythonController::sPyAddActiveActuator(
 		m_sCurrentLogicManager->AddActiveActuator((SCA_IActuator*)act,boolval);
 		boolval->Release();
 	}
-	Py_INCREF(Py_None);
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
-char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
-char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
-char SCA_PythonController::GetActuators_doc[] = "getActuator";
+const char* SCA_PythonController::sPyGetCurrentController__doc__ = "getCurrentController()";
+const char* SCA_PythonController::sPyAddActiveActuator__doc__= "addActiveActuator(actuator,bool)";
+const char SCA_PythonController::GetActuators_doc[] = "getActuator";
 
 PyTypeObject SCA_PythonController::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
@@ -222,16 +229,13 @@ PyParentObject SCA_PythonController::Parents[] = {
 	NULL
 };
 PyMethodDef SCA_PythonController::Methods[] = {
-	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, 
-		METH_VARARGS, SCA_PythonController::GetActuators_doc},
-	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, 
-	METH_VARARGS, SCA_PythonController::GetActuator_doc},
-	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, 
-	METH_VARARGS, SCA_PythonController::GetSensors_doc},
-	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, 
-	METH_VARARGS, SCA_PythonController::GetSensor_doc},
-	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_VARARGS},
-	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_VARARGS},
+	{"getActuators", (PyCFunction) SCA_PythonController::sPyGetActuators, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetActuators_doc},
+	{"getActuator", (PyCFunction) SCA_PythonController::sPyGetActuator, METH_O, (PY_METHODCHAR)SCA_PythonController::GetActuator_doc},
+	{"getSensors", (PyCFunction) SCA_PythonController::sPyGetSensors, METH_NOARGS, (PY_METHODCHAR)SCA_PythonController::GetSensors_doc},
+	{"getSensor", (PyCFunction) SCA_PythonController::sPyGetSensor, METH_O, (PY_METHODCHAR)SCA_PythonController::GetSensor_doc},
+	{"getScript", (PyCFunction) SCA_PythonController::sPyGetScript, METH_NOARGS},
+	{"setScript", (PyCFunction) SCA_PythonController::sPySetScript, METH_O},
+	{"getState", (PyCFunction) SCA_PythonController::sPyGetState, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
@@ -255,9 +259,17 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		{
 			// didn't compile, so instead of compile, complain
 			// something is wrong, tell the user what went wrong
-			printf("PYTHON SCRIPT ERROR:\n");
+			printf("Python compile error from controller \"%s\": \n", GetName().Ptr());
 			//PyRun_SimpleString(m_scriptText.Ptr());
 			PyErr_Print();
+			
+			/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+			 * their user count. Not to mention holding references to wrapped data.
+			 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+			 * has alredy dealocated the pointer */
+			PySys_SetObject( "last_traceback", Py_None);
+			PyErr_Clear(); /* just to be sure */
+			
 			return;
 		}
 		m_bModified=false;
@@ -280,43 +292,36 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		 * break it by hand, then DECREF (which in this case
 		 * should always ensure excdict is cleared).
 		 */
-/*	PyObject *excdict= myPyDict_Copy(m_pythondictionary);
-	struct _object* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, 
-		excdict
-		);
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);*/
 
-
-#if 1
 	PyObject *excdict= PyDict_Copy(m_pythondictionary);
 	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		excdict, 
-		excdict
-		);
-	PyDict_Clear(excdict);
-	Py_DECREF(excdict);
-#else
-
-	PyObject* resultobj = PyEval_EvalCode((PyCodeObject*)m_bytecode,
-		m_pythondictionary, 
-		m_pythondictionary
-		);
-
-#endif
+		excdict, excdict);
 
 	if (resultobj)
 	{
 		Py_DECREF(resultobj);
-	} else
+	}
+	else
 	{
 		// something is wrong, tell the user what went wrong
-		printf("PYTHON SCRIPT ERROR:\n");
+		printf("Python script error from controller \"%s\": \n", GetName().Ptr());
 		PyErr_Print();
+		
+		/* Added in 2.48a, the last_traceback can reference Objects for example, increasing
+		 * their user count. Not to mention holding references to wrapped data.
+		 * This is especially bad when the PyObject for the wrapped data is free'd, after blender 
+		 * has alredy dealocated the pointer */
+		PySys_SetObject( "last_traceback", Py_None);
+		PyErr_Clear(); /* just to be sure */
+		
 		//PyRun_SimpleString(m_scriptText.Ptr());
 	}
 
+	// clear after PyErrPrint - seems it can be using
+	// something in this dictionary and crash?
+	PyDict_Clear(excdict);
+	Py_DECREF(excdict);
+	m_triggeredSensors.erase(m_triggeredSensors.begin(), m_triggeredSensors.end());
 	m_sCurrentController = NULL;
 }
 
@@ -329,30 +334,26 @@ PyObject* SCA_PythonController::_getattr(const STR_String& attr)
 
 
 
-PyObject* SCA_PythonController::PyGetActuators(PyObject* self, 
-								   PyObject* args, 
-								   PyObject* kwds)
+PyObject* SCA_PythonController::PyGetActuators(PyObject* self)
 {
 	PyObject* resultlist = PyList_New(m_linkedactuators.size());
 	for (unsigned int index=0;index<m_linkedactuators.size();index++)
 	{
-		PyList_SetItem(resultlist,index,m_linkedactuators[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index,m_linkedactuators[index]->AddRef());
 	}
 
 	return resultlist;
 }
 
-char SCA_PythonController::GetSensor_doc[] = 
+const char SCA_PythonController::GetSensor_doc[] = 
 "GetSensor (char sensorname) return linked sensor that is named [sensorname]\n";
 PyObject*
-SCA_PythonController::PyGetSensor(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetSensor(PyObject* self, PyObject* value)
 {
 
-	char *scriptArg;
-
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (sensor name)");
 		return NULL;
 	}
 	
@@ -365,24 +366,24 @@ SCA_PythonController::PyGetSensor(PyObject* self,
 			return sensor->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested sensor");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested sensor \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 
 
 
-char SCA_PythonController::GetActuator_doc[] = 
+const char SCA_PythonController::GetActuator_doc[] = 
 "GetActuator (char sensorname) return linked actuator that is named [actuatorname]\n";
 PyObject*
-SCA_PythonController::PyGetActuator(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetActuator(PyObject* self, PyObject* value)
 {
 
-	char *scriptArg;
-
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (actuator name)");
 		return NULL;
 	}
 	
@@ -395,42 +396,39 @@ SCA_PythonController::PyGetActuator(PyObject* self,
 			return actua->AddRef();
 		}
 	}
-		
-	PyErr_SetString(PyExc_AttributeError, "Unable to find requested actuator");
+	
+	char emsg[96];
+	PyOS_snprintf( emsg, sizeof( emsg ), "Unable to find requested actuator \"%s\"", scriptArg );
+	PyErr_SetString(PyExc_AttributeError, emsg);
 	return NULL;
 }
 
 
-char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
+const char SCA_PythonController::GetSensors_doc[]   = "getSensors returns a list of all attached sensors";
 PyObject*
-SCA_PythonController::PyGetSensors(PyObject* self, 
-								 PyObject* args, 
-								 PyObject* kwds)
+SCA_PythonController::PyGetSensors(PyObject* self)
 {
 	PyObject* resultlist = PyList_New(m_linkedsensors.size());
 	for (unsigned int index=0;index<m_linkedsensors.size();index++)
 	{
-		PyList_SetItem(resultlist,index,m_linkedsensors[index]->AddRef());
+		PyList_SET_ITEM(resultlist,index,m_linkedsensors[index]->AddRef());
 	}
 	
 	return resultlist;
 }
 
 /* 1. getScript */
-PyObject* SCA_PythonController::PyGetScript(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* SCA_PythonController::PyGetScript(PyObject* self)
 {
 	return PyString_FromString(m_scriptText);
 }
 
 /* 2. setScript */
-PyObject* SCA_PythonController::PySetScript(PyObject* self, 
-										   PyObject* args, 
-										   PyObject* kwds)
+PyObject* SCA_PythonController::PySetScript(PyObject* self, PyObject* value)
 {
-	char *scriptArg;
-	if (!PyArg_ParseTuple(args, "s", &scriptArg)) {
+	char *scriptArg = PyString_AsString(value);
+	if (scriptArg==NULL) {
+		PyErr_SetString(PyExc_TypeError, "expected a string (script name)");
 		return NULL;
 	}
 	
@@ -439,7 +437,13 @@ PyObject* SCA_PythonController::PySetScript(PyObject* self,
 
 	this->SetScriptText(scriptArg);
 	
-	Py_Return;
+	Py_RETURN_NONE;
+}
+
+/* 1. getScript */
+PyObject* SCA_PythonController::PyGetState(PyObject* self)
+{
+	return PyInt_FromLong(m_statemask);
 }
 
 /* eof */

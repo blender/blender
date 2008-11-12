@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 CPPFLAGS += -I../../../blender/blenkernel
@@ -42,6 +43,7 @@ CPPFLAGS += -I../../../blender/blenloader
 CPPFLAGS += -I../../../blender/blenlib
 CPPFLAGS += -I../../../blender/imbuf
 CPPFLAGS += -I../../../blender/makesdna
+CPPFLAGS += -I../../../blender/gpu
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
@@ -60,6 +62,7 @@ CPPFLAGS += -I../../../gameengine/Converter
 CPPFLAGS += -I../../../gameengine/Expressions
 CPPFLAGS += -I../../../gameengine/GameLogic
 CPPFLAGS += -I../../../gameengine/Converter
+CPPFLAGS += -I../../../gameengine/BlenderRoutines
 CPPFLAGS += -I../../../gameengine/Ketsji
 CPPFLAGS += -I../../../gameengine/Ketsji/KXNetwork
 CPPFLAGS += -I../../../gameengine/Network

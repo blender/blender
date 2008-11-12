@@ -33,6 +33,7 @@
 #include "SCA_IController.h"
 #include "SCA_IActuator.h"
 #include "SCA_EventManager.h"
+#include "SCA_PythonController.h"
 #include <set>
 
 #ifdef HAVE_CONFIG_H
@@ -48,6 +49,10 @@ SCA_LogicManager::SCA_LogicManager()
 
 SCA_LogicManager::~SCA_LogicManager()
 {
+	/* AddRef() is not used when the objects are added to m_mapStringToGameObjects
+	   so Release() should not be used either. The memory leak big is fixed
+	   in BL_ConvertBlenderObjects()
+
 	int numgameobj = m_mapStringToGameObjects.size();
 	for (int i = 0; i < numgameobj; i++)
 	{
@@ -55,8 +60,9 @@ SCA_LogicManager::~SCA_LogicManager()
 		assert(gameobjptr);
 		if (gameobjptr)
 			(*gameobjptr)->Release();
-
+    
 	}
+	*/
 	/*for (int i=0;i<m_sensorcontrollermap.size();i++)
 	{
 		vector<SCA_IController*>* controllerarray = *(m_sensorcontrollermap[i]);
@@ -69,6 +75,8 @@ SCA_LogicManager::~SCA_LogicManager()
 	}
 	m_eventmanagers.clear();
 	m_sensorcontrollermapje.clear();
+	m_removedActuators.clear();
+	m_activeActuators.clear();
 }
 
 
@@ -120,12 +128,17 @@ void SCA_LogicManager::RegisterGameMeshName(const STR_String& gamemeshname, void
 
 
 
-void SCA_LogicManager::RegisterGameObj(CValue* gameobj, void* blendobj) 
+void SCA_LogicManager::RegisterGameObj(void* blendobj, CValue* gameobj) 
 {
-	m_map_gameobj_to_blendobj.insert(CHashedPtr(gameobj), blendobj);
+	m_map_blendobj_to_gameobj.insert(CHashedPtr(blendobj), gameobj);
 }
 
-
+void SCA_LogicManager::UnregisterGameObj(void* blendobj, CValue* gameobj) 
+{
+	void **obp = m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
+	if (obp && (CValue*)(*obp) == gameobj)
+		m_map_blendobj_to_gameobj.remove(CHashedPtr(blendobj));
+}
 
 CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 {
@@ -139,10 +152,10 @@ CValue* SCA_LogicManager::GetGameObjectByName(const STR_String& gameobjname)
 }
 
 
-void* SCA_LogicManager::FindBlendObjByGameObj(CValue* gameobject) 
+CValue* SCA_LogicManager::FindGameObjByBlendObj(void* blendobj) 
 {
-	void **obp= m_map_gameobj_to_blendobj[CHashedPtr(gameobject)];
-	return obp?*obp:NULL;
+	void **obp= m_map_blendobj_to_gameobj[CHashedPtr(blendobj)];
+	return obp?(CValue*)(*obp):NULL;
 }
 
 
@@ -158,15 +171,25 @@ void* SCA_LogicManager::FindBlendObjByGameMeshName(const STR_String& gamemeshnam
 
 void SCA_LogicManager::RemoveSensor(SCA_ISensor* sensor)
 {
-    m_sensorcontrollermapje.erase(sensor);
-	
-	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin();
-	!(ie==m_eventmanagers.end());ie++)
+	controllerlist contlist = m_sensorcontrollermapje[sensor];
+	for (controllerlist::const_iterator c= contlist.begin();!(c==contlist.end());c++)
 	{
-		(*ie)->RemoveSensor(sensor);
+		(*c)->UnlinkSensor(sensor);
 	}
+    m_sensorcontrollermapje.erase(sensor);
+	sensor->UnregisterToManager();
 }
 
+void SCA_LogicManager::RemoveController(SCA_IController* controller)
+{
+	controller->UnlinkAllSensors();
+	controller->UnlinkAllActuators();
+	std::map<SCA_ISensor*,controllerlist>::iterator sit;
+	for (sit = m_sensorcontrollermapje.begin();!(sit==m_sensorcontrollermapje.end());++sit)
+	{
+		(*sit).second.remove(controller);
+	}
+}
 
 
 void SCA_LogicManager::RemoveDestroyedActuator(SCA_IActuator* actuator)
@@ -210,8 +233,6 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 	// for this frame, look up for activated sensors, and build the collection of triggered controllers
 	// int numsensors = this->m_activatedsensors.size(); /*unused*/
 
-	set<SmartControllerPtr> triggeredControllerSet;
-
 	for (vector<SCA_ISensor*>::const_iterator is=m_activatedsensors.begin();
 	!(is==m_activatedsensors.end());is++)
 	{
@@ -221,19 +242,29 @@ void SCA_LogicManager::BeginFrame(double curtime, double fixedtime)
 			!(c==contlist.end());c++)
 		{
 				SCA_IController* contr = *c;//controllerarray->at(c);
-				triggeredControllerSet.insert(SmartControllerPtr(contr,0));
+				if (contr->IsActive())
+				{
+					m_triggeredControllerSet.insert(SmartControllerPtr(contr,0));
+					// So that the controller knows which sensor has activited it.
+					// Only needed for the python controller though.
+					if (contr->GetType() == &SCA_PythonController::Type)
+					{
+						SCA_PythonController* pythonController = (SCA_PythonController*)contr;
+						pythonController->AddTriggeredSensor(sensor);
+					}
+				}
 		}
 		//sensor->SetActive(false);
 	}
 
 	
 	// int numtriggered = triggeredControllerSet.size(); /*unused*/
-	for (set<SmartControllerPtr>::iterator tit=triggeredControllerSet.begin();
-	!(tit==triggeredControllerSet.end());tit++)
+	for (set<SmartControllerPtr>::iterator tit=m_triggeredControllerSet.begin();
+	!(tit==m_triggeredControllerSet.end());tit++)
 	{
 		(*tit)->Trigger(this);
 	}
-	triggeredControllerSet.clear();
+	m_triggeredControllerSet.clear();
 }
 
 
@@ -248,6 +279,10 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 	}
 	m_removedActuators.clear();
 	
+	// About to run actuators, but before update the sensors for those which depends on actuators
+	for (vector<SCA_EventManager*>::const_iterator ie=m_eventmanagers.begin(); !(ie==m_eventmanagers.end()); ie++)
+		(*ie)->UpdateFrame();
+
 	for (set<SmartActuatorPtr>::iterator ia = m_activeActuators.begin();!(ia==m_activeActuators.end());ia++)
 	{
 		//SCA_IActuator* actua = *ia;
@@ -258,6 +293,16 @@ void SCA_LogicManager::UpdateFrame(double curtime, bool frame)
 			
 			(*ia)->SetActive(false);
 			//m_activeactuators.pop_back();
+		} else if ((*ia)->IsNoLink())
+		{
+			// This actuator has no more links but it still active
+			// make sure it will get a negative event on next frame to stop it
+			// Do this check after Update() rather than before to make sure
+			// that all the actuators that are activated at same time than a state
+			// actuator have a chance to execute. 
+			CValue* event = new CBoolValue(false);
+			(*ia)->RemoveAllEvents();
+			(*ia)->AddEvent(event);
 		}
 	}
 	
@@ -345,6 +390,17 @@ void SCA_LogicManager::AddActivatedSensor(SCA_ISensor* sensor)
 	}
 }
 
+void SCA_LogicManager::AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor)
+{
+	m_triggeredControllerSet.insert(SmartControllerPtr(controller,0));
+	// so that the controller knows which sensor has activited it
+	// only needed for python controller
+	if (controller->GetType() == &SCA_PythonController::Type)
+	{
+		SCA_PythonController* pythonController = (SCA_PythonController*)controller;
+		pythonController->AddTriggeredSensor(sensor);
+	}
+}
 
 
 void SCA_LogicManager::AddActiveActuator(SCA_IActuator* actua,CValue* event)

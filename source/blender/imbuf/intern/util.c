@@ -29,6 +29,13 @@
  * $Id$
  */
 
+#ifdef _WIN32
+#include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#endif
+
 #include "BLI_blenlib.h"
 
 #include "DNA_userdef_types.h"
@@ -64,6 +71,8 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+//#include <ffmpeg/avdevice.h>
+#include <ffmpeg/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -229,12 +238,32 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+
+void silence_log_ffmpeg(int quiet)
+{
+	if (quiet)
+	{
+		av_log_set_level(AV_LOG_QUIET);
+	}
+	else
+	{
+		av_log_set_level(AV_LOG_INFO);
+	}
+}
+
+extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
 	static int ffmpeg_init = 0;
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
+		//avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 
@@ -253,7 +282,8 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
-	int            i, videoStream;
+	unsigned int i;
+	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 
@@ -286,8 +316,9 @@ static int isffmpeg (char *filename) {
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(get_codec_from_stream(pFormatCtx->streams[i])
-		   ->codec_type==CODEC_TYPE_VIDEO)
+		if(pFormatCtx->streams[i] &&
+		   get_codec_from_stream(pFormatCtx->streams[i]) && 
+		  (get_codec_from_stream(pFormatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
@@ -303,13 +334,11 @@ static int isffmpeg (char *filename) {
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
@@ -319,6 +348,19 @@ static int isffmpeg (char *filename) {
 
 	return 1;
 }
+#endif
+
+#ifdef WITH_REDCODE
+static int isredcode(char * filename)
+{
+	struct redcode_handle * h = redcode_open(filename);
+	if (!h) {
+		return 0;
+	}
+	redcode_close(h);
+	return 1;
+}
+
 #endif
 
 int imb_get_anim_type(char * name) {
@@ -355,6 +397,9 @@ int imb_get_anim_type(char * name) {
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
 #endif
+#ifdef WITH_REDCODE
+	if (isredcode(name)) return (ANIM_REDCODE);
+#endif
 	type = IMB_ispic(name);
 	if (type == ANIM) return (ANIM_ANIM5);
 	if (type) return(ANIM_SEQUENCE);
@@ -369,6 +414,7 @@ int IMB_isanim(char *filename) {
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mov")
 				||	BLI_testextensie(filename, ".movie")
 				||	BLI_testextensie(filename, ".mv")) {
@@ -379,6 +425,7 @@ int IMB_isanim(char *filename) {
 		} else { // no quicktime
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
 			}

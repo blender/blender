@@ -49,19 +49,13 @@
 #endif
 #endif
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include "GL/glew.h"
+
 	/*
 	 * these should be phased out. cpack should be replaced in
 	 * code with calls to glColor3ub, lrectwrite probably should
 	 * change to a function. - zr
 	 */
-	 
 /* 
  *
  * This define converts a numerical value to the equivalent 24-bit
@@ -74,6 +68,10 @@
 #define glLoadMatrixf(x)		glLoadMatrixf( (float *)(x))
 
 #define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
+
+/* glStippleDefines, defined in glutil.c */
+extern GLubyte stipple_halftone[128];
+extern GLubyte stipple_quarttone[128];
 
 #endif /* #ifdef BIF_GL_H */
 

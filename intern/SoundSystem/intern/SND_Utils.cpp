@@ -34,19 +34,19 @@
 #include "SND_Utils.h"
 #include "SoundDefines.h"
 #include "SND_DependKludge.h"
-/*
-extern "C" { 
-#include "license_key.h"
-}
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <math.h>
 #include <string.h>
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
+#define lseek _lseek
 #else
 #include <unistd.h>
 #endif
@@ -204,7 +204,7 @@ bool SND_IsSampleValid(const STR_String& name, void* memlocation)
 
 
 /* checks if the passed pointer is a valid sample */
-bool CheckSample(void* sample)
+static bool CheckSample(void* sample)
 {
 	bool valid = false;
 	char buffer[32];
@@ -290,26 +290,32 @@ unsigned int SND_GetBitRate(void* sample)
 
 
 /* gets the length of the actual sample data (without the header) */
-unsigned int SND_GetNumberOfSamples(void* sample)
+unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
 {
-	unsigned int chunklength, length = 0, offset = 16;
-	char data[4];
-	
+	unsigned int chunklength, length = 0, offset;
+	unsigned short block_align;
 	if (CheckSample(sample))
 	{
-		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		memcpy(&chunklength, ((char*)sample) + 16, 4);
+		memcpy(&block_align, ((char*)sample) + 32, 2); /* always 2 or 4 it seems */
+		
 		/* This was endian unsafe. See top of the file for the define. */
-		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
-
-		offset = offset + chunklength + 4;
-		memcpy(data, ((char*)sample) + offset, 4);
+		if (SND_fEndian == SND_endianBig)
+		{
+			SWITCH_INT(chunklength);
+			SWITCH_SHORT(block_align);
+		}
+				
+		offset = 16 + chunklength + 4;
 
 		/* This seems very unsafe, what if data is never found (f.i. corrupt file)... */
 		// lets find "data"
-		while (memcmp(data, "data", 4))
+		while (memcmp(((char*)sample) + offset, "data", 4))
 		{
-			offset += 4;
-			memcpy(data, ((char*)sample) + offset, 4);
+			offset += block_align;
+			
+			if (offset+block_align > sample_length) /* save us from crashing */
+				return 0;
 		}
 		offset += 4;
 		memcpy(&length, ((char*)sample) + offset, 4);
@@ -324,32 +330,36 @@ unsigned int SND_GetNumberOfSamples(void* sample)
 
 
 /* gets the size of the entire header (file - sampledata) */
-unsigned int SND_GetHeaderSize(void* sample)
+unsigned int SND_GetHeaderSize(void* sample, int sample_length)
 {
 	unsigned int chunklength, headersize = 0, offset = 16;
-	char data[4];
-	
+	unsigned short block_align;
 	if (CheckSample(sample))
 	{
 		memcpy(&chunklength, ((char*)sample) + offset, 4);
+		memcpy(&block_align, ((char*)sample) + 32, 2); /* always 2 or 4 it seems */
+		
 		/* This was endian unsafe. See top of the file for the define. */
-		if (SND_fEndian == SND_endianBig) SWITCH_INT(chunklength);
+		if (SND_fEndian == SND_endianBig)
+		{
+			SWITCH_INT(chunklength);
+			SWITCH_SHORT(block_align);
+		}
 		offset = offset + chunklength + 4;
-		memcpy(data, ((char*)sample) + offset, 4);
 
 		// lets find "data"
-		while (memcmp(data, "data", 4))
+		while (memcmp(((char*)sample) + offset, "data", 4))
 		{
-			offset += 4;
-			memcpy(data, ((char*)sample) + offset, 4);
+			offset += block_align;
+			
+			if (offset+block_align > sample_length) /* save us from crashing */
+				return 0;
 		}
 		headersize = offset + 8;
 	}
 
-
 	return headersize;
 }
-
 
 
 unsigned int SND_GetExtraChunk(void* sample)
@@ -387,58 +397,60 @@ void SND_GetSampleInfo(signed char* sample, SND_WaveSlot* waveslot)
 	if (CheckSample(sample))
 	{
 		memcpy(&fileheader, sample, sizeof(WavFileHeader));
-		fileheader.size = SND_GetHeaderSize(sample);
-		sample += sizeof(WavFileHeader);
-		fileheader.size = ((fileheader.size+1) & ~1) - 4;
+		fileheader.size = SND_GetHeaderSize(sample, waveslot->GetFileSize());
+		if (fileheader.size) { /* this may fail for corrupt files */
+			sample += sizeof(WavFileHeader);
+			fileheader.size = ((fileheader.size+1) & ~1) - 4;
 
-		while ((fileheader.size > 0) && (memcpy(&chunkheader, sample, sizeof(WavChunkHeader))))
-		{
-			sample += sizeof(WavChunkHeader);
-			if (!memcmp(chunkheader.id, "fmt ", 4))
+			while ((fileheader.size > 0) && (memcpy(&chunkheader, sample, sizeof(WavChunkHeader))))
 			{
-				memcpy(&fmtheader, sample, sizeof(WavFmtHeader));
-				waveslot->SetSampleFormat(fmtheader.format);
-
-				if (fmtheader.format == 0x0001)
+				sample += sizeof(WavChunkHeader);
+				if (!memcmp(chunkheader.id, "fmt ", 4))
 				{
-					waveslot->SetNumberOfChannels(fmtheader.numberofchannels);
-					waveslot->SetBitRate(fmtheader.bitrate);
-					waveslot->SetSampleRate(fmtheader.samplerate);
+					memcpy(&fmtheader, sample, sizeof(WavFmtHeader));
+					waveslot->SetSampleFormat(fmtheader.format);
+
+					if (fmtheader.format == 0x0001)
+					{
+						waveslot->SetNumberOfChannels(fmtheader.numberofchannels);
+						waveslot->SetBitRate(fmtheader.bitrate);
+						waveslot->SetSampleRate(fmtheader.samplerate);
+						sample += chunkheader.size;
+					} 
+					else
+					{
+						memcpy(&fmtexheader, sample, sizeof(WavFmtExHeader));
+						sample += chunkheader.size;
+					}
+				}
+				else if (!memcmp(chunkheader.id, "data", 4))
+				{
+					if (fmtheader.format == 0x0001)
+					{
+						waveslot->SetNumberOfSamples(chunkheader.size);
+						sample += chunkheader.size;
+					}
+					else if (fmtheader.format == 0x0011)
+					{
+						//IMA ADPCM
+					}
+					else if (fmtheader.format == 0x0055)
+					{
+						//MP3 WAVE
+					}
+				}
+				else if (!memcmp(chunkheader.id, "smpl", 4))
+				{
+					memcpy(&sampleheader, sample, sizeof(WavSampleHeader));
+					//loop = sampleheader.loops;
 					sample += chunkheader.size;
-				} 
+				}
 				else
-				{
-					memcpy(&fmtexheader, sample, sizeof(WavFmtExHeader));
 					sample += chunkheader.size;
-				}
-			}
-			else if (!memcmp(chunkheader.id, "data", 4))
-			{
-				if (fmtheader.format == 0x0001)
-				{
-					waveslot->SetNumberOfSamples(chunkheader.size);
-					sample += chunkheader.size;
-				}
-				else if (fmtheader.format == 0x0011)
-				{
-					//IMA ADPCM
-				}
-				else if (fmtheader.format == 0x0055)
-				{
-					//MP3 WAVE
-				}
-			}
-			else if (!memcmp(chunkheader.id, "smpl", 4))
-			{
-				memcpy(&sampleheader, sample, sizeof(WavSampleHeader));
-				//loop = sampleheader.loops;
-				sample += chunkheader.size;
-			}
-			else
-				sample += chunkheader.size;
 
-			sample += chunkheader.size & 1;
-			fileheader.size -= (((chunkheader.size + 1) & ~1) + 8);
+				sample += chunkheader.size & 1;
+				fileheader.size -= (((chunkheader.size + 1) & ~1) + 8);
+			}
 		}
 	}
 }

@@ -57,7 +57,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		break; 
 	case 3: /* Divide */
 		{
-			if(in[1]==0)	/* We don't want to divide by zero. */
+			if(in2[0]==0)	/* We don't want to divide by zero. */
 				out[0]= 0.0;
 			else
 				out[0]= in[0] / in2[0];
@@ -131,7 +131,23 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		{
 				out[0]= (int)(in[0] + 0.5f);
 		}
-		break; 
+		break;
+	case 15: /* Less Than */
+		{
+			if( in[0] < in2[0] )
+				out[0]= 1.0f;
+			else
+				out[0]= 0.0f;
+		}
+		break;
+	case 16: /* Greater Than */
+		{
+			if( in[0] > in2[0] )
+				out[0]= 1.0f;
+			else
+				out[0]= 0.0f;
+		}
+		break;
 	}
 }
 
@@ -142,7 +158,6 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 	CompBuf *stackbuf; 
 
 	/* check for inputs and outputs for early out*/
-	if(in[0]->hasinput==0 && in[1]->hasinput==0) return;
 	if(out[0]->hasoutput==0) return;
 
 	/* no image-color operation */

@@ -40,6 +40,7 @@ struct Base;
 struct BoundBox;
 struct RenderInfo;
 struct RetopoViewData;
+struct bGPdata;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -53,9 +54,12 @@ struct RetopoViewData;
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
 
+/* ******************************** */
+
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
-
+ 
+/* Background Picture in 3D-View */
 typedef struct BGpic {
     struct Image *ima;
 	struct ImageUser iuser;
@@ -63,6 +67,9 @@ typedef struct BGpic {
     short xim, yim;
 } BGpic;
 
+/* ********************************* */
+
+/* 3D ViewPort Struct */
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	int spacetype;
@@ -78,13 +85,9 @@ typedef struct View3D {
 	float winmat1[4][4];  // persp(1) storage, for swap matrices
 	float viewmat1[4][4];
 	
-	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
+	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
+	int lay_used; /* used while drawing */
 
-	/**
-	 * 0 - ortho
-	 * 1 - do 3d perspective
-	 * 2 - use the camera
-	 */
 	short persp;
 	short view;
 
@@ -99,7 +102,7 @@ typedef struct View3D {
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURED */
+	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
 	short localview;
 	int lay, layact;
@@ -133,13 +136,21 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short pad3;
+	short keyflags;		/* flags for display of keyframes */
 	
-	short pad2;
+	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
+	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 
+	/* last view */
+	float lviewquat[4];
+	short lpersp, lview;
+
+	short pad5, pad6;
 } View3D;
+
 
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
@@ -160,12 +171,13 @@ typedef struct View3D {
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
-
 /* View3d->flag2 (short) */
+#define V3D_MODE2			(32)
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
 #define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
 #define V3D_SOLID_TEX			8
+#define V3D_DISPGP				16
 
 /* View3D->around */
 #define V3D_CENTER		 0
@@ -176,9 +188,9 @@ typedef struct View3D {
 
 
 /* View3d->persp */
-#define V3D_PERSP_ORTHO          0
-#define V3D_PERSP_DO_3D_PERSP    1
-#define V3D_PERSP_USE_THE_CAMERA 2
+#define V3D_ORTHO				0
+#define V3D_PERSP				1
+#define V3D_CAMOB				2
 
 /* View3d->gridflag */
 #define V3D_SHOW_FLOOR			1
@@ -196,6 +208,7 @@ typedef struct View3D {
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
+#define V3D_MANIP_CUSTOM		4 /* anything of value 4 or higher is custom */
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */
@@ -205,4 +218,5 @@ typedef struct View3D {
 
 
 #endif
+
 

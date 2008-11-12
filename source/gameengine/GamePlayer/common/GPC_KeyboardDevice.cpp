@@ -29,6 +29,8 @@
 
 #include "GPC_KeyboardDevice.h"
 
+#include <cstdlib>
+
 /** 
  * NextFrame toggles currentTable with previousTable,
  * and copies relevant event information from previous to current table

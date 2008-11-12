@@ -28,11 +28,13 @@
 
 #include "BLI_bpath.h"
 #include "BKE_global.h"
+//XXX #include "BIF_screen.h" /* only for wait cursor */
 #include "DNA_ID.h" /* Library */
 #include "DNA_vfont_types.h"
 #include "DNA_image_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
+#include "DNA_sequence_types.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,6 +42,10 @@
 #include "BKE_image.h" /* so we can check the image's type */
 
 #include "BKE_utildefines.h"
+#include "MEM_guardedalloc.h"
+
+/* for sequence */
+//XXX #include "BSE_sequence.h"
 
 /* for writing to a textblock */
 #include "BKE_text.h" 
@@ -66,39 +72,66 @@
 
 #define FILE_MAX			240
 
-
 /* TODO - BPATH_PLUGIN, BPATH_SEQ */
 enum BPathTypes {
 	BPATH_IMAGE = 0,
 	BPATH_SOUND,
 	BPATH_FONT,
 	BPATH_LIB,
+	BPATH_SEQ,
 
  	BPATH_DONE
 };
 
-
 void BLI_bpathIterator_init( struct BPathIterator *bpi ) {
 	bpi->type = BPATH_IMAGE;
 	bpi->data = NULL;
+	
+	bpi->getpath_callback = NULL;
+	bpi->setpath_callback = NULL;
+	
+	/* Sequencer spesific */
+	bpi->seqdata.totseq = 0;
+	bpi->seqdata.seq = 0;
+	bpi->seqdata.seqar = NULL;
+	bpi->seqdata.scene = NULL;
+	
 	BLI_bpathIterator_step(bpi);
 }
 
-char* BLI_bpathIterator_getPath( struct BPathIterator *bpi) {
-	return bpi->path;
+void BLI_bpathIterator_free( struct BPathIterator *bpi ) {
+	if (bpi->seqdata.seqar)
+		MEM_freeN((void *)bpi->seqdata.seqar);
+	bpi->seqdata.seqar = NULL;
+	bpi->seqdata.scene = NULL;
 }
-void BLI_bpathIterator_copyPathExpanded( struct BPathIterator *bpi, char *path_expanded) {
-	char *filepath, *libpath;
+
+void BLI_bpathIterator_getPath( struct BPathIterator *bpi, char *path) {
+	if (bpi->getpath_callback) {
+		bpi->getpath_callback( bpi, path );
+	} else {
+		strcpy(path, bpi->path); /* warning, we assume 'path' are long enough */
+	}
+}
+
+void BLI_bpathIterator_setPath( struct BPathIterator *bpi, char *path) {
+	if (bpi->setpath_callback) {
+		bpi->setpath_callback( bpi, path );
+	} else {
+		strcpy(bpi->path, path); /* warning, we assume 'path' are long enough */
+	}
+}
+
+void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_expanded) {
+	char *libpath;
 	
-	filepath = BLI_bpathIterator_getPath(bpi);
+	BLI_bpathIterator_getPath(bpi, path_expanded);
 	libpath = BLI_bpathIterator_getLib(bpi);
 	
-	BLI_strncpy(path_expanded, filepath, FILE_MAXDIR*2);
-	
 	if (libpath) { /* check the files location relative to its library path */
-		BLI_convertstringcode(path_expanded, libpath, G.scene->r.cfra);
+		BLI_convertstringcode(path_expanded, libpath);
 	} else { /* local data, use the blend files path */
-		BLI_convertstringcode(path_expanded, G.sce, G.scene->r.cfra);
+		BLI_convertstringcode(path_expanded, G.sce);
 	}
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
@@ -115,7 +148,7 @@ int	BLI_bpathIterator_getPathMaxLen( struct BPathIterator *bpi) {
 }
 
 /* gets the first or the next image that has a path - not a viewer node or generated image */
-static struct Image *ima_getpath__internal(struct Image *ima, int step_next) {
+static struct Image *ima_stepdata__internal(struct Image *ima, int step_next) {
 	if (ima==NULL)
 		return NULL;
 	
@@ -131,7 +164,7 @@ static struct Image *ima_getpath__internal(struct Image *ima, int step_next) {
 	return ima;
 }
 
-static struct VFont *vf_getpath__internal(struct VFont *vf, int step_next) {
+static struct VFont *vf_stepdata__internal(struct VFont *vf, int step_next) {
 	if (vf==NULL)
 		return NULL;
 	
@@ -149,7 +182,7 @@ static struct VFont *vf_getpath__internal(struct VFont *vf, int step_next) {
 	return vf;
 }
 
-static struct bSound *snd_getpath__internal(struct bSound *snd, int step_next) {
+static struct bSound *snd_stepdata__internal(struct bSound *snd, int step_next) {
 	if (snd==NULL)
 		return NULL;
 	
@@ -167,13 +200,117 @@ static struct bSound *snd_getpath__internal(struct bSound *snd, int step_next) {
 	return snd;
 }
 
+static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int step_next) {
+	Sequence *seq;
+	
+	/* Initializing */
+	if (bpi->seqdata.scene==NULL) {
+		bpi->seqdata.scene= G.main->scene.first;
+	}
+	
+	if (step_next) {
+		bpi->seqdata.seq++;
+	}
+	
+	while (bpi->seqdata.scene) {
+		
+		if (bpi->seqdata.scene->ed) {
+			if (bpi->seqdata.seqar == NULL) {
+				/* allocate the sequencer array */
+				build_seqar( &(((Editing *)bpi->seqdata.scene->ed)->seqbase), &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
+				bpi->seqdata.seq = 0;
+			}
+			
+			if (bpi->seqdata.seq >= bpi->seqdata.totseq) {
+				seq = NULL;
+			} else {
+				seq = bpi->seqdata.seqar[bpi->seqdata.seq];
+				while (!SEQ_HAS_PATH(seq)) {
+					bpi->seqdata.seq++;
+					if (bpi->seqdata.seq >= bpi->seqdata.totseq) {
+						seq = NULL;
+						break;
+					}
+					seq = bpi->seqdata.seqar[bpi->seqdata.seq];
+				}
+			}
+			if (seq) {
+				return seq;
+			} else {
+				/* keep looking through the next scene, reallocate seq array */
+				if (bpi->seqdata.seqar) {
+					MEM_freeN((void *)bpi->seqdata.seqar);
+					bpi->seqdata.seqar = NULL;
+				}
+				bpi->seqdata.scene = bpi->seqdata.scene->id.next;
+			}
+		} else {
+			/* no seq data in this scene, next */
+			bpi->seqdata.scene = bpi->seqdata.scene->id.next;
+		}
+	}
+	
+	return NULL;
+}
+
+static void seq_getpath(struct BPathIterator *bpi, char *path) {
+	Sequence *seq = (Sequence *)bpi->data;
+
+	
+	path[0] = '\0'; /* incase we cant get the path */
+	if (seq==NULL) return;
+	if (SEQ_HAS_PATH(seq)) {
+		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+			BLI_strncpy(path, seq->strip->dir, FILE_MAX);
+			BLI_add_slash(path); /* incase its missing */
+			if (seq->strip->stripdata) { /* should always be true! */
+				/* Using the first image is weak for image sequences */
+				strcat(path, seq->strip->stripdata->name);
+			} 
+		} else {
+			/* simple case */
+			BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
+		}
+	}
+}
+
+static void seq_setpath(struct BPathIterator *bpi, char *path) {
+	Sequence *seq = (Sequence *)bpi->data;
+	if (seq==NULL) return; 
+	
+	if (SEQ_HAS_PATH(seq)) {
+		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
+			BLI_split_dirfile_basic(path, seq->strip->dir, seq->strip->stripdata->name);
+		} else {
+			/* simple case */
+			BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
+		}
+	}
+}
+
+static void bpi_type_step__internal( struct BPathIterator *bpi) {
+	bpi->type++; /* advance to the next type */
+	bpi->data = NULL;
+	
+	switch (bpi->type) {
+	case BPATH_SEQ:
+		bpi->getpath_callback = seq_getpath;
+		bpi->setpath_callback = seq_setpath;
+		break;
+	default:
+		bpi->getpath_callback = NULL;
+		bpi->setpath_callback = NULL;
+		break;
+	}
+}
+
 void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 	while (bpi->type != BPATH_DONE) {
 		
 		if  ((bpi->type) == BPATH_IMAGE) {
 			/*if (bpi->data)	bpi->data = ((ID *)bpi->data)->next;*/
-			if (bpi->data)	bpi->data = ima_getpath__internal( (Image *)bpi->data, 1 ); /* must skip images that have no path */
-			else 			bpi->data = ima_getpath__internal(G.main->image.first, 0);
+			if (bpi->data)	bpi->data = ima_stepdata__internal( (Image *)bpi->data, 1 ); /* must skip images that have no path */
+			else 			bpi->data = ima_stepdata__internal(G.main->image.first, 0);
 			
 			if (bpi->data) {
 				/* get the path info from this datatype */
@@ -188,13 +325,13 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				break;
 				
 			} else {
-				bpi->type+=1; /* advance to the next type */
+				bpi_type_step__internal(bpi);
 			}
 			
 			
 		} else if  ((bpi->type) == BPATH_SOUND) {
-			if (bpi->data)	bpi->data = snd_getpath__internal( (bSound *)bpi->data, 1 ); /* must skip images that have no path */
-			else 			bpi->data = snd_getpath__internal(G.main->sound.first, 0);
+			if (bpi->data)	bpi->data = snd_stepdata__internal( (bSound *)bpi->data, 1 ); /* must skip images that have no path */
+			else 			bpi->data = snd_stepdata__internal(G.main->sound.first, 0);
 			
 			if (bpi->data) {
 				/* get the path info from this datatype */
@@ -208,14 +345,14 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* we are done, advancing to the next item, this type worked fine */
 				break;
 			} else {
-				bpi->type+=1; /* advance to the next type */
+				bpi_type_step__internal(bpi);
 			}
 			
 			
 		} else if  ((bpi->type) == BPATH_FONT) {
 			
-			if (bpi->data)	bpi->data = vf_getpath__internal( (VFont *)bpi->data, 1 );
-			else 			bpi->data = vf_getpath__internal( G.main->vfont.first, 0 );
+			if (bpi->data)	bpi->data = vf_stepdata__internal( (VFont *)bpi->data, 1 );
+			else 			bpi->data = vf_stepdata__internal( G.main->vfont.first, 0 );
 			
 			if (bpi->data) {
 				/* get the path info from this datatype */
@@ -229,12 +366,10 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* we are done, advancing to the next item, this type worked fine */
 				break;
 			} else {
-				bpi->type+=1; /* advance to the next type */
+				bpi_type_step__internal(bpi);
 			}
 			
-			
 		} else if  ((bpi->type) == BPATH_LIB) {
-			
 			if (bpi->data)	bpi->data = ((ID *)bpi->data)->next;
 			else 			bpi->data = G.main->library.first;
 			
@@ -250,7 +385,19 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 				/* we are done, advancing to the next item, this type worked fine */
 				break;
 			} else {
-				bpi->type+=1; /* advance to the next type */
+				bpi_type_step__internal(bpi);
+			}
+		} else if  ((bpi->type) == BPATH_SEQ) {
+			if (bpi->data)	bpi->data = seq_stepdata__internal( bpi, 1 );
+			else 			bpi->data = seq_stepdata__internal( bpi, 0 );
+			if (bpi->data) {
+				Sequence *seq = (Sequence *)bpi->data;
+				bpi->lib = NULL;
+				bpi->name = seq->name+2;
+				bpi->len = sizeof(seq->strip->stripdata->name);
+				break;
+			} else {
+				bpi_type_step__internal(bpi);
 			}
 		}
 	}
@@ -279,6 +426,9 @@ static void bpathToText(Text *btxt, struct BPathIterator *bpi)
 	case BPATH_LIB:
 		txt_insert_buf( btxt, "Library \"" );
 		break;
+	case BPATH_SEQ:
+		txt_insert_buf( btxt, "Sequence \"" );
+		break;
 	default:
 		txt_insert_buf( btxt, "Unknown \"" );
 		break;
@@ -291,7 +441,7 @@ static void bpathToText(Text *btxt, struct BPathIterator *bpi)
 	}
 	txt_insert_buf( btxt, "\" " );
 	
-	BLI_bpathIterator_copyPathExpanded(bpi, path_expanded);
+	BLI_bpathIterator_getPathExpanded(bpi, path_expanded);
 	
 	txt_insert_buf( btxt, path_expanded );
 	txt_insert_buf( btxt, "\n" );
@@ -299,73 +449,147 @@ static void bpathToText(Text *btxt, struct BPathIterator *bpi)
 }
 
 /* high level function */
-Text *checkMissingFiles(void) {
+void checkMissingFiles( char *txtname ) {
 	Text *btxt = NULL;
 	struct BPathIterator bpi;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
-	char *filepath, *libpath;
-	int files_missing = 0;
 	
 	BLI_bpathIterator_init(&bpi);
 	while (!BLI_bpathIterator_isDone(&bpi)) {
-		filepath = BLI_bpathIterator_getPath(&bpi);
-		libpath = BLI_bpathIterator_getLib(&bpi);
-		
-		BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
+		BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 		
 		if (!BLI_exists(filepath_expanded)) {
-			if (!btxt)
-				btxt = add_empty_text( "missing_files.txt" );
-			
+			if (!btxt) {
+				btxt = add_empty_text( "missing_files.log" );
+				if (txtname) {
+					BLI_strncpy(txtname, btxt->id.name+2, 24);
+				}
+			}
 			bpathToText(btxt, &bpi);
-			files_missing = 1;
 		}
 		BLI_bpathIterator_step(&bpi);
 	}
-	return btxt;
+	BLI_bpathIterator_free(&bpi);
 }
 
 /* dont log any errors at the moment, should probably do this */
-void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
+void makeFilesRelative(char *txtname, int *tot, int *changed, int *failed, int *linked) {
 	struct BPathIterator bpi;
-	char *filepath, *libpath;
+	char filepath[FILE_MAX], *libpath;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_relative[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+	
+	Text *btxt = NULL;
 	
 	*tot = *changed = *failed = *linked = 0;
 	
 	BLI_bpathIterator_init(&bpi);
 	while (!BLI_bpathIterator_isDone(&bpi)) {
-		filepath = BLI_bpathIterator_getPath(&bpi);
+		BLI_bpathIterator_getPath(&bpi, filepath);
 		libpath = BLI_bpathIterator_getLib(&bpi);
 		
 		if(strncmp(filepath, "//", 2)) {
-			if (libpath) { /* cant make relative if we are kibrary - TODO, LOG THIS */
+			if (libpath) { /* cant make relative if we are library - TODO, LOG THIS */
 				(*linked)++;
 			} else { /* local data, use the blend files path */
 				BLI_strncpy(filepath_relative, filepath, sizeof(filepath_relative));
+				/* Important BLI_cleanup_dir runs before the path is made relative
+				 * because it wont work for paths that start with "//../" */ 
+				BLI_cleanup_file(G.sce, filepath_relative); /* fix any /foo/../foo/ */
 				BLI_makestringcode(G.sce, filepath_relative);
-				if (BLI_bpathIterator_getPathMaxLen(&bpi) < strlen(filepath_relative)) {
+				/* be safe and check the length */
+				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_relative)) {
+					if (!btxt) {
+						btxt = add_empty_text( "missing_no_rel.log" );
+						if (txtname) {
+							BLI_strncpy(txtname, btxt->id.name+2, 24);
+						}
+					}
+					bpathToText(btxt, &bpi);
 					(*failed)++;
 				} else {
-					/* safe to to check the length */
 					if(strncmp(filepath_relative, "//", 2)==0) {
-						strcpy(filepath, filepath_relative);
+						BLI_bpathIterator_setPath(&bpi, filepath_relative);
 						(*changed)++;
 					} else {
+						if (!btxt) {
+							btxt = add_empty_text( "missing_no_rel.log" );
+							if (txtname) {
+								BLI_strncpy(txtname, btxt->id.name+2, 24);
+							}
+						}
+						bpathToText(btxt, &bpi);
 						(*failed)++;
 					}
 				}
 			}
 		}
-		
 		BLI_bpathIterator_step(&bpi);
 		(*tot)++;
 	}
+	BLI_bpathIterator_free(&bpi);
 }
+
+/* dont log any errors at the moment, should probably do this -
+ * Verry similar to makeFilesRelative - keep in sync! */
+void makeFilesAbsolute(char *txtname, int *tot, int *changed, int *failed, int *linked) {
+	struct BPathIterator bpi;
+	char filepath[FILE_MAX], *libpath;
+	
+	/* be sure there is low chance of the path being too short */
+	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+	
+	Text *btxt = NULL;
+	
+	*tot = *changed = *failed = *linked = 0;
+	
+	BLI_bpathIterator_init(&bpi);
+	while (!BLI_bpathIterator_isDone(&bpi)) {
+		BLI_bpathIterator_getPath(&bpi, filepath);
+		libpath = BLI_bpathIterator_getLib(&bpi);
+		
+		if(strncmp(filepath, "//", 2)==0) {
+			if (libpath) { /* cant make absolute if we are library - TODO, LOG THIS */
+				(*linked)++;
+			} else { /* get the expanded path and check it is relative or too long */
+				BLI_bpathIterator_getPathExpanded( &bpi, filepath_absolute );
+				BLI_cleanup_file(G.sce, filepath_absolute); /* fix any /foo/../foo/ */
+				/* to be safe, check the length */
+				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_absolute)) {
+					if (!btxt) {
+						btxt = add_empty_text( "missing_no_abs.log" );
+						if (txtname) {
+							BLI_strncpy(txtname, btxt->id.name+2, 24);
+						}
+					}
+					bpathToText(btxt, &bpi);
+					(*failed)++;
+				} else {
+					if(strncmp(filepath_absolute, "//", 2)) {
+						BLI_bpathIterator_setPath(&bpi, filepath_absolute);
+						(*changed)++;
+					} else {
+						if (!btxt) {
+							btxt = add_empty_text( "missing_no_abs.log" );
+							if (txtname) {
+								BLI_strncpy(txtname, btxt->id.name+2, 24);
+							}
+						}
+						bpathToText(btxt, &bpi);
+						(*failed)++;
+					}
+				}
+			}
+		}
+		BLI_bpathIterator_step(&bpi);
+		(*tot)++;
+	}
+	BLI_bpathIterator_free(&bpi);
+}
+
 
 /* find this file recursively, use the biggest file so thumbnails dont get used by mistake
  - dir: subdir to search
@@ -377,13 +601,10 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 {
 	/* file searching stuff */
 	DIR *dir;
-	int file = 0;
 	struct dirent *de;
 	struct stat status;
 	char path[FILE_MAX];
 	int size;
-	
-	printf("DIR %s\n", dirname);
 	
 	dir = opendir(dirname);
 	
@@ -406,14 +627,10 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 		if (S_ISREG(status.st_mode)) { /* is file */
 			if (strncmp(filename, de->d_name, FILE_MAX)==0) { /* name matches */
 				/* open the file to read its size */
-				file = open(path, O_BINARY|O_RDONLY);
-				if (file >=0 ) {
-					size = BLI_filesize(file);
-					if (size > *filesize) { /* find the biggest file */
-						*filesize = size;
-						BLI_strncpy(filename_new, path, FILE_MAX);
-					}
-					close(file);
+				size = BLI_filepathsize(path);
+				if ((size > 0) && (size > *filesize)) { /* find the biggest file */
+					*filesize = size;
+					BLI_strncpy(filename_new, path, FILE_MAX);
 				}
 			}
 		} else if (S_ISDIR(status.st_mode)) { /* is subdir */
@@ -434,28 +651,35 @@ void findMissingFiles(char *str) {
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_expanded[FILE_MAXDIR*2]; 
-	char *filepath, *libpath;
+	char filepath[FILE_MAX], *libpath;
 	int filesize, recur_depth;
 	
-	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX], dummyname[FILE_MAX];
+	char dirname[FILE_MAX], filename[FILE_MAX], filename_new[FILE_MAX];
 	
-	BLI_split_dirfile(str, dirname, dummyname);
+	//XXX waitcursor( 1 );
+	
+	BLI_split_dirfile_basic(str, dirname, NULL);
 	
 	BLI_bpathIterator_init(&bpi);
 	
 	while (!BLI_bpathIterator_isDone(&bpi)) {
-		filepath = BLI_bpathIterator_getPath(&bpi);
+		BLI_bpathIterator_getPath(&bpi, filepath);
 		libpath = BLI_bpathIterator_getLib(&bpi);
+		
+		/* Check if esc was pressed because searching files can be slow */
+		/*XXX if (blender_test_break()) {
+			break;
+		}*/
 		
 		if (libpath==NULL) {
 			
-			BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
+			BLI_bpathIterator_getPathExpanded( &bpi, filepath_expanded );
 			
 			if (!BLI_exists(filepath_expanded)) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile(filepath, dummyname, filename); /* the file to find */
+				BLI_split_dirfile_basic(filepath, NULL, filename); /* the file to find */
 				
 				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */
@@ -472,11 +696,14 @@ void findMissingFiles(char *str) {
 						if (G.relbase_valid)
 							BLI_makestringcode(G.sce, filename_new);
 						
-						strcpy( BLI_bpathIterator_getPath( &bpi ), filename_new );
+						BLI_bpathIterator_setPath( &bpi, filename_new );
 					}
 				}
 			}
 		}
 		BLI_bpathIterator_step(&bpi);
 	}
+	BLI_bpathIterator_free(&bpi);
+	
+	//XXX waitcursor( 0 );
 }

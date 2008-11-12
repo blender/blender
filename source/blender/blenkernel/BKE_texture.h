@@ -53,6 +53,7 @@ void free_plugin_tex(struct PluginTex *pit);
 void init_colorband(struct ColorBand *coba, int rangetype);
 struct ColorBand *add_colorband(int rangetype);
 int do_colorband(struct ColorBand *coba, float in, float out[4]);
+void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
 
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);
@@ -62,6 +63,7 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
+struct Tex *give_current_world_texture(void);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);
@@ -72,6 +74,7 @@ void    BKE_free_envmap(struct EnvMap *env);
 struct EnvMap *BKE_add_envmap(void);
 struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
 
+int     BKE_texture_dependsOnTime(const struct Tex *texture);
 
 #endif
 

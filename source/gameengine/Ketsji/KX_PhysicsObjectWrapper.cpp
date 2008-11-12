@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <Python.h>
+#include "PyObjectPlus.h"
+
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "PHY_IPhysicsController.h"
@@ -58,7 +60,10 @@ PyObject* KX_PhysicsObjectWrapper::PySetPosition(PyObject* self,
 	{
 		m_ctrl->setPosition(x,y,z);
 	}
-	Py_INCREF(Py_None); return Py_None;
+	else {
+		return NULL;
+	}
+	Py_RETURN_NONE;
 }
 
 
@@ -72,7 +77,10 @@ PyObject* KX_PhysicsObjectWrapper::PySetLinearVelocity(PyObject* self,
 	{
 		m_ctrl->SetLinearVelocity(x,y,z,local != 0);
 	}
-	Py_INCREF(Py_None); return Py_None;
+	else {
+		return NULL;
+	}
+	Py_RETURN_NONE;
 }
 
 PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self, 
@@ -85,7 +93,10 @@ PyObject* KX_PhysicsObjectWrapper::PySetAngularVelocity(PyObject* self,
 	{
 		m_ctrl->SetAngularVelocity(x,y,z,local != 0);
 	}
-	Py_INCREF(Py_None); return Py_None;
+	else {
+		return NULL;
+	}
+	Py_RETURN_NONE;
 }
 
 PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self, 
@@ -97,7 +108,10 @@ PyObject*	KX_PhysicsObjectWrapper::PySetActive(PyObject* self,
 	{
 		m_ctrl->SetActive(active!=0);
 	}
-	Py_INCREF(Py_None); return Py_None;
+	else {
+		return NULL;
+	}
+	Py_RETURN_NONE;
 }
 
 

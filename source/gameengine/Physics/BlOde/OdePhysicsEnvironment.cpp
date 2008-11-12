@@ -198,7 +198,7 @@ int			ODEPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 }
 
-void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
+void		ODEPhysicsEnvironment::removeConstraint(void *constraintid)
 {
 	if (constraintid)
 	{
@@ -206,8 +206,7 @@ void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 }
 
-PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback,float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 
 	//m_OdeWorld

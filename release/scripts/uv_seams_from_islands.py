@@ -1,12 +1,31 @@
 #!BPY
 """
 Name: 'Seams from Islands'
-Blender: 243
+Blender: 246
 Group: 'UV'
 Tooltip: 'Add seams onto the mesh at the bounds of UV islands'
 """
 
-# Add a licence here if you wish to re-distribute, we recommend the GPL
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Campbell Barton
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
 
 from Blender import Scene, Mesh, Window, sys
 import BPyMessages
@@ -37,8 +56,11 @@ def seams_from_islands(me):
 	# add seams
 	SEAM = Mesh.EdgeFlags.SEAM
 	for ed in me.edges:
-		if len(set(edge_uvs[ed.key])) > 1:
-			ed.flag |= SEAM
+		try: # the edge might not be in a face
+			if len(set(edge_uvs[ed.key])) > 1:
+				ed.flag |= SEAM
+		except:
+			pass
 
 def main():
 	

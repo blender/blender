@@ -716,6 +716,9 @@ ECHO Done
 				Name="superlu"
 				Filter="">
 				<File
+					RelativePath="..\..\superlu\BLO_sys_types.h">
+				</File>
+				<File
 					RelativePath="..\..\superlu\Cnames.h">
 				</File>
 				<File

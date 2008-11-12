@@ -57,12 +57,12 @@ public:
     /**
      * Constructor.
      */
-    GHOST_SystemCarbon::GHOST_SystemCarbon();
+    GHOST_SystemCarbon();
     
     /** 
      * Destructor.
      */
-    GHOST_SystemCarbon::~GHOST_SystemCarbon();
+    ~GHOST_SystemCarbon();
     
 	/***************************************************************************************
 	 ** Time(r) functionality
@@ -103,6 +103,7 @@ public:
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
+	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow* createWindow(
@@ -113,7 +114,8 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type,
-		const bool stereoVisual
+		const bool stereoVisual,
+		const GHOST_TEmbedderWindowID parentWindow = 0 
 	);
 	
 	/***************************************************************************************
@@ -164,6 +166,20 @@ public:
 	 * @return			Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const;
+
+	/**
+	 * Returns Clipboard data
+	 * @param flag		Indicate which buffer to return
+	 * @return		Returns the selected buffer
+	 */
+	virtual GHOST_TUns8* getClipboard(int flag) const;
+	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to be copied
+	 * @param flag		Indicates which buffer to copy too Only used on X11
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
 
 protected:
 	/**
@@ -221,6 +237,10 @@ protected:
      */
     bool handleMenuCommand(GHOST_TInt32 menuResult);
     
+    /* callback for blender generated events */
+//	static OSStatus blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData);
+
+
     /**
      * Callback for Carbon when it has events.
      */

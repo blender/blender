@@ -152,6 +152,22 @@ public:
 	) ;
 
 
+	/**
+	 * Return vertex parent status.
+	 */
+
+		bool	
+	IsVertexParent(
+	) ;
+	
+	/**
+	 * Return slow parent status.
+	 */
+
+		bool	
+	IsSlowParent(
+	) ;
+
 	/**		
 	 * Update the spatial data of this node. Iterate through
 	 * the children of this node and update their world data.
@@ -189,7 +205,7 @@ private:
 
 		void		
 	ProcessSGReplica(
-		SG_Node* replica
+		SG_Node** replica
 	);
 
 	/**

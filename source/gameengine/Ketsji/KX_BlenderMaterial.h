@@ -8,6 +8,7 @@
 #include "BL_Material.h"
 #include "BL_Texture.h"
 #include "BL_Shader.h"
+#include "BL_BlenderShader.h"
 
 #include "PyObjectPlus.h"
 
@@ -27,7 +28,6 @@ public:
 		BL_Material*	mat,
 		bool			skin,
 		int				lightlayer,
-		void*			clientobject,
 		PyTypeObject*	T=&Type
 	);
 
@@ -46,7 +46,7 @@ public:
 	
 	virtual 
 	void ActivateMeshSlot(
-		const KX_MeshSlot & ms, 
+		const RAS_MeshSlot & ms, 
 		RAS_IRasterizer* rasty 
 	) const;
 	
@@ -60,9 +60,19 @@ public:
 		TCachingInfo& cachingInfo
 	)const;
 
+	void ActivateBlenderShaders(
+		RAS_IRasterizer* rasty, 
+		TCachingInfo& cachingInfo
+	)const;
 
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;
+	BL_Texture * getTex (unsigned int idx) { 
+		return (idx < MAXTEX) ? mTextures + idx : NULL; 
+	}
+	Image * getImage (unsigned int idx) { 
+		return (idx < MAXTEX && mMaterial) ? mMaterial->img[idx] : NULL; 
+	}
 
 	// for ipos
 	void UpdateIPO(
@@ -85,24 +95,32 @@ public:
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup
 	virtual void OnConstruction( );
+
+	static void	EndFrame();
+
 private:
-	BL_Material*	mMaterial;
-	BL_Shader*		mShader;
+	BL_Material*		mMaterial;
+	BL_Shader*			mShader;
+	BL_BlenderShader*	mBlenderShader;
 	KX_Scene*		mScene;
 	BL_Texture		mTextures[MAXTEX];		// texture array
 	bool			mUserDefBlend;
 	unsigned int	mBlendFunc[2];
 	bool			mModified;
+	bool			mConstructed;			// if false, don't clean on exit
+
+	void SetBlenderGLSLShader();
 
 	void ActivatGLMaterials( RAS_IRasterizer* rasty )const;
 	void ActivateTexGen( RAS_IRasterizer *ras ) const;
 
+	bool UsesLighting(RAS_IRasterizer *rasty) const;
 
 	// message centers
 	void	setTexData( bool enable,RAS_IRasterizer *ras);
+	void	setBlenderShaderData( bool enable, RAS_IRasterizer *ras);
 	void	setShaderData( bool enable, RAS_IRasterizer *ras);
 
-	bool	setDefaultBlending();
 	void	setObjectMatrixData(int i, RAS_IRasterizer *ras);
 	void	setTexMatrixData(int i);
 
@@ -110,6 +128,10 @@ private:
 
 	// cleanup stuff
 	void	OnExit();
+
+	// shader chacing
+	static BL_BlenderShader *mLastBlenderShader;
+	static BL_Shader		*mLastShader;
 
 	mutable int	mPass;
 };

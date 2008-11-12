@@ -53,7 +53,12 @@ class KX_TouchEventManager : public SCA_EventManager
 						void *object1,
 						void *object2,
 						const PHY_CollData *coll_data);
-	
+
+	static bool newBroadphaseResponse(void *client_data, 
+						void *object1,
+						void *object2,
+						const PHY_CollData *coll_data);
+
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						const PHY_CollData * coll_data); 
 
@@ -66,8 +71,8 @@ public:
 		PHY_IPhysicsEnvironment* physEnv);
 	virtual void NextFrame();
 	virtual void	EndFrame();
-	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void RegisterSensor(SCA_ISensor* sensor);
+	virtual void RemoveSensor(SCA_ISensor* sensor);
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr;}
 	PHY_IPhysicsEnvironment *GetPhysicsEnvironment() { return m_physEnv; }
 

@@ -66,6 +66,8 @@ typedef struct ParticleData {
 	ParticleKey state;		/* normally current global coordinates or	*/
 							/* in sticky object space if dead & sticky	*/
 
+	ParticleKey prev_state; /* previous state */
+
 	HairKey *hair;			/* hair vertices */
 
 	ParticleKey *keys;		/* keyed states */
@@ -125,18 +127,18 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, keyed_time;
+	float timetweak, jitfac, keyed_time, eff_hair, rt;
 	int totpart, userjit, grid_res;
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
-	float rotfac, avefac, phasefac;
+	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */
-	float length, abslength, randlength, pad;
+	float length, abslength, randlength;
 	/* children */
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
@@ -166,29 +168,30 @@ typedef struct ParticleSettings {
 	struct Object *bb_ob;
 	struct Ipo *ipo;
 	struct PartDeflect *pd;
+	struct PartDeflect *pd2;
 } ParticleSettings;
 
-typedef struct ParticleSystem{
+typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in copy_particlesystem */
 	struct ParticleSystem *next, *prev;
 
-	ParticleSettings *part;
+	ParticleSettings *part;					/* particle settings */
 
-	ParticleData *particles;
+	ParticleData *particles;				/* (parent) particles */
+	ChildParticle *child;					/* child particles */
 
-	ChildParticle *child;
+	struct ParticleEdit *edit;				/* particle editmode (runtime) */
 
-	struct ParticleEdit *edit;
+	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
+	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
+	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
 
-	struct ParticleCacheKey **pathcache;
-	struct ParticleCacheKey **childcache;
-
-	struct SoftBody *soft;
+	struct SoftBody *soft;					/* hair softbody */
 
 	struct Object *target_ob;
 	struct Object *keyed_ob;
 	struct Object *lattice;
 
-	struct ListBase effectors, reactevents;
+	struct ListBase effectors, reactevents;	/* runtime */
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra;
@@ -196,13 +199,16 @@ typedef struct ParticleSystem{
 	int flag, totpart, totchild, totcached, totchildcache, rt;
 	short recalc, target_psys, keyed_psys, totkeyed, softflag, bakespace;
 
-	char bb_uvname[3][32];
+	char bb_uvname[3][32];					/* billboard uv name */
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
-	short vgroup[11], vg_neg, rt3[2];
+	short vgroup[12], vg_neg, rt3;			/* vertex groups */
 
 	/* temporary storage during render */
 	void *renderdata;
+
+	/* point cache */
+	struct PointCache *pointcache;
 }ParticleSystem;
 
 /* general particle maximums */
@@ -218,13 +224,14 @@ typedef struct ParticleSystem{
 #define PART_EMITTER		0
 #define PART_REACTOR		1
 #define PART_HAIR			2
+#define PART_FLUID			3
 
 /* part->flag */
 #define PART_REACT_STA_END	1
 #define PART_REACT_MULTIPLE	2
 
 #define PART_LOOP			4
-#define PART_LOOP_INSTANT	8
+//#define PART_LOOP_INSTANT	8
 
 #define PART_HAIR_GEOMETRY	16
 
@@ -255,9 +262,12 @@ typedef struct ParticleSystem{
 
 #define PART_GRID_INVERT	(1<<26)
 
+#define PART_CHILD_EFFECT	(1<<27)
 #define PART_CHILD_SEAMS	(1<<28)
 #define PART_CHILD_RENDER	(1<<29)
 #define PART_CHILD_GUIDE	(1<<30)
+
+#define PART_SELF_EFFECT	(1<<22)
 
 /* part->rotfrom */
 #define PART_ROT_KEYS		0	/* interpolate directly from keys */
@@ -288,8 +298,6 @@ typedef struct ParticleSystem{
 #define PART_KINK_RADIAL	2
 #define PART_KINK_WAVE		3
 #define PART_KINK_BRAID		4
-#define PART_KINK_ROT		5
-#define PART_KINK_ROLL		6
 
 /* part->draw */
 #define PART_DRAW_VEL		1
@@ -352,12 +360,16 @@ typedef struct ParticleSystem{
 /* part->rotmode */
 #define PART_ROT_NOR		1
 #define PART_ROT_VEL		2
-#define PART_ROT_RAND		3
+#define PART_ROT_GLOB_X		3
+#define PART_ROT_GLOB_Y		4
+#define PART_ROT_GLOB_Z		5
+#define PART_ROT_OB_X		6
+#define PART_ROT_OB_Y		7
+#define PART_ROT_OB_Z		8
 
 /* part->avemode */
 #define PART_AVE_SPIN		1
 #define PART_AVE_RAND		2
-#define PART_AVE_VEL		3
 
 /* part->reactevent */
 #define PART_EVENT_DEATH	0
@@ -380,7 +392,7 @@ typedef struct ParticleSystem{
 //#define PSYS_BAKING			2
 //#define PSYS_BAKE_UI		4
 #define	PSYS_KEYED_TIME		8
-#define PSYS_ENABLED		16
+#define PSYS_ENABLED		16	/* deprecated */
 #define PSYS_FIRST_KEYED	32
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
@@ -388,7 +400,8 @@ typedef struct ParticleSystem{
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
 #define PSYS_EDITED			2048
-#define PSYS_PROTECT_CACHE	4096
+//#define PSYS_PROTECT_CACHE	4096
+#define PSYS_DISABLED		8192
 
 /* pars->flag */
 #define PARS_UNEXIST		1
@@ -405,9 +418,10 @@ typedef struct ParticleSystem{
 #define PARS_DEAD			1
 #define PARS_UNBORN			2
 #define PARS_ALIVE			3
+#define PARS_DYING			4
 
 /* psys->vg */
-#define PSYS_TOT_VG			11
+#define PSYS_TOT_VG			12
 
 #define PSYS_VG_DENSITY		0
 #define PSYS_VG_VEL			1
@@ -420,6 +434,7 @@ typedef struct ParticleSystem{
 #define PSYS_VG_SIZE		8
 #define PSYS_VG_TAN			9
 #define PSYS_VG_ROT			10
+#define PSYS_VG_EFFECTOR	11
 
 /* part->boidrules */
 #define BOID_TOT_RULES		8

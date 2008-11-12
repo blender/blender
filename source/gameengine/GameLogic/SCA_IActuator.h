@@ -34,8 +34,11 @@
 
 class SCA_IActuator : public SCA_ILogicBrick
 {
+	friend class SCA_LogicManager;
 protected:
 	std::vector<CValue*> m_events;
+	int					 m_links;	// number of active links to controllers
+									// when 0, the actuator is automatically stopped
 	void RemoveAllEvents();
 
 public:
@@ -45,6 +48,15 @@ public:
 
 	SCA_IActuator(SCA_IObject* gameobj,
 				  PyTypeObject* T =&Type); 
+
+	/**
+	 * UnlinkObject(...)
+	 * Certain actuator use gameobject pointers (like TractTo actuator)
+	 * This function can be called when an object is removed to make
+	 * sure that the actuator will not use it anymore.
+	 */
+
+	virtual bool UnlinkObject(SCA_IObject* clientobj) { return false; }
 
 	/**
 	 * Update(...)
@@ -74,6 +86,11 @@ public:
 	 */
 	bool IsNegativeEvent() const;
 	virtual ~SCA_IActuator();
+
+	void ClrLink() { m_links=0; }
+	void IncLink() { m_links++; }
+	void DecLink();
+	bool IsNoLink() const { return !m_links; }
 };
 
 #endif //__KX_IACTUATOR

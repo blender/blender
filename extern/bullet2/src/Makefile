@@ -36,9 +36,11 @@ BulletCollision/BroadphaseCollision \
 BulletCollision/CollisionShapes \
 BulletCollision/NarrowPhaseCollision \
 BulletCollision/CollisionDispatch \
+BulletCollision/Gimpact \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \
-BulletDynamics/Dynamics
+BulletDynamics/Dynamics \
+BulletSoftBody
 
 CCSRCS = $(wildcard \
 LinearMath/*.cpp \
@@ -46,9 +48,11 @@ BulletCollision/BroadphaseCollision/*.cpp \
 BulletCollision/CollisionShapes/*.cpp \
 BulletCollision/NarrowPhaseCollision/*.cpp \
 BulletCollision/CollisionDispatch/*.cpp \
+BulletCollision/Gimpact/*.cpp \
 BulletDynamics/ConstraintSolver/*.cpp \
 BulletDynamics/Vehicle/*.cpp \
-BulletDynamics/Dynamics/*.cpp)
+BulletDynamics/Dynamics/*.cpp \
+BulletSoftBody/*.cpp)
 
 CPPFLAGS += -D_LIB -I. -IBulletCollision -IBulletDynamics -ILinearMath
 

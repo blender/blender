@@ -205,7 +205,7 @@ static void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *f
 	}
 }
 
-static void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
+static void multires_get_face(MultiresFace *f, CustomData *fdata, int findex, EditFace *efa, MFace *m)
 {
 	if(efa) {
 		MFace tmp;
@@ -215,7 +215,7 @@ static void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		tmp.v3= efa->v3->tmp.l;
 		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
-		//XXX test_index_face(&tmp, NULL, 0, efa->v4?4:3);
+		//XXX test_index_face(&tmp, fdata, findex, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
 
 		/* Flags */
@@ -370,7 +370,7 @@ void multires_create(Object *ob, Mesh *me)
 	/* Load vertices and vdata (MDeformVerts) */
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
 	me->mr->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
-	multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+	multires_update_customdata(me->mr->levels.first, em, em ? &em->vdata : &me->vdata,
 	                           &me->mr->vdata, CD_MDEFORMVERT);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
@@ -381,11 +381,11 @@ void multires_create(Object *ob, Mesh *me)
 	/* Load faces and fdata (MTFaces) */
 	lvl->totface= em ? BLI_countlist(&em->faces) : me->totface;
 	lvl->faces= MEM_callocN(sizeof(MultiresFace)*lvl->totface,"multires faces");
-	multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+	multires_update_customdata(me->mr->levels.first, em, em ? &em->fdata : &me->fdata,
 	                           &me->mr->fdata, CD_MTFACE);
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {
-		multires_get_face(&lvl->faces[i], efa, &me->mface[i]);
+		multires_get_face(&lvl->faces[i], &me->mr->fdata, i, efa, &me->mface[i]);
 		if(em) efa= efa->next;
 	}
 
@@ -639,6 +639,10 @@ static void multires_update_vertices(Mesh *me, EditMesh *em)
 	MultiApplyData data;
 	int i, j;
 
+	/* XXX added this to prevent crash, but if it works? (ton) */
+	if(me->mr->verts==NULL)
+		return;
+	
 	/* Prepare deltas */
 	pr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 1");
 	cr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 2");
@@ -762,7 +766,7 @@ static void multires_update_faces(Mesh *me, EditMesh *em)
 	if(em) efa= em->faces.first;
 	for(i=0; i<cr_lvl->totface; ++i) {
 		MultiresFace mftmp;
-		multires_get_face(&mftmp, efa, &me->mface[i]);
+		multires_get_face(&mftmp, &me->mr->fdata, i, efa, &me->mface[i]);
 		if(cr_lvl->faces[i].flag != mftmp.flag)
 			cr_flag_damaged[i]= 1;
 		if(cr_lvl->faces[i].mat_nr != mftmp.mat_nr)
@@ -1284,7 +1288,7 @@ void multires_edge_level_update(Object *ob, Mesh *me)
 	if(!G.obedit) {
 		MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 		MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
-		const int threshold= edge_lvl->totedge * powf(2, me->mr->current - me->mr->edgelvl);
+		const int threshold= edge_lvl->totedge * pow(2, me->mr->current - me->mr->edgelvl);
 		unsigned i;
 
 		for(i=0; i<cr_lvl->totedge; ++i) {

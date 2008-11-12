@@ -32,11 +32,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include "GL/glew.h"
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
@@ -120,6 +117,10 @@ public:
 		return m_displayarea;
 	};
 
+		RAS_Rect &
+	GetWindowArea(
+	);
+
 		void
 	SetViewPort(
 		int x1, int y1,
@@ -162,6 +163,7 @@ public:
 private:
 	/** Blender area the game engine is running within */
 	struct ScrArea* m_area;
+	RAS_Rect 	m_area_rect;
 };
 
 #endif // __KX_BLENDERCANVAS

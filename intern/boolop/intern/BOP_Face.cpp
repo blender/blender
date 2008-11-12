@@ -402,6 +402,7 @@ bool BOP_Face4::getEdgeIndex(BOP_Index v1, BOP_Index v2, unsigned int &e)
 	return  true;
 }  
 
+#ifdef BOP_DEBUG
 /**
  * Implements operator <<.
  */
@@ -421,3 +422,4 @@ ostream &operator<<(ostream &stream, BOP_Face *f)
 
 	return stream;
 }
+#endif

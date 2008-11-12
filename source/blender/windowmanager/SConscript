@@ -11,5 +11,5 @@ incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
 incs += ' ../ftfont ../radiosity/extern/include ../../kernel/gen_system'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost #/intern/bmfont'
-incs += ' #/intern/elbeem'
+incs += ' #/intern/elbeem #/extern/glew/include'
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), [], libtype=['core','intern'], priority=[45, 45] )

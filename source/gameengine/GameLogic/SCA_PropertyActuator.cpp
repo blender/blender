@@ -42,17 +42,23 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,CValue* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
+SCA_PropertyActuator::SCA_PropertyActuator(SCA_IObject* gameobj,SCA_IObject* sourceObj,const STR_String& propname,const STR_String& expr,int acttype,PyTypeObject* T )
    :	SCA_IActuator(gameobj,T),
 	m_type(acttype),
 	m_propname(propname),
 	m_exprtxt(expr),
 	m_sourceObj(sourceObj)
 {
+	// protect ourselves against someone else deleting the source object
+	// don't protect against ourselves: it would create a dead lock
+	if (m_sourceObj)
+		m_sourceObj->RegisterActuator(this);
 }
 
 SCA_PropertyActuator::~SCA_PropertyActuator()
 {
+	if (m_sourceObj)
+		m_sourceObj->UnregisterActuator(this);
 }
 
 bool SCA_PropertyActuator::Update()
@@ -87,12 +93,11 @@ bool SCA_PropertyActuator::Update()
 				if (oldprop)
 				{
 					oldprop->SetValue(newval);
-					newval->Release();
 				} else
 				{
 					propowner->SetProperty(m_propname,newval);
 				}
-
+				newval->Release();
 				break;
 			}
 		case KX_ACT_PROP_ADD:
@@ -120,9 +125,11 @@ bool SCA_PropertyActuator::Update()
 					CValue* copyprop = m_sourceObj->GetProperty(m_exprtxt);
 					if (copyprop)
 					{
+						CValue *val = copyprop->GetReplica();
 						GetParent()->SetProperty(
 							 m_propname,
-							copyprop->GetReplica());
+							 val);
+						val->Release();
 
 					}
 				}
@@ -173,7 +180,36 @@ GetReplica() {
 
 };
 
+void SCA_PropertyActuator::ProcessReplica()
+{
+	// no need to check for self reference like in the constructor:
+	// the replica will always have a different parent
+	if (m_sourceObj)
+		m_sourceObj->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
 
+bool SCA_PropertyActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == m_sourceObj)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_sourceObj = NULL;
+		return true;
+	}
+	return false;
+}
+
+void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_sourceObj];
+	if (h_obj) {
+		if (m_sourceObj)
+			m_sourceObj->UnregisterActuator(this);
+		m_sourceObj = (SCA_IObject*)(*h_obj);
+		m_sourceObj->RegisterActuator(this);
+	}
+}
 
 
 /* ------------------------------------------------------------------------- */
@@ -209,10 +245,10 @@ PyParentObject SCA_PropertyActuator::Parents[] = {
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
-	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, SetProperty_doc},
-	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, GetProperty_doc},
-	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, SetValue_doc},
-	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, GetValue_doc},
+	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
+	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
+	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
+	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -221,7 +257,7 @@ PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
 }
 
 /* 1. setProperty                                                        */
-char SCA_PropertyActuator::SetProperty_doc[] = 
+const char SCA_PropertyActuator::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSet the property on which to operate. If there is no property\n"
@@ -236,17 +272,18 @@ PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, Py
 
 	CValue* prop = GetParent()->FindIdentifier(nameArg);
 
-	if (prop) {
+	if (!prop->IsError()) {
 		m_propname = nameArg;
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }
 
 /* 2. getProperty                                                        */
-char SCA_PropertyActuator::GetProperty_doc[] = 
+const char SCA_PropertyActuator::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturn the property on which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds)
@@ -255,7 +292,7 @@ PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, Py
 }
 
 /* 3. setValue                                                        */
-char SCA_PropertyActuator::SetValue_doc[] = 
+const char SCA_PropertyActuator::SetValue_doc[] = 
 "setValue(value)\n"
 "\t- value: string\n"
 "\tSet the value with which the actuator operates. If the value\n"
@@ -274,7 +311,7 @@ PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObj
 }
 
 /* 4. getValue                                                        */
-char SCA_PropertyActuator::GetValue_doc[] = 
+const char SCA_PropertyActuator::GetValue_doc[] = 
 "getValue()\n"
 "\tReturns the value with which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds)

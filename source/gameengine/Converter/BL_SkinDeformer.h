@@ -50,56 +50,48 @@ class BL_SkinDeformer : public BL_MeshDeformer
 {
 public:
 //	void SetArmatureController (BL_ArmatureController *cont);
-	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map)
-	{
-		void **h_obj = (*map)[m_armobj];
-		if (h_obj){
-			SetArmature( (BL_ArmatureObject*)(*h_obj) );
-		}
-		else
-			m_armobj=NULL;
-	}
+	virtual void Relink(GEN_Map<class GEN_HashedPtr, void*>*map);
 	void SetArmature (class BL_ArmatureObject *armobj);
 
-	BL_SkinDeformer(struct Object *bmeshobj, 
+	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+					struct Object *bmeshobj, 
 					class BL_SkinMeshObject *mesh,
-					BL_ArmatureObject* arma = NULL)
-					:	//
-						BL_MeshDeformer(bmeshobj, mesh),
-						m_armobj(arma),
-						m_lastUpdate(-1),
-						m_defbase(&bmeshobj->defbase),
-						m_releaseobject(false)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
-	BL_SkinDeformer(struct Object *bmeshobj_old,
+	BL_SkinDeformer(BL_DeformableGameObject *gameobj,
+					struct Object *bmeshobj_old,
 					struct Object *bmeshobj_new,
 					class BL_SkinMeshObject *mesh,
 					bool release_object,
-					BL_ArmatureObject* arma = NULL)
-					:	//
-						BL_MeshDeformer(bmeshobj_old, mesh),
-						m_armobj(arma),
-						m_lastUpdate(-1),
-						m_defbase(&bmeshobj_old->defbase),
-						m_releaseobject(release_object)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	virtual void ProcessReplica();
-	virtual RAS_Deformer *GetReplica();
+	virtual RAS_Deformer *GetReplica(class KX_GameObject* replica);
 	virtual ~BL_SkinDeformer();
-	void Update (void);
+	bool Update (void);
 	bool Apply (class RAS_IPolyMaterial *polymat);
+	bool PoseUpdated(void)
+		{ 
+			if (m_armobj && m_lastArmaUpdate!=m_armobj->GetLastFrame()) {
+				return true;
+			}
+			return false;
+		}
+
+	void ForceUpdate()
+	{
+		m_lastArmaUpdate = -1.0;
+	};
 
 protected:
 	BL_ArmatureObject*		m_armobj;	//	Our parent object
 	float					m_time;
-	double					m_lastUpdate;
+	double					m_lastArmaUpdate;
 	ListBase*				m_defbase;
+	float					m_obmat[4][4];	// the reference matrix for skeleton deform
 	bool					m_releaseobject;
+	bool					m_poseApplied;
 
 };
 

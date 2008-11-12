@@ -61,11 +61,13 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"		
 #include "BKE_colortools.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_ipo.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -78,8 +80,12 @@
 #include "BKE_utildefines.h"
 
 //XXX #include "BIF_previewrender.h"
+//XXX #include "BIF_editseq.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -136,7 +142,10 @@ void free_scene(Scene *sce)
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
+#endif
+	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
@@ -147,8 +156,14 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->r.qtcodecdata);
 		sce->r.qtcodecdata = NULL;
 	}
+	if (sce->r.ffcodecdata.properties) {
+		IDP_FreeProperty(sce->r.ffcodecdata.properties);
+		MEM_freeN(sce->r.ffcodecdata.properties);
+		sce->r.ffcodecdata.properties = NULL;
+	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
@@ -179,6 +194,7 @@ Scene *add_scene(char *name)
 	sce->lay= 1;
 	sce->selectmode= SCE_SELECT_VERTEX;
 	sce->editbutsize= 0.1;
+	sce->autokey_mode= U.autokey_mode;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
@@ -215,6 +231,15 @@ Scene *add_scene(char *name)
 	
 	sce->r.stereomode = 1;  // no stereo
 
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
+
+	sce->r.cineonblack= 95;
+	sce->r.cineonwhite= 685;
+	sce->r.cineongamma= 1.7f;
+	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -234,6 +259,21 @@ Scene *add_scene(char *name)
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
 
+	sce->toolsettings->skgen_resolution = 100;
+	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+	sce->toolsettings->skgen_threshold_external 	= 0.01f;
+	sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+	sce->toolsettings->skgen_length_ratio			= 1.3f;
+	sce->toolsettings->skgen_length_limit			= 1.5f;
+	sce->toolsettings->skgen_correlation_limit		= 0.98f;
+	sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+	sce->toolsettings->skgen_postpro_passes = 1;
+	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_HARMONIC|SKGEN_SUB_CORRELATION|SKGEN_STICK_TO_EMBEDDING;
+	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
 	pset= &sce->toolsettings->particle;
 	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
 	pset->emitterdist= 0.25f;
@@ -252,13 +292,12 @@ Scene *add_scene(char *name)
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
-	strcpy(sce->r.ftype, "//ftype");
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 
 	sculptdata_init(sce);
-	
+
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
@@ -284,6 +323,9 @@ void set_scene_bg(Scene *sce)
 	Group *group;
 	GroupObject *go;
 	int flag;
+	
+	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
+	//XXX clear_last_seq();
 	
 	G.scene= sce;
 	
@@ -330,7 +372,7 @@ void set_scene_bg(Scene *sce)
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 	
 	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -413,6 +455,9 @@ int next_object(int val, Base **base, Object **ob)
 							duplilist= object_duplilist(G.scene, (*base)->object);
 							
 							dupob= duplilist->first;
+
+							if(!dupob)
+								free_object_duplilist(duplilist);
 						}
 					}
 				}
@@ -494,27 +539,23 @@ void scene_select_base(Scene *sce, Base *selbase)
 int scene_check_setscene(Scene *sce)
 {
 	Scene *scene;
+	int a, totscene;
 	
 	if(sce->set==NULL) return 1;
 	
-	/* LIB_DOIT is the free flag to tag library data */
+	totscene= 0;
 	for(scene= G.main->scene.first; scene; scene= scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+		totscene++;
 	
-	scene= sce;
-	while(scene->set) {
-		scene->id.flag |= LIB_DOIT;
-		/* when set has flag set, we got a cycle */
-		if(scene->set->id.flag & LIB_DOIT)
-			break;
-		scene= scene->set;
+	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+		/* more iterations than scenes means we have a cycle */
+		if(a > totscene) {
+			/* the tested scene gets zero'ed, that's typically current scene */
+			sce->set= NULL;
+			return 0;
+		}
 	}
-	
-	if(scene->set) {
-		/* the tested scene gets zero'ed, that's typically current scene */
-		sce->set= NULL;
-		return 0;
-	}
+
 	return 1;
 }
 
@@ -550,9 +591,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
-	
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	
+#ifndef DISABLE_PYTHON
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
+#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);
@@ -587,8 +628,10 @@ void sculptdata_init(Scene *sce)
 
 	sd= &sce->sculptdata;
 
-	if(sd->cumap)
+	if(sd->cumap) {
 		curvemapping_free(sd->cumap);
+		sd->cumap = NULL;
+	}
 
 	memset(sd, 0, sizeof(SculptData));
 
@@ -600,9 +643,9 @@ void sculptdata_init(Scene *sce)
 		sd->grabbrush.strength = sd->layerbrush.strength =
 		sd->flattenbrush.strength = 25;
 	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
-	sd->drawbrush.airbrush = sd->smoothbrush.airbrush =
-		sd->pinchbrush.airbrush = sd->inflatebrush.airbrush =
-		sd->layerbrush.airbrush = sd->flattenbrush.airbrush = 0;
+	sd->drawbrush.flag = sd->smoothbrush.flag =
+		sd->pinchbrush.flag = sd->inflatebrush.flag =
+		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
 	sd->drawbrush.view= 0;
 	sd->brush_type= DRAW_BRUSH;
 	sd->texact= -1;
@@ -656,13 +699,8 @@ void sculptsession_free(Scene *sce)
 		if(ss->mats)
 			MEM_freeN(ss->mats);
 
-		if(ss->propset) {
-			if(ss->propset->texdata)
-				MEM_freeN(ss->propset->texdata);
-			if(ss->propset->num)
-				MEM_freeN(ss->propset->num);
-			MEM_freeN(ss->propset);
-		}
+		if(ss->radialcontrol)
+			MEM_freeN(ss->radialcontrol);
 
 		sculpt_vertexusers_free(ss);
 		if(ss->texcache)
@@ -702,3 +740,38 @@ void sculpt_reset_curve(SculptData *sd)
 
 	curvemapping_changed(sd->cumap, 0);
 }
+
+/* render simplification */
+
+int get_render_subsurf_level(RenderData *r, int lvl)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return MIN2(r->simplify_subsurf, lvl);
+	else
+		return lvl;
+}
+
+int get_render_child_particle_number(RenderData *r, int num)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return (int)(r->simplify_particles*num);
+	else
+		return num;
+}
+
+int get_render_shadow_samples(RenderData *r, int samples)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+		return MIN2(r->simplify_shadowsamples, samples);
+	else
+		return samples;
+}
+
+float get_render_aosss_error(RenderData *r, float error)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
+	else
+		return error;
+}
+

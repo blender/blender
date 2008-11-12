@@ -238,7 +238,7 @@ void BMF_BitmapFont::DrawStringTexture(char *str, float x, float y, float z)
 }
 
 #define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
-void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h)
+void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels)
 {
 	int x, y;
 	
@@ -274,7 +274,9 @@ void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, un
 								pixel[0] = colch[0];
 								pixel[1] = colch[1];
 								pixel[2] = colch[2];
-								pixel[4] = 1; /*colch[3];*/
+								if (channels==4) {
+									pixel[4] = 1; /*colch[3];*/
+								}
 								
 							}
 						}
@@ -307,7 +309,9 @@ void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, un
 								pixel[0] = col[0];
 								pixel[1] = col[1];
 								pixel[2] = col[2];
-								pixel[3] = 1; /*col[3];*/
+								if (channels==4) {
+									pixel[3] = 1; /*col[3];*/
+								}
 							}
 						}
 					}

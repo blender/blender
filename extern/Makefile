@@ -30,7 +30,7 @@ include nan_definitions.mk
 
 SOURCEDIR = extern
 DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid 
+DIRS = qhull/src solid glew/src
 
 ifeq ($(WITH_FREETYPE2), true)
     DIRS += bFTGL/src
@@ -51,6 +51,10 @@ endif
 
 ifneq ($(NAN_NO_KETSJI), true)
     DIRS += bullet2
+endif
+
+ifeq ($(WITH_BINRELOC), true)
+    DIRS += binreloc
 endif
 
 TARGET =

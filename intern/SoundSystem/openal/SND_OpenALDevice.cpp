@@ -294,6 +294,10 @@ SND_OpenALDevice::SND_OpenALDevice()
 		// let openal generate its sources
 		if (alc_error == ALC_NO_ERROR)
 		{
+			int i;
+
+			for (i=0;i<NUM_SOURCES;i++)
+				m_sources[i] = 0;
 			alGenSources(NUM_SOURCES, m_sources);
 			m_sourcesinitialized = true;
 		}
@@ -329,12 +333,6 @@ SND_OpenALDevice::~SND_OpenALDevice()
 {
 	MakeCurrent();
 	
-	if (m_buffersinitialized)
-	{
-		alDeleteBuffers(NUM_BUFFERS, m_buffers);
-		m_buffersinitialized = false;
-	}
-	
 	if (m_sourcesinitialized)
 	{
 		for (int i = 0; i < NUM_SOURCES; i++)
@@ -342,6 +340,12 @@ SND_OpenALDevice::~SND_OpenALDevice()
 		
 		alDeleteSources(NUM_SOURCES, m_sources);
 		m_sourcesinitialized = false;
+	}
+	
+	if (m_buffersinitialized)
+	{
+		alDeleteBuffers(NUM_BUFFERS, m_buffers);
+		m_buffersinitialized = false;
 	}
 	
 	if (m_context) {

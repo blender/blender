@@ -42,10 +42,12 @@
 #define	assertd(exp)			((void)NULL)
 #endif
 
-#include <cstdlib>
-#include <cstring>
 #include <vector>
 #include <limits.h>
+
+#include <cstring>
+#include <cstdlib>
+
 using namespace std;
 
 

@@ -27,9 +27,9 @@
 FILE(GLOB SRC intern/source/*.c)
 
 SET(INC 
-  extern/include ../blenlib ../blenkernel ../makesdna ../include
+  extern/include ../blenlib ../blenkernel ../makesdna ../editors/include
   ../../../intern/guardedalloc ../render/extern/include
-  ../render/intern/include ../editors/include
+  ../render/intern/include ../blenloader ../../../extern/glew/include
 )
 
 BLENDERLIB_NOLIST(blender_radiosity "${SRC}" "${INC}")

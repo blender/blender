@@ -29,8 +29,14 @@
  * $Id$
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include "mmap_win.h"
+#define open _open
+#define read _read
+#define close _close
 #endif
 
 #include "BLI_blenlib.h"
@@ -73,7 +79,7 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined(__hppa__) || defined (__BIG_ENDIAN__)
 #define GET_ID GET_BIG_LONG
 #define LITTLE_LONG SWAP_LONG
 #else
@@ -229,7 +235,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 
 	size = BLI_filesize(file);
 
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	mem= (int *)malloc(size);
 	if (mem==0) {
 		printf("Out of mem\n");

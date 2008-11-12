@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Self Shadow VCols (AO)...'
-Blender: 241
+Blender: 245
 Group: 'VertexPaint'
 Tooltip: 'Generate Fake Ambient Occlusion with vertex colors.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__ = """\
 

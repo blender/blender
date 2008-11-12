@@ -44,6 +44,7 @@ struct bActionChannel;
 struct bPose;
 struct bPoseChannel;
 struct Object;
+struct ID;
 
 /* Kernel prototypes */
 #ifdef __cplusplus
@@ -56,6 +57,11 @@ extern "C" {
  * Does not free the pose itself.
  */
 void free_pose_channels(struct bPose *pose);
+
+/** 
+ * Removes and deallocates all data from a pose, and also frees the pose.
+ */
+void free_pose(struct bPose *pose);
 
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
@@ -152,6 +158,14 @@ void rest_pose(struct bPose *pose);
 float get_action_frame(struct Object *ob, float cframe);
 /* map strip time to global time (frame nr)  */
 float get_action_frame_inv(struct Object *ob, float cframe);
+/* builds a list of NlaIpoChannel with ipo values to write in datablock */
+void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction *act, const char *name, float ctime);
+/* write values returned by extract_ipochannels_from_action, returns the number of value written */
+int execute_ipochannels(ListBase *lb);
+
+/* functions used by the game engine */
+void game_copy_pose(struct bPose **dst, struct bPose *src);
+void game_free_pose(struct bPose *pose);
 
 #ifdef __cplusplus
 };

@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon makesdna python radiosity readblenfile render yafray)
+SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna python radiosity readblenfile render yafray)
 
 IF(WITH_INTERNATIONAL)
   SUBDIRS(ftfont)
@@ -33,6 +33,10 @@ ENDIF(WITH_INTERNATIONAL)
 IF(WITH_OPENEXR)
   SUBDIRS(imbuf/intern/openexr)
 ENDIF(WITH_OPENEXR)
+
+IF(WITH_DDS)
+  SUBDIRS(imbuf/intern/dds)
+ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
   SUBDIRS(quicktime)

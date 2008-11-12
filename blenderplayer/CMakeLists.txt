@@ -32,6 +32,11 @@ IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
+IF(LINUX)
+  ADD_DEFINITIONS(-DWITH_BINRELOC)
+  INCLUDE_DIRECTORIES(${BINRELOC_INC})
+endif(LINUX)
+
 ADD_CUSTOM_COMMAND(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
   COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
@@ -49,6 +54,10 @@ ADD_DEPENDENCIES(blenderplayer makesdna)
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} gp_common gp_ghost blenkernel_blc)
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 IF(UNIX)
   # Sort libraries
@@ -77,10 +86,12 @@ IF(UNIX)
     bf_oglrasterizer 
     bf_expressions 
     bf_scenegraph 
+	bf_IK
     bf_moto 
     bf_soundsystem 
     bf_kernel 
     bf_nodes
+	bf_gpu
     bf_imbuf
     bf_avi 
     kx_network 
@@ -93,11 +104,14 @@ IF(UNIX)
     bf_blenlib 
     bf_cineon 
     bf_openexr 
+    bf_dds
     bf_ftfont 
     extern_ftgl 
     bf_readblenfile 
     blenkernel_blc
     bf_quicktime
+    extern_binreloc
+	extern_glew
   ) 
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

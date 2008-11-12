@@ -61,7 +61,11 @@ all debug::
     export WITH_BF_STATICOPENGL ?= false
     export WITH_BF_BLENDERGAMEENGINE ?= true
     export WITH_BF_BLENDERPLAYER ?= true
-    export WITH_BF_WEBPLUGIN ?= false
+    ifeq ($(NAN_NO_PLUGIN), true)
+        export WITH_BF_WEBPLUGIN = false
+    else
+        export WITH_BF_WEBPLUGIN ?= false
+    endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
 ifeq ($(FREE_WINDOWS), true)
@@ -91,6 +95,7 @@ endif
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
+    export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/gcc/ffmpeg
@@ -135,7 +140,7 @@ endif
 		 	ifeq ($(WITH_OPENEXR), true)
 			NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
 			NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
+			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
 			endif
         else
           ifeq ($(OS), solaris)
@@ -279,7 +284,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 2.5
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr/local
@@ -294,9 +299,9 @@ endif
     export NAN_NSPR ?= /usr/local
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    export NAN_SDL ?= $(shell sdl11-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl11-config --libs)
-    export NAN_SDLCFLAGS ?= $(shell sdl11-config --cflags)
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -413,6 +418,8 @@ endif
     # enable freetype2 support for text objects
     export WITH_FREETYPE2 ?= true
 
+    export WITH_BINRELOC ?= true
+
     # enable ffmpeg support
     ifndef NAN_NO_FFMPEG
 	  export WITH_FFMPEG ?= true
@@ -479,7 +486,7 @@ endif
     export NAN_TIFF ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
-    export NAN_MESA ?= $(LCGDIR)/mesa
+    export NAN_MESA ?= /usr/X11
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype

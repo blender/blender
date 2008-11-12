@@ -52,10 +52,15 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "GPU_draw.h"
+#include "GPU_extensions.h"
+#include "GPU_material.h"
 
 #include <string.h>
 #include <limits.h>
@@ -116,7 +121,7 @@ static void cdDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	memcpy(edge_r, cddm->medge, sizeof(*edge_r) * dm->numEdgeData);
 }
 
-void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
+static void cdDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	memcpy(face_r, cddm->mface, sizeof(*face_r) * dm->numFaceData);
@@ -242,7 +247,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	glEnd();
 }
 
-static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
+static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -270,7 +275,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 		   || new_shademodel != shademodel) {
 			glEnd();
 
-			drawCurrentMat = setMaterial(matnr = new_matnr);
+			drawCurrentMat = setMaterial(matnr = new_matnr, NULL);
 
 			glShadeModel(shademodel = new_shademodel);
 			glBegin(glmode = new_glmode);
@@ -555,6 +560,134 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
+static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	GPUVertexAttribs gattribs;
+	DMVertexAttribs attribs;
+	MVert *mvert = cddm->mvert;
+	MFace *mface = cddm->mface;
+	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
+	float (*nors)[3] = dm->getFaceDataArray(dm, CD_NORMAL);
+	int a, b, dodraw, smoothnormal, matnr, new_matnr;
+	int transp, new_transp, orig_transp;
+	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+
+	matnr = -1;
+	smoothnormal = 0;
+	dodraw = 0;
+	transp = GPU_get_material_blend_mode();
+	orig_transp = transp;
+
+	memset(&attribs, 0, sizeof(attribs));
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_QUADS);
+
+	for(a = 0; a < dm->numFaceData; a++, mface++) {
+		new_matnr = mface->mat_nr + 1;
+
+		if(new_matnr != matnr) {
+			glEnd();
+
+			dodraw = setMaterial(matnr = new_matnr, &gattribs);
+			if(dodraw)
+				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
+
+			glBegin(GL_QUADS);
+		}
+
+		if(!dodraw) {
+			continue;
+		}
+		else if(setDrawOptions) {
+			orig = index[a];
+
+			if(orig == ORIGINDEX_NONE)
+				continue;
+			else if(!setDrawOptions(userData, orig))
+				continue;
+		}
+
+		if(tf) {
+			new_transp = tf[a].transp;
+
+			if(new_transp != transp) {
+				glEnd();
+
+				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
+					GPU_set_material_blend_mode(orig_transp);
+				else
+					GPU_set_material_blend_mode(new_transp);
+				transp = new_transp;
+
+				glBegin(GL_QUADS);
+			}
+		}
+
+		smoothnormal = (mface->flag & ME_SMOOTH);
+
+		if(!smoothnormal) {
+			if(nors) {
+				glNormal3fv(nors[a]);
+			}
+			else {
+				/* TODO ideally a normal layer should always be available */
+				float nor[3];
+				if(mface->v4) {
+					CalcNormFloat4(mvert[mface->v1].co, mvert[mface->v2].co,
+								   mvert[mface->v3].co, mvert[mface->v4].co,
+								   nor);
+				} else {
+					CalcNormFloat(mvert[mface->v1].co, mvert[mface->v2].co,
+								  mvert[mface->v3].co, nor);
+				}
+				glNormal3fv(nor);
+			}
+		}
+
+#define PASSVERT(index, vert) {													\
+	if(attribs.totorco)															\
+		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
+	for(b = 0; b < attribs.tottface; b++) {										\
+		MTFace *tf = &attribs.tface[b].array[a];								\
+		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
+	}																			\
+	for(b = 0; b < attribs.totmcol; b++) {										\
+		MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
+		GLubyte col[4];															\
+		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
+		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
+	}																			\
+	if(attribs.tottang) {														\
+		float *tang = attribs.tang.array[a*4 + vert];							\
+		glVertexAttrib3fvARB(attribs.tang.glIndex, tang);						\
+	}																			\
+	if(smoothnormal)															\
+		glNormal3sv(mvert[index].no);											\
+	glVertex3fv(mvert[index].co);												\
+}
+
+		PASSVERT(mface->v1, 0);
+		PASSVERT(mface->v2, 1);
+		PASSVERT(mface->v3, 2);
+		if(mface->v4)
+			PASSVERT(mface->v4, 3)
+		else
+			PASSVERT(mface->v3, 2)
+
+#undef PASSVERT
+	}
+	glEnd();
+
+	glShadeModel(GL_FLAT);
+}
+
+static void cdDM_drawFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs))
+{
+	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
+}
+
 static void cdDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -712,8 +845,10 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->drawFacesSolid = cdDM_drawFacesSolid;
 	dm->drawFacesColored = cdDM_drawFacesColored;
 	dm->drawFacesTex = cdDM_drawFacesTex;
+	dm->drawFacesGLSL = cdDM_drawFacesGLSL;
 	dm->drawMappedFaces = cdDM_drawMappedFaces;
 	dm->drawMappedFacesTex = cdDM_drawMappedFacesTex;
+	dm->drawMappedFacesGLSL = cdDM_drawMappedFacesGLSL;
 
 	dm->foreachMappedVert = cdDM_foreachMappedVert;
 	dm->foreachMappedEdge = cdDM_foreachMappedEdge;
@@ -731,6 +866,10 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
 
 	DM_init(dm, numVerts, numEdges, numFaces);
 
+	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
+
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
@@ -746,18 +885,26 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
 	DerivedMesh *dm = &cddm->dm;
-	int i, *index;
+	int i, *index, alloctype;
 
-	/* this does a referenced copy, the only new layers being ORIGINDEX */
+	/* this does a referenced copy, the only new layers being ORIGINDEX,
+	 * with an exception for fluidsim */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
+
+	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
+	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
+
 	dm->deformedOnly = 1;
 
-	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, CD_REFERENCE,
+	alloctype= CD_REFERENCE;
+
+	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, alloctype,
 	                 mesh->totvert);
-	CustomData_merge(&mesh->edata, &dm->edgeData, CD_MASK_MESH, CD_REFERENCE,
+	CustomData_merge(&mesh->edata, &dm->edgeData, CD_MASK_MESH, alloctype,
 	                 mesh->totedge);
-	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, CD_REFERENCE,
+	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, alloctype,
 	                 mesh->totface);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
@@ -833,6 +980,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 		mv->no[0] = eve->no[0] * 32767.0;
 		mv->no[1] = eve->no[1] * 32767.0;
 		mv->no[2] = eve->no[2] * 32767.0;
+		mv->bweight = (unsigned char) (eve->bweight * 255.0f);
 
 		mv->mat_nr = 0;
 		mv->flag = 0;
@@ -850,6 +998,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 		med->v1 = eed->v1->tmp.l;
 		med->v2 = eed->v2->tmp.l;
 		med->crease = (unsigned char) (eed->crease * 255.0f);
+		med->bweight = (unsigned char) (eed->bweight * 255.0f);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		
 		if(eed->seam) med->flag |= ME_SEAM;

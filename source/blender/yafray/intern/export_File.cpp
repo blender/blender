@@ -1,6 +1,7 @@
 #include "export_File.h"
 
 #include <math.h>
+
 #include <cstring>
 
 using namespace std;
@@ -95,7 +96,7 @@ static void addDrive(string &path)
 
 static string unixYafrayPath()
 {
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/bin/",
 		"/usr/bin/",
@@ -125,7 +126,7 @@ static void adjustPath(string &path)
 	// if relative, expand to full path
 	char cpath[MAXPATHLEN];
 	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
+	BLI_convertstringcode(cpath, G.sce);
 	path = cpath;
 #ifdef WIN32
 	// add drive char if not there
@@ -880,7 +881,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				ostr << "\t\t<input value=\"" << shader_name << "_map" << m2 << "\" />\n";
 
 			// blendtype, would have been nice if the order would have been the same as for ramps...
-			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			const string blendtype[MTEX_NUM_BLENDTYPES] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen", "hue", "sat", "val", "color"};
 			ostr << "\t\t<mode value=\"" << blendtype[(int)mtex->blendtype] << "\" />\n";
 
 			// texture color (for use with MUL and/or no_rgb etc..)
@@ -1189,7 +1190,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 }
 
 
-void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
+void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	ostr.str("");
 	// transform first (not necessarily actual obj->obmat, can be duplivert see below)
@@ -1231,7 +1232,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		ObjectRen *obr = face0->obr;
 		MTFace* tface = RE_vlakren_get_tface(obr, face0, obr->actmtface, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
@@ -1409,7 +1409,6 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 				fci2!=VLR_list.end();++fci2)
 	{
 		VlakRen* vlr = *fci2;
-		ObjectRen *obr = vlr->obr;
 		Material* fmat = vlr->mat;
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		string fmatname(fmat->id.name);
@@ -1511,13 +1510,13 @@ void yafrayFileRender_t::writeAllObjects()
 {
 
 	// first all objects except dupliverts (and main instance object for dups)
-	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
+	for (map<Object*, yafrayObjectRen >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
 		// skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obj->obmat);
+		writeObject(obj, obi->second.obr, obi->second.faces, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1537,7 +1536,7 @@ void yafrayFileRender_t::writeAllObjects()
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
-		writeObject(obj, all_objects[obj], obmat);
+		writeObject(obj, all_objects[obj].obr, all_objects[obj].faces, obmat);
 
 		// all others instances of first
 		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices
@@ -2018,7 +2017,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	ostr.str("");
 	if (re->r.mode & R_BORDER) {
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs
+		ostr << command_path << "yafray -c " << re->r.threads
 		     << " -r " << (2.f*re->r.border.xmin - 1.f)
 		     << ":"    << (2.f*re->r.border.xmax - 1.f)
 		     << ":"    << (2.f*re->r.border.ymin - 1.f)
@@ -2026,7 +2025,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 		     << " \"" << xmlpath << "\"";
 	}
 	else
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs << " \"" << xmlpath << "\"";
+		ostr << command_path << "yafray -c " << re->r.threads << " \"" << xmlpath << "\"";
 	
 	string command = ostr.str();
 	cout << "COMMAND: " << command << endl;

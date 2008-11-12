@@ -1,0 +1,12 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import('env')
+
+sources = ['src/glew.c']
+
+defs = ''
+incs = 'include'
+
+env.BlenderLib ( 'extern_glew', sources, Split(incs), Split(defs), libtype=['blender', 'player'], priority=[50, 50])

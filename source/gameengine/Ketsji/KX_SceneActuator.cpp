@@ -58,13 +58,16 @@ KX_SceneActuator::KX_SceneActuator(SCA_IObject *gameobj,
 	m_KetsjiEngine=ketsjiEngine;
 	m_camera = camera;
 	m_nextSceneName = nextSceneName;
+	if (m_camera)
+		m_camera->RegisterActuator(this);
 } /* End of constructor */
 
 
 
 KX_SceneActuator::~KX_SceneActuator()
 { 
-	// there's nothing to be done here, really....
+	if (m_camera)
+		m_camera->UnregisterActuator(this);
 } /* end of destructor */
 
 
@@ -79,6 +82,34 @@ CValue* KX_SceneActuator::GetReplica()
 	return replica;
 }
 
+void KX_SceneActuator::ProcessReplica()
+{
+	if (m_camera)
+		m_camera->RegisterActuator(this);
+	SCA_IActuator::ProcessReplica();
+}
+
+bool KX_SceneActuator::UnlinkObject(SCA_IObject* clientobj)
+{
+	if (clientobj == (SCA_IObject*)m_camera)
+	{
+		// this object is being deleted, we cannot continue to track it.
+		m_camera = NULL;
+		return true;
+	}
+	return false;
+}
+
+void KX_SceneActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
+{
+	void **h_obj = (*obj_map)[m_camera];
+	if (h_obj) {
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
+		m_camera = (KX_Camera*)(*h_obj);
+		m_camera->RegisterActuator(this);
+	}
+}
 
 
 bool KX_SceneActuator::Update()
@@ -101,6 +132,15 @@ bool KX_SceneActuator::Update()
 		if (m_camera)
 		{
 			m_scene->SetActiveCamera(m_camera);
+		}
+		else
+		{
+			// if no camera is set and the parent object is a camera, use it as the camera
+			SCA_IObject* parent = GetParent();
+			if (parent->isA(&KX_Camera::Type))
+			{
+				m_scene->SetActiveCamera((KX_Camera*)parent);
+			}
 		}
 		break;
 	default:
@@ -219,12 +259,12 @@ PyParentObject KX_SceneActuator::Parents[] =
 
 PyMethodDef KX_SceneActuator::Methods[] =
 {
-	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, SetUseRestart_doc},
-	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, SetScene_doc},
-	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, SetCamera_doc},
-	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, GetUseRestart_doc},
-	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, GetScene_doc},
-	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, GetCamera_doc},
+	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
+	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
+	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_VARARGS, (PY_METHODCHAR)SetCamera_doc},
+	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_VARARGS, (PY_METHODCHAR)GetUseRestart_doc},
+	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_VARARGS, (PY_METHODCHAR)GetScene_doc},
+	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_VARARGS, (PY_METHODCHAR)GetCamera_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -238,7 +278,7 @@ PyObject* KX_SceneActuator::_getattr(const STR_String& attr)
 
 
 /* 2. setUseRestart--------------------------------------------------------- */
-char KX_SceneActuator::SetUseRestart_doc[] = 
+const char KX_SceneActuator::SetUseRestart_doc[] = 
 "setUseRestart(flag)\n"
 "\t- flag: 0 or 1.\n"
 "\tSet flag to 1 to restart the scene.\n" ;
@@ -261,7 +301,7 @@ PyObject* KX_SceneActuator::PySetUseRestart(PyObject* self,
 
 
 /* 3. getUseRestart:                                                         */
-char KX_SceneActuator::GetUseRestart_doc[] = 
+const char KX_SceneActuator::GetUseRestart_doc[] = 
 "getUseRestart()\n"
 "\tReturn whether the scene will be restarted.\n" ;
 PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self, 
@@ -274,7 +314,7 @@ PyObject* KX_SceneActuator::PyGetUseRestart(PyObject* self,
 
 
 /* 4. set scene------------------------------------------------------------- */
-char KX_SceneActuator::SetScene_doc[] = 
+const char KX_SceneActuator::SetScene_doc[] = 
 "setScene(scene)\n"
 "\t- scene: string\n"
 "\tSet the name of scene the actuator will switch to.\n" ;
@@ -299,7 +339,7 @@ PyObject* KX_SceneActuator::PySetScene(PyObject* self,
 
 
 /* 5. getScene:                                                              */
-char KX_SceneActuator::GetScene_doc[] = 
+const char KX_SceneActuator::GetScene_doc[] = 
 "getScene()\n"
 "\tReturn the name of the scene the actuator wants to switch to.\n" ;
 PyObject* KX_SceneActuator::PyGetScene(PyObject* self, 
@@ -312,7 +352,7 @@ PyObject* KX_SceneActuator::PyGetScene(PyObject* self,
 
 
 /* 6. set camera------------------------------------------------------------ */
-char KX_SceneActuator::SetCamera_doc[] = 
+const char KX_SceneActuator::SetCamera_doc[] = 
 "setCamera(camera)\n"
 "\t- camera: string\n"
 "\tSet the camera to switch to.\n" ;
@@ -323,7 +363,11 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 	PyObject *cam;
 	if (PyArg_ParseTuple(args, "O!", &KX_Camera::Type, &cam))
 	{
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
 		m_camera = (KX_Camera*) cam;
+		if (m_camera)
+			m_camera->RegisterActuator(this);
 		Py_Return;
 	}
 	PyErr_Clear();
@@ -336,7 +380,13 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 	}
 
 	KX_Camera *camOb = FindCamera(camName);
-	if (camOb) m_camera = camOb;
+	if (camOb) 
+	{
+		if (m_camera)
+			m_camera->UnregisterActuator(this);
+		m_camera = camOb;
+		m_camera->RegisterActuator(this);
+	}
 
 	Py_Return;
 }
@@ -344,7 +394,7 @@ PyObject* KX_SceneActuator::PySetCamera(PyObject* self,
 
 
 /* 7. getCamera:                                                             */
-char KX_SceneActuator::GetCamera_doc[] = 
+const char KX_SceneActuator::GetCamera_doc[] = 
 "getCamera()\n"
 "\tReturn the name of the camera to switch to.\n" ;
 PyObject* KX_SceneActuator::PyGetCamera(PyObject* self, 

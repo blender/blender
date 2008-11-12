@@ -106,6 +106,12 @@ try:
 except:
 	struct= chunk= cStringIO= None
 
+# python 2.3 has no reversed() iterator. this will only work on lists and tuples
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
 ### # Debuggin disabled in release.
 ### # do a search replace to enabe debug prints
 ### DEBUG = False
@@ -656,7 +662,12 @@ def read_clip(lwochunk, dir_part):
 # ima, IMAG, g_IMAG refers to clip dictionary 'ID' entries: refer to blok and surf
 	clip_dict = {}
 	data = cStringIO.StringIO(lwochunk.read())
-	image_index, = struct.unpack(">L", data.read(4))
+	data_str = data.read(4)
+	if len(data_str) < 4: # can be zero also??? :/
+		# Should not happen but lw can import so we should too
+		return 
+	
+	image_index, = struct.unpack(">L", data_str)
 	clip_dict['ID'] = image_index
 	i = 4
 	while(i < lwochunk.chunksize):
@@ -1634,10 +1645,10 @@ def main():
 		return
 	
 	Blender.Window.FileSelector(read, "Import LWO", '*.lwo')
-	
 
 if __name__=='__main__':
 	main()
+
 
 # Cams debugging lwo loader
 """

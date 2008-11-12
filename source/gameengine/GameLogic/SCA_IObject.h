@@ -55,6 +55,7 @@ protected:
 	SCA_SensorList         m_sensors;
 	SCA_ControllerList     m_controllers;
 	SCA_ActuatorList       m_actuators;
+	SCA_ActuatorList       m_registeredActuators;	// actuators that use a pointer to this object
 	static class MT_Point3 m_sDummy;
 
 	/**
@@ -66,7 +67,17 @@ protected:
 	 * Ignore updates?
 	 */
 	bool m_suspended;
-	
+
+	/**
+	 * init state of object (used when object is created)
+	 */
+	unsigned int			m_initState;
+
+	/**
+	 * current state = bit mask of state that are active
+	 */
+	unsigned int			m_state;
+
 public:
 	
 	SCA_IObject(PyTypeObject* T=&Type);
@@ -79,6 +90,8 @@ public:
 	void AddSensor(SCA_ISensor* act);
 	void AddController(SCA_IController* act);
 	void AddActuator(SCA_IActuator* act);
+	void RegisterActuator(SCA_IActuator* act);
+	void UnregisterActuator(SCA_IActuator* act);
 	
 	SCA_ISensor* FindSensor(const STR_String& sensorname);
 	SCA_IActuator* FindActuator(const STR_String& actuatorname);
@@ -108,7 +121,27 @@ public:
 	 * Resume progress
 	 */
 	void Resume(void);
-	
+
+	/**
+	 * Set init state
+	 */
+	void SetInitState(unsigned int initState) { m_initState = initState; }
+
+	/**
+	 * initialize the state when object is created
+	 */
+	void ResetState(void) { SetState(m_initState); }
+
+	/**
+	 * Set the object state
+	 */
+	void SetState(unsigned int state);
+
+	/**
+	 * Get the object state
+	 */
+	unsigned int GetState(void)	{ return m_state; }
+
 //	const class MT_Point3&	ConvertPythonPylist(PyObject* pylist);
 	
 	// here come the python forwarded methods
@@ -117,7 +150,7 @@ public:
 	virtual int GetGameObjectType() {return -1;}
 	
 	typedef enum ObjectTypes {
-		OBJ_ARMATURE=0
+		OBJ_ARMATURE=0,
 	}ObjectTypes;
 
 };

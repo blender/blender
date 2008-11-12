@@ -36,7 +36,7 @@
 
 #include <iostream>
 #include <windows.h>
-#include <gl/gl.h>
+//#include <gl/gl.h>
 
 #include "GPC_Canvas.h"
 

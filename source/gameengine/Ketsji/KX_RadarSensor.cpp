@@ -71,7 +71,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 	//sumoObj->setClientObject(&m_client_info);
 }
 			
-
 KX_RadarSensor::~KX_RadarSensor()
 {
 	
@@ -81,10 +80,7 @@ CValue* KX_RadarSensor::GetReplica()
 {
 	KX_RadarSensor* replica = new KX_RadarSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	
@@ -93,6 +89,10 @@ CValue* KX_RadarSensor::GetReplica()
 	if (replica->m_physCtrl)
 	{
 		replica->m_physCtrl = replica->m_physCtrl->GetReplica();
+		if (replica->m_physCtrl)
+		{
+			replica->m_physCtrl->setNewClientInfo(replica->m_client_info);
+		}
 	}
 
 	//todo: make sure replication works fine!
@@ -124,23 +124,44 @@ void KX_RadarSensor::SynchronizeTransform()
 	// depends on the radar 'axis'
 	switch (m_axis)
 	{
-	case 0: // X Axis
+	case 0: // +X Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 1: // Y Axis
+	case 1: // +Y Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
 		};
-	case 2: // Z Axis
+	case 2: // +Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
+			trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			break;
+		};
+	case 3: // -X Axis
+		{
+			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(-90));
+			trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			break;
+		};
+	case 4: // -Y Axis
+		{
+			//MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
+			//trans.rotate(rotquatje);
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			break;
+		};
+	case 5: // -Z Axis
+		{
+			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(90));
 			trans.rotate(rotquatje);
 			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
 			break;
@@ -155,8 +176,10 @@ void KX_RadarSensor::SynchronizeTransform()
 
 	if (m_physCtrl)
 	{
-		m_physCtrl->setPosition(trans.getOrigin().x(),trans.getOrigin().y(),trans.getOrigin().z());
-		m_physCtrl->setOrientation(trans.getRotation().x(),trans.getRotation().y(),trans.getRotation().z(),trans.getRotation().w());
+		MT_Quaternion orn = trans.getRotation();
+		MT_Point3 pos = trans.getOrigin();
+		m_physCtrl->setPosition(pos[0],pos[1],pos[2]);
+		m_physCtrl->setOrientation(orn[0],orn[1],orn[2],orn[3]);
 		m_physCtrl->calcXform();
 	}
 
@@ -198,11 +221,11 @@ PyParentObject KX_RadarSensor::Parents[] = {
 
 PyMethodDef KX_RadarSensor::Methods[] = {
 	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, GetConeOrigin_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
 	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, GetConeTarget_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
 	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, GetConeHeight_doc},
+	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
@@ -211,7 +234,7 @@ PyObject* KX_RadarSensor::_getattr(const STR_String& attr) {
 }
 
 /* getConeOrigin */
-char KX_RadarSensor::GetConeOrigin_doc[] = 
+const char KX_RadarSensor::GetConeOrigin_doc[] = 
 "getConeOrigin()\n"
 "\tReturns the origin of the cone with which to test. The origin\n"
 "\tis in the middle of the cone.";
@@ -228,7 +251,7 @@ PyObject* KX_RadarSensor::PyGetConeOrigin(PyObject* self,
 }
 
 /* getConeOrigin */
-char KX_RadarSensor::GetConeTarget_doc[] = 
+const char KX_RadarSensor::GetConeTarget_doc[] = 
 "getConeTarget()\n"
 "\tReturns the center of the bottom face of the cone with which to test.\n";
 PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self, 
@@ -244,7 +267,7 @@ PyObject* KX_RadarSensor::PyGetConeTarget(PyObject* self,
 }
 
 /* getConeOrigin */
-char KX_RadarSensor::GetConeHeight_doc[] = 
+const char KX_RadarSensor::GetConeHeight_doc[] = 
 "getConeHeight()\n"
 "\tReturns the height of the cone with which to test.\n";
 PyObject* KX_RadarSensor::PyGetConeHeight(PyObject* self, 

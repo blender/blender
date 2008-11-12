@@ -46,9 +46,6 @@ void	BL_HideMouse();
 void	BL_NormalMouse();
 void	BL_WaitMouse();
 
-void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface,
-				   unsigned int *col,float v1[3],float v2[3],float v3[3],float v4[3]);
-
 void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height);
 void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int height);
 

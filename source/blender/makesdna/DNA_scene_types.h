@@ -98,6 +98,7 @@ typedef struct FFMpegCodecData {
 	int rc_buffer_size;
 	int mux_packet_size;
 	int mux_rate;
+	IDProperty *properties;
 } FFMpegCodecData;
 
 
@@ -117,7 +118,11 @@ typedef struct SceneRenderLayer {
 	struct Group *light_override;
 	
 	unsigned int lay;		/* scene->lay itself has priority over this */
+	unsigned int lay_zmask;	/* has to be after lay, this is for Z-masking */
 	int layflag;
+	
+	int pad;
+	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
 } SceneRenderLayer;
@@ -131,9 +136,11 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_STRAND	32
 	/* flags between 32 and 0x8000 are set to 1 already, for future options */
 
-#define SCE_LAY_ALL_Z	0x8000
-#define SCE_LAY_XOR		0x10000
-#define SCE_LAY_DISABLE	0x20000
+#define SCE_LAY_ALL_Z		0x8000
+#define SCE_LAY_XOR			0x10000
+#define SCE_LAY_DISABLE		0x20000
+#define SCE_LAY_ZMASK		0x40000
+#define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
 #define SCE_PASS_COMBINED	1
@@ -150,6 +157,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_INDEXOB	2048
 #define SCE_PASS_UV			4096
 #define SCE_PASS_RADIO		8192
+#define SCE_PASS_MIST		16384
+
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
 
@@ -191,14 +200,6 @@ typedef struct RenderData {
 	 */
 	short ysch;
 	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction
-	 */
-	short yasp;
-	/**
 	 * The number of part to use in the x direction
 	 */
 	short xparts;
@@ -214,10 +215,12 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
+	short rpad, rpad1, rpad2;
+
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
 	 */
-	short scemode;
+	int scemode;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -225,7 +228,7 @@ typedef struct RenderData {
 	int mode;
 
 	/* render engine, octree resolution */
-	short renderer, ocres, rpad[2];
+	short renderer, ocres;
 
 	/**
 	 * What to do with the sky/background. Picks sky/premul/key
@@ -247,6 +250,15 @@ typedef struct RenderData {
 	/* information on different layers to be rendered */
 	ListBase layers;
 	short actlay, pad;
+	
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float xasp;
+	/**
+	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
+	 */
+	float yasp;
 
 	float frs_sec_base;
 	
@@ -262,8 +274,8 @@ typedef struct RenderData {
 	
 	/* Bake Render options */
 	short bake_osa, bake_filter, bake_mode, bake_flag;
-	short bake_normal_space, bpad;
-	float bake_maxdist;
+	short bake_normal_space, bake_quad_split;
+	float bake_maxdist, bake_biasdist, bake_pad;
 	
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
@@ -271,12 +283,12 @@ typedef struct RenderData {
 	int GIdepth, GIcausdepth, GIpixelspersample;
 	int GIphotoncount, GImixphotons;
 	float GIphotonradius;
-	int YF_numprocs, YF_raydepth, YF_AApasses, YF_AAsamples;
+	int YF_raydepth, YF_AApasses, YF_AAsamples, yfpad2;
 	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
 	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
 	/* paths to backbufffer, output, ftype */
-	char backbuf[160], pic[160], ftype[160];
+	char backbuf[160], pic[160];
 
 	/* stamps flags. */
 	int stamp;
@@ -288,8 +300,31 @@ typedef struct RenderData {
 	/* foreground/background color. */
 	float fg_stamp[4];
 	float bg_stamp[4];
+
+	/* render simplify */
+	int simplify_subsurf;
+	int simplify_shadowsamples;
+	float simplify_particles;
+	float simplify_aosss;
+
+	/* cineon */
+	short cineonwhite, cineonblack;
+	float cineongamma;
 } RenderData;
 
+/* control render convert and shading engine */
+typedef struct RenderProfile {
+	struct RenderProfile *next, *prev;
+	char name[32];
+	
+	short particle_perc;
+	short subsurf_max;
+	short shadbufsample_max;
+	short pad1;
+	
+	float ao_error, pad2;
+	
+} RenderProfile;
 
 typedef struct GameFraming {
 	float col[3];
@@ -314,7 +349,7 @@ typedef struct ImagePaintSettings {
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
-	short size, strength;	/* commong settings */
+	short size, strength;	/* common settings */
 	short step, invert;		/* for specific brushes only */
 } ParticleBrushData;
 
@@ -329,6 +364,12 @@ typedef struct ParticleEditSettings {
 	float emitterdist;
 	int draw_timed;
 } ParticleEditSettings;
+
+typedef struct TransformOrientation {
+	struct TransformOrientation *next, *prev;
+	char name[36];
+	float mat[3][3];
+} TransformOrientation;
 
 typedef struct ToolSettings {
 	/* Subdivide Settings */
@@ -363,7 +404,7 @@ typedef struct ToolSettings {
 	/* Auto-IK */
 	short autoik_chainlen;
 
-	/* Image Paint (8 byte aligned please!) */
+	/* Image Paint (8 byttse aligned please!) */
 	struct ImagePaintSettings imapaint;
 
 	/* Particle Editing */
@@ -392,12 +433,20 @@ typedef struct ToolSettings {
 	float skgen_angle_limit;
 	float skgen_correlation_limit;
 	float skgen_symmetry_limit;
+	float skgen_retarget_angle_weight;
+	float skgen_retarget_length_weight;
+	float skgen_retarget_distance_weight;
 	short skgen_options;
 	char  skgen_postpro;
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
+	char  skgen_multi_level;
+	char  skgen_optimisation_method;
 	
-	char pad3[5];
+	char tpad[6];
+	
+	/* Alt+RMB option */
+	char edge_mode;
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -407,25 +456,31 @@ typedef struct BrushData
 {
 	short size;
 	char strength, dir; /* Not used for smooth brush */
-	char airbrush;
 	char view;
+	char flag;
 	char pad[2];
 } BrushData;
 
 struct SculptSession;
 typedef struct SculptData
 {
+	/* Note! all pointers in this struct must be duplicated header_info.c's copy_scene function */
+	
 	/* Data stored only from entering sculptmode until exiting sculptmode */
 	struct SculptSession *session;
 
 	/* Pointers to all of sculptmodes's textures */
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];
 
 	/* Editable brush shape */
 	struct CurveMapping *cumap;
 
 	/* Settings for each brush */
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush, flattenbrush;
+
+	/* For rotating around a pivot point */
+	float pivot[3];
+
 	short brush_type;
 
 	/* For the Brush Shape */
@@ -444,10 +499,11 @@ typedef struct SculptData
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
 	char symm;
-	
+
 	/* Added to store if the 'Rake' setting has been set */
 	char rake;
-	char pad[7];
+	char axislock;
+	char pad[2];
 } SculptData;
 
 typedef struct Scene {
@@ -470,7 +526,9 @@ typedef struct Scene {
 	float editbutsize;                      /* size of normals */
 	short selectmode;						/* for mesh only! */
 	short proportional, prop_mode;
-	short automerge, pad5, pad6, pad7;
+	short automerge, pad5, pad6;
+	
+	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h */
 	
 	short use_nodes;
 	
@@ -491,9 +549,10 @@ typedef struct Scene {
 	ScriptLink scriptlink;
 	
 	ListBase markers;
+	ListBase transform_spaces;
 	
-	short jumpframe, pad1;
-	short snap_flag, snap_target;
+	short jumpframe;
+	short snap_mode, snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -502,6 +561,10 @@ typedef struct Scene {
 
 	/* Sculptmode data */
 	struct SculptData sculptdata;
+
+	/* frame step. */
+	int frame_step;
+	int pad;
 } Scene;
 
 
@@ -535,10 +598,17 @@ typedef struct Scene {
 #define R_GAUSS      	0x20000
 		/* fbuf obsolete... */
 #define R_FBUF			0x40000
-		/* threads obsolete... is there for old files */
+		/* threads obsolete... is there for old files, now use for autodetect threads */
 #define R_THREADS		0x80000
+		/* Use the same flag for autothreads */
+#define R_FIXED_THREADS		0x80000 
+
 #define R_SPEED			0x100000
 #define R_SSS			0x200000
+#define R_NO_OVERWRITE	0x400000 /* skip existing files */
+#define R_TOUCH			0x800000 /* touch files before rendering */
+#define R_SIMPLIFY		0x1000000
+
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -554,7 +624,7 @@ typedef struct Scene {
 #define R_INTERN	0
 #define R_YAFRAY	1
 
-/* scemode */
+/* scemode (int now) */
 #define R_DOSEQ				0x0001
 #define R_BG_RENDER			0x0002
 		/* passepartout is camera option now, keep this for backward compatibility */
@@ -569,8 +639,10 @@ typedef struct Scene {
 #define R_EXR_TILE_FILE		0x0400
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
-#define R_NO_TEX		0x2000
+#define R_NO_TEX			0x2000
 #define R_STAMP_INFO		0x4000
+#define R_FULL_SAMPLE		0x8000
+#define R_COMP_RERENDER		0x10000
 
 /* r->stamp */
 #define R_STAMP_TIME 	0x0001
@@ -598,7 +670,7 @@ typedef struct Scene {
 #define R_TARGA		0
 #define R_IRIS		1
 #define R_HAMX		2
-#define R_FTYPE		3
+#define R_FTYPE		3 /* ftype is nomore */
 #define R_JPEG90	4
 #define R_MOVIE		5
 #define R_IRIZ		7
@@ -623,12 +695,15 @@ typedef struct Scene {
 #define R_OPENEXR_HALF	1
 #define R_OPENEXR_ZBUF	2
 #define R_PREVIEW_JPG	4
+#define R_CINEON_LOG 	8
+#define R_TIFF_16BIT	16
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
 #define R_BAKE_CLEAR		1
 #define R_BAKE_OSA			2
 #define R_BAKE_TO_ACTIVE	4
+#define R_BAKE_NORMALIZE	8
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0
@@ -672,10 +747,16 @@ typedef struct Scene {
 
 /* scene->snap_flag */
 #define SCE_SNAP				1
+#define SCE_SNAP_ROTATE			2
 /* scene->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
+#define SCE_SNAP_TARGET_ACTIVE	3
+/* scene->snap_mode */
+#define SCE_SNAP_MODE_VERTEX	0
+#define SCE_SNAP_MODE_EDGE		1
+#define SCE_SNAP_MODE_FACE		2
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
@@ -713,6 +794,9 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
+/* Sculpt brush flags */
+#define SCULPT_BRUSH_AIRBRUSH 1
+#define SCULPT_BRUSH_ANCHORED 2
 /* SculptData.flags */
 #define SCULPT_INPUT_SMOOTH 1
 #define SCULPT_DRAW_FAST    2
@@ -734,10 +818,26 @@ typedef struct Scene {
 #define SYMM_Y 2
 #define SYMM_Z 4
 
+#define AXISLOCK_X 1
+#define AXISLOCK_Y 2
+#define AXISLOCK_Z 4
+
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* toolsettings->uvcalc_flag */
+#define UVCALC_FILLHOLES			1
+#define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
+#define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
+
+/* toolsettings->edge_mode */
+#define EDGE_MODE_SELECT				0
+#define EDGE_MODE_TAG_SEAM				1
+#define EDGE_MODE_TAG_SHARP				2
+#define EDGE_MODE_TAG_CREASE			3
+#define EDGE_MODE_TAG_BEVEL				4
 
 /* toolsettings->particle flag */
 #define PE_KEEP_LENGTHS			1
@@ -771,12 +871,21 @@ typedef struct Scene {
 #define RETOPO_ELLIPSE 4
 
 /* toolsettings->skgen_options */
-#define SKGEN_FILTER_INTERNAL	1
-#define SKGEN_FILTER_EXTERNAL	2
-#define	SKGEN_SYMMETRY			4
-#define	SKGEN_CUT_LENGTH		8
-#define	SKGEN_CUT_ANGLE			16
-#define	SKGEN_CUT_CORRELATION	32
+#define SKGEN_FILTER_INTERNAL	(1 << 0)
+#define SKGEN_FILTER_EXTERNAL	(1 << 1)
+#define	SKGEN_SYMMETRY			(1 << 2)
+#define	SKGEN_CUT_LENGTH		(1 << 3)
+#define	SKGEN_CUT_ANGLE			(1 << 4)
+#define	SKGEN_CUT_CORRELATION	(1 << 5)
+#define	SKGEN_HARMONIC			(1 << 6)
+#define	SKGEN_STICK_TO_EMBEDDING	(1 << 7)
+#define	SKGEN_ADAPTIVE_DISTANCE		(1 << 8)
+#define SKGEN_FILTER_SMART		(1 << 9)
+#define SKGEN_DISP_LENGTH		(1 << 10)
+#define SKGEN_DISP_WEIGHT		(1 << 11)
+#define SKGEN_DISP_ORIG			(1 << 12)
+#define SKGEN_DISP_EMBED		(1 << 13)
+#define SKGEN_DISP_INDEX		(1 << 14)
 
 #define	SKGEN_SUB_LENGTH		0
 #define	SKGEN_SUB_ANGLE			1

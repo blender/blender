@@ -40,8 +40,9 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
-#include "BLI_rand.h"
+#include "BLI_blenlib.h"
 #include "BLI_jitter.h"
+#include "BLI_rand.h"
 
 #include "PIL_time.h"
 
@@ -77,15 +78,21 @@ static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, f
 	*v4 = (vlr->v4)? vlr->v4->co: NULL;
 }
 
-static int vlr_check_intersect(Isect *is, RayFace *face)
+static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 {
+	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
 	VlakRen *vlr = (VlakRen*)face;
+
+	/* for baking selected to active non-traceable materials might still
+	 * be in the raytree */
+	if(!(vlr->mat->mode & MA_TRACEBLE))
+		return 0;
 
 	/* I know... cpu cycle waste, might do smarter once */
 	if(is->mode==RE_RAY_MIRROR)
 		return !(vlr->mat->mode & MA_ONLYCAST);
 	else
-		return (is->lay & vlr->lay);
+		return (is->lay & obi->lay);
 }
 
 static float *vlr_get_transform(void *userdata, int i)
@@ -110,7 +117,7 @@ void makeraytree(Render *re)
 	VlakRen *vlr= NULL;
 	float min[3], max[3], co1[3], co2[3], co3[3], co4[3];
 	double lasttime= PIL_check_seconds_timer();
-	int v, totface = 0;
+	int v, totv = 0, totface = 0;
 
 	INIT_MINMAX(min, max);
 
@@ -124,7 +131,8 @@ void makeraytree(Render *re)
 		for(v=0;v<obr->totvlak;v++) {
 			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
 			else vlr++;
-			if(vlr->mat->mode & MA_TRACEBLE) {	
+			/* baking selected to active needs non-traceable too */
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
 				if((vlr->mat->mode & MA_WIRE)==0) {	
 					VECCOPY(co1, vlr->v1->co);
 					VECCOPY(co2, vlr->v2->co);
@@ -167,7 +175,7 @@ void makeraytree(Render *re)
 		if(re->excludeob && obr->ob == re->excludeob)
 			continue;
 
-		for(v=0; v<obr->totvlak; v++) {
+		for(v=0; v<obr->totvlak; v++, totv++) {
 			if((v & 255)==0) {
 				double time= PIL_check_seconds_timer();
 
@@ -176,7 +184,7 @@ void makeraytree(Render *re)
 					break;
 				if(time-lasttime>1.0f) {
 					char str[32];
-					sprintf(str, "Filling Octree: %d", v);
+					sprintf(str, "Filling Octree: %d", totv);
 					re->i.infostr= str;
 					re->stats_draw(&re->i);
 					re->i.infostr= NULL;
@@ -185,7 +193,7 @@ void makeraytree(Render *re)
 			}
 			else vlr++;
 			
-			if(vlr->mat->mode & MA_TRACEBLE)
+			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE))
 				if((vlr->mat->mode & MA_WIRE)==0)
 					RE_ray_tree_add_face(re->raytree, RAY_OBJECT_SET(re, obi), vlr);
 		}
@@ -255,7 +263,12 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shade_input_set_shade_texco(shi);
 	
 	if(is->mode==RE_RAY_SHADOW_TRA) 
-		shade_color(shi, shr);
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_color(shi, shr);
 	else {
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
@@ -376,7 +389,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 
 static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *shi, ShadeResult *shr, Isect *isec, float *vec)
 {
-	/* un-intersected rays get either rendered material colour or sky colour */
+	/* un-intersected rays get either rendered material color or sky color */
 	if (origshi->mat->fadeto_mir == MA_RAYMIR_FADETOMAT) {
 		VECCOPY(col, shr->combined);
 	} else if (origshi->mat->fadeto_mir == MA_RAYMIR_FADETOSKY) {
@@ -384,12 +397,13 @@ static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *sh
 		Normalize(shi->view);
 		
 		shadeSkyView(col, isec->start, shi->view, NULL);
+		shadeSunView(col, shi->view);
 	}
 }
 
 static void ray_fadeout(Isect *is, ShadeInput *shi, float *col, float *blendcol, float dist_mir)
 {
-	/* if fading out, linear blend against fade colour */
+	/* if fading out, linear blend against fade color */
 	float blendfac;
 
 	blendfac = 1.0 - VecLenf(shi->co, is->start)/dist_mir;
@@ -409,6 +423,11 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	float ref[3], maxsize=RE_ray_tree_max_size(R.raytree);
 	float dist_mir = origshi->mat->dist_mir;
 
+	/* Warning, This is not that nice, and possibly a bit slow for every ray,
+	however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	/* end warning! - Campbell */
+	
 	VECCOPY(isec.start, start);
 	if (dist_mir > 0.0) {
 		isec.end[0]= start[0]+dist_mir*vec[0];
@@ -430,13 +449,13 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		shi.osatex= origshi->osatex;
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
-		shi.sample= 0;
+		//shi.sample= 0; // memset above, so dont need this
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
 		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
 		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-		shi.do_preview= 0;
+		//shi.do_preview= 0; // memset above, so dont need this
 		shi.light_override= origshi->light_override;
 		shi.mat_override= origshi->mat_override;
 		
@@ -531,8 +550,8 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 			if (dist_mir > 0.0) {
 				float blendcol[3];
 				
-				/* max ray distance set, but found an intersection, so fade this colour
-				 * out towards the sky/material colour for a smooth transition */
+				/* max ray distance set, but found an intersection, so fade this color
+				 * out towards the sky/material color for a smooth transition */
 				ray_fadeout_endcolor(blendcol, origshi, &shi, origshr, &isec, vec);
 				ray_fadeout(&isec, &shi, col, blendcol, dist_mir);
 			}
@@ -615,24 +634,27 @@ void init_jitter_plane(LampRen *lar)
 	/* at least 4, or max threads+1 tables */
 	if(BLENDER_MAX_THREADS < 4) x= 4;
 	else x= BLENDER_MAX_THREADS+1;
-	fp= lar->jitter= MEM_mallocN(x*tot*2*sizeof(float), "lamp jitter tab");
+	fp= lar->jitter= MEM_callocN(x*tot*2*sizeof(float), "lamp jitter tab");
 	
-	/* set per-lamp fixed seed */
-	BLI_srandom(tot);
-	
-	/* fill table with random locations, area_size large */
-	for(x=0; x<tot; x++, fp+=2) {
-		fp[0]= (BLI_frand()-0.5)*lar->area_size;
-		fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
-	}
-	
-	while(iter--) {
-		fp= lar->jitter;
-		for(x=tot; x>0; x--, fp+=2) {
-			DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+	/* if 1 sample, we leave table to be zero's */
+	if(tot>1) {
+		
+		/* set per-lamp fixed seed */
+		BLI_srandom(tot);
+		
+		/* fill table with random locations, area_size large */
+		for(x=0; x<tot; x++, fp+=2) {
+			fp[0]= (BLI_frand()-0.5)*lar->area_size;
+			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
 		}
-	}
-	
+		
+		while(iter--) {
+			fp= lar->jitter;
+			for(x=tot; x>0; x--, fp+=2) {
+				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+			}
+		}
+	}	
 	/* create the dithered tables (could just check lamp type!) */
 	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.0f);
 	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.5f);
@@ -715,10 +737,10 @@ static void hammersley_create(double *out, int n)
 	}
 }
 
-struct QMCSampler *QMC_initSampler(int type, int tot)
+static struct QMCSampler *QMC_initSampler(int type, int tot)
 {	
-	QMCSampler *qsa = MEM_mallocN(sizeof(QMCSampler), "qmc sampler");
-	qsa->samp2d = MEM_mallocN(2*sizeof(double)*tot, "qmc sample table");
+	QMCSampler *qsa = MEM_callocN(sizeof(QMCSampler), "qmc sampler");
+	qsa->samp2d = MEM_callocN(2*sizeof(double)*tot, "qmc sample table");
 
 	qsa->tot = tot;
 	qsa->type = type;
@@ -859,25 +881,55 @@ static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int nu
 #endif
 
 /* called from convertBlenderScene.c */
-/* samples don't change per pixel, so build the samples in advance for efficiency */
-void init_lamp_hammersley(LampRen *lar)
+void init_render_qmcsampler(Render *re)
 {
-	lar->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, lar->ray_totsamp);
+	re->qmcsamplers= MEM_callocN(sizeof(ListBase)*BLENDER_MAX_THREADS, "QMCListBase");
 }
 
-void init_render_hammersley(Render *re)
+static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int tot)
 {
-	re->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, (re->wrld.aosamp * re->wrld.aosamp));
+	QMCSampler *qsa;
+
+	/* create qmc samplers as needed, since recursion makes it hard to
+	 * predict how many are needed */
+
+	for(qsa=re->qmcsamplers[thread].first; qsa; qsa=qsa->next) {
+		if(qsa->type == type && qsa->tot == tot && !qsa->used) {
+			qsa->used= 1;
+			return qsa;
+		}
+	}
+
+	qsa= QMC_initSampler(type, tot);
+	qsa->used= 1;
+	BLI_addtail(&re->qmcsamplers[thread], qsa);
+
+	return qsa;
 }
 
-void free_lamp_qmcsampler(LampRen *lar)
+static void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
 {
-	QMC_freeSampler(lar->qsa);
+	qsa->used= 0;
 }
 
 void free_render_qmcsampler(Render *re)
 {
-	QMC_freeSampler(re->qsa);
+	QMCSampler *qsa, *next;
+	int a;
+
+	if(re->qmcsamplers) {
+		for(a=0; a<BLENDER_MAX_THREADS; a++) {
+			for(qsa=re->qmcsamplers[a].first; qsa; qsa=next) {
+				next= qsa->next;
+				QMC_freeSampler(qsa);
+			}
+
+			re->qmcsamplers[a].first= re->qmcsamplers[a].last= NULL;
+		}
+
+		MEM_freeN(re->qmcsamplers);
+		re->qmcsamplers= NULL;
+	}
 }
 
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)
@@ -954,7 +1006,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1012,7 +1064,8 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	col[2] /= (float)samples;
 	col[3] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float fresnelfac)
@@ -1039,7 +1092,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
-		qsa = QMC_initSampler(samp_type, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, samp_type, max_samples);
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
@@ -1117,13 +1170,13 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 	col[1] /= (float)samples;
 	col[2] /= (float)samples;
 	
-	if (qsa) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from render loop */
 void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
-	VlakRen *vlr;
 	float i, f, f1, fr, fg, fb;
 	float mircol[4], tracol[4];
 	float diff[3];
@@ -1131,7 +1184,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
-	vlr= shi->vlr;
+
 	
 	/* raytrace mirror amd refract like to separate the spec color */
 	if(shi->combinedflag & SCE_PASS_SPEC)
@@ -1231,16 +1284,22 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		float d= 1.0f;
 		/* we got a face */
 		
+		/* Warning, This is not that nice, and possibly a bit slow for every ray,
+		however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+		memset(&shi, 0, sizeof(ShadeInput)); 
+		/* end warning! - Campbell */
+		
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
-		shi.osatex= 0;
+		
+		/*shi.osatex= 0;
 		shi.thread= shi.sample= 0;
 		shi.lay= 0;
 		shi.passflag= 0;
 		shi.combinedflag= 0;
 		shi.do_preview= 0;
 		shi.light_override= NULL;
-		shi.mat_override= NULL;
+		shi.mat_override= NULL;*/
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
@@ -1300,6 +1359,12 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 		
 		if(RE_ray_tree_intersect(R.raytree, &isec)) {
 			float fac;
+			
+			/* Warning, This is not that nice, and possibly a bit slow for every ray,
+			however some variables were not initialized properly in, unless using shade_input_initialize(...), we need to do a memset */
+			memset(&shi, 0, sizeof(ShadeInput)); 
+			/* end warning! - Campbell */
+			
 			shade_ray(&isec, &shi, &shr_t);
 			fac= isec.labda*isec.labda;
 			fac= 1.0f;
@@ -1416,14 +1481,15 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	int tot;
 	float *vec;
 	
-	if(resol>16) resol= 16;
-	
 	tot= 2*resol*resol;
 
 	if (type & WO_AORNDSMP) {
-		static float sphere[2*3*256];
+		float *sphere;
 		int a;
 		
+		// always returns table
+		sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
+
 		/* total random sampling. NOT THREADSAFE! (should be removed, is not useful) */
 		vec= sphere;
 		for (a=0; a<tot; a++, vec+=3) {
@@ -1438,7 +1504,8 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);	// returns table if xs and ys were equal to last call
+		// returns table if xs and ys were equal to last call
+		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);
 		if(sphere==NULL) {
 			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
@@ -1460,7 +1527,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	}
 }
 
-void ray_ao_qmc(ShadeInput *shi, float *shadfac)
+static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	QMCSampler *qsa=NULL;
@@ -1471,7 +1538,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float fac=0.0f, prev=0.0f;
 	float adapt_thresh = G.scene->world->ao_adapt_thresh;
 	float adapt_speed_fac = G.scene->world->ao_adapt_speed_fac;
-	float bias = G.scene->world->aobias;
 	
 	int samples=0;
 	int max_samples = R.wrld.aosamp*R.wrld.aosamp;
@@ -1485,7 +1551,6 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	isec.ob_last= 0;
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
-	VECCOPY(isec.start, shi->co);
 	
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 	
@@ -1500,13 +1565,10 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		dxyview[2]= 0.0f;
 	}
 	
-	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
-		bias= G.scene->world->aobias;
 		VECCOPY(nrm, shi->vn);
 	}
 	else {
-		bias= 0.0f;
 		VECCOPY(nrm, shi->facenor);
 	}
 	
@@ -1521,9 +1583,9 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		max_samples /= speedfac;
 		if (max_samples < 5) max_samples = 5;
 		
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
 	} else if (R.wrld.ao_samp_method==WO_AOSAMP_HAMMERSLEY)
-		qsa = R.qsa;
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 
 	QMC_initPixel(qsa, shi->thread);
 	
@@ -1538,6 +1600,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		Normalize(dir);
 			
+		VECCOPY(isec.start, shi->co);
 		isec.end[0] = shi->co[0] - maxdist*dir[0];
 		isec.end[1] = shi->co[1] - maxdist*dir[1];
 		isec.end[2] = shi->co[2] - maxdist*dir[2];
@@ -1565,6 +1628,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 			}
 			else {	/* WO_AOSKYTEX */
 				shadeSkyView(skycol, isec.start, view, dxyview);
+				shadeSunView(skycol, shi->view);
 				shadfac[0]+= skycol[0];
 				shadfac[1]+= skycol[1];
 				shadfac[2]+= skycol[2];
@@ -1595,17 +1659,18 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		shadfac[0]= shadfac[1]= shadfac[2]= 1.0f - fac/(float)samples;
 	}
 	
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
-void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
+static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
-	int j= -1, tot, actual=0, skyadded=0, aocolor;
+	int j= -1, tot, actual=0, skyadded=0, aocolor, resol= R.wrld.aosamp;
 	
 	isec.faceorig= (RayFace*)shi->vlr;
 	isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
@@ -1632,14 +1697,16 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	if(shi->mat->mode & MA_ONLYSHADOW)
 		aocolor= WO_AOPLAIN;
 	
-	vec= sphere_sampler(R.wrld.aomode, R.wrld.aosamp, shi->thread, shi->xs, shi->ys);
+	if(resol>32) resol= 32;
+	
+	vec= sphere_sampler(R.wrld.aomode, resol, shi->thread, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
-	tot= 2*R.wrld.aosamp*R.wrld.aosamp;
+	tot= 2*resol*resol;
 
 	if(aocolor == WO_AOSKYTEX) {
-		dxyview[0]= 1.0f/(float)R.wrld.aosamp;
-		dxyview[1]= 1.0f/(float)R.wrld.aosamp;
+		dxyview[0]= 1.0f/(float)resol;
+		dxyview[1]= 1.0f/(float)resol;
 		dxyview[2]= 0.0f;
 	}
 	
@@ -1686,6 +1753,7 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 				}
 				else {	/* WO_AOSKYTEX */
 					shadeSkyView(skycol, isec.start, view, dxyview);
+					shadeSunView(skycol, shi->view);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
@@ -1724,20 +1792,61 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		ray_ao_spheresamp(shi, shadfac);
 }
 
+static void ray_shadow_jittered_coords(ShadeInput *shi, int max, float jitco[RE_MAX_OSA][3], int *totjitco)
+{
+	/* magic numbers for reordering sample positions to give better
+	 * results with adaptive sample, when it usually only takes 4 samples */
+	int order8[8] = {0, 1, 5, 6, 2, 3, 4, 7};
+	int order11[11] = {1, 3, 8, 10, 0, 2, 4, 5, 6, 7, 9};
+	int order16[16] = {1, 3, 9, 12, 0, 6, 7, 8, 13, 2, 4, 5, 10, 11, 14, 15};
+	int count = count_mask(shi->mask);
+
+	/* for better antialising shadow samples are distributed over the subpixel
+	 * sample coordinates, this only works for raytracing depth 0 though */
+	if(!shi->strand && shi->depth == 0 && count > 1 && count <= max) {
+		float xs, ys, zs, view[3];
+		int samp, ordsamp, tot= 0;
+
+		for(samp=0; samp<R.osa; samp++) {
+			if(R.osa == 8) ordsamp = order8[samp];
+			else if(R.osa == 11) ordsamp = order11[samp];
+			else if(R.osa == 16) ordsamp = order16[samp];
+			else ordsamp = samp;
+
+			if(shi->mask & (1<<ordsamp)) {
+				/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+				xs= (float)shi->scanco[0] + R.jit[ordsamp][0] + 0.5f;
+				ys= (float)shi->scanco[1] + R.jit[ordsamp][1] + 0.5f;
+				zs= shi->scanco[2];
+
+				shade_input_calc_viewco(shi, xs, ys, zs, view, NULL, jitco[tot], NULL, NULL);
+				tot++;
+			}
+		}
+
+		*totjitco= tot;
+	}
+	else {
+		VECCOPY(jitco[0], shi->co);
+		*totjitco= 1;
+	}
+}
 
 static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)
 {
 	QMCSampler *qsa=NULL;
-	QMCSampler *qsa_jit=NULL;
 	int samples=0;
-	float samp3d[3], jit[3];
+	float samp3d[3];
 
 	float fac=0.0f, vec[3];
 	float colsq[4];
 	float adapt_thresh = lar->adapt_thresh;
-	int max_samples = lar->ray_totsamp;
-	float pos[3];
+	int min_adapt_samples=4, max_samples = lar->ray_totsamp;
+	float *co;
 	int do_soft=1, full_osa=0;
+
+	float jitco[RE_MAX_OSA][3];
+	int totjitco;
 
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1756,17 +1865,15 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		else max_samples = (R.osa > 4)?R.osa:5;
 	}
 	
+	ray_shadow_jittered_coords(shi, max_samples, jitco, &totjitco);
+
 	/* sampling init */
-	if (lar->ray_samp_method==LA_SAMP_HALTON) {
-		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
-	} else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY) {
-		qsa = lar->qsa;
-		qsa_jit = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, max_samples);
-	}
+	if (lar->ray_samp_method==LA_SAMP_HALTON)
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HALTON, max_samples);
+	else if (lar->ray_samp_method==LA_SAMP_HAMMERSLEY)
+		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 	
 	QMC_initPixel(qsa, shi->thread);
-	QMC_initPixel(qsa_jit, shi->thread);
 	
 	VECCOPY(vec, lampco);
 	
@@ -1774,18 +1881,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	while (samples < max_samples) {
 		isec->faceorig= (RayFace*)shi->vlr;
 		isec->oborig= RAY_OBJECT_SET(&R, shi->obi);
-		
+
 		/* manually jitter the start shading co-ord per sample
 		 * based on the pre-generated OSA texture sampling offsets, 
 		 * for anti-aliasing sharp shadow edges. */
-		VECCOPY(pos, shi->co);
-		if (shi->vlr && !full_osa) {
-			QMC_sampleRect(jit, qsa_jit, shi->thread, samples, 1.0, 1.0);
-			
-			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];
-			pos[1] += shi->dxco[1]*jit[0] + shi->dyco[1]*jit[1];
-			pos[2] += shi->dxco[2]*jit[0] + shi->dyco[2]*jit[1];
-		}
+		co = jitco[samples % totjitco];
 
 		if (do_soft) {
 			/* sphere shadow source */
@@ -1793,9 +1893,9 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 				float ru[3], rv[3], v[3], s[3];
 				
 				/* calc tangent plane vectors */
-				v[0] = pos[0] - lampco[0];
-				v[1] = pos[1] - lampco[1];
-				v[2] = pos[2] - lampco[2];
+				v[0] = co[0] - lampco[0];
+				v[1] = co[1] - lampco[1];
+				v[2] = co[2] - lampco[2];
 				Normalize(v);
 				VecOrthoBasisf(v, ru, rv);
 				
@@ -1822,8 +1922,21 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		} else {
 			VECCOPY(isec->end, vec);
 		}
-		VECCOPY(isec->start, pos);
-		
+
+		if(shi->strand) {
+			/* bias away somewhat to avoid self intersection */
+			float jitbias= 0.5f*(VecLength(shi->dxco) + VecLength(shi->dyco));
+			float v[3];
+
+			VECSUB(v, co, isec->end);
+			Normalize(v);
+
+			co[0] -= jitbias*v[0];
+			co[1] -= jitbias*v[1];
+			co[2] -= jitbias*v[2];
+		}
+
+		VECCOPY(isec->start, co);
 		
 		/* trace the ray */
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1850,7 +1963,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if ((lar->ray_samp_method == LA_SAMP_HALTON)) {
 		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
-			if ((max_samples > 4) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
+			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
 				if (isec->mode==RE_RAY_SHADOW_TRA) {
 					if ((shadfac[3] / samples > (1.0-adapt_thresh)) || (shadfac[3] / samples < adapt_thresh))
 						break;
@@ -1872,8 +1985,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	} else
 		shadfac[3]= 1.0f-fac/samples;
 
-	if (qsa_jit) QMC_freeSampler(qsa_jit);
-	if ((qsa) && (qsa->type == SAMP_TYPE_HALTON)) QMC_freeSampler(qsa);
+	if (qsa)
+		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, float *shadfac, Isect *isec)
@@ -1964,7 +2077,10 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
 	
-	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
+		isec.lay= lar->lay;
+	else
+		isec.lay= -1;
 
 	/* only when not mir tracing, first hit optimm */
 	if(shi->depth==0) {
@@ -2025,7 +2141,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 }
 
 /* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
-void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
 {
 	Isect isec;
 	float lampco[3], maxsize;

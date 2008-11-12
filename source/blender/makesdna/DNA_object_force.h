@@ -67,12 +67,74 @@ typedef struct PartDeflect {
 	float tex_nabla;
 	short tex_mode, kink, kink_axis, rt2;
 	struct Tex *tex;	/* Texture of the texture effector */
+	struct RNG *rng; /* random noise generator for e.g. wind */
+	float f_noise; /* noise of force (currently used for wind) */
+	int pad;
 } PartDeflect;
 
+typedef struct PointCache {
+	int flag;		/* generic flag */
+	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
+	int startframe;	/* simulation start frame */
+	int endframe;	/* simulation end frame */
+	int editframe;	/* frame being edited (runtime only) */
+} PointCache;
 
 typedef struct SBVertex {
 	float vec[4];
 } SBVertex;
+
+typedef struct BulletSoftBody {
+	int flag;				/* various boolean options */
+	float linStiff;			/* linear stiffness 0..1 */
+	float	angStiff;		/* angular stiffness 0..1 */
+	float	volume;			/* volume preservation 0..1 */
+
+	int	viterations;		/* Velocities solver iterations */
+	int	piterations;		/* Positions solver iterations */
+	int	diterations;		/* Drift solver iterations */
+	int	citerations;		/* Cluster solver iterations */
+
+	float	kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	float	kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	float	kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	float	kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	float	kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	kVCF;			/* Velocities correction factor (Baumgarte) */
+	float	kDP;			/* Damping coefficient [0,1] */
+
+	float	kDG;			/* Drag coefficient [0,+inf] */
+	float	kLF;			/* Lift coefficient [0,+inf] */
+	float	kPR;			/* Pressure coefficient [-inf,+inf] */
+	float	kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	float	kDF;			/* Dynamic friction coefficient [0,1] */
+	float	kMT;			/* Pose matching coefficient [0,1] */
+	float	kCHR;			/* Rigid contacts hardness [0,1] */
+	float	kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	float	kSHR;			/* Soft contacts hardness [0,1] */
+	float	kAHR;			/* Anchors hardness [0,1] */
+	int		collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	int		numclusteriterations;	/* number of iterations to refine collision clusters*/
+
+} BulletSoftBody;
+
+/* BulletSoftBody.flag */
+#define OB_BSB_SHAPE_MATCHING	2
+#define OB_BSB_UNUSED 4
+#define OB_BSB_BENDING_CONSTRAINTS 8
+#define OB_BSB_AERO_VPOINT 16 /* aero model, Vertex normals are oriented toward velocity*/
+#define OB_BSB_AERO_VTWOSIDE 32 /* aero model, Vertex normals are flipped to match velocity */
+
+/* BulletSoftBody.collisionflags */
+#define OB_BSB_COL_SDF_RS	2 /* SDF based rigid vs soft */
+#define OB_BSB_COL_CL_RS	4 /* Cluster based rigid vs soft */
+#define OB_BSB_COL_CL_SS	8 /* Cluster based soft vs soft */
+#define OB_BSB_COL_VF_SS	16 /* Vertex/Face based soft vs soft */
+
 
 typedef struct SoftBody {
 	struct ParticleSystem *particles;	/* particlesystem softbody */
@@ -81,7 +143,7 @@ typedef struct SoftBody {
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
 	struct BodySpring *bspring;		/* not saved in file */
-	float ctime;					/* last time calculated */
+	float pad;
 	
 	/* part of UI: */
 	
@@ -126,10 +188,15 @@ typedef struct SoftBody {
 		minloops,
 		maxloops,
 		choke,
-		pad3,pad4,pad5
+		solver_ID,
+		plastic,springpreload
 		;   
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
+	float shearstiff;
+	float inpush;
+
+	struct PointCache *pointcache;
 
 } SoftBody;
 
@@ -141,8 +208,8 @@ typedef struct SoftBody {
 #define PFIELD_GUIDE	5
 #define PFIELD_TEXTURE	6
 #define PFIELD_HARMONIC	7
-#define PFIELD_NUCLEAR	8
-#define PFIELD_MDIPOLE	9
+#define PFIELD_CHARGE	8
+#define PFIELD_LENNARDJ	9
 
 
 /* pd->flag: various settings */
@@ -157,6 +224,7 @@ typedef struct SoftBody {
 #define PFIELD_USEMIN			256
 #define PFIELD_USEMAXR			512
 #define PFIELD_USEMINR			1024
+#define PFIELD_TEX_ROOTCO		2048
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0
@@ -170,21 +238,30 @@ typedef struct SoftBody {
 #define PFIELD_TEX_GRAD	1
 #define PFIELD_TEX_CURL	2
 
+/* pointcache->flag */
+#define PTCACHE_BAKED				1
+#define PTCACHE_OUTDATED			2
+#define PTCACHE_SIMULATION_VALID	4
+#define PTCACHE_BAKING				8
+#define PTCACHE_BAKE_EDIT			16
+#define PTCACHE_BAKE_EDIT_ACTIVE	32
+
 /* ob->softflag */
 #define OB_SB_ENABLE	1
 #define OB_SB_GOAL		2
 #define OB_SB_EDGES		4
 #define OB_SB_QUADS		8
 #define OB_SB_POSTDEF	16
-#define OB_SB_REDO		32
-#define OB_SB_BAKESET	64
-#define OB_SB_BAKEDO	128
-#define OB_SB_RESET		256
+// #define OB_SB_REDO		32
+// #define OB_SB_BAKESET	64
+// #define OB_SB_BAKEDO	128
+// #define OB_SB_RESET		256
 #define OB_SB_SELF		512
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
-#define OB_SB_PROTECT_CACHE	8192
+//#define OB_SB_PROTECT_CACHE	8192
+#define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */
 #define SBSO_MONITOR    1 

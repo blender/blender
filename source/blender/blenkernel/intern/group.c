@@ -41,6 +41,7 @@
 #include "DNA_object_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -77,14 +78,37 @@ void unlink_group(Group *group)
 {
 	Material *ma;
 	Object *ob;
+	Scene *sce;
+	SceneRenderLayer *srl;
+	ParticleSystem *psys;
 	
 	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if(ma->group==group)
 			ma->group= NULL;
 	}
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->group==group)
+			ma->group= NULL;
+	}
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		Base *base= sce->base.first;
+		
+		/* ensure objects are not in this group */
+		for(; base; base= base->next) {
+			if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
+				base->object->flag &= ~OB_FROMGROUP;
+				base->flag &= ~OB_FROMGROUP;
+			}
+		}			
+		
+		for(srl= sce->r.layers.first; srl; srl= srl->next) {
+			if (srl->light_override==group)
+				srl->light_override= NULL;
+		}
+	}
+	
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		bActionStrip *strip;
-		PartEff *paf;
 		
 		if(ob->dup_group==group) {
 			ob->dup_group= NULL;
@@ -95,13 +119,17 @@ void unlink_group(Group *group)
 					strip->object= NULL;
 			}
 		}
-		for(paf= ob->effect.first; paf; paf= paf->next) {
-			if(paf->type==EFF_PARTICLE) {
-				if(paf->group)
-					paf->group= NULL;
-			}
+		
+		for(psys=ob->particlesystem.first; psys; psys=psys->next){
+			if(psys->part->dup_group==group)
+				psys->part->dup_group= NULL;
+			if(psys->part->eff_group==group)
+				psys->part->eff_group= NULL;
 		}
 	}
+	
+	/* group stays in library, but no members */
+	free_group(group);
 	group->id.us= 0;
 }
 
@@ -134,11 +162,11 @@ void add_to_group(Group *group, Object *ob)
 }
 
 /* also used for ob==NULL */
-void rem_from_group(Group *group, Object *ob)
+int rem_from_group(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
-	
-	if(group==NULL) return;
+	int removed = 0;
+	if(group==NULL) return 0;
 	
 	go= group->gobject.first;
 	while(go) {
@@ -146,9 +174,12 @@ void rem_from_group(Group *group, Object *ob)
 		if(go->ob==ob) {
 			BLI_remlink(&group->gobject, go);
 			free_group_object(go);
+			removed = 1;
+			/* should break here since an object being in a group twice cant happen? */
 		}
 		go= gon;
 	}
+	return removed;
 }
 
 int object_in_group(Object *ob, Group *group)
@@ -164,9 +195,12 @@ int object_in_group(Object *ob, Group *group)
 	return 0;
 }
 
-Group *find_group(Object *ob)
+Group *find_group(Object *ob, Group *group)
 {
-	Group *group= G.main->group.first;
+	if (group)
+		group= group->id.next;
+	else
+		group= G.main->group.first;
 	
 	while(group) {
 		if(object_in_group(ob, group))
@@ -186,6 +220,20 @@ void group_tag_recalc(Group *group)
 		if(go->ob) 
 			go->ob->recalc= go->recalc;
 	}
+}
+
+int group_is_animated(Object *parent, Group *group)
+{
+	GroupObject *go;
+
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first)
+		return 1;
+
+	for(go= group->gobject.first; go; go= go->next)
+		if(go->ob && go->ob->proxy)
+			return 1;
+
+	return 0;
 }
 
 /* only replaces object strips or action when parent nla instructs it */
@@ -228,7 +276,6 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 	}
 }
 
-
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
 
@@ -238,12 +285,12 @@ void group_handle_recalc_and_update(Object *parent, Group *group)
 	GroupObject *go;
 	
 	/* if animated group... */
-	if(parent->sf != 0.0f || parent->nlastrips.first) {
+	if(give_timeoffset(parent) != 0.0f || parent->nlastrips.first) {
 		int cfrao;
 		
 		/* switch to local time */
 		cfrao= G.scene->r.cfra;
-		G.scene->r.cfra -= (int)parent->sf;
+		G.scene->r.cfra -= (int)give_timeoffset(parent);
 		
 		/* we need a DAG per group... */
 		for(go= group->gobject.first; go; go= go->next) {

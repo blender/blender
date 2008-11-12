@@ -55,6 +55,7 @@
 #ifndef _DDS_BLOCKDXT_H
 #define _DDS_BLOCKDXT_H
 
+#include <Common.h>
 #include <Color.h>
 #include <ColorBlock.h>
 #include <Stream.h>
@@ -65,14 +66,14 @@ struct BlockDXT1
 	Color16 col0;
 	Color16 col1;
 	union {
-		unsigned char row[4];
-		unsigned int indices;
+		uint8 row[4];
+		uint indices;
 	};
 
 	bool isFourColorMode() const;
 
-	unsigned int evaluatePalette(Color32 color_array[4]) const;
-	unsigned int evaluatePaletteFast(Color32 color_array[4]) const;
+	uint evaluatePalette(Color32 color_array[4]) const;
+	uint evaluatePaletteFast(Color32 color_array[4]) const;
 	void evaluatePalette3(Color32 color_array[4]) const;
 	void evaluatePalette4(Color32 color_array[4]) const;
 	
@@ -87,7 +88,7 @@ struct BlockDXT1
 /// Return true if the block uses four color mode, false otherwise.
 inline bool BlockDXT1::isFourColorMode() const
 {
-	return col0.u >= col1.u;	// @@ > or >= ?
+	return col0.u > col1.u;
 }
 
 
@@ -96,24 +97,24 @@ struct AlphaBlockDXT3
 {
 	union {
 		struct {
-			unsigned int alpha0 : 4;
-			unsigned int alpha1 : 4;
-			unsigned int alpha2 : 4;
-			unsigned int alpha3 : 4;
-			unsigned int alpha4 : 4;
-			unsigned int alpha5 : 4;
-			unsigned int alpha6 : 4;
-			unsigned int alpha7 : 4;
-			unsigned int alpha8 : 4;
-			unsigned int alpha9 : 4;
-			unsigned int alphaA : 4;
-			unsigned int alphaB : 4;
-			unsigned int alphaC : 4;
-			unsigned int alphaD : 4;
-			unsigned int alphaE : 4;
-			unsigned int alphaF : 4;
+			uint alpha0 : 4;
+			uint alpha1 : 4;
+			uint alpha2 : 4;
+			uint alpha3 : 4;
+			uint alpha4 : 4;
+			uint alpha5 : 4;
+			uint alpha6 : 4;
+			uint alpha7 : 4;
+			uint alpha8 : 4;
+			uint alpha9 : 4;
+			uint alphaA : 4;
+			uint alphaB : 4;
+			uint alphaC : 4;
+			uint alphaD : 4;
+			uint alphaE : 4;
+			uint alphaF : 4;
 		};
-		unsigned short row[4];
+		uint16 row[4];
 	};
 	
 	void decodeBlock(ColorBlock * block) const;
@@ -139,37 +140,59 @@ struct BlockDXT3
 /// DXT5 alpha block.
 struct AlphaBlockDXT5
 {
+	// uint64 unions do not compile on all platforms
+	/*
 	union {
 		struct {
-			unsigned int alpha0 : 8;	// 8
-			unsigned int alpha1 : 8;	// 16
-			unsigned int bits0 : 3;		// 3 - 19
-			unsigned int bits1 : 3; 	// 6 - 22
-			unsigned int bits2 : 3; 	// 9 - 25
-			unsigned int bits3 : 3;		// 12 - 28
-			unsigned int bits4 : 3;		// 15 - 31
-			unsigned int bits5 : 3;		// 18 - 34
-			unsigned int bits6 : 3;		// 21 - 37
-			unsigned int bits7 : 3;		// 24 - 40
-			unsigned int bits8 : 3;		// 27 - 43
-			unsigned int bits9 : 3; 	// 30 - 46
-			unsigned int bitsA : 3; 	// 33 - 49
-			unsigned int bitsB : 3;		// 36 - 52
-			unsigned int bitsC : 3;		// 39 - 55
-			unsigned int bitsD : 3;		// 42 - 58
-			unsigned int bitsE : 3;		// 45 - 61
-			unsigned int bitsF : 3;		// 48 - 64
+			uint64 alpha0 : 8;	// 8
+			uint64 alpha1 : 8;	// 16
+			uint64 bits0 : 3;		// 3 - 19
+			uint64 bits1 : 3; 	// 6 - 22
+			uint64 bits2 : 3; 	// 9 - 25
+			uint64 bits3 : 3;		// 12 - 28
+			uint64 bits4 : 3;		// 15 - 31
+			uint64 bits5 : 3;		// 18 - 34
+			uint64 bits6 : 3;		// 21 - 37
+			uint64 bits7 : 3;		// 24 - 40
+			uint64 bits8 : 3;		// 27 - 43
+			uint64 bits9 : 3; 	// 30 - 46
+			uint64 bitsA : 3; 	// 33 - 49
+			uint64 bitsB : 3;		// 36 - 52
+			uint64 bitsC : 3;		// 39 - 55
+			uint64 bitsD : 3;		// 42 - 58
+			uint64 bitsE : 3;		// 45 - 61
+			uint64 bitsF : 3;		// 48 - 64
 		};
-		unsigned long long u;
+		uint64 u;
 	};
+	*/
+	uint64 u;
+	uint8 alpha0() const { return u & 0xffLL; };
+	uint8 alpha1() const { return (u >> 8) & 0xffLL; };
+	uint8 bits0() const { return (u >> 16) & 0x7LL; };
+	uint8 bits1() const { return (u >> 19) & 0x7LL; };
+	uint8 bits2() const { return (u >> 22) & 0x7LL; };
+	uint8 bits3() const { return (u >> 25) & 0x7LL; };
+	uint8 bits4() const { return (u >> 28) & 0x7LL; };
+	uint8 bits5() const { return (u >> 31) & 0x7LL; };
+	uint8 bits6() const { return (u >> 34) & 0x7LL; };
+	uint8 bits7() const { return (u >> 37) & 0x7LL; };
+	uint8 bits8() const { return (u >> 40) & 0x7LL; };
+	uint8 bits9() const { return (u >> 43) & 0x7LL; };
+	uint8 bitsA() const { return (u >> 46) & 0x7LL; };
+	uint8 bitsB() const { return (u >> 49) & 0x7LL; };
+	uint8 bitsC() const { return (u >> 52) & 0x7LL; };
+	uint8 bitsD() const { return (u >> 55) & 0x7LL; };
+	uint8 bitsE() const { return (u >> 58) & 0x7LL; };
+	uint8 bitsF() const { return (u >> 61) & 0x7LL; };
 	
-	void evaluatePalette(unsigned char alpha[8]) const;
-	void evaluatePalette8(unsigned char alpha[8]) const;
-	void evaluatePalette6(unsigned char alpha[8]) const;
-	void indices(unsigned char index_array[16]) const;
+	void evaluatePalette(uint8 alpha[8]) const;
+	void evaluatePalette8(uint8 alpha[8]) const;
+	void evaluatePalette6(uint8 alpha[8]) const;
+	void indices(uint8 index_array[16]) const;
 
-	unsigned int index(unsigned int index) const;
-	void setIndex(unsigned int index, unsigned int value);
+	uint index(uint index) const;
+	void setIndex(uint index, uint value);
 	
 	void decodeBlock(ColorBlock * block) const;
 	
@@ -213,6 +236,25 @@ struct BlockATI2
 	void flip2();
 };
 
+/// CTX1 block.
+struct BlockCTX1
+{
+	uint8 col0[2];
+	uint8 col1[2];
+	union {
+		uint8 row[4];
+		uint indices;
+	};
+
+	void evaluatePalette(Color32 color_array[4]) const;
+	void setIndices(int * idx);
+
+	void decodeBlock(ColorBlock * block) const;
+	
+	void flip4();
+	void flip2();
+};
+
 void mem_read(Stream & mem, BlockDXT1 & block);
 void mem_read(Stream & mem, AlphaBlockDXT3 & block);
 void mem_read(Stream & mem, BlockDXT3 & block);
@@ -220,5 +262,6 @@ void mem_read(Stream & mem, AlphaBlockDXT5 & block);
 void mem_read(Stream & mem, BlockDXT5 & block);
 void mem_read(Stream & mem, BlockATI1 & block);
 void mem_read(Stream & mem, BlockATI2 & block);
+void mem_read(Stream & mem, BlockCTX1 & block);
 
 #endif // _DDS_BLOCKDXT_H

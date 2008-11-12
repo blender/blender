@@ -127,7 +127,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.size= 100;
 	envre->r.yasp= envre->r.xasp= 1;
 	
-	RE_InitState(envre, &envre->r, cuberes, cuberes, NULL);
+	RE_InitState(envre, NULL, &envre->r, cuberes, cuberes, NULL);
 	envre->scene= re->scene;	/* unsure about this... */
 
 	/* view stuff in env render */
@@ -150,14 +150,15 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->tothalo= re->tothalo;
 	envre->totstrand= re->totstrand;
 	envre->totlamp= re->totlamp;
+	envre->sortedhalos= re->sortedhalos;
 	envre->lights= re->lights;
 	envre->objecttable= re->objecttable;
-	envre->strandbuckets= re->strandbuckets;
 	envre->customdata_names= re->customdata_names;
 	envre->raytree= re->raytree;
 	envre->totinstance= re->totinstance;
 	envre->instancetable= re->instancetable;
 	envre->objectinstance= re->objectinstance;
+	envre->qmcsamplers= re->qmcsamplers;
 	
 	return envre;
 }
@@ -171,13 +172,14 @@ static void envmap_free_render_copy(Render *envre)
 	envre->totstrand= 0;
 	envre->totlamp= 0;
 	envre->totinstance= 0;
+	envre->sortedhalos= NULL;
 	envre->lights.first= envre->lights.last= NULL;
 	envre->objecttable.first= envre->objecttable.last= NULL;
-	envre->strandbuckets= NULL;
 	envre->customdata_names.first= envre->customdata_names.last= NULL;
 	envre->raytree= NULL;
 	envre->instancetable.first= envre->instancetable.last= NULL;
 	envre->objectinstance= NULL;
+	envre->qmcsamplers= NULL;
 	
 	RE_FreeRender(envre);
 }
@@ -223,7 +225,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	ObjectInstanceRen *obi;
 	LampRen *lar = NULL;
 	HaloRen *har = NULL;
-	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3];
+	float imat[3][3], pmat[4][4], smat[4][4], tmat[4][4], cmat[3][3], tmpmat[4][4];
 	int a;
 	
 	if(mode==0) {
@@ -237,15 +239,18 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 
 	for(obi=re->instancetable.first; obi; obi=obi->next) {
 		/* append or set matrix depending on dupli */
-		if(obi->flag & R_DUPLI_TRANSFORMED)
-			Mat4MulMat4(obi->mat, tmat, obi->mat);
+		if(obi->flag & R_DUPLI_TRANSFORMED) {
+			Mat4CpyMat4(tmpmat, obi->mat);
+			Mat4MulMat4(obi->mat, tmpmat, tmat);
+		}
 		else if(mode==1)
 			Mat4CpyMat4(obi->mat, tmat);
 		else
 			Mat4One(obi->mat);
 
 		Mat3CpyMat4(cmat, obi->mat);
-		Mat3Inv(obi->imat, cmat);
+		Mat3Inv(obi->nmat, cmat);
+		Mat3Transp(obi->nmat);
 
 		/* indicate the renderer has to use transform matrices */
 		if(mode==0)
@@ -313,12 +318,13 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	notlay= ~notlay;
 	
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
-		for(a=0; a<obr->totvlak; a++) {
-			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
-			else vlr++;
+		if((obr->lay & notlay)==0) {
+			for(a=0; a<obr->totvlak; a++) {
+				if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
+				else vlr++;
 
-			if((vlr->lay & notlay)==0)
 				vlr->flag |= R_HIDDEN;
+			}
 		}
 	}
 }
@@ -433,12 +439,19 @@ static void render_envmap(Render *re, EnvMap *env)
 
 		if(re->test_break()==0) {
 			RenderLayer *rl= envre->result->layers.first;
+			int y;
+			char *alpha;
 			
 			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect, 0);
 			ibuf->rect_float= rl->rectf;
 			IMB_rect_from_float(ibuf);
 			ibuf->rect_float= NULL;
-				
+			
+			/* envmap renders without alpha */
+			alpha= ((char *)ibuf->rect)+3;
+			for(y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
+				*alpha= 255;
+			
 			env->cube[part]= ibuf;
 		}
 		
@@ -715,7 +728,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			fac= (texres->ta+texr1.ta+texr2.ta);
 			if(fac!=0.0) {
 				fac= 1.0/fac;
-				
+
 				texres->tr= fac*(texres->ta*texres->tr + texr1.ta*texr1.tr + texr2.ta*texr2.tr );
 				texres->tg= fac*(texres->ta*texres->tg + texr1.ta*texr1.tg + texr2.ta*texr2.tg );
 				texres->tb= fac*(texres->ta*texres->tb + texr1.ta*texr1.tb + texr2.ta*texr2.tb );

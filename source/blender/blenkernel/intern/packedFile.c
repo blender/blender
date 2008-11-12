@@ -184,7 +184,7 @@ PackedFile * newPackedFile(char * filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	// open the file
 	// and create a PackedFile structure
@@ -285,7 +285,7 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	if (guimode); //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -316,11 +316,11 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
-			if (BLI_rename(tempname, name) == RET_ERROR) {
+			if (BLI_rename(tempname, name) != 0) {
 				if(guimode); //XXX error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
-			if (BLI_delete(tempname, 0, 0) == RET_ERROR) {
+			if (BLI_delete(tempname, 0, 0) != 0) {
 				if(guimode); //XXX error("Error deleting '%s' (ignored)");
 			}
 		}
@@ -350,7 +350,7 @@ int checkPackedFile(char * filename, PackedFile * pf)
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(name, G.sce);
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;

@@ -16,14 +16,7 @@ subject to the following restrictions:
 #include "btTriangleBuffer.h"
 
 
-///example usage of this class:
-//			btTriangleBuffer	triBuf;
-//			concaveShape->processAllTriangles(&triBuf,aabbMin, aabbMax);
-//			for (int i=0;i<triBuf.getNumTriangles();i++)
-//			{
-//				const btTriangle& tri = triBuf.getTriangle(i);
-//				//do something useful here with the triangle
-//			}
+
 
 
 

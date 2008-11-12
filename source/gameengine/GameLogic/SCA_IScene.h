@@ -37,6 +37,8 @@ struct SCA_DebugProp
 {
 	class CValue*	m_obj;
 	STR_String 		m_name;
+	SCA_DebugProp();
+	~SCA_DebugProp();
 };
 
 class SCA_IScene 
@@ -57,6 +59,7 @@ public:
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
+	void			RemoveAllDebugProperties();
 };
 
 #endif //__KX_ISCENE_H

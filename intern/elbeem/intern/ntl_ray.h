@@ -20,6 +20,7 @@ class ntlRay;
 class ntlTree;
 class ntlScene;
 class ntlRenderGlobals;
+class ntlGeometryObject;
 
 //! store data for an intersection of a ray and a triangle
 // NOT YET USED
@@ -323,8 +324,8 @@ public:
   /* CONSTRUCTORS */
   /*! Default constructor */
   ntlScene( ntlRenderGlobals *glob, bool del=true );
-  /*! Default destructor */
-   ~ntlScene();
+  /*! Default destructor  */
+  ~ntlScene();
 
 	/*! Add an object to the scene */
 	inline void addGeoClass(ntlGeometryClass *geo) { 

@@ -76,22 +76,23 @@ static float maxenergy;
 
 /* find the face with maximum energy to become shooter */
 /* nb: _rr means rad-render version of existing radio call */
-static VlakRen *findshoot_rr(Render *re)
+static void findshoot_rr(Render *re, VlakRen **shoot_p, RadFace **shootrf_p)
 {
-	RadFace *rf;
+	RadFace *rf, *shootrf, **radface;
 	ObjectRen *obr;
 	VlakRen *vlr=NULL, *shoot;
 	float energy;
 	int a;
 	
 	shoot= NULL;
+	shootrf= NULL;
 	maxenergy= 0.0;
 	
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if(vlr->radface) {
-				rf= vlr->radface;
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
 				rf->flag &= ~RAD_SHOOT;
 				
 				energy= rf->unshot[0]*rf->area;
@@ -100,26 +101,32 @@ static VlakRen *findshoot_rr(Render *re)
 
 				if(energy>maxenergy) {
 					shoot= vlr;
+					shootrf= rf;
 					maxenergy= energy;
 				}
 			}
 		}
 	}
 
-	if(shoot) {
+	if(shootrf) {
 		maxenergy/= RG.totenergy;
-		if(maxenergy<RG.convergence) return NULL;
-		shoot->radface->flag |= RAD_SHOOT;
+		if(maxenergy<RG.convergence) {
+			*shoot_p= NULL;
+			*shootrf_p= NULL;
+			return;
+		}
+		shootrf->flag |= RAD_SHOOT;
 	}
 
-	return shoot;
+	*shoot_p= shoot;
+	*shootrf_p= shootrf;
 }
 
-static void backface_test_rr(Render *re, VlakRen *shoot)
+static void backface_test_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 {
 	ObjectRen *obr;
 	VlakRen *vlr=NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	float tvec[3];
 	int a;
 	
@@ -127,9 +134,9 @@ static void backface_test_rr(Render *re, VlakRen *shoot)
 	for(obr=re->objecttable.first; obr; obr=obr->next) {
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
-			if(vlr->radface && vlr!=shoot) {
-				rf= vlr->radface;
-				VecSubf(tvec, shoot->radface->cent, rf->cent);
+			if(vlr != shoot && (radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
+				VecSubf(tvec, shootrf->cent, rf->cent);
 				
 				if(tvec[0]*rf->norm[0]+ tvec[1]*rf->norm[1]+ tvec[2]*rf->norm[2] < 0.0)
 					rf->flag |= RAD_BACKFACE;
@@ -142,7 +149,7 @@ static void clear_backface_test_rr(Render *re)
 {
 	ObjectRen *obr;
 	VlakRen *vlr=NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	int a;
 	
 	/* backface flag clear */
@@ -150,8 +157,8 @@ static void clear_backface_test_rr(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if(vlr->radface) {
-				rf= vlr->radface;
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
 				rf->flag &= ~RAD_BACKFACE;
 			}
 		}
@@ -161,11 +168,11 @@ static void clear_backface_test_rr(Render *re)
 extern RadView hemitop, hemiside; // radfactors.c
 
 /* hemi-zbuffering, delivers formfactors array */
-static void makeformfactors_rr(Render *re, VlakRen *shoot)
+static void makeformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 {
 	ObjectRen *obr;
 	VlakRen *vlr=NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	float len, vec[3], up[3], side[3], tar[5][3], *fp;
 	int a;
 
@@ -174,25 +181,25 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 	/* set up hemiview */
 	/* first: upvector for hemitop, we use diagonal hemicubes to prevent aliasing */
 	
-	VecSubf(vec, shoot->v1->co, shoot->radface->cent);
-	Crossf(up, shoot->radface->norm, vec);
+	VecSubf(vec, shoot->v1->co, shootrf->cent);
+	Crossf(up, shootrf->norm, vec);
 	len= Normalize(up);
 	
 	VECCOPY(hemitop.up, up);
-	VECCOPY(hemiside.up, shoot->radface->norm);
+	VECCOPY(hemiside.up, shootrf->norm);
 
-	Crossf(side, shoot->radface->norm, up);
+	Crossf(side, shootrf->norm, up);
 
 	/* five targets */
-	VecAddf(tar[0], shoot->radface->cent, shoot->radface->norm);
-	VecAddf(tar[1], shoot->radface->cent, up);
-	VecSubf(tar[2], shoot->radface->cent, up);
-	VecAddf(tar[3], shoot->radface->cent, side);
-	VecSubf(tar[4], shoot->radface->cent, side);
+	VecAddf(tar[0], shootrf->cent, shootrf->norm);
+	VecAddf(tar[1], shootrf->cent, up);
+	VecSubf(tar[2], shootrf->cent, up);
+	VecAddf(tar[3], shootrf->cent, side);
+	VecSubf(tar[4], shootrf->cent, side);
 
 	/* camera */
-	VECCOPY(hemiside.cam, shoot->radface->cent);
-	VECCOPY(hemitop.cam, shoot->radface->cent);
+	VECCOPY(hemiside.cam, shootrf->cent);
+	VECCOPY(hemitop.cam, shootrf->cent);
 
 	/* do it! */
 	VECCOPY(hemitop.tar, tar[0]);
@@ -210,10 +217,10 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if(vlr->radface) {
-				rf= vlr->radface;
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
 				if(*fp!=0.0 && rf->area!=0.0) {
-					*fp *= shoot->radface->area/rf->area;
+					*fp *= shootrf->area/rf->area;
 					if(*fp>1.0) *fp= 1.0001;
 				}
 				fp++;
@@ -223,17 +230,17 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 }
 
 /* based at RG.formfactors array, distribute shoot energy over other faces */
-static void applyformfactors_rr(Render *re, VlakRen *shoot)
+static void applyformfactors_rr(Render *re, VlakRen *shoot, RadFace *shootrf)
 {
 	ObjectRen *obr;
 	VlakRen *vlr=NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	float *fp, *ref, unr, ung, unb, r, g, b;
 	int a;
 
-	unr= shoot->radface->unshot[0];
-	ung= shoot->radface->unshot[1];
-	unb= shoot->radface->unshot[2];
+	unr= shootrf->unshot[0];
+	ung= shootrf->unshot[1];
+	unb= shootrf->unshot[2];
 
 	fp= RG.formfactors;
 	
@@ -241,8 +248,8 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if(vlr->radface) {
-				rf= vlr->radface;
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
 				if(*fp!= 0.0) {
 					
 					ref= &(vlr->mat->r);
@@ -266,7 +273,7 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot)
 		}
 	}
 	/* shoot energy has been shot */
-	shoot->radface->unshot[0]= shoot->radface->unshot[1]= shoot->radface->unshot[2]= 0.0;
+	shootrf->unshot[0]= shootrf->unshot[1]= shootrf->unshot[2]= 0.0;
 }
 
 
@@ -274,29 +281,30 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot)
 static void progressiverad_rr(Render *re)
 {
 	VlakRen *shoot;
+	RadFace *shootrf;
 	float unshot[3];
 	int it= 0;
 	
-	shoot= findshoot_rr(re);
+	findshoot_rr(re, &shoot, &shootrf);
 	while( shoot ) {
 		
 		/* backfaces receive no energy, but are zbuffered... */
-		backface_test_rr(re, shoot);
+		backface_test_rr(re, shoot, shootrf);
 		
 		/* ...unless it's two sided */
-		if(shoot->radface->flag & RAD_TWOSIDED) {
-			VECCOPY(unshot, shoot->radface->unshot);
-			VecMulf(shoot->radface->norm, -1.0);
-			makeformfactors_rr(re, shoot);
-			applyformfactors_rr(re, shoot);
-			VecMulf(shoot->radface->norm, -1.0);
-			VECCOPY(shoot->radface->unshot, unshot);
+		if(shootrf->flag & RAD_TWOSIDED) {
+			VECCOPY(unshot, shootrf->unshot);
+			VecMulf(shootrf->norm, -1.0);
+			makeformfactors_rr(re, shoot, shootrf);
+			applyformfactors_rr(re, shoot, shootrf);
+			VecMulf(shootrf->norm, -1.0);
+			VECCOPY(shootrf->unshot, unshot);
 		}
 
 		/* hemi-zbuffers */
-		makeformfactors_rr(re, shoot);
+		makeformfactors_rr(re, shoot, shootrf);
 		/* based at RG.formfactors array, distribute shoot energy over other faces */
-		applyformfactors_rr(re, shoot);
+		applyformfactors_rr(re, shoot, shootrf);
 		
 		it++;
 		re->timecursor(it);
@@ -306,7 +314,7 @@ static void progressiverad_rr(Render *re)
 		if(re->test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 		
-		shoot= findshoot_rr(re);
+		findshoot_rr(re, &shoot, &shootrf);
 	}
 	printf(" Unshot energy:%f\n", 1000.0*maxenergy);
 	
@@ -319,7 +327,7 @@ static void initradfaces(Render *re)
 {
 	ObjectRen *obr;
 	VlakRen *vlr= NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	int a, b;
 	
 	/* globals */
@@ -356,9 +364,18 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 			if(vlr->mat->mode & MA_RADIO) {
 				
 				/* during render, vlr->n gets flipped/corrected, we cannot have that */
-				if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
-				else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
-				
+				if (obr->ob->transflag & OB_NEG_SCALE){
+					/* The object has negative scale that will cause the normals to flip.
+						 To counter this unwanted normal flip, swap vertex 2 and 4 for a quad
+						 or vertex 2 and 3 (see flip_face) for a triangle in the call to CalcNormFloat4 
+						 in order to flip the normals back to the way they were in the original mesh. */
+					if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v4->co, vlr->v3->co, vlr->v2->co, rf->norm);
+					else CalcNormFloat(vlr->v1->co, vlr->v3->co, vlr->v2->co, rf->norm);
+				}else{
+					if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
+					else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
+				}
+
 				rf->totrad[0]= vlr->mat->emit*vlr->mat->r;
 				rf->totrad[1]= vlr->mat->emit*vlr->mat->g;
 				rf->totrad[2]= vlr->mat->emit*vlr->mat->b;
@@ -385,7 +402,8 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 	// uncommented; this isnt satisfying, but i leave it in the code for now (ton)			
 	//			if(vlr->mat->translucency!=0.0) rf->flag |= RAD_TWOSIDED;
 				
-				vlr->radface= rf++;
+				radface=RE_vlakren_get_radface(obr, vlr, 1);
+				*radface= rf++;
 			}
 		}
 	}
@@ -420,7 +438,7 @@ static void make_vertex_rad_values(Render *re)
 	ObjectRen *obr;
 	VertRen *v1=NULL;
 	VlakRen *vlr=NULL;
-	RadFace *rf;
+	RadFace *rf, **radface;
 	float *col;
 	int a;
 
@@ -432,8 +450,8 @@ static void make_vertex_rad_values(Render *re)
 		for(a=0; a<obr->totvlak; a++) {
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			if(vlr->radface) {
-				rf= vlr->radface;
+			if((radface=RE_vlakren_get_radface(obr, vlr, 0)) && *radface) {
+				rf= *radface;
 				
 				/* apply correction */
 				rf->totrad[0]= RG.radfactor*pow( rf->totrad[0], RG.igamma);

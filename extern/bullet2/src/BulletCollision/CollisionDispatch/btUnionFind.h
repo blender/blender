@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef UNION_FIND_H
 #define UNION_FIND_H
 
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 	#define USE_PATH_COMPRESSION 1
 
@@ -46,11 +46,11 @@ class btUnionFind
 
 	  void	reset(int N);
 
-	  inline int	getNumElements() const
+	  SIMD_FORCE_INLINE int	getNumElements() const
 	  {
 		  return int(m_elements.size());
 	  }
-	  inline bool  isRoot(int x) const
+	  SIMD_FORCE_INLINE bool  isRoot(int x) const
 	  {
 		  return (x == m_elements[x].m_id);
 	  }

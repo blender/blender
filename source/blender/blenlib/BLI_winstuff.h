@@ -61,6 +61,10 @@
 
 	// These definitions are also in arithb for simplicity
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
@@ -72,6 +76,9 @@
 #endif
 #ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
+#endif
+#ifndef M_1_PI
+#define M_1_PI		0.318309886183790671538
 #endif
 
 #define MAXPATHLEN MAX_PATH
@@ -110,7 +117,12 @@ void RegisterBlendExtension(char * str);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
-void get_default_root(char* root);
+void get_default_root(char *root);
+int check_file_chars(char *filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WINSTUFF_H__ */
 

@@ -61,7 +61,7 @@ void multires_load_cols(struct Mesh *me);
 void multires_level_to_mesh(struct Object *ob, struct Mesh *me, const int render);
 void multires_update_levels(struct Mesh *me, const int render);
 void multires_update_first_level(struct Mesh *me, struct EditMesh *em);
-void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,
+void multires_update_customdata(struct MultiresLevel *lvl1, struct EditMesh *em, struct CustomData *src,
 				struct CustomData *dst, const int type);
 void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em,
 				 struct MultiresLevel *lvl, struct CustomData *src,

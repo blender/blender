@@ -33,7 +33,8 @@
 #ifndef BKE_NODE_H
 #define BKE_NODE_H
 
-
+/* not very important, but the stack solver likes to know a maximum */
+#define MAX_SOCKET	64
 
 struct ID;
 struct bNodeTree;
@@ -46,6 +47,9 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct GPUMaterial;
+struct GPUNode;
+struct GPUNodeStack;
 
 #define SOCK_IN		1
 #define SOCK_OUT	2
@@ -87,8 +91,11 @@ typedef struct bNodeType {
 	
 	/* for use with dynamic typedefs */
 	ID *id;
-	void *script; /* holds pointer to python script */
-	void *dict; /* holds pointer to python script dictionary (scope)*/
+	void *pynode; /* holds pointer to python script */
+	void *pydict; /* holds pointer to python script dictionary (scope)*/
+
+	/* gpu */
+	int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out);
 
 } bNodeType;
 
@@ -103,13 +110,14 @@ typedef struct bNodeType {
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_OP_COLOR		3
-#define NODE_CLASS_OP_VECTOR		4
-#define NODE_CLASS_OP_FILTER		5
+#define NODE_CLASS_OP_VECTOR	4
+#define NODE_CLASS_OP_FILTER	5
 #define NODE_CLASS_GROUP		6
 #define NODE_CLASS_FILE			7
-#define NODE_CLASS_CONVERTOR		8
+#define NODE_CLASS_CONVERTOR	8
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
+#define NODE_CLASS_OP_DYNAMIC	11
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -119,6 +127,7 @@ struct bNodeTree *ntreeAddTree(int type);
 void			ntreeInitTypes(struct bNodeTree *ntree);
 
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
+void			ntreeUpdateType(struct bNodeTree *ntree, struct bNodeType *ntype);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
 void			ntreeMakeLocal(struct bNodeTree *ntree);
@@ -143,12 +152,20 @@ void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
 
 void			nodeAddToPreview(struct bNode *, float *, int, int);
 
-struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup);
+void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
+void			nodeAddSockets(struct bNode *node, struct bNodeType *ntype);
+struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup, struct ID *id);
+void			nodeRegisterType(struct ListBase *typelist, const struct bNodeType *ntype) ;
+void			nodeUpdateType(struct bNodeTree *ntree, struct bNode* node, struct bNodeType *ntype);
+void			nodeMakeDynamicType(struct bNode *node);
+int				nodeDynamicUnlinkText(struct ID *txtid);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
-struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
+struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
+
+int			nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
@@ -169,10 +186,13 @@ int				nodeGroupUnGroup(struct bNodeTree *ntree, struct bNode *gnode);
 void			nodeVerifyGroup(struct bNodeTree *ngroup);
 void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 
+void			nodeCopyGroup(struct bNode *gnode);
+
 /* ************** COMMON NODES *************** */
 
 #define NODE_GROUP		2
 #define NODE_GROUP_MENU		1000
+#define NODE_DYNAMIC_MENU	4000
 
 extern bNodeType node_group_typeinfo;
 
@@ -189,7 +209,7 @@ struct ShadeResult;
 #define SH_NODE_OUTPUT		1
 
 #define SH_NODE_MATERIAL	100
-#define SH_NODE_RGB		101
+#define SH_NODE_RGB			101
 #define SH_NODE_VALUE		102
 #define SH_NODE_MIX_RGB		103
 #define SH_NODE_VALTORGB	104
@@ -209,12 +229,21 @@ struct ShadeResult;
 #define SH_NODE_SEPRGB		120
 #define SH_NODE_COMBRGB		121
 #define SH_NODE_HUE_SAT		122
-
+#define NODE_DYNAMIC		123
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
 #define SH_NODE_MAT_SPEC   2
 #define SH_NODE_MAT_NEG    4
+/* custom defines: states for Script node. These are bit indices */
+#define NODE_DYNAMIC_READY	0 /* 1 */
+#define NODE_DYNAMIC_LOADED	1 /* 2 */
+#define NODE_DYNAMIC_NEW	2 /* 4 */
+#define NODE_DYNAMIC_UPDATED	3 /* 8 */
+#define NODE_DYNAMIC_ADDEXIST	4 /* 16 */
+#define NODE_DYNAMIC_ERROR	5 /* 32 */
+#define NODE_DYNAMIC_REPARSE	6 /* 64 */
+#define NODE_DYNAMIC_SET	15 /* sign */
 
 /* the type definitions array */
 extern struct ListBase node_all_shaders;
@@ -229,25 +258,28 @@ void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
+void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
+
 
 /* ************** COMPOSITE NODES *************** */
 
 /* output socket defines */
-#define RRES_OUT_IMAGE	0
-#define RRES_OUT_ALPHA	1
-#define RRES_OUT_Z	2
-#define RRES_OUT_NORMAL	3
-#define RRES_OUT_UV	4
-#define RRES_OUT_VEC	5
-#define RRES_OUT_RGBA	6
-#define RRES_OUT_DIFF	7
-#define RRES_OUT_SPEC	8
-#define RRES_OUT_SHADOW	9
-#define RRES_OUT_AO	10
-#define RRES_OUT_REFLECT 11
-#define RRES_OUT_REFRACT 12
-#define RRES_OUT_RADIO	 13
-#define RRES_OUT_INDEXOB 14
+#define RRES_OUT_IMAGE		0
+#define RRES_OUT_ALPHA		1
+#define RRES_OUT_Z			2
+#define RRES_OUT_NORMAL		3
+#define RRES_OUT_UV			4
+#define RRES_OUT_VEC		5
+#define RRES_OUT_RGBA		6
+#define RRES_OUT_DIFF		7
+#define RRES_OUT_SPEC		8
+#define RRES_OUT_SHADOW		9
+#define RRES_OUT_AO			10
+#define RRES_OUT_REFLECT	11
+#define RRES_OUT_REFRACT	12
+#define RRES_OUT_RADIO		13
+#define RRES_OUT_INDEXOB	14
+#define RRES_OUT_MIST		15
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201
@@ -303,6 +335,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_INVERT		251
 #define CMP_NODE_NORMALIZE      252
 #define CMP_NODE_CROP		253
+#define CMP_NODE_DBLUR		254
+#define CMP_NODE_BILATERALBLUR  255
+#define CMP_NODE_PREMULKEY  256
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

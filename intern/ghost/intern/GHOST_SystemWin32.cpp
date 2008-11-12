@@ -40,6 +40,14 @@
 
 #include "GHOST_SystemWin32.h"
 
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+
 /*
  * According to the docs the mouse wheel message is supported from windows 98 
  * upwards. Leaving WINVER at default value, the WM_MOUSEWHEEL message and the 
@@ -59,10 +67,12 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
+#include "GHOST_NDOFManager.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -157,7 +167,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	const STR_String& title, 
 	GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
-	bool stereoVisual)
+	bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
 	window = new GHOST_WindowWin32 (title, left, top, width, height, state, type, stereoVisual);
@@ -298,6 +308,15 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons& buttons) const
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
+
+	/* Disable scaling on high DPI displays on Vista */
+	HMODULE user32 = ::LoadLibraryA("user32.dll");
+	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
+	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
+		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
+	if (SetProcessDPIAware)
+		SetProcessDPIAware();
+	FreeLibrary(user32);
 
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;
@@ -843,6 +862,28 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+				case WM_BLND_NDOF_AXIS:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFMotion, 
+								window, ndofdata));
+					}
+					break;
+				case WM_BLND_NDOF_BTN:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFButton, 
+								window, ndofdata));
+					}
+					break;
 			}
 		}
 		else {
@@ -871,3 +912,58 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	return lResult;
 }
+
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+{
+	char *buffer;
+	char *temp_buff;
+	
+	if ( IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		if (hData == NULL) {
+			CloseClipboard();
+			return NULL;
+		}
+		buffer = (char*)GlobalLock( hData );
+		
+		temp_buff = (char*) malloc(strlen(buffer)+1);
+		strcpy(temp_buff, buffer);
+		
+		GlobalUnlock( hData );
+		CloseClipboard();
+		
+		temp_buff[strlen(buffer)] = '\0';
+		if (buffer) {
+			return (GHOST_TUns8*)temp_buff;
+		} else {
+			return NULL;
+		}
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char *data;
+		
+		if (buffer) {
+			EmptyClipboard();
+			
+			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
+			data = (char*)GlobalLock(clipbuffer);
+
+			strcpy(data, (char*)buffer);
+			data[strlen(buffer)] = '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
+		CloseClipboard();
+	} else {
+		return;
+	}
+}
+

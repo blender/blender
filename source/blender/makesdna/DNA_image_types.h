@@ -37,6 +37,7 @@ struct PackedFile;
 struct anim;
 struct ImBuf;
 struct RenderResult;
+struct GPUTexture;
 
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
@@ -55,13 +56,15 @@ typedef struct ImageUser {
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
+/* #define IMA_DO_PREMUL	4 */
 
 typedef struct Image {
 	ID id;
 	
 	char name[240];			/* file path */
 	
-	ListBase ibufs;			/* not written in file */
+	ListBase ibufs;					/* not written in file */
+	struct GPUTexture *gputexture;	/* not written in file */
 	
 	/* sources from: */
 	struct anim *anim;
@@ -101,11 +104,12 @@ typedef struct Image {
 /* flag */
 #define IMA_FIELDS		1
 #define IMA_STD_FIELD	2
+#define IMA_DO_PREMUL	4
 
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-#define IMA_DO_PREMUL	128
+#define IMA_OLD_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

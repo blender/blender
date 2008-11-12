@@ -12,7 +12,7 @@ __author__ = "Martin Poirier (theeth), Jean-Michel Soler (jms), Campbell Barton 
 # Martin Poirier's Apply_Def.py and
 # Jean-Michel Soler's Fix From Everything
 
-__url__ = ("http://www.blender.org", "http://blenderartists.org", "http://members.iinet.net.au/~cpbarton/ideasman/", "http://jmsoler.free.fr")
+__url__ = ("http://www.blender.org", "http://blenderartists.org", "http://jmsoler.free.fr")
 __version__ = "1.6 07/07/2006"
 
 __bpydoc__ = """\
@@ -77,7 +77,11 @@ def copy_vgroups(source_ob, target_ob):
 		for vgroupname in vgroups:
 			target_me.addVertGroup(vgroupname)
 			if len(target_me.verts) == len(source_me.verts):
-				vlist = source_me.getVertsFromGroup(vgroupname, True)
+				try: # in rare cases this can raise an 'no deform groups assigned to mesh' error
+					vlist = source_me.getVertsFromGroup(vgroupname, True)
+				except:
+					vlist = []
+				
 				try:
 					for vpair in vlist:
 						target_me.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], ADD)

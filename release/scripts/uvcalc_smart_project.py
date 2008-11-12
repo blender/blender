@@ -9,7 +9,7 @@ Tooltip: 'UV Unwrap mesh faces for all select mesh objects'
 
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.1 12/18/05"
 
 __bpydoc__ = """\

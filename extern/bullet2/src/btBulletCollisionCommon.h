@@ -32,23 +32,28 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btConvexHullShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleMesh.h"
 #include "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.h"
+#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
 #include "BulletCollision/CollisionShapes/btCompoundShape.h"
 #include "BulletCollision/CollisionShapes/btTetrahedronShape.h"
 #include "BulletCollision/CollisionShapes/btEmptyShape.h"
-#include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btMultiSphereShape.h"
+#include "BulletCollision/CollisionShapes/btUniformScalingShape.h"
 
 ///Narrowphase Collision Detector
 #include "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h"
-#include "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h"
+
+//btSphereBoxCollisionAlgorithm is broken, use gjk for now
+//#include "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h"
+#include "BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h"
 
 ///Dispatching and generation of collision pairs (broadphase)
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
 #include "BulletCollision/BroadphaseCollision/btAxisSweep3.h"
-
+#include "BulletCollision/BroadphaseCollision/btMultiSapBroadphase.h"
+#include "BulletCollision/BroadphaseCollision/btDbvtBroadphase.h"
 
 ///Math library & Utils
 #include "LinearMath/btQuaternion.h"

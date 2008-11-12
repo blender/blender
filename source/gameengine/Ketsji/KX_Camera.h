@@ -131,6 +131,24 @@ public:
 	KX_Camera(void* sgReplicationInfo,SG_Callbacks callbacks,const RAS_CameraData& camdata, bool frustum_culling = true, PyTypeObject *T = &Type);
 	virtual ~KX_Camera();
 	
+	/** 
+	 * Inherited from CValue -- return a new copy of this
+	 * instance allocated on the heap. Ownership of the new 
+	 * object belongs with the caller.
+	 */
+	virtual	CValue*				
+	GetReplica(
+	);
+	
+	/**
+	 * Inherited from CValue -- Makes sure any internal 
+	 * data owned by this class is deep copied. Called internally
+	 */
+	virtual	void				
+	ProcessReplica(
+		KX_Camera* replica
+	);
+
 	MT_Transform		GetWorldToCamera() const;
 	MT_Transform		GetCameraToWorld() const;
 
@@ -166,12 +184,14 @@ public:
 	 */
 	const MT_Matrix4x4&		GetModelviewMatrix() const;
 
-	/** Gets the focal length. */
+	/** Gets the aperture. */
 	float				GetLens() const;
 	/** Gets the near clip distance. */
 	float				GetCameraNear() const;
 	/** Gets the far clip distance. */
 	float				GetCameraFar() const;
+	/** Gets the focal length (only used for stereo rendering) */
+	float				GetFocalLength() const;
 	/** Gets all camera data. */
 	RAS_CameraData*		GetCameraData();
 	
@@ -248,6 +268,7 @@ public:
 	
 	KX_PYMETHOD_DOC(KX_Camera, enableViewport);
 	KX_PYMETHOD_DOC(KX_Camera, setViewport);	
+	KX_PYMETHOD_DOC(KX_Camera, setOnTop);	
 
 	virtual PyObject* _getattr(const STR_String& attr); /* lens, near, far, projection_matrix */
 	virtual int       _setattr(const STR_String& attr, PyObject *pyvalue);

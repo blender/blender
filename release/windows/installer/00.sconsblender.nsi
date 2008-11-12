@@ -3,10 +3,14 @@
 ;
 ; Blender Self-Installer for Windows (NSIS - http://nsis.sourceforge.net)
 ;
+; Requires the MoreInfo plugin - http://nsis.sourceforge.net/MoreInfo_plug-in
+;
 
 !include "MUI.nsh"
+!include "WinVer.nsh"
 !include "FileFunc.nsh"
 !include "WordFunc.nsh"
+!include "nsDialogs.nsh"
 
 SetCompressor /SOLID lzma
 
@@ -27,7 +31,9 @@ Name "Blender VERSION"
 !insertmacro MUI_PAGE_COMPONENTS
     
 !insertmacro MUI_PAGE_DIRECTORY
-Page custom DataLocation
+Page custom DataLocation DataLocationOnLeave
+;Page custom AppDataChoice AppDataChoiceOnLeave
+Page custom PreMigrateUserSettings MigrateUserSettings
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
   
@@ -64,100 +70,12 @@ Caption "Blender VERSION Installer"
 OutFile "DISTDIR\..\blender-VERSION-windows.exe"
 InstallDir "$PROGRAMFILES\Blender Foundation\Blender"
 
-BrandingText "http://www.blender.org/bf"
+BrandingText "http://www.blender.org"
 ComponentText "This will install Blender VERSION on your computer."
 
 DirText "Use the field below to specify the folder where you want Blender to be copied to. To specify a different folder, type a new name or use the Browse button to select an existing folder."
 
 SilentUnInstall normal
-
-; GetWindowsVersion
-;
-; Based on Yazno's function, http://yazno.tripod.com/powerpimpit/
-; Updated by Joost Verburg
-;
-; Returns on top of stack
-;
-; Windows Version (95, 98, ME, NT x.x, 2000, XP, 2003)
-; or
-; '' (Unknown Windows Version)
-;
-; Usage:
-;   Call GetWindowsVersion
-;   Pop $R0
-;   ; at this point $R0 is "NT 4.0" or whatnot
-
-Function GetWindowsVersion
-
-  Push $R0
-  Push $R1
-
-  ReadRegStr $R0 HKLM \
-  "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
-
-  IfErrors 0 lbl_winnt
-   
-  ; we are not NT
-  ReadRegStr $R0 HKLM \
-  "SOFTWARE\Microsoft\Windows\CurrentVersion" VersionNumber
- 
-  StrCpy $R1 $R0 1
-  StrCmp $R1 '4' 0 lbl_error
- 
-  StrCpy $R1 $R0 3
- 
-  StrCmp $R1 '4.0' lbl_win32_95
-  StrCmp $R1 '4.9' lbl_win32_ME lbl_win32_98
- 
-  lbl_win32_95:
-    StrCpy $R0 '95'
-  Goto lbl_done
- 
-  lbl_win32_98:
-    StrCpy $R0 '98'
-  Goto lbl_done
- 
-  lbl_win32_ME:
-    StrCpy $R0 'ME'
-  Goto lbl_done
- 
-  lbl_winnt:
-
-  StrCpy $R1 $R0 1
- 
-  StrCmp $R1 '3' lbl_winnt_x
-  StrCmp $R1 '4' lbl_winnt_x
- 
-  StrCpy $R1 $R0 3
- 
-  StrCmp $R1 '5.0' lbl_winnt_2000
-  StrCmp $R1 '5.1' lbl_winnt_XP
-  StrCmp $R1 '5.2' lbl_winnt_2003 lbl_error
- 
-  lbl_winnt_x:
-    StrCpy $R0 "NT $R0" 6
-  Goto lbl_done
- 
-  lbl_winnt_2000:
-    Strcpy $R0 '2000'
-  Goto lbl_done
- 
-  lbl_winnt_XP:
-    Strcpy $R0 'XP'
-  Goto lbl_done
- 
-  lbl_winnt_2003:
-    Strcpy $R0 '2003'
-  Goto lbl_done
- 
-  lbl_error:
-    Strcpy $R0 ''
-  lbl_done:
- 
-  Pop $R1
-  Exch $R0
-
-FunctionEnd
 
 # Uses $0
 Function openLinkNewWindow
@@ -194,30 +112,81 @@ Function openLinkNewWindow
 FunctionEnd
 
 Var BLENDERHOME
-Var winversion
 Var DLL_found
+Var PREVHOME
 
-Function SetWinXPPath
-  StrCpy $BLENDERHOME "$PROFILE\Application Data\Blender Foundation\Blender"
+Function SetWinXPPathCurrentUser
+  SetShellVarContext current
+  StrCpy $BLENDERHOME "$APPDATA\Blender Foundation\Blender"
+FunctionEnd
+
+Function SetWinXPPathAllUsers
+  SetShellVarContext all
+  StrCpy $BLENDERHOME "$APPDATA\Blender Foundation\Blender"
 FunctionEnd
 
 Function SetWin9xPath
   StrCpy $BLENDERHOME $INSTDIR
 FunctionEnd
 
-Function .onInit
-  Call GetWindowsVersion
-  Pop $R0
-  Strcpy $winversion $R0
-  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "RELDIR\data.ini"
+; custom controls
+Var HWND
+
+Var HWND_APPDATA
+Var HWND_INSTDIR
+Var HWND_HOMEDIR
+
+Var HWND_BUTTON_YES
+Var HWND_BUTTON_NO
+
+Var SETUSERCONTEXT
+
+Function PreMigrateUserSettings
+  StrCpy $PREVHOME "$PROFILE\Application Data\Blender Foundation\Blender"
+  StrCpy $0 "$PROFILE\Application Data\Blender Foundation\Blender\.blender"
+  
+  IfFileExists $0 0 nochange
+  
+  StrCmp $BLENDERHOME $PREVHOME nochange
+  
+  nsDialogs::Create /NOUNLOAD 1018
+  Pop $HWND
+  
+  ${If} $HWND == error
+	Abort
+  ${EndIf}
+  
+  ${NSD_CreateLabel} 0 0 100% 12u "You have existing settings at:"
+  ${NSD_CreateLabel} 0 20 100% 12u $PREVHOME
+  ${NSD_CreateLabel} 0 40 100% 12u "Do you wish to migrate this data to:"
+  ${NSD_CreateLabel} 0 60 100% 12u $BLENDERHOME
+  ${NSD_CreateLabel} 0 80 100% 12u "Please note: If you choose no, Blender will not be able to use these files!"
+  ${NSD_CreateRadioButton} 0 100 100% 12u "Yes"
+  Pop $HWND_BUTTON_YES
+  ${NSD_CreateRadioButton} 0 120 100% 12u "No"
+  Pop $HWND_BUTTON_NO
+  
+  SendMessage $HWND_BUTTON_YES ${BM_SETCHECK} 1 0
+  
+  nsDialogs::Show
+  nochange:
+  
 FunctionEnd
 
-!define DLL_VER "8.00.50727.42"
+Function MigrateUserSettings
+  ${NSD_GetState} $HWND_BUTTON_YES $R0
+  ${If} $R0 == "1"
+    CreateDirectory $BLENDERHOME
+    CopyFiles $PREVHOME\*.* $BLENDERHOME
+    ;RMDir /r $PREVHOME
+  ${EndIf}  
+FunctionEnd
 
-Function LocateCallback
+!define DLL_VER "9.00.21022.8"
 
-	MoreInfo::GetProductVersion "$R9"
-	Pop $0
+Function LocateCallback_90
+    MoreInfo::GetProductVersion "$R9"
+    Pop $0
 
         ${VersionCompare} "$0" "${DLL_VER}" $R1
 
@@ -226,7 +195,7 @@ Function LocateCallback
         StrCmp $R1 1 0 old
       old:
         StrCmp $R1 2 0 end
-	; Found DLL is older
+    ; Found DLL is older
         Call DownloadDLL
 
      end:
@@ -237,76 +206,103 @@ Function LocateCallback
 FunctionEnd
 
 Function DownloadDLL
-    MessageBox MB_OK "You will need to download the Microsoft Visual C++ 2005 Redistributable Package in order to run Blender. Pressing OK will take you to the download page, please follow the instructions on the page that appears."
-    StrCpy $0 "http://www.microsoft.com/downloads/details.aspx?familyid=32BC1BEE-A3F9-4C13-9C99-220B62A191EE&displaylang=en"
+    MessageBox MB_OK "You will need to download the Microsoft Visual C++ 2008 Redistributable Package in order to run Blender. Pressing OK will take you to the download page, please follow the instructions on the page that appears."
+    StrCpy $0 "http://www.microsoft.com/downloads/details.aspx?FamilyID=9b2da534-3e03-4391-8a4d-074b9f2bc1bf&DisplayLang=en"
     Call openLinkNewWindow
 FunctionEnd
 
-
-Var HWND
-Var DLGITEM
-Var is2KXP
+Function PythonInstall
+    MessageBox MB_OK "You will need to install python 2.5.2 in order to run blender. Pressing OK will take you to the python.org website."
+    StrCpy $0 "http://www.python.org"
+    Call openLinkNewWindow
+FunctionEnd
 
 Function DataLocation
-  !insertmacro MUI_HEADER_TEXT "$(TEXT_IO_TITLE)" ""
-
-  ; Set default choice
-  !insertmacro MUI_INSTALLOPTIONS_WRITE "data.ini" "Field 3" "State" 1
-  
-  StrCpy $R1 $winversion 2
-  StrCmp $R1 "NT" do_win2kxp
-  StrCmp $winversion "2000" do_win2kxp
-  StrCmp $winversion "XP" do_win2kxp
-  StrCmp $winversion "2003" do_win2kxp
-  
-  ;else...
-  Strcpy $is2KXP "false"
-
-  Goto continue
-
-  do_win2kXP:
-    Strcpy $is2KXP "true"
-    
-  continue: 
-  
-  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "data.ini"
+  nsDialogs::Create /NOUNLOAD 1018
   Pop $HWND
   
-  Strcmp $is2KXP "true" do_dlg
+  ${If} $HWND == error
+    Abort
+  ${EndIf}
   
-  ; Disable App Data option on Win9x
+  ${NSD_CreateLabel} 0 0 100% 12u "Please specify where you wish to install Blender's user data files."
+  ${NSD_CreateRadioButton} 0 20 100% 12u "Use the Application Data directory (Requires Windows 2000 or better)"
+  Pop $HWND_APPDATA
+  ${NSD_CreateRadioButton} 0 50 100% 12u "Use the installation directory (ie. location chosen to install blender.exe)."
+  Pop $HWND_INSTDIR
+  ${NSD_CreateRadioButton} 0 80 100% 12u "I have defined a %HOME% variable, please install files here."
+  Pop $HWND_HOMEDIR
   
-  GetDlgItem $DLGITEM $HWND 1201
-  EnableWindow $DLGITEM 0  
+  ${If} ${AtMostWinME}
+    GetDlgItem $0 $HWND $HWND_APPDATA
+    EnableWindow $0 0
+    SendMessage $HWND_INSTDIR ${BM_SETCHECK} 1 0
+  ${Else}
+    SendMessage $HWND_APPDATA ${BM_SETCHECK} 1 0
+  ${EndIf}
   
-  do_dlg:
+  nsDialogs::Show
   
-    !insertmacro MUI_INSTALLOPTIONS_SHOW
-    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 2" "State" ; App Dir
-    Strcmp $R0 1 do_app_data
-    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 3" "State" ; Inst Dir
-    Strcmp $R0 1 do_inst_path
-    !insertmacro MUI_INSTALLOPTIONS_READ $R0 "data.ini" "Field 4" "State" ; Home Dir
-    Strcmp $R0 1 do_home_path
+FunctionEnd
+
+Function DataLocationOnLeave
+	StrCpy $SETUSERCONTEXT "false"
+	${NSD_GetState} $HWND_APPDATA $R0
+	${If} $R0 == "1"
+	  ; FIXME: disabled 'all users' until fully multi-user compatible
+	  ;StrCpy $SETUSERCONTEXT "true"
+	  Call SetWinXPPathCurrentUser
+	${Else}
+	  ${NSD_GetState} $HWND_INSTDIR $R0
+	  ${If} $R0 == "1"
+	    Call SetWin9xPath
+	  ${Else}
+	    ${NSD_GetState} $HWND_HOMEDIR $R0
+	    ${If} $R0 == "1"
+	      ReadEnvStr $BLENDERHOME "HOME"
+	    ${EndIf}
+	  ${EndIf}
+	${EndIf}
+FunctionEnd
+
+Var HWND_APPDATA_CURRENT
+Var HWND_APPDATA_ALLUSERS
+
+Function AppDataChoice
+  StrCmp $SETUSERCONTEXT "false" skip
   
-  Goto end
+  nsDialogs::Create /NOUNLOAD 1018
+  Pop $HWND
   
-  do_app_data:
-    Call SetWinXPPath
-    Goto end
-  do_home_path:
-    ReadEnvStr $BLENDERHOME "HOME"
-    Goto end
-  do_inst_path:
-    Call SetWin9xPath
-  end:
+  ${NSD_CreateLabel} 0 0 100% 12u "Please choose which Application Data directory to use."
+  ${NSD_CreateRadioButton} 0 40 100% 12u "Current User"
+  Pop $HWND_APPDATA_CURRENT
+  ${NSD_CreateRadioButton} 0 70 100% 12u "All Users"
+  Pop $HWND_APPDATA_ALLUSERS
   
+  SendMessage $HWND_APPDATA_CURRENT ${BM_SETCHECK} 1 0
+  
+  StrCmp $SETUSERCONTEXT "true" 0 skip ; show dialog if we need to set context, otherwise skip it
+  nsDialogs::Show
+  
+skip:
+
+FunctionEnd
+
+Function AppDataChoiceOnLeave
+	StrCmp $SETUSERCONTEXT "false" skip
+	${NSD_GetState} $HWND_APPDATA_CURRENT $R0
+	${If} $R0 == "1"
+	   Call SetWinXPPathCurrentUser
+	${Else}
+	   Call SetWinXPPathAllUsers
+	${EndIf}
+skip:
+
 FunctionEnd
 
 Section "Blender-VERSION (required)" SecCopyUI
   SectionIn RO
-    
-; Sets $BLENDERHOME to suit Windows version...
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
@@ -335,19 +331,25 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $INSTDIR
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\BlenderFoundation "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM SOFTWARE\BlenderFoundation "Home_Dir" "$BLENDERHOME"
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "DisplayName" "Blender (remove only)"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteUninstaller "uninstall.exe"
 
+  IfSilent 0 +2
+    Goto silentdone
   ; Check for msvcr80.dll - give notice to download if not found
   MessageBox MB_OK "The installer will now check your system for the required system dlls."
   StrCpy $1 $WINDIR
   StrCpy $DLL_found "false"
-  ${Locate} "$1" "/L=F /M=MSVCR80.DLL /S=0B" "LocateCallback"
+  ${Locate} "$1" "/L=F /M=MSVCR90.DLL /S=0B" "LocateCallback_90"
   StrCmp $DLL_found "false" 0 +2
     Call DownloadDLL
-  
+  ReadRegStr $0 HKLM SOFTWARE\Python\PythonCore\2.5\InstallPath ""
+  StrCmp $0 "" 0 +2
+    Call PythonInstall
+silentdone:
 SectionEnd
 
 Section "Add Start Menu shortcuts" Section2
@@ -383,28 +385,32 @@ SectionEnd
 UninstallText "This will uninstall Blender VERSION. Hit next to continue."
 
 Section "Uninstall"
+  Delete $INSTDIR\uninstall.exe
+  
+  ReadRegStr $BLENDERHOME HKLM "SOFTWARE\BlenderFoundation" "Home_Dir"
+  
   ; remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Blender"
   DeleteRegKey HKLM SOFTWARE\BlenderFoundation
   ; remove files
   [DELROOTDIRCONTS]
   
-  Delete $INSTDIR\.blender\.bfont.ttf
-  Delete $INSTDIR\.blender\.Blanguages
+  Delete $BLENDERHOME\.blender\.bfont.ttf
+  Delete $BLENDERHOME\.blender\.Blanguages
   ; remove shortcuts, if any.
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
-  RMDir /r $INSTDIR\.blender\locale
-  MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" IDNO Next
-  RMDir /r $INSTDIR\.blender\scripts
-  RMDir /r $INSTDIR\.blender\scripts\bpymodules
-  RMDir /r $INSTDIR\.blender\scripts\bpydata
-  RMDir /r $INSTDIR\.blender\scripts\bpydata\config
+  RMDir /r $BLENDERHOME\.blender\locale
+  MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" /SD IDYES IDNO Next
+  RMDir /r $BLENDERHOME\.blender\scripts
+  RMDir /r $BLENDERHOME\.blender\scripts\bpymodules
+  RMDir /r $BLENDERHOME\.blender\scripts\bpydata
+  RMDir /r $BLENDERHOME\.blender\scripts\bpydata\config
 Next:
-  RMDir /r $INSTDIR\plugins\include
-  RMDir /r $INSTDIR\plugins
-  RMDir $INSTDIR\.blender
+  RMDir /r $BLENDERHOME\plugins\include
+  RMDir /r $BLENDERHOME\plugins
+  RMDir $BLENDERHOME\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"
   RMDir "$INSTDIR"

@@ -40,11 +40,16 @@ ifneq ($(NAN_NO_KETSJI), true)
     CFLAGS  += -DUSE_SUMO_SOLID
     CCFLAGS += -DUSE_SUMO_SOLID
     ifeq ($(NAN_USE_BULLET), true)
-      CFLAGS  += -DUSE_BULLET
-      CCFLAGS += -DUSE_BULLET
+      CFLAGS  += -DUSE_BULLET -DWITH_BULLET
+      CCFLAGS += -DUSE_BULLET -DWITH_BULLET
     endif
 else
    CPPFLAGS += -DNO_KETSJI
+endif
+
+ifeq ($(WITH_BF_OPENMP), true)
+    CFLAGS += -fopenmp
+    CCFLAGS += -fopenmp
 endif
 
 ifdef NAN_DEBUG
@@ -168,10 +173,17 @@ ifeq ($(OS),openbsd)
 endif
 
 ifeq ($(OS),solaris)
-    CC	= gcc
-    CCC = g++
-#    CC	= cc
-#    CCC = CC
+    # Adding gcc flag to $CC is not good, however if its not there makesdna wont build - Campbell
+    ifeq (x86_64, $(findstring x86_64, $(CPU)))
+        CC  = gcc -m64
+        CCC = g++ -m64
+    else
+        CC  = gcc
+        CCC = g++
+        #CC  = cc
+        #CCC = CC
+    endif
+    
     JAVAC = javac
     JAVAH = javah
     CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
@@ -179,6 +191,7 @@ ifeq ($(OS),solaris)
 #    CFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
 #    CCFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
 
+    # Note, you might still want to compile a 32 bit binary if you have a 64bit system. if so remove the following lines
 #    ifeq ($(findstring 64,$(CPU)), 64)
 #        CFLAGS	+= -m64
 #        CCFLAGS	+= -m64
@@ -195,7 +208,8 @@ ifeq ($(OS),solaris)
         JAVA_HEADERS = /usr/java/include
         JAVA_SYSTEM_HEADERS = /usr/java/include/solaris
     else
-        OPENGL_HEADERS = $(LCGDIR)/mesa/include
+        # OPENGL_HEADERS = /usr/X11/include/mesa
+	OPENGL_HEADERS = /usr/X11/include/
     endif
     AR = ar
     ARFLAGS = ruv

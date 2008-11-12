@@ -59,6 +59,27 @@ typedef struct bDeformGroup {
 	char name[32];
 } bDeformGroup;
 
+/**
+ * The following illustrates the orientation of the 
+ * bounding box in local space
+ * 
+ *  
+ * Z  Y
+ * | /
+ * |/
+ * .-----X
+ * 
+ * 
+ *     2----------6
+ *    /|         /|
+ *   / |        / |
+ *  1----------5  |
+ *  |  |       |  |
+ *  |  3-------|--7
+ *  | /        | /
+ *  |/         |/
+ *  0----------4
+ */
 typedef struct BoundBox {
 	float vec[8][3];
 	int flag, pad;
@@ -81,6 +102,7 @@ typedef struct Object {
 	struct Path *path;
 	struct BoundBox *bb;
 	struct bAction *action;	
+	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
 	
@@ -96,7 +118,7 @@ typedef struct Object {
 	float loc[3], dloc[3], orig[3];
 	float size[3], dsize[3];
 	float rot[3], drot[3];
-	float quat[4], dquat[4];
+	/* float quat[4], dquat[4]; (not used yet) */
 	float obmat[4][4];
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
@@ -115,7 +137,7 @@ typedef struct Object {
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime;
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
 	
 	/* during realtime */
 
@@ -134,7 +156,9 @@ typedef struct Object {
 
 	float formfactor;
 	float rdamping, sizefac;
-	
+	float margin;
+	int   pad3;
+
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
@@ -147,10 +171,6 @@ typedef struct Object {
 	ListBase sensors;
 	ListBase controllers;
 	ListBase actuators;
-
-	/* now used to store cache particles,
-	 * should be renamed see effect.c (Campbell) */
-    void *sumohandle;		
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
@@ -173,7 +193,9 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	short softflag;			/* softboday settings */
+	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
+
+	short softflag;			/* softbody settings */
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
@@ -192,17 +214,22 @@ typedef struct Object {
 
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
+	short recalco;				/* recalco for temp storage of ob->recalc, bad design warning */
+	short body_type;			/* for now used to temporarily holds the type of collision object */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
 
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
-	int pad;
+	unsigned int state;			/* bit masks of game controllers that are active */
+	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
+	int pad2;
 
 /*#ifdef WITH_VERSE*/
 	void *vnode;			/* pointer at object VerseNode */
 /*#endif*/
+
+	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -293,6 +320,9 @@ extern Object workob;
 	/* for stride edit */
 #define OB_DISABLE_PATH		1024
 
+#define OB_OFFS_PARENTADD	2048
+
+
 /* (short) trackflag / upflag */
 #define OB_POSX			0
 #define OB_POSY			1
@@ -365,6 +395,8 @@ extern Object workob;
 
 #define BA_FROMSET			128
 
+#define BA_TRANSFORM_CHILD	256 /* child of a transformed object */
+
 /* an initial attempt as making selection more specific! */
 #define BA_DESELECT	0
 #define BA_SELECT		1
@@ -382,6 +414,7 @@ extern Object workob;
 		/* time flag is set when time changes need recalc, so baked systems can ignore it */
 #define OB_RECALC_TIME		4
 #define OB_RECALC			7
+
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1
@@ -402,10 +435,20 @@ extern Object workob;
 #define OB_PROP			16384
 #define OB_MAINACTOR	32768
 
+#define OB_COLLISION	65536
+#define OB_SOFT_BODY	0x20000
+
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
 
 #define OB_LIFE			(OB_PROP|OB_DYNAMIC|OB_ACTOR|OB_MAINACTOR|OB_CHILD)
+
+/* ob->body_type */
+#define OB_BODY_TYPE_NO_COLLISION	0
+#define OB_BODY_TYPE_STATIC			1
+#define OB_BODY_TYPE_DYNAMIC		2
+#define OB_BODY_TYPE_RIGID			3
+#define OB_BODY_TYPE_SOFT			4
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1
@@ -419,6 +462,9 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
+#define OB_SETSTBIT		4096
+#define OB_INITSTBIT	8192
+#define OB_DEBUGSTATE	16384
 
 /* ob->restrictflag */
 #define OB_RESTRICT_VIEW	1
@@ -441,9 +487,11 @@ extern Object workob;
 #define OB_LOCK_ROTX	8
 #define OB_LOCK_ROTY	16
 #define OB_LOCK_ROTZ	32
+#define OB_LOCK_ROT		56
 #define OB_LOCK_SCALEX	64
 #define OB_LOCK_SCALEY	128
 #define OB_LOCK_SCALEZ	256
+#define OB_LOCK_SCALE	448
 
 /* ob->softflag in DNA_object_force.h */
 

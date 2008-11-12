@@ -1,10 +1,3 @@
-/*
- * TEMPORARY defines to enable hashing support
- */
-
-#define HASH(x) ((x) >> 5)		/* each "hash" covers 32 indices */
-// #define HASH_PRINTF_DEBUG	/* uncomment to enable debug output */
-
 /**
  *
  * $Id$

@@ -30,6 +30,7 @@
  
 #include "BOP_Merge.h"
 
+#ifdef BOP_ORIG_MERGE
 
 #ifdef _MSC_VER
 #if _MSC_VER < 1300
@@ -802,3 +803,5 @@ void BOP_Merge::getFaces(BOP_LFaces &facesByOriginalFace, BOP_Indexs vertices, B
 	}
 	}
 }
+
+#endif  /* BOP_ORIG_MERGE */

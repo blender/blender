@@ -42,9 +42,6 @@ public:
 			       class NG_NetworkDeviceInterface *ndi);
 	virtual ~KX_NetworkEventManager ();
 
-	virtual void RegisterSensor(class SCA_ISensor* sensor);
-	virtual void RemoveSensor(class SCA_ISensor* sensor);
-
 	virtual void NextFrame();
 	virtual void EndFrame();
 

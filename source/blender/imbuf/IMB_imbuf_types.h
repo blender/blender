@@ -92,7 +92,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
@@ -149,6 +149,7 @@ typedef enum {
 #define IB_zbuffloat	(1 << 16)
 #define IB_multilayer	(1 << 17)
 #define IB_imginfo		(1 << 18)
+#define IB_animdeinterlace      (1 << 19)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.
@@ -167,6 +168,7 @@ typedef enum {
 
 #define RADHDR			(1 << 24)
 #define TIF				(1 << 23)
+#define TIF_16BIT		(1 << 8 )
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )

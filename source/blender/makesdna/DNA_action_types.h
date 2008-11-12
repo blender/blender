@@ -32,10 +32,14 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_view2d_types.h"
+#include "DNA_userdef_types.h"
 
 struct SpaceLink;
 struct Object;
+
+/* -------------- Poses ----------------- */
 
 /* PoseChannel stores the results of Actions (ipos) and transform information 
    with respect to the restposition of Armature bones */
@@ -49,7 +53,7 @@ typedef struct bPoseChannel {
 	short				ikflag;		/* settings for IK bones */
 	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
 	short				protectflag; /* protect channels from being transformed */
-	short				customCol;	/* index of custom color set to use (0=default - used for all old files) */
+	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
 	int				    pathlen;	/* for drawing paths, the amount of frames */
 	int 				pathsf;		/* for drawing paths, the start frame number */
@@ -90,17 +94,59 @@ typedef struct bPoseChannel {
  */
 typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels */
+	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
+	
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
+	
+	
+	ListBase agroups;			/* list of bActionGroups */
+	
+	int active_group;			/* index of active group (starts from 1) */
+	int pad;
 } bPose;
+
+
+/* ------------- Action  ---------------- */
+
+/* Action-Channel Group. These are stored as a list per-Action, and are only used to 
+ * group that Action's Action-Channels when displayed in the Action Editor. 
+ *
+ * Even though all Action-Channels live in a big list per Action, each group they are in also
+ * holds references to the achans within that list which belong to it. Care must be taken to
+ * ensure that action-groups never end up being the sole 'owner' of a channel.
+ *
+ * 
+ * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
+ * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
+ * to Action-Groups.
+ */
+typedef struct bActionGroup {
+	struct bActionGroup *next, *prev;
+	
+	ListBase channels;			/* Note: this must not be touched by standard listbase functions */
+	
+	int flag;					/* settings for this action-group */
+	int customCol;				/* index of custom color set to use when used for bones (0=default - used for all old files, -1=custom set) */				
+	char name[32];				/* name of the group */
+	
+	ThemeWireColor cs;			/* color set to use when customCol == -1 */
+} bActionGroup;
 
 /* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
  * Constraint Channels in certain situations. 
+ *
+ * Action-Channels can only belong to one group at a time, but they still live the Action's
+ * list of achans (to preserve backwards compatability, and also minimise the code
+ * that would need to be recoded). Grouped achans are stored at the start of the list, according
+ * to the position of the group in the list, and their position within the group. 
  */
 typedef struct bActionChannel {
 	struct bActionChannel	*next, *prev;
+	bActionGroup 			*grp;					/* Action Group this Action Channel belongs to */
+	
 	struct Ipo				*ipo;					/* IPO block this action channel references */
 	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
 	
@@ -114,8 +160,17 @@ typedef struct bActionChannel {
  */
 typedef struct bAction {
 	ID				id;
+	
 	ListBase		chanbase;	/* Action Channels in this Action */
+	ListBase 		groups;		/* Action Groups in the Action */
+	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
+	
+	int active_marker;			/* Index of active-marker (first marker = 1) */
+	int pad;
 } bAction;
+
+
+/* ------------- Action Editor --------------------- */
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
@@ -129,11 +184,16 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	
 	bAction		*action;		/* the currently active action */
-	short flag, autosnap;		/* flag: bitmapped settings; autosnap: automatic keyframe snapping mode */
-	short pin, actnr, lock;		/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
+	
+	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
+	short flag, actnr; 			/* flag: bitmapped settings; */
+	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
 	short actwidth;				/* width of the left-hand side name panel (in pixels?) */
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
+
+
+/* -------------- Action Flags -------------- */
 
 /* Action Channel flags */
 typedef enum ACHAN_FLAG {
@@ -147,17 +207,51 @@ typedef enum ACHAN_FLAG {
 	ACHAN_MOVED     = (1<<31),
 } ACHAN_FLAG; 
 
+
+/* Action Group flags */
+typedef enum AGRP_FLAG {
+	AGRP_SELECTED 	= (1<<0),
+	AGRP_ACTIVE 	= (1<<1),
+	AGRP_PROTECTED 	= (1<<2),
+	AGRP_EXPANDED 	= (1<<3),
+	
+	AGRP_TEMP		= (1<<30),
+	AGRP_MOVED 		= (1<<31)
+} AGRP_FLAG;
+
+/* ------------ Action Editor Flags -------------- */
+
 /* SpaceAction flag */
 typedef enum SACTION_FLAG {
-		/* during transform */
+		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
 		/* show sliders (if relevant) */
 	SACTION_SLIDERS	= (1<<1),	
 		/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1<<2),
 		/* don't filter action channels according to visibility */
-	SACTION_NOHIDE = (1<<3)
+	SACTION_NOHIDE = (1<<3),
+		/* don't kill overlapping keyframes after transform */
+	SACTION_NOTRANSKEYCULL = (1<<4),
+		/* don't include keyframes that are out of view */
+	SACTION_HORIZOPTIMISEON = (1<<5),
+		/* hack for moving pose-markers (temp flag)  */
+	SACTION_POSEMARKERS_MOVE = (1<<6),
+		/* don't draw action channels using group colours (where applicable) */
+	SACTION_NODRAWGCOLORS = (1<<7)
 } SACTION_FLAG;	
+
+/* SpaceAction Mode Settings */
+typedef enum SACTCONT_MODES {
+		/* action (default) */
+	SACTCONT_ACTION	= 0,
+		/* editing of shapekey's IPO block */
+	SACTCONT_SHAPEKEY,
+		/* editing of gpencil data */
+	SACTCONT_GPENCIL,
+		/* dopesheet (unimplemented... future idea?) */
+	SACTCONT_DOPESHEET
+} SACTCONTEXT_MODES;
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
 typedef enum SACTSNAP_MODES {
@@ -170,6 +264,9 @@ typedef enum SACTSNAP_MODES {
 		/* snap to nearest marker */
 	SACTSNAP_MARKER,
 } SACTSNAP_MODES;	
+ 
+ 
+/* --------- Pose Flags --------------- */
 
 /* Pose->flag */
 typedef enum POSE_FLAG {
@@ -178,7 +275,11 @@ typedef enum POSE_FLAG {
 		/* prevents any channel from getting overridden by anim from IPO */
 	POSE_LOCKED	= (1<<1),
 		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-	POSE_DO_UNLOCK	= (1<<2)
+	POSE_DO_UNLOCK	= (1<<2),
+		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
+	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
+		/* recalculate bone paths */
+	POSE_RECALCPATHS = (1<<4),
 } POSE_FLAG;
 
 /* PoseChannel (transform) flags */

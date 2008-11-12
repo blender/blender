@@ -34,6 +34,7 @@
 
 struct OldNewMap;
 struct MemFile;
+struct bheadsort;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -73,6 +74,9 @@ typedef struct FileData {
 	struct OldNewMap *libmap;
 	struct OldNewMap *imamap;
 	
+	struct bheadsort *bheadmap;
+	int tot_bheadmap;
+	
 	ListBase mainlist;
 	
 		/* ick ick, used to return
@@ -108,6 +112,7 @@ FileData *blo_openblenderfile( char *name, BlendReadError *error_r);
 FileData *blo_openblendermemory( void *buffer, int buffersize, BlendReadError *error_r);
 FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_r);
 
+void blo_clear_proxy_pointers_from_lib(FileData *fd);
 void blo_make_image_pointer_map(FileData *fd);
 void blo_end_image_pointer_map(FileData *fd);
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);

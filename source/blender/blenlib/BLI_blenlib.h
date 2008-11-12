@@ -67,14 +67,14 @@
 #include "DNA_listBase.h" 
 
 #include <stdlib.h>
-
 extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
  * @attention Defined in scanfill.c
  */
 extern ListBase filledgebase;
-extern int totblock;
+
+extern char btempdir[]; /* creator.c temp dir used instead of U.tempdir, set with BLI_where_is_temp( btempdir, 1 ); */
 
 struct chardesc;
 struct direntry;
@@ -94,7 +94,8 @@ char *BLI_gethome(void);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
-void BLI_split_dirfile(const char *string, char *dir, char *file);
+void BLI_split_dirfile(char *string, char *dir, char *file);
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
@@ -104,6 +105,7 @@ int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
+void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], short name_offs, short len);
 void BLI_newname(char * name, int add);
 int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
@@ -135,7 +137,11 @@ void BLI_dlist_reinit(struct DynamicList *dlist);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_dir(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
+
+/* go back one directory */
+int BLI_parent_dir(char *path);
 
 	/**
 	 * Blender's path code replacement function.
@@ -149,7 +155,9 @@ void BLI_cleanup_dir(const char *relabase, char *dir);
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, const char *basepath, int framenum);
+int BLI_convertstringcode(char *path, const char *basepath);
+int BLI_convertstringframe(char *path, int frame);
+int BLI_convertstringcwd(char *path);
 
 void BLI_makestringcode(const char *relfile, char *file);
 
@@ -222,7 +230,7 @@ int BLI_strcaseeq(char *a, char *b);
 
 /* in util.c */
 #ifdef WITH_ICONV
-void BLI_string_to_utf8(char *original, char *utf_8, char *code);
+void BLI_string_to_utf8(char *original, char *utf_8, const char *code);
 #endif
 
 	/**
@@ -253,7 +261,19 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 * @param fullname The full path and full name of the executable
 	 * @param name The name of the executable (usually argv[0]) to be checked
 	 */
-void BLI_where_am_i(char *fullname, char *name);
+void BLI_where_am_i(char *fullname, const char *name);
+
+char *get_install_dir(void);
+	/**
+	 * Gets the temp directory when blender first runs.
+	 * If the default path is not found, use try $TEMP
+	 * 
+	 * Also make sure the temp dir has a trailing slash
+	 *
+	 * @param fullname The full path to the temp directory
+	 */
+void BLI_where_is_temp(char *fullname, int usertemp);
+
 
 	/**
 	 * determines the full path to the application bundle on OS X
@@ -270,6 +290,7 @@ int BLI_getInstallationDir(char *str);
 		
 /* BLI_storage.h */
 int    BLI_filesize(int file);
+int    BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
 char *BLI_getwdN(char *dir);
 void BLI_hide_dot_files(int set);
@@ -283,7 +304,6 @@ int    BLI_exist(char *name);
 /* BLI_fileops.h */
 void  BLI_recurdir_fileops(char *dirname);
 int BLI_link(char *file, char *to);
-int BLI_backup(char *file, char *from, char *to);
 int BLI_is_writable(char *filename);
 
 /**
@@ -295,8 +315,10 @@ int   BLI_rename(char *from, char *to);
 int   BLI_gzip(char *from, char *to);
 int   BLI_delete(char *file, int dir, int recursive);
 int   BLI_move(char *file, char *to);
-int   BLI_touch(char *file);
-char *BLI_last_slash(char *string);
+int   BLI_touch(const char *file);
+char *BLI_last_slash(const char *string);
+void  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
 
 /* BLI_rct.c */
 /**
@@ -397,7 +419,7 @@ void *BLI_pointer_from_int(int val);
  * @param member The name of a member field of @a strct
  * @retval The offset in bytes of @a member within @a strct
  */
-#define BLI_STRUCT_OFFSET(strct, member)	((int) &((strct*) 0)->member)
+#define BLI_STRUCT_OFFSET(strct, member)	((int)(intptr_t) &((strct*) 0)->member)
 
 #ifdef __cplusplus
 }

@@ -91,21 +91,24 @@ SND_SoundObject::~SND_SoundObject()
 
 void SND_SoundObject::StartSound()
 {
-	m_playstate = SND_MUST_PLAY;
+	if (m_id >= 0)
+		m_playstate = SND_MUST_PLAY;
 }
 
 
 
 void SND_SoundObject::StopSound()
 {
-	m_playstate = SND_MUST_STOP;
+	if (m_id >= 0)
+		m_playstate = SND_MUST_STOP;
 }
 
 
 
 void SND_SoundObject::PauseSound()
 {
-	m_playstate = SND_MUST_PAUSE;
+	if (m_id >= 0)
+		m_playstate = SND_MUST_PAUSE;
 }
 
 

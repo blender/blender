@@ -27,14 +27,15 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
+  . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
   ../python ../render/extern/include ../../../intern/decimation/extern
-  ../imbuf ../avi ../../../intern/elbeem/extern
+  ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../../../intern/bmfont
-  ../nodes ../editors/include
+  ../../../intern/bmfont ../../../extern/bullet2/src
+  ../nodes ../../../extern/glew/include ../gpu
   ${SDL_INC}
   ${ZLIB_INC}
+  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)
@@ -45,6 +46,10 @@ ENDIF(WITH_VERSE)
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
+
+IF(WITH_DDS)
+  ADD_DEFINITIONS(-DWITH_DDS)
+ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
   SET(INC ${INC} ${QUICKTIME_INC})
@@ -72,3 +77,6 @@ IF(WITH_INTERNATIONAL)
    ADD_DEFINITIONS(-DWITH_FREETYPE2)
 ENDIF(WITH_INTERNATIONAL)
 
+IF(NOT WITH_ELBEEM)
+  ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+ENDIF(NOT WITH_ELBEEM)

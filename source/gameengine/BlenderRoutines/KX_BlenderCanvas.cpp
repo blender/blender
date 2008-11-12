@@ -101,6 +101,13 @@ int KX_BlenderCanvas::GetHeight(
 	return 0; //XXX scrarea_get_win_height(m_area);
 }
 
+RAS_Rect &
+KX_BlenderCanvas::
+GetWindowArea(
+){
+	return m_area_rect;
+}	
+
 	void
 KX_BlenderCanvas::
 SetViewPort(
@@ -111,6 +118,11 @@ SetViewPort(
 	int vp_height = (y2 - y1) + 1;
 	int minx = 0;//XXX scrarea_get_win_x(m_area);
 	int miny = 0;//XXX scrarea_get_win_y(m_area);
+
+	m_area_rect.SetLeft(minx + x1);
+	m_area_rect.SetBottom(miny + y1);
+	m_area_rect.SetRight(minx + x2);
+	m_area_rect.SetTop(miny + y2);
 
 	glViewport(minx + x1, miny + y1, vp_width, vp_height);
 	glScissor(minx + x1, miny + y1, vp_width, vp_height);

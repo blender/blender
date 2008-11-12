@@ -33,12 +33,23 @@
 #pragma warning (disable:4786)
 #endif
 
+#include "STR_HashedString.h"
+
 #include "MT_CmMatrix4x4.h"
 #include "MT_Matrix4x4.h"
 
+#include "RAS_TexVert.h"
+
+#include <vector>
+using namespace std;
+
 class RAS_ICanvas;
 class RAS_IPolyMaterial;
-#include "RAS_MaterialBucket.h"
+
+typedef vector<unsigned short> KX_IndexArray;
+typedef vector<RAS_TexVert> KX_VertexArray;
+typedef vector< KX_VertexArray* >  vecVertexArray;
+typedef vector< KX_IndexArray* > vecIndexArrays;
 
 /**
  * 3D rendering device context interface. 
@@ -62,7 +73,18 @@ public:
 			KX_WIREFRAME,
 			KX_SOLID,
 			KX_SHADED,
-			KX_TEXTURED 
+			KX_TEXTURED,
+			KX_SHADOW
+	};
+
+	/**
+	 * Drawing modes
+	 */
+
+	enum DrawMode {
+		KX_MODE_LINES = 1,
+		KX_MODE_TRIANGLES,
+		KX_MODE_QUADS
 	};
 
 	/**
@@ -111,6 +133,7 @@ public:
 		RAS_TEXCO_NORM,		//< Normal coordinates 
 		RAS_TEXTANGENT,		//<
 		RAS_TEXCO_UV2,		//<
+		RAS_TEXCO_VCOL,		//< Vertex Color
 		RAS_TEXCO_DISABLE	//< Disable this texture unit (cached)
 	};
 
@@ -146,6 +169,10 @@ public:
 	 */
 	virtual bool	BeginFrame(int drawingmode, double time)=0;
 	/**
+	 * ClearColorBuffer clears the color buffer.
+	 */
+	virtual void	ClearColorBuffer()=0;
+	/**
 	 * ClearDepthBuffer clears the depth buffer.
 	 */
 	virtual void	ClearDepthBuffer()=0;
@@ -158,7 +185,8 @@ public:
 	 */
 	virtual void	EndFrame()=0;
 	/**
-	 * SetRenderArea sets the render area from the 2d canvas
+	 * SetRenderArea sets the render area from the 2d canvas.
+	 * Returns true if only of subset of the canvas is used.
 	 */
 	virtual void	SetRenderArea()=0;
 
@@ -172,6 +200,7 @@ public:
 	 * @return true if stereo mode is enabled.
 	 */
 	virtual bool	Stereo()=0;
+	virtual bool	InterlacedStereo()=0;
 	/**
 	 * Sets which eye buffer subsequent primitives will be rendered to.
 	 */
@@ -194,67 +223,18 @@ public:
 	
 	// Drawing Functions
 	/**
-	 * IndexPrimitives: Renders primitives.
-	 * @param vertexarrays is an array of vertex arrays
-	 * @param indexarrays is an array of index arrays
-	 * @param mode determines the type of primitive stored in the vertex/index arrays:
-	 *              0 triangles
-	 *              1 lines (default)
-	 *              2 quads
-	 * @param polymat (reserved)
-	 * @param useObjectColor will render the object using @param rgbacolor instead of 
-	 *  vertex colors.
+	 * IndexPrimitives: Renders primitives from mesh slot.
 	 */
-	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor,
-							class KX_ListSlot** slot)=0;
-	/**
-	 * @copydoc IndexPrimitives
-	 * IndexPrimitivesEx will renormalize faces if @param vertexarrays[i].getFlag() & TV_CALCFACENORMAL
-	 */
-	virtual void	IndexPrimitives_Ex( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							int mode,
-							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor)=0;
+	virtual void IndexPrimitives(class RAS_MeshSlot& ms)=0;
+	virtual void IndexPrimitivesMulti(class RAS_MeshSlot& ms)=0;
+
 	/**
 	 * IndexPrimitives_3DText will render text into the polygons.
 	 * The text to be rendered is from @param rendertools client object's text property.
 	 */
-	virtual void	IndexPrimitives_3DText( const vecVertexArray& vertexarrays,
-							const vecIndexArrays & indexarrays,
-							int mode,
+	virtual void	IndexPrimitives_3DText(class RAS_MeshSlot& ms,
 							class RAS_IPolyMaterial* polymat,
-							class RAS_IRenderTools* rendertools,
-							bool useObjectColor,
-							const MT_Vector4& rgbacolor)=0;
-
-	virtual void IndexPrimitivesMulti( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot)=0;
-
-	virtual void IndexPrimitivesMulti_Ex( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor)=0;
-
+							class RAS_IRenderTools* rendertools)=0;
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat)=0;
 	/* This one should become our final version, methinks. */
@@ -274,9 +254,6 @@ public:
 	/**
 	 */
 	virtual const	MT_Point3& GetCameraPosition()=0;
-	/**
-	 */
-	virtual void	LoadViewMatrix()=0;
 	/**
 	 */
 	virtual void	SetFog(float start,
@@ -314,9 +291,6 @@ public:
 	 */
 	virtual int	GetDrawingMode()=0;
 	/**
-	 */
-	virtual void	EnableTextures(bool enable)=0;
-	/**
 	 * Sets face culling
 	 */	
 	virtual void	SetCullFace(bool enable)=0;
@@ -344,6 +318,7 @@ public:
 		float top,
 		float frustnear,
 		float frustfar,
+		float focallength = 0.0f,
 		bool perspective = true
 	)=0;
 	/**
@@ -376,10 +351,6 @@ public:
 	
 	virtual void	SetAmbientColor(float red, float green, float blue)=0;
 	virtual void	SetAmbient(float factor)=0;
-	/**
-	 * Sets alpha testing
-	 */
-	virtual void	SetAlphaTest(bool enable)=0;
 
 	/**
 	 * Sets a polygon offset.  z depth will be: z1 = mult*z0 + add
@@ -388,9 +359,14 @@ public:
 	
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
 
-	virtual void	SetTexCoords(TexCoGen coords, int unit) = 0;
-	virtual void	SetAttrib(int type) = 0;
-	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const = 0;
+
+	virtual void	SetTexCoordNum(int num) = 0;
+	virtual void	SetAttribNum(int num) = 0;
+	virtual void	SetTexCoord(TexCoGen coords, int unit) = 0;
+	virtual void	SetAttrib(TexCoGen coords, int unit) = 0;
+
+	virtual const MT_Matrix4x4&	GetViewMatrix() const = 0;
+	virtual const MT_Matrix4x4&	GetViewInvMatrix() const = 0;
 
 	virtual bool	QueryLists(){return false;}
 	virtual bool	QueryArrays(){return false;}
@@ -399,8 +375,11 @@ public:
 	virtual void	DisableMotionBlur()=0;
 	
 	virtual float	GetMotionBlurValue()=0;
-	virtual int	GetMotionBlurState()=0;
-	virtual void SetMotionBlurState(int newstate)=0;
+	virtual int		GetMotionBlurState()=0;
+	virtual void	SetMotionBlurState(int newstate)=0;
+
+	virtual void	SetBlendingMode(int blendmode)=0;
+	virtual void	SetFrontFace(bool ccw)=0;
 };
 
 #endif //__RAS_IRASTERIZER

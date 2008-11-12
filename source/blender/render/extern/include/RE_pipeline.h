@@ -38,6 +38,7 @@ struct Scene;
 struct RenderData;
 struct NodeBlurData;
 struct Object;
+struct bNodeTree;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -73,7 +74,7 @@ typedef struct RenderLayer {
 	
 	/* copy of RenderData */
 	char name[RE_MAXNAME];		
-	unsigned int lay;			
+	unsigned int lay, lay_zmask;
 	int layflag, passflag, pass_xor;		
 	
 	struct Material *mat_override;
@@ -88,10 +89,11 @@ typedef struct RenderLayer {
 } RenderLayer;
 
 typedef struct RenderResult {
+	struct RenderResult *next, *prev;
 	
 	/* target image size */
 	int rectx, recty;
-	short crop, pad;
+	short crop, sample_nr;
 	
 	/* optional, 32 bits version of picture, used for ogl render and image curves */
 	int *rect32;
@@ -113,13 +115,13 @@ typedef struct RenderResult {
 	volatile RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
-	char exrfile[FILE_MAXDIR];
 	void *exrhandle;
 	
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
 	
 } RenderResult;
+
 
 typedef struct RenderStats {
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
@@ -151,7 +153,7 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
-void RE_InitState (struct Render *re, struct RenderData *rd, int winx, int winy, rcti *disprect);
+void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, int winx, int winy, rcti *disprect);
 
 /* use this to change disprect of active render */
 void RE_SetDispRect (struct Render *re, rcti *disprect);
@@ -175,16 +177,22 @@ void RE_DataBase_ApplyWindow(struct Render *re);
 /* override the scene setting for amount threads, commandline */
 void RE_set_max_threads(int threads);
 
+/* set the render threads based on the commandline and autothreads setting */
+void RE_init_threadcount(Render *re);
+
 /* the main processor, assumes all was set OK! */
 void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
-void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
+void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra, int tfra);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+
+/* do a full sample buffer compo */
+void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, void (*initfunc)(void),
@@ -206,11 +214,14 @@ float RE_filter_value(int type, float x);
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
 /* shaded view or baking options */
-#define RE_BAKE_LIGHT	0
-#define RE_BAKE_ALL		1
-#define RE_BAKE_AO		2
-#define RE_BAKE_NORMALS	3
-#define RE_BAKE_TEXTURE	4
+#define RE_BAKE_LIGHT			0
+#define RE_BAKE_ALL				1
+#define RE_BAKE_AO				2
+#define RE_BAKE_NORMALS			3
+#define RE_BAKE_TEXTURE			4
+#define RE_BAKE_DISPLACEMENT	5
+#define RE_BAKE_SHADOW			6
+
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);

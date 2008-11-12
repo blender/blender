@@ -37,5 +37,10 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(NAN_BULLET2)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_STRING)/include
+CPPFLAGS += -I$(NAN_MOTO)/include
+CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy
+CPPFLAGS += -I../../Rasterizer
+

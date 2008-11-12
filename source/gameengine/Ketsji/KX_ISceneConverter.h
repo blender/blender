@@ -32,6 +32,8 @@
 #include "STR_String.h"
 #include "KX_Python.h"
 
+struct Scene;
+
 class KX_ISceneConverter 
 {
 
@@ -52,6 +54,8 @@ public:
 		class RAS_IRenderTools* rendertools, 
 		class RAS_ICanvas*  canvas)=0;
 	
+	virtual void RemoveScene(class KX_Scene *scene)=0;
+
 	virtual void	SetAlwaysUseExpandFraming(bool to_what) = 0;
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;
@@ -72,6 +76,11 @@ public:
 	virtual void SetMaterials(bool val) =0;
 	virtual bool GetMaterials()=0;
 
+	// use blender glsl materials
+	virtual void SetGLSLMaterials(bool val) =0;
+	virtual bool GetGLSLMaterials()=0;
+
+	virtual struct Scene* GetBlenderSceneForName(const STR_String& name)=0;
 };
 
 #endif //__KX_ISCENECONVERTER_H

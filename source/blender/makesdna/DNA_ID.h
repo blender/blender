@@ -46,7 +46,7 @@ struct ID;
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;
-	int val, pad;
+	int val, val2; /*note, we actually fit a double into these two ints*/
 } IDPropertyData;
 
 typedef struct IDProperty {
@@ -77,6 +77,7 @@ typedef struct IDProperty {
 /* the ID link property type hasn't been implemented yet, this will require
    some cleanup of blenkernel, most likely.*/
 #define IDP_ID		7
+#define IDP_DOUBLE	8
 
 /* add any future new id property types here.*/
 
@@ -139,7 +140,7 @@ typedef struct PreviewImage {
  *
  **/
 
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__)  || defined (__hppa__) || defined (__BIG_ENDIAN__)
 /* big endian */
 #define MAKE_ID2(c, d)		( (c)<<8 | (d) )
 #define MOST_SIG_BYTE				0

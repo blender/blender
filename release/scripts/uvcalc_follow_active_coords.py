@@ -6,7 +6,7 @@ Group: 'UVCalculation'
 Tooltip: 'Follow from active quads.'
 """
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0 2006/02/07"
 
 __bpydoc__ = """\

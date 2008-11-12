@@ -68,13 +68,16 @@ public:
 			PyTypeObject* T=&Type);
 */
 	virtual ~KX_NearSensor(); 
+	virtual void SynchronizeTransform();
 	virtual CValue* GetReplica();
 	virtual bool Evaluate(CValue* event);
 
 	virtual void ReParent(SCA_IObject* parent);
 	virtual bool	NewHandleCollision(void* obj1,void* obj2,
 						 const PHY_CollData * coll_data); 
+	virtual bool	BroadPhaseFilterCollision(void*obj1,void*obj2);
 	virtual void RegisterSumo(KX_TouchEventManager *touchman);
+	virtual void UnregisterSumo(KX_TouchEventManager* touchman);
 	
 	virtual PyObject* _getattr(const STR_String& attr);
 

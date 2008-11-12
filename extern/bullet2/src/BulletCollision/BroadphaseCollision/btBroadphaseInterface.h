@@ -20,20 +20,34 @@ subject to the following restrictions:
 
 struct btDispatcherInfo;
 class btDispatcher;
-struct btBroadphaseProxy;
-#include "../../LinearMath/btVector3.h"
+#include "btBroadphaseProxy.h"
+class btOverlappingPairCache;
 
-///BroadphaseInterface for aabb-overlapping object pairs
+#include "LinearMath/btVector3.h"
+
+///The btBroadphaseInterface class provides an interface to detect aabb-overlapping object pairs.
+///Some implementations for this broadphase interface include btAxisSweep3, bt32BitAxisSweep3 and btDbvtBroadphase.
+///The actual overlapping pair management, storage, adding and removing of pairs is dealt by the btOverlappingPairCache class.
 class btBroadphaseInterface
 {
 public:
 	virtual ~btBroadphaseInterface() {}
 
-	virtual btBroadphaseProxy*	createProxy(  const btVector3& min,  const btVector3& max,int shapeType,void* userPtr, short int collisionFilterGroup,short int collisionFilterMask) =0;
-	virtual void	destroyProxy(btBroadphaseProxy* proxy)=0;
-	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax)=0;
-	virtual void	cleanProxyFromPairs(btBroadphaseProxy* proxy)=0;
+	virtual btBroadphaseProxy*	createProxy(  const btVector3& aabbMin,  const btVector3& aabbMax,int shapeType,void* userPtr, short int collisionFilterGroup,short int collisionFilterMask, btDispatcher* dispatcher,void* multiSapProxy) =0;
+	virtual void	destroyProxy(btBroadphaseProxy* proxy,btDispatcher* dispatcher)=0;
+	virtual void	setAabb(btBroadphaseProxy* proxy,const btVector3& aabbMin,const btVector3& aabbMax, btDispatcher* dispatcher)=0;
 	
+	///calculateOverlappingPairs is optional: incremental algorithms (sweep and prune) might do it during the set aabb
+	virtual void	calculateOverlappingPairs(btDispatcher* dispatcher)=0;
+
+	virtual	btOverlappingPairCache*	getOverlappingPairCache()=0;
+	virtual	const btOverlappingPairCache*	getOverlappingPairCache() const =0;
+
+	///getAabb returns the axis aligned bounding box in the 'global' coordinate frame
+	///will add some transform later
+	virtual void getBroadphaseAabb(btVector3& aabbMin,btVector3& aabbMax) const =0;
+
+	virtual void	printStats() = 0;
 
 };
 

@@ -45,6 +45,19 @@ static bNodeSocketType cmp_node_zcombine_out[]= {
 	{	-1, 0, ""	}
 };
 
+static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+{
+	if(*z1 <= *z2) {
+		QUATCOPY(out, src1);
+	}
+	else {
+		QUATCOPY(out, src2);
+		
+		if(node->custom1)
+			*z1= *z2;
+	}
+}
+
 static void do_zcombine_mask(bNode *node, float *out, float *z1, float *z2)
 {
 	if(*z1 > *z2) {
@@ -67,43 +80,58 @@ static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, f
 
 static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
+	CompBuf *cbuf= in[0]->data;
+	CompBuf *zbuf;
+
 	/* stack order in: col z col z */
 	/* stack order out: col z */
-	if(out[0]->hasoutput==0) 
+	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) 
 		return;
 	
 	/* no input image; do nothing now */
 	if(in[0]->data==NULL) {
 		return;
 	}
+	
+	if(out[1]->hasoutput) {
+		/* copy or make a buffer for for the first z value, here we write result in */
+		if(in[1]->data)
+			zbuf= dupalloc_compbuf(in[1]->data);
+		else {
+			float *zval;
+			int tot= cbuf->x*cbuf->y;
+			
+			zbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
+			for(zval= zbuf->rect; tot; tot--, zval++)
+				*zval= in[1]->vec[0];
+		}
+		/* lazy coder hack */
+		node->custom1= 1;
+		out[1]->data= zbuf;
+	}
+	else {
+		node->custom1= 0;
+		zbuf= in[1]->data;
+	}
+	
+	if(rd->scemode & R_FULL_SAMPLE) {
+		/* make output size of first input image */
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, zbuf, in[1]->vec, in[2]->data, in[2]->vec, 
+								  in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		
+		out[0]->data= stackbuf;
+	}
 	else {
 		/* make output size of first input image */
-		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-		CompBuf *zbuf, *mbuf;
+		CompBuf *mbuf;
 		float *fp;
 		int x;
 		char *aabuf;
 		
-		if(out[1]->hasoutput) {
-			/* copy or make a buffer for for the first z value, here we write result in */
-			if(in[1]->data)
-				zbuf= dupalloc_compbuf(in[1]->data);
-			else {
-				float *zval;
-				int tot= cbuf->x*cbuf->y;
-				
-				zbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
-				for(zval= zbuf->rect; tot; tot--, zval++)
-					*zval= in[1]->vec[0];
-			}
-			/* lazy coder hack */
-			node->custom1= 1;
-		}
-		else {
-			node->custom1= 0;
-			zbuf= in[1]->data;
-		}
 		
 		/* make a mask based on comparison, optionally write zvalue */
 		mbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
@@ -131,9 +159,8 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 		MEM_freeN(aabuf);
 		
 		out[0]->data= stackbuf;
-		if(node->custom1)
-			out[1]->data= zbuf;
 	}
+
 }
 
 bNodeType cmp_node_zcombine= {

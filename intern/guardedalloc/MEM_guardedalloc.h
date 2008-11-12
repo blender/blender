@@ -58,8 +58,8 @@
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
-/* Needed for FILE* */
-#include "stdio.h"
+#include "stdio.h" /* needed for FILE* */
+#include "BLO_sys_types.h" /* needed for uintptr_t */
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,9 +97,16 @@ extern "C" {
 	void *MEM_mapallocN(unsigned int len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
+	 * blocks. as a python dict for easy investigation */ 
+	void MEM_printmemlist_pydict(void);
+
+	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
 	void MEM_printmemlist(void);
 
+	/** Print statistics about memory usage */
+	void MEM_printmemlist_stats(void);
+	
 	/** Set the callback function for error output. */
 	void MEM_set_error_callback(void (*func)(char *));
 
@@ -116,6 +123,12 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
+	/* Memory usage stats
+	 * - MEM_get_memory_in_use is all memory
+	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
+	uintptr_t MEM_get_memory_in_use(void);
+	uintptr_t MEM_get_mapped_memory_in_use(void);
+	int MEM_get_memory_blocks_in_use(void);
 
 #ifdef __cplusplus
 }

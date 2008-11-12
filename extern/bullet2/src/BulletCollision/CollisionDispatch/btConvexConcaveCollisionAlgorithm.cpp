@@ -29,7 +29,7 @@ subject to the following restrictions:
 btConvexConcaveCollisionAlgorithm::btConvexConcaveCollisionAlgorithm( const btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1,bool isSwapped)
 : btCollisionAlgorithm(ci),
 m_isSwapped(isSwapped),
-m_btConvexTriangleCallback(ci.m_dispatcher,body0,body1,isSwapped)
+m_btConvexTriangleCallback(ci.m_dispatcher1,body0,body1,isSwapped)
 {
 }
 
@@ -37,6 +37,13 @@ btConvexConcaveCollisionAlgorithm::~btConvexConcaveCollisionAlgorithm()
 {
 }
 
+void	btConvexConcaveCollisionAlgorithm::getAllContactManifolds(btManifoldArray&	manifoldArray)
+{
+	if (m_btConvexTriangleCallback.m_manifoldPtr)
+	{
+		manifoldArray.push_back(m_btConvexTriangleCallback.m_manifoldPtr);
+	}
+}
 
 
 btConvexTriangleCallback::btConvexTriangleCallback(btDispatcher*  dispatcher,btCollisionObject* body0,btCollisionObject* body1,bool isSwapped):
@@ -79,7 +86,7 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, i
 	//aabb filter is already applied!	
 
 	btCollisionAlgorithmConstructionInfo ci;
-	ci.m_dispatcher = m_dispatcher;
+	ci.m_dispatcher1 = m_dispatcher;
 
 	btCollisionObject* ob = static_cast<btCollisionObject*>(m_triBody);
 
@@ -109,13 +116,11 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, i
 	{
 		btTriangleShape tm(triangle[0],triangle[1],triangle[2]);	
 		tm.setMargin(m_collisionMarginTriangle);
-	
 		
 		btCollisionShape* tmpShape = ob->getCollisionShape();
-		ob->setCollisionShape( &tm );
+		ob->internalSetTemporaryCollisionShape( &tm );
 		
-
-		btCollisionAlgorithm* colAlgo = ci.m_dispatcher->findAlgorithm(m_convexBody,m_triBody,m_manifoldPtr);
+		btCollisionAlgorithm* colAlgo = ci.m_dispatcher1->findAlgorithm(m_convexBody,m_triBody,m_manifoldPtr);
 		///this should use the btDispatcher, so the actual registered algorithm is used
 		//		btConvexConvexAlgorithm cvxcvxalgo(m_manifoldPtr,ci,m_convexBody,m_triBody);
 
@@ -123,12 +128,11 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, i
 	//	cvxcvxalgo.setShapeIdentifiers(-1,-1,partId,triangleIndex);
 //		cvxcvxalgo.processCollision(m_convexBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
 		colAlgo->processCollision(m_convexBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
-		delete colAlgo;
-		ob->setCollisionShape( tmpShape );
-
+		colAlgo->~btCollisionAlgorithm();
+		ci.m_dispatcher1->freeCollisionAlgorithm(colAlgo);
+		ob->internalSetTemporaryCollisionShape( tmpShape);
 	}
 
-	
 
 }
 
@@ -188,9 +192,10 @@ void btConvexConcaveCollisionAlgorithm::processCollision (btCollisionObject* bod
 
 			concaveShape->processAllTriangles( &m_btConvexTriangleCallback,m_btConvexTriangleCallback.getAabbMin(),m_btConvexTriangleCallback.getAabbMax());
 			
+			resultOut->refreshContactPoints();
 	
 		}
-
+	
 	}
 
 }

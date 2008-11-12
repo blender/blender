@@ -67,7 +67,7 @@ typedef struct bConstraintTypeInfo {
 	/* admin/ident */
 	short type;				/* CONSTRAINT_TYPE_### */
 	short size;				/* size in bytes of the struct */
-	char name[32]; 			/* name constraint in interface */
+	char name[32]; 			/* name of constraint in interface */
 	char structName[32];	/* name of struct for SDNA */
 	
 	/* data management function pointers - special handling */
@@ -81,8 +81,8 @@ typedef struct bConstraintTypeInfo {
 	void (*new_data)(void *cdata);
 	
 	/* target handling function pointers */
-		/* for multi-target constraints: return that list; otherwise make a temporary list */
-	void (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
+		/* for multi-target constraints: return that list; otherwise make a temporary list (returns number of targets) */
+	int (*get_constraint_targets)(struct bConstraint *con, struct ListBase *list);
 		/* for single-target constraints only: flush data back to source data, and the free memory used */
 	void (*flush_constraint_targets)(struct bConstraint *con, struct ListBase *list, short nocopy);
 	
@@ -114,6 +114,9 @@ void copy_constraints(struct ListBase *dst, struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
 
+/* Constraints + Proxies function prototypes */
+void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);
+short proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
 
 /* Constraint Channel function prototypes */
 struct bConstraintChannel *get_constraint_channel(struct ListBase *list, const char *name);
@@ -122,6 +125,7 @@ void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase,
 void copy_constraint_channels(struct ListBase *dst, struct ListBase *src);
 void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
 void free_constraint_channels(struct ListBase *chanbase);
+
 
 /* Constraint Evaluation function prototypes */
 struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);

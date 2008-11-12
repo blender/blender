@@ -42,6 +42,8 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../gpu
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 DIRS = SHD_nodes CMP_nodes

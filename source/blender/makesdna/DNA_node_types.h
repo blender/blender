@@ -58,7 +58,7 @@ typedef struct bNodeStack {
 #define NS_OSA_VALUES		2
 
 typedef struct bNodeSocket {
-	struct bNodeSocket *next, *prev;
+	struct bNodeSocket *next, *prev, *new_sock;
 	
 	char name[32];
 	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
@@ -92,7 +92,8 @@ typedef struct bNodeSocket {
 #define SOCK_IN_USE				4
 		/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-
+		/* flag for selection status */
+#define SOCK_SEL			16
 #
 #
 typedef struct bNodePreview {
@@ -106,6 +107,7 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
+	char username[32];	/* custom name defined by user */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
@@ -142,6 +144,8 @@ typedef struct bNode {
 #define NODE_GROUP_EDIT		128
 		/* free test flag, undefined */
 #define NODE_TEST			256
+		/* composite: don't do node but pass on buffer(s) */
+#define NODE_MUTED			512
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -158,7 +162,8 @@ typedef struct bNodeTree {
 	
 	ListBase nodes, links;
 	
-	bNodeStack **stack;				/* stack is only while executing, no read/write in file */
+	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
+	struct ListBase *threadstack;	/* same as above */
 	
 	int type, init;					/* set init on fileread */
 	int stacksize;					/* amount of elements in stack */
@@ -166,6 +171,10 @@ typedef struct bNodeTree {
 									   will increase this counter */
 	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
+
+	/* selected input/output socket */
+	bNodeSocket *selin;
+	bNodeSocket *selout;
 
 	/* callbacks */
 	void (*timecursor)(int nr);
@@ -191,12 +200,26 @@ typedef struct NodeImageAnim {
 } NodeImageAnim;
 
 typedef struct NodeBlurData {
-	short sizex, sizey, samples, maxspeed, minspeed, pad1;
-	float fac;
+	short sizex, sizey;
+	short samples, maxspeed, minspeed, relative;
+	float fac, percentx, percenty;
 	short filtertype;
 	char bokeh, gamma;
-	int pad2;
+	short curved;
+	short pad;
+	int image_in_width, image_in_height; /* needed for absolute/relative conversions */
 } NodeBlurData;
+
+typedef struct NodeDBlurData {
+	float center_x, center_y, distance, angle, spin, zoom;
+	short iter;
+	char wrap, pad;
+} NodeDBlurData;
+
+typedef struct NodeBilateralBlurData {
+	float sigma_color, sigma_space;
+	short iter, pad;
+} NodeBilateralBlurData;
 
 typedef struct NodeHueSat {
 	float hue, sat, val;
@@ -218,6 +241,10 @@ typedef struct NodeTwoXYs {
 	short x1, x2, y1, y2;
 } NodeTwoXYs;
 
+typedef struct NodeTwoFloats {
+	float x, y;
+} NodeTwoFloats;
+
 typedef struct NodeGeometry {
 	char uvname[32];
 	char colname[32];
@@ -234,6 +261,10 @@ typedef struct NodeDefocus {
 	float fstop, maxblur, bthresh, scale;
 } NodeDefocus;
 
+typedef struct NodeScriptDict {
+	void *dict; /* for PyObject *dict */
+	void *node; /* for BPy_Node *node */
+} NodeScriptDict;
 
 /* qdn: glare node */
 typedef struct NodeGlare {

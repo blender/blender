@@ -281,10 +281,10 @@ void set_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*d3	+0.5f*d2	-0.5f*d	+0.16666f;
-			data[1]= 0.5f*d3		-d2				+0.6666f;
-			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.1666f;
-			data[3]= 0.1666f*d3			;
+			data[0]= -0.16666666f*d3	+0.5f*d2	-0.5f*d	+0.16666666f;
+			data[1]= 0.5f*d3		-d2				+0.6666666f;
+			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.16666666f;
+			data[3]= 0.16666666f*d3			;
 		}
 	}
 }
@@ -310,10 +310,10 @@ void set_afgeleide_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*3.0f*d2	+d	-0.5f;
+			data[0]= -0.16666666f*3.0f*d2	+d	-0.5f;
 			data[1]= 1.5f*d2		-2.0f*d;
 			data[2]= -1.5f*d2		+d	+0.5f;
-			data[3]= 0.1666f*3.0f*d2			;
+			data[3]= 0.16666666f*3.0f*d2			;
 		}
 	}
 }
@@ -539,26 +539,26 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_FLOAT:
 				
 				if(weights) {
-					memcpy(poin, kref, 4*cp[0]);
+					memcpy(poin, kref, sizeof(float)*cp[0]);
 					if(*weights!=0.0f)
 						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
 					weights++;
 				}
 				else 
-					memcpy(poin, k1, 4*cp[0]);
+					memcpy(poin, k1, sizeof(float)*cp[0]);
 
 				poin+= ofsp[0];
 
 				break;
 			case IPO_BPOINT:
-				memcpy(poin, k1, 3*4);
-				memcpy(poin+16, k1+12, 4);
+				memcpy(poin, k1, 3*sizeof(float));
+				memcpy(poin+4*sizeof(float), k1+3*sizeof(float), sizeof(float));
 				
 				poin+= ofsp[0];				
 
 				break;
 			case IPO_BEZTRIPLE:
-				memcpy(poin, k1, 4*12);
+				memcpy(poin, k1, sizeof(float)*10);
 				poin+= ofsp[0];	
 
 				break;
@@ -627,7 +627,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 }
 
 
-static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
+void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;

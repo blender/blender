@@ -17,13 +17,25 @@ subject to the following restrictions:
 #define TYPED_CONSTRAINT_H
 
 class btRigidBody;
-#include "../../LinearMath/btScalar.h"
+#include "LinearMath/btScalar.h"
+
+enum btTypedConstraintType
+{
+	POINT2POINT_CONSTRAINT_TYPE,
+	HINGE_CONSTRAINT_TYPE,
+	CONETWIST_CONSTRAINT_TYPE,
+	D6_CONSTRAINT_TYPE,
+	VEHICLE_CONSTRAINT_TYPE,
+	SLIDER_CONSTRAINT_TYPE
+};
 
 ///TypedConstraint is the baseclass for Bullet constraints and vehicles
 class btTypedConstraint
 {
 	int	m_userConstraintType;
 	int	m_userConstraintId;
+
+	btTypedConstraintType m_constraintType;
 
 	btTypedConstraint&	operator=(btTypedConstraint&	other)
 	{
@@ -40,11 +52,11 @@ protected:
 
 public:
 
-	btTypedConstraint();
+	btTypedConstraint(btTypedConstraintType type);
 	virtual ~btTypedConstraint() {};
-	btTypedConstraint(btRigidBody& rbA);
+	btTypedConstraint(btTypedConstraintType type, btRigidBody& rbA);
 
-	btTypedConstraint(btRigidBody& rbA,btRigidBody& rbB);
+	btTypedConstraint(btTypedConstraintType type, btRigidBody& rbA,btRigidBody& rbB);
 
 	virtual void	buildJacobian() = 0;
 
@@ -59,7 +71,7 @@ public:
 		return m_rbB;
 	}
 
-	btRigidBody& getRigidBodyA()
+	btRigidBody& getRigidBodyA() 
 	{
 		return m_rbA;
 	}
@@ -83,14 +95,26 @@ public:
 		m_userConstraintId = uid;
 	}
 	
-	int getUserConstraintId()
+	int getUserConstraintId() const
 	{
 		return m_userConstraintId;
 	}
-	btScalar	getAppliedImpulse()
+
+	int getUid() const
+	{
+		return m_userConstraintId;   
+	} 
+
+	btScalar	getAppliedImpulse() const
 	{
 		return m_appliedImpulse;
 	}
+
+	btTypedConstraintType getConstraintType () const
+	{
+		return m_constraintType;
+	}
+
 };
 
 #endif //TYPED_CONSTRAINT_H

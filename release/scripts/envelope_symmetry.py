@@ -8,7 +8,7 @@ Tooltip: 'Make envelope symetrical'
 """
 
 __author__ = "Jonas Petersen"
-__url__ = ("blender", "elysiun", "Script's homepage, http://www.mindfloaters.de/blender/", "thread at blender.org, http://www.blender.org/modules.php?op=modload&name=phpBB2&file=viewtopic&t=4858 ")
+__url__ = ("blender", "blenderartists.org", "Script's homepage, http://www.mindfloaters.de/blender/", "thread at blender.org, http://www.blender.org/modules.php?op=modload&name=phpBB2&file=viewtopic&t=4858 ")
 __version__ = "0.9 2004-11-10"
 __doc__ = """\
 This script creates perfectly symmetrical envelope sets.  It is part of the

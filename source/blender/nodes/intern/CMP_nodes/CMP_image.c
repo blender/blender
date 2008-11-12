@@ -48,6 +48,7 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "Refract",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Radio",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "IndexOB",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Mist",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -78,6 +79,21 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		stackbuf->rect= ibuf->rect_float;
 	}
 	
+	/*code to respect the premul flag of images; I'm
+	  not sure if this is a good idea for multilayer images,
+	  since it never worked before for them.
+	if (type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
+		//premul the image
+		int i;
+		float *pixel = stackbuf->rect;
+		
+		for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
+			pixel[0] *= pixel[3];
+			pixel[1] *= pixel[3];
+			pixel[2] *= pixel[3];
+		}
+	}
+	*/
 	return stackbuf;
 };
 
@@ -149,6 +165,8 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 		out[RRES_OUT_RADIO]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_RADIO);
 	if(out[RRES_OUT_INDEXOB]->hasoutput)
 		out[RRES_OUT_INDEXOB]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDEXOB);
+	if(out[RRES_OUT_MIST]->hasoutput)
+		out[RRES_OUT_MIST]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_MIST);
 	
 };
 
@@ -184,11 +202,32 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		else {
 			stackbuf= node_composit_get_image(rd, ima, iuser);
 
-			/* put image on stack */	
-			out[0]->data= stackbuf;
+			if (stackbuf) {
+				/*respect image premul option*/
+				if (stackbuf->type==CB_RGBA && ima->flag & IMA_DO_PREMUL) {
+					int i;
+					float *pixel;
 			
-			if(out[2]->hasoutput)
-				out[2]->data= node_composit_get_zimage(node, rd);
+					/*first duplicate stackbuf->rect, since it's just a pointer
+					  to the source imbuf, and we don't want to change that.*/
+					stackbuf->rect = MEM_dupallocN(stackbuf->rect);
+				
+					/*premul the image*/
+				
+					pixel = stackbuf->rect;
+					for (i=0; i<stackbuf->x*stackbuf->y; i++, pixel += 4) {
+						pixel[0] *= pixel[3];
+						pixel[1] *= pixel[3];
+						pixel[2] *= pixel[3];
+					}
+				}
+			
+				/* put image on stack */	
+				out[0]->data= stackbuf;
+			
+				if(out[2]->hasoutput)
+					out[2]->data= node_composit_get_zimage(node, rd);
+			}
 		}
 		
 		/* alpha and preview for both types */
@@ -205,6 +244,7 @@ static void node_composit_init_image(bNode* node)
 {
    ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
    node->storage= iuser;
+   iuser->frames= 1;
    iuser->sfra= 1;
    iuser->fie_ima= 2;
    iuser->ok= 1;
@@ -236,7 +276,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
       CompBuf *buf;
       int buftype= CB_VEC3;
 
-      if(ELEM(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB))
+      if(ELEM3(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB, SCE_PASS_MIST))
          buftype= CB_VAL;
       else if(passcode==SCE_PASS_VECTOR)
          buftype= CB_VEC4;
@@ -282,7 +322,9 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
    if(out[RRES_OUT_RADIO]->hasoutput)
       out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RADIO);
    if(out[RRES_OUT_INDEXOB]->hasoutput)
-      out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
+	   out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
+   if(out[RRES_OUT_MIST]->hasoutput)
+	   out[RRES_OUT_MIST]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_MIST);
 
 };
 

@@ -36,6 +36,11 @@ typedef unsigned short		GHOST_TUns16;
 typedef	int					GHOST_TInt32;
 typedef	unsigned int		GHOST_TUns32;
 
+#ifdef WIN32
+#define WM_BLND_NDOF_AXIS	WM_USER + 1
+#define WM_BLND_NDOF_BTN 	WM_USER + 2
+#endif
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef __int64				GHOST_TInt64;
 typedef unsigned __int64	GHOST_TUns64;
@@ -95,6 +100,7 @@ typedef enum {
 	GHOST_kWindowStateMaximized,
 	GHOST_kWindowStateMinimized,
 	GHOST_kWindowStateFullScreen,
+	GHOST_kWindowStateEmbedded,
 	GHOST_kWindowState8Normal = 8,
 	GHOST_kWindowState8Maximized,
 	GHOST_kWindowState8Minimized,
@@ -129,6 +135,9 @@ typedef enum {
 	GHOST_kEventButtonDown,		/// Mouse button event
 	GHOST_kEventButtonUp,		/// Mouse button event
 	GHOST_kEventWheel,			/// Mouse wheel event
+
+	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
+	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -336,6 +345,38 @@ typedef struct {
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
 
+
+/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
+/* as all USB device controls are likely to use ints, this is also more future proof */
+//typedef struct {
+//   /** N-degree of freedom device data */
+//   float tx, ty, tz;   /** -x left, +y up, +z forward */
+//   float rx, ry, rz;
+//   float dt;
+//} GHOST_TEventNDOFData;
+
+typedef struct {
+   /** N-degree of freedom device data v2*/
+   int changed;
+   GHOST_TUns64 client;
+   GHOST_TUns64 address;
+   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
+   GHOST_TInt16 rx, ry, rz;
+   GHOST_TInt16 buttons;
+   GHOST_TUns64 time;
+   GHOST_TUns64 delta;
+} GHOST_TEventNDOFData;
+
+typedef int     (*GHOST_NDOFLibraryInit_fp)();
+typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
+typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
+
+// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
+// not necessary faster, but better integration with other events. 
+
+//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
+//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
+
 typedef struct {
 	/** The key code. */
 	GHOST_TKey		key;
@@ -354,6 +395,15 @@ typedef struct {
 	GHOST_TUns32	frequency;
 } GHOST_DisplaySetting;
 
+
+#ifdef _WIN32
+typedef long GHOST_TEmbedderWindowID;
+#endif // _WIN32
+
+#ifndef _WIN32
+// I can't use "Window" from "<X11/Xlib.h>" because it conflits with Window defined in winlay.h
+typedef int GHOST_TEmbedderWindowID;
+#endif // _WIN32
 
 /**
  * A timer task callback routine.

@@ -26,13 +26,14 @@
 FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
+  . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
   ../python ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../blenkernel ../editors/include
+  ../blenkernel ../../../extern/glew/include ../gpu
   ${SDL_INC}
   ${ZLIB_INC}
+  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)

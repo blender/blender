@@ -35,12 +35,12 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
-#include <cstdio>
-
 #if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
 #include <strings.h>
 #endif
 
+#include <cstring>
+#include <cstdio>
 
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
@@ -148,6 +148,7 @@ GHOST_WindowX11(
 	GHOST_TUns32 width,	
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
+	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual
 ) :
@@ -165,7 +166,8 @@ GHOST_WindowX11(
 	// X can find us a visual matching those requirements.
 
 	int attributes[40], i = 0;
-	
+	Atom atoms[2];
+	int natom;	
 	
 	if(m_stereoVisual)
 		attributes[i++] = GLX_STEREO;
@@ -211,25 +213,60 @@ GHOST_WindowX11(
 		KeyPressMask | KeyReleaseMask |
 		EnterWindowMask | LeaveWindowMask |
 		ButtonPressMask | ButtonReleaseMask |
-		PointerMotionMask | FocusChangeMask;
+		PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
 	// create the window!
 
-	m_window = 
-		XCreateWindow(
-			m_display, 
-			RootWindow(m_display, m_visual->screen), 
-			left,
-			top,
-			width,
-			height,
-			0, // no border.
-			m_visual->depth,
-			InputOutput, 
-			m_visual->visual,
-			CWBorderPixel|CWColormap|CWEventMask, 
-			&xattributes
-		);
+	;
+	if (parentWindow == 0) {
+		m_window = 
+			XCreateWindow(
+				m_display, 
+				RootWindow(m_display, m_visual->screen), 
+				left,
+				top,
+				width,
+				height,
+				0, // no border.
+				m_visual->depth,
+				InputOutput, 
+				m_visual->visual,
+				CWBorderPixel|CWColormap|CWEventMask, 
+				&xattributes
+			);
+	} else {
+
+		Window root_return;
+		int x_return,y_return;
+		unsigned int w_return,h_return,border_w_return,depth_return;
+		
+		XGetGeometry(m_display, parentWindow, &root_return, &x_return, &y_return,
+			&w_return, &h_return, &border_w_return, &depth_return );
+
+		left = 0;
+		top = 0;
+		width = w_return;
+		height = h_return;
+
+
+		m_window = XCreateWindow(
+				m_display, 
+				parentWindow,  // reparent against embedder 
+				left,
+				top,
+				width,
+				height,
+				0, // no border.
+				m_visual->depth,
+				InputOutput, 
+				m_visual->visual,
+				CWBorderPixel|CWColormap|CWEventMask, 
+				&xattributes
+			);
+
+		XSelectInput(m_display , parentWindow, SubstructureNotifyMask);
+		
+	}	
 	
 	/*
 	 * One of the problem with WM-spec is that can't set a property
@@ -273,6 +310,25 @@ GHOST_WindowX11(
 	free(wmclass);
 	XFree(xclasshint);
 
+	/* The basic for a good ICCCM "work" */
+	if (m_system->m_wm_protocols) {
+		natom= 0;
+
+		if (m_system->m_delete_window_atom) {
+			atoms[natom]= m_system->m_delete_window_atom;
+			natom++;
+		}
+
+		if (m_system->m_wm_take_focus) {
+			atoms[natom]= m_system->m_wm_take_focus;
+			natom++;
+		}
+
+		if (natom) {
+			/* printf("Register atoms: %d\n", natom); */
+			XSetWMProtocols(m_display, m_window, atoms, natom);
+		}
+	}
 
 	// Set the window icon
 	XWMHints *xwmhints = XAllocWMHints();
@@ -921,9 +977,9 @@ setOrder(
 			xev.xclient.message_type = atom;
 
 			xev.xclient.format = 32;
-			xev.xclient.data.l[0] = 0;
-			xev.xclient.data.l[1] = 0;
-			xev.xclient.data.l[2] = 0;
+			xev.xclient.data.l[0] = 1;
+			xev.xclient.data.l[1] = CurrentTime;
+			xev.xclient.data.l[2] = m_window;
 			xev.xclient.data.l[3] = 0;
 			xev.xclient.data.l[4] = 0;
 
@@ -1020,6 +1076,15 @@ validate(
 GHOST_WindowX11::
 ~GHOST_WindowX11(
 ){
+	static Atom Primary_atom, Clipboard_atom;
+	Window p_owner, c_owner;
+	/*Change the owner of the Atoms to None if we are the owner*/
+	Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+	Clipboard_atom = XInternAtom(m_display, "CLIPBOARD", False);
+	
+	p_owner = XGetSelectionOwner(m_display, Primary_atom);
+	c_owner = XGetSelectionOwner(m_display, Clipboard_atom);
+	
 	std::map<unsigned int, Cursor>::iterator it = m_standard_cursors.begin();
 	for (; it != m_standard_cursors.end(); it++) {
 		XFreeCursor(m_display, it->second);
@@ -1038,6 +1103,14 @@ GHOST_WindowX11::
 		}
 		glXDestroyContext(m_display, m_context);
 	}
+	
+	if (p_owner == m_window) {
+		XSetSelectionOwner(m_display, Primary_atom, None, CurrentTime);
+	}
+	if (c_owner == m_window) {
+		XSetSelectionOwner(m_display, Clipboard_atom, None, CurrentTime);
+	}
+	
 	XDestroyWindow(m_display, m_window);
 	XFree(m_visual);
 }

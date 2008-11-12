@@ -81,6 +81,16 @@ void rng_seed(RNG *rng, unsigned int seed) {
 	rng->X= (((r_uint64) seed)<<16) | LOWSEED;
 }
 
+void rng_srandom(RNG *rng, unsigned int seed) {
+	extern unsigned char hash[];	// noise.c
+	
+	rng_seed(rng, seed + hash[seed & 255]);
+	seed= rng_getInt(rng);
+	rng_seed(rng, seed + hash[seed & 255]);
+	seed= rng_getInt(rng);
+	rng_seed(rng, seed + hash[seed & 255]);
+}
+
 int rng_getInt(RNG *rng) {
 	rng->X= (MULTIPLIER*rng->X + ADDEND)&MASK;
 	return (int) (rng->X>>17);
@@ -132,13 +142,7 @@ void BLI_srand(unsigned int seed) {
 
 /* using hash table to create better seed */
 void BLI_srandom(unsigned int seed) {
-	extern unsigned char hash[];	// noise.c
-	
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
-	seed= rng_getInt(&theBLI_rng);
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
-	seed= rng_getInt(&theBLI_rng);
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
+	rng_srandom(&theBLI_rng, seed);
 }
 
 int BLI_rand(void) {

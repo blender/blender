@@ -236,10 +236,15 @@ ntlWorld::~ntlWorld()
 {
 	delete mpGlob->getRenderScene();
 	delete mpGlob->getSimScene();
-  delete mpGlob;
-  delete mpLightList;
-  delete mpPropList;
-  delete mpSims;
+  
+	delete mpGlob;
+	
+	
+	// these get assigned to mpGlob but not freed there
+	delete mpLightList;
+	delete mpPropList; // materials
+	delete mpSims;
+  
 #ifndef NOGUI
 	if(mpOpenGLRenderer) delete mpOpenGLRenderer;
 #endif // NOGUI
@@ -895,6 +900,8 @@ ntlRenderGlobals::ntlRenderGlobals() :
 ntlRenderGlobals::~ntlRenderGlobals() {
 	if(mpOpenGlAttr) delete mpOpenGlAttr;
 	if(mpBlenderAttr) delete mpBlenderAttr;
+	
+	
 }
 
 

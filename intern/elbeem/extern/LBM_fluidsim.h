@@ -63,11 +63,6 @@ void loadFluidsimMesh(struct Object *srcob, int useRenderParams);
 // WARNING - implemented in intern/elbeem/blendercall.cpp
 int performElbeemSimulation(char *cfgfilename);
 
-/* init axis aligned BB for mesh object */
-// implemented in source/blender/blenkernel/intern/DerivedMesh.c
-void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3], /*RET*/ struct Mesh **bbmesh );
-
 
 #endif
 

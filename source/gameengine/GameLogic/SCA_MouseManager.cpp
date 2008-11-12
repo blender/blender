@@ -75,9 +75,10 @@ void SCA_MouseManager::NextFrame()
 {
 	if (m_mousedevice)
 	{
-		for (unsigned int i = 0; i < m_sensors.size(); i++)
+		set<SCA_ISensor*>::iterator it;
+		for (it=m_sensors.begin(); it!=m_sensors.end(); it++)
 		{
-			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*) m_sensors[i];
+			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*)(*it);
 			// (0,0) is the Upper Left corner in our local window
 			// coordinates
 			if (!mousesensor->IsSuspended())
@@ -97,15 +98,6 @@ void SCA_MouseManager::NextFrame()
 		}
 	}
 }
-
-
-
-void  SCA_MouseManager::RegisterSensor(SCA_ISensor* keysensor)
-{
-	m_sensors.push_back(keysensor);
-}
-
-
 
 bool SCA_MouseManager::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {

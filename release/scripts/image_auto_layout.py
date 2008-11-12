@@ -265,8 +265,8 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	render_context.setRenderWinSize(100)
 	render_context.setImageType(Render.PNG)
 	render_context.enableExtensions(True) 
-	render_context.enableSky() # No alpha needed.
-	render_context.enableRGBColor()
+	render_context.enablePremultiply() # No alpha needed.
+	render_context.enableRGBAColor()
 	render_context.threads = 2
 	
 	#Render.EnableDispView() # Broken??
@@ -275,8 +275,9 @@ def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PR
 	render_mat= B.Material.New()
 	render_mat.mode |= B.Material.Modes.SHADELESS
 	render_mat.mode |= B.Material.Modes.TEXFACE
-	
-	
+	render_mat.mode |= B.Material.Modes.ZTRANSP
+	render_mat.setAlpha(0.0)
+		
 	render_me= B.Mesh.New()
 	render_me.verts.extend([Vector(0,0,0)]) # Stupid, dummy vert, preverts errors. when assigning UV's/
 	render_ob= B.Object.New('Mesh')

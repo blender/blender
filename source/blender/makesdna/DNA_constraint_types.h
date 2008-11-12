@@ -304,6 +304,19 @@ typedef struct bSizeLimitConstraint {
 	short		flag2;
 } bSizeLimitConstraint;
 
+/* Limit Distance Constraint */
+typedef struct bDistLimitConstraint {
+	Object 		*tar;
+	char 		subtarget[32];
+	
+	float 		dist;			/* distance (radius of clamping sphere) from target */
+	float		soft;			/* distance from clamping-sphere to start applying 'fade' */
+	
+	short		flag;			/* settings */
+	short 		mode;			/* how to limit in relation to clamping sphere */
+	int 		pad;
+} bDistLimitConstraint;
+
 /* ------------------------------------------ */
 
 /* bConstraint->type 
@@ -325,12 +338,13 @@ typedef enum B_CONSTAINT_TYPES {
 	CONSTRAINT_TYPE_PYTHON,				/* Unimplemented no longer :) - Aligorith. Scripts */
 	CONSTRAINT_TYPE_ACTION,
 	CONSTRAINT_TYPE_LOCKTRACK,			/* New Tracking constraint that locks an axis in place - theeth */
-	CONSTRAINT_TYPE_DISTANCELIMIT,		/* was never properly coded - removed! */
+	CONSTRAINT_TYPE_DISTLIMIT,			/* limit distance */
 	CONSTRAINT_TYPE_STRETCHTO, 			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
 	CONSTRAINT_TYPE_MINMAX,  			/* floor constraint */
 	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
 	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
 	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
+	
 	
 	/* NOTE: everytime a new constraint is added, update this */
 	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_TRANSFORM
@@ -349,7 +363,9 @@ typedef enum B_CONSTRAINT_FLAG {
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 	CONSTRAINT_SPACEONCE = 	(1<<6),
 		/* influence ipo is on constraint itself, not in action channel */
-	CONSTRAINT_OWN_IPO	= (1<<7)
+	CONSTRAINT_OWN_IPO	= (1<<7),
+		/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
+	CONSTRAINT_PROXY_LOCAL = (1<<8)
 } B_CONSTRAINT_FLAG;
 
 /* bConstraint->ownspace/tarspace */
@@ -359,11 +375,13 @@ typedef enum B_CONSTRAINT_SPACETYPES {
 		/* for objects (relative to parent/without parent influence), 
 		 * for bones (along normals of bone, without parent/restpositions) 
 		 */
-	CONSTRAINT_SPACE_LOCAL,
+	CONSTRAINT_SPACE_LOCAL, /* = 1 */
 		/* for posechannels - pose space  */
-	CONSTRAINT_SPACE_POSE,
-		/* for posechannels - local with parent  */
-	CONSTRAINT_SPACE_PARLOCAL,
+	CONSTRAINT_SPACE_POSE, /* = 2 */
+ 		/* for posechannels - local with parent  */
+	CONSTRAINT_SPACE_PARLOCAL, /* = 3 */
+		/* for files from between 2.43-2.46 (should have been parlocal) */
+	CONSTRAINT_SPACE_INVALID, /* = 4. do not exchange for anything! */
 } B_CONSTRAINT_SPACETYPES;
 
 /* bConstraintChannel.flag */
@@ -445,7 +463,9 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1
 #define CONSTRAINT_IK_ROT		2
+	/* targetless */
 #define CONSTRAINT_IK_AUTO		4
+	/* autoik */
 #define CONSTRAINT_IK_TEMP		8
 #define CONSTRAINT_IK_STRETCH	16
 #define CONSTRAINT_IK_POS		32
@@ -473,6 +493,15 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define LIMIT_NOPARENT 0x01
 	/* for all Limit constraints - allow to be used during transform? */
 #define LIMIT_TRANSFORM 0x02
+
+/* distance limit constraint */
+	/* bDistLimitConstraint->flag */
+#define LIMITDIST_USESOFT		(1<<0)
+
+	/* bDistLimitConstraint->mode */
+#define LIMITDIST_INSIDE		0
+#define LIMITDIST_OUTSIDE		1
+#define LIMITDIST_ONSURFACE		2
 	
 /* python constraint -> flag */
 #define PYCON_USETARGETS	0x01
@@ -491,6 +520,7 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 
 /* Rigid-Body Constraint */
 #define CONSTRAINT_DRAW_PIVOT 0x40
+#define CONSTRAINT_DISABLE_LINKED_COLLISION 0x80
 
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
 #define CONSTRAINT_RB_BALL		1

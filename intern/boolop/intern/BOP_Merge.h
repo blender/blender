@@ -28,6 +28,9 @@
 #ifndef BOP_MERGE_H
 #define BOP_MERGE_H
 
+#include "BOP_Misc.h"
+
+#ifdef BOP_ORIG_MERGE
 #include "BOP_Mesh.h"
 #include "BOP_Tag.h"
 #include "BOP_MathUtils.h"
@@ -67,5 +70,7 @@ class BOP_Merge {
 
 		void mergeFaces(BOP_Mesh *m, BOP_Index v);
 };
+
+#endif	/* BOP_ORIG_MERGE */
 
 #endif

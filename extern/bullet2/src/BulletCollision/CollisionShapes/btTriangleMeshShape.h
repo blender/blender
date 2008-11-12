@@ -20,17 +20,19 @@ subject to the following restrictions:
 #include "btStridingMeshInterface.h"
 
 
-///Concave triangle mesh. Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
+///The btTriangleMeshShape is an internal concave triangle mesh interface. Don't use this class directly, use btBvhTriangleMeshShape instead.
 class btTriangleMeshShape : public btConcaveShape
 {
 protected:
 	btVector3	m_localAabbMin;
 	btVector3	m_localAabbMax;
 	btStridingMeshInterface* m_meshInterface;
-	
+
+	///btTriangleMeshShape constructor has been disabled/protected, so that users will not mistakenly use this class.
+	///Don't use btTriangleMeshShape but use btBvhTriangleMeshShape instead!
+	btTriangleMeshShape(btStridingMeshInterface* meshInterface);
 
 public:
-	btTriangleMeshShape(btStridingMeshInterface* meshInterface);
 
 	virtual ~btTriangleMeshShape();
 
@@ -44,16 +46,11 @@ public:
 
 	void	recalcLocalAabb();
 
-	virtual int	getShapeType() const
-	{
-		return TRIANGLE_MESH_SHAPE_PROXYTYPE;
-	}
-
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	virtual void	setLocalScaling(const btVector3& scaling);
 	virtual const btVector3& getLocalScaling() const;
@@ -68,9 +65,19 @@ public:
 		return m_meshInterface;
 	}
 
+	const btVector3& getLocalAabbMin() const
+	{
+		return m_localAabbMin;
+	}
+	const btVector3& getLocalAabbMax() const
+	{
+		return m_localAabbMax;
+	}
+
+
 
 	//debugging
-	virtual char*	getName()const {return "TRIANGLEMESH";}
+	virtual const char*	getName()const {return "TRIANGLEMESH";}
 
 
 };

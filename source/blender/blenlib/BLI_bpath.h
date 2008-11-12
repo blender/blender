@@ -29,6 +29,13 @@
 /* Based on ghash, difference is ghash is not a fixed size,
  * so for BPath we dont need to malloc  */
 
+struct BPathIteratorSeqData {
+	int totseq;
+	int seq;
+	struct Sequence **seqar; /* Sequence */
+	struct Scene *scene;			/* Current scene */
+};
+
 struct BPathIterator {
 	char*	path;
 	char*	lib;
@@ -36,21 +43,30 @@ struct BPathIterator {
 	void*	data;
 	int		len;
 	int		type;
+	
+	void (*setpath_callback)(struct BPathIterator *, char *);
+	void (*getpath_callback)(struct BPathIterator *, char *);
+	
+	/* only for seq data */
+	struct BPathIteratorSeqData seqdata;
 };
 
-void			BLI_bpathIterator_init		(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getPath	(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getLib	(struct BPathIterator *bpi);
-char*			BLI_bpathIterator_getName	(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getType	(struct BPathIterator *bpi);
-int				BLI_bpathIterator_getPathMaxLen(struct BPathIterator *bpi);
-void			BLI_bpathIterator_step		(struct BPathIterator *bpi);
-int				BLI_bpathIterator_isDone	(struct BPathIterator *bpi);
-void			BLI_bpathIterator_copyPathExpanded( struct BPathIterator *bpi, char *path_expanded);
+void			BLI_bpathIterator_init				(struct BPathIterator *bpi);
+void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getName			(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getType			(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getPathMaxLen		(struct BPathIterator *bpi);
+void			BLI_bpathIterator_step				(struct BPathIterator *bpi);
+int				BLI_bpathIterator_isDone			(struct BPathIterator *bpi);
+void			BLI_bpathIterator_getPath			(struct BPathIterator *bpi, char *path);
+void			BLI_bpathIterator_getPathExpanded	(struct BPathIterator *bpi, char *path_expanded);
+void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, char *path);
 
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-struct Text * checkMissingFiles(void);
-void makeFilesRelative(int *tot, int *changed, int *failed, int *linked);
+void checkMissingFiles(char *txtname );
+void makeFilesRelative(char *txtname, int *tot, int *changed, int *failed, int *linked);
+void makeFilesAbsolute(char *txtname, int *tot, int *changed, int *failed, int *linked);
 void findMissingFiles(char *str);

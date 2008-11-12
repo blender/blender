@@ -56,7 +56,9 @@
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "RE_pipeline.h"
 
@@ -66,6 +68,9 @@
 //XXX #include "datatoc.h"
 
 #include "WM_api.h"
+
+#include "GPU_draw.h"
+#include "GPU_extensions.h"
 
 /* for passing information between creator and gameengine */
 #include "SYS_System.h"
@@ -78,6 +83,10 @@
 # include <sys/rtprio.h>
 #endif
 
+#ifdef WITH_BINRELOC
+#include "binreloc.h"
+#endif
+
 // from buildinfo.c
 #ifdef BUILD_DATE
 extern char * build_date;
@@ -87,18 +96,18 @@ extern char * build_type;
 #endif
 
 /*	Local Function prototypes */
-static void print_help();
-static void print_version();
+static void print_help(void);
+static void print_version(void);
 
 /* for the callbacks: */
 
 extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
 
 char bprogname[FILE_MAXDIR+FILE_MAXFILE]; /* from blenpluginapi:pluginapi.c */
-
+char btempdir[FILE_MAXDIR+FILE_MAXFILE];
 
 /* Initialise callbacks for the modules that need them */
-void setCallbacks(void); 
+static void setCallbacks(void); 
 
 #if defined(__sgi) || defined(__alpha__)
 static void fpe_handler(int sig)
@@ -141,31 +150,38 @@ static void print_version(void)
 static void print_help(void)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
-	printf ("Usage: blender [options ...] [file]\n");
-	
+	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
+	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
-	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
-	printf ("    -e <frame>\tSet end to frame (use with -a)<frame>\n");
+	printf ("    -s <frame>\tSet start to frame <frame> (use before the -a argument)\n");
+	printf ("    -e <frame>\tSet end to frame <frame> (use before the -a argument)\n");
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
+	printf ("      The # characters are replaced by the frame number, and used to define zero padding.\n");
+	printf ("        ani_##_test.png becomes ani_01_test.png\n");
+	printf ("        test-######.png becomes test-000001.png\n");
+	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
-	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1\n");
-	printf ("    -F <format>\tSet the render format, Valid options are..\n");
-	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("\nFormat options:\n");
+	printf ("    -F <format>\tSet the render format, Valid options are...\n");
+	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX\n");
+	printf ("    \tHDR TIFF EXR MULTILAYER MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
-	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
-	printf ("\nAnimation options:\n");
-	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
+	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
+	printf ("      [1-8], 0 for systems processor count.\n");
+	printf ("\nAnimation playback options:\n");
+	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
+	printf ("    -j <frame>\tSet frame step to <frame>\n");
 				
 	printf ("\nWindow options:\n");
 	printf ("  -w\t\tForce opening with borders (default)\n");
@@ -182,8 +198,10 @@ static void print_help(void)
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
+	printf ("  -nojoystick\tDisable joystick support\n");
+	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable script links, use -Y to find out why its -y\n");
+	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -191,21 +209,63 @@ static void print_help(void)
 	printf ("  -v\t\tPrint Blender version and exit\n");
 	printf ("  --\t\tEnds option processing.  Following arguments are \n");
 	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
+	printf ("\nEnvironment Variables:\n");
+	printf ("  $HOME\t\t\tStore files such as .blender/ .B.blend .Bfs .Blog here.\n");
+#ifdef WIN32
+	printf ("  $TEMP\t\tStore temporary files here.\n");
+#else
+	printf ("  $TMP or $TMPDIR\tStore temporary files here.\n");
+	printf ("  $BF_TIFF_LIB\t\tUse an alternative libtiff.so for loading tiff image files.\n");
+#endif
+#ifndef DISABLE_SDL
+	printf ("  $SDL_AUDIODRIVER\tLibSDL audio driver - alsa, esd, alsa, dma.\n");
+#endif
+	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
+	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
+	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
+	printf ("\nNote: Arguments must be separated by white space. eg:\n");
+	printf ("    \"blender -ba test.blend\"\n");
+	printf ("  ...will ignore the 'a'\n");
+	printf ("    \"blender -b test.blend -f8\"\n");
+	printf ("  ...will ignore 8 because there is no space between the -f and the frame value\n");
+	printf ("Note: Arguments are executed in the order they are given. eg:\n");
+	printf ("    \"blender -b test.blend -f 1 -o /tmp\"\n");
+	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
+	printf ("    \"blender -b -o /tmp test.blend -f 1\"\n");
+	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
+	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n\n");
 }
 
 
 double PIL_check_seconds_timer(void);
 
+/* XXX This was here to fix a crash when running python scripts
+ * with -P that used the screen.
+ *
+ * static void main_init_screen( void )
+{
+	setscreen(G.curscreen);
+	
+	if(G.main->scene.first==0) {
+		set_scene( add_scene("1") );
+	}
+}*/
+
 int main(int argc, char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= MEM_callocN(sizeof(bContext), "creator.c context");
-	int a, i, stax, stay, sizx, sizy;
+	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
 #else
 	int audio = 0;
+#endif
+
+	
+#ifdef WITH_BINRELOC
+	br_init( NULL );
 #endif
 
 	setCallbacks();
@@ -233,10 +293,6 @@ int main(int argc, char **argv)
 #ifdef __linux__
     #ifdef __alpha__
 	signal (SIGFPE, fpe_handler);
-    #else
-	if ( getenv("SDL_AUDIODRIVER") == NULL) {
-		setenv("SDL_AUDIODRIVER", "dma", 1);
-	}
     #endif
 #endif
 #if defined(__sgi)
@@ -247,7 +303,7 @@ int main(int argc, char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, argv[0]);
-
+	
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
 		 */
@@ -287,7 +343,11 @@ int main(int argc, char **argv)
 		/* Handle -* switches */
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
-			case 'a':
+			case 'a': /* -b was not given, play an animation */
+				
+				/* exception here, see below, it probably needs happens after qt init? */
+				libtiff_init();
+
 // XXX				playanim(argc-1, argv+1);
 				exit(0);
 				break;
@@ -335,7 +395,7 @@ int main(int argc, char **argv)
 
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
-
+	
 	/* background render uses this font too */
 	//XXX BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 	
@@ -379,6 +439,7 @@ int main(int argc, char **argv)
 					break;
 				case 'W':
 					/* borderless, win + linux XXX OLD CRUFT */
+					/* XXX, fixme mein, borderless on OSX */
 					break;
 				case 'R':
 					/* Registering filetypes only makes sense on windows...      */
@@ -398,13 +459,24 @@ int main(int argc, char **argv)
 						audio = 0;
 						if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 					}
+					if (BLI_strcasecmp(argv[a], "-nojoystick") == 0) {
+						/**
+						 	don't initialize joysticks if user doesn't want to use joysticks
+							failed joystick initialization delays over 5 seconds, before game engine start
+						*/
+						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
+						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
+					}
+					if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+						GPU_extensions_disable();
 					break;
 				}
 			}
 		}
 
+#ifndef DISABLE_PYTHON		
 		BPY_start_python(argc, argv);
-		
+#endif		
 		/**
 		 * NOTE: sound_init_audio() *must be* after start_python,
 		 * at least on FreeBSD.
@@ -412,10 +484,25 @@ int main(int argc, char **argv)
 		 */
 
 		WM_init(C);
+		
+		// XXX BRECHT SOLVE
+		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
+#ifndef DISABLE_SDL
+#ifdef __linux__
+		/* On linux the default SDL driver dma often would not play
+		 * use alsa if none is set */
+		if ( getenv("SDL_AUDIODRIVER") == NULL) {
+			setenv("SDL_AUDIODRIVER", "alsa", 1);
+		}
+#endif
+#endif
 	}
 	else {
+#ifndef DISABLE_PYTHON
 		BPY_start_python(argc, argv);
+#endif		
+		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
 		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);
@@ -423,7 +510,7 @@ int main(int argc, char **argv)
         // sound_init_audio();
         // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
-
+#ifndef DISABLE_PYTHON
 	/**
 	 * NOTE: the U.pythondir string is NULL until WM_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined
@@ -433,7 +520,8 @@ int main(int argc, char **argv)
 	 * on U.pythondir.
 	 */
 	BPY_post_start_python();
-
+#endif
+	
 #ifdef WITH_QUICKTIME
 
 	quicktime_init();
@@ -499,12 +587,12 @@ int main(int argc, char **argv)
 							/* doMipMap */
 							if (!strcmp(argv[a],"nomipmap"))
 							{
-// XXX								set_mipmap(0); //doMipMap = 0;
+								GPU_set_mipmap(0); //doMipMap = 0;
 							}
 							/* linearMipMap */
 							if (!strcmp(argv[a],"linearmipmap"))
 							{
-// XXX								set_linear_mipmap(1); //linearMipMap = 1;
+								GPU_set_linear_mipmap(1); //linearMipMap = 1;
 							}
 
 
@@ -518,7 +606,14 @@ int main(int argc, char **argv)
 					if (a < argc) {
 						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
 						Render *re= RE_NewRender(G.scene->id.name);
-						RE_BlenderAnim(re, G.scene, frame, frame);
+#ifndef DISABLE_PYTHON
+						if (G.f & G_DOSCRIPTLINKS)
+							BPY_do_all_scripts(SCRIPT_RENDER, 0);
+#endif
+						RE_BlenderAnim(re, G.scene, frame, frame, G.scene->frame_step);
+#ifndef DISABLE_PYTHON
+						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
+#endif
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -527,7 +622,15 @@ int main(int argc, char **argv)
 			case 'a':
 				if (G.scene) {
 					Render *re= RE_NewRender(G.scene->id.name);
-					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
+#ifndef DISABLE_PYTHON
+					if (G.f & G_DOSCRIPTLINKS)
+						BPY_do_all_scripts(SCRIPT_RENDER, 1);
+#endif
+					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
+#ifndef DISABLE_PYTHON
+					if (G.f & G_DOSCRIPTLINKS)
+						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
+#endif
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
@@ -555,10 +658,33 @@ int main(int argc, char **argv)
 					printf("\nError: no blend loaded. cannot use '-e'.\n");
 				}
 				break;
-			case 'P':
+			case 'j':
 				a++;
-				if (a < argc) BPY_run_python_script (argv[a]);
+				if(G.scene) {
+					int fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
+					if (a < argc) (G.scene->frame_step) = fstep;
+				} else {
+					printf("\nError: no blend loaded. cannot use '-j'.\n");
+				}
+				break;
+			case 'P':
+//XXX 
+#if 0
+#ifndef DISABLE_PYTHON
+				a++;
+				if (a < argc) {
+					/* If we're not running in background mode, then give python a valid screen */
+					if ((G.background==0) && (scr_init==0)) {
+						main_init_screen();
+						scr_init = 1;
+					}
+					BPY_run_python_script (argv[a]);
+				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
+#else
+				printf("This blender was built without python support\n");
+#endif /* DISABLE_PYTHON */
+#endif
 				break;
 			case 'o':
 				a++;
@@ -581,7 +707,9 @@ int main(int argc, char **argv)
 						if      (!strcmp(argv[a],"TGA")) G.scene->r.imtype = R_TARGA;
 						else if (!strcmp(argv[a],"IRIS")) G.scene->r.imtype = R_IRIS;
 						else if (!strcmp(argv[a],"HAMX")) G.scene->r.imtype = R_HAMX;
-						else if (!strcmp(argv[a],"FTYPE")) G.scene->r.imtype = R_FTYPE;
+#ifdef WITH_DDS
+						else if (!strcmp(argv[a],"DDS")) G.scene->r.imtype = R_DDS;
+#endif
 						else if (!strcmp(argv[a],"JPEG")) G.scene->r.imtype = R_JPEG90;
 						else if (!strcmp(argv[a],"MOVIE")) G.scene->r.imtype = R_MOVIE;
 						else if (!strcmp(argv[a],"IRIZ")) G.scene->r.imtype = R_IRIZ;
@@ -593,13 +721,16 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
 						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
 						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
-						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_TIFF;
+#ifdef WITH_OPENEXR
 						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MULTILAYER")) G.scene->r.imtype = R_MULTILAYER;
+#endif
 						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
 						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
 						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
-						else printf("\nError: Format from '-F ' not known.\n");
+						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-x'.\n");
@@ -610,6 +741,8 @@ int main(int argc, char **argv)
 				a++;
 				if(G.background) {
 					RE_set_max_threads(atoi(argv[a]));
+				} else {
+					printf("Warning: threads can only be set in background mode\n");
 				}
 				break;
 			case 'x': /* extension */
@@ -632,10 +765,21 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
-		else {			
+		else {
+			
+			/* Make the path absolute because its needed for relative linked blends to be found */
+			char filename[FILE_MAXDIR + FILE_MAXFILE];
+			
+			BLI_strncpy(filename, argv[a], sizeof(filename));
+			BLI_convertstringcwd(filename);
+			
 			if (G.background) {
-				BKE_read_file(C, argv[a], NULL);
+				int retval = BKE_read_file(C, argv[a], NULL);
 // XXX			sound_initialize_sounds();
+				
+				/*we successfully loaded a blend file, get sure that
+				pointcache works */
+				if (retval!=0) G.relbase_valid = 1;
 
 				/* happens for the UI on file reading too (huh? (ton))*/
 // XXX			BKE_reset_undo();
@@ -643,8 +787,8 @@ int main(int argc, char **argv)
 			} else {
 				/* we are not running in background mode here, but start blender in UI mode with 
 				   a file - this should do everything a 'load file' does */
-				WM_read_file(C, argv[a]);
-			}			
+				WM_read_file(C, filename);
+			}
 		}
 	}
 	
@@ -655,6 +799,12 @@ int main(int argc, char **argv)
 
 
 	WM_main(C);
+	
+	/*XXX if (scr_init==0) {
+		main_init_screen();
+	}
+	
+	screenmain();*/ /* main display loop */
 
 	return 0;
 } /* end of int main(argc,argv)	*/
@@ -671,7 +821,7 @@ static void mem_error_cb(char *errorStr)
 	fflush(stderr);
 }
 
-void setCallbacks(void)
+static void setCallbacks(void)
 {
 	/* Error output from the alloc routines: */
 	MEM_set_error_callback(mem_error_cb);

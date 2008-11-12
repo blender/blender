@@ -3,20 +3,24 @@
 
 
 #include "btPolyhedralConvexShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 
-/// btConvexTriangleMeshShape is a convex hull of a triangle mesh. If you just have a point cloud, you can use btConvexHullShape instead.
-/// It uses the btStridingMeshInterface instead of a point cloud. This can avoid the duplication of the triangle mesh data.
+/// The btConvexTriangleMeshShape is a convex hull of a triangle mesh, but the performance is not as good as btConvexHullShape.
+/// A small benefit of this class is that it uses the btStridingMeshInterface, so you can avoid the duplication of the triangle mesh data. Nevertheless, most users should use the much better performing btConvexHullShape instead.
 class btConvexTriangleMeshShape : public btPolyhedralConvexShape
 {
 
 	class btStridingMeshInterface*	m_stridingMesh;
 
 public:
-	btConvexTriangleMeshShape(btStridingMeshInterface* meshInterface);
+	btConvexTriangleMeshShape(btStridingMeshInterface* meshInterface, bool calcAabb = true);
 
-	class btStridingMeshInterface*	getStridingMesh()
+	class btStridingMeshInterface*	getMeshInterface()
+	{
+		return m_stridingMesh;
+	}
+	const class btStridingMeshInterface* getMeshInterface() const
 	{
 		return m_stridingMesh;
 	}
@@ -28,7 +32,7 @@ public:
 	virtual int	getShapeType()const { return CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE; }
 
 	//debugging
-	virtual char*	getName()const {return "ConvexTrimesh";}
+	virtual const char*	getName()const {return "ConvexTrimesh";}
 	
 	virtual int	getNumVertices() const;
 	virtual int getNumEdges() const;
@@ -42,10 +46,18 @@ public:
 	virtual void	setLocalScaling(const btVector3& scaling);
 	virtual const btVector3& getLocalScaling() const;
 
+	///computes the exact moment of inertia and the transform from the coordinate system defined by the principal axes of the moment of inertia
+	///and the center of mass to the current coordinate system. A mass of 1 is assumed, for other masses just multiply the computed "inertia"
+	///by the mass. The resulting transform "principal" has to be applied inversely to the mesh in order for the local coordinate system of the
+	///shape to be centered at the center of mass and to coincide with the principal axes. This also necessitates a correction of the world transform
+	///of the collision object by the principal transform. This method also computes the volume of the convex mesh.
+	void calculatePrincipalAxisTransform(btTransform& principal, btVector3& inertia, btScalar& volume) const;
+
 };
 
 
 
 #endif //CONVEX_TRIANGLEMESH_SHAPE_H
+
 
 

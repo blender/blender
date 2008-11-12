@@ -31,6 +31,7 @@
 
 #include "MT_Transform.h"
 #include "RAS_IRasterizer.h"
+#include "RAS_2DFilterManager.h"
 
 #include <vector>
 #include <algorithm>
@@ -38,18 +39,17 @@
 class		RAS_IPolyMaterial;
 struct		RAS_LightObject;
 
+
 class RAS_IRenderTools
 {
 
 protected:
-	float	m_viewmat[16];
 	void*	m_clientobject;
 	void*	m_auxilaryClientInfo;
 
-	bool	m_modified;
-	
 	std::vector<struct	RAS_LightObject*> m_lights;
-
+	
+	RAS_2DFilterManager m_filtermanager;
 
 public:
 	enum RAS_TEXT_RENDER_MODE {
@@ -58,11 +58,14 @@ public:
 		RAS_TEXT_PADDED,
 		RAS_TEXT_MAX
 	};
-	
+	enum RAS_LIGHT_MODE {
+		RAS_LIGHT_NONE = -1,
+		RAS_LIGHT_OBJECT_LAYER = 0
+	};
+
 	RAS_IRenderTools(
 	) :
-		m_clientobject(NULL),
-		m_modified(true)
+		m_clientobject(NULL)
 	{
 	};
 
@@ -124,23 +127,21 @@ public:
 		float v1[3],
 		float v2[3],
 		float v3[3],
-		float v4[3]
+		float v4[3],
+		int glattrib
 	)=0;
 
 	virtual 
-		void	
-	SetViewMat(
-		const MT_Transform& trans
-	);
-
-	virtual 
-		int		
+		void		
 	ProcessLighting(
-		int layer
+		int layer,
+		const MT_Transform& trans
 	)=0;
 
+	virtual
 		void	
 	SetClientObject(
+		RAS_IRasterizer* rasty,
 		void* obj
 	);
 
@@ -175,25 +176,16 @@ public:
 		void
 	MotionBlur(RAS_IRasterizer* rasterizer)=0;
 
-	virtual 
-		class RAS_IPolyMaterial*	
-	CreateBlenderPolyMaterial(
-		const STR_String &texname,
-		bool ba,
-		const STR_String& matname,
-		int tile,
-		int tilexrep,
-		int tileyrep,
-		int mode,
-		bool transparant,
-		bool zsort,
-		int lightlayer,
-		bool bIsTriangle,
-		void* clientobject,
-		void* tface
-	)=0;
+	virtual
+		void
+		Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)=0;
+
+	virtual
+		void
+		Render2DFilters(RAS_ICanvas* canvas)=0;
 };
 
 #endif //__RAS_IRENDERTOOLS
+
 
 

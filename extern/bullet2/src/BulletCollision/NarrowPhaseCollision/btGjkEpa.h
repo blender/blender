@@ -21,7 +21,7 @@ Nov.2006
 
 #ifndef _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
 #define _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
-#include "../CollisionShapes/btConvexShape.h"
+#include "BulletCollision/CollisionShapes/btConvexShape.h"
 
 class btStackAlloc;
 
@@ -35,7 +35,7 @@ struct	sResults
 		Separated,		/* Shapes doesnt penetrate												*/ 
 		Penetrating,	/* Shapes are penetrating												*/ 
 		GJK_Failed,		/* GJK phase fail, no big issue, shapes are probably just 'touching'	*/ 
-		EPA_Failed,		/* EPA phase fail, bigger problem, need to save parameters, and debug	*/ 
+		EPA_Failed		/* EPA phase fail, bigger problem, need to save parameters, and debug	*/ 
 		}		status;
 	btVector3	witnesses[2];
 	btVector3	normal;
@@ -43,8 +43,8 @@ struct	sResults
 	int	epa_iterations;
 	int	gjk_iterations;
 	};
-static bool	Collide(btConvexShape* shape0,const btTransform& wtrs0,
-					btConvexShape* shape1,const btTransform& wtrs1,
+static bool	Collide(const btConvexShape* shape0,const btTransform& wtrs0,
+					const btConvexShape* shape1,const btTransform& wtrs1,
 					btScalar	radialmargin,
 					btStackAlloc* stackAlloc,
 					sResults&	results);

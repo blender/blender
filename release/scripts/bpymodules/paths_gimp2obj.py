@@ -1,3 +1,4 @@
+# -*- coding: latin-1 -*-
 """
 #----------------------------------------------
 # (c) jm soler juillet 2004, 
@@ -43,6 +44,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_gimp.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
+# Modification History:
+# 2008-03-12  Added character encoding line so french text does not break
+#   python interpreters.
 #---------------------------------------------
 
 SHARP_IMPORT=0

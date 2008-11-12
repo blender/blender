@@ -31,23 +31,7 @@
 #include <config.h>
 #endif
 
-#ifdef WIN32
-#include <windows.h>
-#endif // WIN32
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#if defined(__sun__) && !defined(__sparc__)
-#include <mesa/glu.h>
-#else
-#include <GL/glu.h>
-#endif
-#endif
-
-
+#include "GL/glew.h"
 
 #include "GPC_PolygonMaterial.h"
 #include "MT_Vector3.h"
@@ -88,7 +72,6 @@ static int fDoMipMap = 1;
 static int fLinearMipMap=1;
 static int fAlphamode= -1;
 
-using namespace bgl;
 	/* (n&(n-1)) zeros the least significant bit of n */
 static int is_pow2(int num) {
 	return ((num)&(num-1))==0;
@@ -154,15 +137,22 @@ int set_tpage(MTFace *tface)
 		fAlphamode= tface->transp;
 
 		if(fAlphamode) {
-			glEnable(GL_BLEND);
-			
 			if(fAlphamode==TF_ADD) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_ONE, GL_ONE);
+				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}
 			else if(fAlphamode==TF_ALPHA) {
+				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDisable ( GL_ALPHA_TEST );
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
+			}
+			else if (fAlphamode==TF_CLIP){		
+				glDisable(GL_BLEND); 
+				glEnable ( GL_ALPHA_TEST );
+				glAlphaFunc(GL_GREATER, 0.5f);
 			}
 			/* else { */
 			/* 	glBlendFunc(GL_ONE, GL_ONE); */

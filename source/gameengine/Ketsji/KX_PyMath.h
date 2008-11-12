@@ -84,7 +84,10 @@ bool PyMatTo(PyObject* pymat, T& mat)
 		}
 	} else 
 		noerror = false;
-	 
+	
+	if (noerror==false)
+		PyErr_SetString(PyExc_TypeError, "could not be converted to a matrix (sequence of sequences)");
+	
 	return noerror;
 }
 
@@ -97,9 +100,13 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	if (PySequence_Check(pyval))
 	{
 		unsigned int numitems = PySequence_Size(pyval);
-		if (numitems != Size(vec))
+		if (numitems != Size(vec)) {
+			char err[128];
+			sprintf(err, "error setting vector, %d args, should be %d", numitems, Size(vec));
+			PyErr_SetString(PyExc_AttributeError, err);
 			return false;
-			
+		}
+		
 		for (unsigned int x = 0; x < numitems; x++)
 		{
 			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
@@ -107,7 +114,17 @@ bool PyVecTo(PyObject* pyval, T& vec)
 			Py_DECREF(item);
 		}
 		
+		if (PyErr_Occurred()) {
+			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
+			return false;
+		}
+		
 		return true;
+	} else
+	{
+		char err[128];
+		sprintf(err, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
+		PyErr_SetString(PyExc_AttributeError, err);
 	}
 	
 	return false;

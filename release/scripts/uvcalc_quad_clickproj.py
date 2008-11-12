@@ -2,13 +2,13 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Click project from face'
-Blender: 242
+Blender: 245
 Group: 'UVCalculation'
 Tooltip: '3 Clicks to project uvs onto selected faces.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__=\
 '''

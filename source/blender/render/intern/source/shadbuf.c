@@ -34,6 +34,7 @@
 #include "DNA_material_types.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -54,7 +55,7 @@
 
 /* XXX, could be better implemented... this is for endian issues
 */
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 #define RCOMP	3
 #define GCOMP	2
 #define BCOMP	1
@@ -140,10 +141,11 @@ static float *give_jitter_tab(int samp)
 	
 }
 
-static void make_jitter_weight_tab(ShadBuf *shb, short filtertype) 
+static void make_jitter_weight_tab(Render *re, ShadBuf *shb, short filtertype) 
 {
 	float *jit, totw= 0.0f;
-	int a, tot=shb->samp*shb->samp;
+	int samp= get_render_shadow_samples(&re->r, shb->samp);
+	int a, tot=samp*samp;
 	
 	shb->weight= MEM_mallocN(sizeof(float)*tot, "weight tab lamp");
 	
@@ -169,7 +171,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 {
 	ShadSampleBuf *shsample;
 	float dist;
-	unsigned long *ztile;
+	uintptr_t *ztile;
 	int *rz, *rz1, verg, verg1, size= shb->size;
 	int a, x, y, minx, miny, byt1, byt2;
 	char *rc, *rcline, *ctile, *zt;
@@ -177,10 +179,10 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 	shsample= MEM_mallocN( sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 	
-	shsample->zbuf= MEM_mallocN( sizeof(unsigned long)*(size*size)/256, "initshadbuf2");
+	shsample->zbuf= MEM_mallocN( sizeof(uintptr_t)*(size*size)/256, "initshadbuf2");
 	shsample->cbuf= MEM_callocN( (size*size)/256, "initshadbuf3");
 	
-	ztile= (unsigned long *)shsample->zbuf;
+	ztile= (uintptr_t *)shsample->zbuf;
 	ctile= shsample->cbuf;
 	
 	/* help buffer */
@@ -235,7 +237,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				if(byt1 && byt2) {	/* only store byte */
 					*ctile= 1;
-					*ztile= (unsigned long)MEM_mallocN(256+4, "tile1");
+					*ztile= (uintptr_t)MEM_mallocN(256+4, "tile1");
 					rz= (int *)*ztile;
 					*rz= *rz1;
 					
@@ -245,7 +247,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else if(byt1) {		/* only store short */
 					*ctile= 2;
-					*ztile= (unsigned long)MEM_mallocN(2*256+4,"Tile2");
+					*ztile= (uintptr_t)MEM_mallocN(2*256+4,"Tile2");
 					rz= (int *)*ztile;
 					*rz= *rz1;
 					
@@ -258,7 +260,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 				}
 				else {			/* store triple */
 					*ctile= 3;
-					*ztile= (unsigned long)MEM_mallocN(3*256,"Tile3");
+					*ztile= (uintptr_t)MEM_mallocN(3*256,"Tile3");
 
 					zt= (char *)*ztile;
 					rc= rcline;
@@ -288,15 +290,19 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	Material *ma= NULL;
 	float minz, maxz, vec[3], viewmat[4][4], obviewmat[4][4];
 	unsigned int lay = -1;
-	int i, a, ok= 1;
+	int i, a, maxtotvert, ok= 1;
 	char *clipflag;
 	
 	minz= 1.0e30f; maxz= -1.0e30f;
 	Mat4CpyMat4(viewmat, lar->shb->viewmat);
 	
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 
-	clipflag= MEM_callocN(sizeof(char)*re->totvert, "autoclipflag");
+	maxtotvert= 0;
+	for(obr=re->objecttable.first; obr; obr=obr->next)
+		maxtotvert= MAX2(obr->totvert, maxtotvert);
+
+	clipflag= MEM_callocN(sizeof(char)*maxtotvert, "autoclipflag");
 
 	/* set clip in vertices when face visible */
 	for(i=0, obi=re->instancetable.first; obi; i++, obi=obi->next) {
@@ -321,7 +327,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
 			}
 			
-			if(ok && (vlr->lay & lay)) {
+			if(ok && (obi->lay & lay)) {
 				clipflag[vlr->v1->index]= 1;
 				clipflag[vlr->v2->index]= 1;
 				clipflag[vlr->v3->index]= 1;
@@ -402,8 +408,8 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	if(ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 		/* jitter, weights - not threadsafe! */
 		BLI_lock_thread(LOCK_CUSTOM1);
-		shb->jit= give_jitter_tab(shb->samp);
-		make_jitter_weight_tab(shb, lar->filtertype);
+		shb->jit= give_jitter_tab(get_render_shadow_samples(&re->r, shb->samp));
+		make_jitter_weight_tab(re, shb, lar->filtertype);
 		BLI_unlock_thread(LOCK_CUSTOM1);
 		
 		shb->totbuf= lar->buffers;
@@ -536,7 +542,7 @@ void freeshadowbuf(LampRen *lar)
 		v= (shb->size*shb->size)/256;
 		
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
-			long *ztile= shsample->zbuf;
+			intptr_t *ztile= shsample->zbuf;
 			char *ctile= shsample->cbuf;
 			
 			for(b=0; b<v; b++, ztile++, ctile++)
@@ -630,7 +636,7 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 	else {
 		/* got warning on this for 64 bits.... */
 		/* but it's working code! in this case rz is not a pointer but zvalue (ton) */
- 		zsamp= (int) rz;
+ 		zsamp= GET_INT_FROM_POINTER(rz);
 	}
 
 	/* tricky stuff here; we use ints which can overflow easily with bias values */
@@ -648,11 +654,11 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 
 /* the externally called shadow testing (reading) function */
 /* return 1.0: no shadow at all */
-float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp)
+float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias)
 {
 	ShadSampleBuf *shsample;
 	float fac, co[4], dx[3], dy[3], shadfac=0.0f;
-	float xs1,ys1, siz, *jit, *weight, xres, yres;
+	float xs1,ys1, siz, *jit, *weight, xres, yres, biasf;
 	int xs, ys, zs, bias, *rz;
 	short a, num;
 	
@@ -686,13 +692,16 @@ float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float in
 	zs= ((float)0x7FFFFFFF)*fac;
 
 	/* take num*num samples, increase area with fac */
-	num= shb->samp*shb->samp;
+	num= get_render_shadow_samples(&re->r, shb->samp);
+	num= num*num;
 	fac= shb->soft;
 	
+	if(mat_bias!=0.0f) biasf= shb->bias*mat_bias;
+	else biasf= shb->bias;
 	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
 	   on cube edges, with one side being almost frontal lighted (ton)  */
-	bias= (1.5f-inp*inp)*shb->bias;
-
+	bias= (1.5f-inp*inp)*biasf;
+	
 	if(num==1) {
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
 			shadfac += readshadowbuf(shb, shsample, bias, (int)xs1, (int)ys1, zs);
@@ -807,7 +816,7 @@ static float readshadowbuf_halo(ShadBuf *shb, ShadSampleBuf *shsample, int xs, i
 	else {
 		/* same as before */
 		/* still working code! (ton) */
- 		zsamp= (int) rz;
+ 		zsamp= GET_INT_FROM_POINTER(rz);
 	}
 
 	/* NO schadow when sampled at 'eternal' distance */
@@ -1511,7 +1520,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 	minmaxf[2]= (2.0f*root->box.ymin - size-2.0f)/size;
 	minmaxf[3]= (2.0f*root->box.ymax - size+2.0f)/size;
 	
-	if(lar->mode & LA_LAYER) lay= lar->lay;
+	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW)) lay= lar->lay;
 	
 	/* (ab)use zspan, since we use zbuffer clipping code */
 	zbuf_alloc_span(&zspan, size, size, re->clipcrop);
@@ -1552,7 +1561,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 				zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 			}
 			
-			if(ok && (vlr->lay & lay)) {
+			if(ok && (obi->lay & lay)) {
 				float hoco[4][4];
 				int c1, c2, c3, c4=0;
 				int d1, d2, d3, d4=0;
@@ -1743,7 +1752,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	ISBSample *samp, *samplebuf[16];	/* should be RE_MAX_OSA */
 	ISBBranch root;
 	MemArena *memarena;
-	long *rd;
+	intptr_t *rd;
 	int *recto, *rectp, x, y, sindex, sample, bsp_err=0;
 	
 	/* storage for shadow, per thread */

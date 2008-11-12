@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Bone Weight Copy'
-Blender: 243
+Blender: 245
 Group: 'Object'
 Tooltip: 'Copy Bone Weights from 1 mesh, to all other selected meshes.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__ = """\
 

@@ -2,14 +2,14 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 243
+Blender: 248
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
 __author__ = "Campbell Barton, Jiri Hnidek"
-__url__ = ['www.blender.org', 'blenderartists.org']
-__version__ = "1.1"
+__url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
+__version__ = "1.2"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -185,7 +185,7 @@ def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
 EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
-EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False):
+EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_KEEP_VERT_ORDER=False):
 	'''
 	Basic write function. The context and options must be alredy set
 	This can be accessed externaly
@@ -195,9 +195,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	
 	def veckey3d(v):
 		return round(v.x, 6), round(v.y, 6), round(v.z, 6)
-
-	#def veckey2d(v):
-	#	return round(v.x, 6), round(v.y, 6)
+		
+	def veckey2d(v):
+		return round(v.x, 6), round(v.y, 6)
 	
 	print 'OBJ Export path: "%s"' % filename
 	temp_mesh_name = '~tmp-mesh'
@@ -235,7 +235,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
 	
-	face_vert_index = 1 # used for uvs now
+	face_vert_index = 1
 	
 	globalNormals = {}
 	
@@ -247,7 +247,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, False, scn)
 			if not me:
 				continue
-			faceuv= me.faceUV
+			
+			if EXPORT_UV:
+				faceuv= me.faceUV
+			else:
+				faceuv = False
 			
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
@@ -318,9 +322,9 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			
 			# Sort by Material, then images
 			# so we dont over context switch in the obj file.
-			if EXPORT_MORPH_TARGET:
+			if EXPORT_KEEP_VERT_ORDER:
 				pass
-			elif faceuv and EXPORT_UV:
+			elif faceuv:
 				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
 				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
 			elif len(materials) > 1:
@@ -354,10 +358,23 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 			
 			# UV
-			if faceuv and EXPORT_UV:
-				for f in faces:
-					for uv in f.uv:
-						file.write('vt %.6f %.6f 0.0\n' % tuple(uv))
+			if faceuv:
+				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
+				
+				uv_dict = {} # could use a set() here
+				for f_index, f in enumerate(faces):
+					
+					for uv_index, uv in enumerate(f.uv):
+						uvkey = veckey2d(uv)
+						try:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+						except:
+							uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+							file.write('vt %.6f %.6f\n' % tuple(uv))
+				
+				uv_unique_count = len(uv_dict)
+				del uv, uvkey, uv_dict, f_index, uv_index
+				# Only need uv_unique_count and uv_face_mapping
 			
 			# NORMAL, Smooth/Non smoothed.
 			if EXPORT_NORMALS:
@@ -376,10 +393,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							globalNormals[noKey] = totno
 							totno +=1
 							file.write('vn %.6f %.6f %.6f\n' % noKey)
+			
 			if not faceuv:
 				f_image = None
 			
-			for f in faces:
+			for f_index, f in enumerate(faces):
 				f_v= f.v
 				f_smooth= f.smooth
 				f_mat = min(f.mat, len(materialNames)-1)
@@ -388,7 +406,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 					f_uv= f.uv
 				
 				# MAKE KEY
-				if EXPORT_UV and faceuv and f_image: # Object is always true.
+				if faceuv and f_image: # Object is always true.
 					key = materialNames[f_mat],  f_image.name
 				else:
 					key = materialNames[f_mat],  None # No image, use None instead.
@@ -432,13 +450,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 						contextSmooth = f_smooth
 				
 				file.write('f')
-				if faceuv and EXPORT_UV:
+				if faceuv:
 					if EXPORT_NORMALS:
 						if f_smooth: # Smoothed, use vertex normals
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
 							
 						else: # No smoothing, face normals
@@ -446,14 +464,14 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  face_vert_index + vi,\
+								  totuvco + uv_face_mapping[f_index][vi],\
 								  no)) # vert, uv, normal
 					
 					else: # No Normals
 						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d' % (\
 							  v.index+totverts,\
-							  face_vert_index + vi)) # vert, uv
+							  totuvco + uv_face_mapping[f_index][vi])) # vert, uv
 					
 					face_vert_index += len(f_v)
 				
@@ -486,6 +504,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				
 			# Make the indicies global rather then per mesh
 			totverts += len(me.verts)
+			if faceuv:
+				totuvco += uv_unique_count
 			me.verts= None
 	file.close()
 	
@@ -515,23 +535,31 @@ def write_ui(filename):
 	if not BPyMessages.Warning_SaveOver(filename):
 		return
 	
-	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
+	global EXPORT_APPLY_MODIFIERS, EXPORT_ROTX90, EXPORT_TRI, EXPORT_EDGES,\
+		EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
+		EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
+		EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
+		EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+	
+	EXPORT_APPLY_MODIFIERS = Draw.Create(0)
 	EXPORT_ROTX90 = Draw.Create(1)
 	EXPORT_TRI = Draw.Create(0)
 	EXPORT_EDGES = Draw.Create(1)
 	EXPORT_NORMALS = Draw.Create(0)
-	EXPORT_NORMALS_HQ = Draw.Create(1)
+	EXPORT_NORMALS_HQ = Draw.Create(0)
 	EXPORT_UV = Draw.Create(1)
 	EXPORT_MTL = Draw.Create(1)
 	EXPORT_SEL_ONLY = Draw.Create(1)
 	EXPORT_ALL_SCENES = Draw.Create(0)
 	EXPORT_ANIMATION = Draw.Create(0)
 	EXPORT_COPY_IMAGES = Draw.Create(0)
-	EXPORT_BLEN_OBS = Draw.Create(1)
+	EXPORT_BLEN_OBS = Draw.Create(0)
 	EXPORT_GROUP_BY_OB = Draw.Create(0)
 	EXPORT_GROUP_BY_MAT = Draw.Create(0)
-	EXPORT_MORPH_TARGET = Draw.Create(0)
+	EXPORT_KEEP_VERT_ORDER = Draw.Create(1)
 	
+	# Old UI
+	'''
 	# removed too many options are bad!
 	
 	# Get USER Options
@@ -543,7 +571,7 @@ def write_ui(filename):
 	('Object Prefs...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
 	('Rotate X90', EXPORT_ROTX90 , 'Rotate on export so Blenders UP is translated into OBJs UP'),\
-	('Morph Target', EXPORT_MORPH_TARGET, 'Keep vert and face order, disables some other options.'),\
+	('Keep Vert Order', EXPORT_KEEP_VERT_ORDER, 'Keep vert and face order, disables some other options.'),\
 	('Extra Data...'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
@@ -560,11 +588,123 @@ def write_ui(filename):
 	
 	if not Draw.PupBlock('Export...', pup_block):
 		return
+	'''
 	
-	if EXPORT_MORPH_TARGET.val:
+	# BEGIN ALTERNATIVE UI *******************
+	if True: 
+		
+		EVENT_NONE = 0
+		EVENT_EXIT = 1
+		EVENT_REDRAW = 2
+		EVENT_EXPORT = 3
+		
+		GLOBALS = {}
+		GLOBALS['EVENT'] = EVENT_REDRAW
+		#GLOBALS['MOUSE'] = Window.GetMouseCoords()
+		GLOBALS['MOUSE'] = [i/2 for i in Window.GetScreenSize()]
+		
+		def obj_ui_set_event(e,v):
+			GLOBALS['EVENT'] = e
+		
+		def do_split(e,v):
+			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER
+			if EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val:
+				EXPORT_KEEP_VERT_ORDER.val = 0
+			else:
+				EXPORT_KEEP_VERT_ORDER.val = 1
+			
+		def do_vertorder(e,v):
+			global EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_APPLY_MODIFIERS, KEEP_VERT_ORDER
+			if EXPORT_KEEP_VERT_ORDER.val:
+				EXPORT_BLEN_OBS.val = EXPORT_GROUP_BY_OB.val = EXPORT_GROUP_BY_MAT.val = EXPORT_APPLY_MODIFIERS.val = 0
+			else:
+				if not (EXPORT_BLEN_OBS.val or EXPORT_GROUP_BY_OB.val or EXPORT_GROUP_BY_MAT.val or EXPORT_APPLY_MODIFIERS.val):
+					EXPORT_KEEP_VERT_ORDER.val = 1
+			
+		def do_help(e,v):
+			url = __url__[0]
+			print 'Trying to open web browser with documentation at this address...'
+			print '\t' + url
+			
+			try:
+				import webbrowser
+				webbrowser.open(url)
+			except:
+				print '...could not open a browser window.'
+		
+		def obj_ui():
+			ui_x, ui_y = GLOBALS['MOUSE']
+			
+			# Center based on overall pup size
+			ui_x -= 165
+			ui_y -= 110
+			
+			global EXPORT_APPLY_MODIFIERS, EXPORT_ROTX90, EXPORT_TRI, EXPORT_EDGES,\
+				EXPORT_NORMALS, EXPORT_NORMALS_HQ, EXPORT_UV,\
+				EXPORT_MTL, EXPORT_SEL_ONLY, EXPORT_ALL_SCENES,\
+				EXPORT_ANIMATION, EXPORT_COPY_IMAGES, EXPORT_BLEN_OBS,\
+				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER
+
+			Draw.Label('Context...', ui_x+9, ui_y+209, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_SEL_ONLY = Draw.Toggle('Selection Only', EVENT_NONE, ui_x+9, ui_y+189, 110, 20, EXPORT_SEL_ONLY.val, 'Only export objects in visible selection. Else export whole scene.')
+			EXPORT_ALL_SCENES = Draw.Toggle('All Scenes', EVENT_NONE, ui_x+119, ui_y+189, 110, 20, EXPORT_ALL_SCENES.val, 'Each scene as a separate OBJ file.')
+			EXPORT_ANIMATION = Draw.Toggle('Animation', EVENT_NONE, ui_x+229, ui_y+189, 110, 20, EXPORT_ANIMATION.val, 'Each frame as a numbered OBJ file.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Output Options...', ui_x+9, ui_y+159, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_APPLY_MODIFIERS = Draw.Toggle('Apply Modifiers', EVENT_REDRAW, ui_x+9, ui_y+140, 110, 20, EXPORT_APPLY_MODIFIERS.val, 'Use transformed mesh data from each object. May break vert order for morph targets.', do_split)
+			EXPORT_ROTX90 = Draw.Toggle('Rotate X90', EVENT_NONE, ui_x+119, ui_y+140, 110, 20, EXPORT_ROTX90.val, 'Rotate on export so Blenders UP is translated into OBJs UP')
+			EXPORT_COPY_IMAGES = Draw.Toggle('Copy Images', EVENT_NONE, ui_x+229, ui_y+140, 110, 20, EXPORT_COPY_IMAGES.val, 'Copy image files to the export directory, never overwrite.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Export...', ui_x+9, ui_y+109, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_EDGES = Draw.Toggle('Edges', EVENT_NONE, ui_x+9, ui_y+90, 50, 20, EXPORT_EDGES.val, 'Edges not connected to faces.')
+			EXPORT_TRI = Draw.Toggle('Triangulate', EVENT_NONE, ui_x+59, ui_y+90, 70, 20, EXPORT_TRI.val, 'Triangulate quads.')
+			Draw.EndAlign()
+			Draw.BeginAlign()
+			EXPORT_MTL = Draw.Toggle('Materials', EVENT_NONE, ui_x+139, ui_y+90, 70, 20, EXPORT_MTL.val, 'Write a separate MTL file with the OBJ.')
+			EXPORT_UV = Draw.Toggle('UVs', EVENT_NONE, ui_x+209, ui_y+90, 31, 20, EXPORT_UV.val, 'Export texface UV coords.')
+			Draw.EndAlign()
+			Draw.BeginAlign()
+			EXPORT_NORMALS = Draw.Toggle('Normals', EVENT_NONE, ui_x+250, ui_y+90, 59, 20, EXPORT_NORMALS.val, 'Export vertex normal data (Ignored on import).')
+			EXPORT_NORMALS_HQ = Draw.Toggle('HQ', EVENT_NONE, ui_x+309, ui_y+90, 31, 20, EXPORT_NORMALS_HQ.val, 'Calculate high quality normals for rendering.')
+			Draw.EndAlign()
+			
+			
+			Draw.Label('Blender Objects as OBJ:', ui_x+9, ui_y+59, 220, 20)
+			Draw.BeginAlign()
+			EXPORT_BLEN_OBS = Draw.Toggle('Objects', EVENT_REDRAW, ui_x+9, ui_y+39, 60, 20, EXPORT_BLEN_OBS.val, 'Export blender objects as "OBJ objects".', do_split)
+			EXPORT_GROUP_BY_OB = Draw.Toggle('Groups', EVENT_REDRAW, ui_x+69, ui_y+39, 60, 20, EXPORT_GROUP_BY_OB.val, 'Export blender objects as "OBJ Groups".', do_split)
+			EXPORT_GROUP_BY_MAT = Draw.Toggle('Material Groups', EVENT_REDRAW, ui_x+129, ui_y+39, 100, 20, EXPORT_GROUP_BY_MAT.val, 'Group by materials.', do_split)
+			Draw.EndAlign()
+			
+			EXPORT_KEEP_VERT_ORDER = Draw.Toggle('Keep Vert Order', EVENT_REDRAW, ui_x+239, ui_y+39, 100, 20, EXPORT_KEEP_VERT_ORDER.val, 'Keep vert and face order, disables some other options. Use for morph targets.', do_vertorder)
+			
+			Draw.BeginAlign()
+			Draw.PushButton('Online Help', EVENT_REDRAW, ui_x+9, ui_y+9, 110, 20, 'Load the wiki page for this script', do_help)
+			Draw.PushButton('Cancel', EVENT_EXIT, ui_x+119, ui_y+9, 110, 20, '', obj_ui_set_event)
+			Draw.PushButton('Export', EVENT_EXPORT, ui_x+229, ui_y+9, 110, 20, 'Export with these settings', obj_ui_set_event)
+			Draw.EndAlign()
+
+		
+		# hack so the toggle buttons redraw. this is not nice at all
+		while GLOBALS['EVENT'] not in (EVENT_EXIT, EVENT_EXPORT):
+			Draw.UIBlock(obj_ui, 0)
+		
+		if GLOBALS['EVENT'] != EVENT_EXPORT:
+			return
+		
+	# END ALTERNATIVE UI *********************
+	
+	
+	if EXPORT_KEEP_VERT_ORDER.val:
 		EXPORT_BLEN_OBS.val = False
 		EXPORT_GROUP_BY_OB.val = False
-		EXPORT_GROUP_BY_MAT.val = False
 		EXPORT_GROUP_BY_MAT.val = False
 		EXPORT_APPLY_MODIFIERS.val = False
 	
@@ -586,7 +726,7 @@ def write_ui(filename):
 	EXPORT_BLEN_OBS = EXPORT_BLEN_OBS.val
 	EXPORT_GROUP_BY_OB = EXPORT_GROUP_BY_OB.val
 	EXPORT_GROUP_BY_MAT = EXPORT_GROUP_BY_MAT.val
-	EXPORT_MORPH_TARGET = EXPORT_MORPH_TARGET.val
+	EXPORT_KEEP_VERT_ORDER = EXPORT_KEEP_VERT_ORDER.val
 	
 	
 	
@@ -636,7 +776,7 @@ def write_ui(filename):
 			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
 			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
 			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_KEEP_VERT_ORDER)
 		
 		Blender.Set('curframe', orig_frame)
 	

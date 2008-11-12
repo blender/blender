@@ -1309,8 +1309,9 @@ def curve_FILL(Courbe,proprietes):
 			if not 'fill:none' in pr:
 				Courbe[n].fill=1
 				if USE_COLORS:
-					if '#' in pr:
-						i= pr.find('fill:#')+6
+					i= pr.find('fill:#')
+					if i != -1:
+						i= i+6
 						Courbe[n].color=[int(pr[i:i+2],16),int(pr[i+2:i+4],16),int(pr[i+4:i+6],16)]
 						Courbe[n].mat=1
 					elif ';fill-opacity' in pr: 

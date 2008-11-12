@@ -31,11 +31,14 @@
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
 
+struct bglMats;
 struct Scene;
 struct Object;
 struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
+struct SculptData;
+struct RenderData;
 
 /* sequence related defines */
 
@@ -51,7 +54,7 @@ struct QuicktimeCodecData;
 }
 
 /* note; doesn't work when scene is empty */
-#define SETLOOPER(s, b) sce= s, b= sce->base.first; b; b= (b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
+#define SETLOOPER(s, b) sce= s, b= (Base*)sce->base.first; b; b= (Base*)(b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
 
 
 void free_avicodecdata(struct AviCodecData *acd);
@@ -77,6 +80,12 @@ int scene_check_setscene(struct Scene *sce);
 void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 void scene_add_render_layer(struct Scene *sce);
+
+/* render profile */
+int get_render_subsurf_level(struct RenderData *r, int level);
+int get_render_child_particle_number(struct RenderData *r, int num);
+int get_render_shadow_samples(struct RenderData *r, int samples);
+float get_render_aosss_error(struct RenderData *r, float error);
 
 #endif
 

@@ -33,11 +33,11 @@
 
 #define BKE_ENDIANNESS(a) {  \
 	union {  \
-		long l;  \
-		char c[sizeof (long)];  \
+		intptr_t l;  \
+		char c[sizeof (intptr_t)];  \
 	} u;  \
 	u.l = 1;  \
-	a = (u.c[sizeof (long) - 1] == 1) ? 1 : 0;  \
+	a = (u.c[sizeof (intptr_t) - 1] == 1) ? 1 : 0;  \
 }
 
 #endif

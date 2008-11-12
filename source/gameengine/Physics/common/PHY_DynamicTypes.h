@@ -19,7 +19,6 @@ subject to the following restrictions:
 
 
 
-class	PHY_ResponseTable;
 
 class PHY_Shape;
 
@@ -40,10 +39,11 @@ struct	PHY__Vector3
 typedef enum
 {
 	PHY_FH_RESPONSE,
-	PHY_SENSOR_RESPONSE,		/* Touch Sensors */
+	PHY_SENSOR_RESPONSE,	/* Touch Sensors */
 	PHY_CAMERA_RESPONSE,	/* Visibility Culling */
 	PHY_OBJECT_RESPONSE,	/* Object Dynamic Geometry Response */
 	PHY_STATIC_RESPONSE,	/* Static Geometry Response */
+	PHY_BROADPH_RESPONSE,	/* broadphase Response */
 	
 	PHY_NUM_RESPONSE
 };
@@ -86,6 +86,18 @@ typedef enum PHY_ConstraintType {
 	PHY_GENERIC_6DOF_CONSTRAINT=12,//can leave any of the 6 degree of freedom 'free' or 'locked'
 
 } PHY_ConstraintType;
+
+typedef enum PHY_ShapeType {
+	PHY_SHAPE_NONE,
+	PHY_SHAPE_BOX,
+	PHY_SHAPE_SPHERE,
+	PHY_SHAPE_CYLINDER,
+	PHY_SHAPE_CONE,
+	PHY_SHAPE_MESH,
+	PHY_SHAPE_POLYTOPE,
+	PHY_SHAPE_COMPOUND
+} PHY_ShapeType;
+
 
 typedef float	PHY_Vector3[3];
 

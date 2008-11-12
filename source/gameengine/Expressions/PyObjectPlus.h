@@ -43,25 +43,39 @@
  * Python defines
 ------------------------------*/
 
+/*
+   Py_RETURN_NONE
+   Python 2.4 macro.
+   defined here until we switch to 2.4
+   also in api2_2x/gen_utils.h 
+*/
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE  return Py_BuildValue("O", Py_None)
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return PyBool_FromLong(0)
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#endif
+
+/*  for pre Py 2.5 */
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#define PY_METHODCHAR char *
+#else
+/* Py 2.5 and later */
+#define  intargfunc  ssizeargfunc
+#define intintargfunc  ssizessizeargfunc
+#define PY_METHODCHAR const char *
+#endif
+
 								// some basic python macros
-#define Py_NEWARGS 1			
 #define Py_Return { Py_INCREF(Py_None); return Py_None;}
-static inline PyObject* Py_Success(bool truth)
-{
-	if (truth)
-	{
-		Py_INCREF(Py_True);
-		return Py_True;
-	}
-	Py_INCREF(Py_False);
-	return Py_False;
-}
 
-#define Py_Error(E, M)   {PyErr_SetString(E, M); return NULL;}
-#define Py_Try(F) {if (!(F)) return NULL;}
-#define Py_Assert(A,E,M) {if (!(A)) {PyErr_SetString(E, M); return NULL;}}
-
-static inline void Py_Fatal(char *M) {
+static inline void Py_Fatal(const char *M) {
 	//cout << M << endl; 
 	exit(-1);
 };
@@ -76,18 +90,36 @@ static inline void Py_Fatal(char *M) {
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyParentObject *GetParents(void) {return Parents;}
 
+
 								// This defines the _getattr_up macro
 								// which allows attribute and method calls
 								// to be properly passed up the hierarchy.
 #define _getattr_up(Parent) \
-  PyObject *rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
-  if (rvalue == NULL) \
-    { \
-      PyErr_Clear(); \
-      return Parent::_getattr(attr); \
+  PyObject *rvalue = NULL; \
+  if (attr=="__methods__") { \
+    PyObject *_attr_string = NULL; \
+    PyMethodDef *meth = Methods; \
+    rvalue = Parent::_getattr(attr); \
+    if (rvalue==NULL) { \
+    	PyErr_Clear(); \
+    	rvalue = PyList_New(0); \
     } \
-  else \
-    return rvalue 
+    if (meth) { \
+      for (; meth->ml_name != NULL; meth++) { \
+        _attr_string = PyString_FromString(meth->ml_name); \
+		PyList_Append(rvalue, _attr_string); \
+		Py_DECREF(_attr_string); \
+	  } \
+	} \
+  } else { \
+    rvalue = Py_FindMethod(Methods, this, const_cast<char*>(attr.ReadPtr())); \
+    if (rvalue == NULL) { \
+      PyErr_Clear(); \
+      rvalue = Parent::_getattr(attr); \
+    } \
+  } \
+  return rvalue; \
+
 
 /**
  * These macros are helpfull when embedding Python routines. The second
@@ -99,27 +131,73 @@ static inline void Py_Fatal(char *M) {
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
 
+#define KX_PYMETHOD_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+
+#define KX_PYMETHOD_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+	
+#define KX_PYMETHOD_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+
 #define KX_PYMETHOD_DOC(class_name, method_name)			\
 	PyObject* Py##method_name(PyObject* self, PyObject* args, PyObject* kwds); \
 	static PyObject* sPy##method_name( PyObject* self, PyObject* args, PyObject* kwds) { \
 		return ((class_name*) self)->Py##method_name(self, args, kwds);		\
 	}; \
-    static char method_name##_doc[]; \
+    static const char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_VARARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* args); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* args) { \
+		return ((class_name*) self)->Py##method_name(self, args);		\
+	}; \
+    static const char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_O(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self, PyObject* value); \
+	static PyObject* sPy##method_name( PyObject* self, PyObject* value) { \
+		return ((class_name*) self)->Py##method_name(self, value);		\
+	}; \
+    static const char method_name##_doc[]; \
+
+#define KX_PYMETHOD_DOC_NOARGS(class_name, method_name)			\
+	PyObject* Py##method_name(PyObject* self); \
+	static PyObject* sPy##method_name( PyObject* self) { \
+		return ((class_name*) self)->Py##method_name(self);		\
+	}; \
+    static const char method_name##_doc[]; \
+
 
 /* The line above should remain empty */
 /**
  * Method table macro (with doc)
  */
 #define KX_PYMETHODTABLE(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (PY_METHODCHAR)class_name::method_name##_doc}
+
+#define KX_PYMETHODTABLE_NOARG(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (PY_METHODCHAR)class_name::method_name##_doc}
 
 /**
  * Function implementation macro
  */
 #define KX_PYMETHODDEF_DOC(class_name, method_name, doc_string) \
-char class_name::method_name##_doc[] = doc_string; \
+const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
+#define KX_PYMETHODDEF_DOC_NOARG(class_name, method_name, doc_string) \
+const char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject*)
 
 /*------------------------------
  * PyObjectPlus

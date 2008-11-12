@@ -122,6 +122,48 @@ void print_compbuf(char *str, CompBuf *cbuf)
 	
 }
 
+/* used for disabling node  (similar code in drawnode.c for disable line) */
+void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
+{
+	CompBuf *valbuf= NULL, *colbuf= NULL, *vecbuf= NULL;
+	bNodeSocket *sock;
+	int a;
+	
+	/* connect the first value buffer in with first value out */
+	/* connect the first RGBA buffer in with first RGBA out */
+	
+	/* test the inputs */
+	for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
+		if(nsin[a]->data) {
+			CompBuf *cbuf= nsin[a]->data;
+			if(cbuf->type==1 && valbuf==NULL) valbuf= cbuf;
+			if(cbuf->type==3 && vecbuf==NULL) vecbuf= cbuf;
+			if(cbuf->type==4 && colbuf==NULL) colbuf= cbuf;
+		}
+	}
+	
+	/* outputs */
+	if(valbuf || colbuf || vecbuf) {
+		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+			if(nsout[a]->hasoutput) {
+				if(sock->type==SOCK_VALUE && valbuf) {
+					nsout[a]->data= pass_on_compbuf(valbuf);
+					valbuf= NULL;
+				}
+				if(sock->type==SOCK_VECTOR && vecbuf) {
+					nsout[a]->data= pass_on_compbuf(vecbuf);
+					vecbuf= NULL;
+				}
+				if(sock->type==SOCK_RGBA && colbuf) {
+					nsout[a]->data= pass_on_compbuf(colbuf);
+					colbuf= NULL;
+				}
+			}
+		}
+	}
+}
+
+
 CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, int type)
 {
 	CompBuf *cbuf;
@@ -183,17 +225,100 @@ CompBuf *scalefast_compbuf(CompBuf *inbuf, int newx, int newy)
 	return outbuf;
 }
 
+void typecheck_compbuf_color(float *out, float *in, int outtype, int intype)
+{
+	if(intype == outtype) {
+		memcpy(out, in, sizeof(float)*outtype);
+	}
+	else if(outtype==CB_VAL) {
+		if(intype==CB_VEC2) {
+			*out= 0.5f*(in[0]+in[1]);
+		}
+		else if(intype==CB_VEC3) {
+			*out= 0.333333f*(in[0]+in[1]+in[2]);
+		}
+		else if(intype==CB_RGBA) {
+			*out= in[0]*0.35f + in[1]*0.45f + in[2]*0.2f;
+		}
+	}
+	else if(outtype==CB_VEC2) {
+		if(intype==CB_VAL) {
+			out[0]= in[0];
+			out[1]= in[0];
+		}
+		else if(intype==CB_VEC3) {
+			out[0]= in[0];
+			out[1]= in[1];
+		}
+		else if(intype==CB_RGBA) {
+			out[0]= in[0];
+			out[1]= in[1];
+		}
+	}
+	else if(outtype==CB_VEC3) {
+		if(intype==CB_VAL) {
+			out[0]= in[0];
+			out[1]= in[0];
+			out[2]= in[0];
+		}
+		else if(intype==CB_VEC2) {
+			out[0]= in[0];
+			out[1]= in[1];
+			out[2]= 0.0f;
+		}
+		else if(intype==CB_RGBA) {
+			out[0]= in[0];
+			out[1]= in[1];
+			out[2]= in[2];
+		}
+	}
+	else if(outtype==CB_RGBA) {
+		if(intype==CB_VAL) {
+			out[0]= in[0];
+			out[1]= in[0];
+			out[2]= in[0];
+			out[3]= 1.0f;
+		}
+		else if(intype==CB_VEC2) {
+			out[0]= in[0];
+			out[1]= in[1];
+			out[2]= 0.0f;
+			out[3]= 1.0f;
+		}
+		else if(intype==CB_VEC3) {
+			out[0]= in[0];
+			out[1]= in[1];
+			out[2]= in[2];
+			out[3]= 1.0f;
+		}
+	}
+}
+
 CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 {
-	if(inbuf && inbuf->type!=type && inbuf->rect_procedural==NULL) {
-		CompBuf *outbuf= alloc_compbuf(inbuf->x, inbuf->y, type, 1); 
-		float *inrf= inbuf->rect;
-		float *outrf= outbuf->rect;
-		int x= inbuf->x*inbuf->y;
-		
+	if(inbuf && inbuf->type!=type) {
+		CompBuf *outbuf;
+		float *inrf, *outrf;
+		int x;
+
+		outbuf= alloc_compbuf(inbuf->x, inbuf->y, type, 1); 
+
 		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
 		outbuf->xof= inbuf->xof;
 		outbuf->yof= inbuf->yof;
+
+		if(inbuf->rect_procedural) {
+			outbuf->rect_procedural= inbuf->rect_procedural;
+			VECCOPY(outbuf->procedural_size, inbuf->procedural_size);
+			VECCOPY(outbuf->procedural_offset, inbuf->procedural_offset);
+			outbuf->procedural_type= inbuf->procedural_type;
+			outbuf->node= inbuf->node;
+			return outbuf;
+		}
+
+		inrf= inbuf->rect;
+		outrf= outbuf->rect;
+		x= inbuf->x*inbuf->y;
 		
 		if(type==CB_VAL) {
 			if(inbuf->type==CB_VEC2) {
@@ -460,6 +585,25 @@ CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 	return valbuf;
 }
 
+static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
+{
+	CompBuf *outbuf;
+	float *outfp;
+	int xrad, yrad, x, y;
+	
+	outbuf= alloc_compbuf(newx, newy, CB_RGBA, 1);
+
+	outfp= outbuf->rect;
+	xrad= outbuf->xrad;
+	yrad= outbuf->yrad;
+	
+	for(y= -yrad; y<-yrad+outbuf->y; y++)
+		for(x= -xrad; x<-xrad+outbuf->x; x++, outfp+=outbuf->type)
+			cbuf->rect_procedural(cbuf, outfp, (float)x/(float)xrad, (float)y/(float)yrad);
+
+	return outbuf;
+}
+
 void generate_preview(bNode *node, CompBuf *stackbuf)
 {
 	bNodePreview *preview= node->preview;
@@ -467,7 +611,7 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 	if(preview && stackbuf) {
 		CompBuf *cbuf, *stackbuf_use;
 		
-		if(stackbuf->rect==NULL) return;
+		if(stackbuf->rect==NULL && stackbuf->rect_procedural==NULL) return;
 		
 		stackbuf_use= typecheck_compbuf(stackbuf, CB_RGBA);
 		
@@ -480,7 +624,10 @@ void generate_preview(bNode *node, CompBuf *stackbuf)
 			preview->xsize= (140*stackbuf->x)/stackbuf->y;
 		}
 		
-		cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
+		if(stackbuf_use->rect_procedural)
+			cbuf= generate_procedural_preview(stackbuf_use, preview->xsize, preview->ysize);
+		else
+			cbuf= scalefast_compbuf(stackbuf_use, preview->xsize, preview->ysize);
 		
 		/* this ensures free-compbuf does the right stuff */
 		SWAP(float *, cbuf->rect, node->preview->rect);
@@ -575,6 +722,36 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
    }
 }
 
+void premul_compbuf(CompBuf *img, int inversed)
+{
+   float *drect;
+   int x;
+
+   if(img->type!=CB_RGBA) return;
+
+   drect= img->rect;
+   if(inversed) {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 if(fabs(drect[3]) < 1e-5f) {
+			 drect[0]= 0.0f;
+			 drect[1]= 0.0f;
+			 drect[2]= 0.0f;
+		 }
+		 else {
+			 drect[0] /= drect[3];
+			 drect[1] /= drect[3];
+			 drect[2] /= drect[3];
+		 }
+      }
+   }
+   else {
+      for(x=img->x*img->y; x>0; x--, drect+=4) {
+		 drect[0] *= drect[3];
+		 drect[1] *= drect[3];
+		 drect[2] *= drect[3];
+      }
+   }
+}
 
 
 

@@ -4,7 +4,7 @@ Import ('env')
 SConscript(['blender/SConscript',
 			'kernel/SConscript',
 			'creator/SConscript'])
-if env['WITH_BF_GAMEENGINE'] == 1:
+if env['WITH_BF_GAMEENGINE']:
 	SConscript (['gameengine/SConscript'])
 	
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):

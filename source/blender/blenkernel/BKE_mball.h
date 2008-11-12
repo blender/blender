@@ -91,7 +91,6 @@ typedef struct process {		/* parameters, function, storage */
 	float (*function)(float, float, float);
 	float size, delta;			/* cube size, normal delta */
 	int bounds;					/* cube range within lattice */
-	MB_POINT start;				/* start point on surface */
 	CUBES *cubes;				/* active cubes */
 	VERTICES vertices;			/* surface vertices */
 	CENTERLIST **centers;		/* cube center hash table */
@@ -151,7 +150,7 @@ void add_cube(PROCESS *mbproc, int i, int j, int k, int count);
 void find_first_points(PROCESS *mbproc, struct MetaBall *mb, int a);
 
 void fill_metaball_octal_node(octal_node *node, struct MetaElem *ml, short i);
-void subdivide_metaball_octal_node(octal_node *node, float *size, short depth);
+void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth);
 void free_metaball_octal_node(octal_node *node);
 void init_metaball_octal_tree(int depth);
 void polygonize(PROCESS *mbproc, struct MetaBall *mb);
@@ -162,8 +161,8 @@ void free_mball(struct MetaBall *mb);
 struct MetaBall *add_mball(char *name);
 struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
-void tex_space_mball( struct Object *ob);
-void make_orco_mball( struct Object *ob);
+void tex_space_mball(struct Object *ob);
+float *make_orco_mball(struct Object *ob);
 struct Object *find_basis_mball( struct Object *ob);
 int is_basis_mball(struct Object *ob);
 void metaball_polygonize(struct Object *ob);

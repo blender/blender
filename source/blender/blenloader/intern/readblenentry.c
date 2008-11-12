@@ -63,6 +63,8 @@
 
 #include "BLO_readblenfile.h"
 
+#include "BLO_sys_types.h" // needed for intptr_t
+
 	/**
 	 * IDType stuff, I plan to move this
 	 * out into its own file + prefix, and
@@ -193,7 +195,7 @@ void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp)
 			buf[2]= buf[2]?buf[2]:' ';
 			buf[3]= buf[3]?buf[3]:' ';
 			
-			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (long)bhead->len+sizeof(BHead));
+			fprintf(fp, "['%.4s', '%s', %d, %ld ], \n", buf, name, bhead->nr, (intptr_t)bhead->len+sizeof(BHead));
 		}
 	}
 	fprintf(fp, "]\n");
@@ -362,6 +364,9 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Ble
 	if (fd) {
 		strcpy(fd->filename, filename);
 		
+		/* clear ob->proxy_from pointers in G.main */
+		blo_clear_proxy_pointers_from_lib(fd);
+
 		/* separate libraries from G.main */
 		blo_split_main(&mainlist, G.main);
 		/* add the library pointers in oldmap lookup */

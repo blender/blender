@@ -62,7 +62,6 @@ public:
 	 */
 	bool IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 	virtual void 	NextFrame();	
-	virtual void	RegisterSensor(class SCA_ISensor* sensor);
 	SCA_IInputDevice* GetInputDevice();
 };
 

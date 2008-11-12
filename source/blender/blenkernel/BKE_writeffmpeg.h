@@ -42,20 +42,16 @@ extern "C" {
 #define FFMPEG_DV	5
 #define FFMPEG_H264     6
 #define FFMPEG_XVID     7
-
-#define FFMPEG_CODEC_MPEG1 0
-#define FFMPEG_CODEC_MPEG2 1
-#define FFMPEG_CODEC_MPEG4 2
-#define FFMPEG_CODEC_HUFFYUV 3
-#define FFMPEG_CODEC_DV 4
-#define FFMPEG_CODEC_H264 5
-#define FFMPEG_CODEC_XVID 6
+#define FFMPEG_FLV      8
+#define FFMPEG_MKV      9
+#define FFMPEG_OGG      10
 
 #define FFMPEG_PRESET_NONE 0
 #define FFMPEG_PRESET_DVD  1
 #define FFMPEG_PRESET_SVCD 2
 #define FFMPEG_PRESET_VCD  3
 #define FFMPEG_PRESET_DV   4
+#define FFMPEG_PRESET_H264 5
 
 struct RenderData;	
 

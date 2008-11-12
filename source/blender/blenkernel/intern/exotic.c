@@ -76,10 +76,14 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifndef WIN32 
+#ifndef _WIN32 
 #include <unistd.h>
 #else
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -116,7 +120,9 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "zlib.h"
 
@@ -869,7 +875,7 @@ static void read_videoscape_lamp(char *str)
 	Object *ob;
 	Lamp *la;
 	FILE *fp;
-	float vec[3], *q1;
+	float vec[3], q1[4];
 	int tot, val;
 	char s[50];
 	
@@ -897,7 +903,7 @@ static void read_videoscape_lamp(char *str)
 		
 		fscanf(fp, "%f %f %f\n", ob->loc, ob->loc+1, ob->loc+2);
 		val= fscanf(fp, "%f %f %f\n", vec, vec+1, vec+2);
-		q1= vectoquat(vec, 5, 2);
+		vectoquat(vec, 5, 2, q1);
 		QuatToEul(q1, ob->rot);
 		
 		if(val<=0) break;
@@ -2091,8 +2097,10 @@ static void displist_to_mesh(DispList *dlfirst)
 			}
 
 			for(a=0; a<dl->parts; a++) {
-
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				
+				if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+					break;
+				
 				p1+= startve; 
 				p2+= startve; 
 				p3+= startve; 
@@ -2419,6 +2427,7 @@ int BKE_read_exotic(char *name)
 						read_stl_mesh_binary(name);
 					retval = 1;
 				}
+#ifndef DISABLE_PYTHON
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
 					if (BPY_call_importloader(name)) {
@@ -2428,6 +2437,7 @@ int BKE_read_exotic(char *name)
 					}	
 				
 				}
+#endif /* DISABLE_PYTHON */
 				//XXX waitcursor(0);
 			}
 		}
@@ -2626,17 +2636,17 @@ static void write_videoscape_mesh(Object *ob, char *str)
 
 			if(evl->v4==0) {
 				fprintf(fp, "3 %ld %ld %ld 0x%x\n", 
-						evl->v1->tmp.l,
-						evl->v2->tmp.l,
-						evl->v3->tmp.l, 
+						(long int) evl->v1->tmp.l,
+						(long int) evl->v2->tmp.l,
+						(long int) evl->v3->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			else {
 				fprintf(fp, "4 %ld %ld %ld %ld 0x%x\n", 
-						evl->v1->tmp.l, 
-						evl->v2->tmp.l, 
-						evl->v3->tmp.l, 
-						evl->v4->tmp.l, 
+						(long int) evl->v1->tmp.l, 
+						(long int) evl->v2->tmp.l, 
+						(long int) evl->v3->tmp.l, 
+						(long int) evl->v4->tmp.l, 
 						kleur[evl->mat_nr]);
 			}
 			evl= evl->next;

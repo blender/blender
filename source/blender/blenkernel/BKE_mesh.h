@@ -61,14 +61,13 @@ void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
 float *get_mesh_orco_verts(struct Object *ob);
 void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
-void test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
+int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 void nurbs_to_mesh(struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
-int update_realtime_texture(struct MTFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 
@@ -93,6 +92,8 @@ float (*mesh_getRefKeyCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* UvVertMap */
 
+#define STD_UV_CONNECT_LIMIT	0.0001f
+
 typedef struct UvVertMap {
 	struct UvMapVert **vert;
 	struct UvMapVert *buf;
@@ -101,7 +102,7 @@ typedef struct UvVertMap {
 typedef struct UvMapVert {
 	struct UvMapVert *next;
 	unsigned int f;
-	unsigned char tfindex, separate;
+	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);

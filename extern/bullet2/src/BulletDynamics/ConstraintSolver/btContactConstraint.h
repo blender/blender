@@ -19,8 +19,8 @@ subject to the following restrictions:
 //todo: make into a proper class working with the iterative constraint solver
 
 class btRigidBody;
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btScalar.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btScalar.h"
 struct btContactSolverInfo;
 class btManifoldPoint;
 

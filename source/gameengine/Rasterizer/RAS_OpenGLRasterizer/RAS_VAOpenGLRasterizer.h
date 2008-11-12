@@ -33,8 +33,13 @@
 
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
 {
-	void TexCoordPtr(const RAS_TexVert *tv, int unit);
+	void TexCoordPtr(const RAS_TexVert *tv);
 	bool m_Lock;
+
+	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
+	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
+	int				m_last_texco_num;
+	int				m_last_attrib_num;
 
 public:
 	RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock=false);
@@ -45,26 +50,10 @@ public:
 
 	virtual void	SetDrawingMode(int drawingmode);
 
-	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
-	virtual void IndexPrimitivesMulti( 
-		const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
-
-
+private:
 	virtual void	EnableTextures(bool enable);
 	//virtual bool	QueryArrays(){return true;}
 	//virtual bool	QueryLists(){return m_Lock;}

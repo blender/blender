@@ -37,6 +37,7 @@
 #include "IMB_imbuf.h"
 
 #include "IMB_allocimbuf.h"
+#include "BKE_utildefines.h"
 
 /* blend modes */
 
@@ -514,15 +515,13 @@ void IMB_rectfill(struct ImBuf *drect, float col[4])
 	}	
 }
 
-/* maybe we should use BKE_utildefines.h */
-#define FTOCHAR(val) (val<=0.0f ? 0: (val>=1.0f ? 255: (char)(255.99f*val)))
-#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
-#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2)
 {
 	int i, j;
-	float a, ai;
+	float a; /* alpha */
+	float ai; /* alpha inverted */
+	float aich; /* alpha, inverted, ai/255.0 - Convert char to float at the same time */
 	if ((!rect && !rectf) || (!col) || col[3]==0.0)
 		return;
 	
@@ -538,7 +537,7 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 	
 	a = col[3];
 	ai = 1-a;
-	
+	aich = ai/255.0f;
 
 	if (rect) {
 		unsigned char *pixel; 
@@ -563,9 +562,9 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 						pixel[1] = chg;
 						pixel[2] = chb;
 					} else {
-						pixel[0] = (char)(fr + ((float)pixel[0]*ai));
-						pixel[1] = (char)(fg + ((float)pixel[1]*ai));
-						pixel[2] = (char)(fb + ((float)pixel[2]*ai));
+						pixel[0] = (char)((fr + ((float)pixel[0]*aich))*255.0f);
+						pixel[1] = (char)((fg + ((float)pixel[1]*aich))*255.0f);
+						pixel[2] = (char)((fb + ((float)pixel[2]*aich))*255.0f);
 					}
 				}
 			}

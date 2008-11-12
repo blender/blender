@@ -81,6 +81,14 @@
 #include <ffmpeg/swscale.h>
 #endif
 
+#ifdef WITH_REDCODE
+#ifdef _WIN32 /* on windows we use the one in extern instead */
+#include "libredcode/format.h"
+#else
+#include "libredcode/format.h"
+#endif
+#endif
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -96,7 +104,7 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 #define GET_ID GET_BIG_LONG
 #define LITTLE_LONG SWAP_LONG
 #else
@@ -116,6 +124,7 @@
 #define ANIM_AVI		(1 << 6)
 #define ANIM_QTIME		(1 << 7)
 #define ANIM_FFMPEG             (1 << 8)
+#define ANIM_REDCODE            (1 << 9)
 
 #define ANIM5_MMAP		0
 #define ANIM5_MALLOC		1
@@ -178,12 +187,16 @@ struct anim {
 	AVFormatContext *pFormatCtx;
 	AVCodecContext *pCodecCtx;
 	AVCodec *pCodec;
-	AVFrame *pFrameRGB;
 	AVFrame *pFrame;
+	AVFrame *pFrameRGB;
+	AVFrame *pFrameDeinterlaced;
 	struct SwsContext *img_convert_ctx;
 	int videoStream;
 #endif
 
+#ifdef WITH_REDCODE
+	struct redcode_handle * redcodeCtx;
+#endif
 };
 
 #endif

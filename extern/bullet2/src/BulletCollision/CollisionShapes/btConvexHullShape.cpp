@@ -36,6 +36,13 @@ btConvexHullShape ::btConvexHullShape (const btScalar* points,int numPoints,int 
 }
 
 
+
+void btConvexHullShape::setLocalScaling(const btVector3& scaling)
+{
+	m_localScaling = scaling;
+	recalcLocalAabb();
+}
+
 void btConvexHullShape::addPoint(const btPoint3& point)
 {
 	m_points.push_back(point);

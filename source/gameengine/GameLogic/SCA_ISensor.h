@@ -34,6 +34,8 @@
 
 #include "SCA_ILogicBrick.h"
 
+#include <vector>
+
 /**
  * Interface Class for all logic Sensors. Implements
  * pulsemode,pulsefrequency */
@@ -61,12 +63,21 @@ class SCA_ISensor : public SCA_ILogicBrick
 	/** invert the output signal*/
 	bool m_invert;
 
+	/** detect level instead of edge*/
+	bool m_level;
+
+	/** sensor has been reset */
+	bool m_reset;
+
 	/** Sensor must ignore updates? */
 	bool m_suspended;
 
-	/** Pass the activation on to the logic manager.*/
-	void SignalActivation(class SCA_LogicManager* logicmgr);
-	
+	/** number of connections to controller */
+	int m_links;
+
+	/** list of controllers that have just activated this sensor because of a state change */
+	std::vector<class SCA_IController*> m_newControllers;
+
 public:
 	SCA_ISensor(SCA_IObject* gameobj,
 				class SCA_EventManager* eventmgr,
@@ -81,6 +92,7 @@ public:
 	void Activate(class SCA_LogicManager* logicmgr,CValue* event);
 	virtual bool Evaluate(CValue* event) = 0;
 	virtual bool IsPositiveTrigger();
+	virtual void Init();
 	
 	virtual PyObject* _getattr(const STR_String& attr);
 	virtual CValue* GetReplica()=0;
@@ -94,10 +106,19 @@ public:
 					  bool negmode,
 					  int freq);
 	
+	/** Release sensor
+	 *  For property sensor, it is used to release the pre-calculated expression
+	 *  so that self references are removed before the sensor itself is released
+	 */
+	virtual void Delete() { Release(); }
 	/** Set inversion of pulses on or off. */
 	void SetInvert(bool inv);
+	/** set the level detection on or off */
+	void SetLevel(bool lvl);
 
-	void RegisterToManager();
+	virtual void RegisterToManager();
+	virtual void UnregisterToManager();
+
 	virtual float GetNumber();
 
 	/** Stop sensing for a while. */
@@ -109,16 +130,30 @@ public:
 	/** Resume sensing. */
 	void Resume();
 
+	void AddNewController(class SCA_IController* controller)
+		{ m_newControllers.push_back(controller); }
+	void ClrLink()
+		{ m_links = 0; }
+	void IncLink()
+		{ if (!m_links++) RegisterToManager(); }
+	void DecLink();
+	bool IsNoLink() const 
+		{ return !m_links; }
+
 	/* Python functions: */
-	KX_PYMETHOD_DOC(SCA_ISensor,IsPositive);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetUsePosPulseMode);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsPositive);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,IsTriggered);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUsePosPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUsePosPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetFrequency);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetFrequency);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetFrequency);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetUseNegPulseMode);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetUseNegPulseMode);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetUseNegPulseMode);
-	KX_PYMETHOD_DOC(SCA_ISensor,GetInvert);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetInvert);
 	KX_PYMETHOD_DOC(SCA_ISensor,SetInvert);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,GetLevel);
+	KX_PYMETHOD_DOC(SCA_ISensor,SetLevel);
+	KX_PYMETHOD_DOC_NOARGS(SCA_ISensor,Reset);
 
 };
 

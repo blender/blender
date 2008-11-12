@@ -37,10 +37,12 @@ LinearMath \
 BulletCollision/BroadphaseCollision \
 BulletCollision/CollisionShapes \
 BulletCollision/NarrowPhaseCollision \
+BulletCollision/Gimpact \
 BulletCollision//CollisionDispatch \
 BulletDynamics/ConstraintSolver \
 BulletDynamics/Vehicle \
-BulletDynamics/Dynamics
+BulletDynamics/Dynamics \
+BulletSoftBody
 
 include nan_subdirs.mk
 

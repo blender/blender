@@ -93,6 +93,16 @@ public:
 	}
 
 
+#if defined(_WIN64)
+	CTR_TaggedIndex(
+		const unsigned __int64 val
+	) :
+		m_val ( ((unsigned __int64)val & index_mask)
+				| ( (empty_tag << tag_shift)
+					& (~index_mask) ) ) {
+	}
+#endif
+
 	CTR_TaggedIndex(
 		const CTR_TaggedIndex &my_index
 	):
@@ -123,6 +133,12 @@ public:
 	operator long int () const {
 		return (long int)(m_val & index_mask);
 	}
+
+#if defined(_WIN64)
+	operator unsigned __int64 () const {
+			return (unsigned __int64)(m_val & index_mask);
+		}
+#endif
 
 		bool
 	IsEmpty(

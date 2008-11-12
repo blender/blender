@@ -61,7 +61,7 @@ public:
 	 * @param offsetX	Amount of horzontal offset applied to the resource image.
 	 * @param offsetY	Amount of vertical offset applied to the resource image.
 	 */
-	virtual bool Load(char *srcName,
+	virtual bool Load(const char *srcName,
 		int destWidth, int destHeight,
 		TImageAlignment alignment = alignTopLeft,
 		int offsetX = 0, int offsetY = 0);

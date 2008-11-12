@@ -114,6 +114,8 @@ public:
 					   PyTypeObject* T=&Type );
 	virtual ~SCA_KeyboardSensor();
 	virtual CValue* GetReplica();
+	virtual void Init();
+
 
 	short int GetHotkey();
 	virtual bool Evaluate(CValue* event);

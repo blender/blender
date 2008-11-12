@@ -64,20 +64,22 @@ public:
 	virtual void	ApplyTorque(const MT_Vector3& torque,bool local)=0;
 	virtual void	ApplyForce(const MT_Vector3& force,bool local)=0;
 	virtual MT_Vector3 GetLinearVelocity()=0;
+	virtual MT_Vector3 GetAngularVelocity()=0;
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;
-	virtual	void setOrientation(const MT_Quaternion& orn)=0;
+	virtual	void setOrientation(const MT_Matrix3x3& orn)=0;
+	//virtual	void setOrientation(const MT_Quaternion& orn)=0;
 	virtual	void setPosition(const MT_Point3& pos)=0;
 	virtual	void setScaling(const MT_Vector3& scaling)=0;
 	virtual	MT_Scalar	GetMass()=0;
 	virtual	MT_Vector3	getReactionForce()=0;
 	virtual void	setRigidBody(bool rigid)=0;
 
-	virtual void	SuspendDynamics()=0;
+	virtual void	SuspendDynamics(bool ghost=false)=0;
 	virtual void	RestoreDynamics()=0;
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode)=0;
@@ -86,7 +88,11 @@ public:
 		m_bDyna = isDynamic;
 	}
 
+	bool	IsDyna(void) {
+		return m_bDyna;
+	}
 
+	virtual MT_Scalar GetRadius()=0;
 	virtual void	SetSumoTransform(bool nondynaonly)=0;
 	// todo: remove next line !
 	virtual void	SetSimulatedTime(double time)=0;

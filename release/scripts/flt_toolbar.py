@@ -10,7 +10,7 @@ Tooltip: 'Tools for working with FLT databases'
 __author__ = "Geoffrey Bantle"
 __version__ = "1.0 11/21/07"
 __email__ = ('scripts', 'Author, ')
-__url__ = ('blender', 'elysiun')
+__url__ = ('blender', 'blenderartists.org')
 
 __bpydoc__ ="""\
 This script provides tools for working with OpenFlight databases in Blender. OpenFlight is a
@@ -75,7 +75,9 @@ evcode = {
 	"SCENE_UPDATE" : 303,
 	"IDPROP_COPY" : 501,
 	"IDPROP_KILL" : 502,
-	"CLIGHT_MAKE" : 700
+	"CLIGHT_MAKE" : 700,
+	"DFROMACT" : 701,
+	"FIXCOL" : 702
 }
 
 XREF_PREFIX = None
@@ -90,11 +92,50 @@ IDPROP_KILL = None
 IDPROP_COPY = None
 SCENE_UPDATE = None
 CLIGHT_MAKE = None
+DFROMACT = None
+FIXCOL = None
+
+
+def RGBtoHSV( r, g, b):
+	cmin = min( r, g, b )
+	cmax = max( r, g, b )
+	v = cmax				
+
+	if(cmax!=0.0):
+		s = (cmax-cmin)/cmax
+	else:
+		s = 0.0
+		h = 0.0
+	
+	if(s == 0.0):
+		h = -1.0
+	else:
+		cdelta = cmax-cmin
+		rc = (cmax-r)/cdelta
+		gc = (cmax-g)/cdelta
+		bc = (cmax-b)/cdelta
+		if(r==cmax):
+			h = bc-gc
+		else:
+			if(g==cmax):
+				h = 2.0+rc-bc
+			else:
+				h = 4.0+gc-rc
+		h = h*60.0
+		if(h<0.0):
+			h += 360.0
+			
+		
+	h = h/360.0
+	if(h < 0.0): 
+		h = 0.0
+	return (h,s,v)
+
 
 def update_state():
 	state = dict()
-	state["activeScene"] = Blender.Scene.getCurrent()
-	state["activeObject"] = state["activeScene"].getActiveObject()
+	state["activeScene"] = Blender.Scene.GetCurrent()
+	state["activeObject"] = state["activeScene"].objects.active
 	if state["activeObject"] and not state["activeObject"].sel:
 		state["activeObject"] = None
 	state["activeMesh"] = None
@@ -139,24 +180,130 @@ def idprops_copy(source):
 				for key in source.properties['FLT']:
 					object.properties['FLT'][key] = source.properties['FLT'][key]
 
-def update_all():
-	state = update_state()
-	#update the baked FLT colors for all meshes.
-	for object in state["activeScene"].objects:
-		if object.type == "Mesh":
-			mesh = object.getData(mesh=True)
-			if 'FLT_COL' in mesh.faces.properties:
-				mesh.activeColorLayer = "FLT_Fcol"
-				for face in mesh.faces:
-					(index,intensity) = unpack_face_index(face.getProperty('FLT_COL'))
-					color = struct.unpack('>BBBB',struct.pack('>I',state["colors"][index]))
-					#update the vertex colors for this face
-					for col in face.col:
-						col.r = int(color[0] * intensity)
-						col.g = int(color[1] * intensity)
-						col.b = int(color[2] * intensity)
-						col.a = 255
+def unpack_color(color):
+	return struct.unpack('>BBBB',struct.pack('>I',color))
 
+
+def findColorKey(colordict, hsv):
+	hdelta = 0.001
+	for key in colordict:
+		if not (((hsv[0] < (key[0] + hdelta)) and (hsv[0] > (key[0] - hdelta))) and ((hsv[1] < (key[1] + hdelta)) and (hsv[1] > (key[1] - hdelta)))):
+			return key
+	return None
+
+def hsvsort(a, b):
+	(index1, mag1) = a
+	(index2, mag2) = b
+	if mag1 > mag2:
+		return 1
+	elif mag1 < mag2:
+		return -1
+	return 0
+
+def fix_colors():
+	
+	editmode = 0
+	if Blender.Window.EditMode():
+		Blender.Window.EditMode(0)
+		editmode = 1
+	state = update_state()
+	
+	scene = state["activeScene"]
+	colors = None
+	if state["activeScene"].properties.has_key('FLT'):
+		try:
+			colors = state["activeScene"].properties['FLT']['Color Palette']
+		except:
+			pass
+	if not colors:
+		return
+	
+	#first build a HSV version of our palette
+	hsvpalette = list()
+	for swatch in colors:
+		color = unpack_color(swatch)
+		hsv = RGBtoHSV(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0)
+		hsvpalette.append(hsv)
+		
+	#collect all of our meshes
+	meshes = list()
+	for object in scene.objects.context:
+		if object.sel and object.type == 'Mesh':
+			mesh = object.getData(mesh=True)
+			if "FLT_COL" in mesh.faces.properties:
+				meshes.append(mesh)
+				
+				
+	#Now go through our meshes, and build a dictionary of face lists keyed according to (hue,saturation) of the baked color
+	colordict = dict()
+	for mesh in meshes:
+		for face in mesh.faces:
+			hsv = RGBtoHSV(face.col[0].r/255.0, face.col[0].g/255.0, face.col[0].b/255.0) #retrieve baked color
+			if colordict.has_key((hsv[0],hsv[1])):
+				colordict[(hsv[0],hsv[1])].append(face)
+			else:
+				colordict[(hsv[0],hsv[1])] = [face]				
+	
+
+	#for each color key in the color dict, build a list of distances from it to the values in hsvpalette and then quicksort them for closest match
+	for key in colordict:
+		maglist = list()
+		for i, hsv in enumerate(hsvpalette):
+			norm = Blender.Mathutils.Vector(hsv[0], hsv[1]) - Blender.Mathutils.Vector(key[0],key[1])
+			maglist.append((i,norm.length))
+		maglist.sort(hsvsort)
+		print maglist[0]
+		for face in colordict[key]:
+			(index, intensity) = unpack_face_index(face.getProperty("FLT_COL"))
+			newfindex = pack_face_index(maglist[0][0],intensity)
+			face.setProperty("FLT_COL", int(newfindex))
+	
+	for mesh in meshes:
+		update_mesh_colors(colors,mesh)	
+	
+	if editmode:
+		Blender.Window.EditMode(1)	
+	
+
+def update_mesh_colors(colors, mesh):
+	if 'FLT_COL' in mesh.faces.properties:
+		mesh.activeColorLayer = "FLT_Fcol"
+		for face in mesh.faces:
+			(index,intensity) = unpack_face_index(face.getProperty('FLT_COL'))
+			color = struct.unpack('>BBBB',struct.pack('>I',colors[index]))
+			
+			if index == 0 and intensity == 0:
+				color = (255,255,255)
+				intensity  = 1.0
+			#update the vertex colors for this face
+			for col in face.col:
+				col.r = int(color[0] * intensity)
+				col.g = int(color[1] * intensity)
+				col.b = int(color[2] * intensity)
+				col.a = 255
+	
+		
+def update_all():
+	
+	editmode = 0
+	if Blender.Window.EditMode():
+		Blender.Window.EditMode(0)
+		editmode = 1
+	state = update_state()
+	colors = None
+	if state["activeScene"].properties.has_key('FLT'):
+		try:
+			colors = state["activeScene"].properties['FLT']['Color Palette']
+		except:
+			pass
+	if colors:
+		#update the baked FLT colors for all meshes.
+		for object in state["activeScene"].objects:
+			if object.type == "Mesh":
+				mesh = object.getData(mesh=True)
+				update_mesh_colors(colors,mesh)
+	if editmode:
+		Blender.Window.EditMode(1)
 
 #Change this to find the deep parent
 def xref_create():
@@ -231,7 +378,19 @@ def xref_create():
 
                 xrefscene.update(1)
                 state["activeScene"].update(1)
-                
+
+def xref_select():
+	state = update_state()
+	candidates = list()
+	scenelist = [scene.name for scene in Blender.Scene.Get()]
+	for object in state["activeScene"].objects:
+		if object.type == 'Empty' and object.enableDupGroup == True and object.DupGroup:
+			candidates.append(object)
+		
+	for object in candidates:
+		if object.DupGroup.name in scenelist:
+			object.sel = 1
+
 def xref_edit():
 	global xrefprefix
 	global xrefstack
@@ -424,12 +583,56 @@ def clight_make():
 	
 		actmesh.verts.addPropertyLayer("FLT_VCOL", Blender.Mesh.PropertyTypes["INT"])
 		for v in actmesh.verts:
-			v.setProperty("FLT_VCOL", 67295)
+			v.setProperty("FLT_VCOL", 83815)
 			
+def dfromact():
+	state = update_state()
+	actobj = state["activeObject"]
+	actscene = state["activeScene"]
+	dof = None
+	
+	for object in actscene.objects.context:
+		if object.sel and (object != actobj):
+			if not dof:
+				dof = object
+			else:
+				break
+	
+	if not dof:
+		return
+	
+	if 'FLT' not in dof.properties:
+		dof.properties['FLT'] = dict()	
+	
+	#Warning! assumes 1 BU == 10 meters.
+	#do origin
+	dof.properties['FLT']['5d!ORIGX'] = actobj.getLocation('worldspace')[0]*10.0
+	dof.properties['FLT']['6d!ORIGY'] = actobj.getLocation('worldspace')[1]*10.0
+	dof.properties['FLT']['7d!ORIGZ'] = actobj.getLocation('worldspace')[2]*10.0
+	#do X axis
+	x = Blender.Mathutils.Vector(1.0,0.0,0.0)
+	x = x * actobj.getMatrix('worldspace')
+	x = x * 10.0
+	dof.properties['FLT']['8d!XAXIS-X'] = x[0]
+	dof.properties['FLT']['9d!XAXIS-Y'] = x[1]
+	dof.properties['FLT']['10d!XAXIS-Z'] = x[2]
+	#do X/Y plane
+	x = Blender.Mathutils.Vector(1.0,1.0,0.0)
+	x.normalize()
+	x = x * actobj.getMatrix('worldspace')
+	x = x * 10.0
+	dof.properties['FLT']['11d!XYPLANE-X'] = x[0]
+	dof.properties['FLT']['12d!XYPLANE-Y'] = x[1]
+	dof.properties['FLT']['13d!XZPLANE-Z'] = x[2]
+	
+	
+	
+	
+	
 def event(evt,val):
 	if evt == Draw.ESCKEY:
 		Draw.Exit()
-
+		
 def but_event(evt):
 	global xrefprefix
 	global xrefstack
@@ -447,7 +650,7 @@ def but_event(evt):
 	if evt == evcode["XREF_EDIT"]:
 		xref_edit()
 	if evt == evcode["XREF_SELECT"]:
-		select_by_typecode(63)
+		xref_select()
 	if evt == evcode["XREF_MAKE"]:
 		xref_create()
 	#do scene buttons				
@@ -471,6 +674,10 @@ def but_event(evt):
                 xref_finish()
 	if evt == evcode["CLIGHT_MAKE"]:
 		clight_make()
+	if evt == evcode["DFROMACT"]:
+		dfromact()
+	if evt == evcode["FIXCOL"]:
+		fix_colors()
 	Draw.Redraw(1)
 	Blender.Window.RedrawAll()
 
@@ -525,17 +732,20 @@ def draw_postcommon(x,y,finaly):
 
 
 def draw_propsheet(x,y):
-        global XREF_PREFIX
-        global XREF_MAKE
-        global XREF_EDIT
-        global XREF_SELECT
-        global XREF_POP
-        global FACE_MAKESUB
-        global FACE_SELSUB
-        global FACE_KILLSUB
-        global IDPROP_KILL
-        global IDPROP_COPY
-        global SCENE_UPDATE
+	global XREF_PREFIX
+	global XREF_MAKE
+	global XREF_EDIT
+	global XREF_SELECT
+	global XREF_POP
+	global FACE_MAKESUB
+	global FACE_SELSUB
+	global FACE_KILLSUB
+	global IDPROP_KILL
+	global IDPROP_COPY
+	global SCENE_UPDATE
+	global DFROMACT
+	global FIXCOL
+		
 	global CLIGHT_MAKE
 	global xrefprefix
 	global xrefstack
@@ -583,11 +793,16 @@ def draw_propsheet(x,y):
         #General tools
         y = y-20
 	SCENE_UPDATE = Blender.Draw.PushButton("Update All",evcode["SCENE_UPDATE"],x,y,width,20,"Update all vertex colors")
-        draw_postcommon(origx, origy,y)
+	
+	y=y-20
+	DFROMACT = Blender.Draw.PushButton("Dof from Active", evcode["DFROMACT"],x,y,width,20,"Get Dof origin from active object")
+	y=y-20
+	FIXCOL = Blender.Draw.PushButton("Fix Colors", evcode["FIXCOL"],x,y,width,20,"Fix baked FLT colors of selected meshes") 	
+	draw_postcommon(origx, origy,y)
 		
 def gui():
 	#draw the propsheet/toolbox.
-	psheety = 256
+	psheety = 300
 	#psheetx = psheety + 10
 	draw_propsheet(0,psheety)
 Draw.Register(gui,event,but_event)

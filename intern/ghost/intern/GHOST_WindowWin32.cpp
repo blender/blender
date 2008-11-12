@@ -48,6 +48,14 @@
 #define M_PI 3.1415926536
 #endif
 
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
+
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;
@@ -441,10 +449,6 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 {
-	// adding a glFinish() here is to prevent Geforce in 'full scene antialias' mode
-	// from antialising the Blender window. Officially a swapbuffers does a glFinish
-	// itself, so this feels really like a hack... but it won't harm. (ton)
-	glFinish();
 	return ::SwapBuffers(m_hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
@@ -886,12 +890,25 @@ static int EnumPixelFormats(HDC hdc) {
 	for(i=1; i<=n; i++) { /* not the idiom, but it's right */
 		::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
 		w = WeightPixelFormat(pfd);
-		if(w > weight) {
-			weight = w;
-			iPixelFormat = i;
+		// be strict on stereo
+		if (!((sPreferredFormat.dwFlags ^ pfd.dwFlags) & PFD_STEREO))	{
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
 		}
 	}
-	
+	if (weight == 0) {
+		// we could find the correct stereo setting, just find any suitable format 
+		for(i=1; i<=n; i++) { /* not the idiom, but it's right */
+			::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
+			w = WeightPixelFormat(pfd);
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
+		}
+	}
 	return iPixelFormat;
 }
 

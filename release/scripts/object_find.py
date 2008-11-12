@@ -61,7 +61,19 @@ def get_object_images(ob):
 	
 	me.activeUVLayer = orig_uvlayer
 	
+	
+	# Now get material images
+	for mat in me.materials:
+		if mat:
+			for mtex in mat.getTextures():
+				if mtex:
+					tex = mtex.tex
+					i = tex.getImage()
+					if i: unique_images[i.name] = i
+	
 	return unique_images.values()
+	
+	
 	
 	# Todo, support other object types, materials
 	return []
@@ -118,7 +130,7 @@ def main():
 	def activate(ob, scn):
 		bpy.data.scenes.active = scn
 		scn.objects.selected = []
-		scn.Layers = ob.Layers
+		scn.Layers = ob.Layers & (1<<20)-1
 		ob.sel = 1
 	
 	def name_cmp(name_search, name_found):
@@ -195,11 +207,13 @@ def main():
 								activate(ob, scn)
 								return
 						if NAME_TEXTURE:
-							for tex in mat.getTextures():
-								if tex:
-									if name_cmp(NAME_MATERIAL, tex.name):
-										activate(ob, scn)
-										return
+							for mtex in mat.getTextures():
+								if mtex:
+									tex = mtex.tex
+									if tex:
+										if name_cmp(NAME_TEXTURE, tex.name):
+											activate(ob, scn)
+											return
 	
 	
 	Draw.PupMenu('No Objects Found')

@@ -37,10 +37,10 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 	int lev = mMaxRefine;
 	int workSet = mLevel[lev].setCurr;
 
-	int mainGravDir=0;
+	int mainGravDir=6; // if normalizing fails, we asume z-direction gravity
 	LbmFloat mainGravLen = 0.;
 	FORDF1{
-		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), getNormalized(mLevel[mMaxRefine].gravity) );
+		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), mLevel[mMaxRefine].gravity );	
 		if(thisGravLen>mainGravLen) {
 			mainGravLen = thisGravLen;
 			mainGravDir = l;
@@ -112,6 +112,7 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
 					if(nbflag&CFInter){ intercnt++; }
 
+					// check all directions otherwise we get bugs with splashes on obstacles
 					if(l!=mainGravDir) continue; // only check bnd along main grav. dir
 					//if((nbflag&CFBnd)&&(nbflag&CFBndNoslip)){ noslipbnd=1; }
 					if((nbflag&CFBnd)){ noslipbnd=1; }
@@ -140,11 +141,10 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 					if(val<minval) val = minval; 
 					*mpIso->lbmGetData(i,j,ZKOFF) += minval-( val * mIsoWeight[13] ); 
 				}
-#endif // SURFACE_ENH>0
-
 			} else { // all others, unused?
 				continue;
 			} 
+#endif // SURFACE_ENH>0
 
 			*mpIso->lbmGetData( i-1 , j-1 ,ZKOFF-ZKD1) += ( val * mIsoWeight[0] ); 
 			*mpIso->lbmGetData( i   , j-1 ,ZKOFF-ZKD1) += ( val * mIsoWeight[1] ); 

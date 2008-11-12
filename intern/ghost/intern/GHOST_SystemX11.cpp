@@ -26,34 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/**
- * $Id$
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL LICENSE BLOCK *****
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -66,12 +38,15 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
+#include "GHOST_NDOFManager.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h> /* allow detectable autorepeate */
 
 #ifdef __sgi
 
@@ -89,6 +64,24 @@
 #include <unistd.h>
 
 #include <vector>
+#include <stdio.h> // for fprintf only
+
+typedef struct NDOFPlatformInfo {
+	Display *display;
+	Window window;
+	volatile GHOST_TEventNDOFData *currValues;
+	Atom cmdAtom;
+	Atom motionAtom;
+	Atom btnPressAtom;
+	Atom btnRelAtom;
+} NDOFPlatformInfo;
+
+static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
+
+
+//these are for copy and select copy
+static char *txt_cut_buffer= NULL;
+static char *txt_select_buffer= NULL;
 
 using namespace std;
 
@@ -103,15 +96,17 @@ GHOST_SystemX11(
 	if (!m_display) return;
 	
 #ifdef __sgi
-	m_delete_window_atom = XSGIFastInternAtom(m_display, 
-						"WM_DELETE_WINDOW",
-						SGI_XA_WM_DELETE_WINDOW,
-						False);
+	m_delete_window_atom 
+	  = XSGIFastInternAtom(m_display,
+			       "WM_DELETE_WINDOW", 
+			       SGI_XA_WM_DELETE_WINDOW, False);
 #else
-	m_delete_window_atom = XInternAtom(m_display,
-					"WM_DELETE_WINDOW", False);
+	m_delete_window_atom 
+	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
 #endif
 
+	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
+	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
 	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
 	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
 	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
@@ -123,6 +118,7 @@ GHOST_SystemX11(
 					"_NET_WM_STATE_FULLSCREEN", False);
 	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
 
+
 	// compute the initial time
 	timeval tv;
 	if (gettimeofday(&tv,NULL) == -1) {
@@ -130,6 +126,18 @@ GHOST_SystemX11(
 	}
 
 	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
+	
+	
+	/* use detectable autorepeate, mac and windows also do this */
+	int use_xkb;
+	int xkb_opcode, xkb_event, xkb_error;
+	int xkb_major = XkbMajorVersion, xkb_minor = XkbMinorVersion;
+	
+	use_xkb = XkbQueryExtension(m_display, &xkb_opcode, &xkb_event, &xkb_error, &xkb_major, &xkb_minor);
+	if (use_xkb) {
+		XkbSetDetectableAutoRepeat(m_display, true, NULL);
+	}
+	
 }
 
 	GHOST_TSuccess 
@@ -150,8 +158,6 @@ init(
 
 	return GHOST_kFailure;
 }
-	
-
 
 	GHOST_TUns64
 GHOST_SystemX11::
@@ -199,6 +205,7 @@ getMainDisplayDimensions(
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
+	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	GHOST_IWindow* 
@@ -211,14 +218,18 @@ createWindow(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	bool stereoVisual
+	bool stereoVisual,
+	const GHOST_TEmbedderWindowID parentWindow
 ){
 	GHOST_WindowX11 * window = 0;
 	
 	if (!m_display) return 0;
 	
+
+	
+
 	window = new GHOST_WindowX11 (
-		this,m_display,title, left, top, width, height, state, type, stereoVisual
+		this,m_display,title, left, top, width, height, state, parentWindow, type, stereoVisual
 	);
 
 	if (window) {
@@ -240,7 +251,6 @@ createWindow(
 		}
 	}
 	return window;
-
 }
 
 	GHOST_WindowX11 * 
@@ -344,7 +354,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	if (!window) {
 		return;
 	}
-
+	
 	switch (xe->type) {
 		case Expose:
 		{
@@ -484,20 +494,54 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XClientMessageEvent & xcme = xe->xclient;
 
 #ifndef __sgi			
-			if (xcme.data.l[0] == m_delete_window_atom) {
+			if (((Atom)xcme.data.l[0]) == m_delete_window_atom) {
 				g_event = new 
 				GHOST_Event(	
 					getMilliSeconds(),
 					GHOST_kEventWindowClose,
 					window
 				);
+			} else 
+#endif
+			if (sNdofInfo.currValues) {
+				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
+				if (xcme.message_type == sNdofInfo.motionAtom)
+				{
+					data.changed = 1;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.tx = xcme.data.s[2] >> 2;
+					data.ty = xcme.data.s[3] >> 2;
+					data.tz = xcme.data.s[4] >> 2;
+					data.rx = xcme.data.s[5];
+					data.ry = xcme.data.s[6];
+					data.rz =-xcme.data.s[7];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFMotion,
+					                              window, data);
+				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
+					data.changed = 2;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.buttons = xcme.data.s[2];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFButton,
+					                              window, data);
+				}
+			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+				/* as ICCCM say, we need reply this event
+				 * with a SetInputFocus, the data[1] have
+				 * the valid timestamp (send by the wm).
+				 */
+				XSetInputFocus(m_display, xcme.window, RevertToParent, xcme.data.l[1]);
 			} else {
 				/* Unknown client message, ignore */
 			}
-#endif
 			break;
 		}
-			
+		
+		case DestroyNotify:
+			::exit(-1);	
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :
@@ -530,8 +574,57 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case MappingNotify:
 		case ReparentNotify:
 			break;
-
-      	default: {
+		case SelectionRequest:
+		{
+			XEvent nxe;
+			Atom target, string, compound_text, c_string;
+			XSelectionRequestEvent *xse = &xe->xselectionrequest;
+			
+			target = XInternAtom(m_display, "TARGETS", False);
+			string = XInternAtom(m_display, "STRING", False);
+			compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+			c_string = XInternAtom(m_display, "C_STRING", False);
+			
+			/* support obsolete clients */
+			if (xse->property == None) {
+				xse->property = xse->target;
+			}
+			
+			nxe.xselection.type = SelectionNotify;
+			nxe.xselection.requestor = xse->requestor;
+			nxe.xselection.property = xse->property;
+			nxe.xselection.display = xse->display;
+			nxe.xselection.selection = xse->selection;
+			nxe.xselection.target = xse->target;
+			nxe.xselection.time = xse->time;
+			
+			/*Check to see if the requestor is asking for String*/
+			if(xse->target == string || xse->target == compound_text || xse->target == c_string) {
+				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_select_buffer, strlen(txt_select_buffer));
+				} else if (xse->selection == XInternAtom(m_display, "CLIPBOARD", False)) {
+					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace, (unsigned char*)txt_cut_buffer, strlen(txt_cut_buffer));
+				}
+			} else if (xse->target == target) {
+				Atom alist[4];
+				alist[0] = target;
+				alist[1] = string;
+				alist[2] = compound_text;
+				alist[3] = c_string;
+				XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 32, PropModeReplace, (unsigned char*)alist, 4);
+				XFlush(m_display);
+			} else  {
+				//Change property to None because we do not support anything but STRING
+				nxe.xselection.property = None;
+			}
+			
+			//Send the event to the client 0 0 == False, SelectionNotify
+			XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
+			XFlush(m_display);
+			break;
+		}
+		
+		default: {
 			if(xe->type == window->GetXTablet().MotionEvent) 
 			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
@@ -565,6 +658,17 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+	void *
+GHOST_SystemX11::
+prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
+{
+	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
+	if (v.size() > 0)
+		sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
+	sNdofInfo.display = m_display;
+	sNdofInfo.currValues = currentNdofValues;
+	return (void*)&sNdofInfo;
+}
 
 	GHOST_TSuccess 
 GHOST_SystemX11::
@@ -902,3 +1006,115 @@ convertXKey(
 }
 
 #undef GXMAP
+
+	GHOST_TUns8*
+GHOST_SystemX11::
+getClipboard(int flag
+) const {
+	//Flag 
+	//0 = Regular clipboard 1 = selection
+	static Atom Primary_atom, clip_String, compound_text;
+	Atom rtype;
+	Window m_window, owner;
+	unsigned char *data, *tmp_data;
+	int bits;
+	unsigned long len, bytes;
+	XEvent xevent;
+	
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	m_window = window->getXWindow();
+
+	clip_String = XInternAtom(m_display, "_BLENDER_STRING", False);
+	compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
+
+	//lets check the owner and if it is us then return the static buffer
+	if(flag == 0) {
+		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
+		owner = XGetSelectionOwner(m_display, Primary_atom);
+		if (owner == m_window) {
+			data = (unsigned char*) malloc(strlen(txt_cut_buffer)+1);
+			strcpy((char*)data, txt_cut_buffer);
+			return (GHOST_TUns8*)data;
+		} else if (owner == None) {
+			return NULL;
+		}
+	} else {
+		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+		owner = XGetSelectionOwner(m_display, Primary_atom);
+		if (owner == m_window) {
+			data = (unsigned char*) malloc(strlen(txt_select_buffer)+1);
+			strcpy((char*)data, txt_select_buffer);
+			return (GHOST_TUns8*)data;
+		} else if (owner == None) {
+			return NULL;
+		}
+	}
+
+	if(!Primary_atom) {
+		return NULL;
+	}
+	
+	XDeleteProperty(m_display, m_window, Primary_atom);
+	XConvertSelection(m_display, Primary_atom, compound_text, clip_String, m_window, CurrentTime); //XA_STRING
+	XFlush(m_display);
+
+	//This needs to change so we do not wait for ever or check owner first
+	while(1) {
+		XNextEvent(m_display, &xevent);
+		if(xevent.type == SelectionNotify) {
+			if(XGetWindowProperty(m_display, m_window, xevent.xselection.property, 0L, 4096L, False, AnyPropertyType, &rtype, &bits, &len, &bytes, &data) == Success) {
+				if (data) {
+					tmp_data = (unsigned char*) malloc(strlen((char*)data)+1);
+					strcpy((char*)tmp_data, (char*)data);
+					XFree(data);
+					return (GHOST_TUns8*)tmp_data;
+				}
+			}
+			return NULL;
+		}
+	}
+}
+
+	void
+GHOST_SystemX11::
+putClipboard(
+GHOST_TInt8 *buffer, int flag) const
+{
+	static Atom Primary_atom;
+	Window m_window, owner;
+	
+	if(!buffer) {return;}
+	
+	if(flag == 0) {
+		Primary_atom = XInternAtom(m_display, "CLIPBOARD", False);
+		if(txt_cut_buffer) { free((void*)txt_cut_buffer); }
+		
+		txt_cut_buffer = (char*) malloc(strlen(buffer)+1);
+		strcpy(txt_cut_buffer, buffer);
+	} else {
+		Primary_atom = XInternAtom(m_display, "PRIMARY", False);
+		if(txt_select_buffer) { free((void*)txt_select_buffer); }
+		
+		txt_select_buffer = (char*) malloc(strlen(buffer)+1);
+		strcpy(txt_select_buffer, buffer);
+	}
+	
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
+	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
+	GHOST_WindowX11 * window = static_cast<GHOST_WindowX11 *>(*win_it);
+	m_window = window->getXWindow();
+
+	if(!Primary_atom) {
+		return;
+	}
+	
+	XSetSelectionOwner(m_display, Primary_atom, m_window, CurrentTime);
+	owner = XGetSelectionOwner(m_display, Primary_atom);
+	if (owner != m_window)
+		fprintf(stderr, "failed to own primary\n");
+	
+	return;
+}
+

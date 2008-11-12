@@ -33,12 +33,19 @@
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
 #include <ffmpeg/swscale.h>
+#include <ffmpeg/opt.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
 #define FFMPEG_CODEC_TIME_BASE  1
+#endif
+
+#if LIBAVFORMAT_VERSION_INT >= (52 << 16)
+#define OUTFILE_PB (outfile->pb)
+#else
+#define OUTFILE_PB (&outfile->pb)
 #endif
 
 #if defined(WIN32) && (!(defined snprintf))
@@ -51,6 +58,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -210,6 +218,18 @@ static const char** get_file_extensions(int format)
 		static const char * rv[] = { ".avi", NULL };
 		return rv;
 	}
+	case FFMPEG_FLV: {
+		static const char * rv[] = { ".flv", NULL };
+		return rv;
+	}
+	case FFMPEG_MKV: {
+		static const char * rv[] = { ".mkv", NULL };
+		return rv;
+	}
+	case FFMPEG_OGG: {
+		static const char * rv[] = { ".ogg", ".ogv", NULL };
+		return rv;
+	}
 	default:
 		return NULL;
 	}
@@ -231,14 +251,18 @@ static void write_video_frame(AVFrame* frame)
 		AVPacket packet;
 		av_init_packet(&packet);
 
+		if (c->coded_frame->pts != AV_NOPTS_VALUE) {
 #ifdef FFMPEG_CODEC_TIME_BASE
-		packet.pts = av_rescale_q(c->coded_frame->pts,
-					  c->time_base,
-					  video_stream->time_base);
+			packet.pts = av_rescale_q(c->coded_frame->pts,
+						  c->time_base,
+						  video_stream->time_base);
 #else
-		packet.pts = c->coded_frame->pts;
+			packet.pts = c->coded_frame->pts;
 #endif
-		fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+			fprintf(stderr, "Video Frame PTS: %lld\n", packet.pts);
+		} else {
+			fprintf(stderr, "Video Frame PTS: not set\n");
+		}
 		if (c->coded_frame->key_frame)
 			packet.flags |= PKT_FLAG_KEY;
 		packet.stream_index = video_stream->index;
@@ -321,6 +345,75 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 		delete_picture(rgb_frame);
 	}
 	return current_frame;
+}
+
+static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
+{
+	char name[128];
+	char * param;
+	const AVOption * rv = NULL;
+
+	fprintf(stderr, "FFMPEG expert option: %s: ", prop->name);
+
+	strncpy(name, prop->name, 128);
+
+	param = strchr(name, ':');
+
+	if (param) {
+		*param++ = 0;
+	}
+
+	switch(prop->type) {
+	case IDP_STRING:
+		fprintf(stderr, "%s.\n", IDP_String(prop));
+		rv = av_set_string(c, prop->name, IDP_String(prop));
+		break;
+	case IDP_FLOAT:
+		fprintf(stderr, "%g.\n", IDP_Float(prop));
+		rv = av_set_double(c, prop->name, IDP_Float(prop));
+		break;
+	case IDP_INT:
+		fprintf(stderr, "%d.\n", IDP_Int(prop));
+		
+		if (param) {
+			if (IDP_Int(prop)) {
+				rv = av_set_string(c, name, param);
+			} else {
+				return;
+			}
+		} else {
+			rv = av_set_int(c, prop->name, IDP_Int(prop));
+		}
+		break;
+	}
+
+	if (!rv) {
+		fprintf(stderr, "ffmpeg-option not supported: %s! Skipping.\n",
+			prop->name);
+	}
+}
+
+static void set_ffmpeg_properties(AVCodecContext* c, const char * prop_name)
+{
+	IDProperty * prop;
+	void * iter;
+	IDProperty * curr;
+
+	if (!G.scene->r.ffcodecdata.properties) {
+		return;
+	}
+	
+	prop = IDP_GetPropertyFromGroup(
+		G.scene->r.ffcodecdata.properties, (char*) prop_name);
+	if (!prop) {
+		return;
+	}
+
+	iter = IDP_GetGroupIterator(prop);
+
+	while ((curr = IDP_GroupIterNext(iter)) != NULL) {
+		set_ffmpeg_property_option(c, curr);
+	}
 }
 
 /* prepare a video stream for the output file */
@@ -409,13 +502,18 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	}
 	
 	/* Determine whether we are encoding interlaced material or not */
-	if (G.scene->r.mode & (1 << 6)) {
+	if (G.scene->r.mode & R_FIELDS) {
 		fprintf(stderr, "Encoding interlaced video\n");
 		c->flags |= CODEC_FLAG_INTERLACED_DCT;
 		c->flags |= CODEC_FLAG_INTERLACED_ME;
-	}	
-	c->sample_aspect_ratio.num = G.scene->r.xasp;
-	c->sample_aspect_ratio.den = G.scene->r.yasp;
+	}
+
+	/* xasp & yasp got float lately... */
+
+	c->sample_aspect_ratio = av_d2q(
+		((double) G.scene->r.xasp / (double) G.scene->r.yasp), 255);
+
+	set_ffmpeg_properties(c, "video");
 	
 	if (avcodec_open(c, codec) < 0) {
 		//
@@ -461,6 +559,9 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 		//XXX error("Couldn't find a valid audio codec");
 		return NULL;
 	}
+
+	set_ffmpeg_properties(c, "audio");
+
 	if (avcodec_open(c, codec) < 0) {
 		//XXX error("Couldn't initialize audio codec");
 		return NULL;
@@ -573,6 +674,8 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:
 	case FFMPEG_MOV:
+	case FFMPEG_OGG:
+	case FFMPEG_MKV:
 		fmt->video_codec = ffmpeg_codec;
 		break;
 	case FFMPEG_DV:
@@ -589,6 +692,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 		break;
 	case FFMPEG_XVID:
 		fmt->video_codec = CODEC_ID_XVID;
+		break;
+	case FFMPEG_FLV:
+		fmt->video_codec = CODEC_ID_FLV1;
 		break;
 	case FFMPEG_MPEG4:
 	default:
@@ -615,6 +721,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 			return;
 		}
 	}
+	
+	fmt->audio_codec = ffmpeg_audio_codec;
+
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
 		if (ffmpeg_multiplex_audio 
@@ -684,7 +793,8 @@ void makeffmpegstring(char* string) {
 	if (!string || !exts) return;
 
 	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_convertstringcode(string, G.sce);
+	BLI_convertstringframe(string, G.scene->r.cfra);
 
 	BLI_make_existing_file(string);
 
@@ -756,7 +866,7 @@ void append_ffmpeg(int frame, int *pixels, int rectx, int recty)
 	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
-		if (url_ftell(&outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
 			start_ffmpeg_impl(ffmpeg_renderdata,
@@ -772,7 +882,7 @@ void end_ffmpeg(void)
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
-	if (audio_stream) {
+	if (audio_stream && video_stream) {
 		write_audio_frames();
 	}
 	
@@ -803,7 +913,7 @@ void end_ffmpeg(void)
 	}
 	if (outfile && outfile->oformat) {
 		if (!(outfile->oformat->flags & AVFMT_NOFILE)) {
-			url_fclose(&outfile->pb);
+			url_fclose(OUTFILE_PB);
 		}
 	}
 	if (outfile) {

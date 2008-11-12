@@ -66,6 +66,8 @@ extern bNodeType cmp_node_normalize;
 
 extern bNodeType cmp_node_filter;
 extern bNodeType cmp_node_blur;
+extern bNodeType cmp_node_dblur;
+extern bNodeType cmp_node_bilateralblur;
 extern bNodeType cmp_node_vecblur;
 extern bNodeType cmp_node_dilateerode;
 extern bNodeType cmp_node_defocus;
@@ -83,6 +85,7 @@ extern bNodeType cmp_node_sepyuva;
 extern bNodeType cmp_node_combyuva;
 extern bNodeType cmp_node_sepycca;
 extern bNodeType cmp_node_combycca; 
+extern bNodeType cmp_node_premulkey;
 
 extern bNodeType cmp_node_diff_matte;
 extern bNodeType cmp_node_chroma;

@@ -477,7 +477,7 @@ DeleteVertex(
 		return;
 	}
 
-	LOD_VertexInd last = LOD_VertexInd(verts.end() - verts.begin() - 1);
+	LOD_VertexInd last = LOD_VertexInd(size_t(verts.end() - verts.begin() - 1));
 
 	if (!(last == v)) {
 
@@ -533,7 +533,7 @@ DeleteEdge(
 		return;
 	}
 
-	LOD_EdgeInd last = LOD_EdgeInd(edges.end() - edges.begin() - 1);
+	LOD_EdgeInd last = LOD_EdgeInd(size_t(edges.end() - edges.begin() - 1));
 
 	if (!(last == e)) {
 		vector<LOD_EdgeInd> e_verts;
@@ -573,7 +573,7 @@ DeleteFace(
 		return;
 	}
 
-	LOD_FaceInd last = LOD_FaceInd(faces.end() - faces.begin() - 1);
+	LOD_FaceInd last = LOD_FaceInd(size_t (faces.end() - faces.begin() - 1));
 
 	if (!(last == f)) {
 		

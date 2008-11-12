@@ -50,10 +50,14 @@ extern "C" {
 #ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
 #endif
+#ifndef M_1_PI
+#define M_1_PI		0.318309886183790671538
+#endif
 
 #ifdef WIN32
 	#ifndef FREE_WINDOWS
 		#define isnan(n) _isnan(n)
+		#define finite _finite
 	#endif
 #endif
 
@@ -87,6 +91,7 @@ float saasin(float fac);
 float sasqrt(float fac);
 
 int FloatCompare(float *v1, float *v2, float limit);
+int FloatCompare4(float *v1, float *v2, float limit);
 float FloatLerpf(float target, float origin, float fac);
 
 float CalcNormFloat(float *v1, float *v2, float *v3, float *n);
@@ -95,7 +100,7 @@ float CalcNormFloat4(float *v1, float *v2, float *v3, float *v4, float *n);
 void CalcNormLong(int *v1, int *v2, int *v3, float *n);
 /* CalcNormShort: is ook uitprodukt - (translates as 'is also out/cross product') */
 void CalcNormShort(short *v1, short *v2, short *v3, float *n);
-
+float power_of_2(float val);
 
 /**
  * @section Euler conversion routines
@@ -160,6 +165,7 @@ void Mat3Inv(float m1[][3], float m2[][3]);
 void Mat3CpyMat4(float m1[][3],float m2[][4]);
 void Mat4CpyMat3(float m1[][4], float m2[][3]); 
 
+void Mat3BlendMat3(float out[][3], float dst[][3], float src[][3], float srcweight);
 void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight);
 
 float Det2x2(float a,float b,float c, float d);
@@ -239,6 +245,7 @@ void VecMulf(float *v1, float f);
 int VecLenCompare(float *v1, float *v2, float limit);
 int VecCompare(float *v1, float *v2, float limit);
 int VecEqual(float *v1, float *v2);
+int VecIsNull(float *v);
 
 void printvecf(char *str,float v[3]);
 void printvec4f(char *str, float v[4]);
@@ -256,15 +263,23 @@ void Vec2Mulf(float *v1, float f);
 void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
 void Vec2Copyf(float *v1, float *v2);
+void Vec2Lerpf(float *target, float *a, float *b, float t);
 
-float *vectoquat(float *vec, short axis, short upflag);
+void AxisAngleToQuat(float *q, float *axis, float angle);
+void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3]);
+void vectoquat(float *vec, short axis, short upflag, float *q);
 
 float VecAngle2(float *v1, float *v2);
 float VecAngle3(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2(float *v1, float *v2);
 
+float VecAngle3_2D(float *v1, float *v2, float *v3);
+float NormalizedVecAngle2_2D(float *v1, float *v2);
+
 void euler_rot(float *beul, float ang, char axis);
 	
+void NormalShortToFloat(float *out, short *in);
+void NormalFloatToShort(short *out, float *in);
 
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
@@ -309,6 +324,10 @@ void i_window(
 	float mat[][4]
 );
 
+#define BLI_CS_SMPTE	0
+#define BLI_CS_REC709	1
+#define BLI_CS_CIE		2
+
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
@@ -316,6 +335,9 @@ void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
+void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
+int constrain_rgb(float *r, float *g, float *b);
+void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 unsigned int rgb_to_cpack(float r, float g, float b);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
@@ -367,7 +389,9 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 
+int LineIntersectLine(float v1[3], float v2[3], float v3[3], float v4[3], float i1[3], float i2[3]);
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int RayIntersectsTriangle(float p1[3], float d[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
 int AxialLineIntersectsTriangle(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]);
@@ -395,6 +419,16 @@ void DQuatNormalize(DualQuat *dq, float totweight);
 void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
 void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
 			  
+/* Tangent stuff */
+typedef struct VertexTangent {
+	float tang[3], uv[2];
+	struct VertexTangent *next;
+} VertexTangent;
+
+void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, float *tang, float *uv);
+float *find_vertex_tangent(VertexTangent *vtang, float *uv);
+void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang);
+
 #ifdef __cplusplus
 }
 #endif

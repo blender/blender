@@ -51,6 +51,7 @@ KX_TouchEventManager::KX_TouchEventManager(class SCA_LogicManager* logicmgr,
 
 	m_physEnv->addTouchCallback(PHY_OBJECT_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
 	m_physEnv->addTouchCallback(PHY_SENSOR_RESPONSE, KX_TouchEventManager::newCollisionResponse, this);
+	m_physEnv->addTouchCallback(PHY_BROADPH_RESPONSE, KX_TouchEventManager::newBroadphaseResponse, this);
 
 }
 
@@ -76,19 +77,47 @@ bool	 KX_TouchEventManager::newCollisionResponse(void *client_data,
 	return false;
 }
 
+bool	 KX_TouchEventManager::newBroadphaseResponse(void *client_data, 
+							void *object1,
+							void *object2,
+							const PHY_CollData *coll_data)
+{
+	PHY_IPhysicsController* ctrl = static_cast<PHY_IPhysicsController*>(object1);
+	KX_ClientObjectInfo* info = (ctrl) ? static_cast<KX_ClientObjectInfo*>(ctrl->getNewClientInfo()) : NULL;
+	// This call back should only be called for controllers of Near and Radar sensor
+	if (info &&
+        info->m_sensors.size() == 1 &&
+		(info->m_type == KX_ClientObjectInfo::NEAR ||
+		 info->m_type == KX_ClientObjectInfo::RADAR))
+	{
+		// only one sensor for this type of object
+		KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(*info->m_sensors.begin());
+		return touchsensor->BroadPhaseFilterCollision(object1,object2);
+	}
+	return true;
+}
+
 void KX_TouchEventManager::RegisterSensor(SCA_ISensor* sensor)
 {
 	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
-	m_sensors.push_back(touchsensor);
+	if (m_sensors.insert(touchsensor).second)
+		// the sensor was effectively inserted, register it
+		touchsensor->RegisterSumo(this);
+}
 
-	touchsensor->RegisterSumo(this);
+void KX_TouchEventManager::RemoveSensor(SCA_ISensor* sensor)
+{
+	KX_TouchSensor* touchsensor = static_cast<KX_TouchSensor*>(sensor);
+	if (m_sensors.erase(touchsensor))
+		// the sensor was effectively removed, unregister it
+		touchsensor->UnregisterSumo(this);
 }
 
 
 
 void KX_TouchEventManager::EndFrame()
 {
-	vector<SCA_ISensor*>::iterator it;
+	set<SCA_ISensor*>::iterator it;
 	for ( it = m_sensors.begin();
 	!(it==m_sensors.end());it++)
 	{
@@ -103,7 +132,7 @@ void KX_TouchEventManager::NextFrame()
 {
 	if (m_sensors.size() > 0)
 	{
-		vector<SCA_ISensor*>::iterator it;
+		set<SCA_ISensor*>::iterator it;
 		
 		for (it = m_sensors.begin();!(it==m_sensors.end());++it)
 			static_cast<KX_TouchSensor*>(*it)->SynchronizeTransform();
@@ -116,14 +145,18 @@ void KX_TouchEventManager::NextFrame()
 //			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
 
 			KX_ClientObjectInfo *client_info = static_cast<KX_ClientObjectInfo *>(ctrl1->getNewClientInfo());
-	
 			list<SCA_ISensor*>::iterator sit;
-			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
-				static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).first, (*cit).second, NULL);
-		
+			if (client_info) {
+				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).first, (*cit).second, NULL);
+				}
+			}
 			client_info = static_cast<KX_ClientObjectInfo *>((*cit).second->getNewClientInfo());
-			for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit)
-				static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).second, (*cit).first, NULL);
+			if (client_info) {
+				for ( sit = client_info->m_sensors.begin(); sit != client_info->m_sensors.end(); ++sit) {
+					static_cast<KX_TouchSensor*>(*sit)->NewHandleCollision((*cit).second, (*cit).first, NULL);
+				}
+			}
 		}
 			
 		m_newCollisions.clear();
@@ -132,20 +165,3 @@ void KX_TouchEventManager::NextFrame()
 			(*it)->Activate(m_logicmgr,NULL);
 	}
 }
-
-
-
-void KX_TouchEventManager::RemoveSensor(class SCA_ISensor* sensor)
-{
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
-	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
-	}
-	
-	// remove the sensor forever :)
-	SCA_EventManager::RemoveSensor(sensor);
-}
-

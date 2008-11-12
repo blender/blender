@@ -5,5 +5,13 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../makesrna ../../windowmanager #/intern/guardedalloc #intern/bmfont'
+incs += ' #/extern/glew/include'
 
-env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), [], libtype=['core','intern'], priority=[40, 45] )
+defs = []
+
+if env['WITH_BF_INTERNATIONAL']:
+    incs += ' ../../ftfont'
+    defs.append('INTERNATIONAL')
+    defs.append('FTGL_STATIC_LIBRARY')
+
+env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core','intern'], priority=[40, 45] )

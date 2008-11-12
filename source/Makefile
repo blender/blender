@@ -99,8 +99,13 @@ COMLIB += $(OCGDIR)/blender/nodes_cmp/$(DEBUG_DIR)libnodes_cmp.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+COMLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
+COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
+COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
+COMLIB += $(NAN_GLEW)/lib/libglew.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -136,6 +141,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/OpenGLrasterizer/$(DEBUG_DIR)libOpenGLrasterizer.a
     COMLIB += $(OCGDIR)/gameengine/expression/$(DEBUG_DIR)libexpression.a
     COMLIB += $(OCGDIR)/gameengine/scenegraph/$(DEBUG_DIR)libscenegraph.a
+    COMLIB += $(OCGDIR)/gameengine/videotex/$(DEBUG_DIR)libvideotex.a
 #    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libfuzzics.a
 #    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libsolid.a
     COMLIB += $(NAN_MOTO)/lib/libmoto.a
@@ -168,6 +174,10 @@ COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
 ifeq ($(WITH_DDS), true)
     COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a
+endif
+
+ifeq ($(WITH_BINRELOC), true)
+    COMLIB += $(OCGDIR)/extern/binreloc/$(DEBUG_DIR)libbinreloc.a
 endif
 
 ifeq ($(WITH_FREETYPE2), true)
@@ -219,15 +229,14 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
-PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
-PULIB += $(NAN_MOTO)/lib/libmoto.a
+PULIB = $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
@@ -241,6 +250,7 @@ endif
 
 SPLIB1 = $(OCGDIR)/gameengine/GamePlayer/ghost/$(DEBUG_DIR)libghost.a
 SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+SPLIB1 += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
 SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
@@ -316,12 +326,10 @@ ifeq ($(WITH_BF_BLENDERPLAYER), true)
 endif
 
 ifeq ($(WITH_BF_WEBPLUGIN), true)
-    ifneq ($(NAN_NO_PLUGIN), true)
-        BINTARGETS += plugin
-        ifeq ($(OS),linux)
-            ifeq ($(CPU),i386)
-                 BINTARGETS += xplink
-             endif
+    BINTARGETS += plugin
+    ifeq ($(OS),linux)
+        ifeq ($(CPU),i386)
+             BINTARGETS += xplink
         endif
     endif
 endif
@@ -347,7 +355,7 @@ ifeq ($(NAN_NO_OPENAL), true)
     NAN_SND_LIBS += $(SOUNDSYSTEM)
 else
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
-    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64"))
+    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64 parisc64"))
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)

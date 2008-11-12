@@ -36,6 +36,7 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # OpenGL and Python
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += $(OGL_CPPFLAGS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 

@@ -53,7 +53,9 @@
 #include "BKE_main.h"
 #include "BKE_icons.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -63,9 +65,10 @@ void free_world(World *wrld)
 {
 	MTex *mtex;
 	int a;
-	
+
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&wrld->scriptlink);
-	
+#endif
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
@@ -94,12 +97,12 @@ World *add_world(char *name)
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
 
-	wrld->aodist= 5.0;
+	wrld->aodist= 5.0f;
 	wrld->aosamp= 5;
-	wrld->aoenergy= 1.0;
-	wrld->aobias= 0.05;
+	wrld->aoenergy= 1.0f;
+	wrld->aobias= 0.05f;
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
-
+	wrld->ao_approx_error= 0.25f;
 	
 	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
 	wrld->preview = NULL;
@@ -123,9 +126,9 @@ World *copy_world(World *wrld)
 	}
 	
 	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
-
+#ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&wrld->scriptlink);
-
+#endif
 	id_us_plus((ID *)wrldn->ipo);
 	
 	return wrldn;

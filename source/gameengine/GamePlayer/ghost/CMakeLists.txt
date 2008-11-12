@@ -64,7 +64,9 @@ SET(INC
   ../../../../source/gameengine/GamePlayer/common
   ../../../../source/blender/misc
   ../../../../source/blender/blenloader
+  ../../../../source/blender/gpu
   ../../../../extern/solid
+  ../../../../extern/glew/include
   ${PYTHON_INC}
 )
 

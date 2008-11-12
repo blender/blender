@@ -32,6 +32,13 @@ typedef enum ModifierType {
 	eModifierType_ParticleSystem,
 	eModifierType_ParticleInstance,
 	eModifierType_Explode,
+	eModifierType_Cloth,
+	eModifierType_Collision,
+	eModifierType_Bevel,
+	eModifierType_Shrinkwrap,
+	eModifierType_Fluidsim,
+	eModifierType_Mask,
+	eModifierType_SimpleDeform,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -99,6 +106,24 @@ typedef struct BuildModifierData {
 	float start, length;
 	int randomize, seed;
 } BuildModifierData;
+
+/* Mask Modifier */
+typedef struct MaskModifierData {
+	ModifierData modifier;
+	
+	struct Object *ob_arm;	/* armature to use to in place of hardcoded vgroup */
+	char vgroup[32];		/* name of vertex group to use to mask */
+	
+	int mode;				/* using armature or hardcoded vgroup */
+	int flag;				/* flags for various things */
+} MaskModifierData;
+
+/* Mask Modifier -> mode */
+#define MOD_MASK_MODE_VGROUP		0
+#define MOD_MASK_MODE_ARM			1
+
+/* Mask Modifier -> flag */
+#define MOD_MASK_INV			(1<<0)
 
 typedef struct ArrayModifierData {
 	ModifierData modifier;
@@ -173,6 +198,7 @@ typedef struct MirrorModifierData {
 #define MOD_MIR_AXIS_X		1<<3
 #define MOD_MIR_AXIS_Y		1<<4
 #define MOD_MIR_AXIS_Z		1<<5
+#define MOD_MIR_VGROUP		1<<6
 
 typedef struct EdgeSplitModifierData {
 	ModifierData modifier;
@@ -184,6 +210,27 @@ typedef struct EdgeSplitModifierData {
 /* EdgeSplitModifierData->flags */
 #define MOD_EDGESPLIT_FROMANGLE   1<<1
 #define MOD_EDGESPLIT_FROMFLAG    1<<2
+
+typedef struct BevelModifierData {
+	ModifierData modifier;
+
+	float value;          /* the "raw" bevel value (distance/amount to bevel) */
+	int res;              /* the resolution (as originally coded, it is the number of recursive bevels) */
+	int pad;
+	short flags;          /* general option flags */
+	short val_flags;      /* flags used to interpret the bevel value */
+	short lim_flags;      /* flags to tell the tool how to limit the bevel */
+	short e_flags;        /* flags to direct how edge weights are applied to verts */
+	float bevel_angle;    /* if the BME_BEVEL_ANGLE is set, this will be how "sharp" an edge must be before it gets beveled */
+	char defgrp_name[32]; /* if the BME_BEVEL_VWEIGHT option is set, this will be the name of the vert group */
+} BevelModifierData;
+
+typedef struct BMeshModifierData {
+	ModifierData modifier;
+
+	float pad;
+	int type;
+} BMeshModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
@@ -304,13 +351,14 @@ typedef struct WaveModifierData {
 	short flag, pad;
 
 	float startx, starty, height, width;
-	float narrow, speed, damp;
+	float narrow, speed, damp, falloff;
 
 	int texmapping, uvlayer_tmp;
 
 	char uvlayer_name[32];
-	
+
 	float timeoffs, lifetime;
+	float pad1;
 } WaveModifierData;
 
 typedef struct ArmatureModifierData {
@@ -340,6 +388,35 @@ typedef struct HookModifierData {
 typedef struct SoftbodyModifierData {
 	ModifierData modifier;
 } SoftbodyModifierData;
+
+typedef struct ClothModifierData {
+   ModifierData		modifier;
+
+   struct Cloth *clothObject; /* The internal data structure for cloth. */
+   struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+   struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+} ClothModifierData;
+
+typedef struct CollisionModifierData {
+	ModifierData	modifier;
+	
+	struct MVert *x; /* position at the beginning of the frame */
+	struct MVert *xnew; /* position at the end of the frame */
+	struct MVert *xold; /* unsued atm, but was discussed during sprint */
+	struct MVert *current_xnew; /* new position at the actual inter-frame step */
+	struct MVert *current_x; /* position at the actual inter-frame step */
+	struct MVert *current_v; /* (xnew - x) at the actual inter-frame step */
+	
+	struct MFace *mfaces; /* object face data */
+	
+	unsigned int numverts;
+	unsigned int numfaces;
+	short absorption; /* used for forces, in % */
+	short pad;
+	float time;		/* cfra time of modifier */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
+} CollisionModifierData;
 
 typedef enum {
 	eBooleanModifierOp_Intersect,
@@ -435,5 +512,81 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct FluidsimModifierData {
+	ModifierData modifier;
+	
+	struct FluidsimSettings *fss; /* definition is is DNA_object_fluidsim.h */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+} FluidsimModifierData;
+
+typedef struct ShrinkwrapModifierData {
+	ModifierData modifier;
+
+	struct Object *target;	/* shrink target */
+	struct Object *auxTarget; /* additional shrink target */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float keepDist;			/* distance offset to keep from mesh/projection point */
+	short shrinkType;		/* shrink type projection */
+	short shrinkOpts;		/* shrink options */
+	char projAxis;			/* axis to project over */
+
+	/*
+	 * if using projection over vertex normal this controls the
+	 * the level of subsurface that must be done before getting the
+	 * vertex coordinates and normal
+	 */
+	char subsurfLevels;
+
+	char pad[6];
+
+} ShrinkwrapModifierData;
+
+/* Shrinkwrap->shrinkType */
+#define MOD_SHRINKWRAP_NEAREST_SURFACE	0
+#define MOD_SHRINKWRAP_PROJECT			1
+#define MOD_SHRINKWRAP_NEAREST_VERTEX	2
+
+/* Shrinkwrap->shrinkOpts */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR	(1<<0)	/* allow shrinkwrap to move the vertex in the positive direction of axis */
+#define MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR	(1<<1)	/* allow shrinkwrap to move the vertex in the negative direction of axis */
+
+#define MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE	(1<<3)	/* ignore vertex moves if a vertex ends projected on a front face of the target */
+#define MOD_SHRINKWRAP_CULL_TARGET_BACKFACE		(1<<4)	/* ignore vertex moves if a vertex ends projected on a back face of the target */
+
+#define MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE		(1<<5)	/* distance is measure to the front face of the target */
+
+#define MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS		(1<<0)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS		(1<<1)
+#define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
+#define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
+
+
+typedef struct SimpleDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *origin;	/* object to control the origin of modifier space coordinates */
+	char vgroup_name[32];	/* optional vertexgroup name */
+	float factor;			/* factors to control simple deforms */
+	float limit[2];			/* lower and upper limit */		
+
+	char mode;				/* deform function */
+	char axis;				/* lock axis (for taper and strech) */
+	char originOpts;		/* originOptions */
+	char pad;
+
+} SimpleDeformModifierData;
+
+#define MOD_SIMPLEDEFORM_MODE_TWIST		1
+#define MOD_SIMPLEDEFORM_MODE_BEND		2
+#define MOD_SIMPLEDEFORM_MODE_TAPER		3
+#define MOD_SIMPLEDEFORM_MODE_STRETCH	4
+
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_X			(1<<0)
+#define MOD_SIMPLEDEFORM_LOCK_AXIS_Y			(1<<1)
+
+/* indicates whether simple deform should use the local
+   coordinates or global coordinates of origin */
+#define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #endif

@@ -68,20 +68,23 @@ public:
 	void	ApplyTorque(const MT_Vector3& torque,bool local);
 	void	ApplyForce(const MT_Vector3& force,bool local);
 	MT_Vector3 GetLinearVelocity();
+	MT_Vector3 GetAngularVelocity()		// to keep compiler happy
+		{ return MT_Vector3(0.0,0.0,0.0); }
 	MT_Vector3 GetVelocity(const MT_Point3& pos);
 	void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 	void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
 
-	void	SuspendDynamics();
+	void	SuspendDynamics(bool);
 	void	RestoreDynamics();
 	virtual	void	getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
+	virtual	MT_Scalar	GetRadius();
 	virtual	MT_Vector3	getReactionForce();
 	virtual	void	setRigidBody(bool rigid);
 	

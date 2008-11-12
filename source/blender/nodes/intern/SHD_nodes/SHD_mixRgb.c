@@ -60,6 +60,17 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 	VECCOPY(out[0]->vec, col);
 }
 
+static int gpu_shader_mix_rgb(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	static char *names[] = {"mix_blend", "mix_add", "mix_mult", "mix_sub",
+		"mix_screen", "mix_div", "mix_diff", "mix_dark", "mix_light",
+		"mix_overlay", "mix_dodge", "mix_burn", "mix_hue", "mix_sat",
+		"mix_val", "mix_color"};
+
+	return GPU_stack_link(mat, names[node->custom1], in, out);
+}
+
+
 bNodeType sh_node_mix_rgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_MIX_RGB,
@@ -74,6 +85,7 @@ bNodeType sh_node_mix_rgb= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_mix_rgb
 	
 };

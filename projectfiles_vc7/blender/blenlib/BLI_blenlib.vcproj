@@ -347,6 +347,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_heap.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_kdopbvh.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_kdtree.c">
 			</File>
 			<File
@@ -356,7 +359,13 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_memarena.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_mempool.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\boxpack2d.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\bpath.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c">
@@ -372,6 +381,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\freetypefont.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\graph.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\gsqueue.c">
@@ -429,6 +441,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\BLI_boxpack2d.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_bpath.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_callbacks.h">
 			</File>
 			<File
@@ -447,10 +462,16 @@
 				RelativePath="..\..\..\source\blender\blenlib\BLI_ghash.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_graph.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_heap.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_jitter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_kdopbvh.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_kdtree.h">
@@ -460,6 +481,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_memarena.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_mempool.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_scanfill.h">

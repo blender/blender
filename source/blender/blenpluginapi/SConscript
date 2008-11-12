@@ -7,8 +7,8 @@ incs = '. .. #/intern/guardedalloc ../blenlib ../imbuf ../makesdna'
 
 defs = []
 
-if env['WITH_BF_QUICKTIME'] == 1:
+if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
-env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'player'], priority = [90, 30] )
+env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'player'], priority = [75, 35] )

@@ -39,6 +39,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I../blender/render/extern/include
 CPPFLAGS += -I../blender/radiosity/extern/include
+
 # two needed for the kernel
 CPPFLAGS += -I../blender/imbuf
 CPPFLAGS += -I../blender/makesdna
@@ -48,17 +49,19 @@ CPPFLAGS += -I../blender/renderconverter
 CPPFLAGS += -I../blender/blenkernel
 CPPFLAGS += -I../blender/python
 CPPFLAGS += -I../blender/blenloader
+CPPFLAGS += -I../blender/gpu
 CPPFLAGS += -I../blender/windowmanager
 CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -I$(NAN_QUICKTIME)/include -DWITH_QUICKTIME
 endif
 
-ifeq ($(NAN_YESIAMSTUPID), true)
-	CPPFLAGS += -DYESIAMSTUPID
+ifeq ($(WITH_BINRELOC), true)
+	CPPFLAGS += -I$(NANBLENDERHOME)/extern/binreloc/include -DWITH_BINRELOC
 endif
 
 CPPFLAGS += -I$(OPENGL_HEADERS)

@@ -133,8 +133,9 @@ void	KX_OdePhysicsController::SetLinearVelocity(const MT_Vector3& lin_vel,bool l
 	ODEPhysicsController::SetLinearVelocity(lin_vel[0],lin_vel[1],lin_vel[2],local);
 }
 
-void KX_OdePhysicsController::setOrientation(const MT_Quaternion& orn)
+void KX_OdePhysicsController::setOrientation(const MT_Matrix3x3& rot)
 {
+	MT_Quaternion orn = rot.getRotation();
 	ODEPhysicsController::setOrientation(orn[0],orn[1],orn[2],orn[3]);
 }
 
@@ -168,6 +169,11 @@ MT_Scalar	KX_OdePhysicsController::GetMass()
 	return ODEPhysicsController::getMass();
 }
 
+MT_Scalar	KX_OdePhysicsController::GetRadius()
+{
+	return MT_Scalar(0.f);
+}
+
 MT_Vector3	KX_OdePhysicsController::getReactionForce()
 {
 	return MT_Vector3(0,0,0);
@@ -177,7 +183,7 @@ void	KX_OdePhysicsController::setRigidBody(bool rigid)
 
 }
 
-void	KX_OdePhysicsController::SuspendDynamics()
+void	KX_OdePhysicsController::SuspendDynamics(bool)
 {
 	ODEPhysicsController::SuspendDynamics();
 }

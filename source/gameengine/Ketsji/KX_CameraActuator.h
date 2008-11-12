@@ -49,7 +49,7 @@ class KX_CameraActuator : public SCA_IActuator
 	Py_Header;
 private :
 	/** Object that will be tracked. */
-	CValue *m_ob;
+	SCA_IObject *m_ob;
 
 	/** height (float), */
 	//const MT_Scalar m_height;
@@ -87,7 +87,7 @@ private :
 
 		SCA_IObject *gameobj,
 		//const CValue *ob,
-		CValue *ob,
+		SCA_IObject *ob,
 		MT_Scalar hght,
 		MT_Scalar minhght,
 		MT_Scalar maxhght,
@@ -103,6 +103,7 @@ private :
 
 	/** Methods Inherited from  CValue */
 	CValue* GetReplica();
+	virtual void ProcessReplica();
 	
 
 	/** Methods inherited from SCA_IActuator */
@@ -110,7 +111,10 @@ private :
 		double curtime,
 		bool frame
 	);
+	virtual bool	UnlinkObject(SCA_IObject* clientobj);
 
+	/** Methods inherited from SCA_ILogicBrick */
+	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -119,9 +123,9 @@ private :
 	virtual PyObject* _getattr(const STR_String& attr);
 	
 	/* set object to look at */
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_CameraActuator,SetObject);
 	/* get current object  */
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,GetObject);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,GetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMax);

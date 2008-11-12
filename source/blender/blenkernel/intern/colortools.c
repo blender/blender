@@ -167,18 +167,30 @@ void curvemap_remove(CurveMap *cuma, int flag)
 void curvemap_insert(CurveMap *cuma, float x, float y)
 {
 	CurveMapPoint *cmp= MEM_callocN((cuma->totpoint+1)*sizeof(CurveMapPoint), "curve points");
-	int a;
-	
-	memcpy(cmp, cuma->curve, (cuma->totpoint)*sizeof(CurveMapPoint));
+	int a, b, foundloc= 0;
+		
+	/* insert fragments of the old one and the new point to the new curve */
+	cuma->totpoint++;
+	for(a=0, b=0; a<cuma->totpoint; a++) {
+		if((x < cuma->curve[a].x) && !foundloc) {
+			cmp[a].x= x;
+			cmp[a].y= y;
+			cmp[a].flag= CUMA_SELECT;
+			foundloc= 1;
+		}
+		else {
+			cmp[a].x= cuma->curve[b].x;
+			cmp[a].y= cuma->curve[b].y;
+			cmp[a].flag= cuma->curve[b].flag;
+			cmp[a].flag &= ~CUMA_SELECT; /* make sure old points don't remain selected */
+			cmp[a].shorty= cuma->curve[b].shorty;
+			b++;
+		}
+	}
+
+	/* free old curve and replace it with new one */
 	MEM_freeN(cuma->curve);
 	cuma->curve= cmp;
-	
-	cuma->curve[cuma->totpoint].x= x;
-	cuma->curve[cuma->totpoint].y= y;
-	cuma->curve[cuma->totpoint].flag = CUMA_SELECT;
-	for(a=0; a<cuma->totpoint; a++, cmp++)
-		cmp->flag= 0;
-	cuma->totpoint++;
 }
 
 void curvemap_reset(CurveMap *cuma, rctf *clipr)
@@ -580,7 +592,8 @@ float curvemap_evaluateF(CurveMap *cuma, float value)
 	fi= (value-cuma->mintable)*cuma->range;
 	i= (int)fi;
 	
-	if(fi<0.0f || fi>cuma->range)
+	/* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
+	if(fi<0.0f || fi>CM_TABLE)
 		return curvemap_calc_extend(cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
 	else {
 		if(i<0) return cuma->table[0].y;
@@ -637,7 +650,6 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 {
@@ -717,3 +729,24 @@ void curvemapping_initialize(CurveMapping *cumap)
 			curvemap_make_table(cumap->cm+a, &cumap->clipr);
 	}
 }
+
+void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "CurveMapping");
+	curvemapping_initialize(cumap);
+
+	for(a=0; a<*size; a++) {
+		if(cumap->cm[0].table)
+			(*array)[a*4+0]= cumap->cm[0].table[a].y;
+		if(cumap->cm[1].table)
+			(*array)[a*4+1]= cumap->cm[1].table[a].y;
+		if(cumap->cm[2].table)
+			(*array)[a*4+2]= cumap->cm[2].table[a].y;
+		if(cumap->cm[3].table)
+			(*array)[a*4+3]= cumap->cm[3].table[a].y;
+	}
+}
+

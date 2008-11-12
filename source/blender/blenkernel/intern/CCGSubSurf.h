@@ -82,11 +82,11 @@ int			ccgSubSurf_getGridSize				(CCGSubSurf *ss);
 int			ccgSubSurf_getGridLevelSize			(CCGSubSurf *ss, int level);
 
 CCGVert*	ccgSubSurf_getVert					(CCGSubSurf *ss, CCGVertHDL v);
-CCGVertHDL	ccgSubSurf_getVertVertHandle		(CCGSubSurf *ss, CCGVert *v);
-int			ccgSubSurf_getVertNumFaces			(CCGSubSurf *ss, CCGVert *v);
-CCGFace*	ccgSubSurf_getVertFace				(CCGSubSurf *ss, CCGVert *v, int index);
-int			ccgSubSurf_getVertNumEdges			(CCGSubSurf *ss, CCGVert *v);
-CCGEdge*	ccgSubSurf_getVertEdge				(CCGSubSurf *ss, CCGVert *v, int index);
+CCGVertHDL	ccgSubSurf_getVertVertHandle		(CCGVert *v);
+int			ccgSubSurf_getVertNumFaces			(CCGVert *v);
+CCGFace*	ccgSubSurf_getVertFace				(CCGVert *v, int index);
+int			ccgSubSurf_getVertNumEdges			(CCGVert *v);
+CCGEdge*	ccgSubSurf_getVertEdge				(CCGVert *v, int index);
 
 int			ccgSubSurf_getVertAge				(CCGSubSurf *ss, CCGVert *v);
 void*		ccgSubSurf_getVertUserData			(CCGSubSurf *ss, CCGVert *v);
@@ -94,12 +94,12 @@ void*		ccgSubSurf_getVertData				(CCGSubSurf *ss, CCGVert *v);
 void*		ccgSubSurf_getVertLevelData			(CCGSubSurf *ss, CCGVert *v, int level);
 
 CCGEdge*	ccgSubSurf_getEdge					(CCGSubSurf *ss, CCGEdgeHDL e);
-CCGEdgeHDL	ccgSubSurf_getEdgeEdgeHandle		(CCGSubSurf *ss, CCGEdge *e);
-int			ccgSubSurf_getEdgeNumFaces			(CCGSubSurf *ss, CCGEdge *e);
-CCGFace*	ccgSubSurf_getEdgeFace				(CCGSubSurf *ss, CCGEdge *e, int index);
-CCGVert*	ccgSubSurf_getEdgeVert0				(CCGSubSurf *ss, CCGEdge *e);
-CCGVert*	ccgSubSurf_getEdgeVert1				(CCGSubSurf *ss, CCGEdge *e);
-float		ccgSubSurf_getEdgeCrease			(CCGSubSurf *ss, CCGEdge *e);
+CCGEdgeHDL	ccgSubSurf_getEdgeEdgeHandle		(CCGEdge *e);
+int			ccgSubSurf_getEdgeNumFaces			(CCGEdge *e);
+CCGFace*	ccgSubSurf_getEdgeFace				(CCGEdge *e, int index);
+CCGVert*	ccgSubSurf_getEdgeVert0				(CCGEdge *e);
+CCGVert*	ccgSubSurf_getEdgeVert1				(CCGEdge *e);
+float		ccgSubSurf_getEdgeCrease			(CCGEdge *e);
 
 int			ccgSubSurf_getEdgeAge				(CCGSubSurf *ss, CCGEdge *e);
 void*		ccgSubSurf_getEdgeUserData			(CCGSubSurf *ss, CCGEdge *e);
@@ -109,14 +109,14 @@ void*		ccgSubSurf_getEdgeLevelData			(CCGSubSurf *ss, CCGEdge *e, int x, int lev
 
 CCGFace*	ccgSubSurf_getFace					(CCGSubSurf *ss, CCGFaceHDL f);
 CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGSubSurf *ss, CCGFace *f);
-int			ccgSubSurf_getFaceNumVerts			(CCGSubSurf *ss, CCGFace *f);
+int			ccgSubSurf_getFaceNumVerts			(CCGFace *f);
 CCGVert*	ccgSubSurf_getFaceVert				(CCGSubSurf *ss, CCGFace *f, int index);
 CCGEdge*	ccgSubSurf_getFaceEdge				(CCGSubSurf *ss, CCGFace *f, int index);
-int			ccgSubSurf_getFaceEdgeIndex			(CCGSubSurf *ss, CCGFace *f, CCGEdge *e);
+int			ccgSubSurf_getFaceEdgeIndex			(CCGFace *f, CCGEdge *e);
 
 int			ccgSubSurf_getFaceAge				(CCGSubSurf *ss, CCGFace *f);
 void*		ccgSubSurf_getFaceUserData			(CCGSubSurf *ss, CCGFace *f);
-void*		ccgSubSurf_getFaceCenterData		(CCGSubSurf *ss, CCGFace *f);
+void*		ccgSubSurf_getFaceCenterData		(CCGFace *f);
 void*		ccgSubSurf_getFaceGridEdgeDataArray	(CCGSubSurf *ss, CCGFace *f, int gridIndex);
 void*		ccgSubSurf_getFaceGridEdgeData		(CCGSubSurf *ss, CCGFace *f, int gridIndex, int x);
 void*		ccgSubSurf_getFaceGridDataArray		(CCGSubSurf *ss, CCGFace *f, int gridIndex);

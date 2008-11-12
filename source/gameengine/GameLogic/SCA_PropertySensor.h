@@ -74,8 +74,10 @@ public:
 					  KX_PROPSENSOR_TYPE checktype,
 					  PyTypeObject* T=&Type );
 	
+	virtual void Delete();
 	virtual ~SCA_PropertySensor();
 	virtual CValue* GetReplica();
+	virtual void Init();
 	void	PrecalculateRangeExpression();
 	bool	CheckPropertyCondition();
 

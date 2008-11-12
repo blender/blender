@@ -44,6 +44,7 @@ struct RNG*	rng_new			(unsigned int seed);
 void		rng_free		(struct RNG* rng);
 
 void		rng_seed		(struct RNG* rng, unsigned int seed);
+void rng_srandom(struct RNG *rng, unsigned int seed);
 int			rng_getInt		(struct RNG* rng);
 double		rng_getDouble	(struct RNG* rng);
 float		rng_getFloat	(struct RNG* rng);

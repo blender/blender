@@ -151,7 +151,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 			nu->type= CU_BEZIER+CU_2D;
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
-			nu->flagu= 1;
+			nu->flagu= CU_CYCLIC;
 			nu->bezt = bezt;
 
 			//individual curve loop, start-end
@@ -399,8 +399,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 			break;
 		lcode = charcode;
 	}
-	
-	err = FT_Set_Charmap( face, (FT_CharMap) FT_ENCODING_UNICODE );
 
 	return vfd;	
 }

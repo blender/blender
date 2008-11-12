@@ -104,7 +104,10 @@
 #define RE_MCOL_ELEMS		4
 #define RE_UV_ELEMS			2
 #define RE_SURFNOR_ELEMS	3
+#define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
+#define RE_FACE_ELEMS		1
+#define RE_NMAP_TANGENT_ELEMS	12
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -362,12 +365,43 @@ float *RE_vlakren_get_surfnor(ObjectRen *obr, VlakRen *vlak, int verify)
 	return surfnor + (vlak->index & 255)*RE_SURFNOR_ELEMS;
 }
 
+float *RE_vlakren_get_nmap_tangent(ObjectRen *obr, VlakRen *vlak, int verify)
+{
+	float *tangent;
+	int nr= vlak->index>>8;
+
+	tangent= obr->vlaknodes[nr].tangent;
+	if(tangent==NULL) {
+		if(verify) 
+			tangent= obr->vlaknodes[nr].tangent= MEM_callocN(256*RE_NMAP_TANGENT_ELEMS*sizeof(float), "tangent table");
+		else
+			return NULL;
+	}
+	return tangent + (vlak->index & 255)*RE_NMAP_TANGENT_ELEMS;
+}
+
+RadFace **RE_vlakren_get_radface(ObjectRen *obr, VlakRen *vlak, int verify)
+{
+	RadFace **radface;
+	int nr= vlak->index>>8;
+	
+	radface= obr->vlaknodes[nr].radface;
+	if(radface==NULL) {
+		if(verify) 
+			radface= obr->vlaknodes[nr].radface= MEM_callocN(256*RE_RADFACE_ELEMS*sizeof(void*), "radface table");
+		else
+			return NULL;
+	}
+	return radface + (vlak->index & 255)*RE_RADFACE_ELEMS;
+}
+
 VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 {
 	VlakRen *vlr1 = RE_findOrAddVlak(obr, obr->totvlak++);
 	MTFace *mtface, *mtface1;
 	MCol *mcol, *mcol1;
-	float *surfnor, *surfnor1;
+	float *surfnor, *surfnor1, *tangent, *tangent1;
+	RadFace **radface, **radface1;
 	int i, index = vlr1->index;
 	char *name;
 
@@ -390,24 +424,31 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 		VECCOPY(surfnor1, surfnor);
 	}
 
+	tangent= RE_vlakren_get_nmap_tangent(obr, vlr, 0);
+	if(tangent) {
+		tangent1= RE_vlakren_get_nmap_tangent(obr, vlr1, 1);
+		memcpy(tangent1, tangent, sizeof(float)*RE_NMAP_TANGENT_ELEMS);
+	}
+
+	radface= RE_vlakren_get_radface(obr, vlr, 0);
+	if(radface) {
+		radface1= RE_vlakren_get_radface(obr, vlr1, 1);
+		*radface1= *radface;
+	}
+
 	return vlr1;
 }
 
 int RE_vlakren_get_normal(Render *re, ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
 {
-	float xn, yn, zn, v1[3];
-	float (*imat)[3]= obi->imat;
+	float v1[3], (*nmat)[3]= obi->nmat;
 	int flipped= 0;
 
 	if(obi->flag & R_TRANSFORMED) {
-		xn= vlr->n[0];
-		yn= vlr->n[1];
-		zn= vlr->n[2];
+		VECCOPY(nor, vlr->n);
 		
-		/* transpose! */
-		nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-		nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-		nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+		Mat3MulVecfl(nmat, nor);
+		Normalize(nor);
 	}
 	else
 		VECCOPY(nor, vlr->n);
@@ -442,16 +483,16 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 	   DerivedMesh which stores the layers is freed */
 	
 	CustomDataLayer *layer;
-	int numlayers, i, mtfn, mcn;
+	int numtf = 0, numcol = 0, i, mtfn, mcn;
 
 	if (CustomData_has_layer(data, CD_MTFACE)) {
-		numlayers= CustomData_number_of_layers(data, CD_MTFACE);
-		obr->mtface= MEM_callocN(sizeof(*obr->mtface)*numlayers, "mtfacenames");
+		numtf= CustomData_number_of_layers(data, CD_MTFACE);
+		obr->mtface= MEM_callocN(sizeof(*obr->mtface)*numtf, "mtfacenames");
 	}
 
 	if (CustomData_has_layer(data, CD_MCOL)) {
-		numlayers= CustomData_number_of_layers(data, CD_MCOL);
-		obr->mcol= MEM_callocN(sizeof(*obr->mcol)*numlayers, "mcolnames");
+		numcol= CustomData_number_of_layers(data, CD_MCOL);
+		obr->mcol= MEM_callocN(sizeof(*obr->mcol)*numcol, "mcolnames");
 	}
 
 	for (i=0, mtfn=0, mcn=0; i < data->totlayer; i++) {
@@ -459,11 +500,12 @@ void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
 
 		if (layer->type == CD_MTFACE) {
 			strcpy(obr->mtface[mtfn++], layer->name);
-			obr->actmtface= layer->active_rnd;
+			obr->actmtface= CLAMPIS(layer->active_rnd, 0, numtf);
+			obr->bakemtface= layer->active;
 		}
 		else if (layer->type == CD_MCOL) {
 			strcpy(obr->mcol[mcn++], layer->name);
-			obr->actmcol= layer->active_rnd;
+			obr->actmcol= CLAMPIS(layer->active_rnd, 0, numcol);
 		}
 	}
 }
@@ -516,7 +558,7 @@ float *RE_strandren_get_surfnor(ObjectRen *obr, StrandRen *strand, int verify)
 	surfnor= obr->strandnodes[nr].surfnor;
 	if(surfnor==NULL) {
 		if(verify) 
-			surfnor= obr->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor table");
+			surfnor= obr->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor strand table");
 		else
 			return NULL;
 	}
@@ -536,7 +578,7 @@ float *RE_strandren_get_uv(ObjectRen *obr, StrandRen *strand, int n, char **name
 			float *uv= node->uv;
 			int size= (n+1)*256;
 
-			node->uv= MEM_callocN(size*sizeof(float)*RE_UV_ELEMS, "Strand uv");
+			node->uv= MEM_callocN(size*sizeof(float)*RE_UV_ELEMS, "strand uv table");
 
 			if(uv) {
 				size= node->totuv*256;
@@ -570,7 +612,7 @@ MCol *RE_strandren_get_mcol(ObjectRen *obr, StrandRen *strand, int n, char **nam
 			MCol *mcol= node->mcol;
 			int size= (n+1)*256;
 
-			node->mcol= MEM_callocN(size*sizeof(MCol)*RE_MCOL_ELEMS, "Strand mcol");
+			node->mcol= MEM_callocN(size*sizeof(MCol)*RE_MCOL_ELEMS, "strand mcol table");
 
 			if(mcol) {
 				size= node->totmcol*256;
@@ -599,11 +641,26 @@ float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand
 	simplify= obr->strandnodes[nr].simplify;
 	if(simplify==NULL) {
 		if(verify) 
-			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify table");
+			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify strand table");
 		else
 			return NULL;
 	}
 	return simplify + (strand->index & 255)*RE_SIMPLIFY_ELEMS;
+}
+
+int *RE_strandren_get_face(ObjectRen *obr, StrandRen *strand, int verify)
+{
+	int *face;
+	int nr= strand->index>>8;
+	
+	face= obr->strandnodes[nr].face;
+	if(face==NULL) {
+		if(verify) 
+			face= obr->strandnodes[nr].face= MEM_callocN(256*RE_FACE_ELEMS*sizeof(int), "face strand table");
+		else
+			return NULL;
+	}
+	return face + (strand->index & 255)*RE_FACE_ELEMS;
 }
 
 /* winspeed is exception, it is stored per instance */
@@ -616,7 +673,7 @@ float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int 
 	if(winspeed==NULL) {
 		if(verify) {
 			totvector= obi->obr->totvert + obi->obr->totstrand;
-			winspeed= obi->vectors= MEM_callocN(totvector*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
+			winspeed= obi->vectors= MEM_callocN(totvector*RE_WINSPEED_ELEMS*sizeof(float), "winspeed strand table");
 		}
 		else
 			return NULL;
@@ -671,14 +728,14 @@ StrandBuffer *RE_addStrandBuffer(ObjectRen *obr, int totvert)
 	strandbuf->totvert= totvert;
 	strandbuf->obr= obr;
 
-	BLI_addtail(&obr->strandbufs, strandbuf);
+	obr->strandbuf= strandbuf;
 
 	return strandbuf;
 }
 
 /* ------------------------------------------------------------------------ */
 
-ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int psysindex)
+ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int psysindex, int lay)
 {
 	ObjectRen *obr= MEM_callocN(sizeof(ObjectRen), "object render struct");
 	
@@ -687,11 +744,7 @@ ObjectRen *RE_addRenderObject(Render *re, Object *ob, Object *par, int index, in
 	obr->par= par;
 	obr->index= index;
 	obr->psysindex= psysindex;
-
-	if(!re->objecthash)
-		re->objecthash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	if(!BLI_ghash_lookup(re->objecthash, ob))
-		BLI_ghash_insert(re->objecthash, ob, obr);
+	obr->lay= lay;
 
 	return obr;
 }
@@ -737,6 +790,10 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 			MEM_freeN(vlaknodes[a].mcol);
 		if(vlaknodes[a].surfnor)
 			MEM_freeN(vlaknodes[a].surfnor);
+		if(vlaknodes[a].tangent)
+			MEM_freeN(vlaknodes[a].tangent);
+		if(vlaknodes[a].radface)
+			MEM_freeN(vlaknodes[a].radface);
 	}
 	
 	MEM_freeN(vlaknodes);
@@ -761,6 +818,8 @@ void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 			MEM_freeN(strandnodes[a].surfnor);
 		if(strandnodes[a].simplify)
 			MEM_freeN(strandnodes[a].simplify);
+		if(strandnodes[a].face)
+			MEM_freeN(strandnodes[a].face);
 	}
 	
 	MEM_freeN(strandnodes);
@@ -802,9 +861,12 @@ void free_renderdata_tables(Render *re)
 			obr->strandnodeslen= 0;
 		}
 
-		for(strandbuf=obr->strandbufs.first; strandbuf; strandbuf=strandbuf->next)
+		strandbuf= obr->strandbuf;
+		if(strandbuf) {
 			if(strandbuf->vert) MEM_freeN(strandbuf->vert);
-		BLI_freelistN(&obr->strandbufs);
+			if(strandbuf->bound) MEM_freeN(strandbuf->bound);
+			MEM_freeN(strandbuf);
+		}
 
 		if(obr->mtface)
 			MEM_freeN(obr->mtface);
@@ -822,27 +884,15 @@ void free_renderdata_tables(Render *re)
 		re->totinstance= 0;
 		re->instancetable.first= re->instancetable.last= NULL;
 	}
-	else {
-		BLI_freelistN(&re->instancetable);
-
-		if(re->objecthash) {
-			BLI_ghash_free(re->objecthash, NULL, NULL);
-			re->objecthash= NULL;
-		}
-	}
 
 	if(re->sortedhalos) {
 		MEM_freeN(re->sortedhalos);
 		re->sortedhalos= NULL;
 	}
 
-	if(re->strandbuckets) {
-		free_buckets(re->strandbuckets);
-		re->strandbuckets= NULL;
-	}
-
 	BLI_freelistN(&re->customdata_names);
 	BLI_freelistN(&re->objecttable);
+	BLI_freelistN(&re->instancetable);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -1257,13 +1307,11 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 			
 		}
 	}
-
-	project_strands(re, projectfunc, do_pano, do_buckets);
 }
 
 /* ------------------------------------------------------------------------- */
 
-void RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4])
+ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4], int lay)
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1274,15 +1322,19 @@ void RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, i
 	obi->par= par;
 	obi->index= index;
 	obi->psysindex= psysindex;
+	obi->lay= lay;
 
 	if(mat) {
 		Mat4CpyMat4(obi->mat, mat);
 		Mat3CpyMat4(mat3, mat);
-		Mat3Inv(obi->imat, mat3);
+		Mat3Inv(obi->nmat, mat3);
+		Mat3Transp(obi->nmat);
 		obi->flag |= R_DUPLI_TRANSFORMED;
 	}
 
 	BLI_addtail(&re->instancetable, obi);
+
+	return obi;
 }
 
 void RE_makeRenderInstances(Render *re)
@@ -1301,15 +1353,6 @@ void RE_makeRenderInstances(Render *re)
 	for(oldobi=re->instancetable.first; oldobi; oldobi=oldobi->next) {
 		*obi= *oldobi;
 
-		if(!obi->obr) {
-			/* dupli objects are created after object instances, so they were
-			 * stored in a object -> objectren hash, we do lookup of the actual
-			 * pointer here */
-			if(re->objecthash && (obi->obr=BLI_ghash_lookup(re->objecthash, obi->ob)))
-				while(obi->obr && obi->obr->psysindex != obi->psysindex)
-					obi->obr= obi->obr->next;
-		}
-
 		if(obi->obr) {
 			obi->prev= obi->next= NULL;
 			BLI_addtail(&newlist, obi);
@@ -1319,11 +1362,44 @@ void RE_makeRenderInstances(Render *re)
 			re->totinstance--;
 	}
 
-	if(re->objecthash) {
-		BLI_ghash_free(re->objecthash, NULL, NULL);
-		re->objecthash= NULL;
-	}
 	BLI_freelistN(&re->instancetable);
 	re->instancetable= newlist;
+}
+
+int clip_render_object(float boundbox[][3], float *bounds, float winmat[][4])
+{
+	float mat[4][4], vec[4];
+	int a, fl, flag= -1;
+
+	Mat4CpyMat4(mat, winmat);
+
+	for(a=0; a<8; a++) {
+		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
+		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
+		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
+		vec[3]= 1.0;
+		Mat4MulVec4fl(mat, vec);
+
+		fl= 0;
+		if(bounds) {
+			if(vec[0] > bounds[1]*vec[3]) fl |= 1;
+			if(vec[0]< bounds[0]*vec[3]) fl |= 2;
+			if(vec[1] > bounds[3]*vec[3]) fl |= 4;
+			if(vec[1]< bounds[2]*vec[3]) fl |= 8;
+		}
+		else {
+			if(vec[0] < -vec[3]) fl |= 1;
+			if(vec[0] > vec[3]) fl |= 2;
+			if(vec[1] < -vec[3]) fl |= 4;
+			if(vec[1] > vec[3]) fl |= 8;
+		}
+		if(vec[2] < -vec[3]) fl |= 16;
+		if(vec[2] > vec[3]) fl |= 32;
+
+		flag &= fl;
+		if(flag==0) return 0;
+	}
+
+	return flag;
 }
 

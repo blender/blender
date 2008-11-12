@@ -17,12 +17,18 @@ subject to the following restrictions:
 #ifndef AABB_UTIL2
 #define AABB_UTIL2
 
+#include "btTransform.h"
 #include "btVector3.h"
-#include "btSimdMinMax.h"
+#include "btMinMax.h"
 
-
-#define btMin(a,b) ((a < b ? a : b))
-#define btMax(a,b) ((a > b ? a : b))
+SIMD_FORCE_INLINE void AabbExpand (btVector3& aabbMin,
+								   btVector3& aabbMax,
+								   const btVector3& expansionMin,
+								   const btVector3& expansionMax)
+{
+	aabbMin = aabbMin + expansionMin;
+	aabbMax = aabbMax + expansionMax;
+}
 
 
 /// conservative test for overlap between two aabbs
@@ -66,6 +72,41 @@ SIMD_FORCE_INLINE int	btOutcode(const btVector3& p,const btVector3& halfExtent)
 		   (p.getZ() >  halfExtent.getZ() ? 0x20 : 0x0);
 }
 
+
+SIMD_FORCE_INLINE bool btRayAabb2(const btVector3& rayFrom,
+								  const btVector3& rayInvDirection,
+								  const unsigned int raySign[3],
+								  const btVector3 bounds[2],
+								  btScalar& tmin,
+								  btScalar lambda_min,
+								  btScalar lambda_max)
+{
+	btScalar tmax, tymin, tymax, tzmin, tzmax;
+	tmin = (bounds[raySign[0]][0] - rayFrom[0]) * rayInvDirection[0];
+	tmax = (bounds[1-raySign[0]][0] - rayFrom[0]) * rayInvDirection[0];
+	tymin = (bounds[raySign[1]][1] - rayFrom[1]) * rayInvDirection[1];
+	tymax = (bounds[1-raySign[1]][1] - rayFrom[1]) * rayInvDirection[1];
+
+	if ( (tmin > tymax) || (tymin > tmax) )
+		return false;
+
+	if (tymin > tmin)
+		tmin = tymin;
+
+	if (tymax < tmax)
+		tmax = tymax;
+
+	tzmin = (bounds[raySign[2]][2] - rayFrom[2]) * rayInvDirection[2];
+	tzmax = (bounds[1-raySign[2]][2] - rayFrom[2]) * rayInvDirection[2];
+
+	if ( (tmin > tzmax) || (tzmin > tmax) )
+		return false;
+	if (tzmin > tmin)
+		tmin = tzmin;
+	if (tzmax < tmax)
+		tmax = tzmax;
+	return ( (tmin < lambda_max) && (tmax > lambda_min) );
+}
 
 SIMD_FORCE_INLINE bool btRayAabb(const btVector3& rayFrom, 
 								 const btVector3& rayTo, 
@@ -123,5 +164,39 @@ SIMD_FORCE_INLINE bool btRayAabb(const btVector3& rayFrom,
 }
 
 
+
+SIMD_FORCE_INLINE	void btTransformAabb(const btVector3& halfExtents, btScalar margin,const btTransform& t,btVector3& aabbMinOut,btVector3& aabbMaxOut)
+{
+	btVector3 halfExtentsWithMargin = halfExtents+btVector3(margin,margin,margin);
+	btMatrix3x3 abs_b = t.getBasis().absolute();  
+	btVector3 center = t.getOrigin();
+	btVector3 extent = btVector3(abs_b[0].dot(halfExtentsWithMargin),
+		   abs_b[1].dot(halfExtentsWithMargin),
+		  abs_b[2].dot(halfExtentsWithMargin));
+	aabbMinOut = center - extent;
+	aabbMaxOut = center + extent;
+}
+
+
+SIMD_FORCE_INLINE	void btTransformAabb(const btVector3& localAabbMin,const btVector3& localAabbMax, btScalar margin,const btTransform& trans,btVector3& aabbMinOut,btVector3& aabbMaxOut)
+{
+		btAssert(localAabbMin.getX() <= localAabbMax.getX());
+		btAssert(localAabbMin.getY() <= localAabbMax.getY());
+		btAssert(localAabbMin.getZ() <= localAabbMax.getZ());
+		btVector3 localHalfExtents = btScalar(0.5)*(localAabbMax-localAabbMin);
+		localHalfExtents+=btVector3(margin,margin,margin);
+
+		btVector3 localCenter = btScalar(0.5)*(localAabbMax+localAabbMin);
+		btMatrix3x3 abs_b = trans.getBasis().absolute();  
+		btVector3 center = trans(localCenter);
+		btVector3 extent = btVector3(abs_b[0].dot(localHalfExtents),
+			   abs_b[1].dot(localHalfExtents),
+			  abs_b[2].dot(localHalfExtents));
+		aabbMinOut = center-extent;
+		aabbMaxOut = center+extent;
+}
+
+
 #endif
+
 
