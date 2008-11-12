@@ -1,12 +1,15 @@
 #
-# $Id$
+# $Id: Makefile 12796 2007-12-05 16:58:52Z sirdude $
 #
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# of the License, or (at your option) any later version. The Blender
+# Foundation also sells licenses for use in proprietary software under
+# the Blender License.  See http://www.blender.org/BL/ for information
+# about this.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,11 +27,22 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL LICENSE BLOCK *****
+# ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-# Bounces make to subdirectories.
+#
 
-SOURCEDIR = source/blender/nodes
-DIRS = intern intern/CMP_nodes intern/SHD_nodes intern/TEX_nodes
+LIBNAME = nodes_tex
+DIR = $(OCGDIR)/blender/$(LIBNAME)
 
-include nan_subdirs.mk
+include nan_compile.mk
+
+CFLAGS += $(LEVEL_1_C_WARNINGS)
+
+CPPFLAGS += -I../../../blenkernel
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../../makesdna
+CPPFLAGS += -I../../../blenlib
+CPPFLAGS += -I../../../include
+CPPFLAGS += -I../../../imbuf
+CPPFLAGS += -I../../../render/extern/include
+CPPFLAGS += -I$(OPENGL_HEADERS)

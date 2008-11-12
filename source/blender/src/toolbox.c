@@ -1595,6 +1595,17 @@ static TBitem tb_node_addcomp[]= {
 	{	0, "Group",		9, NULL},
 	{	0, "Dynamic",	10, NULL},
 	{  	-1, "", 		0, NULL}};
+	
+static TBitem tb_node_addtex[]= {
+	{    0, "Input",        1, NULL},
+	{    0, "Output",       2, NULL},
+	{    0, "Color",        3, NULL},
+	{    0, "Convertor",    4, NULL},
+	{    0, "Patterns",     5, NULL},
+	{    0, "Textures",     6, NULL},
+	{    0, "Distort",      7, NULL},
+	{    0, "Group",        8, NULL},
+	{   -1, "",             0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
 
@@ -2126,7 +2137,7 @@ void toolbox_n(void)
 					menu3= tb__select;
 					menu4= tb_edit;
 					menu5= tb_transform_editmode2;
-				}
+				}                                                               
 				else if(G.obedit->type==OB_LATTICE) {
 					menu1= tb_empty;str1= "Lattice";
 					menu2= tb_empty;
@@ -2145,8 +2156,11 @@ void toolbox_n(void)
 		
 		if(snode->treetype==NTREE_COMPOSIT)
 			menu1= tb_node_addcomp; 
-		else
+		else if(snode->treetype==NTREE_SHADER)
 			menu1= tb_node_addsh; 
+		else if(snode->treetype==NTREE_TEXTURE)
+			menu1= tb_node_addtex;
+		
 		str1= "Add";
 		menu2= tb_node_node; str2= "Node";
 		menu3= tb_node_select; str3= "Select";
@@ -2173,8 +2187,17 @@ void toolbox_n(void)
 			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
 			menu1[8].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
 			menu1[9].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_DYNAMIC);
-
 		}
+		else if(snode->treetype==NTREE_TEXTURE) {
+			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
+			menu1[1].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OUTPUT);
+			menu1[2].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_COLOR);
+			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
+			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_PATTERN);
+			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_TEXTURE);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
+			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+		}                                                                     
 		
 		dx= 96;
 		tot= 5;

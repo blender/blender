@@ -40,6 +40,7 @@
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
@@ -53,6 +54,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
@@ -175,6 +177,9 @@ static void snode_handle_recalc(SpaceNode *snode)
 		}
 
 		allqueue(REDRAWNODE, 1);
+	}
+	else if(snode->treetype==NTREE_TEXTURE) {
+		ntreeTexUpdatePreviews(snode->nodetree);
 	}
 }
 
@@ -423,6 +428,36 @@ static void composit_node_event(SpaceNode *snode, short event)
 	}
 }
 
+static void texture_node_event(SpaceNode *snode, short event)
+{
+	switch(event) {
+		case B_REDR:
+			allqueue(REDRAWNODE, 1);
+			break;
+		case B_NODE_LOADIMAGE:
+		{
+			bNode *node= nodeGetActive(snode->edittree);
+			char name[FILE_MAXDIR+FILE_MAXFILE];
+			
+			if(node->id)
+				strcpy(name, ((Image *)node->id)->name);
+			else strcpy(name, U.textudir);
+			if (G.qual & LR_CTRLKEY) {
+				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			} else {
+				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			}
+			break;
+		}
+		default:
+			/* B_NODE_EXEC */
+			ntreeTexCheckCyclics( snode->nodetree );
+			snode_handle_recalc(snode);
+			allqueue(REDRAWNODE, 1);
+			break;
+	}
+}
+
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
@@ -486,6 +521,36 @@ void node_composit_default(Scene *sce)
 	ntreeCompositForceHidden(sce->nodetree);
 }
 
+/* assumes nothing being done in ntree yet, sets the default in/out node */
+/* called from shading buttons or header */
+void node_texture_default(Tex *tx)
+{
+	bNode *in, *out;
+	bNodeSocket *fromsock, *tosock;
+	
+	/* but lets check it anyway */
+	if(tx->nodetree) {
+		printf("error in texture initialize\n");
+		return;
+	}
+	
+	tx->nodetree= ntreeAddTree(NTREE_TEXTURE);
+	
+	out= nodeAddNodeType(tx->nodetree, TEX_NODE_OUTPUT, NULL, NULL);
+	out->locx= 300.0f; out->locy= 300.0f;
+	
+	in= nodeAddNodeType(tx->nodetree, TEX_NODE_CHECKER, NULL, NULL);
+	in->locx= 10.0f; in->locy= 300.0f;
+	nodeSetActive(tx->nodetree, in);
+	
+	fromsock= in->outputs.first;
+	tosock= out->inputs.first;
+	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
+	
+	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
+	ntreeTexUpdatePreviews(tx->nodetree);
+}
+
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
 void snode_set_context(SpaceNode *snode)
 {
@@ -515,6 +580,16 @@ void snode_set_context(SpaceNode *snode)
 			ntreeCompositForceHidden(G.scene->nodetree);
 		
 		snode->nodetree= G.scene->nodetree;
+	}
+	else if(snode->treetype==NTREE_TEXTURE) {
+		if(ob) {
+			Tex *tx= give_current_texture(ob, ob->actcol);
+			if(tx) {
+				snode->from= (ID*)ob; /* please check this; i have no idea what 'from' is. */
+				snode->id= &tx->id;
+				snode->nodetree= tx->nodetree;
+			}
+		}
 	}
 	
 	/* find editable group */
@@ -607,6 +682,12 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 					allqueue(REDRAWBUTSSCENE, 0);
 				}
 			}
+		}
+		else if(snode->treetype==NTREE_TEXTURE) {
+			if(node->id)
+				BIF_preview_changed(-1);
+			allqueue(REDRAWBUTSSHADING, 1);
+			allqueue(REDRAWIPO, 0);
 		}
 	}
 }
@@ -1188,6 +1269,9 @@ static void scale_node(SpaceNode *snode, bNode *node)
 		BIF_undo_push("Scale Node");
 	
 	allqueue(REDRAWNODE, 1);
+	
+	if(snode->nodetree->type == NTREE_TEXTURE)
+		ntreeTexUpdatePreviews(snode->nodetree);
 }
 
 /* ******************** rename ******************* */
@@ -1702,6 +1786,12 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		
 		NodeTagChanged(snode->edittree, node);
 	}
+	
+	if(snode->nodetree->type==NTREE_TEXTURE) {
+		ntreeTexCheckCyclics(snode->edittree);
+		ntreeTexUpdatePreviews(snode->edittree);
+	}
+	
 	return node;
 }
 
@@ -2481,6 +2571,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				shader_node_event(snode, val);
 			else if(snode->treetype==NTREE_COMPOSIT)
 				composit_node_event(snode, val);
+			else if(snode->treetype==NTREE_TEXTURE)
+				texture_node_event(snode, val);
 			break;
 			
 		case RENDERPREVIEW:

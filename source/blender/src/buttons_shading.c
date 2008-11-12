@@ -286,6 +286,7 @@ void do_texbuts(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		BIF_preview_changed(ID_TE);
 		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWNODE, 0);
 		if(G.buts->texfrom == 3) /* brush texture */
 			allqueue(REDRAWIMAGE, 0);
 		break;
@@ -413,6 +414,16 @@ void do_texbuts(unsigned short event)
 				tex->env->object= NULL;
 			}
 		}
+		break;
+	case B_TEX_USENODES:
+		if(tex->use_nodes && tex->nodetree==NULL) {
+			node_texture_default(tex);
+		}
+		tex->type = 0;
+		BIF_preview_changed(ID_TE);
+		allqueue(REDRAWNODE, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWIPO, 0);
 		break;
 		
 	default:
@@ -1687,10 +1698,13 @@ static void texture_panel_texture(MTex *actmtex, Material *ma, World *wrld, Lamp
 		
 		/* newnoise: all texture types as menu, not enough room for more buttons.
 		 * Can widen panel, but looks ugly when other panels overlap it */
+		if( !tex->use_nodes ) {
+			sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE);
+			uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
+			uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
+		}
 		
-		sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE);
-		uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
-		uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
+		uiDefButC(block, TOG, B_TEX_USENODES, "Nodes", 160, 100, 140, 25, &tex->use_nodes, 0.0f, 0.0f, 0, 0, "");
 
 	}
 	else {
@@ -3684,6 +3698,11 @@ static void material_panel_texture(Object *ob, Material *ma)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_TEXCLEAR, "Clear",			122, 130, 72, 20, 0, 0, 0, 0, 0, "Erases link to texture");
 		
+		if(mtex->tex->use_nodes) {
+			char *menustr = ntreeTexOutputMenu(mtex->tex->nodetree);
+			uiDefButS(block, MENU, B_MATPRV, menustr, 100, 100, 163, 20, &mtex->which_output, 0, 0, 0, 0, "Which output to use, for multi-output textures");
+			free(menustr);
+		}
 	}
 	else 
 		uiDefButS(block, TOG, B_EXTEXBROWSE, "Add New" ,100, 150, 163, 20, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");

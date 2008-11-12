@@ -38,6 +38,7 @@
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_text_types.h"
 #include "DNA_scene_types.h"
 
@@ -70,6 +71,8 @@
 #include "intern/CMP_util.h"	/* stupid include path... */
 
 #include "SHD_node.h"
+#include "TEX_node.h"
+#include "intern/TEX_util.h"
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -77,6 +80,7 @@
 static ListBase empty_list = {NULL, NULL};
 ListBase node_all_composit = {NULL, NULL};
 ListBase node_all_shaders = {NULL, NULL};
+ListBase node_all_textures = {NULL, NULL};
 
 /* ************** Type stuff **********  */
 
@@ -106,6 +110,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 		ntree->alltypes= node_all_shaders;
 	else if(ntree->type==NTREE_COMPOSIT)
 		ntree->alltypes= node_all_composit;
+	else if(ntree->type==NTREE_TEXTURE)
+		ntree->alltypes= node_all_textures;
 	else {
 		ntree->alltypes= empty_list;
 		printf("Error: no type definitions for nodes\n");
@@ -661,6 +667,28 @@ void nodeVerifyGroup(bNodeTree *ngroup)
 			}
 		}
 	}
+	else if(ngroup->type==NTREE_TEXTURE) {
+		Tex *tx;
+		for(tx= G.main->tex.first; tx; tx= tx->id.next) {
+			if(tx->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= tx->nodetree->nodes.first; node; node= node->next)
+					if(node->id == (ID *)ngroup)
+						break;
+				
+				if(node) {
+					/* set all type pointers OK */
+					ntreeInitTypes(tx->nodetree);
+					
+					for(node= tx->nodetree->nodes.first; node; node= node->next)
+						if(node->id == (ID *)ngroup)
+							nodeVerifyType(tx->nodetree, node);
+				}
+			}
+		}
+	}
 }
 
 /* also to check all users of groups. Now only used in editor for hide/unhide */
@@ -717,6 +745,26 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 			}
 		}
 	}
+	else if(ngroup->type==NTREE_TEXTURE) {
+		Tex *tx;
+		for(tx= G.main->tex.first; tx; tx= tx->id.next) {
+			if(tx->nodetree) {
+				for(node= tx->nodetree->nodes.first; node; node= node->next) {
+					if(node->id==(ID *)ngroup) {
+						for(sock= node->inputs.first; sock; sock= sock->next)
+							if(sock->link)
+								if(sock->tosock) 
+									sock->tosock->flag |= SOCK_IN_USE;
+						for(sock= node->outputs.first; sock; sock= sock->next)
+							if(nodeCountSocketLinks(tx->nodetree, sock))
+								if(sock->tosock) 
+									sock->tosock->flag |= SOCK_IN_USE;
+					}
+				}
+			}
+		}
+	}
+	
 }
 
 /* finds a node based on given socket */
@@ -901,9 +949,12 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	/* got it-bob*/
 	if(ntype->initfunc!=NULL)
 		ntype->initfunc(node);
+	
+	if(type==TEX_NODE_OUTPUT)
+		ntreeTexAssignIndex(ntree, node);
 
 	nodeAddSockets(node, ntype);
-
+	
 	return node;
 }
 
@@ -970,6 +1021,9 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	node->new_node= nnode;
 	nnode->new_node= NULL;
 	nnode->preview= NULL;
+	
+	if(node->type==TEX_NODE_OUTPUT)
+		ntreeTexAssignIndex(ntree, node);
 
 	return nnode;
 }
@@ -1260,6 +1314,22 @@ void ntreeMakeLocal(bNodeTree *ntree)
 			}
 		}
 	}
+	else if(ntree->type==NTREE_TEXTURE) {
+		Tex *tx;
+		for(tx= G.main->tex.first; tx; tx= tx->id.next) {
+			if(tx->nodetree) {
+				bNode *node;
+				
+				/* find if group is in tree */
+				for(node= tx->nodetree->nodes.first; node; node= node->next) {
+					if(node->id == (ID *)ntree) {
+						if(tx->id.lib) lib= 1;
+						else local= 1;
+					}
+				}
+			}
+		}
+	}
 	
 	/* if all users are local, we simply make tree local */
 	if(local && lib==0) {
@@ -1302,6 +1372,25 @@ void ntreeMakeLocal(bNodeTree *ntree)
 					for(node= sce->nodetree->nodes.first; node; node= node->next) {
 						if(node->id == (ID *)ntree) {
 							if(sce->id.lib==NULL) {
+								node->id= &newtree->id;
+								newtree->id.us++;
+								ntree->id.us--;
+							}
+						}
+					}
+				}
+			}
+		}
+		else if(ntree->type==NTREE_TEXTURE) {
+			Tex *tx;
+			for(tx= G.main->tex.first; tx; tx= tx->id.next) {
+				if(tx->nodetree) {
+					bNode *node;
+					
+					/* find if group is in tree */
+					for(node= tx->nodetree->nodes.first; node; node= node->next) {
+						if(node->id == (ID *)ntree) {
+							if(tx->id.lib==NULL) {
 								node->id= &newtree->id;
 								newtree->id.us++;
 								ntree->id.us--;
@@ -1575,6 +1664,8 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 		}
 		node->need_exec= 1;
 	}
+	else if(ntree->type == NTREE_TEXTURE)
+		ntreeTexUpdatePreviews(ntree);
 }
 
 void NodeTagIDChanged(bNodeTree *ntree, ID *id)
@@ -1813,7 +1904,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 					sock->ns.data= NULL;
 				}
 			}
-		}		
+		}
 		/* cannot initialize them while using in threads */
 		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
 			curvemapping_initialize(node->storage);
@@ -1929,12 +2020,28 @@ static void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 	nts->used= 0;
 }
 
+/* free texture delegates */
+static void tex_end_exec(bNodeTree *ntree)
+{
+	bNodeThreadStack *nts;
+	bNodeStack *ns;
+	int th, a;
+	
+	if(ntree->threadstack)
+		for(th=0; th<BLENDER_MAX_THREADS; th++)
+			for(nts=ntree->threadstack[th].first; nts; nts=nts->next)
+				for(ns= nts->stack, a=0; a<ntree->stacksize; a++, ns++)
+					if(ns->data)
+						MEM_freeN(ns->data);
+						
+}
+
 void ntreeBeginExecTree(bNodeTree *ntree)
 {
 	/* let's make it sure */
 	if(ntree->init & NTREE_EXEC_INIT)
 		return;
-
+	
 	/* allocate the thread stack listbase array */
 	if(ntree->type!=NTREE_COMPOSIT)
 		ntree->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
@@ -1986,6 +2093,8 @@ void ntreeEndExecTree(bNodeTree *ntree)
 		/* another callback candidate! */
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_end_exec(ntree, 0);
+		else if(ntree->type==NTREE_TEXTURE)
+			tex_end_exec(ntree);
 		
 		if(ntree->stack) {
 			MEM_freeN(ntree->stack);
@@ -2622,6 +2731,27 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 	}
 }
 
+int ntreeTexTagAnimated(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return 0;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==TEX_NODE_CURVE_TIME) {
+			NodeTagChanged(ntree, node);
+			return 1;
+		}
+		else if(node->type==NODE_GROUP) {
+			if( ntreeTexTagAnimated((bNodeTree *)node->id) ) {
+				return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
 /* ************* node definition init ********** */
 
 static bNodeType *is_nodetype_registered(ListBase *typelist, int type, ID *id) 
@@ -2745,6 +2875,41 @@ static void registerShaderNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &sh_node_hue_sat);
 }
 
+static void registerTextureNodes(ListBase *ntypelist)
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &tex_node_math);
+	nodeRegisterType(ntypelist, &tex_node_mix_rgb);
+	nodeRegisterType(ntypelist, &tex_node_valtorgb);
+	nodeRegisterType(ntypelist, &tex_node_rgbtobw);
+	nodeRegisterType(ntypelist, &tex_node_curve_rgb);
+	nodeRegisterType(ntypelist, &tex_node_curve_time);
+	nodeRegisterType(ntypelist, &tex_node_invert);
+	nodeRegisterType(ntypelist, &tex_node_hue_sat);
+	
+	nodeRegisterType(ntypelist, &tex_node_output);
+	nodeRegisterType(ntypelist, &tex_node_viewer);
+	
+	nodeRegisterType(ntypelist, &tex_node_checker);
+	nodeRegisterType(ntypelist, &tex_node_texture);
+	nodeRegisterType(ntypelist, &tex_node_bricks);
+	nodeRegisterType(ntypelist, &tex_node_image);
+	
+	nodeRegisterType(ntypelist, &tex_node_rotate);
+	nodeRegisterType(ntypelist, &tex_node_translate);
+	
+	nodeRegisterType(ntypelist, &tex_node_proc_voronoi);
+	nodeRegisterType(ntypelist, &tex_node_proc_blend);
+	nodeRegisterType(ntypelist, &tex_node_proc_magic);
+	nodeRegisterType(ntypelist, &tex_node_proc_marble);
+	nodeRegisterType(ntypelist, &tex_node_proc_clouds);
+	nodeRegisterType(ntypelist, &tex_node_proc_wood);
+	nodeRegisterType(ntypelist, &tex_node_proc_musgrave);
+	nodeRegisterType(ntypelist, &tex_node_proc_noise);
+	nodeRegisterType(ntypelist, &tex_node_proc_stucci);
+	nodeRegisterType(ntypelist, &tex_node_proc_distnoise);
+}
+
 static void remove_dynamic_typeinfos(ListBase *list)
 {
 	bNodeType *ntype= list->first;
@@ -2782,6 +2947,7 @@ void init_nodesystem(void)
 {
 	registerCompositNodes(&node_all_composit);
 	registerShaderNodes(&node_all_shaders);
+	registerTextureNodes(&node_all_textures);
 }
 
 void free_nodesystem(void) 
@@ -2790,4 +2956,5 @@ void free_nodesystem(void)
 	BLI_freelistN(&node_all_composit);
 	remove_dynamic_typeinfos(&node_all_shaders);
 	BLI_freelistN(&node_all_shaders);
+	BLI_freelistN(&node_all_textures);
 }

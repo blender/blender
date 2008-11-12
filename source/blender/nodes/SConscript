@@ -4,6 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 sources += env.Glob('intern/CMP_nodes/*.c')
 sources += env.Glob('intern/SHD_nodes/*.c')
+sources += env.Glob('intern/TEX_nodes/*.c')
 
 incs = '. ./intern '
 incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'

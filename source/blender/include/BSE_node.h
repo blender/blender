@@ -81,6 +81,7 @@ void node_active_link_viewer(struct SpaceNode *snode);
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
 void node_composit_default(struct Scene *scene);
+void node_texture_default(struct Tex *tx);
 
 int node_has_hidden_sockets(struct bNode *node);
 
