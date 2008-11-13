@@ -1306,6 +1306,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
+			else if (!G.obedit && OBACT && G.f&G_TEXTUREPAINT){
+				if(G.scene->toolsettings->imapaint.brush &&
+					event!=LEFTMOUSE && event!=RIGHTMOUSE && event!=MIDDLEMOUSE &&
+					(event==MOUSEY || event==MOUSEX) && bwin_qtest(sa->win)==0) {
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+			
 
 			/* Handle retopo painting */
 			if(retopo_mesh_paint_check()) {
