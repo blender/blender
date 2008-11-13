@@ -18,9 +18,15 @@ makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
 								 '../../makesdna'])
 
 if env['OURPLATFORM'] == 'linuxcross':
-	makesdna_tool.Replace(CC='gcc')
-	makesdna_tool.Replace(AR='ar')
-	makesdna_tool.Replace(LINK='gcc')
+	USE_WINE = True # when cross compiling on linux 64bit this is useful
+else:
+	USE_WINE = False
+
+if not USE_WINE:
+	if env['OURPLATFORM'] == 'linuxcross':
+		makesdna_tool.Replace(CC='gcc')
+		makesdna_tool.Replace(AR='ar')
+		makesdna_tool.Replace(LINK='gcc')
 
 if sys.platform != 'cygwin':
 	makesdna_tool.Append (CCFLAGS = cflags)
@@ -43,7 +49,10 @@ dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)
 dna.Depends ('dna.c', header_files)
 if env['OURPLATFORM'] != 'linuxcross':
-	dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
+	if USE_WINE:
+		dna.Command ('dna.c', '', 'wine ' + root_build_dir+os.sep+"makesdna $TARGET")
+	else:
+		dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
 else:
 	dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna.exe $TARGET")
 obj = 'intern/dna.c'
