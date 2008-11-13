@@ -521,6 +521,7 @@ void unlink_object(Object *ob)
 	while(sce) {
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
+			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
 		}
 		sce= sce->id.next;
 	}

@@ -3460,7 +3460,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 
 	
-			sce->toolsettings->skgen_template = newlibadr_us(fd, sce->id.lib, sce->toolsettings->skgen_template);
+			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			/* Sculptdata textures */
 			for(a=0; a<MAX_MTEX; ++a) {
