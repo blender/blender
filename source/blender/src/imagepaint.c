@@ -141,6 +141,8 @@ typedef struct ImagePaintPartialRedraw {
 
 /* testing options */
 #define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
+#define PROJ_BOUNDBOX_DIV 6 /* TODO - test other values, this is a guess, seems ok */
+#define PROJ_BOUNDBOX_SQUARED  (PROJ_BOUNDBOX_DIV * PROJ_BOUNDBOX_DIV)
 
 //#define PROJ_DEBUG_PAINT 1
 #define PROJ_DEBUG_NOSCANLINE 1
@@ -200,7 +202,7 @@ typedef struct ProjectPaintState {
 	
 	Image **projectImages;			/* array of images we are painting onto while, use so we can tag for updates */
 	ImBuf **projectImBufs;			/* array of imbufs we are painting onto while, use so we can get the rect and rect_float quickly */
-	ImagePaintPartialRedraw	*projectPartialRedraws;	/* array of partial redraws */
+	ImagePaintPartialRedraw	*projectPartialRedraws[PROJ_BOUNDBOX_SQUARED];	/* array of partial redraws */
 	
 	int projectImageTotal;			/* size of projectImages array */
 	
@@ -245,7 +247,7 @@ typedef struct ProjectPixel {
 	short x_px, y_px;
 	void *pixel;
 	short image_index; /* if anyone wants to paint onto more then 32000 images they can bite me */
-	short flag;
+	short bb_cell_index;
 } ProjectPixel;
 
 typedef struct ProjectPixelClone {
@@ -280,6 +282,19 @@ typedef struct UndoElem {
 static ListBase undobase = {NULL, NULL};
 static UndoElem *curundo = NULL;
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
+
+
+static int BLI_linklist_index(struct LinkNode *list, void *ptr)
+{
+	int index;
+	
+	for (index = 0; list; list= list->next, index++) {
+		if (list->link == ptr)
+			return index;
+	}
+	
+	return -1;
+}
 
 /* UNDO */
 
@@ -1333,6 +1348,12 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, int thread_index, 
 		projPixel->x_px = x;
 		projPixel->y_px = y;
 		
+		/* which bounding box cell are we in? */
+		//projPixel->x_bb = (char) ;
+		//projPixel->y_bb = (char) (((float)y/(float)ibuf->y) * PROJ_BOUNDBOX_DIV);
+		
+		projPixel->bb_cell_index = ((int)((((float)x)/((float)ibuf->x)) * PROJ_BOUNDBOX_DIV)) + ((int)((((float)y)/((float)ibuf->y)) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
+		
 		/* done with view3d_project_float inline */
 		if (ps->tool==PAINT_TOOL_CLONE) {
 			float co[2];
@@ -2248,7 +2269,11 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	/* build an array of images we use*/
 	ps->projectImages = BLI_memarena_alloc( ps->projectArena, sizeof(Image *) * ps->projectImageTotal);
 	ps->projectImBufs = BLI_memarena_alloc( ps->projectArena, sizeof(ImBuf *) * ps->projectImageTotal);
-	ps->projectPartialRedraws = BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal);
+	*(ps->projectPartialRedraws) = BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal * PROJ_BOUNDBOX_SQUARED);
+	
+	for (a=1; a< ps->projectImageTotal; a++) {
+		ps->projectPartialRedraws[a] = *(ps->projectPartialRedraws) + (a * PROJ_BOUNDBOX_SQUARED);
+	}
 	// calloced - memset(ps->projectPartialRedraws, 0, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal);
 	
 	for (node= image_LinkList, i=0; node; node= node->next, i++) {
@@ -2397,6 +2422,7 @@ static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
 	if(texpaint || G.sima->lock) {
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
+		// printf("%d, %d, \n", w, h);
 		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h);
 	}
 }
@@ -2806,26 +2832,34 @@ static void partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPa
 /* Loop over all images on this mesh and update any we have touched */
 static int imapaint_refresh_tagged(ProjectPaintState *ps)
 {
-	ImagePaintPartialRedraw *pr = ps->projectPartialRedraws;
-	int a;
+	ImagePaintPartialRedraw *pr;
+	int a,i;
 	int redraw = 0;
 	
 	
-	
-	for (a=0; a < ps->projectImageTotal; a++, pr++) {
+	for (a=0; a < ps->projectImageTotal; a++) {
 		Image *ima = ps->projectImages[a];
 		if (ima->id.flag & LIB_DOIT) {
-			if(U.uiflag & USER_GLOBALUNDO) {
-				// Dont need to set "imapaintpartial" This is updated from imapaint_dirty_region args.
-				imapaint_dirty_region(ima, ps->projectImBufs[a], pr->x1, pr->y1, pr->x2 - pr->x1, pr->y2 - pr->y1);
-			} else {
-				imapaintpartial = ps->projectPartialRedraws[a];
-				
+			/* look over each bound cell */
+			for (i=0; i<PROJ_BOUNDBOX_SQUARED; i++) {
+				pr = &(ps->projectPartialRedraws[a][i]);
+				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
+					/*
+					if(U.uiflag & USER_GLOBALUNDO) {
+						// Dont need to set "imapaintpartial" This is updated from imapaint_dirty_region args.
+						imapaint_dirty_region(ima, ps->projectImBufs[a], pr->x1, pr->y1, pr->x2 - pr->x1, pr->y2 - pr->y1);
+					} else {
+					*/
+						imapaintpartial = *pr;
+					/*
+					}
+					*/
+					
+					imapaint_image_update(ima, ps->projectImBufs[a], 1 /*texpaint*/ );
+					
+					redraw = 1;
+				}
 			}
-			
-			imapaint_image_update(ima, ps->projectImBufs[a], 1 /*texpaint*/ );
-			
-			redraw = 1;
 			
 			ima->id.flag &= ~LIB_DOIT; /* clear for reuse */
 		}
@@ -2901,7 +2935,7 @@ static int imapaint_paint_sub_stroke_project(
 				short mval[2],
 				double time,
 				float pressure,
-				ImagePaintPartialRedraw *projectPartialRedraws,
+				ImagePaintPartialRedraw *projectPartialRedraws[PROJ_BOUNDBOX_SQUARED],
 				int thread_index)
 {
 	LinkNode *node;
@@ -2911,6 +2945,7 @@ static int imapaint_paint_sub_stroke_project(
 	
 	int last_index = -1;
 	ImagePaintPartialRedraw *last_partial_redraw;
+	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
 	float rgba[4], alpha, dist, dist_nosqrt;
 	char rgba_ub[4];
@@ -2986,18 +3021,18 @@ static int imapaint_paint_sub_stroke_project(
 					
 					if (last_index != projPixel->image_index) {
 						last_index = projPixel->image_index;
-						last_partial_redraw = &projectPartialRedraws[last_index];
+						last_partial_redraw = projectPartialRedraws[last_index];
 						
 						ps->projectImages[last_index]->id.flag |= LIB_DOIT; /* halgrind complains this is not threadsafe but probably ok? - we are only setting this flag anyway */
 						is_floatbuf = ps->projectImBufs[last_index]->rect_float ? 1 : 0;
 					}
 					
+					last_partial_redraw_cell = last_partial_redraw + projPixel->bb_cell_index;
+					last_partial_redraw_cell->x1 = MIN2( last_partial_redraw_cell->x1, projPixel->x_px );
+					last_partial_redraw_cell->y1 = MIN2( last_partial_redraw_cell->y1, projPixel->y_px );
 					
-					last_partial_redraw->x1 = MIN2( last_partial_redraw->x1, projPixel->x_px );
-					last_partial_redraw->y1 = MIN2( last_partial_redraw->y1, projPixel->y_px );
-					
-					last_partial_redraw->x2 = MAX2( last_partial_redraw->x2, projPixel->x_px );
-					last_partial_redraw->y2 = MAX2( last_partial_redraw->y2, projPixel->y_px );
+					last_partial_redraw_cell->x2 = MAX2( last_partial_redraw_cell->x2, projPixel->x_px+1 );
+					last_partial_redraw_cell->y2 = MAX2( last_partial_redraw_cell->y2, projPixel->y_px+1 );
 					
 					dist = (float)sqrt(dist_nosqrt);
 					
@@ -3128,7 +3163,7 @@ typedef struct ProjectHandle {
 	float pressure;
 	
 	/* annoying but we need to have image bounds per thread, then merge into ps->projectPartialRedraws */
-	ImagePaintPartialRedraw	*projectPartialRedraws;	/* array of partial redraws */
+	ImagePaintPartialRedraw	*projectPartialRedraws[PROJ_BOUNDBOX_SQUARED];	/* array of partial redraws */
 	
 	/* thread settings */
 	int thread_tot;
@@ -3178,6 +3213,8 @@ static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPain
 	
 	/* get the threads running */
 	for(a=0; a < ps->thread_tot; a++) {
+		int i;
+		
 #ifdef PROJ_DEBUG_PRINT_THREADS
 		printf("INIT THREAD %d\n", a);
 #endif
@@ -3196,10 +3233,14 @@ static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPain
 		handles[a].thread_index = a;
 		handles[a].ready = 0;
 		
-		/* image bounds */
-		handles[a].projectPartialRedraws = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->projectArena, ps->projectImageTotal * sizeof(ImagePaintPartialRedraw));
+		*(handles[a].projectPartialRedraws) = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->projectArena, ps->projectImageTotal * sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		
-		memcpy(handles[a].projectPartialRedraws, ps->projectPartialRedraws, ps->projectImageTotal * sizeof(ImagePaintPartialRedraw) );
+		/* image bounds */
+		for (i=1; i< ps->projectImageTotal; i++) {
+			handles[a].projectPartialRedraws[i] = *(handles[a].projectPartialRedraws) + (i * PROJ_BOUNDBOX_SQUARED);
+		}
+		
+		memcpy(*(handles[a].projectPartialRedraws), *(ps->projectPartialRedraws), ps->projectImageTotal * sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED );
 		
 		BLI_insert_thread(&threads, &handles[a]);
 	}
@@ -3218,7 +3259,7 @@ static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPain
 	
 	/* move threaded bounds back into ps->projectPartialRedraws */
 	for(a=0; a < ps->thread_tot; a++) {
-		partial_redraw_array_merge(ps->projectPartialRedraws, handles[a].projectPartialRedraws, ps->projectImageTotal);
+		partial_redraw_array_merge(*(ps->projectPartialRedraws), *(handles[a].projectPartialRedraws), ps->projectImageTotal * PROJ_BOUNDBOX_SQUARED);
 	}
 	
 	return imapaint_refresh_tagged(ps);
@@ -3310,7 +3351,7 @@ static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *p
 {
 	int redraw_flag = 0;
 	
-	partial_redraw_array_init(ps->projectPartialRedraws, ps->projectImageTotal);
+	partial_redraw_array_init(*ps->projectPartialRedraws, ps->projectImageTotal * PROJ_BOUNDBOX_SQUARED);
 	
 	/* TODO - support more brush operations, airbrush etc */
 	if (ps->thread_tot > 1) {
@@ -3534,7 +3575,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		time= PIL_check_seconds_timer();
 
 		if (project) { /* Projection Painting */
-			if ( ((s.brush->flag & BRUSH_AIRBRUSH) || init)  || (cmp_brush_spacing(mval, prevmval, ps.brush->size/10.0 * ps.brush->spacing )) ) {
+			if ( ((s.brush->flag & BRUSH_AIRBRUSH) || init)  || (cmp_brush_spacing(mval, prevmval, ps.brush->size/100.0 * ps.brush->spacing )) ) {
 				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, stroke_gp ? 0 : 1, time, pressure);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
