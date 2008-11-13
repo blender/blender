@@ -1133,6 +1133,14 @@ static void createTransArmatureVerts(TransInfo *t)
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
 
+					VecSubf(delta, ebo->tail, ebo->head);	
+					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
+
+					if ((ebo->flag & BONE_ROOTSEL) == 0)
+					{
+						td->extra = ebo;
+					}
+
 					td->ext = NULL;
 					td->tdi = NULL;
 					td->val = NULL;
@@ -1149,6 +1157,11 @@ static void createTransArmatureVerts(TransInfo *t)
 
 					Mat3CpyMat3(td->smtx, smtx);
 					Mat3CpyMat3(td->mtx, mtx);
+
+					VecSubf(delta, ebo->tail, ebo->head);	
+					vec_roll_to_mat3(delta, ebo->roll, td->axismtx);
+
+					td->extra = ebo; /* to fix roll */
 
 					td->ext = NULL;
 					td->tdi = NULL;
@@ -1863,7 +1876,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
-	td->tdmir = NULL;
+	td->extra = NULL;
 	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
@@ -2216,7 +2229,7 @@ static void createTransEditVerts(TransInfo *t)
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
 					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir != eve) tob->tdmir = vmir;
+					if(vmir != eve) tob->extra = vmir;
 				}
 				tob++;
 			}

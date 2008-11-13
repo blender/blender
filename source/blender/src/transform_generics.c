@@ -254,7 +254,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		eve = td->tdmir;
+		eve = td->extra;
 		if(eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
@@ -470,6 +470,8 @@ void recalcData(TransInfo *t)
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
+			TransData *td = t->data;
+			int i;
 			
 			/* Ensure all bones are correctly adjusted */
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
@@ -506,6 +508,28 @@ void recalcData(TransInfo *t)
 					ebo->oldlength= ebo->length;
 				}
 			}
+			
+			/* fix roll */
+			for(i = 0; i < t->total; i++, td++)
+			{
+				if (td->extra)
+				{
+					float vec[3], up_axis[3];
+					float qrot[4];
+					
+					ebo = td->extra;
+					
+					VecSubf(vec, ebo->tail, ebo->head);
+					Normalize(vec);
+					RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
+					
+					VECCOPY(up_axis, td->axismtx[2]);
+					QuatMulVecf(qrot, up_axis);
+					
+					ebo->roll = rollBoneToVector(ebo, up_axis);
+				}
+			}
+			
 			if(arm->flag & ARM_MIRROR_EDIT) 
 				transform_armature_mirror_update();
 			

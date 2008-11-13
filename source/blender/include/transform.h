@@ -160,7 +160,7 @@ typedef struct TransData {
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	TransDataCurveHandleFlags *hdata; /* for curves, stores handle flags for modification/cancel */
-	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
+	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 /*#ifdef WITH_VERSE*/
