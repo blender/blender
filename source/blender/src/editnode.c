@@ -180,6 +180,7 @@ static void snode_handle_recalc(SpaceNode *snode)
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		ntreeTexUpdatePreviews(snode->nodetree);
+		BIF_preview_changed(ID_TE);
 	}
 }
 

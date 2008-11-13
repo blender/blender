@@ -494,7 +494,12 @@ static void node_dynamic_update_cb(void *ntree_v, void *node_v)
 
 static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
-	short multi = (node->id && ((Tex*)node->id)->use_nodes && (node->type != CMP_NODE_TEXTURE));
+	short multi = (
+		node->id &&
+		((Tex*)node->id)->use_nodes &&
+		(node->type != CMP_NODE_TEXTURE) &&
+		(node->type != TEX_NODE_TEXTURE)
+	);
 	
 	if(block) {
 		uiBut *bt;

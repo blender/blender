@@ -3700,7 +3700,8 @@ static void material_panel_texture(Object *ob, Material *ma)
 		
 		if(mtex->tex->use_nodes) {
 			char *menustr = ntreeTexOutputMenu(mtex->tex->nodetree);
-			uiDefButS(block, MENU, B_MATPRV, menustr, 100, 100, 163, 20, &mtex->which_output, 0, 0, 0, 0, "Which output to use, for multi-output textures");
+			uiDefBut(block, LABEL, 0, "Use Output:", 100, 100, 163, 20, 0, 0, 0, 0, 0, "");
+			uiDefButS(block, MENU, B_MATPRV, menustr, 100, 80, 163, 20, &mtex->which_output, 0, 0, 0, 0, "Which output to use, for multi-output textures");
 			free(menustr);
 		}
 	}
