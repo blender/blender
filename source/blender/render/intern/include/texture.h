@@ -53,11 +53,12 @@ struct ImBuf;
 /* texture.h */
 
 void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
-void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag);
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag, short thread);
 void do_material_tex(struct ShadeInput *shi);
 void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf, int effect);
 
 void init_render_textures(Render *re);
+void end_render_textures(void);
 
 void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 

@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. ../makesdna #/intern/guardedalloc #/intern/memutil ../blenlib'
-incs += ' ../avi ../quicktime ../blenkernel'
+incs += ' ../avi ../blenkernel'
 
 incs += ' ' + env['BF_JPEG_INC']
 incs += ' ' + env['BF_PNG_INC']
@@ -36,7 +36,7 @@ if env['WITH_BF_REDCODE']:
     incs += ' ' + env['BF_REDCODE_INC']
 
 if env['WITH_BF_QUICKTIME']:
-	incs += ' ' + env['BF_QUICKTIME_INC']
+	incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
 
 env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )

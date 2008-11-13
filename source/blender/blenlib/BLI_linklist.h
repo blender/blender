@@ -45,6 +45,7 @@ typedef struct LinkNode {
 } LinkNode;
 
 int		BLI_linklist_length		(struct LinkNode *list);
+int		BLI_linklist_index		(struct LinkNode *list, void *ptr);
 
 void	BLI_linklist_reverse	(struct LinkNode **listp);
 

@@ -451,6 +451,9 @@ static void node_browse_tex_cb(void *ntree_v, void *node_v)
 	
 	nodeSetActive(ntree, node);
 	
+	if( ntree->type == NTREE_TEXTURE )
+		ntreeTexCheckCyclics( ntree );
+	
 	allqueue(REDRAWBUTSSHADING, 0);
 	allqueue(REDRAWNODE, 0);
 	NodeTagChanged(ntree, node); 
@@ -491,29 +494,45 @@ static void node_dynamic_update_cb(void *ntree_v, void *node_v)
 
 static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
+	short multi = (
+		node->id &&
+		((Tex*)node->id)->use_nodes &&
+		(node->type != CMP_NODE_TEXTURE) &&
+		(node->type != TEX_NODE_TEXTURE)
+	);
+	
 	if(block) {
 		uiBut *bt;
 		char *strp;
+		short width = (short)(butr->xmax - butr->xmin);
 		
 		/* browse button texture */
 		uiBlockBeginAlign(block);
 		IDnames_to_pupstring(&strp, NULL, "", &(G.main->tex), NULL, NULL);
 		node->menunr= 0;
 		bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp, 
-					  butr->xmin, butr->ymin, 20, 19, 
+				butr->xmin, butr->ymin+(multi?30:0), 20, 19, 
 					  &node->menunr, 0, 0, 0, 0, "Browse texture");
 		uiButSetFunc(bt, node_browse_tex_cb, ntree, node);
 		if(strp) MEM_freeN(strp);
 		
 		if(node->id) {
 			bt= uiDefBut(block, TEX, B_NOP, "TE:",
-						 butr->xmin+19, butr->ymin, butr->xmax-butr->xmin-19, 19, 
+					butr->xmin+19, butr->ymin+(multi?30:0), butr->xmax-butr->xmin-19, 19, 
 						 node->id->name+2, 0.0, 19.0, 0, 0, "Texture name");
 			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
 		}
+		uiBlockEndAlign(block);
 		
+		if(multi) {
+			char *menustr = ntreeTexOutputMenu(((Tex*)node->id)->nodetree);
+			uiDefButS(block, MENU, B_MATPRV, menustr, butr->xmin, butr->ymin, width, 19, &node->custom1, 0, 0, 0, 0, "Which output to use, for multi-output textures");
+			free(menustr);
+			return 50;
+		}
+		return 20;
 	}	
-	return 19;
+	else return multi? 50: 20;
 }
 
 static int node_buts_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
@@ -2183,6 +2202,261 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 	}
 }
 
+/* ****************** BUTTON CALLBACKS FOR TEXTURE NODES ***************** */
+
+static int node_texture_buts_bricks(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		short w = butr->xmax-butr->xmin;
+		short ofw = 32;
+		
+		uiBlockBeginAlign(block);
+		
+		/* Offset */
+		uiDefButF(
+			block, NUM, B_NODE_EXEC+node->nr, "Offset",
+			butr->xmin, butr->ymin+20, w-ofw, 20,
+			&node->custom3,
+			0, 1, 0.25, 2,
+			"Offset amount" );
+		uiDefButS(
+			block, NUM, B_NODE_EXEC+node->nr, "",
+			butr->xmin+w-ofw, butr->ymin+20, ofw, 20,
+			&node->custom1,
+			2, 99, 0, 0,
+			"Offset every N rows" );
+		
+		/* Squash */
+		uiDefButF(
+			block, NUM, B_NODE_EXEC+node->nr, "Squash",
+			butr->xmin, butr->ymin+0, w-ofw, 20,
+			&node->custom4,
+			0, 99, 0.25, 2,
+			"Stretch amount" );
+		uiDefButS(
+			block, NUM, B_NODE_EXEC+node->nr, "",
+			butr->xmin+w-ofw, butr->ymin+0, ofw, 20,
+			&node->custom2,
+			2, 99, 0, 0,
+			"Stretch every N rows" );
+		
+		uiBlockEndAlign(block);
+	}
+	return 40;
+}
+
+/* Copied from buttons_shading.c -- needs unifying */
+static char* noisebasis_menu()
+{
+	static char nbmenu[256];
+	sprintf(nbmenu, "Noise Basis %%t|Blender Original %%x%d|Original Perlin %%x%d|Improved Perlin %%x%d|Voronoi F1 %%x%d|Voronoi F2 %%x%d|Voronoi F3 %%x%d|Voronoi F4 %%x%d|Voronoi F2-F1 %%x%d|Voronoi Crackle %%x%d|CellNoise %%x%d", TEX_BLENDER, TEX_STDPERLIN, TEX_NEWPERLIN, TEX_VORONOI_F1, TEX_VORONOI_F2, TEX_VORONOI_F3, TEX_VORONOI_F4, TEX_VORONOI_F2F1, TEX_VORONOI_CRACKLE, TEX_CELLNOISE);
+	return nbmenu;
+}
+
+static int node_texture_buts_proc(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	Tex *tex = (Tex *)node->storage;
+	short x,y,w,h;
+	
+	if( block ) {
+		x = butr->xmin;
+		y = butr->ymin;
+		w = butr->xmax - x;
+		h = butr->ymax - y;
+	}
+	
+	switch( tex->type ) {
+		case TEX_BLEND:
+			if( block ) {
+				uiBlockBeginAlign( block );
+				uiDefButS( block, MENU, B_NODE_EXEC+node->nr,
+					"Linear %x0|Quad %x1|Ease %x2|Diag %x3|Sphere %x4|Halo %x5|Radial %x6",
+					x, y+20, w, 20, &tex->stype, 0, 1, 0, 0, "Blend Type" );
+				uiDefButBitS(block, TOG, TEX_FLIPBLEND, B_NODE_EXEC+node->nr, "Flip XY", x, y, w, 20,
+					&tex->flag, 0, 0, 0, 0, "Flips the direction of the progression 90 degrees");
+				uiBlockEndAlign( block );
+			}
+			return 40;
+			
+			
+		case TEX_MARBLE:
+			if( block ) {
+				uiBlockBeginAlign(block);
+			
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Soft",       0*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SOFT, 0, 0, "Uses soft marble"); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Sharp",      1*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SHARP, 0, 0, "Uses more clearly defined marble"); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Sharper",    2*w/3+x, 40+y, w/3, 18, &tex->stype, 2.0, (float)TEX_SHARPER, 0, 0, "Uses very clearly defined marble"); 
+				
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Soft noise", 0*w/2+x, 20+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Hard noise", 1*w/2+x, 20+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
+				
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Sin",        0*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Saw",        1*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Tri",        2*w/3+x,  0+y, w/3, 18, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands"); 
+            
+				uiBlockEndAlign(block);
+			}
+			return 60;
+			
+		case TEX_WOOD:
+			if( block ) {
+				uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+64, w, 18, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+				
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW, B_TEXPRV,             "Bands",     x,  40+y, w/2, 18, &tex->stype, 2.0, (float)TEX_BANDNOISE, 0, 0, "Uses standard noise"); 
+				uiDefButS(block, ROW, B_TEXPRV,             "Rings", w/2+x,  40+y, w/2, 18, &tex->stype, 2.0, (float)TEX_RINGNOISE, 0, 0, "Lets Noise return RGB value"); 
+				
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Sin", 0*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_SIN, 0, 0, "Uses a sine wave to produce bands."); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Saw", 1*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_SAW, 0, 0, "Uses a saw wave to produce bands"); 
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Tri", 2*w/3+x,  20+y, w/3, 18, &tex->noisebasis2, 8.0, (float)TEX_TRI, 0, 0, "Uses a triangle wave to produce bands");
+				
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Soft noise", 0*w/2+x, 0+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+				uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Hard noise", 1*w/2+x, 0+y, w/2, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
+				uiBlockEndAlign(block);
+			}
+			return 80; 
+			
+		case TEX_CLOUDS:
+			if( block ) {
+				uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+60, w, 18, &tex->noisebasis, 0,0,0,0, "Sets the noise basis used for turbulence");
+				
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW, B_TEXPRV, "B/W",       x, y+38, w/2, 18, &tex->stype, 2.0, (float)TEX_DEFAULT, 0, 0, "Uses standard noise"); 
+				uiDefButS(block, ROW, B_TEXPRV, "Color", w/2+x, y+38, w/2, 18, &tex->stype, 2.0, (float)TEX_COLOR, 0, 0, "Lets Noise return RGB value"); 
+				uiDefButS(block, ROW, B_TEXPRV, "Soft",      x, y+20, w/2, 18, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+				uiDefButS(block, ROW, B_TEXPRV, "Hard",  w/2+x, y+20, w/2, 18, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
+				uiBlockEndAlign(block);
+				
+				uiDefButS(block, NUM, B_TEXPRV, "Depth:", x, y, w, 18, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
+			}
+			return 80;
+			
+		case TEX_DISTNOISE:
+			if( block ) {
+				uiBlockBeginAlign(block);
+				uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y+18, w, 18, &tex->noisebasis2, 0,0,0,0, "Sets the noise basis to distort");
+				uiDefButS(block, MENU, B_TEXPRV, noisebasis_menu(), x, y,    w, 18, &tex->noisebasis,  0,0,0,0, "Sets the noise basis which does the distortion");
+				uiBlockEndAlign(block);
+			}
+			return 36;
+	}
+	return 0;
+}
+
+static int node_texture_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	char *strp;
+	uiBut *bt;
+	
+	if( block ) {
+		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		
+		/* browse button */
+		IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
+		node->menunr= 0;
+		bt= uiDefButS(block, MENU, B_NOP, strp, 
+					  butr->xmin, butr->ymin, 19, 19, 
+					  &node->menunr, 0, 0, 0, 0, "Browses existing choices");
+		uiButSetFunc(bt, node_browse_image_cb, ntree, node);
+		if(strp) MEM_freeN(strp);
+		
+		/* Add New button */
+		if(node->id==NULL) {
+			bt= uiDefBut(block, BUT, B_NODE_LOADIMAGE, "Load New",
+						 butr->xmin+19, butr->ymin, (short)(butr->xmax-butr->xmin-19.0f), 19, 
+						 NULL, 0.0, 0.0, 0, 0, "Add new Image");
+			uiButSetFunc(bt, node_active_cb, ntree, node);
+			uiBlockSetCol(block, TH_AUTO);
+		}
+		else {
+			/* name button */
+			short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
+			short width= xmax - xmin - 19;
+			
+			bt= uiDefBut(block, TEX, B_NOP, "IM:",
+						 xmin+19, butr->ymin, width, 19, 
+						 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
+			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
+		}
+	}
+	return 20;
+}
+
+static int node_texture_buts_output(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if( block ) {
+		uiBut *bt;
+		short width;
+		char *name = ((TexNodeOutput*)node->storage)->name;
+		
+		uiBlockBeginAlign(block);
+		
+		width = (short)(butr->xmax - butr->xmin);
+		
+		bt = uiDefBut(
+			block, TEX, B_NOP,
+			"Name:",
+			butr->xmin, butr->ymin,
+			width, 19, 
+			name, 0, 31,
+			0, 0, 
+			"Name this output"
+		);
+		
+		uiBlockEndAlign(block);
+	}
+	return 19;
+}
+
+/* only once called */
+static void node_texture_set_butfunc(bNodeType *ntype)
+{
+	if( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
+		ntype->butfunc = node_texture_buts_proc;
+	}
+	else switch(ntype->type) {
+		
+		case TEX_NODE_MATH:
+			ntype->butfunc = node_buts_math;
+			break;
+		
+		case TEX_NODE_MIX_RGB:
+			ntype->butfunc = node_buts_mix_rgb;
+			break;
+			
+		case TEX_NODE_VALTORGB:
+			ntype->butfunc = node_buts_valtorgb;
+			break;
+			
+		case TEX_NODE_CURVE_RGB:
+			ntype->butfunc= node_buts_curvecol;
+			break;
+			
+		case TEX_NODE_CURVE_TIME:
+			ntype->butfunc = node_buts_time;
+			break;
+			
+		case TEX_NODE_TEXTURE:
+			ntype->butfunc = node_buts_texture;
+			break;
+			
+		case TEX_NODE_BRICKS:
+			ntype->butfunc = node_texture_buts_bricks;
+			break;
+			
+		case TEX_NODE_IMAGE:
+			ntype->butfunc = node_texture_buts_image;
+			break;
+			
+		case TEX_NODE_OUTPUT:
+			ntype->butfunc = node_texture_buts_output;
+			break;
+			
+		default:
+			ntype->butfunc= NULL;
+	}
+}
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */
 
@@ -2200,6 +2474,11 @@ void init_node_butfuncs(void)
 	ntype= node_all_composit.first;
 	while(ntype) {
 		node_composit_set_butfunc(ntype);
+		ntype= ntype->next;
+	}
+	ntype = node_all_textures.first;
+	while(ntype) {
+		node_texture_set_butfunc(ntype);
 		ntype= ntype->next;
 	}
 }

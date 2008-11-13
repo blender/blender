@@ -6,7 +6,7 @@ sources = 'creator.c'
 incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
 incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
 incs += ' ../blender/renderconverter ../blender/render/extern/include'
-incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
+incs += ' ../blender/makesdna ../kernel/gen_messaging'
 incs += ' ../kernel/gen_system #/extern/glew/include ../blender/gpu'
 incs += ' ' + env['BF_OPENGL_INC']
 
@@ -25,7 +25,9 @@ if env['WITH_BF_OPENEXR']:
 if not env['WITH_BF_SDL']:
 	defs.append('DISABLE_SDL')
 
-if not env['WITH_BF_PYTHON']:
-	defs.append('DISABLE_PYTHON')
+if env['WITH_BF_PYTHON']:
+    incs += ' ../blender/python'
+else:
+    defs.append('DISABLE_PYTHON')
 
 env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

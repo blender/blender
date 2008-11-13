@@ -427,6 +427,15 @@ static void do_update_for_newframe(int mute, int events)
 	/* composite */
 	if(G.scene->use_nodes && G.scene->nodetree)
 		ntreeCompositTagAnimated(G.scene->nodetree);
+	
+	/* update animated texture nodes */
+	{
+		Tex *tex;
+		for(tex= G.main->tex.first; tex; tex= tex->id.next)
+		if( tex->use_nodes && tex->nodetree ) {
+			ntreeTexTagAnimated( tex->nodetree );
+		}
+	}
 }
 
 void update_for_newframe(void)
@@ -858,10 +867,25 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_EXTEXBROWSE: 
 	case B_TEXBROWSE:
-
-		if(G.buts->texnr== -2) {
+	{
+		void  *lockpoin = NULL;
+		short *menunr = 0;
+		
+		/* this is called now from Node editor too, buttons might not exist */
+		if(curarea->spacetype==SPACE_NODE) {
+			SpaceNode *snode = curarea->spacedata.first;
+			menunr = &snode->menunr;
+			lockpoin = snode->id;
+		}
+		else if(G.buts) {
+			menunr = &G.buts->texnr;
+			lockpoin = G.buts->lockpoin;
+		}
+		else return;
+		
+		if(*menunr == -2) {
 			
-			id= G.buts->lockpoin;
+			id= lockpoin;
 			if(event==B_EXTEXBROWSE) {
 				id= NULL;
 				ma= give_current_material(ob, ob->actcol);
@@ -872,16 +896,16 @@ void do_global_buttons(unsigned short event)
 				}
 			}
 			if(G.qual & LR_CTRLKEY) {
-				activate_databrowse_imasel(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+				activate_databrowse_imasel((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			else {
-				activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+				activate_databrowse((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			return;
 		}
-		if(G.buts->texnr < 0) break;
+		if(*menunr < 0) break;
 		
-		if(G.buts->pin) {
+		if(G.buts && G.buts->pin) {
 			
 		}
 		else {
@@ -896,7 +920,7 @@ void do_global_buttons(unsigned short event)
 
 			idtest= G.main->tex.first;
 			while(idtest) {
-				if(nr==G.buts->texnr) {
+				if(nr==*menunr) {
 					break;
 				}
 				nr++;
@@ -919,10 +943,12 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWNODE, 0);
 				BIF_preview_changed(ID_MA);
 			}
 		}
 		break;
+	}
 	case B_ACTIONDELETE:
 		/* only available when not pinned */
 		if (G.saction->pin == 0) {

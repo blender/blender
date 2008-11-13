@@ -258,8 +258,16 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_bmfont", "..\..\intern\bmfont\make\msvc_9_0\bmfont.vcproj", "{E784098D-3ED8-433A-9353-9679415DDDC5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_boolop", "..\..\intern\boolop\make\msvc_9_0\boolop.vcproj", "{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+		{1CC733F1-6AB5-4904-8F63-C08C46B79DD9} = {1CC733F1-6AB5-4904-8F63-C08C46B79DD9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_bsplib", "..\..\intern\bsp\make\msvc_9_0\bsplib.vcproj", "{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_container", "..\..\intern\container\make\msvc_9_0\container.vcproj", "{51A348C1-8684-4D67-B980-97B1FC74159B}"
 EndProject
@@ -280,10 +288,17 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_MoTo", "..\..\intern\moto\make\msvc_9_0\moto.vcproj", "{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_OpenALSoundSystem", "..\..\intern\SoundSystem\make\msvc_9_0\openal\OpenALSoundSystem.vcproj", "{213356A9-3A1F-41DA-9819-1297BCD17DEE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6} = {98330220-47A6-42E0-9DE4-AD0FF5D204D6}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_opennl", "..\..\intern\opennl\make\msvc_9_0\opennl.vcproj", "{8B8D4FC3-3234-4E54-8376-5AB83D00D164}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_SoundSystem", "..\..\intern\SoundSystem\make\msvc_9_0\SoundSystem.vcproj", "{98330220-47A6-42E0-9DE4-AD0FF5D204D6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INT_string", "..\..\intern\string\make\msvc_9_0\string.vcproj", "{B789C2F3-279E-4A85-8F0A-7F7AC068E598}"
 EndProject
@@ -693,9 +708,13 @@ Global
 		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.BlenderPlayer Debug|Win32.ActiveCfg = Blender Debug|Win32
 		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.BlenderPlayer Release|Win32.ActiveCfg = Blender Release|Win32
 		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Debug|Win32.Build.0 = Blender Debug|Win32
 		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Release|Win32.ActiveCfg = Blender Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Release|Win32.Build.0 = Blender Release|Win32
 		{51A348C1-8684-4D67-B980-97B1FC74159B}.BlenderPlayer Debug|Win32.ActiveCfg = Blender Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.BlenderPlayer Debug|Win32.Build.0 = Blender Debug|Win32
 		{51A348C1-8684-4D67-B980-97B1FC74159B}.BlenderPlayer Release|Win32.ActiveCfg = Blender Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.BlenderPlayer Release|Win32.Build.0 = Blender Release|Win32
 		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Debug|Win32.ActiveCfg = Blender Debug|Win32
 		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Debug|Win32.Build.0 = Blender Debug|Win32
 		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Release|Win32.ActiveCfg = Blender Release|Win32

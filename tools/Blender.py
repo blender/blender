@@ -99,7 +99,10 @@ def create_blender_liblist(lenv = None, libtype = None):
 		sortlist.sort()
 		for sk in sortlist:
 			v = curlib[sk]
-			lst.append('#' + root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX'])
+			target = root_build_dir + 'lib/'+lenv['LIBPREFIX'] + v + lenv['LIBSUFFIX']
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+				target = '#'+target
+			lst.append(target)
 
 	return lst
 
@@ -324,7 +327,6 @@ def AppIt(target=None, source=None, env=None):
 	if b=='verse':
 		print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
 		return 0
-   
 	
 	sourcedir = bldroot + '/source/darwin/%s.app'%binary
 	sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
@@ -419,10 +421,6 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv = self.Clone()
 			lenv.Append(CPPPATH=includes)
 			lenv.Append(CPPDEFINES=defines)
-			if lenv['WITH_BF_GAMEENGINE']:
-					lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
-			if lenv['WITH_BF_BULLET']:
-					lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
 			if lenv['BF_DEBUG'] or (libname in quickdebug):
 					lenv.Append(CFLAGS = lenv['BF_DEBUG_CFLAGS'])
 					lenv.Append(CCFLAGS = lenv['BF_DEBUG_CCFLAGS'])
@@ -442,9 +440,13 @@ class BlenderEnvironment(SConsEnvironment):
 			if cxx_compileflags:
 				lenv.Append(CXXFLAGS = cxx_compileflags)
 			lenv.Append(CFLAGS = lenv['C_WARN'])
-			lenv.Append(CCLAGS = lenv['CC_WARN'])
+			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
-			lib = lenv.Library(target= '#'+root_build_dir+'lib/'+libname, source=sources)
+			
+			targetdir = root_build_dir+'lib/' + libname
+			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+				targetdir = '#'+targetdir
+			lib = lenv.Library(target= targetdir, source=sources)
 			SConsEnvironment.Default(self, lib) # we add to default target, because this way we get some kind of progress info during build
 		else:
 			print bc.WARNING+'Not building '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC+' for '+bc.OKBLUE+'BF_QUICK'+bc.ENDC
@@ -476,6 +478,8 @@ class BlenderEnvironment(SConsEnvironment):
 		if lenv['BF_PROFILE']:
 				lenv.Append(LINKFLAGS = lenv['BF_PROFILE_FLAGS'])
 		lenv.Append(CPPPATH=includes)
+		if root_build_dir[0]==os.sep or root_build_dir[1]==':':
+			lenv.Append(LIBPATH=root_build_dir + '/lib')
 		lenv.Append(LIBPATH=libpath)
 		lenv.Append(LIBS=libs)
 		if lenv['WITH_BF_QUICKTIME']:

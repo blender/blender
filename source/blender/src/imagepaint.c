@@ -283,19 +283,6 @@ static ListBase undobase = {NULL, NULL};
 static UndoElem *curundo = NULL;
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
-
-static int BLI_linklist_index(struct LinkNode *list, void *ptr)
-{
-	int index;
-	
-	for (index = 0; list; list= list->next, index++) {
-		if (list->link == ptr)
-			return index;
-	}
-	
-	return -1;
-}
-
 /* UNDO */
 
 /* internal functions */
