@@ -335,7 +335,7 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 	vol_get_absorption(shi, absorb_col, co);
 
 	dist = VecLenf(co, endco);
-	nsteps = (int)ceil(dist / stepsize);
+	nsteps = (int)((dist / stepsize) + 0.5);
 	
 	/* trigger for recalculating density */
 	if (density < -0.001f) density = vol_get_density(shi, co);
@@ -491,7 +491,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	tr[0] = tr[1] = tr[2] = 1.0f;
 	
 	/* ray marching */
-	nsteps = (int)ceil(VecLenf(co, endco) / stepsize);
+	nsteps = (int)((VecLenf(co, endco) / stepsize) + 0.5);
 	
 	VecSubf(vec, endco, co);
 	VECCOPY(stepvec, vec);
