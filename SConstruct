@@ -472,6 +472,13 @@ if env['OURPLATFORM']=='linux2':
 		td, tf = os.path.split(targetdir)
 		iconinstall.append(env.Install(dir=td, source=srcfile))
 
+# dlls for linuxcross
+# TODO - add more libs, for now this lets blenderlite run
+if env['OURPLATFORM']=='linuxcross':
+	dir=env['BF_INSTALLDIR']
+	source = ['../lib/windows/pthreads/lib/pthreadGC2.dll']
+	scriptinstall.append(env.Install(dir=dir, source=source))
+
 #-- plugins
 pluglist = []
 plugtargetlist = []
