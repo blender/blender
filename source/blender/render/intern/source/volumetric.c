@@ -984,7 +984,7 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 			
 			for (z=0; z < res; z++) {
 				co[2] = bbmin[2] + (voxel[2] * z);
-			
+				
 				time= PIL_check_seconds_timer();
 				i++;
 			
@@ -1012,6 +1012,9 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
 					continue;
 				}
+				
+				VECCOPY(shi.view, co);
+				Normalize(shi.view);
 				density = vol_get_density(&shi, co);
 				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
 			
