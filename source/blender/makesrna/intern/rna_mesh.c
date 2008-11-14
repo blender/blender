@@ -49,11 +49,13 @@ void RNA_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MVert");
+	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
 
 	/* vertex */
 	srna= RNA_def_struct(brna, "MVert", "Mesh Vertex");
 
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_ui_text(prop, "Location", "Location of the vertex.");
 }
 
 #endif

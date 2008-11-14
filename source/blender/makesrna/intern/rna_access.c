@@ -355,12 +355,41 @@ StructRNA *RNA_property_pointer_type(PropertyRNA *prop, PointerRNA *ptr)
 	return pprop->structtype;
 }
 
+static StructRNA *rna_property_collection_type(PropertyRNA *prop, CollectionPropertyIterator *iter)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+
+	if(cprop->type)
+		return cprop->type(iter);
+	
+	return cprop->structtype;
+}
+
+static void rna_property_collection_get(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *r_ptr)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+
+	r_ptr->data= cprop->get(iter);
+
+	if(r_ptr->data) {
+		r_ptr->type= rna_property_collection_type(prop, iter);
+		rna_pointer_inherit_id(&iter->parent, r_ptr);
+	}
+	else
+		memset(r_ptr, 0, sizeof(*r_ptr));
+}
+
 void RNA_property_collection_begin(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
-	iter->pointer= *ptr;
+	iter->parent= *ptr;
 	cprop->begin(iter, ptr);
+
+	if(iter->valid)
+		rna_property_collection_get(prop, iter, &iter->ptr);
+	else
+		memset(&iter->ptr, 0, sizeof(iter->ptr));
 }
 
 void RNA_property_collection_next(PropertyRNA *prop, CollectionPropertyIterator *iter)
@@ -368,6 +397,11 @@ void RNA_property_collection_next(PropertyRNA *prop, CollectionPropertyIterator 
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	cprop->next(iter);
+
+	if(iter->valid)
+		rna_property_collection_get(prop, iter, &iter->ptr);
+	else
+		memset(&iter->ptr, 0, sizeof(iter->ptr));
 }
 
 void RNA_property_collection_end(PropertyRNA *prop, CollectionPropertyIterator *iter)
@@ -376,30 +410,6 @@ void RNA_property_collection_end(PropertyRNA *prop, CollectionPropertyIterator *
 
 	if(cprop->end)
 		cprop->end(iter);
-}
-
-void RNA_property_collection_get(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *r_ptr)
-{
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-
-	r_ptr->data= cprop->get(iter);
-
-	if(r_ptr->data) {
-		r_ptr->type= RNA_property_collection_type(prop, iter);
-		rna_pointer_inherit_id(&iter->pointer, r_ptr);
-	}
-	else
-		memset(r_ptr, 0, sizeof(*r_ptr));
-}
-
-StructRNA *RNA_property_collection_type(PropertyRNA *prop, CollectionPropertyIterator *iter)
-{
-	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-
-	if(cprop->type)
-		return cprop->type(iter);
-	
-	return cprop->structtype;
 }
 
 int RNA_property_collection_length(PropertyRNA *prop, PointerRNA *ptr)
@@ -451,7 +461,7 @@ int RNA_property_collection_lookup_int(PropertyRNA *prop, PointerRNA *ptr, int k
 		RNA_property_collection_begin(prop, &iter, ptr);
 		for(i=0; iter.valid; RNA_property_collection_next(prop, &iter), i++) {
 			if(i == key) {
-				RNA_property_collection_get(prop, &iter, r_ptr);
+				*r_ptr= iter.ptr;
 				break;
 			}
 		}
@@ -488,18 +498,15 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 		/* no callback defined, compare with name properties if they exist */
 		CollectionPropertyIterator iter;
 		PropertyRNA *nameprop;
-		PointerRNA iterptr;
 		char name[256], *nameptr;
 		int length, alloc, found= 0;
 
 		RNA_property_collection_begin(prop, &iter, ptr);
 		for(; iter.valid; RNA_property_collection_next(prop, &iter)) {
-			RNA_property_collection_get(prop, &iter, &iterptr);
+			if(iter.ptr.data && iter.ptr.type->nameproperty) {
+				nameprop= iter.ptr.type->nameproperty;
 
-			if(iterptr.data && iterptr.type->nameproperty) {
-				nameprop= iterptr.type->nameproperty;
-
-				length= RNA_property_string_length(nameprop, &iterptr);
+				length= RNA_property_string_length(nameprop, &iter.ptr);
 
 				if(sizeof(name)-1 < length) {
 					nameptr= name;
@@ -510,10 +517,10 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 					alloc= 1;
 				}
 
-				RNA_property_string_get(nameprop, &iterptr, nameptr);
+				RNA_property_string_get(nameprop, &iter.ptr, nameptr);
 
 				if(strcmp(nameptr, key) == 0) {
-					*r_ptr= iterptr;
+					*r_ptr= iter.ptr;
 					found= 1;
 				}
 
@@ -670,14 +677,8 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 		prop= NULL;
 
 		for(; iter.valid; RNA_property_collection_next(iterprop, &iter)) {
-			PointerRNA cptr;
-			PropertyRNA *cprop;
-
-			RNA_property_collection_get(iterprop, &iter, &cptr);
-			cprop= cptr.data;
-
-			if(strcmp(token, cprop->cname) == 0) {
-				prop= cprop;
+			if(strcmp(token, RNA_property_cname(iter.ptr.data, &iter.ptr)) == 0) {
+				prop= iter.ptr.data;
 				break;
 			}
 		}

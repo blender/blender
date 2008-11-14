@@ -34,6 +34,7 @@
 
 #ifdef RNA_RUNTIME
 
+#if 0
 static StructRNA *rna_Object_data_type(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->data;
@@ -65,6 +66,7 @@ static StructRNA *rna_Object_data_type(PointerRNA *ptr)
 			return NULL;
 	}
 }
+#endif
 
 #else
 
@@ -77,14 +79,17 @@ void RNA_def_object(BlenderRNA *brna)
 
 	RNA_def_ID(srna);
 
-	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+	/*prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_data_type", NULL);
+	RNA_def_property_ui_text(prop, "Data", "Object data."); */
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
 
 	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
 }
 
 #endif

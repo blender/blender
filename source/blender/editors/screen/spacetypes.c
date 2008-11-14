@@ -50,6 +50,7 @@ void ED_spacetypes_init(void)
 	SpaceType *type;
 
 	/* create space types */
+	ED_spacetype_outliner();
 	ED_spacetype_time();
 	ED_spacetype_view3d();
 //	ED_spacetype_ipo();

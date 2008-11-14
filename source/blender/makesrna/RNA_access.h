@@ -108,8 +108,6 @@ StructRNA *RNA_property_pointer_type(PropertyRNA *prop, PointerRNA *ptr);
 void RNA_property_collection_begin(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *ptr);
 void RNA_property_collection_next(PropertyRNA *prop, CollectionPropertyIterator *iter);
 void RNA_property_collection_end(PropertyRNA *prop, CollectionPropertyIterator *iter);
-void RNA_property_collection_get(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *r_ptr);
-StructRNA *RNA_property_collection_type(PropertyRNA *prop, CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PropertyRNA *prop, PointerRNA *ptr);
 int RNA_property_collection_lookup_int(PropertyRNA *prop, PointerRNA *ptr, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, const char *key, PointerRNA *r_ptr);

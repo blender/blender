@@ -272,6 +272,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *cname, int type, int 
 
 			iprop->softmin= (subtype == PROP_UNSIGNED)? 0: -10000; /* rather arbitrary .. */
 			iprop->softmax= 10000;
+			iprop->step= 1;
 			break;
 		}
 		case PROP_FLOAT: {
@@ -284,6 +285,8 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *cname, int type, int 
 
 			fprop->softmin= (subtype == PROP_UNSIGNED)? 0.0f: -10000.0f; /* rather arbitrary .. */
 			fprop->softmax= 10000.0f;
+			fprop->step= 10;
+			fprop->precision= 3;
 			break;
 		}
 		case PROP_STRING: {
@@ -372,7 +375,9 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *cname, int type, int 
 
 void RNA_def_property_flag(PropertyRNA *prop, int flag)
 {
+#if 0
 	StructDefRNA *ds= DefRNA.structs.last;
+#endif
 
 	prop->flag |= flag;
 

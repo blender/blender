@@ -26,15 +26,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+#include <stdlib.h>
 
-/* the pluginnable API for export to editors */
+#include "DNA_windowmanager_types.h"
 
-/* calls for registering default spaces */
-void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
-void ED_spacetype_view3d(void);
+/* ************************** registration **********************************/
 
-#endif /* ED_AREA_H */
+void outliner_operatortypes(void)
+{
+}
+
+void outliner_keymap(wmWindowManager *wm)
+{
+}
 

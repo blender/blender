@@ -207,6 +207,9 @@ typedef struct SpaceOops {
 	
 	short type, outlinevis, storeflag;
 	short deps_flags;
+
+	/* RNA */
+	char *rnapath;
 	
 } SpaceOops;
 

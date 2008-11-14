@@ -2232,64 +2232,73 @@ uiBut *uiDefRNABut(uiBlock *block, int retval, PointerRNA *ptr, PropertyRNA *pro
 {
 	uiBut *but;
 
-	switch(prop->type) {
+	switch(RNA_property_type(prop, ptr)) {
 		case PROP_BOOLEAN: {
-			int value;
+			int value, length;
 
-			if(prop->arraylength)
+			length= RNA_property_array_length(prop, ptr);
+
+			if(length)
 				value= RNA_property_boolean_get_array(prop, ptr, index);
 			else
 				value= RNA_property_boolean_get(prop, ptr);
 
-			but= ui_def_but(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)prop->description);
+			but= ui_def_but(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)RNA_property_ui_description(prop, ptr));
 			break;
 		}
 		case PROP_INT: {
-			IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
-			but= ui_def_but(block, NUM, 0, "", x1, y1, x2, y2, NULL, iprop->softmin, iprop->softmax, iprop->step, 0, (char*)prop->description);
+			int softmin, softmax, step;
+
+			RNA_property_int_ui_range(prop, ptr, &softmin, &softmax, &step);
+			but= ui_def_but(block, NUM, 0, "", x1, y1, x2, y2, NULL, softmin, softmax, step, 0, (char*)RNA_property_ui_description(prop, ptr));
 			break;
 		}
 		case PROP_FLOAT: {
-			FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
-			but= ui_def_but(block, NUM, 0, "", x1, y1, x2, y2, NULL, fprop->softmin, fprop->softmax, fprop->step, fprop->precision, (char*)prop->description);
+			float softmin, softmax, step, precision;
+
+			RNA_property_float_ui_range(prop, ptr, &softmin, &softmax, &step, &precision);
+			but= ui_def_but(block, NUM, 0, "", x1, y1, x2, y2, NULL, softmin, softmax, step, precision, (char*)RNA_property_ui_description(prop, ptr));
 			break;
 		}
 		case PROP_ENUM: {
-			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+			const PropertyEnumItem *item;
 			DynStr *dynstr;
 			char *menu;
-			int i;
+			int i, totitem;
+
+			RNA_property_enum_items(prop, ptr, &item, &totitem);
 
 			dynstr= BLI_dynstr_new();
-			BLI_dynstr_appendf(dynstr, "%s%%t", prop->name);
-			for(i=0; i<eprop->totitem; i++)
-				BLI_dynstr_appendf(dynstr, "|%s %%x%d", eprop->item[i].name, eprop->item[i].value);
+			BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop, ptr));
+			for(i=0; i<totitem; i++)
+				BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
 			menu= BLI_dynstr_get_cstring(dynstr);
 			BLI_dynstr_free(dynstr);
 
-			but= ui_def_but(block, MENU, 0, menu, x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)prop->description);
+			but= ui_def_but(block, MENU, 0, menu, x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)RNA_property_ui_description(prop, ptr));
 			MEM_freeN(menu);
 			break;
 		}
 		case PROP_STRING: {
-			StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
-			but= ui_def_but(block, TEX, 0, "", x1, y1, x2, y2, NULL, 0, sprop->maxlength, 0, 0, (char*)prop->description);
+			but= ui_def_but(block, TEX, 0, "", x1, y1, x2, y2, NULL, 0, RNA_property_string_maxlength(prop, ptr), 0, 0, (char*)RNA_property_ui_description(prop, ptr));
 			break;
 		}
 		case PROP_POINTER: {
 			PointerRNA pptr;
+			PropertyRNA *nameprop;
 			char name[256]= "", *nameptr= name;
 
 			RNA_property_pointer_get(prop, ptr, &pptr);
 
 			if(pptr.data) {
-				if(pptr.type && pptr.type->nameproperty)
-					nameptr= RNA_property_string_get_alloc(pptr.type->nameproperty, &pptr, name, sizeof(name));
+				nameprop= RNA_struct_name_property(&pptr);
+				if(pptr.type && nameprop)
+					nameptr= RNA_property_string_get_alloc(nameprop, &pptr, name, sizeof(name));
 				else
-					strcpy(nameptr, "unknown");
+					strcpy(nameptr, "->");
 			}
 
-			but= ui_def_but(block, BUT, 0, nameptr, x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)prop->description);
+			but= ui_def_but(block, BUT, 0, nameptr, x1, y1, x2, y2, NULL, 0, 0, 0, 0, (char*)RNA_property_ui_description(prop, ptr));
 			but->flag |= UI_TEXT_LEFT;
 
 			if(nameptr != name)

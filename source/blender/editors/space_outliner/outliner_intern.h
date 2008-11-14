@@ -26,15 +26,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+#ifndef ED_OUTLINER_INTERN_H
+#define ED_OUTLINER_INTERN_H
 
-/* the pluginnable API for export to editors */
+/* internal exports only */
 
-/* calls for registering default spaces */
-void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
-void ED_spacetype_view3d(void);
+struct wmWindowManager;
 
-#endif /* ED_AREA_H */
+/* outliner_ops.c */
+void outliner_operatortypes(void);
+void outliner_keymap(struct wmWindowManager *wm);
+
+#endif /* ED_OUTLINER_INTERN_H */
 
