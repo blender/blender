@@ -565,6 +565,10 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 
 					fprintf(f, "};\n\n");
 				}
+				else {
+					fprintf(stderr, "rna_generate_structs: %s.%s, enum must have items defined.\n", srna->cname, prop->cname);
+					DefRNA.error= 1;
+				}
 				break;
 			}
 			case PROP_BOOLEAN: {

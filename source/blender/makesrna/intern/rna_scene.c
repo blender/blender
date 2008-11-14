@@ -41,6 +41,18 @@ void *rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return ((Base*)iter->internal)->object;
 }
 
+static void rna_Scene_layer_set(PointerRNA *ptr, int index, int value)
+{
+	Scene *scene= (Scene*)ptr->data;
+
+	if(value) scene->lay |= (1<<index);
+	else {
+		scene->lay &= ~(1<<index);
+		if(scene->lay == 0)
+			scene->lay |= (1<<index);
+	}
+}
+
 #else
 
 void RNA_def_scene(BlenderRNA *brna)
@@ -73,6 +85,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 
 	prop= RNA_def_property(srna, "prop_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);
