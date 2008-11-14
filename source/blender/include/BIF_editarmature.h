@@ -85,7 +85,8 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, struct ListBase *editbon
 
 /* -- */
 
-float rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+float	rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+
 void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
 void	editbones_to_armature (struct ListBase *list, struct Object *ob);
 

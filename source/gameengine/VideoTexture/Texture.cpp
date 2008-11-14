@@ -112,11 +112,20 @@ short getMaterialID (PyObject * obj, char * name)
 		// get material
 		RAS_IPolyMaterial * mat = getMaterial(obj, matID);
 		// if material is not available, report that no material was found
-		if (mat == NULL) break;
-		// if material name matches
-		if (strcmp(mat->GetMaterialName().ReadPtr(), name) == 0)
-			// matID is found
-			return matID;
+		if (mat == NULL) 
+			break;
+		// name is a material name if it starts with MA and a UV texture name if it starts with IM
+		if (name[0] == 'I' && name[1] == 'M')
+		{
+			// if texture name matches
+			if (strcmp(mat->GetTextureName().ReadPtr(), name) == 0)
+				return matID;
+		} else 
+		{
+			// if material name matches
+			if (strcmp(mat->GetMaterialName().ReadPtr(), name) == 0)
+				return matID;
+		}
 	}
 	// material was not found
 	return -1;

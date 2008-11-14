@@ -68,6 +68,7 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 {
 	SpaceNode *snode= sa->spacedata.first;
 	Material *ma;
+	Tex *tx;
 	
 	switch(event) {
 		case B_NODE_USEMAT:
@@ -92,6 +93,21 @@ void do_node_buttons(ScrArea *sa, unsigned short event)
 			}
 			snode_set_context(snode);
 			allqueue(REDRAWNODE, 0);
+			break;
+			
+		case B_NODE_USETEX:
+			tx = (Tex *)snode->id;
+			if(tx) {
+				tx->type = 0;
+				if(tx->use_nodes && tx->nodetree==NULL) {
+					node_texture_default(tx);
+					snode_set_context(snode);
+				}
+				BIF_preview_changed(ID_TE);
+				allqueue(REDRAWNODE, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWIPO, 0);
+			}
 			break;
 	}
 }
@@ -424,6 +440,36 @@ static uiBlock *node_add_distortmenu(void *arg_unused)
 	
 	return block;
 }
+static uiBlock *node_add_patternmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_patternmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_PATTERN, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_texturemenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_texturemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_TEXTURE, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
 static uiBlock *node_add_groupmenu(void *arg_unused)
 {
 	SpaceNode *snode= curarea->spacedata.first;
@@ -486,7 +532,17 @@ static uiBlock *node_addmenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, node_add_distortmenu, NULL, ICON_RIGHTARROW_THIN, "Distort", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
 
-	} else
+	} else if(snode->treetype==NTREE_TEXTURE) {
+		uiDefIconTextBlockBut(block, node_add_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_outputmenu, NULL, ICON_RIGHTARROW_THIN, "Output", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_colormenu, NULL, ICON_RIGHTARROW_THIN, "Color", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_patternmenu, NULL, ICON_RIGHTARROW_THIN, "Patterns", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_texturemenu, NULL, ICON_RIGHTARROW_THIN, "Textures", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_distortmenu, NULL, ICON_RIGHTARROW_THIN, "Distort", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
+	}
+	else
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 	
 	if(curarea->headertype==HEADERTOP) {
@@ -696,6 +752,9 @@ void node_buttons(ScrArea *sa)
 	xco+= XIC;
 	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,2,XIC,YIC-2,
 				  &(snode->treetype), 2, 1, 0, 0, "Composite Nodes");
+	xco+= XIC;
+	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,2,XIC,YIC-2,
+				  &(snode->treetype), 2, 2, 0, 0, "Texture Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);
 	
@@ -722,6 +781,19 @@ void node_buttons(ScrArea *sa)
 		xco+= 80;
 		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 80;
+	}
+	else if(snode->treetype==NTREE_TEXTURE) {
+		if(snode->from) {
+			
+			xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
+					   B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+			
+			if(snode->id) {
+				Tex *tx= (Tex *)snode->id;
+				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,0,70,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				xco+=80;
+			}
+		}
 	}
 	
 	/* always as last  */

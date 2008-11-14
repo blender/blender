@@ -47,6 +47,7 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct Tex;
 struct GPUMaterial;
 struct GPUNode;
 struct GPUNodeStack;
@@ -118,6 +119,8 @@ typedef struct bNodeType {
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
 #define NODE_CLASS_OP_DYNAMIC	11
+#define NODE_CLASS_PATTERN 12
+#define NODE_CLASS_TEXTURE 13
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -376,6 +379,45 @@ void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
+
+
+/* ************** TEXTURE NODES *************** */
+
+struct TexResult;
+
+#define TEX_NODE_OUTPUT     101
+#define TEX_NODE_CHECKER    102
+#define TEX_NODE_TEXTURE    103
+#define TEX_NODE_BRICKS     104
+#define TEX_NODE_MATH       105
+#define TEX_NODE_MIX_RGB    106
+#define TEX_NODE_RGBTOBW    107
+#define TEX_NODE_VALTORGB   108
+#define TEX_NODE_IMAGE      109
+#define TEX_NODE_CURVE_RGB  110
+#define TEX_NODE_INVERT     111
+#define TEX_NODE_HUE_SAT    112
+#define TEX_NODE_CURVE_TIME 113
+#define TEX_NODE_ROTATE     114
+#define TEX_NODE_VIEWER     115
+#define TEX_NODE_TRANSLATE  116
+
+/* 201-299 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
+#define TEX_NODE_PROC      200
+#define TEX_NODE_PROC_MAX  300
+
+extern struct ListBase node_all_textures;
+
+/* API */
+int  ntreeTexTagAnimated(struct bNodeTree *ntree);
+void ntreeTexUpdatePreviews( struct bNodeTree* nodetree );
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, char do_preview, short thread, struct Tex *tex, short which_output);
+void ntreeTexCheckCyclics(struct bNodeTree *ntree);
+void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node);
+char* ntreeTexOutputMenu(struct bNodeTree *ntree);
+
+
+/**/
 
 void init_nodesystem(void);
 void free_nodesystem(void);

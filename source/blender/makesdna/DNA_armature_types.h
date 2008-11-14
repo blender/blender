@@ -156,6 +156,7 @@ typedef enum eBone_Flag {
 	BONE_DRAWWIRE				= (1<<17),	/* bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
 	BONE_NO_CYCLICOFFSET		= (1<<18),	/* when no parent, bone will not get cyclic offset */
 	BONE_EDITMODE_LOCKED		= (1<<19),	/* bone transforms are locked in EditMode */
+	BONE_TRANSFORM_CHILD		= (1<<20),	/* Indicates that a parent is also being transformed */
 } eBone_Flag;
 
 #endif

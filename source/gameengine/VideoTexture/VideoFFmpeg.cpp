@@ -20,6 +20,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 -----------------------------------------------------------------------------
 */
 
+#ifdef WITH_FFMPEG
+
 // INT64_C fix for some linux machines (C99ism)
 #define __STDC_CONSTANT_MACROS
 #include <stdint.h>
@@ -33,7 +35,6 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "Exception.h"
 #include "VideoFFmpeg.h"
 
-#ifdef WITH_FFMPEG
 
 // default framerate
 const double defFrameRate = 25.0;
@@ -53,7 +54,7 @@ VideoFFmpeg::VideoFFmpeg (HRESULT * hRslt) : VideoBase(),
 m_codec(NULL), m_formatCtx(NULL), m_codecCtx(NULL), 
 m_frame(NULL), m_frameDeinterlaced(NULL), m_frameRGB(NULL), m_imgConvertCtx(NULL),
 m_deinterlace(false), m_preseek(0),	m_videoStream(-1), m_baseFrameRate(25.0),
-m_lastFrame(-1),  m_curPosition(-1), m_startTime(0), 
+m_lastFrame(-1),  m_eof(false), m_curPosition(-1), m_startTime(0), 
 m_captWidth(0), m_captHeight(0), m_captRate(0.f), m_isImage(false)
 {
 	// set video format
@@ -190,7 +191,6 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 	m_frameDeinterlaced = avcodec_alloc_frame();
 	m_frameRGB = avcodec_alloc_frame();
 
-
 	// allocate buffer if deinterlacing is required
 	avpicture_fill((AVPicture*)m_frameDeinterlaced, 
 		(uint8_t*)MEM_callocN(avpicture_get_size(
@@ -199,24 +199,51 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		"ffmpeg deinterlace"), 
 		m_codecCtx->pix_fmt, m_codecCtx->width, m_codecCtx->height);
 
-	// allocate buffer to store final decoded frame
-	avpicture_fill((AVPicture*)m_frameRGB, 
-		(uint8_t*)MEM_callocN(avpicture_get_size(
-		PIX_FMT_RGB24,
-		m_codecCtx->width, m_codecCtx->height),
-		"ffmpeg rgb"),
-		PIX_FMT_RGB24, m_codecCtx->width, m_codecCtx->height);
-	// allocate sws context
-	m_imgConvertCtx = sws_getContext(
-		m_codecCtx->width,
-		m_codecCtx->height,
-		m_codecCtx->pix_fmt,
-		m_codecCtx->width,
-		m_codecCtx->height,
-		PIX_FMT_RGB24,
-		SWS_FAST_BILINEAR,
-		NULL, NULL, NULL);
-
+	// check if the pixel format supports Alpha
+	if (m_codecCtx->pix_fmt == PIX_FMT_RGB32 ||
+		m_codecCtx->pix_fmt == PIX_FMT_BGR32 ||
+		m_codecCtx->pix_fmt == PIX_FMT_RGB32_1 ||
+		m_codecCtx->pix_fmt == PIX_FMT_BGR32_1) 
+	{
+		// allocate buffer to store final decoded frame
+		m_format = RGBA32;
+		avpicture_fill((AVPicture*)m_frameRGB, 
+			(uint8_t*)MEM_callocN(avpicture_get_size(
+			PIX_FMT_RGBA,
+			m_codecCtx->width, m_codecCtx->height),
+			"ffmpeg rgba"),
+			PIX_FMT_RGBA, m_codecCtx->width, m_codecCtx->height);
+		// allocate sws context
+		m_imgConvertCtx = sws_getContext(
+			m_codecCtx->width,
+			m_codecCtx->height,
+			m_codecCtx->pix_fmt,
+			m_codecCtx->width,
+			m_codecCtx->height,
+			PIX_FMT_RGBA,
+			SWS_FAST_BILINEAR,
+			NULL, NULL, NULL);
+	} else
+	{
+		// allocate buffer to store final decoded frame
+		m_format = RGB24;
+		avpicture_fill((AVPicture*)m_frameRGB, 
+			(uint8_t*)MEM_callocN(avpicture_get_size(
+			PIX_FMT_RGB24,
+			m_codecCtx->width, m_codecCtx->height),
+			"ffmpeg rgb"),
+			PIX_FMT_RGB24, m_codecCtx->width, m_codecCtx->height);
+		// allocate sws context
+		m_imgConvertCtx = sws_getContext(
+			m_codecCtx->width,
+			m_codecCtx->height,
+			m_codecCtx->pix_fmt,
+			m_codecCtx->width,
+			m_codecCtx->height,
+			PIX_FMT_RGB24,
+			SWS_FAST_BILINEAR,
+			NULL, NULL, NULL);
+	}
 	if (!m_imgConvertCtx) {
 		avcodec_close(m_codecCtx);
 		av_close_input_file(m_formatCtx);
@@ -274,6 +301,7 @@ void VideoFFmpeg::openFile (char * filename)
 		if (m_imageName.Ptr() != filename)
 			m_imageName = filename;
 		m_preseek = 0;
+		m_avail = false;
 		play();
 	}
 
@@ -479,7 +507,7 @@ void VideoFFmpeg::setPositions (void)
 	// set video start time
 	m_startTime = PIL_check_seconds_timer();
 	// if file is played and actual position is before end position
-	if (m_isFile && m_lastFrame >= 0 && m_lastFrame < m_range[1] * actFrameRate())
+	if (m_isFile && !m_eof && m_lastFrame >= 0 && m_lastFrame < m_range[1] * actFrameRate())
 		// continue from actual position
 		m_startTime -= double(m_lastFrame) / actFrameRate();
 	else
@@ -518,7 +546,8 @@ bool VideoFFmpeg::grabFrame(long position)
 		}
 	}
 	// if the position is not in preseek, do a direct jump
-	if (position != m_curPosition + 1) { 
+	if (position != m_curPosition + 1) 
+	{ 
 		double timeBase = av_q2d(m_formatCtx->streams[m_videoStream]->time_base);
 		long long pos = (long long)
 			((long long) (position - m_preseek) * AV_TIME_BASE / m_baseFrameRate);
@@ -530,10 +559,16 @@ bool VideoFFmpeg::grabFrame(long position)
 		if (startTs != AV_NOPTS_VALUE)
 			pos += (long long)(startTs * AV_TIME_BASE * timeBase);
 
-		av_seek_frame(m_formatCtx, -1, pos, AVSEEK_FLAG_BACKWARD);
-		// current position is now lost, guess a value. 
-		// It's not important because it will be set at this end of this function
-		m_curPosition = position - m_preseek - 1;
+		if (position <= m_curPosition || !m_eof)
+		{
+			// no need to seek past the end of the file
+			if (av_seek_frame(m_formatCtx, -1, pos, AVSEEK_FLAG_BACKWARD) >= 0)
+			{
+				// current position is now lost, guess a value. 
+				// It's not important because it will be set at this end of this function
+				m_curPosition = position - m_preseek - 1;
+			}
+		}
 		// this is the timestamp of the frame we're looking for
 		targetTs = (long long)(((double) position) / m_baseFrameRate / timeBase);
 		if (startTs != AV_NOPTS_VALUE)
@@ -597,6 +632,7 @@ bool VideoFFmpeg::grabFrame(long position)
 		}
 		av_free_packet(&packet);
 	}
+	m_eof = !frameLoaded;
 	if (frameLoaded)
 		m_curPosition = position;
 	return frameLoaded;

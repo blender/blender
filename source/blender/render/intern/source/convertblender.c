@@ -2272,6 +2272,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
+	shi.thread= 0;
 	
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
@@ -4407,6 +4408,7 @@ void RE_Database_Free(Render *re)
 
 	end_radio_render();
 	end_render_materials();
+	end_render_textures();
 	
 	if(re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);

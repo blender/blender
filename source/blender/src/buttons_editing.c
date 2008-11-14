@@ -3246,6 +3246,7 @@ void do_curvebuts(unsigned short event)
 	case B_CONVERTNURB:
 		if(G.obedit) {
 			setsplinetype(event-B_CONVERTPOLY);
+			BIF_undo_push("Convert type");
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3277,6 +3278,7 @@ void do_curvebuts(unsigned short event)
 				}
 				nu= nu->next;
 			}
+			BIF_undo_push("Cyclic");
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3284,6 +3286,7 @@ void do_curvebuts(unsigned short event)
 	case B_SETWEIGHT:
 		if(G.obedit) {
 			weightflagNurb(1, editbutweight, 0);
+			BIF_undo_push("Set weight");
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3317,6 +3320,7 @@ void do_curvebuts(unsigned short event)
 				}
 				makeknots(nu, 2, nu->flagv>>1);
 			}
+			BIF_undo_push("Make knots");
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3368,6 +3372,7 @@ void do_curvebuts(unsigned short event)
 				nu= nu->next;
 			}
 		}
+		BIF_undo_push("Make 2D/3D");
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
@@ -3383,6 +3388,7 @@ void do_curvebuts(unsigned short event)
 			}
 		}
 
+		BIF_undo_push("Set resolution");
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSALL, 0);

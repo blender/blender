@@ -650,7 +650,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		if(ma->septex & (1<<a)) continue;
 
 		mtex= ma->mtex[a];
-		if(mtex && mtex->tex && mtex->tex->type) {
+		if(mtex && mtex->tex && (mtex->tex->type | (mtex->tex->use_nodes && mtex->tex->nodetree) )) {
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;

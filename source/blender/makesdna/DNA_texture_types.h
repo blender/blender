@@ -55,13 +55,13 @@ typedef struct MTex {
 	float ofs[3], size[3];
 	
 	short texflag, colormodel, pmapto, pmaptoneg;
-	short normapspace, pad[3];
+	short normapspace, which_output, pad[2];
 	float r, g, b, k;
 	float def_var, rt;
 	
 	float colfac, norfac, varfac;
 	float dispfac; 
-	float warpfac; 
+	float warpfac;
 	
 } MTex;
 
@@ -166,12 +166,16 @@ typedef struct Tex {
 	
 	struct ImageUser iuser;
 	
+	struct bNodeTree *nodetree;
 	struct Ipo *ipo;
 	struct Image *ima;
 	struct PluginTex *plugin;
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	struct PreviewImage * preview;
+	
+	char use_nodes;
+	char pad[7];
 	
 } Tex;
 

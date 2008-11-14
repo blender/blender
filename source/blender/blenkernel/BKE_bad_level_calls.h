@@ -230,5 +230,12 @@ void PE_free_particle_edit(struct ParticleSystem *psys);
 void PE_get_colors(char sel[4], char nosel[4]);
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
 
+/* texture.c */
+struct Tex;
+struct TexResult;
+int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
+
+
+
 #endif
 

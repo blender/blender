@@ -6,7 +6,7 @@ sources = env.Glob('intern/*.c')
 incs = '. #/intern/guardedalloc ../include ../blenlib ../makesdna'
 incs += ' ../render/extern/include #/intern/decimation/extern'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
-incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
+incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
 incs += ' #/intern/opennl/extern'
@@ -14,7 +14,6 @@ incs += ' ../gpu #/extern/glew/include'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']
-incs += ' ' + env['BF_SDL_INC']
 
 defs = ''
 
@@ -23,6 +22,12 @@ if not env['WITH_BF_PYTHON']:
 else:
 	incs += ' ../python'
 	incs += ' ' + env['BF_PYTHON_INC']
+
+if env['WITH_BF_QUICKTIME']:
+    incs += ' ../quicktime'
+
+if env['WITH_BF_SDL']:
+	incs += ' ' + env['BF_SDL_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
 	defs += ' WITH_FREETYPE2'

@@ -258,6 +258,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ENV_OB		1354
 
 #define B_ENV_FREE_ALL	1357
+#define B_TEX_USENODES		1358
 
 
 /* **************** animbuts = object buttons ******* */

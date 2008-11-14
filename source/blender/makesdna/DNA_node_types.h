@@ -121,6 +121,7 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, miniwidth;			
 	short custom1, custom2;	/* to be abused for buttons */
+	float custom3, custom4;
 	
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	
@@ -156,7 +157,7 @@ typedef struct bNodeLink {
 } bNodeLink;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
-/* only re-usable node trees are in the library though, materials allocate own tree struct */
+/* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
 	
@@ -185,6 +186,7 @@ typedef struct bNodeTree {
 /* ntree->type, index */
 #define NTREE_SHADER	0
 #define NTREE_COMPOSIT	1
+#define NTREE_TEXTURE   2
 
 /* ntree->init, flag */
 #define NTREE_TYPE_INIT	1
@@ -284,5 +286,10 @@ typedef struct NodeTonemap {
 typedef struct NodeLensDist {
 	short jit, proj, fit, pad;
 } NodeLensDist;
+
+/* TEX_output */
+typedef struct TexNodeOutput {
+	char name[32];
+} TexNodeOutput;
 
 #endif

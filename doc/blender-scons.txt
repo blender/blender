@@ -26,8 +26,9 @@ $Id$
     ----------------
 
     To build Blender with the SCons scripts you need a full Python
-    install, version 2.4 or later (http://www.python.org) and a SCons
-    installation, version v1.1.0 (http://www.scons.org).
+    install, version 2.4 or later (http://www.python.org). We already provide
+    a scons-local installation, which can be found in the scons/ subdirectory.
+    This document uses the scons-local installation for its examples.
 
     Check from the page
     http://www.blender.org/development/building-blender/getting-dependencies/
@@ -38,9 +39,14 @@ $Id$
     In the base directory of the sources (from now on called $BLENDERHOME)
     you'll see a file named SConstruct. This is the entry point for the
     SCons build system. In a terminal, change to this directory. To just
-    build, issue the command 'scons':
+    build, start the SCons entry script on Windows (will be used for the remainder
+    of this document):
 
-        % scons
+        % python scons\scons.py
+
+    On a Unix-compatible system it would be
+
+        % python ./scons/scons.py
 
     This will start the build process with default values. Depending
     on your platform you may see colour in your output (non-Windows
@@ -49,8 +55,9 @@ $Id$
     build are configured.
 
     The build uses BF_BUILDDIR to build into and BF_INSTALLDIR to
-    finally copy all needed files to get a proper setup. These
-    variabbles have default values for every platform in
+    finally copy all needed files to get a proper setup. The BF_DOCDIR is
+    used to generate Blender Python documentation files to. These
+    variables have default values for every platform in
     $BLENDERHOME/config/(platform)-config.py. After the build successfully
     completes, you can find everything you need in BF_INSTALLDIR.
 
@@ -59,7 +66,7 @@ $Id$
     As an extra dependency, you need the MoreInfo plugin too. The creation of
     the installer is tied into the build process and can be triggered with:
 
-        % scons nsis
+        % python scons\scons.py nsis
 
 
     Configuring the build
@@ -76,20 +83,21 @@ $Id$
         (TBD: add cygwin, solaris and freebsd support)
 
     These files you will normally not change. If you need to override
-    a default value, make a copy of the proper configuration to
-    $BLENDERHOME/user-config.py. This file you can modify to your
-    likings. Any value set here will override the ones from the
-    (platform)-config.py.
+    a default value, make a file called  $BLENDERHOME/user-config.py, and copy
+    settings from the config/(platform)-config.py that you want to change. Don't
+    copy the entire file (unless explicitely stated in the configuration file),
+    because you may not get updated options you don't change yourself, which may
+    result in build errors.
 
     You can use BF_CONFIG argument to override the default user-config.py
     check. This is just like the user-config.py, but just with another name:
 
-        % scons BF_CONFIG=myownsettings
+        % python scons\scons.py BF_CONFIG=myownsettings
 
     If you want to quickly test a new setting, you can give the option
     also on the command-line:
 
-        % scons BF_BUILDDIR=../mybuilddir WITH_BF_OPENEXR=0
+        % python scons\scons.py BF_BUILDDIR=../mybuilddir WITH_BF_OPENEXR=0
 
     This command sets the build directory to BF_BUILDDIR and disables
     OpenEXR support.
@@ -97,7 +105,7 @@ $Id$
     If you need to know what can be set through the command-line, run
     scons with -h:
 
-        % scons -h
+        % python scons\scons.py -h
 
     This command will print a long list with settable options and what
     every option means. Many of the default values will be empty, and
@@ -118,11 +126,11 @@ $Id$
     you need to see the full command-line for compiles, then you can
     change that behaviour. Also the use of colours can be changed:
 
-        % scons BF_FANCY=0
+        % python scons\scons.py BF_FANCY=0
 
     This will disable the use of colours.
 
-        % scons BF_QUIET=0
+        % python scons\scons.py BF_QUIET=0
 
     This will give the old, noisy output. Every command-line per
     compile is printed out in its full glory. This is very useful when
@@ -133,11 +141,11 @@ $Id$
     Compiling Only Some Libraries
     -----------------------------
     
-    Scons now has support for specifying a list of libraries that are
+    Our implementation now has support for specifying a list of libraries that are
     exclusively compiled, ignoring all other libraries.  This is invoked 
     with the BF_QUICK arguments; for example:
     
-        % scons BF_QUICK=src,bf_blenkernel
+        % python scons\scons.py BF_QUICK=src,bf_blenkernel
     
     Note that this not the same as passing a list of folders as in the 
     makefile's "quicky" command.  In Scons, all of Blender's code modules
@@ -157,7 +165,7 @@ $Id$
     
     BF_QUICKDEBUG is similar to BF_QUICK:
     
-        % scons BF_QUICKDEBUG=src,bf_blenkernel,some-other-lib
+        % python scons\scons.py BF_QUICKDEBUG=src,bf_blenkernel,some-other-lib
     
     To use BF_DEBUG_LIBS, put something like the following in you user-config.py:
     
@@ -184,14 +192,8 @@ $Id$
     On Windows with all of the three toolset installed you need to
     specify what toolset to use
 
-        % scons BF_TOOLSET=msvc
-        % scons BF_TOOLSET=mingw
-
-    If you have only the toolkit installed, you will also need to give
-    BF_TOOLSET=mstoolkit on the command-line, to make sure everything is
-    setup properly. Currently there is no good mechanism to automatically
-    determine wether the found 'cl.exe' is from the toolkit or from a
-    complete install.
+        % python scons\scons.py BF_TOOLSET=msvc
+        % python scons\scons.py BF_TOOLSET=mingw
 
     LINUX and OS X
 
@@ -204,30 +206,26 @@ $Id$
 
     Build Blender with the defaults:
 
-        % scons
+        % python scons\scons.py
 
     Build Blender, but disable OpenEXR support:
 
-        % scons WITH_BF_OPENEXR=0
+        % python scons\scons.py WITH_BF_OPENEXR=0
 
     Build Blender, enable debug symbols:
 
-        % scons BF_DEBUG=1
+        % python scons\scons.py BF_DEBUG=1
 
     Build Blender, install to different directory:
 
-        % scons BF_INSTALLDIR=/tmp/testbuild
+        % python scons\scons.py BF_INSTALLDIR=../myown/installdir
 
-    Build Blender in /tmp/obj and install to /usr/local:
+    Build Blender in ../myown/builddir and install to ../myown/installdir:
 
-        % scons BF_BUILDDIR=/tmp/obj BF_INSTALLDIR=/usr/local
+        % python scons\scons.py BF_BUILDDIR=../myown/builddir BF_INSTALLDIR=../myown/installdir
 
     Clean BF_BUILDDIR:
 
-        % scons clean
-
-    Clean out the installed files:
-
-        % scons -c
+        % python scons\scons.py clean
 
     /Nathan Letwory (jesterKing)

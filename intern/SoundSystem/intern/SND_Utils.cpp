@@ -40,8 +40,13 @@
 #include <math.h>
 #include <string.h>
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
+#define lseek _lseek
 #else
 #include <unistd.h>
 #endif
