@@ -244,6 +244,7 @@ typedef struct ProjectScanline {
 
 typedef struct ProjectPixel {
 	float projCo2D[2]; /* the floating point screen projection of this pixel */
+	char origColor[4];
 	short x_px, y_px;
 	void *pixel;
 	short image_index; /* if anyone wants to paint onto more then 32000 images they can bite me */
@@ -299,6 +300,31 @@ static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int rest
 	if(restore)
 		IMB_rectcpy(ibuf, tmpibuf, tile->x*IMAPAINT_TILE_SIZE,
 			tile->y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+}
+
+static UndoTile *undo_init_tile(ID *id, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
+{
+	UndoTile *tile;
+	int allocsize;
+	
+	if (*tmpibuf==NULL)
+		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect, 0);
+	
+	tile= MEM_callocN(sizeof(UndoTile), "ImaUndoTile");
+	tile->id= *id;
+	tile->x= x_tile;
+	tile->y= y_tile;
+
+	allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
+	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
+	tile->rect= MEM_mapallocN(allocsize, "ImaUndoRect");
+
+	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
+	curundo->undosize += allocsize;
+
+	BLI_addtail(&curundo->tiles, tile);
+	
+	return tile;
 }
 
 static void undo_restore(UndoElem *undo)
@@ -1327,8 +1353,10 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, int thread_index, 
 		
 		if (ibuf->rect_float) {
 			projPixel->pixel = (void *) ((( float * ) ibuf->rect_float) + (( x + y * ibuf->x ) * pixel_size));
+			/* TODO float support for origColor */
 		} else {
 			projPixel->pixel = (void *) ((( char * ) ibuf->rect) + (( x + y * ibuf->x ) * pixel_size));
+			*((unsigned int *)projPixel->origColor) = *((unsigned int *)projPixel->pixel);
 		}
 		
 		VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
@@ -2258,16 +2286,16 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->projectImBufs = BLI_memarena_alloc( ps->projectArena, sizeof(ImBuf *) * ps->projectImageTotal);
 	*(ps->projectPartialRedraws) = BLI_memarena_alloc( ps->projectArena, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal * PROJ_BOUNDBOX_SQUARED);
 	
-	for (a=1; a< ps->projectImageTotal; a++) {
-		ps->projectPartialRedraws[a] = *(ps->projectPartialRedraws) + (a * PROJ_BOUNDBOX_SQUARED);
-	}
-	// calloced - memset(ps->projectPartialRedraws, 0, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal);
-	
 	for (node= image_LinkList, i=0; node; node= node->next, i++) {
 		ps->projectImages[i] = node->link;
 		ps->projectImages[i]->id.flag &= ~LIB_DOIT;
 		ps->projectImBufs[i] = BKE_image_get_ibuf(ps->projectImages[i], NULL);
+		
+		ps->projectPartialRedraws[i] = *(ps->projectPartialRedraws) + (i * PROJ_BOUNDBOX_SQUARED);
 	}
+	
+	// calloced - memset(ps->projectPartialRedraws, 0, sizeof(ImagePaintPartialRedraw) * ps->projectImageTotal);
+	
 	/* we have built the array, discard the linked list */
 	BLI_linklist_free(image_LinkList, NULL);
 }
@@ -2275,6 +2303,85 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 static void project_paint_end( ProjectPaintState *ps )
 {
 	int a;
+	
+	/* build undo data from original pixel colors */
+	if(U.uiflag & USER_GLOBALUNDO) {
+		ProjectPixel *projPixel;
+		ImBuf *ibuf, *tmpibuf = NULL;
+		LinkNode *pixel_node;
+		UndoTile *tile;
+		UndoTile ***image_undo_tiles = (UndoTile ***)BLI_memarena_alloc( ps->projectArena, sizeof(UndoTile ***) * ps->projectImageTotal);
+		int bucket_index = (ps->bucketsX * ps->bucketsY) - 1; /* we could get an X/Y but easier to loop through all possible buckets */
+		int tile_index;
+		int x_round, y_round;
+		int x_tile, y_tile;
+		
+		/* context */
+		int last_image_index = -1;
+		int last_tile_width;
+		ImBuf *last_ibuf;
+		Image *last_ima;
+		UndoTile **last_undo_grid = NULL;
+		
+		
+		for(a=0; a < ps->projectImageTotal; a++) {
+			ibuf = ps->projectImBufs[a];
+			image_undo_tiles[a] = (UndoTile **)BLI_memarena_alloc(
+							ps->projectArena,
+							sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(ibuf->x) * IMAPAINT_TILE_NUMBER(ibuf->y) );
+		}
+		
+		do {
+			if ((pixel_node = ps->projectBuckets[bucket_index])) {
+				
+				/* loop through all pixels */
+				while (pixel_node) {
+					/* ok we have a pixel, was it modified? */
+					projPixel = (ProjectPixel *)pixel_node->link;
+					
+					/* TODO - support float */
+					if (*((unsigned int *)projPixel->origColor) != *((unsigned int *)projPixel->pixel)) {
+						
+						if (last_image_index != projPixel->image_index) {
+							/* set the context */
+							last_image_index =	projPixel->image_index;
+							last_ima = 			ps->projectImages[last_image_index];
+							last_ibuf =			ps->projectImBufs[last_image_index];
+							last_tile_width =	IMAPAINT_TILE_NUMBER(last_ibuf->x);
+							last_undo_grid =	image_undo_tiles[last_image_index];
+						}
+						
+						x_tile =  projPixel->x_px >> IMAPAINT_TILE_BITS;
+						y_tile =  projPixel->y_px >> IMAPAINT_TILE_BITS;
+						
+						x_round = x_tile * IMAPAINT_TILE_SIZE;
+						y_round = y_tile * IMAPAINT_TILE_SIZE;
+						
+						tile_index = x_tile + y_tile * last_tile_width;
+						
+						if (last_undo_grid[tile_index]==NULL) {
+							/* add the undo tile from the modified image, then write the original colors back into it */
+							tile = last_undo_grid[tile_index] = undo_init_tile(&last_ima->id, ibuf, &tmpibuf, x_tile, y_tile);
+						} else {
+							tile = last_undo_grid[tile_index];
+						}
+						
+						/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
+						 * because allocating the tiles allong the way slows down painting */
+						/* TODO float buffer */
+						((unsigned int *)tile->rect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = *((unsigned int *)projPixel->origColor);						
+					}
+					
+					pixel_node = pixel_node->next;
+				}
+			}
+		} while(bucket_index--);
+		
+		if (tmpibuf)
+			IMB_freeImBuf(tmpibuf);
+	}
+	/* done calculating undo data */
+	
 	BLI_memarena_free(ps->projectArena);
 	
 	for (a=0; a<ps->thread_tot; a++) {
@@ -2339,7 +2446,7 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 {
 	ImBuf *tmpibuf = NULL;
 	UndoTile *tile;
-	int srcx= 0, srcy= 0, origx, allocsize;
+	int srcx= 0, srcy= 0, origx;
 
 	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
@@ -2372,22 +2479,7 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 					break;
 
 			if(!tile) {
-				if (tmpibuf==NULL)
-					tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect, 0);
-				
-				tile= MEM_callocN(sizeof(UndoTile), "ImaUndoTile");
-				tile->id= ima->id;
-				tile->x= x;
-				tile->y= y;
-
-				allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
-				allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
-				tile->rect= MEM_mapallocN(allocsize, "ImaUndoRect");
-
-				undo_copy_tile(tile, tmpibuf, ibuf, 0);
-				curundo->undosize += allocsize;
-
-				BLI_addtail(&curundo->tiles, tile);
+				undo_init_tile(&ima->id, ibuf, &tmpibuf, x, y);
 			}
 		}
 	}
