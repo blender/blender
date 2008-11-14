@@ -209,7 +209,6 @@ int   BIF_currentTemplate()
 	if (TEMPLATES_CURRENT == 0 && G.scene->toolsettings->skgen_template != NULL)
 	{
 		GHashIterator ghi;
-		int index = 0;
 		BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 		
 		while (!BLI_ghashIterator_isDone(&ghi))
@@ -217,11 +216,9 @@ int   BIF_currentTemplate()
 			Object *ob = BLI_ghashIterator_getValue(&ghi);
 			int key = (int)BLI_ghashIterator_getKey(&ghi);
 			
-			index++;
-			
 			if (ob == G.scene->toolsettings->skgen_template)
 			{
-				TEMPLATES_CURRENT = index;
+				TEMPLATES_CURRENT = key;
 				break;
 			}
 			

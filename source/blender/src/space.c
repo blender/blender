@@ -2516,8 +2516,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
-					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
-						armature_select_hierarchy(BONE_SELECT_PARENT, 1); // 1 = add to selection
+					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE))
+					{ 
+						toggle_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_TO_MOUSE);
+						allqueue(REDRAWVIEW3D, 0);
+					}
 					else if((G.qual==(LR_CTRLKEY|LR_ALTKEY)) && (G.obedit->type==OB_ARMATURE))
 						separate_armature();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
