@@ -1688,13 +1688,16 @@ EditBone * subdivideStrokeBy(SK_Stroke *stk, int start, int end, float invmat[][
 	while (index != -1)
 	{
 		setBoneRollFromPoint(parent, &stk->points[index], invmat, tmat);
-		Mat4MulVecfl(invmat, parent->head); /* going to next bone, fix previous head */
 
 		child = addEditBone("Bone", &G.edbo, arm);
 		VECCOPY(child->head, parent->tail);
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;
 		
+		/* going to next bone, fix parent */
+		Mat4MulVecfl(invmat, parent->tail);
+		Mat4MulVecfl(invmat, parent->head);
+
 		parent = child; // new child is next parent
 		bone_start = index; // start next bone from current index
 
@@ -1705,8 +1708,9 @@ EditBone * subdivideStrokeBy(SK_Stroke *stk, int start, int end, float invmat[][
 
 	setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
 
-	Mat4MulVecfl(invmat, parent->head);
+	/* fix last bone */
 	Mat4MulVecfl(invmat, parent->tail);
+	Mat4MulVecfl(invmat, parent->head);
 	lastBone = parent;
 	
 	return lastBone;
