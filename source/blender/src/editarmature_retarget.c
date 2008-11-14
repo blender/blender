@@ -1936,7 +1936,7 @@ static void printPositions(int *positions, int nb_positions)
 }
 #endif
 
-#define MAX_COST 100 /* FIX ME */
+#define MAX_COST FLT_MAX /* FIX ME */
 
 static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i0, int i1)
 {
@@ -2174,10 +2174,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	ReebArc *earc = iarc->link_mesh;
 	float min_cost = FLT_MAX;
 	float *vec0, *vec1, *vec2;
-	float **vec_cache;
-	float *cost_cache;
 	int *best_positions;
-	int *positions;
 	int nb_edges = BLI_countlist(&iarc->edges);
 	int nb_joints = nb_edges - 1;
 	RetargetMethod method = METHOD_MEMOIZE;
@@ -2189,10 +2186,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		return;
 	}
 
-	positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
-	best_positions = MEM_callocN(sizeof(int) * nb_joints, "Best Aggresive positions");
-	cost_cache = MEM_callocN(sizeof(float) * nb_edges, "Cost cache");
-	vec_cache = MEM_callocN(sizeof(float*) * (nb_edges + 1), "Vec cache");
+	best_positions = MEM_callocN(sizeof(int) * nb_joints, "Best positions");
 	
 	if (testFlipArc(iarc, inode_start))
 	{
@@ -2204,23 +2198,18 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		node_start = earc->head;
 		node_end = earc->tail;
 	}
-	
-	/* init with first values */
-	for (i = 0; i < nb_joints; i++)
-	{
-		positions[i] = i + 1;
-		//positions[i] = (earc->bcount / nb_edges) * (i + 1);
-	}
-	
-	/* init cost cache */
-	for (i = 0; i < nb_edges; i++)
-	{
-		cost_cache[i] = 0;
-	}
-	
-	vec_cache[0] = node_start->p;
-	vec_cache[nb_edges] = node_end->p;
 
+	/* equal number of joints and potential position, just fill them in */
+	if (nb_joints == earc->bcount)
+	{
+		int i;
+		
+		/* init with first values */
+		for (i = 0; i < nb_joints; i++)
+		{
+			best_positions[i] = i + 1;
+		}
+	}
 	if (method == METHOD_MEMOIZE)
 	{
 		int nb_positions = earc->bcount;
@@ -2252,9 +2241,31 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	/* BRUTE FORCE */
 	else if (method == METHOD_BRUTE_FORCE)
 	{
+		float **vec_cache;
+		float *cost_cache;
+		int *positions;
 		int last_index = 0;
 		int first_pass = 1;
 		int must_move = nb_joints - 1;
+		
+		positions = MEM_callocN(sizeof(int) * nb_joints, "Aggresive positions");
+		cost_cache = MEM_callocN(sizeof(float) * nb_edges, "Cost cache");
+		vec_cache = MEM_callocN(sizeof(float*) * (nb_edges + 1), "Vec cache");
+	
+		/* init with first values */
+		for (i = 0; i < nb_joints; i++)
+		{
+			positions[i] = i + 1;
+		}
+		
+		/* init cost cache */
+		for (i = 0; i < nb_edges; i++)
+		{
+			cost_cache[i] = 0;
+		}
+		
+		vec_cache[0] = node_start->p;
+		vec_cache[nb_edges] = node_end->p;		
 		
 		while(1)
 		{
@@ -2390,6 +2401,10 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 				memcpy(best_positions, positions, sizeof(int) * nb_joints);
 			}
 		}
+	
+		MEM_freeN(positions);
+		MEM_freeN(cost_cache);
+		MEM_freeN(vec_cache);
 	}
 
 	vec0 = node_start->p;
@@ -2427,11 +2442,8 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		
 		vec0 = vec1;
 	}
-	
-	MEM_freeN(positions);
+
 	MEM_freeN(best_positions);
-	MEM_freeN(cost_cache);
-	MEM_freeN(vec_cache);
 }
 
 static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
