@@ -509,24 +509,34 @@ void recalcData(TransInfo *t)
 				}
 			}
 			
-			/* fix roll */
-			for(i = 0; i < t->total; i++, td++)
+			
+			if (t->mode != TFM_BONE_ROLL)
 			{
-				if (td->extra)
+				/* fix roll */
+				for(i = 0; i < t->total; i++, td++)
 				{
-					float vec[3], up_axis[3];
-					float qrot[4];
-					
-					ebo = td->extra;
-					
-					VecSubf(vec, ebo->tail, ebo->head);
-					Normalize(vec);
-					RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
-					
-					VECCOPY(up_axis, td->axismtx[2]);
-					QuatMulVecf(qrot, up_axis);
-					
-					ebo->roll = rollBoneToVector(ebo, up_axis);
+					if (td->extra)
+					{
+						float vec[3], up_axis[3];
+						float qrot[4];
+						
+						ebo = td->extra;
+						VECCOPY(up_axis, td->axismtx[2]);
+						
+						if (t->mode != TFM_ROTATION)
+						{
+							VecSubf(vec, ebo->tail, ebo->head);
+							Normalize(vec);
+							RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
+							QuatMulVecf(qrot, up_axis);
+						}
+						else
+						{
+							Mat3MulVecfl(t->mat, up_axis);
+						}
+						
+						ebo->roll = rollBoneToVector(ebo, up_axis);
+					}
 				}
 			}
 			
@@ -844,7 +854,10 @@ void restoreTransObjects(TransInfo *t)
 				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
 			}
 #endif
-	}	
+	}
+	
+	Mat3One(t->mat);
+	
 	recalcData(t);
 }
 
