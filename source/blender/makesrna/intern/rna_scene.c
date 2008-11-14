@@ -68,7 +68,6 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_DRIVEABLE|PROP_RENDER_DEPENDENCY);
 
 	prop= RNA_def_property(srna, "cursor", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location.");
@@ -79,7 +78,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "Objects in the scene.");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0);
-	RNA_def_property_flag(prop, PROP_RENDER_DEPENDENCY);
 
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
@@ -92,7 +90,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional edit mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "Current frame.");

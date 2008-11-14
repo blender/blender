@@ -190,8 +190,10 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 	char *func;
 
 	if(!dp->dnastructname || !dp->dnaname) {
-		fprintf(stderr, "rna_def_property_set_func: %s.%s has no valid dna info.\n", srna->cname, prop->cname);
-		DefRNA.error= 1;
+		if(!(prop->flag & PROP_NOT_EDITABLE)) {
+			fprintf(stderr, "rna_def_property_set_func: %s.%s has no valid dna info.\n", srna->cname, prop->cname);
+			DefRNA.error= 1;
+		}
 		return NULL;
 	}
 
@@ -712,8 +714,10 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	fprintf(f, ",\n");
 
 	prop= srna->nameproperty;
-	if(prop) fprintf(f, "\t(PropertyRNA*)&rna_%s_%s,\n", srna->cname, prop->cname);
-	else fprintf(f, "\tNULL,\n");
+	if(prop) fprintf(f, "\t(PropertyRNA*)&rna_%s_%s, ", srna->cname, prop->cname);
+	else fprintf(f, "\tNULL, ");
+
+	fprintf(f, "\t(PropertyRNA*)&rna_%s_rna_properties,\n", srna->cname);
 
 	prop= srna->properties.first;
 	if(prop) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s, ", srna->cname, prop->cname);
@@ -738,6 +742,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_main.c", RNA_def_main},
 	{"rna_mesh.c", RNA_def_mesh},
 	{"rna_object.c", RNA_def_object},
+	{"rna_rna.c", RNA_def_rna},
 	{"rna_scene.c", RNA_def_scene},
 	{NULL, NULL}};
 
@@ -761,13 +766,9 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 
 	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 
-	fprintf(f, "#include \"RNA_define.h\"\n\n");
-	fprintf(f, "#include \"RNA_types.h\"\n\n");
-
+	fprintf(f, "#include \"RNA_define.h\"\n");
+	fprintf(f, "#include \"RNA_types.h\"\n");
 	fprintf(f, "#include \"rna_internal.h\"\n\n");
-	for(i=0; PROCESS_ITEMS[i].filename; i++)
-		fprintf(f, "#include \"%s\"\n", PROCESS_ITEMS[i].filename);
-	fprintf(f, "\n");
 
 	for(i=0; PROCESS_ITEMS[i].filename; i++)
 		if(PROCESS_ITEMS[i].define)
@@ -775,6 +776,11 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 	rna_auto_types();
 	
 	rna_generate_prototypes(brna, f);
+
+	for(i=0; PROCESS_ITEMS[i].filename; i++)
+		fprintf(f, "#include \"%s\"\n", PROCESS_ITEMS[i].filename);
+	fprintf(f, "\n");
+
 	rna_auto_functions(f);
 
 	for(srna=brna->structs.first; srna; srna=srna->next)

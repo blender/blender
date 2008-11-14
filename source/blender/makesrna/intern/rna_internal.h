@@ -77,13 +77,17 @@ extern StructRNA RNA_Main;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_StructRNA;
 
 void RNA_def_ID(struct StructRNA *srna);
 
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
+void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
+
+void rna_def_builtin_properties(struct StructRNA *srna);
 
 /* Standard iterator functions */
 

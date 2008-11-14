@@ -78,16 +78,13 @@ void RNA_def_object(BlenderRNA *brna)
 	RNA_def_ID(srna);
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_RENDER_DEPENDENCY);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_data_type", NULL);
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EVALUATE_DEPENDENCY);
 
 	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EVALUATE_DEPENDENCY);
 }
 
 #endif

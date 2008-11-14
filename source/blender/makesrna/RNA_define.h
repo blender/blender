@@ -33,65 +33,61 @@
  * to be figured out still. */
 
 #include "DNA_listBase.h"
-
-struct BlenderRNA;
-struct StructRNA;
-struct PropertyRNA;
-struct PropertyEnumItem;
+#include "RNA_types.h"
 
 /* Blender RNA */
 
-struct BlenderRNA *RNA_create(void);
-void RNA_define_free(struct BlenderRNA *brna);
-void RNA_free(struct BlenderRNA *brna);
+BlenderRNA *RNA_create(void);
+void RNA_define_free(BlenderRNA *brna);
+void RNA_free(BlenderRNA *brna);
 
 /* Struct */
 
-struct StructRNA *RNA_def_struct(struct BlenderRNA *brna, const char *cname, const char *name);
-void RNA_def_struct_sdna(struct StructRNA *srna, const char *structname);
-void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *prop);
-void RNA_def_struct_flag(struct StructRNA *srna, int flag);
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *cname, const char *name);
+void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
+void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
+void RNA_def_struct_flag(StructRNA *srna, int flag);
 
 /* Property */
 
-struct PropertyRNA *RNA_def_property(struct StructRNA *srna, const char *cname, int type, int subtype);
+PropertyRNA *RNA_def_property(StructRNA *srna, const char *cname, int type, int subtype);
 
-void RNA_def_property_boolean_sdna(struct PropertyRNA *prop, const char *structname, const char *propname, int bit);
-void RNA_def_property_int_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_float_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_string_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_enum_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_pointer_sdna(struct PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_collection_sdna(struct PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
+void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit);
+void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
 
-void RNA_def_property_flag(struct PropertyRNA *prop, int flag);
-void RNA_def_property_array(struct PropertyRNA *prop, int arraylength);
-void RNA_def_property_range(struct PropertyRNA *prop, double min, double max);
+void RNA_def_property_flag(PropertyRNA *prop, int flag);
+void RNA_def_property_array(PropertyRNA *prop, int arraylength);
+void RNA_def_property_range(PropertyRNA *prop, double min, double max);
 
-void RNA_def_property_enum_items(struct PropertyRNA *prop, const struct PropertyEnumItem *item);
-void RNA_def_property_string_maxlength(struct PropertyRNA *prop, int maxlength);
-void RNA_def_property_struct_type(struct PropertyRNA *prop, const char *type);
+void RNA_def_property_enum_items(PropertyRNA *prop, const PropertyEnumItem *item);
+void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength);
+void RNA_def_property_struct_type(PropertyRNA *prop, const char *type);
 
-void RNA_def_property_boolean_default(struct PropertyRNA *prop, int value);
-void RNA_def_property_boolean_array_default(struct PropertyRNA *prop, const int *array);
-void RNA_def_property_int_default(struct PropertyRNA *prop, int value);
-void RNA_def_property_int_array_default(struct PropertyRNA *prop, const int *array);
-void RNA_def_property_float_default(struct PropertyRNA *prop, float value);
-void RNA_def_property_float_array_default(struct PropertyRNA *prop, const float *array);
-void RNA_def_property_enum_default(struct PropertyRNA *prop, int value);
-void RNA_def_property_string_default(struct PropertyRNA *prop, const char *value);
+void RNA_def_property_boolean_default(PropertyRNA *prop, int value);
+void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array);
+void RNA_def_property_int_default(PropertyRNA *prop, int value);
+void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array);
+void RNA_def_property_float_default(PropertyRNA *prop, float value);
+void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array);
+void RNA_def_property_enum_default(PropertyRNA *prop, int value);
+void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
-void RNA_def_property_ui_text(struct PropertyRNA *prop, const char *name, const char *description);
-void RNA_def_property_ui_range(struct PropertyRNA *prop, double min, double max, double step, double precision);
+void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
+void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, double precision);
 
-void RNA_def_property_funcs(struct PropertyRNA *prop, const char *notify, const char *readonly);
-void RNA_def_property_boolean_funcs(struct PropertyRNA *prop, const char *get, const char *set);
-void RNA_def_property_int_funcs(struct PropertyRNA *prop, const char *get, const char *set);
-void RNA_def_property_float_funcs(struct PropertyRNA *prop, const char *get, const char *set);
-void RNA_def_property_enum_funcs(struct PropertyRNA *prop, const char *get, const char *set);
-void RNA_def_property_string_funcs(struct PropertyRNA *prop, const char *get, const char *length, const char *set);
-void RNA_def_property_pointer_funcs(struct PropertyRNA *prop, const char *get, const char *type, const char *set);
-void RNA_def_property_collection_funcs(struct PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring);
+void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *readonly);
+void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set);
+void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set);
+void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *type, const char *set);
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring);
 
 #endif /* RNA_DEFINE_H */
 

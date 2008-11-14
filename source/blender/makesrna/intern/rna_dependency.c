@@ -8,6 +8,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+#if 0
 typedef struct RNAGenDeps {
 	void *udata;
 	PropDependencyCallback cb;
@@ -87,4 +88,5 @@ void RNA_test_dependencies_cb(void *udata, PointerRNA *from, PointerRNA *to)
 	
 	printf("%s (%s) -> %s (%s)\n", name, from->type->cname, nameto, to->type->cname);
 }
+#endif
 

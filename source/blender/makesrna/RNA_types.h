@@ -111,15 +111,16 @@ typedef enum PropertyFlag {
 	 * as part of an evaluation. these can change at runtime
 	 * the property flag contains the default. editable is
 	 * enabled by default except for collections. */
-	PROP_EDITABLE = 1,
+	PROP_NOT_EDITABLE = 1,
 	PROP_EVALUATED = 2,
 
 	/* driveable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
-	 * in other words making the property evaluated. this is
+	 * in other words making the property evaluated.
 	 * enable by default except for pointers and collections. */
-	PROP_DRIVEABLE = 4,
+	PROP_NOT_DRIVEABLE = 4,
 
+#if 0
 	/* for pointers and collections, means that the struct
 	 * depends on the data pointed to for evaluation, such
 	 * that a change in the data pointed to will affect the
@@ -132,6 +133,10 @@ typedef enum PropertyFlag {
 	 * be it the render engine or viewport */
 	PROP_RENDER_DEPENDENCY = 32,
 	PROP_INVERSE_RENDER_DEPENDENCY = 64,
+#endif
+
+	/* internal flag */
+	PROP_BUILTIN = 128
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -288,6 +293,9 @@ typedef struct StructRNA {
 
 	/* property that defines the name */
 	PropertyRNA *nameproperty;
+
+	/* property to iterate over properties */
+	PropertyRNA *iteratorproperty;
 
 	/* properties of this struct */
 	ListBase properties; 
