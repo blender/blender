@@ -43,14 +43,14 @@ void RNA_free(BlenderRNA *brna);
 
 /* Struct */
 
-StructRNA *RNA_def_struct(BlenderRNA *brna, const char *cname, const char *name);
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *name);
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 
 /* Property */
 
-PropertyRNA *RNA_def_property(StructRNA *srna, const char *cname, int type, int subtype);
+PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype);
 
 void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit);
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
@@ -64,7 +64,7 @@ void RNA_def_property_flag(PropertyRNA *prop, int flag);
 void RNA_def_property_array(PropertyRNA *prop, int arraylength);
 void RNA_def_property_range(PropertyRNA *prop, double min, double max);
 
-void RNA_def_property_enum_items(PropertyRNA *prop, const PropertyEnumItem *item);
+void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item);
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength);
 void RNA_def_property_struct_type(PropertyRNA *prop, const char *type);
 
@@ -78,7 +78,7 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value);
 void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
-void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, double precision);
+void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision);
 
 void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *readonly);
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set);

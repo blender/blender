@@ -59,8 +59,8 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static PropertyEnumItem prop_mode_items[] = {{PROP_SMOOTH, "SMOOTH", "Smooth"}, {PROP_SPHERE, "SPHERE", "Sphere"}, {PROP_ROOT, "ROOT", "Root"}, {PROP_SHARP, "SHARP", "Sharp"}, {PROP_LIN, "LINEAR", "Linear"}, {PROP_CONST, "CONSTANT", "Constant"}, {PROP_RANDOM, "RANDOM", "Random"}, {0, NULL, NULL}};
-	static PropertyEnumItem unwrapper_items[] = {{0, "CONFORMAL", "Conformal"}, {1, "ANGLEBASED", "Angle Based"},  {0, NULL, NULL}};
+	static EnumPropertyItem prop_mode_items[] = {{PROP_SMOOTH, "SMOOTH", "Smooth"}, {PROP_SPHERE, "SPHERE", "Sphere"}, {PROP_ROOT, "ROOT", "Root"}, {PROP_SHARP, "SHARP", "Sharp"}, {PROP_LIN, "LINEAR", "Linear"}, {PROP_CONST, "CONSTANT", "Constant"}, {PROP_RANDOM, "RANDOM", "Random"}, {0, NULL, NULL}};
+	static EnumPropertyItem unwrapper_items[] = {{0, "CONFORMAL", "Conformal"}, {1, "ANGLEBASED", "Angle Based"},  {0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Scene", "Scene");
 

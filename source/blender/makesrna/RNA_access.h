@@ -39,7 +39,7 @@ void RNA_pointer_main_get(struct Main *main, PointerRNA *r_ptr);
 
 /* Structs */
 
-const char *RNA_struct_cname(PointerRNA *ptr);
+const char *RNA_struct_identifier(PointerRNA *ptr);
 const char *RNA_struct_ui_name(PointerRNA *ptr);
 
 PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
@@ -52,7 +52,7 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 
 /* Property Information */
 
-const char *RNA_property_cname(PropertyRNA *prop, PointerRNA *ptr);
+const char *RNA_property_identifier(PropertyRNA *prop, PointerRNA *ptr);
 PropertyType RNA_property_type(PropertyRNA *prop, PointerRNA *ptr);
 PropertySubType RNA_property_subtype(PropertyRNA *prop, PointerRNA *ptr);
 
@@ -66,7 +66,7 @@ void RNA_property_float_ui_range(PropertyRNA *prop, PointerRNA *ptr, float *soft
 
 int RNA_property_string_maxlength(PropertyRNA *prop, PointerRNA *ptr);
 
-void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const PropertyEnumItem **item, int *totitem);
+void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const EnumPropertyItem **item, int *totitem);
 
 const char *RNA_property_ui_name(PropertyRNA *prop, PointerRNA *ptr);
 const char *RNA_property_ui_description(PropertyRNA *prop, PointerRNA *ptr);

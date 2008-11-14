@@ -147,17 +147,17 @@ typedef struct CollectionPropertyIterator {
 	PointerRNA ptr;
 } CollectionPropertyIterator;
 
-typedef struct PropertyEnumItem {
+typedef struct EnumPropertyItem {
 	int value;
-	const char *cname;
+	const char *identifier;
 	const char *name;
-} PropertyEnumItem;
+} EnumPropertyItem;
 
 typedef struct PropertyRNA {
 	struct PropertyRNA *next, *prev;
 
 	/* C code name */
-	const char *cname;
+	const char *identifier;
 	/* various options */
 	int flag;
 
@@ -220,7 +220,8 @@ typedef struct FloatPropertyRNA {
 
 	float softmin, softmax;
 	float hardmin, hardmax;
-	float step, precision;
+	float step;
+	int precision;
 
 	float defaultvalue;
 	const float *defaultarray;
@@ -244,7 +245,7 @@ typedef struct EnumPropertyRNA {
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
 
-	const PropertyEnumItem *item;
+	const EnumPropertyItem *item;
 	int totitem;
 
 	int defaultvalue;
@@ -286,7 +287,7 @@ typedef struct StructRNA {
 	struct StructRNA *next, *prev;
 
 	/* C code name */
-	const char *cname;
+	const char *identifier;
 	/* various options */
 	int flag;
 

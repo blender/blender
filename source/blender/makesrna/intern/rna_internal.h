@@ -77,7 +77,7 @@ extern StructRNA RNA_Main;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Scene;
-extern StructRNA RNA_StructRNA;
+extern StructRNA RNA_Struct;
 
 void RNA_def_ID(struct StructRNA *srna);
 

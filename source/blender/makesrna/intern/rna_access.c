@@ -59,9 +59,9 @@ static void rna_pointer_inherit_id(PointerRNA *parent, PointerRNA *ptr)
 
 /* Structs */
 
-const char *RNA_struct_cname(PointerRNA *ptr)
+const char *RNA_struct_identifier(PointerRNA *ptr)
 {
-	return ptr->type->cname;
+	return ptr->type->identifier;
 }
 
 const char *RNA_struct_ui_name(PointerRNA *ptr)
@@ -81,9 +81,9 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr)
 
 /* Property Information */
 
-const char *RNA_property_cname(PropertyRNA *prop, PointerRNA *ptr)
+const char *RNA_property_identifier(PropertyRNA *prop, PointerRNA *ptr)
 {
-	return prop->cname;
+	return prop->identifier;
 }
 
 PropertyType RNA_property_type(PropertyRNA *prop, PointerRNA *ptr)
@@ -143,7 +143,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop, PointerRNA *ptr)
 	return sprop->maxlength;
 }
 
-void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const PropertyEnumItem **item, int *totitem)
+void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const EnumPropertyItem **item, int *totitem)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 
@@ -677,7 +677,7 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 		prop= NULL;
 
 		for(; iter.valid; RNA_property_collection_next(iterprop, &iter)) {
-			if(strcmp(token, RNA_property_cname(iter.ptr.data, &iter.ptr)) == 0) {
+			if(strcmp(token, RNA_property_identifier(iter.ptr.data, &iter.ptr)) == 0) {
 				prop= iter.ptr.data;
 				break;
 			}
@@ -747,14 +747,14 @@ char *RNA_path_append(const char *path, PropertyRNA *prop, int intkey, const cha
 	
 	dynstr= BLI_dynstr_new();
 
-	/* add .cname */
+	/* add .identifier */
 	if(path) {
 		BLI_dynstr_append(dynstr, (char*)path);
 		if(*path)
 			BLI_dynstr_append(dynstr, ".");
 	}
 
-	BLI_dynstr_append(dynstr, (char*)prop->cname);
+	BLI_dynstr_append(dynstr, (char*)prop->identifier);
 
 	if(prop->type == PROP_COLLECTION) {
 		/* add ["strkey"] or [intkey] */

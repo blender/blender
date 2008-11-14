@@ -86,7 +86,7 @@ void RNA_test_dependencies_cb(void *udata, PointerRNA *from, PointerRNA *to)
 	if(prop) RNA_property_string_get(prop, to, nameto);
 	else strcpy(nameto, "unknown");
 	
-	printf("%s (%s) -> %s (%s)\n", name, from->type->cname, nameto, to->type->cname);
+	printf("%s (%s) -> %s (%s)\n", name, from->type->identifier, nameto, to->type->identifier);
 }
 #endif
 
