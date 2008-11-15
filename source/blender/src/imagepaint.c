@@ -2163,25 +2163,37 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	}
 	
 	INIT_MINMAX2(ps->viewMin2D, ps->viewMax2D);
-	
-	for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
-		VECCOPY((*projScreenCo), ps->dm_mvert[a].co);		
-		(*projScreenCo)[3] = 1.0;
-		
-		Mat4MulVec4fl(ps->projectMat, (*projScreenCo));
-		
-		if( (*projScreenCo)[3] > 0.001 ) {
+
+	if (ps->projectIsOrtho) {
+		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
+			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
+			Mat4MulVecfl(ps->projectMat, (*projScreenCo));
+
 			/* screen space, not clamped */
-			(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0]/(*projScreenCo)[3];	
-			(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1]/(*projScreenCo)[3];
-			(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
+			(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0];
+			(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1];
 			DO_MINMAX2((*projScreenCo), ps->viewMin2D, ps->viewMax2D);
-		} else {
-			/* TODO - deal with cases where 1 side of a face goes behind the view ? */
-			(*projScreenCo)[0] = (*projScreenCo)[1] = MAXFLOAT;
+		}
+	} else {
+		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
+			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
+			(*projScreenCo)[3] = 1.0;
+
+			Mat4MulVec4fl(ps->projectMat, (*projScreenCo));
+
+			if( (*projScreenCo)[3] > 0.001 ) {
+				/* screen space, not clamped */
+				(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0]/(*projScreenCo)[3];
+				(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1]/(*projScreenCo)[3];
+				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
+				DO_MINMAX2((*projScreenCo), ps->viewMin2D, ps->viewMax2D);
+			} else {
+				/* TODO - deal with cases where 1 side of a face goes behind the view ? */
+				(*projScreenCo)[0] = MAXFLOAT;
+			}
 		}
 	}
-	
+
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
@@ -2224,7 +2236,17 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
-			
+
+			if (!ps->projectIsOrtho) {
+				if (	ps->projectVertScreenCos[mf->v1][0]==MAXFLOAT ||
+						ps->projectVertScreenCos[mf->v2][0]==MAXFLOAT ||
+						ps->projectVertScreenCos[mf->v3][0]==MAXFLOAT ||
+						(mf->v4 && ps->projectVertScreenCos[mf->v4][0]==MAXFLOAT)
+				) {
+					continue;
+				}
+			}
+
 			if (ps->projectIsBackfaceCull) {
 				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
 				if (mf->v4)	CalcNormFloat4(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, f_no);
@@ -2361,7 +2383,7 @@ static void project_paint_end( ProjectPaintState *ps )
 						
 						if (last_undo_grid[tile_index]==NULL) {
 							/* add the undo tile from the modified image, then write the original colors back into it */
-							tile = last_undo_grid[tile_index] = undo_init_tile(&last_ima->id, ibuf, &tmpibuf, x_tile, y_tile);
+							tile = last_undo_grid[tile_index] = undo_init_tile(&last_ima->id, last_ibuf, &tmpibuf, x_tile, y_tile);
 						} else {
 							tile = last_undo_grid[tile_index];
 						}
