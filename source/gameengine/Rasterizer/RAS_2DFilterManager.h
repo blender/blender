@@ -44,7 +44,9 @@ private:
 	void FreeTextures();
 
 	void UpdateOffsetMatrix(RAS_ICanvas* canvas);
-
+	void UpdateCanvasTextureCoord(unsigned int * viewport);
+ 
+	float			canvascoord[4];
 	float			textureoffsets[18];
 	float			view[4];
 	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture*/
@@ -60,6 +62,7 @@ private:
 
 	bool			isshadersupported;
 	bool			errorprinted;
+	bool			need_tex_update;
 
 	unsigned int	m_filters[MAX_RENDER_PASS];
 	short		m_enabled[MAX_RENDER_PASS];
