@@ -6337,9 +6337,15 @@ static void editing_panel_mesh_paint(void)
 		yco= 160;
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+		
+		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Draw",		0  ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		80 ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		160,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		240,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");	
+		
 		uiBlockEndAlign(block);
 		yco -= 30;
 
