@@ -267,6 +267,7 @@ bGPDframe *gpencil_frame_duplicate (bGPDframe *src)
 		
 	/* make a copy of the source frame */
 	dst= MEM_dupallocN(src);
+	dst->prev= dst->next= NULL;
 	
 	/* copy strokes */
 	dst->strokes.first = dst->strokes.last= NULL;
@@ -294,13 +295,18 @@ bGPDlayer *gpencil_layer_duplicate (bGPDlayer *src)
 		
 	/* make a copy of source layer */
 	dst= MEM_dupallocN(src);
+	dst->prev= dst->next= NULL;
 	
 	/* copy frames */
 	dst->frames.first= dst->frames.last= NULL;
 	for (gpf= src->frames.first; gpf; gpf= gpf->next) {
-		/* make a copy of source stroke */
+		/* make a copy of source frame */
 		gpfd= gpencil_frame_duplicate(gpf);
 		BLI_addtail(&dst->frames, gpfd);
+		
+		/* if source frame was the current layer's 'active' frame, reassign that too */
+		if (gpf == dst->actframe)
+			dst->actframe= gpfd;
 	}
 	
 	/* return new layer */

@@ -1,4 +1,4 @@
-LCGDIR = '../lib/windows'
+LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
 WITH_BF_VERSE = False
@@ -100,6 +100,9 @@ BF_BULLET_LIB = 'extern_bullet'
 BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
+
+BF_WINTAB = LIBDIR + '/wintab'
+BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'

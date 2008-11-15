@@ -68,6 +68,8 @@ typedef struct EditBone
 
 } EditBone;
 
+float	rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+
 void	make_boneList(struct ListBase *list, struct ListBase *bones, EditBone *parent);
 void	editbones_to_armature (struct ListBase *list, struct Object *ob);
 

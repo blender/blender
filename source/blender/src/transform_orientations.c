@@ -40,6 +40,7 @@
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
+#include "BKE_armature.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -680,21 +681,20 @@ int getTransformOrientation(float normal[3], float plane[3], int activeOnly)
 				{
 					if (ebone->flag & BONE_SELECTED)
 					{
+						float mat[3][3];
 						float vec[3];
 						VecSubf(vec, ebone->tail, ebone->head);
 						Normalize(vec);
 						VecAddf(normal, normal, vec);
+						
+						vec_roll_to_mat3(vec, ebone->roll, mat);
+						VecAddf(plane, plane, mat[2]);
 					}
 				}
 			}
 			
 			Normalize(normal);
-			Crossf(plane, G.obedit->obmat[0], normal);
-			
-			if (Inpf(plane, plane) < FLT_EPSILON)
-			{
-				Crossf(plane, G.obedit->obmat[1], normal);
-			} 
+			Normalize(plane);
 
 			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0)
 			{
