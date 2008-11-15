@@ -113,6 +113,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volume_precache.h"
 #include "sss.h"
 #include "strand.h"
 #include "zbuf.h"

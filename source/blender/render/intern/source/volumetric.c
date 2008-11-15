@@ -27,8 +27,8 @@
  */
 
 #include <math.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <float.h>
 
 #include "MEM_guardedalloc.h"
@@ -36,9 +36,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
-#include "BLI_kdtree.h"
-
-#include "PIL_time.h"
 
 #include "RE_shader_ext.h"
 #include "RE_raytrace.h"
@@ -48,13 +45,12 @@
 #include "DNA_lamp_types.h"
 
 #include "BKE_global.h"
-#include "BKE_main.h"
 
 #include "render_types.h"
-#include "renderdatabase.h"
 #include "pixelshading.h"
 #include "shading.h"
 #include "texture.h"
+#include "volumetric.h"
 
 #if defined( _MSC_VER ) && !defined( __cplusplus )
 # define inline __inline
@@ -74,29 +70,6 @@ static int vol_backface_intersect_check(Isect *is, int ob, RayFace *face)
 	 * of foward facing geometry don't cause the ray to stop */
 	return (INPR(is->vec, vlr->n) < 0.0f);
 }
-
-#if 0
-static int vol_frontface_intersect_check(Isect *is, int ob, RayFace *face)
-{
-	VlakRen *vlr = (VlakRen *)face;
-	
-	/* only consider faces away, so overlapping layers
-	 * of foward facing geometry don't cause the ray to stop */
-	return (INPR(is->vec, vlr->n) > 0.0f);
-}
-
-static int vol_always_intersect_check(Isect *is, int ob, RayFace *face)
-{
-	return 1;
-}
-#endif
-
-#define VOL_IS_BACKFACE			1
-#define VOL_IS_SAMEMATERIAL		2
-
-
-#define VOL_BOUNDS_DEPTH	0
-#define VOL_BOUNDS_SS		1
 
 /* TODO: Box or sphere intersection types could speed things up */
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type, int checkfunc)
@@ -139,8 +112,6 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	}
 }
 
-#define STEPSIZE_VIEW	0
-#define STEPSIZE_SHADE	1
 float vol_get_stepsize(struct ShadeInput *shi, int context)
 {
 	if (shi->mat->vol_stepsize_type == MA_VOL_STEP_RANDOMIZED) {
@@ -152,8 +123,7 @@ float vol_get_stepsize(struct ShadeInput *shi, int context)
 		else if (context == STEPSIZE_SHADE)
 			return shi->mat->vol_shade_stepsize * rnd;
 	}
-	else {
-		// MA_VOL_STEP_CONSTANT
+	else {	// MA_VOL_STEP_CONSTANT
 		
 		if (context == STEPSIZE_VIEW)
 			return shi->mat->vol_stepsize;
@@ -162,6 +132,81 @@ float vol_get_stepsize(struct ShadeInput *shi, int context)
 	}
 	
 	return shi->mat->vol_stepsize;
+}
+
+/* SHADING */
+
+static float D(ShadeInput *shi, int rgb, int x, int y, int z)
+{
+	const int res = shi->mat->vol_precache_resolution;
+	CLAMP(x, 0, res-1);
+	CLAMP(y, 0, res-1);
+	CLAMP(z, 0, res-1);
+	return shi->obi->volume_precache[rgb*res*res*res + x*res*res + y*res + z];
+}
+
+inline float lerp(float t, float v1, float v2) {
+	return (1.f - t) * v1 + t * v2;
+}
+
+/* trilinear interpolation */
+static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
+{
+	const int res = shi->mat->vol_precache_resolution;
+	float voxx, voxy, voxz;
+	int vx, vy, vz;
+	float dx, dy, dz;
+	float d00, d10, d01, d11, d0, d1, d_final;
+	float bbmin[3], bbmax[3], dim[3];
+	int rgb;
+	
+	if (!shi->obi->volume_precache) return;
+	
+	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
+	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
+	VecSubf(dim, bbmax, bbmin);
+	
+	voxx = ((co[0] - bbmin[0]) / dim[0]) * res - 0.5f;
+	voxy = ((co[1] - bbmin[1]) / dim[1]) * res - 0.5f;
+	voxz = ((co[2] - bbmin[2]) / dim[2]) * res - 0.5f;
+	
+	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
+	
+	dx = voxx - vx; dy = voxy - vy; dz = voxz - vz;
+	
+	for (rgb=0; rgb < 3; rgb++) {
+		d00 = lerp(dx, D(shi, rgb, vx, vy, vz), 		D(shi, rgb, vx+1, vy, vz));
+		d10 = lerp(dx, D(shi, rgb, vx, vy+1, vz), 		D(shi, rgb, vx+1, vy+1, vz));
+		d01 = lerp(dx, D(shi, rgb, vx, vy, vz+1), 		D(shi, rgb, vx+1, vy, vz+1));
+		d11 = lerp(dx, D(shi, rgb, vx, vy+1, vz+1), 	D(shi, rgb, vx+1, vy+1, vz+1));
+		d0 = lerp(dy, d00, d10);
+		d1 = lerp(dy, d01, d11);
+		d_final = lerp(dz, d0, d1);
+		
+		scatter_col[rgb] = d_final;
+	}
+}
+
+/* no interpolation */
+static void vol_get_precached_scattering_nearest(ShadeInput *shi, float *scatter_col, float *co)
+{
+	const int res = shi->mat->vol_precache_resolution;
+	int x,y,z;
+	float bbmin[3], bbmax[3], dim[3];
+
+	if (!shi->obi->volume_precache) return;
+	
+	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
+	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
+	VecSubf(dim, bbmax, bbmin);
+	
+	x = (int)(((co[0] - bbmin[0]) / dim[0]) * res);
+	y = (int)(((co[1] - bbmin[1]) / dim[1]) * res);
+	z = (int)(((co[2] - bbmin[2]) / dim[2]) * res);
+	
+	scatter_col[0] = shi->obi->volume_precache[0*res*res*res + x*res*res + y*res + z];
+	scatter_col[1] = shi->obi->volume_precache[1*res*res*res + x*res*res + y*res + z];
+	scatter_col[2] = shi->obi->volume_precache[2*res*res*res + x*res*res + y*res + z];
 }
 
 float vol_get_density(struct ShadeInput *shi, float *co)
@@ -245,82 +290,6 @@ void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
 }
 
-
-static float D(ShadeInput *shi, int rgb, int x, int y, int z)
-{
-	const int res = shi->mat->vol_precache_resolution;
-	CLAMP(x, 0, res-1);
-	CLAMP(y, 0, res-1);
-	CLAMP(z, 0, res-1);
-	return shi->obi->volume_precache[rgb*res*res*res + x*res*res + y*res + z];
-}
-
-inline float lerp(float t, float v1, float v2) {
-	return (1.f - t) * v1 + t * v2;
-}
-
-/* trilinear interpolation */
-static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, float *co)
-{
-	const int res = shi->mat->vol_precache_resolution;
-	float voxx, voxy, voxz;
-	int vx, vy, vz;
-	float dx, dy, dz;
-	float d00, d10, d01, d11, d0, d1, d_final;
-	float bbmin[3], bbmax[3], dim[3];
-	int rgb;
-	
-	if (!shi->obi->volume_precache) return;
-	
-	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
-	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
-	VecSubf(dim, bbmax, bbmin);
-	
-	voxx = ((co[0] - bbmin[0]) / dim[0]) * res - 0.5f;
-	voxy = ((co[1] - bbmin[1]) / dim[1]) * res - 0.5f;
-	voxz = ((co[2] - bbmin[2]) / dim[2]) * res - 0.5f;
-	
-	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
-	
-	dx = voxx - vx; dy = voxy - vy; dz = voxz - vz;
-	
-	for (rgb=0; rgb < 3; rgb++) {
-		d00 = lerp(dx, D(shi, rgb, vx, vy, vz), 		D(shi, rgb, vx+1, vy, vz));
-		d10 = lerp(dx, D(shi, rgb, vx, vy+1, vz), 		D(shi, rgb, vx+1, vy+1, vz));
-		d01 = lerp(dx, D(shi, rgb, vx, vy, vz+1), 		D(shi, rgb, vx+1, vy, vz+1));
-		d11 = lerp(dx, D(shi, rgb, vx, vy+1, vz+1), 	D(shi, rgb, vx+1, vy+1, vz+1));
-		d0 = lerp(dy, d00, d10);
-		d1 = lerp(dy, d01, d11);
-		d_final = lerp(dz, d0, d1);
-		
-		scatter_col[rgb] = d_final;
-	}
-}
-
-
-/* no interpolation */
-static void vol_get_precached_scattering_nearest(ShadeInput *shi, float *scatter_col, float *co)
-{
-	const int res = shi->mat->vol_precache_resolution;
-	int x,y,z;
-	float bbmin[3], bbmax[3], dim[3];
-
-	if (!shi->obi->volume_precache) return;
-	
-	VECCOPY(bbmin, shi->obi->obr->boundbox[0]);
-	VECCOPY(bbmax, shi->obi->obr->boundbox[1]);
-	VecSubf(dim, bbmax, bbmin);
-	
-	x = (int)(((co[0] - bbmin[0]) / dim[0]) * res);
-	y = (int)(((co[1] - bbmin[1]) / dim[1]) * res);
-	z = (int)(((co[2] - bbmin[2]) / dim[2]) * res);
-	
-	scatter_col[0] = shi->obi->volume_precache[0*res*res*res + x*res*res + y*res + z];
-	scatter_col[1] = shi->obi->volume_precache[1*res*res*res + x*res*res + y*res + z];
-	scatter_col[2] = shi->obi->volume_precache[2*res*res*res + x*res*res + y*res + z];
-}
-
-
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
  * Used in the relationship Transmittance = e^(-attenuation)
  */
@@ -353,7 +322,7 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 	VecSubf(step_vec, endco, co);
 	VecMulf(step_vec, 1.0f / nsteps);
 	
-	VECCOPY(step_sta, co);
+	VecCopyf(step_sta, co);
 	VecAddf(step_end, step_sta, step_vec);
 	
 	for (s = 0;  s < nsteps; s++) {
@@ -469,17 +438,33 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 	VECCOPY(scatter, col);
 }
 
+	
+/*
+The main volumetric integrator, using an emission/absorption/scattering model.
+
+Incoming radiance = 
+
+outgoing radiance from behind surface * beam transmittance/attenuation
++ added radiance from all points along the ray due to participating media
+	--> radiance for each segment = 
+		(radiance added by scattering + radiance added by emission) * beam transmittance/attenuation
+
+-- To find transmittance:
+	compute optical thickness with tau (perhaps involving monte carlo integration)
+	transmittance = exp(-tau)
+	
+-- To find radiance from segments along the way:
+	find radiance for one step: 
+	- loop over lights and weight by phase function
+*/
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
-	float tr[3] = {1.0f, 1.0f, 1.0f};			/* total transmittance */
+	float tr[3] = {1.0f, 1.0f, 1.0f};
 	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f};
 	float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
-	int nsteps;
-	float vec[3], stepvec[3] = {0.0, 0.0, 0.0};
+	int nsteps, s;
 	float tau[3], emit_col[3], scatter_col[3] = {0.0, 0.0, 0.0};
-	int s;
-	float step_sta[3], step_end[3], step_mid[3];
-	float alpha;
+	float stepvec[3], step_sta[3], step_end[3], step_mid[3];
 	float density = vol_get_density(shi, co);
 	
 	/* multiply col_behind with beam transmittance over entire distance */
@@ -493,11 +478,9 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	/* ray marching */
 	nsteps = (int)((VecLenf(co, endco) / stepsize) + 0.5);
 	
-	VecSubf(vec, endco, co);
-	VECCOPY(stepvec, vec);
+	VecSubf(stepvec, endco, co);
 	VecMulf(stepvec, 1.0f / nsteps);
-	
-	VECCOPY(step_sta, co);
+	VecCopyf(step_sta, co);
 	VecAddf(step_end, step_sta, stepvec);
 	
 	/* get radiance from all points along the ray due to participating media */
@@ -505,8 +488,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 
 		if (s > 0) density = vol_get_density(shi, step_sta);
 		
-		/* there's only any use in shading here
-		 * if there's actually some density to shade! */
+		/* there's only any use in shading here if there's actually some density to shade! */
 		if (density > 0.01f) {
 		
 			/* transmittance component (alpha) */
@@ -524,10 +506,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			
 			if ((shi->mat->vol_shadeflag & MA_VOL_PRECACHESHADING) &&
 				(shi->mat->vol_shadeflag & MA_VOL_ATTENUATED)) {
-				if (G.rt==100)
-					vol_get_precached_scattering_nearest(shi, scatter_col, step_mid);
-				else
-					vol_get_precached_scattering(shi, scatter_col, step_mid);
+				vol_get_precached_scattering(shi, scatter_col, step_mid);
 			} else
 				vol_get_scattering(shi, scatter_col, step_mid, stepsize, density);
 						
@@ -541,36 +520,12 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			VecAddf(radiance, radiance, d_radiance);	
 		}
 
-		VECCOPY(step_sta, step_end);
+		VecCopyf(step_sta, step_end);
 		VecAddf(step_end, step_end, stepvec);
 	}
 	
-	col[0] = radiance[0];
-	col[1] = radiance[1];
-	col[2] = radiance[2];
-	
-	alpha = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
-	col[3] = alpha;
-	
-	/*
-	Incoming radiance = 
-		  outgoing radiance from behind surface * beam transmittance/attenuation
-		
-		+ added radiance from all points along the ray due to participating media
-		    --> radiance for each segment = 
-					  radiance added by scattering 
-					+ radiance added by emission
-					* beam transmittance/attenuation
-	
-	
-	-- To find transmittance:
-		compute optical thickness with tau (perhaps involving monte carlo integration)
-		return exp(-tau)
-		
-	-- To find radiance from segments along the way:
-		find radiance for one step:
-		  - loop over lights and weight by phase function
-		*/
+	VecCopyf(col, radiance);
+	col[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
 }
 
 static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
@@ -757,310 +712,5 @@ void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 		shr->combined[2] = 0.0f;
 		shr->combined[3] = shr->alpha =  0.0f;
 	}
-}
-
-
-/* Recursive test for intersections, from a point inside the mesh, to outside
- * Number of intersections (depth) determine if a point is inside or outside the mesh */
-int intersect_outside_volume(RayTree *tree, Isect *isect, float *offset, int limit, int depth)
-{
-	if (limit == 0) return depth;
-	
-	if (RE_ray_tree_intersect(tree, isect)) {
-		float hitco[3];
-		
-		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
-		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
-		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
-		VecAddf(isect->start, hitco, offset);
-
-		return intersect_outside_volume(tree, isect, offset, limit-1, depth+1);
-	} else {
-		return depth;
-	}
-}
-
-/* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
-int point_inside_obi(RayTree *tree, ObjectInstanceRen *obi, float *co)
-{
-	float maxsize = RE_ray_tree_max_size(tree);
-	Isect isect;
-	float vec[3] = {0.0f,0.0f,1.0f};
-	int final_depth=0, depth=0, limit=20;
-	
-	/* set up the isect */
-	memset(&isect, 0, sizeof(isect));
-	VECCOPY(isect.start, co);
-	isect.end[0] = co[0] + vec[0] * maxsize;
-	isect.end[1] = co[1] + vec[1] * maxsize;
-	isect.end[2] = co[2] + vec[2] * maxsize;
-	
-	/* and give it a little offset to prevent self-intersections */
-	VecMulf(vec, 1e-5);
-	VecAddf(isect.start, isect.start, vec);
-	
-	isect.mode= RE_RAY_MIRROR;
-	isect.face_last= NULL;
-	isect.lay= -1;
-	
-	final_depth = intersect_outside_volume(tree, &isect, vec, limit, depth);
-	
-	/* even number of intersections: point is outside
-	 * odd number: point is inside */
-	if (final_depth % 2 == 0) return 0;
-	else return 1;
-}
-
-static int inside_check_func(Isect *is, int ob, RayFace *face)
-{
-	return 1;
-}
-static void vlr_face_coords(RayFace *face, float **v1, float **v2, float **v3, float **v4)
-{
-	VlakRen *vlr= (VlakRen*)face;
-
-	*v1 = (vlr->v1)? vlr->v1->co: NULL;
-	*v2 = (vlr->v2)? vlr->v2->co: NULL;
-	*v3 = (vlr->v3)? vlr->v3->co: NULL;
-	*v4 = (vlr->v4)? vlr->v4->co: NULL;
-}
-
-RayTree *create_raytree_obi(ObjectInstanceRen *obi, float *bbmin, float *bbmax)
-{
-	int v;
-	VlakRen *vlr= NULL;
-	
-	/* create empty raytree */
-	RayTree *tree = RE_ray_tree_create(64, obi->obr->totvlak, bbmin, bbmax,
-		vlr_face_coords, inside_check_func, NULL, NULL);
-	
-	/* fill it with faces */
-	for(v=0; v<obi->obr->totvlak; v++) {
-		if((v & 255)==0)
-			vlr= obi->obr->vlaknodes[v>>8].vlak;
-		else
-			vlr++;
-	
-		RE_ray_tree_add_face(tree, 0, vlr);
-	}
-	
-	RE_ray_tree_done(tree);
-	
-	return tree;
-}
-
-static float get_avg_surrounds(float *cache, int res, int res_2, int res_3, int rgb, int xx, int yy, int zz)
-{
-	int x, y, z, x_, y_, z_;
-	int added=0;
-	float tot=0.0f;
-	int i;
-	
-	for (x=-1; x <= 1; x++) {
-		x_ = xx+x;
-		if (x_ >= 0 && x_ <= res-1) {
-		
-			for (y=-1; y <= 1; y++) {
-				y_ = yy+y;
-				if (y_ >= 0 && y_ <= res-1) {
-				
-					for (z=-1; z <= 1; z++) {
-						z_ = zz+z;
-						if (z_ >= 0 && z_ <= res-1) {
-						
-							i = rgb*res_3 + x_*res_2 + y_*res + z_;
-							if (cache[i] > 0.0f) {
-								tot += cache[i];
-								added++;
-							}
-							
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	tot /= added;
-	
-	return ((added>0)?tot:0.0f);
-}
-
-/* function to filter the edges of the light cache, where there was no volume originally.
- * For each voxel which was originally external to the mesh, it finds the average values of
- * the surrounding internal voxels and sets the original external voxel to that average amount.
- * Works almost a bit like a 'dilate' filter */
-static void lightcache_filter(float *cache, int res)
-{
-	int x, y, z, rgb;
-	int res_2, res_3;
-	int i;
-	
-	res_2 = res*res;
-	res_3 = res*res*res;
-
-	for (x=0; x < res; x++) {
-		for (y=0; y < res; y++) {
-			for (z=0; z < res; z++) {
-				for (rgb=0; rgb < 3; rgb++) {
-					i = rgb*res_3 + x*res_2 + y*res + z;
-
-					/* trigger for outside mesh */
-					if (cache[i] < 0.5f) cache[i] = get_avg_surrounds(cache, res, res_2, res_3, rgb, x, y, z);
-				}
-			}
-		}
-	}
-}
-
-/* Precache a volume into a 3D voxel grid.
- * The voxel grid is stored in the ObjectInstanceRen, 
- * in camera space, aligned with the ObjectRen's bounding box.
- * Resolution is defined by the user.
- */
-void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
-{
-	int x, y, z;
-
-	float co[3], voxel[3], scatter_col[3];
-	ShadeInput shi;
-	float view[3] = {0.0,0.0,-1.0};
-	float density;
-	float stepsize;
-	
-	float resf, res_3f;
-	int res_2, res_3;
-	
-	float i = 1.0f;
-	double time, lasttime= PIL_check_seconds_timer();
-	const int res = ma->vol_precache_resolution;
-	RayTree *tree;
-	
-	R = *re;
-
-	/* create a raytree with just the faces of the instanced ObjectRen, 
-	 * used for checking if the cached point is inside or outside. */
-	tree = create_raytree_obi(obi, bbmin, bbmax);
-	if (!tree) return;
-
-	/* Need a shadeinput to calculate scattering */
-	memset(&shi, 0, sizeof(ShadeInput)); 
-	shi.depth= 1;
-	shi.mask= 1;
-	shi.mat = ma;
-	shi.vlr = NULL;
-	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi.har= shi.mat->har;
-	shi.obi= obi;
-	shi.obr= obi->obr;
-	shi.lay = re->scene->lay;
-	VECCOPY(shi.view, view);
-	
-	stepsize = vol_get_stepsize(&shi, STEPSIZE_VIEW);
-
-	resf = (float)res;
-	res_2 = res*res;
-	res_3 = res*res*res;
-	res_3f = (float)res_3;
-	
-	VecSubf(voxel, bbmax, bbmin);
-	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
-		return;
-	VecMulf(voxel, 1.0f/res);
-	
-	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
-	
-	/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
-	 *
-	 * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
-	 * I'm guessing the memory alignment may work out better this way for the purposes
-	 * of doing linear interpolation, but I haven't actually tested this theory! :)
-	 */
-	for (x=0; x < res; x++) {
-		co[0] = bbmin[0] + (voxel[0] * x);
-		
-		for (y=0; y < res; y++) {
-			co[1] = bbmin[1] + (voxel[1] * y);
-			
-			for (z=0; z < res; z++) {
-				co[2] = bbmin[2] + (voxel[2] * z);
-				
-				time= PIL_check_seconds_timer();
-				i++;
-			
-				/* display progress every second */
-				if(re->test_break()) {
-					if(tree) {
-						RE_ray_tree_free(tree);
-						tree= NULL;
-					}
-					return;
-				}
-				if(time-lasttime>1.0f) {
-					char str[64];
-					sprintf(str, "Precaching volume: %d%%", (int)(100.0f * (i / res_3f)));
-					re->i.infostr= str;
-					re->stats_draw(&re->i);
-					re->i.infostr= NULL;
-					lasttime= time;
-				}
-				
-				/* don't bother if the point is not inside the volume mesh */
-				if (!point_inside_obi(tree, obi, co)) {
-					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
-					continue;
-				}
-				
-				VECCOPY(shi.view, co);
-				Normalize(shi.view);
-				density = vol_get_density(&shi, co);
-				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
-			
-				obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = scatter_col[0];
-				obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = scatter_col[1];
-				obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = scatter_col[2];
-			}
-		}
-	}
-
-	if(tree) {
-		RE_ray_tree_free(tree);
-		tree= NULL;
-	}
-	
-	lightcache_filter(obi->volume_precache, res);
-
-}
-
-/* loop through all objects (and their associated materials)
- * marked for pre-caching in convertblender.c, and pre-cache them */
-void volume_precache(Render *re)
-{
-	ObjectInstanceRen *obi;
-	VolPrecache *vp;
-
-	for(vp= re->vol_precache_obs.first; vp; vp= vp->next) {
-		for(obi= re->instancetable.first; obi; obi= obi->next) {
-			if (obi->obr == vp->obr) 
-				vol_precache_objectinstance(re, obi, vp->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
-		}
-	}
-	
-	re->i.infostr= NULL;
-	re->stats_draw(&re->i);
-}
-
-void free_volume_precache(Render *re)
-{
-	ObjectInstanceRen *obi;
-	
-	for(obi= re->instancetable.first; obi; obi= obi->next) {
-		if (obi->volume_precache)
-			MEM_freeN(obi->volume_precache);
-	}
-	
-	BLI_freelistN(&re->vol_precache_obs);
 }
 
