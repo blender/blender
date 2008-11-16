@@ -140,7 +140,19 @@ typedef struct ImagePaintPartialRedraw {
 } ImagePaintPartialRedraw;
 
 /* testing options */
-#define PROJ_BUCKET_DIV 128 /* TODO - test other values, this is a guess, seems ok */
+
+/* approx the number of buckets to have under the brush,
+ * used with the brush size to set the ps->buckets_x and ps->buckets_y value.
+ * 
+ * When 3 - a brush should have ~9 buckets under it at once
+ * ...this helps for threading while painting as well as
+ * avoiding initializing pixels that wont touch the brush */
+#define PROJ_BUCKET_BRUSH_DIV 3
+
+#define PROJ_BUCKET_RECT_MIN 4
+#define PROJ_BUCKET_RECT_MAX 256
+
+
 #define PROJ_BOUNDBOX_DIV 6 /* TODO - test other values, this is a guess, seems ok */
 #define PROJ_BOUNDBOX_SQUARED  (PROJ_BOUNDBOX_DIV * PROJ_BOUNDBOX_DIV)
 
@@ -741,8 +753,8 @@ static int project_paint_PickColor(ProjectPaintState *ps, float pt[2], float *rg
 		if (x < 0.0) x += 1.0;
 		if (y < 0.0) y += 1.0;
 		
-		x *= ibuf->x;
-		y *= ibuf->y;
+		x = x * ibuf->x - 0.5;
+		y = y * ibuf->y - 0.5;
 		
 		if (ibuf->rect_float) {
 			if (rgba_fp) {
@@ -762,8 +774,8 @@ static int project_paint_PickColor(ProjectPaintState *ps, float pt[2], float *rg
 			}
 		}
 	} else {
-		xi = uv[0]*ibuf->x;
-		yi = uv[1]*ibuf->y;
+		xi = (uv[0]*ibuf->x) + 0.5;
+		yi = (uv[1]*ibuf->y) + 0.5;
 		
 		//if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
 		
@@ -2134,14 +2146,88 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->dm_totvert = ps->dm->getNumVerts( ps->dm );
 	ps->dm_totface = ps->dm->getNumFaces( ps->dm );
 	
-	ps->buckets_x = G.rt ? G.rt : PROJ_BUCKET_DIV;
-	ps->buckets_y = G.rt ? G.rt : PROJ_BUCKET_DIV;
-	
 	ps->viewDir[0] = 0.0;
 	ps->viewDir[1] = 0.0;
 	ps->viewDir[2] = 1.0;
 	
 	view3d_get_object_project_mat(curarea, ps->ob, ps->projectMat, ps->viewMat);
+	
+	
+	/* calculate vert screen coords
+	 * run this early so we can calculate the x/y resolution of our bucket rect */
+	
+	/* since we now run this before the memarena is allocated, this will need its own memory */
+	/*ps->screenCoords = BLI_memarena_alloc( ps->arena, sizeof(float) * ps->dm_totvert * 4);*/
+	
+	ps->screenCoords = MEM_mallocN(sizeof(float) * ps->dm_totvert * 4, "ProjectPaint ScreenVerts");
+	projScreenCo = ps->screenCoords;
+	
+	/* TODO - check cameras mode too */
+	if (G.vd->persp == V3D_ORTHO) {
+		ps->is_ortho = 1;
+	}
+	
+	INIT_MINMAX2(ps->screen_min, ps->screen_max);
+
+	if (ps->is_ortho) {
+		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
+			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
+			Mat4MulVecfl(ps->projectMat, (*projScreenCo));
+
+			/* screen space, not clamped */
+			(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0];
+			(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1];
+			DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
+		}
+	} else {
+		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
+			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
+			(*projScreenCo)[3] = 1.0;
+
+			Mat4MulVec4fl(ps->projectMat, (*projScreenCo));
+
+			if( (*projScreenCo)[3] > 0.001 ) {
+				/* screen space, not clamped */
+				(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0]/(*projScreenCo)[3];
+				(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1]/(*projScreenCo)[3];
+				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
+				DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
+			} else {
+				/* TODO - deal with cases where 1 side of a face goes behind the view ? */
+				(*projScreenCo)[0] = MAXFLOAT;
+			}
+		}
+	}
+	
+	/* If this border is not added we get artifacts for faces that
+	 * have a parallel edge and at the bounds of the the 2D projected verts eg
+	 * - a single screen aligned quad */
+	projMargin = (ps->screen_max[0] - ps->screen_min[0]) * 0.000001;
+	ps->screen_max[0] += projMargin;
+	ps->screen_min[0] -= projMargin;
+	projMargin = (ps->screen_max[1] - ps->screen_min[1]) * 0.000001;
+	ps->screen_max[1] += projMargin;
+	ps->screen_min[1] -= projMargin;
+	
+	
+	/* only for convenience */
+	ps->screen_width  = ps->screen_max[0] - ps->screen_min[0];
+	ps->screen_height = ps->screen_max[1] - ps->screen_min[1];
+	
+	/* done with screen coords */
+	
+	//ps->buckets_x = G.rt ? G.rt : PROJ_BUCKET_BRUSH_DIV;
+	//ps->buckets_y = G.rt ? G.rt : PROJ_BUCKET_BRUSH_DIV;
+
+	ps->buckets_x = (int)(ps->screen_width / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
+	ps->buckets_y = (int)(ps->screen_height / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
+	
+	printf("\tscreenspace bucket division x:%d y:%d\n", ps->buckets_x, ps->buckets_y);
+	
+	/* really high values could cause problems since it has to allocate a few
+	 * (ps->buckets_x*ps->buckets_y) sized arrays  */
+	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
+	CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 	
 	tot_bucketMem =				sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y;
 	tot_faceListMem =			sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y;
@@ -2190,13 +2276,21 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	// calloced - }
 #endif
 	
-	/* Thread stuff */
-	if (G.scene->r.mode & R_FIXED_THREADS) {
-		ps->thread_tot = G.scene->r.threads;
-	} else {
-		ps->thread_tot = BLI_system_thread_count();
-	}
+	/* Thread stuff
+	 * 
+	 * very small brushes run a lot slower multithreaded since the advantage with
+	 * threads is being able to fill in multiple buckets at once.
+	 * Only use threads for bigger brushes. */
 	
+	if (ps->brush->size < 40) {
+		ps->thread_tot = 1;
+	} else {
+		if (G.scene->r.mode & R_FIXED_THREADS) {
+			ps->thread_tot = G.scene->r.threads;
+		} else {
+			ps->thread_tot = BLI_system_thread_count();
+		}
+	}
 	for (a=0; a<ps->thread_tot; a++) {
 		ps->arena_mt[a] = BLI_memarena_new(1<<16);
 	}
@@ -2207,47 +2301,6 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	Mat3MulVecfl(mat, ps->viewDir);
 	Mat3CpyMat4(mat, ps->ob->imat);
 	Mat3MulVecfl(mat, ps->viewDir);
-	
-	/* calculate vert screen coords */
-	ps->screenCoords = BLI_memarena_alloc( ps->arena, sizeof(float) * ps->dm_totvert * 4);
-	projScreenCo = ps->screenCoords;
-	
-	/* TODO - check cameras mode too */
-	if (G.vd->persp == V3D_ORTHO) {
-		ps->is_ortho = 1;
-	}
-	
-	INIT_MINMAX2(ps->screen_min, ps->screen_max);
-
-	if (ps->is_ortho) {
-		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
-			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
-			Mat4MulVecfl(ps->projectMat, (*projScreenCo));
-
-			/* screen space, not clamped */
-			(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0];
-			(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1];
-			DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
-		}
-	} else {
-		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
-			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
-			(*projScreenCo)[3] = 1.0;
-
-			Mat4MulVec4fl(ps->projectMat, (*projScreenCo));
-
-			if( (*projScreenCo)[3] > 0.001 ) {
-				/* screen space, not clamped */
-				(*projScreenCo)[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*(*projScreenCo)[0]/(*projScreenCo)[3];
-				(*projScreenCo)[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*(*projScreenCo)[1]/(*projScreenCo)[3];
-				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
-				DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
-			} else {
-				/* TODO - deal with cases where 1 side of a face goes behind the view ? */
-				(*projScreenCo)[0] = MAXFLOAT;
-			}
-		}
-	}
 
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
@@ -2264,21 +2317,6 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 		// printf("%f %f   %f %f %f\n", ps->clone_offset[0], ps->clone_offset[1], curs[0], curs[1], curs[2]);
 		
 	}
-	
-	/* If this border is not added we get artifacts for faces that
-	 * have a paralelle edge and at the bounds of the the 2D projected verts eg
-	 * - a simgle screen aligned quad */
-	projMargin = (ps->screen_max[0] - ps->screen_min[0]) * 0.000001;
-	ps->screen_max[0] += projMargin;
-	ps->screen_min[0] -= projMargin;
-	projMargin = (ps->screen_max[1] - ps->screen_min[1]) * 0.000001;
-	ps->screen_max[1] += projMargin;
-	ps->screen_min[1] -= projMargin;
-	
-	
-	/* only for convenience */
-	ps->screen_width  = ps->screen_max[0] - ps->screen_min[0];
-	ps->screen_height = ps->screen_max[1] - ps->screen_min[1];
 	
 	if (!ps->is_ortho) {
 		/* get the view direction relative to the objects matrix */
@@ -2448,6 +2486,7 @@ static void project_paint_end( ProjectPaintState *ps )
 	}
 	/* done calculating undo data */
 	
+	MEM_freeN(ps->screenCoords);
 	
 	BLI_memarena_free(ps->arena);
 	
@@ -3004,15 +3043,20 @@ static int imapaint_refresh_tagged(ProjectPaintState *ps)
 	return redraw;
 }
 
+/* run this per painting onto each mouse location */
 static int bucket_iter_init(ProjectPaintState *ps, float mval_f[2])
 {
 	float min_brush[2], max_brush[2];
+	float size_half = ((float)ps->brush->size)/2.0;
 	
-	min_brush[0] = mval_f[0] - (ps->brush->size/2);
-	min_brush[1] = mval_f[1] - (ps->brush->size/2);
+	/* so we dont have a bucket bounds that is way too small to paint into */
+	// if (size_half < 1.0) size_half = 1.0; // this dosnt work yet :/
 	
-	max_brush[0] = mval_f[0] + (ps->brush->size/2);
-	max_brush[1] = mval_f[1] + (ps->brush->size/2);
+	min_brush[0] = mval_f[0] - size_half;
+	min_brush[1] = mval_f[1] - size_half;
+	
+	max_brush[0] = mval_f[0] + size_half;
+	max_brush[1] = mval_f[1] + size_half;
 	
 	/* offset to make this a valid bucket index */
 	project_paint_rect(ps, min_brush, max_brush, ps->bucket_min, ps->bucket_max);
@@ -3030,7 +3074,7 @@ static int bucket_iter_init(ProjectPaintState *ps, float mval_f[2])
 	return 1;
 }
 
-static int bucket_iter_next(ProjectPaintState *ps, int *bucket_index, float bucket_bounds[4], float mval_f[2])
+static int bucket_iter_next(ProjectPaintState *ps, int *bucket_index, float bucket_bounds[4], float mval[2])
 {
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
@@ -3043,7 +3087,7 @@ static int bucket_iter_next(ProjectPaintState *ps, int *bucket_index, float buck
 			/* use bucket_bounds for project_bucket_circle_isect and project_paint_bucket_init*/
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
-			if (project_bucket_circle_isect(ps, ps->context_bucket_x, ps->context_bucket_y, mval_f, ps->brush->size * ps->brush->size, bucket_bounds)) {
+			if (project_bucket_circle_isect(ps, ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
 #ifdef PROJ_DEBUG_PRINT_THREADS
 				printf(" --- %d %d \n", ps->context_bucket_x, ps->context_bucket_y);
@@ -3064,24 +3108,21 @@ static int bucket_iter_next(ProjectPaintState *ps, int *bucket_index, float buck
 	return 0;
 }
 
-static int imapaint_paint_sub_stroke_project(
+static void imapaint_paint_sub_stroke_project(
 				ProjectPaintState *ps,
 				BrushPainter *painter,
-				short prevmval[2],
-				short mval[2],
+				float prevmval[2],
+				float mval[2],
 				double time,
 				float pressure,
 				ProjectPaintImage *projImages,
 				int thread_index)
 {
 	LinkNode *node;
-	float mval_f[2];
 	ProjectPixel *projPixel;
-	int redraw = 0;
 	
 	int last_index = -1;
 	ProjectPaintImage *last_projIma;
-	//ImagePaintPartialRedraw *last_partial_redraw;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
 	float rgba[4], alpha, dist, dist_nosqrt;
@@ -3106,12 +3147,9 @@ static int imapaint_paint_sub_stroke_project(
 	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
 	
 	
-	
-	mval_f[0] = mval[0]; mval_f[1] = mval[1];
-	
 	if (ps->tool==PAINT_TOOL_SMEAR) {
-		mval_ofs[0] = (float)(mval[0] - prevmval[0]);
-		mval_ofs[1] = (float)(mval[1] - prevmval[1]);
+		mval_ofs[0] = mval[0] - prevmval[0];
+		mval_ofs[1] = mval[1] - prevmval[1];
 		
 		smearArena = BLI_memarena_new(1<<16);
 	}
@@ -3130,7 +3168,7 @@ static int imapaint_paint_sub_stroke_project(
 #ifdef PROJ_DEBUG_PRINT_THREADS
 	printf("THREAD %d %d %d\n", ps->thread_tot, thread_index,  (ps->bucket_max[0] - ps->bucket_min[0]) * (ps->bucket_max[1] - ps->bucket_min[1]) );
 #endif
-	while (bucket_iter_next(ps, &bucket_index, bucket_bounds, mval_f)) {				
+	while (bucket_iter_next(ps, &bucket_index, bucket_bounds, mval)) {				
 		
 #ifdef PROJ_DEBUG_PRINT_THREADS
 		printf("\t%d %d\n", thread_index, bucket_index);
@@ -3150,8 +3188,8 @@ static int imapaint_paint_sub_stroke_project(
 			do {
 				projPixel = (ProjectPixel *)node->link;
 				
-				/*dist = Vec2Lenf(projPixel->projCo2D, mval_f);*/ /* correct but uses a sqrt */
-				dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCo2D, mval_f);
+				/*dist = Vec2Lenf(projPixel->projCo2D, mval);*/ /* correct but uses a sqrt */
+				dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCo2D, mval);
 				
 				/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
 				if (dist_nosqrt < brush_size_sqared) {
@@ -3205,7 +3243,7 @@ static int imapaint_paint_sub_stroke_project(
 						break;
 					case PAINT_TOOL_SMEAR:
 						Vec2Subf(co, projPixel->projCo2D, mval_ofs);
-						if (project_paint_PickColor(ps, co, NULL, rgba_ub, 0)) { /* Note, no interpolation here, only needed for clone, nearest should be is OK */
+						if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)) { /* Note, no interpolation here, only needed for clone, nearest should be is OK??? - c */
 							brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
 							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
 							/* drat! - this could almost be very simple if we ignore
@@ -3213,18 +3251,19 @@ static int imapaint_paint_sub_stroke_project(
 							 * instead, collect the colors and apply after :/ */
 							
 #if 0								/* looks OK but not correct - also would need float buffer */
-							*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+							*((unsigned int *)projPixel->pixel) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
 #endif
 							
 							/* add to memarena instead */
 							if (is_floatbuf) {
 								/* TODO FLOAT */ /* Smear wont do float properly yet */
+								/* Note, alpha*255 makes pixels darker */
 								char rgba_smear[4];
 								IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, (float *)projPixel->pixel);
-								*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+								*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
 								BLI_linklist_prepend_arena( &smearPixels_float, (void *)projPixel, smearArena );
 							} else {
-								*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+								*((unsigned int *) &((ProjectPixelClone *)projPixel)->clonepx) = IMB_blend_color( *((unsigned int *)projPixel->pixel), *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
 								BLI_linklist_prepend_arena( &smearPixels, (void *)projPixel, smearArena );
 							}
 						}
@@ -3280,12 +3319,6 @@ static int imapaint_paint_sub_stroke_project(
 		
 		BLI_memarena_free(smearArena);
 	}
-	
-	/* Loop over all images on this mesh and update any we have touched */
-	if (ps->thread_tot < 2) { /* only run this if we have no threads */
-		redraw = imapaint_refresh_tagged(ps);
-	}
-	return redraw;
 }
 
 
@@ -3294,8 +3327,8 @@ typedef struct ProjectHandle {
 	/* args */
 	ProjectPaintState *ps;
 	BrushPainter *painter;
-	short prevmval[2];
-	short mval[2];
+	float prevmval[2];
+	float mval[2];
 	double time;
 	float pressure;
 	
@@ -3330,17 +3363,12 @@ static void *do_projectpaint_thread(void *ph_v)
 	return NULL;
 }
 
-static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPainter *painter, short prevmval[2], short mval[2], double time, float pressure)
+static void imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPainter *painter, float prevmval[2], float mval[2], double time, float pressure)
 {
 	ProjectHandle handles[BLENDER_MAX_THREADS];
 	ListBase threads;
 	int a,i;
 	
-	float mval_f[2];
-	mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
-	
-	if (bucket_iter_init(ps, mval_f)==0)
-		return 0;
 #ifdef PROJ_DEBUG_PRINT_THREADS
 	printf("Begin Threads %d\n", ps->thread_tot);
 #endif
@@ -3374,7 +3402,7 @@ static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPain
 		memcpy(handles[a].projImages, ps->projImages, ps->image_tot * sizeof(ProjectPaintImage) );
 		
 		/* image bounds */
-		for (i=1; i< ps->image_tot; i++) {
+		for (i=0; i< ps->image_tot; i++) {
 			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED );			
 		}
@@ -3405,8 +3433,6 @@ static int imapaint_paint_sub_stroke_project_mt(ProjectPaintState *ps, BrushPain
 			
 		}
 	}
-	
-	return imapaint_refresh_tagged(ps);
 }
 
 
@@ -3491,30 +3517,52 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	}
 }
 
-static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short *prevmval, short *mval, short redraw, double time, float pressure)
+static void imapaint_paint_stroke_project(ProjectPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, short redraw, double time, float pressure, float stepdist)
 {
-	int redraw_flag = 0;
-	int a;
+	int a, step_tot;
+	float dist;
 	
-	for (a=0; a<ps->image_tot; a++) {
+	/* Use mouse coords as floats for projection painting */
+	float mval[2], prevmval[2];
+	float mval_step[2], prevmval_step[2]; /* in cases where multiple steps need to be done between brush points */
+	
+	
+	mval[0] = mval_i[0]; mval[1] = mval_i[1];
+	prevmval[0] = prevmval_step[0] = prevmval_i[0];
+	prevmval[1] = prevmval_step[1] = prevmval_i[1];	
+	
+	
+	for (a=0; a < ps->image_tot; a++) {
 		partial_redraw_array_init(ps->projImages[a].partRedrawRect);
 	}
 	
-	/* TODO - support more brush operations, airbrush etc */
-	if (ps->thread_tot > 1) {
-		redraw_flag |= imapaint_paint_sub_stroke_project_mt(ps, painter, prevmval, mval, time, pressure);
-	} else {
-		float mval_f[2];
-		mval_f[0] = mval[0]; mval_f[1] = mval[1]; 
-		if (bucket_iter_init(ps, mval_f)) {
-			redraw_flag |= imapaint_paint_sub_stroke_project(ps, painter, prevmval, mval, time, pressure, ps->projImages, 0); /* no threads */
+	dist = Vec2Lenf(prevmval, mval);
+	
+	/* set the number of steps based on the distance between mouse positions */
+	if (dist > stepdist)	step_tot = (int)(dist / stepdist);
+	else					step_tot = 1;
+	
+	for (a = 1; a <= step_tot; a++) {
+		/* TODO - interpolate pressure, time etc */
+		Vec2Lerpf(mval_step, prevmval, mval, ((float)a) / ((float)step_tot));
+		
+		/* paint a single brush */
+		if (bucket_iter_init(ps, mval_step)) {
+			if (ps->thread_tot > 1)	imapaint_paint_sub_stroke_project_mt(ps, painter, prevmval_step, mval_step, time, pressure);
+			else					imapaint_paint_sub_stroke_project(ps, painter, prevmval_step, mval_step, time, pressure, ps->projImages, 0); /* no threads */
 		}
+		
+		VECCOPY2D(prevmval_step, mval_step);
 	}
 	
-	if (redraw && redraw_flag) {
-		force_draw(0); /* imapaint_redraw just calls this in viewport paint anyway */
-		/* imapaint_redraw(0, 1, NULL); */
-		/* imapaint_clear_partial_redraw(); */ /* not needed since we use our own array */
+	/* Loop over all images on this mesh and update any we have touched */
+	if (imapaint_refresh_tagged(ps)) { /* did anything change? */
+		
+		if (redraw) {
+			force_draw(0); /* imapaint_redraw just calls this in viewport paint anyway */
+			/* imapaint_redraw(0, 1, NULL); */
+			/* imapaint_clear_partial_redraw(); */ /* not needed since we use our own array */
+		}
 	}
 }
 
@@ -3611,6 +3659,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	float pressure;
 	int init = 1;
 	
+	/* only used for projection paint now */
+	float spacing;
+	
 	/* optional grease pencil stroke path */
 	float *points_gp = NULL;
 	float *vec_gp;
@@ -3704,6 +3755,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			tot_gp = imapaint_paint_gp_to_stroke(&points_gp);
 			vec_gp = points_gp;
 		}
+		
+		spacing = ((float)ps.brush->size)/100.0 * ps.brush->spacing;
+		
 	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
 			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
@@ -3728,8 +3782,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		time= PIL_check_seconds_timer();
 
 		if (project) { /* Projection Painting */
-			if ( ((s.brush->flag & BRUSH_AIRBRUSH) || init)  || (cmp_brush_spacing(mval, prevmval, ps.brush->size/100.0 * ps.brush->spacing )) ) {
-				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, stroke_gp ? 0 : 1, time, pressure);
+			if ( ((s.brush->flag & BRUSH_AIRBRUSH) || init)  || (cmp_brush_spacing(mval, prevmval, spacing )) ) {
+				imapaint_paint_stroke_project(&ps, painter, prevmval, mval, stroke_gp ? 0 : 1, time, pressure, spacing);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
 			} else {
