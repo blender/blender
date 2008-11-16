@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="RAS_openglrasterizer"
 	ProjectGUID="{AB590CED-F71F-4A17-A89B-18583ECD633D}"
+	RootNamespace="RAS_openglrasterizer"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>

@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BLO_loader"
 	ProjectGUID="{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}"
+	RootNamespace="BLO_loader"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -472,58 +473,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\blenloader\intern\genfile.c"
-				>
-				<FileConfiguration
-					Name="Blender Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="3D Plugin Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Blender Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="BlenderPlayer Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AdditionalIncludeDirectories=""
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenloader\intern\readblenentry.c"
 				>
