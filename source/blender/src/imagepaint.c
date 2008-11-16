@@ -160,6 +160,7 @@ typedef struct ImagePaintPartialRedraw {
 #define PROJ_DEBUG_NOSCANLINE 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
 //#define PROJ_DEBUG_PRINT_THREADS 1
+#define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
 //#define PROJ_FACE_IGNORE	1<<0	/* When the face is hidden, backfacing or occluded */
@@ -2209,16 +2210,18 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	ps->screen_max[1] += projMargin;
 	ps->screen_min[1] -= projMargin;
 	
+#ifdef PROJ_DEBUG_WINCLIP
+	CLAMP(ps->screen_min[0], -ps->brush->size, curarea->winx + ps->brush->size);
+	CLAMP(ps->screen_max[0], -ps->brush->size, curarea->winx + ps->brush->size);
+
+	CLAMP(ps->screen_min[1], -ps->brush->size, curarea->winy + ps->brush->size);
+	CLAMP(ps->screen_max[1], -ps->brush->size, curarea->winy + ps->brush->size);
+#endif
 	
 	/* only for convenience */
 	ps->screen_width  = ps->screen_max[0] - ps->screen_min[0];
 	ps->screen_height = ps->screen_max[1] - ps->screen_min[1];
 	
-	/* done with screen coords */
-	
-	//ps->buckets_x = G.rt ? G.rt : PROJ_BUCKET_BRUSH_DIV;
-	//ps->buckets_y = G.rt ? G.rt : PROJ_BUCKET_BRUSH_DIV;
-
 	ps->buckets_x = (int)(ps->screen_width / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
 	ps->buckets_y = (int)(ps->screen_height / (((float)ps->brush->size) / PROJ_BUCKET_BRUSH_DIV));
 	
@@ -2329,46 +2332,62 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
-
+			
+			float *v1coSS, *v2coSS, *v3coSS, *v4coSS;
+			
+			v1coSS = ps->screenCoords[mf->v1]; 
+			v2coSS = ps->screenCoords[mf->v2]; 
+			v3coSS = ps->screenCoords[mf->v3];
+			if (mf->v4) {
+				v4coSS = ps->screenCoords[mf->v4]; 
+			}
+			
+			
 			if (!ps->is_ortho) {
-				if (	ps->screenCoords[mf->v1][0]==MAXFLOAT ||
-						ps->screenCoords[mf->v2][0]==MAXFLOAT ||
-						ps->screenCoords[mf->v3][0]==MAXFLOAT ||
-						(mf->v4 && ps->screenCoords[mf->v4][0]==MAXFLOAT)
+				if (	v1coSS[0]==MAXFLOAT ||
+						v2coSS[0]==MAXFLOAT ||
+						v3coSS[0]==MAXFLOAT ||
+						(mf->v4 && v4coSS[0]==MAXFLOAT)
 				) {
 					continue;
 				}
 			}
+			
+#ifdef PROJ_DEBUG_WINCLIP
+			/* ignore faces outside the view */
+			if (
+				   (v1coSS[0] < ps->screen_min[0] &&
+					v2coSS[0] < ps->screen_min[0] &&
+					v3coSS[0] < ps->screen_min[0] &&
+					(mf->v4 && v4coSS[0] < ps->screen_min[0] )) ||
+					
+				   (v1coSS[0] > ps->screen_max[0] &&
+					v2coSS[0] > ps->screen_max[0] &&
+					v3coSS[0] > ps->screen_max[0] &&
+					(mf->v4 && v4coSS[0] > ps->screen_max[0] )) ||
+					
+				   (v1coSS[1] < ps->screen_min[1] &&
+					v2coSS[1] < ps->screen_min[1] &&
+					v3coSS[1] < ps->screen_min[1] &&
+					(mf->v4 && v4coSS[1] < ps->screen_min[1] )) ||
+					
+				   (v1coSS[1] > ps->screen_max[1] &&
+					v2coSS[1] > ps->screen_max[1] &&
+					v3coSS[1] > ps->screen_max[1] &&
+					(mf->v4 && v4coSS[1] > ps->screen_max[1] ))
+			) {
+				continue;
+			}
+			
+#endif //PROJ_DEBUG_WINCLIP
 
 			if (ps->do_backfacecull) {
 				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
-				if (mf->v4)	CalcNormFloat4(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, f_no);
-				else		CalcNormFloat(ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, f_no);
+				if (mf->v4)	CalcNormFloat4(v1coSS, v2coSS, v3coSS, v4coSS, f_no);
+				else		CalcNormFloat(v1coSS, v2coSS, v3coSS, f_no);
 				
-				if (ps->is_ortho) {
-					if (Inpf(f_no, ps->viewDir) < 0) {
-						continue;
-					}
-				} else {
-					float faceDir[3] = {0,0,0};
-					if (mf->v4)	{
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v1].co);
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v2].co);
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v3].co);
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v4].co);
-						VecMulf(faceDir, 1.0/4.0);
-					} else {
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v1].co);
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v2].co);
-						VecAddf(faceDir, faceDir, ps->dm_mvert[mf->v3].co);
-						VecMulf(faceDir, 1.0/3.0);
-					}
-					
-					VecSubf(faceDir, viewPos, faceDir);
-					
-					if (Inpf(f_no, faceDir) < 0) {
-						continue;
-					}
+				if (f_no[2] < 0.0) {
+					continue;
 				}
 			}
 			
