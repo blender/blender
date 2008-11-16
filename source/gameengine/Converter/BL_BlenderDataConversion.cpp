@@ -179,7 +179,7 @@ extern "C" {
 extern "C" {
 #endif
 //XXX #include "BSE_headerbuttons.h"
-void update_for_newframe();
+//XXX void update_for_newframe();
 //void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 //#include "BKE_ipo.h"
 //void do_all_data_ipos(void);
@@ -1929,7 +1929,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			if (converter->addInitFromFrame){//rcruiz
 				float eulxyzPrev[3];
 				blenderscene->r.cfra=blenderscene->r.sfra-1;
-				update_for_newframe();
+				//XXX update_for_newframe();
 				MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 											blenderobject->loc[1]+blenderobject->dloc[1],
 											blenderobject->loc[2]+blenderobject->dloc[2]
@@ -1947,7 +1947,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				tmp.scale(fps, fps, fps);
 				iniang.push_back(tmp);
 				blenderscene->r.cfra=blenderscene->r.sfra;
-				update_for_newframe();
+				//XXX update_for_newframe();
 			}		
 						
 			gameobj->NodeSetLocalPosition(pos);
@@ -2131,7 +2131,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (converter->addInitFromFrame){//rcruiz
 								float eulxyzPrev[3];
 								blenderscene->r.cfra=blenderscene->r.sfra-1;
-								update_for_newframe();
+								//XXX update_for_newframe();
 								MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 															blenderobject->loc[1]+blenderobject->dloc[1],
 															blenderobject->loc[2]+blenderobject->dloc[2]
@@ -2149,7 +2149,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								tmp.scale(fps, fps, fps);
 								iniang.push_back(tmp);
 								blenderscene->r.cfra=blenderscene->r.sfra;
-								update_for_newframe();
+								//XXX update_for_newframe();
 							}		
 										
 							gameobj->NodeSetLocalPosition(pos);

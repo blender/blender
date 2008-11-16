@@ -661,8 +661,8 @@ void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceI
 extern "C"
 {
 	Ipo *add_ipo( char *name, int idcode );
-	char *getIpoCurveName( IpoCurve * icu );
-	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int, short);
+	//XXX char *getIpoCurveName( IpoCurve * icu );
+	//XXX struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
 	void testhandles_ipocurve(struct IpoCurve *icu);
 	void insert_vert_icu(struct IpoCurve *, float, float, short);
 	void Mat3ToEul(float tmat[][3], float *eul);
@@ -673,11 +673,11 @@ IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
 	IpoCurve* icu1;
 	for( icu1 = first; icu1; icu1 = icu1->next ) 
 	{
-		char* curveName = getIpoCurveName( icu1 );
+		/*XXX char* curveName = getIpoCurveName( icu1 );
 		if( !strcmp( curveName, searchName) )
 		{
 			return icu1;
-		}
+		}*/
 	}
 	return 0;
 }
@@ -874,28 +874,28 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						//create the curves, if not existing
 
 					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
 
 
 
@@ -1030,28 +1030,28 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 						//create the curves, if not existing
 
 					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_X);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Y);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_LOC_Z);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_X);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Y);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
-					if (!icu1)
-						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z, 1);
+					//XXX if (!icu1)
+					//XXX	icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, NULL, OB_ROT_Z);
 
 
 
