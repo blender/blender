@@ -2745,3 +2745,12 @@ int BIF_fullSketchMode()
 		return 0;
 	}
 }
+
+void BIF_freeSketch()
+{
+	if (GLOBAL_sketch != NULL)
+	{
+		sk_freeSketch(GLOBAL_sketch);
+		GLOBAL_sketch = NULL;
+	}
+}

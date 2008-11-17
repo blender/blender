@@ -169,10 +169,14 @@ void	align_selected_bones(void);
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
-/* from autoarmature */
+/* from editarmature_retarget */
 void BIF_retargetArmature();
 void BIF_adjustRetarget();
 void BIF_freeRetarget();
+
+/* from editarmature_sketch */
+void BIF_freeSketch();
+void BIF_freeTemplates();
 
 struct ReebArc;
 float calcVariance(struct ReebArc *arc, int start, int end, float v0[3], float n[3]);
