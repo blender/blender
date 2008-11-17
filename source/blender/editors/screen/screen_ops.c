@@ -44,6 +44,14 @@
 
 /* ************** Poll tests ********************** */
 
+int ED_operator_areaactive(bContext *C)
+{
+	if(C->window==NULL) return 0;
+	if(C->screen==NULL) return 0;
+	if(C->area==NULL) return 0;
+	return 1;
+}
+
 int ED_operator_screenactive(bContext *C)
 {
 	if(C->window==NULL) return 0;
@@ -51,6 +59,7 @@ int ED_operator_screenactive(bContext *C)
 	return 1;
 }
 
+/* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
 	if(C->window==NULL) return 0;
@@ -73,8 +82,12 @@ static void ED_SCR_OT_cursor_type(wmOperatorType *ot)
 /* called in spacetypes.c */
 void ED_operatortypes_screen(void)
 {
-	WM_operatortype_append(ED_SCR_OT_move_areas);
+	/* generic UI stuff */
 	WM_operatortype_append(ED_SCR_OT_cursor_type);
+	WM_operatortype_append(ED_SCR_OT_actionzone);
+	
+	/* tools */
+	WM_operatortype_append(ED_SCR_OT_move_areas);
 	WM_operatortype_append(ED_SCR_OT_split_area);
 	WM_operatortype_append(ED_SCR_OT_join_areas);
 }
@@ -83,8 +96,10 @@ void ED_operatortypes_screen(void)
 void ED_keymap_screen(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
+	
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_move_areas", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_split_area", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_join_areas", RIGHTMOUSE, KM_PRESS, KM_ALT, 0); 
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_split_area", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_join_areas", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
 }
 

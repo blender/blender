@@ -69,6 +69,7 @@ void	ED_keymap_screen(struct wmWindowManager *wm);
 /* operators; context poll callbacks */
 int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
+int		ED_operator_areaactive(struct bContext *C);
 
 
 #endif /* ED_SCREEN_H */

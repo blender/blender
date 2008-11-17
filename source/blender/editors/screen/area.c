@@ -267,77 +267,21 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 }
 
 #define AZONESPOT		12
-void area_azone_initialize(ScrArea *sa) {
+void area_azone_initialize(ScrArea *sa) 
+{
 	AZone *az;
 	if(sa->actionzones.first==NULL) {
 		/* set action zones - should these actually be ARegions? With these we can easier check area hotzones */
+		/* (ton) for time being just area, ARegion split is not foreseen on user level */
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&(sa->actionzones), az);
 		az->type= AZONE_TRI;
-		az->x1= sa->v1->vec.x+1;
-		az->y1= sa->v1->vec.y+1;
-		az->x2= sa->v1->vec.x+AZONESPOT;
-		az->y2= sa->v1->vec.y+AZONESPOT;
 		az->pos= AZONE_SW;
-		az->action= AZONE_SPLIT;
 		
 		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&(sa->actionzones), az);
 		az->type= AZONE_TRI;
-		az->x1= sa->v3->vec.x-1;
-		az->y1= sa->v3->vec.y-1;
-		az->x2= sa->v3->vec.x-AZONESPOT;
-		az->y2= sa->v3->vec.y-AZONESPOT;
 		az->pos= AZONE_NE;
-		az->action= AZONE_DRAG;
-		
-		/*az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_TRI;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_TRI;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_QUAD;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_QUAD;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_QUAD;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;
-		
-		az= (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-		BLI_addtail(&sa->azones, az);
-		az->type= AZONE_QUAD;
-		az->x1= as->v1->vec.x;
-		az->y1= as->v1->vec.y;
-		az->x2= as->v1->vec.x+AZONESPOT;
-		az->y2= as->v1->vec.y+AZONESPOT;*/
 	}
 	
 	for(az= sa->actionzones.first; az; az= az->next) {
@@ -406,7 +350,6 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	Panel *pa1, *pa2, *patab;
 	ARegion *ar;
-	AZone *az;
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;

@@ -24,7 +24,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
+
+#include "DNA_vec_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -115,38 +119,6 @@ static ScrEdge *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2)
 	return NULL;
 }
 
-static ScrArea *screen_test_edge_area(bScreen* scr, ScrArea *sa, ScrEdge *se)
-{
-	/* test if edge is in area, if not, 
-	   then find an area that has it */
-  
-	ScrEdge *se1=0, *se2=0, *se3=0, *se4=0;
-	
-	if(sa) {
-	se1= screen_findedge(scr, sa->v1, sa->v2);
-		se2= screen_findedge(scr, sa->v2, sa->v3);
-	se3= screen_findedge(scr, sa->v3, sa->v4);
-		se4= screen_findedge(scr, sa->v4, sa->v1);
-	}
-	if(se1!=se && se2!=se && se3!=se && se4!=se) {
-		
-		sa= scr->areabase.first;
-		while(sa) {
-				/* a bit optimise? */
-				if(se->v1==sa->v1 || se->v1==sa->v2 || se->v1==sa->v3 || se->v1==sa->v4) {
-				se1= screen_findedge(scr, sa->v1, sa->v2);
-					se2= screen_findedge(scr, sa->v2, sa->v3);
-					se3= screen_findedge(scr, sa->v3, sa->v4);
-					se4= screen_findedge(scr, sa->v4, sa->v1);
-					if(se1==se || se2==se || se3==se || se4==se) return sa;
-				}
-				sa= sa->next;
-			}
-	}
-
-	return sa;	/* is null when not find */
-}
-
 static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 {
 	ScrArea *sa= NULL;
@@ -159,6 +131,38 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 	return sa;
 }
 
+/* *************************** action zone operator ************************** */
+
+/* operator state vars used:  
+		none
+
+functions:
+
+	apply() set actionzone event
+
+	exit()	free customdata
+
+callbacks:
+
+	exec()	never used
+
+	invoke() check if in zone  
+			add customdata, put mouseco and area in it
+			add modal handler
+
+	modal()	accept modal events while doing it
+			call apply() with gesture info, active window, nonactive window
+			call exit() and remove handler when LMB confirm
+
+*/
+
+typedef struct sActionzoneData {
+	ScrArea *sa1, *sa2;
+	AZone *az;
+	int x, y, gesture_dir;
+} sActionzoneData;
+
+
 static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 {
 	AZone *az= NULL;
@@ -166,15 +170,117 @@ static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	
 	for(az= sa->actionzones.first, i= 0; az; az= az->next, i++) {
 		if(az && az->type == AZONE_TRI) {
-			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) break;
+			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
+				break;
 		}
 		if(az->type == AZONE_QUAD) {
-			if(az->x1 < x && x < az->x2 && az->y1 < y && y < az->y2) break;
+			if(az->x1 < x && x < az->x2 && az->y1 < y && y < az->y2) 
+				break;
 		}
 	}
 	
 	return az;
 }
+
+static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	AZone *az= is_in_area_actionzone(C->area, event->x, event->y);
+	sActionzoneData *sad;
+	
+	/* quick escape */
+	if(az==NULL)
+		return OPERATOR_PASS_THROUGH;
+	
+	/* ok we do the actionzone */
+	sad= op->customdata= MEM_callocN(sizeof(sActionzoneData), "sActionzoneData");
+	sad->sa1= C->area;
+	sad->az= az;
+	sad->x= event->x; sad->y= event->y;
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(&C->window->handlers, op);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void actionzone_exit(bContext *C, wmOperator *op)
+{
+	if(op->customdata)
+		MEM_freeN(op->customdata);
+	op->customdata= NULL;
+}
+
+/* send EVT_ACTIONZONE event */
+static void actionzone_apply(bContext *C, wmOperator *op)
+{
+	wmEvent event;
+	
+	event= *(C->window->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_ACTIONZONE;
+	event.customdata= op->customdata;
+	event.customdatafree= TRUE;
+	op->customdata= NULL;
+	
+	wm_event_add(C->window, &event);
+}
+
+static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	sActionzoneData *sad= op->customdata;
+	int deltax, deltay;
+
+	switch(event->type) {
+		case MOUSEMOVE:
+			/* calculate gesture direction */
+			deltax= (event->x - sad->x);
+			deltay= (event->y - sad->y);
+			
+			if(deltay > ABS(deltax))
+				sad->gesture_dir= AZONE_N;
+			else if(deltax > ABS(deltay))
+				sad->gesture_dir= AZONE_E;
+			else if(deltay < -ABS(deltax))
+				sad->gesture_dir= AZONE_S;
+			else
+				sad->gesture_dir= AZONE_W;
+			
+			/* gesture is large enough? */
+			if(ABS(deltax) > 12 || ABS(deltay) > 12) {
+				
+				/* second area, for join */
+				sad->sa2= screen_areahascursor(C->screen, event->x, event->y);
+				/* apply sends event */
+				actionzone_apply(C, op);
+				actionzone_exit(C, op);
+				
+				WM_event_remove_modal_handler(&C->window->handlers, op);
+				
+				return OPERATOR_FINISHED;
+			}
+			break;
+		case ESCKEY:
+		case LEFTMOUSE:
+			actionzone_exit(C, op);
+			WM_event_remove_modal_handler(&C->window->handlers, op);
+			return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void ED_SCR_OT_actionzone(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Handle area action zones";
+	ot->idname= "ED_SCR_OT_actionzone";
+	
+	ot->invoke= actionzone_invoke;
+	ot->modal= actionzone_modal;
+	
+	ot->poll= ED_operator_areaactive;
+}
+
+/* ************************************** */
 
 static void removedouble_scrverts(bScreen *sc)
 {
@@ -564,7 +670,7 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 
 /* with sa as center, sb is located at: 0=W, 1=N, 2=E, 3=S */
 /* -1 = not valid check */
-/* used with split operator */
+/* used with join operator */
 static int area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb)
 {
 	ScrVert *sav1, *sav2, *sav3, *sav4;
@@ -636,7 +742,7 @@ static short testsplitpoint(wmWindow *win, ScrArea *sa, char dir, float fac)
 	}
 }
 
-static ScrArea* splitarea(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac)
+static ScrArea *splitarea(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac)
 {
 	ScrArea *newa=NULL;
 	ScrVert *sv1, *sv2;
@@ -818,16 +924,11 @@ void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 #define SCR_BACK 0.55
 #define SCR_ROUND 12
 
-/** join areas arrow drawing **/
-typedef struct point{
-	float x,y;
-}_point;
-
 /* draw vertical shape visualising future joining (left as well
  * right direction of future joining) */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 {
-	_point points[10];
+	vec2f points[10];
 	short i;
 	float w, h;
 	float width = sa->v3->vec.x - sa->v1->vec.x;
@@ -899,7 +1000,7 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 /* draw vertical shape visualising future joining (up/down direction) */
 static void draw_vertical_join_shape(ScrArea *sa, char dir)
 {
-	_point points[10];
+	vec2f points[10];
 	short i;
 	float w, h;
 	float width = sa->v3->vec.x - sa->v1->vec.x;
@@ -1004,13 +1105,9 @@ static void drawscredge_area(ScrArea *sa)
 {
 	AZone *az;
 	short x1= sa->v1->vec.x;
-	short xa1= x1+HEADERY;
 	short y1= sa->v1->vec.y;
-	short ya1= y1+HEADERY;
 	short x2= sa->v3->vec.x;
-	short xb2= x2-HEADERY;
 	short y2= sa->v3->vec.y;
-	short yb2= y2-HEADERY;
 	
 	cpack(0x0);
 	
@@ -1256,28 +1353,28 @@ int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
            x, y   			mouse coord near edge
            delta            movement of edge
 
-   internal:
+	functions:
 
-   init()   set default property values, find edge based on mouse coords, test
+	init()   set default property values, find edge based on mouse coords, test
             if the edge can be moved, select edges, calculate min and max movement
 
-   apply()	apply delta on selection
+	apply()	apply delta on selection
 
-   exit()	cleanup, send notifier
+	exit()	cleanup, send notifier
 
-   callbacks:
+	cancel() cancel moving
 
-   exec()   execute without any user interaction, based on properties
+	callbacks:
+
+	exec()   execute without any user interaction, based on properties
             call init(), apply(), exit()
 
-   invoke() gets called on mouse click near edge
+	invoke() gets called on mouse click near edge
             call init(), add handler
 
-   modal()  accept modal events while doing it
+	modal()  accept modal events while doing it
 			call apply() with delta motion
             call exit() and remove handler
-
-   cancel() cancel moving
 
 */
 
@@ -1286,12 +1383,41 @@ typedef struct sAreaMoveData {
 	char dir;
 } sAreaMoveData;
 
+/* helper call to move area-edge, sets limits */
+static void move_areas_set_limits(bScreen *sc, int dir, int *bigger, int *smaller)
+{
+	ScrArea *sa;
+	
+	/* we check all areas and test for free space with MINSIZE */
+	*bigger= *smaller= 100000;
+	
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
+		if(dir=='h') {
+			int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
+			
+			/* if top or down edge selected, test height */
+			if(sa->v1->flag && sa->v4->flag)
+				*bigger= MIN2(*bigger, y1);
+			else if(sa->v2->flag && sa->v3->flag)
+				*smaller= MIN2(*smaller, y1);
+		}
+		else {
+			int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
+			
+			/* if left or right edge selected, test width */
+			if(sa->v1->flag && sa->v2->flag)
+				*bigger= MIN2(*bigger, x1);
+			else if(sa->v3->flag && sa->v4->flag)
+				*smaller= MIN2(*smaller, x1);
+		}
+	}
+}
+
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
 static int move_areas_init (bContext *C, wmOperator *op)
 {
 	ScrEdge *actedge;
-	ScrArea *sa;
 	sAreaMoveData *md;
 	int x, y;
 
@@ -1314,58 +1440,29 @@ static int move_areas_init (bContext *C, wmOperator *op)
 	else md->origval= actedge->v1->vec.x;
 	
 	select_connected_scredge(C->screen, actedge);
+	/* now all vertices with 'flag==1' are the ones that can be moved. */
 
-	/* now all verices with 'flag==1' are the ones that can be moved. */
-	/* we check all areas and test for free space with MINSIZE */
-	md->bigger= md->smaller= 10000;
-	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
-		if(md->dir=='h') {	/* if top or down edge selected, test height */
-		   
-		   if(sa->v1->flag && sa->v4->flag) {
-			   int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
-			   md->bigger= MIN2(md->bigger, y1);
-		   }
-		   else if(sa->v2->flag && sa->v3->flag) {
-			   int y1= sa->v2->vec.y - sa->v1->vec.y-AREAMINY;
-			   md->smaller= MIN2(md->smaller, y1);
-		   }
-		}
-		else {	/* if left or right edge selected, test width */
-			if(sa->v1->flag && sa->v2->flag) {
-				int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
-				md->bigger= MIN2(md->bigger, x1);
-			}
-			else if(sa->v3->flag && sa->v4->flag) {
-				int x1= sa->v4->vec.x - sa->v1->vec.x-AREAMINX;
-				md->smaller= MIN2(md->smaller, x1);
-			}
-		}
-	}
-
+	move_areas_set_limits(C->screen, md->dir, &md->bigger, &md->smaller);
+	
 	return 1;
 }
 
-/* moves selected screen edge amount of delta */
-/* needs init call to work */
-static void move_areas_apply(bContext *C, wmOperator *op)
+/* moves selected screen edge amount of delta, used by split & move */
+static void move_areas_apply_do(bContext *C, int origval, int delta, int dir, int bigger, int smaller)
 {
 	ScrVert *v1;
-	int delta;
-	sAreaMoveData *md= op->customdata;
-
-	OP_get_int(op, "delta", &delta);
 	
-	delta= CLAMPIS(delta, -md->smaller, md->bigger);
+	delta= CLAMPIS(delta, -smaller, bigger);
 	
 	for (v1= C->screen->vertbase.first; v1; v1= v1->next) {
 		if (v1->flag) {
 			/* that way a nice AREAGRID  */
-			if((md->dir=='v') && v1->vec.x>0 && v1->vec.x<C->window->sizex-1) {
-				v1->vec.x= md->origval + delta;
-				if(delta != md->bigger && delta != -md->smaller) v1->vec.x-= (v1->vec.x % AREAGRID);
+			if((dir=='v') && v1->vec.x>0 && v1->vec.x<C->window->sizex-1) {
+				v1->vec.x= origval + delta;
+				if(delta != bigger && delta != -smaller) v1->vec.x-= (v1->vec.x % AREAGRID);
 			}
-			if((md->dir=='h') && v1->vec.y>0 && v1->vec.y<C->window->sizey-1) {
-				v1->vec.y= md->origval + delta;
+			if((dir=='h') && v1->vec.y>0 && v1->vec.y<C->window->sizey-1) {
+				v1->vec.y= origval + delta;
 
 				v1->vec.y+= AREAGRID-1;
 				v1->vec.y-= (v1->vec.y % AREAGRID);
@@ -1380,11 +1477,21 @@ static void move_areas_apply(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 }
 
+static void move_areas_apply(bContext *C, wmOperator *op)
+{
+	sAreaMoveData *md= op->customdata;
+	int delta;
+	
+	OP_get_int(op, "delta", &delta);
+	move_areas_apply_do(C, md->origval, delta, md->dir, md->bigger, md->smaller);
+}
+
 static void move_areas_exit(bContext *C, wmOperator *op)
 {
 	if(op->customdata)
 		MEM_freeN(op->customdata);
-
+	op->customdata= NULL;
+	
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(C->screen);
 	removedouble_scredges(C->screen);
@@ -1473,84 +1580,119 @@ void ED_SCR_OT_move_areas(wmOperatorType *ot)
 	ot->cancel= move_areas_cancel;
 	ot->modal= move_areas_modal;
 
-	ot->poll= ED_operator_screen_mainwinactive;
+	ot->poll= ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
 }
 
-/****************** split area ********************/
-/* we do split on init, then we work like move_areas
-	if operation gets cancelled -> join
-	if operation gets confirmed -> yay
+/* ************** split area operator *********************************** */
+
+/* 
+operator state vars:  
+	fac              spit point
+	dir              direction 'v' or 'h'
+
+operator customdata:
+	area   			pointer to (active) area
+	x, y			last used mouse pos
+	(more, see below)
+
+functions:
+
+	init()   set default property values, find area based on context
+
+	apply()	split area based on state vars
+
+	exit()	cleanup, send notifier
+
+	cancel() remove duplicated area
+
+callbacks:
+
+	exec()   execute without any user interaction, based on state vars
+            call init(), apply(), exit()
+
+	invoke() gets called on mouse click in action-widget
+            call init(), add modal handler
+			call apply() with initial motion
+
+	modal()  accept modal events while doing it
+            call move-areas code with delta motion
+            call exit() or cancel() and remove handler
+
 */
 
 #define SPLIT_STARTED	1
 #define SPLIT_PROGRESS	2
-#define SPLIT_DONE		3
 
 typedef struct sAreaSplitData
 {
-	int state; /* state of operation */
-	int dir; /* direction of new edge */
-	int deltax, deltay;
-	int origval; /* for move areas */
-	int min,max; /* constraints for moving new edge */
-	int pos; /* with sa as center, ne is located at: 0=W, 1=N, 2=E, 3=S */
-	ScrEdge *nedge; /* new edge */
-	ScrEdge *aedge; /* active edge */
-	ScrArea *sarea; /* start area */
-	ScrArea *narea; /* new area */
+	int x, y;	/* last used mouse position */
+	
+	int origval;			/* for move areas */
+	int bigger, smaller;	/* constraints for moving new edge */
+	int delta;				/* delta move edge */
+	
+	ScrEdge *nedge;			/* new edge */
+	ScrArea *sarea;			/* start area */
+	ScrArea *narea;			/* new area */
 } sAreaSplitData;
 
+/* generic init, no UI stuff here */
 static int split_area_init(bContext *C, wmOperator *op)
 {
-	AZone *az= NULL;
-	ScrArea *sa= NULL;
-	sAreaSplitData *sd= NULL;
-	int x, y;
-
+	sAreaSplitData *sd;
+	int dir;
+	
+	/* required context */
+	if(C->area==NULL) return 0;
+	
 	/* required properties */
-	if(!(OP_get_int(op, "x", &x) && OP_get_int(op, "y", &y)))
-		return 0;
+	OP_verify_float(op, "fac", 0.5f, NULL);
+	OP_verify_int(op, "dir", 'h', &dir);
 	
-	OP_verify_int(op, "delta", 0, NULL);
-	OP_verify_int(op, "dir", 0, NULL);
-	
-	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
-		az= is_in_area_actionzone(sa, x, y);
-		if(az!=NULL) break;
-	}
-	
-	if(az==NULL) return 0;
-	
+	/* minimal size */
+	if(dir=='v' && C->area->winx < 2*AREAMINX) return 0;
+	if(dir=='h' && C->area->winy < 2*AREAMINY) return 0;
+	   
+	/* custom data */
 	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_split_area");
 	op->customdata= sd;
 	
-	sd->state= SPLIT_STARTED;
-	sd->deltax= 0;
-	sd->deltay= 0;
+	sd->sarea= C->area;
 	
 	return 1;
 }
 
-/* the moving of the new egde */
+/* do the split */
 static void split_area_apply(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
-	int newval, delta, dir;
-
-	OP_get_int(op, "delta", &delta);
+	float fac;
+	int dir;
+	
+	OP_get_float(op, "fac", &fac);
 	OP_get_int(op, "dir", &dir);
 
-	newval= sd->origval + delta;
-	newval= CLAMPIS(newval, -sd->min, sd->max);
+	sd->narea= splitarea(C->window, C->screen, sd->sarea, dir, fac);
 	
-	if((dir=='v') && (newval > sd->min && newval < sd->max-1)) {
-		sd->nedge->v1->vec.x= newval;
-		sd->nedge->v2->vec.x= newval;
-	}
-	if((dir=='h') && (newval > sd->min+HEADERY && newval < sd->max-HEADERY)) {
-		sd->nedge->v1->vec.y= newval;		
-		sd->nedge->v2->vec.y= newval;
-	}
+	if(sd->narea) {
+		ScrVert *sv;
+		
+		sd->nedge= area_findsharededge(C->screen, sd->sarea, sd->narea);
+	
+		/* select newly created edge, prepare for moving edge */
+		for(sv= C->screen->vertbase.first; sv; sv= sv->next)
+			sv->flag = 0;
+		
+		sd->nedge->v1->flag= 1;
+		sd->nedge->v2->flag= 1;
+
+		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
+		else sd->origval= sd->nedge->v1->vec.x;
+
+	}		
+	
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	
 }
 
 static void split_area_exit(bContext *C, wmOperator *op)
@@ -1567,44 +1709,60 @@ static void split_area_exit(bContext *C, wmOperator *op)
 	removedouble_scredges(C->screen);
 }
 
-static int split_area_init_intern(bContext *C, wmOperator *op, sAreaSplitData *sd)
+
+/* UI callback, adds new handler */
+static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	float fac= 0.0;
-	int dir;
+	sAreaSplitData *sd;
+	
+	if(event->type==EVT_ACTIONZONE) {
+		sActionzoneData *sad= event->customdata;
+		int dir;
+		
+		/* verify *sad itself */
+		if(sad==NULL || sad->sa1==NULL || sad->az==NULL)
+			return OPERATOR_PASS_THROUGH;
+		
+		/* is this our *sad? if areas not equal it should be passed on */
+		if(C->area!=sad->sa1 || sad->sa1!=sad->sa2)
+			return OPERATOR_PASS_THROUGH;
+		
+		/* prepare operator state vars */
+		if(sad->gesture_dir==AZONE_N || sad->gesture_dir==AZONE_S) {
+			dir= 'h';
+			OP_set_float(op, "fac", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
+		}
+		else {
+			dir= 'v';
+			OP_set_float(op, "fac", ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
+		}
+		OP_set_int(op, "dir", dir);
 
-	OP_get_int(op, "dir", &dir);
-
-	if(dir=='h') {
-		OP_get_int(op, "y", &sd->origval);
-		fac= 1.0 - ((float)(sd->sarea->v3->vec.y - sd->origval)) / (float)sd->sarea->winy;
-		sd->min= sd->aedge->v1->vec.y;
-		sd->max= sd->aedge->v2->vec.y;
+		/* general init, also non-UI case, adds customdata, sets area and defaults */
+		if(!split_area_init(C, op))
+			return OPERATOR_PASS_THROUGH;
+		
+		sd= (sAreaSplitData *)op->customdata;
+		
+		sd->x= event->x;
+		sd->y= event->y;
+		
+		/* do the split */
+		split_area_apply(C, op);
+		move_areas_set_limits(C->screen, dir, &sd->bigger, &sd->smaller);
+		
+		/* add temp handler for edge move or cancel */
+		WM_event_add_modal_handler(&C->window->handlers, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+		
 	}
-	else {
-		OP_get_int(op, "x", &sd->origval);
-		fac= 1.0 - ((float)(sd->sarea->v4->vec.x - sd->origval)) / (float)sd->sarea->winx;
-		sd->min= sd->aedge->v1->vec.x;
-		sd->max= sd->aedge->v2->vec.x;
-	}
-	
-	sd->narea= splitarea(C->window, C->screen, sd->sarea, dir, fac);
-	
-	if(sd->narea==NULL) return 0;
-	
-	sd->nedge= area_findsharededge(C->screen, sd->sarea, sd->narea);
-	
-	/* select newly created edge */
-	select_connected_scredge(C->screen, sd->nedge);
-	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	
-	return 1;
+	return OPERATOR_PASS_THROUGH;
 }
 
+/* function to be called outside UI context, or for redo */
 static int split_area_exec(bContext *C, wmOperator *op)
 {
-	/* XXX: this does nothing, part of the code should be moved
-	 * out of modal() */
 	
 	if(!split_area_init(C, op))
 		return OPERATOR_CANCELLED;
@@ -1615,27 +1773,12 @@ static int split_area_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int split_area_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	OP_verify_int(op, "x", event->x, NULL);
-	OP_verify_int(op, "y", event->y, NULL);
-
-	if(!split_area_init(C, op))
-		return OPERATOR_PASS_THROUGH;
-	
-	/* add temp handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
 static int split_area_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 
 	WM_event_remove_modal_handler(&C->window->handlers, op);
 
-	OP_set_int(op, "delta", 0);
 	if (screen_join_areas(C->screen,sd->sarea, sd->narea)) {
 		if (C->area == sd->narea) {
 			C->area = NULL;
@@ -1649,85 +1792,23 @@ static int split_area_cancel(bContext *C, wmOperator *op)
 
 static int split_area_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= NULL, *sold=NULL;
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
-	int x, y, dir;
-
-	OP_get_int(op, "x", &x);
-	OP_get_int(op, "y", &y);
-	OP_get_int(op, "dir", &dir);
+	int dir;
 
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			if(sd->state==SPLIT_STARTED) {
-				/*
-					We first want to determine direction for split.
-					Get at least one(x or y) delta of minimum 10 pixels.
-					If one dir is delta threshold, and other dir is within "grey area" -> vert/hor split.
-					If we get both over threshold -> subdiv.
-				*/
-				sd->deltax= event->x - x;
-				sd->deltay= event->y - y;
-				
-				if(sd->deltax>10 && sd->deltay<4) {
-					printf("split on v\n");
-					sd->state= SPLIT_PROGRESS;
-					OP_set_int(op, "dir", 'v');
-					OP_set_int(op, "delta", sd->deltax);
-				} else if(sd->deltay>10 && sd->deltax<4) {
-					printf("split on h\n");
-					sd->state= SPLIT_PROGRESS;
-					OP_set_int(op, "dir", 'h');
-					OP_set_int(op, "delta", sd->deltay);
-				}
-				
-			} else if(sd->state==SPLIT_PROGRESS) {
-				sa= screen_areahascursor(C->screen, event->x, event->y);
-
-				/* area containing cursor has changed */
-				if(sa && sd->sarea!=sa && sd->narea!=sa) {
-					sold= sd->sarea;
-					if (screen_join_areas(C->screen,sd->sarea, sd->narea)) {
-						if (C->area == sd->narea) {
-							C->area = NULL;
-						}
-						sd->narea = NULL;
-					}
-
-					/* now find aedge with same orientation as sd->dir (inverted) */
-					if(dir=='v') {
-						sd->aedge= screen_findedge(C->screen, sa->v1, sa->v4);
-						if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v2, sa->v3);
-					}
-					else {
-						sd->aedge= screen_findedge(C->screen, sa->v1, sa->v2);
-						if(sd->aedge==NULL) sd->aedge= screen_findedge(C->screen, sa->v3, sa->v4);
-					}
-
-					/* set sd and op to new init state */
-					sd->sarea= sa;
-					OP_set_int(op, "delta", 0);
-					OP_set_int(op, "x", event->x);
-					OP_set_int(op, "y", event->y);
-					split_area_init_intern(C, op, sd);
-				}
-				else {
-					/* all is cool, update delta according complicated formula */
-					if(dir=='v')
-						OP_set_int(op, "delta", event->x - y);
-					else
-						OP_set_int(op, "delta", event->x - y);
-					
-					split_area_apply(C, op);
-				}
-			} else if (sd->state==SPLIT_DONE) {
-				/* shouldn't get here anymore */
-			}
+			
+			OP_get_int(op, "dir", &dir);
+			
+			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
+			move_areas_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
+			
 			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
+			
 		case LEFTMOUSE:
-			if(event->val==0) { /* mouse up => confirm if not near/on starting edge */
+			if(event->val==0) { /* mouse up */
 				split_area_exit(C, op);
 				WM_event_remove_modal_handler(&C->window->handlers, op);
 				return OPERATOR_FINISHED;
@@ -1750,33 +1831,32 @@ void ED_SCR_OT_split_area(wmOperatorType *ot)
 	ot->invoke= split_area_invoke;
 	ot->modal= split_area_modal;
 	
-	ot->poll= ED_operator_screenactive;
+	ot->poll= ED_operator_screenactive; /* XXX should be area active */
 }
 
 /* ************** join area operator ********************************************** */
 
 /* operator state vars used:  
-           x, y       mouse coord near edge
-           delta      movement of edge
+			x1, y1     mouse coord in first area, which will disappear
+			x2, y2     mouse coord in 2nd area, which will become joined
 
-   callbacks:
+functions:
 
-   init()   find edge based on op->veci, 
+   init()   find edge based on state vars 
 			test if the edge divides two areas, 
 			store active and nonactive area,
             
-   apply()
+   apply()  do the actual join
 
    exit()	cleanup, send notifier
 
-   exec()	remove active window, 
-			recalc size,
-			make nonactive window active, 
-			add notifier for redraw.
+callbacks:
+
+   exec()	calls init, apply, exit 
    
-   invoke() handler gets called on Alt+RMB near edge
+   invoke() sets mouse coords in x,y
             call init()
-            add handler
+            add modal handler
 
    modal()	accept modal events while doing it
 			call apply() with active window and nonactive window
@@ -1786,33 +1866,40 @@ void ED_SCR_OT_split_area(wmOperatorType *ot)
 
 typedef struct sAreaJoinData
 {
-	int dir;
-	ScrArea *sa1; /* first area to be considered */
-	ScrArea *sa2; /* second area to be considered */
-	ScrArea *scr; /* designed for removal */
+	ScrArea *sa1;	/* first area to be considered */
+	ScrArea *sa2;	/* second area to be considered */
+	ScrArea *scr;	/* designed for removal */
 
 } sAreaJoinData;
 
 
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
+/* XXX todo: find edge based on (x,y) and set other area? */
 static int join_areas_init(bContext *C, wmOperator *op)
 {
-	ScrArea *actarea = NULL;
+	ScrArea *sa1, *sa2;
 	sAreaJoinData* jd= NULL;
-	int x, y;
+	int x1, y1;
+	int x2, y2;
 
-	if(!(OP_get_int(op, "x", &x) && OP_get_int(op, "y", &y)))
-		return 0;
+	/* required properties, make negative to get return 0 if not set by caller */
+	OP_verify_int(op, "x1", -100, &x1);
+	OP_verify_int(op, "y1", -100, &y1);
+	OP_verify_int(op, "x2", -100, &x2);
+	OP_verify_int(op, "y2", -100, &y2);
 	
-	actarea = screen_areahascursor(C->screen, x, y);
-	if(actarea==NULL)
+	sa1 = screen_areahascursor(C->screen, x1, y1);
+	sa2 = screen_areahascursor(C->screen, x2, y2);
+	if(sa1==NULL || sa2==NULL || sa1==sa2)
 		return 0;
 
 	jd = (sAreaJoinData*)MEM_callocN(sizeof (sAreaJoinData), "op_join_areas");
 		
-	jd->sa1 = actarea;
+	jd->sa1 = sa1;
 	jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
+	jd->sa2 = sa2;
+	jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 	
 	op->customdata= jd;
 	
@@ -1834,18 +1921,6 @@ static int join_areas_apply(bContext *C, wmOperator *op)
 
 	return 1;
 }
-
-static int is_inside_area(ScrArea *ar, short x, short y)
-{
-	int is_inside = 0;
-	if ( (ar->v1->vec.x < x) && (x < ar->v3->vec.x) ) {
-		if ( (y<ar->v3->vec.y) && (ar->v1->vec.y<y) ) {
-			is_inside = 1;
-		}
-	}
-	return is_inside;
-}
-
 
 /* finish operation */
 static void join_areas_exit(bContext *C, wmOperator *op)
@@ -1875,16 +1950,34 @@ static int join_areas_exec(bContext *C, wmOperator *op)
 /* interaction callback */
 static int join_areas_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	OP_verify_int(op, "x", event->x, NULL);
-	OP_verify_int(op, "y", event->y, NULL);
 
-	if(!join_areas_init(C, op)) 
-		return OPERATOR_PASS_THROUGH;
+	if(event->type==EVT_ACTIONZONE) {
+		sActionzoneData *sad= event->customdata;
+		
+		/* verify *sad itself */
+		if(sad==NULL || sad->sa1==NULL || sad->sa2==NULL)
+			return OPERATOR_PASS_THROUGH;
+		
+		/* is this our *sad? if areas equal it should be passed on */
+		if(sad->sa1==sad->sa2)
+			return OPERATOR_PASS_THROUGH;
+		
+		/* prepare operator state vars */
+		OP_set_int(op, "x1", sad->x);
+		OP_set_int(op, "y1", sad->y);
+		OP_set_int(op, "x2", event->x);
+		OP_set_int(op, "y2", event->y);
+
+		if(!join_areas_init(C, op)) 
+			return OPERATOR_PASS_THROUGH;
 	
-	/* add temp handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+		/* add temp handler */
+		WM_event_add_modal_handler(&C->window->handlers, op);
 	
-	return OPERATOR_RUNNING_MODAL;
+		return OPERATOR_RUNNING_MODAL;
+	}
+	
+	return OPERATOR_PASS_THROUGH;
 }
 
 static int join_areas_cancel(bContext *C, wmOperator *op)
@@ -1902,7 +1995,7 @@ static int join_areas_cancel(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	WM_event_remove_modal_handler(&C->window->handlers, op);			
-	OP_set_int(op, "delta", 0);
+	
 	join_areas_exit(C, op);
 
 	return OPERATOR_CANCELLED;
@@ -1911,41 +2004,46 @@ static int join_areas_cancel(bContext *C, wmOperator *op)
 /* modal callback while selecting area (space) that will be removed */
 static int join_areas_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
+	
 	/* execute the events */
 	switch(event->type) {
 			
-		case MOUSEMOVE:
+		case MOUSEMOVE: 
 			{
-				sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 				ScrArea *sa = screen_areahascursor(C->screen, event->x, event->y);
+				int dir;
+				
 				if (sa) {					
 					if (jd->sa1 != sa) {
-						jd->dir = area_getorientation(C->screen, jd->sa1, sa);
-						if (jd->dir >= 0)
-						{
+						dir = area_getorientation(C->screen, jd->sa1, sa);
+						if (dir >= 0) {
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = sa;
 							jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-						} else {
+						} 
+						else {
 							/* we are not bordering on the previously selected area 
 							   we check if area has common border with the one marked for removal
 							   in this case we can swap areas.
 							*/
-							jd->dir = area_getorientation(C->screen, sa, jd->sa2);
-							if (jd->dir >= 0) {
+							dir = area_getorientation(C->screen, sa, jd->sa2);
+							if (dir >= 0) {
 								if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 								jd->sa1 = jd->sa2;
 								jd->sa2 = sa;
 								if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 								if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-							} else {
+							} 
+							else {
 								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 								jd->sa2 = NULL;
 							}
 						}
 						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
-					} else {
+					} 
+					else {
 						/* we are back in the area previously selected for keeping 
 						 * we swap the areas if possible to allow user to choose */
 						if (jd->sa2 != NULL) {
@@ -1955,15 +2053,14 @@ static int join_areas_modal(bContext *C, wmOperator *op, wmEvent *event)
 							jd->sa2 = sa;
 							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-							jd->dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
-							if (jd->dir < 0)
-							{
+							dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
+							if (dir < 0) {
 								printf("oops, didn't expect that!\n");
 							}
-						} else {
-							jd->dir = area_getorientation(C->screen, jd->sa1, sa);
-							if (jd->dir >= 0)
-							{
+						} 
+						else {
+							dir = area_getorientation(C->screen, jd->sa1, sa);
+							if (dir >= 0) {
 								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 								jd->sa2 = sa;
 								jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
@@ -1972,10 +2069,9 @@ static int join_areas_modal(bContext *C, wmOperator *op, wmEvent *event)
 						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					}
 				}
-				
-				break;
 			}
-		case RIGHTMOUSE:
+			break;
+		case LEFTMOUSE:
 			if(event->val==0) {
 				join_areas_apply(C, op);
 				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);

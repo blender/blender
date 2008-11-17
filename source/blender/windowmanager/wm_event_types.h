@@ -258,7 +258,9 @@
 #define REDRAWVIEW3D_IMAGE	0x4041
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
+
 #define BORDERSELECT	0x5000
+#define EVT_ACTIONZONE	0x5001
 
 #endif	/* WM_EVENT_TYPES_H */
 

@@ -442,8 +442,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			
 			for(km= handler->keymap->first; km; km= km->next) {
 				if(wm_eventmatch(event, km)) {
-					/*if(event->type!=MOUSEMOVE)
-						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname);*/
+					/* if(event->type!=MOUSEMOVE)
+						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname); */
 					
 					event->keymap_idname= km->idname;	/* weak, but allows interactive callback to not use rawkey */
 					
@@ -470,6 +470,17 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 	return BLI_in_rcti(rect, event->x, event->y);
 }
 
+static ScrArea *area_event_inside(bContext *C, wmEvent *event)
+{
+	ScrArea *sa;
+	
+	if(C->screen)
+		for(sa= C->screen->areabase.first; sa; sa= sa->next)
+			if(wm_event_inside_i(event, &sa->totrct))
+				return sa;
+	return NULL;
+}
+
 
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
@@ -488,7 +499,8 @@ void wm_event_do_handlers(bContext *C)
 
 			C->window= win;
 			C->screen= win->screen;
-
+			C->area= area_event_inside(C, event);
+				
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			wm_window_make_drawable(C, win);
 			

@@ -77,6 +77,8 @@ void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
 					int swinid, int type,
 					int value, void *data);
 
+void		wm_event_add(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
+
 			/* one-shot timer, returns wmTimerData.handle */
 struct wmTimerHandle *WM_event_add_window_timer(wmWindow *win, int delay_ms, int interval_ms);
 void		WM_event_remove_window_timer(wmWindow *wm, struct wmTimerHandle *handle);

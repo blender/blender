@@ -33,22 +33,13 @@ typedef struct AZone {
 	struct AZone *next, *prev;
 	int type;
 	int flag;
-	int action;
 	int pos;
 	short x1, y1, x2, y2;
 } AZone;
 
-#define MAX_AZONES			8
-
-
 /* actionzone type */
 #define	AZONE_TRI			1
 #define AZONE_QUAD			2
-
-/* actionzone action */
-#define AZONE_SPLIT			1
-#define AZONE_JOIN			2
-#define AZONE_DRAG			3
 
 /* actionzone pos */
 #define AZONE_S				1
