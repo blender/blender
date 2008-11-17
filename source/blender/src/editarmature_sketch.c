@@ -1802,7 +1802,15 @@ void sk_convert(SK_Sketch *sketch)
 	{
 		if (stk->selected == 1)
 		{
-			sk_convertStroke(stk);
+			if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_RETARGET)
+			{
+				sk_retargetStroke(stk);
+			}
+			else
+			{
+				sk_convertStroke(stk);
+			}
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
 }
@@ -2519,8 +2527,8 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 				else
 				{
 					sk_convertStroke(stk);
-					BIF_undo_push("Convert Sketch");
 				}
+				BIF_undo_push("Convert Sketch");
 				sk_removeStroke(sketch, stk);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}

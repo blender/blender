@@ -3082,8 +3082,6 @@ void BIF_retargetArc(ReebArc *earc)
 	
 	RIG_freeRigGraph((BGraph*)template_rigg);
 	RIG_freeRigGraph((BGraph*)rigg);
-
-	BIF_undo_push("Retarget Arc");
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
