@@ -36,7 +36,7 @@ if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetdir = '#'+targetdir
 makesdna_tool.Append (LIBPATH = targetdir)
 if env['BF_PROFILE']:
-	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
+	makesdna_tool.Append (LINKFLAGS = env['BF_PROFILE_LINKFLAGS'])
 
 targetdir = root_build_dir + '/makesdna'
 

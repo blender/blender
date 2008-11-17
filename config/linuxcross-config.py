@@ -149,6 +149,10 @@ LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lw
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= []
 
+BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
+
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'
 BF_DOCDIR='../install/doc'

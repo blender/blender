@@ -1351,8 +1351,8 @@ void Mat4ToQuat( float m[][4], float *q)
 
 void QuatOne(float *q)
 {
-	q[0]= q[2]= q[3]= 0.0;
-	q[1]= 1.0;
+	q[0]= 1.0;
+	q[1]= q[2]= q[3]= 0.0;
 }
 
 void NormalQuat(float *q)
