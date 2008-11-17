@@ -107,7 +107,8 @@ typedef struct RigEdge {
 	struct RigEdge *next, *prev;
 	float head[3], tail[3];
 	float length;
-	float angle;
+	float angle; /* angle to next edge */
+	float up_angle; /* angle between up_axis and the joint normal (defined as Previous edge CrossProduct Current edge */
 	EditBone *bone;
 	float up_axis[3];
 } RigEdge;

@@ -448,12 +448,13 @@ typedef struct ToolSettings {
 	char bone_sketching_convert;
 	char skgen_subdivision_number;
 	char skgen_retarget_options;
+	char skgen_retarget_roll;
 	char skgen_side_string[8];
 	char skgen_num_string[8];
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[3];
+	char pad3[2];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -887,8 +888,11 @@ typedef struct Scene {
 #define	SK_CONVERT_RETARGET				4
 
 /* toolsettings->skgen_retarget_options */
-#define	SK_RETARGET_ROLL				1
-#define	SK_RETARGET_AUTONAME			2
+#define	SK_RETARGET_AUTONAME			1
+
+/* toolsettings->skgen_retarget_roll */
+#define	SK_RETARGET_ROLL_VIEW			1
+#define	SK_RETARGET_ROLL_JOINT			2
 
 
 #ifdef __cplusplus

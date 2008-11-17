@@ -2310,15 +2310,14 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiBlockBeginAlign(block);
 		
 		/* use real flag instead of 1 */
-		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 130, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
-		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 140, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
+		uiDefButBitC(block, TOG, BONE_SKETCHING, B_REDR, "Use Bone Sketching", 10, yco, 180, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Use sketching to create and edit bones");
+		uiDefButBitC(block, TOG, BONE_SKETCHING_QUICK, B_REDR, "Q", 190, yco, 20, 20, &G.scene->toolsettings->bone_sketching, 0, 0, 0, 0, "Automatically convert and delete on stroke end");
 		yco -= 20;
 		
-		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,150,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
+		but = uiDefBut(block, BUT, B_REDR, "Convert", 10,yco,100,20, 0, 0, 0, 0, 0, "Convert sketch to armature");
 		uiButSetFunc(but, convert_sketch_armature, NULL, NULL);
-		yco -= 20;
 
-		but = uiDefBut(block, BUT, B_REDR, "Delete", 10,yco,150,20, 0, 0, 0, 0, 0, "Delete sketch");
+		but = uiDefBut(block, BUT, B_REDR, "Delete", 110,yco,100,20, 0, 0, 0, 0, 0, "Delete sketch");
 		uiButSetFunc(but, delete_sketch_armature, NULL, NULL);
 		yco -= 20;
 		
@@ -2327,20 +2326,21 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiBlockBeginAlign(block);
 
 		uiDefButC(block, ROW, B_REDR, "Length",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_LENGTH, 0, 0,				"Subdivide arcs in bones of equal length");
-		uiDefButF(block, NUM, B_REDR, 					"L:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
+		uiDefButF(block, NUM, B_REDR, 					"Lim:",		70, yco, 140, 19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the subdivided bones");
 		yco -= 20;
 
 		uiDefButC(block, ROW, B_REDR, "Correlation",	10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_CORRELATION, 0, 0,					"Subdivide arcs based on correlation");
-		uiDefButF(block, NUM, B_REDR, 						 "T:",			70, yco, 90, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
+		uiDefButF(block, NUM, B_REDR, 					 "Thres:",			70, yco, 140, 19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Correlation threshold for subdivision");
 		yco -= 20;
 	
 		uiDefButC(block, ROW, B_REDR, "Fixed",		10, yco, 60, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_CUT_FIXED, 0, 0,					"Subdivide arcs based on a fixed number of bones");
-		uiDefButC(block, NUM, B_REDR, 					"N:",		70, yco, 90, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
+		uiDefButC(block, NUM, B_REDR, 					"Num:",		70, yco, 140, 19, &G.scene->toolsettings->skgen_subdivision_number,1, 100, 1, 5,	"Number of subdivided bones");
 		yco -= 20;
 
-		uiDefButC(block, ROW, B_REDR, "Retarget",		10, yco,80, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_RETARGET, 0, 0,					"Retarget selected bones to stroke");
-		uiDefButBitC(block, TOG, SK_RETARGET_ROLL, B_DIFF, 	"Roll",		90, yco, 70,19, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0,				"Roll bones perpendicular to view");
-		/* button here to select what to do (copy or not), template, ...*/
+		uiDefButC(block, ROW, B_REDR, "Retarget",	10,  yco,80, 19, &G.scene->toolsettings->bone_sketching_convert, 0, SK_CONVERT_RETARGET, 0, 0,				"Retarget selected bones to stroke");
+		uiDefButC(block, ROW, B_DIFF, "No",			90,  yco, 40,19, &G.scene->toolsettings->skgen_retarget_roll, 0, 0, 0, 0,									"No special roll treatment");
+		uiDefButC(block, ROW, B_DIFF, "View",		130,  yco, 40,19, &G.scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_VIEW, 0, 0,				"Roll bones perpendicular to view");
+		uiDefButC(block, ROW, B_DIFF, "Joint",		170, yco, 40,19, &G.scene->toolsettings->skgen_retarget_roll, 0, SK_RETARGET_ROLL_JOINT, 0, 0,				"Roll bones relative to joint bend");
 		yco -= 20;
 
 		uiBlockEndAlign(block);
@@ -2348,22 +2348,24 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		yco -= 10;
 		uiBlockBeginAlign(block);
 		
+		/* button here to select what to do (copy or not), template, ...*/
+
 		BIF_makeListTemplates();
 		template_index = BIF_currentTemplate();
 		
-		but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(), 10,yco,150,19, &template_index, 0, 0, 0, 0, "Template");
+		but = uiDefButI(block, MENU, B_REDR, BIF_listTemplates(), 10,yco,200,19, &template_index, 0, 0, 0, 0, "Template");
 		uiButSetFunc(but, assign_template_sketch_armature, &template_index, NULL);
 		
 		yco -= 20;
 		
-		uiDefButF(block, NUM, B_DIFF, 							"Ang:",			10, yco, 50,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
-		uiDefButF(block, NUM, B_DIFF, 							"Len:",			60, yco, 50,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
-		uiDefButF(block, NUM, B_DIFF, 							"Dist:",		110,yco, 50,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
+		uiDefButF(block, NUM, B_DIFF, 							"A:",			10, yco, 66,19, &G.scene->toolsettings->skgen_retarget_angle_weight, 0, 10, 1, 0,		"Angle Weight");
+		uiDefButF(block, NUM, B_DIFF, 							"L:",			76, yco, 67,19, &G.scene->toolsettings->skgen_retarget_length_weight, 0, 10, 1, 0,		"Length Weight");
+		uiDefButF(block, NUM, B_DIFF, 							"D:",		143,yco, 67,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 		yco -= 20;
 		
-		uiDefBut(block, TEX,0,"S:",							10, yco, 65, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace %S with");
-		uiDefBut(block, TEX,0,"N:",							75, yco, 65, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace %N with");
-		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,140,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+		uiDefBut(block, TEX,0,"S:",							10,  yco, 90, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace %S with");
+		uiDefBut(block, TEX,0,"N:",							100, yco, 90, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace %N with");
+		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,190,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
 
 		/* auto renaming magic */
 

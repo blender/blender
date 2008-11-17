@@ -529,11 +529,8 @@ ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
 	VECCOPY(node->p, pt->p);
 	Mat4MulVecfl(imat, node->p);
 	
-	if (G.scene->toolsettings->skgen_retarget_options & SK_RETARGET_ROLL)
-	{
-		VECCOPY(node->no, pt->no);
-		Mat3MulVecfl(tmat, node->no);
-	}
+	VECCOPY(node->no, pt->no);
+	Mat3MulVecfl(tmat, node->no);
 	
 	return node;
 }
@@ -555,11 +552,8 @@ ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4], float tmat[][3])
 		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
 		Mat4MulVecfl(imat, arc->buckets[i].p);
 
-		if (G.scene->toolsettings->skgen_retarget_options & SK_RETARGET_ROLL)
-		{
-			VECCOPY(arc->buckets[i].no, stk->points[i + 1].no);
-			Mat3MulVecfl(tmat, arc->buckets[i].no);
-		}
+		VECCOPY(arc->buckets[i].no, stk->points[i + 1].no);
+		Mat3MulVecfl(tmat, arc->buckets[i].no);
 	}
 	
 	return arc;

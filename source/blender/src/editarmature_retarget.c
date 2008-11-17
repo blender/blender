@@ -110,7 +110,8 @@ RigGraph *GLOBAL_RIGG = NULL;
 
 void *exec_retargetArctoArc(void *param);
 
-static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second);
+static void RIG_calculateEdgeAngles(RigEdge *edge_first, RigEdge *edge_second);
+float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4]);
 
 /* two levels */
 #define SHAPE_LEVELS (SHAPE_RADIX * SHAPE_RADIX) 
@@ -200,12 +201,63 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	}
 }
 
-float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float quat[4])
+float rollBoneByQuatJoint(RigEdge *edge, RigEdge *previous, float qrot[4], float qroll[4])
+{
+	if (previous == NULL)
+	{
+		QuatOne(qroll);
+		return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+	}
+	else
+	{
+		float new_up_axis[3];
+		float vec_first[3], vec_second[3], normal[3];
+		
+		if (previous->bone)
+		{
+			VecSubf(vec_first, previous->bone->tail, previous->bone->head);
+		} 
+		else if (previous->prev->bone)
+		{
+			VecSubf(vec_first, edge->bone->head, previous->prev->bone->tail);
+		}
+		else
+		{
+			/* SHOULDN'T BE HERE */
+			QuatOne(qroll);
+			return rollBoneByQuat(edge->bone, edge->up_axis, qrot);
+		}
+		
+		VecSubf(vec_second, edge->bone->tail, edge->bone->head);
+	
+		Normalize(vec_first);
+		Normalize(vec_second);
+		
+		Crossf(normal, vec_first, vec_second);
+		Normalize(normal);
+		
+		AxisAngleToQuat(qroll, vec_second, edge->up_angle);
+		
+		QuatMulVecf(qroll, normal);
+			
+		VECCOPY(new_up_axis, edge->up_axis);
+		QuatMulVecf(qrot, new_up_axis);
+		
+		Normalize(new_up_axis);
+		
+		/* real qroll between normal and up_axis */
+		RotationBetweenVectorsToQuat(qroll, new_up_axis, normal);
+
+		return rollBoneToVector(edge->bone, normal);
+	}
+}
+
+float rollBoneByQuat(EditBone *bone, float old_up_axis[3], float qrot[4])
 {
 	float new_up_axis[3];
 	
 	VECCOPY(new_up_axis, old_up_axis);
-	QuatMulVecf(quat, new_up_axis);
+	QuatMulVecf(qrot, new_up_axis);
 	
 	Normalize(new_up_axis);
 	
@@ -372,7 +424,7 @@ static void RIG_appendEdgeToArc(RigArc *arc, RigEdge *edge)
 	{
 		RigEdge *last_edge = edge->prev;
 		VECCOPY(edge->head, last_edge->tail);
-		RIG_calculateEdgeAngle(last_edge, edge);
+		RIG_calculateEdgeAngles(last_edge, edge);
 	}
 	
 	edge->length = VecLenf(edge->head, edge->tail);
@@ -493,6 +545,7 @@ static RigArc *cloneArc(RigGraph *rg, RigGraph *src_rg, RigArc *src_arc, GHash *
 		
 		edge->length = src_edge->length;
 		edge->angle = src_edge->angle;
+		edge->up_angle = src_edge->up_angle;
 		
 		if (src_edge->bone != NULL)
 		{
@@ -596,7 +649,7 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob)
 
 /*******************************************************************************************************/
 
-static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second)
+static void RIG_calculateEdgeAngles(RigEdge *edge_first, RigEdge *edge_second)
 {
 	float vec_first[3], vec_second[3];
 	
@@ -606,7 +659,17 @@ static void RIG_calculateEdgeAngle(RigEdge *edge_first, RigEdge *edge_second)
 	Normalize(vec_first);
 	Normalize(vec_second);
 	
-	edge_first->angle = saacos(Inpf(vec_first, vec_second));
+	edge_first->angle = NormalizedVecAngle2(vec_first, vec_second);
+	
+	if (edge_second->bone != NULL)
+	{
+		float normal[3];
+
+		Crossf(normal, vec_first, vec_second);
+		Normalize(normal);
+
+		edge_second->up_angle = NormalizedVecAngle2(normal, edge_second->up_axis);
+	}
 }
 
 /************************************ CONTROL BONES ****************************************************/
@@ -1831,7 +1894,18 @@ static void repositionBone(RigGraph *rigg, RigEdge *edge, float vec0[3], float v
 	{
 		float qroll[4];
 
-		bone->roll = rollBoneByQuatAligned(bone, edge->up_axis, qrot, qroll, up_axis);
+		if (G.scene->toolsettings->skgen_retarget_roll == SK_RETARGET_ROLL_VIEW)
+		{
+			bone->roll = rollBoneByQuatAligned(bone, edge->up_axis, qrot, qroll, up_axis);
+		}
+		else if (G.scene->toolsettings->skgen_retarget_roll == SK_RETARGET_ROLL_JOINT)
+		{
+			bone->roll = rollBoneByQuatJoint(edge, edge->next, qrot, qroll);
+		}
+		else
+		{
+			QuatOne(qroll);
+		}
 		
 		QuatMul(qrot, qroll, qrot);
 	}

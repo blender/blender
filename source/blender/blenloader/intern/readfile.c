@@ -7999,7 +7999,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 			/* Skeleton Sketching */
 			sce->toolsettings->bone_sketching = 0;
-			sce->toolsettings->skgen_retarget_options |= SK_RETARGET_ROLL;
+			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
 		}
 	}
 
