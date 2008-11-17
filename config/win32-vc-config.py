@@ -197,6 +197,11 @@ PLATFORM_LINKFLAGS = '''
                        /LARGEADDRESSAWARE
                    '''
 
+# # Todo
+# BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+# BF_PROFILE_LINKFLAGS = ['-pg']
+# BF_PROFILE = False
+
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'
 BF_DOCDIR='..\\install\\doc'

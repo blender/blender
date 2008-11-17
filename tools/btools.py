@@ -54,7 +54,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_BINRELOC',
 			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
 			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
-			'BF_PROFILE_FLAGS', 'BF_PROFILE_FLAGS', 'BF_PROFILE_CXXFLAGS',
+			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
 			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
 			'C_WARN', 'CC_WARN', 'CXX_WARN',
 			'LLIBS', 'PLATFORM_LINKFLAGS',
@@ -340,6 +340,7 @@ def read_opts(cfg, args):
 		('BF_PROFILE_CFLAGS', 'C only profiling flags', ''),
 		('BF_PROFILE_CCFLAGS', 'C and C++ profiling flags', ''),
 		('BF_PROFILE_CXXFLAGS', 'C++ only profiling flags', ''),
+		('BF_PROFILE_LINKFLAGS', 'Profile linkflags', ''),
 
 		(BoolVariable('BF_DEBUG', 'Add debug flags if true', False)),
 		('BF_DEBUG_CFLAGS', 'C only debug flags', ''),

@@ -199,6 +199,7 @@ LLIBS = 'util c m dl pthread stdc++'
 
 BF_PROFILE = False
 BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS = ['-g']

@@ -476,7 +476,7 @@ class BlenderEnvironment(SConsEnvironment):
 				lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
 			lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])
 		if lenv['BF_PROFILE']:
-				lenv.Append(LINKFLAGS = lenv['BF_PROFILE_FLAGS'])
+			lenv.Append(LINKFLAGS = lenv['BF_PROFILE_LINKFLAGS'])
 		lenv.Append(CPPPATH=includes)
 		if root_build_dir[0]==os.sep or root_build_dir[1]==':':
 			lenv.Append(LIBPATH=root_build_dir + '/lib')

@@ -261,6 +261,7 @@ CC_WARN = ['-Wall', '-Wno-long-double']
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
 BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
