@@ -410,7 +410,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if(canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
 	{
 		UpdateOffsetMatrix(canvas);
-		UpdateCanvasTextureCoord(viewport);
+		UpdateCanvasTextureCoord((unsigned int*)viewport);
 		need_tex_update = true;
 	}
 	
