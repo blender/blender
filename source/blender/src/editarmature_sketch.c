@@ -31,6 +31,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1450,7 +1451,7 @@ void sk_updateNextPoint(SK_Sketch *sketch)
 int sk_stroke_filtermval(SK_DrawData *dd)
 {
 	int retval = 0;
-	if (dd->mval[0] != dd->previous_mval[0] || dd->mval[1] != dd->previous_mval[1])
+	if (ABS(dd->mval[0] - dd->previous_mval[0]) + ABS(dd->mval[1] - dd->previous_mval[1]) > U.gp_manhattendist)
 	{
 		retval = 1;
 	}
