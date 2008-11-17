@@ -30,16 +30,6 @@
 
 #include "DNA_ID.h"
 
-/*
-these two are included for their (new :P )function
-pointers.
-*/
-#include "BLO_readfile.h"
-#include "BLO_writefile.h"
-
-struct WriteData;
-struct FileData;
-
 struct IDProperty;
 struct ID;
 
@@ -176,5 +166,6 @@ void IDP_UnlinkProperty(struct IDProperty *prop);
 #define IDP_Float(prop) (*(float*)&prop->data.val)
 #define IDP_String(prop) ((char*)prop->data.pointer)
 #define IDP_Array(prop) (prop->data.pointer)
+#define IDP_Double(prop) (*(double*)&prop->data.val)
 
 #endif /* _BKE_IDPROP_H */

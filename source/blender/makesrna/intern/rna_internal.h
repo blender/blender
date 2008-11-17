@@ -25,10 +25,12 @@
 #ifndef RNA_INTERNAL_H
 #define RNA_INTERNAL_H
 
-struct StructRNA;
-struct PropertyRNA;
+#include "rna_internal_types.h"
+
+#define RNA_MAGIC ((int)~0)
+
+struct IDProperty;
 struct SDNA;
-struct ListBase;
 
 /* Data structures used during define */
 
@@ -73,6 +75,15 @@ extern BlenderDefRNA DefRNA;
 
 /* Define functions for all types */
 
+extern StringPropertyRNA rna_IDProperty_string;
+extern IntPropertyRNA rna_IDProperty_int;
+extern IntPropertyRNA rna_IDProperty_intarray;
+extern FloatPropertyRNA rna_IDProperty_float;
+extern FloatPropertyRNA rna_IDProperty_floatarray;
+extern PointerPropertyRNA rna_IDProperty_group;
+extern FloatPropertyRNA rna_IDProperty_double;
+extern FloatPropertyRNA rna_IDProperty_doublearray;
+
 extern StructRNA RNA_Main;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_Object;
@@ -80,6 +91,7 @@ extern StructRNA RNA_Scene;
 extern StructRNA RNA_Struct;
 
 void RNA_def_ID(struct StructRNA *srna);
+void RNA_def_ID_types(struct BlenderRNA *brna);
 
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
@@ -87,13 +99,21 @@ void RNA_def_object(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
 
+/* Internal Functions */
+
 void rna_def_builtin_properties(struct StructRNA *srna);
 
-/* Standard iterator functions */
+struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
+
+typedef struct ListBaseIterator {
+	Link *link;
+	int flag;
+} ListBaseIterator;
 
 void rna_iterator_listbase_begin(struct CollectionPropertyIterator *iter, struct ListBase *lb);
 void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
+void rna_iterator_listbase_end(struct CollectionPropertyIterator *iter);
 
 typedef struct ArrayIterator {
 	char *ptr;

@@ -174,7 +174,7 @@ static void rna_pointer_cb(void *arg_buts, void *arg_prop, void *arg_index)
 	char *newpath;
 	int index= GET_INT_FROM_POINTER(arg_index);;
 
-	newpath= RNA_path_append(soutliner->rnapath, prop, index, NULL);
+	newpath= RNA_path_append(soutliner->rnapath, NULL, prop, index, NULL);
 	if(soutliner->rnapath)
 		MEM_freeN(soutliner->rnapath);
 	soutliner->rnapath= newpath;
@@ -278,7 +278,6 @@ static void rna_path_but(CellRNA *cell, rcti *rct, uiBlock *block)
 static void rna_table_cell_func(void *userdata, int row, int col, rcti *rct, uiBlock *block)
 {
 	CellRNA *cell= userdata;
-	PropertyRNA *prop;
 	PropertyType type;
 	int length;
 
@@ -318,8 +317,6 @@ static void rna_table_cell_func(void *userdata, int row, int col, rcti *rct, uiB
 
 		cell->lastrow= row;
 	}
-
-	prop= cell->prop;
 
 	/* make button */
 	if(col == 0)

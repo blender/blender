@@ -316,6 +316,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	dp->srna= srna;
 	dp->prop= prop;
 
+	prop->magic= RNA_MAGIC;
 	prop->identifier= identifier;
 	prop->type= type;
 	prop->subtype= subtype;
@@ -802,6 +803,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 		if(strcmp(dp->dnatype, "ListBase") == 0) {
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_listbase_next";
 			cprop->get= (PropCollectionGetFunc)"rna_iterator_listbase_get";
+			cprop->end= (PropCollectionEndFunc)"rna_iterator_listbase_end";
 		}
 	}
 

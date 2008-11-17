@@ -121,7 +121,8 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
  * particular pointers, which is useful in a number of applications, like
  * UI code or Actions, though efficiency is a concern. */
 
-char *RNA_path_append(const char *path, PropertyRNA *prop, int intkey, const char *strkey);
+char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop,
+	int intkey, const char *strkey);
 char *RNA_path_back(const char *path);
 
 int RNA_path_resolve(PointerRNA *ptr, const char *path,

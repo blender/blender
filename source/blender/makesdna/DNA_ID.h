@@ -51,9 +51,9 @@ typedef struct IDPropertyData {
 
 typedef struct IDProperty {
 	struct IDProperty *next, *prev;
-	char name[32];
 	char type, subtype;
 	short flag;
+	char name[32];
 	int saved; /*saved is used to indicate if this struct has been saved yet.
 				seemed like a good idea as a pad var was needed anyway :)*/
 	IDPropertyData data;	/* note, alignment for 64 bits */
@@ -69,15 +69,16 @@ typedef struct IDProperty {
 #define DEFAULT_ALLOC_FOR_NULL_STRINGS	64
 
 /*->type*/
-#define IDP_STRING	0
-#define IDP_INT		1
-#define IDP_FLOAT	2
-#define IDP_ARRAY	5
-#define IDP_GROUP	6
+#define IDP_STRING		0
+#define IDP_INT			1
+#define IDP_FLOAT		2
+#define IDP_ARRAY		5
+#define IDP_GROUP		6
 /* the ID link property type hasn't been implemented yet, this will require
    some cleanup of blenkernel, most likely.*/
-#define IDP_ID		7
-#define IDP_DOUBLE	8
+#define IDP_ID			7
+#define IDP_DOUBLE		8
+#define IDP_NUMTYPES	9
 
 /* add any future new id property types here.*/
 

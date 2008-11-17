@@ -37,8 +37,10 @@
 
 void *rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
+	ListBaseIterator *internal= iter->internal;
+
 	/* we are actually iterating a Base list, so override get */
-	return ((Base*)iter->internal)->object;
+	return ((Base*)internal->link)->object;
 }
 
 static void rna_Scene_layer_set(PointerRNA *ptr, int index, int value)

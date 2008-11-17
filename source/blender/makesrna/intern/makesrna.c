@@ -545,7 +545,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		fprintf(f, "\n");
 
 	for(prop=srna->properties.first; prop; prop=prop->next)
-		fprintf(f, "static %s rna_%s_%s;\n", rna_property_structname(prop->type), srna->identifier, prop->identifier);
+		fprintf(f, "%s%s rna_%s_%s;\n", (prop->flag & PROP_EXPORT)? "": "static ", rna_property_structname(prop->type), srna->identifier, prop->identifier);
 	fprintf(f, "\n");
 
 	for(prop=srna->properties.first; prop; prop=prop->next) {
@@ -628,13 +628,14 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 				break;
 		}
 
-		fprintf(f, "static %s rna_%s_%s = {\n", rna_property_structname(prop->type), srna->identifier, prop->identifier);
+		fprintf(f, "%s%s rna_%s_%s = {\n", (prop->flag & PROP_EXPORT)? "": "static ", rna_property_structname(prop->type), srna->identifier, prop->identifier);
 
 		if(prop->next) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s, ", srna->identifier, prop->next->identifier);
 		else fprintf(f, "\t{NULL, ");
 		if(prop->prev) fprintf(f, "(PropertyRNA*)&rna_%s_%s,\n", srna->identifier, prop->prev->identifier);
 		else fprintf(f, "NULL,\n");
-		fprintf(f, "\t"); rna_print_c_string(f, prop->identifier);
+		fprintf(f, "\t%d, ", prop->magic);
+		rna_print_c_string(f, prop->identifier);
 		fprintf(f, ", %d, ", prop->flag);
 		rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 		rna_print_c_string(f, prop->description); fprintf(f, ",\n");
@@ -738,7 +739,7 @@ typedef struct RNAProcessItem {
 } RNAProcessItem;
 
 RNAProcessItem PROCESS_ITEMS[]= {
-	{"rna_ID.c", NULL},
+	{"rna_ID.c", RNA_def_ID_types},
 	{"rna_main.c", RNA_def_main},
 	{"rna_mesh.c", RNA_def_mesh},
 	{"rna_object.c", RNA_def_object},
