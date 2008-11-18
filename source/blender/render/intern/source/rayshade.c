@@ -96,6 +96,17 @@ static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
 		return (is->lay & obi->lay);
 }
 
+static int vlr_check_intersect_solid(Isect *is, int ob, RayFace *face)
+{
+	VlakRen *vlr = (VlakRen*)face;
+
+	/* solid material types only */
+	if (vlr->mat->material_type == MA_SOLID)
+		return 1;
+	else
+		return 0;
+}
+
 static float *vlr_get_transform(void *userdata, int i)
 {
 	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)userdata, i);
@@ -1621,7 +1632,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		prev = fac;
 		
-		if(RE_ray_tree_intersect(R.raytree, &isec)) {
+		if(RE_ray_tree_intersect_check(R.raytree, &isec, vlr_check_intersect_solid)) {
 			if (R.wrld.aomode & WO_AODIST) fac+= exp(-isec.labda*R.wrld.aodistfac); 
 			else fac+= 1.0f;
 		}
@@ -1746,7 +1757,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 			isec.end[2] = shi->co[2] - maxdist*vec[2];
 			
 			/* do the trace */
-			if(RE_ray_tree_intersect(R.raytree, &isec)) {
+			if(RE_ray_tree_intersect_check(R.raytree, &isec, vlr_check_intersect_solid)) {
 				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
 				else sh+= 1.0f;
 			}
