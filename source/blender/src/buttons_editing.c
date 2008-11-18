@@ -6392,11 +6392,42 @@ static void editing_panel_mesh_paint(void)
 
 			yco -= 110;
 
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			id= (mtex)? (ID*)mtex->tex: NULL;
-			xco= std_libbuttons(block, 0, yco, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, NULL, &(G.buts->menunr), 0, 0, B_BTEXDELETE, 0, 0);
-			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_BRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
-			uiBlockSetCol(block, TH_AUTO);
+			if (settings->imapaint.tool == PAINT_TOOL_CLONE) {
+				Object *ob = OBACT;
+				if (ob) {
+					Mesh *me = ob->data;
+					int layercount = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+					if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
+						
+						butw = 80;
+						uiBlockBeginAlign(block);
+						uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_CLONE_LAYER, B_REDR, "Clone Layer",	0,yco,butw,20, &settings->imapaint.flag, 0, 0, 0, 0, "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
+						
+						if (settings->imapaint.flag & IMAGEPAINT_PROJECT_CLONE_LAYER) {
+							char str_menu[384], *str_pt; /*384 allows for 11 layers */
+							
+							if (settings->imapaint.clone_layer >= layercount) {
+								settings->imapaint.clone_layer = 0;
+							}
+							
+	
+							
+							/*str_pt = (char *)MEM_mallocN(layercount*40 , "uvmenu"); str[0]='\0';*/
+							str_pt = str_menu;
+							str_pt[0]='\0';
+							mesh_layers_menu_concat(&me->fdata, CD_MTFACE, str_pt);
+							uiDefButI(block, MENU, B_NOP, str_menu ,butw,yco,(180-butw) + 20,20, &settings->imapaint.clone_layer, 0, 0, 0, 0, "Active UV Layer for editing");
+						}
+						uiBlockEndAlign(block);
+					}
+				}
+			} else {
+				uiBlockSetCol(block, TH_BUT_SETTING2);
+				id= (mtex)? (ID*)mtex->tex: NULL;
+				xco= std_libbuttons(block, 0, yco, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, NULL, &(G.buts->menunr), 0, 0, B_BTEXDELETE, 0, 0);
+				/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_BRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
+				uiBlockSetCol(block, TH_AUTO);
+			}
 		}
 	}
 }

@@ -209,6 +209,7 @@ typedef struct ProjectPaintState {
 	MVert 		   *dm_mvert;
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
+	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
 	
 	/* projection painting only */
 	MemArena *arena;			/* use for alocating many pixel structs and link-lists */
@@ -239,7 +240,7 @@ typedef struct ProjectPaintState {
 #endif
 	/* clone vars */
 	float clone_offset[2];
-	
+	int clone_layer;			/* -1 when not in use */
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
@@ -1208,9 +1209,9 @@ static void screen_px_from_ortho(
 		ProjectPaintState *ps, float uv[2],
 		float v1co[3], float v2co[3], float v3co[3], /* Screenspace coords */
 		float uv1co[2], float uv2co[2], float uv3co[2],
-		float pixelScreenCo[4] )
+		float pixelScreenCo[4],
+		float w[3])
 {
-	float w[3];
 	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
 	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
@@ -1223,9 +1224,10 @@ static void screen_px_from_persp(
 		ProjectPaintState *ps, float uv[2],
 		float v1co[3], float v2co[3], float v3co[3], /* Worldspace coords */
 		float uv1co[2], float uv2co[2], float uv3co[2],
-		float pixelScreenCo[4])
+		float pixelScreenCo[4],
+		float w[3])
 {
-	float w[3], wtot;
+	float wtot;
 	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	
 	/* re-weight from the 4th coord of each screen vert */
@@ -1251,7 +1253,7 @@ static void screen_px_from_persp(
 
 /* run this function when we know a bucket's, face's pixel can be initialized,
  * adding to the LinkList 'ps->bucketRect' */
-static void project_paint_uvpixel_init(ProjectPaintState *ps, int thread_index, ImBuf *ibuf, short x, short y, int bucket_index, int face_index, int image_index, float pixelScreenCo[4])
+static void project_paint_uvpixel_init(ProjectPaintState *ps, int thread_index, ImBuf *ibuf, short x, short y, int bucket_index, int face_index, int image_index, float pixelScreenCo[4], int side, float w[3])
 {
 	ProjectPixel *projPixel;
 	short size;
@@ -1309,21 +1311,63 @@ static void project_paint_uvpixel_init(ProjectPaintState *ps, int thread_index, 
 		
 		/* done with view3d_project_float inline */
 		if (ps->tool==PAINT_TOOL_CLONE) {
-			float co[2];
-			
-			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
-			/* TODO - possibly only run this for directly ativated buckets when cloning */
-			Vec2Subf(co, projPixel->projCo2D, ps->clone_offset);
-			
-			/* no need to initialize the bucket, we're only checking buckets faces and for this
-			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
-			if (ibuf->rect_float) {
-				if (!project_paint_PickColor(ps, co, ((ProjectPixelCloneFloat *)projPixel)->clonepx, NULL, 1)) {
-					((ProjectPixelCloneFloat *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+			if (ps->dm_mtface_clone) {
+				/* TODO - float buffer */
+				ImBuf *ibuf_other;
+				MTFace *tf_other = ps->dm_mtface_clone + face_index;
+				float *uvCo1, *uvCo2, *uvCo3; 
+				if (side==1) {
+					uvCo1 =  tf_other->uv[0];
+					uvCo2 =  tf_other->uv[2];
+					uvCo3 =  tf_other->uv[3];
+				} else {
+					uvCo1 =  tf_other->uv[0];
+					uvCo2 =  tf_other->uv[1];
+					uvCo3 =  tf_other->uv[2];
 				}
+				
+				((ProjectPixelClone *)projPixel)->clonepx[3] = 0;
+				
+				if (tf_other->tpage && ( ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL) )) {
+					/* BKE_image_get_ibuf - TODO - this may be slow */
+						
+					float uv_other[2], x, y;
+					
+					uv_other[0] = w[0]*uvCo1[0] + w[1]*uvCo2[0] + w[2]*uvCo3[0];
+					uv_other[1] = w[0]*uvCo1[1] + w[1]*uvCo2[1] + w[2]*uvCo3[1];
+					
+					/* use */
+					x = (float)fmod(uv_other[0], 1.0);
+					y = (float)fmod(uv_other[1], 1.0);
+					
+					if (x < 0.0) x += 1.0;
+					if (y < 0.0) y += 1.0;
+					
+					x = x * ibuf_other->x - 0.5;
+					y = y * ibuf_other->y - 0.5;
+					
+					bicubic_interpolation_px(ibuf_other, x, y, NULL, ((ProjectPixelClone *)projPixel)->clonepx);
+				} else {
+					((ProjectPixelClone *)projPixel)->clonepx[3] = 0;
+				}
+				
 			} else {
-				if (!project_paint_PickColor(ps, co, NULL, ((ProjectPixelClone *)projPixel)->clonepx, 1)) {
-					((ProjectPixelClone *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+				float co[2];
+				
+				/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
+				/* TODO - possibly only run this for directly ativated buckets when cloning */
+				Vec2Subf(co, projPixel->projCo2D, ps->clone_offset);
+				
+				/* no need to initialize the bucket, we're only checking buckets faces and for this
+				 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
+				if (ibuf->rect_float) {
+					if (!project_paint_PickColor(ps, co, ((ProjectPixelCloneFloat *)projPixel)->clonepx, NULL, 1)) {
+						((ProjectPixelCloneFloat *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+					}
+				} else {
+					if (!project_paint_PickColor(ps, co, NULL, ((ProjectPixelClone *)projPixel)->clonepx, 1)) {
+						((ProjectPixelClone *)projPixel)->clonepx[3] = 0; /* zero alpha - ignore */
+					}
 				}
 			}
 		}
@@ -1544,6 +1588,8 @@ static void project_paint_face_init(ProjectPaintState *ps, int thread_index, int
 	
 	float *vCo[4]; /* vertex screenspace coords */
 	
+	float w[3];
+	
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4];
 	int i;
@@ -1632,12 +1678,12 @@ static void project_paint_face_init(ProjectPaintState *ps, int thread_index, int
 							IsectPT2Df(uv, uv1co, uv2co, uv3co) ) {
 						
 						if (ps->is_ortho) {
-							screen_px_from_ortho(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo);
+							screen_px_from_ortho(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
 						} else {
-							screen_px_from_persp(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo);
+							screen_px_from_persp(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
 						}
 						
-						project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo);
+						project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo, i, w);
 						
 						has_x_isect = has_isect = 1;
 					} else if (has_x_isect) {
@@ -1692,6 +1738,7 @@ static void project_paint_face_init(ProjectPaintState *ps, int thread_index, int
 			float bucket_clip_edges[2][2]; /* store the screenspace coords of the face, clipped by the bucket's screen aligned rectangle */
 			float edge_verts_inset_clip[2][3];
 			int fidx1, fidx2; /* face edge pairs - loop throuh these ((0,1), (1,2), (2,3), (3,0)) or ((0,1), (1,2), (2,0)) for a tri */
+			int side;
 			
 			float seam_subsection[4][2];
 			float fac1, fac2, ftot;
@@ -1730,6 +1777,9 @@ static void project_paint_face_init(ProjectPaintState *ps, int thread_index, int
 					ftot = Vec2Lenf(vCoSS[fidx1], vCoSS[fidx2]); /* screenspace edge length */
 					
 					if (ftot > 0.0) { /* avoid div by zero */
+						
+						if (fidx1==2 || fidx2==2)	side = 1;
+						else						side = 0;
 						
 						fac1 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[0]) / ftot;
 						fac2 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[1]) / ftot;
@@ -1792,7 +1842,18 @@ static void project_paint_face_init(ProjectPaintState *ps, int thread_index, int
 											pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 										
-										project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo);
+										if (ps->dm_mtface_clone) {
+											/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
+											if (side) {
+												BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
+											} else {
+												BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+											}
+											
+										}
+									
+										
+										project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo, side, w); /* TODO - side */
 									} else if (has_x_isect) {
 										/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
 										break;
@@ -2075,6 +2136,17 @@ static void project_paint_begin( ProjectPaintState *ps, short mval[2])
 	
 	ps->dm_totvert = ps->dm->getNumVerts( ps->dm );
 	ps->dm_totface = ps->dm->getNumFaces( ps->dm );
+	
+	/* use clone mtface? */
+	
+	if (		ps->tool != PAINT_TOOL_CLONE ||
+				ps->clone_layer==-1 ||
+				ps->clone_layer >= CustomData_number_of_layers(&ps->dm->faceData, CD_MTFACE) 
+	) {
+		ps->dm_mtface_clone = NULL;
+	} else {
+		ps->dm_mtface_clone = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, ps->clone_layer);
+	}
 	
 	ps->viewDir[0] = 0.0;
 	ps->viewDir[1] = 0.0;
@@ -3695,6 +3767,12 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		/* setup projection painting data */
 		ps.do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 		ps.do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
+		if (settings->imapaint.flag & IMAGEPAINT_PROJECT_CLONE_LAYER) {
+			ps.clone_layer = settings->imapaint.clone_layer;
+		} else {
+			ps.clone_layer = -1;
+		}
+		
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 		if (settings->imapaint.flag & IMAGEPAINT_PROJECT_IGNORE_SEAMS) {
 			ps.seam_bleed_px = 0.0;
