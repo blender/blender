@@ -492,6 +492,7 @@ static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	}
 }
 
+/* adds no space data */
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
 {
 	ScrArea *sa= MEM_callocN(sizeof(ScrArea), "addscrarea");
@@ -520,14 +521,18 @@ static void screen_delarea(bScreen *sc, ScrArea *sa)
  */
 int screen_join_areas(bScreen *scr, ScrArea *sa1, ScrArea *sa2);
 
-static bScreen *addscreen_area(wmWindow *win, char *name, short headertype, short spacetype)
+/* empty screen, with 1 dummy area without spacedata */
+/* uses window size */
+static bScreen *screen_add(wmWindow *win, char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
-	
 	sc->scene= G.scene;
+	sc->do_refresh= 1;
+	
+	win->screen= sc;
 	
 	sv1= screen_addvert(sc, 0, 0);
 	sv2= screen_addvert(sc, 0, win->sizey-1);
@@ -539,14 +544,10 @@ static bScreen *addscreen_area(wmWindow *win, char *name, short headertype, shor
 	screen_addedge(sc, sv3, sv4);
 	screen_addedge(sc, sv4, sv1);
 	
-	screen_addarea(sc, sv1, sv2, sv3, sv4, headertype, spacetype);
+	/* dummy type, no spacedata */
+	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_INFO);
 		
 	return sc;
-}
-
-static bScreen *addscreen(wmWindow *win, char *name) 
-{
-	return addscreen_area(win, name, HEADERDOWN, SPACE_INFO);
 }
 
 static void screen_copy(bScreen *to, bScreen *from)
@@ -597,33 +598,52 @@ static void screen_copy(bScreen *to, bScreen *from)
 
 }
 
-bScreen *ED_screen_riparea(struct wmWindow *win, bScreen *sc, struct ScrArea *sa)
+/* *********** Rip area operator ****************** */
+
+
+/* operator callback */
+/* (ton) removed attempt to merge ripped area with another, don't think this is desired functionality.
+		 conventions: 'atomic' and 'dont think for user' :) */
+static int screen_area_rip_op(bContext *C, wmOperator *op)
 {
-	bScreen *newsc=NULL;
-	ScrArea *newa;
-	ScrArea *tsa;
-
-	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
+	wmWindow *win;
+	bScreen *newsc;
+	rcti rect;
 	
-	/* make new screen: */
-	newsc= addscreen_area(win, sc->id.name+2, sa->headertype, sa->spacetype);
-
-	/* new area is first (and only area) added to new win */
-	newa = (ScrArea *)newsc->areabase.first;
-	area_copy_data(newa, sa, 0);
-
-	/*remove the original area if possible*/
-	for(tsa= sc->areabase.first; tsa; tsa= tsa->next) {
-		if (screen_join_areas(sc,tsa,sa)) 
-			break;
-	}
-
-	removedouble_scredges(sc);
-	removenotused_scredges(sc);
-	removenotused_scrverts(sc);
-
-	return newsc;
+	/*  poll() checks area context, but we don't accept full-area windows */
+	if(C->screen->full != SCREENNORMAL) 
+		return OPERATOR_CANCELLED;
+	
+	/* adds window to WM */
+	rect= C->area->totrct;
+	BLI_translate_rcti(&rect, C->window->posx, C->window->posy);
+	win= WM_window_open(C, &rect);
+	
+	/* allocs new screen and adds to newly created window, using window size */
+	newsc= screen_add(win, C->screen->id.name+2);
+	
+	/* copy area to new screen */
+	area_copy_data((ScrArea *)newsc->areabase.first, C->area, 0);
+	
+	/* screen, areas init */
+	WM_event_add_notifier(C->wm, win, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	
+	return OPERATOR_FINISHED;
 }
+
+
+
+void ED_SCR_OT_area_rip(wmOperatorType *ot)
+{
+	ot->name= "Rip Area into New Window";
+	ot->idname= "ED_SCR_OT_area_rip";
+	
+	ot->invoke= NULL; //WM_operator_confirm;
+	ot->exec= screen_area_rip_op;
+	ot->poll= ED_operator_areaactive;
+}
+
+/* ********************************************* */
 
 bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 {
@@ -631,8 +651,8 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	
 	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
 	
-	/* make new screen: */
-	newsc= addscreen(win, sc->id.name+2);
+	/* make new empty screen: */
+	newsc= screen_add(win, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
 	

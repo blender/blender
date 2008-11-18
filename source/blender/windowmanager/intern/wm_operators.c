@@ -98,16 +98,6 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
-static void WM_OT_window_rip(wmOperatorType *ot)
-{
-	ot->name= "Rip Area into New Window";
-	ot->idname= "WM_OT_window_rip";
-	
-	ot->invoke= wm_window_rip_op; //WM_operator_confirm;
-	ot->exec= NULL;
-	ot->poll= WM_operator_winactive;
-}
-
 static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
@@ -266,7 +256,6 @@ void wm_operatortype_free(void)
 void wm_operatortype_init(void)
 {
 	WM_operatortype_append(WM_OT_window_duplicate);
-	WM_operatortype_append(WM_OT_window_rip);
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);

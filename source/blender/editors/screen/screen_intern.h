@@ -43,6 +43,7 @@ void ED_SCR_OT_move_areas(wmOperatorType *ot);
 void ED_SCR_OT_split_area(wmOperatorType *ot);
 void ED_SCR_OT_join_areas(wmOperatorType *ot);
 void ED_SCR_OT_actionzone(wmOperatorType *ot);
+void ED_SCR_OT_area_rip(wmOperatorType *ot);
 
 #endif /* ED_SCREEN_INTERN_H */
 

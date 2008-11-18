@@ -35,6 +35,7 @@ struct bContext;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
+struct rcti;
 
 			/* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
@@ -42,6 +43,8 @@ void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
+
+wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
 
 			/* files */
 int			WM_read_homefile	(struct bContext *C, int from_memory);

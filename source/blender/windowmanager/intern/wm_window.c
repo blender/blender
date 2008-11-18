@@ -21,7 +21,7 @@
  * on ghostwinlay.c (C) 2001-2002 by NaN Holding BV
  * All rights reserved.
  *
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, 2008
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -125,93 +125,32 @@ static int find_free_winid(wmWindowManager *wm)
 }
 
 /* dont change context itself */
-wmWindow *wm_window_new(bContext *C, bScreen *screen)
+wmWindow *wm_window_new(bContext *C)
 {
 	wmWindow *win= MEM_callocN(sizeof(wmWindow), "window");
 	
 	BLI_addtail(&C->wm->windows, win);
 	win->winid= find_free_winid(C->wm);
 
-	win->screen= screen;
 	return win;
 }
+
 
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 {
-	wmWindow *win= wm_window_new(C, winorig->screen);
+	wmWindow *win= wm_window_new(C);
 	
 	win->posx= winorig->posx+10;
 	win->posy= winorig->posy;
 	win->sizex= winorig->sizex;
 	win->sizey= winorig->sizey;
 	
-	win->screen= ED_screen_duplicate(win, win->screen);
+	win->screen= ED_screen_duplicate(win, winorig->screen);
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 	
 	return win;
-}
-
-/* operator callback */
-int wm_window_duplicate_op(bContext *C, wmOperator *op)
-{
-	wm_window_copy(C, C->window);
-	wm_check(C);
-	
-	return OPERATOR_FINISHED;
-}
-
-wmWindow *wm_window_rip(bContext *C, wmWindow *winorig)
-{
-	wmWindow *win= wm_window_new(C, winorig->screen);
-	
-	win->posx= winorig->posx+10;
-	win->posy= winorig->posy;
-	win->sizex= C->area->winx;
-	win->sizey= C->area->winy;
-	
-	win->screen= ED_screen_riparea(win, win->screen, C->area);
-	C->area = NULL; /* is removed */
-	win->screen->do_refresh= 1;
-	win->screen->do_draw= 1;
-	
-	return win;
-}
-/* operator callback */
-int wm_window_rip_op(bContext *C, wmOperator *op, wmEvent *event)
-{
-	/* need to make sure area is set in the current context */
-	if (!C->area) {
-		ScrArea *sa= C->window->screen->areabase.first;
-		for(; sa; sa= sa->next) {
-			if(BLI_in_rcti(&sa->totrct, event->x, event->y)) {
-				C->area = sa;
-				break;
-			}
-		}
-		if(C->area==NULL)
-			return OPERATOR_CANCELLED;
-	}
-
-	wm_window_rip(C, C->window);
-	wm_check(C);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	return OPERATOR_FINISHED;
-}
-
-
-/* fullscreen operator callback */
-int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
-{
-	GHOST_TWindowState state = GHOST_GetWindowState(C->window->ghostwin);
-	if(state!=GHOST_kWindowStateFullScreen)
-		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateFullScreen);
-	else
-		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateNormal);
-
-	return OPERATOR_FINISHED;
-	
 }
 
 /* this is event from ghost */
@@ -219,24 +158,13 @@ static void wm_window_close(bContext *C, wmWindow *win)
 {
 	BLI_remlink(&C->wm->windows, win);
 	wm_window_free(C, win);
-
+	
 	if(C->wm->windows.first==NULL)
 		WM_exit(C);
 }
-	
-/* exit blender */
-int wm_exit_blender_op(bContext *C, wmOperator *op)
-{
-	wmWindow *win= C->wm->windows.first;
-	while(win) {
-		wm_window_close(C, win);
-		win= win->next;
-	}
 
-	return OPERATOR_FINISHED;
-}
-
-static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
+/* belongs to below */
+static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
 	GHOST_TWindowState inital_state;
@@ -245,10 +173,10 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 	wm_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h - win->posy - win->sizey);
 	
-//		inital_state = GHOST_kWindowStateFullScreen;
-//		inital_state = GHOST_kWindowStateMaximized;
-		inital_state = GHOST_kWindowStateNormal;
-
+	//		inital_state = GHOST_kWindowStateFullScreen;
+	//		inital_state = GHOST_kWindowStateMaximized;
+	inital_state = GHOST_kWindowStateNormal;
+	
 #ifdef __APPLE__
 	{
 		extern int macPrefState; /* creator.c */
@@ -263,7 +191,7 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 								 0 /* no stereo */);
 	
 	if (ghostwin) {
-
+		
 		win->ghostwin= ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win);	/* pointer back */
 		
@@ -278,13 +206,14 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		wm_window_swap_buffers(win);
-
+		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
 	}
 }
 
 /* for wmWindows without ghostwin, open these and clear */
+/* window size is read from window, if 0 it uses prefsize */
 void wm_window_add_ghostwindows(wmWindowManager *wm)
 {
 	wmWindow *win;
@@ -296,7 +225,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 #ifdef __APPLE__
 		{
 			extern void wm_set_apple_prefsize(int, int);	/* wm_apple.c */
-		
+			
 			wm_set_apple_prefsize(prefsizx, prefsizy);
 		}
 #else
@@ -315,10 +244,67 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizey= prefsizy;
 				win->windowstate= 0;
 			}
-			wm_window_open(wm, "Blender", win);
+			wm_window_add_ghostwindow(wm, "Blender", win);
 		}
 	}
 }
+
+/* new window, no screen yet, but we open ghostwindow for it */
+/* also gets the window level handlers */
+/* area-rip calls this */
+wmWindow *WM_window_open(bContext *C, rcti *rect)
+{
+	wmWindow *win= wm_window_new(C);
+	
+	win->posx= rect->xmin;
+	win->posy= rect->ymin;
+	win->sizex= rect->xmax - rect->xmin;
+	win->sizey= rect->ymax - rect->ymin;
+	
+	wm_window_add_ghostwindow(C->wm, "Blender", win);
+	
+	return win;
+}
+
+
+/* ****************** Operators ****************** */
+
+/* operator callback */
+int wm_window_duplicate_op(bContext *C, wmOperator *op)
+{
+	wm_window_copy(C, C->window);
+	wm_check(C);
+	
+	return OPERATOR_FINISHED;
+}
+
+
+/* fullscreen operator callback */
+int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
+{
+	GHOST_TWindowState state = GHOST_GetWindowState(C->window->ghostwin);
+	if(state!=GHOST_kWindowStateFullScreen)
+		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateFullScreen);
+	else
+		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateNormal);
+
+	return OPERATOR_FINISHED;
+	
+}
+
+	
+/* exit blender */
+int wm_exit_blender_op(bContext *C, wmOperator *op)
+{
+	wmWindow *win= C->wm->windows.first;
+	while(win) {
+		wm_window_close(C, win);
+		win= win->next;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
 
 /* ************ events *************** */
 
