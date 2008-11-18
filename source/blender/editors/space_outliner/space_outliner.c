@@ -186,6 +186,7 @@ static void rna_label(CellRNA *cell, rcti *rct, uiBlock *block)
 	PropertyType type;
 	PropertyRNA *prop;
 	char *vectoritem[4]= {"x", "y", "z", "w"};
+	char *quatitem[4]= {"w", "x", "y", "z"};
 	char *coloritem[4]= {"r", "g", "b", "a"};
 	char item[32];
 	int arraylength;
@@ -199,7 +200,9 @@ static void rna_label(CellRNA *cell, rcti *rct, uiBlock *block)
 		uiDefBut(block, LABEL, 0, (char*)RNA_property_ui_name(prop, &cell->ptr), rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin, 0, 0, 0, 0, 0, (char*)RNA_property_ui_description(prop, &cell->ptr));
 	}
 	else if (type != PROP_COLLECTION) {
-		if(arraylength <= 4 && (subtype == PROP_VECTOR || subtype == PROP_ROTATION))
+		if(arraylength == 4 && subtype == PROP_ROTATION)
+			sprintf(item, "    %s", quatitem[cell->index]);
+		else if(arraylength <= 4 && (subtype == PROP_VECTOR || subtype == PROP_ROTATION))
 			sprintf(item, "    %s", vectoritem[cell->index]);
 		else if(arraylength <= 4 && subtype == PROP_COLOR)
 			sprintf(item, "    %s", coloritem[cell->index]);

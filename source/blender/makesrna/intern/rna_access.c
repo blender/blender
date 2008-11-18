@@ -478,10 +478,8 @@ void RNA_property_pointer_get(PropertyRNA *prop, PointerRNA *ptr, PointerRNA *r_
 
 	r_ptr->data= pprop->get(ptr);
 
-	if(r_ptr->data) {
-		r_ptr->type= RNA_property_pointer_type(prop, ptr);
+	if(r_ptr->data && (r_ptr->type= RNA_property_pointer_type(prop, ptr)))
 		rna_pointer_inherit_id(ptr, r_ptr);
-	}
 	else
 		memset(r_ptr, 0, sizeof(*r_ptr));
 }
@@ -532,10 +530,8 @@ static void rna_property_collection_get(PropertyRNA *prop, CollectionPropertyIte
 
 	r_ptr->data= cprop->get(iter);
 
-	if(r_ptr->data) {
-		r_ptr->type= rna_property_collection_type(prop, iter);
+	if(r_ptr->data && (r_ptr->type= rna_property_collection_type(prop, iter)))
 		rna_pointer_inherit_id(&iter->parent, r_ptr);
-	}
 	else
 		memset(r_ptr, 0, sizeof(*r_ptr));
 }

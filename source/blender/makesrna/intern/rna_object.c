@@ -34,7 +34,6 @@
 
 #ifdef RNA_RUNTIME
 
-#if 0
 static StructRNA *rna_Object_data_type(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->data;
@@ -44,6 +43,8 @@ static StructRNA *rna_Object_data_type(PointerRNA *ptr)
 			return NULL;
 		case OB_MESH:
 			return &RNA_Mesh;
+		case OB_LAMP:
+			return &RNA_Lamp;
 #if 0
 		case OB_CURVE:
 			return &RNA_Curve;
@@ -66,7 +67,6 @@ static StructRNA *rna_Object_data_type(PointerRNA *ptr)
 			return NULL;
 	}
 }
-#endif
 
 #else
 
@@ -79,9 +79,9 @@ void RNA_def_object(BlenderRNA *brna)
 
 	RNA_def_ID(srna);
 
-	/*prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_data_type", NULL);
-	RNA_def_property_ui_text(prop, "Data", "Object data."); */
+	RNA_def_property_ui_text(prop, "Data", "Object data.");
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
@@ -90,6 +90,10 @@ void RNA_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
+
+	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_ui_text(prop, "Location", "Location of the object.");
+
 }
 
 #endif

@@ -46,6 +46,12 @@ static void rna_Main_object_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->object);
 }
 
+static void rna_Main_lamp_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain= (Main*)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->lamp);
+}
+
 #if 0
 static void rna_Main_library_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -97,11 +103,7 @@ static void rna_Main_latt_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 	rna_iterator_listbase_begin(iter, &bmain->latt);
 }
 
-static void rna_Main_lamp_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Main *bmain= (Main*)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->lamp);
-}
+
 
 static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -210,6 +212,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, 
+		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
 		{NULL, NULL, NULL, NULL, NULL},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
@@ -218,7 +221,6 @@ void RNA_def_main(BlenderRNA *brna)
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
 		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks."},
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks."},
-		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
 		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
 		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks."},

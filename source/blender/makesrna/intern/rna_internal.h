@@ -88,6 +88,7 @@ extern StructRNA RNA_Main;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_Lamp;
 extern StructRNA RNA_Struct;
 
 void RNA_def_ID(struct StructRNA *srna);
@@ -98,6 +99,7 @@ void RNA_def_mesh(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
+void RNA_def_lamp(struct BlenderRNA *brna);
 
 /* Internal Functions */
 

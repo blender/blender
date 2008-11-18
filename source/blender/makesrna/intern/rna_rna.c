@@ -424,14 +424,14 @@ static void rna_def_property(StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
-	RNA_def_property_ui_text(prop, "Sub Type", "Sub type indicating the interpretation of the property.");
+	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
 {
 	PropertyRNA *prop;
 
-	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL);
 	RNA_def_property_ui_text(prop, "Array Length", "Maximum length of the array, 0 means unlimited.");
@@ -463,14 +463,14 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_max_get", NULL);
 	RNA_def_property_ui_text(prop, "Soft Maximum", "Maximum value used by buttons.");
 
-	prop= RNA_def_property(srna, "step", type, PROP_NONE);
+	prop= RNA_def_property(srna, "step", type, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_step_get", NULL);
 	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_step_get", NULL);
 	RNA_def_property_ui_text(prop, "Step", "Step size used by number buttons, for floats 1/100th of the step size.");
 
 	if(type == PROP_FLOAT) {
-		prop= RNA_def_property(srna, "precision", PROP_INT, PROP_NONE);
+		prop= RNA_def_property(srna, "precision", PROP_INT, PROP_UNSIGNED);
 		RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 		RNA_def_property_int_funcs(prop, "rna_FloatProperty_precision_get", NULL);
 		RNA_def_property_ui_text(prop, "Precision", "Number of digits after the dot used by buttons.");
@@ -500,7 +500,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_identifier_get", "rna_EnumPropertyItem_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 
-	prop= RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_EnumPropertyItem_value_get", NULL);
 	RNA_def_property_ui_text(prop, "Value", "Value of the item.");
@@ -569,7 +569,7 @@ void RNA_def_rna(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "StringProperty", "String Definition");
 	rna_def_property(srna);
 
-	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL);
 	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited.");
@@ -603,7 +603,7 @@ void rna_def_builtin_properties(StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Type", "RNA type definition.");
+	RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 }
 
 #endif
