@@ -60,6 +60,24 @@ typedef struct BArc {
 	int symmetry_flag;
 } BArc;
 
+struct BArcIterator;
+
+typedef float* (*PeekPointFct)(struct BArcIterator* iter, int n);
+typedef float* (*NextPointFct)(struct BArcIterator* iter);
+typedef float* (*CurrentPointFct)(struct BArcIterator* iter);
+typedef float* (*PreviousPointFct)(struct BArcIterator* iter);
+typedef int	   (*StoppedFct)(struct BArcIterator* iter);
+
+typedef struct BArcIterator {
+	PeekPointFct		peek;
+	NextPointFct		next;
+	CurrentPointFct		current;
+	PreviousPointFct	previous;
+	StoppedFct			stopped;
+	
+	int length;
+} BArcIterator;
+
 /* Helper structure for radial symmetry */
 typedef struct RadialArc
 {
