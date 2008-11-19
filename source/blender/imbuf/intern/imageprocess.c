@@ -80,6 +80,17 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 		}
 	}
 }
+static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char *outI, float *outF, int x, int y)
+
+{
+	int offset = ibuf->x * y * 4 + 4*x;
+	
+	if (ibuf->rect)
+		outI= (unsigned char *)ibuf->rect + offset;
+	
+	if (ibuf->rect_float)
+		outF= (float *)ibuf->rect_float + offset;
+}
 
 /**************************************************************************
 *                            INTERPOLATIONS 
@@ -110,24 +121,18 @@ static float P(float k){
 }
 #endif
 
-
-void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
+void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
 {
 	int i,j,n,m,x1,y1;
-	unsigned char *dataI,*outI;
-	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF,*outF;
-	int do_rect, do_float;
+	unsigned char *dataI;
+	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF;
 
-	if (in == NULL) return;
-	if (in->rect == NULL && in->rect_float == NULL) return;
+	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
 
-	do_rect= (out->rect != NULL);
-	do_float= (out->rect_float != NULL);
-
-	i= (int)floor(x);
-	j= (int)floor(y);
-	a= x - i;
-	b= y - j;
+	i= (int)floor(u);
+	j= (int)floor(v);
+	a= u - i;
+	b= v - j;
 
 	outR = outG = outB = outA = 0.0f;
 	
@@ -151,14 +156,14 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 					/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
 					w = wx * wy[m+1];
 					
-					if (do_float) {
+					if (outF) {
 						dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
 						outR+= dataF[0] * w;
 						outG+= dataF[1] * w;
 						outB+= dataF[2] * w;
 						outA+= dataF[3] * w;
 					}
-					if (do_rect) {
+					if (outI) {
 						dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
 						outR+= dataI[0] * w;
 						outG+= dataI[1] * w;
@@ -198,15 +203,13 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 	}
 #endif
 	
-	if (do_rect) {
-		outI= (unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
+	if (outI) {
 		outI[0]= (int)outR;
 		outI[1]= (int)outG;
 		outI[2]= (int)outB;
 		outI[3]= (int)outA;
 	}
-	if (do_float) {
-		outF= (float *)out->rect_float + out->x * yout * 4 + 4*xout;
+	if (outF) {
 		outF[0]= outR;
 		outF[1]= outG;
 		outF[2]= outB;
@@ -214,23 +217,33 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 	}
 }
 
+
+void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+{
+	
+	unsigned char *outI = NULL;
+	float *outF = NULL;
+	
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	
+	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	
+	bicubic_interpolation_color(in, outI, outF, u, v);
+}
+
 /* function assumes out to be zero'ed, only does RGBA */
 /* BILINEAR INTERPOLATION */
-void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
 {
-	float *row1, *row2, *row3, *row4, a, b, *outF;
-	unsigned char *row1I, *row2I, *row3I, *row4I, *outI;
+	float *row1, *row2, *row3, *row4, a, b;
+	unsigned char *row1I, *row2I, *row3I, *row4I;
 	float a_b, ma_b, a_mb, ma_mb;
 	float empty[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 	unsigned char emptyI[4]= {0, 0, 0, 0};
 	int y1, y2, x1, x2;
-	int do_rect, do_float;
-
-	if (in==NULL) return;
-	if (in->rect==NULL && in->rect_float==NULL) return;
-
-	do_rect= (out->rect != NULL);
-	do_float= (out->rect_float != NULL);
+	
+	
+	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
 
 	x1= (int)floor(u);
 	x2= (int)ceil(u);
@@ -240,16 +253,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 	// sample area entirely outside image? 
 	if (x2<0 || x1>in->x-1 || y2<0 || y1>in->y-1) return;
 
-	if (do_rect)
-		outI=(unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
-	else
-		outI= NULL;
-	if (do_float)
-		outF=(float *)out->rect_float + out->x * yout * 4 + 4*xout;
-	else	
-		outF= NULL;
-
-	if (do_float) {
+	if (outF) {
 		// sample including outside of edges of image 
 		if (x1<0 || y1<0) row1= empty;
 		else row1= (float *)in->rect_float + in->x * y1 * 4 + 4*x1;
@@ -272,7 +276,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 		outF[2]= ma_mb*row1[2] + a_mb*row3[2] + ma_b*row2[2]+ a_b*row4[2];
 		outF[3]= ma_mb*row1[3] + a_mb*row3[3] + ma_b*row2[3]+ a_b*row4[3];
 	}
-	if (do_rect) {
+	if (outI) {
 		// sample including outside of edges of image 
 		if (x1<0 || y1<0) row1I= emptyI;
 		else row1I= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x1;
@@ -297,45 +301,44 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 	}
 }
 
+void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
+{
+	
+	unsigned char *outI = NULL;
+	float *outF = NULL;
+	
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	
+	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	
+	bilinear_interpolation_color(in, outI, outF, u, v);
+}
+
 /* function assumes out to be zero'ed, only does RGBA */
 /* NEAREST INTERPOLATION */
-void neareast_interpolation(ImBuf *in, ImBuf *out, float u, float v,int xout, int yout)
+void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
 {
-	float *outF,*dataF;
-	unsigned char *dataI,*outI;
+	float *dataF;
+	unsigned char *dataI;
 	int y1, x1;
-	int do_rect, do_float;
 
-	if (in==NULL) return;
-	if (in->rect==NULL && in->rect_float==NULL) return;
-
-	do_rect= (out->rect != NULL);
-	do_float= (out->rect_float != NULL);
-
+	/* ImBuf in must have a valid rect or rect_float, assume this is alredy checked */
+	
 	x1= (int)(u);
 	y1= (int)(v);
-
-	if (do_rect)
-		outI=(unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
-	else
-		outI= NULL;
-	if (do_float)
-		outF=(float *)out->rect_float + out->x * yout * 4 + 4*xout;
-	else
-		outF= NULL;
 
 	// sample area entirely outside image? 
 	if (x1<0 || x1>in->x-1 || y1<0 || y1>in->y-1) return;
 	
 	// sample including outside of edges of image 
 	if (x1<0 || y1<0) {
-		if (do_rect) {
+		if (outI) {
 			outI[0]= 0;
 			outI[1]= 0;
 			outI[2]= 0;
 			outI[3]= 0;
 		}
-		if (do_float) {
+		if (outF) {
 			outF[0]= 0.0f;
 			outF[1]= 0.0f;
 			outF[2]= 0.0f;
@@ -343,18 +346,31 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float u, float v,int xout, in
 		}
 	} else {
 		dataI= (unsigned char *)in->rect + in->x * y1 * 4 + 4*x1;
-		if (do_rect) {
+		if (outI) {
 			outI[0]= dataI[0];
 			outI[1]= dataI[1];
 			outI[2]= dataI[2];
 			outI[3]= dataI[3];
 		}
 		dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
-		if (do_float) {
+		if (outF) {
 			outF[0]= dataF[0];
 			outF[1]= dataF[1];
 			outF[2]= dataF[2];
 			outF[3]= dataF[3];
 		}
 	}	
+}
+
+void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
+{
+	
+	unsigned char *outI = NULL;
+	float *outF = NULL;
+
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	
+	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	
+	neareast_interpolation_color(in, outI, outF, x, y);
 }
