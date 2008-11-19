@@ -139,23 +139,23 @@ int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent
  *	len= 4; <---- set the size!!
  *	OP_get_int_array (op, "vector", vec, &len);
  */
-void OP_set_int(wmOperator *op, char *name, int value);
-void OP_set_float(wmOperator *op, char *name, float value);
-void OP_set_string(wmOperator *op, char *name, char *str);
-void OP_set_int_array(wmOperator *op, char *name, int *array, short len);
-void OP_set_float_array(wmOperator *op, char *name, float *array, short len);
+void	OP_set_int		(wmOperator *op, char *name, int value);
+void	OP_set_float	(wmOperator *op, char *name, float value);
+void	OP_set_string	(wmOperator *op, char *name, char *str);
+void	OP_set_int_array(wmOperator *op, char *name, int *array, short len);
+void	OP_set_float_array(wmOperator *op, char *name, float *array, short len);
 
-int OP_get_int(wmOperator *op, char *name, int *value);
-int OP_get_float(wmOperator *op, char *name, float *value);
-char *OP_get_string(wmOperator *op, char *name);
-int OP_get_int_array(wmOperator *op, char *name, int *array, short *len);
-int OP_get_float_array(wmOperator *op, char *name, float *array, short *len);
+int		OP_get_int		(wmOperator *op, char *name, int *value);
+int		OP_get_float	(wmOperator *op, char *name, float *value);
+char	*OP_get_string	(wmOperator *op, char *name);
+int		OP_get_int_array(wmOperator *op, char *name, int *array, short *len);
+int		OP_get_float_array(wmOperator *op, char *name, float *array, short *len);
 
-void OP_verify_int(wmOperator *op, char *name, int value, int *result);
-void OP_verify_float(wmOperator *op, char *name, float value, int *result);
-char *OP_verify_string(wmOperator *op, char *name, char *str);
-void OP_verify_int_array(wmOperator *op, char *name, int *array, short len, int *resultarray, short *resultlen);
-void OP_verify_float_array(wmOperator *op, char *name, float *array, short len, float *resultarray, short *resultlen);
+void	OP_verify_int	(wmOperator *op, char *name, int value, int *result);
+void	OP_verify_float	(wmOperator *op, char *name, float value, int *result);
+char	*OP_verify_string(wmOperator *op, char *name, char *str);
+void	OP_verify_int_array(wmOperator *op, char *name, int *array, short len, int *resultarray, short *resultlen);
+void	OP_verify_float_array(wmOperator *op, char *name, float *array, short len, float *resultarray, short *resultlen);
 
 /*
  * Need call this function in the "exit callback"

@@ -45,6 +45,7 @@ extern void wm_report_free(wmReport *report);
 /* wm_operator.c, for init/exit */
 void wm_operatortype_free(void);
 void wm_operatortype_init(void);
+void wm_window_keymap(wmWindowManager *wm);
 
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);

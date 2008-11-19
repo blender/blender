@@ -29,23 +29,22 @@
 #define ED_SCREEN_INTERN_H
 
 /* internal exports only */
-struct wmOperator;
-struct wmEvent;
+struct wmWindow;
 
 /* area.c */
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
 /* screen_edit.c */
-int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event);
-int area_cursor_test(bContext *C, wmOperator *op, wmEvent *event);
+bScreen *screen_add(struct wmWindow *win, char *name);
+ScrEdge *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
+ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac);
+int screen_area_join(bScreen* scr, ScrArea *sa1, ScrArea *sa2);
+int area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb);
 
-void ED_SCR_OT_move_areas(wmOperatorType *ot);
-void ED_SCR_OT_split_area(wmOperatorType *ot);
-void ED_SCR_OT_join_areas(wmOperatorType *ot);
-void ED_SCR_OT_actionzone(wmOperatorType *ot);
-void ED_SCR_OT_area_rip(wmOperatorType *ot);
-
-void ED_SCR_OT_border_select(wmOperatorType *ot);
+void removenotused_scrverts(bScreen *sc);
+void removedouble_scrverts(bScreen *sc);
+void removedouble_scredges(bScreen *sc);
+void removenotused_scredges(bScreen *sc);
 
 #endif /* ED_SCREEN_INTERN_H */
 
