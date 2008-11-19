@@ -181,7 +181,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid'
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
 PLATFORM_LINKFLAGS = '''
                        /SUBSYSTEM:CONSOLE
@@ -196,6 +196,11 @@ PLATFORM_LINKFLAGS = '''
                        /NODEFAULTLIB:"libcp.lib"
                        /LARGEADDRESSAWARE
                    '''
+
+# # Todo
+# BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+# BF_PROFILE_LINKFLAGS = ['-pg']
+# BF_PROFILE = False
 
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'

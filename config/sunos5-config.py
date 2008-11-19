@@ -165,11 +165,12 @@ CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'c m dl pthread stdc++'
+LLIBS = ['c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
