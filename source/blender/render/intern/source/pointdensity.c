@@ -418,14 +418,14 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		co[1] = texvec[1] + noise_fac * turb;
 		co[2] = texvec[2] + noise_fac * turb;
 		
-		/* reset and do a new BVH query with the perturbed coordinates */
+		/* reset and prepare for a new BVH query with the perturbed coordinates */
 		density = vec[0] = vec[1] = vec[2] = 0.0f;
-		num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
-		if (num > 0) {
-			age /= num;
-			VecMulf(vec, 1.0f/num);
-		}
-		
+	}
+
+	num = BLI_bvhtree_range_query(pd->point_tree, co, pd->radius, accum_density, &pdr);
+	if (num > 0) {
+		age /= num;
+		VecMulf(vec, 1.0f/num);
 	}
 	
 	texres->tin = density;
@@ -459,6 +459,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			VECCOPY(&texres->tr, vec);
 			texres->ta = 1.0f;
 			break;
+		case TEX_PD_COLOR_CONSTANT:
 		default:
 			texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
 			break;
