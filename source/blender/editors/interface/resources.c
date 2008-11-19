@@ -348,15 +348,15 @@ void ui_theme_init_userdef(void)
 
 	/* UI buttons (todo) */
 	SETCOL(btheme->tui.outline, 	0xA0,0xA0,0xA0, 255);
-	SETCOL(btheme->tui.neutral, 	0xA0,0xA0,0xA0, 255);
-	SETCOL(btheme->tui.action, 		0xAD,0xA0,0x93, 255);
-	SETCOL(btheme->tui.setting, 	0x8A,0x9E,0xA1, 255);
-	SETCOL(btheme->tui.setting1, 	0xA1,0xA1,0xAE, 255);
-	SETCOL(btheme->tui.setting2, 	0xA1,0x99,0xA7, 255);
-	SETCOL(btheme->tui.num,		 	0x90,0x90,0x90, 255);
-	SETCOL(btheme->tui.textfield,	0x90,0x90,0x90, 255);
-	SETCOL(btheme->tui.textfield_hi,0xc6,0x77,0x77, 255);
-	SETCOL(btheme->tui.popup,		0xA0,0xA0,0xA0, 255);
+	SETCOL(btheme->tui.neutral, 	180, 180, 180, 255);
+	SETCOL(btheme->tui.action, 		180, 180, 180, 255);
+	SETCOL(btheme->tui.setting, 	180, 180, 180, 255);
+	SETCOL(btheme->tui.setting1, 	180, 180, 180, 255);
+	SETCOL(btheme->tui.setting2, 	180, 180, 180, 255);
+	SETCOL(btheme->tui.num,		 	143, 143, 143, 255);
+	SETCOL(btheme->tui.textfield,	143, 142, 143, 255);
+	SETCOL(btheme->tui.textfield_hi,255, 151, 26,  255);
+	SETCOL(btheme->tui.popup,		174, 174, 174, 255);
 	
 	SETCOL(btheme->tui.text,		0,0,0, 255);
 	SETCOL(btheme->tui.text_hi, 	255, 255, 255, 255);
@@ -366,7 +366,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
 	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
 	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
-	btheme->tui.but_drawtype= TH_SHADED;
+	btheme->tui.but_drawtype= TH_ROUNDSHADED;
 	
 	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
 	

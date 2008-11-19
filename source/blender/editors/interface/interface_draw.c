@@ -134,6 +134,182 @@ void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, floa
 	glEnd();
 }
 
+static void round_box_shade_col(float *col1, float *col2, float fac)
+{
+	float col[3];
+
+	col[0]= (fac*col1[0] + (1.0-fac)*col2[0]);
+	col[1]= (fac*col1[1] + (1.0-fac)*col2[1]);
+	col[2]= (fac*col1[2] + (1.0-fac)*col2[2]);
+	
+	glColor3fv(col);
+}
+
+/* linear horizontal shade within button or in outline */
+void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown)
+{
+	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float div= maxy-miny;
+	float coltop[3], coldown[3], color[4];
+	int a;
+	
+	/* mult */
+	for(a=0; a<7; a++) {
+		vec[a][0]*= rad; vec[a][1]*= rad;
+	}
+	/* get current color, needs to be outside of glBegin/End */
+	glGetFloatv(GL_CURRENT_COLOR, color);
+
+	/* 'shade' defines strength of shading */	
+	coltop[0]= color[0]+shadetop; if(coltop[0]>1.0) coltop[0]= 1.0;
+	coltop[1]= color[1]+shadetop; if(coltop[1]>1.0) coltop[1]= 1.0;
+	coltop[2]= color[2]+shadetop; if(coltop[2]>1.0) coltop[2]= 1.0;
+	coldown[0]= color[0]+shadedown; if(coldown[0]<0.0) coldown[0]= 0.0;
+	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0) coldown[1]= 0.0;
+	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0) coldown[2]= 0.0;
+
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glShadeModel(GL_SMOOTH);
+		glBegin(mode);
+	}
+
+	/* start with corner right-bottom */
+	if(roundboxtype & 4) {
+		
+		round_box_shade_col(coltop, coldown, 0.0);
+		glVertex2f( maxx-rad, miny);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(coltop, coldown, vec[a][1]/div);
+			glVertex2f( maxx-rad+vec[a][0], miny+vec[a][1]);
+		}
+		
+		round_box_shade_col(coltop, coldown, rad/div);
+		glVertex2f( maxx, miny+rad);
+	}
+	else {
+		round_box_shade_col(coltop, coldown, 0.0);
+		glVertex2f( maxx, miny);
+	}
+	
+	/* corner right-top */
+	if(roundboxtype & 2) {
+		
+		round_box_shade_col(coltop, coldown, (div-rad)/div);
+		glVertex2f( maxx, maxy-rad);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(coltop, coldown, (div-rad+vec[a][1])/div);
+			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
+		}
+		round_box_shade_col(coltop, coldown, 1.0);
+		glVertex2f( maxx-rad, maxy);
+	}
+	else {
+		round_box_shade_col(coltop, coldown, 1.0);
+		glVertex2f( maxx, maxy);
+	}
+	
+	/* corner left-top */
+	if(roundboxtype & 1) {
+		
+		round_box_shade_col(coltop, coldown, 1.0);
+		glVertex2f( minx+rad, maxy);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(coltop, coldown, (div-vec[a][1])/div);
+			glVertex2f( minx+rad-vec[a][0], maxy-vec[a][1]);
+		}
+		
+		round_box_shade_col(coltop, coldown, (div-rad)/div);
+		glVertex2f( minx, maxy-rad);
+	}
+	else {
+		round_box_shade_col(coltop, coldown, 1.0);
+		glVertex2f( minx, maxy);
+	}
+	
+	/* corner left-bottom */
+	if(roundboxtype & 8) {
+		
+		round_box_shade_col(coltop, coldown, rad/div);
+		glVertex2f( minx, miny+rad);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(coltop, coldown, (rad-vec[a][1])/div);
+			glVertex2f( minx+vec[a][1], miny+rad-vec[a][0]);
+		}
+		
+		round_box_shade_col(coltop, coldown, 0.0);
+		glVertex2f( minx+rad, miny);
+	}
+	else {
+		round_box_shade_col(coltop, coldown, 0.0);
+		glVertex2f( minx, miny);
+	}
+	
+	glEnd();
+	glShadeModel(GL_FLAT);
+}
+
+/* plain fake antialiased unfilled round rectangle */
+void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
+{
+	float color[4];
+	float raddiff;
+	int i, passes=4;
+	
+	/* get the colour and divide up the alpha */
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	color[3]= 1/(float)passes;
+	glColor4fv(color);
+	
+	/* set the 'jitter amount' */
+	raddiff = (1/(float)passes) * asp;
+	
+	glEnable( GL_BLEND );
+	
+	/* draw lots of lines on top of each other */
+	for (i=passes; i>=(-passes); i--) {
+		gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad+(i*raddiff));
+	}
+	
+	glDisable( GL_BLEND );
+}
+
+
+void uiTriangleFakeAA(float x1, float y1, float x2, float y2, float x3, float y3)
+{
+	float color[4];
+	float jitter;
+	int i, passes=4;
+	
+	/* get the colour and divide up the alpha */
+	glGetFloatv(GL_CURRENT_COLOR, color);
+	color[3]= 1/(float)passes;
+	glColor4fv(color);
+	
+	/* set the 'jitter amount' */
+	jitter = 1/(float)passes;
+	
+	glEnable( GL_BLEND );
+	
+	/* draw lots of lines on top of each other */
+	for (i=passes; i>=(-passes); i--) {
+		glBegin(GL_TRIANGLES);
+		
+		/* 'point' first, then two base vertices */
+		glVertex2f(x1+(i*jitter), y1+(i*jitter));
+		glVertex2f(x2, y2+(i*jitter));
+		glVertex2f(x3, y3+(i*jitter));
+		glEnd();
+	}
+	
+	glDisable( GL_BLEND );
+}
+
+
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */
 
 void ui_rasterpos_safe(float x, float y, float aspect)
@@ -280,11 +456,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 /* Used for the subtle sunken effect around buttons.
  * One option is to hardcode to white, with alpha, however it causes a 
  * weird 'building up' efect, so it's commented out for now.
- */
- 
-/*
-#define MM_WHITE_OP	glColor4ub(255, 255, 255, 60)
-#define MM_WHITE_TR	glColor4ub(255, 255, 255, 0)
  */
 
 #define MM_WHITE_OP	UI_ThemeColorShadeAlpha(TH_BACK, 55, -100)
@@ -457,6 +628,58 @@ static void flat_button(float x1, float y1, float x2, float y2, float asp, int c
 	/* END OUTER OUTLINE */
 }
 
+/* shaded round button */
+static void round_button_shaded(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag, int rad)
+{
+	float shadefac;
+	
+	/* colour shading */
+	if (flag & UI_SELECT) {
+		shadefac = -0.05;
+		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -40);
+		else UI_ThemeColorShade(colorid, -30);	
+	} else {
+		shadefac = 0.05;
+		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, +30);
+		else UI_ThemeColorShade(colorid, +20);			
+	}
+	/* end colour shading */
+	
+	
+	/* the shaded base */
+	gl_round_box_shade(GL_POLYGON, x1, y1, x2, y2, rad, shadefac, -shadefac);
+	
+	/* outline */
+	UI_ThemeColorBlendShade(TH_BUT_OUTLINE, TH_BACK, 0.1, -40);
+	
+	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
+	/* end outline */	
+}
+
+/* base round flat button */
+static void round_button_flat(int colorid, float asp, float x1, float y1, float x2, float y2, int flag, float rad)
+{	
+	/* colour shading */
+	if(flag & UI_SELECT) {
+		if (flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -20);
+		else UI_ThemeColorShade(colorid, -45);	
+	}
+	else {
+		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 35);
+		else UI_ThemeColorShade(colorid, 25);
+	}
+	/* end colour shading */
+	
+	/* the solid base */
+	gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
+	
+	/* outline */
+	UI_ThemeColorBlendShade(TH_BUT_OUTLINE, TH_BACK, 0.1, -30);
+	
+	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
+	/* end outline */
+}
+
 /* small side double arrow for iconrow */
 static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
 {
@@ -483,24 +706,14 @@ static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
 /* side double arrow for menu */
 static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
 {
-	glEnable( GL_POLYGON_SMOOTH );
-	glEnable( GL_BLEND );
+	/* 'point' first, then two base vertices */
+	uiTriangleFakeAA(x2-9, (y2-(y2-y1)/2)+6,
+					x2-6, (y2-(y2-y1)/2)+2,
+					x2-11, (y2-(y2-y1)/2)+2);
 	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2)+1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2)+4);
-	glEnd();
-		
-	glBegin(GL_TRIANGLES);
-	glVertex2f((short)x2-4,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-12,(short)(y2-(y2-y1)/2) -1);
-	glVertex2f((short)x2-8,(short)(y2-(y2-y1)/2) -4);
-	glEnd();
-	
-	glDisable( GL_BLEND );
-	glDisable( GL_POLYGON_SMOOTH );
+	uiTriangleFakeAA(x2-8, (y2-(y2-y1)/2)-6,
+					x2-6, (y2-(y2-y1)/2)-2,
+					x2-11, (y2-(y2-y1)/2)-2);
 }
 
 /* left/right arrows for number fields */
@@ -508,57 +721,310 @@ static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
 {
 	if( x2-x1 > 25) {	// 25 is a bit arbitrary, but small buttons cant have arrows
 
-		glEnable( GL_POLYGON_SMOOTH );
-		glEnable( GL_BLEND );
-		
-		glShadeModel(GL_FLAT);
-		glBegin(GL_TRIANGLES);
-		
-		glVertex2f((short)x1+5,(short)(y2-(y2-y1)/2));
-		glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)+4);
-		glVertex2f((short)x1+10,(short)(y2-(y2-y1)/2)-4);
-		glEnd();
+		/* 'point' first, then two base vertices */
+		uiTriangleFakeAA(x1+4, y2-(y2-y1)/2,
+						x1+9, y2-(y2-y1)/2+3,
+						x1+9, y2-(y2-y1)/2-3);
 
-		/* right */
-		glShadeModel(GL_FLAT);
-		glBegin(GL_TRIANGLES);
-
-		glVertex2f((short)x2-5,(short)(y2-(y2-y1)/2));
-		glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)-4);
-		glVertex2f((short)x2-10,(short)(y2-(y2-y1)/2)+4);
-		glEnd();
-		
-		glDisable( GL_BLEND );
-		glDisable( GL_POLYGON_SMOOTH );
+		uiTriangleFakeAA(x2-4, y2-(y2-y1)/2,
+						x2-9, y2-(y2-y1)/2+3,
+						x2-9, y2-(y2-y1)/2-3);
 	}
 }
+
 
 /* changing black/white for TOG3 buts */
 static void ui_tog3_invert(float x1, float y1, float x2, float y2, int seltype)
 {
-	short alpha = 30;
-	
+
 	if (seltype == 0) {
-		glEnable(GL_BLEND);
+		UI_ThemeColorShade(TH_BUT_SETTING, -120); 
 		
-		glColor4ub(0, 0, 0, alpha);
-		glRectf(x2-6, y1, x2, (y1+(y2-y1)/2));
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glLineWidth(1.0);
 		
-		glColor4ub(255, 255, 255, alpha);
-		glRectf(x2-6, (y1+(y2-y1)/2), x2, y2);
+		fdrawline(x1+10, (y1+(y2-y1)/2+4), x1+10, (y1+(y2-y1)/2)-4);
+		fdrawline(x1+6, (y1+(y2-y1)/2), x1+14, (y1+(y2-y1)/2));
 		
-		glDisable(GL_BLEND);
+		glLineWidth(1.0);
+		glDisable( GL_BLEND );
+		glDisable( GL_LINE_SMOOTH );
 	} else {
-		glEnable(GL_BLEND);
+		/* horiz line */
+		UI_ThemeColorShade(TH_BUT_SETTING, -120);
 		
-		glColor4ub(255, 255, 255, alpha);
-		glRectf(x2-6, y1, x2, (y1+(y2-y1)/2));
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glLineWidth(1.0);
 		
-		glColor4ub(0, 0, 0, alpha);
-		glRectf(x2-6, (y1+(y2-y1)/2), x2, y2);
+		fdrawline(x1+6, (y1+(y2-y1)/2), x1+14, (y1+(y2-y1)/2));
 		
-		glDisable(GL_BLEND);
+		glLineWidth(1.0);
+		glDisable( GL_BLEND );
+		glDisable( GL_LINE_SMOOTH );
+		
 	}
+}
+
+/* roundshaded button/popup menu/iconrow drawing code */
+static void ui_roundshaded_button(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+	float rad, maxrad;
+	int align= (flag & UI_BUT_ALIGN);
+	int round_align_fix= 0;
+	
+	/* rounded corners */
+	if (ELEM4(type, MENU, ROW, ICONROW, ICONTEXTROW)) maxrad = 5.0;
+	else maxrad= 10.0;
+	
+	rad= (y2-y1)/2.0;
+	if (rad>(x2-x1)/2) rad = (x2-x1)/2;
+	if (rad > maxrad) rad = maxrad;
+
+	/* end rounded corners */
+	
+	/* alignment */
+	if(align) {
+		switch(align) {
+			case UI_BUT_ALIGN_TOP:
+				uiSetRoundBox(12);
+				round_align_fix= 4;
+				break;
+			case UI_BUT_ALIGN_DOWN:
+				uiSetRoundBox(3);
+				round_align_fix= 2;
+				break;
+			case UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(6);
+				round_align_fix= 6;
+				break;
+			case UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(9);
+				round_align_fix= 9;
+				break;
+				
+			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(1);
+				round_align_fix= 0;
+				break;
+			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(2);
+				round_align_fix= 2;
+				break;
+			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(8);
+				round_align_fix= 0;
+				break;
+			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(4);
+				round_align_fix= 4;
+				break;
+				
+			default:
+				uiSetRoundBox(0);
+				round_align_fix= 0;
+				break;
+		}
+	} 
+	else {
+		uiSetRoundBox(15);
+		if (x2 - x1 > 19) {
+			round_align_fix= 6;
+		} else {
+			round_align_fix= 15;
+		}
+	}
+	/* end alignment */
+	
+	
+	/* draw the base button */
+	round_button_shaded(type, colorid, asp, x1, y1, x2, y2, flag, rad);
+	
+	/* *** EXTRA DRAWING FOR SPECIFIC CONTROL TYPES *** */
+	switch(type) {
+		case ICONROW:
+		case ICONTEXTROW:			
+			/* iconrow double arrow  */
+			if(flag & UI_SELECT) {
+				UI_ThemeColorShade(colorid, -80);
+			} else {
+				UI_ThemeColorShade(colorid, -45);
+			}
+				ui_default_iconrow_arrows(x1, y1, x2, y2);
+			/* end iconrow double arrow */
+			break;
+		case MENU:
+			/* menu double arrow  */
+			if(flag & UI_SELECT) {
+				UI_ThemeColorShade(colorid, -110);
+			} else {
+				UI_ThemeColorShade(colorid, -80);
+			}
+			ui_default_menu_arrows(x1, y1, x2, y2);
+			/* end menu double arrow */
+			break;
+	}	
+}
+
+static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
+{
+	float rad, maxrad=10.0;
+	int align= (flag & UI_BUT_ALIGN);
+	
+	/* rounded corners */
+	rad= (y2-y1)/2.0;
+	if (rad>(x2-x1)/2) rad = (x2-x1)/2;
+	if (maxrad) {
+		if (rad > maxrad) rad = maxrad;
+	}
+	/* end rounded corners */
+	
+	/* alignment */
+	if(align) {
+		switch(align) {
+			case UI_BUT_ALIGN_TOP:
+				uiSetRoundBox(12);
+				break;
+			case UI_BUT_ALIGN_DOWN:
+				uiSetRoundBox(3);
+				break;
+			case UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(6);
+				break;
+			case UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(9);
+				break;
+				
+			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(1);
+				break;
+			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(2);
+				break;
+			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
+				uiSetRoundBox(8);
+				break;
+			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
+				uiSetRoundBox(4);
+				break;
+				
+			default:
+				uiSetRoundBox(0);
+				break;
+		}
+	} 
+	else {
+		uiSetRoundBox(15);
+	}
+	/* end alignment */
+	
+	/* draw the base button */
+	round_button_flat(colorid, asp, x1, y1, x2, y2, flag, rad);
+	
+	/* *** EXTRA DRAWING FOR SPECIFIC CONTROL TYPES *** */
+	switch(type) {
+		case TOG:
+		case TOGN:
+		case TOG3:
+			if (!(flag & UI_HAS_ICON)) {
+				/* check to see that there's room for the check mark
+				* draw a check mark, or if it's a TOG3, draw a + or - */
+				if (x2 - x1 > 20) {
+					uiSetRoundBox(15);
+					UI_ThemeColorShade(colorid, -5);
+					gl_round_box_shade(GL_POLYGON, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2, -0.04, 0.03);
+					
+					UI_ThemeColorShade(colorid, -20);
+					gl_round_box(GL_LINE_LOOP, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2);
+					
+					/* TOG3 is handled with ui_tog3_invert() 
+						*  remember to update checkmark drawing there too*/
+					if((flag & UI_SELECT) && (type != TOG3)) {
+						UI_ThemeColorShade(colorid, -140);
+						
+						glEnable( GL_LINE_SMOOTH );
+						glEnable( GL_BLEND );
+						glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+						glLineWidth(1.5);
+						
+						/* checkmark */
+						glBegin( GL_LINE_STRIP );
+						glVertex2f(x1+5, (y1+(y2-y1)/2)-1);
+						glVertex2f(x1+8, (y1+(y2-y1)/2)-4);
+						glVertex2f(x1+13, (y1+(y2-y1)/2)+5);
+						glEnd();
+						
+						glLineWidth(1.0);
+						glDisable( GL_BLEND );
+						glDisable( GL_LINE_SMOOTH );		
+					}
+					/* draw a dot: alternate, for layers etc. */
+				} else if(flag & UI_SELECT) {
+					uiSetRoundBox(15);
+					UI_ThemeColorShade(colorid, -60);
+					
+					glPushMatrix();
+					glTranslatef((x1+(x2-x1)/2), (y1+(y2-y1)/2), 0.0);
+					
+					/* circle */
+					glutil_draw_filled_arc(0.0, M_PI*2.0, 2, 16);
+					
+					glEnable( GL_LINE_SMOOTH );
+					glEnable( GL_BLEND );
+					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+					
+					/* smooth outline */
+					glutil_draw_lined_arc(0.0, M_PI*2.0, 2, 16);
+					
+					glDisable( GL_BLEND );
+					glDisable( GL_LINE_SMOOTH );
+					
+					glPopMatrix();
+				}
+			}
+			break;
+		case NUM:
+			/* side arrows */
+			if(flag & UI_SELECT) {
+				if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -70);
+				else UI_ThemeColorShade(colorid, -70);
+			} else {
+				if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -40);
+				else UI_ThemeColorShade(colorid, -20);
+			}
+			
+			ui_default_num_arrows(x1, y1, x2, y2);
+			/* end side arrows */
+			break;
+	}	
+}
+
+/* roundshaded theme callback */
+static void ui_draw_roundshaded(int type, int colorid, float aspect, float x1, float y1, float x2, float y2, int flag)
+{
+	
+	switch(type) {
+		case TOG:
+		case TOGN:
+		case TOG3:
+		case SLI:
+		case NUMSLI:
+		case HSVSLI:
+		case TEX:
+		case IDPOIN:
+		case NUM:
+			ui_roundshaded_flat(type, colorid, aspect, x1, y1, x2, y2, flag);
+			break;
+		case ICONROW: 
+		case ICONTEXTROW: 
+		case MENU: 
+		default: 
+			ui_roundshaded_button(type, colorid, aspect, x1, y1, x2, y2, flag);
+	}
+	
 }
 
 /* button/popup menu/iconrow drawing code */
@@ -1509,7 +1975,6 @@ static void ui_draw_pulldown_round(int type, int colorid, float asp, float x1, f
 	
 }
 
-
 /* ************** TEXT AND ICON DRAWING FUNCTIONS ************* */
 
 
@@ -1608,8 +2073,12 @@ static void ui_draw_text_icon(uiBut *but)
 			else
 #endif
 			{
-				if(but->editstr || (but->flag & UI_TEXT_LEFT)) x= but->x1+4.0;
-				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
+				if(but->editstr || (but->flag & UI_TEXT_LEFT))
+					x= but->x1+4.0;
+				else if ELEM3(but->type, TOG, TOGN, TOG3)
+					x= but->x1+18.0;	/* offset for checkmark */
+				else
+					x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			
 			/* tog3 button exception; draws with glColor! */
@@ -2490,6 +2959,9 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		
 		switch(theme) {
 		
+		case TH_SHADED:
+			but->embossfunc= ui_draw_default;
+			break;
 		case TH_ROUNDED:
 			but->embossfunc= ui_draw_round;
 			break;
@@ -2499,9 +2971,9 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		case TH_MINIMAL:
 			but->embossfunc= ui_draw_minimal;
 			break;
-		case TH_SHADED:
+		case TH_ROUNDSHADED:
 		default:
-			but->embossfunc= ui_draw_default;
+			but->embossfunc= ui_draw_roundshaded;
 			but->sliderfunc= ui_default_slider;
 			break;
 		}

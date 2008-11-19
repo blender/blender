@@ -1740,18 +1740,18 @@ void uiTestRegion(const bContext *C)
 	uiDefButS(block, MENU, 31416, "Gather Method%t|Raytrace %x0|Approximate %x1",
 		13+50+5+80+5, 3, 100, 20, &testchoice, 0, 0, 0, 0, "Method for occlusion gathering");
 	uiDefButBitS(block, TOG, 1, 31417, "Pixel Cache",
-		13+50+5+80+5+100+5, 3, 80, 20, &testtog, 0, 0, 0, 0, "Cache AO results in pixels and interpolate over neighbouring pixels for speedup.");
+		13+50+5+80+5+100+5, 3, 100, 20, &testtog, 0, 0, 0, 0, "Cache AO results in pixels and interpolate over neighbouring pixels for speedup.");
 
 	uiDefBut(block, TEX, 31418, "Text: ",
-		13+50+5+80+5+100+5+80+5, 3, 200, 20, testtext, 0, sizeof(testtext), 0, 0, "User defined text");
+		13+50+5+80+5+100+5+100+5, 3, 200, 20, testtext, 0, sizeof(testtext), 0, 0, "User defined text");
 
 	uiDefButF(block, NUMSLI, 31419, "Slider: ",
-		13+50+5+80+5+100+5+80+5+200+5, 3, 150, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
+		13+50+5+80+5+100+5+100+5+200+5, 3, 150, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
 	uiDefButF(block, NUM, 31419, "N: ",
-		13+50+5+80+5+100+5+80+5+200+5+150+5, 3, 100, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
+		13+50+5+80+5+100+5+100+5+200+5+150+5, 3, 100, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
 
     uiDefButF(block, COL, 3142, "",
-		13+50+5+80+5+100+5+80+5+200+5+150+5+100+5, 3, 100, 20, testcol, 0, 0, 0, 0 /*B_BANDCOL*/, "");
+		13+50+5+80+5+100+5+100+5+200+5+150+5+100+5, 3, 100, 20, testcol, 0, 0, 0, 0 /*B_BANDCOL*/, "");
 
 #if 0
 	if(!cumap) {
