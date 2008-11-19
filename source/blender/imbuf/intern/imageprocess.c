@@ -92,9 +92,24 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 /*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
 */
 /* function assumes out to be zero'ed, only does RGBA */
+
+static float P(float k){
+	float p1, p2, p3, p4;
+	p1 = MAX2(k+2.0f,0);
+	p2 = MAX2(k+1.0f,0);
+	p3 = MAX2(k,0);
+	p4 = MAX2(k-1.0f,0);
+	return (float)(1.0f/6.0f)*( p1*p1*p1 - 4.0f * p2*p2*p2 + 6.0f * p3*p3*p3 - 4.0f * p4*p4*p4);
+}
+
+
+#if 0
+/* older, slower function, works the same as above */
 static float P(float k){
 	return (float)(1.0f/6.0f)*( pow( MAX2(k+2.0f,0) , 3.0f ) - 4.0f * pow( MAX2(k+1.0f,0) , 3.0f ) + 6.0f * pow( MAX2(k,0) , 3.0f ) - 4.0f * pow( MAX2(k-1.0f,0) , 3.0f));
 }
+#endif
+
 
 void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
 {
@@ -114,10 +129,9 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 	a= x - i;
 	b= y - j;
 
-	outR= 0.0f;
-	outG= 0.0f;
-	outB= 0.0f;
-	outA= 0.0f;
+	outR = outG = outB = outA = 0.0f;
+	
+/* Optimized and not so easy to read */
 	
 	/* avoid calling multiple times */
 	wy[0] = P(b-(-1));
@@ -155,6 +169,35 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 			}
 		}
 	}
+
+/* Done with optimized part */
+	
+#if 0 
+	/* older, slower function, works the same as above */
+	for(n= -1; n<= 2; n++){
+		for(m= -1; m<= 2; m++){
+			x1= i+n;
+			y1= j+m;
+			if (x1>0 && x1 < in->x && y1>0 && y1<in->y) {
+				if (do_float) {
+					dataF= in->rect_float + in->x * y1 * 4 + 4*x1;
+					outR+= dataF[0] * P(n-a) * P(b-m);
+					outG+= dataF[1] * P(n-a) * P(b-m);
+					outB+= dataF[2] * P(n-a) * P(b-m);
+					outA+= dataF[3] * P(n-a) * P(b-m);
+				}
+				if (do_rect) {
+					dataI= (unsigned char*)in->rect + in->x * y1 * 4 + 4*x1;
+					outR+= dataI[0] * P(n-a) * P(b-m);
+					outG+= dataI[1] * P(n-a) * P(b-m);
+					outB+= dataI[2] * P(n-a) * P(b-m);
+					outA+= dataI[3] * P(n-a) * P(b-m);
+				}
+			}
+		}
+	}
+#endif
+	
 	if (do_rect) {
 		outI= (unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
 		outI[0]= (int)outR;
