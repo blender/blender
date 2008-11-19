@@ -417,12 +417,14 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 /* single scattering only for now */
 void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsize, float density)
 {
+	ListBase *lights;
 	GroupObject *go;
 	LampRen *lar;
 	float col[3] = {0.f, 0.f, 0.f};
 	int i=0;
 
-	for(go=R.lights.first; go; go= go->next)
+	lights= get_lights(shi);
+	for(go=lights->first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
 	
