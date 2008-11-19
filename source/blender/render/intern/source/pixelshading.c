@@ -511,7 +511,7 @@ static void fillBackgroundImage(float *collector, float fx, float fy)
 }
 
 /* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
+void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short thread)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
 	int skyflag;
@@ -550,7 +550,7 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag);
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag, thread);
 	}
 	
 	if(blend>1.0) blend= 1.0;
@@ -607,7 +607,7 @@ void shadeSunView(float *colf, float *view)
 /*
   Stuff the sky color into the collector.
  */
-void shadeSkyPixel(float *collector, float fx, float fy) 
+void shadeSkyPixel(float *collector, float fx, float fy, short thread) 
 {
 	float view[3], dxyview[2];
 
@@ -653,7 +653,7 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 		}
 		
 		/* get sky color in the collector */
-		shadeSkyView(collector, NULL, view, dxyview);
+		shadeSkyView(collector, NULL, view, dxyview, thread);
 		collector[3] = 0.0f;
 	}
 	

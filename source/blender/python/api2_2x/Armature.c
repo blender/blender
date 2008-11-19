@@ -244,7 +244,8 @@ static PyObject *BonesDict_GetItem(BPy_BonesDict *self, PyObject* key)
 	}
 	if(value == NULL){  /* item not found in dict. throw exception */
 		char* key_str = PyString_AsString( key );
-		if (key_str) {
+		
+		if (key_str==NULL) {
 			return EXPP_ReturnPyObjError(PyExc_KeyError, "bone key must be a string" );
 		} else {
 			char buffer[128];

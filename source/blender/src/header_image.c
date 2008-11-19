@@ -82,8 +82,10 @@
 #include "BSE_trans_types.h"
 #include "BSE_edit.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "IMB_imbuf_types.h"
 
@@ -658,8 +660,9 @@ static uiBlock *image_image_rtmappingmenu(void *arg_unused)
 static void do_image_imagemenu(void *arg, int event)
 {
 	/* events >=20 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
-	
+#endif	
 	switch(event)
 	{
 	case 0:
@@ -704,7 +707,9 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	uiBlock *block;
 	short yco= 0, menuwidth=150;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -749,7 +754,7 @@ static uiBlock *image_imagemenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, image_image_rtmappingmenu, NULL, ICON_RIGHTARROW_THIN, "Realtime Texture Mapping", 0, yco-=20, 120, 19, "");
 		// uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Realtime Texture Animation|",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	}
-	
+#ifndef DISABLE_PYTHON
 	/* note that we acount for the N previous entries with i+20: */
 	for (pym = BPyMenuTable[PYMENU_IMAGE]; pym; pym = pym->next, i++) {
 
@@ -757,7 +762,7 @@ static uiBlock *image_imagemenu(void *arg_unused)
 				 NULL, 0.0, 0.0, 1, i+20, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -948,6 +953,7 @@ static uiBlock *image_uvs_weldalignmenu(void *arg_unused)
 	return block;
 }
 
+#ifndef DISABLE_PYTHON
 static void do_image_uvs_scriptsmenu(void *arg, int event)
 {
 	BPY_menu_do_python(PYMENU_UV, event);
@@ -978,6 +984,7 @@ static uiBlock *image_uvs_scriptsmenu (void *args_unused)
 	
 	return block;
 }
+#endif /* DISABLE_PYTHON */
 
 static void do_image_uvsmenu(void *arg, int event)
 {
@@ -1088,10 +1095,12 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefIconTextBlockBut(block, image_uvs_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Faces", 0, yco-=20, menuwidth, 19, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 	
 	uiDefIconTextBlockBut(block, image_uvs_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-	
+#endif
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}

@@ -1864,7 +1864,7 @@ void faceloop_select(EditEdge *startedge, int select)
 		looking= 0;
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e4 && efa->f1==0) {	/* not done quad */
+			if(efa->h==0 && efa->e4 && efa->f1==0) {	/* not done quad */
 				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { /* valence ok */
 
 					/* if edge tagged, select opposing edge and mark face ok */

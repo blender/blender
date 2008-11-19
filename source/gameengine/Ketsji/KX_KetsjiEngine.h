@@ -254,6 +254,11 @@ public:
 	bool GetUseFixedTime(void) const;
 
 	/**
+	 * Returns current render frame clock time
+	 */
+	double GetClockTime(void) const;
+
+	/**
 	 * Returns the difference between the local time of the scene (when it
 	 * was running and not suspended) and the "curtime"
 	 */

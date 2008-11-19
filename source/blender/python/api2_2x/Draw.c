@@ -258,7 +258,7 @@ Normal button (a sphere that you can roll to change the normal)\n\n\
 [tooltip=] The button's tooltip";
 
 static char Method_Number_doc[] =
-	"(name, event, x, y, width, height, initial, min, max, [tooltip]) - Create a \
+	"(name, event, x, y, width, height, initial, min, max, [tooltip], [callback], [clickstep], [precision]) - Create a \
 new Number button\n\n\
 (name) A string to display on the button\n\
 (event) The event number to pass to the button event function when activated\n\
@@ -266,7 +266,10 @@ new Number button\n\n\
 (width, height) The button width and height\n\
 (initial, min, max) Three values (int or float) specifying the initial and \
 limit values.\n\
-[tooltip=] The button's tooltip";
+[tooltip=] The button's tooltip\n\
+[callback=] The button's callback\n\
+[clickstep=] Click step for the button\n\
+[precision=] How many decimal places to maintain, if not given, it is calculated depending on range, otherwise 1,2,3 or 4. Larger values are clamped to 4";
 
 static char Method_String_doc[] =
 	"(name, event, x, y, width, height, initial, length, [tooltip]) - Create a \
@@ -1600,6 +1603,8 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	Button *but;
 	PyObject *mino, *maxo, *inio;
 	PyObject *callback=NULL;
+	PyObject *a1=NULL;
+	PyObject *a2=NULL;
 	uiBut *ubut= NULL;
 	
 	if (G.background) {
@@ -1607,11 +1612,11 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 					      "Can't run Draw.Number() in background mode." );
 	}
 	
-	if( !PyArg_ParseTuple( args, "siiiiiOOO|sO", &name, &event,
-			       &x, &y, &w, &h, &inio, &mino, &maxo, &tip, &callback ) )
+	if( !PyArg_ParseTuple( args, "siiiiiOOO|sOOO", &name, &event,
+			       &x, &y, &w, &h, &inio, &mino, &maxo, &tip, &callback, &a1, &a2 ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, five ints, three PyObjects and\n\
-			optionally string and callback arguments" );
+			optionally string, callback, range and precision arguments" );
 
 	UI_METHOD_ERRORCHECK;
 
@@ -1632,14 +1637,30 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		min = (float)PyFloat_AsDouble( mino );
 		max = (float)PyFloat_AsDouble( maxo );
 		
-		range= (float)fabs(max-min); /* Click step will be a 10th of the range. */
-		if (!range) range= 1.0f; /* avoid any odd errors */
+		if(a1 && PyNumber_Check(a1)) {
+			if(PyFloat_Check(a1))
+				range= (float)PyFloat_AsDouble(a1);
+			else
+				range= (float)PyInt_AsLong(a1);
+		} else {
+			range= (float)fabs(max-min); /* Click step will be a 10th of the range. */
+			if (!range) range= 1.0f; /* avoid any odd errors */
+		}
 		
-		/* set the precission to display*/
-		if      (range>=1000.0f) precission=1.0f;
-		else if (range>=100.0f) precission=2.0f;
-		else if (range>=10.0f) precission=3.0f;
- 		else precission=4.0f;
+		if(a2 && PyNumber_Check(a2)) {
+			if(PyFloat_Check(a2))
+				precission= (float)PyFloat_AsDouble(a2);
+			else
+				precission= (float)PyInt_AsLong(a2);
+		} else {
+			/* set the precission to display*/
+			if      (range>=1000.0f) precission=1.0f;
+			else if (range>=100.0f) precission=2.0f;
+			else if (range>=10.0f) precission=3.0f;
+			else precission=4.0f;
+			
+			range *= 10;
+		}
  			
 		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
@@ -1647,7 +1668,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		
 		if( block )
 			ubut= uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
-				   &but->val.asfloat, min, max, 10*range, precission, but->tooltip );
+				   &but->val.asfloat, min, max, range, precission, but->tooltip );
 	} else {
 		int ini, min, max;
 

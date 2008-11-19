@@ -1,4 +1,4 @@
-LCGDIR = '../lib/windows'
+LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
 WITH_BF_VERSE = False
@@ -101,6 +101,9 @@ BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
+BF_WINTAB = LIBDIR + '/wintab'
+BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
+
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
@@ -144,7 +147,11 @@ CC_WARN = [ '-Wall' ]
 LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS= ''
+BF_DEBUG_CCFLAGS= []
+
+BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'

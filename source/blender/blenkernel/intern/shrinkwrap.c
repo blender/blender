@@ -41,6 +41,7 @@
 
 #include "BKE_shrinkwrap.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_lattice.h"
 #include "BKE_utildefines.h"
 #include "BKE_deform.h"
 #include "BKE_cdderivedmesh.h"
@@ -161,6 +162,18 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	calc.numVerts = numVerts;
 	calc.vertexCos = vertexCos;
 
+	//DeformVertex
+	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
+	if(calc.original)
+	{
+		calc.dvert = calc.original->getVertDataArray(calc.original, CD_MDEFORMVERT);
+	}
+	else if(calc.ob->type == OB_LATTICE)
+	{
+		calc.dvert = lattice_get_deform_verts(calc.ob);
+	}
+
+
 	if(smd->target)
 	{
 		//TODO currently we need a copy in case object_get_derived_final returns an emDM that does not defines getVertArray or getFace array
@@ -207,8 +220,6 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
 	int i;
-	const int vgroup		 = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	MDeformVert *const dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
 
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
@@ -230,7 +241,7 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 		VECCOPY(tmp_co, co);
@@ -342,11 +353,6 @@ void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	MVert *vert  = NULL; //Needed in case of vertex normal
 	DerivedMesh* ss_mesh = NULL;
 
-	//Vertex group data
-	const int vgroup		   = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	const MDeformVert *dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
-
-
 	//Raycast and tree stuff
 	BVHTreeRayHit hit;
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh; 	//target
@@ -441,7 +447,7 @@ do
 		float *co = calc->vertexCos[i];
 		float tmp_co[3], tmp_no[3];
 		float lim = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isnt prepared for that
-		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
 
 		if(weight == 0.0f) continue;
 
@@ -520,9 +526,6 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
 	int i;
 
-	const int vgroup = get_named_vertexgroup_num(calc->ob, calc->smd->vgroup_name);
-	const MDeformVert *const dvert = calc->original ? calc->original->getVertDataArray(calc->original, CD_MDEFORMVERT) : NULL;
-
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest  nearest  = NULL_BVHTreeNearest;
 
@@ -547,7 +550,7 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates

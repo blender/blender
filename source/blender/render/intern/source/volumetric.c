@@ -585,7 +585,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 	if(RE_ray_tree_intersect(R.raytree, &isect)) {
 		shade_intersection(shi, col, &isect);
 	} else {
-		shadeSkyView(col, co, shi->view, NULL);
+		shadeSkyView(col, co, shi->view, NULL, shi->thread);
 		shadeSunView(col, shi->view);
 	}
 }

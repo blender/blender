@@ -6271,19 +6271,12 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			if( origmesh->mat ) {
 				for( i = origmesh->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					if (ob->colbits & 1<<i) {
+					if (ob->colbits & 1<<i)
 						self->mesh->mat[i] = ob->mat[i];
-						
-						if (ob->mat[i])
-							ob->mat[i]->id.us++;
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us--;
-					} else {
+					else
 						self->mesh->mat[i] = origmesh->mat[i];
-						
-						if (origmesh->mat[i])
-							origmesh->mat[i]->id.us++;
-					}
+					if (self->mesh->mat[i])
+						self->mesh->mat[i]->id.us++;
 				}
 			}
 		}

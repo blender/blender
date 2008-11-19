@@ -59,7 +59,9 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "GPU_material.h"
 
@@ -78,7 +80,9 @@ void free_material(Material *ma)
 	MTex *mtex;
 	int a;
 
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&ma->scriptlink);
+#endif
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
@@ -209,8 +213,10 @@ Material *copy_material(Material *ma)
 			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
-	
+
+#ifndef DISABLE_PYTHON	
 	BPY_copy_scriptlink(&ma->scriptlink);
+#endif
 	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
@@ -652,7 +658,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		if(ma->septex & (1<<a)) continue;
 
 		mtex= ma->mtex[a];
-		if(mtex && mtex->tex && mtex->tex->type) {
+		if(mtex && mtex->tex && (mtex->tex->type | (mtex->tex->use_nodes && mtex->tex->nodetree) )) {
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;

@@ -439,12 +439,19 @@ static void render_envmap(Render *re, EnvMap *env)
 
 		if(re->test_break()==0) {
 			RenderLayer *rl= envre->result->layers.first;
+			int y;
+			char *alpha;
 			
 			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect, 0);
 			ibuf->rect_float= rl->rectf;
 			IMB_rect_from_float(ibuf);
 			ibuf->rect_float= NULL;
-				
+			
+			/* envmap renders without alpha */
+			alpha= ((char *)ibuf->rect)+3;
+			for(y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
+				*alpha= 255;
+			
 			env->cube[part]= ibuf;
 		}
 		

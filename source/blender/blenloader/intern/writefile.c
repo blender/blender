@@ -174,8 +174,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BIF_verse.h"
 #endif
 
-#include "GEN_messaging.h"
-
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -471,6 +469,8 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+				write_curvemapping(wd, node->storage);
+			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
 			else 
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
@@ -1338,6 +1338,12 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->pd) {
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
 				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
+			}
+			
+			/* nodetree is integral part of texture, no libdata */
+			if(tex->nodetree) {
+				writestruct(wd, DATA, "bNodeTree", 1, tex->nodetree);
+				write_nodetree(wd, tex->nodetree);
 			}
 			
 			write_previews(wd, tex->preview);

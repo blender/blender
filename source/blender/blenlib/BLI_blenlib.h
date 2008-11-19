@@ -416,7 +416,7 @@ void *BLI_pointer_from_int(int val);
  * @param member The name of a member field of @a strct
  * @retval The offset in bytes of @a member within @a strct
  */
-#define BLI_STRUCT_OFFSET(strct, member)	((int) &((strct*) 0)->member)
+#define BLI_STRUCT_OFFSET(strct, member)	((int)(intptr_t) &((strct*) 0)->member)
 
 #ifdef __cplusplus
 }

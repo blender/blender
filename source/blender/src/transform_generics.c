@@ -254,7 +254,7 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 		if (td->flag & TD_SKIP)
 			continue;
 		
-		eve = td->tdmir;
+		eve = td->extra;
 		if(eve) {
 			eve->co[0]= -td->loc[0];
 			eve->co[1]= td->loc[1];
@@ -470,6 +470,8 @@ void recalcData(TransInfo *t)
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
+			TransData *td = t->data;
+			int i;
 			
 			/* Ensure all bones are correctly adjusted */
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
@@ -506,6 +508,38 @@ void recalcData(TransInfo *t)
 					ebo->oldlength= ebo->length;
 				}
 			}
+			
+			
+			if (t->mode != TFM_BONE_ROLL)
+			{
+				/* fix roll */
+				for(i = 0; i < t->total; i++, td++)
+				{
+					if (td->extra)
+					{
+						float vec[3], up_axis[3];
+						float qrot[4];
+						
+						ebo = td->extra;
+						VECCOPY(up_axis, td->axismtx[2]);
+						
+						if (t->mode != TFM_ROTATION)
+						{
+							VecSubf(vec, ebo->tail, ebo->head);
+							Normalize(vec);
+							RotationBetweenVectorsToQuat(qrot, td->axismtx[1], vec);
+							QuatMulVecf(qrot, up_axis);
+						}
+						else
+						{
+							Mat3MulVecfl(t->mat, up_axis);
+						}
+						
+						ebo->roll = rollBoneToVector(ebo, up_axis);
+					}
+				}
+			}
+			
 			if(arm->flag & ARM_MIRROR_EDIT) 
 				transform_armature_mirror_update();
 			
@@ -820,7 +854,10 @@ void restoreTransObjects(TransInfo *t)
 				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
 			}
 #endif
-	}	
+	}
+	
+	Mat3One(t->mat);
+	
 	recalcData(t);
 }
 
@@ -876,12 +913,16 @@ void calculateCenterCursor2D(TransInfo *t)
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
+	int total = 0;
 	int i;
 	
 	for(i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
 			if (!(t->data[i].flag & TD_NOCENTER))
+			{
 				VecAddf(partial, partial, t->data[i].center);
+				total++;
+			}
 		}
 		else {
 			/* 
@@ -892,7 +933,7 @@ void calculateCenterMedian(TransInfo *t)
 		}
 	}
 	if(i)
-		VecMulf(partial, 1.0f / i);
+		VecMulf(partial, 1.0f / total);
 	VECCOPY(t->center, partial);
 
 	calculateCenter2D(t);

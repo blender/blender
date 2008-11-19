@@ -29,8 +29,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 #include "imbuf.h"
 #include "imbuf_patch.h"

@@ -152,7 +152,10 @@
 #include "BSE_edit.h"
 
 #include "BDR_editobject.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "butspace.h" // own module
 
@@ -643,6 +646,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 	else {
 		switch (con->type) {
+#ifndef DISABLE_PYTHON
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = con->data;
@@ -724,6 +728,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				draw_constraint_spaceselect(block, con, *xco, *yco-(73+theight), is_armature_owner(ob), -1);
 			}
 			break;
+#endif /* DISABLE_PYTHON */
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = con->data;

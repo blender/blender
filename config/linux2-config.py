@@ -187,21 +187,22 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = '-Wall -Wno-char-subscripts -Wdeclaration-after-statement'
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
 
-CC_WARN = '-Wall'
+CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'util c m dl pthread stdc++'
+LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR = '../build/linux2'
 BF_INSTALLDIR='../install/linux2'

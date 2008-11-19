@@ -7,14 +7,18 @@ Import('env')
 sources = env.Glob('*.c')
 incs = '.'
 
-flags = "-Wall -O3 -ffast-math -std=c99"
+if env['OURPLATFORM'] == 'win32-vc':
+	flags = []
+else:
+	flags = ['-Wall', '-O3', '-ffast-math', '-std=c99']
 
-oj_env = env.Copy();
-oj_env.Replace(CCFLAGS = '')
-oj_env.Replace(BF_DEBUG_FLAGS = '')
+oj_env = env.Clone()
+if not env['OURPLATFORM'] == 'win32-vc':
+	oj_env.Replace(CCFLAGS = '')
+	oj_env.Replace(BF_DEBUG_FLAGS = '')
 
 oj_env.BlenderLib ( libname='extern_openjpeg', 
                     sources=sources, includes=Split(incs),
                     defines=[],
                     libtype=['core','intern','player'],
-                    priority=[10, 10, 300], compileflags = Split(flags))
+                    priority=[10, 10, 300], compileflags = flags)

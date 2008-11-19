@@ -50,6 +50,18 @@ int BLI_linklist_length(LinkNode *list) {
 	}
 }
 
+int BLI_linklist_index(struct LinkNode *list, void *ptr)
+{
+	int index;
+	
+	for (index = 0; list; list= list->next, index++) {
+		if (list->link == ptr)
+			return index;
+	}
+	
+	return -1;
+}
+
 void BLI_linklist_reverse(LinkNode **listp) {
 	LinkNode *rhead= NULL, *cur= *listp;
 	

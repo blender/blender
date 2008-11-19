@@ -86,7 +86,9 @@
 #include "BSE_editnla_types.h"
 #include "BSE_time.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -1925,6 +1927,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu->driver) {
+#ifndef DISABLE_PYTHON
 				if (ei->icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
  					/* first del pydriver's global dict, just in case
 					 * an available pydrivers.py module needs to be reloaded */
@@ -1933,7 +1936,9 @@ void do_ipobuts(unsigned short event)
 					BPY_pydriver_eval(ei->icu->driver);
 					DAG_scene_sort(G.scene);
 				}
-				else if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
+				else
+#endif
+				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				else
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);

@@ -216,14 +216,14 @@ CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char', '-fpascal-strings']
 PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
-LLIBS = 'stdc++ SystemStubs'
+LLIBS = ['stdc++', 'SystemStubs']
 
 # some flags shuffling for different Os versions
 if MAC_MIN_VERS == '10.3':
 	CFLAGS = ['-fuse-cxa-atexit']+CFLAGS
 	CXXFLAGS = ['-fuse-cxa-atexit']+CXXFLAGS
 	PLATFORM_LINKFLAGS = '-fuse-cxa-atexit '+PLATFORM_LINKFLAGS
-	LLIBS = LLIBS + ' crt3.o'
+	LLIBS.append('crt3.o')
 	
 if USE_SDK==True:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
@@ -251,20 +251,21 @@ else:
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = ' -Wall  -Wno-long-double -Wdeclaration-after-statement '
+C_WARN = ['-Wdeclaration-after-statement']
 
-CC_WARN = ' -Wall  -Wno-long-double'
+CC_WARN = ['-Wall', '-Wno-long-double']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ' -pg -g '
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR='../build/darwin'
 BF_INSTALLDIR='../install/darwin'

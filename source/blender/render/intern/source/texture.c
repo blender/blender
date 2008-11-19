@@ -43,11 +43,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
+#include "DNA_node_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "BKE_image.h"
+#include "BKE_node.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
 
@@ -115,6 +117,10 @@ void init_render_texture(Render *re, Tex *tex)
 			}
 		}
 	}
+	
+	if(tex->nodetree && tex->use_nodes) {
+		ntreeBeginExecTree(tex->nodetree); /* has internal flag to detect it only does it once */
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -128,6 +134,20 @@ void init_render_textures(Render *re)
 		if(tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
 	}
+}
+
+void end_render_texture(Tex *tex)
+{
+	if(tex && tex->use_nodes && tex->nodetree)
+		ntreeEndExecTree(tex->nodetree);
+}
+
+void end_render_textures(void)
+{
+	Tex *tex;
+	for(tex= G.main->tex.first; tex; tex= tex->id.next)
+		if(tex->id.us)
+			end_render_texture(tex);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -692,6 +712,19 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 }
 
+/* ------------------------------------------------------------------------- */
+
+static int evalnodes(Tex *tex, float *texvec, TexResult *texres, short thread, short which_output)
+{
+	short rv = TEX_INT;
+	bNodeTree *nodes = tex->nodetree;
+	
+	ntreeTexExecTree(nodes, texres, texvec, 0, thread, tex, which_output);
+	
+	if(texres->nor) rv |= TEX_NOR;
+	rv |= TEX_RGB;
+	return rv;
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -1131,13 +1164,17 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 
 /* ************************************** */
 
-static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
 {
 	float tmpvec[3];
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
+	if(tex->use_nodes && tex->nodetree) {
+		retval = evalnodes(tex, texvec, texres, thread, which_output);
+	}
+	else
 	switch(tex->type) {
 	
 	case 0:
@@ -1240,7 +1277,11 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
  * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
-	
+	return multitex_thread(tex, texvec, dxt, dyt, osatex, texres, 0, 0);
+}
+
+int multitex_thread(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
+{
 	if(tex==NULL) {
 		memset(texres, 0, sizeof(TexResult));
 		return 0;
@@ -1268,10 +1309,10 @@ int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, Te
 		
 		do_2d_mapping(&mtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
 
-		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres);
+		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres, thread, which_output);
 	}
 	else
-		return multitex(tex, texvec, dxt, dyt, osatex, texres);
+		return multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1529,7 +1570,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			}
 			
 
-			rgbnor= multitex(tex, texvec, NULL, NULL, 0, &texres);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
+			rgbnor= multitex(tex, texvec, NULL, NULL, 0, &texres, 0, mtex->which_output);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
 			
 			/* texture output */
 
@@ -1833,7 +1874,7 @@ void do_material_tex(ShadeInput *shi)
 				}
 			}
 
-			rgbnor= multitex(tex, texvec, dxt, dyt, shi->osatex, &texres);
+			rgbnor= multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
 
 			/* texture output */
 
@@ -2217,7 +2258,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 
 	if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	
-	rgb= multitex(mtex->tex, texvec, dxt, dyt, osatex, &texres);
+	rgb= multitex(mtex->tex, texvec, dxt, dyt, osatex, &texres, 0, mtex->which_output);
 
 	/* texture output */
 	if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
@@ -2288,7 +2329,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag)
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag, short thread)
 {
 	MTex *mtex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
@@ -2388,7 +2429,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			/* texture */
 			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 		
-			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa, &texres);
+			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa, &texres, thread, mtex->which_output);
 			
 			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
@@ -2569,7 +2610,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 			}
 			
-			rgb= multitex(tex, texvec, dxt, dyt, shi->osatex, &texres);
+			rgb= multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
 
 			/* texture output */
 			if(rgb && (mtex->texflag & MTEX_RGBTOINT)) {
@@ -2654,7 +2695,7 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 		do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	}
 	
-	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr);
+	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr, 0, mtex->which_output);
 	
 	if(rgb) {
 		texr.tin= (0.35*texr.tr+0.45*texr.tg+0.2*texr.tb);

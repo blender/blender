@@ -88,7 +88,10 @@
 
 #include "BDR_sculptmode.h"
 #include "BDR_editobject.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_do_all_scripts */
+#endif
 
 #include "BSE_view.h"
 #include "BSE_drawview.h"
@@ -1273,8 +1276,10 @@ void BIF_store_spare(void)
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
+#ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS)
 		BPY_do_all_scripts(SCRIPT_RENDER, anim);
+#endif
 
 	BIF_store_spare();
 
@@ -1286,8 +1291,9 @@ void BIF_do_render(int anim)
 	}
 	if(G.scene->r.dither_intensity != 0.0f)
 		BIF_redraw_render_rect();
-
+#ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER, anim);
+#endif
 }
 
 void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)

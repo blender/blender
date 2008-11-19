@@ -854,7 +854,7 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 static int EnumPixelFormats(HDC hdc) {
 	int iPixelFormat;
 	int i, n, w, weight = 0;
-	PIXELFORMATDESCRIPTOR pfd, pfd_fallback;
+	PIXELFORMATDESCRIPTOR pfd;
 	
 	/* we need a device context to do anything */
 	if(!hdc) return 0;

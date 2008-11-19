@@ -1380,6 +1380,8 @@ static PyGetSetDef BPy_Image_getseters[] = {
 	 "image odd fields toggle", (void *)IMA_STD_FIELD },
 	{"antialias", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image antialiasing toggle", (void *)IMA_ANTIALI },
+	{"premul", (getter)Image_getFlag, (setter)Image_setFlag,
+	 "image premultiply alpha toggle", (void *)IMA_DO_PREMUL },
 	{"reflect", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image reflect toggle", (void *)IMA_REFLECT },
 	{"clampX", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,

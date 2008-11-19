@@ -23,6 +23,6 @@ if epydoc:
     optvalues["names"] = names
     optparser = OptionParser()
     optparser.set_defaults(**optvalues)
-    (options, args) = optparser.parse_args()
+    (options, args) = optparser.parse_args([])
     cli.write_html(docindex, options)
 

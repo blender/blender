@@ -159,25 +159,26 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = '-Wall -Wno-char-subscripts -Wdeclaration-after-statement'
+C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
 
-CC_WARN = '-Wall'
+CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'c m dl pthread stdc++'
+LLIBS = ['c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = ''
+BF_DEBUG_CCFLAGS = []
 
 BF_BUILDDIR = '../build/sunos5'
 BF_INSTALLDIR='../install/sunos5'
 BF_DOCDIR='../install/doc'
 
 
-PLATFORM_LINKFLAGS = ['']
+PLATFORM_LINKFLAGS = []

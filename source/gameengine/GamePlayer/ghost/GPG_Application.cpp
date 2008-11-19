@@ -686,6 +686,7 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+        initVideoTexture();
 
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict

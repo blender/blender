@@ -597,6 +597,8 @@ static void get_flags_for_id(ID *id, char *buf)
 
 	if(GS(id->name)==ID_MA)
 		isnode= ((Material *)id)->use_nodes;
+	if(GS(id->name)==ID_TE)
+		isnode= ((Tex *)id)->use_nodes;
 	
 	if (id->us<0)
 		sprintf(buf, "-1W ");

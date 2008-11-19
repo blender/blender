@@ -706,7 +706,7 @@ def Normal(event, x, y, width, height, initial, tooltip = None, callback = None)
 	@note: Using the same button variable with more then 1 button at a time will corrupt memory.
 	"""
 
-def Number(name, event, x, y, width, height, initial, min, max, tooltip = None, callback = None):
+def Number(name, event, x, y, width, height, initial, min, max, tooltip = None, callback = None, clickstep = None, precision = None):
 	"""
 	Create a new Number Button object.
 	@type name: string
@@ -735,6 +735,11 @@ def Number(name, event, x, y, width, height, initial, min, max, tooltip = None, 
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
 		This function must accept 2 arguments (event, val).
+	@type clickstep: float
+	@param clickstep: an optional argument to control the amount of change per click on the button.
+	@type precision: float
+	@param precision: an optional argument to control the amount of places after the decimal. From 1 to 4 places with 1.0..4.0. 
+		Larger values are clamped to 4 places.
 	@rtype: Blender Button
 	@return: The Button created.
 

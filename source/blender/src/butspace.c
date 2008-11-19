@@ -511,7 +511,8 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 static void do_node_buts(unsigned short event)
 {
 	Material *ma;
-
+	SpaceNode *snode = curarea->spacedata.first;
+	
 	/* all operations default on active material layer here */
 	/* but this also gets called for lamp and world... */
 	ma= G.buts->lockpoin;
@@ -523,6 +524,7 @@ static void do_node_buts(unsigned short event)
 	if(event>=B_NODE_EXEC) {
 		if(ma) end_render_material(ma);	/// temporal... 3d preview
 		BIF_preview_changed(ID_MA);
+		BIF_preview_changed(ID_TE);
 		allqueue(REDRAWNODE, 0);
 		allqueue(REDRAWBUTSSHADING, 0);
 	}		

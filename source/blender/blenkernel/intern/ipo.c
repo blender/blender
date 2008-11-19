@@ -73,7 +73,10 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_pydriver_eval() */
+#endif
 
 #define SMALL -1.0e-10
 
@@ -1008,6 +1011,7 @@ static void posechannel_get_local_transform (bPoseChannel *pchan, float loc[], f
  */
 static float eval_driver (IpoDriver *driver, float ipotime)
 {
+#ifndef DISABLE_PYTHON
 	/* currently, drivers are either PyDrivers (evaluating a PyExpression, or Object/Pose-Channel transforms) */
 	if (driver->type == IPO_DRIVER_TYPE_PYTHON) {
 		/* check for empty or invalid expression */
@@ -1022,7 +1026,10 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 		 */
 		return BPY_pydriver_eval(driver);
 	}
-	else {
+	else
+#endif /* DISABLE_PYTHON */
+	{
+
 		Object *ob= driver->ob;
 		
 		/* must have an object to evaluate */

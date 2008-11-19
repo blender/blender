@@ -45,6 +45,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd);
 void fluidsim_free(FluidsimModifierData *fluidmd);
 
 DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
+void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename);
 DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 // get bounding box of mesh

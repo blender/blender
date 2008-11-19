@@ -161,8 +161,10 @@
 #include "BDR_editmball.h"
 #include "BDR_sculptmode.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "GPU_draw.h"
 
@@ -425,6 +427,15 @@ static void do_update_for_newframe(int mute, int events)
 	/* composite */
 	if(G.scene->use_nodes && G.scene->nodetree)
 		ntreeCompositTagAnimated(G.scene->nodetree);
+	
+	/* update animated texture nodes */
+	{
+		Tex *tex;
+		for(tex= G.main->tex.first; tex; tex= tex->id.next)
+		if( tex->use_nodes && tex->nodetree ) {
+			ntreeTexTagAnimated( tex->nodetree );
+		}
+	}
 }
 
 void update_for_newframe(void)
@@ -535,6 +546,7 @@ static void filesel_u_renderdir(char *name)
 	allqueue(REDRAWALL, 0);
 }
 
+#ifndef DISABLE_PYTHON
 static void filesel_u_pythondir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
@@ -550,6 +562,7 @@ static void filesel_u_pythondir(char *name)
 		error("Invalid scripts dir: check console");
 	}
 }
+#endif
 
 static void filesel_u_sounddir(char *name)
 {
@@ -854,10 +867,25 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_EXTEXBROWSE: 
 	case B_TEXBROWSE:
-
-		if(G.buts->texnr== -2) {
+	{
+		void  *lockpoin = NULL;
+		short *menunr = 0;
+		
+		/* this is called now from Node editor too, buttons might not exist */
+		if(curarea->spacetype==SPACE_NODE) {
+			SpaceNode *snode = curarea->spacedata.first;
+			menunr = &snode->menunr;
+			lockpoin = snode->id;
+		}
+		else if(G.buts) {
+			menunr = &G.buts->texnr;
+			lockpoin = G.buts->lockpoin;
+		}
+		else return;
+		
+		if(*menunr == -2) {
 			
-			id= G.buts->lockpoin;
+			id= lockpoin;
 			if(event==B_EXTEXBROWSE) {
 				id= NULL;
 				ma= give_current_material(ob, ob->actcol);
@@ -868,16 +896,16 @@ void do_global_buttons(unsigned short event)
 				}
 			}
 			if(G.qual & LR_CTRLKEY) {
-				activate_databrowse_imasel(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+				activate_databrowse_imasel((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			else {
-				activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+				activate_databrowse((ID*)lockpoin, ID_TE, 0, B_TEXBROWSE, menunr, do_global_buttons);
 			}
 			return;
 		}
-		if(G.buts->texnr < 0) break;
+		if(*menunr < 0) break;
 		
-		if(G.buts->pin) {
+		if(G.buts && G.buts->pin) {
 			
 		}
 		else {
@@ -892,7 +920,7 @@ void do_global_buttons(unsigned short event)
 
 			idtest= G.main->tex.first;
 			while(idtest) {
-				if(nr==G.buts->texnr) {
+				if(nr==*menunr) {
 					break;
 				}
 				nr++;
@@ -915,10 +943,12 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWNODE, 0);
 				BIF_preview_changed(ID_MA);
 			}
 		}
 		break;
+	}
 	case B_ACTIONDELETE:
 		/* only available when not pinned */
 		if (G.saction->pin == 0) {
@@ -1525,7 +1555,7 @@ void do_global_buttons(unsigned short event)
 
 		activate_fileselect(FILE_SPECIAL, "SELECT RENDER PATH", U.renderdir, filesel_u_renderdir);
 		break;
-
+#ifndef DISABLE_PYTHON
 	case B_PYMENUEVAL: /* is button from space.c *info* */
 		waitcursor( 1 ); /* can take some time */
 		if (BPY_path_update() == 0) { /* re-eval scripts registration in menus */
@@ -1542,7 +1572,7 @@ void do_global_buttons(unsigned short event)
 
 		activate_fileselect(FILE_SPECIAL, "SELECT SCRIPT PATH", U.pythondir, filesel_u_pythondir);
 		break;
-
+#endif
 	case B_SOUNDDIRFILESEL:		/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
 			sa= closest_bigger_area();

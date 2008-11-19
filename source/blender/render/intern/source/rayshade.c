@@ -416,7 +416,7 @@ static void ray_fadeout_endcolor(float *col, ShadeInput *origshi, ShadeInput *sh
 		VECCOPY(shi->view, vec);
 		Normalize(shi->view);
 		
-		shadeSkyView(col, isec->start, shi->view, NULL);
+		shadeSkyView(col, isec->start, shi->view, NULL, shi->thread);
 		shadeSunView(col, shi->view);
 	}
 }
@@ -1652,7 +1652,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 				shadfac[2]+= (1.0f-skyfac)*R.wrld.horb + skyfac*R.wrld.zenb;
 			}
 			else {	/* WO_AOSKYTEX */
-				shadeSkyView(skycol, isec.start, view, dxyview);
+				shadeSkyView(skycol, isec.start, view, dxyview, shi->thread);
 				shadeSunView(skycol, shi->view);
 				shadfac[0]+= skycol[0];
 				shadfac[1]+= skycol[1];
@@ -1777,7 +1777,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 					shadfac[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {	/* WO_AOSKYTEX */
-					shadeSkyView(skycol, isec.start, view, dxyview);
+					shadeSkyView(skycol, isec.start, view, dxyview, shi->thread);
 					shadeSunView(skycol, shi->view);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];

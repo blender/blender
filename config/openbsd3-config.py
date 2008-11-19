@@ -145,21 +145,22 @@ REL_CCFLAGS = ['-O2']
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = '-Wall -Wdeclaration-after-statement'
+C_WARN = ['-Wdeclaration-after-statement']
 
-CC_WARN = '-Wall'
+CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'm stdc++ pthread util'
+LLIBS = ['m', 'stdc++', 'pthread', 'util']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
-BF_PROFILE_FLAGS = ' -pg -g '
 BF_PROFILE = False
+BF_PROFILE_CCFLAGS = ['-pg','-g']
+BF_PROFILE_LINKFLAGS = ['-pg']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS = '-g'
+BF_DEBUG_CCFLAGS = ['-g']
 
 BF_BUILDDIR='../build/openbsd3'
 BF_INSTALLDIR='../install/openbsd3'

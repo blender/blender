@@ -168,7 +168,9 @@
 
 #include "PIL_time.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "butspace.h"
 #include "mydevice.h"
@@ -1079,7 +1081,9 @@ void BIF_undo(void)
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
+#ifndef DISABLE_PYTHON
 				BPY_scripts_clear_pyobjects();
+#endif
 				BKE_undo_step(1);
 				sound_initialize_sounds();
 			}
@@ -1248,12 +1252,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * - grease-pencil also defaults to leftmouse
 		 */
 		if(event==LEFTMOUSE) {
+#ifndef DISABLE_PYTHON
 			/* run any view3d event handler script links */
 			if (sa->scriptlink.totscript) {
 				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 					return; /* return if event was processed (swallowed) by handler(s) */
 			}
-			
+#endif
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
 		}
@@ -1309,10 +1314,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 
+#ifndef DISABLE_PYTHON
 		/* run any view3d event handler script links */
 		if (event && sa->scriptlink.totscript)
 			if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
 				return; /* return if event was processed (swallowed) by handler(s) */
+#endif
 
 		/* TEXTEDITING?? */
 		if((G.obedit) && G.obedit->type==OB_FONT) {
@@ -4324,7 +4331,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y2,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
-		
+
+#ifndef DISABLE_PYTHON
 		uiDefBut(block, LABEL,0,"Auto Run Python Scripts",
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -4332,7 +4340,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOGN, USER_DONT_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
 			&(U.flag), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
-		
+#endif
+
 		uiDefBut(block, LABEL,0,"Keyboard:",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -4511,6 +4520,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "Select the default render output location");
 		uiBlockEndAlign(block);
 
+#ifndef DISABLE_PYTHON
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, B_PYMENUEVAL, "Python Scripts: ",
 			(xpos+edgsp+lpref+midsp),y1,(lpref-2*smfileselbut),buth,
@@ -4522,7 +4532,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*lpref)+midsp-smfileselbut),y1,smfileselbut,buth,
 			0, 0, 0, 0, 0, "Select the default Python script location");
 		uiBlockEndAlign(block);
-
+#endif
 
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, 0, "Sounds: ",
@@ -7081,6 +7091,7 @@ SpaceType *spacetext_get_type(void)
 
 static void spacescript_change(ScrArea *sa, void *spacedata)
 {
+#ifndef DISABLE_PYTHON
 	SpaceScript *sc = (SpaceScript*) spacedata;
 
 	/*clear all temp button references*/
@@ -7089,6 +7100,7 @@ static void spacescript_change(ScrArea *sa, void *spacedata)
 		BPy_Free_DrawButtonsList();
 		sc->but_refs = NULL;
 	}
+#endif
 }
 
 SpaceType *spacescript_get_type(void)

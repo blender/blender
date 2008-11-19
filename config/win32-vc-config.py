@@ -77,6 +77,8 @@ BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
+BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
@@ -150,6 +152,11 @@ BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
 BF_QUICKTIME_LIBPATH = '${BF_QUICKTIME}/Libraries'
 
+WITH_BF_OPENJPEG = True 
+
+WITH_BF_REDCODE = False  
+BF_REDCODE_INC = '#extern'
+
 WITH_BF_STATICOPENGL = False
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
@@ -161,16 +168,20 @@ CC = 'cl.exe'
 CXX = 'cl.exe'
 
 CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
+CXXFLAGS = ['/EHsc']
 
-BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET}.sbr']
+BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
 CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
+REL_CXXFLAGS = ['-O2', '-DNDEBUG']
+
 C_WARN = []
 CC_WARN = []
+CXX_WARN = []
 
-LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid'
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
 PLATFORM_LINKFLAGS = '''
                        /SUBSYSTEM:CONSOLE
@@ -185,6 +196,11 @@ PLATFORM_LINKFLAGS = '''
                        /NODEFAULTLIB:"libcp.lib"
                        /LARGEADDRESSAWARE
                    '''
+
+# # Todo
+# BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+# BF_PROFILE_LINKFLAGS = ['-pg']
+# BF_PROFILE = False
 
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'

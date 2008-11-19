@@ -72,7 +72,9 @@
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "RE_pipeline.h"
 
@@ -515,9 +517,9 @@ int main(int argc, char **argv)
 
 		if ( (G.windowstate == G_WINDOWSTATE_BORDER) || (G.windowstate == G_WINDOWSTATE_FULLSCREEN)) 
 			setprefsize(stax, stay, sizx, sizy, 0);
-		
+#ifndef DISABLE_PYTHON		
 		BPY_start_python(argc, argv);
-		
+#endif		
 		/**
 		 * NOTE: sound_init_audio() *must be* after start_python,
 		 * at least on FreeBSD.
@@ -539,8 +541,9 @@ int main(int argc, char **argv)
 #endif
 	}
 	else {
+#ifndef DISABLE_PYTHON
 		BPY_start_python(argc, argv);
-		
+#endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 		
 		// (ton) Commented out. I have no idea whats thisfor... will mail around!
@@ -549,7 +552,7 @@ int main(int argc, char **argv)
         // sound_init_audio();
         // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
-
+#ifndef DISABLE_PYTHON
 	/**
 	 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined
@@ -559,7 +562,8 @@ int main(int argc, char **argv)
 	 * on U.pythondir.
 	 */
 	BPY_post_start_python();
-
+#endif
+	
 #ifdef WITH_QUICKTIME
 
 	quicktime_init();
@@ -644,13 +648,14 @@ int main(int argc, char **argv)
 					if (a < argc) {
 						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
 						Render *re= RE_NewRender(G.scene->id.name);
-
+#ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
-
+#endif
 						RE_BlenderAnim(re, G.scene, frame, frame, G.scene->frame_step);
-
+#ifndef DISABLE_PYTHON
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
+#endif
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -659,14 +664,15 @@ int main(int argc, char **argv)
 			case 'a':
 				if (G.scene) {
 					Render *re= RE_NewRender(G.scene->id.name);
-
+#ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_RENDER, 1);
-
+#endif
 					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
-
+#ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
+#endif
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
@@ -704,6 +710,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'P':
+#ifndef DISABLE_PYTHON
 				a++;
 				if (a < argc) {
 					/* If we're not running in background mode, then give python a valid screen */
@@ -714,6 +721,9 @@ int main(int argc, char **argv)
 					BPY_run_python_script (argv[a]);
 				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
+#else
+				printf("This blender was built without python support\n");
+#endif /* DISABLE_PYTHON */
 				break;
 			case 'o':
 				a++;

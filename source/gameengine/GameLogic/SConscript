@@ -8,11 +8,13 @@ incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' #/source/gameengine/Rasterizer'
 
 incs += ' ' + env['BF_PYTHON_INC']
-incs += ' ' + env['BF_SDL_INC']
+
 
 defs = ''
 
-if not env['WITH_BF_SDL']:
+if env['WITH_BF_SDL']:
+	incs += ' ' + env['BF_SDL_INC']
+else:
 	defs += ' DISABLE_SDL'
 
 env.BlenderLib ( 'bf_logic', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[30, 110] )

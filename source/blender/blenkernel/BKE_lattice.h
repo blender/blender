@@ -35,6 +35,7 @@ struct Lattice;
 struct Object;
 struct DerivedMesh;
 struct BPoint;
+struct MDeformVert;
 
 extern struct Lattice *editLatt;
 
@@ -66,6 +67,8 @@ void armature_deform_verts(struct Object *armOb, struct Object *target,
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
 void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);
 void lattice_calc_modifiers(struct Object *ob);
+
+struct MDeformVert* lattice_get_deform_verts(struct Object *lattice);
 
 #endif
 

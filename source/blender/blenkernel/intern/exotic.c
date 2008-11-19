@@ -76,10 +76,14 @@
 #include <fcntl.h>
 #include <string.h>
 
-#ifndef WIN32 
+#ifndef _WIN32 
 #include <unistd.h>
 #else
 #include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#define write _write
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -117,7 +121,9 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "blendef.h"
 
@@ -2427,6 +2433,7 @@ int BKE_read_exotic(char *name)
 						read_stl_mesh_binary(name);
 					retval = 1;
 				}
+#ifndef DISABLE_PYTHON
 				// TODO: this should not be in the kernel...
 				else { // unknown format, call Python importloader 
 					if (BPY_call_importloader(name)) {
@@ -2436,6 +2443,7 @@ int BKE_read_exotic(char *name)
 					}	
 				
 				}
+#endif /* DISABLE_PYTHON */
 				waitcursor(0);
 			}
 		}

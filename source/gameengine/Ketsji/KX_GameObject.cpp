@@ -1027,7 +1027,7 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 
 PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
 {
-	KX_Scene *scene = PHY_GetActiveScene();
+	KX_Scene *scene = KX_GetActiveScene();
 	char* meshname;
 	void* mesh_pt;
 
@@ -1050,7 +1050,7 @@ PyObject* KX_GameObject::PyReplaceMesh(PyObject* self, PyObject* value)
 PyObject* KX_GameObject::PyEndObject(PyObject* self)
 {
 
-	KX_Scene *scene = PHY_GetActiveScene();
+	KX_Scene *scene = KX_GetActiveScene();
 	scene->DelayedRemoveObject(this);
 	
 	Py_RETURN_NONE;
@@ -1447,7 +1447,7 @@ PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 	// The object we want to set as parent
 	CValue *m_ob = (CValue*)value;
 	KX_GameObject *obj = ((KX_GameObject*)m_ob);
-	KX_Scene *scene = PHY_GetActiveScene();
+	KX_Scene *scene = KX_GetActiveScene();
 	
 	this->SetParent(scene, obj);
 		
@@ -1456,7 +1456,7 @@ PyObject* KX_GameObject::PySetParent(PyObject* self, PyObject* value)
 
 PyObject* KX_GameObject::PyRemoveParent(PyObject* self)
 {
-	KX_Scene *scene = PHY_GetActiveScene();
+	KX_Scene *scene = KX_GetActiveScene();
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
 }

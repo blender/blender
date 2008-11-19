@@ -1461,14 +1461,19 @@ PyObject* initMathutils()
 	return Mathutils_Init("Mathutils"); // Use as a top level module in BGE
 }
 
-void PHY_SetActiveScene(class KX_Scene* scene)
+void KX_SetActiveScene(class KX_Scene* scene)
 {
 	gp_KetsjiScene = scene;
 }
 
-class KX_Scene* PHY_GetActiveScene()
+class KX_Scene* KX_GetActiveScene()
 {
 	return gp_KetsjiScene;
+}
+
+class KX_KetsjiEngine* KX_GetActiveEngine()
+{
+	return gp_KetsjiEngine;
 }
 
 // utility function for loading and saving the globalDict

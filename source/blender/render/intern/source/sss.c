@@ -451,13 +451,13 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	VECCOPY(rdsum, result.rdsum);
 	VECADD(backrdsum, result.rdsum, result.backrdsum);
 
-	if(rdsum[0] > 0.0f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
-	if(rdsum[1] > 0.0f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
-	if(rdsum[2] > 0.0f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
+	if(rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
+	if(rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
+	if(rdsum[2] > 1e-16f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
 
-	if(backrdsum[0] > 0.0f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
-	if(backrdsum[1] > 0.0f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
-	if(backrdsum[2] > 0.0f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
+	if(backrdsum[0] > 1e-16f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
+	if(backrdsum[1] > 1e-16f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
+	if(backrdsum[2] > 1e-16f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
 
 	rad[0]= MAX2(rad[0], backrad[0]);
 	rad[1]= MAX2(rad[1], backrad[1]);
@@ -504,20 +504,20 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 		}
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -578,20 +578,20 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 		node->backarea += subnode->backarea;
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;

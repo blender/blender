@@ -153,7 +153,9 @@
 #include "BSE_time.h"
 #include "BSE_view.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "RE_render_ext.h"
 
@@ -164,6 +166,8 @@
 #include "BIF_transform.h"
 
 #include "RE_pipeline.h"	// make_stars
+
+#include "reeb.h"
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
@@ -3238,6 +3242,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			BIF_drawPropCircle(); // only editmode and particles have proportional edit
 		BIF_drawSnap();
 	}
+	
+	REEB_draw();
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
@@ -3350,6 +3356,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
+#ifndef DISABLE_PYTHON
 	/* run any view3d draw handler script links */
 	if (sa->scriptlink.totscript)
 		BPY_do_spacehandlers(sa, 0, 0, SPACEHANDLER_VIEW3D_DRAW);
@@ -3359,7 +3366,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			!during_script()) {
 		BPY_do_pyscript((ID *)G.scene, SCRIPT_REDRAW);
 	}
-	
+#endif	
 }
 
 void drawview3d_render(struct View3D *v3d, float viewmat[][4], int winx, int winy, float winmat[][4], int shadow)

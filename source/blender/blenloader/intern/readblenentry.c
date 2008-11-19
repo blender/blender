@@ -364,6 +364,9 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Ble
 	if (fd) {
 		strcpy(fd->filename, filename);
 		
+		/* clear ob->proxy_from pointers in G.main */
+		blo_clear_proxy_pointers_from_lib(fd);
+
 		/* separate libraries from G.main */
 		blo_split_main(&mainlist, G.main);
 		/* add the library pointers in oldmap lookup */

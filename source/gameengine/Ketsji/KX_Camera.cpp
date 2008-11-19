@@ -793,7 +793,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, setOnTop,
 {
 	class KX_Scene* scene;
 	
-	scene = PHY_GetActiveScene();
+	scene = KX_GetActiveScene();
 	MT_assert(scene);
 	scene->SetCameraOnTop(this);
 	Py_Return;

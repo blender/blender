@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c)
+FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_nodes/*.c)
 
 SET(INC 
   . ../../../intern/guardedalloc ../include ../blenlib ../makesdna

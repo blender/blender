@@ -9,7 +9,7 @@ BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
-BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
@@ -64,6 +64,8 @@ BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
+BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
@@ -153,16 +155,17 @@ CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
 
-C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
+C_WARN = [ '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
 LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
 BF_DEBUG = False
-BF_DEBUG_FLAGS= '-g'
+BF_DEBUG_CCFLAGS= ['-g']
 
-BF_PROFILE_FLAGS = ['-pg','-g']
+BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE = False
 
 BF_BUILDDIR = '..\\build\\win32-mingw'

@@ -200,12 +200,6 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 
 /***/
 
-struct GHashIterator {
-	GHash *gh;
-	int curBucket;
-	Entry *curEntry;
-};
-
 GHashIterator *BLI_ghashIterator_new(GHash *gh) {
 	GHashIterator *ghi= malloc(sizeof(*ghi));
 	ghi->gh= gh;
@@ -218,6 +212,17 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh) {
 		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
 	}
 	return ghi;
+}
+void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh) {
+	ghi->gh= gh;
+	ghi->curEntry= NULL;
+	ghi->curBucket= -1;
+	while (!ghi->curEntry) {
+		ghi->curBucket++;
+		if (ghi->curBucket==ghi->gh->nbuckets)
+			break;
+		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
+	}
 }
 void BLI_ghashIterator_free(GHashIterator *ghi) {
 	free(ghi);

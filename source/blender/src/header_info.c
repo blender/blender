@@ -115,8 +115,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#endif
 
 #include "GPU_extensions.h"
 #include "GPU_material.h"
@@ -332,8 +334,9 @@ Scene *copy_scene(Scene *sce, int level)
 			obase= obase->next;
 			base= base->next;
 		}
+#ifndef DISABLE_PYTHON
 		BPY_copy_scriptlink(&sce->scriptlink);
-		
+#endif
 		/* sculpt data */
 		sce->sculptdata.session = NULL;
 		if (sce->sculptdata.cumap) {
@@ -650,12 +653,14 @@ static void do_info_file_importmenu(void *arg, int event)
 		areawinset(sa->win);
 	}
 
+#ifndef DISABLE_PYTHON
 	/* events >=3 are registered bpython scripts */
 	if (event >= 3) {
 		BPY_menu_do_python(PYMENU_IMPORT, event - 3);
 		BIF_undo_push("Import file");
-	}
-	else {
+	} else 
+#endif
+	{
 		switch(event) {
 									
 		case 0: /* DXF */
@@ -677,7 +682,9 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "importmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -690,13 +697,13 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "STL...",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
-
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+3, pym->tooltip?pym->tooltip:pym->filename);
 	}
-
+#endif
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 
@@ -712,11 +719,12 @@ static void do_info_file_exportmenu(void *arg, int event)
 		if (!sa) sa= closest_bigger_area();
 		areawinset(sa->win);
 	}
-
+#ifndef DISABLE_PYTHON
 	/* events >=3 are registered bpython scripts */
 	if (event >= 3) BPY_menu_do_python(PYMENU_EXPORT, event - 3);
-
-	else switch(event) {
+	else
+#endif
+	switch(event) {
 									
 	case 0:
 		write_vrml_fs();
@@ -735,7 +743,9 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "exportmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -749,6 +759,7 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "STL...",
 			 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 2, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* note that we acount for the 3 previous entries with i+3: */
@@ -757,7 +768,7 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 				 NULL, 0.0, 0.0, 1, i+3, 
 				 pym->tooltip?pym->tooltip:pym->filename);
 	}
-
+#endif
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -1160,9 +1171,12 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 void do_info_add_meshmenu(void *arg, int event)
 {
+#ifndef DISABLE_PYTHON
 	if (event>=20) {
 		BPY_menu_do_python(PYMENU_ADDMESH, event - 20);
-	} else {
+	} else
+#endif
+	{
 		switch(event) {		
 			case 0:
 				/* Plane */
@@ -1214,7 +1228,9 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	short yco= 0;
 	
 	/* Python Menu */
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_meshmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
@@ -1231,7 +1247,7 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Monkey|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "");
 
-
+#ifndef DISABLE_PYTHON
 	pym = BPyMenuTable[PYMENU_ADDMESH];
 	if (pym) {
 		uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
@@ -1240,7 +1256,8 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, i+20, pym->tooltip?pym->tooltip:pym->filename);
 		}
 	}
-		
+#endif
+
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 		
@@ -1496,9 +1513,12 @@ static uiBlock *info_add_groupmenu(void *arg_unused)
 
 void do_info_addmenu(void *arg, int event)
 {
+#ifndef DISABLE_PYTHON
 	if (event>=20) {
 		BPY_menu_do_python(PYMENU_ADD, event - 20);
-	} else {
+	} else
+#endif
+	{
 		switch(event) {		
 			case 0:
 				/* Mesh */
@@ -1547,7 +1567,9 @@ static uiBlock *info_addmenu(void *arg_unused)
 {
 /*		static short tog=0; */
 	uiBlock *block;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i=0;
 	short yco= 0;
 
@@ -1575,6 +1597,7 @@ static uiBlock *info_addmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Armature",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Lattice",			0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, 9, "");
 
+#ifndef DISABLE_PYTHON
 	pym = BPyMenuTable[PYMENU_ADD];
 	if (pym) {
 		uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	1620, 6,  NULL, 0.0, 0.0, 0, 0, "");
@@ -1583,7 +1606,8 @@ static uiBlock *info_addmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, 120, 19, NULL, 0.0, 0.0, 1, i+20, pym->tooltip?pym->tooltip:pym->filename);
 		}
 	}
-
+#endif
+	
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
 		
@@ -1948,9 +1972,10 @@ static void do_info_rendermenu(void *arg, int event)
 			if (!sa) sa= closest_bigger_area();
 			areawinset(sa->win);
 		}
-
+#ifndef DISABLE_PYTHON
 		BPY_menu_do_python(PYMENU_RENDER, event - 10);
 		BIF_undo_push("Rendering Script");
+#endif
 	}
 	else {
 	switch(event) {
@@ -1998,7 +2023,9 @@ static void do_info_rendermenu(void *arg, int event)
 static uiBlock *info_rendermenu(void *arg_unused)
 {
 	uiBlock *block;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	short yco= 0;
 	short menuwidth=120;
 	int i=0;
@@ -2026,12 +2053,14 @@ static uiBlock *info_rendermenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Settings|F10",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_RENDER]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
 	}
-
+#endif
+	
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
 
@@ -2042,8 +2071,9 @@ static uiBlock *info_rendermenu(void *arg_unused)
 
 static void do_info_help_websitesmenu(void *arg, int event)
 {
+#ifndef DISABLE_PYTHON
 	BPY_menu_do_python(PYMENU_HELPWEBSITES, event);
-
+#endif
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -2051,17 +2081,19 @@ static void do_info_help_websitesmenu(void *arg, int event)
 static uiBlock *info_help_websitesmenu(void *arg_unused)
 {
 	uiBlock *block;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	short yco = 20, menuwidth = 120;
 	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "info_help_websitesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_help_websitesmenu, NULL);
-	
+#ifndef DISABLE_PYTHON
 	for (pym = BPyMenuTable[PYMENU_HELPWEBSITES]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i, pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 		
@@ -2071,8 +2103,11 @@ static uiBlock *info_help_websitesmenu(void *arg_unused)
 static void do_info_help_systemmenu(void *arg, int event)
 {
 	/* events >=10 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 10) BPY_menu_do_python(PYMENU_HELPSYSTEM, event - 10);
-	else {
+	else
+#endif
+	{
 		switch(event) {
 
 		case 1: /* Benchmark */
@@ -2102,7 +2137,9 @@ static void do_info_help_systemmenu(void *arg, int event)
 static uiBlock *info_help_systemmenu(void *arg_unused)
 {
 	uiBlock *block;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	short yco = 20, menuwidth = 120;
 	int i = 0;
 
@@ -2110,11 +2147,11 @@ static uiBlock *info_help_systemmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_info_help_systemmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Benchmark",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
+#ifndef DISABLE_PYTHON
 	for (pym = BPyMenuTable[PYMENU_HELPSYSTEM]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 		
@@ -2132,8 +2169,11 @@ static void do_info_helpmenu(void *arg, int event)
 	}
 
 	/* events >=10 are registered bpython scripts */
+#ifndef DISABLE_PYTHON
 	if (event >= 10) BPY_menu_do_python(PYMENU_HELP, event - 10);
-	else {
+	else
+#endif
+	{
 		switch(event) {
 									
 		case 0: /* About Blender */
@@ -2150,20 +2190,22 @@ static uiBlock *info_helpmenu(void *arg_unused)
 	uiBlock *block;
 	short yco= 0;
 	short menuwidth=120;
+#ifndef DISABLE_PYTHON
 	BPyMenu *pym;
+#endif
 	int i = 0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "info_helpmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_helpmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, B_SHOWSPLASH, ICON_BLANK1, "About Blender...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
+#ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	for (pym = BPyMenuTable[PYMENU_HELP]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
 	}
-	
+#endif
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, info_help_websitesmenu, NULL, ICON_RIGHTARROW_THIN, "Websites", 0, yco-=20, 120, 19, "");

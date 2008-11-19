@@ -82,7 +82,10 @@
 #include "BIF_previewrender.h"
 #include "BIF_editseq.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -139,7 +142,10 @@ void free_scene(Scene *sce)
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
+#endif
+	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
@@ -252,6 +258,21 @@ Scene *add_scene(char *name)
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
+
+	sce->toolsettings->skgen_resolution = 100;
+	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+	sce->toolsettings->skgen_threshold_external 	= 0.01f;
+	sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+	sce->toolsettings->skgen_length_ratio			= 1.3f;
+	sce->toolsettings->skgen_length_limit			= 1.5f;
+	sce->toolsettings->skgen_correlation_limit		= 0.98f;
+	sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+	sce->toolsettings->skgen_postpro_passes = 1;
+	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_HARMONIC|SKGEN_SUB_CORRELATION|SKGEN_STICK_TO_EMBEDDING;
+	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
 
 	pset= &sce->toolsettings->particle;
 	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
@@ -570,9 +591,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
-	
+#ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
-
+#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);
