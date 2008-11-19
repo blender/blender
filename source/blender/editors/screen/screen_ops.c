@@ -91,6 +91,9 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_split_area);
 	WM_operatortype_append(ED_SCR_OT_join_areas);
 	WM_operatortype_append(ED_SCR_OT_area_rip);
+	
+	/* for test only */
+	WM_operatortype_append(ED_SCR_OT_border_select);
 }
 
 /* called in spacetypes.c */
@@ -103,5 +106,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_split_area", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_join_areas", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
 	WM_keymap_verify_item(&wm->windowkeymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+
+	/* for test only */
+	WM_keymap_verify_item(&wm->windowkeymap, "ED_SCR_OT_border_select", BKEY, KM_PRESS, 0, 0);
+
 }
 

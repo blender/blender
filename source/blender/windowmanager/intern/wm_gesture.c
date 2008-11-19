@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "DNA_screen_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -33,114 +35,104 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "wm_event_system.h"
+#include "wm_subwindow.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-
-wmGesture *wm_gesture_find(ListBase *list, int type)
+/* context checked on having screen, window and area */
+wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 {
-	wmGesture *gt= list->first;
-	while(gt) {
-		if(gt->type==type)
-			return(gt);
-		gt= gt->next;
+	wmGesture *gesture= MEM_callocN(sizeof(wmGesture), "new gesture");
+	int sx, sy;
+	
+	BLI_addtail(&C->window->gesture, gesture);
+	
+	gesture->type= type;
+	gesture->eventtype= event->type;
+	gesture->swinid= C->screen->subwinactive;	/* means only in area-region context! */
+	
+	wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+	
+	if( ELEM(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT)) {
+		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
+		
+		gesture->customdata= rect;
+		rect->xmin= event->x - sx;
+		rect->ymin= event->y - sy;
+		rect->xmax= event->x - sx;
+		rect->ymax= event->y - sy;
 	}
-	return(NULL);
+	
+	return gesture;
 }
 
-wmGesture *wm_gesture_new(int type)
+void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
-	wmGesture *gesture= NULL;
-	wmGestureRect *rect;
-
-	if(type==GESTURE_RECT) {
-		rect= MEM_mallocN(sizeof(wmGestureRect), "gesture rect new");
-		gesture= (wmGesture*) rect;
-		gesture->type= type;
-		rect->x1= 0;
-		rect->y1= 0;
-		rect->x2= 1;
-		rect->y2= 1;
-	}
-	return(gesture);
+	BLI_remlink(&C->window->gesture, gesture);
+	MEM_freeN(gesture->customdata);
+	MEM_freeN(gesture);
 }
 
-void WM_gesture_init(bContext *C, int type)
-{
-	wmGesture *gt= NULL;
 
-	if(C->window) {
-		gt= wm_gesture_find(&C->window->gesture, type);
-		if(!gt) {
-			gt= wm_gesture_new(type);
-			BLI_addtail(&C->window->gesture, gt);
+
+/* ******************* gesture draw ******************* */
+
+static void wm_gesture_draw_rect(wmWindow *win, wmGesture *gt)
+{
+	rcti *rect= (rcti *)gt->customdata;
+	
+	glEnable(GL_LINE_STIPPLE);
+	glColor3ub(0, 0, 0);
+	glLineStipple(1, 0xAAAA);
+	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	glColor3ub(255, 255, 255);
+	glLineStipple(1, 0x3333);
+	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	glDisable(GL_LINE_STIPPLE);
+}
+
+static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
+{
+	rcti *rect= (rcti *)gt->customdata;
+	
+	glEnable(GL_LINE_STIPPLE);
+	glColor3ub(0, 0, 0);
+	glLineStipple(1, 0xAAAA);
+	sdrawline(rect->xmin - win->sizex, rect->ymin, rect->xmin + win->sizex, rect->ymin);
+	sdrawline(rect->xmin, rect->ymin - win->sizey, rect->xmin, rect->ymin + win->sizey);
+	
+	glColor3ub(255, 255, 255);
+	glLineStipple(1, 0x3333);
+	sdrawline(rect->xmin - win->sizex, rect->ymin, rect->xmin + win->sizex, rect->ymin);
+	sdrawline(rect->xmin, rect->ymin - win->sizey, rect->xmin, rect->ymin + win->sizey);
+	glDisable(GL_LINE_STIPPLE);
+}
+
+/* called in wm_event_system.c */
+void wm_gesture_draw(wmWindow *win)
+{
+	wmGesture *gt= (wmGesture *)win->gesture.first;
+	
+	for(; gt; gt= gt->next) {
+		/* all in subwindow space */
+		wm_subwindow_set(win, gt->swinid);
+		
+		if(gt->type==WM_GESTURE_RECT)
+			wm_gesture_draw_rect(win, gt);
+		else if(gt->type==WM_GESTURE_CROSS_RECT) {
+			if(gt->mode==1)
+				wm_gesture_draw_rect(win, gt);
+			else
+				wm_gesture_draw_cross(win, gt);
 		}
 	}
 }
 
-void wm_gesture_rect_copy(wmGestureRect *to, wmGestureRect *from)
-{
-	to->x1= from->x1;
-	to->x2= from->x2;
-	to->y1= from->y1;
-	to->y2= from->y2;
-}
 
-void WM_gesture_update(bContext *C, wmGesture *from)
-{
-	wmGesture *to;
-
-	if(!C->window)
-		return;
-
-	to= wm_gesture_find(&C->window->gesture, from->type);
-	if(!to)
-		return;
-
-	if(to->type==GESTURE_RECT)
-		wm_gesture_rect_copy((wmGestureRect*)to, (wmGestureRect*)from);
-}
-
-void WM_gesture_free(wmWindow *win)
-{
-	/* Now don't have multiple struct so
-	 * a simple BLI_freelistN is what we need.
-	 */
-	BLI_freelistN(&win->gesture);
-}
-
-void WM_gesture_end(bContext *C, int type)
-{
-	wmGesture *gt;
-	wmGestureRect *rect;
-	wmBorderSelect *wmbor;
-	wmEvent event;
-
-	if(!C->window)
-		return;
-
-	gt= wm_gesture_find(&C->window->gesture, type);
-	if(!gt)
-		return;
-
-	if(gt->type==GESTURE_RECT) {
-		rect= (wmGestureRect*)gt;
-
-		wmbor= MEM_mallocN(sizeof(wmBorderSelect), "border select");
-		wmbor->x1= rect->x1;
-		wmbor->y1= rect->y1;
-		wmbor->x2= rect->x2;
-		wmbor->y2= rect->y2;
-
-		event.type= BORDERSELECT;
-		event.custom= EVT_GESTURE;
-		event.customdata= wmbor;
-		wm_event_add(C->window, &event);
-	}
-}

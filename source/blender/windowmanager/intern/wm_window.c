@@ -103,7 +103,6 @@ void wm_window_free(bContext *C, wmWindow *win)
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
 
-	WM_gesture_free(win);
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
 	

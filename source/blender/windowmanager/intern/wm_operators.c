@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "DNA_ID.h"
+#include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -43,7 +44,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
 #include "wm_window.h"
+#include "wm_subwindow.h"
 #include "wm_event_system.h"
 
 static ListBase global_ops= {NULL, NULL};
@@ -130,121 +133,93 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
-/* ************ window / screen border operator definitions ************** */
+/* ************ window gesture operator-callback definitions ************** */
 /*
- * This is and example of global operator working with
- * the gesture system.
+ * These are default callbacks for use in operators requiring gesture input
  */
-static int border_select_init(bContext *C, wmOperator *op)
+
+static void border_select_apply(bContext *C, wmOperator *op)
 {
-	int x, y;
-
-	if(!(OP_get_int(op, "start_x", &x) && OP_get_int(op, "start_y", &y)))
-		return 0;
-
-	WM_gesture_init(C, GESTURE_RECT);
-	return 1;
-}
-
-static int border_select_apply(bContext *C, wmOperator *op)
-{
-	wmGestureRect rect;
-	int x, y, endx, endy;
-
-	OP_get_int(op, "start_x", &x);
-	OP_get_int(op, "start_y", &y);
-	OP_get_int(op, "end_x", &endx);
-	OP_get_int(op, "end_y", &endy);
-
-	rect.gesture.next= rect.gesture.prev= NULL;
-	rect.gesture.type= GESTURE_RECT;
-	rect.x1= x;
-	rect.y1= y;
-	rect.x2= endx;
-	rect.y2= endy;
-	WM_gesture_update(C, (wmGesture *) &rect);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, GESTURE_RECT, NULL);
-
-	return 1;
-}
-
-static int border_select_exit(bContext *C, wmOperator *op)
-{
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	OP_free_property(op);
-	return 1;
-}
-
-static int border_select_exec(bContext *C, wmOperator *op)
-{
-	if(!border_select_init(C, op))
-		return OPERATOR_CANCELLED;
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
 	
-	border_select_apply(C, op);
-	border_select_exit(C, op);
-
-	return OPERATOR_FINISHED;
+	/* operator arguments and storage. */
+	OP_verify_int(op, "xmin", rect->xmin, NULL);
+	OP_verify_int(op, "ymin", rect->ymin, NULL);
+	OP_verify_int(op, "xmax", rect->xmax, NULL);
+	OP_verify_int(op, "ymax", rect->ymax, NULL);
+	
+	op->type->exec(C, op);
 }
 
-static int border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static void border_select_end(bContext *C, wmOperator *op)
 {
-	/* operator arguments and storage. */
-	OP_verify_int(op, "start_x", event->x, NULL);
-	OP_verify_int(op, "start_y", event->y, NULL);
+	wmGesture *gesture= op->customdata;
+	
+	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
+	op->customdata= NULL;
+	WM_event_remove_modal_handler(&C->window->handlers, op);
+	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	
+}
 
-	if(!border_select_init(C, op))
-		return OPERATOR_CANCELLED;
+int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
-	/* add temp handler */
+	/* add modal handler */
 	WM_event_add_modal_handler(&C->window->handlers, op);
+	
+	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int border_select_cancel(bContext *C, wmOperator *op)
+int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	WM_event_remove_modal_handler(&C->window->handlers, op);
-	border_select_exit(C, op);
-	return OPERATOR_CANCELLED;
-}
-
-static int border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	int sx, sy;
+	
 	switch(event->type) {
 		case MOUSEMOVE:
-			OP_set_int(op, "end_x", event->x);
-			OP_set_int(op, "end_y", event->y);
-			border_select_apply(C, op);
-			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_GESTURE_CHANGED, GESTURE_RECT, NULL);
-			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+			
+			wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+			
+			if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
+				rect->xmin= rect->xmax= event->x - sx;
+				rect->ymin= rect->ymax= event->y - sy;
+			}
+			else {
+				rect->xmax= event->x - sx;
+				rect->ymax= event->y - sy;
+			}
+			
+			WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+
 			break;
+			
 		case LEFTMOUSE:
-			if(event->val==0) {
+			if(event->val==1) {
+				if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
+					gesture->mode= 1;
+					WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+				}
+			}
+			else {
 				border_select_apply(C, op);
-				WM_gesture_end(C, GESTURE_RECT);
-				border_select_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);
+				border_select_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			break;
 		case ESCKEY:
-			return border_select_cancel(C, op);
+			border_select_end(C, op);
+			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void WM_OT_border_select(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Border select";
-	ot->idname= "WM_OT_border_select";
-
-	ot->exec= border_select_exec;
-	ot->invoke= border_select_invoke;
-	ot->cancel= border_select_cancel;
-	ot->modal= border_select_modal;
-
-	ot->poll= WM_operator_winactive;
-}
+/* ******************************************************* */
  
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
@@ -259,8 +234,9 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
-	WM_operatortype_append(WM_OT_border_select);
 }
+
+/* ******************************************************* */
 
 /* wrapped to get property from a operator. */
 IDProperty *op_get_property(wmOperator *op, char *name)

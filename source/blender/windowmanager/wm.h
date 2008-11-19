@@ -28,6 +28,8 @@
 #ifndef WM_H
 #define WM_H
 
+struct wmWindow;
+
 extern void wm_close_and_free(bContext *C, wmWindowManager *);
 extern void wm_close_and_free_all(bContext *C, ListBase *);
 
@@ -44,6 +46,8 @@ extern void wm_report_free(wmReport *report);
 void wm_operatortype_free(void);
 void wm_operatortype_init(void);
 
+/* wm_gesture.c */
+void wm_gesture_draw(struct wmWindow *win);
 
 #endif /* WM_H */
 

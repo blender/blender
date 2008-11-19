@@ -53,23 +53,6 @@
 
 #include "screen_intern.h"	/* own module include */
 
-/* ******************* gesture manager ******************* */
-void ed_gesture_draw_rect(wmWindow *win, wmGesture *gt)
-{
-	wmGestureRect *rect= (wmGestureRect *)gt;
-	sdrawbox(rect->x1, rect->y1, rect->x2, rect->y2);
-}
-
-void ed_gesture_update(wmWindow *win)
-{
-	wmGesture *gt= (wmGesture *)win->gesture.first;
-
-	while(gt) {
-		if(gt->type==GESTURE_RECT)
-			ed_gesture_draw_rect(win, gt);
-		gt= gt->next;
-	}
-}
 
 /* ******************* screen vert, edge, area managing *********************** */
 
@@ -1163,15 +1146,8 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 		case WM_NOTE_SCREEN_CHANGED:
 			win->screen->do_draw= win->screen->do_refresh= 1;
 			break;
-		case WM_NOTE_AREA_SPLIT:
-			printf("WM_NOTE_AREA_SPLIT\n");
-			break;
-		case WM_NOTE_AREA_DRAG:
-			printf("WM_NOTE_AREA_DRAG\n");
-			break;
-		case WM_NOTE_GESTURE_CHANGED:
-			printf("WM_NOTE_GESTURE_CHANGED\n");
-			win->screen->do_gesture= 1;
+		case WM_NOTE_GESTURE_REDRAW:
+			win->screen->do_gesture= 1;	/* XXX gestures are stored in window, draw per region... a bit weak? wait for proper composite? (ton) */
 			break;
 	}
 }
@@ -1220,16 +1196,6 @@ void ED_screen_draw(wmWindow *win)
 	}
 	if(G.f & G_DEBUG) printf("draw screen\n");
 	win->screen->do_draw= 0;
-}
-
-void ED_screen_gesture(wmWindow *win)
-{
-	if(G.f & G_DEBUG) printf("gesture draw screen\n");
-
-	if(win->gesture.first) {
-		ed_gesture_update(win);
-	}
-	win->screen->do_gesture= 0;
 }
 
 /* make this screen usable */
@@ -1309,11 +1275,6 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	WM_event_remove_handlers(&window->handlers);
 }
 
-void placeholder()
-{
-	removenotused_scrverts(NULL);
-	removenotused_scredges(NULL);
-}
 
 /* called in wm_event_system.c. sets state var in screen */
 void ED_screen_set_subwinactive(wmWindow *win)
@@ -2118,9 +2079,49 @@ void ED_SCR_OT_join_areas(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= join_areas_exec;
 	ot->invoke= join_areas_invoke;
-	ot->cancel= join_areas_cancel;
 	ot->modal= join_areas_modal;
 
 	ot->poll= ED_operator_screenactive;
+}
+
+/* ************** border select operator (test only) ***************************** */
+
+/* operator state vars used: (added by default WM callbacks)   
+	xmin, ymin     
+	xmax, ymax     
+
+	customdata: the wmGesture pointer
+
+callbacks:
+
+	exec()	has to be filled in by user
+
+	invoke() default WM function
+			 adds modal handler
+
+	modal()	default WM function 
+			accept modal events while doing it, calls exec(), handles ESC and border drawing
+	
+	poll()	has to be filled in by user for context
+*/
+
+static int border_select_do(bContext *C, wmOperator *op)
+{
+	printf("border select do\n");
+	return 1;
+}
+
+void ED_SCR_OT_border_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border select";
+	ot->idname= "ED_SCR_OT_border_select";
+	
+	/* api callbacks */
+	ot->exec= border_select_do;
+	ot->invoke= WM_border_select_invoke;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
 }
 

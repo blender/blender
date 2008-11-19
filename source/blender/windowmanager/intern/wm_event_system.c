@@ -257,7 +257,7 @@ void wm_draw_update(bContext *C)
 			}
 			
 			if(win->screen->do_gesture)
-				ED_screen_gesture(win);
+				wm_gesture_draw(win);
 
 			wm_window_swap_buffers(win);
 

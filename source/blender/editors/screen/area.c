@@ -95,6 +95,11 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	/* generic notes first */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:
+		case WM_NOTE_AREA_REDRAW:
+		case WM_NOTE_REGION_REDRAW:
+			ar->do_draw= 1;
+			break;
+		case WM_NOTE_GESTURE_REDRAW:
 			ar->do_draw= 1;
 			break;
 		case WM_NOTE_SCREEN_CHANGED:

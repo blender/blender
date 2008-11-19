@@ -55,7 +55,6 @@ void	ED_area_exit(struct bContext *C, ScrArea *sa);
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);
 void	ED_screen_draw(struct wmWindow *win);
-void	ED_screen_gesture(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);

@@ -80,7 +80,7 @@ void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
 					int swinid, int type,
 					int value, void *data);
 
-void		wm_event_add(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
+void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
 			/* one-shot timer, returns wmTimerData.handle */
 struct wmTimerHandle *WM_event_add_window_timer(wmWindow *win, int delay_ms, int interval_ms);
@@ -94,10 +94,14 @@ int			WM_operator_winactive	(struct bContext *C);
 
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);
-void		WM_operatortype_append(void (*opfunc)(wmOperatorType*));
+void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
-int			WM_operator_invoke(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
-void		WM_operator_cancel(struct bContext *C, ListBase *modalops, wmOperatorType *ot);
+int			WM_operator_invoke		(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
+void		WM_operator_cancel		(struct bContext *C, ListBase *modalops, wmOperatorType *ot);
+
+			/* default operator callbacks for border/lasso */
+int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);
+int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent *event);
 
 /* 
  * Operator property api
@@ -160,14 +164,12 @@ void OP_verify_float_array(wmOperator *op, char *name, float *array, short len, 
 void OP_free_property(wmOperator *op);
 
 			/* Gesture manager API */
-void WM_gesture_init(struct bContext *C, int type);
-void WM_gesture_update(struct bContext *C, struct wmGesture *from);
-void WM_gesture_end(struct bContext *C, int type);
-void WM_gesture_free(wmWindow *win);
+struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
+void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
 			/* Reporting information and errors */
-void WM_report(struct bContext *C, int type, const char *message);
-void WM_reportf(struct bContext *C, int type, const char *format, ...);
+void		WM_report(struct bContext *C, int type, const char *message);
+void		WM_reportf(struct bContext *C, int type, const char *format, ...);
 
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);

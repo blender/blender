@@ -32,7 +32,6 @@
 
 #include "wm_cursors.h"
 #include "wm_event_types.h"
-#include "wm_gesture_types.h"
 
 /* ************** wmOperatorType ************************ */
 
@@ -104,23 +103,33 @@ typedef struct wmNotifier {
 enum {
 	WM_NOTE_WINDOW_REDRAW,
 	WM_NOTE_SCREEN_CHANGED,
+	WM_NOTE_AREA_REDRAW,
+	WM_NOTE_REGION_REDRAW,
+	WM_NOTE_GESTURE_REDRAW,
 	WM_NOTE_OBJECT_CHANGED,
-	WM_NOTE_AREA_SPLIT,
-	WM_NOTE_AREA_DRAG,
-	WM_NOTE_GESTURE_CHANGED,
 	WM_NOTE_LAST
 };
 
 /* ************** Gesture Manager data ************** */
-typedef struct wmGestureRect {
-	/* always this first!! */
-	wmGesture gesture;
 
-	short x1, x2;
-	short y1, y2;
-} wmGestureRect;
+/* wmGesture->type */
+#define WM_GESTURE_LINE			0
+#define WM_GESTURE_RECT			1
+#define WM_GESTURE_CROSS_RECT	2
+#define WM_GESTURE_LASSO		3
+#define WM_GESTURE_CIRCLE		4
 
-#define GESTURE_RECT 0
+/* wmGesture is registered to window listbase, handled by operator callbacks */
+typedef struct wmGesture {
+	struct wmGesture *next, *prev;
+	int eventtype, mode;
+	int type, swinid;
+	
+	void *customdata;
+	/* customdata for border is a recti */
+	
+} wmGesture;
+
 
 /* ************** custom wmEvent data ************** */
 
@@ -133,11 +142,6 @@ typedef struct wmTabletData {
 	float Xtilt;		/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
 	float Ytilt;		/* as above */
 } wmTabletData;
-
-typedef struct wmBorderSelect {
-	short x1, y1;
-	short x2, y2;
-} wmBorderSelect;
 
 struct wmTimerHandle;
 typedef struct wmTimerHandle wmTimerHandle;
