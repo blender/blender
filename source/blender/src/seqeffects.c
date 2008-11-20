@@ -2007,8 +2007,8 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 		tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
 		ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
 	}else{
-		tx = xo*(scale->xIni/100.0)+(xo / 2.0f) + (xo*(scale->xFin/100.0)-(xo / 2.0f) - xo*(scale->xIni/100.0)+(xo / 2.0f)) * facf0;
-		ty = yo*(scale->yIni/100.0)+(yo / 2.0f) + (yo*(scale->yFin/100.0)-(yo / 2.0f) - yo*(scale->yIni/100.0)+(yo / 2.0f)) * facf0;
+		tx = xo*(scale->xIni/100.0f)+(xo / 2.0f) + (xo*(scale->xFin/100.0f)-(xo / 2.0f) - xo*(scale->xIni/100.0f)+(xo / 2.0f)) * facf0;
+		ty = yo*(scale->yIni/100.0f)+(yo / 2.0f) + (yo*(scale->yFin/100.0f)-(yo / 2.0f) - yo*(scale->yIni/100.0f)+(yo / 2.0f)) * facf0;
 	}
 
 	//factor Rotate
@@ -2036,12 +2036,17 @@ static void do_transform(Sequence * seq,float facf0, int x, int y,
 			ys += (yo / 2.0f);
 
 			//interpolate
-			if(scale->interpolation==0)
+			switch(scale->interpolation) {
+			case 0:
 				neareast_interpolation(ibuf1,out, xs,ys,xi,yi);
-			if(scale->interpolation==1)
+				break;
+			case 1:
 				bilinear_interpolation(ibuf1,out, xs,ys,xi,yi);
-			if(scale->interpolation==2)
+				break;
+			case 2:
 				bicubic_interpolation(ibuf1,out, xs,ys,xi,yi);
+				break;
+			}
 		}
 	}	
 

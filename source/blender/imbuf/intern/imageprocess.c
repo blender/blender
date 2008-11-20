@@ -80,16 +80,16 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 		}
 	}
 }
-static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char *outI, float *outF, int x, int y)
+static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **outF, int x, int y)
 
 {
 	int offset = ibuf->x * y * 4 + 4*x;
 	
 	if (ibuf->rect)
-		outI= (unsigned char *)ibuf->rect + offset;
+		*outI= (unsigned char *)ibuf->rect + offset;
 	
 	if (ibuf->rect_float)
-		outF= (float *)ibuf->rect_float + offset;
+		*outF= (float *)ibuf->rect_float + offset;
 }
 
 /**************************************************************************
@@ -226,7 +226,7 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
 	
 	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
 	
-	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	bicubic_interpolation_color(in, outI, outF, u, v);
 }
@@ -309,7 +309,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 	
 	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
 	
-	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	bilinear_interpolation_color(in, outI, outF, u, v);
 }
@@ -370,7 +370,7 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, i
 
 	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
 	
-	pixel_from_buffer(out, outI, outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
+	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	neareast_interpolation_color(in, outI, outF, x, y);
 }
