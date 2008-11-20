@@ -33,8 +33,8 @@
 #define BLI_JITTER_H 
 
 extern void	   BLI_initjit(float *jitarr, int num);
-extern void    BLI_jitterate1(float *jit1, float *jit2, int num, float rad1);
-extern void    BLI_jitterate2(float *jit1, float *jit2, int num, float rad2);
+extern void    BLI_jitterate1(float *jit1, float *jit2, int num, float _rad1);
+extern void    BLI_jitterate2(float *jit1, float *jit2, int num, float _rad2);
 
 #endif
 
