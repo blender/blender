@@ -5370,7 +5370,7 @@ char *get_vertexgroup_menustr(Object *ob)
 		qsort_ptr = MEM_callocN (defCount * sizeof (qsort_ptr[0]),
 								 "qsort_ptr");
 		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
-			printed = snprintf (qsort_ptr[index - 1], sizeof (dg->name), dg->name);
+			printed = snprintf (qsort_ptr[index - 1], sizeof (dg->name), "%s", dg->name);
 			snprintf (qsort_ptr[index - 1]+printed, 6+1, "%%x%d|", index); // +1 to move the \0   see above 999 max here too
 		}
 		
