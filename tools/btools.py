@@ -19,13 +19,15 @@ BoolVariable = SCons.Variables.BoolVariable
 def print_arguments(args, bc):
 	if len(args):
 		for k,v in args.iteritems():
+			if type(v)==list:
+				v = ' '.join(v)
 			print '\t'+bc.OKBLUE+k+bc.ENDC+' = '+bc.OKGREEN + v + bc.ENDC
 	else:
 		print '\t'+bc.WARNING+'No  command-line arguments given'+bc.ENDC
 
 def validate_arguments(args, bc):
 	opts_list = [
-			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'BF_PYTHON_LINKFLAGS', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
+			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
@@ -47,17 +49,11 @@ def validate_arguments(args, bc):
 			'WITH_BF_YAFRAY',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
-			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
+			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
 			'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
 			'WITH_BF_BINRELOC',
-			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
-			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
-			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
-			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
-			'C_WARN', 'CC_WARN', 'CXX_WARN',
-			'LLIBS', 'PLATFORM_LINKFLAGS',
 			'LCGDIR',
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
 			'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
@@ -72,7 +68,20 @@ def validate_arguments(args, bc):
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
 			]
-
+	
+	# Have options here that scons expects to be lists
+	opts_list_split = [
+			'BF_PYTHON_LINKFLAGS',
+			'BF_OPENGL_LINKFLAGS',
+			'CFLAGS', 'CCFLAGS', 'CXXFLAGS', 'CPPFLAGS',
+			'REL_CFLAGS', 'REL_CCFLAGS', 'REL_CXXFLAGS',
+			'BF_PROFILE_CFLAGS', 'BF_PROFILE_CCFLAGS', 'BF_PROFILE_CXXFLAGS', 'BF_PROFILE_LINKFLAGS',
+			'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
+			'C_WARN', 'CC_WARN', 'CXX_WARN',
+			'LLIBS', 'PLATFORM_LINKFLAGS',
+	]
+	
+	
 	arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
 			'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
 			'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
@@ -81,12 +90,13 @@ def validate_arguments(args, bc):
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
 			'BF_DOCDIR']
 
-	all_list = opts_list + arg_list
 	okdict = {}
 
 	for k,v in args.iteritems():
-		if k in all_list:
+		if (k in opts_list) or (k in arg_list):
 			okdict[k] = v
+		elif k in opts_list_split:
+			okdict[k] = v.split() # "" have alredy been stripped
 		else:
 			print '\t'+bc.WARNING+'Invalid argument: '+bc.ENDC+k+'='+v
 

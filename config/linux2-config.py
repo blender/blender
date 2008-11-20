@@ -193,7 +193,7 @@ CC_WARN = ['-Wall']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
-LLIBS = 'util c m dl pthread stdc++'
+LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 

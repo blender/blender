@@ -190,7 +190,7 @@ def setup_syslibs(lenv):
 	if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross'):
 		syslibs += Split(lenv['BF_PTHREADS_LIB'])
 
-	syslibs += Split(lenv['LLIBS'])
+	syslibs += lenv['LLIBS']
 
 	return syslibs
 

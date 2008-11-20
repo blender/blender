@@ -249,7 +249,7 @@ if len(B.quickdebug) > 0 and printdebug != 0:
 # remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
 if env['WITH_BF_STATICCXX']:
 	if 'stdc++' in env['LLIBS']:
-		env['LLIBS'] = env['LLIBS'].replace('stdc++', ' ')
+		env['LLIBS'].remove('stdc++')
 	else:
 		print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
 
