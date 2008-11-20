@@ -168,6 +168,12 @@ GHOST_WindowX11(
 	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
 	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
 	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+#if 1 // FRS_antialiasing
+	attributes[i++] = GLX_ACCUM_RED_SIZE;   attributes[i++] = 1;
+	attributes[i++] = GLX_ACCUM_GREEN_SIZE; attributes[i++] = 1;
+	attributes[i++] = GLX_ACCUM_BLUE_SIZE;  attributes[i++] = 1;
+	attributes[i++] = GLX_ACCUM_ALPHA_SIZE; attributes[i++] = 1;
+#endif
 	attributes[i] = None;
 	
 	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);

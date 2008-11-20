@@ -46,22 +46,34 @@ AGLContext GHOST_WindowCarbon::s_firstaglCtx = NULL;
 const GHOST_TInt32 GHOST_WindowCarbon::s_sizeRectSize = 16;
 #endif //GHOST_DRAW_CARBON_GUTTER
 
-static const GLint sPreferredFormatWindow[8] = {
+static const GLint sPreferredFormatWindow[16] = {
 AGL_RGBA,
 AGL_DOUBLEBUFFER,	
 AGL_ACCELERATED,
 AGL_DEPTH_SIZE,		32,
 AGL_AUX_BUFFERS,     1,
+#if 1 // FRS_antialiasing
+AGL_ACCUM_RED_SIZE,     16,
+AGL_ACCUM_GREEN_SIZE,   16,
+AGL_ACCUM_BLUE_SIZE,    16,
+AGL_ACCUM_ALPHA_SIZE,   16,
+#endif
 AGL_NONE,
 };
 
-static const GLint sPreferredFormatFullScreen[9] = {
+static const GLint sPreferredFormatFullScreen[17] = {
 AGL_RGBA,
 AGL_DOUBLEBUFFER,
 AGL_ACCELERATED,
 AGL_FULLSCREEN,
 AGL_DEPTH_SIZE,		32,
 AGL_AUX_BUFFERS,     1,
+#if 1 // FRS_antialiasing
+AGL_ACCUM_RED_SIZE,     16,
+AGL_ACCUM_GREEN_SIZE,   16,
+AGL_ACCUM_BLUE_SIZE,    16,
+AGL_ACCUM_ALPHA_SIZE,   16,
+#endif
 AGL_NONE,
 };
 

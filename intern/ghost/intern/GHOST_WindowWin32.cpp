@@ -84,7 +84,11 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
 	0, 0, 0, 0, 0, 0,               /* color bits (ignored) */
 	0,                              /* no alpha buffer */
 	0,                              /* alpha bits (ignored) */
+#if 1 // FRS_antialiasing
+	1,                              /* accumulation buffer */
+#else
 	0,                              /* no accumulation buffer */
+#endif
 	0, 0, 0, 0,                     /* accum bits (ignored) */
 	32,                             /* depth buffer */
 	0,                              /* no stencil buffer */
@@ -491,6 +495,10 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 		// For debugging only: retrieve the pixel format chosen
 		PIXELFORMATDESCRIPTOR preferredFormat;
 		::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &preferredFormat);
+#if 1 // FRS_antialiasing
+		if (preferredFormat.cAccumBits > 0)
+			printf("Accumulation buffer enabled\n");
+#endif
 		// Create the context
 		m_hGlRc = ::wglCreateContext(m_hDC);
 		if (m_hGlRc) {
@@ -829,6 +837,9 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 		!(pfd.dwFlags & PFD_DRAW_TO_WINDOW) ||
 		!(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this */
 		( pfd.cDepthBits <= 8 ) ||
+#if 1 // FRS_antialiasing
+		!pfd.cAccumBits || /* for antialiasing in Freestyle */
+#endif
 		!(pfd.iPixelType == PFD_TYPE_RGBA) )
 		return 0;
 	
