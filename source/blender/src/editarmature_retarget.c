@@ -460,14 +460,14 @@ static void renameTemplateBone(char *name, char *template_name, ListBase *editbo
 	
 	for (i = 0, j = 0; template_name[i] != '\0' && i < 31 && j < 31; i++)
 	{
-		if (template_name[i] == '%')
+		if (template_name[i] == '&')
 		{
-			if (template_name[i+1] == 'S')
+			if (template_name[i+1] == 'S' || template_name[i+1] == 's')
 			{
 				j += sprintf(name + j, side_string);
 				i++;
 			}
-			else if (template_name[i+1] == 'N')
+			else if (template_name[i+1] == 'N' || template_name[i+1] == 'n')
 			{
 				j += sprintf(name + j, num_string);
 				i++;
