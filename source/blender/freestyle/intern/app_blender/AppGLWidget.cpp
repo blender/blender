@@ -39,8 +39,13 @@
 
 extern "C" {
 #include "BLI_blenlib.h"
+#include "BLI_jitter.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#if 1 // FRS_antialiasing
+#include "BKE_global.h"
+#include "DNA_scene_types.h"
+#endif
 }
 
 // glut.h must be included last to avoid a conflict with stdlib.h on vc .net 2003 and 2005
@@ -439,6 +444,23 @@ void AppGLWidget::releaseCanvas()
   glPopAttrib();
 }
 
+#if 1 // FRS_antialiasing
+
+void AppGLWidget::init_jit(int osa)
+{
+  static float cache[32][2]; /* simple caching */
+  static int lastjit= 0;
+	
+  if(lastjit != osa) {
+	memset(cache, 0, sizeof(cache));
+	BLI_initjit(cache[0], osa);
+  }
+  lastjit= osa;
+  memcpy(jit, cache, sizeof(jit));
+}
+
+#endif
+
 void AppGLWidget::Draw2DScene(SceneVisitor *iRenderer)
 {
   static bool first = 1;
@@ -473,7 +495,29 @@ void AppGLWidget::Draw2DScene(SceneVisitor *iRenderer)
       canvas->init();
       first = false;
     }
-    canvas->Render(canvas->renderer());
+#if 1 // FRS_antialiasing
+	if (!(G.scene->r.mode & R_OSA)) {
+#endif
+	  canvas->Render(canvas->renderer());
+#if 1 // FRS_antialiasing
+	} else {
+	  init_jit(G.scene->r.osa);
+	  GLint viewport[4];
+	  glGetIntegerv(GL_VIEWPORT, viewport);
+	  glClear(GL_ACCUM_BUFFER_BIT);
+	  for (int jitter = 0; jitter < G.scene->r.osa; jitter++) {
+		cout << "Antialiasing " << jitter+1 << "/" << G.scene->r.osa << endl;
+		glClear(GL_COLOR_BUFFER_BIT);
+		glPushMatrix();
+		glTranslatef(jit[jitter][0]*(viewport[2]+viewport[3])/viewport[2],
+		             jit[jitter][1]*(viewport[2]+viewport[3])/viewport[3], 0.0);
+		canvas->Render(canvas->renderer());
+		glPopMatrix();
+		glAccum(GL_ACCUM, 1.0/G.scene->r.osa);
+	  }
+	  glAccum(GL_RETURN, 1.0);
+	}
+#endif
   }
   
   glLoadIdentity();
