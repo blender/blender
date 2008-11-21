@@ -47,6 +47,8 @@ struct wmLocal;
 struct bScreen;
 struct uiBlock;
 struct wmSubWindow;
+struct StructRNA;
+struct PointerRNA;
 
 /* windowmanager is saved, tag WMAN */
 typedef struct wmWindowManager {
@@ -132,8 +134,8 @@ typedef struct wmOperatorType {
 	/* panel for redo and repeat */
 	void *(*uiBlock)(struct wmOperator *);
 	
-	char *customname;	/* dna name */
-	void *customdata;	/* defaults */
+	/* rna for properties */
+	struct StructRNA *rna;
 	
 	short flag;
 
@@ -170,6 +172,7 @@ typedef struct wmOperator {
 	IDProperty *properties;
 
 	/* runtime */
+	struct PointerRNA *rna;
 	ListBase *modallist;
 } wmOperator;
 

@@ -42,6 +42,9 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "screen_intern.h"	/* own module include */
 
 /* ************** Exported Poll tests ********************** */
@@ -463,11 +466,8 @@ static int area_move_init (bContext *C, wmOperator *op)
 	int x, y;
 
 	/* required properties */
-	if(!(OP_get_int(op, "x", &x) && OP_get_int(op, "y", &y)))
-		return 0;
-
-	/* default properties */
-	OP_verify_int(op, "delta", 0, NULL);
+	x= RNA_int_get(op->rna, "x");
+	y= RNA_int_get(op->rna, "y");
 
 	/* setup */
 	actedge= screen_find_active_scredge(C->screen, x, y);
@@ -523,7 +523,7 @@ static void area_move_apply(bContext *C, wmOperator *op)
 	sAreaMoveData *md= op->customdata;
 	int delta;
 	
-	OP_get_int(op, "delta", &delta);
+	delta= RNA_int_get(op->rna, "delta");
 	area_move_apply_do(C, md->origval, delta, md->dir, md->bigger, md->smaller);
 }
 
@@ -552,8 +552,8 @@ static int area_move_exec(bContext *C, wmOperator *op)
 /* interaction callback */
 static int area_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	OP_verify_int(op, "x", event->x, NULL);
-	OP_verify_int(op, "y", event->y, NULL);
+	RNA_int_default(op->rna, "x", event->x);
+	RNA_int_default(op->rna, "y", event->y);
 
 	if(!area_move_init(C, op)) 
 		return OPERATOR_PASS_THROUGH;
@@ -568,7 +568,7 @@ static int area_move_cancel(bContext *C, wmOperator *op)
 {
 	WM_event_remove_modal_handler(&C->window->handlers, op);				
 
-	OP_set_int(op, "delta", 0);
+	RNA_int_set(op->rna, "delta", 0);
 	area_move_apply(C, op);
 	area_move_exit(C, op);
 
@@ -583,14 +583,14 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	md= op->customdata;
 
-	OP_get_int(op, "x", &x);
-	OP_get_int(op, "y", &y);
+	x= RNA_int_get(op->rna, "x");
+	y= RNA_int_get(op->rna, "y");
 
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
 			delta= (md->dir == 'v')? event->x - x: event->y - y;
-			OP_set_int(op, "delta", delta);
+			RNA_int_set(op->rna, "delta", delta);
 
 			area_move_apply(C, op);
 			break;
@@ -612,6 +612,8 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void ED_SCR_OT_area_move(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Move area edges";
 	ot->idname= "ED_SCR_OT_area_move";
@@ -622,6 +624,11 @@ void ED_SCR_OT_area_move(wmOperatorType *ot)
 	ot->modal= area_move_modal;
 
 	ot->poll= ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
+
+	/* rna */
+	prop= RNA_def_property(ot->rna, "x", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->rna, "y", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->rna, "delta", PROP_INT, PROP_NONE);
 }
 
 /* ************** split area operator *********************************** */
@@ -687,8 +694,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 	if(C->area==NULL) return 0;
 	
 	/* required properties */
-	OP_verify_float(op, "fac", 0.5f, NULL);
-	OP_verify_int(op, "dir", 'h', &dir);
+	dir= RNA_enum_get(op->rna, "dir");
 	
 	/* minimal size */
 	if(dir=='v' && C->area->winx < 2*AREAMINX) return 0;
@@ -740,8 +746,8 @@ static void area_split_apply(bContext *C, wmOperator *op)
 	float fac;
 	int dir;
 	
-	OP_get_float(op, "fac", &fac);
-	OP_get_int(op, "dir", &dir);
+	fac= RNA_float_get(op->rna, "fac");
+	dir= RNA_enum_get(op->rna, "dir");
 
 	sd->narea= area_split(C->window, C->screen, sd->sarea, dir, fac);
 	
@@ -801,13 +807,13 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* prepare operator state vars */
 		if(sad->gesture_dir==AZONE_N || sad->gesture_dir==AZONE_S) {
 			dir= 'h';
-			OP_set_float(op, "fac", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
+			RNA_float_set(op->rna, "fac", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
 		}
 		else {
 			dir= 'v';
-			OP_set_float(op, "fac", ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
+			RNA_float_set(op->rna, "fac", ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
 		}
-		OP_set_int(op, "dir", dir);
+		RNA_enum_set(op->rna, "dir", dir);
 
 		/* general init, also non-UI case, adds customdata, sets area and defaults */
 		if(!area_split_init(C, op))
@@ -870,8 +876,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			
-			OP_get_int(op, "dir", &dir);
+			dir= RNA_enum_get(op->rna, "dir");
 			
 			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
 			area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
@@ -896,6 +901,9 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void ED_SCR_OT_area_split(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+    static EnumPropertyItem prop_direction_items[] = {{'h', "HORIZONTAL", "Horizontal"}, {'v', "VERTICAL", "Vertical"}, {0, NULL, NULL}};
+
 	ot->name = "Split area";
 	ot->idname = "ED_SCR_OT_area_split";
 	
@@ -904,6 +912,15 @@ void ED_SCR_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_screenactive; /* XXX should be area active */
+
+	/* rna */
+	prop= RNA_def_property(ot->rna, "dir", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_enum_default(prop, 'h');
+
+	prop= RNA_def_property(ot->rna, "fac", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_default(prop, 0.5f);
 }
 
 /* ************** join area operator ********************************************** */
@@ -956,10 +973,10 @@ static int area_join_init(bContext *C, wmOperator *op)
 	int x2, y2;
 
 	/* required properties, make negative to get return 0 if not set by caller */
-	OP_verify_int(op, "x1", -100, &x1);
-	OP_verify_int(op, "y1", -100, &y1);
-	OP_verify_int(op, "x2", -100, &x2);
-	OP_verify_int(op, "y2", -100, &y2);
+	x1= RNA_int_get(op->rna, "x1");
+	y1= RNA_int_get(op->rna, "y1");
+	x2= RNA_int_get(op->rna, "x2");
+	y2= RNA_int_get(op->rna, "y2");
 	
 	sa1 = screen_areahascursor(C->screen, x1, y1);
 	sa2 = screen_areahascursor(C->screen, x2, y2);
@@ -1035,10 +1052,10 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* prepare operator state vars */
-		OP_set_int(op, "x1", sad->x);
-		OP_set_int(op, "y1", sad->y);
-		OP_set_int(op, "x2", event->x);
-		OP_set_int(op, "y2", event->y);
+		RNA_int_set(op->rna, "x1", sad->x);
+		RNA_int_set(op->rna, "y1", sad->y);
+		RNA_int_set(op->rna, "x2", event->x);
+		RNA_int_set(op->rna, "y2", event->y);
 
 		if(!area_join_init(C, op)) 
 			return OPERATOR_PASS_THROUGH;
@@ -1163,6 +1180,8 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 /* Operator for joining two areas (space types) */
 void ED_SCR_OT_area_join(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Join area";
 	ot->idname= "ED_SCR_OT_area_join";
@@ -1173,6 +1192,16 @@ void ED_SCR_OT_area_join(wmOperatorType *ot)
 	ot->modal= area_join_modal;
 
 	ot->poll= ED_operator_screenactive;
+
+	/* rna */
+	prop= RNA_def_property(ot->rna, "x1", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, -100);
+	prop= RNA_def_property(ot->rna, "y1", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, -100);
+	prop= RNA_def_property(ot->rna, "x2", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, -100);
+	prop= RNA_def_property(ot->rna, "y2", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, -100);
 }
 
 /* ************** border select operator (test only) ***************************** */

@@ -70,6 +70,8 @@
 
 #include "UI_interface.h"
 
+#include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -237,6 +239,8 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BLI_freelistN(&U.themes);
 // XXX	BIF_preview_free_dbase();
+
+	RNA_exit();
 	
 	MEM_freeN(C);
 	

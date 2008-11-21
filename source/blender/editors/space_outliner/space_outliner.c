@@ -511,6 +511,9 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 {
 	SpaceOops *soutliner= (SpaceOops *)sl;
 	SpaceOops *soutlinern= MEM_dupallocN(soutliner);
+
+	if(soutlinern->rnapath)
+		soutlinern->rnapath= MEM_dupallocN(soutlinern->rnapath);
 	
 	return (SpaceLink *)soutlinern;
 }

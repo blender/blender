@@ -31,6 +31,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_idprop.h"
+#include "BKE_utildefines.h"
 
 #include "DNA_ID.h"
 #include "DNA_windowmanager_types.h"
@@ -107,6 +108,48 @@ static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
 	return NULL;
 }
 
+static int rna_idproperty_verify_valid(PropertyRNA *prop, IDProperty *idprop)
+{
+	/* this verifies if the idproperty actually matches the property
+	 * description and otherwise removes it. this is to ensure that
+	 * rna property access is type safe, e.g. if you defined the rna
+	 * to have a certain array length you can count on that staying so */
+	
+	switch(idprop->type) {
+		case IDP_ARRAY:
+			if(prop->arraylength != idprop->len)
+				return 0;
+
+			if(idprop->subtype == IDP_FLOAT && prop->type != PROP_FLOAT)
+				return 0;
+			if(idprop->subtype == IDP_INT && !ELEM3(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
+				return 0;
+
+			break;
+		case IDP_INT:
+			if(!ELEM3(prop->type, PROP_BOOLEAN, PROP_INT, PROP_ENUM))
+				return 0;
+			break;
+		case IDP_FLOAT:
+		case IDP_DOUBLE:
+			if(prop->type != PROP_FLOAT)
+				return 0;
+			break;
+		case IDP_STRING:
+			if(prop->type != PROP_STRING)
+				return 0;
+			break;
+		case IDP_GROUP:
+			if(prop->type != PROP_POINTER)
+				return 0;
+			break;
+		default:
+			return 0;
+	}
+
+	return 1;
+}
+
 IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 {
 	/* This is quite a hack, but avoids some complexity in the API. we
@@ -117,8 +160,20 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 	 * pointer to the IDProperty. */
 
 	if((*prop)->magic == RNA_MAGIC) {
-		if((*prop)->flag & PROP_IDPROPERTY)
-			return rna_idproperty_find(ptr, (*prop)->identifier);
+		if((*prop)->flag & PROP_IDPROPERTY) {
+			IDProperty *idprop= rna_idproperty_find(ptr, (*prop)->identifier);
+
+			if(idprop && !rna_idproperty_verify_valid(*prop, idprop)) {
+				IDProperty *group= rna_idproperties_get(ptr->type, ptr->data, 0);
+
+				IDP_RemFromGroup(group, idprop);
+				IDP_FreeProperty(idprop);
+				MEM_freeN(idprop);
+				return NULL;
+			}
+
+			return idprop;
+		}
 		else
 			return NULL;
 	}

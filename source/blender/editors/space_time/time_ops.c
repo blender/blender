@@ -42,6 +42,9 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -50,11 +53,7 @@
 static int change_frame_init(bContext *C, wmOperator *op)
 {
 	SpaceTime *stime= C->area->spacedata.first;
-	int cfra;
 
-	if(!OP_get_int(op, "frame", &cfra))
-		return 0;
-	
 	stime->flag |= TIME_CFRA_NUM;
 	
 	return 1;
@@ -64,7 +63,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 {
 	int cfra;
 
-	OP_get_int(op, "frame", &cfra);
+	cfra= RNA_int_get(op->rna, "frame");
 
 	if(cfra < MINFRAME)
 		cfra= MINFRAME;
@@ -120,7 +119,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 
 static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	OP_verify_int(op, "frame", frame_from_event(C, event), NULL);
+	RNA_int_default(op->rna, "frame", frame_from_event(C, event));
 	change_frame_init(C, op);
 	change_frame_apply(C, op);
 
@@ -141,7 +140,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			OP_set_int(op, "frame", frame_from_event(C, event));
+			RNA_int_set(op->rna, "frame", frame_from_event(C, event));
 			change_frame_apply(C, op);
 			break;
 			
@@ -159,6 +158,8 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void ED_TIME_OT_change_frame(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Change frame";
 	ot->idname= "ED_TIME_OT_change_frame";
@@ -168,6 +169,9 @@ void ED_TIME_OT_change_frame(wmOperatorType *ot)
 	ot->invoke= change_frame_invoke;
 	ot->cancel= change_frame_cancel;
 	ot->modal= change_frame_modal;
+
+	/* rna */
+	prop= RNA_def_property(ot->rna, "frame", PROP_INT, PROP_NONE);
 }
 
 /* ************************** registration **********************************/

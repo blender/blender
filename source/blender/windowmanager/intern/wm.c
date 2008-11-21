@@ -53,7 +53,18 @@
 
 void wm_operator_free(wmOperator *op)
 {
-	OP_free_property(op);
+	if(op->properties) {
+		IDP_FreeProperty(op->properties);
+		
+		/* This need change, when the idprop code only
+		 * need call IDP_FreeProperty. (check BKE_idprop.h) */
+		MEM_freeN(op->properties);
+		op->properties= NULL;
+	}
+
+	if(op->rna)
+		MEM_freeN(op->rna);
+
 	MEM_freeN(op);
 }
 
@@ -62,6 +73,11 @@ void wm_operator_free(wmOperator *op)
 void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
 	int tot;
+
+	if(op->rna) {
+		MEM_freeN(op->rna);
+		op->rna= NULL;
+	}
 	
 	BLI_addtail(&wm->operators, op);
 	tot= BLI_countlist(&wm->operators);

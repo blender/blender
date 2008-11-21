@@ -46,6 +46,8 @@
 #include "ED_screen.h"
 #include "ED_area.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -289,6 +291,10 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
 
 		op->type= ot;
+
+		op->rna= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
+		op->rna->type= op->type->rna;
+		op->rna->data= op;
 
 		if(op->type->invoke)
 			retval= (*op->type->invoke)(C, op, event);

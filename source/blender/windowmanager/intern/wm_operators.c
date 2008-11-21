@@ -42,6 +42,9 @@
 #include "BKE_main.h"
 #include "BKE_idprop.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -70,7 +73,9 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	wmOperatorType *ot;
 	
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->rna= RNA_def_struct(&BLENDER_RNA, "", "Operator", "");
 	opfunc(ot);
+	RNA_def_struct_identifier(ot->rna, ot->idname, ot->name);
 	BLI_addtail(&global_ops, ot);
 }
 
@@ -144,10 +149,10 @@ static void border_select_apply(bContext *C, wmOperator *op)
 	rcti *rect= gesture->customdata;
 	
 	/* operator arguments and storage. */
-	OP_verify_int(op, "xmin", rect->xmin, NULL);
-	OP_verify_int(op, "ymin", rect->ymin, NULL);
-	OP_verify_int(op, "xmax", rect->xmax, NULL);
-	OP_verify_int(op, "ymax", rect->ymax, NULL);
+	RNA_int_default(op->rna, "xmin", rect->xmin);
+	RNA_int_default(op->rna, "ymin", rect->ymin);
+	RNA_int_default(op->rna, "xmax", rect->xmax);
+	RNA_int_default(op->rna, "ymax", rect->ymax);
 	
 	op->type->exec(C, op);
 }
