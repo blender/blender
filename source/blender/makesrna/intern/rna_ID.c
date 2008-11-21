@@ -53,180 +53,96 @@ static void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(id->name+2, value, sizeof(id->name)-2);
 }
 
-/* ID properties */
-
-static void rna_IDProperty_string_get(PointerRNA *ptr, char *value)
+static StructRNA *rna_ID_refine(PointerRNA *ptr)
 {
-	IDProperty *prop= (IDProperty*)ptr->data;
-	strcpy(value, IDP_String(prop));
-}
+	ID *id= (ID*)ptr->data;
 
-static int rna_IDProperty_string_length(PointerRNA *ptr)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return strlen(IDP_String(prop));
-}
-
-static void rna_IDProperty_string_set(PointerRNA *ptr, const char *value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	IDP_AssignString(prop, (char*)value);
-}
-
-static int rna_IDProperty_int_get(PointerRNA *ptr)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return IDP_Int(prop);
-}
-
-static void rna_IDProperty_int_set(PointerRNA *ptr, int value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	IDP_Int(prop)= value;
-}
-
-static int rna_IDProperty_intarray_get(PointerRNA *ptr, int index)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return ((int*)IDP_Array(prop))[index];
-}
-
-static void rna_IDProperty_intarray_set(PointerRNA *ptr, int index, int value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	((int*)IDP_Array(prop))[index]= value;
-}
-
-static float rna_IDProperty_float_get(PointerRNA *ptr)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return IDP_Float(prop);
-}
-
-static void rna_IDProperty_float_set(PointerRNA *ptr, float value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	IDP_Float(prop)= value;
-}
-
-static float rna_IDProperty_floatarray_get(PointerRNA *ptr, int index)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return ((float*)IDP_Array(prop))[index];
-}
-
-static void rna_IDProperty_floatarray_set(PointerRNA *ptr, int index, float value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	((float*)IDP_Array(prop))[index]= value;
-}
-
-static float rna_IDProperty_double_get(PointerRNA *ptr)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return (float)IDP_Double(prop);
-}
-
-static void rna_IDProperty_double_set(PointerRNA *ptr, float value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	IDP_Double(prop)= value;
-}
-
-static float rna_IDProperty_doublearray_get(PointerRNA *ptr, int index)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return (float)(((double*)IDP_Array(prop))[index]);
-}
-
-static void rna_IDProperty_doublearray_set(PointerRNA *ptr, int index, float value)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	((double*)IDP_Array(prop))[index]= value;
-}
-
-static void* rna_IDProperty_group_get(PointerRNA *ptr)
-{
-	IDProperty *prop= (IDProperty*)ptr->data;
-	return prop;
+	switch(GS(id->name)) {
+		case ID_LA: return &RNA_Lamp;
+		case ID_ME: return &RNA_Mesh;
+		case ID_OB: return &RNA_Object;
+		case ID_SCE: return &RNA_Scene;
+		case ID_WM: return &RNA_WindowManager;
+		default: return &RNA_ID;
+	}
 }
 
 #else
 
-static void RNA_def_ID_property(BlenderRNA *brna)
+static void rna_def_ID_properties(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
 	/* this is struct is used for holding the virtual
 	 * PropertyRNA's for ID properties */
-	srna= RNA_def_struct(brna, "IDProperty", "ID Property");
+	srna= RNA_def_struct(brna, "IDProperty", NULL, "ID Property");
 
 	/* IDP_STRING */
 	prop= RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
-	RNA_def_property_string_funcs(prop, "rna_IDProperty_string_get", "rna_IDProperty_string_length", "rna_IDProperty_string_set");
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	/* IDP_INT */
 	prop= RNA_def_property(srna, "int", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
-	RNA_def_property_int_funcs(prop, "rna_IDProperty_int_get", "rna_IDProperty_int_set");
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	prop= RNA_def_property(srna, "intarray", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
-	RNA_def_property_int_funcs(prop, "rna_IDProperty_intarray_get", "rna_IDProperty_intarray_set");
 
 	/* IDP_FLOAT */
 	prop= RNA_def_property(srna, "float", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
-	RNA_def_property_float_funcs(prop, "rna_IDProperty_float_get", "rna_IDProperty_float_set");
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	prop= RNA_def_property(srna, "floatarray", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
-	RNA_def_property_float_funcs(prop, "rna_IDProperty_floatarray_get", "rna_IDProperty_floatarray_set");
 
 	/* IDP_DOUBLE */
 	prop= RNA_def_property(srna, "double", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
-	RNA_def_property_float_funcs(prop, "rna_IDProperty_double_get", "rna_IDProperty_double_set");
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
 	prop= RNA_def_property(srna, "doublearray", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
-	RNA_def_property_float_funcs(prop, "rna_IDProperty_doublearray_get", "rna_IDProperty_doublearray_set");
 
 	/* IDP_GROUP */
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EXPORT|PROP_NOT_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_NOT_EDITABLE|PROP_IDPROPERTY);
 	RNA_def_property_struct_type(prop, "IDPropertyGroup");
-	RNA_def_property_pointer_funcs(prop, "rna_IDProperty_group_get", 0, 0);
 
 	/* IDP_ID -- not implemented yet in id properties */
 
 	/* ID property groups > level 0, since level 0 group is merged
 	 * with native RNA properties. the builtin_properties will take
 	 * care of the properties here */
-	srna= RNA_def_struct(brna, "IDPropertyGroup", "ID Property Group");
+	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL, "ID Property Group");
 }
 
-void RNA_def_ID(StructRNA *srna)
+void rna_def_ID(BlenderRNA *brna)
 {
+	StructRNA *srna;
 	PropertyRNA *prop;
 
+	srna= RNA_def_struct(brna, "ID", NULL, "ID");
 	RNA_def_struct_flag(srna, STRUCT_ID);
+	RNA_def_struct_funcs(srna, NULL, "rna_ID_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, "ID", "name");
 	RNA_def_property_ui_text(prop, "Name", "Object ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
+	RNA_def_property_string_maxlength(prop, 22);
 	RNA_def_struct_name_property(srna, prop);
 }
 
-void RNA_def_ID_types(BlenderRNA *brna)
+void RNA_def_ID(BlenderRNA *brna)
 {
-	RNA_def_ID_property(brna);
+	/* ID */
+	rna_def_ID(brna);
+
+	/* ID Properties */
+	rna_def_ID_properties(brna);
 }
 
 #endif

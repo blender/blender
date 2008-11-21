@@ -36,7 +36,9 @@ struct bContext;
 
 /* Function Callbacks */
 
-typedef void (*PropNotifyFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef void (*NotifyFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
+
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
 typedef int (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int index);
@@ -90,7 +92,7 @@ struct PropertyRNA {
 	unsigned int arraylength;
 	
 	/* callback for notifys on change */
-	PropNotifyFunc notify;
+	NotifyFunc notify;
 };
 
 /* Property Types */
@@ -208,6 +210,15 @@ struct StructRNA {
 
 	/* property to iterate over properties */
 	PropertyRNA *iteratorproperty;
+
+	/* struct this is derivedfrom */
+	struct StructRNA *from;
+
+	/* callback for notifys on change */
+	NotifyFunc notify;
+
+	/* function to give the more specific type */
+	StructRefineFunc refine; 
 
 	/* properties of this struct */
 	ListBase properties; 

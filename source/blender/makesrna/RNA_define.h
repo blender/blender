@@ -25,12 +25,7 @@
 #ifndef RNA_DEFINE_H
 #define RNA_DEFINE_H
 
-/* Functions used during preprocess, for defining the RNA.
- *
- * This is currently only used internally in the module, but should eventually
- * also become available outside of that, at runtime for python and plugins.
- * Where the result of such runtime RNA is stored and how it integrates needs
- * to be figured out still. */
+/* Functions used during preprocess and runtime, for defining the RNA. */
 
 #include "DNA_listBase.h"
 #include "RNA_types.h"
@@ -40,13 +35,16 @@
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+void RNA_exit(void);
 
 /* Struct */
 
-StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *name);
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from, const char *name);
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
+void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refine);
+void RNA_def_struct_identifier(StructRNA *srna, const char *identifier, const char *name);
 
 /* Property */
 
@@ -80,7 +78,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision);
 
-void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *readonly);
+void RNA_def_property_funcs(PropertyRNA *prop, const char *notify);
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set);

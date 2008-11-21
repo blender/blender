@@ -42,9 +42,7 @@ void RNA_def_mesh(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	/* mesh */
-	srna= RNA_def_struct(brna, "Mesh", "Mesh");
-
-	RNA_def_ID(srna);
+	srna= RNA_def_struct(brna, "Mesh", "ID", "Mesh");
 
 	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
@@ -52,7 +50,7 @@ void RNA_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
 
 	/* vertex */
-	srna= RNA_def_struct(brna, "MVert", "Mesh Vertex");
+	srna= RNA_def_struct(brna, "MVert", NULL, "Mesh Vertex");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Location", "Location of the vertex.");

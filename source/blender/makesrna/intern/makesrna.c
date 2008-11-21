@@ -100,6 +100,9 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 {
 	char *func;
 
+	if(prop->flag & PROP_IDPROPERTY)
+		return NULL;
+
 	if(!dp->dnastructname || !dp->dnaname) {
 		fprintf(stderr, "rna_def_property_get_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
 		DefRNA.error= 1;
@@ -195,6 +198,9 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 {
 	char *func;
 
+	if(prop->flag & PROP_IDPROPERTY)
+		return NULL;
+
 	if(!dp->dnastructname || !dp->dnaname) {
 		if(!(prop->flag & PROP_NOT_EDITABLE)) {
 			fprintf(stderr, "rna_def_property_set_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
@@ -266,6 +272,9 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 {
 	char *func= NULL;
 
+	if(prop->flag & PROP_IDPROPERTY)
+		return NULL;
+
 	if(prop->type == PROP_STRING) {
 		if(!dp->dnastructname || !dp->dnaname) {
 			fprintf(stderr, "rna_def_property_length_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
@@ -303,6 +312,9 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp)
 {
 	char *func;
+
+	if(prop->flag & PROP_IDPROPERTY)
+		return NULL;
 
 	if(!dp->dnastructname || !dp->dnaname) {
 		fprintf(stderr, "rna_def_property_begin_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
@@ -741,7 +753,12 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	if(prop) fprintf(f, "\t(PropertyRNA*)&rna_%s_%s, ", srna->identifier, prop->identifier);
 	else fprintf(f, "\tNULL, ");
 
-	fprintf(f, "\t(PropertyRNA*)&rna_%s_rna_properties,\n", srna->identifier);
+	fprintf(f, "(PropertyRNA*)&rna_%s_rna_properties,\n", srna->identifier);
+
+	if(srna->from) fprintf(f, "\t&RNA_%s,\n", (char*)srna->from);
+	else fprintf(f, "\tNULL,\n");
+
+	fprintf(f, "\t%s, %s,\n", rna_function_string(srna->notify), rna_function_string(srna->refine));
 
 	prop= srna->properties.first;
 	if(prop) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s, ", srna->identifier, prop->identifier);
@@ -762,13 +779,14 @@ typedef struct RNAProcessItem {
 } RNAProcessItem;
 
 RNAProcessItem PROCESS_ITEMS[]= {
-	{"rna_ID.c", RNA_def_ID_types},
+	{"rna_ID.c", RNA_def_ID},
 	{"rna_main.c", RNA_def_main},
 	{"rna_mesh.c", RNA_def_mesh},
 	{"rna_object.c", RNA_def_object},
 	{"rna_rna.c", RNA_def_rna},
 	{"rna_scene.c", RNA_def_scene},
 	{"rna_lamp.c", RNA_def_lamp},
+	{"rna_wm.c", RNA_def_wm},
 	{NULL, NULL}};
 
 static int rna_preprocess(char *basedirectory, FILE *f)
@@ -794,6 +812,10 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 	fprintf(f, "#include \"RNA_define.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");
 	fprintf(f, "#include \"rna_internal.h\"\n\n");
+
+	/* this is ugly, but we cannot have c files compiled for both
+	 * makesrna and blender with some build systems at the moment */
+	fprintf(f, "#include \"rna_define.c\"\n\n");
 
 	for(i=0; PROCESS_ITEMS[i].filename; i++)
 		if(PROCESS_ITEMS[i].define)

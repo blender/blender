@@ -34,40 +34,6 @@
 
 #ifdef RNA_RUNTIME
 
-static StructRNA *rna_Object_data_type(PointerRNA *ptr)
-{
-	Object *ob= (Object*)ptr->data;
-
-	switch(ob->type) {
-		case OB_EMPTY:
-			return NULL;
-		case OB_MESH:
-			return &RNA_Mesh;
-		case OB_LAMP:
-			return &RNA_Lamp;
-#if 0
-		case OB_CURVE:
-			return &RNA_Curve;
-		case OB_SURF:
-			return &RNA_Surface;
-		case OB_FONT:
-			return &RNA_Font;
-		case OB_MBALL:
-			return &RNA_MBall;
-		case OB_LAMP:
-			return &RNA_Lamp;
-		case OB_CAMERA:
-			return &RNA_Camera;
-		case OB_WAVE:
-			return &RNA_Wave;
-		case OB_LATTICE:
-			return &RNA_Lattice;
-#endif
-		default:
-			return NULL;
-	}
-}
-
 #else
 
 void RNA_def_object(BlenderRNA *brna)
@@ -75,12 +41,10 @@ void RNA_def_object(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "Object", "Object");
-
-	RNA_def_ID(srna);
+	srna= RNA_def_struct(brna, "Object", "ID", "Object");
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_data_type", NULL);
+	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Data", "Object data.");
 
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);

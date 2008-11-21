@@ -96,7 +96,9 @@ typedef enum PropertyFlag {
 
 	/* internal flags */
 	PROP_BUILTIN = 128,
-	PROP_EXPORT = 256
+	PROP_EXPORT = 256,
+	PROP_RUNTIME = 512,
+	PROP_IDPROPERTY = 1024
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -120,7 +122,10 @@ typedef struct PropertyRNA PropertyRNA;
 
 typedef enum StructFlag {
 	/* indicates that this struct is an ID struct */
-	STRUCT_ID = 1
+	STRUCT_ID = 1,
+
+	/* internal flags */
+	STRUCT_RUNTIME = 2
 } StructFlag;
 
 struct StructRNA;

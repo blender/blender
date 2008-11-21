@@ -30,12 +30,23 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
+#include "BKE_idprop.h"
+
 #include "DNA_ID.h"
+#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_types.h"
 
 #include "rna_internal.h"
+
+/* Exit */
+
+void RNA_exit()
+{
+	RNA_free(&BLENDER_RNA);
+}
 
 /* Pointer */
 
@@ -61,6 +72,41 @@ static void rna_pointer_inherit_id(PointerRNA *parent, PointerRNA *ptr)
 
 /* ID Properties */
 
+IDProperty *rna_idproperties_get(StructRNA *type, void *data, int create)
+{
+	if(type->flag & STRUCT_ID)
+		return IDP_GetProperties(data, create);
+	else if(type == &RNA_IDPropertyGroup)
+		return data;
+	else if(type->from == &RNA_Operator) {
+		wmOperator *op= (wmOperator*)data;
+
+		if(create && !op->properties) {
+			IDPropertyTemplate val;
+			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
+			op->properties= IDP_New(IDP_GROUP, val, "property");
+		}
+
+		return op->properties;
+	}
+	else
+		return NULL;
+}
+
+static IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
+{
+	IDProperty *group= rna_idproperties_get(ptr->type, ptr->data, 0);
+	IDProperty *idprop;
+
+	if(group) {
+		for(idprop=group->data.group.first; idprop; idprop=idprop->next)
+			if(strcmp(idprop->name, name) == 0)
+				return idprop;
+	}
+	
+	return NULL;
+}
+
 IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 {
 	/* This is quite a hack, but avoids some complexity in the API. we
@@ -70,11 +116,14 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 	 * we look up an IDP PropertyRNA based on the type, and set the data
 	 * pointer to the IDProperty. */
 
-	/* these bytes have */
 	if((*prop)->magic == RNA_MAGIC) {
-		return 0;
+		if((*prop)->flag & PROP_IDPROPERTY)
+			return rna_idproperty_find(ptr, (*prop)->identifier);
+		else
+			return NULL;
 	}
-	else {
+
+	{
 		static PropertyRNA *typemap[IDP_NUMTYPES] =
 			{(PropertyRNA*)&rna_IDProperty_string,
 			 (PropertyRNA*)&rna_IDProperty_int,
@@ -89,16 +138,12 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			 NULL, NULL, NULL, NULL, NULL,
 			 (PropertyRNA*)&rna_IDProperty_doublearray};
 
-		IDProperty *idprop;
+		IDProperty *idprop= (IDProperty*)(*prop);
 
-		idprop= (IDProperty*)*prop;
 		if(idprop->type == IDP_ARRAY)
 			*prop= arraytypemap[(int)(idprop->subtype)];
 		else 
 			*prop= typemap[(int)(idprop->type)];
-
-		if(ptr)
-			ptr->data= idprop;
 
 		return idprop;
 	}
@@ -126,13 +171,35 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr)
 	return ptr->type->iteratorproperty;
 }
 
+PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
+{
+	CollectionPropertyIterator iter;
+	PropertyRNA *iterprop, *prop;
+	int i = 0;
+
+	iterprop= RNA_struct_iterator_property(ptr);
+	RNA_property_collection_begin(iterprop, &iter, ptr);
+	prop= NULL;
+
+	for(; iter.valid; RNA_property_collection_next(iterprop, &iter), i++) {
+		if(strcmp(identifier, RNA_property_identifier(iter.ptr.data, &iter.ptr)) == 0) {
+			prop= iter.ptr.data;
+			break;
+		}
+	}
+
+	RNA_property_collection_end(iterprop, &iter);
+
+	return prop;
+}
+
 /* Property Information */
 
 const char *RNA_property_identifier(PropertyRNA *prop, PointerRNA *ptr)
 {
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, NULL)))
+	if((idprop=rna_idproperty_check(&prop, ptr)))
 		return idprop->name;
 	else
 		return prop->identifier;
@@ -140,14 +207,14 @@ const char *RNA_property_identifier(PropertyRNA *prop, PointerRNA *ptr)
 
 PropertyType RNA_property_type(PropertyRNA *prop, PointerRNA *ptr)
 {
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 
 	return prop->type;
 }
 
 PropertySubType RNA_property_subtype(PropertyRNA *prop, PointerRNA *ptr)
 {
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 
 	return prop->subtype;
 }
@@ -156,7 +223,7 @@ int RNA_property_array_length(PropertyRNA *prop, PointerRNA *ptr)
 {
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, NULL)) && idprop->type==IDP_ARRAY)
+	if((idprop=rna_idproperty_check(&prop, ptr)) && idprop->type==IDP_ARRAY)
 		return idprop->len;
 	else
 		return prop->arraylength;
@@ -166,7 +233,7 @@ void RNA_property_int_range(PropertyRNA *prop, PointerRNA *ptr, int *hardmin, in
 {
 	IntPropertyRNA *iprop;
 	
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	iprop= (IntPropertyRNA*)prop;
 
 	*hardmin= iprop->hardmin;
@@ -177,7 +244,7 @@ void RNA_property_int_ui_range(PropertyRNA *prop, PointerRNA *ptr, int *softmin,
 {
 	IntPropertyRNA *iprop;
 	
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	iprop= (IntPropertyRNA*)prop;
 
 	*softmin= iprop->softmin;
@@ -189,7 +256,7 @@ void RNA_property_float_range(PropertyRNA *prop, PointerRNA *ptr, float *hardmin
 {
 	FloatPropertyRNA *fprop;
 
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	fprop= (FloatPropertyRNA*)prop;
 
 	*hardmin= fprop->hardmin;
@@ -200,7 +267,7 @@ void RNA_property_float_ui_range(PropertyRNA *prop, PointerRNA *ptr, float *soft
 {
 	FloatPropertyRNA *fprop;
 
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	fprop= (FloatPropertyRNA*)prop;
 
 	*softmin= fprop->softmin;
@@ -213,7 +280,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop, PointerRNA *ptr)
 {
 	StringPropertyRNA *sprop;
 	
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	sprop= (StringPropertyRNA*)prop;
 
 	return sprop->maxlength;
@@ -223,7 +290,7 @@ void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const EnumPrope
 {
 	EnumPropertyRNA *eprop;
 
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
 	*item= eprop->item;
@@ -232,9 +299,10 @@ void RNA_property_enum_items(PropertyRNA *prop, PointerRNA *ptr, const EnumPrope
 
 const char *RNA_property_ui_name(PropertyRNA *prop, PointerRNA *ptr)
 {
+	PropertyRNA *oldprop= prop;
 	IDProperty *idprop;
 
-	if((idprop=rna_idproperty_check(&prop, NULL)))
+	if((idprop=rna_idproperty_check(&prop, ptr)) && oldprop!=prop)
 		return idprop->name;
 	else
 		return prop->name;
@@ -242,7 +310,9 @@ const char *RNA_property_ui_name(PropertyRNA *prop, PointerRNA *ptr)
 
 const char *RNA_property_ui_description(PropertyRNA *prop, PointerRNA *ptr)
 {
-	if(rna_idproperty_check(&prop, NULL))
+	PropertyRNA *oldprop= prop;
+
+	if(rna_idproperty_check(&prop, ptr) && oldprop!=prop)
 		return "";
 	else
 		return prop->description;
@@ -250,21 +320,21 @@ const char *RNA_property_ui_description(PropertyRNA *prop, PointerRNA *ptr)
 
 int RNA_property_editable(PropertyRNA *prop, PointerRNA *ptr)
 {
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 
 	return !(prop->flag & PROP_NOT_EDITABLE);
 }
 
 int RNA_property_evaluated(PropertyRNA *prop, PointerRNA *ptr)
 {
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 
 	return (prop->flag & PROP_EVALUATED);
 }
 
 void RNA_property_notify(PropertyRNA *prop, struct bContext *C, PointerRNA *ptr)
 {
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 
 	if(prop->notify)
 		prop->notify(C, ptr);
@@ -274,146 +344,258 @@ void RNA_property_notify(PropertyRNA *prop, struct bContext *C, PointerRNA *ptr)
 
 int RNA_property_boolean_get(PropertyRNA *prop, PointerRNA *ptr)
 {
-	BooleanPropertyRNA *bprop;
+	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	bprop= (BooleanPropertyRNA*)prop;
-
-	return bprop->get(ptr);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return IDP_Int(idprop);
+	else if(bprop->get)
+		return bprop->get(ptr);
+	else
+		return bprop->defaultvalue;
 }
 
 void RNA_property_boolean_set(PropertyRNA *prop, PointerRNA *ptr, int value)
 {
-	BooleanPropertyRNA *bprop;
+	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	bprop= (BooleanPropertyRNA*)prop;
-
-	if(bprop->set)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		IDP_Int(idprop)= value;
+	else if(bprop->set)
 		bprop->set(ptr, value);
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.i= value;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group)
+			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
+	}
 }
 
 int RNA_property_boolean_get_array(PropertyRNA *prop, PointerRNA *ptr, int index)
 {
-	BooleanPropertyRNA *bprop;
+	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	bprop= (BooleanPropertyRNA*)prop;
-
-	return bprop->getarray(ptr, index);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return ((int*)IDP_Array(idprop))[index];
+	else if(bprop->getarray)
+		return bprop->getarray(ptr, index);
+	else
+		return bprop->defaultarray[index];
 }
 
 void RNA_property_boolean_set_array(PropertyRNA *prop, PointerRNA *ptr, int index, int value)
 {
-	BooleanPropertyRNA *bprop;
+	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	bprop= (BooleanPropertyRNA*)prop;
-
-	if(bprop->setarray)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		((int*)IDP_Array(idprop))[index]= value;
+	else if(bprop->setarray)
 		bprop->setarray(ptr, index, value);
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.array.len= prop->arraylength;
+		val.array.type= IDP_INT;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group) {
+			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
+			IDP_AddToGroup(group, idprop);
+			memcpy(idprop->data.pointer, bprop->defaultarray, sizeof(int)*prop->arraylength);
+			((int*)idprop->data.pointer)[index]= value;
+		}
+	}
 }
 
 int RNA_property_int_get(PropertyRNA *prop, PointerRNA *ptr)
 {
-	IntPropertyRNA *iprop;
+	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	iprop= (IntPropertyRNA*)prop;
-
-	return iprop->get(ptr);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return IDP_Int(idprop);
+	else if(iprop->get)
+		return iprop->get(ptr);
+	else
+		return iprop->defaultvalue;
 }
 
 void RNA_property_int_set(PropertyRNA *prop, PointerRNA *ptr, int value)
 {
-	IntPropertyRNA *iprop;
+	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	iprop= (IntPropertyRNA*)prop;
-
-	if(iprop->set)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		IDP_Int(idprop)= value;
+	else if(iprop->set)
 		iprop->set(ptr, value);
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.i= value;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group)
+			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
+	}
 }
 
 int RNA_property_int_get_array(PropertyRNA *prop, PointerRNA *ptr, int index)
 {
-	IntPropertyRNA *iprop;
+	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	iprop= (IntPropertyRNA*)prop;
-
-	return iprop->getarray(ptr, index);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return ((int*)IDP_Array(idprop))[index];
+	else if(iprop->getarray)
+		return iprop->getarray(ptr, index);
+	else
+		return iprop->defaultarray[index];
 }
 
 void RNA_property_int_set_array(PropertyRNA *prop, PointerRNA *ptr, int index, int value)
 {
-	IntPropertyRNA *iprop;
+	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	iprop= (IntPropertyRNA*)prop;
-
-	if(iprop->setarray)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		((int*)IDP_Array(idprop))[index]= value;
+	else if(iprop->setarray)
 		iprop->setarray(ptr, index, value);
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.array.len= prop->arraylength;
+		val.array.type= IDP_INT;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group) {
+			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
+			IDP_AddToGroup(group, idprop);
+			memcpy(idprop->data.pointer, iprop->defaultarray, sizeof(int)*prop->arraylength);
+			((int*)idprop->data.pointer)[index]= value;
+		}
+	}
 }
 
 float RNA_property_float_get(PropertyRNA *prop, PointerRNA *ptr)
 {
-	FloatPropertyRNA *fprop;
+	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	fprop= (FloatPropertyRNA*)prop;
-
-	return fprop->get(ptr);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(idprop->type == IDP_FLOAT)
+			return IDP_Float(idprop);
+		else
+			return (float)IDP_Double(idprop);
+	}
+	else if(fprop->get)
+		return fprop->get(ptr);
+	else
+		return fprop->defaultvalue;
 }
 
 void RNA_property_float_set(PropertyRNA *prop, PointerRNA *ptr, float value)
 {
-	FloatPropertyRNA *fprop;
+	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	fprop= (FloatPropertyRNA*)prop;
-
-	if(fprop->set)
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(idprop->type == IDP_FLOAT)
+			IDP_Float(idprop)= value;
+		else
+			IDP_Double(idprop)= value;
+	}
+	else if(fprop->set) {
 		fprop->set(ptr, value);
+	}
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.f= value;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group)
+			IDP_AddToGroup(group, IDP_New(IDP_FLOAT, val, (char*)prop->identifier));
+	}
 }
 
 float RNA_property_float_get_array(PropertyRNA *prop, PointerRNA *ptr, int index)
 {
-	FloatPropertyRNA *fprop;
+	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	fprop= (FloatPropertyRNA*)prop;
-
-	return fprop->getarray(ptr, index);
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(idprop->type == IDP_FLOAT)
+			return ((float*)IDP_Array(idprop))[index];
+		else
+			return (float)(((double*)IDP_Array(idprop))[index]);
+	}
+	else if(fprop->getarray)
+		return fprop->getarray(ptr, index);
+	else
+		return fprop->defaultarray[index];
 }
 
 void RNA_property_float_set_array(PropertyRNA *prop, PointerRNA *ptr, int index, float value)
 {
-	FloatPropertyRNA *fprop;
+	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	fprop= (FloatPropertyRNA*)prop;
-
-	if(fprop->setarray)
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		if(idprop->type == IDP_FLOAT)
+			((float*)IDP_Array(idprop))[index]= value;
+		else
+			((double*)IDP_Array(idprop))[index]= value;
+	}
+	else if(fprop->setarray) {
 		fprop->setarray(ptr, index, value);
+	}
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.array.len= prop->arraylength;
+		val.array.type= IDP_FLOAT;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group) {
+			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
+			IDP_AddToGroup(group, idprop);
+			memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
+			((float*)idprop->data.pointer)[index]= value;
+		}
+	}
 }
 
 void RNA_property_string_get(PropertyRNA *prop, PointerRNA *ptr, char *value)
 {
-	StringPropertyRNA *sprop;
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	sprop= (StringPropertyRNA*)prop;
-
-	sprop->get(ptr, value);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		strcpy(value, IDP_String(idprop));
+	else if(sprop->get)
+		sprop->get(ptr, value);
+	else
+		strcpy(value, sprop->defaultvalue);
 }
 
 char *RNA_property_string_get_alloc(PropertyRNA *prop, PointerRNA *ptr, char *fixedbuf, int fixedlen)
 {
 	char *buf;
 	int length;
-
-	rna_idproperty_check(&prop, ptr);
 
 	length= RNA_property_string_length(prop, ptr);
 
@@ -429,56 +611,93 @@ char *RNA_property_string_get_alloc(PropertyRNA *prop, PointerRNA *ptr, char *fi
 
 int RNA_property_string_length(PropertyRNA *prop, PointerRNA *ptr)
 {
-	StringPropertyRNA *sprop;
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	sprop= (StringPropertyRNA*)prop;
-
-	return sprop->length(ptr);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return strlen(IDP_String(idprop));
+	else if(sprop->length)
+		return sprop->length(ptr);
+	else
+		return strlen(sprop->defaultvalue);
 }
 
 void RNA_property_string_set(PropertyRNA *prop, PointerRNA *ptr, const char *value)
 {
-	StringPropertyRNA *sprop;
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	sprop= (StringPropertyRNA*)prop;
-
-	if(sprop->set)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		IDP_AssignString(idprop, (char*)value);
+	else if(sprop->set)
 		sprop->set(ptr, value);
 }
 
 int RNA_property_enum_get(PropertyRNA *prop, PointerRNA *ptr)
 {
-	EnumPropertyRNA *eprop;
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	eprop= (EnumPropertyRNA*)prop;
-
-	return eprop->get(ptr);
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		return IDP_Int(idprop);
+	else if(eprop->get)
+		return eprop->get(ptr);
+	else
+		return eprop->defaultvalue;
 }
 
 void RNA_property_enum_set(PropertyRNA *prop, PointerRNA *ptr, int value)
 {
-	EnumPropertyRNA *eprop;
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	eprop= (EnumPropertyRNA*)prop;
-
-	if(eprop->set)
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		IDP_Int(idprop)= value;
+	else if(eprop->set) {
 		eprop->set(ptr, value);
+	}
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.i= value;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group)
+			IDP_AddToGroup(group, IDP_New(IDP_INT, val, (char*)prop->identifier));
+	}
+}
+
+static StructRNA *rna_property_pointer_type(PropertyRNA *prop, PointerRNA *ptr, PointerRNA *r_ptr)
+{
+	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	StructRNA *type;
+
+	if(pprop->type)
+		type= pprop->type(ptr);
+	else
+		type= pprop->structtype;
+	
+	if(type->refine)
+		type= type->refine(r_ptr);
+	
+	r_ptr->type= type;
+	return type;
 }
 
 void RNA_property_pointer_get(PropertyRNA *prop, PointerRNA *ptr, PointerRNA *r_ptr)
 {
-	PointerPropertyRNA *pprop;
+	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+	IDProperty *idprop;
 
-	rna_idproperty_check(&prop, ptr);
-	pprop= (PointerPropertyRNA*)prop;
+	if((idprop=rna_idproperty_check(&prop, ptr)))
+		r_ptr->data= idprop; /* for groups, data is idprop itself */
+	else if(pprop->get)
+		r_ptr->data= pprop->get(ptr);
+	else
+		r_ptr->data= NULL;
 
-	r_ptr->data= pprop->get(ptr);
-
-	if(r_ptr->data && (r_ptr->type= RNA_property_pointer_type(prop, ptr)))
+	if(r_ptr->data && rna_property_pointer_type(prop, ptr, r_ptr))
 		rna_pointer_inherit_id(ptr, r_ptr);
 	else
 		memset(r_ptr, 0, sizeof(*r_ptr));
@@ -486,51 +705,36 @@ void RNA_property_pointer_get(PropertyRNA *prop, PointerRNA *ptr, PointerRNA *r_
 
 void RNA_property_pointer_set(PropertyRNA *prop, PointerRNA *ptr, PointerRNA *ptr_value)
 {
-	PointerPropertyRNA *pprop;
-
-	rna_idproperty_check(&prop, ptr);
-	pprop= (PointerPropertyRNA*)prop;
+	PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
 	if(pprop->set)
 		pprop->set(ptr, ptr_value->data);
 }
 
-StructRNA *RNA_property_pointer_type(PropertyRNA *prop, PointerRNA *ptr)
+static StructRNA *rna_property_collection_type(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *r_ptr)
 {
-	PointerPropertyRNA *pprop;
-
-	rna_idproperty_check(&prop, ptr);
-	pprop= (PointerPropertyRNA*)prop;
-
-	if(pprop->type)
-		return pprop->type(ptr);
-	
-	return pprop->structtype;
-}
-
-static StructRNA *rna_property_collection_type(PropertyRNA *prop, CollectionPropertyIterator *iter)
-{
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, NULL);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	StructRNA *type;
 
 	if(cprop->type)
-		return cprop->type(iter);
+		type= cprop->type(iter);
+	else
+		type= cprop->structtype;
 	
-	return cprop->structtype;
+	if(type->refine)
+		type= type->refine(r_ptr);
+
+	r_ptr->type= type;
+	return type;
 }
 
 static void rna_property_collection_get(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, NULL);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	r_ptr->data= cprop->get(iter);
 
-	if(r_ptr->data && (r_ptr->type= rna_property_collection_type(prop, iter)))
+	if(r_ptr->data && rna_property_collection_type(prop, iter, r_ptr))
 		rna_pointer_inherit_id(&iter->parent, r_ptr);
 	else
 		memset(r_ptr, 0, sizeof(*r_ptr));
@@ -538,26 +742,24 @@ static void rna_property_collection_get(PropertyRNA *prop, CollectionPropertyIte
 
 void RNA_property_collection_begin(PropertyRNA *prop, CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	CollectionPropertyRNA *cprop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
-	rna_idproperty_check(&prop, ptr);
-	cprop= (CollectionPropertyRNA*)prop;
+	if(cprop->begin) {
+		iter->parent= *ptr;
+		cprop->begin(iter, ptr);
 
-	iter->parent= *ptr;
-	cprop->begin(iter, ptr);
-
-	if(iter->valid)
-		rna_property_collection_get(prop, iter, &iter->ptr);
+		if(iter->valid)
+			rna_property_collection_get(prop, iter, &iter->ptr);
+		else
+			memset(&iter->ptr, 0, sizeof(iter->ptr));
+	}
 	else
-		memset(&iter->ptr, 0, sizeof(iter->ptr));
+		memset(&iter, 0, sizeof(*iter));
 }
 
 void RNA_property_collection_next(PropertyRNA *prop, CollectionPropertyIterator *iter)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, NULL);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	cprop->next(iter);
 
@@ -569,10 +771,7 @@ void RNA_property_collection_next(PropertyRNA *prop, CollectionPropertyIterator 
 
 void RNA_property_collection_end(PropertyRNA *prop, CollectionPropertyIterator *iter)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, NULL);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if(cprop->end)
 		cprop->end(iter);
@@ -580,10 +779,7 @@ void RNA_property_collection_end(PropertyRNA *prop, CollectionPropertyIterator *
 
 int RNA_property_collection_length(PropertyRNA *prop, PointerRNA *ptr)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, ptr);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if(cprop->length) {
 		return cprop->length(ptr);
@@ -603,10 +799,7 @@ int RNA_property_collection_length(PropertyRNA *prop, PointerRNA *ptr)
 
 int RNA_property_collection_lookup_int(PropertyRNA *prop, PointerRNA *ptr, int key, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, ptr);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if(cprop->lookupint) {
 		/* we have a callback defined, use it */
@@ -647,10 +840,7 @@ int RNA_property_collection_lookup_int(PropertyRNA *prop, PointerRNA *ptr, int k
 
 int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-	CollectionPropertyRNA *cprop;
-
-	rna_idproperty_check(&prop, ptr);
-	cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if(cprop->lookupstring) {
 		/* we have a callback defined, use it */
@@ -1023,5 +1213,372 @@ char *RNA_path_back(const char *path)
 	result[i]= 0;
 
 	return result;
+}
+
+/* Quick name based property access */
+
+int RNA_boolean_get(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_boolean_get(prop, ptr);
+	}
+	else {
+		printf("RNA_boolean_get: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_boolean_set(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_boolean_set(prop, ptr, value);
+	else
+		printf("RNA_boolean_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_boolean_default(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name))
+			RNA_property_boolean_set(prop, ptr, value);
+
+		return RNA_property_boolean_get(prop, ptr);
+	}
+	else {
+		printf("RNA_boolean_default: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_boolean_get_array(PointerRNA *ptr, const char *name, int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			values[i]= RNA_property_boolean_get_array(prop, ptr, i);
+	}
+	else
+		printf("RNA_boolean_get_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_boolean_set_array(PointerRNA *ptr, const char *name, const int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			RNA_property_boolean_set_array(prop, ptr, i, values[i]);
+	}
+	else
+		printf("RNA_boolean_set_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_boolean_default_array(PointerRNA *ptr, const char *name, int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name)) {
+			length= RNA_property_array_length(prop, ptr);
+			for(i=0; i<length; i++)
+				RNA_property_boolean_set_array(prop, ptr, i, values[i]);
+		}
+		else
+			RNA_boolean_get_array(ptr, name, values);
+	}
+	else
+		printf("RNA_boolean_default_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_int_get(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_int_get(prop, ptr);
+	}
+	else {
+		printf("RNA_int_get: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_int_set(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_int_set(prop, ptr, value);
+	else
+		printf("RNA_int_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_int_default(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name))
+			RNA_property_int_set(prop, ptr, value);
+
+		return RNA_property_int_get(prop, ptr);
+	}
+	else {
+		printf("RNA_int_default: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_int_get_array(PointerRNA *ptr, const char *name, int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			values[i]= RNA_property_int_get_array(prop, ptr, i);
+	}
+	else
+		printf("RNA_int_get_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_int_set_array(PointerRNA *ptr, const char *name, const int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			RNA_property_int_set_array(prop, ptr, i, values[i]);
+	}
+	else
+		printf("RNA_int_set_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_int_default_array(PointerRNA *ptr, const char *name, int *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name)) {
+			length= RNA_property_array_length(prop, ptr);
+			for(i=0; i<length; i++)
+				RNA_property_int_set_array(prop, ptr, i, values[i]);
+		}
+		else
+			RNA_int_get_array(ptr, name, values);
+	}
+	else
+		printf("RNA_int_default_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+float RNA_float_get(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_float_get(prop, ptr);
+	}
+	else {
+		printf("RNA_float_get: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_float_set(PointerRNA *ptr, const char *name, float value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_float_set(prop, ptr, value);
+	else
+		printf("RNA_float_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+float RNA_float_default(PointerRNA *ptr, const char *name, float value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name))
+			RNA_property_float_set(prop, ptr, value);
+
+		return RNA_property_float_get(prop, ptr);
+	}
+	else {
+		printf("RNA_float_default: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_float_get_array(PointerRNA *ptr, const char *name, float *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			values[i]= RNA_property_float_get_array(prop, ptr, i);
+	}
+	else
+		printf("RNA_float_get_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		length= RNA_property_array_length(prop, ptr);
+		for(i=0; i<length; i++)
+			RNA_property_float_set_array(prop, ptr, i, values[i]);
+	}
+	else
+		printf("RNA_float_set_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_float_default_array(PointerRNA *ptr, const char *name, float *values)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	int i, length;
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name)) {
+			length= RNA_property_array_length(prop, ptr);
+			for(i=0; i<length; i++)
+				RNA_property_float_set_array(prop, ptr, i, values[i]);
+		}
+		else
+			RNA_float_get_array(ptr, name, values);
+	}
+	else 
+		printf("RNA_float_default_array: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_enum_get(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_enum_get(prop, ptr);
+	}
+	else {
+		printf("RNA_enum_get: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_enum_set(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_enum_set(prop, ptr, value);
+	else
+		printf("RNA_enum_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_enum_default(PointerRNA *ptr, const char *name, int value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name))
+			RNA_property_enum_set(prop, ptr, value);
+
+		return RNA_property_enum_get(prop, ptr);
+	}
+	else {
+		printf("RNA_enum_default: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_string_get(prop, ptr, value);
+	else
+		printf("RNA_string_get: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_string_get_alloc(prop, ptr, fixedbuf, fixedlen);
+	}
+	else {
+		printf("RNA_string_get_alloc: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+int RNA_string_length(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return RNA_property_string_length(prop, ptr);
+	}
+	else {
+		printf("RNA_string_length: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
+void RNA_string_set(PointerRNA *ptr, const char *name, const char *value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop)
+		RNA_property_string_set(prop, ptr, value);
+	else
+		printf("RNA_string_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_string_default(PointerRNA *ptr, const char *name, const char *value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		if(!rna_idproperty_find(ptr, name))
+			RNA_property_string_set(prop, ptr, value);
+	}
+	else
+		printf("RNA_string_default: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+int RNA_property_is_set(PointerRNA *ptr, const char *name)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		return (rna_idproperty_find(ptr, name) != NULL);
+	}
+	else {
+		printf("RNA_property_is_set: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
 }
 

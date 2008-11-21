@@ -68,12 +68,36 @@ typedef struct BlenderDefRNA {
 	struct SDNA *sdna;
 	ListBase structs;
 	ListBase allocs;
-	int error, silent;
+	struct StructRNA *laststruct;
+	int error, silent, preprocess;
 } BlenderDefRNA;
 
 extern BlenderDefRNA DefRNA;
 
 /* Define functions for all types */
+
+extern BlenderRNA BLENDER_RNA;
+
+extern StructRNA RNA_Lamp;
+extern StructRNA RNA_Main;
+extern StructRNA RNA_Mesh;
+extern StructRNA RNA_Object;
+extern StructRNA RNA_Operator;
+extern StructRNA RNA_Property;
+extern StructRNA RNA_Scene;
+extern StructRNA RNA_Struct;
+extern StructRNA RNA_WindowManager;
+
+void RNA_def_ID(struct BlenderRNA *brna);
+void RNA_def_lamp(struct BlenderRNA *brna);
+void RNA_def_main(struct BlenderRNA *brna);
+void RNA_def_mesh(struct BlenderRNA *brna);
+void RNA_def_object(struct BlenderRNA *brna);
+void RNA_def_rna(struct BlenderRNA *brna);
+void RNA_def_scene(struct BlenderRNA *brna);
+void RNA_def_wm(struct BlenderRNA *brna);
+
+/* ID Properties */
 
 extern StringPropertyRNA rna_IDProperty_string;
 extern IntPropertyRNA rna_IDProperty_int;
@@ -84,28 +108,20 @@ extern PointerPropertyRNA rna_IDProperty_group;
 extern FloatPropertyRNA rna_IDProperty_double;
 extern FloatPropertyRNA rna_IDProperty_doublearray;
 
-extern StructRNA RNA_Main;
-extern StructRNA RNA_Mesh;
-extern StructRNA RNA_Object;
-extern StructRNA RNA_Scene;
-extern StructRNA RNA_Lamp;
-extern StructRNA RNA_Struct;
+extern StructRNA RNA_IDProperty;
+extern StructRNA RNA_IDPropertyGroup;
 
-void RNA_def_ID(struct StructRNA *srna);
-void RNA_def_ID_types(struct BlenderRNA *brna);
-
-void RNA_def_main(struct BlenderRNA *brna);
-void RNA_def_mesh(struct BlenderRNA *brna);
-void RNA_def_object(struct BlenderRNA *brna);
-void RNA_def_rna(struct BlenderRNA *brna);
-void RNA_def_scene(struct BlenderRNA *brna);
-void RNA_def_lamp(struct BlenderRNA *brna);
-
-/* Internal Functions */
-
-void rna_def_builtin_properties(struct StructRNA *srna);
-
+struct IDProperty *rna_idproperties_get(struct StructRNA *type, void *data, int create);
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
+
+/* Builtin Property Callbacks */
+
+void rna_builtin_properties_begin(struct CollectionPropertyIterator *iter, struct PointerRNA *ptr);
+void rna_builtin_properties_next(struct CollectionPropertyIterator *iter);
+void *rna_builtin_properties_get(struct CollectionPropertyIterator *iter);
+void *rna_builtin_type_get(struct PointerRNA *ptr);
+
+/* Iterators */
 
 typedef struct ListBaseIterator {
 	Link *link;
@@ -131,6 +147,7 @@ void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 /* Duplicated code since we can't link in blenlib */
 
 void rna_addtail(struct ListBase *listbase, void *vlink);
+void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
 
 #endif /* RNA_INTERNAL_H */

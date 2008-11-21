@@ -57,16 +57,29 @@ static void *rna_Struct_name_property_get(PointerRNA *ptr)
 	return ((StructRNA*)ptr->data)->nameproperty;
 }
 
+static int rna_idproperty_known(CollectionPropertyIterator *iter)
+{
+	ListBaseIterator *internal= iter->internal;
+	IDProperty *idprop= (IDProperty*)internal->link;
+	PropertyRNA *prop;
+
+	for(prop= iter->parent.type->properties.first; prop; prop=prop->next)
+		if(strcmp(prop->identifier, idprop->name) == 0)
+			return 1;
+	
+	return 0;
+}
+
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
-	ID *id;
-	StructRNA *type;
 	IDProperty *group;
 
 	if(internal->flag) {
 		/* id properties */
-		rna_iterator_listbase_next(iter);
+		do {
+			rna_iterator_listbase_next(iter);
+		} while(iter->valid && rna_idproperty_known(iter));
 	}
 	else {
 		/* regular properties */
@@ -76,21 +89,16 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			type= iter->parent.id.type;
-			id= iter->parent.id.data;
-
-			if(iter->parent.type == &RNA_IDPropertyGroup)
-				group= iter->parent.data;
-			else if(iter->parent.data == id && type && (type->flag & STRUCT_ID))
-				group= IDP_GetProperties(id, 0);
-			else
-				group= NULL;
+			group= rna_idproperties_get(iter->parent.type, iter->parent.data, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
 				rna_iterator_listbase_begin(iter, &group->data.group);
 				internal= iter->internal;
 				internal->flag= 1;
+
+				if(iter->valid && rna_idproperty_known(iter))
+					rna_Struct_properties_next(iter);
 			}
 		}
 	}
@@ -116,26 +124,7 @@ static void *rna_Struct_properties_get(CollectionPropertyIterator *iter)
 	return internal->link;
 }
 
-static StructRNA *rna_Struct_properties_type(CollectionPropertyIterator *iter)
-{
-	ListBaseIterator *internal= iter->internal;
-	PropertyRNA *prop= (PropertyRNA*)internal->link;
-
-	rna_idproperty_check(&prop, NULL);
-
-	switch(prop->type) {
-		case PROP_BOOLEAN: return &RNA_BooleanProperty;
-		case PROP_INT: return &RNA_IntProperty;
-		case PROP_FLOAT: return &RNA_FloatProperty;
-		case PROP_STRING: return &RNA_StringProperty;
-		case PROP_ENUM: return &RNA_EnumProperty;
-		case PROP_POINTER: return &RNA_PointerProperty;
-		case PROP_COLLECTION: return &RNA_CollectionProperty;
-		default: return NULL;
-	}
-}
-
-static void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+void rna_builtin_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PointerRNA newptr;
 
@@ -155,172 +144,185 @@ static void rna_builtin_properties_begin(CollectionPropertyIterator *iter, Point
 	rna_Struct_properties_begin(iter, &newptr);
 }
 
-static void rna_builtin_properties_next(CollectionPropertyIterator *iter)
+void rna_builtin_properties_next(CollectionPropertyIterator *iter)
 {
 	rna_Struct_properties_next(iter);
 }
 
-static void *rna_builtin_properties_get(CollectionPropertyIterator *iter)
+void *rna_builtin_properties_get(CollectionPropertyIterator *iter)
 {
 	return rna_Struct_properties_get(iter);
 }
 
-static StructRNA *rna_builtin_properties_type(CollectionPropertyIterator *iter)
-{
-	return rna_Struct_properties_type(iter);
-}
-
-static void *rna_builtin_type_get(PointerRNA *ptr)
+void *rna_builtin_type_get(PointerRNA *ptr)
 {
 	return ptr->type;
 }
 
 /* Property */
 
+static StructRNA *rna_Property_refine(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+
+	rna_idproperty_check(&prop, ptr); /* XXX ptr? */
+
+	switch(prop->type) {
+		case PROP_BOOLEAN: return &RNA_BooleanProperty;
+		case PROP_INT: return &RNA_IntProperty;
+		case PROP_FLOAT: return &RNA_FloatProperty;
+		case PROP_STRING: return &RNA_StringProperty;
+		case PROP_ENUM: return &RNA_EnumProperty;
+		case PROP_POINTER: return &RNA_PointerProperty;
+		case PROP_COLLECTION: return &RNA_CollectionProperty;
+		default: return &RNA_Property;
+	}
+}
+
 static void rna_Property_identifier_get(PointerRNA *ptr, char *value)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	strcpy(value, ((PropertyRNA*)prop)->identifier);
 }
 
 static int rna_Property_identifier_length(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return strlen(prop->identifier);
 }
 
 static void rna_Property_name_get(PointerRNA *ptr, char *value)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	strcpy(value, prop->name);
 }
 
 static int rna_Property_name_length(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return strlen(prop->name);
 }
 
 static void rna_Property_description_get(PointerRNA *ptr, char *value)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	strcpy(value, prop->description);
 }
 
 static int rna_Property_description_length(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return strlen(prop->description);
 }
 
 static int rna_Property_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return prop->type;
 }
 
 static int rna_Property_subtype_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return prop->subtype;
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return prop->arraylength;
 }
 
 static int rna_IntProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->hardmin;
 }
 
 static int rna_IntProperty_hard_max_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->hardmax;
 }
 
 static int rna_IntProperty_soft_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->softmin;
 }
 
 static int rna_IntProperty_soft_max_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->softmax;
 }
 
 static int rna_IntProperty_step_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((IntPropertyRNA*)prop)->step;
 }
 
 static float rna_FloatProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->hardmin;
 }
 
 static float rna_FloatProperty_hard_max_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->hardmax;
 }
 
 static float rna_FloatProperty_soft_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->softmin;
 }
 
 static float rna_FloatProperty_soft_max_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->softmax;
 }
 
 static float rna_FloatProperty_step_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->step;
 }
 
 static int rna_FloatProperty_precision_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((FloatPropertyRNA*)prop)->precision;
 }
 
 static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
@@ -329,7 +331,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
 
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
 	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem);
@@ -363,21 +365,53 @@ static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
 static void *rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((PointerPropertyRNA*)prop)->structtype;
 }
 
 static void *rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	rna_idproperty_check(&prop, NULL);
+	rna_idproperty_check(&prop, ptr);
 	return ((CollectionPropertyRNA*)prop)->structtype;
 }
 
 #else
 
-static void rna_def_property(StructRNA *srna)
+static void rna_def_struct(BlenderRNA *brna)
 {
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Struct", NULL, "Struct Definition");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Struct_name_get", "rna_Struct_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
+	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
+
+	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "StringProperty");
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Name Property", "Property that gives the name of the struct.");
+
+	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "Property");
+	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
+}
+
+static void rna_def_property(BlenderRNA *brna)
+{
+	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem type_items[] = {
 		{PROP_BOOLEAN, "BOOLEAN", "Boolean"},
@@ -397,6 +431,9 @@ static void rna_def_property(StructRNA *srna)
 		{PROP_MATRIX, "MATRIX", "Matrix"},
 		{PROP_ROTATION, "ROTATION", "Rotation"},
 		{0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "Property", NULL, "Property Definition");
+	RNA_def_struct_funcs(srna, NULL, "rna_Property_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -477,6 +514,16 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	}
 }
 
+static void rna_def_string_property(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL);
+	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited.");
+}
+
 static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -487,7 +534,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
 
-	srna= RNA_def_struct(brna, "EnumPropertyItem", "Enum Item Definition");
+	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL, "Enum Item Definition");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -523,87 +570,40 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
 void RNA_def_rna(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
-	/* StructRNA */
-	srna= RNA_def_struct(brna, "Struct", "Struct Definition");
+	/* Struct*/
+	rna_def_struct(brna);
 
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_string_funcs(prop, "rna_Struct_name_get", "rna_Struct_name_length", NULL);
-	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
-	RNA_def_struct_name_property(srna, prop);
-
-	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
-	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
-
-	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "StringProperty");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_name_property_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Name Property", "Property that gives the name of the struct.");
-
-	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_collection_funcs(prop, "rna_Struct_properties_begin", "rna_Struct_properties_next", "rna_iterator_listbase_end", "rna_Struct_properties_get", "rna_Struct_properties_type", 0, 0, 0);
-	RNA_def_property_ui_text(prop, "Properties", "Properties in the struct.");
+	/* Property */
+	rna_def_property(brna);
 
 	/* BooleanProperty */
-	srna= RNA_def_struct(brna, "BooleanProperty", "Boolean Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "BooleanProperty", "Property", "Boolean Definition");
 	rna_def_number_property(srna, PROP_BOOLEAN);
 
 	/* IntProperty */
-	srna= RNA_def_struct(brna, "IntProperty", "Int Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "IntProperty", "Property", "Int Definition");
 	rna_def_number_property(srna, PROP_INT);
 
 	/* FloatProperty */
-	srna= RNA_def_struct(brna, "FloatProperty", "Float Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "FloatProperty", "Property", "Float Definition");
 	rna_def_number_property(srna, PROP_FLOAT);
 
 	/* StringProperty */
-	srna= RNA_def_struct(brna, "StringProperty", "String Definition");
-	rna_def_property(srna);
-
-	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL);
-	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited.");
+	srna= RNA_def_struct(brna, "StringProperty", "Property", "String Definition");
+	rna_def_string_property(srna);
 
 	/* EnumProperty */
-	srna= RNA_def_struct(brna, "EnumProperty", "Enum Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "EnumProperty", "Property", "Enum Definition");
 	rna_def_enum_property(brna, srna);
 
 	/* PointerProperty */
-	srna= RNA_def_struct(brna, "PointerProperty", "Pointer Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "PointerProperty", "Property", "Pointer Definition");
 	rna_def_pointer_property(srna, PROP_POINTER);
 
 	/* CollectionProperty */
-	srna= RNA_def_struct(brna, "CollectionProperty", "Collection Definition");
-	rna_def_property(srna);
+	srna= RNA_def_struct(brna, "CollectionProperty", "Property", "Collection Definition");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
-}
-
-void rna_def_builtin_properties(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop= RNA_def_property(srna, "rna_properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_BUILTIN);
-	RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", "rna_builtin_properties_type", 0, 0, 0);
-	RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");
-
-	prop= RNA_def_property(srna, "rna_type", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_builtin_type_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
 }
 
 #endif

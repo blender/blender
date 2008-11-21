@@ -194,13 +194,13 @@ static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->particle);
 }
+#endif
 
 static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->wm);
 }
-#endif
 
 #else
 
@@ -213,6 +213,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, 
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
+		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
 		{NULL, NULL, NULL, NULL, NULL},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
@@ -236,11 +237,10 @@ void RNA_def_main(BlenderRNA *brna)
 		{"nodegroups", "NodeGroup", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks."},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
 		{"particles", "Particle", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
-		{"windowmanagers", "wmWindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
 		{NULL, NULL, NULL, NULL, NULL}};
 	int i;
 	
-	srna= RNA_def_struct(brna, "Main", "Main");
+	srna= RNA_def_struct(brna, "Main", NULL, "Main");
 
 	for(i=0; lists[i][0]; i++)
 	{

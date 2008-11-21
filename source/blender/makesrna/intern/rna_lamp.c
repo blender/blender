@@ -33,7 +33,6 @@
 
 #ifdef RNA_RUNTIME
 
-
 #else
 
 void RNA_def_lamp(BlenderRNA *brna)
@@ -42,9 +41,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {{LA_LOCAL, "LOCAL", "Local"}, {LA_SUN, "SUN", "Sun"}, {LA_SPOT, "SPOT", "Spot"}, {LA_HEMI, "HEMI", "Hemi"}, {LA_AREA, "AREA", "Area"}, {0, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Lamp", "Lamp");
-
-	RNA_def_ID(srna);
+	srna= RNA_def_struct(brna, "Lamp", "ID", "Lamp");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
