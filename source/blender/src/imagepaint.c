@@ -178,6 +178,9 @@ typedef struct ImagePaintPartialRedraw {
 #define PROJ_BUCKET_INIT		1<<0
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
 
+/* vert flags */
+#define PROJ_VERT_CULL 1
+
 /* only for readability */
 #define PROJ_BUCKET_LEFT	0
 #define PROJ_BUCKET_RIGHT	1
@@ -221,6 +224,7 @@ typedef struct ProjPaintState {
 	char *faceSeamFlags;				/* store info about faces, if they are initialized etc*/
 	float (*faceSeamUVs)[4][2];			/* expanded UVs for faces to use as seams */
 	LinkNode **vertFaces;				/* Only needed for when seam_bleed_px is enabled, use to find UV seams */
+	char *vertFlags;					/* store options per vert, now only store if the vert is pointing away from the view */
 #endif
 	int buckets_x;						/* The size of the bucket grid, the grid span's screen_min/screen_max so you can paint outsize the screen or with 2 brushes at once */
 	int buckets_y;
@@ -235,6 +239,7 @@ typedef struct ProjPaintState {
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short is_ortho;
+	short do_mask_normal;			/* mask out pixels based on their normals */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
 #endif
@@ -245,6 +250,7 @@ typedef struct ProjPaintState {
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
 	float viewDir[3];			/* View vector, use for do_backfacecull and for ray casting with an ortho viewport  */
+	float viewPos[3];			/* View location in object relative 3D space, so can compare to verts  */
 	
 	float screen_min[2];			/* 2D bounds for mesh verts on the screen's plane (screenspace) */
 	float screen_max[2]; 
@@ -278,8 +284,10 @@ typedef struct ProjPixel {
 	PixelStore origColor;
 	PixelPointer pixel;
 	
-	short image_index; /* if anyone wants to paint onto more then 32000 images they can bite me */
-	short bb_cell_index;
+	float mask;			/* for various reasons we may want to mask out painting onto this pixel */
+	
+	short image_index; /* if anyone wants to paint onto more then 32768 images they can bite me */
+	unsigned char bb_cell_index;
 } ProjPixel;
 
 typedef struct ProjPixelClone {
@@ -583,6 +591,19 @@ static void BarycentricWeightsSimplePersp2f(float v1[4], float v2[4], float v3[4
 	}
 }
 
+static VecWeightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
+}
+
+static Vec2Weightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+{
+	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
+	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
+}
+
 static float tri_depth_2d(float v1[3], float v2[3], float v3[3], float pt[2], float w[3])
 {
 	BarycentricWeightsSimple2f(v1,v2,v3,pt,w);
@@ -666,12 +687,10 @@ static int project_paint_PickColor(ProjPaintState *ps, float pt[2], float *rgba_
 	
 	tf = ps->dm_mtface + face_index;
 	
-	if (side==0) {
-		uv[0] = tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
-		uv[1] = tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
+	if (side == 0) {
+		Vec2Weightf(uv, tf->uv[0], tf->uv[1], tf->uv[2], w);
 	} else { /* QUAD */
-		uv[0] = tf->uv[0][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
-		uv[1] = tf->uv[0][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+		Vec2Weightf(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
 	
 	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
@@ -774,9 +793,8 @@ static int project_paint_PointOcclude(float pt[3], float v1[3], float v2[3], flo
 /* Check if a screenspace location is occluded by any other faces
  * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
  * and dosn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
-static int project_bucket_point_occluded(ProjPaintState *ps, int bucket_index, int orig_face, float pixelScreenCo[4])
+static int project_bucket_point_occluded(ProjPaintState *ps, LinkNode *bucketFace, int orig_face, float pixelScreenCo[4])
 {
-	LinkNode *node = ps->bucketFaces[bucket_index];
 	MFace *mf;
 	int face_index;
 	int isect_ret;
@@ -784,8 +802,8 @@ static int project_bucket_point_occluded(ProjPaintState *ps, int bucket_index, i
 	/* we could return 0 for 1 face buckets, as long as this function assumes
 	 * that the point its testing is only every originated from an existing face */
 	
-	while (node) {
-		face_index = (int)node->link;
+	while (bucketFace) {
+		face_index = (int)bucketFace->link;
 		
 		if (orig_face != face_index) {
 			
@@ -812,7 +830,7 @@ static int project_bucket_point_occluded(ProjPaintState *ps, int bucket_index, i
 				return 1; 
 			}
 		}
-		node = node->next;
+		bucketFace = bucketFace->next;
 	}
 	
 	return 0;
@@ -1151,20 +1169,19 @@ static void screen_px_from_ortho(
 		float w[3])
 {
 	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
-	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
-	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
-	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];	
+	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
 /* same as screen_px_from_ortho except we need to take into account
  * the perspective W coord for each vert */
 static void screen_px_from_persp(
 		ProjPaintState *ps, float uv[2],
-		float v1co[3], float v2co[3], float v3co[3], /* Worldspace coords */
+		float v1co[3], float v2co[3], float v3co[3], /* screenspace coords */
 		float uv1co[2], float uv2co[2], float uv3co[2],
 		float pixelScreenCo[4],
 		float w[3])
 {
+
 	float wtot_inv, wtot;
 	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	
@@ -1185,149 +1202,230 @@ static void screen_px_from_persp(
 	}
 	/* done re-weighting */
 	
+	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
+}
+
+#if 0
+static void screen_px_from_persp(
+		ProjPaintState *ps, float uv[2],
+		float v1co[3], float v2co[3], float v3co[3], /* Worldspace coords */
+		float uv1co[2], float uv2co[2], float uv3co[2],
+		float pixelScreenCo[4],
+		float w[3])
+{
+	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
 	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
 	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
-	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];	
+	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];
+	pixelScreenCo[3] = 1.0;
+	
+	Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
+	
+	// if( pixelScreenCo[3] > 0.001 ) { ??? TODO
+	/* screen space, not clamped */
+	pixelScreenCo[0] = (float)(curarea->winx/2.0)+(curarea->winx/2.0)*pixelScreenCo[0]/pixelScreenCo[3];	
+	pixelScreenCo[1] = (float)(curarea->winy/2.0)+(curarea->winy/2.0)*pixelScreenCo[1]/pixelScreenCo[3];
+	pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 }
+#endif
 
 
 /* Only run this function once for new ProjPixelClone's */
 #define IMA_CHAR_PX_SIZE 4
 
+
+/* run this outside project_paint_uvpixel_init since pixels with mask 0 dont need init */
+float project_paint_uvpixel_mask(
+		ProjPaintState *ps,
+		int face_index,
+		int side,
+		float w[3]
+) {
+	float mask;
+	/* calculate mask */
+	if (ps->do_mask_normal) {
+		MFace *mf = ps->dm_mface + face_index;
+		short *no1, *no2, *no3;
+		float no[3], angle;
+		no1 = ps->dm_mvert[mf->v1].no;
+		if (side==1) {
+			no2 = ps->dm_mvert[mf->v3].no;
+			no3 = ps->dm_mvert[mf->v4].no;
+		} else {
+			no2 = ps->dm_mvert[mf->v2].no;
+			no3 = ps->dm_mvert[mf->v3].no;
+		}
+		
+		no[0] = w[0]*no1[0] + w[1]*no2[0] + w[2]*no3[0];
+		no[1] = w[0]*no1[1] + w[1]*no2[1] + w[2]*no3[1];
+		no[2] = w[0]*no1[2] + w[1]*no2[2] + w[2]*no3[2];
+		Normalize(no);
+		
+		/* now we can use the normal as a mask */
+		if (ps->is_ortho) {
+			angle = NormalizedVecAngle2(ps->viewDir, no);
+		} else {
+			/* Annoying but for the perspective view we need to get the pixels location in 3D space :/ */
+			float viewDirPersp[3];
+			float *co1, *co2, *co3;
+			co1 = ps->dm_mvert[mf->v1].co;
+			if (side==1) {
+				co2 = ps->dm_mvert[mf->v3].co;
+				co3 = ps->dm_mvert[mf->v4].co;
+			} else {
+				co2 = ps->dm_mvert[mf->v2].co;
+				co3 = ps->dm_mvert[mf->v3].co;
+			}
+			viewDirPersp[0] = (ps->viewPos[0] - ( w[0]*co1[0] + w[1]*co2[0] + w[2]*co3[0] ));
+			viewDirPersp[1] = (ps->viewPos[1] - ( w[0]*co1[1] + w[1]*co2[1] + w[2]*co3[1] ));
+			viewDirPersp[2] = (ps->viewPos[2] - ( w[0]*co1[2] + w[1]*co2[2] + w[2]*co3[2] ));
+			Normalize(viewDirPersp);
+			
+			angle = NormalizedVecAngle2(viewDirPersp, no);
+		}
+		
+		if (angle >= M_PI_2) {
+			mask = 0.0f;
+		} else {
+			angle = 1.0f - (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask = ((angle*angle) + angle) * 0.5f; /* nice mix of normal value and power of 2 */
+		}
+		
+		
+	} else {
+		mask = 1.0f;
+	}
+	
+	return mask;
+}
+
 /* run this function when we know a bucket's, face's pixel can be initialized,
- * adding to the LinkList 'ps->bucketRect' */
-static void project_paint_uvpixel_init(ProjPaintState *ps, int thread_index, ImBuf *ibuf, short x, short y, int bucket_index, int face_index, int image_index, float pixelScreenCo[4], int side, float w[3])
-{
+ * return the ProjPixel which is added to 'ps->bucketRect[bucket_index]' */
+static ProjPixel *project_paint_uvpixel_init(
+		ProjPaintState *ps,
+		MemArena *arena,
+		ImBuf *ibuf,
+		short x, short y,
+		float mask,
+		int face_index,
+		int image_index,
+		float pixelScreenCo[4],
+		int side,
+		float w[3]
+) {
 	ProjPixel *projPixel;
 	short size;
 	
-	// printf("adding px (%d %d), (%f %f)\n", x,y,uv[0],uv[1]);
+	/* wrap pixel location */
+	x = x % ibuf->x;
+	if (x<0) x += ibuf->x;
+	y = y % ibuf->y;
+	if (y<0) y += ibuf->y;
 	
-	
-	/* Use screen_min to make (0,0) the bottom left of the bounds 
-	 * Then this can be used to index the bucket array */
-	
-	/* Is this UV visible from the view? - raytrace */
-	/* project_paint_PickFace is less complex, use for testing */
-	//if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == face_index) {
-	if (ps->do_occlude==0 || !project_bucket_point_occluded(ps, bucket_index, face_index, pixelScreenCo)) {
-		
-		/* wrap pixel location */
-		// printf(" %d %d", x, y);
-		x = x % ibuf->x;
-		if (x<0) x += ibuf->x;
-		y = y % ibuf->y;
-		if (y<0) y += ibuf->y;
-		// printf(" %d %d\n", x, y);
-		
-		
-		if (ps->tool==PAINT_TOOL_CLONE) {
-			if (ibuf->rect_float) {
-				size = sizeof(ProjPixelCloneFloat);
-			} else {
-				size = sizeof(ProjPixelClone);
-			}
-		} else if (ps->tool==PAINT_TOOL_SMEAR) {
-			size = sizeof(ProjPixelClone);
-		} else {
-			size = sizeof(ProjPixel);
-		}
-		
-		projPixel = (ProjPixel *)BLI_memarena_alloc(ps->arena_mt[thread_index], size);
-		
+	if (ps->tool==PAINT_TOOL_CLONE) {
 		if (ibuf->rect_float) {
-			projPixel->pixel.f_pt = ((( float * ) ibuf->rect_float) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
-			/* TODO float support for origColor */
+			size = sizeof(ProjPixelCloneFloat);
 		} else {
-			projPixel->pixel.ch_pt = ((( unsigned char * ) ibuf->rect) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
-			projPixel->origColor.uint = *projPixel->pixel.uint_pt;
+			size = sizeof(ProjPixelClone);
 		}
-		
-		/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
-		VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
-		
-		projPixel->x_px = x;
-		projPixel->y_px = y;
-		
-		/* which bounding box cell are we in? */
-		projPixel->bb_cell_index = ((int)((((float)x)/((float)ibuf->x)) * PROJ_BOUNDBOX_DIV)) + ((int)((((float)y)/((float)ibuf->y)) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
-		
-		/* done with view3d_project_float inline */
-		if (ps->tool==PAINT_TOOL_CLONE) {
-			if (ps->dm_mtface_clone) {
-				/* TODO - float buffer */
-				ImBuf *ibuf_other;
-				MTFace *tf_other = ps->dm_mtface_clone + face_index;
-				float *uvCo1, *uvCo2, *uvCo3; 
-				if (side==1) {
-					uvCo1 =  tf_other->uv[0];
-					uvCo2 =  tf_other->uv[2];
-					uvCo3 =  tf_other->uv[3];
-				} else {
-					uvCo1 =  tf_other->uv[0];
-					uvCo2 =  tf_other->uv[1];
-					uvCo3 =  tf_other->uv[2];
-				}
-				
-				((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
-				
-				if (tf_other->tpage && ( ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL) )) {
-					/* BKE_image_get_ibuf - TODO - this may be slow */
-						
-					float uv_other[2], x, y;
-					
-					uv_other[0] = w[0]*uvCo1[0] + w[1]*uvCo2[0] + w[2]*uvCo3[0];
-					uv_other[1] = w[0]*uvCo1[1] + w[1]*uvCo2[1] + w[2]*uvCo3[1];
-					
-					/* use */
-					x = (float)fmod(uv_other[0], 1.0f);
-					y = (float)fmod(uv_other[1], 1.0f);
-					
-					if (x < 0.0f) x += 1.0f;
-					if (y < 0.0f) y += 1.0f;
-					
-					x = x * ibuf_other->x - 0.5f;
-					y = y * ibuf_other->y - 0.5f;
-					
-					/* TODO - float buffer check */
-					bilinear_interpolation_color(ibuf_other, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL, x, y);
-				} else {
-					((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
-				}
-				
+	} else if (ps->tool==PAINT_TOOL_SMEAR) {
+		size = sizeof(ProjPixelClone);
+	} else {
+		size = sizeof(ProjPixel);
+	}
+	
+	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, size);
+	
+	if (ibuf->rect_float) {
+		projPixel->pixel.f_pt = ((( float * ) ibuf->rect_float) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
+		/* TODO float support for origColor */
+	} else {
+		projPixel->pixel.ch_pt = ((( unsigned char * ) ibuf->rect) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
+		projPixel->origColor.uint = *projPixel->pixel.uint_pt;
+	}
+	
+	/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
+	VECCOPY2D(projPixel->projCo2D, pixelScreenCo);
+	
+	projPixel->x_px = x;
+	projPixel->y_px = y;
+	
+	projPixel->mask = mask;
+	
+	/* which bounding box cell are we in?, needed for undo */
+	projPixel->bb_cell_index = ((int)((((float)x)/((float)ibuf->x)) * PROJ_BOUNDBOX_DIV)) + ((int)((((float)y)/((float)ibuf->y)) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
+	
+	
+	/* done with view3d_project_float inline */
+	if (ps->tool==PAINT_TOOL_CLONE) {
+		if (ps->dm_mtface_clone) {
+			/* TODO - float buffer */
+			ImBuf *ibuf_other;
+			MTFace *tf_other = ps->dm_mtface_clone + face_index;
+			float *uvCo1, *uvCo2, *uvCo3;
+			
+			uvCo1 =  tf_other->uv[0];
+			if (side==1) {
+				uvCo2 =  tf_other->uv[2];
+				uvCo3 =  tf_other->uv[3];
 			} else {
-				float co[2];
+				uvCo2 =  tf_other->uv[1];
+				uvCo3 =  tf_other->uv[2];
+			}
+			
+			((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+			
+			if (tf_other->tpage && ( ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL) )) {
+				/* BKE_image_get_ibuf - TODO - this may be slow */
+					
+				float uv_other[2], x, y;
 				
-				/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
-				/* TODO - possibly only run this for directly ativated buckets when cloning */
-				Vec2Subf(co, projPixel->projCo2D, ps->clone_offset);
+				Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
 				
-				/* no need to initialize the bucket, we're only checking buckets faces and for this
-				 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
-				if (ibuf->rect_float) {
-					if (!project_paint_PickColor(ps, co, ((ProjPixelCloneFloat *)projPixel)->clonepx_f, NULL, 1)) {
-						((ProjPixelCloneFloat *)projPixel)->clonepx_f[3] = 0; /* zero alpha - ignore */
-					}
-				} else {
-					if (!project_paint_PickColor(ps, co, NULL, ((ProjPixelClone *)projPixel)->clonepx.ch, 1)) {
-						((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0; /* zero alpha - ignore */
-					}
+				/* use */
+				x = (float)fmod(uv_other[0], 1.0f);
+				y = (float)fmod(uv_other[1], 1.0f);
+				
+				if (x < 0.0f) x += 1.0f;
+				if (y < 0.0f) y += 1.0f;
+				
+				x = x * ibuf_other->x - 0.5f;
+				y = y * ibuf_other->y - 0.5f;
+				
+				/* TODO - float buffer check */
+				bilinear_interpolation_color(ibuf_other, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL, x, y);
+			} else {
+				((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+			}
+			
+		} else {
+			float co[2];
+			
+			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
+			/* TODO - possibly only run this for directly ativated buckets when cloning */
+			Vec2Subf(co, projPixel->projCo2D, ps->clone_offset);
+			
+			/* no need to initialize the bucket, we're only checking buckets faces and for this
+			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
+			if (ibuf->rect_float) {
+				if (!project_paint_PickColor(ps, co, ((ProjPixelCloneFloat *)projPixel)->clonepx_f, NULL, 1)) {
+					((ProjPixelCloneFloat *)projPixel)->clonepx_f[3] = 0; /* zero alpha - ignore */
+				}
+			} else {
+				if (!project_paint_PickColor(ps, co, NULL, ((ProjPixelClone *)projPixel)->clonepx.ch, 1)) {
+					((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0; /* zero alpha - ignore */
 				}
 			}
 		}
-		
-#ifdef PROJ_DEBUG_PAINT
-		if (ibuf->rect_float)	((float *)projPixel->pixel)[1] = 0;
-		else					((char *)projPixel->pixel)[1] = 0;
-#endif
-		projPixel->image_index = image_index;
-		
-		BLI_linklist_prepend_arena(
-			&ps->bucketRect[ bucket_index ],
-			projPixel,
-			ps->arena_mt[thread_index]
-		);
 	}
+	
+#ifdef PROJ_DEBUG_PAINT
+	if (ibuf->rect_float)	((float *)projPixel->pixel)[1] = 0;
+	else					((char *)projPixel->pixel)[1] = 0;
+#endif
+	projPixel->image_index = image_index;
+	
+	return projPixel;
 }
 
 /* intersect two 2D boundboxes */
@@ -1482,32 +1580,27 @@ static void rect_to_uvspace(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
-	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);	
-	else					BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
-	bucket_bounds_uv[0][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-	bucket_bounds_uv[0][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
-	
+	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	Vec2Weightf(bucket_bounds_uv[0], uv1co, uv2co, uv3co, w);
+
 	//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
 	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else					BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	bucket_bounds_uv[1][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-	bucket_bounds_uv[1][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
-	
-	
+	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[1], uv1co, uv2co, uv3co, w);
+
 	uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
 	//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
 	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else			BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	bucket_bounds_uv[2][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-	bucket_bounds_uv[2][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];
-	
+	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[2], uv1co, uv2co, uv3co, w);
+
 	//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else					BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	bucket_bounds_uv[3][0] = uv1co[0]*w[0] + uv2co[0]*w[1] + uv3co[0]*w[2];
-	bucket_bounds_uv[3][1] = uv1co[1]*w[0] + uv2co[1]*w[1] + uv3co[1]*w[2];	
+	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[3], uv1co, uv2co, uv3co, w);
 }
 
 
@@ -1516,6 +1609,9 @@ static void rect_to_uvspace(
 static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bucket_index, int face_index, int image_index, float bucket_bounds[4], ImBuf *ibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
+	MemArena *arena = ps->arena_mt[thread_index];
+	LinkNode **bucketPixelNodes = ps->bucketRect + bucket_index;
+	LinkNode *bucketFaceNodes = ps->bucketFaces[bucket_index];
 	
 	MFace *mf = ps->dm_mface + face_index;
 	MTFace *tf = ps->dm_mtface + face_index;
@@ -1523,11 +1619,14 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	/* UV/pixel seeking data */
 	int x; /* Image X-Pixel */
 	int y;/* Image Y-Pixel */
+	float mask;
 	float uv[2]; /* Image floating point UV - same as x,y but from 0.0-1.0 */
 	
 	int min_px[2], max_px[2]; /* UV Bounds converted to int's for pixel */
 	int min_px_tf[2], max_px_tf[2]; /* UV Bounds converted to int's for pixel */
 	int min_px_bucket[2], max_px_bucket[2]; /* Bucket Bounds converted to int's for pixel */
+	
+	int side;
 	float *v1coSS, *v2coSS, *v3coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
 	
 	float *vCo[4]; /* vertex screenspace coords */
@@ -1536,7 +1635,6 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4];
-	int i;
 	
 	/* vars for getting uvspace bounds */
 	float bucket_bounds_uv[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
@@ -1545,7 +1643,7 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	float xhalfpx, yhalfpx;
 	float ibuf_xf = ibuf->x, ibuf_yf = ibuf->y;
 	
-	int has_x_isect = -1, has_isect = -1; /* for early loop exit */
+	int has_x_isect = 0, has_isect = 0; /* for early loop exit */
 	
 	
 	int i1,i2,i3;
@@ -1575,13 +1673,13 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 		
 		tf_uv_pxoffset[3][0] = tf->uv[3][0] - xhalfpx;
 		tf_uv_pxoffset[3][1] = tf->uv[3][1] - yhalfpx;
-		i = 1;
+		side = 1;
 	} else {
-		i = 0;
+		side = 0;
 	}
 	
 	do {
-		if (i==1) {
+		if (side==1) {
 			i1=0; i2=2; i3=3;
 		} else {
 			i1=0; i2=1; i3=2;
@@ -1625,9 +1723,26 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 							screen_px_from_ortho(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
 						} else {
 							screen_px_from_persp(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
+							//screen_px_from_persp(ps, uv, vCo[i1],vCo[i2],vCo[i3], uv1co,uv2co,uv3co, pixelScreenCo, w);
 						}
 						
-						project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo, i, w);
+						
+						
+						/* Is this UV visible from the view? - raytrace */
+						/* project_paint_PickFace is less complex, use for testing */
+						//if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == face_index) {
+						if (ps->do_occlude==0 || !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo)) {
+							
+							mask = project_paint_uvpixel_mask(ps, face_index, side, w);
+							
+							if (mask > 0.0f) {
+								BLI_linklist_prepend_arena(
+									bucketPixelNodes,
+									project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
+									arena
+								);
+							}
+						}
 						
 						has_x_isect = has_isect = 1;
 					} else if (has_x_isect) {
@@ -1636,13 +1751,17 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 					}
 				}
 				
+				
+#if 0			/* TODO - investigate why this dosnt work sometimes! it should! */
 				/* no intersection for this entire row, after some intersection above means we can quit now */
 				if (has_x_isect==0 && has_isect) { 
-					//break;
+					break;
 				}
+#endif
 			}
 		}
-	} while(i--);
+	} while(side--);
+	
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
 		int face_seam_flag;
@@ -1682,7 +1801,6 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 			float bucket_clip_edges[2][2]; /* store the screenspace coords of the face, clipped by the bucket's screen aligned rectangle */
 			float edge_verts_inset_clip[2][3];
 			int fidx1, fidx2; /* face edge pairs - loop throuh these ((0,1), (1,2), (2,3), (3,0)) or ((0,1), (1,2), (2,0)) for a tri */
-			int side;
 			
 			float seam_subsection[4][2];
 			float fac1, fac2, ftot;
@@ -1703,11 +1821,11 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 				vCoSS[3] = ps->screenCoords[ mf->v4 ];
 			
 			if (ps->is_ortho) {
-				if (mf->v4)	scale_quad(vCoSS, insetCos, 0.99999);
-				else		scale_tri(vCoSS, insetCos, 0.99999);
+				if (mf->v4)	scale_quad(vCoSS, insetCos, 0.99999f);
+				else		scale_tri(vCoSS, insetCos, 0.99999f);
 			} else {
-				if (mf->v4)	scale_quad(vCo, insetCos, 0.99999);
-				else		scale_tri(vCo, insetCos, 0.99999);
+				if (mf->v4)	scale_quad(vCo, insetCos, 0.99999f);
+				else		scale_tri(vCo, insetCos, 0.99999f);
 			}
 			
 			for (fidx1 = 0; fidx1 < (mf->v4 ? 4 : 3); fidx1++) {
@@ -1786,28 +1904,42 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 											pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 										
-										if (ps->dm_mtface_clone) {
-											/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
-											if (side) {
-												BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
-											} else {
-												BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+										if (ps->do_occlude==0 || !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo)) {
+											
+											/* Only bother calculating the weights if we intersect */
+											if (ps->do_mask_normal || ps->dm_mtface_clone) {
+												/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
+												if (side) {
+													BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
+												} else {
+													BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+												}
+												
+											}
+											
+											mask = project_paint_uvpixel_mask(ps, face_index, side, w);
+											
+											if (mask > 0.0f) {
+												BLI_linklist_prepend_arena(
+													bucketPixelNodes,
+													project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
+													arena
+												);
 											}
 											
 										}
-									
-										
-										project_paint_uvpixel_init(ps, thread_index, ibuf, x, y, bucket_index, face_index, image_index, pixelScreenCo, side, w); /* TODO - side */
 									} else if (has_x_isect) {
 										/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
 										break;
 									}
 								}
 								
+#if 0							/* TODO - investigate why this dosnt work sometimes! it should! */
 								/* no intersection for this entire row, after some intersection above means we can quit now */
 								if (has_x_isect==0 && has_isect) { 
 									break;
 								}
+#endif
 							}
 						}
 					}
@@ -1985,17 +2117,6 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, MFace *mf, MTFac
 		a = (*(&mf->v1 + i)); /* vertex index */
 		
 		DO_MINMAX2(ps->screenCoords[ a ], min, max);
-		
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-		/* add face user if we have bleed enabled, set the UV seam flags later */
-		if (ps->seam_bleed_px > 0.0f) {
-			BLI_linklist_prepend_arena(
-				&ps->vertFaces[ a ],
-				(void *)face_index, /* cast to a pointer to shut up the compiler */
-				ps->arena
-			);
-		}
-#endif
 	} while (i--);
 	
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -2040,9 +2161,9 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 {	
 	/* Viewport vars */
 	float mat[3][3];
-	float f_no[3];
-	float viewPos[3]; /* for projection only - view location */
 	float clipsta;
+	
+	float no[3];
 	
 	float (*projScreenCo)[4]; /* Note, we could have 4D vectors are only needed for */
 	float projMargin;
@@ -2059,7 +2180,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	MTFace *tf;
 	
 	int a, i; /* generic looping vars */
-	int image_index;
+	int image_index, face_index;
 	
 	/* memory sized to add to arena size */
 	int tot_bucketRectMem=0;
@@ -2068,6 +2189,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	int tot_bucketFacesMem=0;
 	int tot_bucketFlagsMem=0;
 	int tot_vertFacesMem=0;
+	int tot_vertFlagsMem=0;
 
 	/* ---- end defines ---- */
 	
@@ -2136,10 +2258,10 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 
 			Mat4MulVec4fl(ps->projectMat, (*projScreenCo));
 
-			if( (*projScreenCo)[3] > clipsta ) {
+			if ( (*projScreenCo)[3] > clipsta ) {
 				/* screen space, not clamped */
-				(*projScreenCo)[0] = (float)(curarea->winx/2.0f)+(curarea->winx/2.0)*(*projScreenCo)[0]/(*projScreenCo)[3];
-				(*projScreenCo)[1] = (float)(curarea->winy/2.0f)+(curarea->winy/2.0)*(*projScreenCo)[1]/(*projScreenCo)[3];
+				(*projScreenCo)[0] = (float)(curarea->winx/2.0f)+(curarea->winx/2.0f)*(*projScreenCo)[0]/(*projScreenCo)[3];
+				(*projScreenCo)[1] = (float)(curarea->winy/2.0f)+(curarea->winy/2.0f)*(*projScreenCo)[1]/(*projScreenCo)[3];
 				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
 				DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
 			} else {
@@ -2193,13 +2315,18 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	}
 #endif
 	
+	if (ps->do_backfacecull && ps->do_mask_normal) {
+		tot_vertFlagsMem = sizeof(char) * ps->dm_totvert;
+	}
+	
 	/* BLI_memarena_new uses calloc */
 	ps->arena =
 		BLI_memarena_new(	tot_bucketRectMem +
 							tot_bucketFacesMem +
 							tot_faceSeamFlagsMem +
 							tot_faceSeamUVMem +
-							tot_vertFacesMem + (1<<18));
+							tot_vertFacesMem +
+							tot_vertFlagsMem + (1<<18));
 	
 	BLI_memarena_use_calloc(ps->arena);
 	
@@ -2208,7 +2335,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	
 	ps->bucketFlags= (char *)BLI_memarena_alloc( ps->arena, tot_bucketFlagsMem);
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->seam_bleed_px > 0.0) {
+	if (ps->seam_bleed_px > 0.0f) {
 		ps->vertFaces= (LinkNode **)BLI_memarena_alloc( ps->arena, tot_vertFacesMem);
 		ps->faceSeamFlags = (char *)BLI_memarena_alloc( ps->arena, tot_faceSeamFlagsMem);
 		ps->faceSeamUVs= BLI_memarena_alloc( ps->arena, tot_faceSeamUVMem);
@@ -2221,7 +2348,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	// calloced - memset(ps->faceSeamFlags,0, tot_faceSeamFlagsMem);
 	
-	// calloced - if (ps->seam_bleed_px > 0.0) {
+	// calloced - if (ps->seam_bleed_px > 0.0f) {
 		// calloced - memset(ps->vertFaces,	0, tot_vertFacesMem);
 		/* TODO dosnt need zeroing? */
 		// calloced - memset(ps->faceSeamUVs,	0, tot_faceSeamUVMem);
@@ -2249,7 +2376,32 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	Mat3MulVecfl(mat, ps->viewDir);
 	Mat3CpyMat4(mat, ps->ob->imat);
 	Mat3MulVecfl(mat, ps->viewDir);
-
+	Normalize(ps->viewDir);
+	
+	if (ps->do_backfacecull && ps->do_mask_normal) {
+		MVert *v = ps->dm_mvert;
+		float viewDirPersp[3];
+		
+		ps->vertFlags = BLI_memarena_alloc( ps->arena, tot_vertFlagsMem);
+		
+		for(a=0; a < ps->dm_totvert; a++, v++) {
+			no[0] = (float)(v->no[0] / 32767.0f);
+			no[1] = (float)(v->no[1] / 32767.0f);
+			no[2] = (float)(v->no[2] / 32767.0f);
+			
+			if (ps->is_ortho) {
+				if (NormalizedVecAngle2(ps->viewDir, no) >= M_PI_2) { /* 1 vert of this face is towards us */
+					ps->vertFlags[a] |= PROJ_VERT_CULL;
+				}
+			} else {
+				VecSubf(viewDirPersp, ps->viewPos, v->co);
+				if (NormalizedVecAngle2(ps->viewDir, no) >= M_PI_2) { /* 1 vert of this face is towards us */
+					ps->vertFlags[a] |= PROJ_VERT_CULL;
+				}
+			}
+		}
+	}
+	
 	/* setup clone offset */
 	if (ps->tool == PAINT_TOOL_CLONE) {
 		float projCo[4];
@@ -2269,13 +2421,27 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	if (!ps->is_ortho) {
 		/* get the view direction relative to the objects matrix */
 		float imat[3][3];
-		VECCOPY(viewPos, G.vd->viewinv[3]);
+		VECCOPY(ps->viewPos, G.vd->viewinv[3]);
 		Mat3CpyMat4(imat, ps->ob->imat);
-		Mat3MulVecfl(imat, viewPos);
-		VecAddf(viewPos, viewPos, ps->ob->imat[3]);
+		Mat3MulVecfl(imat, ps->viewPos);
+		VecAddf(ps->viewPos, ps->viewPos, ps->ob->imat[3]);
 	}
 	
-	for( a = 0, tf = ps->dm_mtface, mf = ps->dm_mface; a < ps->dm_totface; mf++, tf++, a++ ) {
+	for( face_index = 0, tf = ps->dm_mtface, mf = ps->dm_mface; face_index < ps->dm_totface; mf++, tf++, face_index++ ) {
+		
+#ifndef PROJ_DEBUG_NOSEAMBLEED
+		/* add face user if we have bleed enabled, set the UV seam flags later */
+		/* annoying but we need to add all faces even ones we never use elsewhere */
+		if (ps->seam_bleed_px > 0.0f) {
+			BLI_linklist_prepend_arena( &ps->vertFaces[ mf->v1 ], (void *)face_index, ps->arena);
+			BLI_linklist_prepend_arena( &ps->vertFaces[ mf->v2 ], (void *)face_index, ps->arena);
+			BLI_linklist_prepend_arena( &ps->vertFaces[ mf->v3 ], (void *)face_index, ps->arena);
+			if (mf->v4) {
+				BLI_linklist_prepend_arena( &ps->vertFaces[ mf->v4 ], (void *)face_index, ps->arena);
+			}
+		}
+#endif
+		
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
 			
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS;
@@ -2325,14 +2491,32 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 			}
 			
 #endif //PROJ_DEBUG_WINCLIP
-
+	
+			
 			if (ps->do_backfacecull) {
-				/* TODO - we dont really need the normal, just the direction, save a sqrt? */
-				if (mf->v4)	CalcNormFloat4(v1coSS, v2coSS, v3coSS, v4coSS, f_no);
-				else		CalcNormFloat(v1coSS, v2coSS, v3coSS, f_no);
-				
-				if (f_no[2] < 0.0f) {
-					continue;
+				if (ps->do_mask_normal) {
+					/* Since we are interpolating the normals of faces, we want to make 
+					 * sure all the verts are pointing away from the view,
+					 * not just the face */
+					if (	(ps->vertFlags[mf->v1] & PROJ_VERT_CULL) &&
+							(ps->vertFlags[mf->v2] & PROJ_VERT_CULL) &&
+							(ps->vertFlags[mf->v3] & PROJ_VERT_CULL) &&
+							(mf->v4==0 || ps->vertFlags[mf->v4] & PROJ_VERT_CULL)
+							
+					) {
+						continue;
+					}
+				} else {
+					
+					/* TODO - we dont really need the normal, just the direction, save a sqrt? */
+					if (mf->v4)	CalcNormFloat4(v1coSS, v2coSS, v3coSS, v4coSS, no);
+					else		CalcNormFloat(v1coSS, v2coSS, v3coSS, no);
+					
+					if (no[2] < 0.0f) {
+						continue;
+					}
+					
+					
 				}
 			}
 			
@@ -2355,7 +2539,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 			if (ibuf) {
 				/* Initialize the faces screen pixels */
 				/* Add this to a list to initialize later */
-				project_paint_delayed_face_init(ps, mf, tf, a);
+				project_paint_delayed_face_init(ps, mf, tf, face_index);
 			}
 		}
 	}
@@ -3199,7 +3383,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					case PAINT_TOOL_CLONE:
 						if (is_floatbuf) {
 							if (((ProjPixelCloneFloat*)projPixel)->clonepx_f[3]) {
-								alpha = brush_sample_falloff(ps->brush, dist);
+								alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
 								
 								if (alpha >= 0.0f) {
 									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelCloneFloat *)projPixel)->clonepx_f, alpha, blend);
@@ -3207,7 +3391,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							}
 						} else {
 							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
-								alpha = brush_sample_falloff(ps->brush, dist);
+								alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
 								
 								if (alpha > 0.0f) {
 									*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
@@ -3219,7 +3403,8 @@ static void *do_projectpaint_thread(void *ph_v)
 						Vec2Subf(co, projPixel->projCo2D, pos_ofs);
 						if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)) { /* Note, no interpolation here, only needed for clone, nearest should be is OK??? - c */
 							brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
-							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
+							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist) * projPixel->mask; 
+							
 							/* drat! - this could almost be very simple if we ignore
 							 * the fact that applying the color directly gives feedback,
 							 * instead, collect the colors and apply after :/ */
@@ -3243,7 +3428,8 @@ static void *do_projectpaint_thread(void *ph_v)
 						break;
 					default:
 						brush_sample_tex(ps->brush, projPixel->projCo2D, rgba);
-						alpha = rgba[3]*brush_sample_falloff(ps->brush, dist);
+						alpha = rgba[3]*brush_sample_falloff(ps->brush, dist) * projPixel->mask;
+						
 						if (alpha > 0.0f) {
 							if (is_floatbuf) {
 								rgba[0] *= ps->brush->rgb[0];
@@ -3648,6 +3834,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		/* setup projection painting data */
 		ps.do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 		ps.do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
+		ps.do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;;
 		if (settings->imapaint.flag & IMAGEPAINT_PROJECT_CLONE_LAYER) {
 			ps.clone_layer = settings->imapaint.clone_layer;
 		} else {

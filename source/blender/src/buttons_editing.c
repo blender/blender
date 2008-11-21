@@ -6373,7 +6373,9 @@ static void editing_panel_mesh_paint(void)
 			/* Projection Painting */
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_XRAY, B_NOP, "Occlude",	xco+10,yco-70,butw,19, &settings->imapaint.flag, 0, 0, 0, 0, "Only paint onto the faces directly under the brush (slower)");
-			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_BACKFACE, B_NOP, "Backface Cull",	xco+10,yco-90,butw,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
+			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_BACKFACE, B_NOP, "Cull",	xco+10,yco-90,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
+			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_FLAT, B_NOP, "Normal",	xco+10+butw/2,yco-90,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
+			
 			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_IGNORE_SEAMS, B_NOP, "Bleed",	xco+10,yco-110,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 			uiDefButF(block, NUM, B_NOP, "", xco+10 + (butw/2),yco-110,butw/2,19, &settings->imapaint.seam_bleed, 2.0, 8.0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 			uiBlockEndAlign(block);
