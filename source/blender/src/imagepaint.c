@@ -591,14 +591,14 @@ static void BarycentricWeightsSimplePersp2f(float v1[4], float v2[4], float v3[4
 	}
 }
 
-static VecWeightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+static void VecWeightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 	p[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2];
 }
 
-static Vec2Weightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+static void Vec2Weightf(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
@@ -3409,7 +3409,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							 * the fact that applying the color directly gives feedback,
 							 * instead, collect the colors and apply after :/ */
 							
-#if 0								/* looks OK but not correct - also would need float buffer */
+#if 0						/* looks OK but not correct - also would need float buffer */
 							*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
 #endif
 							
@@ -3418,10 +3418,10 @@ static void *do_projectpaint_thread(void *ph_v)
 								/* TODO FLOAT */ /* Smear wont do float properly yet */
 								/* Note, alpha*255 makes pixels darker */
 								IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
+								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
 								BLI_linklist_prepend_arena( &smearPixels_float, (void *)projPixel, smearArena );
 							} else {
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
+								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
 								BLI_linklist_prepend_arena( &smearPixels, (void *)projPixel, smearArena );
 							}
 						}
@@ -3506,6 +3506,7 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 		
 		handles[a].ps = ps;
 		VECCOPY2D(handles[a].mval, pos);
+		VECCOPY2D(handles[a].prevmval, lastpos);
 		
 		/* thread spesific */
 		handles[a].thread_index = a;
