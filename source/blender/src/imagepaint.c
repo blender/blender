@@ -1864,8 +1864,8 @@ static void project_bucket_clip_face(
 		
 		
 		/* Maximum possible 6 intersections when using a rectangle and triangle */
-		float isectVCosSS[6][2];
-		float isectVAngles[6];
+		float isectVCosSS[8][2];
+		float isectVAngles[8];
 		
 		float vClipSS_A[2], vClipSS_B[2]; 
 		
@@ -2054,7 +2054,7 @@ if __name__ == '__main__':
 #endif
 
 
-int IsectPoly2Df(float pt[2], float uv[6][2], int tot)
+int IsectPoly2Df(float pt[2], float uv[8][2], int tot)
 {
 	int i;
 	if (SIDE_OF_LINE(uv[tot-1],uv[0],pt) < 0.0f)
@@ -2109,7 +2109,7 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	
 	int i1,i2,i3;
 	
-	float uv_clip[6][2];
+	float uv_clip[8][2];
 	int uv_clip_tot;
 	
 	vCo[0] = ps->dm_mvert[ (*(&mf->v1    )) ].co;
@@ -2166,6 +2166,11 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 				uv_clip, &uv_clip_tot
 		); 
 		
+		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
+		/*
+		if (uv_clip_tot>6) {
+			printf("this should never happen! %d\n", uv_clip_tot);
+		}*/
 		
 
 		if (pixel_bounds_array(uv_clip, min_px, max_px, ibuf->x, ibuf->y, uv_clip_tot )) {
@@ -2210,7 +2215,7 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 						has_x_isect = has_isect = 1;
 					} else if (has_x_isect) {
 						/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
-						//break;
+						break;
 					}
 				}
 				
