@@ -2364,8 +2364,8 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiDefButF(block, NUM, B_DIFF, 							"D:",		143,yco, 67,19, &G.scene->toolsettings->skgen_retarget_distance_weight, 0, 10, 1, 0,		"Distance Weight");
 		yco -= 20;
 		
-		uiDefBut(block, TEX,0,"S:",							10,  yco, 90, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
-		uiDefBut(block, TEX,0,"N:",							100, yco, 90, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
+		uiDefBut(block, TEX,B_DIFF,"S:",							10,  yco, 90, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
+		uiDefBut(block, TEX,B_DIFF,"N:",							100, yco, 90, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
 		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,190,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
 		yco -= 20;
 
