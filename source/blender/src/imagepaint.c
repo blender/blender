@@ -482,7 +482,7 @@ static void undo_imagepaint_push_end()
 }
 
 /* fast projection bucket array lookup, use the safe version for bound checking  */
-static int project_paint_BucketOffset(ProjPaintState *ps, float projCo2D[2])
+static int project_bucket_offset(ProjPaintState *ps, float projCo2D[2])
 {
 	/* If we were not dealing with screenspace 2D coords we could simple do...
 	 * ps->bucketRect[x + (y*ps->buckets_y)] */
@@ -498,9 +498,9 @@ static int project_paint_BucketOffset(ProjPaintState *ps, float projCo2D[2])
 		(	(	(int)(( (projCo2D[1] - ps->screen_min[1])  / ps->screen_height) * ps->buckets_y)) * ps->buckets_x );
 }
 
-static int project_paint_BucketOffsetSafe(ProjPaintState *ps, float projCo2D[2])
+static int project_bucket_offset_safe(ProjPaintState *ps, float projCo2D[2])
 {
-	int bucket_index = project_paint_BucketOffset(ps, projCo2D);
+	int bucket_index = project_bucket_offset(ps, projCo2D);
 	
 	if (bucket_index < 0 || bucket_index >= ps->buckets_x*ps->buckets_y) {	
 		return -1;
@@ -623,7 +623,7 @@ static int project_paint_PickFace(ProjPaintState *ps, float pt[2], float w[3], i
 	float z_depth_best = MAXFLOAT, z_depth;
 	MFace *mf;
 	
-	bucket_index = project_paint_BucketOffsetSafe(ps, pt);
+	bucket_index = project_bucket_offset_safe(ps, pt);
 	if (bucket_index==-1)
 		return -1;
 	
@@ -894,7 +894,7 @@ static int cmp_uv(float vec2a[2], float vec2b[2])
 
 /* set min_px and max_px to the image space bounds of the UV coords 
  * return zero if there is no area in the returned rectangle */
-static int uv_image_rect(float uv1[2], float uv2[2], float uv3[2], float uv4[2], int min_px[2], int max_px[2], int ibuf_x, int ibuf_y, int is_quad)
+static int pixel_bounds_uv(float uv1[2], float uv2[2], float uv3[2], float uv4[2], int min_px[2], int max_px[2], int ibuf_x, int ibuf_y, int is_quad)
 {
 	float min_uv[2], max_uv[2]; /* UV bounds */
 	
@@ -905,6 +905,33 @@ static int uv_image_rect(float uv1[2], float uv2[2], float uv3[2], float uv4[2],
 	DO_MINMAX2(uv3, min_uv, max_uv);
 	if (is_quad)
 		DO_MINMAX2(uv4, min_uv, max_uv);
+	
+	min_px[0] = (int)(ibuf_x * min_uv[0]);
+	min_px[1] = (int)(ibuf_y * min_uv[1]);
+	
+	max_px[0] = (int)(ibuf_x * max_uv[0]) +1;
+	max_px[1] = (int)(ibuf_y * max_uv[1]) +1;
+	
+	/*printf("%d %d %d %d \n", min_px[0], min_px[1], max_px[0], max_px[1]);*/
+	
+	/* face uses no UV area when quantized to pixels? */
+	return (min_px[0] == max_px[0] || min_px[1] == max_px[1]) ? 0 : 1;
+}
+
+static int pixel_bounds_array(float (* uv)[2], int min_px[2], int max_px[2], int ibuf_x, int ibuf_y, int tot)
+{
+	float min_uv[2], max_uv[2]; /* UV bounds */
+	
+	if (tot==0) {
+		return 0;
+	}
+	
+	INIT_MINMAX2(min_uv, max_uv);
+	
+	while (tot--) {
+		DO_MINMAX2((*uv), min_uv, max_uv);
+		uv++;
+	}
 	
 	min_px[0] = (int)(ibuf_x * min_uv[0]);
 	min_px[1] = (int)(ibuf_y * min_uv[1]);
@@ -1420,8 +1447,8 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 #ifdef PROJ_DEBUG_PAINT
-	if (ibuf->rect_float)	((float *)projPixel->pixel)[1] = 0;
-	else					((char *)projPixel->pixel)[1] = 0;
+	if (ibuf->rect_float)	projPixel->pixel.f_pt[0] = 0;
+	else					projPixel->pixel.ch_pt[0] = 0;
 #endif
 	projPixel->image_index = image_index;
 	
@@ -1567,8 +1594,116 @@ static void scale_tri(float *origCos[4], float insetCos[4][3], float inset)
 	VecAddf(insetCos[2], insetCos[2], cent);
 }
 
-static void rect_to_uvspace(
-		ProjPaintState *ps, float bucket_bounds[4],
+
+static float Vec2Lenf_nosqrt(float *v1, float *v2)
+{
+	float x, y;
+
+	x = v1[0]-v2[0];
+	y = v1[1]-v2[1];
+	return x*x+y*y;
+}
+
+static float Vec2Lenf_nosqrt_other(float *v1, float v2_1, float v2_2)
+{
+	float x, y;
+
+	x = v1[0]-v2_1;
+	y = v1[1]-v2_2;
+	return x*x+y*y;
+}
+
+static int project_bucket_isect_ptv(float bucket_bounds[4], float pt[2])
+{
+	/* first check if we are INSIDE the bucket */
+	if (	bucket_bounds[PROJ_BUCKET_LEFT] <=	pt[0] &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=	pt[0] &&
+			bucket_bounds[PROJ_BUCKET_BOTTOM] <=pt[1] &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=	pt[1]	)
+	{
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+static int project_bucket_isect_pt(float bucket_bounds[4], float x, float y)
+{
+	/* first check if we are INSIDE the bucket */
+	if (	bucket_bounds[PROJ_BUCKET_LEFT] <=	x &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=	x &&
+			bucket_bounds[PROJ_BUCKET_BOTTOM] <=y &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=	y	)
+	{
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+/* note, use a squared value so we can use Vec2Lenf_nosqrt
+ * be sure that you have done a bounds check first or this may fail */
+/* only give bucket_bounds as an arg because we need it elsewhere */
+static int project_bucket_isect_circle(ProjPaintState *ps, int bucket_x, int bucket_y, float cent[2], float radius_squared, float bucket_bounds[4])
+{
+	// printf("%d %d - %f %f %f %f - %f %f \n", bucket_x, bucket_y, bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3], cent[0], cent[1]);
+
+	/* first check if we are INSIDE the bucket */
+	/* if (	bucket_bounds[PROJ_BUCKET_LEFT] <=	cent[0] &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=	cent[0] &&
+			bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=	cent[1]	)
+	{
+		return 1;
+	}*/
+	
+	/* Would normally to a simple intersection test, however we know the bounds of these 2 alredy intersect 
+	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
+	 * this is even less work then an intersection test */
+	if (  (	bucket_bounds[PROJ_BUCKET_LEFT] <=		cent[0] &&
+			bucket_bounds[PROJ_BUCKET_RIGHT] >=		cent[0]) ||
+		  (	bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
+			bucket_bounds[PROJ_BUCKET_TOP] >=		cent[1]) )
+	{
+		return 1;
+	}
+	 
+	/* out of bounds left */
+	if (cent[0] < bucket_bounds[PROJ_BUCKET_LEFT]) {
+		/* lower left out of radius test */
+		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
+		} 
+		/* top left test */
+		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
+		}
+	}
+	else if (cent[0] > bucket_bounds[PROJ_BUCKET_RIGHT]) {
+		/* lower right out of radius test */
+		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
+		} 
+		/* top right test */
+		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
+			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
+		}
+	}
+	
+	return 0;
+}
+
+
+
+/* Note for rect_to_uvspace_ortho() and rect_to_uvspace_persp()
+ * in ortho view this function gives good results when bucket_bounds are outside the triangle
+ * however in some cases, perspective view will mess up with faces that have minimal screenspace area (viewed from the side)
+ * 
+ * for this reason its not relyable in this case so we'll use the Simple Barycentric' funcs that only account for points inside the triangle.
+ * however switching back to this for ortho is always an option */
+
+static void rect_to_uvspace_ortho(
+		float bucket_bounds[4],
 		float *v1coSS, float *v2coSS, float *v3coSS,
 		float *uv1co, float *uv2co, float *uv3co,
 		float bucket_bounds_uv[4][2]
@@ -1580,29 +1715,359 @@ static void rect_to_uvspace(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
-	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);	
 	Vec2Weightf(bucket_bounds_uv[0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
-	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
 	//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
-	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
-	if (ps->is_ortho)	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
-	else				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[3], uv1co, uv2co, uv3co, w);
 }
 
+/* same as above but use BarycentricWeightsPersp2f */
+static void rect_to_uvspace_persp(
+		float bucket_bounds[4],
+		float *v1coSS, float *v2coSS, float *v3coSS,
+		float *uv1co, float *uv2co, float *uv3co,
+		float bucket_bounds_uv[4][2]
+	)
+{
+	float uv[2];
+	float w[3];
+	
+	/* get the UV space bounding box */
+	uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
+	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	Vec2Weightf(bucket_bounds_uv[0], uv1co, uv2co, uv3co, w);
+
+	//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
+	uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
+	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[1], uv1co, uv2co, uv3co, w);
+
+	uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
+	//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
+	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[2], uv1co, uv2co, uv3co, w);
+
+	//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
+	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	Vec2Weightf(bucket_bounds_uv[3], uv1co, uv2co, uv3co, w);
+}
+
+/* This works as we need it to but we can save a few steps and not use it */
+
+static float angle_2d_clockwise(float p1[2], float p2[2], float p3[2])
+{
+	float v1[2], v2[2];
+	
+	v1[0] = p1[0]-p2[0];	v1[1] = p1[1]-p2[1];
+	v2[0] = p3[0]-p2[0];	v2[1] = p3[1]-p2[1];
+	
+	return -atan2(v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0]+v1[1]*v2[1]);
+}
+
+
+static void project_bucket_clip_face(
+		int is_ortho,
+		float bucket_bounds[4],
+		float *v1coSS, float *v2coSS, float *v3coSS,
+		float *uv1co, float *uv2co, float *uv3co,
+		float bucket_bounds_uv[8][2],
+		int *tot
+) {
+	int inside_bucket_flag = 0;
+	int inside_face_flag = 0;
+	
+	float uv[2];
+	float bucket_bounds_ss[4][2];
+	float w[3];
+
+#define ISECT_1 (1)
+#define ISECT_2 (1<<1)
+#define ISECT_3 (1<<2)
+#define ISECT_4 (1<<3)
+#define ISECT_ALL3 ((1<<3)-1)
+#define ISECT_ALL4 ((1<<4)-1)
+
+
+	/* get the UV space bounding box */
+	inside_bucket_flag |= project_bucket_isect_ptv(bucket_bounds, v1coSS);
+	inside_bucket_flag |= project_bucket_isect_ptv(bucket_bounds, v2coSS)		<< 1;
+	inside_bucket_flag |= project_bucket_isect_ptv(bucket_bounds, v3coSS)		<< 2;
+	
+	if (inside_bucket_flag == ISECT_ALL3) {
+		/* all screenspace points are inside the bucket bounding box, this means we dont need to clip and can simply return the UVs */
+		if (SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) { /* facing the back? */ 
+			VECCOPY2D(bucket_bounds_uv[0], uv1co);
+			VECCOPY2D(bucket_bounds_uv[1], uv2co);
+			VECCOPY2D(bucket_bounds_uv[2], uv3co);
+		} else {
+			VECCOPY2D(bucket_bounds_uv[0], uv3co);
+			VECCOPY2D(bucket_bounds_uv[1], uv2co);
+			VECCOPY2D(bucket_bounds_uv[2], uv1co);
+		}
+		*tot = 3; 
+		return;
+	}
+	
+	/* get the UV space bounding box */
+	bucket_bounds_ss[0][0] = bucket_bounds[PROJ_BUCKET_RIGHT];
+	bucket_bounds_ss[0][1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS) ? ISECT_1 : 0 );
+
+	bucket_bounds_ss[1][0] = bucket_bounds[PROJ_BUCKET_RIGHT];
+	bucket_bounds_ss[1][1] = bucket_bounds[PROJ_BUCKET_TOP];
+	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS) ? ISECT_2 : 0 );
+
+	bucket_bounds_ss[2][0] = bucket_bounds[PROJ_BUCKET_LEFT];
+	bucket_bounds_ss[2][1] = bucket_bounds[PROJ_BUCKET_TOP];
+	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS) ? ISECT_3 : 0 );
+
+	bucket_bounds_ss[3][0] = bucket_bounds[PROJ_BUCKET_LEFT];
+	bucket_bounds_ss[3][1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
+	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS) ? ISECT_4 : 0 );
+	
+	if ( inside_face_flag == ISECT_ALL4 ) {
+		/* bucket is totally inside the screenspace face, we can safely use weights */
+		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv);
+		else			rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv);
+		*tot = 4;
+		return;
+	} else {
+		/* The Complicated Case! 
+		 * 
+		 * The 2 cases above are where the face is inside the bucket or the bucket is inside the face.
+		 * 
+		 * we need to make a convex polyline from the intersection between the screenspace face
+		 * and the bucket bounds.
+		 * 
+		 * There are a number of ways this could be done, currently it just collects all intersecting verts,
+		 * and line intersections,  then sorts them clockwise, this is a lot easier then evaluating the geometry to
+		 * do a correct clipping on both shapes. */
+		
+		
+		/* add a bunch of points, we know must make up the convex hull which is the clipped rect and triangle */
+		
+		
+		
+		/* Maximum possible 6 intersections when using a rectangle and triangle */
+		float isectVCosSS[6][2];
+		float isectVAngles[6];
+		
+		float vClipSS_A[2], vClipSS_B[2]; 
+		
+		/* calc center*/
+		float cent[2] = {0.0f, 0.0f};
+		/*float up[2] = {0.0f, 1.0f};*/
+		float tmp_f;
+		int i, unsorted;
+		
+		(*tot) = 0;
+		
+		if (inside_face_flag & ISECT_1)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[0]); (*tot)++; }
+		if (inside_face_flag & ISECT_2)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[1]); (*tot)++; }
+		if (inside_face_flag & ISECT_3)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[2]); (*tot)++; }
+		if (inside_face_flag & ISECT_4)	{ VECCOPY2D(isectVCosSS[*tot], bucket_bounds_ss[3]); (*tot)++; }
+		
+		if (inside_bucket_flag & ISECT_1) {	VECCOPY2D(isectVCosSS[*tot], v1coSS); (*tot)++; }
+		if (inside_bucket_flag & ISECT_2) {	VECCOPY2D(isectVCosSS[*tot], v2coSS); (*tot)++; }
+		if (inside_bucket_flag & ISECT_3) {	VECCOPY2D(isectVCosSS[*tot], v3coSS); (*tot)++; }
+		
+		if ((inside_bucket_flag & (ISECT_1|ISECT_2)) != (ISECT_1|ISECT_2)) {
+			if (line_clip_rect2f(bucket_bounds, v1coSS, v2coSS, vClipSS_A, vClipSS_B)) {
+				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			}
+		}
+		
+		if ((inside_bucket_flag & (ISECT_2|ISECT_3)) != (ISECT_2|ISECT_3)) {
+			if (line_clip_rect2f(bucket_bounds, v2coSS, v3coSS, vClipSS_A, vClipSS_B)) {
+				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			}
+		}	
+		
+		if ((inside_bucket_flag & (ISECT_3|ISECT_1)) != (ISECT_3|ISECT_1)) {
+			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, vClipSS_A, vClipSS_B)) {
+				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			}
+		}
+		
+		
+		if ((*tot) < 3) { /* no intersections to speak of */
+			*tot = 0;
+		}
+	
+		/* now we have all points we need, collect their angles and sort them clockwise */
+		
+		for(i=0; i<(*tot); i++) {
+			cent[0] += isectVCosSS[i][0];
+			cent[1] += isectVCosSS[i][1];
+		}
+		cent[0] = cent[0] / (float)(*tot);
+		cent[1] = cent[1] / (float)(*tot);
+		
+		
+		
+		/* Collect angles for every point around the center point */
+
+#if 1	/* starting not so pretty, slightly faster loop */
+		
+		vClipSS_A[0] = cent[0]; /* Abuse this var for the loop below */
+		vClipSS_A[1] = cent[1] + 1.0f;
+		
+		for(i=0; i<(*tot); i++) {
+			vClipSS_B[0] = isectVCosSS[i][0] - cent[0];
+			vClipSS_B[1] = isectVCosSS[i][1] - cent[1];
+			isectVAngles[i] = -atan2(vClipSS_A[0]*vClipSS_B[1] - vClipSS_A[1]*vClipSS_B[0], vClipSS_A[0]*vClipSS_B[0]+vClipSS_A[1]*vClipSS_B[1]);
+		} 
+#endif	/* end abuse */
+		
+#if 0	/* uses a few more cycles then the above loop */
+		for(i=0; i<(*tot); i++) {
+			isectVAngles[i] = angle_2d_clockwise(up, cent, isectVCosSS[i]);
+		}
+#endif
+		
+		/* kindof sucks donkeyballs we have to sort an array, just to clip a 2D triangle/quad
+		 * but a lot less hassle then other methods we might calc this. */
+		unsorted = TRUE;
+		while (unsorted==TRUE) {
+			unsorted = FALSE;
+			for(i=1; i<(*tot); i++) {
+				if (isectVAngles[i-1] < isectVAngles[i]) {
+					
+					/* swap UV's */
+					VECCOPY2D(uv, isectVCosSS[i]);
+					VECCOPY2D(isectVCosSS[i], isectVCosSS[i-1]);
+					VECCOPY2D(isectVCosSS[i-1], uv);
+					
+					/* swap isectVAngles */
+					tmp_f = isectVAngles[i-1];
+					isectVAngles[i-1] = isectVAngles[i];
+					isectVAngles[i] = tmp_f;
+					
+					unsorted = TRUE;
+				}
+			}
+		}
+		
+		if (is_ortho) {
+			for(i=0; i<(*tot); i++) {
+				BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
+			}
+		} else {
+			for(i=0; i<(*tot); i++) {
+				BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
+			}
+		}
+	}
+	
+#undef ISECT_1
+#undef ISECT_2
+#undef ISECT_3
+#undef ISECT_4
+#undef ISECT_ALL3
+#undef ISECT_ALL4
+
+}
+	
+	/* include this at the bottom of the above function to debug the output */
+#if 0
+	{
+		/* If there are ever any problems, */
+		float test_uv[4][2];
+		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv);
+		else				rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv);
+		printf("(  [(%f,%f), (%f,%f), (%f,%f), (%f,%f)], ", test_uv[0][0],test_uv[0][1],   test_uv[1][0],test_uv[1][1],    test_uv[2][0],test_uv[2][1],    test_uv[3][0],test_uv[3][1]);
+		
+		printf("  [(%f,%f), (%f,%f), (%f,%f)], ", uv1co[0],uv1co[1],   uv2co[0],uv2co[1],    uv3co[0],uv3co[1]);
+		
+		printf("[");
+		for (i=0; i < (*tot); i++) {
+			printf("(%f, %f),", bucket_bounds_uv[i][0], bucket_bounds_uv[i][1]);
+		}
+		printf("]),\\\n");
+	}
+	
+	/*
+# This script creates faces in a blender scene from printed data above.
+
+project_ls = [
+...(output from above block)...
+]
+ 
+from Blender import Scene, Mesh, Window, sys, Mathutils
+
+import bpy
+
+V = Mathutils.Vector
+
+def main():
+	sce = bpy.data.scenes.active
+	
+	for item in project_ls:
+		bb = item[0]
+		uv = item[1]
+		poly = item[2]
+		
+		me = bpy.data.meshes.new()
+		ob = sce.objects.new(me)
+		
+		me.verts.extend([V(bb[0]).resize3D(), V(bb[1]).resize3D(), V(bb[2]).resize3D(), V(bb[3]).resize3D()])
+		me.faces.extend([(0,1,2,3),])
+		me.verts.extend([V(uv[0]).resize3D(), V(uv[1]).resize3D(), V(uv[2]).resize3D()])
+		me.faces.extend([(4,5,6),])
+		
+		vs = [V(p).resize3D() for p in poly]
+		print len(vs)
+		l = len(me.verts)
+		me.verts.extend(vs)
+		
+		i = l
+		while i < len(me.verts):
+			ii = i+1
+			if ii==len(me.verts):
+				ii = l
+			me.edges.extend([i, ii])
+			i+=1
+
+if __name__ == '__main__':
+	main()
+ */	
+#endif
+
+
+int IsectPoly2Df(float pt[2], float uv[6][2], int tot)
+{
+	int i;
+	if (SIDE_OF_LINE(uv[tot-1],uv[0],pt) < 0.0f)
+		return 0;
+	
+	for (i=1; i<tot; i++) {
+		if (SIDE_OF_LINE(uv[i-1], uv[i], pt) < 0.0f)
+			return 0;
+		
+	}
+	
+	return 1;
+}
 
 /* One of the most important function for projectiopn painting, since it selects the pixels to be added into each bucket.
  * initialize pixels from this face where it intersects with the bucket_index, optionally initialize pixels for removing seams */
@@ -1623,8 +2088,6 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	float uv[2]; /* Image floating point UV - same as x,y but from 0.0-1.0 */
 	
 	int min_px[2], max_px[2]; /* UV Bounds converted to int's for pixel */
-	int min_px_tf[2], max_px_tf[2]; /* UV Bounds converted to int's for pixel */
-	int min_px_bucket[2], max_px_bucket[2]; /* Bucket Bounds converted to int's for pixel */
 	
 	int side;
 	float *v1coSS, *v2coSS, *v3coSS; /* vert co screen-space, these will be assigned to mf->v1,2,3 or mf->v1,3,4 */
@@ -1637,7 +2100,6 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	float pixelScreenCo[4];
 	
 	/* vars for getting uvspace bounds */
-	float bucket_bounds_uv[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
 	
 	float tf_uv_pxoffset[4][2]; /* bucket bounds in UV space so we can init pixels only for this face,  */
 	float xhalfpx, yhalfpx;
@@ -1645,9 +2107,11 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 	
 	int has_x_isect = 0, has_isect = 0; /* for early loop exit */
 	
-	
 	int i1,i2,i3;
-
+	
+	float uv_clip[6][2];
+	int uv_clip_tot;
+	
 	vCo[0] = ps->dm_mvert[ (*(&mf->v1    )) ].co;
 	vCo[1] = ps->dm_mvert[ (*(&mf->v1 + 1)) ].co;
 	vCo[2] = ps->dm_mvert[ (*(&mf->v1 + 2)) ].co;
@@ -1692,16 +2156,19 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 		v1coSS = ps->screenCoords[ (*(&mf->v1 + i1)) ];
 		v2coSS = ps->screenCoords[ (*(&mf->v1 + i2)) ];
 		v3coSS = ps->screenCoords[ (*(&mf->v1 + i3)) ];
-		
-		rect_to_uvspace(ps, bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv);
-		
-		//printf("Bounds: %f | %f | %f | %f\n", bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3]);
 
-		if (	uv_image_rect(uv1co, uv2co, uv3co, NULL, min_px_tf, max_px_tf, ibuf->x, ibuf->y, 0) && 
-				uv_image_rect(bucket_bounds_uv[0], bucket_bounds_uv[1], bucket_bounds_uv[2], bucket_bounds_uv[3], min_px_bucket, max_px_bucket, ibuf->x, ibuf->y, 1) )
-		{
-			
-			uvpixel_rect_intersect(min_px, max_px, min_px_bucket, max_px_bucket, min_px_tf, max_px_tf);
+
+		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
+		project_bucket_clip_face(
+				ps->is_ortho, bucket_bounds,
+				v1coSS, v2coSS, v3coSS,
+				uv1co, uv2co, uv3co,
+				uv_clip, &uv_clip_tot
+		); 
+		
+		
+
+		if (pixel_bounds_array(uv_clip, min_px, max_px, ibuf->x, ibuf->y, uv_clip_tot )) {
 			
 			/* clip face and */
 			
@@ -1715,18 +2182,14 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 					//uv[0] = (((float)x) + 0.5f) / ibuf->x;
 					uv[0] = (float)x / ibuf_xf; /* use pixel offset UV coords instead */
 					
-					/* test we're inside uvspace bucket and triangle bounds */
-					if (	IsectPQ2Df(uv, bucket_bounds_uv[0], bucket_bounds_uv[1], bucket_bounds_uv[2], bucket_bounds_uv[3]) &&
-							IsectPT2Df(uv, uv1co, uv2co, uv3co) ) {
+					
+					if (IsectPoly2Df(uv, uv_clip, uv_clip_tot)) {
 						
 						if (ps->is_ortho) {
 							screen_px_from_ortho(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
 						} else {
 							screen_px_from_persp(ps, uv, v1coSS,v2coSS,v3coSS, uv1co,uv2co,uv3co, pixelScreenCo, w);
-							//screen_px_from_persp(ps, uv, vCo[i1],vCo[i2],vCo[i3], uv1co,uv2co,uv3co, pixelScreenCo, w);
 						}
-						
-						
 						
 						/* Is this UV visible from the view? - raytrace */
 						/* project_paint_PickFace is less complex, use for testing */
@@ -1747,7 +2210,7 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 						has_x_isect = has_isect = 1;
 					} else if (has_x_isect) {
 						/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
-						break;
+						//break;
 					}
 				}
 				
@@ -1761,6 +2224,8 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 			}
 		}
 	} while(side--);
+
+	
 	
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
@@ -1863,7 +2328,7 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 						VecLerpf(edge_verts_inset_clip[1], insetCos[fidx1], insetCos[fidx2], fac2);
 						
 
-						if (uv_image_rect(seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3], min_px, max_px, ibuf->x, ibuf->y, 1)) {
+						if (pixel_bounds_uv(seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3], min_px, max_px, ibuf->x, ibuf->y, 1)) {
 							/* bounds between the seam rect and the uvspace bucket pixels */
 							
 							has_isect = 0;
@@ -1982,7 +2447,7 @@ static void project_bucket_bounds(ProjPaintState *ps, int bucket_x, int bucket_y
 /* Fill this bucket with pixels from the faces that intersect it.
  * 
  * have bucket_bounds as an argument so we don;t need to give bucket_x/y the rect function needs */
-static void project_paint_bucket_init(ProjPaintState *ps, int thread_index, int bucket_index, float bucket_bounds[4])
+static void project_bucket_init(ProjPaintState *ps, int thread_index, int bucket_index, float bucket_bounds[4])
 {
 	LinkNode *node;
 	int face_index, image_index;
@@ -2508,14 +2973,9 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 					}
 				} else {
 					
-					/* TODO - we dont really need the normal, just the direction, save a sqrt? */
-					if (mf->v4)	CalcNormFloat4(v1coSS, v2coSS, v3coSS, v4coSS, no);
-					else		CalcNormFloat(v1coSS, v2coSS, v3coSS, no);
-					
-					if (no[2] < 0.0f) {
+					if (SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) < 0.0f) {
 						continue;
 					}
-					
 					
 				}
 			}
@@ -3071,76 +3531,6 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
-static float Vec2Lenf_nosqrt(float *v1, float *v2)
-{
-	float x, y;
-
-	x = v1[0]-v2[0];
-	y = v1[1]-v2[1];
-	return x*x+y*y;
-}
-
-static float Vec2Lenf_nosqrt_other(float *v1, float v2_1, float v2_2)
-{
-	float x, y;
-
-	x = v1[0]-v2_1;
-	y = v1[1]-v2_2;
-	return x*x+y*y;
-}
-
-/* note, use a squared value so we can use Vec2Lenf_nosqrt
- * be sure that you have done a bounds check first or this may fail */
-/* only give bucket_bounds as an arg because we need it elsewhere */
-static int project_bucket_circle_isect(ProjPaintState *ps, int bucket_x, int bucket_y, float cent[2], float radius_squared, float bucket_bounds[4])
-{
-	// printf("%d %d - %f %f %f %f - %f %f \n", bucket_x, bucket_y, bucket_bounds[0], bucket_bounds[1], bucket_bounds[2], bucket_bounds[3], cent[0], cent[1]);
-
-	/* first check if we are INSIDE the bucket */
-	/* if (	bucket_bounds[PROJ_BUCKET_LEFT] <=	cent[0] &&
-			bucket_bounds[PROJ_BUCKET_RIGHT] >=	cent[0] &&
-			bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
-			bucket_bounds[PROJ_BUCKET_TOP] >=	cent[1]	)
-	{
-		return 1;
-	}*/
-	
-	/* Would normally to a simple intersection test, however we know the bounds of these 2 alredy intersect 
-	 * so we only need to test if the center is inside the vertical or horizontal bounds on either axis,
-	 * this is even less work then an intersection test */
-	if (  (	bucket_bounds[PROJ_BUCKET_LEFT] <=		cent[0] &&
-			bucket_bounds[PROJ_BUCKET_RIGHT] >=		cent[0]) ||
-		  (	bucket_bounds[PROJ_BUCKET_BOTTOM] <=	cent[1] &&
-			bucket_bounds[PROJ_BUCKET_TOP] >=		cent[1]) )
-	{
-		return 1;
-	}
-	 
-	/* out of bounds left */
-	if (cent[0] < bucket_bounds[PROJ_BUCKET_LEFT]) {
-		/* lower left out of radius test */
-		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
-		} 
-		/* top left test */
-		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_LEFT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
-		}
-	}
-	else if (cent[0] > bucket_bounds[PROJ_BUCKET_RIGHT]) {
-		/* lower right out of radius test */
-		if (cent[1] < bucket_bounds[PROJ_BUCKET_BOTTOM]) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_BOTTOM]) < radius_squared) ? 1 : 0;
-		} 
-		/* top right test */
-		else if (cent[1] > bucket_bounds[PROJ_BUCKET_TOP]) {
-			return (Vec2Lenf_nosqrt_other(cent, bucket_bounds[PROJ_BUCKET_RIGHT], bucket_bounds[PROJ_BUCKET_TOP]) < radius_squared) ? 1 : 0;
-		}
-	}
-	
-	return 0;
-}
-
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 {
 	int tot = PROJ_BOUNDBOX_SQUARED;
@@ -3205,7 +3595,7 @@ static int imapaint_refresh_tagged(ProjPaintState *ps)
 }
 
 /* run this per painting onto each mouse location */
-static int bucket_iter_init(ProjPaintState *ps, float mval_f[2])
+static int project_bucket_iter_init(ProjPaintState *ps, float mval_f[2])
 {
 	float min_brush[2], max_brush[2];
 	float size_half = ((float)ps->brush->size) * 0.5f;
@@ -3235,7 +3625,7 @@ static int bucket_iter_init(ProjPaintState *ps, float mval_f[2])
 	return 1;
 }
 
-static int bucket_iter_next(ProjPaintState *ps, int *bucket_index, float bucket_bounds[4], float mval[2])
+static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, float bucket_bounds[4], float mval[2])
 {
 	if (ps->thread_tot > 1)
 		BLI_lock_thread(LOCK_CUSTOM1);
@@ -3245,10 +3635,10 @@ static int bucket_iter_next(ProjPaintState *ps, int *bucket_index, float bucket_
 	for ( ; ps->context_bucket_y < ps->bucket_max[1]; ps->context_bucket_y++) {
 		for ( ; ps->context_bucket_x < ps->bucket_max[0]; ps->context_bucket_x++) {
 			
-			/* use bucket_bounds for project_bucket_circle_isect and project_paint_bucket_init*/
+			/* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
-			if (project_bucket_circle_isect(ps, ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
+			if (project_bucket_isect_circle(ps, ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
 #ifdef PROJ_DEBUG_PRINT_THREADS
 				printf(" --- %d %d \n", ps->context_bucket_x, ps->context_bucket_y);
@@ -3336,7 +3726,7 @@ static void *do_projectpaint_thread(void *ph_v)
 #ifdef PROJ_DEBUG_PRINT_THREADS
 	printf("THREAD %d %d %d\n", ps->thread_tot, thread_index,  (ps->bucket_max[0] - ps->bucket_min[0]) * (ps->bucket_max[1] - ps->bucket_min[1]) );
 #endif
-	while (bucket_iter_next(ps, &bucket_index, bucket_bounds, pos)) {				
+	while (project_bucket_iter_next(ps, &bucket_index, bucket_bounds, pos)) {				
 		
 #ifdef PROJ_DEBUG_PRINT_THREADS
 		printf("\t%d %d\n", thread_index, bucket_index);
@@ -3345,10 +3735,10 @@ static void *do_projectpaint_thread(void *ph_v)
 		/* Check this bucket and its faces are initialized */
 		if (ps->bucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
 			/* No pixels initialized */
-			project_paint_bucket_init(ps, thread_index, bucket_index, bucket_bounds);
+			project_bucket_init(ps, thread_index, bucket_index, bucket_bounds);
 		}
 		
-		/* TODO - we may want to init clone data in a separate to project_paint_bucket_init
+		/* TODO - we may want to init clone data in a separate to project_bucket_init
 		 * so we don't go overboard and init too many clone pixels  */
 
 		if ((node = ps->bucketRect[bucket_index])) {
@@ -3491,7 +3881,7 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 	ListBase threads;
 	int a,i;
 	
-	if (!bucket_iter_init(ps, pos)) {
+	if (!project_bucket_iter_init(ps, pos)) {
 		return 0;
 	}
 	
