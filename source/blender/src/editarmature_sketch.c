@@ -142,6 +142,7 @@ int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3]
 char  *TEMPLATES_MENU = NULL;
 int    TEMPLATES_CURRENT = 0;
 GHash *TEMPLATES_HASH = NULL;
+RigGraph *TEMPLATE_RIGG = NULL;
 
 void BIF_makeListTemplates()
 {
@@ -230,16 +231,66 @@ int   BIF_currentTemplate()
 	return TEMPLATES_CURRENT;
 }
 
+RigGraph* sk_makeTemplateGraph(Object *ob)
+{
+	if (ob == G.obedit)
+	{
+		return NULL;
+	}
+	
+	if (ob != NULL)
+	{
+		if (TEMPLATE_RIGG && TEMPLATE_RIGG->ob != ob)
+		{
+			RIG_freeRigGraph((BGraph*)TEMPLATE_RIGG);
+			TEMPLATE_RIGG = NULL;
+		}
+		
+		if (TEMPLATE_RIGG == NULL)
+		{
+			bArmature *arm;
+
+			arm = ob->data;
+			
+			TEMPLATE_RIGG = RIG_graphFromArmature(ob, arm);
+		}
+	}
+	
+	return TEMPLATE_RIGG;
+}
+
+int BIF_nbJointsTemplate()
+{
+	RigGraph *rg = sk_makeTemplateGraph(G.scene->toolsettings->skgen_template);
+	
+	if (rg)
+	{
+		return RIG_nbJoints(rg);
+	}
+	else
+	{
+		return -1; 
+	}
+}
+
 void  BIF_freeTemplates()
 {
 	if (TEMPLATES_MENU != NULL)
 	{
 		MEM_freeN(TEMPLATES_MENU);
+		TEMPLATES_MENU = NULL;
 	}
 	
 	if (TEMPLATES_HASH != NULL)
 	{
 		BLI_ghash_free(TEMPLATES_HASH, NULL, NULL);
+		TEMPLATES_HASH = NULL;
+	}
+	
+	if (TEMPLATE_RIGG != NULL)
+	{
+		RIG_freeRigGraph((BGraph*)TEMPLATE_RIGG);
+		TEMPLATE_RIGG = NULL;
 	}
 }
 
@@ -252,6 +303,12 @@ void  BIF_setTemplate(int index)
 	else
 	{
 		G.scene->toolsettings->skgen_template = NULL;
+		
+		if (TEMPLATE_RIGG != NULL)
+		{
+			RIG_freeRigGraph((BGraph*)TEMPLATE_RIGG);
+		}
+		TEMPLATE_RIGG = NULL;
 	}
 }	
 
@@ -565,6 +622,7 @@ void sk_retargetStroke(SK_Stroke *stk)
 	float imat[4][4];
 	float tmat[3][3];
 	ReebArc *arc;
+	RigGraph *rg;
 	
 	Mat4Invert(imat, G.obedit->obmat);
 	
@@ -574,8 +632,10 @@ void sk_retargetStroke(SK_Stroke *stk)
 	arc = sk_strokeToArc(stk, imat, tmat);
 	
 	sk_autoname(arc);
+	
+	rg = sk_makeTemplateGraph(G.scene->toolsettings->skgen_template);
 
-	BIF_retargetArc(arc);
+	BIF_retargetArc(arc, rg);
 	
 	sk_autoname(NULL);
 	

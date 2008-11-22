@@ -31,6 +31,9 @@
 
 #include "reeb.h"
 
+struct Object;
+struct bArmature;
+
 struct EditBone;
 
 struct RigJoint;
@@ -65,7 +68,7 @@ typedef struct RigGraph {
 	GHash *bones_map;	/* map of editbones by name */
 	GHash *controls_map;	/* map of rigcontrols by bone pointer */
 	
-	Object *ob;
+	struct Object *ob;
 } RigGraph;
 
 typedef struct RigNode {
@@ -109,7 +112,7 @@ typedef struct RigEdge {
 	float length;
 	float angle; /* angle to next edge */
 	float up_angle; /* angle between up_axis and the joint normal (defined as Previous edge CrossProduct Current edge */
-	EditBone *bone;
+	struct EditBone *bone;
 	float up_axis[3];
 } RigEdge;
 
@@ -132,9 +135,9 @@ typedef enum {
 typedef struct RigControl {
 	struct RigControl *next, *prev;
 	float head[3], tail[3];
-	EditBone *bone;
-	EditBone *link;
-	EditBone *link_tail;
+	struct EditBone *bone;
+	struct EditBone *link;
+	struct EditBone *link_tail;
 	float	up_axis[3];
 	float	offset[3];
 	float	qrot[4]; /* for dual linked bones, store the rotation of the linked bone for the finalization */
@@ -142,6 +145,9 @@ typedef struct RigControl {
 	LinkTailMode tail_mode;
 } RigControl;
 
-void BIF_retargetArc(ReebArc *earc);
+void BIF_retargetArc(ReebArc *earc, RigGraph *template_rigg);
+RigGraph *RIG_graphFromArmature(struct Object *ob, struct bArmature *arm);
+int RIG_nbJoints(RigGraph *rg);
+void RIG_freeRigGraph(BGraph *rg);
 
 #endif /* BIF_RETARGET_H */

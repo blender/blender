@@ -613,12 +613,22 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob)
 				EditBone *bone;
 				
 				updateDuplicateSubtargetObjects(edge->bone, src->editbones, src->ob, rg->ob);
-				
-				bone = BLI_ghash_lookup(ptr_hash, edge->bone->parent);
-	
-				if (bone != NULL)
-				{
-					edge->bone->parent = bone;
+
+				if (edge->bone->parent)
+				{				
+					bone = BLI_ghash_lookup(ptr_hash, edge->bone->parent);
+		
+					if (bone != NULL)
+					{
+						edge->bone->parent = bone;
+					}
+					else
+					{
+						/* disconnect since parent isn't cloned
+						 * this will only happen when cloning from selected bones 
+						 * */
+						edge->bone->flag &= ~BONE_CONNECTED;
+					}
 				}
 			}
 		}
@@ -630,11 +640,21 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob)
 		
 		updateDuplicateSubtargetObjects(ctrl->bone, src->editbones, src->ob, rg->ob);
 
-		bone = BLI_ghash_lookup(ptr_hash, ctrl->bone->parent);
-		
-		if (bone != NULL)
+		if (ctrl->bone->parent)
 		{
-			ctrl->bone->parent = bone;
+			bone = BLI_ghash_lookup(ptr_hash, ctrl->bone->parent);
+			
+			if (bone != NULL)
+			{
+				ctrl->bone->parent = bone;
+			}
+			else
+			{
+				/* disconnect since parent isn't cloned
+				 * this will only happen when cloning from selected bones 
+				 * */
+				ctrl->bone->flag &= ~BONE_CONNECTED;
+			}
 		}
 
 		ctrl->link = BLI_ghash_lookup(ptr_hash, ctrl->link);
@@ -1507,7 +1527,7 @@ void RIG_printGraph(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-RigGraph *armatureToGraph(Object *ob, bArmature *arm)
+RigGraph *RIG_graphFromArmature(Object *ob, bArmature *arm)
 {
 	EditBone *ebone;
 	RigGraph *rg;
@@ -2958,6 +2978,20 @@ static void retargetGraphs(RigGraph *rigg)
 	editbones_to_armature(rigg->editbones, rigg->ob);
 }
 
+int RIG_nbJoints(RigGraph *rg)
+{
+	RigArc *arc;
+	int total = 0;
+	
+	total += BLI_countlist(&rg->nodes);
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		total += BLI_countlist(&arc->edges) - 1; /* -1 because end nodes are already counted */
+	}
+	
+	return total;
+}
 
 void BIF_retargetArmature()
 {
@@ -2995,7 +3029,7 @@ void BIF_retargetArmature()
 			
 				start_time = PIL_check_seconds_timer();
 	
-				rigg = armatureToGraph(ob, arm);
+				rigg = RIG_graphFromArmature(ob, arm);
 				
 				end_time = PIL_check_seconds_timer();
 				rig_time = end_time - start_time;
@@ -3040,20 +3074,17 @@ void BIF_retargetArmature()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void BIF_retargetArc(ReebArc *earc)
+void BIF_retargetArc(ReebArc *earc, RigGraph *template_rigg)
 {
 	Object *ob;
-	RigGraph *template_rigg;
 	RigGraph *rigg;
 	RigArc *iarc;
 	bArmature *arm;
 	
-	if (G.scene->toolsettings->skgen_template &&
-		G.scene->toolsettings->skgen_template->type == OB_ARMATURE)
+	if (template_rigg)
 	{
-		ob = G.scene->toolsettings->skgen_template; 	
+		ob = template_rigg->ob; 	
 		arm = ob->data;
-		template_rigg = armatureToGraph(ob, arm);
 	}
 	else
 	{
@@ -3080,7 +3111,11 @@ void BIF_retargetArc(ReebArc *earc)
 	
 	finishRetarget(rigg);
 	
-	RIG_freeRigGraph((BGraph*)template_rigg);
+	/* free template if it comes from the edit armature */
+	if (ob == G.obedit)
+	{
+		RIG_freeRigGraph((BGraph*)template_rigg);
+	}
 	RIG_freeRigGraph((BGraph*)rigg);
 	
 	allqueue(REDRAWVIEW3D, 0);

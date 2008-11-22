@@ -36,6 +36,7 @@ void  BIF_makeListTemplates();
 char *BIF_listTemplates();
 int   BIF_currentTemplate();
 void  BIF_freeTemplates();
-void  BIF_setTemplate(int);	
+void  BIF_setTemplate(int);
+int   BIF_nbJointsTemplate();	
 
 #endif /* BIF_SKETCH_H */

@@ -1740,6 +1740,8 @@ void make_editArmature(void)
 	if (!arm) return;
 	
 	make_boneList(&G.edbo, &arm->bonebase,NULL);
+	
+	BIF_freeTemplates(); /* force template update when entering editmode */
 }
 
 /* put EditMode back in Object */

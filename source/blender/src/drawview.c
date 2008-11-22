@@ -2291,10 +2291,11 @@ static void assign_template_sketch_armature(void *arg1, void *arg2)
 static void view3d_panel_bonesketch_spaces(short cntrl)
 {
 	static int template_index;
+	static char joint_label[32];
 	uiBlock *block;
 	uiBut *but;
 	int yco = 70, height = 140;
-//	int index;
+	int nb_joints;
 
 	/* replace with check call to sketching lib */
 	if (G.obedit && G.obedit->type == OB_ARMATURE)
@@ -2366,10 +2367,22 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		uiDefBut(block, TEX,0,"S:",							10,  yco, 90, 20, G.scene->toolsettings->skgen_side_string, 0.0, 8.0, 0, 0, "Text to replace &S with");
 		uiDefBut(block, TEX,0,"N:",							100, yco, 90, 20, G.scene->toolsettings->skgen_num_string, 0.0, 8.0, 0, 0, "Text to replace &N with");
 		uiDefIconButBitC(block, TOG, SK_RETARGET_AUTONAME, B_DIFF, ICON_AUTO,190,yco,20,20, &G.scene->toolsettings->skgen_retarget_options, 0, 0, 0, 0, "Use Auto Naming");	
+		yco -= 20;
 
 		/* auto renaming magic */
-
 		uiBlockEndAlign(block);
+		
+		nb_joints = BIF_nbJointsTemplate();
+
+		if (nb_joints == -1)
+		{
+			nb_joints = G.totvertsel;
+		}
+		
+		BLI_snprintf(joint_label, 32, "%i joints", nb_joints);
+		
+		uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
+		
 
 		if(yco < 0) uiNewPanelHeight(block, height-yco);
 	}
