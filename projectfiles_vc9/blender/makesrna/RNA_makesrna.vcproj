@@ -74,7 +74,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile=".\..\..\..\source\blender\makesrna\intern/DNA_makesrna.exe"
+				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\mtdll\debug;..\..\..\..\build\msvc_9\libs\mtdll\debug"
@@ -105,8 +105,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;DNA_makesrna.exe dna.c&#x0D;&#x0A;"
+				Description="Building RNA"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -168,7 +168,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib"
-				OutputFile="..\..\..\source\blender\makesrna\intern\DNA_makesrna.exe"
+				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern;..\..\..\..\build\msvc_9\libs"
@@ -198,8 +198,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;DNA_makesrna.exe dna.c&#x0D;&#x0A;"
+				Description="Building RNA"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -261,7 +261,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\source\blender\makesrna\intern\DNA_makesrna.exe"
+				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\mtdll;..\..\..\..\build\msvc_9\libs\mtdll"
@@ -291,8 +291,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;DNA_makesrna.exe dna.c&#x0D;&#x0A;"
+				Description="Building RNA"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -354,7 +354,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
-				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib DNA_dna.lib RNA_rna.lib"
+				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib DNA_dna.lib"
 				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -387,7 +387,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
+				Description="Building RNA"
 				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
@@ -451,7 +451,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386&#x0D;&#x0A;"
 				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\source\blender\makesrna\intern\DNA_makesrna.exe"
+				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern\debug;..\..\..\..\build\msvc_9\libs\debug"
@@ -483,8 +483,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;DNA_makesrna.exe dna.c&#x0D;&#x0A;"
+				Description="Building RNA"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -546,7 +546,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="libguardedalloc.lib BLI_blenlib.lib odbc32.lib odbccp32.lib"
-				OutputFile="..\..\..\source\blender\makesrna\intern\DNA_makesrna.exe"
+				OutputFile="..\..\..\source\blender\makesrna\intern\RNA_makesrna.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\..\build\msvc_9\libs\intern;..\..\..\..\build\msvc_9\libs"
@@ -576,8 +576,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Building DNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;DNA_makesrna.exe dna.c&#x0D;&#x0A;"
+				Description="Building RNA"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -590,6 +590,42 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\makesrna.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_define.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ID.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lamp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_rna.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
 				>
 			</File>
 		</Filter>

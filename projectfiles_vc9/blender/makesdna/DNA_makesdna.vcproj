@@ -814,6 +814,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_windowmanager_types.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_world_types.h"
 				>
 			</File>

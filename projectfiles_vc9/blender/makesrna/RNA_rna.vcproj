@@ -139,6 +139,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_9\libs\release\RNA_rna.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -174,15 +175,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_define.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_dependency.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ID.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lamp.c"
 				>
 			</File>
 			<File
@@ -203,6 +204,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
 				>
 			</File>
 		</Filter>
