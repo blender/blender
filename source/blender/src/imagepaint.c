@@ -159,7 +159,6 @@ typedef struct ImagePaintPartialRedraw {
 
 //#define PROJ_DEBUG_PAINT 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
-//#define PROJ_DEBUG_PRINT_THREADS 1
 #define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
@@ -2715,7 +2714,7 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 	MTFace *tf;
 	
 	int a, i; /* generic looping vars */
-	int image_index, face_index;
+	int image_index = -1, face_index;
 	
 	/* memory sized to add to arena size */
 	int tot_bucketRectMem=0;
@@ -3067,22 +3066,19 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 			}
 			
 			if (tpage_last != tf->tpage) {
-				ibuf= BKE_image_get_ibuf((Image *)tf->tpage, NULL);
 				
-				if (ibuf) {
-					image_index = BLI_linklist_index(image_LinkList, tf->tpage);
-					
-					if (image_index==-1) { /* MemArena dosnt have an append func */
-						BLI_linklist_append(&image_LinkList, tf->tpage);
-						image_index = ps->image_tot;
-						ps->image_tot++;
-					}
+				image_index = BLI_linklist_index(image_LinkList, tf->tpage);
+				
+				if (image_index==-1 && BKE_image_get_ibuf((Image *)tf->tpage, NULL)) { /* MemArena dosnt have an append func */
+					BLI_linklist_append(&image_LinkList, tf->tpage);
+					image_index = ps->image_tot;
+					ps->image_tot++;
 				}
 				
 				tpage_last = tf->tpage;
 			}
 			
-			if (ibuf) {
+			if (image_index != -1) {
 				/* Initialize the faces screen pixels */
 				/* Add this to a list to initialize later */
 				project_paint_delayed_face_init(ps, mf, tf, face_index);
@@ -3718,9 +3714,6 @@ static int project_bucket_iter_init(ProjPaintState *ps, float mval_f[2])
 	
 	ps->context_bucket_x = ps->bucket_min[0];
 	ps->context_bucket_y = ps->bucket_min[1];
-#ifdef PROJ_DEBUG_PRINT_THREADS
-	printf("Initializing Values %d %d!", ps->bucket_min[0], ps->bucket_min[1]);
-#endif
 	return 1;
 }
 
@@ -3739,9 +3732,6 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, float
 			
 			if (project_bucket_isect_circle(ps, ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
-#ifdef PROJ_DEBUG_PRINT_THREADS
-				printf(" --- %d %d \n", ps->context_bucket_x, ps->context_bucket_y);
-#endif
 				ps->context_bucket_x++;
 				
 				if (ps->thread_tot > 1)
@@ -3758,7 +3748,6 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, float
 	return 0;
 }
 
-
 /* Each thread gets one of these, also used as an argument to pass to project_paint_op */
 typedef struct ProjectHandle {
 	/* args */
@@ -3772,6 +3761,26 @@ typedef struct ProjectHandle {
 	/* thread settings */
 	int thread_index;
 } ProjectHandle;
+
+static void blend_color_mix(unsigned char *cp, unsigned char *cp1, unsigned char *cp2, int fac)
+{
+	/* this and other blending modes previously used >>8 instead of /255. both
+	   are not equivalent (>>8 is /256), and the former results in rounding
+	   errors that can turn colors black fast after repeated blending */
+	int mfac= 255-fac;
+
+	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+}
+
+static void blend_color_mix_float(float *cp, float *cp1, float *cp2, float fac)
+{
+	float mfac= 1.0-fac;
+	cp[0]= mfac*cp1[0] + fac*cp2[0];
+	cp[1]= mfac*cp1[1] + fac*cp2[1];
+	cp[2]= mfac*cp1[2] + fac*cp2[2];
+}
 
 /* run this for single and multithreaded painting */
 static void *do_projectpaint_thread(void *ph_v)
@@ -3822,14 +3831,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	
 	/* printf("brush bounds %d %d %d %d\n", bucket_min[0], bucket_min[1], bucket_max[0], bucket_max[1]); */
 	
-#ifdef PROJ_DEBUG_PRINT_THREADS
-	printf("THREAD %d %d %d\n", ps->thread_tot, thread_index,  (ps->bucket_max[0] - ps->bucket_min[0]) * (ps->bucket_max[1] - ps->bucket_min[1]) );
-#endif
 	while (project_bucket_iter_next(ps, &bucket_index, bucket_bounds, pos)) {				
-		
-#ifdef PROJ_DEBUG_PRINT_THREADS
-		printf("\t%d %d\n", thread_index, bucket_index);
-#endif
 		
 		/* Check this bucket and its faces are initialized */
 		if (ps->bucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
@@ -3884,7 +3886,7 @@ static void *do_projectpaint_thread(void *ph_v)
 									
 									if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
 										IMB_blend_color_float( projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
-										IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->origColor.f,  projPixel->newColor.f, projPixel->mask, IMB_BLEND_MIX);
+										blend_color_mix_float( projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask );
 									} else {
 										IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
 									}
@@ -3893,7 +3895,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
 									if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
 										projPixel->newColor.uint = IMB_blend_color( projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-										*projPixel->pixel.uint_pt = IMB_blend_color( projPixel->origColor.uint, projPixel->newColor.uint, (int)(projPixel->mask*255), IMB_BLEND_MIX);
+										blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
 									} else {
 										*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
 									}
@@ -3913,9 +3915,9 @@ static void *do_projectpaint_thread(void *ph_v)
 								 * the fact that applying the color directly gives feedback,
 								 * instead, collect the colors and apply after :/ */
 								
-	#if 0						/* looks OK but not correct - also would need float buffer */
+#if 0						/* looks OK but not correct - also would need float buffer */
 								*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*256), blend);
-	#endif
+#endif
 								
 								/* add to memarena instead */
 								if (is_floatbuf) {
@@ -3942,7 +3944,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								
 								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
 									IMB_blend_color_float( projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
-									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->origColor.f,  projPixel->newColor.f, projPixel->mask, IMB_BLEND_MIX);
+									blend_color_mix_float( projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask );
 								} else {
 									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
 								}
@@ -3961,7 +3963,7 @@ static void *do_projectpaint_thread(void *ph_v)
 								
 								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
 									projPixel->newColor.uint = IMB_blend_color( projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-									*projPixel->pixel.uint_pt = IMB_blend_color( projPixel->origColor.uint, projPixel->newColor.uint, (int)(projPixel->mask*255), IMB_BLEND_MIX);
+									blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
 								} else {
 									*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
 								}
@@ -3973,8 +3975,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					/* done painting */
 				}
 				
-				node = node->next;
-			} while (node);
+			} while ((node = node->next));
 		}
 	}
 
