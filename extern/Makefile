@@ -57,10 +57,7 @@ ifeq ($(WITH_BINRELOC), true)
     DIRS += binreloc
 endif
 
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
-endif
+TARGET = solid
 
 all::
 	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern

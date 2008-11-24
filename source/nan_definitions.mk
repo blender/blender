@@ -75,6 +75,7 @@ else
     export NAN_SOLID ?= $(LCGDIR)/solid
     export NAN_QHULL ?= $(LCGDIR)/qhull
 endif
+    export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
@@ -149,8 +150,8 @@ endif
 
               export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
           else
-            export NAN_OPENEXR ?= /usr/local
-	    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+            export NAN_OPENEXR ?= $(LCGDIR)/openexr
+            export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
           endif
         endif
       endif
@@ -331,23 +332,27 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a -lpthread
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_TIFF ?= /usr/freeware
+    export NAN_TIFF ?= $(LCGDIR)/tiff
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
-    export NAN_ZLIB ?= /usr/freeware
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
-    export NAN_FREETYPE ?= /usr/freeware
-    export NAN_GETTEXT ?= /usr/freeware
-    export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib32/libintl.a
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
+    export NAN_ICONV ?= $(LCGDIR)/iconv
+    export NAN_GETTEXT ?= $(LCGDIR)/gettext
+    export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/libintl.a $(NAN_ICONV)/lib/libiconv.a
     export NAN_SDL ?= $(LCGDIR)/sdl
-    export NAN_SDLLIBS ?= -L$(NAN_SDL)/lib -lSDL
+    export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include/SDL
+    export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
+    export NAN_FFMPEGLIBS = $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libogg.a $(NAN_FFMPEG)/lib/libfaad.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libvorbis.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libfaac.a $(NAN_ZLIB)/lib/libz.a
+    export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
  
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET

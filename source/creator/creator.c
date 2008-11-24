@@ -29,6 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* for setuid / getuid */
+#ifdef __sgi
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"

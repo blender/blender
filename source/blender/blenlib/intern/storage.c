@@ -47,9 +47,9 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined (__sun__) || defined (__sun)
+#if defined (__sun__) || defined (__sun) || defined (__sgi)
 #include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
-#elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
 #endif
 
@@ -179,7 +179,7 @@ double BLI_diskfree(char *dir)
 	return (double) (freec*bytesps*sectorspc);
 #else
 
-#if defined (__sun__) || defined (__sun)
+#if defined (__sun__) || defined (__sun) || defined (__sgi)
 	struct statvfs disk;
 #else
 	struct statfs disk;
@@ -206,7 +206,7 @@ double BLI_diskfree(char *dir)
 
 #if defined (__sun__) || defined (__sun)
 	if (statvfs(name, &disk)) return(-1);	
-#elif !defined(__FreeBSD__) && !defined(linux) && (defined (__sgi) || defined(__sparc) || defined(__sparc__))
+#elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
 	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
 #endif
