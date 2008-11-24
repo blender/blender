@@ -483,10 +483,8 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	prop->name= identifier;
 	prop->description= "";
 
-	if(type == PROP_COLLECTION)
+	if(type == PROP_COLLECTION || type == PROP_POINTER)
 		prop->flag= PROP_NOT_EDITABLE|PROP_NOT_DRIVEABLE;
-	else if(type == PROP_POINTER)
-		prop->flag= PROP_NOT_DRIVEABLE;
 
 	if(DefRNA.preprocess) {
 		switch(type) {

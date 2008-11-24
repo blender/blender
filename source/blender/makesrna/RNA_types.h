@@ -25,6 +25,10 @@
 #ifndef RNA_TYPES
 #define RNA_TYPES
 
+struct PropertyRNA;
+struct StructRNA;
+struct BlenderRNA;
+
 /* Pointer
  *
  * RNA pointers are not a single C pointer but include the type,
@@ -103,6 +107,7 @@ typedef enum PropertyFlag {
 
 typedef struct CollectionPropertyIterator {
 	PointerRNA parent;
+	struct PropertyRNA *prop;
 	void *internal;
 
 	int valid;
@@ -116,7 +121,6 @@ typedef struct EnumPropertyItem {
 	const char *description;
 } EnumPropertyItem;
 
-struct PropertyRNA;
 typedef struct PropertyRNA PropertyRNA;
 
 /* Struct */
@@ -129,14 +133,12 @@ typedef enum StructFlag {
 	STRUCT_RUNTIME = 2
 } StructFlag;
 
-struct StructRNA;
 typedef struct StructRNA StructRNA;
 
 /* Blender RNA
  *
  * Root RNA data structure that lists all struct types. */
 
-struct BlenderRNA;
 typedef struct BlenderRNA BlenderRNA;
 
 #endif /* RNA_TYPES */

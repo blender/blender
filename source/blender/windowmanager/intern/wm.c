@@ -62,8 +62,8 @@ void wm_operator_free(wmOperator *op)
 		op->properties= NULL;
 	}
 
-	if(op->rna)
-		MEM_freeN(op->rna);
+	if(op->ptr)
+		MEM_freeN(op->ptr);
 
 	MEM_freeN(op);
 }
@@ -74,9 +74,9 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
 	int tot;
 
-	if(op->rna) {
-		MEM_freeN(op->rna);
-		op->rna= NULL;
+	if(op->ptr) {
+		MEM_freeN(op->ptr);
+		op->ptr= NULL;
 	}
 	
 	BLI_addtail(&wm->operators, op);

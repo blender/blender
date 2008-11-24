@@ -36,7 +36,7 @@
 static StructRNA *rna_Operator_refine(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
-	return op->type->rna;
+	return op->type->srna;
 }
 
 static void rna_Operator_name_get(PointerRNA *ptr, char *value)

@@ -299,9 +299,8 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 
 		op->type= ot;
 
-		op->rna= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		op->rna->type= op->type->rna;
-		op->rna->data= op;
+		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
+		RNA_pointer_create(&RNA_WindowManager, &C->wm->id, ot->srna, op, op->ptr);
 
 		if(op->type->invoke)
 			retval= (*op->type->invoke)(C, op, event);

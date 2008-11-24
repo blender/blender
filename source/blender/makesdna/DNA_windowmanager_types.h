@@ -135,7 +135,7 @@ typedef struct wmOperatorType {
 	void *(*uiBlock)(struct wmOperator *);
 	
 	/* rna for properties */
-	struct StructRNA *rna;
+	struct StructRNA *srna;
 	
 	short flag;
 
@@ -172,7 +172,7 @@ typedef struct wmOperator {
 	IDProperty *properties;
 
 	/* runtime */
-	struct PointerRNA *rna;
+	struct PointerRNA *ptr;
 	ListBase *modallist;
 } wmOperator;
 

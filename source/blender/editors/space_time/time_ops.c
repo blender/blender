@@ -63,7 +63,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 {
 	int cfra;
 
-	cfra= RNA_int_get(op->rna, "frame");
+	cfra= RNA_int_get(op->ptr, "frame");
 
 	if(cfra < MINFRAME)
 		cfra= MINFRAME;
@@ -119,7 +119,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 
 static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_int_default(op->rna, "frame", frame_from_event(C, event));
+	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 	change_frame_init(C, op);
 	change_frame_apply(C, op);
 
@@ -140,7 +140,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			RNA_int_set(op->rna, "frame", frame_from_event(C, event));
+			RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
 			change_frame_apply(C, op);
 			break;
 			
@@ -171,7 +171,7 @@ void ED_TIME_OT_change_frame(wmOperatorType *ot)
 	ot->modal= change_frame_modal;
 
 	/* rna */
-	prop= RNA_def_property(ot->rna, "frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "frame", PROP_INT, PROP_NONE);
 }
 
 /* ************************** registration **********************************/

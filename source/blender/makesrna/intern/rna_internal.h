@@ -78,16 +78,6 @@ extern BlenderDefRNA DefRNA;
 
 extern BlenderRNA BLENDER_RNA;
 
-extern StructRNA RNA_Lamp;
-extern StructRNA RNA_Main;
-extern StructRNA RNA_Mesh;
-extern StructRNA RNA_Object;
-extern StructRNA RNA_Operator;
-extern StructRNA RNA_Property;
-extern StructRNA RNA_Scene;
-extern StructRNA RNA_Struct;
-extern StructRNA RNA_WindowManager;
-
 void RNA_def_ID(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);

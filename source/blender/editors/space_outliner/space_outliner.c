@@ -153,7 +153,6 @@ typedef struct CellRNA {
 	int lastrow, index;
 
 	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop;
 } CellRNA;
 
 static void rna_back_cb(void *arg_buts, void *arg_unused)
@@ -192,12 +191,12 @@ static void rna_label(CellRNA *cell, rcti *rct, uiBlock *block)
 	int arraylength;
 
 	prop= cell->prop;
-	type= RNA_property_type(prop, &cell->ptr);
-	subtype= RNA_property_subtype(prop, &cell->ptr);
-	arraylength= RNA_property_array_length(prop, &cell->ptr);
+	type= RNA_property_type(&cell->ptr, prop);
+	subtype= RNA_property_subtype(&cell->ptr, prop);
+	arraylength= RNA_property_array_length(&cell->ptr, prop);
 
 	if(cell->index == -1) {
-		uiDefBut(block, LABEL, 0, (char*)RNA_property_ui_name(prop, &cell->ptr), rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin, 0, 0, 0, 0, 0, (char*)RNA_property_ui_description(prop, &cell->ptr));
+		uiDefBut(block, LABEL, 0, (char*)RNA_property_ui_name(&cell->ptr, prop), rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin, 0, 0, 0, 0, 0, (char*)RNA_property_ui_description(&cell->ptr, prop));
 	}
 	else if (type != PROP_COLLECTION) {
 		if(arraylength == 4 && subtype == PROP_ROTATION)
@@ -220,13 +219,13 @@ static void rna_collection_but(CellRNA *cell, rcti *rct, uiBlock *block)
 	PropertyRNA *nameprop;
 	char name[256]= "", *nameptr= name;
 
-	RNA_property_collection_lookup_int(cell->prop, &cell->ptr, cell->index, &lookup);
+	RNA_property_collection_lookup_int(&cell->ptr, cell->prop, cell->index, &lookup);
 
 	if(lookup.data) {
 		nameprop= RNA_struct_name_property(&lookup);
 
 		if(nameprop)
-			nameptr= RNA_property_string_get_alloc(nameprop, &lookup, name, sizeof(name));
+			nameptr= RNA_property_string_get_alloc(&lookup, nameprop, name, sizeof(name));
 		else
 			sprintf(nameptr, "%d", cell->index+1);
 	}
@@ -248,8 +247,8 @@ static void rna_but(CellRNA *cell, rcti *rct, uiBlock *block)
 	int arraylength, index;
 
 	prop= cell->prop;
-	type= RNA_property_type(prop, &cell->ptr);
-	arraylength= RNA_property_array_length(prop, &cell->ptr);
+	type= RNA_property_type(&cell->ptr, prop);
+	arraylength= RNA_property_array_length(&cell->ptr, prop);
 
 	if(type == PROP_COLLECTION) {
 		/* item in a collection */
@@ -297,17 +296,17 @@ static void rna_table_cell_func(void *userdata, int row, int col, rcti *rct, uiB
 		if(cell->prop) {
 			cell->index++;
 
-			type= RNA_property_type(cell->prop, &cell->ptr);
+			type= RNA_property_type(&cell->ptr, cell->prop);
 			if(type == PROP_COLLECTION)
-				length= RNA_property_collection_length(cell->prop, &cell->ptr);
+				length= RNA_property_collection_length(&cell->ptr, cell->prop);
 			else
-				length= RNA_property_array_length(cell->prop, &cell->ptr);
+				length= RNA_property_array_length(&cell->ptr, cell->prop);
 
 			/* verify if we need to go to the next property */
 			if(type == PROP_COLLECTION && cell->index < length);
 			else if(length && cell->index < length);
 			else {
-				RNA_property_collection_next(cell->iterprop, &cell->iter);
+				RNA_property_collection_next(&cell->iter);
 				cell->prop= cell->iter.ptr.data;
 				cell->index= -1;
 			}
@@ -333,7 +332,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	uiTable *table;
 	rcti rct;
 	CellRNA cell;
-	PropertyRNA *prop;
+	PropertyRNA *prop, *iterprop;
 	PointerRNA newptr;
 	float col[3];
 	int rows, cols, width, height;
@@ -355,7 +354,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 
 	cell.space= soutliner;
 	cell.lastrow= -1;
-	RNA_pointer_main_get(G.main, &cell.ptr);
+	RNA_main_pointer_create(G.main, &cell.ptr);
 	cell.prop= NULL;
 
 	/* solve RNA path or reset if fails */
@@ -378,25 +377,25 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	rows= 1;
 	cols= 2;
 
-	cell.iterprop= RNA_struct_iterator_property(&cell.ptr);
-	RNA_property_collection_begin(cell.iterprop, &cell.iter, &cell.ptr);
+	iterprop= RNA_struct_iterator_property(&cell.ptr);
+	RNA_property_collection_begin(&cell.ptr, iterprop, &cell.iter);
 
-	for(; cell.iter.valid; RNA_property_collection_next(cell.iterprop, &cell.iter)) {
+	for(; cell.iter.valid; RNA_property_collection_next(&cell.iter)) {
 		prop= cell.iter.ptr.data;
 
-		rows += 1 + RNA_property_array_length(prop, &cell.ptr);
-		if(RNA_property_type(prop, &cell.ptr) == PROP_COLLECTION)
-			rows += RNA_property_collection_length(prop, &cell.ptr);
+		rows += 1 + RNA_property_array_length(&cell.ptr, prop);
+		if(RNA_property_type(&cell.ptr, prop) == PROP_COLLECTION)
+			rows += RNA_property_collection_length(&cell.ptr, prop);
 	}
 
-	RNA_property_collection_end(cell.iterprop, &cell.iter);
+	RNA_property_collection_end(&cell.iter);
 
 	/* create and draw table */
 	table= UI_table_create(rows, 2, &rct, rna_table_cell_func, &cell);
 
-	RNA_property_collection_begin(cell.iterprop, &cell.iter, &cell.ptr);
+	RNA_property_collection_begin(&cell.ptr, iterprop, &cell.iter);
 	UI_table_draw(C->window, ar, table);
-	RNA_property_collection_end(cell.iterprop, &cell.iter);
+	RNA_property_collection_end(&cell.iter);
 
 	UI_table_free(table);
 }

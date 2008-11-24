@@ -25,7 +25,7 @@ static void rna_generate_deps(RNAGenDeps *gen, PointerRNA *ptr, PointerRNA *idpt
 
 	for(prop=ptr->type->properties.first; prop; prop=prop->next) {
 		if(prop->type == PROP_POINTER) {
-			RNA_property_pointer_get(prop, ptr, &pptr);
+			RNA_property_pointer_get(ptr, prop, &pptr);
 
 			if(pptr.data && pptr.type) {
 				if(idptr && (pptr.type->flag & STRUCT_ID)) {
@@ -39,10 +39,10 @@ static void rna_generate_deps(RNAGenDeps *gen, PointerRNA *ptr, PointerRNA *idpt
 			}
 		}
 		else if(prop->type == PROP_COLLECTION) {
-			RNA_property_collection_begin(prop, &iter, ptr);
+			RNA_property_collection_begin(ptr, prop, &iter);
 
 			while(iter.valid) {
-				RNA_property_collection_get(prop, &iter, &pptr);
+				RNA_property_collection_get(&pptr, prop, &iter);
 
 				if(pptr.data && pptr.type) {
 					if(idptr && (pptr.type->flag & STRUCT_ID)) {

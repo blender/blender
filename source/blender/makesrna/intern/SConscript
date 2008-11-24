@@ -3,7 +3,7 @@ import sys
 import os
 
 Import ('env')
-cflags = ''
+cflags = '-Wall'
 defines = []
 root_build_dir=env['BF_BUILDDIR']
 

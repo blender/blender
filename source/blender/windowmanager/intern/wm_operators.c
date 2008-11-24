@@ -74,9 +74,9 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	wmOperatorType *ot;
 	
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->rna= RNA_def_struct(&BLENDER_RNA, "", "Operator", "");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "Operator", "");
 	opfunc(ot);
-	RNA_def_struct_identifier(ot->rna, ot->idname, ot->name);
+	RNA_def_struct_identifier(ot->srna, ot->idname, ot->name);
 	BLI_addtail(&global_ops, ot);
 }
 
@@ -159,12 +159,12 @@ static void border_select_apply(bContext *C, wmOperator *op, int event_type)
 	rcti *rect= gesture->customdata;
 	
 	/* operator arguments and storage. */
-	RNA_int_default(op->rna, "xmin", rect->xmin);
-	RNA_int_default(op->rna, "ymin", rect->ymin);
-	RNA_int_default(op->rna, "xmax", rect->xmax);
-	RNA_int_default(op->rna, "ymax", rect->ymax);
+	RNA_int_set(op->ptr, "xmin", rect->xmin);
+	RNA_int_set(op->ptr, "ymin", rect->ymin);
+	RNA_int_set(op->ptr, "xmax", rect->xmax);
+	RNA_int_set(op->ptr, "ymax", rect->ymax);
 	
-	RNA_int_default(op->rna, "event_type", event_type);
+	RNA_int_set(op->ptr, "event_type", event_type);
 	
 	op->type->exec(C, op);
 }
