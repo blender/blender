@@ -223,6 +223,8 @@ void wm_draw_update(bContext *C)
 				ED_screen_refresh(C->wm, win);
 
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				int area_do_draw= 0;
+				
 				C->area= sa;
 				
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
@@ -232,12 +234,17 @@ void wm_draw_update(bContext *C)
 					if(ar->do_refresh)
 						ED_region_do_refresh(C, ar);
 					
-					if(ar->swinid && ar->do_draw)
+					if(ar->swinid && ar->do_draw) {
 						ED_region_do_draw(C, ar);
-
+						area_do_draw= 1;
+					}
+					
 					C->region= NULL;
 				}
-
+				/* only internal decoration, like AZone */
+				if(area_do_draw)
+					ED_area_do_draw(C, sa);
+				
 				C->area = NULL;
 			}
 			
@@ -364,10 +371,11 @@ void WM_event_remove_handlers(ListBase *handlers)
 
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
 {
+	
 	if(winevent->type!=km->type) return 0;
 	
-	if(km->val) /* KM_PRESS, KM_RELEASE */
-		if(winevent->val!=km->val-1) return 0;
+	if(km->val!=KM_ANY)
+		if(winevent->val!=km->val) return 0;
 	
 	if(winevent->shift!=km->shift) return 0;
 	if(winevent->ctrl!=km->ctrl) return 0;
@@ -648,7 +656,7 @@ void WM_event_add_message(wmWindowManager *wm, void *customdata, short customdat
 
 		event.type= MESSAGE;
 		if(customdata) {
-			event.custom= EVT_MESSAGE;
+			event.custom= EVT_DATA_MESSAGE;
 			event.customdata= customdata;
 			event.customdatafree= customdatafree;
 		}
@@ -748,7 +756,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		wmtab->Xtilt = td->Xtilt;
 		wmtab->Ytilt = td->Ytilt;
 		
-		event->custom= EVT_TABLET;
+		event->custom= EVT_DATA_TABLET;
 		event->customdata= wmtab;
 		event->customdatafree= 1;
 	} 
@@ -812,7 +820,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
-			event.val= (type==GHOST_kEventKeyDown);
+			event.val= (type==GHOST_kEventKeyDown); /* XXX eventmatch uses defines, bad code... */
 			
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
@@ -845,7 +853,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		}
 		case GHOST_kEventTimer: {
 			event.type= TIMER;
-			event.custom= EVT_TIMER;
+			event.custom= EVT_DATA_TIMER;
 			event.customdata= customdata;
 			wm_event_add(win, &event);
 

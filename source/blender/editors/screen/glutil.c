@@ -120,10 +120,9 @@ void sdrawtri(short x1, short y1, short x2, short y2)
 	glEnd();
 }
 
-void sdrawtrifill(short x1, short y1, short x2, short y2, float r, float g, float b)
+void sdrawtrifill(short x1, short y1, short x2, short y2)
 {
 	glBegin(GL_TRIANGLES);
-	glColor3f(r, g, b);
 	sdrawtripoints(x1, y1, x2, y2);
 	glEnd();
 }

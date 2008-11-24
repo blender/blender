@@ -81,8 +81,9 @@ typedef struct wmEvent {
 #define KM_OSKEY2	128
 
 /* val */
-#define KM_PRESS	2
-#define KM_RELEASE	1
+#define KM_ANY		-1
+#define KM_RELEASE	0
+#define KM_PRESS	1
 
 
 /* ************** notifiers ****************** */
@@ -113,17 +114,20 @@ enum {
 /* ************** Gesture Manager data ************** */
 
 /* wmGesture->type */
-#define WM_GESTURE_LINE			0
-#define WM_GESTURE_RECT			1
-#define WM_GESTURE_CROSS_RECT	2
-#define WM_GESTURE_LASSO		3
-#define WM_GESTURE_CIRCLE		4
+#define WM_GESTURE_TWEAK		0
+#define WM_GESTURE_LINE			1
+#define WM_GESTURE_RECT			2
+#define WM_GESTURE_CROSS_RECT	3
+#define WM_GESTURE_LASSO		4
+#define WM_GESTURE_CIRCLE		5
 
 /* wmGesture is registered to window listbase, handled by operator callbacks */
 typedef struct wmGesture {
 	struct wmGesture *next, *prev;
-	int eventtype, mode;
-	int type, swinid;
+	int event_type;	/* event->type */
+	int mode;		/* for modal callback */
+	int type;		/* gesture type define */
+	int swinid;		/* initial subwindow id where it started */
 	
 	void *customdata;
 	/* customdata for border is a recti */

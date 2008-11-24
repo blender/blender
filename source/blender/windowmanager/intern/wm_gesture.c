@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
+
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_windowmanager_types.h"
@@ -55,12 +57,12 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 	BLI_addtail(&C->window->gesture, gesture);
 	
 	gesture->type= type;
-	gesture->eventtype= event->type;
+	gesture->event_type= event->type;
 	gesture->swinid= C->screen->subwinactive;	/* means only in area-region context! */
 	
 	wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
 	
-	if( ELEM(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT)) {
+	if( ELEM3(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK)) {
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata= rect;
@@ -80,6 +82,47 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 	MEM_freeN(gesture);
 }
 
+/* for line, lasso, ... */
+void wm_gesture_point_add(bContext *C, wmGesture *gesture)
+{
+	
+}
+
+/* tweak and line gestures */
+#define TWEAK_THRESHOLD		10
+int wm_gesture_evaluate(bContext *C, wmGesture *gesture)
+{
+	if(gesture->type==WM_GESTURE_TWEAK) {
+		rcti *rect= gesture->customdata;
+		int dx= rect->xmax - rect->xmin;
+		int dy= rect->ymax - rect->ymin;
+		if(ABS(dx)+ABS(dy) > TWEAK_THRESHOLD) {
+			int theta= (int)round(4.0f*atan2((float)dy, (float)dx)/M_PI);
+			int val= EVT_GESTURE_W;
+			
+			if(theta==0) val= EVT_GESTURE_E;
+			else if(theta==1) val= EVT_GESTURE_NE;
+			else if(theta==2) val= EVT_GESTURE_N;
+			else if(theta==3) val= EVT_GESTURE_NW;
+			else if(theta==-1) val= EVT_GESTURE_SE;
+			else if(theta==-2) val= EVT_GESTURE_S;
+			else if(theta==-3) val= EVT_GESTURE_SW;
+			
+			/* debug */
+			if(val==1) printf("tweak north\n");
+			if(val==2) printf("tweak north-east\n");
+			if(val==3) printf("tweak east\n");
+			if(val==4) printf("tweak south-east\n");
+			if(val==5) printf("tweak south\n");
+			if(val==6) printf("tweak south-west\n");
+			if(val==7) printf("tweak west\n");
+			if(val==8) printf("tweak north-west\n");
+			
+			return val;
+		}
+	}
+	return 0;
+}
 
 
 /* ******************* gesture draw ******************* */
@@ -90,12 +133,28 @@ static void wm_gesture_draw_rect(wmWindow *win, wmGesture *gt)
 	
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(0, 0, 0);
-	glLineStipple(1, 0xAAAA);
+	glLineStipple(1, 0xCCCC);
 	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glColor3ub(255, 255, 255);
 	glLineStipple(1, 0x3333);
 	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glDisable(GL_LINE_STIPPLE);
+}
+
+static void wm_gesture_draw_line(wmWindow *win, wmGesture *gt)
+{
+	rcti *rect= (rcti *)gt->customdata;
+	
+	glEnable(GL_LINE_STIPPLE);
+	glColor3ub(0, 0, 0);
+	glLineStipple(1, 0xAAAA);
+	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	glColor3ub(255, 255, 255);
+	glLineStipple(1, 0x5555);
+	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+
+	glDisable(GL_LINE_STIPPLE);
+	
 }
 
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
@@ -104,7 +163,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 	
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(0, 0, 0);
-	glLineStipple(1, 0xAAAA);
+	glLineStipple(1, 0xCCCC);
 	sdrawline(rect->xmin - win->sizex, rect->ymin, rect->xmin + win->sizex, rect->ymin);
 	sdrawline(rect->xmin, rect->ymin - win->sizey, rect->xmin, rect->ymin + win->sizey);
 	
@@ -126,6 +185,8 @@ void wm_gesture_draw(wmWindow *win)
 		
 		if(gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(win, gt);
+		else if(gt->type==WM_GESTURE_TWEAK)
+			wm_gesture_draw_line(win, gt);
 		else if(gt->type==WM_GESTURE_CROSS_RECT) {
 			if(gt->mode==1)
 				wm_gesture_draw_rect(win, gt);

@@ -103,6 +103,9 @@ void		WM_operator_cancel		(struct bContext *C, ListBase *modalops, wmOperatorTyp
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);
 int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent *event);
 
+			/* default operator for arearegions, generates event */
+void		WM_OT_tweak_gesture(wmOperatorType *ot);
+
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);

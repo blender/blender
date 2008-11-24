@@ -1529,7 +1529,7 @@ static void ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiActivateBut
 			if(event->shift) fac /= 10.0f;
 			if(event->alt) fac /= 20.0f;
 
-			if(event->custom == EVT_TABLET) {
+			if(event->custom == EVT_DATA_TABLET) {
 				wmTabletData *wmtab= event->customdata;
 
 				/* de-sensitise based on tablet pressure */

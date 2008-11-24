@@ -768,7 +768,6 @@ static void scrarea_draw_shape_light(ScrArea *sa, char dir)
 /** screen edges drawing **/
 static void drawscredge_area(ScrArea *sa)
 {
-	AZone *az;
 	short x1= sa->v1->vec.x;
 	short y1= sa->v1->vec.y;
 	short x2= sa->v3->vec.x;
@@ -790,11 +789,6 @@ static void drawscredge_area(ScrArea *sa)
 	/* bottom border area */
 	sdrawline(x1, y1, x2, y1);
 	
-	/* temporary viz for 'action corner' */
-	for(az= sa->actionzones.first; az; az= az->next) {
-		if(az->type==AZONE_TRI) sdrawtrifill(az->x1, az->y1, az->x2, az->y2, .2, .2, .2);
-		//if(az->type==AZONE_TRI) sdrawtri(az->x1, az->y1, az->x2, az->y2);
-	}
 }
 
 /* ****************** EXPORTED API TO OTHER MODULES *************************** */

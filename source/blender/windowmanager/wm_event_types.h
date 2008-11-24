@@ -35,11 +35,11 @@
 #ifndef WM_EVENT_TYPES_H
 #define WM_EVENT_TYPES_H
 
-/* custom data type */
-#define EVT_TABLET	1
-#define EVT_GESTURE	2
-#define EVT_TIMER	3
-#define EVT_MESSAGE	4
+/* customdata type */
+#define EVT_DATA_TABLET		1
+#define EVT_DATA_GESTURE	2
+#define EVT_DATA_TIMER		3
+#define EVT_DATA_MESSAGE	4
 
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
@@ -259,8 +259,28 @@
 
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
-#define BORDERSELECT	0x5000
 #define EVT_ACTIONZONE	0x5001
+#define EVT_TWEAK		0x5002
+#define EVT_GESTURE		0x5003
+
+/* value of tweaks and line gestures, note, KM_ANY (-1) works for this case too */
+#define EVT_GESTURE_N		1
+#define EVT_GESTURE_NE		2
+#define EVT_GESTURE_E		3
+#define EVT_GESTURE_SE		4
+#define EVT_GESTURE_S		5
+#define EVT_GESTURE_SW		6
+#define EVT_GESTURE_W		7
+#define EVT_GESTURE_NW		8
+/* value of corner gestures */
+#define EVT_GESTURE_N_E		9
+#define EVT_GESTURE_N_W		10
+#define EVT_GESTURE_E_N		11
+#define EVT_GESTURE_E_S		12
+#define EVT_GESTURE_S_E		13
+#define EVT_GESTURE_S_W		14
+#define EVT_GESTURE_W_S		15
+#define EVT_GESTURE_W_N		16
 
 #endif	/* WM_EVENT_TYPES_H */
 

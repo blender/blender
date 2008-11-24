@@ -51,6 +51,7 @@ void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
 void	ED_area_exit(struct bContext *C, ScrArea *sa);
+void	ED_area_do_draw(struct bContext *C, ScrArea *sa);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);

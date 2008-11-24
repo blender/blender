@@ -48,6 +48,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "wm.h"
 #include "wm_window.h"
 #include "wm_subwindow.h"
 #include "wm_event_system.h"
@@ -143,7 +144,16 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
  * These are default callbacks for use in operators requiring gesture input
  */
 
-static void border_select_apply(bContext *C, wmOperator *op)
+/* **************** Border gesture *************** */
+
+/* Border gesture has two types:
+   1) WM_GESTURE_CROSS_RECT: starts a cross, on mouse click it changes to border 
+   2) WM_GESTURE_RECT: starts immediate as a border, on mouse click or release it ends
+
+   It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
+*/
+
+static void border_select_apply(bContext *C, wmOperator *op, int event_type)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -153,6 +163,8 @@ static void border_select_apply(bContext *C, wmOperator *op)
 	RNA_int_default(op->rna, "ymin", rect->ymin);
 	RNA_int_default(op->rna, "xmax", rect->xmax);
 	RNA_int_default(op->rna, "ymax", rect->ymax);
+	
+	RNA_int_default(op->rna, "event_type", event_type);
 	
 	op->type->exec(C, op);
 }
@@ -205,6 +217,8 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
 			if(event->val==1) {
 				if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 					gesture->mode= 1;
@@ -212,7 +226,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				border_select_apply(C, op);
+				border_select_apply(C, op, event->type);
 				border_select_end(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -223,6 +237,87 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
+
+/* **************** Tweak gesture *************** */
+
+static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(&C->window->handlers, op);
+	
+	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void tweak_gesture_end(bContext *C, wmOperator *op)
+{
+	wmGesture *gesture= op->customdata;
+	
+	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
+	op->customdata= NULL;
+	WM_event_remove_modal_handler(&C->window->handlers, op);
+	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	
+}
+
+static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	int sx, sy, val;
+	
+	switch(event->type) {
+		case MOUSEMOVE:
+			
+			wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+			
+			rect->xmax= event->x - sx;
+			rect->ymax= event->y - sy;
+			
+			if((val= wm_gesture_evaluate(C, gesture))) {
+				wmEvent event;
+					
+				event= *(C->window->eventstate);
+				event.type= EVT_TWEAK;
+				event.val= val;
+				/* mouse coords! */
+				wm_event_add(C->window, &event);
+				
+				tweak_gesture_end(C, op);
+				return OPERATOR_FINISHED;
+			}
+			else
+				WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			
+			break;
+			
+		case LEFTMOUSE:
+		case RIGHTMOUSE:
+		case MIDDLEMOUSE:
+			if(gesture->event_type==event->type) {
+				wm_gesture_evaluate(C, gesture);
+				tweak_gesture_end(C, op);
+				return OPERATOR_FINISHED;
+			}
+			break;
+	}
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void WM_OT_tweak_gesture(wmOperatorType *ot)
+{
+	ot->name= "Tweak Gesture";
+	ot->idname= "WM_OT_tweak_gesture";
+	
+	ot->invoke= tweak_gesture_invoke;
+	ot->modal= tweak_gesture_modal;
+
+	ot->poll= WM_operator_winactive;
+}
+
 
 /* ******************************************************* */
  
@@ -239,6 +334,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
+	WM_operatortype_append(WM_OT_tweak_gesture);
 }
 
 /* default keymap for windows and screens, only call once per WM */

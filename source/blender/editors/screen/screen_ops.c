@@ -834,6 +834,11 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_RUNNING_MODAL;
 		
 	}
+	else {
+		/* nonmodal for now */
+		return op->type->exec(C, op);
+	}
+	
 	return OPERATOR_PASS_THROUGH;
 }
 
@@ -911,7 +916,7 @@ void ED_SCR_OT_area_split(wmOperatorType *ot)
 	ot->invoke= area_split_invoke;
 	ot->modal= area_split_modal;
 	
-	ot->poll= ED_operator_screenactive; /* XXX should be area active */
+	ot->poll= ED_operator_areaactive;
 
 	/* rna */
 	prop= RNA_def_property(ot->rna, "dir", PROP_ENUM, PROP_NONE);
@@ -1227,7 +1232,15 @@ callbacks:
 
 static int border_select_do(bContext *C, wmOperator *op)
 {
-	printf("border select do\n");
+	int event_type= RNA_int_get(op->rna, "event_type");
+	
+	if(event_type==LEFTMOUSE)
+		printf("border select do select\n");
+	else if(event_type==RIGHTMOUSE)
+		printf("border select deselect\n");
+	else 
+		printf("border select do something\n");
+	
 	return 1;
 }
 
@@ -1243,6 +1256,10 @@ void ED_SCR_OT_border_select(wmOperatorType *ot)
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_areaactive;
+	
+	/* rna */
+	RNA_def_property(ot->rna, "event_type", PROP_INT, PROP_NONE);
+
 }
 
 
@@ -1274,10 +1291,13 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
-	WM_keymap_verify_item(&wm->windowkeymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
 	/* for test only */
-	WM_keymap_verify_item(&wm->windowkeymap, "ED_SCR_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(&wm->screenkeymap, "WM_OT_tweak_gesture", LEFTMOUSE, KM_PRESS, 0, 0); /* generates event */
+
+	WM_keymap_add_item(&wm->screenkeymap, "ED_SCR_OT_area_split", EVT_TWEAK, EVT_GESTURE_S, 0, 0);
 
 }
 

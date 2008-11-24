@@ -111,6 +111,27 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	}
 }
 
+/* only internal decoration, AZone for now */
+void ED_area_do_draw(bContext *C, ScrArea *sa)
+{
+	AZone *az;
+	
+	/* hrmf, screenspace for zones */
+	wm_subwindow_set(C->window, C->window->screen->mainwin);
+	
+	/* temporary viz for 'action corner' */
+	for(az= sa->actionzones.first; az; az= az->next) {
+		
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glColor4ub(0, 0, 0, 80);
+		if(az->type==AZONE_TRI) sdrawtrifill(az->x1, az->y1, az->x2, az->y2);
+		//if(az->type==AZONE_TRI) sdrawtri(az->x1, az->y1, az->x2, az->y2);
+		glDisable( GL_BLEND );
+	}
+	
+}
+
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
 	ARegionType *at= ar->type;
@@ -128,9 +149,10 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glClearColor(0.5, fac, 1.0f-fac, 0.0); 
 		glClear(GL_COLOR_BUFFER_BIT);
 		
+		/* swapbuffers indicator */
 		fac= BLI_frand();
 		glColor3f(fac, fac, fac);
-		glRecti(2,  2,  12,  12);
+		glRecti(20,  2,  30,  12);
 		
 		region_draw_emboss(ar);
 	}
@@ -295,9 +317,10 @@ void area_azone_initialize(ScrArea *sa)
 			az->y1= sa->v1->vec.y+1;
 			az->x2= sa->v1->vec.x+AZONESPOT;
 			az->y2= sa->v1->vec.y+AZONESPOT;
-		} else if (az->pos==AZONE_NE) {
-			az->x1= sa->v3->vec.x-1;
-			az->y1= sa->v3->vec.y-1;
+		} 
+		else if (az->pos==AZONE_NE) {
+			az->x1= sa->v3->vec.x;
+			az->y1= sa->v3->vec.y;
 			az->x2= sa->v3->vec.x-AZONESPOT;
 			az->y2= sa->v3->vec.y-AZONESPOT;
 		}

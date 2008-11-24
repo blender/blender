@@ -37,10 +37,6 @@ struct Scene;
 struct SpaceType;
 struct SpaceLink;
 struct ARegionType;
-struct bContext;
-struct wmNotifier;
-struct wmWindowManager;
-		
 
 typedef struct bScreen {
 	ID id;

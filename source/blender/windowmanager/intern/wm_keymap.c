@@ -71,12 +71,11 @@ static void keymap_set(wmKeymapItem *km, short type, short val, int modifier, sh
 		km->oskey= 2;	
 }
 
-/* if item was added, then replace */
+/* if item was added, then bail out */
 void WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *km;
 	
-	/* if item was added, then bail out */
 	for(km= lb->first; km; km= km->next)
 		if(strncmp(km->idname, idname, OP_MAX_TYPENAME)==0)
 			break;

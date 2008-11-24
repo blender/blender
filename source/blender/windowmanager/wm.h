@@ -49,6 +49,7 @@ void wm_window_keymap(wmWindowManager *wm);
 
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);
+int wm_gesture_evaluate(bContext *C, wmGesture *gesture);
 
 #endif /* WM_H */
 

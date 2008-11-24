@@ -35,7 +35,7 @@ void fdrawline(float x1, float y1, float x2, float y2);
 void fdrawbox(float x1, float y1, float x2, float y2);
 void sdrawline(short x1, short y1, short x2, short y2);
 void sdrawtri(short x1, short y1, short x2, short y2);
-void sdrawtrifill(short x1, short y1, short x2, short y2, float r, float g, float b);
+void sdrawtrifill(short x1, short y1, short x2, short y2);
 void sdrawbox(short x1, short y1, short x2, short y2);
 
 void sdrawXORline(int x0, int y0, int x1, int y1);
