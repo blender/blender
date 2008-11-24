@@ -2952,7 +2952,8 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 				}
 			} else {
 				VecSubf(viewDirPersp, ps->viewPos, v->co);
-				if (NormalizedVecAngle2(ps->viewDir, no) >= M_PI_2) { /* 1 vert of this face is towards us */
+				Normalize(viewDirPersp);
+				if (NormalizedVecAngle2(viewDirPersp, no) >= M_PI_2) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
