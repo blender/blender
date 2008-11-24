@@ -1329,8 +1329,16 @@ float project_paint_uvpixel_mask(
 		if (angle >= M_PI_2) {
 			return 0.0f;
 		} else {
+#if 0
 			mask = 1.0f - (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+#endif
 			
+			/* trickier method that clips the normal so its more useful */
+			mask = (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask = (1.0f - (mask * mask * mask)) * 1.4f;
+			if (mask > 1.0f) {
+				mask = 1.0f;
+			}
 		}
 		
 	} else {
@@ -4398,14 +4406,15 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			} else {
 				if (stroke_gp==0) {
 					BIF_wait_for_statechange();
+					
+					if (redraw==0) {
+						/* Only so the brush outline is redrawn, pitty we need to do this
+						 * however it wont run when the mouse is still so not too bad */
+						force_draw(0);
+					}
 				}
 			}
 			
-			if (redraw==0) {
-				/* Only so the brush outline is redrawn, pitty we need to do this
-				 * however it wont run when the mouse is still so not too bad */
-				force_draw(0);
-			}
 			init = 0;
 		
 		} else {
