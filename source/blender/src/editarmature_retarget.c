@@ -805,14 +805,25 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				/* constraint targets */
 				if (cti && cti->get_constraint_targets)
 				{
+					int target_index;
+					
 					cti->get_constraint_targets(con, &targets);
 					
-					for (ct= targets.first; ct; ct= ct->next)
+					for (target_index = 0, ct= targets.first; ct; target_index++, ct= ct->next)
 					{
 						if ((ct->tar == rg->ob) && strcmp(ct->subtarget, ctrl->bone->name) == 0)
 						{
 							/* SET bone link to bone corresponding to pchan */
 							EditBone *link = BLI_ghash_lookup(rg->bones_map, pchan->name);
+							
+							/* for pole targets, link to parent bone instead, if possible */
+							if (con->type == CONSTRAINT_TYPE_KINEMATIC && target_index == 1)
+							{
+								if (link->parent && BLI_ghash_haskey(rg->bones_map, link->parent->name))
+								{
+									link = link->parent;
+								}
+							}
 							
 							found = RIG_parentControl(ctrl, link);
 						}
@@ -1011,14 +1022,12 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				{
 					if (VecLenf(ctrl->bone->tail, bone->head) < 0.01)
 					{
-						printf("%s -> %s: TL_HEAD\n", ctrl->bone->name, bone->name);
 						ctrl->tail_mode = TL_HEAD;
 						ctrl->link_tail = bone;
 						break;
 					}
 					else if (VecLenf(ctrl->bone->tail, bone->tail) < 0.01)
 					{
-						printf("%s -> %s: TL_TAIL\n", ctrl->bone->name, bone->name);
 						ctrl->tail_mode = TL_TAIL;
 						ctrl->link_tail = bone;
 						break;
@@ -1030,10 +1039,6 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			if (ctrl->tail_mode == TL_NONE)
 			{
 			}
-		}
-		else
-		{
-			printf("%s FIT\n", ctrl->bone->name);
 		}
 	}
 	
@@ -1808,6 +1813,17 @@ static void finalizeControl(RigGraph *rigg, RigControl *ctrl, float resize)
 	if ((ctrl->flag & RIG_CTRL_DONE) == RIG_CTRL_DONE)
 	{
 		RigControl *ctrl_child;
+
+#if 0		
+		printf("CTRL: %s LINK: %s", ctrl->bone->name, ctrl->link->name);
+		
+		if (ctrl->link_tail)
+		{
+			printf(" TAIL: %s", ctrl->link_tail->name);
+		}
+		
+		printf("\n");
+#endif
 		
 		/* if there was a tail link: apply link, recalc resize factor and qrot */
 		if (ctrl->tail_mode != TL_NONE)
