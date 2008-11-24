@@ -52,7 +52,9 @@
 
 #include "UI_resources.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "screen_intern.h"
 
@@ -420,11 +422,12 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 		ar->swinid= 0;
 	}
 		
+#ifndef DISABLE_PYTHON
 	/* scripts */
 	BPY_free_scriptlink(&sa1->scriptlink);
 	sa1->scriptlink= sa2->scriptlink;
 	BPY_copy_scriptlink(&sa1->scriptlink);	/* copies internal pointers */
-	
+#endif
 }
 
 

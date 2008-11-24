@@ -37,7 +37,9 @@
 
 #include "BKE_screen.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 /* keep global; this has to be accessible outside of windowmanager */
 static ListBase spacetypes= {NULL, NULL};
@@ -116,8 +118,9 @@ void BKE_screen_area_free(ScrArea *sa)
 	//	uiFreeBlocks(&sa->uiblocks);
 	//	uiFreePanels(&sa->panels);
 	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sa->scriptlink);
-
+#endif
 }
 
 /* don't free screen itself */
