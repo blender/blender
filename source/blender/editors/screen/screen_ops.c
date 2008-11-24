@@ -39,6 +39,7 @@
 #include "WM_types.h"
 
 #include "ED_area.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -1275,11 +1276,15 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_cursor_type);
 	WM_operatortype_append(ED_SCR_OT_actionzone);
 	
-	/* tools */
+	/* screen tools */
 	WM_operatortype_append(ED_SCR_OT_area_move);
 	WM_operatortype_append(ED_SCR_OT_area_split);
 	WM_operatortype_append(ED_SCR_OT_area_join);
 	WM_operatortype_append(ED_SCR_OT_area_rip);
+	
+	/* tools shared by more space types */
+	WM_operatortype_append(ED_MARKER_OT_add);
+	
 	
 	/* for test only */
 	WM_operatortype_append(ED_SCR_OT_border_select);
@@ -1298,9 +1303,6 @@ void ED_keymap_screen(wmWindowManager *wm)
 
 	/* for test only */
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->screenkeymap, "WM_OT_tweak_gesture", LEFTMOUSE, KM_PRESS, 0, 0); /* generates event */
-
-	WM_keymap_add_item(&wm->screenkeymap, "ED_SCR_OT_area_split", EVT_TWEAK, EVT_GESTURE_S, 0, 0);
 
 }
 

@@ -323,4 +323,9 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, 
 	}
 }
 
+void UI_view2d_getscale(View2D *v2d, float *x, float *y) 
+{
+	if (x) *x = (v2d->mask.xmax-v2d->mask.xmin)/(v2d->cur.xmax-v2d->cur.xmin);
+	if (y) *y = (v2d->mask.ymax-v2d->mask.ymin)/(v2d->cur.ymax-v2d->cur.ymin);
+}
 

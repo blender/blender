@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_markers.h"
+
 /* ********************** frame change operator ***************************/
 
 static int change_frame_init(bContext *C, wmOperator *op)
@@ -184,5 +186,12 @@ void time_operatortypes(void)
 void time_keymap(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->timekeymap, "ED_TIME_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+
+	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_verify_item(&wm->timekeymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0); /* generates event */
+						  
+	//WM_keymap_add_item(&wm->screenkeymap, "ED_SCR_OT_area_split", EVT_TWEAK, EVT_GESTURE_S, 0, 0);
+						  
 }
 

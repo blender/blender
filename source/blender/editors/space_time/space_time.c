@@ -51,6 +51,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "ED_markers.h"
+
 #include "time_intern.h"
 
 /* ************************ main time area region *********************** */
@@ -137,6 +139,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* current frame */
 	time_draw_cfra_time(C, stime);
+	
+	/* markers */
+	draw_markers_time(C, 0);
 }
 
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -228,7 +233,7 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 
 			ar->type= &mainart;
 
-			/* XXX the windowmanager may not be th best place to keep these
+			/* XXX the windowmanager may not be the best place to keep these
 			 * keymaps, and this function callback may not be the best one
 			 * to add the keymap handler, also will need to take care of
 			 * area type changes, etc, basically space callbacks need to

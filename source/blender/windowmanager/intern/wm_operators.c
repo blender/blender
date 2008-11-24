@@ -65,6 +65,7 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
 		   return ot;
 	}
+	printf("search for unknown operator %s\n", idname);
 	return NULL;
 }
 

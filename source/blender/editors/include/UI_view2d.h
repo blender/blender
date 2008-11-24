@@ -65,5 +65,9 @@ void UI_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, short *regionx, short *regiony);
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *regionx, short *region_y);
 
+/* utilities */
+void UI_view2d_getscale(View2D *v2d, float *x, float *y);
+
+
 #endif /* UI_VIEW2D_H */
 
