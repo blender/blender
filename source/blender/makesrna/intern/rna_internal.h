@@ -123,12 +123,15 @@ void *rna_builtin_type_get(struct PointerRNA *ptr);
 
 /* Iterators */
 
+typedef int (*IteratorSkipFunc)(struct CollectionPropertyIterator *iter, void *data);
+
 typedef struct ListBaseIterator {
 	Link *link;
 	int flag;
+	IteratorSkipFunc skip;
 } ListBaseIterator;
 
-void rna_iterator_listbase_begin(struct CollectionPropertyIterator *iter, struct ListBase *lb);
+void rna_iterator_listbase_begin(struct CollectionPropertyIterator *iter, struct ListBase *lb, IteratorSkipFunc skip);
 void rna_iterator_listbase_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_listbase_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_listbase_end(struct CollectionPropertyIterator *iter);
@@ -137,9 +140,10 @@ typedef struct ArrayIterator {
 	char *ptr;
 	char *endptr;
 	int itemsize;
+	IteratorSkipFunc skip;
 } ArrayIterator;
 
-void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length);
+void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip);
 void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);

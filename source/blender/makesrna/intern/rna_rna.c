@@ -57,10 +57,9 @@ static void *rna_Struct_name_property_get(PointerRNA *ptr)
 	return ((StructRNA*)ptr->data)->nameproperty;
 }
 
-static int rna_idproperty_known(CollectionPropertyIterator *iter)
+static int rna_idproperty_known(CollectionPropertyIterator *iter, void *data)
 {
-	ListBaseIterator *internal= iter->internal;
-	IDProperty *idprop= (IDProperty*)internal->link;
+	IDProperty *idprop= (IDProperty*)data;
 	PropertyRNA *prop;
 
 	for(prop= iter->parent.type->properties.first; prop; prop=prop->next)
@@ -70,6 +69,12 @@ static int rna_idproperty_known(CollectionPropertyIterator *iter)
 	return 0;
 }
 
+static int rna_property_builtin(CollectionPropertyIterator *iter, void *data)
+{
+	PropertyRNA *prop= (PropertyRNA*)data;
+	return (prop->flag & PROP_BUILTIN);
+}
+
 static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -77,15 +82,11 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 	if(internal->flag) {
 		/* id properties */
-		do {
-			rna_iterator_listbase_next(iter);
-		} while(iter->valid && rna_idproperty_known(iter));
+		rna_iterator_listbase_next(iter);
 	}
 	else {
 		/* regular properties */
-		do {
-			rna_iterator_listbase_next(iter);
-		} while(iter->valid && (((PropertyRNA*)internal->link)->flag & PROP_BUILTIN));
+		rna_iterator_listbase_next(iter);
 
 		/* try id properties */
 		if(!iter->valid) {
@@ -93,12 +94,9 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 			if(group) {
 				rna_iterator_listbase_end(iter);
-				rna_iterator_listbase_begin(iter, &group->data.group);
+				rna_iterator_listbase_begin(iter, &group->data.group, rna_idproperty_known);
 				internal= iter->internal;
 				internal->flag= 1;
-
-				if(iter->valid && rna_idproperty_known(iter))
-					rna_Struct_properties_next(iter);
 			}
 		}
 	}
@@ -106,13 +104,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 static void rna_Struct_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	ListBaseIterator *internal;
-
-	rna_iterator_listbase_begin(iter, &((StructRNA*)ptr->data)->properties);
-
-	internal= iter->internal;
-	if(iter->valid && (((PropertyRNA*)internal->link)->flag & PROP_BUILTIN))
-		rna_Struct_properties_next(iter);
+	rna_iterator_listbase_begin(iter, &((StructRNA*)ptr->data)->properties, rna_property_builtin);
 }
 
 static void *rna_Struct_properties_get(CollectionPropertyIterator *iter)
@@ -334,7 +326,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem);
+	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, NULL);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)
@@ -414,23 +406,23 @@ static void rna_def_property(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem type_items[] = {
-		{PROP_BOOLEAN, "BOOLEAN", "Boolean"},
-		{PROP_INT, "INT", "Integer"},
-		{PROP_FLOAT, "FLOAT", "Float"},
-		{PROP_STRING, "STRING", "String"},
-		{PROP_ENUM, "ENUM", "Enumeration"},
-		{PROP_POINTER, "POINTER", "Pointer"},
-		{PROP_COLLECTION, "COLLECTION", "Collection"},
-		{0, NULL, NULL}};
+		{PROP_BOOLEAN, "BOOLEAN", "Boolean", ""},
+		{PROP_INT, "INT", "Integer", ""},
+		{PROP_FLOAT, "FLOAT", "Float", ""},
+		{PROP_STRING, "STRING", "String", ""},
+		{PROP_ENUM, "ENUM", "Enumeration", ""},
+		{PROP_POINTER, "POINTER", "Pointer", ""},
+		{PROP_COLLECTION, "COLLECTION", "Collection", ""},
+		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem subtype_items[] = {
-		{PROP_NONE, "NONE", "None"},
-		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number"},
-		{PROP_FILEPATH, "FILEPATH", "File Path"},
-		{PROP_COLOR, "COLOR", "Color"},
-		{PROP_VECTOR, "VECTOR", "Vector"},
-		{PROP_MATRIX, "MATRIX", "Matrix"},
-		{PROP_ROTATION, "ROTATION", "Rotation"},
-		{0, NULL, NULL}};
+		{PROP_NONE, "NONE", "None", ""},
+		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number", ""},
+		{PROP_FILEPATH, "FILEPATH", "File Path", ""},
+		{PROP_COLOR, "COLOR", "Color", ""},
+		{PROP_VECTOR, "VECTOR", "Vector", ""},
+		{PROP_MATRIX, "MATRIX", "Matrix", ""},
+		{PROP_ROTATION, "ROTATION", "Rotation", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL, "Property Definition");
 	RNA_def_struct_funcs(srna, NULL, "rna_Property_refine");
@@ -470,7 +462,7 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 
 	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL);
+	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Array Length", "Maximum length of the array, 0 means unlimited.");
 
 	if(type == PROP_BOOLEAN)
@@ -478,38 +470,38 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 
 	prop= RNA_def_property(srna, "hard_min", type, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_min_get", NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_min_get", NULL);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_min_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_min_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Hard Minimum", "Minimum value used by buttons.");
 
 	prop= RNA_def_property(srna, "hard_max", type, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_max_get", NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_max_get", NULL);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_hard_max_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_hard_max_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Hard Maximum", "Maximum value used by buttons.");
 
 	prop= RNA_def_property(srna, "soft_min", type, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_min_get", NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_min_get", NULL);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_min_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_min_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Minimum", "Minimum value used by buttons.");
 
 	prop= RNA_def_property(srna, "soft_max", type, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_max_get", NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_max_get", NULL);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_soft_max_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_soft_max_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Maximum", "Maximum value used by buttons.");
 
 	prop= RNA_def_property(srna, "step", type, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_step_get", NULL);
-	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_step_get", NULL);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_step_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_step_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Step", "Step size used by number buttons, for floats 1/100th of the step size.");
 
 	if(type == PROP_FLOAT) {
 		prop= RNA_def_property(srna, "precision", PROP_INT, PROP_UNSIGNED);
 		RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-		RNA_def_property_int_funcs(prop, "rna_FloatProperty_precision_get", NULL);
+		RNA_def_property_int_funcs(prop, "rna_FloatProperty_precision_get", NULL, NULL);
 		RNA_def_property_ui_text(prop, "Precision", "Number of digits after the dot used by buttons.");
 	}
 }
@@ -520,7 +512,7 @@ static void rna_def_string_property(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL);
+	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Maximum Length", "Maximum length of the string, 0 means unlimited.");
 }
 
@@ -549,7 +541,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_EnumPropertyItem_value_get", NULL);
+	RNA_def_property_int_funcs(prop, "rna_EnumPropertyItem_value_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Value", "Value of the item.");
 }
 

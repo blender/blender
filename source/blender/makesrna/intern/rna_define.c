@@ -264,6 +264,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	}
 
 	srna= MEM_callocN(sizeof(StructRNA), "StructRNA");
+	DefRNA.laststruct= srna;
 
 	/* copy from struct to derive stuff, a bit clumsy since we can't
 	 * use MEM_dupallocN, data structs may not be alloced but builtin */
@@ -872,9 +873,16 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit)
 {
 	PropertyDefRNA *dp;
+	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_BOOLEAN) {
+		fprintf(stderr, "RNA_def_property_boolean_sdna: %s.%s, type is not boolean.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -886,9 +894,16 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 {
 	PropertyDefRNA *dp;
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
+	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_INT) {
+		fprintf(stderr, "RNA_def_property_int_sdna: %s.%s, type is not int.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -917,15 +932,35 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
+	StructRNA *srna= DefRNA.laststruct;
+
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_FLOAT) {
+		fprintf(stderr, "RNA_def_property_float_sdna: %s.%s, type is not float.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
+		return;
+	}
+
 	rna_def_property_sdna(prop, structname, propname);
 }
 
 void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	PropertyDefRNA *dp;
+	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_ENUM) {
+		fprintf(stderr, "RNA_def_property_enum_sdna: %s.%s, type is not enum.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -944,9 +979,16 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 {
 	PropertyDefRNA *dp;
 	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_STRING) {
+		fprintf(stderr, "RNA_def_property_string_sdna: %s.%s, type is not string.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -961,9 +1003,16 @@ void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, con
 void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	PropertyDefRNA *dp;
+	StructRNA *srna= DefRNA.laststruct;
 	
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_POINTER) {
+		fprintf(stderr, "RNA_def_property_pointer_sdna: %s.%s, type is not pointer.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -982,9 +1031,16 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 {
 	PropertyDefRNA *dp;
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_sdna: only during preprocessing.\n");
+		return;
+	}
+
+	if(prop->type != PROP_COLLECTION) {
+		fprintf(stderr, "RNA_def_property_collection_sdna: %s.%s, type is not collection.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
 		return;
 	}
 
@@ -1031,7 +1087,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 
 /* Functions */
 
-void RNA_def_property_funcs(PropertyRNA *prop, const char *notify)
+void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *editable)
 {
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_funcs: only during preprocessing.\n");
@@ -1039,11 +1095,12 @@ void RNA_def_property_funcs(PropertyRNA *prop, const char *notify)
 	}
 
 	if(notify) prop->notify= (NotifyFunc)notify;
+	if(editable) prop->editable= (EditableFunc)editable;
 }
 
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1071,9 +1128,9 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1092,6 +1149,7 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 				if(get) iprop->get= (PropIntGetFunc)get;
 				if(set) iprop->set= (PropIntSetFunc)set;
 			}
+			if(range) iprop->range= (PropIntRangeFunc)range;
 			break;
 		}
 		default:
@@ -1101,9 +1159,9 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 	}
 }
 
-void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set)
+void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1122,6 +1180,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 				if(get) fprop->get= (PropFloatGetFunc)get;
 				if(set) fprop->set= (PropFloatSetFunc)set;
 			}
+			if(range) fprop->range= (PropFloatRangeFunc)range;
 			break;
 		}
 		default:
@@ -1133,7 +1192,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 
 void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1157,7 +1216,7 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1182,7 +1241,7 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *type, const char *set)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
@@ -1207,7 +1266,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");

@@ -113,6 +113,7 @@ typedef struct EnumPropertyItem {
 	int value;
 	const char *identifier;
 	const char *name;
+	const char *description;
 } EnumPropertyItem;
 
 struct PropertyRNA;

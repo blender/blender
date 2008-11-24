@@ -37,6 +37,7 @@ struct bContext;
 /* Function Callbacks */
 
 typedef void (*NotifyFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
@@ -47,10 +48,12 @@ typedef int (*PropIntGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropIntSetFunc)(struct PointerRNA *ptr, int value);
 typedef int (*PropIntArrayGetFunc)(struct PointerRNA *ptr, int index);
 typedef void (*PropIntArraySetFunc)(struct PointerRNA *ptr, int index, int value);
+typedef void (*PropIntRangeFunc)(struct PointerRNA *ptr, int *min, int *max);
 typedef float (*PropFloatGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropFloatSetFunc)(struct PointerRNA *ptr, float value);
 typedef float (*PropFloatArrayGetFunc)(struct PointerRNA *ptr, int index);
 typedef void (*PropFloatArraySetFunc)(struct PointerRNA *ptr, int index, float value);
+typedef void (*PropFloatRangeFunc)(struct PointerRNA *ptr, float *min, float *max);
 typedef void (*PropStringGetFunc)(struct PointerRNA *ptr, char *value);
 typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
@@ -93,6 +96,9 @@ struct PropertyRNA {
 	
 	/* callback for notifys on change */
 	NotifyFunc notify;
+
+	/* callback for testing if editable/evaluated */
+	EditableFunc editable;
 };
 
 /* Property Types */
@@ -119,6 +125,8 @@ typedef struct IntPropertyRNA {
 	PropIntArrayGetFunc getarray;
 	PropIntArraySetFunc setarray;
 
+	PropIntRangeFunc range;
+
 	int softmin, softmax;
 	int hardmin, hardmax;
 	int step;
@@ -135,6 +143,8 @@ typedef struct FloatPropertyRNA {
 
 	PropFloatArrayGetFunc getarray;
 	PropFloatArraySetFunc setarray;
+
+	PropFloatRangeFunc range;
 
 	float softmin, softmax;
 	float hardmin, hardmax;

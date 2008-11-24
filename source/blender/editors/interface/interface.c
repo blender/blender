@@ -1138,30 +1138,32 @@ void ui_set_but_val(uiBut *but, double value)
 	if(but->rnaprop) {
 		prop= but->rnaprop;
 
-		switch(RNA_property_type(prop, &but->rnapoin)) {
-			case PROP_BOOLEAN:
-				if(RNA_property_array_length(prop, &but->rnapoin))
-					RNA_property_boolean_set_array(prop, &but->rnapoin, but->rnaindex, value);
-				else
-					RNA_property_boolean_set(prop, &but->rnapoin, value);
-				break;
-			case PROP_INT:
-				if(RNA_property_array_length(prop, &but->rnapoin))
-					RNA_property_int_set_array(prop, &but->rnapoin, but->rnaindex, value);
-				else
-					RNA_property_int_set(prop, &but->rnapoin, value);
-				break;
-			case PROP_FLOAT:
-				if(RNA_property_array_length(prop, &but->rnapoin))
-					RNA_property_float_set_array(prop, &but->rnapoin, but->rnaindex, value);
-				else
-					RNA_property_float_set(prop, &but->rnapoin, value);
-				break;
-			case PROP_ENUM:
-				RNA_property_enum_set(prop, &but->rnapoin, value);
-				break;
-			default:
-				break;
+		if(RNA_property_editable(prop, &but->rnapoin)) {
+			switch(RNA_property_type(prop, &but->rnapoin)) {
+				case PROP_BOOLEAN:
+					if(RNA_property_array_length(prop, &but->rnapoin))
+						RNA_property_boolean_set_array(prop, &but->rnapoin, but->rnaindex, value);
+					else
+						RNA_property_boolean_set(prop, &but->rnapoin, value);
+					break;
+				case PROP_INT:
+					if(RNA_property_array_length(prop, &but->rnapoin))
+						RNA_property_int_set_array(prop, &but->rnapoin, but->rnaindex, value);
+					else
+						RNA_property_int_set(prop, &but->rnapoin, value);
+					break;
+				case PROP_FLOAT:
+					if(RNA_property_array_length(prop, &but->rnapoin))
+						RNA_property_float_set_array(prop, &but->rnapoin, but->rnaindex, value);
+					else
+						RNA_property_float_set(prop, &but->rnapoin, value);
+					break;
+				case PROP_ENUM:
+					RNA_property_enum_set(prop, &but->rnapoin, value);
+					break;
+				default:
+					break;
+			}
 		}
 	}
 	else if(but->pointype==0);

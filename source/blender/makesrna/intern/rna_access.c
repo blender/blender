@@ -291,19 +291,33 @@ void RNA_property_int_range(PropertyRNA *prop, PointerRNA *ptr, int *hardmin, in
 	rna_idproperty_check(&prop, ptr);
 	iprop= (IntPropertyRNA*)prop;
 
-	*hardmin= iprop->hardmin;
-	*hardmax= iprop->hardmax;
+	if(iprop->range) {
+		iprop->range(ptr, hardmin, hardmax);
+	}
+	else {
+		*hardmin= iprop->hardmin;
+		*hardmax= iprop->hardmax;
+	}
 }
 
 void RNA_property_int_ui_range(PropertyRNA *prop, PointerRNA *ptr, int *softmin, int *softmax, int *step)
 {
 	IntPropertyRNA *iprop;
+	int hardmin, hardmax;
 	
 	rna_idproperty_check(&prop, ptr);
 	iprop= (IntPropertyRNA*)prop;
 
-	*softmin= iprop->softmin;
-	*softmax= iprop->softmax;
+	if(iprop->range) {
+		iprop->range(ptr, &hardmin, &hardmax);
+		*softmin= MAX2(iprop->softmin, hardmin);
+		*softmax= MIN2(iprop->softmax, hardmax);
+	}
+	else {
+		*softmin= iprop->softmin;
+		*softmax= iprop->softmax;
+	}
+
 	*step= iprop->step;
 }
 
@@ -314,19 +328,33 @@ void RNA_property_float_range(PropertyRNA *prop, PointerRNA *ptr, float *hardmin
 	rna_idproperty_check(&prop, ptr);
 	fprop= (FloatPropertyRNA*)prop;
 
-	*hardmin= fprop->hardmin;
-	*hardmax= fprop->hardmax;
+	if(fprop->range) {
+		fprop->range(ptr, hardmin, hardmax);
+	}
+	else {
+		*hardmin= fprop->hardmin;
+		*hardmax= fprop->hardmax;
+	}
 }
 
 void RNA_property_float_ui_range(PropertyRNA *prop, PointerRNA *ptr, float *softmin, float *softmax, float *step, float *precision)
 {
 	FloatPropertyRNA *fprop;
+	float hardmin, hardmax;
 
 	rna_idproperty_check(&prop, ptr);
 	fprop= (FloatPropertyRNA*)prop;
 
-	*softmin= fprop->softmin;
-	*softmax= fprop->softmax;
+	if(fprop->range) {
+		fprop->range(ptr, &hardmin, &hardmax);
+		*softmin= MAX2(fprop->softmin, hardmin);
+		*softmax= MIN2(fprop->softmax, hardmax);
+	}
+	else {
+		*softmin= fprop->softmin;
+		*softmax= fprop->softmax;
+	}
+
 	*step= fprop->step;
 	*precision= fprop->precision;
 }
@@ -375,16 +403,30 @@ const char *RNA_property_ui_description(PropertyRNA *prop, PointerRNA *ptr)
 
 int RNA_property_editable(PropertyRNA *prop, PointerRNA *ptr)
 {
+	int flag;
+
 	rna_idproperty_check(&prop, ptr);
 
-	return !(prop->flag & PROP_NOT_EDITABLE);
+	if(prop->editable)
+		flag= prop->editable(ptr);
+	else
+		flag= prop->flag;
+
+	return !(flag & PROP_NOT_EDITABLE);
 }
 
 int RNA_property_evaluated(PropertyRNA *prop, PointerRNA *ptr)
 {
+	int flag;
+
 	rna_idproperty_check(&prop, ptr);
 
-	return (prop->flag & PROP_EVALUATED);
+	if(prop->editable)
+		flag= prop->editable(ptr);
+	else
+		flag= prop->flag;
+
+	return (flag & PROP_EVALUATED);
 }
 
 void RNA_property_notify(PropertyRNA *prop, struct bContext *C, PointerRNA *ptr)
@@ -961,23 +1003,35 @@ int RNA_property_collection_lookup_string(PropertyRNA *prop, PointerRNA *ptr, co
 
 /* Standard iterator functions */
 
-void rna_iterator_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb)
+void rna_iterator_listbase_begin(CollectionPropertyIterator *iter, ListBase *lb, IteratorSkipFunc skip)
 {
 	ListBaseIterator *internal;
 
 	internal= MEM_callocN(sizeof(ListBaseIterator), "ListBaseIterator");
 	internal->link= lb->first;
+	internal->skip= skip;
 
 	iter->internal= internal;
 	iter->valid= (internal->link != NULL);
+
+	if(skip && iter->valid && skip(iter, internal->link))
+		rna_iterator_listbase_next(iter);
 }
 
 void rna_iterator_listbase_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
 
-	internal->link= internal->link->next;
-	iter->valid= (internal->link != NULL);
+	if(internal->skip) {
+		do {
+			internal->link= internal->link->next;
+			iter->valid= (internal->link != NULL);
+		} while(iter->valid && internal->skip(iter, internal->link));
+	}
+	else {
+		internal->link= internal->link->next;
+		iter->valid= (internal->link != NULL);
+	}
 }
 
 void *rna_iterator_listbase_get(CollectionPropertyIterator *iter)
@@ -992,25 +1046,40 @@ void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 	MEM_freeN(iter->internal);
 }
 
-void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length)
+void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip)
 {
 	ArrayIterator *internal;
+
+	if(ptr == NULL)
+		length= 0;
 
 	internal= MEM_callocN(sizeof(ArrayIterator), "ArrayIterator");
 	internal->ptr= ptr;
 	internal->endptr= ((char*)ptr)+length*itemsize;
 	internal->itemsize= itemsize;
+	internal->skip= skip;
 
 	iter->internal= internal;
 	iter->valid= (internal->ptr != internal->endptr);
+
+	if(skip && iter->valid && skip(iter, internal->ptr))
+		rna_iterator_array_next(iter);
 }
 
 void rna_iterator_array_next(CollectionPropertyIterator *iter)
 {
 	ArrayIterator *internal= iter->internal;
 
-	internal->ptr += internal->itemsize;
-	iter->valid= (internal->ptr != internal->endptr);
+	if(internal->skip) {
+		do {
+			internal->ptr += internal->itemsize;
+			iter->valid= (internal->ptr != internal->endptr);
+		} while(iter->valid && internal->skip(iter, internal->ptr));
+	}
+	else {
+		internal->ptr += internal->itemsize;
+		iter->valid= (internal->ptr != internal->endptr);
+	}
 }
 
 void *rna_iterator_array_get(CollectionPropertyIterator *iter)

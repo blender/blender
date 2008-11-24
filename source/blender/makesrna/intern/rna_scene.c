@@ -61,8 +61,19 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_mode_items[] = {{PROP_SMOOTH, "SMOOTH", "Smooth"}, {PROP_SPHERE, "SPHERE", "Sphere"}, {PROP_ROOT, "ROOT", "Root"}, {PROP_SHARP, "SHARP", "Sharp"}, {PROP_LIN, "LINEAR", "Linear"}, {PROP_CONST, "CONSTANT", "Constant"}, {PROP_RANDOM, "RANDOM", "Random"}, {0, NULL, NULL}};
-	static EnumPropertyItem unwrapper_items[] = {{0, "CONFORMAL", "Conformal"}, {1, "ANGLEBASED", "Angle Based"},  {0, NULL, NULL}};
+	static EnumPropertyItem prop_mode_items[] ={
+		{PROP_SMOOTH, "SMOOTH", "Smooth", ""},
+		{PROP_SPHERE, "SPHERE", "Sphere", ""},
+		{PROP_ROOT, "ROOT", "Root", ""},
+		{PROP_SHARP, "SHARP", "Sharp", ""},
+		{PROP_LIN, "LINEAR", "Linear", ""},
+		{PROP_CONST, "CONSTANT", "Constant", ""},
+		{PROP_RANDOM, "RANDOM", "Random", ""},
+		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem unwrapper_items[] = {
+		{0, "CONFORMAL", "Conformal", ""},
+		{1, "ANGLEBASED", "Angle Based", ""}, 
+		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Scene", "ID", "Scene");
 
@@ -100,7 +111,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
 
 	prop= RNA_def_property(srna, "unwrapper", PROP_ENUM, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "toolsettings->unwrapper");
+	RNA_def_property_enum_sdna(prop, NULL, "toolsettings->unwrapper");
 	RNA_def_property_enum_items(prop, unwrapper_items);
 	RNA_def_property_ui_text(prop, "Unwrapper", "Unwrap algorithm used by the Unwrap tool.");
 }

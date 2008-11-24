@@ -907,7 +907,10 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 void ED_SCR_OT_area_split(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-    static EnumPropertyItem prop_direction_items[] = {{'h', "HORIZONTAL", "Horizontal"}, {'v', "VERTICAL", "Vertical"}, {0, NULL, NULL}};
+    static EnumPropertyItem prop_direction_items[] = {
+		{'h', "HORIZONTAL", "Horizontal", ""},
+		{'v', "VERTICAL", "Vertical", ""},
+		{0, NULL, NULL, NULL}};
 
 	ot->name = "Split area";
 	ot->idname = "ED_SCR_OT_area_split";

@@ -291,7 +291,7 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 		fprintf(f, "}\n\n");
 	}
 	else if(prop->type == PROP_COLLECTION) {
-		if(prop->type == PROP_COLLECTION && !dp->dnalengthname) {
+		if(prop->type == PROP_COLLECTION && (!dp->dnalengthname || !dp->dnaname)) {
 			fprintf(stderr, "rna_def_property_length_func: %s.%s has no valid dna info.\n", srna->identifier, prop->identifier);
 			DefRNA.error= 1;
 			return NULL;
@@ -302,7 +302,7 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 		fprintf(f, "static int %s(PointerRNA *ptr)\n", func);
 		fprintf(f, "{\n");
 		fprintf(f, "	%s *data= (%s*)ptr->data;\n", dp->dnastructname, dp->dnastructname);
-		fprintf(f, "	return data->%s;\n", dp->dnalengthname);
+		fprintf(f, "	return (data->%s == NULL)? 0: data->%s;\n", dp->dnaname, dp->dnalengthname);
 		fprintf(f, "}\n\n");
 	}
 
@@ -328,14 +328,14 @@ static char *rna_def_property_begin_func(FILE *f, StructRNA *srna, PropertyRNA *
 		fprintf(f, "static void %s(CollectionPropertyIterator *iter, PointerRNA *ptr)\n", func);
 		fprintf(f, "{\n");
 		fprintf(f, "	%s *data= (%s*)ptr->data;\n", dp->dnastructname, dp->dnastructname);
-		fprintf(f, "	rna_iterator_array_begin(iter, data->%s, sizeof(data->%s[0]), data->%s);\n", dp->dnaname, dp->dnaname, dp->dnalengthname);
+		fprintf(f, "	rna_iterator_array_begin(iter, data->%s, sizeof(data->%s[0]), data->%s, NULL);\n", dp->dnaname, dp->dnaname, dp->dnalengthname);
 		fprintf(f, "}\n\n");
 	}
 	else {
 		fprintf(f, "static void %s(CollectionPropertyIterator *iter, PointerRNA *ptr)\n", func);
 		fprintf(f, "{\n");
 		fprintf(f, "	%s *data= (%s*)ptr->data;\n", dp->dnastructname, dp->dnastructname);
-		fprintf(f, "	rna_iterator_listbase_begin(iter, &data->%s);\n", dp->dnaname);
+		fprintf(f, "	rna_iterator_listbase_begin(iter, &data->%s, NULL);\n", dp->dnaname);
 		fprintf(f, "}\n\n");
 	}
 
@@ -586,7 +586,8 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 					for(i=0; i<eprop->totitem; i++) {
 						fprintf(f, "{%d, ", eprop->item[i].value);
 						rna_print_c_string(f, eprop->item[i].identifier); fprintf(f, ", ");
-						rna_print_c_string(f, eprop->item[i].name); fprintf(f, "}");
+						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
+						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}");
 						if(i != eprop->totitem-1)
 							fprintf(f, ", ");
 					}
@@ -675,7 +676,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 		rna_print_c_string(f, prop->description); fprintf(f, ",\n");
 		fprintf(f, "\t%s, %s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), prop->arraylength);
-		fprintf(f, "\t%s},\n", rna_function_string(prop->notify));
+		fprintf(f, "\t%s, %s},\n", rna_function_string(prop->notify), rna_function_string(prop->editable));
 
 		switch(prop->type) {
 			case PROP_BOOLEAN: {
@@ -687,14 +688,14 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 			}
 			case PROP_INT: {
 				IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, %d, %d, %d, %d, %d,\n\t%d, ", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), iprop->softmin, iprop->softmax, iprop->hardmin, iprop->hardmax, iprop->step, iprop->defaultvalue);
+				fprintf(f, "\t%s, %s, %s, %s, %s, %d, %d, %d, %d, %d,\n\t%d, ", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), rna_function_string(iprop->range), iprop->softmin, iprop->softmax, iprop->hardmin, iprop->hardmax, iprop->step, iprop->defaultvalue);
 				if(prop->arraylength) fprintf(f, "rna_%s_%s_default\n", srna->identifier, prop->identifier);
 				else fprintf(f, "NULL\n");
 				break;
 			}
 			case PROP_FLOAT: {
 				FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, ", rna_function_string(fprop->get), rna_function_string(fprop->set), rna_function_string(fprop->getarray), rna_function_string(fprop->setarray));
+				fprintf(f, "\t%s, %s, %s, %s, %s, ", rna_function_string(fprop->get), rna_function_string(fprop->set), rna_function_string(fprop->getarray), rna_function_string(fprop->setarray), rna_function_string(fprop->range));
 				rna_float_print(f, fprop->softmin); fprintf(f, ", ");
 				rna_float_print(f, fprop->softmax); fprintf(f, ", ");
 				rna_float_print(f, fprop->hardmin); fprintf(f, ", ");

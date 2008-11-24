@@ -39,7 +39,13 @@ void RNA_def_lamp(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_type_items[] = {{LA_LOCAL, "LOCAL", "Local"}, {LA_SUN, "SUN", "Sun"}, {LA_SPOT, "SPOT", "Spot"}, {LA_HEMI, "HEMI", "Hemi"}, {LA_AREA, "AREA", "Area"}, {0, NULL, NULL}};
+	static EnumPropertyItem prop_type_items[] = {
+		{LA_LOCAL, "LOCAL", "Local", ""},
+		{LA_SUN, "SUN", "Sun", ""},
+		{LA_SPOT, "SPOT", "Spot", ""},
+		{LA_HEMI, "HEMI", "Hemi", ""},
+		{LA_AREA, "AREA", "Area", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lamp", "ID", "Lamp");
 
