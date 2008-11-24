@@ -328,6 +328,23 @@ float brush_sample_falloff(Brush *brush, float dist)
 		return 0.0f;
 }
 
+float brush_sample_falloff_noalpha(Brush *brush, float dist)
+{
+	float outer, inner;
+
+	outer = brush->size >> 1;
+	inner = outer*brush->innerradius;
+
+	if (dist <= inner) {
+		return 1.0f;
+	}
+	else if ((dist < outer) && (inner < outer)) {
+		return 1.0f - sqrt((dist - inner)/(outer - inner));
+	}
+	else 
+		return 0.0f;
+}
+
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
 	MTex *mtex= brush->mtex[brush->texact];

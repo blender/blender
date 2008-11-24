@@ -239,8 +239,10 @@ typedef struct ProjPaintState {
 	/* options for projection painting */
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
-	short is_ortho;
 	short do_mask_normal;			/* mask out pixels based on their normals */
+	short is_ortho;
+	short is_airbrush;					/* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
+	short is_texbrush;					/* only to avoid running  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
 #endif
@@ -277,6 +279,7 @@ typedef union pixelStore
 {
 	unsigned char ch[4];
 	unsigned int uint;
+	float f[4];
 } PixelStore;
 
 typedef struct ProjPixel {
@@ -286,6 +289,7 @@ typedef struct ProjPixel {
 	short x_px, y_px;
 	
 	PixelStore origColor;
+	PixelStore newColor;
 	PixelPointer pixel;
 	
 	short image_index; /* if anyone wants to paint onto more then 32768 images they can bite me */
@@ -296,11 +300,6 @@ typedef struct ProjPixelClone {
 	struct ProjPixel __pp;
 	PixelStore clonepx;
 } ProjPixelClone;
-
-typedef struct ProjPixelCloneFloat {
-	struct ProjPixel __pp;
-	float clonepx_f[4];
-} ProjPixelCloneFloat;
 
 /* Finish projection painting structs */
 
@@ -695,7 +694,7 @@ static int project_paint_PickColor(ProjPaintState *ps, float pt[2], float *rgba_
 		Vec2Weightf(uv, tf->uv[0], tf->uv[2], tf->uv[3], w);
 	}
 	
-	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow */
+	ibuf = BKE_image_get_ibuf((Image *)tf->tpage, NULL); /* TODO - this may be slow, the only way around it is to have an ibuf index per face */
 	
 
 	
@@ -1272,31 +1271,6 @@ static void screen_px_from_persp(
 	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
-#if 0
-static void screen_px_from_persp(
-		ProjPaintState *ps, float uv[2],
-		float v1co[3], float v2co[3], float v3co[3], /* Worldspace coords */
-		float uv1co[2], float uv2co[2], float uv3co[2],
-		float pixelScreenCo[4],
-		float w[3])
-{
-	BarycentricWeightsSimple2f(uv1co,uv2co,uv3co,uv,w);
-	pixelScreenCo[0] = v1co[0]*w[0] + v2co[0]*w[1] + v3co[0]*w[2];
-	pixelScreenCo[1] = v1co[1]*w[0] + v2co[1]*w[1] + v3co[1]*w[2];
-	pixelScreenCo[2] = v1co[2]*w[0] + v2co[2]*w[1] + v3co[2]*w[2];
-	pixelScreenCo[3] = 1.0;
-	
-	Mat4MulVec4fl(ps->projectMat, pixelScreenCo);
-	
-	// if( pixelScreenCo[3] > 0.001 ) { ??? TODO
-	/* screen space, not clamped */
-	pixelScreenCo[0] = (float)(curarea->winx/2.0f)+(curarea->winx/2.0f)*pixelScreenCo[0]/pixelScreenCo[3];	
-	pixelScreenCo[1] = (float)(curarea->winy/2.0f)+(curarea->winy/2.0f)*pixelScreenCo[1]/pixelScreenCo[3];
-	pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
-}
-#endif
-
-
 /* Only run this function once for new ProjPixelClone's */
 #define IMA_CHAR_PX_SIZE 4
 
@@ -1309,6 +1283,7 @@ float project_paint_uvpixel_mask(
 		float w[3]
 ) {
 	float mask;
+	
 	/* calculate mask */
 	if (ps->do_mask_normal) {
 		MFace *mf = ps->dm_mface + face_index;
@@ -1352,15 +1327,18 @@ float project_paint_uvpixel_mask(
 		}
 		
 		if (angle >= M_PI_2) {
-			mask = 0.0f;
+			return 0.0f;
 		} else {
-			angle = 1.0f - (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
-			mask = ((angle*angle) + angle) * 0.5f; /* nice mix of normal value and power of 2 */
+			mask = 1.0f - (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			
 		}
-		
 		
 	} else {
 		mask = 1.0f;
+	}
+	
+	if (ps->is_airbrush==0) {
+		mask *= ps->brush->alpha;
 	}
 	
 	return mask;
@@ -1390,11 +1368,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	if (y<0) y += ibuf->y;
 	
 	if (ps->tool==PAINT_TOOL_CLONE) {
-		if (ibuf->rect_float) {
-			size = sizeof(ProjPixelCloneFloat);
-		} else {
-			size = sizeof(ProjPixelClone);
-		}
+		size = sizeof(ProjPixelClone);
 	} else if (ps->tool==PAINT_TOOL_SMEAR) {
 		size = sizeof(ProjPixelClone);
 	} else {
@@ -1405,10 +1379,13 @@ static ProjPixel *project_paint_uvpixel_init(
 	
 	if (ibuf->rect_float) {
 		projPixel->pixel.f_pt = ((( float * ) ibuf->rect_float) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
-		/* TODO float support for origColor */
+		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];  
+		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];  
+		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];  
+		projPixel->origColor.f[3] = projPixel->newColor.f[3] = projPixel->pixel.f_pt[3];  
 	} else {
 		projPixel->pixel.ch_pt = ((( unsigned char * ) ibuf->rect) + (( x + y * ibuf->x ) * IMA_CHAR_PX_SIZE));
-		projPixel->origColor.uint = *projPixel->pixel.uint_pt;
+		projPixel->origColor.uint = projPixel->newColor.uint = *projPixel->pixel.uint_pt;
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
@@ -1426,7 +1403,6 @@ static ProjPixel *project_paint_uvpixel_init(
 	/* done with view3d_project_float inline */
 	if (ps->tool==PAINT_TOOL_CLONE) {
 		if (ps->dm_mtface_clone) {
-			/* TODO - float buffer */
 			ImBuf *ibuf_other;
 			MTFace *tf_other = ps->dm_mtface_clone + face_index;
 			float *uvCo1, *uvCo2, *uvCo3;
@@ -1439,8 +1415,6 @@ static ProjPixel *project_paint_uvpixel_init(
 				uvCo2 =  tf_other->uv[1];
 				uvCo3 =  tf_other->uv[2];
 			}
-			
-			((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
 			
 			if (tf_other->tpage && ( ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL) )) {
 				/* BKE_image_get_ibuf - TODO - this may be slow */
@@ -1459,24 +1433,41 @@ static ProjPixel *project_paint_uvpixel_init(
 				x = x * ibuf_other->x - 0.5f;
 				y = y * ibuf_other->y - 0.5f;
 				
-				/* TODO - float buffer check */
-				bilinear_interpolation_color(ibuf_other, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL, x, y);
+				if (ibuf->rect_float) {
+					if (ibuf_other->rect_float) { /* from float to float */
+						bilinear_interpolation_color(ibuf_other, NULL, ((ProjPixelClone *)projPixel)->clonepx.f, x, y);
+					} else { /* from char to float */
+						unsigned char rgba_ub[4];
+						bilinear_interpolation_color(ibuf_other, rgba_ub, NULL, x, y);
+						IMAPAINT_CHAR_RGBA_TO_FLOAT(((ProjPixelClone *)projPixel)->clonepx.f, rgba_ub);
+					}
+				} else {
+					if (ibuf_other->rect_float) { /* float to char */
+						float rgba[4];
+						bilinear_interpolation_color(ibuf_other, NULL, rgba, x, y);
+						IMAPAINT_FLOAT_RGBA_TO_CHAR(((ProjPixelClone *)projPixel)->clonepx.ch, rgba)
+					} else { /* char to char */
+						bilinear_interpolation_color(ibuf_other, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL, x, y);
+					}
+				}
+				
 			} else {
-				((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+				if (ibuf->rect_float) {
+					((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+				} else {
+					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
+				}
 			}
 			
 		} else {
 			float co[2];
-			
-			/* Initialize clone pixels - note that this is a bit of a waste since some of these are being indirectly initialized :/ */
-			/* TODO - possibly only run this for directly ativated buckets when cloning */
 			Vec2Subf(co, projPixel->projCoSS, ps->clone_offset);
 			
 			/* no need to initialize the bucket, we're only checking buckets faces and for this
 			 * the faces are alredy initialized in project_paint_delayed_face_init(...) */
 			if (ibuf->rect_float) {
-				if (!project_paint_PickColor(ps, co, ((ProjPixelCloneFloat *)projPixel)->clonepx_f, NULL, 1)) {
-					((ProjPixelCloneFloat *)projPixel)->clonepx_f[3] = 0; /* zero alpha - ignore */
+				if (!project_paint_PickColor(ps, co, ((ProjPixelClone *)projPixel)->clonepx.f, NULL, 1)) {
+					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0; /* zero alpha - ignore */
 				}
 			} else {
 				if (!project_paint_PickColor(ps, co, NULL, ((ProjPixelClone *)projPixel)->clonepx.ch, 1)) {
@@ -2777,7 +2768,12 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 		}
 		
 	}
+	
+	ps->is_airbrush = (ps->brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	
+	ps->is_texbrush = (ps->brush->mtex[ps->brush->texact] && ps->brush->mtex[ps->brush->texact]->tex) ? 1 : 0;
 
+	
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */
 	
@@ -2814,7 +2810,10 @@ static void project_paint_begin( ProjPaintState *ps, short mval[2])
 				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
 				DO_MINMAX2((*projScreenCo), ps->screen_min, ps->screen_max);
 			} else {
-				/* TODO - deal with cases where 1 side of a face goes behind the view ? */
+				/* TODO - deal with cases where 1 side of a face goes behind the view ?
+				 * 
+				 * After some research this is actually very tricky, only option is to
+				 * clip the derived mesh before painting, which is a Pain */
 				(*projScreenCo)[0] = MAXFLOAT;
 			}
 		}
@@ -3095,7 +3094,7 @@ static void project_paint_end( ProjPaintState *ps )
 	/* build undo data from original pixel colors */
 	if(U.uiflag & USER_GLOBALUNDO) {
 		ProjPixel *projPixel;
-		ImBuf *tmpibuf = NULL;
+		ImBuf *tmpibuf = NULL, *tmpibuf_float = NULL;
 		LinkNode *pixel_node;
 		UndoTile *tile;
 		
@@ -3103,6 +3102,7 @@ static void project_paint_end( ProjPaintState *ps )
 		int tile_index;
 		int x_round, y_round;
 		int x_tile, y_tile;
+		int is_float = -1;
 		
 		/* context */
 		ProjPaintImage *last_projIma;
@@ -3122,15 +3122,23 @@ static void project_paint_end( ProjPaintState *ps )
 					/* ok we have a pixel, was it modified? */
 					projPixel = (ProjPixel *)pixel_node->link;
 					
-					/* TODO - support float */
-					if (projPixel->origColor.uint != *projPixel->pixel.uint_pt) {
-						
-						if (last_image_index != projPixel->image_index) {
-							/* set the context */
-							last_image_index =	projPixel->image_index;
-							last_projIma =		ps->projImages + last_image_index;
-							last_tile_width =	IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x);
-						}
+					if (last_image_index != projPixel->image_index) {
+						/* set the context */
+						last_image_index =	projPixel->image_index;
+						last_projIma =		ps->projImages + last_image_index;
+						last_tile_width =	IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x);
+						is_float =			last_projIma->ibuf->rect_float ? 1 : 0;
+					}
+					
+					
+					if (	(is_float == 0 && projPixel->origColor.uint != *projPixel->pixel.uint_pt) || 
+									
+							(is_float == 1 && 
+							(	projPixel->origColor.f[0] != projPixel->pixel.f_pt[0] || 
+								projPixel->origColor.f[1] != projPixel->pixel.f_pt[1] ||
+								projPixel->origColor.f[2] != projPixel->pixel.f_pt[2] ||
+								projPixel->origColor.f[3] != projPixel->pixel.f_pt[3] ))
+					) {
 						
 						x_tile =  projPixel->x_px >> IMAPAINT_TILE_BITS;
 						y_tile =  projPixel->y_px >> IMAPAINT_TILE_BITS;
@@ -3142,16 +3150,20 @@ static void project_paint_end( ProjPaintState *ps )
 						
 						if (last_projIma->undoRect[tile_index]==NULL) {
 							/* add the undo tile from the modified image, then write the original colors back into it */
-							tile = last_projIma->undoRect[tile_index] = undo_init_tile(&last_projIma->ima->id, last_projIma->ibuf, &tmpibuf, x_tile, y_tile);
+							tile = last_projIma->undoRect[tile_index] = undo_init_tile(&last_projIma->ima->id, last_projIma->ibuf, is_float ? (&tmpibuf_float):(&tmpibuf) , x_tile, y_tile);
 						} else {
 							tile = last_projIma->undoRect[tile_index];
 						}
 						
 						/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
 						 * because allocating the tiles allong the way slows down painting */
-						/* TODO float buffer */
-						((unsigned int *)tile->rect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
 						
+						if (is_float) {
+							float *rgba_fp = ((float *)tile->rect) + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
+							QUATCOPY(rgba_fp, projPixel->origColor.f);
+						} else {
+							((unsigned int *)tile->rect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
+						}
 					}
 					
 					pixel_node = pixel_node->next;
@@ -3159,8 +3171,8 @@ static void project_paint_end( ProjPaintState *ps )
 			}
 		} while(bucket_index--);
 		
-		if (tmpibuf)
-			IMB_freeImBuf(tmpibuf);
+		if (tmpibuf)		IMB_freeImBuf(tmpibuf);
+		if (tmpibuf_float)	IMB_freeImBuf(tmpibuf_float);
 	}
 	/* done calculating undo data */
 	
@@ -3838,76 +3850,108 @@ static void *do_projectpaint_thread(void *ph_v)
 					
 					dist = (float)sqrt(dist_nosqrt);
 					
-					switch(ps->tool) {
-					case PAINT_TOOL_CLONE:
-						if (is_floatbuf) {
-							if (((ProjPixelCloneFloat*)projPixel)->clonepx_f[3]) {
-								alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
-								
-								if (alpha >= 0.0f) {
-									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelCloneFloat *)projPixel)->clonepx_f, alpha, blend);
-								}
-							}
-						} else {
-							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
-								alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
-								
-								if (alpha > 0.0f) {
-									*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-								}
-							}
-						}
-						break;
-					case PAINT_TOOL_SMEAR:
-						Vec2Subf(co, projPixel->projCoSS, pos_ofs);
-						if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)) { /* Note, no interpolation here, only needed for clone, nearest should be is OK??? - c */
-							brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
-							alpha = rgba[3]*brush_sample_falloff(ps->brush, dist) * projPixel->mask; 
-							
-							/* drat! - this could almost be very simple if we ignore
-							 * the fact that applying the color directly gives feedback,
-							 * instead, collect the colors and apply after :/ */
-							
-#if 0						/* looks OK but not correct - also would need float buffer */
-							*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*256), blend);
-#endif
-							
-							/* add to memarena instead */
-							if (is_floatbuf) {
-								/* TODO FLOAT */ /* Smear wont do float properly yet */
-								/* Note, alpha*255 makes pixels darker */
-								IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-								BLI_linklist_prepend_arena( &smearPixels_float, (void *)projPixel, smearArena );
-							} else {
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-								BLI_linklist_prepend_arena( &smearPixels, (void *)projPixel, smearArena );
-							}
-						}
-						break;
-					default:
+					if (ps->is_airbrush)	alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
+					else					alpha = brush_sample_falloff_noalpha(ps->brush, dist);
+					
+					if (ps->is_texbrush) {
 						brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
-						alpha = rgba[3]*brush_sample_falloff(ps->brush, dist) * projPixel->mask;
-						
-						if (alpha > 0.0f) {
-							if (is_floatbuf) {
-								rgba[0] *= ps->brush->rgb[0];
-								rgba[1] *= ps->brush->rgb[1];
-								rgba[2] *= ps->brush->rgb[2];
-								IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
-							} else {
-								rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
-								rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
-								rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
-								rgba_ub[3] = FTOCHAR(rgba[3]);
-								
-								*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-							}
-						}
-						break;
-						
+						alpha *= rgba[3];
 					}
 					
+					if (alpha >= 0.0f) {
+						switch(ps->tool) {
+						case PAINT_TOOL_CLONE:
+							if (is_floatbuf) {
+								if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
+									
+									if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+										IMB_blend_color_float( projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+										IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->origColor.f,  projPixel->newColor.f, projPixel->mask, IMB_BLEND_MIX);
+									} else {
+										IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+									}
+								}
+							} else {
+								if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
+									if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+										projPixel->newColor.uint = IMB_blend_color( projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+										*projPixel->pixel.uint_pt = IMB_blend_color( projPixel->origColor.uint, projPixel->newColor.uint, (int)(projPixel->mask*255), IMB_BLEND_MIX);
+									} else {
+										*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+									}
+								}
+							}
+							break;
+						case PAINT_TOOL_SMEAR:
+							Vec2Subf(co, projPixel->projCoSS, pos_ofs);
+							if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)) {
+								
+								/* note, mask is used to modify the alpha here, this is not correct since it allows
+								 * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
+								 * really that important to be correct as it is with clone and painting 
+								 */ 
+								
+								/* drat! - this could almost be very simple if we ignore
+								 * the fact that applying the color directly gives feedback,
+								 * instead, collect the colors and apply after :/ */
+								
+	#if 0						/* looks OK but not correct - also would need float buffer */
+								*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*256), blend);
+	#endif
+								
+								/* add to memarena instead */
+								if (is_floatbuf) {
+									/* TODO FLOAT */ /* Smear wont do float properly yet */
+									/* Note, alpha*255 makes pixels darker */
+									IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
+									((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
+									BLI_linklist_prepend_arena( &smearPixels_float, (void *)projPixel, smearArena );
+								} else {
+									((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
+									BLI_linklist_prepend_arena( &smearPixels, (void *)projPixel, smearArena );
+								}
+							}
+							break;
+						default:
+							if (is_floatbuf) {
+								if (ps->is_texbrush) {
+									rgba[0] *= ps->brush->rgb[0];
+									rgba[1] *= ps->brush->rgb[1];
+									rgba[2] *= ps->brush->rgb[2];
+								} else {
+									VECCOPY(rgba, ps->brush->rgb);
+								}
+								
+								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+									IMB_blend_color_float( projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
+									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->origColor.f,  projPixel->newColor.f, projPixel->mask, IMB_BLEND_MIX);
+								} else {
+									IMB_blend_color_float( projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
+								}
+								
+							} else {
+								
+								if (ps->is_texbrush) {
+									rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
+									rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
+									rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
+									rgba_ub[3] = FTOCHAR(rgba[3]);
+								} else {
+									IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
+									rgba_ub[3] = 255;
+								}
+								
+								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+									projPixel->newColor.uint = IMB_blend_color( projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+									*projPixel->pixel.uint_pt = IMB_blend_color( projPixel->origColor.uint, projPixel->newColor.uint, (int)(projPixel->mask*255), IMB_BLEND_MIX);
+								} else {
+									*projPixel->pixel.uint_pt = IMB_blend_color( *projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+								}
+							}
+							break;
+							
+						}
+					}
 					/* done painting */
 				}
 				
@@ -4107,7 +4151,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, s
 }
 
 
-static void project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, int update, float pressure)
+static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, int update, float pressure)
 {
 	int a, redraw = 0;
 	
@@ -4126,6 +4170,8 @@ static void project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, shor
 			}
 		}
 	}
+	
+	return redraw;
 }
 
 /* this is only useful for debugging at the moment */
@@ -4344,15 +4390,22 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		time= PIL_check_seconds_timer();
 
 		if (project) { /* Projection Painting */
+			int redraw = 1;
 			if ( ((s.brush->flag & BRUSH_AIRBRUSH) || init)  || ((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) ) {
-				project_paint_stroke(&ps, painter, prevmval, mval, time, stroke_gp ? 0 : 1, pressure);
+				redraw = project_paint_stroke(&ps, painter, prevmval, mval, time, stroke_gp ? 0 : 1, pressure);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
 			} else {
-				if (stroke_gp==0)
+				if (stroke_gp==0) {
 					BIF_wait_for_statechange();
+				}
 			}
-
+			
+			if (redraw==0) {
+				/* Only so the brush outline is redrawn, pitty we need to do this
+				 * however it wont run when the mouse is still so not too bad */
+				force_draw(0);
+			}
 			init = 0;
 		
 		} else {
