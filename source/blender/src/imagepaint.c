@@ -1745,7 +1745,8 @@ static void rect_to_uvspace_ortho(
 		float bucket_bounds[4],
 		float *v1coSS, float *v2coSS, float *v3coSS,
 		float *uv1co, float *uv2co, float *uv3co,
-		float bucket_bounds_uv[4][2]
+		float bucket_bounds_uv[4][2],
+		int flip
 	)
 {
 	float uv[2];
@@ -1755,22 +1756,22 @@ static void rect_to_uvspace_ortho(
 	uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);	
-	Vec2Weightf(bucket_bounds_uv[0], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
 	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[1], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
 	//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
 	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[2], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[3], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
 /* same as above but use BarycentricWeightsPersp2f */
@@ -1778,7 +1779,8 @@ static void rect_to_uvspace_persp(
 		float bucket_bounds[4],
 		float *v1coSS, float *v2coSS, float *v3coSS,
 		float *uv1co, float *uv2co, float *uv3co,
-		float bucket_bounds_uv[4][2]
+		float bucket_bounds_uv[4][2],
+		int flip
 	)
 {
 	float uv[2];
@@ -1788,22 +1790,22 @@ static void rect_to_uvspace_persp(
 	uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT];
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
-	Vec2Weightf(bucket_bounds_uv[0], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_RIGHT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_TOP];
 	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[1], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds[PROJ_BUCKET_LEFT];
 	//uv[1] = bucket_bounds[PROJ_BUCKET_TOP]; // set above
 	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[2], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds[PROJ_BUCKET_LEFT]; // set above
 	uv[1] = bucket_bounds[PROJ_BUCKET_BOTTOM];
 	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
-	Vec2Weightf(bucket_bounds_uv[3], uv1co, uv2co, uv3co, w);
+	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
 /* This works as we need it to but we can save a few steps and not use it */
@@ -1829,6 +1831,7 @@ static void project_bucket_clip_face(
 ) {
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
+	int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
 	
 	float uv[2];
 	float bucket_bounds_ss[4][2];
@@ -1849,15 +1852,16 @@ static void project_bucket_clip_face(
 	
 	if (inside_bucket_flag == ISECT_ALL3) {
 		/* all screenspace points are inside the bucket bounding box, this means we dont need to clip and can simply return the UVs */
-		if (SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) { /* facing the back? */ 
-			VECCOPY2D(bucket_bounds_uv[0], uv1co);
-			VECCOPY2D(bucket_bounds_uv[1], uv2co);
-			VECCOPY2D(bucket_bounds_uv[2], uv3co);
-		} else {
+		if (flip) { /* facing the back? */
 			VECCOPY2D(bucket_bounds_uv[0], uv3co);
 			VECCOPY2D(bucket_bounds_uv[1], uv2co);
 			VECCOPY2D(bucket_bounds_uv[2], uv1co);
+		} else {
+			VECCOPY2D(bucket_bounds_uv[0], uv1co);
+			VECCOPY2D(bucket_bounds_uv[1], uv2co);
+			VECCOPY2D(bucket_bounds_uv[2], uv3co);
 		}
+		
 		*tot = 3; 
 		return;
 	}
@@ -1881,8 +1885,10 @@ static void project_bucket_clip_face(
 	
 	if ( inside_face_flag == ISECT_ALL4 ) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
-		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv);
-		else			rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv);
+		
+		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
+		else			rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, bucket_bounds_uv, flip);
+		
 		*tot = 4;
 		return;
 	} else {
@@ -1973,6 +1979,8 @@ static void project_bucket_clip_face(
 			vClipSS_B[0] = isectVCosSS[i][0] - cent[0];
 			vClipSS_B[1] = isectVCosSS[i][1] - cent[1];
 			isectVAngles[i] = -atan2(vClipSS_A[0]*vClipSS_B[1] - vClipSS_A[1]*vClipSS_B[0], vClipSS_A[0]*vClipSS_B[0]+vClipSS_A[1]*vClipSS_B[1]);
+			if (flip)
+				isectVAngles[i] = -isectVAngles[i];
 		} 
 #endif	/* end abuse */
 		
@@ -2203,7 +2211,8 @@ static void project_paint_face_init(ProjPaintState *ps, int thread_index, int bu
 				v1coSS, v2coSS, v3coSS,
 				uv1co, uv2co, uv3co,
 				uv_clip, &uv_clip_tot
-		); 
+		);
+
 		
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
 		/*
