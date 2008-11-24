@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "DNA_screen_types.h"
@@ -47,6 +48,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
 
 /* context checked on having screen, window and area */
 wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
@@ -97,7 +99,7 @@ int wm_gesture_evaluate(bContext *C, wmGesture *gesture)
 		int dx= rect->xmax - rect->xmin;
 		int dy= rect->ymax - rect->ymin;
 		if(ABS(dx)+ABS(dy) > TWEAK_THRESHOLD) {
-			int theta= (int)round(4.0f*atan2((float)dy, (float)dx)/M_PI);
+			int theta= (int)floor(4.0f*atan2((float)dy, (float)dx)/M_PI + 0.5);
 			int val= EVT_GESTURE_W;
 			
 			if(theta==0) val= EVT_GESTURE_E;
