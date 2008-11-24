@@ -851,7 +851,8 @@ void fillArcEmptyBuckets(ReebArc *arc)
 static void ExtendArcBuckets(ReebArc *arc)
 {
 	ReebArcIterator iter;
-	EmbedBucket *previous, *bucket, *last_bucket, *first_bucket;
+	EmbedBucket *last_bucket, *first_bucket;
+	float *previous = NULL;
 	float average_length = 0, length;
 	int padding_head = 0, padding_tail = 0;
 	
@@ -861,13 +862,15 @@ static void ExtendArcBuckets(ReebArc *arc)
 	}
 	
 	initArcIterator(&iter, arc, arc->head);
+	iter.next(&iter);
+	previous = iter.p;
 	
-	for (	previous = nextBucket(&iter), bucket = nextBucket(&iter);
-			bucket;
-			previous = bucket, bucket = nextBucket(&iter)
+	for (	iter.next(&iter);
+			iter.stopped(&iter) == 0;
+			previous = iter.p, iter.next(&iter)
 		)
 	{
-		average_length += VecLenf(previous->p, bucket->p);
+		average_length += VecLenf(previous, iter.p);
 	}
 	average_length /= (arc->bcount - 1);
 	
@@ -925,26 +928,22 @@ void extendGraphBuckets(ReebGraph *rg)
 void calculateArcLength(ReebArc *arc)
 {
 	ReebArcIterator iter;
-	EmbedBucket *bucket = NULL;
 	float *vec0, *vec1;
 
 	arc->length = 0;
 	
 	initArcIterator(&iter, arc, arc->head);
 
-	bucket = nextBucket(&iter);
-	
 	vec0 = arc->head->p;
 	vec1 = arc->head->p; /* in case there's no embedding */
-	
-	while (bucket != NULL)
+
+	while (iter.next(&iter))	
 	{
-		vec1 = bucket->p;
+		vec1 = iter.p;
 		
 		arc->length += VecLenf(vec0, vec1);
 		
 		vec0 = vec1;
-		bucket = nextBucket(&iter);
 	}
 	
 	arc->length += VecLenf(arc->tail->p, vec1);	
@@ -1003,22 +1002,22 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 			initArcIterator(&iter1, arc1, (ReebNode*)root_node);
 			initArcIterator(&iter2, arc2, (ReebNode*)root_node);
 			
-			bucket1 = nextBucket(&iter1);
-			bucket2 = nextBucket(&iter2);
+			bucket1 = iter1.next(&iter1);
+			bucket2 = iter2.next(&iter2);
 		
 			/* Make sure they both start at the same value */	
-			while(bucket1 && bucket1->val < bucket2->val)
+			while(bucket1 && bucket2 && bucket1->val < bucket2->val)
 			{
-				bucket1 = nextBucket(&iter1);
+				bucket1 = iter1.next(&iter1);
 			}
 			
-			while(bucket2 && bucket2->val < bucket1->val)
+			while(bucket1 && bucket2 && bucket2->val < bucket1->val)
 			{
-				bucket2 = nextBucket(&iter2);
+				bucket2 = iter2.next(&iter2);
 			}
 	
 	
-			for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+			for ( ;bucket1 && bucket2; bucket1 = iter1.next(&iter1), bucket2 = iter2.next(&iter2))
 			{
 				bucket2->nv += bucket1->nv; /* add counts */
 				
@@ -1063,22 +1062,22 @@ void REEB_RadialSymmetry(BNode* root_node, RadialArc* ring, int count)
 			initArcIterator(&iter1, arc1, node);
 			initArcIterator(&iter2, arc2, node);
 			
-			bucket1 = nextBucket(&iter1);
-			bucket2 = nextBucket(&iter2);
+			bucket1 = iter1.next(&iter1);
+			bucket2 = iter2.next(&iter2);
 		
 			/* Make sure they both start at the same value */	
 			while(bucket1 && bucket1->val < bucket2->val)
 			{
-				bucket1 = nextBucket(&iter1);
+				bucket1 = iter1.next(&iter1);
 			}
 			
 			while(bucket2 && bucket2->val < bucket1->val)
 			{
-				bucket2 = nextBucket(&iter2);
+				bucket2 = iter2.next(&iter2);
 			}
 	
 	
-			for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+			for ( ;bucket1 && bucket2; bucket1 = iter1.next(&iter1), bucket2 = iter1.next(&iter2))
 			{
 				/* copy and mirror back to bucket2 */			
 				bucket2->nv = bucket1->nv;
@@ -1122,22 +1121,22 @@ void REEB_AxialSymmetry(BNode* root_node, BNode* node1, BNode* node2, struct BAr
 		initArcIterator(&iter1, arc1, (ReebNode*)root_node);
 		initArcIterator(&iter2, arc2, (ReebNode*)root_node);
 		
-		bucket1 = nextBucket(&iter1);
-		bucket2 = nextBucket(&iter2);
+		bucket1 = iter1.next(&iter1);
+		bucket2 = iter2.next(&iter2);
 	
 		/* Make sure they both start at the same value */	
 		while(bucket1 && bucket1->val < bucket2->val)
 		{
-			bucket1 = nextBucket(&iter1);
+			bucket1 = iter1.next(&iter1);
 		}
 		
 		while(bucket2 && bucket2->val < bucket1->val)
 		{
-			bucket2 = nextBucket(&iter2);
+			bucket2 = iter1.next(&iter2);
 		}
 
 
-		for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+		for ( ;bucket1 && bucket2; bucket1 = iter2.next(&iter1), bucket2 = iter2.next(&iter2))
 		{
 			bucket1->nv += bucket2->nv; /* add counts */
 			
@@ -3297,8 +3296,38 @@ void arcToVCol(ReebGraph *rg, EditMesh *em, int index)
 
 /****************************************** BUCKET ITERATOR **************************************************/
 
+void* nextBucket(void *arg);
+void* nextNBucket(void *arg, int n);
+void* peekBucket(void *arg, int n);
+void* previousBucket(void *arg);
+int iteratorStopped(void *arg);
+
+void initIteratorFct(ReebArcIterator *iter)
+{
+	iter->peek = peekBucket;
+	iter->next = nextBucket;
+	iter->nextN = nextNBucket;
+	iter->previous = previousBucket;
+	iter->stopped = iteratorStopped;	
+}
+
+void setIteratorValues(ReebArcIterator *iter, EmbedBucket *bucket)
+{
+	if (bucket)
+	{
+		iter->p = bucket->p;
+		iter->no = bucket->no;
+	}
+	else
+	{
+		iter->p = NULL;
+		iter->no = NULL;
+	}
+}
+
 void initArcIterator(ReebArcIterator *iter, ReebArc *arc, ReebNode *head)
 {
+	initIteratorFct(iter);
 	iter->arc = arc;
 	
 	if (head == arc->head)
@@ -3321,6 +3350,7 @@ void initArcIterator(ReebArcIterator *iter, ReebArc *arc, ReebNode *head)
 
 void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start)
 {
+	initIteratorFct(iter);
 	iter->arc = arc;
 	
 	if (head == arc->head)
@@ -3348,6 +3378,7 @@ void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, str
 
 void initArcIterator2(ReebArcIterator *iter, ReebArc *arc, int start, int end)
 {
+	initIteratorFct(iter);
 	iter->arc = arc;
 	
 	iter->start = start;
@@ -3367,8 +3398,9 @@ void initArcIterator2(ReebArcIterator *iter, ReebArc *arc, int start, int end)
 	iter->length = abs(iter->end - iter->start) + 1;
 }
 
-EmbedBucket * nextBucket(ReebArcIterator *iter)
+void* nextBucket(void *arg)
 {
+	ReebArcIterator *iter = (ReebArcIterator*)arg;
 	EmbedBucket *result = NULL;
 	
 	if (iter->index != iter->end)
@@ -3377,13 +3409,15 @@ EmbedBucket * nextBucket(ReebArcIterator *iter)
 		result = &(iter->arc->buckets[iter->index]);
 	}
 	
+	setIteratorValues(iter, result);
 	return result;
 }
 
-EmbedBucket * nextNBucket(ReebArcIterator *iter, int n)
+void* nextNBucket(void *arg, int n)
 {
+	ReebArcIterator *iter = (ReebArcIterator*)arg;
 	EmbedBucket *result = NULL;
-	
+		
 	iter->index += n * iter->stride;
 
 	/* check if passed end */
@@ -3398,11 +3432,13 @@ EmbedBucket * nextNBucket(ReebArcIterator *iter, int n)
 		iter->index = iter->end; 
 	}
 	
+	setIteratorValues(iter, result);
 	return result;
 }
 
-EmbedBucket * peekBucket(ReebArcIterator *iter, int n)
+void* peekBucket(void *arg, int n)
 {
+	ReebArcIterator *iter = (ReebArcIterator*)arg;
 	EmbedBucket *result = NULL;
 	int index = iter->index + n * iter->stride;
 
@@ -3412,12 +3448,14 @@ EmbedBucket * peekBucket(ReebArcIterator *iter, int n)
 	{
 		result = &(iter->arc->buckets[index]);
 	}
-	
+
+	setIteratorValues(iter, result);
 	return result;
 }
 
-EmbedBucket * previousBucket(struct ReebArcIterator *iter)
+void* previousBucket(void *arg)
 {
+	ReebArcIterator *iter = (ReebArcIterator*)arg;
 	EmbedBucket *result = NULL;
 	
 	if (iter->index != iter->start)
@@ -3425,12 +3463,15 @@ EmbedBucket * previousBucket(struct ReebArcIterator *iter)
 		iter->index -= iter->stride;
 		result = &(iter->arc->buckets[iter->index]);
 	}
-	
+
+	setIteratorValues(iter, result);
 	return result;
 }
 
-int iteratorStopped(struct ReebArcIterator *iter)
+int iteratorStopped(void *arg)
 {
+	ReebArcIterator *iter = (ReebArcIterator*)arg;
+
 	if (iter->index == iter->end)
 	{
 		return 1;
@@ -3439,18 +3480,6 @@ int iteratorStopped(struct ReebArcIterator *iter)
 	{
 		return 0;
 	}
-}
-
-struct EmbedBucket * currentBucket(struct ReebArcIterator *iter)
-{
-	EmbedBucket *result = NULL;
-	
-	if (iter->index != iter->end)
-	{
-		result = &(iter->arc->buckets[iter->index]);
-	}
-	
-	return result;
 }
 
 /************************ PUBLIC FUNCTIONS *********************************************/
@@ -3597,26 +3626,32 @@ ReebGraph *BIF_ReebGraphFromEditMesh(void)
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 
-	REEB_exportGraph(rg, -1);
-
-	printf("GENERATED\n");
-	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
 
 	/* Remove arcs without embedding */
 	filterNullReebGraph(rg);
 
-	BLI_freeAdjacencyList((BGraph*)rg);
+	/* smart filter and loop filter on basic level */
+	filterGraph(rg, SKGEN_FILTER_SMART, 0, 0);
 
-	printf("NULL FILTERED\n");
-	printf("%i subgraphs\n", BLI_FlagSubgraphs((BGraph*)rg));
+	repositionNodes(rg);
 
+	/* Filtering might have created degree 2 nodes, so remove them */
+	removeNormalNodes(rg);
+	
+	joinSubgraphs(rg, 1.0);
+
+	BLI_buildAdjacencyList((BGraph*)rg);
+	
+	/* calc length before copy, so we have same length on all levels */
+	BLI_calcGraphLength((BGraph*)rg);
+	
 	filterGraph(rg, G.scene->toolsettings->skgen_options, G.scene->toolsettings->skgen_threshold_internal, G.scene->toolsettings->skgen_threshold_external);
 
 	finalizeGraph(rg, G.scene->toolsettings->skgen_postpro_passes, G.scene->toolsettings->skgen_postpro);
 
+#ifdef DEBUG_REEB
 	REEB_exportGraph(rg, -1);
 	
-#ifdef DEBUG_REEB
 	arcToVCol(rg, em, 0);
 	//angleToVCol(em, 1);
 #endif
@@ -3677,7 +3712,6 @@ void REEB_draw()
 	for (arc = rg->arcs.first; arc; arc = arc->next, i++)
 	{
 		ReebArcIterator iter;
-		EmbedBucket *bucket;
 		float vec[3];
 		char text[128];
 		char *s = text;
@@ -3690,9 +3724,9 @@ void REEB_draw()
 			if (arc->bcount)
 			{
 				initArcIterator(&iter, arc, arc->head);
-				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+				for (iter.next(&iter); iter.stopped(&iter) == 0; iter.next(&iter))
 				{
-					glVertex3fv(bucket->p);
+					glVertex3fv(iter.p);
 				}
 			}
 			
@@ -3723,9 +3757,9 @@ void REEB_draw()
 			if (arc->bcount)
 			{
 				initArcIterator(&iter, arc, arc->head);
-				for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+				for (iter.next(&iter); iter.stopped(&iter) == 0; iter.next(&iter))
 				{
-					glVertex3fv(bucket->p);
+					glVertex3fv(iter.p);
 				}
 			}
 			
@@ -3744,9 +3778,9 @@ void REEB_draw()
 				if (arc->bcount)
 				{
 					initArcIterator(&iter, arc, arc->head);
-					for (bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+					for (iter.next(&iter); iter.stopped(&iter) == 0; iter.next(&iter))
 					{
-						glVertex3fv(bucket->p);
+						glVertex3fv(iter.p);
 					}
 				}
 			glEnd();

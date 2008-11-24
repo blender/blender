@@ -28,7 +28,7 @@
 #ifndef REEB_H_
 #define REEB_H_
 
-//#define WITH_BF_REEB
+#define WITH_BF_REEB
 
 #include "DNA_listBase.h"
 
@@ -120,12 +120,21 @@ typedef struct ReebArc {
 } ReebArc;
 
 typedef struct ReebArcIterator {
-	struct ReebArc	*arc;
+	PeekFct		peek;
+	NextFct		next;
+	NextNFct	nextN;
+	PreviousFct	previous;
+	StoppedFct	stopped;
+	
+	float *p, *no;
+	
+	int length;
 	int index;
+	/*********************************/
+	struct ReebArc	*arc;
 	int start;
 	int end;
-	int stride; 
-	int length;
+	int stride;
 } ReebArcIterator;
 
 struct EditMesh;
@@ -145,12 +154,6 @@ ReebGraph * newReebGraph();
 void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
 void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
 void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
-struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
-struct EmbedBucket * nextNBucket(ReebArcIterator *iter, int n);
-struct EmbedBucket * peekBucket(ReebArcIterator *iter, int n);
-struct EmbedBucket * currentBucket(struct ReebArcIterator *iter);
-struct EmbedBucket * previousBucket(struct ReebArcIterator *iter);
-int iteratorStopped(struct ReebArcIterator *iter);
 
 /* Filtering */
 void filterNullReebGraph(ReebGraph *rg);

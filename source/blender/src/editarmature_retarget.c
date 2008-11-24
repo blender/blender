@@ -1683,9 +1683,9 @@ EditBone * generateBonesForArc(RigGraph *rigg, ReebArc *arc, ReebNode *head, Ree
 		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
-		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
+		for (previous = iter.next(&iter), bucket = iter.next(&iter);
 			bucket;
-			previous = bucket, bucket = nextBucket(&iter))
+			previous = bucket, bucket = iter.next(&iter))
 		{
 			float btail[3];
 			float value = 0;
@@ -2068,7 +2068,7 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 			{
 				float dist;
 				
-				bucket = peekBucket(iter, j);
+				bucket = iter->peek(iter, j);
 	
 				VecSubf(v2, bucket->p, vec1);
 		
@@ -2336,7 +2336,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 
 		for (i = 1; i <= nb_positions; i++)
 		{
-			EmbedBucket *bucket = peekBucket(&iter, i);
+			EmbedBucket *bucket = iter.peek(&iter, i);
 			positions_cache[i] = bucket->p;
 		}
 
@@ -2443,7 +2443,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 					if (i < nb_joints)
 					{
 						i2 = positions[i];
-						bucket = peekBucket(&iter, positions[i]);
+						bucket = iter.peek(&iter, positions[i]);
 						vec2 = bucket->p;
 						vec_cache[i + 1] = vec2; /* update cache for updated position */
 					}
@@ -2535,7 +2535,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		float *no = NULL;
 		if (i < nb_joints)
 		{
-			bucket = peekBucket(&iter, best_positions[i]);
+			bucket = iter.peek(&iter, best_positions[i]);
 			vec1 = bucket->p;
 			no = bucket->no;
 		}
@@ -2582,7 +2582,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 	
 	initArcIterator(&iter, earc, node_start);
 
-	bucket = nextBucket(&iter);
+	bucket = iter.next(&iter);
 	
 	vec0 = node_start->p;
 	
@@ -2593,7 +2593,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		embedding_length += VecLenf(vec0, vec1);
 		
 		vec0 = vec1;
-		bucket = nextBucket(&iter);
+		bucket = iter.next(&iter);
 	}
 	
 	embedding_length += VecLenf(node_end->p, vec1);
@@ -2601,7 +2601,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 	/* fit bones */
 	initArcIterator(&iter, earc, node_start);
 
-	bucket = nextBucket(&iter);
+	bucket = iter.next(&iter);
 
 	vec0 = node_start->p;
 	previous_vec = vec0;
@@ -2616,7 +2616,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		while (bucket && new_bone_length > length)
 		{
 			length += VecLenf(previous_vec, vec1);
-			bucket = nextBucket(&iter);
+			bucket = iter.next(&iter);
 			previous_vec = vec1;
 			vec1 = bucket->p;
 			no = bucket->no;

@@ -62,20 +62,23 @@ typedef struct BArc {
 
 struct BArcIterator;
 
-typedef float* (*PeekPointFct)(struct BArcIterator* iter, int n);
-typedef float* (*NextPointFct)(struct BArcIterator* iter);
-typedef float* (*CurrentPointFct)(struct BArcIterator* iter);
-typedef float* (*PreviousPointFct)(struct BArcIterator* iter);
-typedef int	   (*StoppedFct)(struct BArcIterator* iter);
+typedef void* (*PeekFct)(void* iter, int n);
+typedef void* (*NextFct)(void* iter);
+typedef void* (*NextNFct)(void* iter, int n);
+typedef void* (*PreviousFct)(void* iter);
+typedef int	(*StoppedFct)(void* iter);
 
 typedef struct BArcIterator {
-	PeekPointFct		peek;
-	NextPointFct		next;
-	CurrentPointFct		current;
-	PreviousPointFct	previous;
-	StoppedFct			stopped;
+	PeekFct		peek;
+	NextFct		next;
+	NextNFct	nextN;
+	PreviousFct	previous;
+	StoppedFct	stopped;
+	
+	float *p, *no;
 	
 	int length;
+	int index;
 } BArcIterator;
 
 /* Helper structure for radial symmetry */
