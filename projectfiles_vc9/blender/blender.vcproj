@@ -148,7 +148,7 @@
 				AssemblerListingLocation="..\..\..\build\msvc_9\source\blender\debug\"
 				ObjectFile="..\..\..\build\msvc_9\source\blender\debug\"
 				ProgramDataBaseFileName="..\..\..\build\msvc_9\source\blender\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"

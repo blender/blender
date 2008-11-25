@@ -128,7 +128,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\editors\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\editors\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\editors\debug\"
-				WarningLevel="2"
+				WarningLevel="4"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
@@ -194,6 +194,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_markers.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_mesh.h"
 				>
 			</File>
@@ -214,7 +218,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_types.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\UI_interface.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\UI_interface_icons.h"
 				>
 			</File>
 			<File
@@ -271,6 +283,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_icons.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_ops.c"
 				>
 			</File>
@@ -306,6 +322,10 @@
 		<Filter
 			Name="space_time"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_time\ed_markers.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_time\space_time.c"
 				>

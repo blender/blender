@@ -47,6 +47,7 @@
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_text.h"
 
 #include "BMF_Api.h"
@@ -369,8 +370,6 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 {
-	/* XXX 2.50 need interface_icons.c */
-#if 0
 	float xs=0, ys=0, aspect, height;
 
 	/* this icon doesn't need draw... */
@@ -430,7 +429,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 	UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
 	
 	glDisable(GL_BLEND);
-#endif
 }
 
 

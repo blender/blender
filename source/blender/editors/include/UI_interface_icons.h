@@ -43,27 +43,26 @@ typedef struct IconFile {
 	int index;
 } IconFile;
 
-
 #define ICON_DEFAULT_HEIGHT 16
 #define PREVIEW_DEFAULT_HEIGHT 96
 
 /*
  Resizable Icons for Blender
 */
-void BIF_icons_init(int first_dyn_id);
-int BIF_icon_get_width(int icon_id);
-int BIF_icon_get_height(int icon_id);
+void UI_icons_init(int first_dyn_id);
+int UI_icon_get_width(int icon_id);
+int UI_icon_get_height(int icon_id);
 
-void BIF_icon_draw(float x, float y, int icon_id);
-void BIF_icon_draw_preview(float x, float y, int icon_id, int nocreate);
+void UI_icon_draw(float x, float y, int icon_id);
+void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate);
 
-void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect);
-void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
-void BIF_icons_free();
-void BIF_icons_free_drawinfo(void *drawinfo);
+void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect);
+void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
+void UI_icons_free();
+void UI_icons_free_drawinfo(void *drawinfo);
 
-struct ListBase *BIF_iconfile_list(void);
-int BIF_iconfile_get_index(char *filename);
+struct ListBase *UI_iconfile_list(void);
+int UI_iconfile_get_index(char *filename);
 
 
 #endif /*  BIF_ICONS_H */

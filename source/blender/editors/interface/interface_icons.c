@@ -43,49 +43,28 @@
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-#include "DNA_object_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_image_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_world_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_image_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_global.h"
-#include "BKE_material.h"
-#include "BKE_texture.h"
-#include "BKE_world.h"
-#include "BKE_image.h"
-#include "BKE_object.h"
+
 #include "BKE_utildefines.h"
+#include "BKE_image.h"
 #include "BKE_icons.h"
-#include "BKE_packedFile.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_interface.h"
-#include "BIF_interface_icons.h"
-#include "BIF_previewrender.h"
-#include "BIF_screen.h"
-#include "BIF_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
+#include "UI_interface.h"
+#include "UI_interface_icons.h"
 
+// XXX #include "BIF_previewrender.h"
+// XXX #include "BIF_screen.h"
+
+#include "UI_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
 #include "interface.h"
-
-#include "PIL_time.h"
-
-#include "blendef.h"	// CLAMP
-#include "datatoc.h"
-#include "mydevice.h"
+#include "ED_datafiles.h"
 
 #define ICON_IMAGE_W		512
 #define ICON_IMAGE_H		256
@@ -102,6 +81,8 @@ typedef struct IconImage {
 	int h;
 	unsigned int *rect; 
 } IconImage;
+
+typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
 typedef struct DrawInfo {
 	int w;
@@ -151,7 +132,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 
 	di->icon = iimg;
 
-	new_icon->drawinfo_free = BIF_icons_free_drawinfo;
+	new_icon->drawinfo_free = UI_icons_free_drawinfo;
 	new_icon->drawinfo = di;
 
 	BKE_icon_set(icon_id, new_icon);
@@ -198,18 +179,6 @@ static void viconutil_draw_tri(GLint (*pts)[2])
 	glVertex2iv(pts[2]);
 	glEnd();
 }
-
-#if 0
-static void viconutil_draw_quad(GLint (*pts)[2])
-{
-	glBegin(GL_QUADS);
-	glVertex2iv(pts[0]);
-	glVertex2iv(pts[1]);
-	glVertex2iv(pts[2]);
-	glVertex2iv(pts[3]);
-	glEnd();
-}
-#endif
 
 static void viconutil_draw_lineloop(GLint (*pts)[2], int numPoints)
 {
@@ -341,10 +310,10 @@ static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float alpha)
 	viconutil_set_point(pts[1], x+3, y+4);
 	viconutil_set_point(pts[2], x+w-3, y+4);
 
-	glColor4f(0.0, 0.0, 0.0, 1);
+	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);
 
-	glColor3f(.9, .9, .9);
+	glColor3f(.9f, .9f, .9f);
 	viconutil_draw_points(pts, 3, 1);
 }
 
@@ -361,15 +330,15 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float al
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLES);
-	glColor4f(0.8, 0.8, 0.8, alpha);
+	glColor4f(0.8f, 0.8f, 0.8f, alpha);
 	glVertex2iv(pts[0]);
 	glVertex2iv(pts[1]);
-	glColor4f(0.3, 0.3, 0.3, alpha);
+	glColor4f(0.3f, 0.3f, 0.3f, alpha);
 	glVertex2iv(pts[2]);
 	glEnd();
 	glShadeModel(GL_FLAT);
 
-	glColor4f(0.0, 0.0, 0.0, 1);
+	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);
 }
 
@@ -386,15 +355,15 @@ static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alp
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLES);
-	glColor4f(0.8, 0.8, 0.8, alpha);
+	glColor4f(0.8f, 0.8f, 0.8f, alpha);
 	glVertex2iv(pts[0]);
 	glVertex2iv(pts[1]);
-	glColor4f(0.3, 0.3, 0.3, alpha);
+	glColor4f(0.3f, 0.3f, 0.3f, alpha);
 	glVertex2iv(pts[2]);
 	glEnd();
 	glShadeModel(GL_FLAT);
 
-	glColor4f(0.0, 0.0, 0.0, 1);
+	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);
 }
 
@@ -436,44 +405,6 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 
 /***/
 
-
-/* this only works for the hardcoded buttons image, turning the grey AA pixels to alpha, and slight off-grey to half alpha */
-#if 0
-static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
-{
-	int x, y, val;
-	
-	for (y=1; y<h-1; y++) {
-		unsigned char *row0= &rect[(y-1)*rowstride];
-		unsigned char *row= &rect[y*rowstride];
-		unsigned char *row1= &rect[(y+1)*rowstride];
-		for (x=1; x<w-1; x++) {
-			unsigned char *pxl0= &row0[x*4];
-			unsigned char *pxl= &row[x*4];
-			unsigned char *pxl1= &row1[x*4];
-			
-			if(pxl[3]!=0) {
-				val= (abs(pxl[0]-transp[0]) + abs(pxl[1]-transp[1]) + abs(pxl[2]-transp[2]))/3;
-				if(val<20) {
-					pxl[3]= 128;
-				}
-				else if(val<50) {
-					// one of pixels surrounding has alpha null?
-					if(pxl[3-4]==0 || pxl[3+4]==0 || pxl0[3]==0 || pxl1[3]==0) {
-				
-						if(pxl[0]>val) pxl[0]-= val; else pxl[0]= 0;
-						if(pxl[1]>val) pxl[1]-= val; else pxl[1]= 0;
-						if(pxl[2]>val) pxl[2]-= val; else pxl[2]= 0;
-						
-						pxl[3]= 128;
-					}
-				}
-			}
-		}
-	}
-}
-#endif
-
 static void clear_icon_grid_margins(unsigned char *rect, int w, int h)
 {
 	int x, y;
@@ -502,22 +433,6 @@ static void prepare_internal_icons(ImBuf *bbuf)
 	/* this sets the icon grid margin area outside of icon to zero alpha */
 	clear_icon_grid_margins(back, bbuf->x, bbuf->y);
 	
-	/* hack! */
-#if 0	
-	for (y=0; y<12; y++) {
-		for (x=0; x<21; x++) {
-			unsigned char *start= ((unsigned char*) bbuf->rect) + (y*21 + 3)*rowstride + (x*20 + 3)*4;
-			/* this sets backdrop of icon to zero alpha */
-			transp[0]= start[0];
-			transp[1]= start[1];
-			transp[2]= start[2];
-			transp[3]= start[3];
-			clear_transp_rect(transp, start, 20, 21, rowstride);
-			clear_transp_rect_soft(transp, start, 20, 21, rowstride);
-				
-		}
-	} 
-#endif
 }
 
 
@@ -656,7 +571,7 @@ static void free_iconfile_list(struct ListBase *list)
 	}
 }
 
-int BIF_iconfile_get_index(char *filename)
+int UI_iconfile_get_index(char *filename)
 {
 	IconFile *ifile;
 	ListBase *list=&(iconfilelist);
@@ -670,7 +585,7 @@ int BIF_iconfile_get_index(char *filename)
 	return 0;
 }
 
-ListBase *BIF_iconfile_list(void)
+ListBase *UI_iconfile_list(void)
 {
 	ListBase *list=&(iconfilelist);
 	
@@ -678,13 +593,13 @@ ListBase *BIF_iconfile_list(void)
 }
 
 
-void BIF_icons_free()
+void UI_icons_free()
 {
 	free_iconfile_list(&iconfilelist);
 	BKE_icons_free();
 }
 
-void BIF_icons_free_drawinfo(void *drawinfo)
+void UI_icons_free_drawinfo(void *drawinfo)
 {
 	DrawInfo *di = drawinfo;
 
@@ -713,7 +628,7 @@ static DrawInfo *icon_create_drawinfo()
 	return di;
 }
 
-int BIF_icon_get_width(int icon_id)
+int UI_icon_get_width(int icon_id)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
@@ -721,7 +636,7 @@ int BIF_icon_get_width(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("BIF_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
+		printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
 	}
 	
@@ -737,7 +652,7 @@ int BIF_icon_get_width(int icon_id)
 	return 0;
 }
 
-int BIF_icon_get_height(int icon_id)
+int UI_icon_get_height(int icon_id)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
@@ -745,7 +660,7 @@ int BIF_icon_get_height(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("BIF_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
+		printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
 	}
 	
@@ -762,7 +677,7 @@ int BIF_icon_get_height(int icon_id)
 	return 0;
 }
 
-void BIF_icons_init(int first_dyn_id)
+void UI_icons_init(int first_dyn_id)
 {
 	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
@@ -881,9 +796,10 @@ static void set_alpha(char* cp, int sizex, int sizey, char alpha)
 }
 
 /* only called when icon has changed */
-/* only call with valid pointer from BIF_icon_draw */
+/* only call with valid pointer from UI_icon_draw */
 static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int miplevel)
 {
+#if 0 // XXX - preview renders have to be redesigned - possibly low level op (elubie)
 	RenderInfo ri;	
 	unsigned int pr_size = 0;
 	
@@ -932,13 +848,16 @@ static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int mipl
 			ri.rect = 0;
 		}
 	}
+#endif
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
 {
 	ui_rasterpos_safe(x, y, aspect);
 	
-	if((w<1 || h<1) && G.f & G_DEBUG) {
+	if((w<1 || h<1)) {
+		// XXX - TODO 2.5 verify whether this case can happen
+		// and only print in debug
 		printf("what the heck! - icons are %i x %i pixels?\n", w, h);
 	}
 	/* rect contains image in 'rendersize', we only scale if needed */
@@ -992,7 +911,7 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("BIF_icon_set_aspect: Internal error, no icon for icon ID: %d\n", icon_id);
+		printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
 	}
 	
@@ -1002,7 +921,7 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 		di = icon_create_drawinfo();
 	
 		icon->drawinfo = di;		
-		icon->drawinfo_free = BIF_icons_free_drawinfo;		
+		icon->drawinfo_free = UI_icons_free_drawinfo;		
 	}
 	
 	di->aspect = aspect;
@@ -1027,11 +946,11 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 		if (pi) {			
 			if (!nocreate && (pi->changed[miplevel] ||!pi->rect[miplevel])) /* changed only ever set by dynamic icons */
 			{
-				waitcursor(1);
+				// XXX waitcursor(1);
 				/* create the preview rect if necessary */				
 				icon_set_image((ID*)icon->obj, icon->drawinfo, pi, miplevel);
 				pi->changed[miplevel] = 0;
-				waitcursor(0);
+				// XXX waitcursor(0);
 			}
 			
 			if (!pi->rect[miplevel]) return; /* something has gone wrong! */
@@ -1041,22 +960,22 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 	}
 }
 
-void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect)
+void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect)
 {
 	icon_draw_mipmap(x,y,icon_id, aspect, PREVIEW_MIPMAP_ZERO, 0);
 }
 
-void BIF_icon_draw(float x, float y, int icon_id)
+void UI_icon_draw(float x, float y, int icon_id)
 {
-	BIF_icon_draw_aspect(x, y, icon_id, 1.0f);
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f);
 }
 
-void BIF_icon_draw_preview(float x, float y, int icon_id, int nocreate)
+void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)
 {
 	icon_draw_mipmap(x,y,icon_id, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
 }
 
-void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
+void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
 {
 	
 	if(shade < 0) {
@@ -1064,7 +983,7 @@ void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, i
 		glPixelTransferf(GL_ALPHA_SCALE, r);
 	}
 
-	BIF_icon_draw_aspect(x, y, icon_id, aspect);
+	UI_icon_draw_aspect(x, y, icon_id, aspect);
 
 	if(shade < 0)
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);

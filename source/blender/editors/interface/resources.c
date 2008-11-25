@@ -66,12 +66,12 @@ static int theme_spacetype= SPACE_VIEW3D;
 
 void ui_resources_init(void)
 {
-	// XXX 2.50 missing UI_icons_init(BIFICONID_LAST+1);
+	UI_icons_init(BIFICONID_LAST+1);
 }
 
 void ui_resources_free(void)
 {
-	// XXX 2.50 missing UI_icons_free();
+	UI_icons_free();
 }
 
 

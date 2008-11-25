@@ -1721,10 +1721,13 @@ static uiBlock *test_viewmenu(wmWindow *window, uiMenuBlockHandle *handle, void 
 void uiTestRegion(const bContext *C)
 {
 	uiBlock *block;
+	short xco;
+	
 	static float testcol[3];
 	static char testtext[64];
 	static float testnumf=5.0f;
-	static short testchoice= 0, testtog= 0;
+	static short testchoice= 0, testtog= 0, testicontog= 0;
+
 #if 0
 	static CurveMapping *cumap= NULL;
 	static ColorBand *coba= NULL;
@@ -1752,6 +1755,11 @@ void uiTestRegion(const bContext *C)
 
     uiDefButF(block, COL, 3142, "",
 		13+50+5+80+5+100+5+100+5+200+5+150+5+100+5, 3, 100, 20, testcol, 0, 0, 0, 0 /*B_BANDCOL*/, "");
+
+	xco = 13+50+5+80+5+100+5+100+5+200+5+150+5+100+5+100+5;
+	uiDefIconButBitS(block, ICONTOG, 1 /*AUTOKEY_ON*/, REDRAWINFO, ICON_PYTHON,
+			xco, 3, 20, 20, &testicontog, 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	xco += 5;
 
 #if 0
 	if(!cumap) {
