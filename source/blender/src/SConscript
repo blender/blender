@@ -94,6 +94,9 @@ if env['WITH_BF_SDL']:
 else:
     defs.append('DISABLE_SDL')
 
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
+
 if env['BF_SPLIT_SRC'] and (env['OURPLATFORM'] == 'win32-mingw'): 	 
 	for i in range(numlibs): 	 
 		env.BlenderLib ( libname = 'src%d' % (i), sources = subsources[i], includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] ) 	 
