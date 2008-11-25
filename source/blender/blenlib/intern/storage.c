@@ -204,7 +204,7 @@ double BLI_diskfree(char *dir)
 	return -1;
 #endif
 
-#if defined (__sun__) || defined (__sun)
+#if defined (__sun__) || defined (__sun) || defined (__sgi)
 	if (statvfs(name, &disk)) return(-1);	
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */

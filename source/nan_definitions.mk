@@ -84,7 +84,7 @@ endif
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
     export NAN_IKSOLVER ?= $(LCGDIR)/iksolver
     export NAN_BSP ?= $(LCGDIR)/bsp
-	export NAN_BOOLOP ?= $(LCGDIR)/boolop
+    export NAN_BOOLOP ?= $(LCGDIR)/boolop
     export NAN_SOUNDSYSTEM ?= $(LCGDIR)/SoundSystem
     export NAN_STRING ?= $(LCGDIR)/string
     export NAN_MEMUTIL ?= $(LCGDIR)/memutil
@@ -117,7 +117,7 @@ endif
     export WITH_DDS ?= true
 
     ifeq ($(OS),windows)
-	export NAN_WINTAB ?= $(LCGDIR)/wintab
+      export NAN_WINTAB ?= $(LCGDIR)/wintab
       ifeq ($(FREE_WINDOWS), true)
         export NAN_PTHREADS ?= $(LCGDIR)/pthreads
         export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
@@ -130,27 +130,33 @@ endif
       endif
     else
       ifeq ($(OS),darwin)
-          export NAN_OPENEXR ?= $(LCGDIR)/openexr
-	  ifeq ($(CPU),powerpc)
-	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-	  else
-	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-	  endif
+        export NAN_OPENEXR ?= $(LCGDIR)/openexr
+        ifeq ($(CPU),powerpc)
+          export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+        else
+          export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+        endif
       else
         ifeq ($(OS),linux)
-		 	ifeq ($(WITH_OPENEXR), true)
-			NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-			NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
-			endif
+          ifeq ($(WITH_OPENEXR), true)
+            NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
+            NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
+            NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs-only-l OpenEXR | sed -s "s/-l//g" )))
+          endif
         else
           ifeq ($(OS), solaris)
               # this only exists at the moment for i386-64 CPU Types at the moment
               export NAN_OPENEXR ?= $(LCGDIR)/openexr
-
               export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
           else
-            export NAN_OPENEXR ?= $(LCGDIR)/openexr
+            ifeq ($(OS), irix)
+              ifeq ($(IRIX_USE_GCC), true)
+                  export NAN_OPENEXR ?= $(LCGDIR)/openexr/gcc
+             else
+                  export NAN_OPENEXR ?= $(LCGDIR)/openexr
+             endif
+            endif
+            export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
             export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
           endif
         endif
