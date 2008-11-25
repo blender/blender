@@ -80,6 +80,7 @@ typedef struct TreeElement {
 #define TSE_SEQUENCE	26
 #define TSE_SEQ_STRIP	27
 #define TSE_SEQUENCE_DUP 28
+#define TSE_LINKED_PSYS		 29
 
 /* outliner search flags */
 #define OL_FIND					0
