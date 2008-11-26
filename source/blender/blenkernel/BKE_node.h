@@ -401,6 +401,8 @@ struct TexResult;
 #define TEX_NODE_ROTATE     114
 #define TEX_NODE_VIEWER     115
 #define TEX_NODE_TRANSLATE  116
+#define TEX_NODE_COORD      117
+#define TEX_NODE_DISTANCE   118
 
 /* 201-299 reserved. Use like this: TEX_NODE_PROC + TEX_CLOUDS, etc */
 #define TEX_NODE_PROC      200
