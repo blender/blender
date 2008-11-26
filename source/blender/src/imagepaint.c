@@ -1000,7 +1000,7 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 	LinkNode *node;
 	int face_index;
 	int i, i1, i2;
-	int i1_fidx = -1, i2_fidx = -1; /* indexi in face */
+	int i1_fidx = -1, i2_fidx = -1; /* index in face */
 	MFace *mf;
 	MTFace *tf;
 	const MFace *orig_mf = ps->dm_mface + orig_face;  
@@ -1014,19 +1014,23 @@ static int check_seam(const ProjPaintState *ps, const int orig_face, const int o
 		face_index = (int)node->link;
 		if (face_index != orig_face) {
 			mf = ps->dm_mface + face_index;
+			/* could check if the 2 faces images match here,
+			 * but then there wouldn't be a way to return the opposite face's info */
+			
 			
 			/* We need to know the order of the verts in the adjacent face 
 			 * set the i1_fidx and i2_fidx to (0,1,2,3) */
-			i = mf->v4 ? 3:2;
-			do {
-				if (i1 == (*(&mf->v1 + i))) {
-					i1_fidx = i;
-				} else if (i2 == (*(&mf->v1 + i))) {
-					i2_fidx = i;
-				}
-				
-			} while (i--);
+			if		(mf->v1==i1)			i1_fidx = 0;
+			else if	(mf->v2==i1)			i1_fidx = 1;
+			else if	(mf->v3==i1)			i1_fidx = 2;
+			else if	(mf->v4 && mf->v4==i1)	i1_fidx = 3;
 			
+			if		(mf->v1==i2)			i2_fidx = 0;
+			else if	(mf->v2==i2)			i2_fidx = 1;
+			else if	(mf->v3==i2)			i2_fidx = 2;
+			else if	(mf->v4 && mf->v4==i2)	i2_fidx = 3;
+			
+			/* Only need to check if 'i2_fidx' is valid because we know i1_fidx is the same vert on both faces */
 			if (i2_fidx != -1) {
 				/* This IS an adjacent face!, now lets check if the UVs are ok */
 				tf = ps->dm_mtface + face_index;
@@ -1193,15 +1197,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 static void project_face_seams_init(const ProjPaintState *ps, const int face_index, const int is_quad)
 {
 	int other_face, other_fidx; /* vars for the other face, we also set its flag */
-	int fidx1, fidx2;
+	int fidx1 = is_quad ? 3 : 2;
+	int fidx2 = 0; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) or (0,1,2) -> (1,2,0) for a tri */
 	
-	fidx1 = is_quad ? 3 : 2;
 	do {
-		if (is_quad)
-			fidx2 = (fidx1==3) ? 0 : fidx1+1; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) */
-		else
-			fidx2 = (fidx1==2) ? 0 : fidx1+1; /* next fidx in the face (0,1,2) -> (1,2,0) */
-		
 		if ((ps->faceSeamFlags[face_index] & (1<<fidx1|16<<fidx1)) == 0) {
 			if (check_seam(ps, face_index, fidx1,fidx2, &other_face, &other_fidx)) {
 				ps->faceSeamFlags[face_index] |= 1<<fidx1;
@@ -1213,6 +1212,8 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 					ps->faceSeamFlags[other_face] |= 16<<other_fidx; /* second 4 bits for disabled */
 			}
 		}
+		
+		fidx2 = fidx1;
 	} while (fidx1--);
 }
 #endif // PROJ_DEBUG_NOSEAMBLEED
@@ -1224,8 +1225,13 @@ static void project_face_seams_init(const ProjPaintState *ps, const int face_ind
 static float lambda_cp_line2(const float p[2], const float l1[2], const float l2[2])
 {
 	float h[2],u[2];
-	Vec2Subf(u, l2, l1);
-	Vec2Subf(h, p, l1);
+	
+	u[0] = l2[0] - l1[0];
+	u[1] = l2[1] - l1[1];
+
+	h[0] = p[0] - l1[0];
+	h[1] = p[1] - l1[1];
+	
 	return(Inp2f(u,h)/Inp2f(u,u));
 }
 
@@ -1419,21 +1425,21 @@ static ProjPixel *project_paint_uvpixel_init(
 		if (ps->dm_mtface_clone) {
 			ImBuf *ibuf_other;
 			const MTFace *tf_other = ps->dm_mtface_clone + face_index;
-			float *uvCo1, *uvCo2, *uvCo3;
-			
-			uvCo1 =  tf_other->uv[0];
-			if (side==1) {
-				uvCo2 =  tf_other->uv[2];
-				uvCo3 =  tf_other->uv[3];
-			} else {
-				uvCo2 =  tf_other->uv[1];
-				uvCo3 =  tf_other->uv[2];
-			}
 			
 			if (tf_other->tpage && ( ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL) )) {
 				/* BKE_image_get_ibuf - TODO - this may be slow */
-					
+				
+				float *uvCo1, *uvCo2, *uvCo3;
 				float uv_other[2], x, y;
+				
+				uvCo1 =  (float *)tf_other->uv[0];
+				if (side==1) {
+					uvCo2 =  (float *)tf_other->uv[2];
+					uvCo3 =  (float *)tf_other->uv[3];
+				} else {
+					uvCo2 =  (float *)tf_other->uv[1];
+					uvCo3 =  (float *)tf_other->uv[2];
+				}
 				
 				Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
 				
@@ -1835,7 +1841,7 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 
 static void project_bucket_clip_face(
 		const int is_ortho,
-		float bucket_bounds[4],
+		const float bucket_bounds[4],
 		const float *v1coSS, const float *v2coSS, const float *v3coSS,
 		const float *uv1co, const float *uv2co, const float *uv3co,
 		float bucket_bounds_uv[8][2],
@@ -2113,7 +2119,9 @@ if __name__ == '__main__':
 #endif
 
 
-int IsectPoly2Df(const float pt[2], float uv[8][2], const int tot)
+/* checks if pt is inside a convex 2D polyline, the polyline must be ordered rotating clockwise
+ * otherwise it would have to test for mixed (SIDE_OF_LINE > 0.0f) cases */
+int IsectPoly2Df(const float pt[2], const float uv[][2], const int tot)
 {
 	int i;
 	if (SIDE_OF_LINE(uv[tot-1],uv[0],pt) < 0.0f)
@@ -2647,12 +2655,13 @@ static int project_bucket_face_isect(ProjPaintState *ps, float min[2], float max
 	return 0;
 }
 
-/* Add faces to the bucket but dont initialize its pixels */
+/* Add faces to the bucket but dont initialize its pixels
+ * TODO - when painting occluded, sort the faces on their min-Z and only add faces that faces that are not occluded */
 static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf, const MTFace *tf, const int face_index)
 {
-	float min[2], max[2];
+	float min[2], max[2], *vCoSS;
 	int bucket_min[2], bucket_max[2]; /* for  ps->bucketRect indexing */
-	int i, a, bucket_x, bucket_y, bucket_index;
+	int i, bucket_x, bucket_y, bucket_index;
 	
 	int has_x_isect = -1, has_isect = 0; /* for early loop exit */
 	
@@ -2660,9 +2669,8 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 	
 	i = mf->v4 ? 3:2;
 	do {
-		a = (*(&mf->v1 + i)); /* vertex index */
-		
-		DO_MINMAX2(ps->screenCoords[ a ], min, max);
+		vCoSS = ps->screenCoords[ *(&mf->v1 + i) ];
+		DO_MINMAX2(vCoSS, min, max);
 	} while (i--);
 	
 	project_paint_rect(ps, min, max, bucket_min, bucket_max);
@@ -2696,13 +2704,14 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
 		if (!mf->v4) {
-			ps->faceSeamFlags[face_index] |= PROJ_FACE_NOSEAM4; /* so this wont show up as an untagged egde */
+			ps->faceSeamFlags[face_index] |= PROJ_FACE_NOSEAM4; /* so this wont show up as an untagged edge */
 		}
 		**ps->faceSeamUVs[face_index] = MAXFLOAT; /* set as uninitialized */
 	}
 #endif
 }
 
+/* run once per stroke before projection painting */
 static void project_paint_begin( ProjPaintState *ps, short mval[2])
 {	
 	/* Viewport vars */
