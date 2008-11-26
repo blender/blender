@@ -184,7 +184,6 @@ private:
 	void					RenderDebugProperties();
 	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);
-	void					SetWorldSettings(KX_WorldInfo* worldinfo);
 	void					DoSound(KX_Scene* scene);
 
 public:
@@ -193,6 +192,7 @@ public:
 	virtual ~KX_KetsjiEngine();
 
 	// set the devices and stuff. the client must take care of creating these
+	void			SetWorldSettings(KX_WorldInfo* worldinfo);
 	void			SetKeyboardDevice(SCA_IInputDevice* keyboarddevice);
 	void			SetMouseDevice(SCA_IInputDevice* mousedevice);
 	void			SetNetworkDevice(NG_NetworkDeviceInterface* networkdevice);
@@ -205,6 +205,8 @@ public:
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
 
 	RAS_IRasterizer*		GetRasterizer(){return m_rasterizer;};
+	RAS_ICanvas*		    GetCanvas(){return m_canvas;};
+	RAS_IRenderTools*	    GetRenderTools(){return m_rendertools;};
 
 	///returns true if an update happened to indicate -> Render
 	bool			NextFrame();

@@ -200,6 +200,7 @@ public:
 	 * @return true if stereo mode is enabled.
 	 */
 	virtual bool	Stereo()=0;
+    virtual StereoMode GetStereoMode()=0;
 	virtual bool	InterlacedStereo()=0;
 	/**
 	 * Sets which eye buffer subsequent primitives will be rendered to.
