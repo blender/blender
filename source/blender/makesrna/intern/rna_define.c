@@ -519,7 +519,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 			}
 			case PROP_ENUM:
 				DefRNA.silent= 1;
-				RNA_def_property_enum_sdna(prop, NULL, identifier);
+				RNA_def_property_enum_sdna(prop, NULL, identifier, 0);
 				DefRNA.silent= 0;
 				break;
 			case PROP_POINTER:
@@ -953,7 +953,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 	rna_def_property_sdna(prop, structname, propname);
 }
 
-void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname)
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bitflags)
 {
 	PropertyDefRNA *dp;
 	StructRNA *srna= DefRNA.laststruct;
@@ -970,6 +970,8 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 	}
 
 	if((dp=rna_def_property_sdna(prop, structname, propname))) {
+		dp->enumbitflags= bitflags;
+
 		if(prop->arraylength) {
 			prop->arraylength= 0;
 			if(!DefRNA.silent) {

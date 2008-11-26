@@ -111,7 +111,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
 
 	prop= RNA_def_property(srna, "unwrapper", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "toolsettings->unwrapper");
+	RNA_def_property_enum_sdna(prop, NULL, "toolsettings->unwrapper", 0);
 	RNA_def_property_enum_items(prop, unwrapper_items);
 	RNA_def_property_ui_text(prop, "Unwrapper", "Unwrap algorithm used by the Unwrap tool.");
 }

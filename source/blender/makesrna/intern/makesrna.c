@@ -44,6 +44,8 @@
 #endif
 #endif
 
+/* Sorting */
+
 int cmp_struct(const void *a, const void *b)
 {
 	const StructRNA *structa= *(const StructRNA**)a;
@@ -146,6 +148,17 @@ static const char *rna_type_type(PropertyRNA *prop)
 	}
 }
 
+static int rna_enum_bitmask(PropertyRNA *prop)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	int a, mask= 0;
+
+	for(a=0; a<eprop->totitem; a++)
+		mask |= eprop->item[a].value;
+	
+	return mask;
+}
+
 static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp)
 {
 	char *func;
@@ -202,6 +215,8 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "	%s *data= (%s*)ptr->data;\n", dp->dnastructname, dp->dnastructname);
 				if(prop->type == PROP_BOOLEAN && dp->booleanbit)
 					fprintf(f, "	return (((data->%s) & %d) != 0);\n", dp->dnaname, dp->booleanbit);
+				else if(prop->type == PROP_ENUM && dp->enumbitflags)
+					fprintf(f, "	return ((data->%s) & %d);\n", dp->dnaname, rna_enum_bitmask(prop));
 				else
 					fprintf(f, "	return (%s)(data->%s);\n", rna_type_type(prop), dp->dnaname);
 				fprintf(f, "}\n\n");
@@ -305,6 +320,10 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
 					fprintf(f, "	if(value) data->%s |= %d;\n", dp->dnaname, dp->booleanbit);
 					fprintf(f, "	else data->%s &= ~%d;\n", dp->dnaname, dp->booleanbit);
+				}
+				else if(prop->type == PROP_ENUM && dp->enumbitflags) {
+					fprintf(f, "	data->%s &= ~%d;\n", dp->dnaname, rna_enum_bitmask(prop));
+					fprintf(f, "	data->%s |= value;\n", dp->dnaname, rna_enum_bitmask(prop));
 				}
 				else {
 					rna_clamp_value(f, prop);

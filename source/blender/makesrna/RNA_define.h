@@ -54,7 +54,7 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname);
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bitflags);
 void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
 

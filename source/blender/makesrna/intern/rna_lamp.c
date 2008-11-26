@@ -46,6 +46,11 @@ void RNA_def_lamp(BlenderRNA *brna)
 		{LA_HEMI, "HEMI", "Hemi", ""},
 		{LA_AREA, "AREA", "Area", ""},
 		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_shadow_items[] = {
+		{0, "NOSHADOW", "No Shadow", ""},
+		{LA_SHAD_BUF, "BUFSHADOW", "Buffer Shadow", "Lets spotlight produce shadows using shadow buffer."},
+		{LA_SHAD_RAY, "RAYSHADOW", "Ray Shadow", "Use ray tracing for shadow."},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lamp", "ID", "Lamp");
 
@@ -66,6 +71,11 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Lamp color.");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
+
+	prop= RNA_def_property(srna, "shadow", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode", 1); /* use bitflags */
+	RNA_def_property_enum_items(prop, prop_shadow_items);
+	RNA_def_property_ui_text(prop, "Shadow", "Method to compute lamp shadow.");
 }
 
 #endif

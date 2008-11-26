@@ -49,6 +49,7 @@ typedef struct PropertyDefRNA {
 	int dnapointerlevel;
 
 	int booleanbit;
+	int enumbitflags;
 } PropertyDefRNA;
 
 typedef struct StructDefRNA {
