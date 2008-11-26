@@ -55,6 +55,20 @@ static void rna_Scene_layer_set(PointerRNA *ptr, int index, int value)
 	}
 }
 
+static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	CLAMP(value, 1, data->r.efra);
+	data->r.sfra= value;
+}
+
+static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	CLAMP(value, data->r.sfra, 300000);
+	data->r.efra= value;
+}
+
 #else
 
 void RNA_def_scene(BlenderRNA *brna)
@@ -105,6 +119,18 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "Current frame.");
+	
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "Start Frame", "Start frame.");
+	
+	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_int_sdna(prop, NULL, "r.efra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "End Frame", "End frame.");
 
 	prop= RNA_def_property(srna, "stamp_note", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "r.stamp_udata");
