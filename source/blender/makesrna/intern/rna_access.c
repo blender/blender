@@ -1106,6 +1106,14 @@ void *rna_iterator_array_get(CollectionPropertyIterator *iter)
 	return internal->ptr;
 }
 
+void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter)
+{
+	ArrayIterator *internal= iter->internal;
+
+	/* for ** arrays */
+	return *(void**)(internal->ptr);
+}
+
 void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	MEM_freeN(iter->internal);

@@ -97,6 +97,7 @@ typedef struct DNAStructMember {
 	char *type;
 	char *name;
 	int arraylength;
+	int pointerlevel;
 } DNAStructMember;
 
 static int rna_member_cmp(const char *name, const char *oname)
@@ -125,7 +126,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 {
 	char *dnaname;
 	short *sp;
-	int a, structnr, totmember, cmp;
+	int a, b, structnr, totmember, cmp;
 
 	structnr= DNA_struct_find_nr(sdna, structname);
 	if(structnr == -1)
@@ -144,6 +145,11 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 			smember->type= sdna->types[sp[0]];
 			smember->name= dnaname;
 			smember->arraylength= DNA_elem_array_size(smember->name, strlen(smember->name));
+
+			smember->pointerlevel= 0;
+			for(b=0; dnaname[b] == '*'; b++)
+				smember->pointerlevel++;
+
 			return 1;
 		}
 		else if(cmp == 2) {
@@ -864,6 +870,7 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 	dp->dnaname= propname;
 	dp->dnatype= smember.type;
 	dp->dnaarraylength= smember.arraylength;
+	dp->dnapointerlevel= smember.pointerlevel;
 
 	return dp;
 }
@@ -1077,8 +1084,12 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			dp->dnalengthname= lengthpropname;
 
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_array_next";
-			cprop->get= (PropCollectionGetFunc)"rna_iterator_array_get";
 			cprop->end= (PropCollectionEndFunc)"rna_iterator_array_end";
+
+			if(dp->dnapointerlevel >= 2) 
+				cprop->get= (PropCollectionGetFunc)"rna_iterator_array_dereference_get";
+			else
+				cprop->get= (PropCollectionGetFunc)"rna_iterator_array_get";
 		}
 	}
 }

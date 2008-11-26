@@ -46,6 +46,7 @@ typedef struct PropertyDefRNA {
 	const char *dnalengthname;
 	const char *dnatype;
 	int dnaarraylength;
+	int dnapointerlevel;
 
 	int booleanbit;
 } PropertyDefRNA;
@@ -136,6 +137,7 @@ typedef struct ArrayIterator {
 void rna_iterator_array_begin(struct CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip);
 void rna_iterator_array_next(struct CollectionPropertyIterator *iter);
 void *rna_iterator_array_get(struct CollectionPropertyIterator *iter);
+void *rna_iterator_array_dereference_get(struct CollectionPropertyIterator *iter);
 void rna_iterator_array_end(struct CollectionPropertyIterator *iter);
 
 /* Duplicated code since we can't link in blenlib */

@@ -721,7 +721,7 @@ static void rna_def_mcol(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_MCol_color4_get", "rna_MCol_color4_set", NULL);
 	RNA_def_property_ui_text(prop, "Color 4", "");
 
-	srna= RNA_def_struct(brna, "MColLayer", NULL, "Mesh Texture Face Layer");
+	srna= RNA_def_struct(brna, "MColLayer", NULL, "Mesh Vertex Color Layer");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -937,10 +937,10 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "mr");
 	RNA_def_property_ui_text(prop, "Multires", "");
 
-	/*prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_ui_text(prop, "Materials", "");*/
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Materials", "");
 
 	/*prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Key", "");*/

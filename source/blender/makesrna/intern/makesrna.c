@@ -44,6 +44,56 @@
 #endif
 #endif
 
+int cmp_struct(const void *a, const void *b)
+{
+	const StructRNA *structa= *(const StructRNA**)a;
+	const StructRNA *structb= *(const StructRNA**)b;
+
+	return strcmp(structa->identifier, structb->identifier);
+}
+
+int cmp_property(const void *a, const void *b)
+{
+	const PropertyRNA *propa= *(const PropertyRNA**)a;
+	const PropertyRNA *propb= *(const PropertyRNA**)b;
+
+	if(strcmp(propa->identifier, "rna_type") == 0) return -1;
+	else if(strcmp(propb->identifier, "rna_type") == 0) return 1;
+
+	if(strcmp(propa->identifier, "name") == 0) return -1;
+	else if(strcmp(propb->identifier, "name") == 0) return 1;
+
+	return strcmp(propa->name, propb->name);
+}
+
+void rna_sortlist(ListBase *listbase, int(*cmp)(const void*, const void*))
+{
+	Link *link;
+	void **array;
+	int a, size;
+	
+	if(listbase->first == listbase->last)
+		return;
+
+	for(size=0, link=listbase->first; link; link=link->next)
+		size++;
+
+	array= MEM_mallocN(sizeof(void*)*size, "rna_sortlist");
+	for(a=0, link=listbase->first; link; link=link->next, a++)
+		array[a]= link;
+
+	qsort(array, size, sizeof(void*), cmp);
+
+	listbase->first= listbase->last= NULL;
+	for(a=0; a<size; a++) {
+		link= array[a];
+		link->next= link->prev= NULL;
+		rna_addtail(listbase, link);
+	}
+
+	MEM_freeN(array);
+}
+
 /* Preprocessing */
 
 static void rna_print_c_string(FILE *f, const char *str)
@@ -499,6 +549,16 @@ static void rna_auto_functions(FILE *f)
 			rna_def_property_funcs(f, dp);
 }
 
+static void rna_sort(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	rna_sortlist(&brna->structs, cmp_struct);
+
+	for(srna=brna->structs.first; srna; srna=srna->next)
+		rna_sortlist(&srna->properties, cmp_property);
+}
+
 static const char *rna_property_structname(PropertyType type)
 {
 	switch(type) {
@@ -830,6 +890,7 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 	fprintf(f, "\n");
 
 	rna_auto_functions(f);
+	rna_sort(brna);
 
 	for(srna=brna->structs.first; srna; srna=srna->next)
 		rna_generate_struct(brna, srna, f);
