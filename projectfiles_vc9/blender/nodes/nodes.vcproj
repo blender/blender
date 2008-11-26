@@ -616,7 +616,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_coord.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_curves.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\TEX_nodes\TEX_distance.c"
 					>
 				</File>
 				<File
