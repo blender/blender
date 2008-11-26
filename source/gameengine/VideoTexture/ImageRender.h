@@ -47,9 +47,9 @@ public:
 	virtual ~ImageRender (void);
 
 	/// get background color
-	unsigned char * getBackground (void) { return m_background; }
+    int getBackground (int idx) { return (idx < 0 || idx > 3) ? 0 : int(m_background[idx]*255.f); }
 	/// set background color
-	void setBackground (unsigned char red, unsigned char green, unsigned char blue);
+	void setBackground (int red, int green, int blue, int alpha);
 
 protected:
 	/// rendered scene
@@ -57,27 +57,22 @@ protected:
 	/// camera for render
 	KX_Camera * m_camera;
 
-	/// screen area for rendering
-	ScrArea m_area;
-	/// rendering device
-	RAS_ICanvas * m_canvas;
-	/// rasterizer
-	RAS_IRasterizer * m_rasterizer;
-	/// render tools
-	RAS_IRenderTools * m_rendertools;
+    /// canvas
+    RAS_ICanvas* m_canvas;
+    /// rasterizer
+    RAS_IRasterizer* m_rasterizer;
+    /// render tools
+    RAS_IRenderTools* m_rendertools;
+    /// engine
+    KX_KetsjiEngine* m_engine;
 
 	/// background colour
-	unsigned char m_background[3];
+	float  m_background[4];
 
 
 	/// render 3d scene to image
 	virtual void calcImage (unsigned int texId);
 
-	/// refresh lights
-	void refreshLights (void);
-	/// methods from KX_KetsjiEngine
-	bool BeginFrame();
-	void EndFrame();
 	void Render();
 	void SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
 	void RenderFrame(KX_Scene* scene, KX_Camera* cam);

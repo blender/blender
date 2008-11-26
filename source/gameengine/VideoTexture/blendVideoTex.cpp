@@ -144,7 +144,7 @@ static void registerAllTypes(void)
 #endif
 	pyImageTypes.add(&ImageBuffType, "ImageBuff");
 	pyImageTypes.add(&ImageMixType, "ImageMix");
-	//pyImageTypes.add(&ImageRenderType, "ImageRender");
+	pyImageTypes.add(&ImageRenderType, "ImageRender");
 	pyImageTypes.add(&ImageViewportType, "ImageViewport");
 
 	pyFilterTypes.add(&FilterBlueScreenType, "FilterBlueScreen");
