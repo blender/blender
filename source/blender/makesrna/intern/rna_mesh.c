@@ -939,8 +939,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
-	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_ui_text(prop, "Materials", "");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Materials", "Materials");
 
 	/*prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Key", "");*/

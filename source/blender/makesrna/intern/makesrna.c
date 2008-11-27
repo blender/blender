@@ -862,6 +862,8 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
 	{"rna_main.c", RNA_def_main},
 	{"rna_mesh.c", RNA_def_mesh},
+	{"rna_nodetree.c", RNA_def_nodetree},
+	{"rna_material.c", RNA_def_material},
 	{"rna_object.c", RNA_def_object},
 	{"rna_rna.c", RNA_def_rna},
 	{"rna_scene.c", RNA_def_scene},

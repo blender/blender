@@ -41,7 +41,6 @@
 
 struct MTex;
 struct Ipo;
-struct Material;
 struct ColorBand;
 struct Group;
 struct bNodeTree;

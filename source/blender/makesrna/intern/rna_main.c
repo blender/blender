@@ -79,11 +79,15 @@ static void rna_Main_mball_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->mball, NULL);
 }
 
+#endif
+
 static void rna_Main_mat_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->mat, NULL);
 }
+
+#if 0
 
 static void rna_Main_tex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -177,11 +181,15 @@ static void rna_Main_action_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->action, NULL);
 }
 
+#endif
+
 static void rna_Main_nodetree_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->nodetree, NULL);
 }
+
+#if 0
 
 static void rna_Main_brush_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -211,14 +219,15 @@ void RNA_def_main(BlenderRNA *brna)
 	const char *lists[][5]= {
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
+		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks."},
+		{"nodetrees", "bNodeTree", "rna_Main_nodetree_begin", "Node Trees", "Nodetree datablocks."},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, 
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
 		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
 		{NULL, NULL, NULL, NULL, NULL},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
-		{"metaballs", "MBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."}, 
-		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks."},
+		{"metaballs", "MBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
 		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks."},
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks."},
@@ -234,7 +243,6 @@ void RNA_def_main(BlenderRNA *brna)
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
 		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks."},
-		{"nodegroups", "NodeGroup", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks."},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
 		{"particles", "Particle", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
 		{NULL, NULL, NULL, NULL, NULL}};

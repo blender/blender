@@ -85,6 +85,8 @@ void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
+void RNA_def_nodetree(struct BlenderRNA *brna);
+void RNA_def_material(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
