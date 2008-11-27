@@ -69,6 +69,9 @@ extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_Scene;
 extern StructRNA RNA_Lamp;
+extern StructRNA RNA_Material;
+extern StructRNA RNA_bNodeTree;
+extern StructRNA RNA_bNode;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_WindowManager;
 
