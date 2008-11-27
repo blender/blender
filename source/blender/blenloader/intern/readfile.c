@@ -3787,6 +3787,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->operators.first= wm->operators.last= NULL;
 	wm->windowkeymap.first= wm->windowkeymap.last= NULL;
 	wm->screenkeymap.first= wm->screenkeymap.last= NULL;
+	wm->uikeymap.first= wm->uikeymap.last= NULL;
+	wm->timekeymap.first= wm->timekeymap.last= NULL;
 	
 	wm->queue.first= wm->queue.last= NULL;
 	wm->reports.first= wm->reports.last= NULL;
