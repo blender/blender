@@ -71,7 +71,7 @@ typedef struct wmWindowManager {
 	ListBase screenkeymap;
 	ListBase uikeymap;
 	ListBase timekeymap;
-	
+	/* keymaps have to be NULLed in readfile.c */
 	
 } wmWindowManager;
 

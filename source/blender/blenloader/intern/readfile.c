@@ -8207,6 +8207,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 			bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
 			break;
 			
+			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
+		case ID_SCRN:
+			bhead->code= ID_SCR;
+			/* deliberate pass on to default */
 		default:
 			bhead = read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
 		}

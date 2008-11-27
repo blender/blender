@@ -174,6 +174,7 @@ typedef struct PreviewImage {
 #define ID_KE		MAKE_ID2('K', 'E')
 #define ID_WO		MAKE_ID2('W', 'O')
 #define ID_SCR		MAKE_ID2('S', 'R')
+#define ID_SCRN		MAKE_ID2('S', 'N')
 #define ID_VF		MAKE_ID2('V', 'F')
 #define ID_TXT		MAKE_ID2('T', 'X')
 #define ID_SO		MAKE_ID2('S', 'O')

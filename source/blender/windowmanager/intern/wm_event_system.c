@@ -252,6 +252,7 @@ void wm_draw_update(bContext *C)
 			if(win->screen->do_draw)
 				ED_screen_draw(win);
 
+			/* regions are menus here */
 			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 				C->region= ar;
 				
@@ -519,6 +520,7 @@ void wm_event_do_handlers(bContext *C)
 			
 			action= wm_handlers_do(C, event, &win->handlers);
 			
+			/* modal menus in Blender use (own) regions linked to screen */
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ARegion *ar;
 

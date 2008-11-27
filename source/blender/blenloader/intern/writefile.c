@@ -1620,7 +1620,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 	while(sc) {
 		
 		/* write LibData */
-		writestruct(wd, ID_SCR, "Screen", 1, sc);
+		/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
+		writestruct(wd, ID_SCRN, "Screen", 1, sc);
 		if (sc->id.properties) 
 			IDP_WriteProperty(sc->id.properties, wd);
 
