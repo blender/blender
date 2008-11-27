@@ -148,6 +148,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	else {
 		float fac= 0.1*ar->swinid;
 		
+		fac= fac - (int)fac;
+		
 		glClearColor(0.5, fac, 1.0f-fac, 0.0); 
 		glClear(GL_COLOR_BUFFER_BIT);
 		

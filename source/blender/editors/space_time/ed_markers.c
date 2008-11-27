@@ -50,6 +50,7 @@
 #include "BIF_glutil.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "UI_view2d.h"
 #include "UI_resources.h"
 
@@ -104,9 +105,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		ICON_MARKER;
 	}
 	
-	//BIF_icon_draw(xpos*xscale-5.0, 12.0, icon_id);
-	glColor3ub(0, 100, 0);
-	glRectf(xpos*xscale-5.0f, 12.0f, xpos*xscale, 17.0f);
+	UI_icon_draw(xpos*xscale-5.0, 12.0, icon_id);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);

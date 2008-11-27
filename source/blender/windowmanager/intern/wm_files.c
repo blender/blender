@@ -75,6 +75,8 @@
 #include "BLO_writefile.h"
 
 #include "ED_datafiles.h"
+#include "ED_screen.h"
+
 #include "UI_interface.h"
 
 // XXX #include "BPY_extern.h"
@@ -406,9 +408,10 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 			for(wm= wmlist->first; wm; wm= wm->id.next) {
 				for(win= wm->windows.first; win; win= win->next) {
 					win->screen= (bScreen *)find_id("SR", win->screenname);
-					if(win->screen==NULL)
-						win->screen= C->screen; /* active screen */
 
+					if(win->screen==NULL)
+						win->screen= ED_screen_duplicate(win, C->screen); /* active screen */
+							
 					if(win->screen->winid==0)
 						win->screen->winid= win->winid;
 				}
