@@ -42,14 +42,22 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_type_items[] = {
 		{MA_RGB, "RGB", "RGB", ""},
-		{MA_CMYK, "CMYK", "CMYK", ""},
-		{MA_YUV, "YUV", "YUV", ""},
+		/*{MA_CMYK, "CMYK", "CMYK", ""}, 
+		{MA_YUV, "YUV", "YUV", ""},  XXX: blender code doesn't support this yet. Commented out */
 		{MA_HSV, "HSV", "HSV", ""},
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
 		{MA_RAYMIR_FADETOSKY, "RAYMIR_FADETOSKY", "Fade to sky color", ""},
 		{MA_RAYMIR_FADETOMAT, "RAYMIR_FADETOMAT", "Fade to material color", ""},
 		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_diff_shader_items[] = {
+		{MA_DIFF_LAMBERT, "DIFF_LAMBERT", "Lambert", ""},
+		{MA_DIFF_ORENNAYAR, "DIFF_ORENNAYAR", "Orennayar", ""},
+		{MA_DIFF_TOON, "DIFF_TOON", "Toon", ""},
+		{MA_DIFF_MINNAERT, "DIFF_MINNAERT", "Minnaert", ""},
+		{MA_DIFF_FRESNEL, "DIFF_FRESNEL", "Fresnel", ""},
+		{0, NULL, NULL, NULL}};
+	
 	
 	srna= RNA_def_struct(brna, "Material", "ID", "Material");
 		
@@ -81,6 +89,34 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Ambient Color", "Ambient color.");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
+	
+	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Alpha", "Alpha");
+	
+	/* diffuse shaders */
+	
+	prop= RNA_def_property(srna, "diff_shader", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_diff_shader_items);
+	RNA_def_property_ui_text(prop, "Diffuse Shader Model", "Diffuse shader model.");
+	
+	prop= RNA_def_property(srna, "ref", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Reflection", "Sets the amount of reflection.");
+	
+	prop= RNA_def_property(srna, "roughness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 3.14f);
+	RNA_def_property_ui_text(prop, "Roughness", "Sets Oren Nayar Roughness");
+	
+	prop= RNA_def_property(srna, "params1_4", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "param");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_ui_text(prop, "Params 1-4", "Parameters used for diffuse and specular Toon, and diffuse Fresnel shaders. Check documentation for details.");
+	
+	prop= RNA_def_property(srna, "darkness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Darkness", "Sets Minnaert darkness.");
 	
 	/* raytrace mirror */
 	prop= RNA_def_property(srna, "mode_ray_mirror", PROP_BOOLEAN, PROP_NONE);
