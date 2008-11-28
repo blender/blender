@@ -230,6 +230,8 @@ static void cache_pointdensity(Render *re, Tex *tex)
 		int i;
 		
 		if (!ob) return;
+		if (BLI_countlist(&ob->particlesystem) == 0) return;
+		
 		
 		for(psys=ob->particlesystem.first, i=0; i< pd->psysindex-1; i++)
 			psys= psys->next;
@@ -260,6 +262,8 @@ static void free_pointdensity(Render *re, Tex *tex)
 {
 	PointDensity *pd = tex->pd;
 
+	if (!pd) return;
+	
 	if (pd->point_tree) {
 		BLI_bvhtree_free(pd->point_tree);
 		pd->point_tree = NULL;
