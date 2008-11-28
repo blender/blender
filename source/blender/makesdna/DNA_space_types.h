@@ -471,9 +471,6 @@ typedef struct SpaceImaSel {
 #define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
 #define FOLDERFILE			2048 /* represents folders for filtering */
 
-#define SCROLLH	16			/* height scrollbar */
-#define SCROLLB	16			/* width scrollbar */
-
 /* SpaceImage->mode */
 #define SI_TEXTURE		0
 #define SI_SHOW			1

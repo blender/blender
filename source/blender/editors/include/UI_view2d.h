@@ -21,29 +21,47 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Joshua Leung
  *
+ *
+ * Generic 2d view with should allow drawing grids,
+ * panning, zooming, scrolling, .. 
  * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef UI_VIEW2D_H
 #define UI_VIEW2D_H
 
-/* start of a generic 2d view with should allow drawing grids,
- * panning, zooming, scrolling, .. */
+/* ------------------------------------------ */
+/* Settings: 								*/
 
+/* grid-units (for drawing time) */
 #define V2D_UNIT_SECONDS	0
 #define V2D_UNIT_FRAMES		1
 
+/* clamping of grid values to whole numbers */
 #define V2D_GRID_CLAMP		0
 #define V2D_GRID_NOCLAMP	1
 
+/* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
 
-#define V2D_HORIZONTAL_LINES	1
-#define V2D_VERTICAL_LINES		2
-#define V2D_HORIZONTAL_AXIS		4
-#define V2D_VERTICAL_AXIS		8
+/* flags for grid-lines to draw */
+#define V2D_HORIZONTAL_LINES	(1<<0)
+#define V2D_VERTICAL_LINES		(1<<1)
+#define V2D_HORIZONTAL_AXIS		(1<<2)
+#define V2D_VERTICAL_AXIS		(1<<3)
+
+/* ------------------------------------------ */
+/* Macros:								*/
+
+/* test if mouse in scrollbar */
+// XXX do we want more elegant method?
+#define IN_2D_VERT_SCROLL(v2d, co) (BLI_in_rcti(&v2d->vert, co[0], co[1]))
+#define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_in_rcti(&v2d->hor, co[0], co[1]))
+
+/* ------------------------------------------ */
+/* Type definitions: 						*/
 
 struct View2D;
 struct View2DGrid;
@@ -51,14 +69,20 @@ struct bContext;
 
 typedef struct View2DGrid View2DGrid;
 
+/* ----------------------------------------- */
+/* Prototypes:						    */
+
 /* setup */
 void UI_view2d_ortho(const struct bContext *C, struct View2D *v2d);
 void UI_view2d_update_size(struct View2D *v2d, int winx, int winy);
 
 /* grid drawing */
-View2DGrid *UI_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, int unit, int type, int winx, int winy);
+View2DGrid *UI_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, short unit, short type, int winx, int winy);
 void UI_view2d_draw_grid(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_free_grid(View2DGrid *grid);
+
+/* scrollbar drawing */
+
 
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx, float *viewy);

@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,20 +33,28 @@
 
 #include "DNA_vec_types.h"
 
+/* ---------------------------------- */
+
+/* View 2D data - stored per region */
 typedef struct View2D {
 	rctf tot, cur;
 	rcti vert, hor, mask;
+	
 	float min[2], max[2];
 	float minzoom, maxzoom;
-	short scroll, keeptot;
+	
+	short scroll, keeptot;			/* scroll - scrollbars to display (bitflag); keeptot - 'tot' rect  */
 	short keepaspect, keepzoom;
 	short oldwinx, oldwiny;
-	int flag;
 	
-	float cursor[2]; /* only used in the UV view for now*/
-	short around;
+	int flag;						/* settings */
+	
+	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
+	short around;					/* pivot point for transforms (rotate and scale) */
 	char pad[6];
 } View2D;
+
+/* ---------------------------------- */
 
 /* v2d->keepzoom */
 #define V2D_KEEPZOOM	0x0001	
@@ -54,11 +62,17 @@ typedef struct View2D {
 #define V2D_LOCKZOOM_Y	0x0200
 
 /* event codes for locking function */
-#define V2D_LOCK_COPY	1
-#define V2D_LOCK_REDRAW	2
+#define V2D_LOCK_COPY		1
+#define V2D_LOCK_REDRAW		2
 
 /* v2d->flag */
-#define V2D_VIEWLOCK	1
+#define V2D_VIEWLOCK	(1<<0)
+
+/* scrollbar thickness */
+	/* height */
+#define SCROLLH	16
+	/* width */
+#define SCROLLB	16
 
 #endif
 
