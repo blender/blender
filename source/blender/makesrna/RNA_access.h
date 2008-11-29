@@ -39,6 +39,7 @@ extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 extern StructRNA RNA_Main;
+extern StructRNA RNA_CurveMapping;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MVert;
 extern StructRNA RNA_MVertGroup;

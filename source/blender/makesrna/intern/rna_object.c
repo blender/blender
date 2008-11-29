@@ -56,7 +56,7 @@ void RNA_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
 
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_ui_text(prop, "Location", "Location of the object.");
+	RNA_def_property_ui_text(prop, "Location", "");
 
 }
 

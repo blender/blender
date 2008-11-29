@@ -47,7 +47,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Nodes", "Nodes in the Node Tree.");
+	RNA_def_property_ui_text(prop, "Nodes", "");
 	
 	srna= RNA_def_struct(brna, "Node", NULL, "Node");
 	RNA_def_struct_sdna(srna, "bNode");
@@ -56,7 +56,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "locx");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Location", "Node Location");
+	RNA_def_property_ui_text(prop, "Location", "");
 
 }
 

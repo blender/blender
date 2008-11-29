@@ -240,13 +240,23 @@ static void rna_float_print(FILE *f, float num)
 	else fprintf(f, "%.10ff", num);
 }
 
+static void rna_int_print(FILE *f, int num)
+{
+	if(num == INT_MIN) fprintf(f, "INT_MIN");
+	else if(num == INT_MAX) fprintf(f, "INT_MAX");
+	else fprintf(f, "%d", num);
+}
+
 static void rna_clamp_value(FILE *f, PropertyRNA *prop)
 {
 	if(prop->type == PROP_INT) {
 		IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 
-		if(iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX)
-			fprintf(f, "	CLAMP(value, %d, %d);\n", iprop->hardmin, iprop->hardmax);
+		if(iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX) {
+			fprintf(f, "	CLAMP(value, ");
+			rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
+			rna_int_print(f, iprop->hardmax); fprintf(f, ");\n");
+		}
 	}
 	else if(prop->type == PROP_FLOAT) {
 		FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
@@ -323,7 +333,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else if(prop->type == PROP_ENUM && dp->enumbitflags) {
 					fprintf(f, "	data->%s &= ~%d;\n", dp->dnaname, rna_enum_bitmask(prop));
-					fprintf(f, "	data->%s |= value;\n", dp->dnaname, rna_enum_bitmask(prop));
+					fprintf(f, "	data->%s |= value;\n", dp->dnaname);
 				}
 				else {
 					rna_clamp_value(f, prop);
@@ -767,7 +777,13 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 			}
 			case PROP_INT: {
 				IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, %s, %d, %d, %d, %d, %d,\n\t%d, ", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), rna_function_string(iprop->range), iprop->softmin, iprop->softmax, iprop->hardmin, iprop->hardmax, iprop->step, iprop->defaultvalue);
+				fprintf(f, "\t%s, %s, %s, %s, %s,\n\t", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), rna_function_string(iprop->range), iprop->softmin, iprop->softmax, iprop->hardmin, iprop->hardmax, iprop->step, iprop->defaultvalue);
+				rna_int_print(f, iprop->softmin); fprintf(f, ", ");
+				rna_int_print(f, iprop->softmax); fprintf(f, ", ");
+				rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
+				rna_int_print(f, iprop->hardmax); fprintf(f, ", ");
+				rna_int_print(f, iprop->step); fprintf(f, ", ");
+				rna_int_print(f, iprop->defaultvalue); fprintf(f, ", ");
 				if(prop->arraylength) fprintf(f, "rna_%s_%s_default\n", srna->identifier, prop->identifier);
 				else fprintf(f, "NULL\n");
 				break;
@@ -861,6 +877,7 @@ typedef struct RNAProcessItem {
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
 	{"rna_main.c", RNA_def_main},
+	{"rna_color.c", RNA_def_color},
 	{"rna_mesh.c", RNA_def_mesh},
 	{"rna_nodetree.c", RNA_def_nodetree},
 	{"rna_material.c", RNA_def_material},

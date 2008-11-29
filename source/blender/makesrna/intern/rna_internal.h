@@ -81,6 +81,7 @@ extern BlenderDefRNA DefRNA;
 extern BlenderRNA BLENDER_RNA;
 
 void RNA_def_ID(struct BlenderRNA *brna);
+void RNA_def_color(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);

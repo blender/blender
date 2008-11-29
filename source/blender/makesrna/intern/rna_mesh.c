@@ -444,7 +444,8 @@ static void rna_def_mvert_group(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MVertGroup", NULL, "Mesh Vertex Group");
 	RNA_def_struct_sdna(srna, "MDeformWeight");
 
-	/* XXX how to point to actual group? */
+	/* we can't point to actual group, it is in the object and so
+	 * there is no unique group to point to, hence the index */
 	prop= RNA_def_property(srna, "group", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "def_nr");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -463,7 +464,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MVert", NULL, "Mesh Vertex");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_ui_text(prop, "Location", "Vertex Location");
+	RNA_def_property_ui_text(prop, "Location", "");
 
 	/*prop= RNA_def_property(srna, "no", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_funcs(prop, "rna_MVert_no_get", NULL, NULL);
@@ -940,7 +941,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_ui_text(prop, "Materials", "Materials");
+	RNA_def_property_ui_text(prop, "Materials", "");
 
 	/*prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Key", "");*/

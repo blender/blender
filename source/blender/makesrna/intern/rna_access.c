@@ -868,7 +868,7 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 			memset(&iter->ptr, 0, sizeof(iter->ptr));
 	}
 	else
-		memset(&iter, 0, sizeof(*iter));
+		memset(iter, 0, sizeof(*iter));
 }
 
 void RNA_property_collection_next(CollectionPropertyIterator *iter)

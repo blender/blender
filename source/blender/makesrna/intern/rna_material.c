@@ -52,7 +52,7 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_diff_shader_items[] = {
 		{MA_DIFF_LAMBERT, "DIFF_LAMBERT", "Lambert", ""},
-		{MA_DIFF_ORENNAYAR, "DIFF_ORENNAYAR", "Orennayar", ""},
+		{MA_DIFF_ORENNAYAR, "DIFF_ORENNAYAR", "Oren-Nayar", ""},
 		{MA_DIFF_TOON, "DIFF_TOON", "Toon", ""},
 		{MA_DIFF_MINNAERT, "DIFF_MINNAERT", "Minnaert", ""},
 		{MA_DIFF_FRESNEL, "DIFF_FRESNEL", "Fresnel", ""},
@@ -61,52 +61,55 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Material", "ID", "Material");
 		
-	prop= RNA_def_property(srna, "colormodel", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "color_model", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "colormodel", 0);
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Color Model", "Color model.");
+	RNA_def_property_ui_text(prop, "Color Model", "");
 	
 	/* colors */
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, "Material", "r");
+	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Color", "Diffuse color.");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
 	
-	prop= RNA_def_property(srna, "specular", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "specr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Specular Color", "Specular color.");
+	RNA_def_property_ui_text(prop, "Specular Color", "");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
 	
-	prop= RNA_def_property(srna, "mirror", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "mirror_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "mirr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Mirror Color", "Mirror color.");
+	RNA_def_property_ui_text(prop, "Mirror Color", "");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
 		
-	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Ambient Color", "Ambient color.");
+	RNA_def_property_ui_text(prop, "Ambient Color", "");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
 	
 	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Alpha", "Alpha");
+	RNA_def_property_ui_text(prop, "Alpha", "");
 	
 	/* diffuse shaders */
 	
-	prop= RNA_def_property(srna, "diff_shader", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "diffuse_shader", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "diff_shader", 0);
 	RNA_def_property_enum_items(prop, prop_diff_shader_items);
-	RNA_def_property_ui_text(prop, "Diffuse Shader Model", "Diffuse shader model.");
+	RNA_def_property_ui_text(prop, "Diffuse Shader Model", "");
 	
-	prop= RNA_def_property(srna, "ref", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "diffuse_reflection", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ref");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Reflection", "Sets the amount of reflection.");
+	RNA_def_property_ui_text(prop, "Diffuse Reflection", "Amount of diffuse reflection.");
 	
 	prop= RNA_def_property(srna, "roughness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 3.14f);
-	RNA_def_property_ui_text(prop, "Roughness", "Sets Oren Nayar Roughness");
+	RNA_def_property_ui_text(prop, "Roughness", "Oren-Nayar Roughness");
 	
 	prop= RNA_def_property(srna, "params1_4", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "param");
@@ -116,7 +119,7 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "darkness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Darkness", "Sets Minnaert darkness.");
+	RNA_def_property_ui_text(prop, "Darkness", "Minnaert darkness.");
 	
 	/* raytrace mirror */
 	prop= RNA_def_property(srna, "mode_ray_mirror", PROP_BOOLEAN, PROP_NONE);
@@ -161,13 +164,12 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "fadeto_mir", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_fadeto_mir_items);
-	RNA_def_property_ui_text(prop, "Ray end fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
+	RNA_def_property_ui_text(prop, "Ray End Fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_ui_text(prop, "Nodetree", "Nodetree");
-
+	RNA_def_property_ui_text(prop, "Nodetree", "");
 }
 
 #endif

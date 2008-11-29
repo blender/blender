@@ -562,7 +562,7 @@ void RNA_def_property_flag(PropertyRNA *prop, int flag)
 
 void RNA_def_property_array(PropertyRNA *prop, int arraylength)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_BOOLEAN:
@@ -585,7 +585,7 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_INT: {
@@ -612,7 +612,7 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 
 void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_INT: {
@@ -640,7 +640,7 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 
 void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_property_struct_type: only during preprocessing.\n");
@@ -667,7 +667,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 	int i;
 
 	switch(prop->type) {
@@ -689,7 +689,7 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_STRING: {
@@ -706,7 +706,7 @@ void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 
 void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_BOOLEAN: {
@@ -723,7 +723,7 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 
 void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_BOOLEAN: {
@@ -740,7 +740,7 @@ void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array)
 
 void RNA_def_property_int_default(PropertyRNA *prop, int value)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_INT: {
@@ -757,7 +757,7 @@ void RNA_def_property_int_default(PropertyRNA *prop, int value)
 
 void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_INT: {
@@ -774,7 +774,7 @@ void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array)
 
 void RNA_def_property_float_default(PropertyRNA *prop, float value)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_FLOAT: {
@@ -791,7 +791,7 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
 
 void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_FLOAT: {
@@ -808,7 +808,7 @@ void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 
 void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_STRING: {
@@ -825,7 +825,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 
 void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 {
-	StructRNA *srna;
+	StructRNA *srna= DefRNA.laststruct;
 
 	switch(prop->type) {
 		case PROP_ENUM: {
@@ -953,7 +953,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 	rna_def_property_sdna(prop, structname, propname);
 }
 
-void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bitflags)
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, EnumPropertyFlag flag)
 {
 	PropertyDefRNA *dp;
 	StructRNA *srna= DefRNA.laststruct;
@@ -970,7 +970,7 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 	}
 
 	if((dp=rna_def_property_sdna(prop, structname, propname))) {
-		dp->enumbitflags= bitflags;
+		dp->enumbitflags= (flag & PROP_DEF_ENUM_BITFLAGS);
 
 		if(prop->arraylength) {
 			prop->arraylength= 0;

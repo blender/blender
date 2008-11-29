@@ -48,13 +48,17 @@ void RNA_def_struct_identifier(StructRNA *srna, const char *identifier, const ch
 
 /* Property */
 
+typedef enum EnumPropertyFlag {
+	PROP_DEF_ENUM_BITFLAGS = 1
+} EnumPropertyFlag;
+
 PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype);
 
 void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bit);
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname);
-void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, int bitflags);
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, EnumPropertyFlag flag);
 void RNA_def_property_pointer_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname, const char *propname, const char *lengthpropname);
 

@@ -23,26 +23,27 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-#include "rna_internal.h"
-
-#include "DNA_sensor_types.h"
+#include "DNA_color_types.h"
 
 #ifdef RNA_RUNTIME
 
 #else
 
-void RNA_def_sensor(BlenderRNA *brna)
+void RNA_def_color(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "Sensor", NULL, "Sensor");
 
+	srna= RNA_def_struct(brna, "CurveMapPoint", NULL, "CurveMapPoint");
+
+	srna= RNA_def_struct(brna, "CurveMap", NULL, "CurveMap");
+
+	srna= RNA_def_struct(brna, "CurveMapping", NULL, "CurveMapping");
 }
 
 #endif

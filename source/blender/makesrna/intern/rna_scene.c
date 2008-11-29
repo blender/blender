@@ -101,7 +101,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Objects", "Objects in the scene.");
+	RNA_def_property_ui_text(prop, "Objects", "");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0);
 
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
@@ -112,25 +112,25 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "prop_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);
-	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional edit mode.");
+	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Current Frame", "Current frame.");
+	RNA_def_property_ui_text(prop, "Current Frame", "");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Start Frame", "Start frame.");
+	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "End Frame", "End frame.");
+	RNA_def_property_ui_text(prop, "End Frame", "");
 
 	prop= RNA_def_property(srna, "stamp_note", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "r.stamp_udata");
@@ -143,7 +143,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_ui_text(prop, "Nodetree", "Nodetree");
+	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
 }
 
 #endif
