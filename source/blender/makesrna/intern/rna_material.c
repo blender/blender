@@ -165,7 +165,7 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "bNodeTree");
+	RNA_def_property_struct_type(prop, "NodeTree");
 	RNA_def_property_ui_text(prop, "Nodetree", "Nodetree");
 
 }

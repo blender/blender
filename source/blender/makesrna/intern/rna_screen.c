@@ -29,36 +29,22 @@
 
 #include "rna_internal.h"
 
-#include "DNA_node_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 
 #ifdef RNA_RUNTIME
 
 #else
 
-void RNA_def_nodetree(BlenderRNA *brna)
+void RNA_def_screen(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "NodeTree", "ID", "Node Tree");
-	RNA_def_struct_sdna(srna, "bNodeTree");
-
-	prop= RNA_def_property(srna, "Nodes", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nodes", NULL);
-	RNA_def_property_struct_type(prop, "Node");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Nodes", "Nodes in the Node Tree.");
-	
-	srna= RNA_def_struct(brna, "Node", NULL, "Node");
-	RNA_def_struct_sdna(srna, "bNode");
-	
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "locx");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_range(prop, -1000.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Location", "Node Location");
-
+	srna= RNA_def_struct(brna, "Screen", "ID", "Screen");
+	RNA_def_struct_sdna(srna, "bScreen");
 }
 
 #endif
+
 

@@ -133,11 +133,15 @@ static void rna_Main_world_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->world, NULL);
 }
 
+#endif
+
 static void rna_Main_screen_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->screen, NULL);
 }
+
+#if 0
 
 static void rna_Main_script_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -220,9 +224,10 @@ void RNA_def_main(BlenderRNA *brna)
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
 		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks."},
-		{"nodetrees", "bNodeTree", "rna_Main_nodetree_begin", "Node Trees", "Nodetree datablocks."},
+		{"nodetrees", "NodeTree", "rna_Main_nodetree_begin", "Node Trees", "Nodetree datablocks."},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, 
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
+		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks."},
 		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
 		{NULL, NULL, NULL, NULL, NULL},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
@@ -235,7 +240,6 @@ void RNA_def_main(BlenderRNA *brna)
 		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks."},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
-		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks."},
 		{"scripts", "Script", "rna_Main_script_begin", "Scripts", "Script datablocks."},
 		{"vfonts", "VFont", "rna_Main_vfont_begin", "VFonts", "VFont datablocks."},
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks."},

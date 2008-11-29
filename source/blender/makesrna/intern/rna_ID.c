@@ -60,10 +60,11 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 	switch(GS(id->name)) {
 		case ID_LA: return &RNA_Lamp;
 		case ID_MA: return &RNA_Material;
-		case ID_NT: return &RNA_bNodeTree;
+		case ID_NT: return &RNA_NodeTree;
 		case ID_ME: return &RNA_Mesh;
 		case ID_OB: return &RNA_Object;
 		case ID_SCE: return &RNA_Scene;
+		case ID_SCR: return &RNA_Screen;
 		case ID_WM: return &RNA_WindowManager;
 		default: return &RNA_ID;
 	}
