@@ -30,13 +30,13 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
+#include "DNA_ID.h"
 
-struct Scene;
 struct SpaceType;
 struct SpaceLink;
 struct ARegionType;
+struct Scene;
 
 typedef struct bScreen {
 	ID id;
@@ -81,7 +81,7 @@ typedef struct ScrEdge {
  * @deprecated compiling while delivering a proper dna.c. Do not use
  * @deprecated it in any case.
  */
-typedef unsigned short dna_ushort_fix;
+/*typedef unsigned short dna_ushort_fix;*/
 #endif
 
 
