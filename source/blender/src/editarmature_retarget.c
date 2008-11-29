@@ -1655,100 +1655,6 @@ static EditBone *add_editbonetolist(char *name, ListBase *list)
 	return bone;
 }
 
-EditBone * generateBonesForArc(RigGraph *rigg, ReebArc *arc, ReebNode *head, ReebNode *tail)
-{
-	ReebArcIterator iter;
-	float n[3];
-	float ADAPTIVE_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
-	EditBone *lastBone = NULL;
-	
-	/* init iterator to get start and end from head */
-	initArcIterator(&iter, arc, head);
-	
-	/* Calculate overall */
-	VecSubf(n, arc->buckets[iter.end].p, head->p);
-	
-	if (1 /* G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION */ )
-	{
-		EmbedBucket *bucket = NULL;
-		EmbedBucket *previous = NULL;
-		EditBone *child = NULL;
-		EditBone *parent = NULL;
-		float normal[3] = {0, 0, 0};
-		float avg_normal[3];
-		int total = 0;
-		int boneStart = iter.start;
-		
-		parent = add_editbonetolist("Bone", rigg->editbones);
-		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		VECCOPY(parent->head, head->p);
-		
-		for (previous = iter.next(&iter), bucket = iter.next(&iter);
-			bucket;
-			previous = bucket, bucket = iter.next(&iter))
-		{
-			float btail[3];
-			float value = 0;
-
-			if (G.scene->toolsettings->skgen_options & SKGEN_STICK_TO_EMBEDDING)
-			{
-				VECCOPY(btail, bucket->p);
-			}
-			else
-			{
-				float length;
-				
-				/* Calculate normal */
-				VecSubf(n, bucket->p, parent->head);
-				length = Normalize(n);
-				
-				total += 1;
-				VecAddf(normal, normal, n);
-				VECCOPY(avg_normal, normal);
-				VecMulf(avg_normal, 1.0f / total);
-				 
-				VECCOPY(btail, avg_normal);
-				VecMulf(btail, length);
-				VecAddf(btail, btail, parent->head);
-			}
-
-			if (G.scene->toolsettings->skgen_options & SKGEN_ADAPTIVE_DISTANCE)
-			{
-				value = calcDistance(arc, boneStart, iter.index, parent->head, btail);
-			}
-			else
-			{
-				float n[3];
-				
-				VecSubf(n, btail, parent->head);
-				value = calcVariance(arc, boneStart, iter.index, parent->head, n);
-			}
-
-			if (value > ADAPTIVE_THRESHOLD)
-			{
-				VECCOPY(parent->tail, btail);
-
-				child = add_editbonetolist("Bone", rigg->editbones);
-				VECCOPY(child->head, parent->tail);
-				child->parent = parent;
-				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-				
-				parent = child; // new child is next parent
-				boneStart = iter.index; // start from end
-				
-				normal[0] = normal[1] = normal[2] = 0;
-				total = 0;
-			}
-		}
-
-		VECCOPY(parent->tail, tail->p);
-		
-		lastBone = parent; /* set last bone in the chain */
-	}
-	
-	return lastBone;
-}
-
 void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level_limit)
 {
 	while (node->multi_level > multi_level_limit && node->link_up)
@@ -1775,7 +1681,7 @@ void generateMissingArcsFromNode(RigGraph *rigg, ReebNode *node, int multi_level
 				
 				earc->flag = ARC_USED;
 				
-				generateBonesForArc(rigg, earc, node, other);
+				//generateBonesForArc(rigg, earc, node, other);
 				generateMissingArcsFromNode(rigg, other, multi_level_limit);
 			}
 		}
@@ -2048,7 +1954,7 @@ static void printPositions(int *positions, int nb_positions)
 
 #define MAX_COST FLT_MAX /* FIX ME */
 
-static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i0, int i1)
+static float costDistance(BArcIterator *iter, float *vec0, float *vec1, int i0, int i1)
 {
 	EmbedBucket *bucket = NULL;
 	float max_dist = 0;
@@ -2068,7 +1974,7 @@ static float costDistance(ReebArcIterator *iter, float *vec0, float *vec1, int i
 			{
 				float dist;
 				
-				bucket = iter->peek(iter, j);
+				bucket = IT_peek(iter, j);
 	
 				VecSubf(v2, bucket->p, vec1);
 		
@@ -2128,7 +2034,7 @@ static float costLength(float original_length, float current_length)
 	}
 }
 
-static float calcCostLengthDistance(ReebArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec1, float *vec2, int i1, int i2)
+static float calcCostLengthDistance(BArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec1, float *vec2, int i1, int i2)
 {
 	float vec[3];
 	float length;
@@ -2139,7 +2045,7 @@ static float calcCostLengthDistance(ReebArcIterator *iter, float **vec_cache, Ri
 	return costLength(edge->length, length) + costDistance(iter, vec1, vec2, i1, i2);
 }
 
-static float calcCostAngleLengthDistance(ReebArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2)
+static float calcCostAngleLengthDistance(BArcIterator *iter, float **vec_cache, RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2)
 {
 	float vec_second[3], vec_first[3];
 	float length2;
@@ -2189,7 +2095,7 @@ static void copyMemoPositions(int *positions, MemoNode *table, int nb_positions,
 	}
 }
 
-static MemoNode * solveJoints(MemoNode *table, ReebArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_left)
+static MemoNode * solveJoints(MemoNode *table, BArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_left)
 {
 	MemoNode *node;
 	int index = indexMemoNode(nb_positions, previous, current, joints_left);
@@ -2277,7 +2183,8 @@ static int testFlipArc(RigArc *iarc, RigNode *inode_start)
 
 static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
-	ReebArcIterator iter;
+	ReebArcIterator arc_iter;
+	BArcIterator *iter = (BArcIterator*)&arc_iter;
 	RigEdge *edge;
 	EmbedBucket *bucket = NULL;
 	ReebNode *node_start, *node_end;
@@ -2332,15 +2239,15 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		positions_cache[0] = node_start->p;
 		positions_cache[nb_positions + 1] = node_end->p;
 		
-		initArcIterator(&iter, earc, node_start);
+		initArcIterator(iter, earc, node_start);
 
 		for (i = 1; i <= nb_positions; i++)
 		{
-			EmbedBucket *bucket = iter.peek(&iter, i);
+			EmbedBucket *bucket = IT_peek(iter, i);
 			positions_cache[i] = bucket->p;
 		}
 
-		result = solveJoints(table, &iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints);
+		result = solveJoints(table, iter, positions_cache, nb_joints, earc->bcount, 0, 0, iarc->edges.first, nb_joints);
 		
 		min_cost = result->weight;
 		copyMemoPositions(best_positions, table, earc->bcount, nb_joints);
@@ -2422,7 +2329,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 			}
 		
 			/* calculating cost */
-			initArcIterator(&iter, earc, node_start);
+			initArcIterator(iter, earc, node_start);
 			
 			vec0 = NULL;
 			vec1 = node_start->p;
@@ -2443,13 +2350,13 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 					if (i < nb_joints)
 					{
 						i2 = positions[i];
-						bucket = iter.peek(&iter, positions[i]);
+						bucket = IT_peek(iter, positions[i]);
 						vec2 = bucket->p;
 						vec_cache[i + 1] = vec2; /* update cache for updated position */
 					}
 					else
 					{
-						i2 = iter.length;
+						i2 = iter->length;
 						vec2 = node_end->p;
 					}
 					
@@ -2485,7 +2392,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 					new_cost += costLength(edge->length, length2);
 					
 					/* Distance Cost */
-					new_cost += costDistance(&iter, vec1, vec2, i1, i2);
+					new_cost += costDistance(iter, vec1, vec2, i1, i2);
 					
 					cost_cache[i] = new_cost;
 				}
@@ -2518,7 +2425,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 	}
 
 	vec0 = node_start->p;
-	initArcIterator(&iter, earc, node_start);
+	initArcIterator(iter, earc, node_start);
 	
 #ifndef USE_THREADS
 	printPositions(best_positions, nb_joints);
@@ -2535,7 +2442,7 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 		float *no = NULL;
 		if (i < nb_joints)
 		{
-			bucket = iter.peek(&iter, best_positions[i]);
+			bucket = IT_peek(iter, best_positions[i]);
 			vec1 = bucket->p;
 			no = bucket->no;
 		}
@@ -2558,7 +2465,8 @@ static void retargetArctoArcAggresive(RigGraph *rigg, RigArc *iarc, RigNode *ino
 
 static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_start)
 {
-	ReebArcIterator iter;
+	ReebArcIterator arc_iter;
+	BArcIterator *iter = (BArcIterator*)&arc_iter;
 	ReebArc *earc = iarc->link_mesh;
 	ReebNode *node_start, *node_end;
 	RigEdge *edge;
@@ -2580,9 +2488,9 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		node_end = (ReebNode*)earc->tail;
 	}
 	
-	initArcIterator(&iter, earc, node_start);
+	initArcIterator(iter, earc, node_start);
 
-	bucket = iter.next(&iter);
+	bucket = IT_next(iter);
 	
 	vec0 = node_start->p;
 	
@@ -2593,15 +2501,15 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		embedding_length += VecLenf(vec0, vec1);
 		
 		vec0 = vec1;
-		bucket = iter.next(&iter);
+		bucket = IT_next(iter);
 	}
 	
 	embedding_length += VecLenf(node_end->p, vec1);
 	
 	/* fit bones */
-	initArcIterator(&iter, earc, node_start);
+	initArcIterator(iter, earc, node_start);
 
-	bucket = iter.next(&iter);
+	bucket = IT_next(iter);
 
 	vec0 = node_start->p;
 	previous_vec = vec0;
@@ -2616,7 +2524,7 @@ static void retargetArctoArcLength(RigGraph *rigg, RigArc *iarc, RigNode *inode_
 		while (bucket && new_bone_length > length)
 		{
 			length += VecLenf(previous_vec, vec1);
-			bucket = iter.next(&iter);
+			bucket = IT_next(iter);
 			previous_vec = vec1;
 			vec1 = bucket->p;
 			no = bucket->no;

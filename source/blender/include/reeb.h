@@ -28,7 +28,7 @@
 #ifndef REEB_H_
 #define REEB_H_
 
-#define WITH_BF_REEB
+//#define WITH_BF_REEB
 
 #include "DNA_listBase.h"
 
@@ -120,6 +120,8 @@ typedef struct ReebArc {
 } ReebArc;
 
 typedef struct ReebArcIterator {
+	HeadFct		head;
+	TailFct		tail;
 	PeekFct		peek;
 	NextFct		next;
 	NextNFct	nextN;
@@ -151,9 +153,9 @@ void renormalizeWeight(struct EditMesh *em, float newmax);
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
 ReebGraph * newReebGraph();
 
-void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
-void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
-void initArcIteratorStart(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
+void initArcIterator(BArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
+void initArcIterator2(BArcIterator *iter, struct ReebArc *arc, int start, int end);
+void initArcIteratorStart(BArcIterator *iter, struct ReebArc *arc, struct ReebNode *head, int start);
 
 /* Filtering */
 void filterNullReebGraph(ReebGraph *rg);

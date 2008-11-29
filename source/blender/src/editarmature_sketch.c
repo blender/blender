@@ -54,6 +54,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_sketch.h"
 #include "BIF_retarget.h"
+#include "BIF_generate.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -117,6 +118,26 @@ typedef struct SK_Sketch
 	SK_Point	next_point;
 } SK_Sketch;
 
+typedef struct SK_StrokeIterator {
+	HeadFct		head;
+	TailFct		tail;
+	PeekFct		peek;
+	NextFct		next;
+	NextNFct	nextN;
+	PreviousFct	previous;
+	StoppedFct	stopped;
+	
+	float *p, *no;
+	
+	int length;
+	int index;
+	/*********************************/
+	SK_Stroke *stroke;
+	int start;
+	int end;
+	int stride;
+} SK_StrokeIterator;
+
 SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
 
@@ -124,7 +145,7 @@ SK_Point boneSnap;
 
 /******************** PROTOTYPES ******************************/
 
-typedef int(NextSubdivisionFunc)(SK_Stroke*, int, int, float[3], float[3]);
+void initStrokeIterator(BArcIterator *iter, SK_Stroke *stk, int start, int end);
 
 void sk_deleteSelectedStrokes(SK_Sketch *sketch);
 
@@ -132,10 +153,6 @@ void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
 
 SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
-
-int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
-int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
-int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3]);
 
 /******************** TEMPLATES UTILS *************************/
 
@@ -990,18 +1007,20 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
 //	glEnd();
 }
 
-void drawSubdividedStrokeBy(SK_Stroke *stk, int start, int end, NextSubdivisionFunc next_subdividion)
+void drawSubdividedStrokeBy(BArcIterator *iter, NextSubdivisionFunc next_subdividion)
 {
 	float head[3], tail[3];
-	int bone_start = start;
+	int bone_start = 0;
+	int end = iter->length;
 	int index;
 
-	VECCOPY(head, stk->points[start].p);
+	iter->head(iter);
+	VECCOPY(head, iter->p);
 	
 	glColor3f(0, 1, 1);
 	glBegin(GL_POINTS);
 	
-	index = next_subdividion(stk, bone_start, end, head, tail);
+	index = next_subdividion(iter, bone_start, end, head, tail);
 	while (index != -1)
 	{
 		glVertex3fv(tail);
@@ -1009,7 +1028,7 @@ void drawSubdividedStrokeBy(SK_Stroke *stk, int start, int end, NextSubdivisionF
 		VECCOPY(head, tail);
 		bone_start = index; // start next bone from current index
 
-		index = next_subdividion(stk, bone_start, end, head, tail);
+		index = next_subdividion(iter, bone_start, end, head, tail);
 	}
 	
 	glEnd();
@@ -1040,17 +1059,22 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 			{
 				if (i - head_index > 1)
 				{
+					SK_StrokeIterator sk_iter;
+					BArcIterator *iter = (BArcIterator*)&sk_iter;
+					
+					initStrokeIterator(iter, stk, head_index, i);
+
 					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
 					{
-						drawSubdividedStrokeBy(stk, head_index, i, nextCorrelationSubdivision);
+						drawSubdividedStrokeBy(iter, nextCorrelationSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
-						drawSubdividedStrokeBy(stk, head_index, i, nextLengthSubdivision);
+						drawSubdividedStrokeBy(iter, nextLengthSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
-						drawSubdividedStrokeBy(stk, head_index, i, nextFixedSubdivision);
+						drawSubdividedStrokeBy(iter, nextFixedSubdivision);
 					}
 					
 				}
@@ -1354,13 +1378,29 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 			float vec[3];
 			float new_dist;
 			
-			p1->flag = 0;
-			
-			for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+			p1->flag = 1;
+
+			/* if peeling objects, take the first and last from each object */			
+			if (G.scene->snap_flag & SCE_SNAP_PEEL_OBJECT)
 			{
-				/* nothing to do here */
+				SK_DepthPeel *peel;
+				for (peel = p1->next; peel; peel = peel->next)
+				{
+					if (peel->ob == p1->ob)
+					{
+						peel->flag = 1;
+						p2 = peel;
+					}
+				}
 			}
-			
+			/* otherwise, pair first with second and so on */
+			else
+			{
+				for (p2 = p1->next; p2 && p2->ob != p1->ob; p2 = p2->next)
+				{
+					/* nothing to do here */
+				}
+			}
 			
 			if (p2)
 			{
@@ -1528,250 +1568,175 @@ void sk_initDrawData(SK_DrawData *dd)
 }
 /********************************************/
 
-/* bone is assumed to be in GLOBAL space */
-void setBoneRollFromPoint(EditBone *bone, SK_Point *pt, float invmat[][4], float tmat[][3])
-{
-	float tangent[3], cotangent[3], normal[3];
-	
-	VecSubf(tangent, bone->tail, bone->head);
-	Crossf(cotangent, tangent, pt->no);
-	Crossf(normal, cotangent, tangent);
-	
-	Mat3MulVecfl(tmat, normal);
-	Normalize(normal);
-	
-	bone->roll = rollBoneToVector(bone, normal);
+static void* headPoint(void *arg);
+static void* tailPoint(void *arg);
+static void* nextPoint(void *arg);
+static void* nextNPoint(void *arg, int n);
+static void* peekPoint(void *arg, int n);
+static void* previousPoint(void *arg);
+static int   iteratorStopped(void *arg);
 
+static void initIteratorFct(SK_StrokeIterator *iter)
+{
+	iter->head = headPoint;
+	iter->tail = tailPoint;
+	iter->peek = peekPoint;
+	iter->next = nextPoint;
+	iter->nextN = nextNPoint;
+	iter->previous = previousPoint;
+	iter->stopped = iteratorStopped;	
 }
 
-float calcStrokeCorrelation(SK_Stroke *stk, int start, int end, float v0[3], float n[3])
+static SK_Point* setIteratorValues(SK_StrokeIterator *iter, int index)
 {
-	int len = 2 + abs(end - start);
+	SK_Point *pt = NULL;
 	
-	if (len > 2)
+	if (index >= 0 && index < iter->length)
 	{
-		float avg_t = 0.0f;
-		float s_t = 0.0f;
-		float s_xyz = 0.0f;
-		int i;
-		
-		/* First pass, calculate average */
-		for (i = start; i <= end; i++)
-		{
-			float v[3];
-			
-			VecSubf(v, stk->points[i].p, v0);
-			avg_t += Inpf(v, n);
-		}
-		
-		avg_t /= Inpf(n, n);
-		avg_t += 1.0f; /* adding start (0) and end (1) values */
-		avg_t /= len;
-		
-		/* Second pass, calculate s_xyz and s_t */
-		for (i = start; i <= end; i++)
-		{
-			float v[3], d[3];
-			float dt;
-			
-			VecSubf(v, stk->points[i].p, v0);
-			Projf(d, v, n);
-			VecSubf(v, v, d);
-			
-			dt = VecLength(d) - avg_t;
-			
-			s_t += dt * dt;
-			s_xyz += Inpf(v, v);
-		}
-		
-		/* adding start(0) and end(1) values to s_t */
-		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
-		
-		return 1.0f - s_xyz / s_t; 
+		pt = &(iter->stroke->points[iter->start + (iter->stride * index)]);
+		iter->p = pt->p;
+		iter->no = pt->no;
 	}
 	else
 	{
-		return 1.0f;
+		iter->p = NULL;
+		iter->no = NULL;
 	}
+	
+	return pt;
 }
 
-int nextFixedSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+void initStrokeIterator(BArcIterator *arg, SK_Stroke *stk, int start, int end)
 {
-	static float stroke_length = 0;
-	static float current_length;
-	static char n;
-	float length_threshold;
-	int i;
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+
+	initIteratorFct(iter);
+	iter->stroke = stk;
 	
-	if (stroke_length == 0)
+	if (start < end)
 	{
-		current_length = 0;
-		for (i = start + 1; i <= end; i++)
-		{
-			stroke_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
-		}
+		iter->start = start + 1;
+		iter->end = end - 1;
+		iter->stride = 1;
+	}
+	else
+	{
+		iter->start = start - 1;
+		iter->end = end + 1;
+		iter->stride = -1;
+	}
+	
+	iter->length = iter->stride * (iter->end - iter->start + 1);
+	
+	iter->index = -1;
+}
+
+
+static void* headPoint(void *arg)
+{
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
+	
+	result = &(iter->stroke->points[iter->start - iter->stride]);
+	iter->p = result->p;
+	iter->no = result->no;
+	
+	return result;
+}
+
+static void* tailPoint(void *arg)
+{
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
+	
+	result = &(iter->stroke->points[iter->end + iter->stride]);
+	iter->p = result->p;
+	iter->no = result->no;
+	
+	return result;
+}
+
+static void* nextPoint(void *arg)
+{
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
+	
+	if (iter->index < iter->length)
+	{
+		iter->index++;
+		result = setIteratorValues(iter, iter->index);
+	}
+
+	return result;
+}
+
+static void* nextNPoint(void *arg, int n)
+{
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
 		
-		n = 0;
-		current_length = 0;
-	}
-	
-	n++;
-	
-	length_threshold = n * stroke_length / G.scene->toolsettings->skgen_subdivision_number;
-	
-	/* < and not <= because we don't care about end, it is P_EXACT anyway */
-	for (i = start + 1; i < end; i++)
-	{
-		current_length += VecLenf(stk->points[i].p, stk->points[i - 1].p);
+	iter->index += n;
 
-		if (current_length >= length_threshold)
-		{
-			VECCOPY(p, stk->points[i].p);
-			return i;
-		}
+	/* check if passed end */
+	if (iter->index < iter->length)
+	{
+		result = setIteratorValues(iter, iter->index);
 	}
-	
-	stroke_length = 0;
-	
-	return -1;
+	else
+	{
+		/* stop iterator if passed end */
+		iter->index = iter->length; 
+	}
+
+	return result;
 }
-int nextCorrelationSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+
+static void* peekPoint(void *arg, int n)
 {
-	float correlation_threshold = G.scene->toolsettings->skgen_correlation_limit;
-	float n[3];
-	int i;
-	
-	for (i = start + 2; i <= end; i++)
-	{
-		/* Calculate normal */
-		VecSubf(n, stk->points[i].p, head);
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
+	int index = iter->index + n;
 
-		if (calcStrokeCorrelation(stk, start, i, stk->points[start].p, n) < correlation_threshold)
-		{
-			VECCOPY(p, stk->points[i - 1].p);
-			return i - 1;
-		}
+	/* check if passed end */
+	if (index < iter->length)
+	{
+		result = setIteratorValues(iter, index);
 	}
-	
-	return -1;
+
+	return result;
 }
 
-int nextLengthSubdivision(SK_Stroke *stk, int start, int end, float head[3], float p[3])
+static void* previousPoint(void *arg)
 {
-	float lengthLimit = G.scene->toolsettings->skgen_length_limit;
-	int same = 1;
-	int i;
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+	SK_Point *result = NULL;
 	
-	i = start + 1;
-	while (i <= end)
+	if (iter->index > 0)
 	{
-		float *vec0 = stk->points[i - 1].p;
-		float *vec1 = stk->points[i].p;
-
-		/* If lengthLimit hits the current segment */
-		if (VecLenf(vec1, head) > lengthLimit)
-		{
-			if (same == 0)
-			{
-				float dv[3], off[3];
-				float a, b, c, f;
-				
-				/* Solve quadratic distance equation */
-				VecSubf(dv, vec1, vec0);
-				a = Inpf(dv, dv);
-				
-				VecSubf(off, vec0, head);
-				b = 2 * Inpf(dv, off);
-				
-				c = Inpf(off, off) - (lengthLimit * lengthLimit);
-				
-				f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
-				
-				//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
-				
-				if (isnan(f) == 0 && f < 1.0f)
-				{
-					VECCOPY(p, dv);
-					VecMulf(p, f);
-					VecAddf(p, p, vec0);
-				}
-				else
-				{
-					VECCOPY(p, vec1);
-				}
-			}
-			else
-			{
-				float dv[3];
-				
-				VecSubf(dv, vec1, vec0);
-				Normalize(dv);
-				 
-				VECCOPY(p, dv);
-				VecMulf(p, lengthLimit);
-				VecAddf(p, p, head);
-			}
-			
-			return i - 1; /* restart at lower bound */
-		}
-		else
-		{
-			i++;
-			same = 0; // Reset same
-		}
+		iter->index--;
+		result = setIteratorValues(iter, iter->index);
 	}
-	
-	return -1;
+
+	return result;
 }
 
-EditBone * subdivideStrokeBy(SK_Stroke *stk, int start, int end, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
+static int iteratorStopped(void *arg)
 {
-	bArmature *arm = G.obedit->data;
-	EditBone *lastBone = NULL;
-	EditBone *child = NULL;
-	EditBone *parent = NULL;
-	int bone_start = start;
-	int index;
-	
-	parent = addEditBone("Bone", &G.edbo, arm);
-	VECCOPY(parent->head, stk->points[start].p);
-	
-	index = next_subdividion(stk, bone_start, end, parent->head, parent->tail);
-	while (index != -1)
+	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
+
+	if (iter->index == iter->length)
 	{
-		setBoneRollFromPoint(parent, &stk->points[index], invmat, tmat);
-
-		child = addEditBone("Bone", &G.edbo, arm);
-		VECCOPY(child->head, parent->tail);
-		child->parent = parent;
-		child->flag |= BONE_CONNECTED;
-		
-		/* going to next bone, fix parent */
-		Mat4MulVecfl(invmat, parent->tail);
-		Mat4MulVecfl(invmat, parent->head);
-
-		parent = child; // new child is next parent
-		bone_start = index; // start next bone from current index
-
-		index = next_subdividion(stk, bone_start, end, parent->head, parent->tail);
+		return 1;
 	}
-
-	VECCOPY(parent->tail, stk->points[end].p);
-
-	setBoneRollFromPoint(parent, &stk->points[end], invmat, tmat);
-
-	/* fix last bone */
-	Mat4MulVecfl(invmat, parent->tail);
-	Mat4MulVecfl(invmat, parent->head);
-	lastBone = parent;
-	
-	return lastBone;
+	else
+	{
+		return 0;
+	}
 }
-
 
 void sk_convertStroke(SK_Stroke *stk)
 {
-	bArmature *arm= G.obedit->data;
+	bArmature *arm = G.obedit->data;
 	SK_Point *head;
 	EditBone *parent = NULL;
 	float invmat[4][4]; /* move in caller function */
@@ -1804,17 +1769,22 @@ void sk_convertStroke(SK_Stroke *stk)
 				
 				if (i - head_index > 1)
 				{
+					SK_StrokeIterator sk_iter;
+					BArcIterator *iter = (BArcIterator*)&sk_iter;
+
+					initStrokeIterator(iter, stk, head_index, i);
+					
 					if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_CORRELATION)
 					{
-						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextCorrelationSubdivision);
+						bone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextCorrelationSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_LENGTH)
 					{
-						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextLengthSubdivision);
+						bone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextLengthSubdivision);
 					}
 					else if (G.scene->toolsettings->bone_sketching_convert == SK_CONVERT_CUT_FIXED)
 					{
-						bone = subdivideStrokeBy(stk, head_index, i, invmat, tmat, nextFixedSubdivision);
+						bone = subdivideArcBy(arm, &G.edbo, iter, invmat, tmat, nextFixedSubdivision);
 					}
 				}
 				
@@ -1824,10 +1794,10 @@ void sk_convertStroke(SK_Stroke *stk)
 					
 					VECCOPY(bone->head, head->p);
 					VECCOPY(bone->tail, pt->p);
-					setBoneRollFromPoint(bone, pt, invmat, tmat);
-					
+
 					Mat4MulVecfl(invmat, bone->head);
 					Mat4MulVecfl(invmat, bone->tail);
+					setBoneRollFromNormal(bone, pt->no, invmat, tmat);
 				}
 				
 				new_parent = bone;
@@ -1995,12 +1965,17 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 
 int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
 {
+	SK_StrokeIterator sk_iter;
+	BArcIterator *iter = (BArcIterator*)&sk_iter;
+	
 	float CORRELATION_THRESHOLD = 0.99f;
 	float *vec;
 	int i, j;
 	
 	sk_appendStrokePoint(segments, &gesture->points[0]);
 	vec = segments->points[segments->nb_points - 1].p;
+
+	initStrokeIterator(iter, gesture, 0, gesture->nb_points - 1);
 
 	for (i = 1, j = 0; i < gesture->nb_points; i++)
 	{ 
@@ -2009,7 +1984,7 @@ int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
 		/* Calculate normal */
 		VecSubf(n, gesture->points[i].p, vec);
 		
-		if (calcStrokeCorrelation(gesture, j, i, vec, n) < CORRELATION_THRESHOLD)
+		if (calcArcCorrelation(iter, j, i, vec, n) < CORRELATION_THRESHOLD)
 		{
 			j = i - 1;
 			sk_appendStrokePoint(segments, &gesture->points[j]);

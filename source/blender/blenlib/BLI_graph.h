@@ -62,13 +62,25 @@ typedef struct BArc {
 
 struct BArcIterator;
 
+void* IT_head(void* iter);
+void* IT_tail(void* iter);
+void* IT_peek(void* iter, int n);
+void* IT_next(void* iter);
+void* IT_nextN(void* iter, int n);
+void* IT_previous(void* iter);
+int   IT_stopped(void* iter);
+
+typedef void* (*HeadFct)(void* iter);
+typedef void* (*TailFct)(void* iter);
 typedef void* (*PeekFct)(void* iter, int n);
 typedef void* (*NextFct)(void* iter);
 typedef void* (*NextNFct)(void* iter, int n);
 typedef void* (*PreviousFct)(void* iter);
-typedef int	(*StoppedFct)(void* iter);
+typedef int   (*StoppedFct)(void* iter);
 
 typedef struct BArcIterator {
+	HeadFct		head;
+	TailFct		tail;
 	PeekFct		peek;
 	NextFct		next;
 	NextNFct	nextN;

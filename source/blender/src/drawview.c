@@ -2294,7 +2294,7 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 	static char joint_label[32];
 	uiBlock *block;
 	uiBut *but;
-	int yco = 70, height = 140;
+	int yco = 130, height = 140;
 	int nb_joints;
 
 	/* replace with check call to sketching lib */
@@ -2382,7 +2382,9 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 		BLI_snprintf(joint_label, 32, "%i joints", nb_joints);
 		
 		uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
+		yco -= 20;
 		
+		uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_DIFF, "Peel Objects", 10, yco, 200, 20, &G.scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 
 		if(yco < 0) uiNewPanelHeight(block, height-yco);
 	}
