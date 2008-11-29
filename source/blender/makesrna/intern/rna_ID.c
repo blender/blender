@@ -66,6 +66,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_SCE: return &RNA_Scene;
 		case ID_SCR: return &RNA_Screen;
 		case ID_WM: return &RNA_WindowManager;
+		case ID_SE: return &RNA_Sensor;
 		default: return &RNA_ID;
 	}
 }

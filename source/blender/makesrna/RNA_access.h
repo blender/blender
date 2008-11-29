@@ -75,6 +75,7 @@ extern StructRNA RNA_Node;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_WindowManager;
+extern StructRNA RNA_Sensor;
 
 /* Pointer
  *
