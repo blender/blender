@@ -82,6 +82,7 @@ extern StructRNA RNA_Region;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_WindowManager;
 extern StructRNA RNA_Sensor;
+extern StructRNA RNA_MouseSensor;
 
 /* Pointer
  *
