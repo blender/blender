@@ -37,7 +37,6 @@
 void RNA_def_color(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "CurveMapPoint", NULL, "CurveMapPoint");
 

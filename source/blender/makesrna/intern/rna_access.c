@@ -796,7 +796,7 @@ static StructRNA *rna_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop, 
 	else
 		type= pprop->structtype;
 	
-	if(type->refine)
+	if(type && type->refine)
 		type= type->refine(r_ptr);
 	
 	r_ptr->type= type;

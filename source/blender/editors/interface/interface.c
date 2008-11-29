@@ -1240,8 +1240,10 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 
 void ui_set_but_string(uiBut *but, const char *str)
 {
-	if(but->rnaprop)
-		RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+	if(but->rnaprop) {
+		if(RNA_property_editable(&but->rnapoin, but->rnaprop))
+			RNA_property_string_set(&but->rnapoin, but->rnaprop, str);
+	}
 	else
 		BLI_strncpy(but->poin, str, but->max);
 }

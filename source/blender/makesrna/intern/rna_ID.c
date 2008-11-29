@@ -59,6 +59,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 
 	switch(GS(id->name)) {
 		case ID_LA: return &RNA_Lamp;
+		case ID_LI: return &RNA_Library;
 		case ID_MA: return &RNA_Material;
 		case ID_NT: return &RNA_NodeTree;
 		case ID_ME: return &RNA_Mesh;
@@ -67,6 +68,20 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_SCR: return &RNA_Screen;
 		case ID_WM: return &RNA_WindowManager;
 		default: return &RNA_ID;
+	}
+}
+
+static void rna_ID_fake_user_set(PointerRNA *ptr, int value)
+{
+	ID *id= (ID*)ptr->data;
+
+	if(value && !(id->flag & LIB_FAKEUSER)) {
+		id->flag |= LIB_FAKEUSER;
+		id->us++;
+	}
+	else if(!value && (id->flag & LIB_FAKEUSER)) {
+		id->flag &= ~LIB_FAKEUSER;
+		id->us--;
 	}
 }
 
@@ -122,7 +137,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL, "ID Property Group");
 }
 
-void rna_def_ID(BlenderRNA *brna)
+static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -137,15 +152,40 @@ void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, 22);
 	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "us");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Users", "Number of times this datablock is referenced.");
+
+	prop= RNA_def_property(srna, "fake_user", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_FAKEUSER);
+	RNA_def_property_ui_text(prop, "Fake User", "Saves this datablock even if it has no users");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
+
+	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "lib");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from.");
 }
 
+static void rna_def_library(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Library", "ID", "Library");
+
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file.");
+}
 void RNA_def_ID(BlenderRNA *brna)
 {
-	/* ID */
 	rna_def_ID(brna);
-
-	/* ID Properties */
 	rna_def_ID_properties(brna);
+	rna_def_library(brna);
 }
 
 #endif

@@ -33,19 +33,22 @@
 #include "DNA_sensor_types.h"
 
 #ifdef RNA_RUNTIME
-/*
+
 static struct StructRNA* rna_Sensor_data_type(struct PointerRNA *ptr)
 {
+	bSensor *sensor= (bSensor*)ptr->data;
+
 // This function should reture the type of 
 // void* data; 
 // in bSensor structure
-	switch( ((bSensor*)ptr)->type ){
+	switch(sensor->type) {
 		case SENS_MOUSE:
 			return &RNA_MouseSensor;
 	}
+
 	return NULL;
 }
-*/
+
 #else
 void RNA_def_sensor(BlenderRNA *brna)
 {
@@ -93,7 +96,9 @@ void RNA_def_sensor(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "Sensor name.");
 
+	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, sensor_types_items);
 	RNA_def_property_ui_text(prop, "Sensor types", "Sensor Types.");
 
@@ -111,7 +116,7 @@ void RNA_def_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frequency", "Delay between repeated pulses(in logic tics, 0=no delay).");
 	RNA_def_property_range(prop, 0, 10000);
 
-	/*
+	
 	//This add data property to Sensor, and because data can be bMouseSensor, bNearSensor, bAlwaysSensor ...
 	//rna_Sensor_data_type defines above in runtime section to get its type and proper structure for data
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
@@ -124,7 +129,6 @@ void RNA_def_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, mouse_event_items);
 	RNA_def_property_ui_text(prop, "MouseEvent", "Specify the type of event this mouse sensor should trigger on.");
-	*/
 }
 
 #endif

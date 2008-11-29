@@ -249,12 +249,26 @@ static size_t rna_property_type_sizeof(PropertyType type)
 	}
 }
 
+static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
+{
+	StructDefRNA *ds;
+	PropertyDefRNA *dp;
+
+	for(ds=DefRNA.structs.first; ds; ds=ds->next)
+		if(ds->srna == srna)
+			for(dp=ds->properties.first; dp; dp=dp->next)
+				if(dp->prop == prop)
+					return dp;
+
+	return NULL;
+}
+
 /* Struct Definition */
 
 StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from, const char *name)
 {
 	StructRNA *srna, *srnafrom= NULL;
-	StructDefRNA *ds;
+	StructDefRNA *ds= NULL;
 	PropertyRNA *prop, *propfrom;
 
 	if(from) {
@@ -272,9 +286,9 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	srna= MEM_callocN(sizeof(StructRNA), "StructRNA");
 	DefRNA.laststruct= srna;
 
-	/* copy from struct to derive stuff, a bit clumsy since we can't
-	 * use MEM_dupallocN, data structs may not be alloced but builtin */
 	if(srnafrom) {
+		/* copy from struct to derive stuff, a bit clumsy since we can't
+		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->properties.first= srna->properties.last= NULL;
 
@@ -282,6 +296,28 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 			srna->from= (StructRNA*)from;
 		else
 			srna->from= srnafrom;
+	}
+
+	srna->identifier= identifier;
+	srna->name= name;
+
+	rna_addtail(&brna->structs, srna);
+
+	if(DefRNA.preprocess) {
+		ds= MEM_callocN(sizeof(StructDefRNA), "StructDefRNA");
+		ds->srna= srna;
+		rna_addtail(&DefRNA.structs, ds);
+	}
+
+	/* in preprocess, try to find sdna */
+	if(DefRNA.preprocess)
+		RNA_def_struct_sdna(srna, srna->identifier);
+	else
+		srna->flag |= STRUCT_RUNTIME;
+
+	if(srnafrom) {
+		/* copy from struct to derive stuff, a bit clumsy since we can't
+		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 
 		for(propfrom= srnafrom->properties.first; propfrom; propfrom=propfrom->next) {
 			prop= RNA_def_property(srna, propfrom->identifier, propfrom->type, propfrom->subtype);
@@ -299,28 +335,24 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 				srna->nameproperty= prop;
 			if(propfrom == srnafrom->iteratorproperty)
 				srna->iteratorproperty= prop;
+
+			if(DefRNA.preprocess) {
+				PropertyDefRNA *dp, *dpfrom;
+				
+				dp= ds->properties.last;
+				dpfrom= rna_find_def_property(srnafrom, propfrom);
+
+				rna_remlink(&ds->properties, dp);
+				memcpy(dp, dpfrom, sizeof(*dp));
+				dp->srna= srna;
+				dp->prop= prop;
+				dp->next= dp->prev= NULL;
+				rna_addtail(&ds->properties, dp);
+			}
 		}
 	}
-
-	srna->identifier= identifier;
-	srna->name= name;
-
-	if(DefRNA.preprocess) {
-		ds= MEM_callocN(sizeof(StructDefRNA), "StructDefRNA");
-		ds->srna= srna;
-		rna_addtail(&DefRNA.structs, ds);
-	}
-
-	rna_addtail(&brna->structs, srna);
-
-	/* in preprocess, try to find sdna */
-	if(DefRNA.preprocess)
-		RNA_def_struct_sdna(srna, srna->identifier);
-	else
-		srna->flag |= STRUCT_RUNTIME;
-
-	/* define some builtin properties */
-	if(!srnafrom) {
+	else {
+		/* define some builtin properties */
 		prop= RNA_def_property(srna, "rna_properties", PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_BUILTIN);
 		RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");

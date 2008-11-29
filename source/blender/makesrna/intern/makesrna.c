@@ -490,7 +490,7 @@ static void rna_def_property_funcs(FILE *f, PropertyDefRNA *dp)
 			if(!pprop->get) pprop->get= (void*)rna_def_property_get_func(f, srna, prop, dp);
 			if(!pprop->set) pprop->set= (void*)rna_def_property_set_func(f, srna, prop, dp);
 			if(!pprop->structtype && !pprop->type) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have either type function or fixed type.\n", srna->identifier, prop->identifier);
+				fprintf(stderr, "rna_def_property_funcs: %s.%s, pointer must have either type function or fixed type.\n", srna->identifier, prop->identifier);
 				DefRNA.error= 1;
 			}
 			break;
@@ -777,7 +777,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 			}
 			case PROP_INT: {
 				IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, %s,\n\t", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), rna_function_string(iprop->range), iprop->softmin, iprop->softmax, iprop->hardmin, iprop->hardmax, iprop->step, iprop->defaultvalue);
+				fprintf(f, "\t%s, %s, %s, %s, %s,\n\t", rna_function_string(iprop->get), rna_function_string(iprop->set), rna_function_string(iprop->getarray), rna_function_string(iprop->setarray), rna_function_string(iprop->range));
 				rna_int_print(f, iprop->softmin); fprintf(f, ", ");
 				rna_int_print(f, iprop->softmax); fprintf(f, ", ");
 				rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
@@ -921,6 +921,8 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 	for(i=0; PROCESS_ITEMS[i].filename; i++)
 		if(PROCESS_ITEMS[i].define)
 			PROCESS_ITEMS[i].define(brna);
+
+	rna_sort(brna);
 	rna_auto_types();
 	
 	rna_generate_prototypes(brna, f);
@@ -930,7 +932,6 @@ static int rna_preprocess(char *basedirectory, FILE *f)
 	fprintf(f, "\n");
 
 	rna_auto_functions(f);
-	rna_sort(brna);
 
 	for(srna=brna->structs.first; srna; srna=srna->next)
 		rna_generate_struct(brna, srna, f);

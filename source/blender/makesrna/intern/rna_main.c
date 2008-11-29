@@ -52,13 +52,11 @@ static void rna_Main_lamp_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 	rna_iterator_listbase_begin(iter, &bmain->lamp, NULL);
 }
 
-#if 0
 static void rna_Main_library_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->library, NULL);
 }
-#endif
 
 static void rna_Main_mesh_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -227,10 +225,10 @@ void RNA_def_main(BlenderRNA *brna)
 		{"nodetrees", "NodeTree", "rna_Main_nodetree_begin", "Node Trees", "Nodetree datablocks."},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks."}, 
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks."},
+		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks."},
 		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
 		{NULL, NULL, NULL, NULL, NULL},
-		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
 		{"metaballs", "MBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
