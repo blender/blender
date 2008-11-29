@@ -609,7 +609,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree.c"
 				>
 			</File>
 			<File
@@ -622,6 +630,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_screen.c"
 				>
 			</File>
 			<File
