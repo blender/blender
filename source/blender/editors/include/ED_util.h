@@ -25,9 +25,10 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_MESH_H
-#define ED_MESH_H
+#ifndef ED_UTIL_H
+#define ED_UTIL_H
 
+void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
 
-#endif /* ED_MESH_H */
+#endif /* ED_UTIL_H */
 

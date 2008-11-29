@@ -260,8 +260,12 @@
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
 #define EVT_ACTIONZONE	0x5001
-#define EVT_TWEAK		0x5002
-#define EVT_GESTURE		0x5003
+/* tweak events, for L M R mousebuttons */
+#define EVT_TWEAK_L		0x5002
+#define EVT_TWEAK_M		0x5003
+#define EVT_TWEAK_R		0x5004
+
+#define EVT_GESTURE		0x5005
 
 /* value of tweaks and line gestures, note, KM_ANY (-1) works for this case too */
 #define EVT_GESTURE_N		1

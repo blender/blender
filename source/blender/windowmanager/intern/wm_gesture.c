@@ -110,6 +110,7 @@ int wm_gesture_evaluate(bContext *C, wmGesture *gesture)
 			else if(theta==-2) val= EVT_GESTURE_S;
 			else if(theta==-3) val= EVT_GESTURE_SW;
 			
+#if 0
 			/* debug */
 			if(val==1) printf("tweak north\n");
 			if(val==2) printf("tweak north-east\n");
@@ -119,7 +120,7 @@ int wm_gesture_evaluate(bContext *C, wmGesture *gesture)
 			if(val==6) printf("tweak south-west\n");
 			if(val==7) printf("tweak west\n");
 			if(val==8) printf("tweak north-west\n");
-			
+#endif			
 			return val;
 		}
 	}

@@ -36,13 +36,10 @@ enum {
 
 
 
-struct wmOperatorType;
-
-
 void draw_markers_time(const bContext *C, int flag);
 
-/* operators */
-void ED_MARKER_OT_add(struct wmOperatorType *ot);
+/* register operators, called in ED_operatortypes_screen() */
+void ED_marker_operatortypes(void); 
 
 
 #endif /* ED_MARKERS_H */

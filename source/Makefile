@@ -238,6 +238,7 @@ PULIB += $(OCGDIR)/blender/ed_outliner/libed_outliner.a
 PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a

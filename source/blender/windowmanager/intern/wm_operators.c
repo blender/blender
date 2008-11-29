@@ -38,9 +38,10 @@
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_idprop.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -81,7 +82,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	BLI_addtail(&global_ops, ot);
 }
 
-/* ************ default ops, exported *********** */
+/* ************ default op callbacks, exported *********** */
 
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -158,6 +159,11 @@ static void border_select_apply(bContext *C, wmOperator *op, int event_type)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
+	
+	if(rect->xmin > rect->xmax)
+		SWAP(int, rect->xmin, rect->xmax);
+	if(rect->ymin > rect->ymax)
+		SWAP(int, rect->ymin, rect->ymax);
 	
 	/* operator arguments and storage. */
 	RNA_int_set(op->ptr, "xmin", rect->xmin);
@@ -282,7 +288,12 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				wmEvent event;
 					
 				event= *(C->window->eventstate);
-				event.type= EVT_TWEAK;
+				if(gesture->event_type==LEFTMOUSE)
+					event.type= EVT_TWEAK_L;
+				else if(gesture->event_type==RIGHTMOUSE)
+					event.type= EVT_TWEAK_R;
+				else
+					event.type= EVT_TWEAK_M;
 				event.val= val;
 				/* mouse coords! */
 				wm_event_add(C->window, &event);
@@ -342,7 +353,7 @@ void wm_operatortype_init(void)
 void wm_window_keymap(wmWindowManager *wm)
 {
 	/* note, this doesn't replace existing keymap items */
-	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);

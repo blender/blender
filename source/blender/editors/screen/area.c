@@ -90,6 +90,15 @@ static void region_draw_emboss(ARegion *ar)
 	glDisable( GL_BLEND );
 }
 
+void ED_region_pixelspace(bContext *C, ARegion *ar)
+{
+	int width= ar->winrct.xmax-ar->winrct.xmin+1;
+	int height= ar->winrct.ymax-ar->winrct.ymin+1;
+	
+	wmOrtho2(C->window, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmLoadIdentity(C->window);
+	
+}
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
@@ -160,6 +169,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		
 		region_draw_emboss(ar);
 	}
+	
+	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+	ED_region_pixelspace(C, ar);
 	
 	ar->do_draw= 0;
 }

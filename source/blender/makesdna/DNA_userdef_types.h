@@ -218,7 +218,7 @@ typedef struct UserDef {
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 
-extern UserDef U; /* from usiblender.c !!!! */
+extern UserDef U; /* from blenkernel blender.c */
 
 /* ***************** USERDEF ****************** */
 

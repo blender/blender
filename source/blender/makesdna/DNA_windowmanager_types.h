@@ -166,9 +166,9 @@ typedef struct wmOperator {
 	wmOperatorType *type;
 	char idname[64];		/* used to retrieve type pointer */
 	
-	/* custom storage, dna pointer */
+	/* custom storage, only while operator runs, not saved */
 	void *customdata; 
-	/* or IDproperty list */
+	/* IDproperty list */
 	IDProperty *properties;
 
 	/* runtime */
