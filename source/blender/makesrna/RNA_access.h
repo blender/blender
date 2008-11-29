@@ -104,6 +104,8 @@ const char *RNA_struct_ui_name(PointerRNA *ptr);
 PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
 PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 
+int RNA_struct_is_ID(PointerRNA *ptr);
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
 
 /* Properties

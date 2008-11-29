@@ -242,6 +242,11 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr)
 	return ptr->type->iteratorproperty;
 }
 
+int RNA_struct_is_ID(PointerRNA *ptr)
+{
+	return (ptr->type->flag & STRUCT_ID) != 0;
+}
+
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 {
 	CollectionPropertyIterator iter;
@@ -977,32 +982,21 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 		CollectionPropertyIterator iter;
 		PropertyRNA *nameprop;
 		char name[256], *nameptr;
-		int length, alloc, found= 0;
+		int found= 0;
 
 		RNA_property_collection_begin(ptr, prop, &iter);
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
 			if(iter.ptr.data && iter.ptr.type->nameproperty) {
 				nameprop= iter.ptr.type->nameproperty;
 
-				length= RNA_property_string_length(&iter.ptr, nameprop);
-
-				if(sizeof(name)-1 < length) {
-					nameptr= name;
-					alloc= 0;
-				}
-				else {
-					nameptr= MEM_mallocN(sizeof(char)*length+1, "RNA_lookup_string");
-					alloc= 1;
-				}
-
-				RNA_property_string_get(&iter.ptr, nameprop, nameptr);
+				nameptr= RNA_property_string_get_alloc(&iter.ptr, nameprop, name, sizeof(name));
 
 				if(strcmp(nameptr, key) == 0) {
 					*r_ptr= iter.ptr;
 					found= 1;
 				}
 
-				if(alloc)
+				if(nameptr != name);
 					MEM_freeN(nameptr);
 
 				if(found)
