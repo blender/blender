@@ -81,27 +81,54 @@ static void RNA_def_scrvert(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Location", "Screen Vert Location");
-	/*
-	prop= RNA_def_property(srna, "y", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "vec.y");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Y Location", "Screen Vert Y-Location");*/
 }
 
 static void RNA_def_scredge(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "ScrEdge", NULL, "Screen Edge");
 	RNA_def_struct_sdna(srna, "ScrEdge");
+	
+	prop= RNA_def_property(srna, "start", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Edge Start", "Screen Edge Start");
+	
+	prop= RNA_def_property(srna, "end", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Edge End", "Screen Edge End");
 }
 
 static void RNA_def_scrarea(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "ScrArea", NULL, "Area");
 	RNA_def_struct_sdna(srna, "ScrArea");
+	
+	prop= RNA_def_property(srna, "v1", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Area v1", "Screen Area v1");
+	
+	prop= RNA_def_property(srna, "v2", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Area v2", "Screen Area v2");
+	
+	prop= RNA_def_property(srna, "v3", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v3->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Area v3", "Screen Area v3");
+	
+	prop= RNA_def_property(srna, "v4", PROP_INT, PROP_VECTOR);
+	RNA_def_property_int_sdna(prop, NULL, "v4->vec.x");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Area v4", "Screen Area v4");
 }
 
 static void RNA_def_panel(BlenderRNA *brna)
