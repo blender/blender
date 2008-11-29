@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="RNA_rna"
-	ProjectGUID="{DFE7F3E3-E62A-4677-B666-DF0DDF70C359}"
-	RootNamespace="RNA_rna"
+	Name="DNA_dna"
+	ProjectGUID="{7495FE37-933A-4AC1-BB2A-B3FDB4DE4284}"
+	RootNamespace="DNA_dna"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Blender Debug|Win32"
-			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\debug"
-			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\debug"
+			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesdna\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesdna\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
@@ -49,10 +49,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="..\..\..\..\build\msvc_9\source\blender\render\debug\RNA_rna.pch"
-				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\makesrna\debug\"
-				ObjectFile="..\..\..\..\build\msvc_9\source\blender\windowmanager\makesrna\"
-				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\makesrna\debug\"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_9\source\blender\render\debug\DNA_dna.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\makesdna\debug\"
+				ObjectFile="..\..\..\..\build\msvc_9\source\blender\windowmanager\makesdna\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\makesdna\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\build\msvc_9\libs\debug\RNA_rna.lib"
+				OutputFile="..\..\..\..\build\msvc_9\libs\debug\DNA_dna.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -89,8 +89,8 @@
 		</Configuration>
 		<Configuration
 			Name="Blender Release|Win32"
-			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\release"
-			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesrna\release"
+			OutputDirectory="..\..\..\..\build\msvc_9\source\blender\makesdna\release"
+			IntermediateDirectory="..\..\..\..\build\msvc_9\source\blender\makesdna\release"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -120,7 +120,7 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderFile="..\..\..\..\build\msvc_9\source\blender\render\release\RNA_rna.pch"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_9\source\blender\render\release\DNA_dna.pch"
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\windowmanager\release\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\windowmanager\release\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\windowmanager\release\"
@@ -139,7 +139,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\build\msvc_9\libs\release\RNA_rna.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -167,63 +166,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna.c"
+				RelativePath="..\..\..\source\blender\makesdna\intern\dna.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_access.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_dependency.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ID.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lamp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_rna.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_screen.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sensor.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
+				RelativePath="..\..\..\source\blender\makesdna\intern\dna_genfile.c"
 				>
 			</File>
 		</Filter>
@@ -233,19 +180,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\RNA_access.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\RNA_define.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_internal.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\RNA_types.h"
+				RelativePath="..\..\..\source\blender\makesdna\DNA_genfile.h"
 				>
 			</File>
 		</Filter>
