@@ -78,6 +78,7 @@ static void RNA_def_scrvert(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ScrVert");
 	
 	prop= RNA_def_property(srna, "Location", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Location", "Screen Vert Location");
@@ -92,11 +93,13 @@ static void RNA_def_scredge(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ScrEdge");
 	
 	prop= RNA_def_property(srna, "start", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Edge Start", "Screen Edge Start");
 	
 	prop= RNA_def_property(srna, "end", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Edge End", "Screen Edge End");
@@ -111,21 +114,25 @@ static void RNA_def_scrarea(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ScrArea");
 	
 	prop= RNA_def_property(srna, "v1", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Area v1", "Screen Area v1");
 	
 	prop= RNA_def_property(srna, "v2", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Area v2", "Screen Area v2");
 	
 	prop= RNA_def_property(srna, "v3", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v3->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Area v3", "Screen Area v3");
 	
 	prop= RNA_def_property(srna, "v4", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_int_sdna(prop, NULL, "v4->vec.x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Area v4", "Screen Area v4");
@@ -162,16 +169,19 @@ static void RNA_def_bscreen(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scene", "Active scene.");
 	
 	prop= RNA_def_property(srna, "vertbase", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "ScrVert");
 	RNA_def_property_collection_funcs(prop, "rna_Screen_verts_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Verts", "All Screen Verts");
 	
 	prop= RNA_def_property(srna, "edgebase", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "ScrEdge");
 	RNA_def_property_collection_funcs(prop, "rna_Screen_edges_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Edges", "All Screen Edges");
 	
 	prop= RNA_def_property(srna, "areabase", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "ScrArea");
 	RNA_def_property_collection_funcs(prop, "rna_Screen_areas_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Areas", "All Screen Areas");
