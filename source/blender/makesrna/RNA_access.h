@@ -82,9 +82,20 @@ extern StructRNA RNA_Region;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_WindowManager;
 extern StructRNA RNA_Sensor;
+extern StructRNA RNA_TouchSensor;
+extern StructRNA RNA_NearSensor;
+extern StructRNA RNA_KeyboardSensor;
+extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_MouseSensor;
+extern StructRNA RNA_CollisionSensor;
+extern StructRNA RNA_RadarSensor;
+extern StructRNA RNA_RandomSensor;
+extern StructRNA RNA_RaySensor;
+extern StructRNA RNA_MessageSensor;
+extern StructRNA RNA_JoystickSensor;
+extern StructRNA RNA_ActuatorSensor;
+extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_Camera;
-
 /* Pointer
  *
  * These functions will fill in RNA pointers, this can be done in three ways:
