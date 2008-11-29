@@ -669,7 +669,11 @@ int main(int argc, char **argv)
 				break;
 			case 'P':
 //XXX 
-#if 0
+#if 1
+			// FOR TESTING ONLY
+			a++;
+			BPY_run_python_script (argv[a]);
+#else
 #ifndef DISABLE_PYTHON
 				a++;
 				if (a < argc) {
