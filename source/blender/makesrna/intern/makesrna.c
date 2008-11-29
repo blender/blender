@@ -888,6 +888,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_screen.c", RNA_def_screen},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_sensor.c", RNA_def_sensor},
+	{"rna_camera.c", RNA_def_camera},
 	{NULL, NULL}};
 
 static int rna_preprocess(char *basedirectory, FILE *f)
