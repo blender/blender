@@ -34,6 +34,24 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
+static void rna_Main_filename_get(PointerRNA *ptr, char *value)
+{
+	Main *bmain= (Main*)ptr->data;
+	BLI_strncpy(value, bmain->name, sizeof(bmain->name));
+}
+
+static int rna_Main_filename_length(PointerRNA *ptr)
+{
+	Main *bmain= (Main*)ptr->data;
+	return strlen(bmain->name);
+}
+
+static void rna_Main_filename_set(PointerRNA *ptr, const char *value)
+{
+	Main *bmain= (Main*)ptr->data;
+	BLI_strncpy(bmain->name, value, sizeof(bmain->name));
+}
+
 static void rna_Main_scene_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
@@ -64,7 +82,6 @@ static void rna_Main_mesh_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 	rna_iterator_listbase_begin(iter, &bmain->mesh, NULL);
 }
 
-#if 0
 static void rna_Main_curve_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
@@ -77,15 +94,11 @@ static void rna_Main_mball_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->mball, NULL);
 }
 
-#endif
-
 static void rna_Main_mat_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->mat, NULL);
 }
-
-#if 0
 
 static void rna_Main_tex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -104,8 +117,6 @@ static void rna_Main_latt_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->latt, NULL);
 }
-
-
 
 static void rna_Main_camera_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -131,15 +142,11 @@ static void rna_Main_world_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->world, NULL);
 }
 
-#endif
-
 static void rna_Main_screen_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->screen, NULL);
 }
-
-#if 0
 
 static void rna_Main_script_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -183,15 +190,11 @@ static void rna_Main_action_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->action, NULL);
 }
 
-#endif
-
 static void rna_Main_nodetree_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->nodetree, NULL);
 }
-
-#if 0
 
 static void rna_Main_brush_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -204,7 +207,6 @@ static void rna_Main_particle_begin(CollectionPropertyIterator *iter, PointerRNA
 	Main *bmain= (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->particle, NULL);
 }
-#endif
 
 static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -219,6 +221,7 @@ void RNA_def_main(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	const char *lists[][5]= {
+		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks."},
 		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks."},
@@ -228,29 +231,33 @@ void RNA_def_main(BlenderRNA *brna)
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks."},
 		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen datablocks."},
 		{"windowmanagers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager datablocks."},
-		{NULL, NULL, NULL, NULL, NULL},
-		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
-		{"metaballs", "MBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
-		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
-		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks."},
-		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks."},
-		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
-		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
-		{"keys", "Key", "rna_Main_key_begin", "Keys", "Key datablocks."},
-		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
-		{"scripts", "Script", "rna_Main_script_begin", "Scripts", "Script datablocks."},
-		{"vfonts", "VFont", "rna_Main_vfont_begin", "VFonts", "VFont datablocks."},
-		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks."},
-		{"sounds", "Sound", "rna_Main_sound_begin", "Sounds", "Sound datablocks."},
-		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
-		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
-		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks."},
-		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
-		{"particles", "Particle", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
+		{"curves", "ID", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
+		{"metaballs", "ID", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
+		{"textures", "ID", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
+		{"images", "ID", "rna_Main_image_begin", "Images", "Image datablocks."},
+		{"lattices", "ID", "rna_Main_latt_begin", "Lattices", "Lattice datablocks."},
+		{"ipos", "ID", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
+		{"keys", "ID", "rna_Main_key_begin", "Keys", "Key datablocks."},
+		{"worlds", "ID", "rna_Main_world_begin", "Worlds", "World datablocks."},
+		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks."},
+		{"vfonts", "ID", "rna_Main_vfont_begin", "VFonts", "VFont datablocks."},
+		{"texts", "ID", "rna_Main_text_begin", "Texts", "Text datablocks."},
+		{"sounds", "ID", "rna_Main_sound_begin", "Sounds", "Sound datablocks."},
+		{"groups", "ID", "rna_Main_group_begin", "Groups", "Group datablocks."},
+		{"armatures", "ID", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
+		{"actions", "ID", "rna_Main_action_begin", "Actions", "Action datablocks."},
+		{"brushes", "ID", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
+		{"particles", "ID", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
 		{NULL, NULL, NULL, NULL, NULL}};
 	int i;
 	
 	srna= RNA_def_struct(brna, "Main", NULL, "Main");
+
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_maxlength(prop, 240);
+	RNA_def_property_string_funcs(prop, "rna_Main_filename_get", "rna_Main_filename_length", "rna_Main_filename_set");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Filename", "Path to the .blend file.");
 
 	for(i=0; lists[i][0]; i++)
 	{

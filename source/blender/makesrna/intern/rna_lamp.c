@@ -33,6 +33,16 @@
 
 #ifdef RNA_RUNTIME
 
+static void rna_Lamp_buffer_size_set(PointerRNA *ptr, int value)
+{
+	Lamp *la= (Lamp*)ptr->data;
+
+	CLAMP(value, 512, 10240);
+	la->bufsize= value;
+	la->bufsize &= (~15); /* round to multiple of 16 */
+}
+
+
 #else
 
 void RNA_def_lamp(BlenderRNA *brna)
@@ -100,9 +110,9 @@ void RNA_def_lamp(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_fallofftype_items[] = {
 		{LA_FALLOFF_CONSTANT, "CONSTANT", "Constant", ""},
-		{LA_FALLOFF_INVLINEAR, "INVLINEAR", "Invert Linear", ""},
-		{LA_FALLOFF_INVSQUARE, "INVSQUARE", "Invert Square", ""},
-		{LA_FALLOFF_CURVE, "CURVE", "Custum Curve", ""},
+		{LA_FALLOFF_INVLINEAR, "INVLINEAR", "Inverse Linear", ""},
+		{LA_FALLOFF_INVSQUARE, "INVSQUARE", "Inverse Square", ""},
+		{LA_FALLOFF_CURVE, "CURVE", "Custom Curve", ""},
 		{LA_FALLOFF_SLIDERS, "SLIDERS", "Lin/Quad Weighted", ""},
 		{0, NULL, NULL, NULL}};
 
@@ -145,6 +155,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sample Buffers", "Number of Buffers to sample.");
 
 	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* needs to be able to create curve mapping */
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
 	RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance.");
 
@@ -230,60 +241,61 @@ void RNA_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "buffer_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bufsize");
 	RNA_def_property_range(prop, 512, 10240);
-	RNA_def_property_ui_text(prop, "Buffer Size", "The Size in Bytes of the Shadow Buffer");
+	RNA_def_property_ui_text(prop, "Buffer Size", "Sets the size of the shadow buffer to nearest multiple of 16");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Lamp_buffer_size_set", NULL);
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "bufsize");
+	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Halo Intensity", "Intesity of Spot Halo");
 
 	prop= RNA_def_property(srna, "horizon_brightness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,20.0f);
+	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Hor. Bright", "horizon brightness");
 
 	prop= RNA_def_property(srna, "spread", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,10.0f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Hor. Spread", "horizon Spread");
 
 	prop= RNA_def_property(srna, "sun_brightness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,10.0f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Sun Bright", "Sun Brightness");
 
 	prop= RNA_def_property(srna, "sun_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,10.0f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Sun Size", "Sun Size");
 
   	prop= RNA_def_property(srna, "backscattered_light", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,1.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Back Light", "Backscatter Light");
 
 	prop= RNA_def_property(srna, "sun_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,10.0f);
+	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Sun Intens", "Sun Intensity");
 
 	prop= RNA_def_property(srna, "atm_turbidity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,30.0f);
+	RNA_def_property_range(prop, 0.0f, 30.0f);
 	RNA_def_property_ui_text(prop, "Turbidity", "Sky Tubidity");
 
 	prop= RNA_def_property(srna, "atm_inscattering_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,1.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Inscatter", "Scatter Contibution factor");
 
 	prop= RNA_def_property(srna, "atm_extinction_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,1.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Extinction", "Extinction Scattering Contibution factor");
 
 	prop= RNA_def_property(srna, "atm_distance_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,500.0f);
+	RNA_def_property_range(prop, 0.0f, 500.0f);
 	RNA_def_property_ui_text(prop, "Atmos Distance", "Scale blender distance to real distance");
 
 	prop= RNA_def_property(srna, "sky_blend_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "skyblendfac");
-	RNA_def_property_range(prop, 0.0f,2.0f);
+	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Sky Blend Factor", "Blend factor with sky");
 
 	prop= RNA_def_property(srna, "sky_exposure", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0f,20.0f);
+	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Sky Exposure", "Expsure Correction");
 
 

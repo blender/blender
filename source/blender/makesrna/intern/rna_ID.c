@@ -177,7 +177,7 @@ static void rna_def_library(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Library", "ID", "Library");
 
-	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Filename", "Path to the library .blend file.");
