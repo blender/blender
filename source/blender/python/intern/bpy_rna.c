@@ -131,111 +131,198 @@ static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
 static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
-	int ret = 0;
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
 	/* resolve path */
 	
 	if (len > 0) {
-		/* resolve the array from a new pytype */
-		PyErr_SetString(PyExc_TypeError, "array type, cant assign");
-		return -1;
-	}
-	
-	/* see if we can coorce into a python type - PropertyType */
-	switch (type) {
-	case PROP_BOOLEAN:
-	{
-		int param = PyObject_IsTrue( value );
+		PyObject *item;
+		int i;
 		
-		if( param == -1 ) {
-			PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
-			ret = -1;
-		} else {
-			RNA_property_boolean_set(ptr, prop, param);
+		if (!PySequence_Check(value)) {
+			PyErr_SetString(PyExc_TypeError, "expected a python sequence type assigned to an RNA array.");
+			return -1;
 		}
-		break;
-	}
-	case PROP_INT:
-	{
-		int param = PyLong_AsSsize_t(value);
-		if (PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "expected an int type");
-			ret = -1;
-		} else {
-			RNA_property_int_set(ptr, prop, param);
-		}
-		break;
-	}
-	case PROP_FLOAT:
-	{
-		float param = PyFloat_AsDouble(value);
-		if (PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "expected a float type");
-			ret = -1;
-		} else {
-			RNA_property_float_set(ptr, prop, param);
-		}
-		break;
-	}
-	case PROP_STRING:
-	{
-		char *param = _PyUnicode_AsString(value);
 		
-		if (param==NULL) {
-			PyErr_SetString(PyExc_TypeError, "expected a string type");
-			ret = -1;
-		} else {
-			RNA_property_string_set(ptr, prop, param);
+		if ((int)PySequence_Length(value) != len) {
+			PyErr_SetString(PyExc_AttributeError, "python sequence length did not match the RNA array.");
+			return -1;
 		}
-		break;
-	}
-	case PROP_ENUM:
-	{
-		char *param = _PyUnicode_AsString(value);
 		
-		if (param==NULL) {
-			PyErr_SetString(PyExc_TypeError, "expected a string type");
-			ret = -1;
-		} else {
-			const EnumPropertyItem *item;
-			int totitem, i, val;
+		/* for arrays we have a limited number of types */
+		switch (type) {
+		case PROP_BOOLEAN:
+		{
+			signed char *param_arr = MEM_mallocN(sizeof(char) * len, "pyrna bool array");
 			
-			RNA_property_enum_items(ptr, prop, &item, &totitem);
-			
-			for (i=0; i<totitem; i++) {
-				if (strcmp(item[i].identifier, param)==0) {
-					val = item[i].value;
-					break;
+			/* collect the variables before assigning, incase one of them is incorrect */
+			for (i=0; i<len; i++) {
+				item = PySequence_GetItem(value, i);
+				param_arr[i] = PyObject_IsTrue( item );
+				Py_DECREF(item);
+				
+				if (param_arr[i] < 0) {
+					MEM_freeN(param_arr);
+					PyErr_SetString(PyExc_AttributeError, "one or more of the values in the sequence is not a boolean");
+					return -1;
 				}
 			}
 			
-			if (i<totitem) {
-				RNA_property_enum_set(ptr, prop, val);
-			} else {
-				PyErr_Format(PyExc_AttributeError, "enum \"%s\" not found", param);
-				ret = -1;
+			for (i=0; i<len; i++) {
+				RNA_property_boolean_set_array(ptr, prop, i, param_arr[i]);
 			}
+			
+			MEM_freeN(param_arr);
+			break;
 		}
+		case PROP_INT:
+		{
+			int *param_arr = MEM_mallocN(sizeof(int) * len, "pyrna int array");
+			
+			/* collect the variables before assigning, incase one of them is incorrect */
+			for (i=0; i<len; i++) {
+				item = PySequence_GetItem(value, i);
+				param_arr[i] = (int)PyLong_AsSsize_t(item); /* deal with any errors later */
+				Py_DECREF(item);
+			}
+			
+			if (PyErr_Occurred()) {
+				MEM_freeN(param_arr);
+				PyErr_SetString(PyExc_AttributeError, "one or more of the values in the sequence could not be used as an int");
+				return -1;
+			}
+			
+			for (i=0; i<len; i++) {
+				RNA_property_int_set_array(ptr, prop, i, param_arr[i]);
+			}
+			
+			MEM_freeN(param_arr);
+			break;
+		}
+		case PROP_FLOAT:
+		{
+			float *param_arr = MEM_mallocN(sizeof(float) * len, "pyrna float array");
+			
+			/* collect the variables before assigning, incase one of them is incorrect */
+			for (i=0; i<len; i++) {
+				item = PySequence_GetItem(value, i);
+				param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
+				Py_DECREF(item);
+			}
+			
+			if (PyErr_Occurred()) {
+				MEM_freeN(param_arr);
+				PyErr_SetString(PyExc_AttributeError, "one or more of the values in the sequence could not be used as a float");
+				return -1;
+			}
+			
+			for (i=0; i<len; i++) {
+				RNA_property_float_set_array(ptr, prop, i, param_arr[i]);
+			}
+			
+			MEM_freeN(param_arr);
+			break;
+		}
+		}
+	} else {
+		/* Normal Property (not an array) */
 		
-		break;
-	}
-	case PROP_POINTER:
-	{
-		PyErr_SetString(PyExc_AttributeError, "cant assign pointers yet");
-		ret = -1;
-		break;
-	}
-	case PROP_COLLECTION:
-		PyErr_SetString(PyExc_AttributeError, "cant assign to collections");
-		break;
-	default:
-		PyErr_SetString(PyExc_AttributeError, "unknown property type (pyrna_py_to_prop)");
-		ret = -1;
-		break;
+		/* see if we can coorce into a python type - PropertyType */
+		switch (type) {
+		case PROP_BOOLEAN:
+		{
+			int param = PyObject_IsTrue( value );
+			
+			if( param < 0 ) {
+				PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
+				return -1;
+			} else {
+				RNA_property_boolean_set(ptr, prop, param);
+			}
+			break;
+		}
+		case PROP_INT:
+		{
+			int param = PyLong_AsSsize_t(value);
+			if (PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected an int type");
+				return -1;
+			} else {
+				RNA_property_int_set(ptr, prop, param);
+			}
+			break;
+		}
+		case PROP_FLOAT:
+		{
+			float param = PyFloat_AsDouble(value);
+			if (PyErr_Occurred()) {
+				PyErr_SetString(PyExc_TypeError, "expected a float type");
+				return -1;
+			} else {
+				RNA_property_float_set(ptr, prop, param);
+			}
+			break;
+		}
+		case PROP_STRING:
+		{
+			char *param = _PyUnicode_AsString(value);
+			
+			if (param==NULL) {
+				PyErr_SetString(PyExc_TypeError, "expected a string type");
+				return -1;
+			} else {
+				RNA_property_string_set(ptr, prop, param);
+			}
+			break;
+		}
+		case PROP_ENUM:
+		{
+			char *param = _PyUnicode_AsString(value);
+			
+			if (param==NULL) {
+				PyErr_SetString(PyExc_TypeError, "expected a string type");
+				return -1;
+			} else {
+				const EnumPropertyItem *item;
+				int totitem, i, val;
+				
+				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				
+				for (i=0; i<totitem; i++) {
+					if (strcmp(item[i].identifier, param)==0) {
+						val = item[i].value;
+						break;
+					}
+				}
+				
+				if (i<totitem) {
+					RNA_property_enum_set(ptr, prop, val);
+				} else {
+					PyErr_Format(PyExc_AttributeError, "enum \"%s\" not found", param);
+					return -1;
+				}
+			}
+			
+			break;
+		}
+		case PROP_POINTER:
+		{
+			PyErr_SetString(PyExc_AttributeError, "cant assign pointers yet");
+			return -1;
+			break;
+		}
+		case PROP_COLLECTION:
+			PyErr_SetString(PyExc_AttributeError, "cant assign to collections");
+			return -1;
+			break;
+		default:
+			PyErr_SetString(PyExc_AttributeError, "unknown property type (pyrna_py_to_prop)");
+			return -1;
+			break;
+		}
 	}
 	
-	return ret;
+	return 0;
 }
 
 
@@ -279,7 +366,7 @@ static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 	{
 		int param = PyObject_IsTrue( value );
 		
-		if( param == -1 ) {
+		if( param < 0 ) {
 			PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
 			ret = -1;
 		} else {
@@ -394,6 +481,11 @@ static int pyrna_prop_assign_subscript( BPy_PropertyRNA * self, PyObject *key, P
 	int keynum;
 	char *keyname = NULL;
 	
+	if (!RNA_property_editable(&self->ptr, self->prop)) {
+		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, self->prop), RNA_struct_identifier(&self->ptr) );
+		return -1;
+	}
+	
 	if (PyUnicode_Check(key)) {
 		keyname = _PyUnicode_AsString(key);
 	} else if (PyLong_Check(key)) {
@@ -480,20 +572,20 @@ static PyObject *pyrna_struct_getattr( BPy_StructRNA * self, char *name )
 //--------------- setattr-------------------------------------------
 static int pyrna_struct_setattr( BPy_StructRNA * self, char *name, PyObject * value )
 {
-	int ret = 0;
-	PropertyRNA *prop;
-	
-	prop = RNA_struct_find_property(&self->ptr, name);
+	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
 	
 	if (prop==NULL) {
 		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" not found", name);
-		ret = -1;
-	} else {
-		/* pyrna_py_to_prop sets its own exceptions */
-		ret = pyrna_py_to_prop(&self->ptr, prop, value);
-	}
+		return -1;
+	}		
 	
-	return ret;
+	if (!RNA_property_editable(&self->ptr, prop)) {
+		PyErr_Format( PyExc_AttributeError, "Attribute \"%s\" from \"%s\" is read-only", RNA_property_identifier(&self->ptr, prop), RNA_struct_identifier(&self->ptr) );
+		return -1;
+	}
+		
+	/* pyrna_py_to_prop sets its own exceptions */
+	return pyrna_py_to_prop(&self->ptr, prop, value);
 }
 
 
