@@ -238,7 +238,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"textures", "ID", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
 		{"ipos", "ID", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"keys", "ID", "rna_Main_key_begin", "Keys", "Key datablocks."},
-		{"worlds", "ID", "rna_Main_world_begin", "Worlds", "World datablocks."},
+		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
 		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks."},
 		{"vfonts", "ID", "rna_Main_vfont_begin", "VFonts", "VFont datablocks."},
 		{"texts", "ID", "rna_Main_text_begin", "Texts", "Text datablocks."},

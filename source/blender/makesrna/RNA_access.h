@@ -109,6 +109,7 @@ extern StructRNA RNA_Struct;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_WindowManager;
+extern StructRNA RNA_World;
 
 /* Pointer
  *

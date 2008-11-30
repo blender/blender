@@ -103,6 +103,7 @@ void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
+void RNA_def_world(BlenderRNA *brna);
 
 /* ID Properties */
 
