@@ -222,6 +222,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_util.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\UI_interface.h"
 				>
 			</File>
@@ -392,6 +396,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\screen\stubs.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="util"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\ed_util.c"
 				>
 			</File>
 		</Filter>

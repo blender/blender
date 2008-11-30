@@ -178,54 +178,6 @@
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_dependency.c"
 				>
 			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ID.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_lamp.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_rna.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scene.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_screen.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sensor.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -234,10 +186,6 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\RNA_access.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\RNA_define.h"
 				>
 			</File>
 			<File
