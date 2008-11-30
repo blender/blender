@@ -65,6 +65,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_LI: return &RNA_Library;
 		case ID_LT: return &RNA_Lattice;
 		case ID_MA: return &RNA_Material;
+		case ID_MB: return &RNA_MetaBall;
 		case ID_NT: return &RNA_NodeTree;
 		case ID_ME: return &RNA_Mesh;
 		case ID_OB: return &RNA_Object;

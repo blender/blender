@@ -888,6 +888,8 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_main.c", RNA_def_main},
 	{"rna_material.c", RNA_def_material},
 	{"rna_mesh.c", RNA_def_mesh},
+	{"rna_meta.c", RNA_def_metaball},
+	{"rna_meta.c", RNA_def_metaelem},
 	{"rna_nodetree.c", RNA_def_nodetree},
 	{"rna_object.c", RNA_def_object},
 	{"rna_radio.c", RNA_def_radio},

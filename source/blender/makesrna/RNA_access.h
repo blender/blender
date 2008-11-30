@@ -81,6 +81,8 @@ extern StructRNA RNA_Main;
 extern StructRNA RNA_Material;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MessageSensor;
+extern StructRNA RNA_MetaBall;
+extern StructRNA RNA_MetaElem;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_Node;

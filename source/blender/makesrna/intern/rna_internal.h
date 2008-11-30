@@ -93,6 +93,8 @@ void RNA_def_lattice(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_material(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
+void RNA_def_metaball(struct BlenderRNA *brna);
+void RNA_def_metaelem(struct BlenderRNA *brna);
 void RNA_def_nodetree(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
 void RNA_def_radio(struct BlenderRNA *brna);
