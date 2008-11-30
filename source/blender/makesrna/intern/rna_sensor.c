@@ -78,12 +78,6 @@ void rna_def_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem pulse_modes[]={
-		{SENS_PULSE_CONT, "CONTINUE", "Continue Pulse", ""},
-		{SENS_PULSE_REPEAT, "REPEAT", "Repeat Pulse", ""},
-		{SENS_NEG_PULSE_MODE, "NEGATIVE", "Negative Pulse", ""},
-		{0, NULL, NULL, NULL}};
-
 	static EnumPropertyItem sensor_types_items[] ={
 		{SENS_ALWAYS, "ALWAYS", "Always", ""},
 		{SENS_TOUCH, "TOUCH", "Touch", ""},
@@ -106,6 +100,7 @@ void rna_def_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sensor_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_string_maxlength(prop, 31);
 	RNA_def_property_ui_text(prop, "Name", "Sensor name.");
 
 	/* type is not editable, would need to do proper data free/alloc */
@@ -120,9 +115,14 @@ void rna_def_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "level", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Level", "Level detector, trigger controllers of new states(only applicable upon logic state transition).");
 
-	prop= RNA_def_property(srna, "pulse", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, pulse_modes);
-	RNA_def_property_ui_text(prop, "Sensor pulse modes", "Sensor pulse modes.");
+	prop= RNA_def_property(srna, "pulse_true_level", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pulse", SENS_PULSE_REPEAT);
+	RNA_def_property_ui_text(prop, "Pulse True Level", "Activate TRUE level triggering (pulse mode).");
+
+	prop= RNA_def_property(srna, "pulse_false_level", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pulse", SENS_NEG_PULSE_MODE);
+	RNA_def_property_ui_text(prop, "Pulse False Level", "Activate FALSE level triggering (pulse mode).");
+	
 
 	prop= RNA_def_property(srna, "freq", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Frequency", "Delay between repeated pulses(in logic tics, 0=no delay).");
@@ -146,6 +146,7 @@ void rna_def_near_sensor(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_string_maxlength(prop, 31);
 	RNA_def_property_ui_text(prop, "Property", "Only llok for objects with this property.");
 
 	prop= RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
@@ -205,15 +206,68 @@ void rna_def_keyboard_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "KeyboardSensor", NULL , "KeyboardSensor");
 	RNA_def_struct_sdna(srna, "bKeyboardSensor");
+
+	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Input Key", "Input key code.");
+	RNA_def_property_range(prop, 0, 255);
+
+	prop= RNA_def_property(srna, "modifier_key1", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "qual");
+	RNA_def_property_ui_text(prop, "First Modifier Key", "Modifier key code.");
+	RNA_def_property_range(prop, 0, 255);
+
+	prop= RNA_def_property(srna, "modifier_key2", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "qual2");
+	RNA_def_property_ui_text(prop, "Second Modifier Key", "Modifier key code.");
+	RNA_def_property_range(prop, 0, 255);
+
+	prop= RNA_def_property(srna, "target_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "targetName");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Target Name", "Property that indicates whether to log keystrokes as a string.");
+
+	prop= RNA_def_property(srna, "toggle_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "toggleName");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Toggle Name", "Property that receive the keystrokes in case a string is logged.");
+
+	prop= RNA_def_property(srna, "type", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "All Keys", "Trigger this sensor on any keystroke.");
+
 }
 
 void rna_def_property_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	static EnumPropertyItem prop_items[] ={
+		{SENS_PROP_EQUAL, "PROPEQUAL", "Equal", ""},
+		{SENS_PROP_NEQUAL, "PROPNEQUAL", "Not Equal", ""},
+		{SENS_PROP_INTERVAL, "PROPINTERVAL", "Interval", ""},
+		{SENS_PROP_CHANGED, "PROPCHANGED", "Changed", ""},
+		/* {SENS_PROP_EXPRESSION, "PROPEXPRESSION", "Expression", ""},  NOT_USED_IN_UI */
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "PropertySensor", NULL , "PropertySensor");
 	RNA_def_struct_sdna(srna, "bPropertySensor");
+
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_items);
+	RNA_def_property_ui_text(prop, "Property Type", "Specify the type of property evaluation type.");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Property Name", "Property name.");
+
+	prop= RNA_def_property(srna, "first_value", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "value");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "First Value", "Specify the value that checked, or minimum value in Interval Type.");
+
+	prop= RNA_def_property(srna, "second_value", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "maxvalue");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Second Value", "Specify maximum value in Interval type.");
 }
 
 void rna_def_actuator_sensor(BlenderRNA *brna)
@@ -223,6 +277,10 @@ void rna_def_actuator_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ActuatorSensor", NULL , "ActuatorSensor");
 	RNA_def_struct_sdna(srna, "bActuatorSensor");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Actuator Name", "Actuator name.");
 }
 
 void rna_def_delay_sensor(BlenderRNA *brna)
@@ -232,6 +290,18 @@ void rna_def_delay_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "DelaySensor", NULL , "DelaySensor");
 	RNA_def_struct_sdna(srna, "bDelaySensor");
+
+	prop= RNA_def_property(srna, "delay", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Delay", "Delay in number of logic tics before the positive trigger (default 60 per second).");
+	RNA_def_property_range(prop, 0, 5000);
+
+	prop= RNA_def_property(srna, "duration", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Duration", "If >0, delay in number of logic tics before the negative trigger following the positive trigger.");
+	RNA_def_property_range(prop, 0, 5000);
+
+	prop= RNA_def_property(srna, "repeat", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_DELAY_REPEAT);
+	RNA_def_property_ui_text(prop, "Repeat", "Toggle repeat option. If selected, the sensor restarts after Delay+Dur logic tics.");
 }
 
 void rna_def_collision_sensor(BlenderRNA *brna)
