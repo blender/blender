@@ -61,7 +61,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lens in degrees.");
+	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lens value in degrees.");
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
@@ -76,7 +76,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_range(prop, 1.0f, 250.0f);
-	RNA_def_property_ui_text(prop, "Lens", "Perspective Camera lens in mm.");
+	RNA_def_property_ui_text(prop, "Lens", "Perspective Camera lens value in mm.");
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ortho_scale");
@@ -124,9 +124,20 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWNAME);
 	RNA_def_property_ui_text(prop, "Show Name", "Draw the active Camera's name in Camera view.");
 
-	prop= RNA_def_property(srna, "angle_toggle", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_degrees", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_ANGLETOGGLE);
-	RNA_def_property_ui_text(prop, "Angle Toggle", "Use degrees instead of mm as the unit of the Camera lens.");
+	RNA_def_property_ui_text(prop, "Use Degrees", "Use degrees instead of mm as the unit of the Camera lens.");
+
+	/* Pointers */
+
+	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Ipo");
+	RNA_def_property_ui_text(prop, "Ipo Curve", "");
+
+	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
+	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define depth of field focal point.");
 }
 
 #endif

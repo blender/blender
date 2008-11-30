@@ -883,6 +883,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_property.c", RNA_def_gameproperty},
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},
+	{"rna_ipo.c", RNA_def_ipo},
 	{"rna_lamp.c", RNA_def_lamp},
 	{"rna_lattice.c", RNA_def_lattice},
 	{"rna_main.c", RNA_def_main},
