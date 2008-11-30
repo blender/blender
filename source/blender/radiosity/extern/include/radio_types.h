@@ -41,10 +41,6 @@
 struct Render;
 struct CustomData;
 
-#define DTWIRE		0
-#define DTGOUR		2
-#define DTSOLID		1
-
 #define PI  M_PI
 #define RAD_MAXFACETAB	1024
 #define RAD_NEXTFACE(a)	if( ((a) & 1023)==0 ) face= RG.facebase[(a)>>10]; else face++;

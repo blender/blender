@@ -67,6 +67,8 @@ static struct StructRNA* rna_Sensor_data_type(struct PointerRNA *ptr)
 			return &RNA_ActuatorSensor;
 		case SENS_DELAY:
 			return &RNA_DelaySensor;
+		default:
+			return &RNA_UnknownType;
 	}
 
 	return NULL;

@@ -144,6 +144,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NodeTree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
+
+	prop= RNA_def_property(srna, "radiosity", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "radio");
+	RNA_def_property_struct_type(prop, "Radiosity");
+	RNA_def_property_ui_text(prop, "Radiosity", "");
 }
 
 #endif

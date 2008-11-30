@@ -46,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -312,8 +313,8 @@ void drawlimits()
 	/* center around cent */
 	short cox=0, coy=1;
 	
-	if((RG.flag & 3)==2) coy= 2;
-	if((RG.flag & 3)==3) {
+	if((RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ))==RAD_SHOWZ) coy= 2;
+	if((RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ))==(RAD_SHOWLIMITS|RAD_SHOWZ)) {
 		cox= 1;	
 		coy= 2;	
 	}
@@ -392,7 +393,7 @@ void RAD_drawall(int depth_is_on)
 	}
 	
 	if(RG.totface) {
-		if(RG.drawtype==DTGOUR) {
+		if(RG.drawtype==RAD_GOURAUD) {
 			glShadeModel(GL_SMOOTH);
 			for(a=0; a<RG.totface; a++) {
 				RAD_NEXTFACE(a);
@@ -400,7 +401,7 @@ void RAD_drawall(int depth_is_on)
 				drawfaceGour(face);
 			}
 		}
-		else if(RG.drawtype==DTSOLID) {
+		else if(RG.drawtype==RAD_SOLID) {
 			for(a=0; a<RG.totface; a++) {
 				RAD_NEXTFACE(a);
 				
@@ -418,13 +419,13 @@ void RAD_drawall(int depth_is_on)
 	}
 	else {
 		el= RG.elem;
-		if(RG.drawtype==DTGOUR) {
+		if(RG.drawtype==RAD_GOURAUD) {
 			glShadeModel(GL_SMOOTH);
 			for(a=RG.totelem; a>0; a--, el++) {
 				drawnodeGour(*el);
 			}
 		}
-		else if(RG.drawtype==DTSOLID) {
+		else if(RG.drawtype==RAD_SOLID) {
 			for(a=RG.totelem; a>0; a--, el++) {
 				drawnodeSolid(*el);
 			}
@@ -439,7 +440,7 @@ void RAD_drawall(int depth_is_on)
 	glShadeModel(GL_FLAT);
 	
 	if(RG.totpatch) {
-		if(RG.flag & 3) {
+		if(RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ)) {
 			if(depth_is_on) glDisable(GL_DEPTH_TEST);
 			drawlimits();
 			if(depth_is_on) glEnable(GL_DEPTH_TEST);

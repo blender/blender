@@ -876,21 +876,22 @@ typedef struct RNAProcessItem {
 
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
-	{"rna_main.c", RNA_def_main},
+	{"rna_camera.c", RNA_def_camera},
 	{"rna_color.c", RNA_def_color},
+	{"rna_controller.c", RNA_def_controller},
+	{"rna_group.c", RNA_def_group},
+	{"rna_lamp.c", RNA_def_lamp},
+	{"rna_main.c", RNA_def_main},
+	{"rna_material.c", RNA_def_material},
 	{"rna_mesh.c", RNA_def_mesh},
 	{"rna_nodetree.c", RNA_def_nodetree},
-	{"rna_material.c", RNA_def_material},
 	{"rna_object.c", RNA_def_object},
+	{"rna_radio.c", RNA_def_radio},
 	{"rna_rna.c", RNA_def_rna},
 	{"rna_scene.c", RNA_def_scene},
-	{"rna_lamp.c", RNA_def_lamp},
 	{"rna_screen.c", RNA_def_screen},
-	{"rna_wm.c", RNA_def_wm},
 	{"rna_sensor.c", RNA_def_sensor},
-	{"rna_controller.c", RNA_def_controller},
-	{"rna_camera.c", RNA_def_camera},
-	{"rna_group.c", RNA_def_group},
+	{"rna_wm.c", RNA_def_wm},
 	{NULL, NULL}};
 
 static int rna_preprocess(char *basedirectory, FILE *f)

@@ -185,6 +185,9 @@ static void rna_def_library(BlenderRNA *brna)
 }
 void RNA_def_ID(BlenderRNA *brna)
 {
+	/* simple built-in unknown type */
+	RNA_def_struct(brna, "UnknownType", NULL, "Unknown Type");
+
 	rna_def_ID(brna);
 	rna_def_ID_properties(brna);
 	rna_def_library(brna);

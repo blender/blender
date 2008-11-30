@@ -258,7 +258,7 @@ void add_radio()
 	rad->convergence= 0.1;
 	rad->radfac= 30.0;
 	rad->gamma= 2.0;
-	rad->drawtype= DTSOLID;
+	rad->drawtype= RAD_SOLID;
 	rad->subshootp= 1;
 	rad->subshoote= 2;
 	rad->maxsublamp= 0;

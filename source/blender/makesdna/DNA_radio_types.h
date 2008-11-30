@@ -46,5 +46,17 @@ typedef struct Radio {
 	
 } Radio;
 
+
+/* **************** RADIOSITY ********************* */
+
+/* draw type */
+#define RAD_WIREFRAME	0
+#define RAD_SOLID		1
+#define RAD_GOURAUD		2
+
+/* flag */
+#define RAD_SHOWLIMITS	1
+#define RAD_SHOWZ		2
+
 #endif
 
