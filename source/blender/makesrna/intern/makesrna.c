@@ -881,6 +881,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_controller.c", RNA_def_controller},
 	{"rna_group.c", RNA_def_group},
 	{"rna_lamp.c", RNA_def_lamp},
+	{"rna_lattice.c", RNA_def_lattice},
 	{"rna_main.c", RNA_def_main},
 	{"rna_material.c", RNA_def_material},
 	{"rna_mesh.c", RNA_def_mesh},
@@ -891,7 +892,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_scene.c", RNA_def_scene},
 	{"rna_screen.c", RNA_def_screen},
 	{"rna_sensor.c", RNA_def_sensor},
-	{"rna_wm.c", RNA_def_wm},
+	{"rna_wm.c", RNA_def_wm},	
 	{NULL, NULL}};
 
 static int rna_preprocess(char *basedirectory, FILE *f)

@@ -103,6 +103,8 @@ extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_WindowManager;
 
+extern StructRNA RNA_Lattice;
+
 /* Pointer
  *
  * These functions will fill in RNA pointers, this can be done in three ways:
