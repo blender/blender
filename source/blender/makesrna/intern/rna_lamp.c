@@ -104,7 +104,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 		{10, "DODGE", "Dodge", ""},
 		{11, "BURN", "Burn", ""},
 		{12, "HUE", "Hue", ""},
-		{13, "SATURATION", "Satruation", ""},
+		{13, "SATURATION", "Saturation", ""},
 		{14, "VALUE", "Value", ""},
 		{15, "COLOR", "Color", ""},
 		{0, NULL, NULL, NULL}};
@@ -162,7 +162,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
 	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custum Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
 
 	/* Number values */
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
@@ -220,11 +220,11 @@ void RNA_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ray_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ray_samp");
 	RNA_def_property_range(prop, 1, 16);
-	RNA_def_property_ui_text(prop, "Ray Samples", "Amount of smaples taken extra (samples x samples).");
+	RNA_def_property_ui_text(prop, "Ray Samples", "Amount of samples taken extra (samples x samples).");
 
 	prop= RNA_def_property(srna, "ray_sampy", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1,16);
-	RNA_def_property_ui_text(prop, "Ray Samples Y", "Amount of smaples taken extra (samples x samples).");
+	RNA_def_property_ui_text(prop, "Ray Samples Y", "Amount of samples taken extra (samples x samples).");
 
 	prop= RNA_def_property(srna, "area_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 100.0f);
@@ -236,7 +236,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "adapt_thresh", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Adapt Threshold", "Threshold for Adaptive Sampleing.");
+	RNA_def_property_ui_text(prop, "Adapt Threshold", "Threshold for Adaptive Sampling.");
 
 	prop= RNA_def_property(srna, "buffer_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bufsize");
@@ -247,7 +247,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Halo Intensity", "Intesity of Spot Halo");
+	RNA_def_property_ui_text(prop, "Halo Intensity", "Intensity of Spot Halo");
 
 	prop= RNA_def_property(srna, "horizon_brightness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 20.0f);
@@ -279,11 +279,11 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "atm_inscattering_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Inscatter", "Scatter Contibution factor");
+	RNA_def_property_ui_text(prop, "Inscatter", "Scatter contribution factor");
 
 	prop= RNA_def_property(srna, "atm_extinction_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Extinction", "Extinction Scattering Contibution factor");
+	RNA_def_property_ui_text(prop, "Extinction", "Extinction scattering contribution factor");
 
 	prop= RNA_def_property(srna, "atm_distance_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 500.0f);
@@ -296,7 +296,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "sky_exposure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_ui_text(prop, "Sky Exposure", "Expsure Correction");
+	RNA_def_property_ui_text(prop, "Sky Exposure", "Exposure correction");
 
 
 	/*short sky_colorspace, pad4;*/
@@ -321,11 +321,11 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "auto_clip_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bufflag", LA_SHADBUF_AUTO_END);
-	RNA_def_property_ui_text(prop, "Autoclip End", "Automatically Sets Clip start to the furthurest away pixel.");
+	RNA_def_property_ui_text(prop, "Autoclip End", "Automatically Sets Clip end to the farthest away pixel.");
 
 	prop= RNA_def_property(srna, "umbra", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_UMBRA);
-	RNA_def_property_ui_text(prop, "Umbra", "Emphersise parts in full shadow.");
+	RNA_def_property_ui_text(prop, "Umbra", "Emphasise parts in full shadow.");
 
 	prop= RNA_def_property(srna, "dither", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ray_samp_type", LA_SAMP_DITHER);
@@ -358,7 +358,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "no_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NO_SPEC);
-	RNA_def_property_ui_text(prop, "No Specular", "Lamp does not create specular higlights.");
+	RNA_def_property_ui_text(prop, "No Specular", "Lamp does not create specular highlights.");
 
 	prop= RNA_def_property(srna, "no_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NO_DIFF);
