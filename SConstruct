@@ -115,8 +115,8 @@ if toolset:
 		env.Tool('mstoolkit', ['tools'])
 	else:
 		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
-		if env:
-			btools.SetupSpawn(env)
+		#if env:
+		#	btools.SetupSpawn(env)
 else:
 	env = BlenderEnvironment(ENV = os.environ)
 

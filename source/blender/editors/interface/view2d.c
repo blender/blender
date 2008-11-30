@@ -35,6 +35,7 @@
 #include "DNA_view2d_types.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "WM_api.h"
 
@@ -47,6 +48,7 @@
 /* Setup and Refresh Code */
 
 /* Set view matrices to ortho for View2D drawing */
+// XXX in past, this was not always the case!
 void UI_view2d_ortho(const bContext *C, View2D *v2d)
 {
 	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
@@ -61,9 +63,10 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
 	v2d->mask.xmax= winx;
 	v2d->mask.ymax= winy;
 	
-	/* scrollbars shrink mask area, but should be based off regionsize */
-	// XXX scrollbars should become limited to one bottom lower edges of region like everyone else does!
-	if(v2d->scroll) {
+	/* scrollbars shrink mask area, but should be based off regionsize 
+	 *	- they can only be on one edge of the region they define
+	 */
+	if (v2d->scroll) {
 		/* vertical scrollbar */
 		if (v2d->scroll & L_SCROLL) {
 			/* on left-hand edge of region */
@@ -71,7 +74,7 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
 			v2d->vert.xmax= SCROLLB;
 			v2d->mask.xmin= SCROLLB;
 		}
-		else if(v2d->scroll & R_SCROLL) {
+		else if (v2d->scroll & R_SCROLL) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
 			v2d->vert.xmin= v2d->vert.xmax-SCROLLB;
@@ -85,11 +88,243 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
 			v2d->hor.ymax= SCROLLH;
 			v2d->mask.ymin= SCROLLH;
 		}
-		else if(v2d->scroll & T_SCROLL) {
+		else if (v2d->scroll & T_SCROLL) {
 			/* on upper edge of region */
 			v2d->hor= v2d->mask;
 			v2d->hor.ymin= v2d->hor.ymax-SCROLLH;
 			v2d->mask.ymax= v2d->hor.ymin;
+		}
+	}
+}
+
+/* Ensure View2D rects remain in a viable configuration 
+ *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
+ */
+// XXX pre2.5 -> this used to be called  test_view2d()
+// XXX FIXME - still need to go through this and figure out what it all parts of it do
+void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
+{
+	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
+	rctf *cur, *tot;
+	float dx, dy, temp, fac, zoom;
+	
+	/* correct winx for scrollbars */
+	if (v2d->scroll & L_SCROLL) winx-= SCROLLB;
+	if (v2d->scroll & B_SCROLL) winy-= SCROLLH;
+	if (v2d->scroll & B_SCROLLO) winy-= SCROLLH; /* B_SCROLL and B_SCROLLO are basically same thing */
+	
+	/* header completely closed window */
+	if (winy <= 0) return;
+	
+	/* get pointers */
+	cur= &v2d->cur;
+	tot= &v2d->tot;
+	
+	/* dx, dy are width and height of v2d->cur, respectively */
+	dx= cur->xmax - cur->xmin;
+	dy= cur->ymax - cur->ymin;
+	
+	/* keepzoom - restore old zoom */
+	if (v2d->keepzoom) {	
+		/* keepzoom on x or y axis - reset size of current-viewable area to size of region (i.e. no zooming happened) */
+		if (v2d->keepzoom & V2D_LOCKZOOM_Y)
+			cur->ymax= cur->ymin + ((float)winy);
+		if (v2d->keepzoom & V2D_LOCKZOOM_X)
+			cur->xmax= cur->xmin + ((float)winx);
+		
+		/* calculate zoom-factor for x */
+		zoom= ((float)winx)/dx;
+		
+		/* if zoom factor is excessive, normalise it and calculate new width */
+		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
+			if (zoom < v2d->minzoom) fac= zoom / v2d->minzoom;
+			else fac= zoom / v2d->maxzoom;
+			
+			dx *= fac;
+			temp= 0.5f * (cur->xmax + cur->xmin);
+			
+			cur->xmin= temp - (0.5f * dx);
+			cur->xmax= temp + (0.5f * dx);
+		}
+		
+		/* calculate zoom-factor for y */
+		zoom= ((float)winy)/dy;
+		
+		/* if zoom factor is excessive, normalise it and calculate new width */
+		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
+			if (zoom < v2d->minzoom) fac= zoom / v2d->minzoom;
+			else fac= zoom / v2d->maxzoom;
+			
+			dy *= fac;
+			temp= 0.5f * (cur->ymax + cur->ymin);
+			
+			cur->ymin= temp - (0.5f * dy);
+			cur->ymax= temp + (0.5f * dy);
+		}
+	}
+	else {
+		/* if extents of cur are below or above what's acceptable, interpolate extent to lie halfway */
+		if (dx < v2d->min[0]) {
+			dx= v2d->min[0];
+			temp= 0.5f * (cur->xmax + cur->xmin);
+			
+			cur->xmin= temp - (0.5f * dx);
+			cur->xmax= temp + (0.5f * dx);
+		}
+		else if (dx > v2d->max[0]) {
+			dx= v2d->max[0];
+			temp= 0.5f * (cur->xmax + cur->xmin);
+			
+			cur->xmin= temp - (0.5f * dx);
+			cur->xmax= temp + (0.5f * dx);
+		}
+		
+		if (dy < v2d->min[1]) {
+			dy= v2d->min[1];
+			temp= 0.5f * (cur->ymax + cur->ymin);
+			
+			cur->ymin= temp - (0.5f * dy);
+			cur->ymax= temp + (0.5f * dy);
+		}
+		else if (dy > v2d->max[1]) {
+			dy= v2d->max[1];
+			temp= 0.5f * (cur->ymax + cur->ymin);
+			cur->ymin= temp-0.5*dy;
+			cur->ymax= temp+0.5*dy;
+		}
+	}
+	
+	/* keep aspect - maintain aspect ratio */
+	if (v2d->keepaspect) {
+		short do_x=0, do_y=0;
+		
+		/* when a window edge changes, the aspect ratio can't be used to
+		 * find which is the best new 'cur' rect. thats why it stores 'old' 
+		 */
+		if (winx != v2d->oldwinx) do_x= 1;
+		if (winy != v2d->oldwiny) do_y= 1;
+		
+		/* here dx is cur ratio, while dy is win ratio */
+		dx= (cur->ymax - cur->ymin) / (cur->xmax - cur->xmin);
+		dy= ((float)winy) / ((float)winx);
+		
+		/* both sizes change (area/region maximised)  */
+		if (do_x == do_y) {
+			if ((do_x==1) && (do_y==1)) {
+				if (ABS(winx - v2d->oldwinx) > ABS(winy - v2d->oldwiny)) do_y= 0;
+				else do_x= 0;
+			}
+			else if (dy > 1.0f) do_x= 0; 
+			else do_x= 1;
+		}
+		
+		if (do_x) {
+			if ((v2d->keeptot == 2) && (winx < v2d->oldwinx)) {
+				/* This is a special hack for the outliner, to ensure that the 
+				 * outliner contents will not eventually get pushed out of view
+				 * when shrinking the view. 
+				 */
+				cur->xmax -= cur->xmin;
+				cur->xmin= 0.0f;
+			}
+			else {
+				/* portrait window: correct for x */
+				dx= cur->ymax - cur->ymin;
+				temp= cur->xmax + cur->xmin;
+				
+				cur->xmin= (temp / 2.0f) - (0.5f * dx / dy);
+				cur->xmax= (temp / 2.0f) + (0.5f * dx / dy);
+			}
+		}
+		else {
+			dx= cur->xmax - cur->xmin;
+			temp= cur->ymax + cur->ymin;
+			
+			cur->ymin= (temp / 2.0f) - (0.5f * dy * dx);
+			cur->ymax= (temp / 2.0f) + (0.5f * dy * dx);
+		}
+		
+		/* store region size for next time */
+		v2d->oldwinx= winx; 
+		v2d->oldwiny= winy;
+	}
+	
+	/* keeptot - make sure that size of cur doesn't exceed that of tot, otherwise, adjust! */
+	if (v2d->keeptot) {
+		/* calculate extents of cur */
+		dx= cur->xmax - cur->xmin;
+		dy= cur->ymax - cur->ymin;
+		
+		/* cur is wider than tot? */
+		if (dx > (tot->xmax - tot->xmin)) {
+			if (v2d->keepzoom == 0) {
+				if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
+				if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
+			}
+			else {
+				/* maintaining zoom, so restore cur to tot size */
+				if (cur->xmax < tot->xmax) {
+					dx= tot->xmax - cur->xmax;
+					
+					cur->xmin+= dx;
+					cur->xmax+= dx;
+				}
+				else if (cur->xmin > tot->xmin) {
+					dx= cur->xmin - tot->xmin;
+					
+					cur->xmin-= dx;
+					cur->xmax-= dx;
+				}
+			}
+		}
+		else {
+			/* cur is smaller than tot, but cur cannot be outside of tot */
+			if (cur->xmin < tot->xmin) {
+				dx= tot->xmin - cur->xmin;
+				
+				cur->xmin += dx;
+				cur->xmax += dx;
+			}
+			else if ((v2d->keeptot != 2) && (cur->xmax > tot->xmax)) {
+				/* NOTE: keeptot is 2, as keeptot!=0 makes sure it does get
+				 * 		too freely scrolled on x-axis, but keeptot=1 will result
+				 *		in a snap-back when clicking on elements
+				 */
+				dx= cur->xmax - tot->xmax;
+				cur->xmin -= dx;
+				cur->xmax -= dx;
+			}
+		}
+		
+		if (dy > (tot->ymax - tot->ymin)) {
+			if (v2d->keepzoom==0) {
+				if (cur->ymin < tot->ymin) cur->ymin= tot->ymin;
+				if (cur->ymax > tot->ymax) cur->ymax= tot->ymax;
+			}
+			else {
+				if (cur->ymax < tot->ymax) {
+					dy= tot->ymax - cur->ymax;
+					cur->ymin+= dy;
+					cur->ymax+= dy;
+				}
+				else if (cur->ymin > tot->ymin) {
+					dy= cur->ymin - tot->ymin;
+					cur->ymin -= dy;
+					cur->ymax -= dy;
+				}
+			}
+		}
+		else {
+			if (cur->ymin < tot->ymin) {
+				dy= tot->ymin - cur->ymin;
+				cur->ymin += dy;
+				cur->ymax += dy;
+			}
+			else if (cur->ymax > tot->ymax) {
+				dy= cur->ymax - tot->ymax;
+				cur->ymin-= dy;
+				cur->ymax-= dy;
+			}
 		}
 	}
 }
@@ -309,6 +544,11 @@ void UI_view2d_free_grid(View2DGrid *grid)
 {
 	MEM_freeN(grid);
 }
+
+/* *********************************************************************** */
+/* Scrollbars */
+
+
 
 /* *********************************************************************** */
 /* Coordinate Conversions */

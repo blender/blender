@@ -37,17 +37,21 @@
 
 /* View 2D data - stored per region */
 typedef struct View2D {
-	rctf tot, cur;
-	rcti vert, hor, mask;
+	rctf tot, cur;					/* tot - area that data can be drawn in; cur - region of tot that is visible in viewport */
+	rcti vert, hor;					/* vert - vertical scrollbar region; hor - horizontal scrollbar region */
+	rcti mask;						/* mask - region (in screenspace) within which 'cur' can be viewed */
 	
-	float min[2], max[2];
-	float minzoom, maxzoom;
+	float min[2], max[2];			/* min/max sizes? */
+	float minzoom, maxzoom;			/* self explanatory. allowable zoom factor range */
 	
-	short scroll, keeptot;			/* scroll - scrollbars to display (bitflag); keeptot - 'tot' rect  */
-	short keepaspect, keepzoom;
-	short oldwinx, oldwiny;
+	short scroll;					/* scroll - scrollbars to display (bitflag) */
+	short keeptot;					/* keeptot - 'tot' rect  */
+	short keepaspect, keepzoom;		/* axes that zoomimg cannot occur on, and need to maintain aspect ratio */
+	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
 	
-	int flag;						/* settings */
+	short flag;						/* settings */
+	
+	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_enforce_status(), for keepaspect */
 	
 	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
 	short around;					/* pivot point for transforms (rotate and scale) */
@@ -60,6 +64,10 @@ typedef struct View2D {
 #define V2D_KEEPZOOM	0x0001	
 #define V2D_LOCKZOOM_X	0x0100
 #define V2D_LOCKZOOM_Y	0x0200
+
+/* v2d->keepofs */
+#define V2D_LOCKOFS_X	(1<<1)
+#define V2D_LOCKOFS_Y	(1<<2)
 
 /* event codes for locking function */
 #define V2D_LOCK_COPY		1

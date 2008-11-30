@@ -3787,6 +3787,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->operators.first= wm->operators.last= NULL;
 	wm->windowkeymap.first= wm->windowkeymap.last= NULL;
 	wm->screenkeymap.first= wm->screenkeymap.last= NULL;
+	wm->view2dkeymap.first= wm->view2dkeymap.last= NULL;
 	wm->uikeymap.first= wm->uikeymap.last= NULL;
 	wm->timekeymap.first= wm->timekeymap.last= NULL;
 	
@@ -5061,12 +5062,24 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				ar->alignment= RGN_ALIGN_BOTTOM;
 			else
 				ar->alignment= RGN_ALIGN_TOP;
+			// TODO: add conversion stuff for header scrolling to v2d of header region
 		}
 		
 		ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 		BLI_addtail(&sa->regionbase, ar);
 		ar->winrct= sa->totrct;
 		ar->regiontype= RGN_TYPE_WINDOW;
+		
+		/* if active spacetype has view2d data, copy that over to main region */
+		switch(sa->spacetype) {
+			case SPACE_OOPS:
+				memcpy(&ar->v2d, &((SpaceOops *)sa->spacedata.first)->v2d, sizeof(View2D));
+				break;
+			case SPACE_TIME:
+				memcpy(&ar->v2d, &((SpaceTime *)sa->spacedata.first)->v2d, sizeof(View2D));
+				break;
+			//case SPACE_XXX: // FIXME... add other ones
+		}
 	}
 }
 

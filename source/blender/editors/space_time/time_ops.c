@@ -111,10 +111,10 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	ARegion *region= C->region;
 	int x, y;
 	float viewx;
-
+	
 	x= event->x - region->winrct.xmin;
 	y= event->y - region->winrct.ymin;
-	UI_view2d_region_to_view(&stime->v2d, x, y, &viewx, NULL);
+	UI_view2d_region_to_view(&region->v2d, x, y, &viewx, NULL);
 
 	return (int)(viewx+0.5f);
 }
@@ -126,7 +126,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(&C->region->handlers, op);
+	WM_event_add_modal_handler(&C->region->handlers, op); // XXX should be for window, but we crash otherwise
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -149,7 +149,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				change_frame_exit(C, op);
-				WM_event_remove_modal_handler(&C->region->handlers, op);				
+				WM_event_remove_modal_handler(&C->region->handlers, op);	 // XXX should be for window, but we crash otherwise			
 				return OPERATOR_FINISHED;
 			}
 			break;

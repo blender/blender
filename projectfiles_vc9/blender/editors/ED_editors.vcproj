@@ -306,6 +306,10 @@
 				RelativePath="..\..\..\source\blender\editors\interface\view2d.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\interface\view2d_ops.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="space_view3d"

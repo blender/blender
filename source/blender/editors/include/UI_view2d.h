@@ -35,6 +35,10 @@
 /* ------------------------------------------ */
 /* Settings: 								*/
 
+/* generic value to use when coordinate lies out of view when converting */
+#define V2D_IS_CLIPPED	12000
+
+/* ---  Grids --- */
 /* grid-units (for drawing time) */
 #define V2D_UNIT_SECONDS	0
 #define V2D_UNIT_FRAMES		1
@@ -43,20 +47,18 @@
 #define V2D_GRID_CLAMP		0
 #define V2D_GRID_NOCLAMP	1
 
-/* generic value to use when coordinate lies out of view when converting */
-#define V2D_IS_CLIPPED	12000
-
 /* flags for grid-lines to draw */
 #define V2D_HORIZONTAL_LINES	(1<<0)
 #define V2D_VERTICAL_LINES		(1<<1)
 #define V2D_HORIZONTAL_AXIS		(1<<2)
 #define V2D_VERTICAL_AXIS		(1<<3)
 
+/* --- Scrollers --- */
+
 /* ------------------------------------------ */
 /* Macros:								*/
 
-/* test if mouse in scrollbar */
-// XXX do we want more elegant method?
+/* test if mouse in a scrollbar */
 #define IN_2D_VERT_SCROLL(v2d, co) (BLI_in_rcti(&v2d->vert, co[0], co[1]))
 #define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_in_rcti(&v2d->hor, co[0], co[1]))
 
@@ -65,9 +67,13 @@
 
 struct View2D;
 struct View2DGrid;
+struct View2DScrollers;
+
+struct wmWindowManager;
 struct bContext;
 
 typedef struct View2DGrid View2DGrid;
+typedef struct View2DScrollers View2DScrollers;
 
 /* ----------------------------------------- */
 /* Prototypes:						    */
@@ -75,6 +81,7 @@ typedef struct View2DGrid View2DGrid;
 /* setup */
 void UI_view2d_ortho(const struct bContext *C, struct View2D *v2d);
 void UI_view2d_update_size(struct View2D *v2d, int winx, int winy);
+void UI_view2d_enforce_status(struct View2D *v2d, int winx, int winy);
 
 /* grid drawing */
 View2DGrid *UI_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, short unit, short type, int winx, int winy);
@@ -83,6 +90,8 @@ void UI_view2d_free_grid(View2DGrid *grid);
 
 /* scrollbar drawing */
 
+void UI_view2d_draw_scrollers(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers, int flag);
+void UI_view2d_free_scrollbars(View2DScrollers *scrollers);
 
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx, float *viewy);
@@ -90,8 +99,12 @@ void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, short *regio
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *regionx, short *region_y);
 
 /* utilities */
-void UI_view2d_getscale(View2D *v2d, float *x, float *y);
+void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
 
+
+/* operators */
+void ui_view2d_operatortypes(void);
+void UI_view2d_keymap(struct wmWindowManager *wm);
 
 #endif /* UI_VIEW2D_H */
 

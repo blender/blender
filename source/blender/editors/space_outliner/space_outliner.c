@@ -107,17 +107,19 @@ void UI_table_free(uiTable *table)
 void UI_table_draw(wmWindow *window, ARegion *region, uiTable *table)
 {
 	uiBlock *block;
+	View2D *v2d;
 	rcti *rct, cellrct;
 	int y, row, col;
-
+	
+	v2d= &region->v2d;
 	rct= &table->rct;
-
+	
 	block= uiBeginBlock(window, region, "table outliner", UI_EMBOSST, UI_HELV);
-
+	
 	for(y=rct->ymax, row=0; y>rct->ymin; y-=ROW_HEIGHT, row++) {
 		if(row%2 == 0) {
 			UI_ThemeColorShade(TH_BACK, 6);
-			glRecti(rct->xmin, y-ROW_HEIGHT, rct->xmax, y);
+			glRecti(v2d->cur.xmin, y-ROW_HEIGHT, v2d->cur.xmax, y);
 		}
 
 		if(row >= table->rows)
@@ -335,23 +337,20 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	PropertyRNA *prop, *iterprop;
 	PointerRNA newptr;
 	float col[3];
-	int rows, cols, width, height;
+	int rows, cols, awidth, aheight, width, height;
 	SpaceOops *soutliner= C->area->spacedata.first;
+	View2D *v2d= &ar->v2d;
 
 	/* clear */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	width= ar->winrct.xmax - ar->winrct.xmin;
-	height= ar->winrct.ymax - ar->winrct.ymin;
+	// XXX width should be depend on max length of items (like height)...
+	awidth= width= ar->winrct.xmax - ar->winrct.xmin;
+	aheight= height= ar->winrct.ymax - ar->winrct.ymin;
 	
 	/* create table */
-	rct.xmin= 0;
-	rct.ymin= 0;
-	rct.xmax= width;
-	rct.ymax= height;
-
 	cell.space= soutliner;
 	cell.lastrow= -1;
 	RNA_main_pointer_create(G.main, &cell.ptr);
@@ -390,6 +389,24 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 
 	RNA_property_collection_end(&cell.iter);
 
+	if ((rows*ROW_HEIGHT) > height)
+		height= rows * ROW_HEIGHT;
+	
+	/* need to validate view2d after updating size of tot */
+	v2d->tot.xmin= 0;
+	v2d->tot.xmax= width;
+	v2d->tot.ymax= 0;
+	v2d->tot.ymin= -height;
+	UI_view2d_enforce_status(v2d, awidth, aheight);
+	
+	rct.xmin= 0;
+	rct.ymin= -height;
+	rct.xmax= width;
+	rct.ymax= 0;
+	
+	/* set matrix for 2d-view controls */
+	UI_view2d_ortho(C, v2d);
+	
 	/* create and draw table */
 	table= UI_table_create(rows, 2, &rct, rna_table_cell_func, &cell);
 
@@ -482,6 +499,7 @@ static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 			ar->type= &mainart;
 
 			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
+			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap);
 		}
 		else if(ar->regiontype == RGN_TYPE_HEADER) {
 			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
@@ -492,6 +510,7 @@ static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 			ar->type= &headerart;
 
 			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
+			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap);
 		}
 		else {
 			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};

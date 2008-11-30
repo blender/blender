@@ -58,7 +58,7 @@
 /* ************************ main time area region *********************** */
 
 /* draws a current frame indicator for the TimeLine */
-static void time_draw_cfra_time(const bContext *C, SpaceTime *stime)
+static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
 	Scene *scene= C->scene;
 	float vec[2];
@@ -69,33 +69,33 @@ static void time_draw_cfra_time(const bContext *C, SpaceTime *stime)
 	glLineWidth(3.0);
 
 	glBegin(GL_LINES);
-		vec[1]= stime->v2d.cur.ymin;
+		vec[1]= ar->v2d.cur.ymin;
 		glVertex2fv(vec);
-		vec[1]= stime->v2d.cur.ymax;
+		vec[1]= ar->v2d.cur.ymax;
 		glVertex2fv(vec);
 	glEnd();
 	
 	glLineWidth(1.0);
 }
 
-static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime)
+static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
     /* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShade(TH_BACK, -25);
 
 	if (PSFRA < PEFRA) {
-		glRectf(stime->v2d.cur.xmin, stime->v2d.cur.ymin, PSFRA, stime->v2d.cur.ymax);
-		glRectf(PEFRA, stime->v2d.cur.ymin, stime->v2d.cur.xmax, stime->v2d.cur.ymax);
+		glRectf(ar->v2d.cur.xmin, ar->v2d.cur.ymin, PSFRA, ar->v2d.cur.ymax);
+		glRectf(PEFRA, ar->v2d.cur.ymin, ar->v2d.cur.xmax, ar->v2d.cur.ymax);
 	}
 	else {
-		glRectf(stime->v2d.cur.xmin, stime->v2d.cur.ymin, stime->v2d.cur.xmax, stime->v2d.cur.ymax);
+		glRectf(ar->v2d.cur.xmin, ar->v2d.cur.ymin, ar->v2d.cur.xmax, ar->v2d.cur.ymax);
 	}
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline(PSFRA, stime->v2d.cur.ymin, PSFRA, stime->v2d.cur.ymax);
-	fdrawline(PEFRA, stime->v2d.cur.ymin, PEFRA, stime->v2d.cur.ymax);
+	fdrawline(PSFRA, ar->v2d.cur.ymin, PSFRA, ar->v2d.cur.ymax);
+	fdrawline(PEFRA, ar->v2d.cur.ymin, PEFRA, ar->v2d.cur.ymax);
 }
 
 static void time_main_area_init(const bContext *C, ARegion *ar)
@@ -112,6 +112,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, windowsize changes should be handled here */
 	SpaceTime *stime= C->area->spacedata.first;
+	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	float col[3];
 	int unit, winx, winy;
@@ -119,26 +120,26 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	winx= ar->winrct.xmax-ar->winrct.xmin;
 	winy= ar->winrct.ymax-ar->winrct.ymin;
 
-	UI_view2d_update_size(&stime->v2d, winx, winy);
+	UI_view2d_update_size(v2d, winx, winy);
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	UI_view2d_ortho(C, &stime->v2d);
+	UI_view2d_ortho(C, v2d);
 
 	/* start and end frame */
-	time_draw_sfra_efra(C, stime);
+	time_draw_sfra_efra(C, stime, ar);
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_calc_grid(C, &stime->v2d, unit, V2D_GRID_CLAMP, winx, winy);
-	UI_view2d_draw_grid(C, &stime->v2d, grid, V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS);
+	grid= UI_view2d_calc_grid(C, v2d, unit, V2D_GRID_CLAMP, winx, winy);
+	UI_view2d_draw_grid(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_free_grid(grid);
 
 	/* current frame */
-	time_draw_cfra_time(C, stime);
+	time_draw_cfra_time(C, stime, ar);
 	
 	/* markers */
 	draw_markers_time(C, 0);
@@ -180,6 +181,7 @@ static SpaceLink *time_new(void)
 	stime->blockscale= 0.7;
 	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 
+	// XXX move to region!
 	stime->v2d.tot.xmin= -4.0;
 	stime->v2d.tot.ymin=  0.0;
 	stime->v2d.tot.xmax= (float)EFRA + 4.0;
@@ -240,6 +242,7 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			 * be looked at further */
 			WM_event_remove_keymap_handler(&ar->handlers, &wm->timekeymap);
 			WM_event_add_keymap_handler(&ar->handlers, &wm->timekeymap);
+			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap); // XXX this should be added automatically!
 		}
 		else if(ar->regiontype == RGN_TYPE_HEADER) {
 			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
@@ -249,6 +252,7 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 
 			ar->type= &headerart;
 			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
+			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap); // XXX this should be added automatically!
 		}
 		else {
 			static ARegionType art={NULL, NULL, NULL, NULL, NULL};

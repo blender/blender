@@ -28,6 +28,7 @@
 #define DNA_SCREEN_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_view2d_types.h"
 #include "DNA_vec_types.h"
 
 #include "DNA_scriptlink_types.h"
@@ -132,7 +133,9 @@ typedef struct ScrArea {
 typedef struct ARegion {
 	struct ARegion *next, *prev;
 	
-	rcti winrct;
+	View2D v2d;					/* 2D-View scrolling/zoom info (most regions are 2d anyways) */
+	rcti winrct;				/* coordinates of region */
+	
 	short swinid;
 	short regiontype;			/* window, header, etc. identifier for drawing */
 	short alignment;			/* how it should split */

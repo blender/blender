@@ -69,6 +69,7 @@ typedef struct wmWindowManager {
 	/* custom keymaps */
 	ListBase windowkeymap;
 	ListBase screenkeymap;
+	ListBase view2dkeymap;
 	ListBase uikeymap;
 	ListBase timekeymap;
 	/* keymaps have to be NULLed in readfile.c */
