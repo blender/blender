@@ -996,7 +996,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 					found= 1;
 				}
 
-				if(nameptr != name);
+				if ((char *)&name != nameptr)
 					MEM_freeN(nameptr);
 
 				if(found)

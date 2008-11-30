@@ -523,7 +523,7 @@ PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 				Py_DECREF(item);
 				/* done */
 				
-				if (name != nameptr)
+				if ((char *)&name != nameptr)
 					MEM_freeN(nameptr);
 			}
 		}
@@ -559,7 +559,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 				Py_DECREF(item);
 				/* done */
 				
-				if (name != nameptr)
+				if ((char *)&name != nameptr)
 					MEM_freeN(nameptr);
 			}
 		}
