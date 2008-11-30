@@ -96,6 +96,7 @@ extern StructRNA RNA_JoystickSensor;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_Camera;
+extern StructRNA RNA_Group;
 /* Pointer
  *
  * These functions will fill in RNA pointers, this can be done in three ways:
