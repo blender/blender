@@ -311,15 +311,54 @@ void rna_def_collision_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CollisionSensor", NULL , "CollisionSensor");
 	RNA_def_struct_sdna(srna, "bCollisionSensor");
+
+	prop= RNA_def_property(srna, "property_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Property Name", "Only look for Objects with this property.");
+
+	prop= RNA_def_property(srna, "material_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "materialName");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material.");
+
+	prop= RNA_def_property(srna, "type", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_MATERIAL);
+	RNA_def_property_ui_text(prop, "Material/Property", "Toggle collision on material or property.");
 }
 
 void rna_def_radar_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
+	static EnumPropertyItem axis_items[] ={
+		{SENS_RAY_X_AXIS, "RAYX", "+X axis", ""},
+		{SENS_RAY_Y_AXIS, "RAYY", "+Y axis", ""},
+		{SENS_RAY_Z_AXIS, "RAYZ", "+Z axis", ""},
+		{SENS_RAY_NEG_X_AXIS, "RAYNX", "-X axis", ""},
+		{SENS_RAY_NEG_Y_AXIS, "RAYNY", "-Y axis", ""},
+		{SENS_RAY_NEG_Z_AXIS, "RAYNZ", "-Z axis", ""},
+		{0, NULL, NULL, NULL}};
 	srna= RNA_def_struct(brna, "RadarSensor", NULL , "RadarSensor");
 	RNA_def_struct_sdna(srna, "bRadarSensor");
+
+	prop= RNA_def_property(srna, "property_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Property Name", "Only look for Objects with this property.");
+
+	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the radar cone is cast.");
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 179.9);
+	RNA_def_property_ui_text(prop, "Angle", "Opening angle of the radar cone.");
+
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "range");
+	RNA_def_property_range(prop, 0.0, 10000.0);
+	RNA_def_property_ui_text(prop, "Distance", "Depth of the radar cone.");
 }
 
 void rna_def_random_sensor(BlenderRNA *brna)
@@ -329,15 +368,57 @@ void rna_def_random_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "RandomSensor", NULL , "RandomSensor");
 	RNA_def_struct_sdna(srna, "bRandomSensor");
+
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Seed", "Initial seed of the generator. (Choose 0 for not random).");
+
 }
 
 void rna_def_ray_sensor(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem axis_items[] ={
+		{SENS_RAY_X_AXIS, "RAYX", "+X axis", ""},
+		{SENS_RAY_Y_AXIS, "RAYY", "+Y axis", ""},
+		{SENS_RAY_Z_AXIS, "RAYZ", "+Z axis", ""},
+		{SENS_RAY_NEG_X_AXIS, "RAYNX", "-X axis", ""},
+		{SENS_RAY_NEG_Y_AXIS, "RAYNY", "-Y axis", ""},
+		{SENS_RAY_NEG_Z_AXIS, "RAYNZ", "-Z axis", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "RaySensor", NULL , "RaySensor");
 	RNA_def_struct_sdna(srna, "bRaySensor");
+
+	prop= RNA_def_property(srna, "property_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "propname");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Property Name", "Only look for Objects with this property.");
+
+	prop= RNA_def_property(srna, "material_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "matname");
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material.");
+
+	prop= RNA_def_property(srna, "type", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_COLLISION_MATERIAL);
+	RNA_def_property_ui_text(prop, "Material/Property", "Toggle collision on material or property.");
+
+	prop= RNA_def_property(srna, "x_ray_mode", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", SENS_RAY_XRAY);
+	RNA_def_property_ui_text(prop, "X-Ray Mode", "Toggle X-Ray option (see through objects that don't have the property).");
+
+	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 10000.0);
+	RNA_def_property_ui_text(prop, "Range", "Sense objects no farther than this distance.");
+
+	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axisflag", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_items(prop, axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the ray is cast.");
+
 }
 
 void rna_def_message_sensor(BlenderRNA *brna)
@@ -347,6 +428,10 @@ void rna_def_message_sensor(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MessageSensor", NULL , "MessageSensor");
 	RNA_def_struct_sdna(srna, "bMessageSensor");
+
+	prop= RNA_def_property(srna, "subject", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_maxlength(prop, 31);
+	RNA_def_property_ui_text(prop, "Subject", "Optional subject filter: only accept messages with this subject, or empty for all.");
 }
 
 void rna_def_joystick_sensor(BlenderRNA *brna)
@@ -354,8 +439,69 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem event_type_items[] ={
+		{SENS_JOY_BUTTON, "BUTTON", "Button", ""},
+		{SENS_JOY_AXIS, "AXIS", "Axis", ""},
+		{SENS_JOY_HAT, "HAT", "Hat", ""},
+		{0, NULL, NULL, NULL}};
+
+	static EnumPropertyItem axis_direction_items[] ={
+		{SENS_JOY_X_AXIS, "RIGHTAXIS", "Right Axis", ""},
+		{SENS_JOY_Y_AXIS, "UPAXIS", "Up Axis", ""},
+		{SENS_JOY_NEG_X_AXIS, "LEFTAXIS", "Left Axis", ""},
+		{SENS_JOY_NEG_Y_AXIS, "DOWNAXIS", "Down Axis", ""},
+		{0, NULL, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "JoystickSensor", NULL , "JoystickSensor");
 	RNA_def_struct_sdna(srna, "bJoystickSensor");
+	
+	prop= RNA_def_property(srna, "joystick_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "joyindex");
+	RNA_def_property_ui_text(prop, "Index", "Specify which joystick to use.");
+	RNA_def_property_range(prop, 0, SENS_JOY_MAXINDEX-1);
+
+
+	prop= RNA_def_property(srna, "event_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_ui_text(prop, "Event Type", "The type of event this joystick sensor is triggered on.");
+
+	prop= RNA_def_property(srna, "any_event", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_JOY_ANY_EVENT);
+	RNA_def_property_ui_text(prop, "All (Button/Axis/Hat) Events", "Triggered by all events on this joysticks current type (axis/button/hat).");
+
+	/* Button */
+	prop= RNA_def_property(srna, "button_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "button");
+	RNA_def_property_ui_text(prop, "Button Number", "Specify which button to use.");
+	RNA_def_property_range(prop, 0, 18);
+
+	/* Axis */
+	prop= RNA_def_property(srna, "axis_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "axis");
+	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is useually the main direction input.");
+	RNA_def_property_range(prop, 1, 2);
+
+	prop= RNA_def_property(srna, "axis_threshold", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "precision");
+	RNA_def_property_ui_text(prop, "Axis Threshold", "Specify the precision of the axis.");
+	RNA_def_property_range(prop, 0, 32768);
+
+	prop= RNA_def_property(srna, "axis_direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axisf", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_items(prop, axis_direction_items);
+	RNA_def_property_ui_text(prop, "Axis Direction", "The direction of the axis.");
+
+	/* Hat */
+	prop= RNA_def_property(srna, "hat_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "hat");
+	RNA_def_property_ui_text(prop, "Hat Number", "Specify which hat to use.");
+	RNA_def_property_range(prop, 1, 2);
+
+	prop= RNA_def_property(srna, "hat_direction", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "hatf");
+	RNA_def_property_ui_text(prop, "Hat Direction", "Specify hat direction.");
+	RNA_def_property_range(prop, 0, 12);
 }
 
 
