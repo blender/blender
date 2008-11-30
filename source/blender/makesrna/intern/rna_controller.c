@@ -43,13 +43,13 @@ static struct StructRNA* rna_Controller_data_type(struct PointerRNA *ptr)
 		case CONT_LOGIC_NOR:
 		case CONT_LOGIC_XOR:
 		case CONT_LOGIC_XNOR:
-			return NULL;
+			return &RNA_UnknownType;
  		case CONT_EXPRESSION:
 			return &RNA_ExpressionCont;
 		case CONT_PYTHON:
 			return &RNA_PythonCont;
 	}
-	return NULL;
+	return &RNA_UnknownType;
 }
 #else
 

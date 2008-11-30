@@ -40,7 +40,7 @@ static struct StructRNA* rna_Sensor_data_type(struct PointerRNA *ptr)
 
 	switch(sensor->type) {
 		case SENS_ALWAYS:
-			return NULL;
+			return &RNA_UnknownType;
 		case SENS_TOUCH:
 			return &RNA_TouchSensor;
 		case SENS_NEAR:
@@ -71,7 +71,7 @@ static struct StructRNA* rna_Sensor_data_type(struct PointerRNA *ptr)
 			return &RNA_UnknownType;
 	}
 
-	return NULL;
+	return &RNA_UnknownType;
 }
 
 #else

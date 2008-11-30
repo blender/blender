@@ -81,9 +81,11 @@ extern BlenderDefRNA DefRNA;
 extern BlenderRNA BLENDER_RNA;
 
 void RNA_def_ID(struct BlenderRNA *brna);
+void RNA_def_actuator(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_color(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);
+void RNA_def_gameproperty(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);

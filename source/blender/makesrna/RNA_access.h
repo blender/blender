@@ -35,6 +35,7 @@ struct Main;
 
 extern BlenderRNA BLENDER_RNA;
 
+extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_BooleanProperty;
 extern StructRNA RNA_Camera;
@@ -47,6 +48,7 @@ extern StructRNA RNA_DelaySensor;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_FloatProperty;
+extern StructRNA RNA_GameProperty;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;

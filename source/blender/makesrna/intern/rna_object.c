@@ -66,6 +66,16 @@ void RNA_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Controller");
 	RNA_def_property_ui_text(prop, "Controller", "Controllers of this object.");
 
+	prop= RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Actuator");
+	RNA_def_property_ui_text(prop, "Actuators", "Actuators of this object.");
+
+	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
+	RNA_def_property_struct_type(prop, "GameProperty");
+	RNA_def_property_ui_text(prop, "Property", "Properties of this object.");
+
+
 }
 
 #endif

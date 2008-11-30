@@ -876,9 +876,11 @@ typedef struct RNAProcessItem {
 
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
+	{"rna_actuator.c", RNA_def_actuator},
 	{"rna_camera.c", RNA_def_camera},
 	{"rna_color.c", RNA_def_color},
 	{"rna_controller.c", RNA_def_controller},
+	{"rna_property.c", RNA_def_gameproperty},
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},
 	{"rna_lamp.c", RNA_def_lamp},
