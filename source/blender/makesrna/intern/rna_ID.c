@@ -150,7 +150,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, "ID", "name");
-	RNA_def_property_ui_text(prop, "Name", "Object ID name.");
+	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, 22);
 	RNA_def_struct_name_property(srna, prop);

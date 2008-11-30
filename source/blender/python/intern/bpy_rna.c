@@ -24,6 +24,8 @@
 
 #include "bpy_rna.h"
 #include "bpy_compat.h"
+//#include "blendef.h"
+#include "BLI_dynstr.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_global.h" /* evil G.* */
@@ -528,13 +530,156 @@ static PyMappingMethods pyrna_prop_as_mapping = {
 	( objobjargproc ) pyrna_prop_assign_subscript,	/* mp_ass_subscript */
 };
 
+
+PyObject *pyrna_struct_to_docstring(BPy_StructRNA *self)
+{
+	PyObject *ret;
+	PropertyRNA *prop;
+	
+	DynStr *dynstr;
+	const char *identifier;
+	const char *desc;
+	char *readonly;
+	char *result;
+	int len;
+	int i; /* general iter */
+	
+	dynstr= BLI_dynstr_new();
+	BLI_dynstr_appendf(dynstr, "RNA %s: %s\n", RNA_struct_identifier(&self->ptr), RNA_struct_ui_name(&self->ptr));
+	
+	/* Add EPI ===='s */
+	i = BLI_dynstr_get_len(dynstr);
+	while (--i)
+		BLI_dynstr_append(dynstr, "=");
+	
+	BLI_dynstr_append(dynstr, "\n");
+	/* done */
+	
+	{
+		PropertyRNA *iterprop;
+		CollectionPropertyIterator iter;
+		
+		iterprop= RNA_struct_iterator_property(&self->ptr);
+		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
+		
+		for(; iter.valid; RNA_property_collection_next(&iter)) {
+			prop = iter.ptr.data;
+			identifier = RNA_property_identifier(&iter.ptr, prop);
+			desc = RNA_property_ui_description(&iter.ptr, prop);
+			
+			readonly = (RNA_property_editable(&self->ptr, prop)) ? "" : " *readonly*";
+			len = RNA_property_array_length(&iter.ptr, prop);	
+			
+			switch(RNA_property_type(&iter.ptr, prop)) {
+			case PROP_BOOLEAN:
+			{	
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
+				
+				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: bool\n", identifier);
+				else		BLI_dynstr_appendf(dynstr, "@type %s: bool[%d]\n", identifier, len);
+				break;
+			}
+			case PROP_INT:
+			{
+				int hardmin, hardmax;
+				RNA_property_int_range(&iter.ptr, prop, &hardmin, &hardmax); 
+				
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s in (%d, %d)%s\n", identifier, desc, hardmin, hardmax, readonly);
+				
+				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: int\n", identifier);
+				else		BLI_dynstr_appendf(dynstr, "@type %s: int[%d]\n", identifier, len);
+				break;
+			}
+			case PROP_FLOAT:
+			{
+				float hardmin, hardmax;
+				RNA_property_float_range(&iter.ptr, prop, &hardmin, &hardmax);
+				
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s in (", identifier, desc);
+				
+				if (hardmin < -9999999)	BLI_dynstr_append(dynstr, "-inf, ");
+				else					BLI_dynstr_appendf(dynstr, "%.3f, ", hardmin);
+						
+				if (hardmax >  9999999)	BLI_dynstr_append(dynstr, "inf");
+				else					BLI_dynstr_appendf(dynstr, "%.3f", hardmax);
+				
+				BLI_dynstr_appendf(dynstr, ")%s\n", readonly);
+						
+						
+				if (len==0)	BLI_dynstr_appendf(dynstr, "@type %s: float\n", identifier);
+				else		BLI_dynstr_appendf(dynstr, "@type %s: float[%d]\n", identifier, len);
+				break;
+			}
+			case PROP_STRING:
+			{
+				int maxlen = RNA_property_string_maxlength(&iter.ptr, prop);
+				
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s (%d maximum length)%s\n", identifier, desc, maxlen, readonly);
+				BLI_dynstr_appendf(dynstr, "@type %s: string\n", identifier);
+				break;
+			}
+			case PROP_ENUM:
+			{
+				const EnumPropertyItem *item;
+				int totitem;
+				
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
+				
+				BLI_dynstr_appendf(dynstr, "@type %s: enum in [", identifier);
+				
+				RNA_property_enum_items(&iter.ptr, prop, &item, &totitem);
+				
+				for (i=0; i<totitem; i++) {
+					BLI_dynstr_append(dynstr, item[i].identifier);
+					if (i<totitem-1) {
+						BLI_dynstr_append(dynstr, ", ");
+					}
+				}
+				
+				BLI_dynstr_append(dynstr, "]\n");
+				break;
+			}
+			case PROP_POINTER:
+			{
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
+				
+				// TODO - why does this crash sometimes
+				// PointerRNA newptr;
+				// RNA_property_pointer_get(&iter.ptr, prop, &newptr);
+				
+				// Use this instead, its not that useful
+				BLI_dynstr_appendf(dynstr, "@type %s: PyRNA %s\n", identifier, RNA_struct_identifier(&iter.ptr));
+				break;
+			}
+			case PROP_COLLECTION:
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
+				BLI_dynstr_appendf(dynstr, "@type %s: PyRNA Collection\n", identifier);
+				break;
+			default:
+				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
+				BLI_dynstr_appendf(dynstr, "@type %s: <unknown>\n", identifier);
+				break; 
+			}
+		}
+		
+		RNA_property_collection_end(&iter);
+	}
+	
+	result= BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	
+	ret = PyUnicode_FromString(result);
+	MEM_freeN(result);
+	
+	return ret;
+}
+
+
 //---------------getattr--------------------------------------------
 static PyObject *pyrna_struct_getattr( BPy_StructRNA * self, char *name )
 {
 	PyObject *ret;
 	PropertyRNA *prop;
-	
-	
 	
 	if( strcmp( name, "__members__" ) == 0 ) {
 		PyObject *item;
@@ -549,12 +694,15 @@ static PyObject *pyrna_struct_getattr( BPy_StructRNA * self, char *name )
 		
 		
 		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			item = PyUnicode_FromString( RNA_property_identifier(&iter.ptr, iter.ptr.data) ); /* iter.ptr.data is just a prop */
+			prop = iter.ptr.data;
+			item = PyUnicode_FromString( RNA_property_identifier(&iter.ptr, prop) );
 			PyList_Append(ret, item);
 			Py_DECREF(item);
 		}
 
 		RNA_property_collection_end(&iter);
+	} else if ( strcmp( name, "__doc__" ) == 0 ) {
+		ret = pyrna_struct_to_docstring(self);
 	} else {
 		prop = RNA_struct_find_property(&self->ptr, name);
 		
@@ -587,7 +735,6 @@ static int pyrna_struct_setattr( BPy_StructRNA * self, char *name, PyObject * va
 	/* pyrna_py_to_prop sets its own exceptions */
 	return pyrna_py_to_prop(&self->ptr, prop, value);
 }
-
 
 PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
@@ -803,7 +950,7 @@ PyTypeObject pyrna_prop_Type = {
 	/* methods */
 	NULL,						/* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
-	NULL,						/* getattrfunc tp_getattr; */ /* NOTE - adding getattr here will override  pyrna_prop_methods*/
+	NULL,						/* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	( cmpfunc ) pyrna_prop_compare,	/* tp_compare */
 	( reprfunc ) pyrna_prop_repr,	/* tp_repr */
