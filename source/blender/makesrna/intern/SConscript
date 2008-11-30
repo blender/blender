@@ -32,14 +32,24 @@ if env['OURPLATFORM'] == 'linuxcross':
 if sys.platform != 'cygwin':
     makesrna_tool.Append (CCFLAGS = cflags)
 makesrna_tool.Append (CPPDEFINES = defines)
-makesrna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
+
+libdir = root_build_dir+'/lib'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	libdir = '#' + libdir
+
+makesrna_tool.Append (LIBPATH = libdir)
+
 if env['BF_PROFILE']:
 	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
 
+targetpath = root_build_dir+'/makesrna'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	targetpath = '#' + targetpath
+
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
-    makesrna = makesrna_tool.Program (target = root_build_dir+'/makesrna', source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
 else:
-    makesrna = makesrna_tool.Program (target = '#'+root_build_dir+'/makesrna', source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
 
 rna_dict = rna.Dictionary()
 rna.Depends ('rna.c', makesrna)
