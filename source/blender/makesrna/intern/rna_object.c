@@ -61,6 +61,11 @@ void RNA_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sensors", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sensor");
 	RNA_def_property_ui_text(prop, "Sensors", "Sensors of this object.");
+
+	prop= RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Controller");
+	RNA_def_property_ui_text(prop, "Controller", "Controllers of this object.");
+
 }
 
 #endif

@@ -107,7 +107,7 @@ void rna_def_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, sensor_types_items);
-	RNA_def_property_ui_text(prop, "Sensor types", "Sensor Types.");
+	RNA_def_property_ui_text(prop, "Sensor Types", "Sensor types.");
 
 	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Invert Output", "Invert the level(output) of this sensor.");
@@ -147,7 +147,7 @@ void rna_def_near_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_string_maxlength(prop, 31);
-	RNA_def_property_ui_text(prop, "Property", "Only llok for objects with this property.");
+	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property.");
 
 	prop= RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dist");

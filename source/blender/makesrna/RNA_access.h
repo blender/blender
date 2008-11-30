@@ -95,6 +95,7 @@ extern StructRNA RNA_MessageSensor;
 extern StructRNA RNA_JoystickSensor;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_DelaySensor;
+extern StructRNA RNA_Controller;
 extern StructRNA RNA_Camera;
 extern StructRNA RNA_Group;
 /* Pointer

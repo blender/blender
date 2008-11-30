@@ -888,6 +888,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_screen.c", RNA_def_screen},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_sensor.c", RNA_def_sensor},
+	{"rna_controller.c", RNA_def_controller},
 	{"rna_camera.c", RNA_def_camera},
 	{"rna_group.c", RNA_def_group},
 	{NULL, NULL}};

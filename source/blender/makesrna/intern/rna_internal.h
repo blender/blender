@@ -93,6 +93,7 @@ void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
+void RNA_def_controller(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 
