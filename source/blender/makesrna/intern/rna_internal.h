@@ -85,7 +85,9 @@ void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_color(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
+void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
+void RNA_def_lattice(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_material(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
@@ -97,7 +99,6 @@ void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
-void RNA_def_lattice(struct BlenderRNA *brna);
 
 /* ID Properties */
 

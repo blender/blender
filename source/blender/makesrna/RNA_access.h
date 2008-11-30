@@ -51,10 +51,13 @@ extern StructRNA RNA_Group;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
+extern StructRNA RNA_Image;
+extern StructRNA RNA_ImageUser;
 extern StructRNA RNA_IntProperty;
 extern StructRNA RNA_JoystickSensor;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_Lamp;
+extern StructRNA RNA_Lattice;
 extern StructRNA RNA_Library;
 extern StructRNA RNA_MCol;
 extern StructRNA RNA_MColLayer;
@@ -102,8 +105,6 @@ extern StructRNA RNA_Struct;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_WindowManager;
-
-extern StructRNA RNA_Lattice;
 
 /* Pointer
  *
