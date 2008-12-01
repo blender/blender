@@ -82,6 +82,8 @@ extern BlenderRNA BLENDER_RNA;
 
 void RNA_def_ID(struct BlenderRNA *brna);
 void RNA_def_actuator(struct BlenderRNA *brna);
+void RNA_def_brush(struct BlenderRNA *brna);
+void RNA_def_brushclone(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_color(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);

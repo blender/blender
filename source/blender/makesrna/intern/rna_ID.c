@@ -58,6 +58,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 	ID *id= (ID*)ptr->data;
 
 	switch(GS(id->name)) {
+		case ID_BR: return &RNA_Brush;
 		case ID_CA: return &RNA_Camera;
 		case ID_GR: return &RNA_Group;
 		case ID_IM: return &RNA_Image;

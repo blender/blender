@@ -108,17 +108,17 @@ void RNA_def_metaball(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Update", "Metaball edit update option.");
 	
 	/* Number values */
-	prop= RNA_def_property(srna, "Wiresize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "wiresize", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "wiresize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
 	RNA_def_property_ui_text(prop, "Wiresize", "Polygonization resolution in the 3D viewport.");
 	
-	prop= RNA_def_property(srna, "Rendersize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "rendersize", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rendersize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
 	RNA_def_property_ui_text(prop, "Rendersize", "Polygonization resolution in rendering.");
 	
-	prop= RNA_def_property(srna, "Threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "thresh");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Influence of metaelements.");

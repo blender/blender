@@ -38,6 +38,8 @@ extern BlenderRNA BLENDER_RNA;
 extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_BooleanProperty;
+extern StructRNA RNA_Brush;
+extern StructRNA RNA_BrushClone;
 extern StructRNA RNA_Camera;
 extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionSensor;
