@@ -101,6 +101,7 @@ void RNA_def_meta(struct BlenderRNA *brna);
 void RNA_def_modifier(struct BlenderRNA *brna);
 void RNA_def_nodetree(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
+void RNA_def_packedfile(struct BlenderRNA *brna);
 void RNA_def_radio(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
@@ -169,4 +170,5 @@ void rna_freelinkN(struct ListBase *listbase, void *vlink);
 void rna_freelistN(struct ListBase *listbase);
 
 #endif /* RNA_INTERNAL_H */
+
 

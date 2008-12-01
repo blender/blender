@@ -1,7 +1,4 @@
-/* DNA_packedFile_types.h 
- * 
- * 12-oct-2000 nzc
- * 
+/**
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,42 +17,35 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation (2008).
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_PACKEDFILE_TYPES_H
-#define DNA_PACKEDFILE_TYPES_H
+#include <stdlib.h>
 
-typedef struct PackedFile {
-	int size;
-	int seek;
-	void * data;
-} PackedFile;
+#include "RNA_define.h"
+#include "RNA_types.h"
 
-enum PF_FileStatus
+#include "rna_internal.h"
+
+#include "DNA_packedFile_types.h"
+
+#ifdef RNA_RUNTIME
+#else
+
+void RNA_def_packedfile(BlenderRNA *brna)
 {
-	PF_EQUAL = 0,
-	PF_DIFFERS,
-	PF_NOFILE,
-			
-	PF_WRITE_ORIGINAL,
-	PF_WRITE_LOCAL,
-	PF_USE_LOCAL,
-	PF_USE_ORIGINAL,
-	PF_KEEP,
-	PF_REMOVE,
-	PF_NOOP,
-			
-	PF_ASK
-};
+	StructRNA *srna;
+	PropertyRNA *prop;
 
-#endif /* PACKEDFILE_TYPES_H */
+	srna= RNA_def_struct(brna, "PackedFile", NULL, "Packed File");
 
+	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Size", "Size of Packed File.");
+
+}
+
+#endif
 

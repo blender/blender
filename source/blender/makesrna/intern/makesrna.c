@@ -894,6 +894,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_modifier.c", RNA_def_modifier},
 	{"rna_nodetree.c", RNA_def_nodetree},
 	{"rna_object.c", RNA_def_object},
+	{"rna_packedfile.c", RNA_def_packedfile},
 	{"rna_property.c", RNA_def_gameproperty},
 	{"rna_radio.c", RNA_def_radio},
 	{"rna_rna.c", RNA_def_rna},
@@ -1015,4 +1016,5 @@ int main(int argc, char **argv)
 
 	return return_status;
 }
+
 

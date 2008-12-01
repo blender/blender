@@ -97,6 +97,7 @@ extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Operator;
+extern StructRNA RNA_PackedFile;
 extern StructRNA RNA_Panel;
 extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_Property;
@@ -278,4 +279,5 @@ void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 #endif /* RNA_ACCESS */
+
 
