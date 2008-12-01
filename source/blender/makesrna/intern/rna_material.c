@@ -130,41 +130,50 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Ray Mirror", "Sets the amount mirror reflection for raytrace.");
 	
-	prop= RNA_def_property(srna, "fresnel_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_fresnel", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fresnel_mir");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Fresnel", "Power of Fresnel for mirror reflection.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Fresnel", "Power of Fresnel for mirror reflection.");
 	
-	prop= RNA_def_property(srna, "fresnel_mir_i", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_fresnel_fac", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fresnel_mir_i");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Fresnel Factor", "Blending factor for Fresnel.");
 	
-	prop= RNA_def_property(srna, "gloss_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_gloss", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Gloss", "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Gloss", "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections.");
 	
-	prop= RNA_def_property(srna, "aniso_gloss_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_gloss_aniso", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "aniso_gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Aniso", "The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Gloss Aniso", "The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent.");
 		
-	prop= RNA_def_property(srna, "samp_gloss_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_gloss_samples", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "samp_gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1024.0f);
-	RNA_def_property_ui_text(prop, "Gloss Samples", "Number of cone samples averaged for blurry reflections.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Gloss Samples", "Number of cone samples averaged for blurry reflections.");
 	
-	prop= RNA_def_property(srna, "adapt_thresh_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_adapt_thresh", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "adapt_thresh_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
 	
-	prop= RNA_def_property(srna, "ray_depth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ray_depth");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Ray Mirror Depth", "Maximum allowed number of light inter-reflections.");
 	
-	prop= RNA_def_property(srna, "dist_mir", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist_mir");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Ray Mirror Max Dist", "Maximum distance of reflected rays. Reflections further than this range fade to sky color or material color.");
 	
-	prop= RNA_def_property(srna, "fadeto_mir", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "ray_mirror_fadeto", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "fadeto_mir", 0);
 	RNA_def_property_enum_items(prop, prop_fadeto_mir_items);
-	RNA_def_property_ui_text(prop, "Ray End Fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
+	RNA_def_property_ui_text(prop, "Ray Mirror End Fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
