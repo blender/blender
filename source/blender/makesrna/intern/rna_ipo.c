@@ -33,13 +33,6 @@
 
 #ifdef RNA_RUNTIME
 
-void *rna_Ipo_ipocurves_get(CollectionPropertyIterator *iter)
-{
-	ListBaseIterator *internal= iter->internal;
-
-	return ((Base*)internal->link)->object;
-}
-
 #else
 
 void rna_def_ipodriver(BlenderRNA *brna)
@@ -77,8 +70,33 @@ void rna_def_ipocurve(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	static EnumPropertyItem prop_mode_interpolation_items[] = {
+		{IPO_CONST, "CONSTANT", "Constant", ""},
+		{IPO_LIN, "LINEAR", "Linear", ""},
+		{IPO_BEZ, "BEZIER", "Bezier", ""},
+		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_mode_extend_items[] = {
+		{IPO_HORIZ, "CONSTANT", "Constant", ""},
+		{IPO_DIR, "EXTRAP", "Extrapolation", ""},
+		{IPO_CYCL, "CYCLIC", "Cyclic", ""},
+		{IPO_CYCLX, "CYCLICX", "Cyclic Extrapolation", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "IpoCurve", NULL, "Ipo Curve");
+
+	/* Enums */
+
+	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipo", 0);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "");
+
+	prop= RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "extrap", 0);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, prop_mode_extend_items);
+	RNA_def_property_ui_text(prop, "Extend", "");
 
 	/* Number values */
 
@@ -98,8 +116,31 @@ void rna_def_ipo(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	static EnumPropertyItem prop_blocktype_items[] = {
+		{ID_OB, "OBJECT", "Object", ""},
+		{ID_MA, "MATERIAL", "Material", ""},
+		{ID_TE, "TEXTURE", "Texture", ""},
+		{ID_SEQ, "SEQUENCE", "Sequence", ""},
+		{ID_CU, "CURVE", "Curve", ""},
+		{ID_KE, "KEY", "Key", ""},
+		{ID_WO, "WORLD", "World", ""},
+		{ID_LA, "LAMP", "Lamp", ""},
+		{ID_CA, "CAMERA", "Camera", ""},
+		{ID_SO, "SOUND", "Sound", ""},
+		{ID_PO, "POSECHANNEL", "PoseChannel", ""},
+		{ID_CO, "CONSTRAINT", "Constraint", ""},
+		{ID_FLUIDSIM, "FLUIDSIM", "FluidSim", ""},
+		{ID_PA, "PARTICLES", "Particles", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Ipo", "ID", "Ipo");
+
+	/* Enums */
+	prop= RNA_def_property(srna, "block_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "blocktype", 0);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, prop_blocktype_items);
+	RNA_def_property_ui_text(prop, "Block Type", "");
 
 	/* Boolean values */
 
@@ -117,8 +158,6 @@ void rna_def_ipo(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "curve", NULL);
 	RNA_def_property_struct_type(prop, "IpoCurve");
 	RNA_def_property_ui_text(prop, "Curves", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Ipo_ipocurves_get", 0, 0, 0, 0);
-
 }
 
 void RNA_def_ipo(BlenderRNA *brna)
