@@ -44,57 +44,81 @@
 
 //   BinaryPredicate0D: __call__
 bool Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2) {
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", BPy_Interface0D_from_Interface0D(i1), BPy_Interface0D_from_Interface0D(i2) );
-	
-	return bool_from_PyBool(result);
+	PyObject *arg1 = BPy_Interface0D_from_Interface0D(i1);
+	PyObject *arg2 = BPy_Interface0D_from_Interface0D(i2);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(arg1);
+	Py_DECREF(arg2);
+	Py_DECREF(result);
+	return ret;
 }
 
 
 //   BinaryPredicate1D: __call__
 bool Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", BPy_Interface1D_from_Interface1D(i1), BPy_Interface1D_from_Interface1D(i2) );
-	
-	return bool_from_PyBool(result);
+	PyObject *arg1 = BPy_Interface1D_from_Interface1D(i1);
+	PyObject *arg2 = BPy_Interface1D_from_Interface1D(i2);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(arg1);
+	Py_DECREF(arg2);
+	Py_DECREF(result);
+	return ret;
 }
 
 
 //   UnaryPredicate0D: __call__
 bool Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it) {
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", BPy_Interface0DIterator_from_Interface0DIterator(if0D_it) );
-
-	return bool_from_PyBool(result);
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(arg);
+	Py_DECREF(result);
+	return ret;
 }
 
 
 //   UnaryPredicate1D: __call__
 bool Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", BPy_Interface1D_from_Interface1D(if1D) );
-
-	return bool_from_PyBool(result);
+	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(arg);
+	Py_DECREF(result);
+	return ret;
 }
 
 
 //   StrokeShader: shade
 void Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s) {
-	PyObject_CallMethod( obj, "shade", "O", BPy_Stroke_from_Stroke_ptr(&s) );
+	PyObject *arg = BPy_Stroke_from_Stroke_ptr(&s);
+	PyObject *result = PyObject_CallMethod( obj, "shade", "O", arg );
+	Py_DECREF(arg);
+	Py_DECREF(result);
 }
 
 //   ChainingIterator: init, traverse
 void Director_BPy_ChainingIterator_init( PyObject *obj ) {
-	PyObject_CallMethod( obj, "init", "", 0 );
+	PyObject *result = PyObject_CallMethod( obj, "init", "", 0 );
+	Py_DECREF(result);
 }
 
 ViewEdge * Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it ) {
-	PyObject *result = PyObject_CallMethod( obj, "traverse", "O", BPy_AdjacencyIterator_from_AdjacencyIterator(a_it) );
-
-	return ((BPy_ViewEdge *) result)->ve;
+	PyObject *arg = BPy_AdjacencyIterator_from_AdjacencyIterator(a_it);
+	PyObject *result = PyObject_CallMethod( obj, "traverse", "O", arg );
+	ViewEdge *ret = ((BPy_ViewEdge *) result)->ve;
+	Py_DECREF(arg);
+	Py_DECREF(result);
+	return ret;
 }
 
 
 // BPy_UnaryFunction{0D,1D}: __call__
 void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it) {
 
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", BPy_Interface0DIterator_from_Interface0DIterator(if0D_it) );
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	
 	if( BPy_UnaryFunction0DDouble_Check(obj) ) {	
 		((UnaryFunction0D<double> *) uf0D)->result = PyFloat_AsDouble(result);
@@ -138,11 +162,14 @@ void Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface
 	
 	}	
 
+	Py_DECREF(arg);
+	Py_DECREF(result);
 }
 
 void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D) {
 
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", BPy_Interface1D_from_Interface1D(if1D) );
+	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	
 	if( BPy_UnaryFunction1DDouble_Check(obj) ) {	
 		((UnaryFunction1D<double> *) uf1D)->result = PyFloat_AsDouble(result);
@@ -177,47 +204,56 @@ void Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface
 	
 	} 
 
+	Py_DECREF(arg);
+	Py_DECREF(result);
 }
 
 
 //	Iterator: increment, decrement, isBegin, isEnd
 void Director_BPy_Iterator_increment( PyObject *obj ) {
-	PyObject_CallMethod( obj, "increment", "", 0 );
+	PyObject *result = PyObject_CallMethod( obj, "increment", "", 0 );
+	Py_DECREF(result);
 }
 
 void Director_BPy_Iterator_decrement( PyObject *obj ) {
-	PyObject_CallMethod( obj, "decrement", "", 0 );
+	PyObject *result = PyObject_CallMethod( obj, "decrement", "", 0 );
+	Py_DECREF(result);
 }
 
 bool Director_BPy_Iterator_isBegin( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "isBegin", "", 0 );
-
-	return bool_from_PyBool(result);
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 bool Director_BPy_Iterator_isEnd( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "isEnd", "", 0 );
-
-	return bool_from_PyBool(result);
+	bool ret = bool_from_PyBool(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 //	Interface0D: getX, getY, getZ, getPoint3D, getProjectedX, getProjectedY, getProjectedZ, getPoint2D, getFEdge, getId, getNature, castToSVertex, castToViewVertex, castToNonTVertex, castToTVertex
 double Director_BPy_Interface0D_getX( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getX", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 double Director_BPy_Interface0D_getY( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getY", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 double Director_BPy_Interface0D_getZ( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getZ", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 Geometry::Vec3f Director_BPy_Interface0D_getPoint3D( PyObject *obj ) {
@@ -225,6 +261,7 @@ Geometry::Vec3f Director_BPy_Interface0D_getPoint3D( PyObject *obj ) {
 	
 	Geometry::Vec3f *v_ref = Vec3f_ptr_from_Vector( result );
 	Geometry::Vec3f v(*v_ref);
+	Py_DECREF(result);
 	delete v_ref;
 
 	return v;
@@ -232,20 +269,23 @@ Geometry::Vec3f Director_BPy_Interface0D_getPoint3D( PyObject *obj ) {
 
 double Director_BPy_Interface0D_getProjectedX( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getProjectedX", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 double Director_BPy_Interface0D_getProjectedY( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getProjectedY", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 double Director_BPy_Interface0D_getProjectedZ( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getProjectedZ", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 Geometry::Vec2f Director_BPy_Interface0D_getPoint2D( PyObject *obj ) {
@@ -253,6 +293,7 @@ Geometry::Vec2f Director_BPy_Interface0D_getPoint2D( PyObject *obj ) {
 
 	Geometry::Vec2f *v_ref = Vec2f_ptr_from_Vector( result );
 	Geometry::Vec2f v(*v_ref);
+	Py_DECREF(result);
 	delete v_ref;
 
 	return v;
@@ -260,85 +301,99 @@ Geometry::Vec2f Director_BPy_Interface0D_getPoint2D( PyObject *obj ) {
 
 FEdge * Director_BPy_Interface0D_getFEdge( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getFEdge", "", 0 );
-
-	return ((BPy_FEdge *) result)->fe;
+	FEdge *ret = ((BPy_FEdge *) result)->fe;
+	Py_DECREF(result);
+	return ret;
 }
 
 Id Director_BPy_Interface0D_getId( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getId", "", 0 );
-
-	return *( ((BPy_Id *) result)->id );
+	Id ret = *( ((BPy_Id *) result)->id );
+	Py_DECREF(result);
+	return ret;
 }
 
 Nature::EdgeNature Director_BPy_Interface0D_getNature( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getNature", "", 0 );
-
-	return EdgeNature_from_BPy_Nature(result);
+	Nature::EdgeNature ret = EdgeNature_from_BPy_Nature(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 SVertex * Director_BPy_Interface0D_castToSVertex( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "castToSVertex", "", 0 );
-
-	return ((BPy_SVertex *) result)->sv;
+	SVertex *ret = ((BPy_SVertex *) result)->sv;
+	Py_DECREF(result);
+	return ret;
 }
 
 ViewVertex * Director_BPy_Interface0D_castToViewVertex( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "castToViewVertex", "", 0 );
-
-	return ((BPy_ViewVertex *) result)->vv;
+	ViewVertex *ret = ((BPy_ViewVertex *) result)->vv;
+	Py_DECREF(result);
+	return ret;
 }
 
 NonTVertex * Director_BPy_Interface0D_castToNonTVertex( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "castToNonTVertex", "", 0 );
-
-	return ((BPy_NonTVertex *) result)->ntv;
+	NonTVertex *ret = ((BPy_NonTVertex *) result)->ntv;
+	Py_DECREF(result);
+	return ret;
 }
 
 TVertex * Director_BPy_Interface0D_castToTVertex( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "castToTVertex", "", 0 );
-
-	return ((BPy_TVertex *) result)->tv;
+	TVertex *ret = ((BPy_TVertex *) result)->tv;
+	Py_DECREF(result);
+	return ret;
 }
 
 //	Interface1D: verticesBegin, verticesEnd, pointsBegin, pointsEnd
 Interface0DIterator Director_BPy_Interface1D_verticesBegin( PyObject *obj ){
 	PyObject *result = PyObject_CallMethod( obj, "verticesBegin", "", 0 );
-
-	return *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Interface0DIterator ret = *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Py_DECREF(result);
+	return ret;
 }
 
 Interface0DIterator Director_BPy_Interface1D_verticesEnd( PyObject *obj ){
 	PyObject *result =  PyObject_CallMethod( obj, "verticesEnd", "", 0 );
-
-	return *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Interface0DIterator ret = *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Py_DECREF(result);
+	return ret;
 }
 
 Interface0DIterator Director_BPy_Interface1D_pointsBegin( PyObject *obj ){
 	PyObject *result =  PyObject_CallMethod( obj, "pointsBegin", "", 0 );
-
-	return *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Interface0DIterator ret = *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Py_DECREF(result);
+	return ret;
 }
 
 Interface0DIterator Director_BPy_Interface1D_pointsEnd( PyObject *obj ){
 	PyObject *result =  PyObject_CallMethod( obj, "pointsEnd", "", 0 );
-
-	return *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Interface0DIterator ret = *( ((BPy_Interface0DIterator *) result)->if0D_it );
+	Py_DECREF(result);
+	return ret;
 }
 
 double Director_BPy_Interface1D_getLength2D( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getLength2D", "", 0 );
-
-	return PyFloat_AsDouble(result);
+	double ret = PyFloat_AsDouble(result);
+	Py_DECREF(result);
+	return ret;
 }
 
 Id Director_BPy_Interface1D_getId( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getId", "", 0 );
-
-	return *( ((BPy_Id *) result)->id );
+	Id ret = *( ((BPy_Id *) result)->id );
+	Py_DECREF(result);
+	return ret;
 }
 
 Nature::EdgeNature Director_BPy_Interface1D_getNature( PyObject *obj ) {
 	PyObject *result = PyObject_CallMethod( obj, "getNature", "", 0 );
-
-	return EdgeNature_from_BPy_Nature( result );
+	Nature::EdgeNature ret = EdgeNature_from_BPy_Nature(result);
+	Py_DECREF(result);
+	return ret;
 }
