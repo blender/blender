@@ -5073,12 +5073,26 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		/* if active spacetype has view2d data, copy that over to main region */
 		switch(sa->spacetype) {
 			case SPACE_OOPS:
-				memcpy(&ar->v2d, &((SpaceOops *)sa->spacedata.first)->v2d, sizeof(View2D));
+			{
+				SpaceOops *soops= sa->spacedata.first;
+				
+				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
+				ar->v2d.scroll &= ~L_SCROLL;
+				ar->v2d.scroll |= R_SCROLL;
+			}
 				break;
 			case SPACE_TIME:
-				memcpy(&ar->v2d, &((SpaceTime *)sa->spacedata.first)->v2d, sizeof(View2D));
+			{
+				SpaceTime *stime= sa->spacedata.first;
+				memcpy(&ar->v2d, &stime->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (B_SCROLL|BGRID_SCROLL);
+				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
+			}
 				break;
 			//case SPACE_XXX: // FIXME... add other ones
+			//	memcpy(&ar->v2d, &((SpaceXxx *)sa->spacedata.first)->v2d, sizeof(View2D));
+			//	break;
 		}
 	}
 }

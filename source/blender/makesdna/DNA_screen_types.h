@@ -181,18 +181,6 @@ typedef struct ARegion {
 #define WIN_BACK_OK		2
 #define WIN_EQUAL		3
 
-/* scrollbar flags for View2D */
-	/* left scrollbar */
-#define L_SCROLL 1			
-#define R_SCROLL 2
-#define VERT_SCROLL 3
-#define T_SCROLL 4
-#define B_SCROLL 8
-#define HOR_SCROLL  12
-	/* special hack for outliner hscroll - prevent hanging older versions of Blender */
-#define B_SCROLLO   16
-#define HOR_SCROLLO 20
-
 /* Panel->snap - for snapping to screen edges */
 #define PNL_SNAP_NONE		0
 #define PNL_SNAP_TOP		1

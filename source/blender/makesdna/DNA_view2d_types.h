@@ -82,5 +82,23 @@ typedef struct View2D {
 	/* width */
 #define SCROLLB	16
 
+/* scrollbar flags for View2D */
+	/* left scrollbar */
+#define L_SCROLL 		(1<<0)		
+#define R_SCROLL 		(1<<1)
+#define VERT_SCROLL 	(L_SCROLL|R_SCROLL)
+	/* horizontal scrollbar */
+#define T_SCROLL 		(1<<2)
+#define B_SCROLL 		(1<<3)
+#define HOR_SCROLL  	(T_SCROLL|B_SCROLL)
+	/* special hacks for outliner hscroll - prevent hanging older versions of Blender */
+#define B_SCROLLO   	(1<<4)
+#define HOR_SCROLLO 	(T_SCROLL|B_SCROLLO)
+	/* scale markings */
+#define LGRID_SCROLL	(1<<5)
+#define RGRID_SCROLL	(1<<6)
+#define BGRID_SCROLL	(1<<7)
+#define TGRID_SCROLL	(1<<8)	
+
 #endif
 

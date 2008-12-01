@@ -114,6 +114,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	SpaceTime *stime= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
+	View2DScrollers *scrollers;
 	float col[3];
 	int unit, winx, winy;
 
@@ -148,8 +149,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	// FIXME: this is just a quick test
-	UI_view2d_draw_scrollers(C, &ar->v2d, NULL, (0));
+	scrollers= UI_view2d_calc_scrollers(C, v2d, unit, V2D_GRID_CLAMP);
+	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
+	UI_view2d_free_scrollers(scrollers);
 }
 
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)

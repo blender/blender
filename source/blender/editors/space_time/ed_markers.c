@@ -137,7 +137,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos*xscale-5.0, 12.0, icon_id);
+	UI_icon_draw(xpos*xscale-5.0, 8.0, icon_id);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);

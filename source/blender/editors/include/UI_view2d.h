@@ -93,7 +93,7 @@ void UI_view2d_free_grid(View2DGrid *grid);
 /* scrollbar drawing */
 View2DScrollers *UI_view2d_calc_scrollers(const struct bContext *C, struct View2D *v2d, short units, short clamp);
 void UI_view2d_draw_scrollers(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers, int flag);
-void UI_view2d_free_scrollbars(View2DScrollers *scrollers);
+void UI_view2d_free_scrollers(View2DScrollers *scrollers);
 
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx, float *viewy);

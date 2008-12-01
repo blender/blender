@@ -340,6 +340,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	int rows, cols, awidth, aheight, width, height;
 	SpaceOops *soutliner= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 
 	/* clear */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -407,7 +408,6 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	rct.ymax= 0;
 	
 	/* set matrix for 2d-view controls */
-	//UI_view2d_view_init(C, v2d);
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* create and draw table */
@@ -423,8 +423,9 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	// FIXME: this is just a quick test
-	UI_view2d_draw_scrollers(C, &ar->v2d, NULL, (0));
+	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0); // XXX last two vars here are useless
+	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
+	UI_view2d_free_scrollers(scrollers);
 }
 
 static void outliner_main_area_free(ARegion *ar)

@@ -48,33 +48,33 @@
 /* *********************************************************************** */
 /* Setup and Refresh Code */
 
-
-/* ---------------------- */
-
 /* Set view matrices to ortho for View2D drawing */
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
 	ARegion *region= C->region;
 	int winx, winy;
-	float ofsx, ofsy;
+	float ofsx1, ofsy1, ofsx2, ofsy2;
 	
 	/* calculate extents of region */
 	winx= region->winrct.xmax - region->winrct.xmin;
 	winy= region->winrct.ymax - region->winrct.ymin;
-	ofsx= ofsy= 0.0f;
+	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
 	
 	/* these checks here make sure that the region is large-enough to show scrollers */
 	if ((winx > SCROLLB+10) && (winy > SCROLLH+10)) {
-		if (v2d->scroll) {
-			if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO))
-				ofsy= (float)-SCROLLB;
-			if (v2d->scroll & VERT_SCROLL)
-				ofsx= (float)-SCROLLH;
-		}
+		/* calculate offset factor required on each axis */
+		if (v2d->scroll & L_SCROLL)
+			ofsy1= (float)SCROLLB;
+		if (v2d->scroll & R_SCROLL)
+			ofsy2= (float)SCROLLB;
+		if (v2d->scroll & T_SCROLL)
+			ofsx1= (float)SCROLLH;
+		if (v2d->scroll & B_SCROLL)
+			ofsx2= (float)SCROLLH;
 	}
 	
 	/* note: 0.375 is constant factor to get 1:1 correspondance with pixels */
-	wmOrtho2(C->window, v2d->cur.xmin+ofsx-0.375f, v2d->cur.xmax-0.375f, v2d->cur.ymin+ofsy-0.375f, v2d->cur.ymax-0.375f);
+	wmOrtho2(C->window, v2d->cur.xmin-ofsx1-0.375f, v2d->cur.xmax-ofsx2-0.375f, v2d->cur.ymin-ofsy1-0.375f, v2d->cur.ymax-ofsx2-0.375f);
 }
 
 /* Restore view matrices after drawing */
@@ -590,18 +590,60 @@ void UI_view2d_free_grid(View2DGrid *grid)
 struct View2DScrollers {
 	View2DGrid *grid;		/* grid for coordinate drawing */
 	
-	int vertmin, vertmax;	/* vertical scrollbar - current 'focus' button */
-	int hormin, hormax;		/* horizontal scrollbar - current 'focus' button */
+	int vert_min, vert_max;	/* vertical scrollbar - current 'focus' button */
+	int hor_min, hor_max;		/* horizontal scrollbar - current 'focus' button */
 };
 
+/* Calculate relevant scroller properties */
 View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short units, short clamp)
 {
 	View2DScrollers *scrollers;
+	rcti vert, hor;
+	float fac, totsize, scrollsize;
+	
+	vert= v2d->vert;
+	hor= v2d->hor;
 	
 	/* scrollers is allocated here... */
 	scrollers= MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 	
-	// ... add some stuff here...
+	/* slider 'buttons':
+	 *	- These should always remain within the visible region of the scrollbar
+	 *	- They represent the region of 'tot' that is visible in 'cur'
+	 */
+	/* slider 'button' extents - horizontal */
+	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+		totsize= v2d->tot.xmax - v2d->tot.xmin;
+		scrollsize= hor.xmax - hor.xmin;
+		
+		fac= (v2d->cur.xmin- v2d->tot.xmin) / totsize;
+		//if (fac < 0.0f) fac= 0.0f;
+		scrollers->hor_min= hor.xmin + (fac * scrollsize);
+		
+		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
+		//if (fac > 1.0f) fac= 1.0f;
+		scrollers->hor_max= hor.xmin + (fac * scrollsize);
+		
+		if (scrollers->hor_min > scrollers->hor_max) 
+			scrollers->hor_min= scrollers->hor_max;
+	}
+	
+	/* slider 'button' extents - vertical */
+	if (v2d->scroll & VERT_SCROLL) {
+		totsize= v2d->tot.ymax - v2d->tot.ymin;
+		scrollsize= vert.ymax - vert.ymin;
+		
+		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
+		//if (fac < 0.0f) fac= 0.0f;
+		scrollers->vert_min= vert.ymin + (fac * scrollsize);
+		
+		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
+		//if (fac > 1.0f) fac= 1.0f;
+		scrollers->vert_max= vert.ymin + (fac * scrollsize);
+		
+		if (scrollers->vert_min > scrollers->vert_max) 
+			scrollers->vert_min= scrollers->vert_max;
+	}
 	
 	return scrollers;
 }
@@ -611,19 +653,28 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *scrollers, int flag)
 {
 	const int darker= -40, dark= 0, light= 20, lighter= 50;
-	float fac, dfac, val, fac2, tim;
 	rcti vert, hor;
 	
 	vert= v2d->vert;
 	hor= v2d->hor;
 	
 	/* horizontal scrollbar */
-	if ((v2d->scroll & HOR_SCROLL) || (v2d->scroll & HOR_SCROLLO)) {
+	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
 		/* scroller backdrop */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
 		
-		// FIXME: add slider bar
+		/* slider 'button' */
+			// FIXME: implement fancy one... but only when we get this working first!
+		UI_ThemeColorShade(TH_SHADE1, dark);
+		glRecti(scrollers->hor_min,  hor.ymin,  scrollers->hor_max,  hor.ymax);
+		
+			/* draw lines on either end of 'box' */
+		glLineWidth(2.0);
+			UI_ThemeColorShade(TH_SHADE1, darker);
+			sdrawline(scrollers->hor_min, hor.ymin, scrollers->hor_min, hor.ymax);
+			sdrawline(scrollers->hor_max, hor.ymin, scrollers->hor_max, hor.ymax);
+		glLineWidth(1.0);
 		
 		/* decoration bright line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
@@ -635,6 +686,18 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		/* scroller backdrop  */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
+		
+		/* slider 'button' */
+			// FIXME: implement fancy one... but only when we get this working first!
+		UI_ThemeColorShade(TH_SHADE1, dark);
+		glRecti(vert.xmin,  scrollers->vert_min,  vert.xmax,  scrollers->vert_max);
+		
+			/* draw lines on either end of 'box' */
+		glLineWidth(2.0);
+			UI_ThemeColorShade(TH_SHADE1, darker);
+			sdrawline(vert.xmin, scrollers->vert_min, vert.xmax, scrollers->vert_min);
+			sdrawline(vert.xmin, scrollers->vert_max, vert.xmax, scrollers->vert_max);
+		glLineWidth(1.0);
 		
 		/* decoration black line */
 		UI_ThemeColorShade(TH_SHADE1, darker);

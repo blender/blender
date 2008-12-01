@@ -54,13 +54,12 @@
 /* 	This group of operators come in several forms:
  *		1) Modal 'dragging' with MMB - where movement of mouse dictates amount to pan view by
  *		2) Scrollwheel 'steps' - rolling mousewheel by one step moves view by predefined amount
- *		3) Scroller drag - similar to 1), but only while mouse is still in view
  *
  *	In order to make sure this works, each operator must define the following RNA-Operator Props:
  *		deltax, deltay 	- define how much to move view by (relative to zoom-correction factor)
  */
 
- /* ------------------ Shared 'core' stuff ---------------------- */
+/* ------------------ Shared 'core' stuff ---------------------- */
  
 /* temp customdata for operator */
 typedef struct v2dViewPanData {
@@ -92,7 +91,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	
 	/* set pointers to owners */
 	vpd->region= ar= C->region;
-	vpd->v2d= v2d= &C->region->v2d;
+	vpd->v2d= v2d= &ar->v2d;
 	
 	/* calculate translation factor - based on size of view */
 	winx= (float)(ar->winrct.xmax - ar->winrct.xmin);
@@ -241,8 +240,8 @@ void ED_View2D_OT_view_pan(wmOperatorType *ot)
 }
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
-// XXX should these be unified a bit?
 
+// XXX scroll down operator not working yet! (doesn't get called on wheeldownmouse for some reason)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
@@ -313,7 +312,7 @@ void ED_View2D_OT_view_scrollleft(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
-
+// XXX scroll down operator not working yet! (doesn't get called on wheeldownmouse for some reason)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
@@ -385,6 +384,161 @@ void ED_View2D_OT_view_scrollup(wmOperatorType *ot)
 }
 
 /* ********************************************************* */
+/* VIEW ZOOMING OPERATOR								 */
+
+/* 	This group of operators come in several forms:
+ *		1) Modal 'dragging' with MMB - where movement of mouse dictates amount to zoom view by
+ *		2) Scrollwheel 'steps' - rolling mousewheel by one step moves view by predefined amount
+ *		3) Pad +/- Keys - pressing each key moves the zooms the view by a predefined amount
+ *
+ *	In order to make sure this works, each operator must define the following RNA-Operator Props:
+ *		zoomfacx, zoomfacy	- sometimes it's still useful to have non-uniform scaling  
+ */
+
+/* ------------------ Shared 'core' stuff ---------------------- */
+
+/* temp customdata for operator */
+typedef struct v2dViewZoomData {
+	ARegion *region;		/* region we're operating in */
+	View2D *v2d;			/* view2d we're operating in */
+	
+	int startx, starty;		/* mouse x/y values in window when operator was initiated */
+	int lastx, lasty;		/* previous x/y values of mouse in window */
+} v2dViewZoomData;
+ 
+/* initialise zooming customdata */
+static int view_zoom_init(bContext *C, wmOperator *op)
+{
+	v2dViewZoomData *vzd;
+	ARegion *ar;
+	
+	/* regions now have v2d-data by default, so check for region */
+	if (C->region == NULL)
+		return 0;
+	
+	/* set custom-data for operator */
+	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
+	op->customdata= vzd;
+	
+	/* set pointers to owners */
+	vzd->region= ar= C->region;
+	vzd->v2d= &ar->v2d;
+	
+	return 1;
+}
+
+/* apply transform to view (i.e. adjust 'cur' rect) */
+static void view_zoom_apply(bContext *C, wmOperator *op)
+{
+	v2dViewZoomData *vzd= op->customdata;
+	View2D *v2d= vzd->v2d;
+	float dx, dy;
+	
+	/* calculate amount to move view by */
+	dx= (v2d->cur.xmax - v2d->cur.xmin) * (float)RNA_float_get(op->ptr, "zoomfacx");
+	dy= (v2d->cur.ymax - v2d->cur.ymin) * (float)RNA_float_get(op->ptr, "zoomfacy");
+	
+	/* only move view on an axis if change is allowed */
+	// FIXME: this still only allows for zooming around 'center' of view... userdefined center is more useful!
+	if ((v2d->keepofs & V2D_LOCKOFS_X)==0) {
+		v2d->cur.xmin += dx;
+		v2d->cur.xmax -= dx;
+	}
+	if ((v2d->keepofs & V2D_LOCKOFS_Y)==0) {
+		v2d->cur.ymin += dy;
+		v2d->cur.ymax -= dy;
+	}
+	
+	/* request updates to be done... */
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_AREA_REDRAW, 0, NULL);
+	/* XXX: add WM_NOTE_TIME_CHANGED? */
+}
+
+/* cleanup temp customdata  */
+static void view_zoom_exit(bContext *C, wmOperator *op)
+{
+	if (op->customdata) {
+		MEM_freeN(op->customdata);
+		op->customdata= NULL;				
+	}
+}
+
+/* ------------------ Single-step non-modal zoom (2 and 3) ---------------------- */
+
+/* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
+// FIXME: this should be invoke (with event pointer), so that we can do non-modal but require pointer for centerpoint
+static int view_zoomin_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_zoom_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - zooming in by uniform factor */
+	RNA_float_set(op->ptr, "zoomfacx", 0.0375);
+	RNA_float_set(op->ptr, "zoomfacy", 0.0375);
+	
+	/* apply movement, then we're done */
+	view_zoom_apply(C, op);
+	view_zoom_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_zoomin(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Zoom In";
+	ot->idname= "ED_View2D_OT_view_zoomin";
+	
+	/* api callbacks */
+	ot->exec= view_zoomin_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+}
+
+
+
+/* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
+// FIXME: this should be invoke (with event pointer), so that we can do non-modal but require pointer for centerpoint
+static int view_zoomout_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_zoom_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - zooming in by uniform factor */
+	RNA_float_set(op->ptr, "zoomfacx", -0.0375);
+	RNA_float_set(op->ptr, "zoomfacy", -0.0375);
+	
+	/* apply movement, then we're done */
+	view_zoom_apply(C, op);
+	view_zoom_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_zoomout(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Zoom Out";
+	ot->idname= "ED_View2D_OT_view_zoomout";
+	
+	/* api callbacks */
+	ot->exec= view_zoomout_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+}
+
+ 
+/* ********************************************************* */
 /* Registration */
 
 void ui_view2d_operatortypes(void)
@@ -395,6 +549,9 @@ void ui_view2d_operatortypes(void)
 	WM_operatortype_append(ED_View2D_OT_view_scrollright);
 	WM_operatortype_append(ED_View2D_OT_view_scrollup);
 	WM_operatortype_append(ED_View2D_OT_view_scrolldown);
+	
+	WM_operatortype_append(ED_View2D_OT_view_zoomin);
+	WM_operatortype_append(ED_View2D_OT_view_zoomout);
 }
 
 void UI_view2d_keymap(wmWindowManager *wm)
@@ -411,6 +568,11 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_upscroll", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	/* zoom */
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomout", WHEELUPMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomout", PADMINUS, KM_PRESS, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomin", PADPLUSKEY, KM_PRESS, 0, 0);
+	
 	
 	/* scrollbars */
 	//WM_keymap_add_item(&wm->view2dkeymap, "ED_V2D_OT_scrollbar_activate", MOUSEMOVE, 0, 0, 0);
