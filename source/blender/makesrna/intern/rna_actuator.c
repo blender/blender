@@ -52,6 +52,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 		{ACT_SCENE, "SCENE", "Scene", ""},
 		{ACT_RANDOM, "RANDOM", "Random", ""},
 		{ACT_MESSAGE, "MESSAGE", "Message", ""},
+		{ACT_ACTION, "ACTION", "Action", ""},
 		{ACT_CD, "CD", "CD", ""},
 		{ACT_GAME, "GAME", "Game", ""},
 		{ACT_VISIBILITY, "VISIBILITY", "Visibility", ""},

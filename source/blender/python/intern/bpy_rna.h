@@ -29,6 +29,9 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+extern PyTypeObject pyrna_struct_Type;
+extern PyTypeObject pyrna_prop_Type;
+
 typedef struct {
 	PyObject_VAR_HEAD /* required python macro   */
 	PointerRNA ptr;

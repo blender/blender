@@ -22,7 +22,7 @@ static PyObject *CreateGlobalDictionary( void )
 	
 	/* Add Modules */
 	item = BPY_rna_module();
-	PyDict_SetItemString( dict, "rna", item );
+	PyDict_SetItemString( dict, "bpy", item );
 	Py_DECREF(item);
 	
 	
