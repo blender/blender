@@ -27,13 +27,24 @@
  * no utility functions please
  */
 
+#ifndef BPY_COMPAT_H__
+#define BPY_COMPAT_H__
+
 /* if you are NOT using python 3.0 - define these */
 #if PY_VERSION_HEX < 0x03000000
 #define _PyUnicode_AsString PyString_AsString
+
+#ifndef PyUnicode_Check
 #define PyUnicode_Check PyString_Check
+#endif
+
 #define PyLong_FromSize_t PyInt_FromLong
 #define PyLong_AsSsize_t PyInt_AsLong
+
+#ifndef PyLong_Check
 #define PyLong_Check PyInt_Check
+#endif
+
 #define PyUnicode_FromString PyString_FromString
 #define PyUnicode_FromFormat PyString_FromFormat
 
@@ -47,3 +58,5 @@
 #if (PY_VERSION_HEX < 0x02050000)
 #define Py_ssize_t ssize_t
 #endif
+
+#endif /* BPY_COMPAT_H__ */

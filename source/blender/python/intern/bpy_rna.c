@@ -788,7 +788,7 @@ PyObject *pyrna_prop_items(BPy_PropertyRNA *self)
 {
 	PyObject *ret;
 	if (RNA_property_type(&self->ptr, self->prop) != PROP_COLLECTION) {
-		PyErr_SetString( PyExc_TypeError, "keys() is only valid for collection types" );
+		PyErr_SetString( PyExc_TypeError, "items() is only valid for collection types" );
 		ret = NULL;
 	} else {
 		PyObject *item;
