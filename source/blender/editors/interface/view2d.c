@@ -40,6 +40,7 @@
 #include "WM_api.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -47,12 +48,50 @@
 /* *********************************************************************** */
 /* Setup and Refresh Code */
 
+
+/* ---------------------- */
+
 /* Set view matrices to ortho for View2D drawing */
-// XXX in past, this was not always the case!
-void UI_view2d_ortho(const bContext *C, View2D *v2d)
+void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
-	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
+	ARegion *region= C->region;
+	int winx, winy;
+	float ofsx, ofsy;
+	
+	/* calculate extents of region */
+	winx= region->winrct.xmax - region->winrct.xmin;
+	winy= region->winrct.ymax - region->winrct.ymin;
+	ofsx= ofsy= 0.0f;
+	
+	/* these checks here make sure that the region is large-enough to show scrollers */
+	if ((winx > SCROLLB+10) && (winy > SCROLLH+10)) {
+		if (v2d->scroll) {
+			if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO))
+				ofsy= (float)-SCROLLB;
+			if (v2d->scroll & VERT_SCROLL)
+				ofsx= (float)-SCROLLH;
+		}
+	}
+	
+	/* note: 0.375 is constant factor to get 1:1 correspondance with pixels */
+	wmOrtho2(C->window, v2d->cur.xmin+ofsx-0.375f, v2d->cur.xmax-0.375f, v2d->cur.ymin+ofsy-0.375f, v2d->cur.ymax-0.375f);
 }
+
+/* Restore view matrices after drawing */
+void UI_view2d_view_restore(const bContext *C)
+{
+	ARegion *region= C->region;
+	int winx, winy;
+	
+	/* calculate extents of region */
+	winx= region->winrct.xmax - region->winrct.xmin;
+	winy= region->winrct.ymax - region->winrct.ymin;
+	
+	/* note: 0.375 is constant factor to get 1:1 correspondance with pixels */
+	wmOrtho2(C->window, -0.375f, winx-0.375f, -0.375f, winy-0.375f);
+}
+
+/* ---------------------- */
 
 /* Adjust mask size in response to view size changes */
 // XXX pre2.5 -> this used to be called  calc_scrollrcts()
@@ -110,8 +149,7 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 	
 	/* correct winx for scrollbars */
 	if (v2d->scroll & L_SCROLL) winx-= SCROLLB;
-	if (v2d->scroll & B_SCROLL) winy-= SCROLLH;
-	if (v2d->scroll & B_SCROLLO) winy-= SCROLLH; /* B_SCROLL and B_SCROLLO are basically same thing */
+	if (v2d->scroll & (B_SCROLL|B_SCROLLO)) winy-= SCROLLH;
 	
 	/* header completely closed window */
 	if (winy <= 0) return;
@@ -338,7 +376,7 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 /* View2DGrid is typedef'd in UI_view2d.h */
 struct View2DGrid {
 	float dx, dy;			/* stepsize (in pixels) between gridlines */
-	float startx, starty;	/* */
+	float startx, starty;	/* initial coordinates to start drawing grid from */
 	int powerx, powery;		/* step as power of 10 */
 };
 
@@ -387,7 +425,7 @@ static void step_to_grid(float *step, int *power, int unit)
 /* Intialise settings necessary for drawing gridlines in a 2d-view 
  *	- Currently, will return pointer to View2DGrid struct that needs to 
  *	  be freed with UI_view2d_free_grid()
- *	- Is used for scrollbar drawing too (for units drawing)  --> (XXX needs review)
+ *	- Is used for scrollbar drawing too (for units drawing)
  *	
  *	- unit	= V2D_UNIT_*  grid steps in seconds or frames 
  *	- clamp	= V2D_CLAMP_* only show whole-number intervals
@@ -548,7 +586,70 @@ void UI_view2d_free_grid(View2DGrid *grid)
 /* *********************************************************************** */
 /* Scrollbars */
 
+/* View2DScrollers is typedef'd in UI_view2d.h */
+struct View2DScrollers {
+	View2DGrid *grid;		/* grid for coordinate drawing */
+	
+	int vertmin, vertmax;	/* vertical scrollbar - current 'focus' button */
+	int hormin, hormax;		/* horizontal scrollbar - current 'focus' button */
+};
 
+View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short units, short clamp)
+{
+	View2DScrollers *scrollers;
+	
+	/* scrollers is allocated here... */
+	scrollers= MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
+	
+	// ... add some stuff here...
+	
+	return scrollers;
+}
+
+
+/* Draw scrollbars in the given 2d-region */
+void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *scrollers, int flag)
+{
+	const int darker= -40, dark= 0, light= 20, lighter= 50;
+	float fac, dfac, val, fac2, tim;
+	rcti vert, hor;
+	
+	vert= v2d->vert;
+	hor= v2d->hor;
+	
+	/* horizontal scrollbar */
+	if ((v2d->scroll & HOR_SCROLL) || (v2d->scroll & HOR_SCROLLO)) {
+		/* scroller backdrop */
+		UI_ThemeColorShade(TH_SHADE1, light);
+		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
+		
+		// FIXME: add slider bar
+		
+		/* decoration bright line */
+		UI_ThemeColorShade(TH_SHADE1, lighter);
+		sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
+	}
+	
+	/* vertical scrollbar */
+	if (v2d->scroll & VERT_SCROLL) {
+		/* scroller backdrop  */
+		UI_ThemeColorShade(TH_SHADE1, light);
+		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
+		
+		/* decoration black line */
+		UI_ThemeColorShade(TH_SHADE1, darker);
+		if (v2d->scroll & HOR_SCROLL) 
+			sdrawline(vert.xmax, vert.ymin+SCROLLH, vert.xmax, vert.ymax);
+		else 
+			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
+	}
+}
+
+/* free temporary memory used for drawing scrollers */
+void UI_view2d_free_scrollers(View2DScrollers *scrollers)
+{
+	MEM_freeN(scrollers);
+}
 
 /* *********************************************************************** */
 /* Coordinate Conversions */

@@ -49,57 +49,33 @@
 #include "UI_view2d.h"
 
 /* ********************************************************* */
+/* VIEW PANNING OPERATOR								 */
 
-/* ********************************************************* */
-/* View Panning Operator */
+/* 	This group of operators come in several forms:
+ *		1) Modal 'dragging' with MMB - where movement of mouse dictates amount to pan view by
+ *		2) Scrollwheel 'steps' - rolling mousewheel by one step moves view by predefined amount
+ *		3) Scroller drag - similar to 1), but only while mouse is still in view
+ *
+ *	In order to make sure this works, each operator must define the following RNA-Operator Props:
+ *		deltax, deltay 	- define how much to move view by (relative to zoom-correction factor)
+ */
 
-/* 
-operator state vars:  
-	(currently none) // XXX must figure out some vars to expose to user! 
-
-operator customdata:
-	area   			pointer to (active) area
-	x, y				last used mouse pos
-	(more, see below)
-
-functions:
-
-	init()   set default property values, find v2d based on context
-
-	apply()	split area based on state vars
-
-	exit()	cleanup, send notifier
-
-	cancel() remove duplicated area
-
-callbacks:
-
-	exec()   execute without any user interaction, based on state vars
-            call init(), apply(), exit()
-
-	invoke() gets called on mouse click in action-widget
-            call init(), add modal handler
-			call apply() with initial motion
-
-	modal()  accept modal events while doing it
-            call move-areas code with delta motion
-            call exit() or cancel() and remove handler
-
-*/
-
+ /* ------------------ Shared 'core' stuff ---------------------- */
+ 
+/* temp customdata for operator */
 typedef struct v2dViewPanData {
 	ARegion *region;		/* region we're operating in */
 	View2D *v2d;			/* view2d we're operating in */
 	
 	float facx, facy;		/* amount to move view relative to zoom */
 	
-		/* mouse stuff... */
-	int lastx, lasty;		/* previous x/y values of mouse in area */
-	int x, y;				/* current x/y values of mosue in area */
+		/* options for version 1 */
+	int startx, starty;		/* mouse x/y values in window when operator was initiated */
+	int lastx, lasty;		/* previous x/y values of mouse in window */
 } v2dViewPanData;
-
-
-static int pan_view_init(bContext *C, wmOperator *op)
+ 
+/* initialise panning customdata */
+static int view_pan_init(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
 	ARegion *ar;
@@ -123,19 +99,20 @@ static int pan_view_init(bContext *C, wmOperator *op)
 	winy= (float)(ar->winrct.ymax - ar->winrct.ymin);
 	vpd->facx= (v2d->cur.xmax - v2d->cur.xmin) / winx;
 	vpd->facy= (v2d->cur.ymax - v2d->cur.ymin) / winy;
-		
+	
 	return 1;
 }
 
-static void pan_view_apply(bContext *C, wmOperator *op)
+/* apply transform to view (i.e. adjust 'cur' rect) */
+static void view_pan_apply(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd= op->customdata;
 	View2D *v2d= vpd->v2d;
 	float dx, dy;
 	
 	/* calculate amount to move view by */
-	dx= vpd->facx * (vpd->lastx - vpd->x);
-	dy= vpd->facy * (vpd->lasty - vpd->y);
+	dx= vpd->facx * (float)RNA_int_get(op->ptr, "deltax");
+	dy= vpd->facy * (float)RNA_int_get(op->ptr, "deltay");
 	
 	/* only move view on an axis if change is allowed */
 	if ((v2d->keepofs & V2D_LOCKOFS_X)==0) {
@@ -147,67 +124,96 @@ static void pan_view_apply(bContext *C, wmOperator *op)
 		v2d->cur.ymax += dy;
 	}
 	
-	vpd->lastx= vpd->x;
-	vpd->lasty= vpd->y;
-
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	/* request updates to be done... */
+	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_AREA_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
 }
 
-static void pan_view_exit(bContext *C, wmOperator *op)
+/* cleanup temp customdata  */
+static void view_pan_exit(bContext *C, wmOperator *op)
 {
 	if (op->customdata) {
 		MEM_freeN(op->customdata);
-		op->customdata= NULL;
-		WM_event_remove_modal_handler(&C->window->handlers, op);				
+		op->customdata= NULL;				
 	}
-}
+} 
+ 
+/* ------------------ Modal Drag Version (1) ---------------------- */
 
-static int pan_view_exec(bContext *C, wmOperator *op)
+/* for 'redo' only, with no user input */
+static int view_pan_exec(bContext *C, wmOperator *op)
 {
-	if (!pan_view_init(C, op))
+	if (!view_pan_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	pan_view_apply(C, op);
-	pan_view_exit(C, op);
+	view_pan_apply(C, op);
+	view_pan_exit(C, op);
 	return OPERATOR_FINISHED;
 }
 
-static int pan_view_invoke(bContext *C, wmOperator *op, wmEvent *event)
+/* set up modal operator and relevant settings */
+static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	v2dViewPanData *vpd= op->customdata;
+	v2dViewPanData *vpd;
+	View2D *v2d;
 	
-	pan_view_init(C, op);
+	/* set up customdata */
+	if (!view_pan_init(C, op))
+		return OPERATOR_CANCELLED;
 	
 	vpd= op->customdata;
-	vpd->lastx= vpd->x= event->x;
-	vpd->lasty= vpd->y= event->y;
+	v2d= vpd->v2d;
 	
-	pan_view_apply(C, op);
-
+	/* set initial settings */
+	vpd->startx= vpd->lastx= event->x;
+	vpd->starty= vpd->lasty= event->y;
+	RNA_int_set(op->ptr, "deltax", 0);
+	RNA_int_set(op->ptr, "deltay", 0);
+	
+#if 0 // XXX - enable this when cursors are working properly
+	if (v2d->keepofs & V2D_LOCKOFS_X)
+		WM_set_cursor(C, BC_NS_SCROLLCURSOR);
+	else if (v2d->keepofs & V2D_LOCKOFS_Y)
+		WM_set_cursor(C, BC_EW_SCROLLCURSOR);
+	else
+		WM_set_cursor(C, BC_NSEW_SCROLLCURSOR);
+#endif // XXX - enable this when cursors are working properly
+	
 	/* add temp handler */
 	WM_event_add_modal_handler(&C->window->handlers, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int pan_view_modal(bContext *C, wmOperator *op, wmEvent *event)
+/* handle user input - calculations of mouse-movement need to be done here, not in the apply callback! */
+static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	v2dViewPanData *vpd= op->customdata;
 	
 	/* execute the events */
-	switch(event->type) {
+	switch (event->type) {
 		case MOUSEMOVE:
-			vpd->x= event->x;
-			vpd->y= event->y;
+		{
+			/* calculate new delta transform, then store mouse-coordinates for next-time */
+			RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
+			RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
+			vpd->lastx= event->x;
+			vpd->lasty= event->y;
 			
-			pan_view_apply(C, op);
+			view_pan_apply(C, op);
+		}
 			break;
 			
 		case MIDDLEMOUSE:
 			if (event->val==0) {
-				pan_view_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);				
+				/* calculate overall delta mouse-movement for redo */
+				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
+				
+				view_pan_exit(C, op);
+				//WM_set_cursor(C, CURSOR_STD);		// XXX - enable this when cursors are working properly	
+				WM_event_remove_modal_handler(&C->window->handlers, op);
+				
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -218,14 +224,164 @@ static int pan_view_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void ED_View2D_OT_view_pan(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Pan View";
 	ot->idname= "ED_View2D_OT_view_pan";
 	
 	/* api callbacks */
-	ot->exec= pan_view_exec;
-	ot->invoke= pan_view_invoke;
-	ot->modal= pan_view_modal;
+	ot->exec= view_pan_exec;
+	ot->invoke= view_pan_invoke;
+	ot->modal= view_pan_modal;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+}
+
+/* ------------------ Scrollwheel Versions (2) ---------------------- */
+// XXX should these be unified a bit?
+
+/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+static int view_scrollright_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_pan_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - only movement in positive x-direction */
+	RNA_int_set(op->ptr, "deltax", 20);
+	RNA_int_set(op->ptr, "deltay", 0);
+	
+	/* apply movement, then we're done */
+	view_pan_apply(C, op);
+	view_pan_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_scrollright(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Scroll Right";
+	ot->idname= "ED_View2D_OT_view_rightscroll";
+	
+	/* api callbacks */
+	ot->exec= view_scrollright_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+}
+
+
+
+/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+static int view_scrollleft_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_pan_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - only movement in negative x-direction */
+	RNA_int_set(op->ptr, "deltax", -20);
+	RNA_int_set(op->ptr, "deltay", 0);
+	
+	/* apply movement, then we're done */
+	view_pan_apply(C, op);
+	view_pan_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_scrollleft(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Scroll Left";
+	ot->idname= "ED_View2D_OT_view_leftscroll";
+	
+	/* api callbacks */
+	ot->exec= view_scrollleft_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+}
+
+
+/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+static int view_scrolldown_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_pan_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - only movement in positive x-direction */
+	RNA_int_set(op->ptr, "deltax", 0);
+	RNA_int_set(op->ptr, "deltay", -20);
+	
+	/* apply movement, then we're done */
+	view_pan_apply(C, op);
+	view_pan_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_scrolldown(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Scroll Down";
+	ot->idname= "ED_View2D_OT_view_downscroll";
+	
+	/* api callbacks */
+	ot->exec= view_scrolldown_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+}
+
+
+
+/* this operator only needs this single callback, where it callsthe view_pan_*() methods */
+static int view_scrollup_exec(bContext *C, wmOperator *op)
+{
+	/* initialise default settings (and validate if ok to run) */
+	if (!view_pan_init(C, op))
+		return OPERATOR_CANCELLED;
+	
+	/* set RNA-Props - only movement in negative x-direction */
+	RNA_int_set(op->ptr, "deltax", 0);
+	RNA_int_set(op->ptr, "deltay", 20);
+	
+	/* apply movement, then we're done */
+	view_pan_apply(C, op);
+	view_pan_exit(C, op);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_View2D_OT_view_scrollup(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Scroll Up";
+	ot->idname= "ED_View2D_OT_view_upscroll";
+	
+	/* api callbacks */
+	ot->exec= view_scrollup_exec;
+	
+	/* rna - must keep these in sync with the other operators */
+	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
 /* ********************************************************* */
@@ -234,6 +390,11 @@ void ED_View2D_OT_view_pan(wmOperatorType *ot)
 void ui_view2d_operatortypes(void)
 {
 	WM_operatortype_append(ED_View2D_OT_view_pan);
+	
+	WM_operatortype_append(ED_View2D_OT_view_scrollleft);
+	WM_operatortype_append(ED_View2D_OT_view_scrollright);
+	WM_operatortype_append(ED_View2D_OT_view_scrollup);
+	WM_operatortype_append(ED_View2D_OT_view_scrolldown);
 }
 
 void UI_view2d_keymap(wmWindowManager *wm)
@@ -243,11 +404,11 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	/* pan/scroll operators */
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	
-	//WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_scrollright", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
-	//WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_scrollleft", WHEELUPMOUSE, KM_CTRL, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	
-	//WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_scrolldown", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0);
-	//WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_scrollup", WHEELUPMOUSE, KM_SHIFT, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_upscroll", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
 	/* zoom */
 	

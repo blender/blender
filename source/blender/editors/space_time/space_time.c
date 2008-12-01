@@ -119,15 +119,15 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	winx= ar->winrct.xmax-ar->winrct.xmin;
 	winy= ar->winrct.ymax-ar->winrct.ymin;
-
+	
 	UI_view2d_update_size(v2d, winx, winy);
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	UI_view2d_ortho(C, v2d);
+	
+	UI_view2d_view_ortho(C, v2d);
 
 	/* start and end frame */
 	time_draw_sfra_efra(C, stime, ar);
@@ -143,6 +143,13 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* markers */
 	draw_markers_time(C, 0);
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	// FIXME: this is just a quick test
+	UI_view2d_draw_scrollers(C, &ar->v2d, NULL, (0));
 }
 
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)

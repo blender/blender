@@ -350,6 +350,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	awidth= width= ar->winrct.xmax - ar->winrct.xmin;
 	aheight= height= ar->winrct.ymax - ar->winrct.ymin;
 	
+	UI_view2d_update_size(v2d, awidth, aheight);
+	
 	/* create table */
 	cell.space= soutliner;
 	cell.lastrow= -1;
@@ -405,7 +407,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	rct.ymax= 0;
 	
 	/* set matrix for 2d-view controls */
-	UI_view2d_ortho(C, v2d);
+	//UI_view2d_view_init(C, v2d);
+	UI_view2d_view_ortho(C, v2d);
 	
 	/* create and draw table */
 	table= UI_table_create(rows, 2, &rct, rna_table_cell_func, &cell);
@@ -415,6 +418,13 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	RNA_property_collection_end(&cell.iter);
 
 	UI_table_free(table);
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	// FIXME: this is just a quick test
+	UI_view2d_draw_scrollers(C, &ar->v2d, NULL, (0));
 }
 
 static void outliner_main_area_free(ARegion *ar)
