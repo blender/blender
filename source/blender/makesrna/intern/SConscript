@@ -42,6 +42,12 @@ makesrna_tool.Append (LIBPATH = libdir)
 if env['BF_PROFILE']:
 	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
 
+if env['BF_DEBUG']:
+	makesrna_tool.Append(CFLAGS = env['BF_DEBUG_CFLAGS'])
+	makesrna_tool.Append(CCFLAGS = env['BF_DEBUG_CCFLAGS'])
+	if env['OURPLATFORM'] == 'win32-vc':
+		makesrna_tool.Append(LINKFLAGS = ['/DEBUG','/PDB:makesrna.pdb'])
+
 targetpath = root_build_dir+'/makesrna'
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetpath = '#' + targetpath
