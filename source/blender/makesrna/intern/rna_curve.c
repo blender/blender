@@ -35,9 +35,9 @@
 
 #else
 
-static void rna_def_path(BlenderRNA *brna);
-static void rna_def_nurbs(BlenderRNA *brna);
-static void rna_def_font(BlenderRNA *brna);
+static void rna_def_path(BlenderRNA *brna, StructRNA *srna);
+static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna);
+static void rna_def_font(BlenderRNA *brna, StructRNA *srna);
 
 void rna_def_curve(BlenderRNA *brna)
 {
@@ -46,9 +46,9 @@ void rna_def_curve(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Curve", "ID", "Curve");
 	
-	rna_def_path(brna);
-	rna_def_nurbs(brna);
-	rna_def_font(brna);
+	rna_def_path(brna, srna);
+	rna_def_nurbs(brna, srna);
+	rna_def_font(brna, srna);
 	
 	/* Number values */
 	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
@@ -124,9 +124,8 @@ void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
 }
 
-static void rna_def_path(BlenderRNA *brna)
+static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	/* number values */
@@ -153,9 +152,8 @@ static void rna_def_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset Path Distance", "Children will use TimeOffs value as path distance offset.");
 }
 
-static void rna_def_nurbs(BlenderRNA *brna)
+static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	/* flags */
@@ -168,9 +166,8 @@ static void rna_def_nurbs(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "No Puno Flip", "Don't flip vertex normals while rendering.");
 }
 
-static void rna_def_font(BlenderRNA *brna)
+static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	/* number values */
