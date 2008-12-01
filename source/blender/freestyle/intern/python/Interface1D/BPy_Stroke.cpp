@@ -15,6 +15,11 @@ extern "C" {
 
 /*---------------  Python API function prototypes for Stroke instance  -----------*/
 static int Stroke___init__(BPy_Stroke *self, PyObject *args, PyObject *kwds);
+static PyObject * Stroke___iter__(PyObject *self);
+
+static Py_ssize_t Stroke_length( BPy_Stroke *self );
+static PyObject * Stroke_item( BPy_Stroke *self, Py_ssize_t i );
+static PyObject * Stroke___getitem__( BPy_Stroke *self, PyObject *item );
 
 static PyObject * Stroke_ComputeSampling( BPy_Stroke *self, PyObject *args );
 static PyObject * Stroke_Resample( BPy_Stroke *self, PyObject *args );
@@ -38,6 +43,7 @@ static PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args);
 
 /*----------------------Stroke instance definitions ----------------------------*/
 static PyMethodDef BPy_Stroke_methods[] = {	
+	{"__getitem__", ( PyCFunction ) Stroke___getitem__, METH_O, "(int i) Returns the i-th StrokeVertex constituting the Stroke."},
 	{"ComputeSampling", ( PyCFunction ) Stroke_ComputeSampling, METH_VARARGS, "(int nVertices) Compute the sampling needed to get nVertices vertices. If the specified number of vertices is less than the actual number of vertices, the actual sampling value is returned."},
 		{"Resample", ( PyCFunction ) Stroke_Resample, METH_VARARGS, "(float f | int n) Resampling method. If the argument is a float, Resamples the curve with a given sampling; if this sampling is < to the actual sampling value, no resampling is done. If the argument is an integer, Resamples the curve so that it eventually has n. That means it is going to add n-vertices_size, if vertices_size is the number of points we already have. Is vertices_size >= n, no resampling is done."},
 	{"RemoveVertex", ( PyCFunction ) Stroke_RemoveVertex, METH_VARARGS, "(StrokeVertex sv) Removes the stroke vertex sv from the stroke. The length and curvilinear abscissa are updated consequently."},
@@ -63,6 +69,19 @@ static PyMethodDef BPy_Stroke_methods[] = {
 
 /*-----------------------BPy_Stroke type definition ------------------------------*/
 
+static PySequenceMethods Stroke_as_sequence = {
+	(lenfunc)Stroke_length,		/* sq_length */
+	NULL,						/* sq_concat */
+	NULL,						/* sq_repeat */
+	(ssizeargfunc)Stroke_item,	/* sq_item */
+	NULL,						/* sq_slice */
+	NULL,						/* sq_ass_item */
+	NULL,						/* sq_ass_slice */
+	NULL,						/* sq_contains */
+	NULL,						/* sq_inplace_concat */
+	NULL,						/* sq_inplace_repeat */
+};
+
 PyTypeObject Stroke_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,							/* ob_size */
@@ -81,7 +100,7 @@ PyTypeObject Stroke_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	&Stroke_as_sequence,        /* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
@@ -115,7 +134,7 @@ PyTypeObject Stroke_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
+	Stroke___iter__,            /* getiterfunc tp_iter; */
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
@@ -153,28 +172,70 @@ PyTypeObject Stroke_Type = {
 
 // Stroke ()
 // template<class InputVertexIterator> Stroke (InputVertexIterator iBegin, InputVertexIterator iEnd)
+//
+// pb: - need to be able to switch representation: InputVertexIterator <=> position
+//     - is it even used ? not even in SWIG version
 
 int Stroke___init__(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj1 = 0, *obj2 = 0;
+	PyObject *obj1 = NULL, *obj2 = NULL;
 
-    if (! PyArg_ParseTuple(args, "|OO", &obj1) )
+	if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
         return -1;
 
 	if( !obj1 && !obj2 ){
 		self->s = new Stroke();
-
-	// template<class InputVertexIterator> Stroke (InputVertexIterator iBegin, InputVertexIterator iEnd)
-	//
-	// pb: - need to be able to switch representation: InputVertexIterator <=> position
-	//     - is it even used ? not even in SWIG version
+	} else if ( obj1 && !obj2 ) {
+		if (! BPy_Stroke_Check(obj1) ) {
+			PyErr_SetString(PyExc_TypeError, "not a Stroke object");
+			return -1;
+		}
+		self->s = new Stroke(*( ((BPy_Stroke *)obj1)->s ));
 	} else {
+		PyErr_SetString(PyExc_NotImplementedError,
+			"Stroke(InputVertexIterator iBegin, InputVertexIterator iEnd) not implemented");
 		return -1;
 	}
 
 	self->py_if1D.if1D = self->s;
 
 	return 0;
+}
+
+PyObject * Stroke___iter__( PyObject *self ) {
+	StrokeInternal::StrokeVertexIterator sv_it( ((BPy_Stroke *)self)->s->strokeVerticesBegin() );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it, 0 );
+}
+
+Py_ssize_t Stroke_length( BPy_Stroke *self ) {
+	return self->s->strokeVerticesSize();
+}
+
+PyObject * Stroke_item( BPy_Stroke *self, Py_ssize_t i ) {
+	if (i < 0 || i >= (Py_ssize_t)self->s->strokeVerticesSize()) {
+		PyErr_SetString(PyExc_IndexError, "subscript index out of range");
+		return NULL;
+	}
+	return BPy_StrokeVertex_from_StrokeVertex_ptr( self->s->strokeVerticeAt(i) );
+}
+
+PyObject * Stroke___getitem__( BPy_Stroke *self, PyObject *item ) {
+	long i;
+
+	if (PyInt_Check(item)) {
+		i = PyInt_AS_LONG(item);
+	} else if (PyLong_Check(item)) {
+		i = PyLong_AsLong(item);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+	} else {
+		PyErr_SetString(PyExc_TypeError, "subscript indices must be integers");
+		return NULL;
+	}
+	if (i < 0) {
+		i += self->s->strokeVerticesSize();
+	}
+	return Stroke_item(self, i);
 }
 
 PyObject * Stroke_ComputeSampling( BPy_Stroke *self, PyObject *args ) {	
@@ -314,13 +375,19 @@ PyObject *Stroke_setTips( BPy_Stroke *self , PyObject *args) {
 }
 
 PyObject * Stroke_strokeVerticesBegin( BPy_Stroke *self , PyObject *args) {
-	StrokeInternal::StrokeVertexIterator sv_it( self->s->strokeVerticesBegin() );
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it );
+	float f = 0;
+
+	if(!( PyArg_ParseTuple(args, "|f", &f)  )){
+		cout << "ERROR: Stroke_pointsBegin" << endl;
+		Py_RETURN_NONE;
+	}
+	StrokeInternal::StrokeVertexIterator sv_it( self->s->strokeVerticesBegin(f) );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it, 0 );
 }
 
 PyObject * Stroke_strokeVerticesEnd( BPy_Stroke *self ) {
 	StrokeInternal::StrokeVertexIterator sv_it( self->s->strokeVerticesEnd() );
-	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it );
+	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it, 1 );
 }
 
 PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {

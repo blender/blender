@@ -548,6 +548,9 @@ public:
   StrokeInternal::StrokeVertexIterator strokeVerticesEnd();
   /*! Returns the number of StrokeVertex constituing the Stroke. */
   inline unsigned int strokeVerticesSize() const {return _Vertices.size();}
+
+  /*! Returns the i-th StrokeVertex constituting the Stroke. */
+  inline StrokeVertex* strokeVerticeAt(unsigned int i) {return _Vertices.at(i);}
   
   // Iterator access (Interface1D)
   /*! Returns an Interface0DIterator pointing on the first StrokeVertex of the

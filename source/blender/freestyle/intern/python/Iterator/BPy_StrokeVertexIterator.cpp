@@ -11,6 +11,7 @@ extern "C" {
 
 /*---------------  Python API function prototypes for StrokeVertexIterator instance  -----------*/
 static int StrokeVertexIterator___init__(BPy_StrokeVertexIterator *self, PyObject *args);
+static PyObject * StrokeVertexIterator_iternext( PyObject *obj );
 static PyObject * StrokeVertexIterator_t( BPy_StrokeVertexIterator *self );
 static PyObject * StrokeVertexIterator_u( BPy_StrokeVertexIterator *self );
 static PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexIterator *self );
@@ -81,8 +82,8 @@ PyTypeObject StrokeVertexIterator_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
+	PyObject_SelfIter,				/* getiterfunc tp_iter; */
+	(iternextfunc)StrokeVertexIterator_iternext,	/* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_StrokeVertexIterator_methods,	/* struct PyMethodDef *tp_methods; */
@@ -137,6 +138,23 @@ int StrokeVertexIterator___init__(BPy_StrokeVertexIterator *self, PyObject *args
 	self->py_it.it = self->sv_it;
 
 	return 0;
+}
+
+PyObject * StrokeVertexIterator_iternext( PyObject *obj ) {
+	BPy_StrokeVertexIterator *self = (BPy_StrokeVertexIterator *)obj;
+	StrokeVertex *sv;
+	if (self->reversed) {
+		if (self->sv_it->isBegin())
+			return NULL;
+		self->sv_it->decrement();
+		sv = self->sv_it->operator->();
+	} else {
+		if (self->sv_it->isEnd())
+			return NULL;
+		sv = self->sv_it->operator->();
+		self->sv_it->increment();
+	}
+	return BPy_StrokeVertex_from_StrokeVertex_ptr( sv );
 }
 
 PyObject * StrokeVertexIterator_t( BPy_StrokeVertexIterator *self ) {

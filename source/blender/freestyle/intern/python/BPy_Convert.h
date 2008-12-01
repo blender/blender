@@ -93,7 +93,7 @@ PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs );
 PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it );
 PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it );
 PyObject * BPy_CurvePointIterator_from_CurvePointIterator( CurveInternal::CurvePointIterator& cp_it );
-PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it);
+PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it, int reversed);
 PyObject * BPy_SVertexIterator_from_SVertexIterator( ViewEdgeInternal::SVertexIterator& sv_it );
 PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it );
 PyObject * BPy_ViewEdgeIterator_from_ViewEdgeIterator( ViewEdgeInternal::ViewEdgeIterator& ve_it );

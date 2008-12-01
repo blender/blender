@@ -252,10 +252,11 @@ PyObject * BPy_CurvePointIterator_from_CurvePointIterator( CurveInternal::CurveP
 	return py_cp_it;
 }
 
-PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it) {
+PyObject * BPy_StrokeVertexIterator_from_StrokeVertexIterator( StrokeInternal::StrokeVertexIterator& sv_it, int reversed) {
 	PyObject *py_sv_it = StrokeVertexIterator_Type.tp_new( &StrokeVertexIterator_Type, 0, 0 );
 	((BPy_StrokeVertexIterator *) py_sv_it)->sv_it = new StrokeInternal::StrokeVertexIterator( sv_it );
 	((BPy_StrokeVertexIterator *) py_sv_it)->py_it.it = ((BPy_StrokeVertexIterator *) py_sv_it)->sv_it;
+	((BPy_StrokeVertexIterator *) py_sv_it)->reversed = reversed;
 
 	return py_sv_it;
 }

@@ -47,7 +47,8 @@ class StrokeAttribute(Blender.Freestyle.StrokeAttribute):
 	pass
 
 class StrokeShader(Blender.Freestyle.StrokeShader):
-	pass
+	def getName(self):
+                return self.__class__.__name__
 
 class UnaryFunction0D(Blender.Freestyle.UnaryFunction0D):
 	pass
