@@ -34,16 +34,14 @@
 #if PY_VERSION_HEX < 0x03000000
 #define _PyUnicode_AsString PyString_AsString
 
-#ifndef PyUnicode_Check
+#undef PyUnicode_Check
 #define PyUnicode_Check PyString_Check
-#endif
 
 #define PyLong_FromSize_t PyInt_FromLong
 #define PyLong_AsSsize_t PyInt_AsLong
 
-#ifndef PyLong_Check
+#undef PyLong_Check
 #define PyLong_Check PyInt_Check
-#endif
 
 #define PyUnicode_FromString PyString_FromString
 #define PyUnicode_FromFormat PyString_FromFormat
