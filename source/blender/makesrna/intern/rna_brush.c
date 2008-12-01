@@ -35,7 +35,7 @@
 
 #else
 
-void RNA_def_brushclone(BlenderRNA *brna)
+void rna_def_brushclone(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -64,7 +64,7 @@ void RNA_def_brushclone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Opacity", "The amount of opacity of the clone image.");
 }
 
-void RNA_def_brush(BlenderRNA *brna)
+void rna_def_brush(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -156,6 +156,12 @@ void RNA_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");
+}
+
+void RNA_def_brush(BlenderRNA *brna)
+{
+	rna_def_brush(brna);
+	rna_def_brushclone(brna);
 }
 
 #endif

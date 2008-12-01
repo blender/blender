@@ -35,7 +35,7 @@
 
 #else
 
-void RNA_def_metaelem(BlenderRNA *brna)
+void rna_def_metaelem(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -75,7 +75,7 @@ void RNA_def_metaelem(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Stiffness", "Stiffness defines how much of the metaelement to fill.");
 	
-	/* flag */
+	/* flags */
 	prop= RNA_def_property(srna, "metaelem_negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_NEGATIVE);
 	RNA_def_property_ui_text(prop, "Negative Metaelement", "Set metaball as negative one.");
@@ -89,7 +89,7 @@ void RNA_def_metaelem(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale Metaelement Radius", "Scale metaball radius?");
 }
 
-void RNA_def_metaball(BlenderRNA *brna)
+void rna_def_metaball(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -122,6 +122,12 @@ void RNA_def_metaball(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "thresh");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Influence of metaelements.");
+}
+
+void RNA_def_meta(BlenderRNA *brna)
+{
+	rna_def_metaelem(brna);
+	rna_def_metaball(brna);
 }
 
 #endif
