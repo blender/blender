@@ -678,8 +678,36 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 	/* end outline */
 }
 
+static void ui_checkmark_box(int colorid, float x1, float y1, float x2, float y2)
+{
+	uiSetRoundBox(15);
+	UI_ThemeColorShade(colorid, -5);
+	gl_round_box_shade(GL_POLYGON, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2, -0.04, 0.03);
+	
+	UI_ThemeColorShade(colorid, -30);
+	gl_round_box(GL_LINE_LOOP, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2);
+
+}
+static void ui_checkmark(float x1, float y1, float x2, float y2)
+{
+	glEnable( GL_LINE_SMOOTH );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glLineWidth(1.5);
+	
+	glBegin( GL_LINE_STRIP );
+	glVertex2f(x1+5, (y1+(y2-y1)/2)-1);
+	glVertex2f(x1+8, (y1+(y2-y1)/2)-4);
+	glVertex2f(x1+13, (y1+(y2-y1)/2)+5);
+	glEnd();
+	
+	glLineWidth(1.0);
+	glDisable( GL_BLEND );
+	glDisable( GL_LINE_SMOOTH );	
+}
+
 /* small side double arrow for iconrow */
-static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
+static void ui_iconrow_arrows(float x1, float y1, float x2, float y2)
 {
 	glEnable( GL_POLYGON_SMOOTH );
 	glEnable( GL_BLEND );
@@ -702,7 +730,7 @@ static void ui_default_iconrow_arrows(float x1, float y1, float x2, float y2)
 }
 
 /* side double arrow for menu */
-static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
+static void ui_menu_arrows(float x1, float y1, float x2, float y2)
 {
 	/* 'point' first, then two base vertices */
 	uiTriangleFakeAA(x2-9, (y2-(y2-y1)/2)+6,
@@ -715,7 +743,7 @@ static void ui_default_menu_arrows(float x1, float y1, float x2, float y2)
 }
 
 /* left/right arrows for number fields */
-static void ui_default_num_arrows(float x1, float y1, float x2, float y2)
+static void ui_num_arrows(float x1, float y1, float x2, float y2)
 {
 	if( x2-x1 > 25) {	// 25 is a bit arbitrary, but small buttons cant have arrows
 
@@ -851,7 +879,7 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 			} else {
 				UI_ThemeColorShade(colorid, -45);
 			}
-				ui_default_iconrow_arrows(x1, y1, x2, y2);
+				ui_iconrow_arrows(x1, y1, x2, y2);
 			/* end iconrow double arrow */
 			break;
 		case MENU:
@@ -861,7 +889,7 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 			} else {
 				UI_ThemeColorShade(colorid, -80);
 			}
-			ui_default_menu_arrows(x1, y1, x2, y2);
+			ui_menu_arrows(x1, y1, x2, y2);
 			/* end menu double arrow */
 			break;
 	}	
@@ -931,33 +959,14 @@ static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, floa
 				/* check to see that there's room for the check mark
 				* draw a check mark, or if it's a TOG3, draw a + or - */
 				if (x2 - x1 > 20) {
-					uiSetRoundBox(15);
-					UI_ThemeColorShade(colorid, -5);
-					gl_round_box_shade(GL_POLYGON, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2, -0.04, 0.03);
-					
-					UI_ThemeColorShade(colorid, -20);
-					gl_round_box(GL_LINE_LOOP, x1+4, (y1+(y2-y1)/2)-5, x1+14, (y1+(y2-y1)/2)+4, 2);
+					ui_checkmark_box(colorid, x1, y1, x2, y2);
 					
 					/* TOG3 is handled with ui_tog3_invert() 
 						*  remember to update checkmark drawing there too*/
 					if((flag & UI_SELECT) && (type != TOG3)) {
 						UI_ThemeColorShade(colorid, -140);
-						
-						glEnable( GL_LINE_SMOOTH );
-						glEnable( GL_BLEND );
-						glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-						glLineWidth(1.5);
-						
-						/* checkmark */
-						glBegin( GL_LINE_STRIP );
-						glVertex2f(x1+5, (y1+(y2-y1)/2)-1);
-						glVertex2f(x1+8, (y1+(y2-y1)/2)-4);
-						glVertex2f(x1+13, (y1+(y2-y1)/2)+5);
-						glEnd();
-						
-						glLineWidth(1.0);
-						glDisable( GL_BLEND );
-						glDisable( GL_LINE_SMOOTH );		
+	
+						ui_checkmark(x1, y1, x2, y2);
 					}
 					/* draw a dot: alternate, for layers etc. */
 				} else if(flag & UI_SELECT) {
@@ -994,7 +1003,7 @@ static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, floa
 				else UI_ThemeColorShade(colorid, -20);
 			}
 			
-			ui_default_num_arrows(x1, y1, x2, y2);
+			ui_num_arrows(x1, y1, x2, y2);
 			/* end side arrows */
 			break;
 	}	
@@ -1182,7 +1191,7 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 	
 		/* ICONROW DOUBLE-ARROW  */
 		M_DARK;
-		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		ui_iconrow_arrows(x1, y1, x2, y2);
 		/* END ICONROW DOUBLE-ARROW */
 		break;
 	case MENU:
@@ -1197,7 +1206,7 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 	
 		/* MENU DOUBLE-ARROW  */
 		M_DARK;
-		ui_default_menu_arrows(x1, y1, x2, y2);
+		ui_menu_arrows(x1, y1, x2, y2);
 		/* MENU DOUBLE-ARROW */
 		break;
 	}	
@@ -1360,7 +1369,7 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 			else M_LGREY;
 		}
 		
-		ui_default_num_arrows(x1, y1, x2, y2);
+		ui_num_arrows(x1, y1, x2, y2);
 		/* END SIDE ARROWS */
 	}
 }
@@ -1535,7 +1544,7 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 	case NUMABS:
 		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -60);
 		else UI_ThemeColorShade(colorid, -30);
-		ui_default_num_arrows(x1, y1, x2, y2);
+		ui_num_arrows(x1, y1, x2, y2);
 		break;
 
 	case ICONROW: 
@@ -1545,7 +1554,7 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
@@ -1554,7 +1563,7 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_menu_arrows(x1, y1, x2, y2);
+		ui_menu_arrows(x1, y1, x2, y2);
 		break;
 	}
 	
@@ -1685,19 +1694,19 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 	case NUM:
 	case NUMABS:
 		UI_ThemeColorShade(colorid, curshade-60);
-		ui_default_num_arrows(x1, y1, x2, y2);
+		ui_num_arrows(x1, y1, x2, y2);
 		break;
 
 	case ICONROW: 
 	case ICONTEXTROW: 
 		UI_ThemeColorShade(colorid, curshade-60);
-		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
 	case BLOCK: 
 		UI_ThemeColorShade(colorid, curshade-60);
-		ui_default_menu_arrows(x1, y1, x2, y2);
+		ui_menu_arrows(x1, y1, x2, y2);
 		break;
 	}
 }
@@ -1796,7 +1805,7 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 	case NUMABS:
 		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -60);
 		else UI_ThemeColorShade(colorid, -30);
-		ui_default_num_arrows(x1, y1, x2, y2);
+		ui_num_arrows(x1, y1, x2, y2);
 		break;
 
 	case ICONROW: 
@@ -1806,7 +1815,7 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
@@ -1816,7 +1825,7 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_menu_arrows(x1, y1, x2, y2);
+		ui_menu_arrows(x1, y1, x2, y2);
 		break;
 	}
 	
@@ -2908,9 +2917,18 @@ static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, 
 	case NUMABS:
 		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -120);
 		else UI_ThemeColorShade(colorid, -90);
-		ui_default_num_arrows(x1, y1, x2, y2);
+		ui_num_arrows(x1, y1, x2, y2);
 		break;
 
+	case TOG:
+		ui_checkmark_box(colorid, x1, y1, x2, y2);
+		
+		if(flag & UI_SELECT) {
+			UI_ThemeColorShade(colorid, -140);
+			ui_checkmark(x1, y1, x2, y2);
+		}
+		break;
+		
 	case ICONROW: 
 	case ICONTEXTROW: 
 		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
@@ -2918,7 +2936,7 @@ static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, 
 		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_iconrow_arrows(x1, y1, x2, y2);
+		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
@@ -2928,7 +2946,7 @@ static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, 
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
 
 		UI_ThemeColorShade(colorid, -50);
-		ui_default_menu_arrows(x1, y1, x2, y2);
+		ui_menu_arrows(x1, y1, x2, y2);
 		break;
 	}
 }
