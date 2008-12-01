@@ -47,6 +47,8 @@ using namespace std;
 # include "../rendering/GLDebugRenderer.h"
 //# include <QGLViewer/qglviewer.h>
 
+# include "../stroke/BlenderStrokeRenderer.h"
+
 
 //soc
 #include "AppGLWidget_camera.h"
@@ -81,12 +83,8 @@ public:
 		inline unsigned int height() { return _height; }
 		inline void setWidth( unsigned int width ) { _width = width; }
 		inline void setHeight( unsigned int height ) { _height = height; }
-		
-		void updateGL();
-		void makeCurrent();
 	
 	// not-inherited
-		void saveSnapshot(bool b);
 		void setStateFileName(const string& name);
 	
 
@@ -157,20 +155,20 @@ public:
   {
     _SilhouetteRootNode->AddChild(iSilhouette);
     //ToggleSilhouette(true);
-    updateGL();
+    
   }
 
   inline void Add2DSilhouette(NodeGroup *iSilhouette)
   {
     //_pFENode->AddChild(iSilhouette);
     //ToggleSilhouette(true);
-    updateGL();
+    
   }
 
   inline void Add2DVisibleSilhouette(NodeGroup *iVSilhouette)
   {
     //_pVisibleSilhouetteNode->AddChild(iVSilhouette);
-    updateGL();
+    
   }
 
   inline void setDebug(NodeGroup* iDebug)
@@ -187,7 +185,7 @@ public:
   inline void AddDebug(NodeGroup* iDebug)
   {
     _DebugRootNode->AddChild(iDebug);
-    updateGL();
+    
   }
 
   inline void DetachModel(Node *iModel)
@@ -215,7 +213,7 @@ public:
     //_p2DNode.DetachChildren();
     //_pFENode->DetachChildren();
     //_pVisibleSilhouetteNode->DetachChildren();
-    updateGL();
+    
   }
 
   inline void DetachSilhouette()
@@ -224,20 +222,20 @@ public:
     //_pFENode->DetachChildren();
     //_pVisibleSilhouetteNode->DetachChildren();
     _p2DSelectionNode->destroy();
-    //updateGL(); //FIXME
+    // //FIXME
   }
 
   inline void DetachVisibleSilhouette()
   {
     //_pVisibleSilhouetteNode->DetachChildren();
     _p2DSelectionNode->destroy();
-    updateGL();
+    
   }
 
   inline void DetachDebug()
   {
     _DebugRootNode->DetachChildren();
-    updateGL();
+    
   }
 
   void setMainWindow(QMainWindow *iMainWindow) ;
@@ -252,31 +250,26 @@ public:
   
   inline void RetriveModelViewMatrix(float *p)
   {
-    makeCurrent();
     glGetFloatv(GL_MODELVIEW_MATRIX, p);
   }
   inline void RetriveModelViewMatrix(real *p)
   {
-    makeCurrent();
     glGetDoublev(GL_MODELVIEW_MATRIX, p);
   }
 
   inline void RetrieveProjectionMatrix(float *p)
   {
-    makeCurrent();
     glGetFloatv(GL_PROJECTION_MATRIX, p);
 
   }
   inline void RetrieveProjectionMatrix(real *p)
   {
-    makeCurrent();
     glGetDoublev(GL_PROJECTION_MATRIX, p);
 
   }
 
   inline void RetrieveViewport(int *p)
   {
-    makeCurrent();
     glGetIntegerv(GL_VIEWPORT,(GLint *)p);
   }
   
@@ -316,7 +309,7 @@ public:
   inline void ToggleSilhouette(bool enabled) 
   {
     _fedges = enabled;
-    updateGL();
+    
   }
   
   // Reinit the renderers which need to be informed
@@ -326,7 +319,7 @@ public:
   inline void setSelectedFEdge(FEdge* iFEdge) { _pDebugRenderer->setSelectedFEdge(iFEdge); }
 
   inline GLDebugRenderer* debugRenderer() { return _pDebugRenderer; }
-  inline void toggle3D() { _Draw3DScene == true ? _Draw3DScene = false : _Draw3DScene = true; updateGL();}
+  inline void toggle3D() { _Draw3DScene == true ? _Draw3DScene = false : _Draw3DScene = true; }
 
   /*! glReadPixels */
   typedef enum{
@@ -341,7 +334,7 @@ public:
                   PixelFormat format,
                   float *pixels) 
   {
-    makeCurrent();
+    
     //glReadBuffer(GL_FRONT); //in reality: glReadBuffer and glDrawBuffer are both set to GL_BACK
     //glReadBuffer(GL_BACK);
     GLenum glformat;
@@ -362,31 +355,13 @@ public:
     glReadPixels(x,y,width, height, glformat, GL_FLOAT, (GLfloat*)pixels);
   }
 
-  void clear() { makeCurrent(); glClear(GL_COLOR_BUFFER_BIT ); }
-
-  void prepareCanvas();
-  void releaseCanvas();
+  void clear() { glClear(GL_COLOR_BUFFER_BIT ); }
 
   typedef enum {
     FRONT,
     BACK
   } GLBuffer;
 
-  // void setReadPixelsBuffer(int iBuffer) 
-  // {
-  //   makeCurrent();
-  //   switch(iBuffer)
-  //   {
-  //   case FRONT:
-  //     glReadBuffer(GL_FRONT);
-  //     break;
-  //   case BACK:
-  //     glReadBuffer(GL_BACK);
-  //     break;
-  //   default:
-  //     break;
-  //   }
-  // }
 
   BBox<Vec3r> scene3DBBox() const { return _ModelRootNode->bbox(); }
 
@@ -508,7 +483,7 @@ protected:
   GLBBoxRenderer *_pBBoxRenderer;
   GLMonoColorRenderer *_pMonoColorRenderer;
   GLDebugRenderer *_pDebugRenderer;
-  
+
   QMainWindow *_pMainWindow;
 
   Chronometer _Chrono;

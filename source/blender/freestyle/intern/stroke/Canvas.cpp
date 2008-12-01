@@ -108,30 +108,11 @@ void Canvas::Draw()
 
   for(unsigned i = 0; i < _StyleModules.size(); i++) {
     _current_sm = _StyleModules[i];
-    if (!_StyleModules[i]->getModified())
-    {
 
-	if (_StyleModules[i]->getDrawable() && _Layers[i]) {
-		if (_basic)
-			_Layers[i]->RenderBasic(_Renderer);
-		else
-			_Layers[i]->Render(_Renderer);
-	}
-	continue;
-
-
-    }
     if (i < _Layers.size() && _Layers[i])
       delete _Layers[i];
 
     _Layers[i] = _StyleModules[i]->execute();
-
-	if (_StyleModules[i]->getDrawable() && _Layers[i]) {
-		if (_basic)
-			_Layers[i]->RenderBasic(_Renderer);
-		else
-			_Layers[i]->Render(_Renderer);
-	}
 
     timestamp->increment();
   }

@@ -121,6 +121,7 @@ void GLStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
     for(Strip::vertex_container::iterator v=vertices.begin(), vend=vertices.end();
     v!=vend;
     ++v){
+	
       StrokeVertexRep * svRep = (*v);
       Vec3r color = svRep->color();
       real alpha = svRep->alpha();

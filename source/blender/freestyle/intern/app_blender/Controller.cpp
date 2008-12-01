@@ -48,22 +48,17 @@
 #include "Controller.h"
 #include "../view_map/ViewMap.h"
 #include "../winged_edge/Curvature.h"
-//#include "QGLBasicWidget.h"
-//#include <qimage.h>
 #include "../image/Image.h"
 #include "../view_map/SteerableViewMap.h"
 #include "../stroke/PSStrokeRenderer.h"
 #include "../stroke/TextStrokeRenderer.h"
 #include "../stroke/StyleModule.h"
 
-#ifndef WIN32
-//# include "GLXOffscreenBuffer.h"
-//# include "GLXOffscreenBuffer.h"
-#endif
-
 #include "../system/StringUtils.h"
 
 #include "../scene_graph/BlenderFileLoader.h"
+
+#include "../../FRS_freestyle.h"
 
 Controller::Controller()
 {
@@ -252,8 +247,6 @@ int Controller::LoadMesh(Render *re)
   //      delete ws_builder;
   //      ws_builder = 0;
   //    }
-  _pView->updateGL();
-  
 
 	//soc QFileInfo qfi(iFileName);
 	//soc string basename((const char*)qfi.fileName().toAscii().data());
@@ -341,17 +334,7 @@ void Controller::CloseFile()
   _Grid.clear();
   _SceneNumFaces = 0;
   _minEdgeSize = DBL_MAX;
-  //  _pView2D->DetachScene();
-  //  if(NULL != _SRoot)
-  //  {
-  //    int ref = _SRoot->destroy();
-  //    if(0 == ref)
-  //    {
-  //      //_SRoot->addRef();
-  //      delete _SRoot;
-  //      _SRoot = NULL;
-  //    }
-  //  }
+
 }
 
 //  static const streamsize buffer_size = 512 * 1024;
@@ -597,18 +580,25 @@ void Controller::ComputeViewMap()
   // we need to perform all these operations while the 
   // 3D context is on.
   _pView->set3DContext();
-  float src[3] = { 0, 0, 0 };
-  float vp_tmp[3] = { 0, 0, 0 };
-  _pView->_camera->getWorldCoordinatesOf(src, vp_tmp);
-  Vec3r vp(vp_tmp[0], vp_tmp[1], vp_tmp[2]);
+  Vec3r vp( freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
 
-  real mv[4][4];
-  _pView->RetriveModelViewMatrix((real *)mv);
-  // retrieve the projection matrix:
-  real proj[4][4];
-  _pView->RetrieveProjectionMatrix((real *)proj);
-  int viewport[4];
-  _pView->RetrieveViewport(viewport);  
+ 	real mv[4][4];
+	for( int i= 0; i < 4; i++)
+		for( int j= 0; j < 4; j++)
+			mv[i][j] = freestyle_mv[i][j];
+
+
+	real proj[4][4];
+	for( int i= 0; i < 4; i++)
+		for( int j= 0; j < 4; j++)
+			proj[i][j] = freestyle_proj[i][j];
+
+
+	int viewport[4];
+	for( int i= 0; i < 4; i++)
+		viewport[i] = freestyle_viewport[i];
+
+
   real focalLength = _pView->GetFocalLength();
 
   // Flag the WXEdge structure for silhouette edge detection:
@@ -632,7 +622,14 @@ void Controller::ComputeViewMap()
   vmBuilder.setEnableQI(_EnableQI);
   vmBuilder.setViewpoint(Vec3r(vp));
   
-  vmBuilder.setTransform(mv, proj, viewport, focalLength, _pView->GetAspect(), _pView->GetFovyRadian());
+cout << "focalLength: " << focalLength << endl;
+cout << "aspect: " << _pView->GetAspect() << endl;
+cout << "fovyradian: " << _pView->GetFovyRadian() << endl;
+
+cout << "znear: " << _pView->znear() << endl;
+cout << "zfar: " << _pView->zfar() << endl;
+
+  vmBuilder.setTransform( mv, proj,viewport, focalLength, _pView->GetAspect(), _pView->GetFovyRadian());
   vmBuilder.setFrustum(_pView->znear(), _pView->zfar());
   
   vmBuilder.setGrid(&_Grid);
@@ -843,8 +840,15 @@ void Controller::DrawStrokes()
   _Chrono.start();
   _Canvas->Draw();
   real d = _Chrono.stop();
-  cout << "Strokes drawing  : " << d << endl;
+  cout << "Strokes generation  : " << d << endl;
   resetModified();
+}
+
+void Controller::RenderBlender(Render *re) {
+	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer;
+  	_Canvas->Render( blenderRenderer );
+	blenderRenderer->RenderScene(re);
+	blenderRenderer->Close();
 }
 
 void Controller::InsertStyleModule(unsigned index, const char *iFileName)
@@ -898,7 +902,6 @@ void Controller::SwapStyleModules(unsigned i1, unsigned i2)
 void Controller::toggleLayer(unsigned index, bool iDisplay)
 {
   _Canvas->setVisible(index, iDisplay);
-  _pView->updateGL();
 }
 
 void Controller::setModified(unsigned index, bool iMod)
@@ -915,10 +918,6 @@ void Controller::updateCausalStyleModules(unsigned index) {
     //_pStyleWindow->setModified(*it, true);
     _Canvas->setModified(*it, true);
   }
-}
-
-void Controller::saveSnapshot(bool b) {
- _pView->saveSnapshot(b);
 }
 
 void Controller::resetModified(bool iMod)

@@ -34,6 +34,7 @@
 #include "../scene_graph/NodeShape.h"
 #include "../scene_graph/VertexRep.h"
 #include "AppConfig.h"
+#include "AppCanvas.h"
 
 #include "../system/StringUtils.h"
 
@@ -203,7 +204,6 @@ AppGLWidget::~AppGLWidget()
       _pDebugRenderer = NULL;
     }
 
-  makeCurrent();
   //saveToFile(filename);
 }
 
@@ -285,11 +285,6 @@ void AppGLWidget::init()
    //glEnable(GL_BLEND);
    NodeLight *light = new NodeLight;
    _Light.AddChild(light);
-
-   // Change QGLViewer's default shortcut for snapshots
-   //setShortcut(QGLViewer::SAVE_SCREENSHOT, Qt::CTRL + Qt::Key_W);
-   //   setShortcutKey (QGLViewer::SAVE_SCREENSHOT, Key_W);
-   //   setShortcutStateKey(QGLViewer::SAVE_SCREENSHOT, ControlButton);
   
    cout << "Renderer (GL)    : " << glGetString(GL_RENDERER) << endl
 	<< "Vendor (GL)      : " << glGetString(GL_VENDOR) << endl << endl;
@@ -325,9 +320,6 @@ void AppGLWidget::draw()
   if (true == _Draw2DScene) {
     Draw2DScene(_pGLRenderer);
     set3DContext();
-  }
-  if(_record){
-    saveSnapshot(true);
   }
 }
 
@@ -409,41 +401,6 @@ void AppGLWidget::DrawScene(SceneVisitor *iRenderer)
   glPopAttrib();
 }
 
-void AppGLWidget::prepareCanvas()
-{
-  makeCurrent();
-  glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-  // if(_frontBufferFlag){
-  //   if(_backBufferFlag)
-  //     glDrawBuffer(GL_FRONT_AND_BACK);
-  //   else
-  //     glDrawBuffer(GL_FRONT);
-  // }
-  // else if(_backBufferFlag)
-  //   glDrawBuffer(GL_BACK);
-	//glDrawBuffer( workingBuffer ); //soc
-
-  // Projection Matrix
-  //==================
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  
-  glOrtho(0,width(), 0, height(), -1.0, 1.0);
-  
-  //Modelview Matrix
-  //================
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-}
-
-void AppGLWidget::releaseCanvas()
-{
-  makeCurrent();
-  //glDrawBuffer( workingBuffer ); //soc
-  glPopAttrib();
-}
-
 #if 1 // FRS_antialiasing
 
 void AppGLWidget::init_jit(int osa)
@@ -518,6 +475,7 @@ void AppGLWidget::Draw2DScene(SceneVisitor *iRenderer)
 	  glAccum(GL_RETURN, 1.0);
 	}
 #endif
+	
   }
   
   glLoadIdentity();
@@ -670,13 +628,7 @@ bool AppGLWidget::getBackBufferFlag() {
 // COPIED FROM LIBQGLVIEWER
 //*******************************
 
-	// inherited 	
-	//Updates the display. Do not call draw() directly, use this method instead. 
-	void AppGLWidget::updateGL() {}
-
-	//Makes this widget's rendering context the current OpenGL rendering context. Useful with several viewers
-	void AppGLWidget::makeCurrent() { }
+	// inherited 
 
 	// not-inherited
 	 void AppGLWidget::setStateFileName(const string& name) { stateFileName_ = name; };
-	void AppGLWidget::saveSnapshot(bool b) {}

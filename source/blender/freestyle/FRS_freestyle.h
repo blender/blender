@@ -13,9 +13,14 @@ extern "C" {
 	extern float freestyle_sphere_radius;
 	extern float freestyle_dkr_epsilon;
 	
+	extern float freestyle_viewpoint[3];
+	extern float freestyle_mv[4][4];
+	extern float freestyle_proj[4][4];
+	extern int freestyle_viewport[4];
+	
 	void FRS_initialize();
 	void FRS_prepare(Render* re);
-	void FRS_render_GL(Render* re);
+	void FRS_render_Blender(Render* re);
 
 #ifdef __cplusplus
 }

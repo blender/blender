@@ -834,7 +834,7 @@ void Operators::create(UnaryPredicate1D& pred, vector<StrokeShader*> shaders) {
 	Stroke* stroke = createStroke(**it);
     if (stroke) {
       applyShading(*stroke, shaders);
-      canvas->RenderStroke(stroke);
+      //canvas->RenderStroke(stroke);
       _current_strokes_set.push_back(stroke);
     }
   }

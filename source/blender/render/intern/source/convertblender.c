@@ -4427,6 +4427,8 @@ void RE_Database_Free(Render *re)
 	free_occ(re);
 	free_strand_surface(re);
 	
+	if( re->freestyle_render ) RE_FreeRender(re->freestyle_render);
+	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
 	
@@ -4874,6 +4876,13 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		if((re->r.mode & R_SSS) && !re->test_break())
 			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
+				
+		/* Freestyle */
+		if((re->r.mode & R_EDGE_FRS ) && !re->test_break())
+			if(re->r.renderer==R_INTERN) {	
+				FRS_prepare(re);
+				FRS_render_Blender(re);
+		}
 	}
 	
 	if(re->test_break())

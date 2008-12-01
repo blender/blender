@@ -50,6 +50,7 @@ class ViewEdge;
 class AppCanvas;
 class InteractiveShader;
 class Shader;
+class StrokeRenderer;
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,7 +82,8 @@ public:
   void ComputeSteerableViewMap();
   void saveSteerableViewMapImages();
   void toggleEdgeTesselationNature(Nature::EdgeNature iNature);
-  void DrawStrokes();
+  void RenderBlender(Render *re);
+	void DrawStrokes();
   void SwapStyleModules(unsigned i1, unsigned i2);
   void InsertStyleModule(unsigned index, const char *iFileName);
   void AddStyleModule(const char *iFileName);
@@ -92,7 +94,6 @@ public:
   void setModified(unsigned index, bool iMod);
   void resetModified(bool iMod=false);
   void updateCausalStyleModules(unsigned index);
-  void saveSnapshot(bool b = false);
   void displayDensityCurves(int x, int y);
  
   
@@ -150,6 +151,9 @@ private:
   // Current directories
   //ConfigIO* _current_dirs;
 
+  // Canvas
+  AppCanvas *_Canvas;
+
   //View
   // 3D
   AppGLWidget *_pView;
@@ -199,7 +203,6 @@ private:
   real _EPSILON;
   real _bboxDiag;
 
-  AppCanvas *_Canvas;
 
   //AppStyleWindow *_pStyleWindow;
   //AppOptionsWindow *_pOptionsWindow;

@@ -1630,18 +1630,12 @@ static void do_render_3d(Render *re)
 	else
 	   RE_Database_FromScene(re, re->scene, 1);
 	
-	/* Freestyle */
-	if( re->r.mode & R_EDGE_FRS ) {
-		FRS_prepare(re);
-	}
-	
 	threaded_tile_processor(re);
 	
 	/* do left-over 3d post effects (flares) */
 	if(re->flag & R_HALO)
 		if(!re->test_break())
 			add_halo_flare(re);
-
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -2198,36 +2192,6 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
-static void freestyleRender(Render *re)
-{
-	// init render result
-	RE_FreeRenderResult(re->result);
-	re->result = new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	
-	// set camera
-	RE_SetCamera(re, re->scene->camera);
-	
-	// set up render database
-	if(render_scene_needs_vector(re))
-		RE_Database_FromScene_Vectors(re, re->scene);
-	else
-	   RE_Database_FromScene(re, re->scene, 1);
-	
-	// used to reobtain ogl context after RE_Database_FromScene call
-	re->display_clear(re->result);
-	
-	// Freestyle initialization
-	FRS_prepare(re);
-	
-	// run Freestyle
-	re->i.starttime = PIL_check_seconds_timer();
-	FRS_render_GL(re);
-	re->i.lastframetime = PIL_check_seconds_timer()- re->i.starttime;
-	re->stats_draw(&re->i);
-	
-	RE_Database_Free(re);
-}
-
 #ifndef DISABLE_YAFRAY
 /* yafray: main yafray render/export call */
 static void yafrayRender(Render *re)
@@ -2269,7 +2233,7 @@ static void yafrayRender(Render *re)
 				re->rectx= re->winx;
 				re->recty= re->winy;
 				
-				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
+				rres = new_render_result(re, &re->disprect, 0, RR_USEMEM);
 				
 				merge_render_result(rres, re->result);
 				RE_FreeRenderResult(re->result);
@@ -2322,15 +2286,10 @@ static void do_render_all_options(Render *re)
 #ifndef DISABLE_YAFRAY
 		if(re->r.renderer==R_YAFRAY)
 			yafrayRender(re);
-		else if(re->r.renderer==R_FREESTYLE)
-			freestyleRender(re);
 		else
 			do_render_composite_fields_blur_3d(re);
 #else
-		if(re->r.renderer==R_FREESTYLE)
-			freestyleRender(re);
-		else
-			do_render_composite_fields_blur_3d(re);
+		do_render_composite_fields_blur_3d(re);
 #endif
 	}
 	
@@ -2449,7 +2408,7 @@ static int is_rendering_allowed(Render *re)
 	}
 	
 	/* renderer */
-	if(!ELEM3(re->r.renderer, R_INTERN, R_YAFRAY, R_FREESTYLE)) {
+	if(!ELEM(re->r.renderer, R_INTERN, R_YAFRAY)) {
 		re->error("Unknown render engine set");
 		return 0;
 	}

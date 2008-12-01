@@ -33,13 +33,10 @@ public:
 
   virtual BBox<Vec3r> scene3DBBox() const ;
 
-  /*! update the canvas (display) */
-  virtual void update() ;
+	// abstract
+	virtual void RenderStroke(Stroke*);
+	virtual void update();
 
-  /*! Renders the created strokes */
-  virtual void Render(const StrokeRenderer *iRenderer);
-  virtual void RenderBasic(const StrokeRenderer *iRenderer);
-  virtual void RenderStroke(Stroke *iStroke) ;
 
   /*! accessors */
   virtual int width() const ;

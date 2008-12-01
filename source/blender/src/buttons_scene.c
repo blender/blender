@@ -2175,7 +2175,7 @@ static void render_panel_output(void)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_EDGE, B_NOP,"Edge",   115, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon Edge-enhance");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 175, 89, 75, 20, "Display Edge settings");
-	uiDefButBitI(block, TOG, R_EDGE_FRS, B_NOP,"Freestyle",   250, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Freestyle");
+	uiDefButBitI(block, TOG, R_EDGE_FRS, B_SWITCHRENDER,"Freestyle",   250, 89, 60, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Freestyle");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -2276,10 +2276,10 @@ static void render_panel_render(void)
 	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
 #ifndef DISABLE_YAFRAY
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1|Freestyle %x2", 
+	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
 												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 #else
-	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|Freestyle %x1", 
+	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0", 
 												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 #endif /* disable yafray */
 
@@ -3316,8 +3316,6 @@ static void render_panel_freestyle()
 	uiDefButBitI(block, TOG, FREESTYLE_SUGGESTIVE_CONTOURS_FLAG, B_NOP, "Suggestive Contours", 10, 130, 150, 20, &freestyle_flags, 0, 0, 0, 0, "Compute suggestive contours");
 	uiDefButF(block, NUM, B_NOP, "kr Derivative Epsilon", 10,110,300,20, &freestyle_dkr_epsilon, 0.0f, 10.0f, 0.1, 3, "Suggestive contour kr derivative epsilon");
 	uiBlockEndAlign(block);
-
-
 }
 
 static void layer_copy_func(void *lay_v, void *lay_p)
@@ -3538,10 +3536,8 @@ void render_panels()
 	}
 #endif
 
-	if (G.scene->r.renderer==R_FREESTYLE) {
+	if( G.scene->r.mode & R_EDGE_FRS )
 		render_panel_freestyle();
-	}
-
 
 }
 

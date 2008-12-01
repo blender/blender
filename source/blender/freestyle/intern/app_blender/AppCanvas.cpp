@@ -80,274 +80,50 @@ BBox<Vec3r> AppCanvas::scene3DBBox() const
 void AppCanvas::preDraw()
 {
   Canvas::preDraw();
-
-  _pViewer->prepareCanvas();
-  glClearColor(0,0,0,0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_LIGHTING);
-	glPolygonMode(GL_FRONT, GL_FILL);
-	glShadeModel(GL_SMOOTH);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-  glEnable(GL_BLEND);
 }
 
 void AppCanvas::init() 
 {
 
-  static bool firsttime = true;
-  if (firsttime) {
-
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		cerr << "Error: problem occurred while initializing GLEW" << endl;	
-	}
-	cout << "GLEW initialized: ";
-
-	if(glBlendEquation) {
-		cout << "using glBlendEquation" << endl;
-	} else if(glBlendEquationEXT) {
-		cout << "using glBlendEquationEXT" << endl;
-	} else {
-        _basic = true;
-        cout << "glBlendEquation or glBlendEquationEXT unavailable on this hardware -> switching to strokes basic rendering mode" << endl;
-     }
-    firsttime=false;
-   }
-
-  _Renderer = new GLStrokeRenderer;
-  if(!StrokeRenderer::loadTextures())
-    {
-      cerr << "unable to load stroke textures" << endl;
-      return;
-    }
+	//   static bool firsttime = true;
+	//   if (firsttime) {
+	// 
+	//   _Renderer = new BlenderStrokeRenderer;
+	//   if(!StrokeRenderer::loadTextures())
+	//     {
+	//       cerr << "unable to load stroke textures" << endl;
+	//       return;
+	//     }
+	// 	}
 }
 
 void AppCanvas::postDraw()
 {
-  //inverse frame buffer
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_BLEND);
-  _pViewer->releaseCanvas();
-
-  Canvas::postDraw();
+	Canvas::postDraw();
 }
 
 void AppCanvas::Erase()
 {
   Canvas::Erase();
-  //_pViewer->clear();
 }
+
+// Abstract
 
 #include "../image/GaussianFilter.h"
 void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) const
 {
   //static unsigned number = 0;
   float *rgb = new float[3*w*h];
-  _pViewer->readPixels(x,y,w,h,AppGLWidget::RGB,rgb);
+  //_pViewer->readPixels(x,y,w,h,AppGLWidget::RGB,rgb);
   oImage.setArray(rgb, width(), height(), w,h, x, y, false);
-  // FIXME
-  //  QImage qtmp(w, h, 32);
-  //  for(unsigned py=0;py<h;++py){
-  //    for(unsigned px=0;px<w;++px){
-  //      int r = (int)255*(oImage.getR(x+px,y+py));
-  //      int g = (int)255*(oImage.getG(x+px,y+py));
-  //      int b = (int)255*(oImage.getB(x+px,y+py));
-  //      qtmp.setPixel(px,py,qRgb(r,g,b));
-  //    }
-  //  }
-  //  qtmp.save("densityQuery"+QString::number(number)+".png", "PNG");
-  //  if(number == 1090){
-  //    RGBImage img;
-  //    float *rgbtmp = new float[3*width()*height()];
-  //    _pViewer->readPixels(0,0,width(),height(),AppGLWidget::RGB,rgbtmp);
-  //    img.setArray(rgbtmp, width(), height(), width(), height(), 0, 0, false);
-  //    QImage qtmp(width(), height(), 32);
-  //    for(unsigned py=0;py<height();++py){
-  //      for(unsigned px=0;px<width();++px){
-  //        int r = (int)255*(img.getR(px,py));
-  //        int g = (int)255*(img.getG(px,py));
-  //        int b = (int)255*(img.getB(px,py));
-  //        qtmp.setPixel(px,height()-1-py,qRgb(r,g,b));
-  //      }
-  //    }
-  //    qtmp.save("densityQuery"+QString::number(number)+".png", "PNG");
-  //    
-  //    GaussianFilter filter;
-  //    filter.setSigma(4.0);
-  //    int bound = filter.getBound();
-  //    QImage qtmp2(width(), height(), 32);
-  //    for(int py2=0;py2<height();++py2){
-  //      for(int px2=0;px2<width();++px2){  
-  //        if( (px2-bound < 0) || (px2+bound>width())
-  //	      || (py2-bound < 0) || (py2+bound>height()))
-  //          continue;
-  //        int g = 255*filter.getSmoothedPixel<RGBImage>(&img, px2,py2);
-  //        qtmp2.setPixel(px2,height()-1-py2,qRgb(g,g,g));
-  //      }
-  //    }
-  //    qtmp2.save("blurredCausalDensity"+QString::number(number)+".png", "PNG");
-  //  }
-  //  cout << number << endl;
-  //  ++number;
 }
 
 void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) const
 {
   float *rgb = new float[w*h];
-  _pViewer->readPixels(x,y,w,h,AppGLWidget::DEPTH,rgb);
+  //_pViewer->readPixels(x,y,w,h,AppGLWidget::DEPTH,rgb);
   oImage.setArray(rgb, width(), height(), w,h, x, y, false);
 }
-
-void AppCanvas::update()
-{
-//  static int counter = 0;
-//  char fileName[100] = "framebuffer";
-//  char number[10];
-//
-  _pViewer->updateGL();
-  //_pViewer->swapBuffers();
-  //QImage fb = _pViewer->grabFrameBuffer();
-  //  sprintf(number, "%3d", counter);
-  //  strcat(fileName, number);
-  //  strcat(fileName, ".bmp");
-  //  fb.save(fileName, "BMP");
-  //counter++;
-}
-
-void AppCanvas::Render(const StrokeRenderer *iRenderer)
-{
-  if(_basic){
-    RenderBasic(iRenderer);
-    return;
-  }
-
-  glClearColor(1,1,1,1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDisable(GL_LIGHTING);
-  glPolygonMode(GL_FRONT, GL_FILL);
-  glShadeModel(GL_SMOOTH);
-  
-  if(_pViewer->draw3DsceneEnabled())
-  {
-    glClearColor(1,1,1,0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    
-    glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-    _pViewer->set3DContext();
-    _pViewer->DrawScene(_pViewer->glRenderer());
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-  }
-  
-  
-  glDisable(GL_DEPTH_TEST);
-  FRS_glBlendEquation(GL_ADD);
-  
-  glBlendFunc(GL_DST_COLOR, GL_ZERO);
-  
-  glPushAttrib(GL_COLOR_BUFFER_BIT);
-  FRS_glBlendEquation(GL_FUNC_SUBTRACT);
-  glBlendFunc(GL_ONE, GL_ONE);
-  
-  glDisable(GL_TEXTURE_2D);
-  glEnable(GL_BLEND);
-  glColor4f(1,1,1,1);
-  glBegin(GL_TRIANGLE_STRIP);
-  {  
-    glVertex2f(0, 0);
-    glVertex2f(2048, 0);
-    glVertex2f(0, 2048);
-    glVertex2f(2048, 2048);
-  }  
-  glEnd();
-  glPopAttrib();
-  
-  glDisable(GL_DEPTH_TEST);
-  FRS_glBlendEquation(GL_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  
-  glEnable(GL_TEXTURE_2D);
-
-  Canvas::Render(iRenderer);
-  //  
-  glPushAttrib(GL_COLOR_BUFFER_BIT);
-  FRS_glBlendEquation(GL_FUNC_SUBTRACT);
-  glBlendFunc(GL_ONE, GL_ONE);
-  
-  glDisable(GL_TEXTURE_2D);
-  glEnable(GL_BLEND);
-  glColor3f(1,1,1);
-  glBegin(GL_TRIANGLE_STRIP);
-  { 
-    glVertex2f(0, 0);
-    glVertex2f(2048, 0);
-    glVertex2f(0, 2048);
-    glVertex2f(2048, 2048);
-  } 
-  glEnd();
-  glPopAttrib();
-  
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_BLEND);
-}
-
-void AppCanvas::RenderBasic(const StrokeRenderer *iRenderer)
-{
-  glClearColor(1,1,1,1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDisable(GL_LIGHTING);
-  glPolygonMode(GL_FRONT, GL_FILL);
-  glShadeModel(GL_SMOOTH);
-  
-  if(_pViewer->draw3DsceneEnabled())
-  {
-    glClearColor(1,1,1,0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    
-    glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-    _pViewer->set3DContext();
-    _pViewer->DrawScene(_pViewer->glRenderer());
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-  }
-
-  glBlendFunc(GL_DST_COLOR, GL_ZERO);
-
-  glDisable(GL_DEPTH_TEST);
-  glPushAttrib(GL_COLOR_BUFFER_BIT);
-  glEnable(GL_BLEND);
-  glPopAttrib();
-
-  glDisable(GL_DEPTH_TEST);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  
-  glEnable(GL_TEXTURE_2D);
-  Canvas::RenderBasic(iRenderer);
-
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_BLEND);
-}
-
 
 void AppCanvas::RenderStroke(Stroke *iStroke) {
 
@@ -355,8 +131,8 @@ void AppCanvas::RenderStroke(Stroke *iStroke) {
 		iStroke->RenderBasic(_Renderer);
 	else
 		iStroke->Render(_Renderer);
-
-  if(_pViewer->getRecordFlag()){
-     _pViewer->saveSnapshot(true);
-  }
 }
+
+
+void AppCanvas::update() {}
+
