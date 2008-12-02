@@ -31,9 +31,26 @@
 #include "rna_internal.h"
 
 #include "DNA_object_types.h"
+#include "DNA_property_types.h"
 
 #ifdef RNA_RUNTIME
-
+static struct StructRNA* rna_Object_gameproperties_type(struct CollectionPropertyIterator *iter)
+{
+	bProperty *property= (bProperty*)iter->ptr.data;
+	switch(property->type){
+		case PROP_BOOL:
+			return &RNA_GameBooleanProperty;
+		case PROP_INT:
+			return &RNA_GameIntProperty;
+		case PROP_FLOAT:
+			return &RNA_GameFloatProperty;
+		case PROP_STRING:
+			return &RNA_GameStringProperty;
+		case PROP_TIME:
+			return &RNA_GameTimeProperty;
+	}
+	return &RNA_UnknownType;
+}
 #else
 
 void RNA_def_object(BlenderRNA *brna)
@@ -76,10 +93,8 @@ void RNA_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
-	RNA_def_property_struct_type(prop, "GameProperty");
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, "rna_Object_gameproperties_type", 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Property", "Properties of this object.");
-
-
 }
 
 #endif
