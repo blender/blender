@@ -1015,8 +1015,8 @@ PyTypeObject pyrna_prop_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
-	PyObject_GenericGetAttr,	/* getattrofunc tp_getattro; */ /* will only use these if this is a subtype of a py class */
-	PyObject_GenericSetAttr,	/* setattrofunc tp_setattro; */
+	NULL, /*PyObject_GenericGetAttr - MINGW Complains, assign later */	/* getattrofunc tp_getattro; */ /* will only use these if this is a subtype of a py class */
+	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
 	NULL,                       /* PyBufferProcs *tp_as_buffer; */
@@ -1112,6 +1112,10 @@ PyObject *BPY_rna_module( void )
 	
 	if( PyType_Ready( &pyrna_struct_Type ) < 0 )
 		return NULL;
+	
+	/* This can't be set in the pytype struct because some compilers complain */
+	pyrna_prop_Type.tp_getattro = PyObject_GenericGetAttr; 
+	pyrna_prop_Type.tp_setattro = PyObject_GenericSetAttr; 
 	
 	if( PyType_Ready( &pyrna_prop_Type ) < 0 )
 		return NULL;
