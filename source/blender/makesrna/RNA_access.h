@@ -174,6 +174,9 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
+int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
+int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
+
 
 const char *RNA_property_ui_name(PointerRNA *ptr, PropertyRNA *prop);
 const char *RNA_property_ui_description(PointerRNA *ptr, PropertyRNA *prop);

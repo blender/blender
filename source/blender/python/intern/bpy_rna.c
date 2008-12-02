@@ -54,6 +54,12 @@ static PyObject *pyrna_prop_repr( BPy_PropertyRNA * self )
 	return PyUnicode_FromFormat( "[BPy_PropertyRNA \"%s\" -> \"%s\" ]", RNA_struct_identifier(&self->ptr), RNA_property_identifier(&self->ptr, self->prop) );
 }
 
+static long pyrna_struct_hash( BPy_StructRNA * self )
+{
+	return (long)self->ptr.data;
+}
+
+
 static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
@@ -86,26 +92,17 @@ static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	}
 	case PROP_ENUM:
-	{		
-		const EnumPropertyItem *item;
-		int totitem, i, val;
-
-		val = RNA_property_enum_get(ptr, prop);
+	{
+		const char *identifier;
+		int val = RNA_property_enum_get(ptr, prop);
 		
-		RNA_property_enum_items(ptr, prop, &item, &totitem);
-		
-		for (i=0; i<totitem; i++) {
-			if (item[i].value == val)
-				break;
-		}
-		
-		if (i<totitem) {
-			ret = PyUnicode_FromString( item[i].identifier );
+		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+			ret = PyUnicode_FromString( identifier );
 		} else {
 			PyErr_Format(PyExc_AttributeError, "enum \"%d\" not found", val);
 			ret = NULL;
 		}
-		
+
 		break;
 	}
 	case PROP_POINTER:
@@ -287,19 +284,8 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 				PyErr_SetString(PyExc_TypeError, "expected a string type");
 				return -1;
 			} else {
-				const EnumPropertyItem *item;
-				int totitem, i, val;
-				
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
-				
-				for (i=0; i<totitem; i++) {
-					if (strcmp(item[i].identifier, param)==0) {
-						val = item[i].value;
-						break;
-					}
-				}
-				
-				if (i<totitem) {
+				int val;
+				if (RNA_property_enum_value(ptr, prop, param, &val)) {
 					RNA_property_enum_set(ptr, prop, val);
 				} else {
 					PyErr_Format(PyExc_AttributeError, "enum \"%s\" not found", param);
@@ -926,7 +912,7 @@ PyTypeObject pyrna_struct_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,						/* hashfunc tp_hash; */
+	( hashfunc )pyrna_struct_hash,	/* hashfunc tp_hash; */
 	NULL,						/* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	( getattrofunc ) pyrna_struct_getattro,	/* getattrofunc tp_getattro; */

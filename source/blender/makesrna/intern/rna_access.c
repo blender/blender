@@ -401,6 +401,40 @@ void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPrope
 	*totitem= eprop->totitem;
 }
 
+int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
+{	
+	const EnumPropertyItem *item;
+	int totitem, i;
+	
+	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	
+	for (i=0; i<totitem; i++) {
+		if (strcmp(item[i].identifier, identifier)==0) {
+			*value = item[i].value;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
+{	
+	const EnumPropertyItem *item;
+	int totitem, i;
+	
+	RNA_property_enum_items(ptr, prop, &item, &totitem);
+	
+	for (i=0; i<totitem; i++) {
+		if (item[i].value==value) {
+			*identifier = item[i].identifier;
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
 const char *RNA_property_ui_name(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PropertyRNA *oldprop= prop;
@@ -763,6 +797,7 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 	else
 		return eprop->defaultvalue;
 }
+
 
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 {
