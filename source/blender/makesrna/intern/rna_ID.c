@@ -74,7 +74,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 		case ID_OB: return &RNA_Object;
 		case ID_SCE: return &RNA_Scene;
 		case ID_SCR: return &RNA_Screen;
-		case ID_VF: return &RNA_VFont;
+		case ID_VF: return &RNA_VectorFont;
 		case ID_WO: return &RNA_World;
 		case ID_WM: return &RNA_WindowManager;
 		default: return &RNA_ID;
@@ -157,7 +157,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_struct_funcs(srna, NULL, "rna_ID_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, "ID", "name");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, 22);

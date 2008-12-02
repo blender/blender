@@ -129,15 +129,12 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use Degrees", "Use degrees instead of mm as the unit of the Camera lens.");
 
 	/* Pointers */
-
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Ipo");
-	RNA_def_property_ui_text(prop, "Ipo Curve", "");
+	rna_def_ipo_common(srna);
 
 	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
-	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define depth of field focal point.");
+	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point.");
 }
 
 #endif

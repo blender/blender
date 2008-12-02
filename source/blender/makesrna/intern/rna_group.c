@@ -50,14 +50,15 @@ void RNA_def_group(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Group", "ID", "Group");
 
-	prop= RNA_def_property(srna, "dupli_ofs", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
 	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the center to use when instancing as DupliGroup.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 	
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects");
+	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0, 0);
 	
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);

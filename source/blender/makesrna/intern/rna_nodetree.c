@@ -57,7 +57,6 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Location", "");
-
 }
 
 #endif

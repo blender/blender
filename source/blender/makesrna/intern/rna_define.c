@@ -249,17 +249,27 @@ static size_t rna_property_type_sizeof(PropertyType type)
 	}
 }
 
-static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
+static StructDefRNA *rna_find_def_struct(StructRNA *srna)
 {
 	StructDefRNA *ds;
-	PropertyDefRNA *dp;
 
 	for(ds=DefRNA.structs.first; ds; ds=ds->next)
 		if(ds->srna == srna)
-			for(dp=ds->properties.first; dp; dp=dp->next)
-				if(dp->prop == prop)
-					return dp;
+			return ds;
 
+	return NULL;
+}
+
+static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
+{
+	StructDefRNA *ds= rna_find_def_struct(srna);
+	PropertyDefRNA *dp;
+
+	if(ds)
+		for(dp=ds->properties.first; dp; dp=dp->next)
+			if(dp->prop == prop)
+				return dp;
+	
 	return NULL;
 }
 
@@ -268,7 +278,7 @@ static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
 StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from, const char *name)
 {
 	StructRNA *srna, *srnafrom= NULL;
-	StructDefRNA *ds= NULL;
+	StructDefRNA *ds= NULL, *dsfrom= NULL;
 	PropertyRNA *prop, *propfrom;
 
 	if(from) {
@@ -292,8 +302,10 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		memcpy(srna, srnafrom, sizeof(StructRNA));
 		srna->properties.first= srna->properties.last= NULL;
 
-		if(DefRNA.preprocess)
+		if(DefRNA.preprocess) {
 			srna->from= (StructRNA*)from;
+			dsfrom= rna_find_def_struct(srnafrom);
+		}
 		else
 			srna->from= srnafrom;
 	}
@@ -307,6 +319,9 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		ds= MEM_callocN(sizeof(StructDefRNA), "StructDefRNA");
 		ds->srna= srna;
 		rna_addtail(&DefRNA.structs, ds);
+
+		if(dsfrom)
+			ds->dnafromname= dsfrom->dnaname;
 	}
 
 	/* in preprocess, try to find sdna */
@@ -409,6 +424,32 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname)
 		return;
 	}
 
+	ds->dnaname= structname;
+}
+
+void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname)
+{
+	StructDefRNA *ds= DefRNA.structs.last;
+
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_sdna_from: only during preprocessing.\n");
+		return;
+	}
+
+	if(!ds->dnaname) {
+		fprintf(stderr, "RNA_def_struct_sdna_from: %s base struct must know DNA already.\n", structname);
+		return;
+	}
+
+	if(!DNA_struct_find_nr(DefRNA.sdna, structname)) {
+		if(!DefRNA.silent) {
+			fprintf(stderr, "RNA_def_struct_sdna_from: %s not found.\n", structname);
+			DefRNA.error= 1;
+		}
+		return;
+	}
+
+	ds->dnafromprop= propname;
 	ds->dnaname= structname;
 }
 
@@ -899,6 +940,8 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 		prop->arraylength= 0;
 	
 	dp->dnastructname= structname;
+	dp->dnastructfromname= ds->dnafromname;
+	dp->dnastructfromprop= ds->dnafromprop;
 	dp->dnaname= propname;
 	dp->dnatype= smember.type;
 	dp->dnaarraylength= smember.arraylength;
@@ -1084,11 +1127,11 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 	}
 
 	if((dp=rna_def_property_sdna(prop, structname, propname))) {
-		if(prop->arraylength) {
+		if(prop->arraylength && !lengthpropname) {
 			prop->arraylength= 0;
 
 			if(!DefRNA.silent) {
-				fprintf(stderr, "RNA_def_property_collection_sdna: %s.%s, array not supported for collection type.\n", structname, propname);
+				fprintf(stderr, "RNA_def_property_collection_sdna: %s.%s, array of collections not supported.\n", structname, propname);
 				DefRNA.error= 1;
 			}
 		}
@@ -1107,15 +1150,15 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 		if(!structname)
 			structname= ds->dnaname;
 
-		if(!rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember)) {
-			if(!DefRNA.silent) {
-				fprintf(stderr, "RNA_def_property_collection_sdna: %s.%s not found.\n", structname, lengthpropname);
-				DefRNA.error= 1;
+		if(lengthpropname[0] == 0 || rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember)) {
+			if(lengthpropname[0] == 0) {
+				dp->dnalengthfixed= prop->arraylength;
+				prop->arraylength= 0;
 			}
-		}
-		else {
-			dp->dnalengthstructname= structname;
-			dp->dnalengthname= lengthpropname;
+			else {
+				dp->dnalengthstructname= structname;
+				dp->dnalengthname= lengthpropname;
+			}
 
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_array_next";
 			cprop->end= (PropCollectionEndFunc)"rna_iterator_array_end";
@@ -1124,6 +1167,12 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 				cprop->get= (PropCollectionGetFunc)"rna_iterator_array_dereference_get";
 			else
 				cprop->get= (PropCollectionGetFunc)"rna_iterator_array_get";
+		}
+		else {
+			if(!DefRNA.silent) {
+				fprintf(stderr, "RNA_def_property_collection_sdna: %s.%s not found.\n", structname, lengthpropname);
+				DefRNA.error= 1;
+			}
 		}
 	}
 }

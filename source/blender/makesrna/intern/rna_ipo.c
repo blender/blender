@@ -54,16 +54,13 @@ void rna_def_ipodriver(BlenderRNA *brna)
 
 	/* String values */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "Bone name or scripting expression.");
 
 	/* Pointers */
-
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "ob");
 	RNA_def_property_ui_text(prop, "Driver Object", "Object that controls this Ipo Driver.");
-
 }
 
 void rna_def_ipocurve(BlenderRNA *brna)
@@ -85,30 +82,28 @@ void rna_def_ipocurve(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "IpoCurve", NULL, "Ipo Curve");
 
 	/* Enums */
-
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo", 0);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 
-	prop= RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extrap", 0);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
-	RNA_def_property_ui_text(prop, "Extend", "");
+	RNA_def_property_ui_text(prop, "Extrapolation", "");
 
 	/* Number values */
-
+	/* can't just edit this most likely ..
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
-	RNA_def_property_ui_text(prop, "Value", "Value of this Ipo Curve at the current frame.");
+	RNA_def_property_ui_text(prop, "Value", "Value of this Ipo Curve at the current frame.");*/
 
 	/* Pointers */
-
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "IpoDriver");
 	RNA_def_property_pointer_sdna(prop, NULL, "driver");
+	RNA_def_property_struct_type(prop, "IpoDriver");
 	RNA_def_property_ui_text(prop, "Ipo Driver", "");
 }
 
@@ -143,8 +138,7 @@ void rna_def_ipo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Block Type", "");
 
 	/* Boolean values */
-
-	prop= RNA_def_property(srna, "show_key", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_keys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "showkey", 0);
 	RNA_def_property_ui_text(prop, "Show Keys", "Show Ipo Keys.");
 
@@ -153,7 +147,6 @@ void rna_def_ipo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mute", "Mute this Ipo block.");
 
 	/* Collection */
-
 	prop= RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curve", NULL);
 	RNA_def_property_struct_type(prop, "IpoCurve");

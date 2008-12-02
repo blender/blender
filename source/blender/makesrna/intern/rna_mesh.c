@@ -836,6 +836,46 @@ static void rna_def_mmultires(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Render Level", "Set level to render");
 }
 
+void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
+{
+	PropertyRNA *prop;
+
+	/* texture space */
+	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
+
+	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_funcs(prop, NULL, texspace_editable);
+
+	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
+	RNA_def_property_funcs(prop, NULL, texspace_editable);
+
+	/* not supported yet
+	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float(prop, NULL, "rot");
+	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
+	RNA_def_property_funcs(prop, NULL, texspace_editable);*/
+
+	/* materials */
+	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_ui_text(prop, "Materials", "");
+}
+
+void rna_def_ipo_common(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Ipo Curves", "Ipo curves used by this datablock.");
+}
+
 static void rna_def_mesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -902,33 +942,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 80);
 	RNA_def_property_ui_text(prop, "Auto Smooth Angle", "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
-	prop= RNA_def_property(srna, "novnormalflip", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "no_vnormal_flip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_NOPUNOFLIP);
 	RNA_def_property_ui_text(prop, "No Vertex Normal Flip", "Disables flipping of vertexnormals during render");
 
-	prop= RNA_def_property(srna, "twosided", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "double_sided", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_TWOSIDED);
 	RNA_def_property_ui_text(prop, "Double Sided", "Render/display the mesh with double or single sided lighting");
-
-	prop= RNA_def_property(srna, "autotexspace", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
-	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
-
-	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
-	RNA_def_property_funcs(prop, NULL, "rna_Mesh_texspace_editable");
-
-	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
-	RNA_def_property_funcs(prop, NULL, "rna_Mesh_texspace_editable");
-
-	/* not supported yet
-	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	RNA_def_property_funcs(prop, NULL, "rna_Mesh_texspace_editable");*/
 
 	prop= RNA_def_property(srna, "texco_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
@@ -938,13 +958,11 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "mr");
 	RNA_def_property_ui_text(prop, "Multires", "");
 
-	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_ui_text(prop, "Materials", "");
-
 	/*prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Key", "");*/
+
+	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
+	rna_def_ipo_common(srna);
 }
 
 void RNA_def_mesh(BlenderRNA *brna)

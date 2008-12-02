@@ -33,9 +33,15 @@
 
 #ifdef RNA_RUNTIME
 
+static int rna_Meta_texspace_editable(PointerRNA *ptr)
+{
+	MetaBall *mb= (MetaBall*)ptr->data;
+	return (mb->texflag & AUTOSPACE)? PROP_NOT_EDITABLE: 0;
+}
+
 #else
 
-void rna_def_metaelem(BlenderRNA *brna)
+void rna_def_metaelement(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -47,46 +53,48 @@ void rna_def_metaelem(BlenderRNA *brna)
 		{MB_CUBE, "CUBE", "Cube", ""},
 		{0, NULL, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "MetaElem", "ID", "MetaElem");
+	srna= RNA_def_struct(brna, "MetaElement", NULL, "Meta Element");
+	RNA_def_struct_sdna(srna, "MetaElem");
 	
-	/* Enums */
+	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Metaball types.");
 	
-	/* Number values */
-	prop= RNA_def_property(srna, "x_dimension", PROP_FLOAT, PROP_NONE);
+	/* number values */
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "x");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_ui_text(prop, "Rotation", "");
+
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_float_sdna(prop, NULL, "rad");
+	RNA_def_property_ui_text(prop, "Radius", "");
+
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "expx");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_ui_text(prop, "X Dimension", "X dimension of metaelement. Used for elements such as cubes.");
-	
-	prop= RNA_def_property(srna, "y_dimension", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "expy");
-	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_ui_text(prop, "Y Dimension", "Y dimension of metaelement. Used for elements such as cubes.");
-	
-	prop= RNA_def_property(srna, "z_dimension", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "expz");
-	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_ui_text(prop, "Z Dimension", "Z dimension of metaelement. Used for elements such as cubes.");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Size", "Size of element, use of components depends on element type.");
 	
 	prop= RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "s");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Stiffness", "Stiffness defines how much of the metaelement to fill.");
+	RNA_def_property_ui_text(prop, "Stiffness", "Stiffness defines how much of the element to fill.");
 	
 	/* flags */
-	prop= RNA_def_property(srna, "metaelem_negative", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_NEGATIVE);
-	RNA_def_property_ui_text(prop, "Negative Metaelement", "Set metaball as negative one.");
+	RNA_def_property_ui_text(prop, "Negative", "Set metaball as negative one.");
 	
-	prop= RNA_def_property(srna, "metaelem_hide", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_HIDE);
-	RNA_def_property_ui_text(prop, "Hide Metaelement", "Hide metaball?");
-	
-	prop= RNA_def_property(srna, "metaelem_scale_radius", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_SCALE_RAD);
-	RNA_def_property_ui_text(prop, "Scale Metaelement Radius", "Scale metaball radius?");
+	RNA_def_property_ui_text(prop, "Hide", "Hide element.");
 }
 
 void rna_def_metaball(BlenderRNA *brna)
@@ -101,32 +109,41 @@ void rna_def_metaball(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaBall", "ID", "MetaBall");
-	
-	/* Enums */
+
+	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "elems", NULL);
+	RNA_def_property_struct_type(prop, "MetaElement");
+	RNA_def_property_ui_text(prop, "Elements", "Meta elements.");
+
+	/* enums */
 	prop= RNA_def_property(srna, "flag", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_update_items);
-	RNA_def_property_ui_text(prop, "Update", "Metaball edit update option.");
+	RNA_def_property_ui_text(prop, "Update", "Metaball edit update behavior.");
 	
-	/* Number values */
-	prop= RNA_def_property(srna, "wiresize", PROP_FLOAT, PROP_NONE);
+	/* number values */
+	prop= RNA_def_property(srna, "wire_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "wiresize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
-	RNA_def_property_ui_text(prop, "Wiresize", "Polygonization resolution in the 3D viewport.");
+	RNA_def_property_ui_text(prop, "Wire Size", "Polygonization resolution in the 3D viewport.");
 	
-	prop= RNA_def_property(srna, "rendersize", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "render_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rendersize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
-	RNA_def_property_ui_text(prop, "Rendersize", "Polygonization resolution in rendering.");
+	RNA_def_property_ui_text(prop, "Render Size", "Polygonization resolution in rendering.");
 	
 	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "thresh");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Threshold", "Influence of metaelements.");
+	RNA_def_property_ui_text(prop, "Threshold", "Influence of meta elements.");
+
+	/* materials, textures */
+	rna_def_texmat_common(srna, "rna_Meta_texspace_editable");
+	rna_def_ipo_common(srna);
 }
 
 void RNA_def_meta(BlenderRNA *brna)
 {
-	rna_def_metaelem(brna);
+	rna_def_metaelement(brna);
 	rna_def_metaball(brna);
 }
 

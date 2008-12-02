@@ -40,7 +40,6 @@ typedef struct VFont {
 	ID id;
 	
 	char name[256];
-	float scale, pad;
 	
 	struct VFontData *data;
 	struct PackedFile * packedfile;

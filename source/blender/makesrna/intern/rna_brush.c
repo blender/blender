@@ -35,35 +35,6 @@
 
 #else
 
-void rna_def_brushclone(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "BrushClone", "ID", "BrushClone");
-	
-	/* pointers */
-	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "image");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Image", "Image for clone tool.");
-	
-	/* Number values */
-	/* NOTE: This did not appear to be exposed in the 2.48a user interface. */
-	/*
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "offset");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Offset", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
-	*/
-	
-	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "alpha");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Opacity", "The amount of opacity of the clone image.");
-}
-
 void rna_def_brush(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -81,21 +52,20 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Brush", "ID", "Brush");
 	
-	/* Enums */
+	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_blend_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode.");
 	
-	/* Number values */
-	prop= RNA_def_property(srna, "brush_diameter", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "size");
+	/* number values */
+	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 200);
-	RNA_def_property_ui_text(prop, "Brush diameter", "Diameter of the brush.");
+	RNA_def_property_ui_text(prop, "Size", "Diameter of the brush.");
 	
 	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "innerradius");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Falloff", "Falloff radius of the brush");
+	RNA_def_property_ui_text(prop, "Falloff", "Falloff radius of the brush.");
 	
 	prop= RNA_def_property(srna, "spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
@@ -109,7 +79,6 @@ void rna_def_brush(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
-	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
 	
@@ -118,50 +87,67 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Opacity", "The amount of pressure on the brush.");
 	
-	/* pointers */
-	/* XXX: figure out how to link to tex (texact?) */	
-	
-	/*
-	prop= RNA_def_property(srna, "clone", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "clone");
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Clone", "Clone tool linked to the brush.");
-	*/
-	
 	/* flag */
 	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_AIRBRUSH);
-	RNA_def_property_ui_text(prop, "Airbrush", "Set brush into airbrush mode.");
+	RNA_def_property_ui_text(prop, "Airbrush", "Keep applying paint effect while holding mouse (spray).");
 	
-	prop= RNA_def_property(srna, "torus", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TORUS);
-	RNA_def_property_ui_text(prop, "Torus", "Set brush into torus mapping mode.");
+	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting.");
 	
 	prop= RNA_def_property(srna, "alpha_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
-	RNA_def_property_ui_text(prop, "Opacity Pressure", "Set pressure sensitivity for opacity.");
+	RNA_def_property_ui_text(prop, "Opacity Pressure", "Enable tablet pressure sensitivity for opacity.");
 	
 	prop= RNA_def_property(srna, "size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
-	RNA_def_property_ui_text(prop, "Size Pressure", "Set pressure sensitivity for size.");
+	RNA_def_property_ui_text(prop, "Size Pressure", "Enable tablet pressure sensitivity for size.");
 	
 	prop= RNA_def_property(srna, "falloff_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAD_PRESSURE);
-	RNA_def_property_ui_text(prop, "Falloff Pressure", "Set pressure sensitivity for falloff.");
+	RNA_def_property_ui_text(prop, "Falloff Pressure", "Enable tablet pressure sensitivity for falloff.");
 	
 	prop= RNA_def_property(srna, "spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
-	RNA_def_property_ui_text(prop, "Spacing Pressure", "Set pressure sensitivity for spacing.");
+	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
 	
+	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
-	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");
+	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
+
+	/* texture */
+	prop= RNA_def_property(srna, "texture_slots", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mtex", "");
+	RNA_def_property_struct_type(prop, "UnknownType");
+	RNA_def_property_ui_text(prop, "Textures Slots", "");
+
+	prop= RNA_def_property(srna, "active_texture", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "texact");
+	RNA_def_property_range(prop, 0, MAX_MTEX-1);
+	RNA_def_property_ui_text(prop, "Active Texture", "Active texture index.");
+
+	/* clone tool */
+	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "clone.image");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "Image for clone tool.");
+	
+	prop= RNA_def_property(srna, "clone_opacity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clone.alpha");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Clone Opacity", "Opacity of clone image display.");
+
+	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
+	RNA_def_property_ui_text(prop, "Clone Offset", "");
+	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3.0f);
 }
 
 void RNA_def_brush(BlenderRNA *brna)
 {
 	rna_def_brush(brna);
-	rna_def_brushclone(brna);
 }
 
 #endif

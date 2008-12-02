@@ -54,66 +54,33 @@ void RNA_def_world(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 */
 	srna= RNA_def_struct(brna, "World", "ID" , "World");
-	RNA_def_struct_sdna(srna, "World");
 
-/*	When MTex and IPO was defined uncomment this section:
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_ui_text(prop, "IPO", "IPO associated with this world setting.");
+	rna_def_ipo_common(srna);
 
-
+/*
 	prop= RNA_def_property(srna, "mtex", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MTex");
 	RNA_def_property_ui_text(prop, "MTex", "MTex associated with this world setting.");
 */
 
-	/* Horizontal Color */
-	prop= RNA_def_property(srna, "horizontal_color_red", PROP_FLOAT, PROP_NONE);
+	/* colors */
+	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "horr");
+	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Horizontal Red Color", "Horizontal red color of this world.");
-	
-	prop= RNA_def_property(srna, "horizontal_color_green", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horg");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Horizontal Green Color", "Horizontal green color of this world.");
+	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon.");
 
-	prop= RNA_def_property(srna, "horizontal_color_blue", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horb");
+	prop= RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "zenr");
+	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Horizontal Blue Color", "Horizontal blue color of this world.");
+	RNA_def_property_ui_text(prop, "Zenith Color", "Color at the zenith.");
 
-	/* Zenith Color */
-	prop= RNA_def_property(srna, "zenith_color_red", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horr");
+	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "ambr");
+	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Zenith Red Color", "Zenith red color of this world.");
-	
-	prop= RNA_def_property(srna, "zenith_color_green", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horg");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Zenith Green Color", "Zenith green color of this world.");
-
-	prop= RNA_def_property(srna, "zenith_color_blue", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horb");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Zenith Blue Color", "Zenith blue color of this world.");
-
-	/* Ambiant Color */
-	prop= RNA_def_property(srna, "ambiant_color_red", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horr");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Ambiant Red Color", "Ambiant red color of this world.");
-	
-	prop= RNA_def_property(srna, "ambiant_color_green", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horg");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Ambiant Green Color", "Ambiant green color of this world.");
-
-	prop= RNA_def_property(srna, "ambiant_color_blue", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "horb");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Ambiant Blue Color", "Ambiant blue color of this world.");
+	RNA_def_property_ui_text(prop, "Ambient Color", "");
 
 	/* exp, range */
 	prop= RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
@@ -138,7 +105,6 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "real_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Renders background with a real horizon.");
-
 }
 
 #endif

@@ -40,13 +40,21 @@ typedef struct PropertyDefRNA {
 	struct StructRNA *srna;
 	struct PropertyRNA *prop;
 
+	/* struct */
 	const char *dnastructname;
+	const char *dnastructfromname;
+	const char *dnastructfromprop;
+
+	/* property */
 	const char *dnaname;
-	const char *dnalengthstructname;
-	const char *dnalengthname;
 	const char *dnatype;
 	int dnaarraylength;
 	int dnapointerlevel;
+
+	/* for finding length of array collections */
+	const char *dnalengthstructname;
+	const char *dnalengthname;
+	int dnalengthfixed;
 
 	int booleanbit;
 	int enumbitflags;
@@ -58,6 +66,11 @@ typedef struct StructDefRNA {
 	struct StructRNA *srna;
 
 	const char *dnaname;
+
+	/* for derived structs to find data in some property */
+	const char *dnafromname;
+	const char *dnafromprop;
+
 	ListBase properties;
 } StructDefRNA;
 
@@ -109,7 +122,10 @@ void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
-void RNA_def_world(BlenderRNA *brna);
+void RNA_def_world(struct BlenderRNA *brna);
+
+void rna_def_ipo_common(struct StructRNA *srna);
+void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
 
 /* ID Properties */
 

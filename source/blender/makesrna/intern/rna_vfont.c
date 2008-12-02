@@ -40,13 +40,18 @@ void RNA_def_vfont(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "VFont", "ID", "VFont");
-	
-	/* number values */
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "scale");
-	RNA_def_property_range(prop, 0.1f, 100.0f); /* TODO: check bounds! */
-	RNA_def_property_ui_text(prop, "Font Scale", "");
+	srna= RNA_def_struct(brna, "VectorFont", "ID", "Vector Font");
+	RNA_def_struct_sdna(srna, "VFont");
+
+	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Filename", "");
+
+	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
+	RNA_def_property_ui_text(prop, "Packed File", "");
 }
 
 #endif
+

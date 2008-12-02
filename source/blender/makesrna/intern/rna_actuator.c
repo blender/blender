@@ -41,7 +41,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem actuator_types_items[] ={
+	static EnumPropertyItem actuator_type_items[] ={
 		{ACT_OBJECT, "OBJECT", "Object", ""},
 		{ACT_IPO, "IPO", "IPO", ""},
 		{ACT_CAMERA, "CAMERA", "Camera", ""},
@@ -67,14 +67,13 @@ void RNA_def_actuator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "actuator_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_string_maxlength(prop, 31);
-	RNA_def_property_ui_text(prop, "Name", "Actuator name.");
+	RNA_def_property_ui_text(prop, "Name", "");
 
 	/* type is not editable, would need to do proper data free/alloc */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_enum_items(prop, actuator_types_items);
-	RNA_def_property_ui_text(prop, "Actuator Types", "Actuator types.");
+	RNA_def_property_enum_items(prop, actuator_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
 
 }
 

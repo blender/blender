@@ -33,6 +33,12 @@
 
 #ifdef RNA_RUNTIME
 
+static int rna_Curve_texspace_editable(PointerRNA *ptr)
+{
+	Curve *cu= (Curve*)ptr->data;
+	return (cu->texflag & CU_AUTOSPACE)? PROP_NOT_EDITABLE: 0;
+}
+
 #else
 
 static void rna_def_path(BlenderRNA *brna, StructRNA *srna);
@@ -45,6 +51,9 @@ void rna_def_curve(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Curve", "ID", "Curve");
+
+	rna_def_ipo_common(srna);
+	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
 	
 	rna_def_path(brna, srna);
 	rna_def_nurbs(brna, srna);
@@ -101,10 +110,6 @@ void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
-	
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Ipo");
-	RNA_def_property_ui_text(prop, "Ipo Curve", "");
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "3d", PROP_BOOLEAN, PROP_NONE);
@@ -227,7 +232,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Family", "Blender uses font from selfmade objects.");
 	
 	prop= RNA_def_property(srna, "str", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, "Curve", "str");
+	RNA_def_property_string_sdna(prop, NULL, "str");
 	RNA_def_property_ui_text(prop, "String", "");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, 8192); /* note that originally str did not have a limit! */
@@ -240,7 +245,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Text on Curve", "Curve deforming text object.");
 	
 	prop= RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "VFont");
+	RNA_def_property_struct_type(prop, "VectorFont");
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
 	RNA_def_property_ui_text(prop, "Font", "");
 	

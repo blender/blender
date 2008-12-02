@@ -42,8 +42,9 @@ void RNA_def_material(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_type_items[] = {
 		{MA_RGB, "RGB", "RGB", ""},
-		/*{MA_CMYK, "CMYK", "CMYK", ""}, 
-		{MA_YUV, "YUV", "YUV", ""},  XXX: blender code doesn't support this yet. Commented out */
+		/* not used in blender yet
+		{MA_CMYK, "CMYK", "CMYK", ""}, 
+		{MA_YUV, "YUV", "YUV", ""}, */
 		{MA_HSV, "HSV", "HSV", ""},
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
@@ -178,7 +179,7 @@ void RNA_def_material(BlenderRNA *brna)
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_ui_text(prop, "Nodetree", "");
+	RNA_def_property_ui_text(prop, "Node Tree", "");
 }
 
 #endif

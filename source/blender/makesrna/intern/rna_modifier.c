@@ -72,19 +72,20 @@ void RNA_def_modifier(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	/* data */
-	srna= RNA_def_struct(brna, "ModifierData", NULL , "ModifierData");
+	srna= RNA_def_struct(brna, "Modifier", NULL , "Object Modifier");
 	RNA_def_struct_sdna(srna, "ModifierData");
 	
 	/* strings */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_maxlength(prop, 31);
-	RNA_def_property_ui_text(prop, "Name", "Name of the modifier.");
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
 	
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type", PROP_DEF_ENUM_BITFLAGS);
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Type", "Specify the type of the modifier.");
+	RNA_def_property_ui_text(prop, "Type", "");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "realtime", PROP_BOOLEAN, PROP_NONE);
@@ -99,7 +100,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Editmode);
 	RNA_def_property_ui_text(prop, "Editmode", "Use modifier while in the edit mode.");
 	
-	prop= RNA_def_property(srna, "oncage", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "on_cage", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_OnCage);
 	RNA_def_property_ui_text(prop, "On Cage", "Enable direct editing of modifier control cage.");
 	
