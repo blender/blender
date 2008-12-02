@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_color_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
@@ -43,10 +42,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"

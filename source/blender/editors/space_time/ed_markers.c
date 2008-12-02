@@ -297,7 +297,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(&C->window->handlers, op);
+		WM_event_add_modal_handler(C, &C->window->handlers, op);
 		
 		/* reset frs delta */
 		RNA_int_set(op->ptr, "frs", 0);
@@ -333,7 +333,6 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);	
 	
-	WM_event_remove_modal_handler(&C->window->handlers, op);
 	WM_event_add_notifier(C->wm, C->window, mm->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
 }
 
@@ -376,7 +375,6 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case RIGHTMOUSE:
 			if(WM_modal_tweak_check(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);
 				WM_event_add_notifier(C->wm, C->window, mm->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
 				return OPERATOR_FINISHED;
 			}

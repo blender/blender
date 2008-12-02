@@ -69,9 +69,9 @@ void		WM_keymap_add_item	(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
-struct wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op);
-void		WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op);
-void		WM_event_remove_handlers(ListBase *handlers);
+
+struct wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op);
+void		WM_event_remove_handlers			(bContext *C, ListBase *handlers);
 
 void		WM_event_add_message(wmWindowManager *wm, void *customdata,
                                  short customdatafree);
@@ -97,7 +97,6 @@ wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
 int			WM_operator_invoke		(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
-void		WM_operator_cancel		(struct bContext *C, ListBase *modalops, wmOperatorType *ot);
 
 			/* default operator callbacks for border/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);

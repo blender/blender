@@ -32,6 +32,8 @@
 #define WM_HANDLER_CONTINUE	0
 #define WM_HANDLER_BREAK	1
 
+struct ScrArea;
+struct ARegion;
 
 /* wmKeyMap is in DNA_windowmanager.h, it's savable */
 
@@ -44,7 +46,9 @@ typedef struct wmEventHandler {
 	
 	rctf boundbox;	/* float, in bContext space (window, area, region) */
 	
-	wmOperator *op;	/* for derived handlers */
+	wmOperator *op;		/* for derived/modal handlers */
+	struct ScrArea *op_area;	/* for derived/modal handlers */
+	struct ARegion *op_region;	/* for derived/modal handlers */
 	
 } wmEventHandler;
 
@@ -65,7 +69,6 @@ enum {
 void		wm_event_add(wmWindow *win, wmEvent *event_to_add);
 void		wm_event_free_all		(wmWindow *win);
 wmEvent		*wm_event_next			(wmWindow *win);
-void		wm_event_free_handlers	(ListBase *lb);
 
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void		wm_event_do_handlers	(bContext *C);

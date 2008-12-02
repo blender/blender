@@ -74,6 +74,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_event_system.h"
 #include "wm.h"
 #include "wm_files.h"
 #include "wm_window.h"
@@ -157,6 +158,21 @@ extern wchar_t *copybufinfo;
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
 {
+	wmWindow *win;
+	
+	/* first wrap up running stuff, we assume only the active WM is running */
+	/* modal handlers are on window level freed, others too? */
+	if(C && C->wm) {
+		for(win= C->wm->windows.first; win; win= win->next) {
+			ARegion *ar;
+			
+			C->window= win;	/* needed by operator close callbacks */
+			WM_event_remove_handlers(C, &win->handlers);
+			
+			for(ar= win->screen->regionbase.first; ar; ar= ar->next)
+				WM_event_remove_handlers(C, &ar->handlers);
+		}
+	}
 	wm_operatortype_free();
 	
 	free_ttfont(); /* bke_font.h */

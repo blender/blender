@@ -279,17 +279,6 @@ void wm_draw_update(bContext *C)
 
 /* ********************* operators ******************* */
 
-static ListBase *wm_modalops_list(bContext *C)
-{
-	if(C->region)
-		return &C->region->modalops;
-	else if(C->area)
-		return &C->area->modalops;
-	else if(C->window)
-		return &C->window->modalops;
-	else
-		return NULL;
-}
 
 int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 {
@@ -298,8 +287,10 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 	if(ot->poll==NULL || ot->poll(C)) {
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
 
+		/* XXX adding new operator could be function, only happens here now */
 		op->type= ot;
-
+		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
+		
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
 		RNA_pointer_create(&RNA_WindowManager, &C->wm->id, ot->srna, op, op->ptr);
 
@@ -314,59 +305,38 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			wm_operator_free(op);
 		}
-		else {
-			op->modallist= wm_modalops_list(C);
-			BLI_addtail(op->modallist, op);
-		}
 	}
 
 	return retval;
 }
 
-void WM_operator_cancel(bContext *C, ListBase *lb, wmOperatorType *type)
-{
-	wmOperator *op, *nextop;
-
-	if(!lb)
-		lb= wm_modalops_list(C);
-	if(!lb)
-		return;
-
-	for(op=lb->first; op; op=nextop) {
-		nextop= op->next;
-
-		if(type == NULL || op->type == type) {
-			if(op->type->cancel)
-				op->type->cancel(C, op);
-
-			BLI_remlink(op->modallist, op);
-			op->modallist= NULL;
-
-			wm_operator_free(op);
-		}
-	}
-}
-
 /* ********************* handlers *************** */
 
-/* not handler itself */
+
+/* not handler itself, is called by UI to move handlers to other queues, so don't close modal ones */
 static void wm_event_free_handler(wmEventHandler *handler)
 {
+	
 }
 
-void wm_event_free_handlers(ListBase *lb)
+/* called on exit or remove area, only here call cancel callback */
+void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 {
 	wmEventHandler *handler;
 	
-	for(handler= lb->first; handler; handler= handler->next)
+	/* C is zero on freeing database, modal handlers then already were freed */
+	while((handler=handlers->first)) {
+		/* we have to remove the handler first, to prevent op->type->cancel() to remove modal handler too */
+		BLI_remlink(handlers, handler);
+		
+		if(C && handler->op) {
+			if(handler->op->type->cancel)
+				handler->op->type->cancel(C, handler->op);
+			wm_operator_free(handler->op);
+		}
 		wm_event_free_handler(handler);
-	
-	BLI_freelistN(lb);
-}
-
-void WM_event_remove_handlers(ListBase *handlers)
-{
-	wm_event_free_handlers(handlers);
+		MEM_freeN(handler);
+	}
 }
 
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
@@ -389,8 +359,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
 	return 1;
 }
 
-/* note: this might free the handler from the operator */
-static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEvent *event)
+/* Warning: this function removes a modal handler, when finished */
+static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 	
@@ -400,18 +370,38 @@ static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEven
 		wmOperatorType *ot= op->type;
 
 		if(ot->modal) {
+			/* we set context to where modal handler came from */
+			ScrArea *area= C->area;
+			ARegion *region= C->region;
+			
+			C->area= handler->op_area;
+			C->region= handler->op_region;
+			
 			retval= ot->modal(C, op, event);
 
+			/* putting back screen context */
+			C->area= area;
+			C->region= region;
+			
 			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-				BLI_remlink(op->modallist, op);
-				op->modallist= NULL;
 				wm_operator_register(C->wm, op);
+				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				BLI_remlink(op->modallist, op);
-				op->modallist= NULL;
 				wm_operator_free(op);
+				handler->op= NULL;
 			}
+			
+			/* remove modal handler, operator itself should have been cancelled and freed */
+			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+				MEM_freeN(handler);
+				
+				/* prevent silly errors from operator users */
+				retval &= ~OPERATOR_PASS_THROUGH;
+			}
+			
 		}
 		else
 			printf("wm_handler_operator_call error\n");
@@ -442,8 +432,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 	if(handlers==NULL) return action;
 	
-	/* in this loop, the handler might be freed in wm_handler_operator_call,
-	 * and new handler might be added to the head of the list */
+	/* modal handlers can get removed in this loop, we keep the loop this way */
 	for(handler= handlers->first; handler; handler= nexthandler) {
 		nexthandler= handler->next;
 
@@ -461,15 +450,15 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					
 					event->keymap_idname= km->idname;	/* weak, but allows interactive callback to not use rawkey */
 					
-					action= wm_handler_operator_call(C, handler, event);
-					if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
+					action= wm_handler_operator_call(C, handlers, handler, event);
+					if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
 						break;
 				}
 			}
 		}
 		else {
 			/* modal, swallows all */
-			action= wm_handler_operator_call(C, handler, event);
+			action= wm_handler_operator_call(C, handlers, handler, event);
 		}
 
 		if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
@@ -587,7 +576,7 @@ void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 	handler->flag= flag;
 }
 
-wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op)
+wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op)
 {
 	/* debug test; operator not in registry */
 	if(op->type->flag & OPTYPE_REGISTER) {
@@ -596,25 +585,14 @@ wmEventHandler *WM_event_add_modal_handler(ListBase *handlers, wmOperator *op)
 	else {
 		wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
 		handler->op= op;
+		handler->op_area= C->area;		/* means frozen screen context for modal handlers! */
+		handler->op_region= C->region;
+		
 		BLI_addhead(handlers, handler);
 		
 		return handler;
 	}
 	return NULL;
-}
-
-void WM_event_remove_modal_handler(ListBase *handlers, wmOperator *op)
-{
-	wmEventHandler *handler;
-	
-	for(handler= handlers->first; handler; handler= handler->next) {
-		if(handler->op==op) {
-			BLI_remlink(handlers, handler);
-			wm_event_free_handler(handler);
-			MEM_freeN(handler);
-			break;
-		}
-	}
 }
 
 wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)

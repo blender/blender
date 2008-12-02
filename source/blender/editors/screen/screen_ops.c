@@ -125,7 +125,7 @@ static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 	int i= 0;
 	
 	for(az= sa->actionzones.first, i= 0; az; az= az->next, i++) {
-		if(az && az->type == AZONE_TRI) {
+		if(az->type == AZONE_TRI) {
 			if(IsPointInTri2DInts(az->x1, az->y1, az->x2, az->y2, x, y)) 
 				break;
 		}
@@ -154,7 +154,7 @@ static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	sad->x= event->x; sad->y= event->y;
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -209,15 +209,12 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 				actionzone_apply(C, op);
 				actionzone_exit(C, op);
 				
-				WM_event_remove_modal_handler(&C->window->handlers, op);
-				
 				return OPERATOR_FINISHED;
 			}
 				break;
 		case ESCKEY:
 		case LEFTMOUSE:
 			actionzone_exit(C, op);
-			WM_event_remove_modal_handler(&C->window->handlers, op);
 			return OPERATOR_CANCELLED;
 	}
 	
@@ -560,14 +557,13 @@ static int area_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
 
 static int area_move_cancel(bContext *C, wmOperator *op)
 {
-	WM_event_remove_modal_handler(&C->window->handlers, op);				
 
 	RNA_int_set(op->ptr, "delta", 0);
 	area_move_apply(C, op);
@@ -599,7 +595,6 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				area_move_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);				
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -740,8 +735,8 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 }
 
 
-/* do the split */
-static void area_split_apply(bContext *C, wmOperator *op)
+/* do the split, return success */
+static int area_split_apply(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 	float fac;
@@ -767,10 +762,12 @@ static void area_split_apply(bContext *C, wmOperator *op)
 		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
 		else sd->origval= sd->nedge->v1->vec.x;
 
+		WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+		
+		return 1;
 	}		
 	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	
+	return 0;
 }
 
 static void area_split_exit(bContext *C, wmOperator *op)
@@ -826,13 +823,14 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		sd->y= event->y;
 		
 		/* do the split */
-		area_split_apply(C, op);
-		area_move_set_limits(C->screen, dir, &sd->bigger, &sd->smaller);
-		
-		/* add temp handler for edge move or cancel */
-		WM_event_add_modal_handler(&C->window->handlers, op);
-		
-		return OPERATOR_RUNNING_MODAL;
+		if(area_split_apply(C, op)) {
+			area_move_set_limits(C->screen, dir, &sd->bigger, &sd->smaller);
+			
+			/* add temp handler for edge move or cancel */
+			WM_event_add_modal_handler(C, &C->window->handlers, op);
+			
+			return OPERATOR_RUNNING_MODAL;
+		}
 		
 	}
 	else {
@@ -860,8 +858,6 @@ static int area_split_exec(bContext *C, wmOperator *op)
 static int area_split_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
-
-	WM_event_remove_modal_handler(&C->window->handlers, op);
 
 	if (screen_area_join(C->screen,sd->sarea, sd->narea)) {
 		if (C->area == sd->narea) {
@@ -893,7 +889,6 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) { /* mouse up */
 				area_split_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -1070,7 +1065,7 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 	
 		/* add temp handler */
-		WM_event_add_modal_handler(&C->window->handlers, op);
+		WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -1092,7 +1087,6 @@ static int area_join_cancel(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
-	WM_event_remove_modal_handler(&C->window->handlers, op);			
 	
 	area_join_exit(C, op);
 
@@ -1174,7 +1168,6 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 				area_join_apply(C, op);
 				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 				area_join_exit(C, op);
-				WM_event_remove_modal_handler(&C->window->handlers, op);
 				return OPERATOR_FINISHED;
 			}
 			break;

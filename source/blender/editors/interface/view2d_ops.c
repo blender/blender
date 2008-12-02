@@ -184,7 +184,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 #endif // XXX - enable this when cursors are working properly
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -216,7 +216,6 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				view_pan_exit(C, op);
 				//WM_set_cursor(C, CURSOR_STD);		// XXX - enable this when cursors are working properly	
-				WM_event_remove_modal_handler(&C->window->handlers, op);
 				
 				return OPERATOR_FINISHED;
 			}

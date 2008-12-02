@@ -36,9 +36,7 @@
 
 #include "MEM_guardedalloc.h"
 
-//#include "DNA_action_types.h"
 #include "DNA_color_types.h"
-//#include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
@@ -46,7 +44,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -73,10 +70,6 @@
 #include "RE_shader_ext.h"
 
 #include "GPU_material.h"
-
-//XXX #include "butspace.h"
-//XXX #include "wm_event_types.h"
-
 
 /* ********* exec data struct, remains internal *********** */
 

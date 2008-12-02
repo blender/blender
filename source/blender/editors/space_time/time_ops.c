@@ -126,7 +126,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(&C->region->handlers, op); // XXX should be for window, but we crash otherwise
+	WM_event_add_modal_handler(C, &C->region->handlers, op);// XXX should be for window, but we crash otherwise
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -149,7 +149,6 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				change_frame_exit(C, op);
-				WM_event_remove_modal_handler(&C->region->handlers, op);	 // XXX should be for window, but we crash otherwise			
 				return OPERATOR_FINISHED;
 			}
 			break;

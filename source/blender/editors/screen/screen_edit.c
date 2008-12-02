@@ -268,8 +268,8 @@ static short testsplitpoint(wmWindow *win, ScrArea *sa, char dir, float fac)
 	short x, y;
 	
 	// area big enough?
-	if(sa->v4->vec.x- sa->v1->vec.x <= 2*AREAMINX) return 0;
-	if(sa->v2->vec.y- sa->v1->vec.y <= 2*AREAMINY) return 0;
+	if(dir=='v' && (sa->v4->vec.x- sa->v1->vec.x <= 2*AREAMINX)) return 0;
+	if(dir=='h' && (sa->v2->vec.y- sa->v1->vec.y <= 2*AREAMINY)) return 0;
 	
 	// to be sure
 	if(fac<0.0) fac= 0.0;
@@ -305,7 +305,7 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 	ScrVert *sv1, *sv2;
 	short split;
 	
-	if(sa==0) return NULL;
+	if(sa==NULL) return NULL;
 	
 	split= testsplitpoint(win, sa, dir, fac);
 	if(split==0) return NULL;
@@ -920,8 +920,7 @@ void ED_screens_initialize(wmWindowManager *wm)
 
 void ED_region_exit(bContext *C, ARegion *ar)
 {
-	WM_operator_cancel(C, &ar->modalops, NULL);
-	WM_event_remove_handlers(&ar->handlers);
+	WM_event_remove_handlers(C, &ar->handlers);
 }
 
 void ED_area_exit(bContext *C, ScrArea *sa)
@@ -931,8 +930,7 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
-	WM_operator_cancel(C, &sa->modalops, NULL);
-	WM_event_remove_handlers(&sa->handlers);
+	WM_event_remove_handlers(C, &sa->handlers);
 }
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
@@ -946,8 +944,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		ED_area_exit(C, sa);
 
-	WM_operator_cancel(C, &window->modalops, NULL);
-	WM_event_remove_handlers(&window->handlers);
+	WM_event_remove_handlers(C, &window->handlers);
 }
 
 

@@ -75,18 +75,6 @@ typedef struct ScrEdge {
 	int pad;
 } ScrEdge;
 
-#ifndef DNA_USHORT_FIX
-#define DNA_USHORT_FIX
-/**
- * @deprecated This typedef serves to avoid badly typed functions when
- * @deprecated compiling while delivering a proper dna.c. Do not use
- * @deprecated it in any case.
- */
-/*typedef unsigned short dna_ushort_fix;*/
-#endif
-
-
-
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
 
@@ -125,7 +113,6 @@ typedef struct ScrArea {
 	ListBase panels;
 	ListBase regionbase;	/* ARegion */
 	ListBase handlers;		/* wmEventHandler */
-	ListBase modalops;		/* wmOperator */
 	
 	ListBase actionzones;	/* AZone */
 } ScrArea;
@@ -152,7 +139,6 @@ typedef struct ARegion {
 	
 	ListBase uiblocks;
 	ListBase handlers;			/* wmEventHandler */
-	ListBase modalops;			/* wmOperator */
 	
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;

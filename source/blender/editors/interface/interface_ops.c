@@ -2627,13 +2627,15 @@ static void button_activate_state(bContext *C, uiBut *but, uiActivateButState st
 		ui_blockopen_begin(C, but, data);
 		/* note we move the handler to the region when the block is open,
 		 * so we don't interfere with the events as long as it's open */
-		WM_event_remove_modal_handler(&C->window->handlers, data->operator);
-		WM_event_add_modal_handler(&data->region->handlers, data->operator);
+		/* XXX (to brecht) removing this makes thing work proper */
+		//WM_event_remove_modal_handler(&C->window->handlers, data->operator);
+		//WM_event_add_modal_handler(C, &data->region->handlers, data->operator);
 	}
 	else if(data->state == BUTTON_STATE_BLOCK_OPEN) {
 		ui_blockopen_end(C, but, data);
-		WM_event_remove_modal_handler(&data->region->handlers, data->operator);
-		WM_event_add_modal_handler(&C->window->handlers, data->operator);
+		/* XXX (to brecht) removing this makes thing work proper */
+		//WM_event_remove_modal_handler(&data->region->handlers, data->operator);
+		//WM_event_add_modal_handler(C, &C->window->handlers, data->operator);
 	}
 	
 	if(state == BUTTON_STATE_WAIT_FLASH) {
@@ -2673,9 +2675,9 @@ static void button_activate_init(bContext *C, ARegion *ar, wmOperator *op, uiBut
 	if(!lastbut && but->block->auto_open)
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
 			but->block->auto_open= 0;
-	
+
 	/* modal handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 
@@ -2708,10 +2710,7 @@ static void button_activate_exit(bContext *C, uiActivateBut *data, wmOperator *o
 	
 	if(data->state == BUTTON_STATE_BLOCK_OPEN) {
 		ui_blockopen_end(C, but, data);
-		WM_event_remove_modal_handler(&data->region->handlers, data->operator);
 	}
-	else
-		WM_event_remove_modal_handler(&C->window->handlers, op);				
 
 	if(but) {
 		/* if someone is expecting a message */
@@ -2792,7 +2791,7 @@ static int button_activate_try_exit(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar;
 	uiActivateBut *data;
 	uiBut *but;
-	int state;
+	int state= OPERATOR_FINISHED;
 
 	data= op->customdata;
 	ar= data->region;
@@ -2801,7 +2800,8 @@ static int button_activate_try_exit(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* exit the current button, but try to re-init as well */
 	button_activate_exit(C, op->customdata, op);
-	state= button_activate_try_init(C, ar, op, event, but);
+	/* XXX re-init has to be done differently... */
+	/* XXX state= button_activate_try_init(C, ar, op, event, but); */
 
 	return (state != OPERATOR_RUNNING_MODAL);
 }
@@ -2830,7 +2830,10 @@ static int button_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int handled= 0;
 
 	data= op->customdata;
-
+	/* XXX (for brecht) this happens when cancel() frees, and modal handler still runs */
+	if(data==NULL)
+		return OPERATOR_FINISHED;
+	
 	/* check if the button dissappeared somehow */
 	if(!(but= ui_but_find_activated(data->region, data, &block))) {
 		data->cancel= 1;
@@ -3031,7 +3034,6 @@ static int menu_block_handle_cancel(bContext *C, wmOperator *op)
 	if(op->customdata) {
 		MEM_freeN(op->customdata);
 		op->customdata= NULL;
-		WM_event_remove_modal_handler(&C->window->handlers, op);				
 	}
 
 	return OPERATOR_CANCELLED;
@@ -3057,7 +3059,7 @@ static int menu_block_handle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	handle->region= C->region;
 
 	op->customdata= handle;
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 
 	return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
 }
@@ -3077,13 +3079,25 @@ static int menu_block_handle_block_open(uiBlock *block)
 	return 0;
 }
 
+#include "wm_event_system.h"
+static void testing123(bContext *C)
+{
+	wmEventHandler *handler;
+	
+	for(handler= C->window->handlers.first; handler; handler= handler->next) {
+		if(handler->op)
+			printf("handler has op %s\n", handler->op->type->idname);
+	}
+}
+
+/* moves focus on button/menu from mousemove-based to hotkey */
 static void menu_block_handle_activate_button(bContext *C, wmEvent *event, ARegion *butregion, uiBut *but, int activateflag)
 {
 	wmOperatorType *ot;
 
 	ot= WM_operatortype_find("ED_UI_OT_button_activate");
-
-	WM_operator_cancel(C, &butregion->modalops, ot);
+	testing123(C);
+// XXX	WM_operator_cancel(C, &butregion->modalops, ot);
 	but->activateflag= activateflag;
 
 	SWAP(ARegion*, C->region, butregion); /* XXX 2.50 bad state manipulation? */
@@ -3173,6 +3187,10 @@ static int menu_block_handle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int inside, act, count, mx, my, handled;
 
 	bhandle= op->customdata;
+	/* XXX (for brecht) this happens when cancel() frees, and modal handler still runs */
+	if(bhandle==NULL)
+		return OPERATOR_FINISHED;
+		
 	ar= bhandle->region;
 	block= ar->uiblocks.first;
 

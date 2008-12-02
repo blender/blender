@@ -37,9 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h" /* qdn: defocus node, need camera info */
-//#include "DNA_action_types.h"
 #include "DNA_color_types.h"
-//#include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
@@ -47,7 +45,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -63,9 +60,6 @@
 #include "../CMP_node.h"
 #include "node_util.h"
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -77,9 +71,6 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
-
-//XXX #include "butspace.h"
-//XXX #include "wm_event_types.h"
 
 /* *************************** operations support *************************** */
 

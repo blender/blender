@@ -127,6 +127,11 @@ void BKE_screen_area_free(ScrArea *sa)
 void free_screen(bScreen *sc)
 {
 	ScrArea *sa;
+	ARegion *ar;
+	
+	for(ar=sc->regionbase.first; ar; ar=ar->next)
+		BKE_area_region_free(ar);
+	BLI_freelistN(&sc->regionbase);
 	
 	for(sa= sc->areabase.first; sa; sa= sa->next)
 		BKE_screen_area_free(sa);

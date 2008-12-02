@@ -182,7 +182,7 @@ static void border_select_end(bContext *C, wmOperator *op)
 	
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
-	WM_event_remove_modal_handler(&C->window->handlers, op);
+
 	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
 	
 }
@@ -192,7 +192,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
 	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 
@@ -252,7 +252,7 @@ static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(&C->window->handlers, op);
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
 	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 	
@@ -265,7 +265,7 @@ static void tweak_gesture_end(bContext *C, wmOperator *op)
 	
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
-	WM_event_remove_modal_handler(&C->window->handlers, op);
+
 	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
 	
 }
