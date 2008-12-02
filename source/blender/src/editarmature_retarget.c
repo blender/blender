@@ -2108,10 +2108,11 @@ static MemoNode * solveJoints(MemoNode *table, BArcIterator *iter, float **vec_c
 	}
 	else if (joints_left == 0)
 	{
+		float *vec0 = vec_cache[previous];
 		float *vec1 = vec_cache[current];
 		float *vec2 = vec_cache[nb_positions + 1];
 
-		node->weight = calcCostLengthDistance(iter, vec_cache, edge, vec1, vec2, current, iter->length);
+		node->weight = calcCostAngleLengthDistance(iter, vec_cache, edge, vec0, vec1, vec2, current, iter->length);
 
 		return node;
 	}
