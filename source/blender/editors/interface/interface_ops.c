@@ -2676,8 +2676,11 @@ static void button_activate_init(bContext *C, ARegion *ar, wmOperator *op, uiBut
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
 			but->block->auto_open= 0;
 
-	/* modal handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	if(but->block->flag & UI_BLOCK_LOOP)
+		WM_event_add_modal_handler(C, &C->window->handlers, op);
+	else
+		/* regular button handler on area, handles mouse-exit in WM */
+		WM_event_add_modal_handler(C, &C->area->handlers, op);
 
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 
@@ -2791,19 +2794,19 @@ static int button_activate_try_exit(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar;
 	uiActivateBut *data;
 	uiBut *but;
-	int state= OPERATOR_FINISHED;
 
 	data= op->customdata;
 	ar= data->region;
 
 	but= ui_but_find_activated(data->region, data, NULL);
 
-	/* exit the current button, but try to re-init as well */
+	/* exit the current button */
 	button_activate_exit(C, op->customdata, op);
-	/* XXX re-init has to be done differently... */
-	/* XXX state= button_activate_try_init(C, ar, op, event, but); */
+	
+	/* adds empty mousemove in queue for re-init operator (if mouse is still over button) */
+	WM_event_add_mousemove(C);
 
-	return (state != OPERATOR_RUNNING_MODAL);
+	return 1;
 }
 
 static int button_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -2837,10 +2840,8 @@ static int button_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* check if the button dissappeared somehow */
 	if(!(but= ui_but_find_activated(data->region, data, &block))) {
 		data->cancel= 1;
-		if(button_activate_try_exit(C, op, event))
-			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
-		else
-			return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+		button_activate_try_exit(C, op, event);
+		return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 	}
 
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {

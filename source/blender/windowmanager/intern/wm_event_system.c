@@ -326,7 +326,6 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	
 	/* C is zero on freeing database, modal handlers then already were freed */
 	while((handler=handlers->first)) {
-		/* we have to remove the handler first, to prevent op->type->cancel() to remove modal handler too */
 		BLI_remlink(handlers, handler);
 		
 		if(C && handler->op) {
@@ -473,17 +472,29 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 	return BLI_in_rcti(rect, event->x, event->y);
 }
 
+static int wm_event_prev_inside_i(wmEvent *event, rcti *rect)
+{
+	if(BLI_in_rcti(rect, event->x, event->y))
+	   return 1;
+	if(event->type==MOUSEMOVE) {
+		if( BLI_in_rcti(rect, event->prevx, event->prevy)) {
+			return 1;
+		}
+		return 0;
+	}
+	return 0;
+}
+
 static ScrArea *area_event_inside(bContext *C, wmEvent *event)
 {
 	ScrArea *sa;
 	
 	if(C->screen)
 		for(sa= C->screen->areabase.first; sa; sa= sa->next)
-			if(wm_event_inside_i(event, &sa->totrct))
+			if(BLI_in_rcti(&sa->totrct, event->x, event->y))
 				return sa;
 	return NULL;
 }
-
 
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
@@ -503,10 +514,10 @@ void wm_event_do_handlers(bContext *C)
 			C->window= win;
 			C->screen= win->screen;
 			C->area= area_event_inside(C, event);
-				
+			
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			wm_window_make_drawable(C, win);
-			
+				
 			action= wm_handlers_do(C, event, &win->handlers);
 			
 			/* modal menus in Blender use (own) regions linked to screen */
@@ -532,9 +543,11 @@ void wm_event_do_handlers(bContext *C)
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
+				int doit= 0;
 
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-					if(wm_event_always_pass(event) || wm_event_inside_i(event, &sa->totrct)) {
+					if(wm_event_always_pass(event) || wm_event_prev_inside_i(event, &sa->totrct)) {
+						doit= 1;
 						C->area= sa;
 						action= wm_handlers_do(C, event, &sa->handlers);
 
@@ -546,24 +559,26 @@ void wm_event_do_handlers(bContext *C)
 									C->region= NULL;
 
 									if(!wm_event_always_pass(event)) {
-										action= WM_HANDLER_BREAK;
-										break;
+										if(action==WM_HANDLER_BREAK)
+											break;
 									}
 								}
 							}
 						}
 
 						C->area= NULL;
-
-						if(!wm_event_always_pass(event)) {
-							action= WM_HANDLER_BREAK;
-							break;
-						}
+						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
+				}
+				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
+				   doing it on ghost queue gives errors when mousemoves go over area borders */
+				if(doit) {
+					C->window->eventstate->prevx= event->x;
+					C->window->eventstate->prevy= event->y;
 				}
 			}
 			wm_event_free(event);
-
+			
 			C->window= NULL;
 			C->screen= NULL;
 		}
@@ -641,6 +656,14 @@ void WM_event_add_message(wmWindowManager *wm, void *customdata, short customdat
 		}
 		wm_event_add(win, &event);
 	}
+}
+
+void WM_event_add_mousemove(bContext *C)
+{
+	wmEvent event= *(C->window->eventstate);
+	event.type= MOUSEMOVE;
+	wm_event_add(C->window, &event);
+	
 }
 
 /* ********************* ghost stuff *************** */

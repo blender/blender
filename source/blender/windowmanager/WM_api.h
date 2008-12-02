@@ -75,6 +75,7 @@ void		WM_event_remove_handlers			(bContext *C, ListBase *handlers);
 
 void		WM_event_add_message(wmWindowManager *wm, void *customdata,
                                  short customdatafree);
+void		WM_event_add_mousemove(bContext *C);
 
 void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
 					int swinid, int type,

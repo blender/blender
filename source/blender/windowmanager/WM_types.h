@@ -47,7 +47,8 @@ typedef struct wmEvent {
 	
 	short type;		/* event code itself (short, is also in keymap) */
 	short val;		/* press, release, scrollvalue */
-	short x, y;		/* mouse pointer position */
+	short x, y;				/* mouse pointer position */
+	short prevx, prevy;		/* previous mouse pointer position */
 	short unicode;	/* future, ghost? */
 	char ascii;		/* from ghost */
 	char pad1;		

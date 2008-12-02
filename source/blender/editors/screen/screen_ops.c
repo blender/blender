@@ -278,13 +278,17 @@ static int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 		} else {
 			WM_set_cursor(C, CURSOR_X_MOVE);
 		}
-	} else {
+		return OPERATOR_FINISHED;
+	} 
+	else {
 		ScrArea *sa= NULL;
 		AZone *az= NULL;
+		
 		for(sa= C->screen->areabase.first; sa; sa= sa->next) {
 			az= is_in_area_actionzone(sa, event->x, event->y);
 			if(az!=NULL) break;
 		}
+		
 		if(az!=NULL) WM_set_cursor(C, CURSOR_EDIT);
 		else WM_set_cursor(C, CURSOR_STD);
 	}
