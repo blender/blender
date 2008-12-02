@@ -46,52 +46,7 @@
 #include "UI_view2d.h"
 
 /* *********************************************************************** */
-/* Setup and Refresh Code */
-
-/* Set view matrices to ortho for View2D drawing */
-void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
-{
-	ARegion *region= C->region;
-	int winx, winy;
-	float ofsx1, ofsy1, ofsx2, ofsy2;
-	
-	/* calculate extents of region */
-	winx= region->winrct.xmax - region->winrct.xmin;
-	winy= region->winrct.ymax - region->winrct.ymin;
-	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
-	
-	/* these checks here make sure that the region is large-enough to show scrollers */
-	if ((winx > SCROLLB+10) && (winy > SCROLLH+10)) {
-		/* calculate offset factor required on each axis */
-		if (v2d->scroll & L_SCROLL)
-			ofsy1= (float)SCROLLB;
-		if (v2d->scroll & R_SCROLL)
-			ofsy2= (float)SCROLLB;
-		if (v2d->scroll & T_SCROLL)
-			ofsx1= (float)SCROLLH;
-		if (v2d->scroll & B_SCROLL)
-			ofsx2= (float)SCROLLH;
-	}
-	
-	/* note: 0.375 is constant factor to get 1:1 correspondance with pixels */
-	wmOrtho2(C->window, v2d->cur.xmin-ofsx1-0.375f, v2d->cur.xmax-ofsx2-0.375f, v2d->cur.ymin-ofsy1-0.375f, v2d->cur.ymax-ofsx2-0.375f);
-}
-
-/* Restore view matrices after drawing */
-void UI_view2d_view_restore(const bContext *C)
-{
-	ARegion *region= C->region;
-	int winx, winy;
-	
-	/* calculate extents of region */
-	winx= region->winrct.xmax - region->winrct.xmin;
-	winy= region->winrct.ymax - region->winrct.ymin;
-	
-	/* note: 0.375 is constant factor to get 1:1 correspondance with pixels */
-	wmOrtho2(C->window, -0.375f, winx-0.375f, -0.375f, winy-0.375f);
-}
-
-/* ---------------------- */
+/* Refresh and Validation */
 
 /* Adjust mask size in response to view size changes */
 // XXX pre2.5 -> this used to be called  calc_scrollrcts()
@@ -121,7 +76,7 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
 		}
 		
 		/* horizontal scrollbar */
-		if ((v2d->scroll & B_SCROLL) || (v2d->scroll & B_SCROLLO)) {
+		if (v2d->scroll & (B_SCROLL|B_SCROLLO)) {
 			/* on bottom edge of region (B_SCROLLO is outliner, the ohter is for standard) */
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= SCROLLH;
@@ -368,6 +323,86 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 }
 
 /* *********************************************************************** */
+/* View Matrix Setup */
+
+/* Set view matrices to use 'cur' rect as viewing frame for View2D drawing 
+ *	- Scrollbars are taken into account when making this matrix, given that most regions have them
+ */
+void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
+{
+	float ofsx1, ofsy1, ofsx2, ofsy2;
+	
+	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
+	
+	/* calculate offset factor required on each axis */
+	if (v2d->scroll & L_SCROLL)
+		ofsy1= (float)SCROLLB;
+	if (v2d->scroll & R_SCROLL)
+		ofsy2= (float)SCROLLB;
+	if (v2d->scroll & T_SCROLL)
+		ofsx1= (float)SCROLLH;
+	if (v2d->scroll & B_SCROLL)
+		ofsx2= (float)SCROLLH;
+	
+	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
+	 * as they were causing some unwanted offsets when drawing 
+	 */
+	wmOrtho2(C->window, v2d->cur.xmin-ofsx1, v2d->cur.xmax-ofsx2, v2d->cur.ymin-ofsy1, v2d->cur.ymax-ofsx2);
+}
+
+/* Set view matices to only use one axis of 'cur' only
+ *	- Scrollbars on appropriate axis will be taken into account
+ *
+ *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
+ */
+void UI_view2d_view_orthospecial(const bContext *C, View2D *v2d, short xaxis)
+{
+	ARegion *region= C->region;
+	int winx, winy;
+	float ofsx1, ofsy1, ofsx2, ofsy2;
+	
+	/* calculate extents of region */
+	winx= region->winrct.xmax - region->winrct.xmin;
+	winy= region->winrct.ymax - region->winrct.ymin;
+	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
+	
+	/* calculate offset factor required on each axis */
+	if (v2d->scroll & L_SCROLL)
+		ofsy1= (float)SCROLLB;
+	if (v2d->scroll & R_SCROLL)
+		ofsy2= (float)SCROLLB;
+	if (v2d->scroll & T_SCROLL)
+		ofsx1= (float)SCROLLH;
+	if (v2d->scroll & B_SCROLL)
+		ofsx2= (float)SCROLLH;
+	
+	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
+	 * as they were causing some unwanted offsets when drawing 
+	 */
+	if (xaxis)
+		wmOrtho2(C->window, v2d->cur.xmin-ofsx1, v2d->cur.xmax-ofsx2, 0, winy);
+	else
+		wmOrtho2(C->window, 0, winx, v2d->cur.ymin-ofsy1, v2d->cur.ymax-ofsx2);
+} 
+
+
+/* Restore view matrices after drawing */
+void UI_view2d_view_restore(const bContext *C)
+{
+	ARegion *region= C->region;
+	int winx, winy;
+	
+	/* calculate extents of region */
+	winx= region->winrct.xmax - region->winrct.xmin;
+	winy= region->winrct.ymax - region->winrct.ymin;
+	
+	/* set default region matrix - pixel offsets (0.375) for 1:1 correspondance are not applied, 
+	 * as they were causing some unwanted offsets when drawing 
+	 */
+	wmOrtho2(C->window, 0, winx, 0, winy);
+}
+
+/* *********************************************************************** */
 /* Gridlines */
 
 /* minimum pixels per gridstep */
@@ -498,7 +533,6 @@ void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 		
 		/* minor gridlines */
 		step= (v2d->mask.xmax - v2d->mask.xmin + 1) / MINGRIDSTEP;
-		
 		UI_ThemeColor(TH_GRID);
 		
 		for (a=0; a<step; a++) {
@@ -512,7 +546,6 @@ void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 		
 		/* major gridlines */
 		vec2[0]= vec1[0]-= 0.5f*grid->dx;
-		
 		UI_ThemeColorShade(TH_GRID, 16);
 		
 		step++;
@@ -591,7 +624,7 @@ struct View2DScrollers {
 	View2DGrid *grid;		/* grid for coordinate drawing */
 	
 	int vert_min, vert_max;	/* vertical scrollbar - current 'focus' button */
-	int hor_min, hor_max;		/* horizontal scrollbar - current 'focus' button */
+	int hor_min, hor_max;	/* horizontal scrollbar - current 'focus' button */
 };
 
 /* Calculate relevant scroller properties */
@@ -666,19 +699,30 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* slider 'button' */
 			// FIXME: implement fancy one... but only when we get this working first!
-		UI_ThemeColorShade(TH_SHADE1, dark);
-		glRecti(scrollers->hor_min,  hor.ymin,  scrollers->hor_max,  hor.ymax);
+		{
+			UI_ThemeColorShade(TH_SHADE1, dark);
+			glRecti(scrollers->hor_min,  hor.ymin,  scrollers->hor_max,  hor.ymax);
+			
+				/* draw lines on either end of 'box' */
+			glLineWidth(2.0);
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				sdrawline(scrollers->hor_min, hor.ymin, scrollers->hor_min, hor.ymax);
+				sdrawline(scrollers->hor_max, hor.ymin, scrollers->hor_max, hor.ymax);
+			glLineWidth(1.0);
+		}
 		
-			/* draw lines on either end of 'box' */
-		glLineWidth(2.0);
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			sdrawline(scrollers->hor_min, hor.ymin, scrollers->hor_min, hor.ymax);
-			sdrawline(scrollers->hor_max, hor.ymin, scrollers->hor_max, hor.ymax);
-		glLineWidth(1.0);
+		/* scale indicators */
+		// XXX will need to update the font drawing when the new stuff comes in
+		if (v2d->scroll & HOR_SCROLLGRID) {
+			
+		}
 		
-		/* decoration bright line */
+		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
+		if (v2d->scroll & B_SCROLL)
+			sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
+		else if (v2d->scroll & T_SCROLL)
+			sdrawline(hor.xmin, hor.ymin, hor.xmax, hor.ymin);
 	}
 	
 	/* vertical scrollbar */
@@ -689,20 +733,28 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* slider 'button' */
 			// FIXME: implement fancy one... but only when we get this working first!
-		UI_ThemeColorShade(TH_SHADE1, dark);
-		glRecti(vert.xmin,  scrollers->vert_min,  vert.xmax,  scrollers->vert_max);
+		{
+			UI_ThemeColorShade(TH_SHADE1, dark);
+			glRecti(vert.xmin,  scrollers->vert_min,  vert.xmax,  scrollers->vert_max);
+			
+				/* draw lines on either end of 'box' */
+			glLineWidth(2.0);
+				UI_ThemeColorShade(TH_SHADE1, darker);
+				sdrawline(vert.xmin, scrollers->vert_min, vert.xmax, scrollers->vert_min);
+				sdrawline(vert.xmin, scrollers->vert_max, vert.xmax, scrollers->vert_max);
+			glLineWidth(1.0);
+		}
 		
-			/* draw lines on either end of 'box' */
-		glLineWidth(2.0);
-			UI_ThemeColorShade(TH_SHADE1, darker);
-			sdrawline(vert.xmin, scrollers->vert_min, vert.xmax, scrollers->vert_min);
-			sdrawline(vert.xmin, scrollers->vert_max, vert.xmax, scrollers->vert_max);
-		glLineWidth(1.0);
+		/* scale indiators */
+		// XXX will need to update the font drawing when the new stuff comes in
+		if (v2d->scroll & VERT_SCROLLGRID) {
+			
+		}	
 		
-		/* decoration black line */
-		UI_ThemeColorShade(TH_SHADE1, darker);
-		if (v2d->scroll & HOR_SCROLL) 
-			sdrawline(vert.xmax, vert.ymin+SCROLLH, vert.xmax, vert.ymax);
+		/* decoration outer bevel line */
+		UI_ThemeColorShade(TH_SHADE1, lighter);
+		if (v2d->scroll & R_SCROLL)
+			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
 		else 
 			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
 	}
@@ -799,6 +851,14 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, 
 
 /* *********************************************************************** */
 /* Utilities */
+
+/* View2D data by default resides in region, so get from region stored in context */
+View2D *UI_view2d_fromcontext(const bContext *C)
+{
+	if (C->area == NULL) return NULL;
+	if (C->region == NULL) return NULL;
+	return &(C->region->v2d);
+}
 
 /* Calculate the scale per-axis of the drawing-area
  *	- Is used to inverse correct drawing of icons, etc. that need to follow view 

@@ -94,11 +94,14 @@ typedef struct View2D {
 	/* special hacks for outliner hscroll - prevent hanging older versions of Blender */
 #define B_SCROLLO   	(1<<4)
 #define HOR_SCROLLO 	(T_SCROLL|B_SCROLLO)
-	/* scale markings */
+	/* scale markings - vertical */
 #define LGRID_SCROLL	(1<<5)
 #define RGRID_SCROLL	(1<<6)
+#define VERT_SCROLLGRID	(LGRID_SCROLL|RGRID_SCROLL)
+	/* scale markings - horizontal */
 #define BGRID_SCROLL	(1<<7)
 #define TGRID_SCROLL	(1<<8)	
+#define HOR_SCROLLGRID	(BGRID_SCROLL|TGRID_SCROLL)
 
 #endif
 

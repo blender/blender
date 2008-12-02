@@ -81,14 +81,6 @@ static ListBase *context_get_markers(const bContext *C)
 	return &C->scene->markers;
 }
 
-static View2D *context_get_view2d(const bContext *C)
-{
-	/* XXX solve, get from view2d api? */
-	SpaceTime *stime= C->area->spacedata.first;
-	
-	return &stime->v2d;
-}
-
 /* ************* Marker Drawing ************ */
 
 /* XXX */
@@ -106,7 +98,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	ypixels= v2d->mask.ymax-v2d->mask.ymin;
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
-	glScalef( 1.0/xscale, 1.0/yscale, 1.0);
+	glScalef(1.0/xscale, 1.0, 1.0);
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
@@ -137,7 +129,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos*xscale-5.0, 8.0, icon_id);
+	UI_icon_draw(xpos*xscale-5.0, 16.0, icon_id);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -145,26 +137,26 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	/* and the marker name too, shifted slightly to the top-right */
 	if(marker->name && marker->name[0]) {
 		if(marker->flag & SELECT) {
-			//BIF_ThemeColor(TH_TEXT_HI);
+			UI_ThemeColor(TH_TEXT_HI);
 			ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
 		}
 		else {
-			// BIF_ThemeColor(TH_TEXT);
+			UI_ThemeColor(TH_TEXT);
 			if((marker->frame <= cfra) && (marker->frame+5 > cfra))
 				ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
 			else
 				ui_rasterpos_safe(xpos*xscale+4.0, 17.0, 1.0);
 		}
-//		BIF_DrawString(G.font, marker->name, 0);
+		UI_DrawString(G.font, marker->name, 0);
 	}
-	glScalef(xscale, yscale, 1.0);
+	glScalef(xscale, 1.0, 1.0);
 }
 
 /* Draw Scene-Markers in time window */
 void draw_markers_time(const bContext *C, int flag)
 {
 	ListBase *markers= context_get_markers(C);
-	View2D *v2d= context_get_view2d(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker;
 	
 	/* unselected markers are drawn at the first time */
@@ -201,6 +193,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= SELECT;
 	marker->frame= frame;
+	sprintf(marker->name, "Frame %d", frame); // XXX - temp code only
 	BLI_addtail(markers, marker);
 	
 	//BIF_undo_push("Add Marker");
@@ -368,7 +361,7 @@ int WM_modal_tweak_check(wmEvent *evt, int tweak_event)
 static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	MarkerMove *mm= op->customdata;
-	View2D *v2d= context_get_view2d(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker, *selmarker=NULL;
 	float dx, fac;
 	char str[256];
@@ -612,7 +605,7 @@ static int find_nearest_marker_time(ListBase *markers, float dx)
 static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 {
 	ListBase *markers= context_get_markers(C);
-	View2D *v2d= context_get_view2d(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 	float viewx;
 	int x, y, cfra;
 	
@@ -689,7 +682,7 @@ callbacks:
 
 static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 {
-	View2D *v2d= context_get_view2d(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 	ListBase *markers= context_get_markers(C);
 	wmGesture *gesture= op->customdata;
 	TimeMarker *marker;

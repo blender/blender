@@ -2069,16 +2069,14 @@ static void ui_draw_text_icon(uiBut *but)
 			/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
 			and offset the text label to accomodate it */
 			
-			/* XXX 2.50 need interface_icons.c */
-#if 0
-			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
+			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) 
+			{
 				ui_draw_icon(but, but->icon, 0);
-
+				
 				if(but->editstr || (but->flag & UI_TEXT_LEFT)) x= but->x1 + but->aspect*UI_icon_get_width(but->icon)+5.0;
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			else
-#endif
 			{
 				if(but->editstr || (but->flag & UI_TEXT_LEFT))
 					x= but->x1+4.0;

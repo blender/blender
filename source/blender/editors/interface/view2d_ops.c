@@ -49,6 +49,11 @@
 #include "UI_view2d.h"
 
 /* ********************************************************* */
+/* General Polling Funcs */
+
+
+
+/* ********************************************************* */
 /* VIEW PANNING OPERATOR								 */
 
 /* 	This group of operators come in several forms:
@@ -241,7 +246,6 @@ void ED_View2D_OT_view_pan(wmOperatorType *ot)
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
 
-// XXX scroll down operator not working yet! (doesn't get called on wheeldownmouse for some reason)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
@@ -312,7 +316,6 @@ void ED_View2D_OT_view_scrollleft(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
-// XXX scroll down operator not working yet! (doesn't get called on wheeldownmouse for some reason)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
@@ -537,6 +540,9 @@ void ED_View2D_OT_view_zoomout(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
 }
 
+/* ********************************************************* */
+/* Scrollers */
+
  
 /* ********************************************************* */
 /* Registration */
@@ -561,15 +567,15 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	/* pan/scroll operators */
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_ANY, KM_CTRL, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_ANY, KM_CTRL, 0);
 	
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_upscroll", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_ANY, KM_SHIFT, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_upscroll", WHEELUPMOUSE, KM_ANY, KM_SHIFT, 0);
 	
 	/* zoom */
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomout", WHEELUPMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomout", WHEELUPMOUSE, KM_ANY, 0, 0);
+	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_ANY, 0, 0);
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomout", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_zoomin", PADPLUSKEY, KM_PRESS, 0, 0);
 	

@@ -80,6 +80,7 @@ typedef struct View2DScrollers View2DScrollers;
 
 /* setup */
 void UI_view2d_view_ortho(const struct bContext *C, struct View2D *v2d);
+void UI_view2d_view_orthospecial(const struct bContext *C, struct View2D *v2d, short xaxis);
 void UI_view2d_view_restore(const struct bContext *C);
 
 void UI_view2d_update_size(struct View2D *v2d, int winx, int winy);
@@ -101,6 +102,7 @@ void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, short *regio
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *regionx, short *region_y);
 
 /* utilities */
+struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
 
 

@@ -80,22 +80,24 @@ static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar
 
 static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
-    /* draw darkened area outside of active timeline 
+    View2D *v2d= UI_view2d_fromcontext(C);
+	
+	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
 	UI_ThemeColorShade(TH_BACK, -25);
 
 	if (PSFRA < PEFRA) {
-		glRectf(ar->v2d.cur.xmin, ar->v2d.cur.ymin, PSFRA, ar->v2d.cur.ymax);
-		glRectf(PEFRA, ar->v2d.cur.ymin, ar->v2d.cur.xmax, ar->v2d.cur.ymax);
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
+		glRectf(PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 	else {
-		glRectf(ar->v2d.cur.xmin, ar->v2d.cur.ymin, ar->v2d.cur.xmax, ar->v2d.cur.ymax);
+		glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 	}
 
 	UI_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline(PSFRA, ar->v2d.cur.ymin, PSFRA, ar->v2d.cur.ymax);
-	fdrawline(PEFRA, ar->v2d.cur.ymin, PEFRA, ar->v2d.cur.ymax);
+	fdrawline(PSFRA, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
+	fdrawline(PEFRA, v2d->cur.ymin, PEFRA, v2d->cur.ymax);
 }
 
 static void time_main_area_init(const bContext *C, ARegion *ar)
@@ -143,6 +145,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	time_draw_cfra_time(C, stime, ar);
 	
 	/* markers */
+	UI_view2d_view_orthospecial(C, v2d, 1);
 	draw_markers_time(C, 0);
 	
 	/* reset view matrix */
