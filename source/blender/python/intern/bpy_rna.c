@@ -811,7 +811,7 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 {
 	PyObject *ret;
 	if (RNA_property_type(&self->ptr, self->prop) != PROP_COLLECTION) {
-		PyErr_SetString( PyExc_TypeError, "keys() is only valid for collection types" );
+		PyErr_SetString( PyExc_TypeError, "values() is only valid for collection types" );
 		ret = NULL;
 	} else {
 		PyObject *item;
@@ -837,6 +837,39 @@ PyObject *pyrna_prop_values(BPy_PropertyRNA *self)
 	}
 	
 	return ret;
+}
+
+/* A bit of a kludge, make a list out of a collection or array,
+ * then return the lists iter function, not especially fast but convenient for now */
+PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
+{
+	/* Try get values from a collection */
+	PyObject *ret = pyrna_prop_values(self);
+	
+	if (ret==NULL) {
+		/* collection did not work, try array */
+		int len = RNA_property_array_length(&self->ptr, self->prop);
+		
+		if (len) {
+			int i;
+			PyErr_Clear();
+			ret = PyList_New(len);
+			
+			for (i=0; i < len; i++) {
+				PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(&self->ptr, self->prop, i));
+			}
+		}
+	}
+	
+	if (ret) {
+		/* we know this is a list so no need to PyIter_Check */
+		PyObject *iter = PyObject_GetIter(ret); 
+		Py_DECREF(ret);
+		return iter;
+	}
+	
+	PyErr_SetString( PyExc_TypeError, "this BPy_PropertyRNA object is not iterable" );
+	return NULL;
 }
 
 
@@ -1027,7 +1060,7 @@ PyTypeObject pyrna_prop_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
+	(getiterfunc)pyrna_prop_iter,	/* getiterfunc tp_iter; */
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
