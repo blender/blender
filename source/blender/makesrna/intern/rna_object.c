@@ -74,6 +74,14 @@ void RNA_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Location", "");
+	
+	//prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_ROTATION);
+	//RNA_def_property_ui_text(prop, "Rotation", "");
+	prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_ui_text(prop, "Rotation", "");
+	
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_ui_text(prop, "Scale", "");
 
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ModifierData");

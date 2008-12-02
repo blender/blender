@@ -625,6 +625,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_COLOR: return "PROP_COLOR";
 		case PROP_VECTOR: return "PROP_VECTOR";
 		case PROP_MATRIX: return "PROP_MATRIX";
+		case PROP_ROTATION: return "PROP_ROTATION";
 		default: return "PROP_UNKNOWN";
 	}
 }
