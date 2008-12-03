@@ -2941,10 +2941,11 @@ static int button_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 
 				break;
+			default:
+				handled= ui_do_button(C, block, but, event);
 			}
 		}
 
-		handled= ui_do_button(C, block, but, event);
 	}
 	else if(data->state == BUTTON_STATE_WAIT_RELEASE) {
 		switch(event->type) {
@@ -3248,6 +3249,10 @@ static int menu_block_handle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ar= bhandle->region;
 	block= ar->uiblocks.first;
 
+	/* XXX (for brecht) this happens when click on menu */
+	if(block==NULL)
+		return OPERATOR_FINISHED;
+	
 	act= 0;
 	handled= 0;
 
