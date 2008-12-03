@@ -77,9 +77,7 @@ void		WM_event_add_message(wmWindowManager *wm, void *customdata,
                                  short customdatafree);
 void		WM_event_add_mousemove(bContext *C);
 
-void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window,
-					int swinid, int type,
-					int value, void *data);
+void		WM_event_add_notifier(bContext *C, int type, int value, void *data);
 
 void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 

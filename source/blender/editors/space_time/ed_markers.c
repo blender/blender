@@ -56,6 +56,7 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 #include "UI_resources.h"
+#include "UI_text.h"
 
 #include "ED_markers.h"
 #include "ED_screen.h"
@@ -244,7 +245,6 @@ typedef struct MarkerMove {
 	ListBase *markers;
 	int event_type;		/* store invoke-event, to verify */
 	int *oldframe, evtx, firstx;
-	short swinid;
 } MarkerMove;
 
 /* copy selection to temp buffer */
@@ -293,7 +293,6 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		
 		mm->evtx= evt->x;
 		mm->firstx= evt->x;
-		mm->swinid= C->region->swinid;
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
@@ -327,13 +326,12 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 /* only for modal */
 static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
-	MarkerMove *mm= op->customdata;
 	
 	RNA_int_set(op->ptr, "frs", 0);
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);	
 	
-	WM_event_add_notifier(C->wm, C->window, mm->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 }
 
 
@@ -375,7 +373,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case RIGHTMOUSE:
 			if(WM_modal_tweak_check(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
-				WM_event_add_notifier(C->wm, C->window, mm->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 				return OPERATOR_FINISHED;
 			}
 			
@@ -452,7 +450,7 @@ XXX					else if (mm->slink->spacetype == SPACE_ACTION) {
 					}
 				}
 				
-				WM_event_add_notifier(C->wm, C->window, mm->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 				// headerprint(str); XXX
 			}
 	}
@@ -620,7 +618,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 		select_timeline_marker_frame(cfra, 0);
 	
 	/* XXX notifier for markers... */
-	WM_event_add_notifier(C->wm, C->window, C->region->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 
 	return OPERATOR_PASS_THROUGH;
 }
@@ -682,7 +680,6 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 {
 	View2D *v2d= UI_view2d_fromcontext(C);
 	ListBase *markers= context_get_markers(C);
-	wmGesture *gesture= op->customdata;
 	TimeMarker *marker;
 	float xminf, xmaxf, yminf, ymaxf;
 	int event_type= RNA_int_get(op->ptr, "event_type");
@@ -714,8 +711,8 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* XXX notifier for markers..., XXX swinid??? */
-	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	/* XXX notifier for markers... */
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 
 	return 1;
 }
@@ -769,7 +766,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* XXX notifier for markers... */
-	WM_event_add_notifier(C->wm, C->window, C->region->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -817,7 +814,7 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 	
 	/* XXX notifier for markers... */
 	if(changed)
-		WM_event_add_notifier(C->wm, C->window, C->region->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+		WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 
 	return OPERATOR_FINISHED;
 }

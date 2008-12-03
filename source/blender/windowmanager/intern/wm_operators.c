@@ -183,7 +183,7 @@ static void border_select_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 	
 }
 
@@ -194,7 +194,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
-	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -219,7 +219,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				rect->ymax= event->y - sy;
 			}
 			
-			WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 
 			break;
 			
@@ -229,7 +229,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(event->val==1) {
 				if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 					gesture->mode= 1;
-					WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+					WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 				}
 			}
 			else {
@@ -254,7 +254,7 @@ static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &C->window->handlers, op);
 	
-	WM_event_add_notifier(C->wm, C->window, C->screen->subwinactive, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -266,7 +266,7 @@ static void tweak_gesture_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 	
 }
 
@@ -302,7 +302,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED;
 			}
 			else
-				WM_event_add_notifier(C->wm, C->window, gesture->swinid, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+				WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 			
 			break;
 			

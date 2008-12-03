@@ -1183,7 +1183,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiActiva
 	}
 
 	if(changed || handled)
-		WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, uiActivateBut *data, wmEvent *event)
@@ -1209,7 +1209,7 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 
 	if(handled) {
 		ui_check_but(but);
-		WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	}
 }
 
@@ -1265,7 +1265,7 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiActivate
 	if(data->interactive) ui_apply_button(block, but, data, 1);
 	else ui_check_but(but);
 
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 /* ****************** block opening for various types **************** */
@@ -2647,7 +2647,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiActivateButState st
 	}
 
 	data->state= state;
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 static void button_activate_init(bContext *C, ARegion *ar, wmOperator *op, uiBut *but, uiBut *lastbut)
@@ -2746,7 +2746,7 @@ static void button_activate_exit(bContext *C, uiActivateBut *data, wmOperator *o
 	}
 
 	/* redraw */
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 
 	/* clean up */
 	button_disable_timers(C, data);
@@ -2863,7 +2863,7 @@ static int button_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(event->customdata == data->tooltiptimer) {
 					if(!data->tooltip) {
 						data->tooltip= ui_tooltip_create(C, data->region, but);
-						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					}
 
 					WM_event_remove_window_timer(C->window, data->tooltiptimer);
@@ -2891,14 +2891,14 @@ static int button_activate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(but && but->activate == data) {
 					if(!(but->flag & UI_SELECT)) {
 						but->flag |= UI_SELECT;
-						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					}
 				}
 				else {
 					but= ui_but_find_activated(data->region, data, &block);
 					if(but->flag & UI_SELECT) {
 						but->flag &= ~UI_SELECT;
-						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					}
 				}
 				break;

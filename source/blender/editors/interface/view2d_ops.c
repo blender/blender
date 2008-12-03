@@ -34,6 +34,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 
+#include "BLI_blenlib.h"
+
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -157,7 +159,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	}
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
 }
 
@@ -480,7 +482,7 @@ static void view_zoom_apply(bContext *C, wmOperator *op)
 	}
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
 }
 

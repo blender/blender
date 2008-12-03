@@ -332,8 +332,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ar->winrct.ymax= y2;
 
 	/* notify change and redraw */
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 
 	return ar;
 }
@@ -342,8 +342,8 @@ void ui_tooltip_free(bContext *C, ARegion *ar)
 {
 	ui_remove_temporary_region(C, C->window->screen, ar);
 
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 /************************* Creating Menu Blocks **********************/
@@ -650,8 +650,8 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	block->flag |= UI_BLOCK_LOOP|UI_BLOCK_MOVEMOUSE_QUIT;
 
 	/* notify change and redraw */
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 
 	SWAP(ARegion*, C->region, ar); /* XXX 2.50 bad context swapping */
 	WM_operator_invoke(C, WM_operatortype_find("ED_UI_OT_menu_block_handle"), NULL);
@@ -665,8 +665,8 @@ void ui_menu_block_free(bContext *C, uiMenuBlockHandle *handle)
 	ui_remove_temporary_region(C, C->window->screen, handle->region);
 	MEM_freeN(handle);
 
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 /***************************** Menu Button ***************************/

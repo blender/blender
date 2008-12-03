@@ -92,15 +92,15 @@ void wm_event_free_all(wmWindow *win)
 
 /* ********************* notifiers, listeners *************** */
 
-/* win and swinid are optional context limitors */
-void WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value, void *data)
+/* XXX: in future, which notifiers to send to other windows? */
+void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
-	BLI_addtail(&wm->queue, note);
+	BLI_addtail(&C->wm->queue, note);
 	
-	note->window= window;
-	note->swinid= swinid;
+	note->window= C->window;
+	if(C->region) note->swinid= C->region->swinid;
 	note->type= type;
 	note->value= value;
 	note->data= data;

@@ -335,7 +335,7 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	area_copy_data((ScrArea *)newsc->areabase.first, C->area, 0);
 	
 	/* screen, areas init */
-	WM_event_add_notifier(C->wm, win, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -517,7 +517,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 		}
 	}
 
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 }
 
 static void area_move_apply(bContext *C, wmOperator *op)
@@ -766,7 +766,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
 		else sd->origval= sd->nedge->v1->vec.x;
 
-		WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+		WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 		
 		return 1;
 	}		
@@ -781,7 +781,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
 		op->customdata = NULL;
 	}
 	
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(C->screen);
@@ -887,7 +887,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
 			area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
 			
-			WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
 			
 		case LEFTMOUSE:
@@ -1090,7 +1090,7 @@ static int area_join_cancel(bContext *C, wmOperator *op)
 		jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 	}
 
-	WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	
 	area_join_exit(C, op);
 
@@ -1137,7 +1137,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 								jd->sa2 = NULL;
 							}
 						}
-						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					} 
 					else {
 						/* we are back in the area previously selected for keeping 
@@ -1162,7 +1162,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 								jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 							}
 						}
-						WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 					}
 				}
 			}
@@ -1170,7 +1170,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				area_join_apply(C, op);
-				WM_event_add_notifier(C->wm, C->window, 0, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+				WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 				area_join_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
