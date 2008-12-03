@@ -2590,28 +2590,41 @@ static uiBut *ui_but_find_signal(ARegion *ar, uiActivateBut *data, uiBlock **rbl
 	return NULL;
 }
 
+static int inside_region(ARegion *ar, int x, int y)
+{
+	if(BLI_in_rcti(&ar->winrct, x, y)) {
+		/* XXX still can be zero */
+		if(ar->v2d.mask.xmin!=ar->v2d.mask.xmax) {
+			return BLI_in_rcti(&ar->v2d.mask, x, y);
+		}
+		return 1;
+	}
+	return 0;
+}
+
 static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y, uiBlock **rblock)
 {
 	uiBlock *block, *blockover= NULL;
 	uiBut *but, *butover= NULL;
 	int mx, my;
 
-	for(block=ar->uiblocks.first; block; block=block->next) {
-		mx= x;
-		my= y;
-		ui_window_to_block(ar, block, &mx, &my);
+	if(inside_region(ar, x, y)) {
+		for(block=ar->uiblocks.first; block; block=block->next) {
+			mx= x;
+			my= y;
+			ui_window_to_block(ar, block, &mx, &my);
 
-		for(but=block->buttons.first; but; but= but->next) {
-			/* give precedence to already activated buttons */
-			if(ui_but_contains_pt(but, mx, my)) {
-				if(!butover || (!butover->activate && but->activate)) {
-					butover= but;
-					blockover= block;
+			for(but=block->buttons.first; but; but= but->next) {
+				/* give precedence to already activated buttons */
+				if(ui_but_contains_pt(but, mx, my)) {
+					if(!butover || (!butover->activate && but->activate)) {
+						butover= but;
+						blockover= block;
+					}
 				}
 			}
 		}
 	}
-
 	if(rblock)
 		*rblock= blockover;
 

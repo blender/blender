@@ -42,6 +42,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_screen.h"
+
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -363,17 +365,7 @@ void UI_view2d_view_orthospecial(const bContext *C, View2D *v2d, short xaxis)
 /* Restore view matrices after drawing */
 void UI_view2d_view_restore(const bContext *C)
 {
-	ARegion *region= C->region;
-	int winx, winy;
-	
-	/* calculate extents of region */
-	winx= region->winrct.xmax - region->winrct.xmin;
-	winy= region->winrct.ymax - region->winrct.ymin;
-	
-	/* set default region matrix - pixel offsets (0.375) for 1:1 correspondance are not applied, 
-	 * as they were causing some unwanted offsets when drawing 
-	 */
-	wmOrtho2(C->window, 0, winx, 0, winy);
+	ED_region_pixelspace(C, C->region);
 }
 
 /* *********************************************************************** */
