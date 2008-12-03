@@ -185,6 +185,12 @@ void ui_window_to_block(const ARegion *ar, uiBlock *block, int *x, int *y)
 	*y= (int)(fy+0.5f);
 }
 
+void ui_window_to_region(const ARegion *ar, int *x, int *y)
+{
+	*x-= ar->winrct.xmin;
+	*y-= ar->winrct.ymin;
+}
+
 /* ******************* block calc ************************* */
 
 /* only for pulldowns */

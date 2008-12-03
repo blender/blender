@@ -244,6 +244,7 @@ extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x,
 extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, rctf *graph, rcti *winr);
 extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
+extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
 
 extern double ui_get_but_val(uiBut *but);
 extern void ui_set_but_val(uiBut *but, double value);

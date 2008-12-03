@@ -2595,8 +2595,10 @@ static int inside_region(ARegion *ar, int x, int y)
 	if(BLI_in_rcti(&ar->winrct, x, y)) {
 		/* XXX still can be zero */
 		if(ar->v2d.mask.xmin!=ar->v2d.mask.xmax) {
-			/* mask is in different coord space - take that in account */
-			return BLI_in_rcti(&ar->v2d.mask, x-ar->winrct.xmin, y-ar->winrct.ymin);
+			int arx = x;
+			int ary = y;
+			ui_window_to_region(ar, &arx, &ary);
+			return BLI_in_rcti(&ar->v2d.mask, arx, ary);
 		}
 		return 1;
 	}
