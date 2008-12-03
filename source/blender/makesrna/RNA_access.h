@@ -72,6 +72,8 @@ extern StructRNA RNA_Ipo;
 extern StructRNA RNA_IpoCurve;
 extern StructRNA RNA_IpoDriver;
 extern StructRNA RNA_JoystickSensor;
+extern StructRNA RNA_Key;
+extern StructRNA RNA_KeyBlock;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_Lattice;

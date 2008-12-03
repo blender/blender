@@ -902,6 +902,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},
 	{"rna_ipo.c", RNA_def_ipo},
+	{"rna_key.c", RNA_def_key},
 	{"rna_lamp.c", RNA_def_lamp},
 	{"rna_lattice.c", RNA_def_lattice},
 	{"rna_main.c", RNA_def_main},

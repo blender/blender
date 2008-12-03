@@ -105,6 +105,7 @@ void RNA_def_gameproperty(struct BlenderRNA *brna);
 void RNA_def_group(struct BlenderRNA *brna);
 void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_ipo(struct BlenderRNA *brna);
+void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_lattice(struct BlenderRNA *brna);
 void RNA_def_main(struct BlenderRNA *brna);
