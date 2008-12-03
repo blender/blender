@@ -174,12 +174,20 @@ typedef struct ImagePaintPartialRedraw {
 #define PROJ_FACE_NOSEAM3	1<<6
 #define PROJ_FACE_NOSEAM4	1<<7
 
+/* a slightly scaled down face is used to get fake 3D location for edge pixels in the seams
+ * as this number approaches  1.0f the likelihood increases of float precision errors where
+ * it is occluded by an adjacent face */
+#define PROJ_FACE_SCALE_SEAM	0.99f
+
 #define PROJ_BUCKET_NULL		0
 #define PROJ_BUCKET_INIT		1<<0
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
+
+/* M_PI_2 is 90d, we want 80 though */
+#define PI_80_DEG ((M_PI_2 / 9) * 8)
 
 /* This is mainly a convenience struct used so we can keep an array of images we use
  * Thir imbufs, etc, in 1 array, When using threads this array is copied for each thread
@@ -504,49 +512,32 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 	}
 }
 
-/* The point must be inside the triangle */
-static void BarycentricWeightsSimple2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3])
+#define SIDE_OF_LINE(pa, pb, pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+
+static float AreaSignedF2Dfl(float *v1, float *v2, float *v3)
 {
-	float wtot, wtot_inv;
-	w[0] = AreaF2Dfl(v2, v3, pt);
-	w[1] = AreaF2Dfl(v3, v1, pt);
-	w[2] = AreaF2Dfl(v1, v2, pt);
-	wtot = w[0]+w[1]+w[2];
-	if (wtot > 0.0f) { /* just incase */
-		wtot_inv = 1.0f / wtot; 
-		w[0]*=wtot_inv;
-		w[1]*=wtot_inv;
-		w[2]*=wtot_inv;
-	}
-	else {
-		w[0] = w[1] = w[2] = 1.0/3.0; /* dummy values for zero area face */
-	}
+   return (float)(0.5f*((v1[0]-v2[0])*(v2[1]-v3[1]) +
+(v1[1]-v2[1])*(v3[0]-v2[0])));
 }
 
-/* also works for points outside the triangle */
-#define SIDE_OF_LINE(pa, pb, pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 static void BarycentricWeights2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3])
 {
-	float wtot_inv, wtot = AreaF2Dfl(v1, v2, v3);
-	if (wtot > 0.0f) {
-		wtot_inv = 1.0f / wtot;
-		w[0] = AreaF2Dfl(v2, v3, pt);
-		w[1] = AreaF2Dfl(v3, v1, pt);
-		w[2] = AreaF2Dfl(v1, v2, pt);
-		
-		/* negate weights when 'pt' is on the outer side of the the triangles edge */
-		if ((SIDE_OF_LINE(v2,v3, pt)>0.0f) != (SIDE_OF_LINE(v2,v3, v1)>0.0f))	w[0]*= -wtot_inv;
-		else																w[0]*=  wtot_inv;
+   float wtot_inv, wtot, wsign[3];
 
-		if ((SIDE_OF_LINE(v3,v1, pt)>0.0f) != (SIDE_OF_LINE(v3,v1, v2)>0.0f))	w[1]*= -wtot_inv;
-		else																w[1]*=  wtot_inv;
+   wsign[0] = AreaSignedF2Dfl(v2, v3, pt);
+   wsign[1] = AreaSignedF2Dfl(v3, v1, pt);
+   wsign[2] = AreaSignedF2Dfl(v1, v2, pt);
+   wtot = wsign[0]+wsign[1]+wsign[2];
 
-		if ((SIDE_OF_LINE(v1,v2, pt)>0.0f) != (SIDE_OF_LINE(v1,v2, v3)>0.0f))	w[2]*= -wtot_inv;
-		else																w[2]*=  wtot_inv;
-	}
-	else {
-		w[0] = w[1] = w[2] = 1.0f/3.0f; /* dummy values for zero area face */
-	}
+   if (fabs(wtot) > 0.0f) {
+       wtot_inv = 1.0f/wtot;
+
+       w[0] = wsign[0]*wtot_inv;
+       w[1] = wsign[1]*wtot_inv;
+       w[2] = wsign[2]*wtot_inv;
+   }
+   else /* dummy values for zero area face */
+       w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
@@ -555,27 +546,6 @@ static void BarycentricWeightsPersp2f(float v1[4], float v2[4], float v3[4], flo
 {
 	float persp_tot, persp_tot_inv;
 	BarycentricWeights2f(v1, v2, v3, pt, w);
-	
-	w[0] /= v1[3];
-	w[1] /= v2[3];
-	w[2] /= v3[3];
-	
-	persp_tot = w[0]+w[1]+w[2];
-	if (persp_tot > 0.0f) {
-		persp_tot_inv = 1.0f / persp_tot;
-		w[0] *= persp_tot_inv;
-		w[1] *= persp_tot_inv;
-		w[2] *= persp_tot_inv;
-	}
-	else {
-		w[0] = w[1] = w[2] = 1.0f/3.0f; /* dummy values for zero area face */
-	}
-}
-
-static void BarycentricWeightsSimplePersp2f(float v1[4], float v2[4], float v3[4], float pt[2], float w[3])
-{
-	float persp_tot_inv, persp_tot;
-	BarycentricWeightsSimple2f(v1, v2, v3, pt, w);
 	
 	w[0] /= v1[3];
 	w[1] /= v2[3];
@@ -608,7 +578,7 @@ static void Vec2Weightf(float p[2], const float v1[2], const float v2[2], const 
 
 static float tri_depth_2d(float v1[3], float v2[3], float v3[3], float pt[2], float w[3])
 {
-	BarycentricWeightsSimple2f(v1, v2, v3, pt, w);
+	BarycentricWeights2f(v1, v2, v3, pt, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
@@ -671,6 +641,20 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 	return best_face_index; /* will be -1 or a valid face */
 }
 
+/* Converts a uv coord into a pixel location wrapping if the uv is outside 0-1 range */
+static void uvco_to_wrapped_pxco(float uv[2], int ibuf_x, int ibuf_y, float *x, float *y)
+{
+	/* use */
+	*x = (float)fmod(uv[0], 1.0f);
+	*y = (float)fmod(uv[1], 1.0f);
+	
+	if (*x < 0.0f) *x += 1.0f;
+	if (*y < 0.0f) *y += 1.0f;
+	
+	*x = *x * ibuf_x - 0.5f;
+	*y = *y * ibuf_y - 0.5f;
+}
+
 /* Set the top-most face color that the screen space coord 'pt' touches (or return 0 if none touch) */
 static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float *rgba_fp, unsigned char *rgba, const int interp)
 {
@@ -702,15 +686,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	
 	if (interp) {
 		float x, y;
-		/* use */
-		x = (float)fmod(uv[0], 1.0f);
-		y = (float)fmod(uv[1], 1.0f);
-		
-		if (x < 0.0f) x += 1.0f;
-		if (y < 0.0f) y += 1.0f;
-		
-		x = x * ibuf->x - 0.5f;
-		y = y * ibuf->y - 0.5f;
+		uvco_to_wrapped_pxco(uv, ibuf->x, ibuf->y, &x, &y);
 		
 		if (ibuf->rect_float) {
 			if (rgba_fp) {
@@ -1255,7 +1231,7 @@ static void screen_px_from_ortho(
 		float pixelScreenCo[4],
 		float w[3])
 {
-	BarycentricWeightsSimple2f(uv1co, uv2co, uv3co, uv, w);
+	BarycentricWeights2f(uv1co, uv2co, uv3co, uv, w);
 	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
@@ -1270,7 +1246,7 @@ static void screen_px_from_persp(
 {
 
 	float wtot_inv, wtot;
-	BarycentricWeightsSimple2f(uv1co, uv2co, uv3co, uv, w);
+	BarycentricWeights2f(uv1co, uv2co, uv3co, uv, w);
 	
 	/* re-weight from the 4th coord of each screen vert */
 	w[0] *= v1co[3];
@@ -1347,16 +1323,16 @@ float project_paint_uvpixel_mask(
 			angle = NormalizedVecAngle2(viewDirPersp, no);
 		}
 		
-		if (angle >= M_PI_2) {
+		if (angle >= PI_80_DEG) {
 			return 0.0f;
 		}
 		else {
 #if 0
-			mask = 1.0f - (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask = 1.0f - (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
 #endif
 			
 			/* trickier method that clips the normal so its more useful */
-			mask = (angle / M_PI_2); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask = (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
 			mask = (1.0f - (mask * mask * mask)) * 1.4f;
 			if (mask > 1.0f) {
 				mask = 1.0f;
@@ -1380,7 +1356,7 @@ static ProjPixel *project_paint_uvpixel_init(
 		const ProjPaintState *ps,
 		MemArena *arena,
 		const ImBuf *ibuf,
-		short x, short y,
+		short x_px, short y_px,
 		const float mask,
 		const int face_index,
 		const int image_index,
@@ -1392,10 +1368,10 @@ static ProjPixel *project_paint_uvpixel_init(
 	short size;
 	
 	/* wrap pixel location */
-	x = x % ibuf->x;
-	if (x<0) x += ibuf->x;
-	y = y % ibuf->y;
-	if (y<0) y += ibuf->y;
+	x_px = x_px % ibuf->x;
+	if (x_px<0) x_px += ibuf->x;
+	y_px = y_px % ibuf->y;
+	if (y_px<0) y_px += ibuf->y;
 	
 	if (ps->tool==PAINT_TOOL_CLONE) {
 		size = sizeof(ProjPixelClone);
@@ -1410,27 +1386,27 @@ static ProjPixel *project_paint_uvpixel_init(
 	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, size);
 	
 	if (ibuf->rect_float) {
-		projPixel->pixel.f_pt = (float *)ibuf->rect_float + ((x + y * ibuf->x) * 4);
+		projPixel->pixel.f_pt = (float *)ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
 		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];  
 		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];  
 		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];  
 		projPixel->origColor.f[3] = projPixel->newColor.f[3] = projPixel->pixel.f_pt[3];  
 	}
 	else {
-		projPixel->pixel.ch_pt = ((unsigned char *)ibuf->rect + ((x + y * ibuf->x) * 4));
+		projPixel->pixel.ch_pt = ((unsigned char *)ibuf->rect + ((x_px + y_px * ibuf->x) * 4));
 		projPixel->origColor.uint = projPixel->newColor.uint = *projPixel->pixel.uint_pt;
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but dont need them at the moment */
 	VECCOPY2D(projPixel->projCoSS, pixelScreenCo);
 	
-	projPixel->x_px = x;
-	projPixel->y_px = y;
+	projPixel->x_px = x_px;
+	projPixel->y_px = y_px;
 	
 	projPixel->mask = mask;
 	
 	/* which bounding box cell are we in?, needed for undo */
-	projPixel->bb_cell_index = ((int)((((float)x)/((float)ibuf->x)) * PROJ_BOUNDBOX_DIV)) + ((int)((((float)y)/((float)ibuf->y)) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
+	projPixel->bb_cell_index = ((int)(((float)x_px/(float)ibuf->x) * PROJ_BOUNDBOX_DIV)) + ((int)(((float)y_px/(float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
 	
 	
 	/* done with view3d_project_float inline */
@@ -1458,8 +1434,7 @@ static ProjPixel *project_paint_uvpixel_init(
 				Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
 				
 				/* use */
-				x = (float)fmod(uv_other[0], 1.0f);
-				y = (float)fmod(uv_other[1], 1.0f);
+				uvco_to_wrapped_pxco(uv_other, ibuf->x, ibuf->y, &x, &y);
 				
 				if (x < 0.0f) x += 1.0f;
 				if (y < 0.0f) y += 1.0f;
@@ -1618,7 +1593,7 @@ static int line_clip_rect2f(
 
 
 /* scale the quad & tri about its center
- * scaling by 0.99999 is used for getting fake UV pixel coords that are on the
+ * scaling by PROJ_FACE_SCALE_SEAM (0.99x) is used for getting fake UV pixel coords that are on the
  * edge of the face but slightly inside it occlusion tests dont return hits on adjacent faces */
 static void scale_quad(float insetCos[4][3], float *origCos[4], const float inset)
 {
@@ -1748,22 +1723,22 @@ static void rect_to_uvspace_ortho(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);	
 	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -1782,22 +1757,22 @@ static void rect_to_uvspace_persp(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
 	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
 	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -2009,13 +1984,13 @@ static void project_bucket_clip_face(
 		
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeightsSimple2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				BarycentricWeights2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 		else {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeightsSimplePersp2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
@@ -2238,7 +2213,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						has_x_isect = has_isect = 1;
 						
 						if (is_ortho)	screen_px_from_ortho(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
-						else				screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
+						else			screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						
 						/* a pitty we need to get the worldspace pixel location here */
 						if(G.vd->flag & V3D_CLIPPING) {
@@ -2343,14 +2318,17 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 			if (mf->v4)
 				vCoSS[3] = ps->screenCoords[ mf->v4 ];
 			
+			/* PROJ_FACE_SCALE_SEAM must be slightly less then 1.0f */
 			if (is_ortho) {
-				if (mf->v4)	scale_quad(insetCos, vCoSS, 0.99999f);
-				else		scale_tri(insetCos, vCoSS, 0.99999f);
+				if (mf->v4)	scale_quad(insetCos, vCoSS, PROJ_FACE_SCALE_SEAM);
+				else		scale_tri(insetCos, vCoSS, PROJ_FACE_SCALE_SEAM);
 			}
 			else {
-				if (mf->v4)	scale_quad(insetCos, vCo, 0.99999f);
-				else		scale_tri(insetCos, vCo, 0.99999f);
+				if (mf->v4)	scale_quad(insetCos, vCo, PROJ_FACE_SCALE_SEAM);
+				else		scale_tri(insetCos, vCo, PROJ_FACE_SCALE_SEAM);
 			}
+			
+			side = 0; /* for triangles this wont need to change */
 			
 			for (fidx1 = 0; fidx1 < (mf->v4 ? 4 : 3); fidx1++) {
 				if (mf->v4)		fidx2 = (fidx1==3) ? 0 : fidx1+1; /* next fidx in the face (0,1,2,3) -> (1,2,3,0) */
@@ -2363,9 +2341,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 					ftot = Vec2Lenf(vCoSS[fidx1], vCoSS[fidx2]); /* screenspace edge length */
 					
 					if (ftot > 0.0f) { /* avoid div by zero */
-						
-						if (fidx1==2 || fidx2==2)	side = 1;
-						else						side = 0;
+						if (mf->v4) {
+							if (fidx1==2 || fidx2==2)	side= 1;
+							else						side= 0;
+						}
 						
 						fac1 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[0]) / ftot;
 						fac2 = Vec2Lenf(vCoSS[fidx1], bucket_clip_edges[1]) / ftot;
@@ -2401,7 +2380,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 									uv[0] = (float)x / ibuf_xf; /* use offset uvs instead */
 									
 									/* test we're inside uvspace bucket and triangle bounds */
-									if (	IsectPQ2Df(uv, seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3])) {
+									if (IsectPQ2Df(uv, seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3])) {
 										
 										/* We need to find the closest point along the face edge,
 										 * getting the screen_px_from_*** wont work because our actual location
@@ -2434,10 +2413,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
 												/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
 												if (side) {
-													BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
+													BarycentricWeights2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
 												}
 												else {
-													BarycentricWeightsSimple2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+													BarycentricWeights2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
 												}
 												
 											}
@@ -2891,7 +2870,7 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 							tot_faceSeamFlagsMem +
 							tot_faceSeamUVMem +
 							tot_vertFacesMem +
-							tot_vertFlagsMem + (1<<18));
+							tot_vertFlagsMem + (1<<16));
 	
 	BLI_memarena_use_calloc(ps->arena);
 	
@@ -2948,14 +2927,14 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 			no[2] = (float)(v->no[2] / 32767.0f);
 			
 			if (ps->is_ortho) {
-				if (NormalizedVecAngle2(ps->viewDir, no) >= M_PI_2) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(ps->viewDir, no) >= PI_80_DEG) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
 			else {
 				VecSubf(viewDirPersp, ps->viewPos, v->co);
 				Normalize(viewDirPersp);
-				if (NormalizedVecAngle2(viewDirPersp, no) >= M_PI_2) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(viewDirPersp, no) >= PI_80_DEG) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
