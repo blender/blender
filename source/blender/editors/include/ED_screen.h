@@ -43,7 +43,7 @@ void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, ARegion *ar);
 void	ED_region_do_refresh(struct bContext *C, ARegion *ar);
 void	ED_region_exit(struct bContext *C, ARegion *ar);
-void	ED_region_pixelspace(struct bContext *C, ARegion *ar);
+void	ED_region_pixelspace(const struct bContext *C, ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);

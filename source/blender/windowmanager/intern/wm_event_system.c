@@ -602,21 +602,14 @@ void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op)
 {
-	/* debug test; operator not in registry */
-	if(op->type->flag & OPTYPE_REGISTER) {
-		printf("error: handler (%s) cannot be modal, was registered\n", op->type->idname);
-	}
-	else {
-		wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
-		handler->op= op;
-		handler->op_area= C->area;		/* means frozen screen context for modal handlers! */
-		handler->op_region= C->region;
-		
-		BLI_addhead(handlers, handler);
-		
-		return handler;
-	}
-	return NULL;
+	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
+	handler->op= op;
+	handler->op_area= C->area;		/* means frozen screen context for modal handlers! */
+	handler->op_region= C->region;
+	
+	BLI_addhead(handlers, handler);
+	
+	return handler;
 }
 
 wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap)

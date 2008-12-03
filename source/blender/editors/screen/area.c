@@ -90,7 +90,7 @@ static void region_draw_emboss(ARegion *ar)
 	glDisable( GL_BLEND );
 }
 
-void ED_region_pixelspace(bContext *C, ARegion *ar)
+void ED_region_pixelspace(const bContext *C, ARegion *ar)
 {
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;

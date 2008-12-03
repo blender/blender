@@ -678,7 +678,8 @@ typedef struct sAreaSplitData
 	int origval;			/* for move areas */
 	int bigger, smaller;	/* constraints for moving new edge */
 	int delta;				/* delta move edge */
-	
+	int origmin, origsize;	/* to calculate fac, for property storage */
+
 	ScrEdge *nedge;			/* new edge */
 	ScrArea *sarea;			/* start area */
 	ScrArea *narea;			/* new area */
@@ -705,6 +706,8 @@ static int area_split_init(bContext *C, wmOperator *op)
 	op->customdata= sd;
 	
 	sd->sarea= C->area;
+	sd->origsize= dir=='v' ? C->area->winx:C->area->winy;
+	sd->origmin = dir=='v' ? C->area->totrct.xmin:C->area->totrct.ymin;
 	
 	return 1;
 }
@@ -877,6 +880,7 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
+	float fac;
 	int dir;
 
 	/* execute the events */
@@ -886,6 +890,9 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
 			area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
+			
+			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
+			RNA_float_set(op->ptr, "fac", fac / (float)sd->origsize);
 			
 			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
@@ -920,7 +927,8 @@ void ED_SCR_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_areaactive;
-
+	ot->flag= OPTYPE_REGISTER;
+	
 	/* rna */
 	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_direction_items);
@@ -1210,6 +1218,33 @@ void ED_SCR_OT_area_join(wmOperatorType *ot)
 	RNA_def_property_int_default(prop, -100);
 }
 
+/* ************** repeat last operator ***************************** */
+
+static int repeat_last_exec(bContext *C, wmOperator *op)
+{
+	wmOperator *lastop= C->wm->operators.last;
+	
+	if(lastop) {
+		printf("repeat %s\n", op->type->idname);
+		lastop->type->exec(C, lastop);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_SCR_OT_repeat_last(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Repeat Last";
+	ot->idname= "ED_SCR_OT_repeat_last";
+	
+	/* api callbacks */
+	ot->exec= repeat_last_exec;
+	
+	ot->poll= ED_operator_screenactive;
+	
+}
+
 /* ************** border select operator (template) ***************************** */
 
 /* operator state vars used: (added by default WM callbacks)   
@@ -1276,6 +1311,7 @@ void ED_operatortypes_screen(void)
 	/* generic UI stuff */
 	WM_operatortype_append(ED_SCR_OT_cursor_type);
 	WM_operatortype_append(ED_SCR_OT_actionzone);
+	WM_operatortype_append(ED_SCR_OT_repeat_last);
 	
 	/* screen tools */
 	WM_operatortype_append(ED_SCR_OT_area_move);
@@ -1302,5 +1338,6 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
 	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
+	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }
 

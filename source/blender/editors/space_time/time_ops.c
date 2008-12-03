@@ -85,7 +85,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	if(cfra!=CFRA)
 		CFRA= cfra;
 	
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
 }
 

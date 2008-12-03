@@ -75,8 +75,8 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 	int tot;
 
 	if(op->ptr) {
-		MEM_freeN(op->ptr);
-		op->ptr= NULL;
+	//	MEM_freeN(op->ptr);
+	//	op->ptr= NULL;
 	}
 	
 	BLI_addtail(&wm->operators, op);
