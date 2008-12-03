@@ -56,7 +56,7 @@ void RNA_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "CurrentValue", "Current Value.");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 
