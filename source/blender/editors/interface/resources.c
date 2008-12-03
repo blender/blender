@@ -53,6 +53,7 @@
 #include "BIF_gl.h"
 
 #include "UI_resources.h"
+#include "UI_interface_icons.h"
 //#include "UI_icons.h"
 
 #include "BLI_blenlib.h"

@@ -254,7 +254,8 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	ListBase *markers= context_get_markers(C);
 	MarkerMove *mm;
 	TimeMarker *marker;
-	int totmark, a;
+	int totmark=0;
+	int a;
 	
 	for (marker= markers->first; marker; marker= marker->next)
 		if (marker->flag & SELECT) totmark++;
