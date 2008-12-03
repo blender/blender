@@ -66,8 +66,6 @@ import BPyMesh
 import BPySys
 import BPyMessages
 
-import sys
-
 ## This was used to make V, but faster not to do all that
 ##valid = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_,.()[]{}'
 ##v = range(255)
@@ -184,7 +182,19 @@ def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 def sane_takename(data):	return sane_name(data, sane_name_mapping_take)
 def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 
-
+def derived_paths(fname_orig, basepath, FORCE_CWD=False):
+	'''
+	fname_orig - blender path, can be relative
+	basepath - fname_rel will be relative to this
+	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
+		use when we know the file will be in the basepath.
+	'''
+	fname = Blender.sys.expandpath(fname_orig)
+	fname_strip = strip_path(fname)
+	if FORCE_CWD:	fname_rel = './' + fname_strip
+	else:				fname_rel = Blender.sys.relpath(fname, basepath)
+	if fname_rel.startswith('//'): fname_rel = '.' + fname_rel[1:]
+	return fname, fname_strip, fname_rel
 
 
 def mat4x4str(mat):
@@ -342,6 +352,8 @@ def write(filename, batch_objects = None, \
 	
 	# end batch support
 	
+	# Use this for working out paths relative to the export location
+	basepath = Blender.sys.dirname(filename)
 	
 	# ----------------------------------------------
 	# storage classes
@@ -1141,10 +1153,9 @@ def write(filename, batch_objects = None, \
 			Property: "Width", "int", "",0
 			Property: "Height", "int", "",0''')
 		if tex:
-			fname = tex.filename
-			fname_strip = strip_path(fname)
+			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
-			fname = fname_strip = ''
+			fname = fname_strip = fname_rel = ''
 		
 		file.write('\n\t\t\tProperty: "Path", "charptr", "", "%s"' % fname_strip)
 		
@@ -1163,7 +1174,7 @@ def write(filename, batch_objects = None, \
 		
 		file.write('\n\t\tFilename: "%s"' % fname_strip)
 		if fname_strip: fname_strip = '/' + fname_strip
-		file.write('\n\t\tRelativeFilename: "fbx%s"' % fname_strip) # make relative
+		file.write('\n\t\tRelativeFilename: "%s"' % fname_rel) # make relative
 		file.write('\n\t}')
 
 	
@@ -1202,13 +1213,14 @@ def write(filename, batch_objects = None, \
 		}''')
 		
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
+		
 		if tex:
-			fname = tex.filename
-			file.write('\n\t\tFileName: "%s"' % strip_path(fname))
-			file.write('\n\t\tRelativeFilename: "fbx/%s"' % strip_path(fname)) # need some make relative command
+			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
-			file.write('\n\t\tFileName: ""')
-			file.write('\n\t\tRelativeFilename: "fbx"')
+			fname = fname_strip = fname_rel = ''
+		
+		file.write('\n\t\tFileName: "%s"' % fname_strip)
+		file.write('\n\t\tRelativeFilename: "%s"' % fname_rel) # need some make relative command
 		
 		file.write('''
 		ModelUVTranslation: 0,0
@@ -2658,7 +2670,7 @@ Takes:  {''')
 	
 	# copy images if enabled
 	if EXP_IMAGE_COPY:
-		copy_images( Blender.sys.dirname(filename),  [ tex[1] for tex in textures if tex[1] != None ])	
+		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
 	
 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	return True
