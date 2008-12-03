@@ -59,6 +59,7 @@ static PyObject *M_sys_time( PyObject * self );
 static PyObject *M_sys_sleep( PyObject * self, PyObject * args );
 static PyObject *M_sys_expandpath( PyObject *self, PyObject *value);
 static PyObject *M_sys_cleanpath( PyObject *self, PyObject *value);
+static PyObject *M_sys_relpath( PyObject *self, PyObject *args);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.      */
@@ -128,6 +129,9 @@ If the special chars are not found in the given path, it is simply returned.";
 static char M_sys_cleanpath_doc[] =
 "(path) - Removes parts of a path that are not needed paths such as '../foo/../bar/' and '//./././'";
 
+static char M_sys_relpath_doc[] =
+"(path, start=\"//\") - Returns the path relative to the current blend file or start if spesified";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.sys module:                */
 /*****************************************************************************/
@@ -144,6 +148,7 @@ struct PyMethodDef M_sys_methods[] = {
 	{"time", ( PyCFunction ) M_sys_time, METH_NOARGS, M_sys_time_doc},
 	{"expandpath", M_sys_expandpath, METH_O, M_sys_expandpath_doc},
 	{"cleanpath", M_sys_cleanpath, METH_O, M_sys_cleanpath_doc},
+	{"relpath", M_sys_relpath, METH_VARARGS, M_sys_relpath_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -231,9 +236,8 @@ static PyObject *M_sys_join( PyObject * self, PyObject * args )
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	int pathlen = 0, namelen = 0;
 
-	if( !PyArg_ParseTuple( args, "ss", &path, &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected string argument" );
+	if( !PyArg_ParseTuple( args, "ss:Blender.sys.join", &path, &name ) )
+		return NULL;
 
 	pathlen = strlen( path ) + 1;
 	namelen = strlen( name ) + 1;	/* + 1 to account for '\0' for BLI_strncpy */
@@ -300,10 +304,8 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 	char *dot = NULL, *p = NULL, basename[FILE_MAXDIR + FILE_MAXFILE];
 	int n, len, lenext = 0;
 
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "|ssi", kwlist,
-					  &path, &ext, &strip ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected one or two strings and an int (or nothing) as arguments" );
+	if( !PyArg_ParseTupleAndKeywords( args, kw, "|ssi:Blender.sys.makename", kwlist, &path, &ext, &strip ) )
+		return NULL;
 
 	len = strlen( path ) + 1;	/* + 1 to consider ending '\0' */
 	if( ext )
@@ -350,13 +352,12 @@ static PyObject *M_sys_sleep( PyObject * self, PyObject * args )
 {
 	int millisecs = 10;
 
-	if( !PyArg_ParseTuple( args, "|i", &millisecs ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int argument" );
+	if( !PyArg_ParseTuple( args, "|i:Blender.sys.sleep", &millisecs ) )
+		return NULL;
 
 	PIL_sleep_ms( millisecs );
-
-	return EXPP_incr_ret( Py_None );
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_sys_exists( PyObject * self, PyObject * value )
@@ -419,3 +420,22 @@ static PyObject *M_sys_cleanpath( PyObject * self, PyObject * value )
 	
 	return PyString_FromString(cleaned);
 }
+
+static PyObject *M_sys_relpath( PyObject * self, PyObject * args )
+{
+	char *base = G.sce;
+	char *path;
+	char relpath[FILE_MAXDIR + FILE_MAXFILE];
+	
+	char dir[FILE_MAXDIR];
+	char file[FILE_MAXFILE];
+	
+	if( !PyArg_ParseTuple( args, "s|s:Blender.sys.relpath", &path, &base ) )
+		return NULL;
+	
+	strncpy(relpath, path, sizeof(relpath));
+	BLI_makestringcode(base, relpath);
+	
+	return PyString_FromString(relpath);
+}
+
