@@ -166,9 +166,9 @@ static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_UV_ORCO);
 	RNA_def_property_ui_text(prop, "UV Orco", "Forces to use UV coordinates for texture mapping 'orco'.");
 	
-	prop= RNA_def_property(srna, "no_puno_flip", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_NOPUNOFLIP);
-	RNA_def_property_ui_text(prop, "No Puno Flip", "Don't flip vertex normals while rendering.");
+	prop= RNA_def_property(srna, "vertex_normal_flip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_NOPUNOFLIP);
+	RNA_def_property_ui_text(prop, "Vertex Normal Flip", "Flip vertex normals towards the camera during render");
 }
 
 static void rna_def_font(BlenderRNA *brna, StructRNA *srna)

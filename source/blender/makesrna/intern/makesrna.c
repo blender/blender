@@ -205,15 +205,15 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				rna_print_data_get(f, dp);
 				if(dp->dnaarraylength == 1) {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-						fprintf(f, "	return ((data->%s & (%d<<index)) != 0);\n", dp->dnaname, dp->booleanbit);
+						fprintf(f, "	return (%s(data->%s & (%d<<index)) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 					else
-						fprintf(f, "	return (%s)((&data->%s)[index]);\n", rna_type_type(prop), dp->dnaname);
+						fprintf(f, "	return (%s)%s((&data->%s)[index]);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 				}
 				else {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-						fprintf(f, "	return ((data->%s[index] & %d) != 0);\n", dp->dnaname, dp->booleanbit);
+						fprintf(f, "	return (%s(data->%s[index] & %d) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 					else
-						fprintf(f, "	return (%s)(data->%s[index]);\n", rna_type_type(prop), dp->dnaname);
+						fprintf(f, "	return (%s)%s(data->%s[index]);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 				}
 				fprintf(f, "}\n\n");
 			}
@@ -222,13 +222,13 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "{\n");
 				rna_print_data_get(f, dp);
 				if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-					fprintf(f, "	return (((data->%s) & %d) != 0);\n", dp->dnaname, dp->booleanbit);
+					fprintf(f, "	return (%s((data->%s) & %d) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 				else if(prop->type == PROP_ENUM && dp->enumbitflags)
 					fprintf(f, "	return ((data->%s) & %d);\n", dp->dnaname, rna_enum_bitmask(prop));
 				else if(prop->type == PROP_POINTER && dp->dnapointerlevel == 0)
 					fprintf(f, "	return (%s)&(data->%s);\n", rna_type_type(prop), dp->dnaname);
 				else
-					fprintf(f, "	return (%s)(data->%s);\n", rna_type_type(prop), dp->dnaname);
+					fprintf(f, "	return (%s)%s(data->%s);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 				fprintf(f, "}\n\n");
 			}
 			break;
@@ -313,22 +313,22 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				rna_print_data_get(f, dp);
 				if(dp->dnaarraylength == 1) {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-						fprintf(f, "	if(value) data->%s |= (%d<<index);\n", dp->dnaname, dp->booleanbit);
+						fprintf(f, "	if(%svalue) data->%s |= (%d<<index);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 						fprintf(f, "	else data->%s &= ~(%d<<index);\n", dp->dnaname, dp->booleanbit);
 					}
 					else {
 						rna_clamp_value(f, prop);
-						fprintf(f, "	(&data->%s)[index]= value;\n", dp->dnaname);
+						fprintf(f, "	(&data->%s)[index]= %svalue;\n", dp->dnaname, (dp->booleannegative)? "!": "");
 					}
 				}
 				else {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-						fprintf(f, "	if(value) data->%s[index] |= %d;\n", dp->dnaname, dp->booleanbit);
+						fprintf(f, "	if(%svalue) data->%s[index] |= %d;\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 						fprintf(f, "	else data->%s[index] &= ~%d;\n", dp->dnaname, dp->booleanbit);
 					}
 					else {
 						rna_clamp_value(f, prop);
-						fprintf(f, "	data->%s[index]= value;\n", dp->dnaname);
+						fprintf(f, "	data->%s[index]= %svalue;\n", dp->dnaname, (dp->booleannegative)? "!": "");
 					}
 				}
 				fprintf(f, "}\n\n");
@@ -338,7 +338,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "{\n");
 				rna_print_data_get(f, dp);
 				if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-					fprintf(f, "	if(value) data->%s |= %d;\n", dp->dnaname, dp->booleanbit);
+					fprintf(f, "	if(%svalue) data->%s |= %d;\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 					fprintf(f, "	else data->%s &= ~%d;\n", dp->dnaname, dp->booleanbit);
 				}
 				else if(prop->type == PROP_ENUM && dp->enumbitflags) {
@@ -347,7 +347,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else {
 					rna_clamp_value(f, prop);
-					fprintf(f, "	data->%s= value;\n", dp->dnaname);
+					fprintf(f, "	data->%s= %svalue;\n", dp->dnaname, (dp->booleannegative)? "!": "");
 				}
 				fprintf(f, "}\n\n");
 			}

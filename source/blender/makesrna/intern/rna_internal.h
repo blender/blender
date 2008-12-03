@@ -56,7 +56,7 @@ typedef struct PropertyDefRNA {
 	const char *dnalengthname;
 	int dnalengthfixed;
 
-	int booleanbit;
+	int booleanbit, booleannegative;
 	int enumbitflags;
 } PropertyDefRNA;
 

@@ -63,7 +63,7 @@ void RNA_def_material(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Material", "ID", "Material");
 		
 	prop= RNA_def_property(srna, "color_model", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "colormodel", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "colormodel");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Color Model", "");
 	
@@ -99,7 +99,7 @@ void RNA_def_material(BlenderRNA *brna)
 	/* diffuse shaders */
 	
 	prop= RNA_def_property(srna, "diffuse_shader", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "diff_shader", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "diff_shader");
 	RNA_def_property_enum_items(prop, prop_diff_shader_items);
 	RNA_def_property_ui_text(prop, "Diffuse Shader Model", "");
 	
@@ -172,7 +172,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ray Mirror Max Dist", "Maximum distance of reflected rays. Reflections further than this range fade to sky color or material color.");
 	
 	prop= RNA_def_property(srna, "ray_mirror_fadeto", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "fadeto_mir", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "fadeto_mir");
 	RNA_def_property_enum_items(prop, prop_fadeto_mir_items);
 	RNA_def_property_ui_text(prop, "Ray Mirror End Fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
 	

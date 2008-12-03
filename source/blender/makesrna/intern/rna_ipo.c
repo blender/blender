@@ -83,13 +83,13 @@ void rna_def_ipocurve(BlenderRNA *brna)
 
 	/* Enums */
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ipo", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "ipo");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 
 	prop= RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "extrap", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "extrap");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
@@ -132,7 +132,7 @@ void rna_def_ipo(BlenderRNA *brna)
 
 	/* Enums */
 	prop= RNA_def_property(srna, "block_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "blocktype", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "blocktype");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_blocktype_items);
 	RNA_def_property_ui_text(prop, "Block Type", "");

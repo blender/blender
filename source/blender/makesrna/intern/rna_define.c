@@ -592,7 +592,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 			}
 			case PROP_ENUM:
 				DefRNA.silent= 1;
-				RNA_def_property_enum_sdna(prop, NULL, identifier, 0);
+				RNA_def_property_enum_sdna(prop, NULL, identifier);
 				DefRNA.silent= 0;
 				break;
 			case PROP_POINTER:
@@ -970,6 +970,17 @@ void RNA_def_property_boolean_sdna(PropertyRNA *prop, const char *structname, co
 		dp->booleanbit= bit;
 }
 
+void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *structname, const char *propname, int booleanbit)
+{
+	StructDefRNA *ds;
+	PropertyDefRNA *dp;
+
+	RNA_def_property_boolean_sdna(prop, structname, propname, booleanbit);
+
+	if((ds=DefRNA.structs.last) && (dp=ds->properties.last))
+		dp->booleannegative= 1;
+}
+
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	PropertyDefRNA *dp;
@@ -1028,7 +1039,7 @@ void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, cons
 	rna_def_property_sdna(prop, structname, propname);
 }
 
-void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname, EnumPropertyFlag flag)
+void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const char *propname)
 {
 	PropertyDefRNA *dp;
 	StructRNA *srna= DefRNA.laststruct;
@@ -1045,8 +1056,6 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 	}
 
 	if((dp=rna_def_property_sdna(prop, structname, propname))) {
-		dp->enumbitflags= (flag & PROP_DEF_ENUM_BITFLAGS);
-
 		if(prop->arraylength) {
 			prop->arraylength= 0;
 			if(!DefRNA.silent) {
@@ -1055,6 +1064,17 @@ void RNA_def_property_enum_sdna(PropertyRNA *prop, const char *structname, const
 			}
 		}
 	}
+}
+
+void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structname, const char *propname)
+{
+	StructDefRNA *ds;
+	PropertyDefRNA *dp;
+
+	RNA_def_property_enum_sdna(prop, structname, propname);
+
+	if((ds=DefRNA.structs.last) && (dp=ds->properties.last))
+		dp->enumbitflags= 1;
 }
 
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname)

@@ -64,17 +64,17 @@ void RNA_def_lattice(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "W", "Points in W direction.");
 
 	prop= RNA_def_property(srna, "interpolation_type_u", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "typeu", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "typeu");
 	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type U", "");
 
 	prop= RNA_def_property(srna, "interpolation_type_v", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "typev", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "typev");
 	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type V", "");
 
 	prop= RNA_def_property(srna, "interpolation_type_w", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "typew", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "typew");
 	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
 

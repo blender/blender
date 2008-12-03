@@ -50,7 +50,7 @@ void RNA_def_radio(BlenderRNA *brna)
 
 	/* Enums */
 	prop= RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Mode", "Radiosity draw modes.");
 

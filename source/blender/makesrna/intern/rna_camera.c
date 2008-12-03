@@ -43,6 +43,10 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_PERSP, "PERSP", "Perspective", ""},
 		{CAM_ORTHO, "ORTHO", "Orthographic", ""},
 		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_lens_unit_items[] = {
+		{0, "MILLIMETERS", "Millimeters", ""},
+		{CAM_ANGLETOGGLE, "DEGREES", "Degrees", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID", "Camera");
 
@@ -124,11 +128,12 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWNAME);
 	RNA_def_property_ui_text(prop, "Show Name", "Draw the active Camera's name in Camera view.");
 
-	prop= RNA_def_property(srna, "use_degrees", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_ANGLETOGGLE);
-	RNA_def_property_ui_text(prop, "Use Degrees", "Use degrees instead of mm as the unit of the Camera lens.");
+	prop= RNA_def_property(srna, "lens_unit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, prop_lens_unit_items);
+	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface.");
 
-	/* Pointers */
+	/* pointers */
 	rna_def_ipo_common(srna);
 
 	prop= RNA_def_property(srna, "dof_object", PROP_POINTER, PROP_NONE);

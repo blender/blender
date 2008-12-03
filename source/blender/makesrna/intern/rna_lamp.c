@@ -128,7 +128,7 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sky Color Space", "");
 
 	prop= RNA_def_property(srna, "sky_blend_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "skyblendtype", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "skyblendtype");
 	RNA_def_property_enum_items(prop, prop_blendmode_items);
 	RNA_def_property_ui_text(prop, "Sky Blend Type", "Blend type for how sky is combined with world sky");
 
@@ -141,12 +141,12 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Ray Sample Method", "The Method in how rays are sampled");
 
 	prop= RNA_def_property(srna, "buffer_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "buftype", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "buftype");
 	RNA_def_property_enum_items(prop, prop_shadbuftype_items);
 	RNA_def_property_ui_text(prop, "Buffer Type", "Type of Shadow Buffer.");
 
 	prop= RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "filtertype", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "filtertype");
 	RNA_def_property_enum_items(prop, prop_shadbuffiltertype_items);
 	RNA_def_property_ui_text(prop, "Filter Type", "Type of Shadow Buffer Filter.");
 
@@ -356,20 +356,20 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NEG);
 	RNA_def_property_ui_text(prop, "Negative", "Lamp casts negative light.");
 
-	prop= RNA_def_property(srna, "no_specular", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NO_SPEC);
-	RNA_def_property_ui_text(prop, "No Specular", "Lamp does not create specular highlights.");
+	prop= RNA_def_property(srna, "specular", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_SPEC);
+	RNA_def_property_ui_text(prop, "Specular", "Lamp creates specular highlights.");
 
-	prop= RNA_def_property(srna, "no_diffuse", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_NO_DIFF);
-	RNA_def_property_ui_text(prop, "No Diffuse", "Lamp does not create diffuse shading.");
+	prop= RNA_def_property(srna, "diffuse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "mode", LA_NO_DIFF);
+	RNA_def_property_ui_text(prop, "Diffuse", "Lamp does diffuse shading.");
 
 	prop= RNA_def_property(srna, "only_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_ONLYSHADOW);
 	RNA_def_property_ui_text(prop, "Only Shadow", "Lamp only creates shadows.");
 
 	prop= RNA_def_property(srna, "shadow", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_shadow_items);
 	RNA_def_property_ui_text(prop, "Shadow", "Method to compute lamp shadow.");
 

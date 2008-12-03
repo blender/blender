@@ -150,7 +150,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	/* generated image (image_generated_change_cb) */
 	prop= RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "gen_type", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "gen_type");
 	RNA_def_property_enum_items(prop, prop_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type.");
 
@@ -166,7 +166,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	/* realtime properties */
 	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "flag", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_mapping_items);
 	RNA_def_property_ui_text(prop, "Mapping", "Mapping type to use for this image in the game engine.");
 

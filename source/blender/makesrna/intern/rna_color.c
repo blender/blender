@@ -53,7 +53,7 @@ static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, Poin
 	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), NULL);
 }
 
-static void rna_CurveMapping_use_clipping_set(PointerRNA *ptr, int value)
+static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 {
 	CurveMapping *cumap= (CurveMapping*)ptr->data;
 
@@ -132,7 +132,7 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
     RNA_def_property_ui_text(prop, "Location", "");
 
 	prop= RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "flag", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_handle_type_items);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
     RNA_def_property_ui_text(prop, "Handle Type", "");
@@ -157,7 +157,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
 	prop= RNA_def_property(srna, "extend", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "flag", CUMA_EXTEND_EXTRAPOLATE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_extend_items);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
     RNA_def_property_ui_text(prop, "Extend", "");
@@ -175,10 +175,10 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CurveMapping", NULL, "CurveMapping");
 
-    prop= RNA_def_property(srna, "use_clipping", PROP_BOOLEAN, PROP_NONE);
+    prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
-    RNA_def_property_ui_text(prop, "Use Clipping", "");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_CurveMapping_use_clipping_set");
+    RNA_def_property_ui_text(prop, "Clip", "");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_CurveMapping_clip_set");
 
     prop= RNA_def_property(srna, "clip_min_x", PROP_FLOAT, PROP_NONE);
     RNA_def_property_float_sdna(prop, NULL, "clipr.xmin");

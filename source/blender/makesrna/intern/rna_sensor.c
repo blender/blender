@@ -176,7 +176,7 @@ void rna_def_mouse_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bMouseSensor", "data");
 
 	prop= RNA_def_property(srna, "mouse_event", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, mouse_event_items);
 	RNA_def_property_ui_text(prop, "Mouse Event", "Specify the type of event this mouse sensor should trigger on.");
 }
@@ -249,7 +249,7 @@ void rna_def_property_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bPropertySensor", "data");
 
 	prop= RNA_def_property(srna, "evaluation_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Evaluation Type", "Type of property evaluation.");
 
@@ -325,7 +325,7 @@ void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material.");
 
 	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property.");
 }
@@ -406,7 +406,7 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material.");
 
 	prop= RNA_def_property(srna, "ray_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mode", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Collision Type", "Toggle collision on material or property.");
 
@@ -419,7 +419,7 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Range", "Sense objects no farther than this distance.");
 
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "axisflag", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "axisflag");
 	RNA_def_property_enum_items(prop, axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Specify along which axis the ray is cast.");
 }
@@ -463,7 +463,7 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, SENS_JOY_MAXINDEX-1);
 
 	prop= RNA_def_property(srna, "event_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_ui_text(prop, "Event Type", "The type of event this joystick sensor is triggered on.");
 
@@ -489,7 +489,7 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 32768);
 
 	prop= RNA_def_property(srna, "axis_direction", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "axisf", 0);
+	RNA_def_property_enum_sdna(prop, NULL, "axisf");
 	RNA_def_property_enum_items(prop, axis_direction_items);
 	RNA_def_property_ui_text(prop, "Axis Direction", "The direction of the axis.");
 

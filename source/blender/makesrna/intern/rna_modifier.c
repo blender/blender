@@ -83,7 +83,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	/* enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_enum_sdna(prop, NULL, "type", PROP_DEF_ENUM_BITFLAGS);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	
