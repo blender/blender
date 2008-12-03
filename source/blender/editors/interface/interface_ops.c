@@ -3080,25 +3080,14 @@ static int menu_block_handle_block_open(uiBlock *block)
 	return 0;
 }
 
-#include "wm_event_system.h"
-static void testing123(bContext *C)
-{
-	wmEventHandler *handler;
-	
-	for(handler= C->window->handlers.first; handler; handler= handler->next) {
-		if(handler->op)
-			printf("handler has op %s\n", handler->op->type->idname);
-	}
-}
-
 /* moves focus on button/menu from mousemove-based to hotkey */
 static void menu_block_handle_activate_button(bContext *C, wmEvent *event, ARegion *butregion, uiBut *but, int activateflag)
 {
 	wmOperatorType *ot;
 
 	ot= WM_operatortype_find("ED_UI_OT_button_activate");
-	testing123(C);
-// XXX	WM_operator_cancel(C, &butregion->modalops, ot);
+
+	// XXX	WM_operator_cancel(C, &butregion->modalops, ot);
 	but->activateflag= activateflag;
 
 	SWAP(ARegion*, C->region, butregion); /* XXX 2.50 bad state manipulation? */

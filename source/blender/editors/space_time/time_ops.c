@@ -27,6 +27,7 @@
  */
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -107,7 +108,6 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 
 static int frame_from_event(bContext *C, wmEvent *event)
 {
-	SpaceTime *stime= C->area->spacedata.first;
 	ARegion *region= C->region;
 	int x, y;
 	float viewx;
@@ -116,7 +116,7 @@ static int frame_from_event(bContext *C, wmEvent *event)
 	y= event->y - region->winrct.ymin;
 	UI_view2d_region_to_view(&region->v2d, x, y, &viewx, NULL);
 
-	return (int)(viewx+0.5f);
+	return (int)floor(viewx+0.5f);
 }
 
 static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -126,7 +126,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &C->region->handlers, op);// XXX should be for window, but we crash otherwise
+	WM_event_add_modal_handler(C, &C->window->handlers, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }

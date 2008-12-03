@@ -326,32 +326,18 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 /* View Matrix Setup */
 
 /* Set view matrices to use 'cur' rect as viewing frame for View2D drawing 
- *	- Scrollbars are taken into account when making this matrix, given that most regions have them
+ *	- this assumes viewport/scissor been set for the region, taking scrollbars into account
  */
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
-	float ofsx1, ofsy1, ofsx2, ofsy2;
-	
-	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
-	
-	/* calculate offset factor required on each axis */
-	if (v2d->scroll & L_SCROLL)
-		ofsy1= (float)SCROLLB;
-	if (v2d->scroll & R_SCROLL)
-		ofsy2= (float)SCROLLB;
-	if (v2d->scroll & T_SCROLL)
-		ofsx1= (float)SCROLLH;
-	if (v2d->scroll & B_SCROLL)
-		ofsx2= (float)SCROLLH;
-	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
-	wmOrtho2(C->window, v2d->cur.xmin-ofsx1, v2d->cur.xmax-ofsx2, v2d->cur.ymin-ofsy1, v2d->cur.ymax-ofsx2);
+	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 }
 
-/* Set view matices to only use one axis of 'cur' only
- *	- Scrollbars on appropriate axis will be taken into account
+/* Set view matrices to only use one axis of 'cur' only
+ *	- this assumes viewport/scissor been set for the region, taking scrollbars into account
  *
  *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
@@ -359,30 +345,18 @@ void UI_view2d_view_orthospecial(const bContext *C, View2D *v2d, short xaxis)
 {
 	ARegion *region= C->region;
 	int winx, winy;
-	float ofsx1, ofsy1, ofsx2, ofsy2;
 	
 	/* calculate extents of region */
 	winx= region->winrct.xmax - region->winrct.xmin;
 	winy= region->winrct.ymax - region->winrct.ymin;
-	ofsx1= ofsy1= ofsx2= ofsy2= 0.0f;
-	
-	/* calculate offset factor required on each axis */
-	if (v2d->scroll & L_SCROLL)
-		ofsy1= (float)SCROLLB;
-	if (v2d->scroll & R_SCROLL)
-		ofsy2= (float)SCROLLB;
-	if (v2d->scroll & T_SCROLL)
-		ofsx1= (float)SCROLLH;
-	if (v2d->scroll & B_SCROLL)
-		ofsx2= (float)SCROLLH;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
 	if (xaxis)
-		wmOrtho2(C->window, v2d->cur.xmin-ofsx1, v2d->cur.xmax-ofsx2, 0, winy);
+		wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, 0, winy);
 	else
-		wmOrtho2(C->window, 0, winx, v2d->cur.ymin-ofsy1, v2d->cur.ymax-ofsx2);
+		wmOrtho2(C->window, 0, winx, v2d->cur.ymin, v2d->cur.ymax);
 } 
 
 
@@ -777,7 +751,7 @@ void UI_view2d_free_scrollers(View2DScrollers *scrollers)
  *	- x,y 			= coordinates to convert
  *	- viewx,viewy		= resultant coordinates
  */
-void UI_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, float *viewy)
+void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *viewx, float *viewy)
 {
 	float div, ofs;
 
@@ -785,14 +759,14 @@ void UI_view2d_region_to_view(View2D *v2d, short x, short y, float *viewx, float
 		div= v2d->mask.xmax - v2d->mask.xmin;
 		ofs= v2d->mask.xmin;
 		
-		*viewx= v2d->cur.xmin + (v2d->cur.xmax-v2d->cur.xmin) * (x - ofs) / div;
+		*viewx= v2d->cur.xmin + (v2d->cur.xmax-v2d->cur.xmin) * ((float)x - ofs) / div;
 	}
 
 	if (viewy) {
 		div= v2d->mask.ymax - v2d->mask.ymin;
 		ofs= v2d->mask.ymin;
 		
-		*viewy= v2d->cur.ymin + (v2d->cur.ymax - v2d->cur.ymin) * (y - ofs) / div;
+		*viewy= v2d->cur.ymin + (v2d->cur.ymax - v2d->cur.ymin) * ((float)y - ofs) / div;
 	}
 }
 

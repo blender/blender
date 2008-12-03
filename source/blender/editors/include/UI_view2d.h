@@ -99,7 +99,7 @@ void UI_view2d_draw_scrollers(const struct bContext *C, struct View2D *v2d, View
 void UI_view2d_free_scrollers(View2DScrollers *scrollers);
 
 /* coordinate conversion */
-void UI_view2d_region_to_view(struct View2D *v2d, short x, short y, float *viewx, float *viewy);
+void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy);
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, short *regionx, short *regiony);
 void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *regionx, short *region_y);
 
