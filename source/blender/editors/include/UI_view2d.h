@@ -38,10 +38,13 @@
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
 
-/* ---  Grids --- */
 /* grid-units (for drawing time) */
 #define V2D_UNIT_SECONDS	0
 #define V2D_UNIT_FRAMES		1
+
+/* grid-units (for drawing values) */
+#define V2D_UNIT_VALUES		2
+#define V2D_UNIT_DEGREES	3
 
 /* clamping of grid values to whole numbers */
 #define V2D_GRID_CLAMP		0
@@ -53,7 +56,6 @@
 #define V2D_HORIZONTAL_AXIS		(1<<2)
 #define V2D_VERTICAL_AXIS		(1<<3)
 
-/* --- Scrollers --- */
 
 /* ------------------------------------------ */
 /* Macros:								*/
@@ -92,7 +94,7 @@ void UI_view2d_draw_grid(const struct bContext *C, struct View2D *v2d, View2DGri
 void UI_view2d_free_grid(View2DGrid *grid);
 
 /* scrollbar drawing */
-View2DScrollers *UI_view2d_calc_scrollers(const struct bContext *C, struct View2D *v2d, short units, short clamp);
+View2DScrollers *UI_view2d_calc_scrollers(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp);
 void UI_view2d_draw_scrollers(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers, int flag);
 void UI_view2d_free_scrollers(View2DScrollers *scrollers);
 

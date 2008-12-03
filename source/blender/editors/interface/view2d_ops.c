@@ -51,6 +51,32 @@
 /* ********************************************************* */
 /* General Polling Funcs */
 
+/* Check if mouse is within scrollbars 
+ *	- Returns true or false (1 or 0)
+ *	
+ *	- x,y	= mouse coordinates in screen (not region) space
+ */
+static short mouse_in_v2d_scrollers (const bContext *C, View2D *v2d, int x, int y)
+{
+	ARegion *ar= C->region;
+	int co[2];
+	
+	/* clamp x,y to region-coordinates first */
+	// FIXME: is this needed?
+	co[0]= x - ar->winrct.xmin;
+	co[1]= y - ar->winrct.ymin;
+	
+	/* check if within scrollbars */
+	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 1;
+	}
+	if (v2d->scroll & VERT_SCROLL) {
+		if (IN_2D_VERT_SCROLL(v2d, co)) return 1;
+	}	
+	
+	/* not found */
+	return 0;
+} 
 
 
 /* ********************************************************* */
@@ -76,6 +102,8 @@ typedef struct v2dViewPanData {
 		/* options for version 1 */
 	int startx, starty;		/* mouse x/y values in window when operator was initiated */
 	int lastx, lasty;		/* previous x/y values of mouse in window */
+	
+	short in_scroller;		/* activated in scrollbar */
 } v2dViewPanData;
  
 /* initialise panning customdata */

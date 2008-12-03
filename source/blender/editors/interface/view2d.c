@@ -628,7 +628,7 @@ struct View2DScrollers {
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short units, short clamp)
+View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp)
 {
 	View2DScrollers *scrollers;
 	rcti vert, hor;
@@ -640,12 +640,14 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	/* scrollers is allocated here... */
 	scrollers= MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 	
-	/* slider 'buttons':
+	/* scroller 'buttons':
 	 *	- These should always remain within the visible region of the scrollbar
 	 *	- They represent the region of 'tot' that is visible in 'cur'
 	 */
-	/* slider 'button' extents - horizontal */
+	
+	/* horizontal scrollers */
 	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+		/* slider 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= hor.xmax - hor.xmin;
 		
@@ -661,8 +663,9 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 			scrollers->hor_min= scrollers->hor_max;
 	}
 	
-	/* slider 'button' extents - vertical */
+	/* vertical scrollers */
 	if (v2d->scroll & VERT_SCROLL) {
+		/* slider 'button' extents */
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= vert.ymax - vert.ymin;
 		

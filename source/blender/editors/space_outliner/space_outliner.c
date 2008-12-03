@@ -423,7 +423,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0); // XXX last two vars here are useless
+	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0, 0, 0); // XXX last two vars here are useless
 	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
 	UI_view2d_free_scrollers(scrollers);
 }

@@ -152,7 +152,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_calc_scrollers(C, v2d, unit, V2D_GRID_CLAMP);
+	scrollers= UI_view2d_calc_scrollers(C, v2d, unit, V2D_GRID_CLAMP, 0, 0);
 	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
 	UI_view2d_free_scrollers(scrollers);
 }
