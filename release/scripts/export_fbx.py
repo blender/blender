@@ -191,9 +191,9 @@ def derived_paths(fname_orig, basepath, FORCE_CWD=False):
 	'''
 	fname = Blender.sys.expandpath(fname_orig)
 	fname_strip = strip_path(fname)
-	if FORCE_CWD:	fname_rel = './' + fname_strip
+	if FORCE_CWD:	fname_rel = '.' + Blender.sys.sep + fname_strip
 	else:				fname_rel = Blender.sys.relpath(fname, basepath)
-	if fname_rel.startswith('//'): fname_rel = '.' + fname_rel[1:]
+	if fname_rel.startswith('//'): fname_rel = '.' + Blender.sys.sep + fname_rel[2:]
 	return fname, fname_strip, fname_rel
 
 
