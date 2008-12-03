@@ -786,7 +786,7 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, sho
 	
 	/* express given coordinates as proportional values */
 	x= (x - v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
-	y= (x - v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
+	y= (y - v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 	
 	/* check if values are within bounds */
 	if ((x>=0.0f) && (x<=1.0f) && (y>=0.0f) && (y<=1.0f)) {
@@ -807,7 +807,7 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, 
 {
 	/* step 1: express given coordinates as proportional values */
 	x= (x - v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
-	y= (x - v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
+	y= (y - v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 	
 	/* step 2: convert proportional distances to screen coordinates  */
 	x= v2d->mask.xmin + x*(v2d->mask.xmax - v2d->mask.xmin);

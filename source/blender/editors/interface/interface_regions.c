@@ -5,6 +5,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_view2d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_arithb.h"
@@ -21,8 +22,9 @@
 
 #include "BIF_gl.h"
 
-#include "UI_text.h"
 #include "UI_interface.h"
+#include "UI_text.h"
+#include "UI_view2d.h"
 
 #include "ED_screen.h"
 
@@ -309,6 +311,15 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	x2 += 4;
 
 	if(butregion) {
+		/* XXX temp, region v2ds can be empty still */
+		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
+			short tx, ty;
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &tx, &ty);
+			x1= (int)tx; y1= (int)ty;
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &tx, &ty);
+			x2= (int)tx; y2= (int)ty;
+		}
+
 		x1 += butregion->winrct.xmin;
 		x2 += butregion->winrct.xmin;
 		y1 += butregion->winrct.ymin;
@@ -318,14 +329,21 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	wm_window_get_size(C->window, &winx, &winy);
 
 	if(x2 > winx) {
-		x1 -= x2-winx;
-		x2= winx;
+		/* super size */
+		if(x2 > winx + x1) {
+			x2= winx;
+			x1= 0;
+		}
+		else {
+			x1 -= x2-winx;
+			x2= winx;
+		}
 	}
 	if(y1 < 0) {
 		y1 += 36;
 		y2 += 36;
 	}
-
+	
 	ar->winrct.xmin= x1;
 	ar->winrct.ymin= y1;
 	ar->winrct.xmax= x2;
