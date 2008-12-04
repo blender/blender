@@ -42,6 +42,7 @@ class ImageRender : public ImageViewport
 public:
 	/// constructor
 	ImageRender (KX_Scene * scene, KX_Camera * camera);
+	ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObject * mirror, RAS_IPolyMaterial * mat);
 
 	/// destructor
 	virtual ~ImageRender (void);
@@ -52,11 +53,23 @@ public:
 	void setBackground (int red, int green, int blue, int alpha);
 
 protected:
+    /// true if ready to render
+    bool m_render;
 	/// rendered scene
 	KX_Scene * m_scene;
 	/// camera for render
 	KX_Camera * m_camera;
-
+    /// do we own the camera?
+    bool m_owncamera;
+    /// for mirror operation
+    KX_GameObject * m_observer;
+    KX_GameObject * m_mirror;
+    float m_mirrorHalfWidth;            // mirror width in mirror space
+    float m_mirrorHalfHeight;           // mirror height in mirror space
+    MT_Point3 m_mirrorPos;              // mirror center position in local space
+    MT_Vector3 m_mirrorZ;               // mirror Z axis in local space
+    MT_Vector3 m_mirrorY;               // mirror Y axis in local space
+    MT_Vector3 m_mirrorX;               // mirror X axis in local space
     /// canvas
     RAS_ICanvas* m_canvas;
     /// rasterizer

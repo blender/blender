@@ -132,6 +132,7 @@ extern PyTypeObject FilterBGR24Type;
 extern PyTypeObject ImageBuffType;
 extern PyTypeObject ImageMixType;
 extern PyTypeObject ImageRenderType;
+extern PyTypeObject ImageMirrorType;
 extern PyTypeObject ImageViewportType;
 extern PyTypeObject ImageViewportType;
 
@@ -145,6 +146,7 @@ static void registerAllTypes(void)
 	pyImageTypes.add(&ImageBuffType, "ImageBuff");
 	pyImageTypes.add(&ImageMixType, "ImageMix");
 	pyImageTypes.add(&ImageRenderType, "ImageRender");
+	pyImageTypes.add(&ImageMirrorType, "ImageMirror");
 	pyImageTypes.add(&ImageViewportType, "ImageViewport");
 
 	pyFilterTypes.add(&FilterBlueScreenType, "FilterBlueScreen");

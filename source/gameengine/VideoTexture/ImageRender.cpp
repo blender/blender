@@ -24,26 +24,44 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include <PyObjectPlus.h>
 #include <structmember.h>
+#include <float.h>
+#include <math.h>
+
 
 #include <BIF_gl.h>
 
 #include "KX_PythonInit.h"
 #include "DNA_scene_types.h"
+#include "RAS_CameraData.h"
+#include "RAS_MeshObject.h"
+#include "BLI_arithb.h"
 
 #include "ImageRender.h"
 #include "ImageBase.h"
 #include "BlendType.h"
 #include "Exception.h"
+#include "Texture.h"
 
-ExceptionID SceneInvalid, CameraInvalid;
+ExceptionID SceneInvalid, CameraInvalid, ObserverInvalid;
+ExceptionID MirrorInvalid, MirrorSizeInvalid, MirrorNormalInvalid, MirrorHorizontal, MirrorTooSmall;
 ExpDesc SceneInvalidDesc (SceneInvalid, "Scene object is invalid");
 ExpDesc CameraInvalidDesc (CameraInvalid, "Camera object is invalid");
+ExpDesc ObserverInvalidDesc (ObserverInvalid, "Observer object is invalid");
+ExpDesc MirrorInvalidDesc (MirrorInvalid, "Mirror object is invalid");
+ExpDesc MirrorSizeInvalidDesc (MirrorSizeInvalid, "Mirror has no vertex or no size");
+ExpDesc MirrorNormalInvalidDesc (MirrorNormalInvalid, "Cannot determine mirror plane");
+ExpDesc MirrorHorizontalDesc (MirrorHorizontal, "Mirror is horizontal in local space");
+ExpDesc MirrorTooSmallDesc (MirrorTooSmall, "Mirror is too small");
 
 // constructor
 ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) : 
     ImageViewport(),
+    m_render(true),
     m_scene(scene),
-    m_camera(camera)
+    m_camera(camera),
+    m_owncamera(false),
+    m_observer(NULL),
+    m_mirror(NULL)
 {
 	// initialize background colour
 	setBackground(0, 0, 255, 255);
@@ -57,6 +75,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) :
 // destructor
 ImageRender::~ImageRender (void)
 {
+    if (m_owncamera)
+        m_camera->Release();
 }
 
 
@@ -91,6 +111,75 @@ void ImageRender::calcImage (unsigned int texId)
 
 void ImageRender::Render()
 {
+	RAS_FrameFrustum frustrum;
+
+    if (!m_render)
+        return;
+
+    if (m_mirror)
+    {
+        // mirror mode, compute camera frustrum, position and orientation
+        // convert mirror position and normal in world space
+        const MT_Matrix3x3 & mirrorObjWorldOri = m_mirror->GetSGNode()->GetWorldOrientation();
+        const MT_Point3 & mirrorObjWorldPos = m_mirror->GetSGNode()->GetWorldPosition();
+        const MT_Vector3 & mirrorObjWorldScale = m_mirror->GetSGNode()->GetWorldScaling();
+        MT_Point3 mirrorWorldPos = 
+            mirrorObjWorldPos + mirrorObjWorldScale * (mirrorObjWorldOri * m_mirrorPos);
+        MT_Vector3 mirrorWorldZ = mirrorObjWorldOri * m_mirrorZ;
+        // get observer world position
+        const MT_Point3 & observerWorldPos = m_observer->GetSGNode()->GetWorldPosition();
+        // get plane D term = mirrorPos . normal
+        MT_Scalar mirrorPlaneDTerm = mirrorWorldPos.dot(mirrorWorldZ);
+        // compute distance of observer to mirror = D - observerPos . normal
+        MT_Scalar observerDistance = mirrorPlaneDTerm - observerWorldPos.dot(mirrorWorldZ);
+        // if distance < 0.01 => observer is on wrong side of mirror, don't render
+        if (observerDistance < 0.01f)
+            return;
+        // set camera world position = observerPos + normal * 2 * distance
+        MT_Point3 cameraWorldPos = observerWorldPos + (MT_Scalar(2.0)*observerDistance)*mirrorWorldZ;
+        m_camera->GetSGNode()->SetLocalPosition(cameraWorldPos);
+        // set camera orientation: z=normal, y=mirror_up in world space, x= y x z
+        MT_Vector3 mirrorWorldY = mirrorObjWorldOri * m_mirrorY;
+        MT_Vector3 mirrorWorldX = mirrorObjWorldOri * m_mirrorX;
+        MT_Matrix3x3 cameraWorldOri(
+            mirrorWorldX[0], mirrorWorldY[0], mirrorWorldZ[0],
+            mirrorWorldX[1], mirrorWorldY[1], mirrorWorldZ[1], 
+            mirrorWorldX[2], mirrorWorldY[2], mirrorWorldZ[2]);
+        m_camera->GetSGNode()->SetLocalOrientation(cameraWorldOri);
+        m_camera->GetSGNode()->UpdateWorldData(0.0);
+        // compute camera frustrum:
+        //   get position of mirror relative to camera: offset = mirrorPos-cameraPos
+        MT_Vector3 mirrorOffset = mirrorWorldPos - cameraWorldPos;
+        //   convert to camera orientation
+        mirrorOffset = mirrorOffset * cameraWorldOri;
+        //   scale mirror size to world scale: 
+        //     get closest local axis for mirror Y and X axis and scale height and width by local axis scale
+        MT_Scalar x, y;
+        x = fabs(m_mirrorY[0]);
+        y = fabs(m_mirrorY[1]);
+        float height = (x > y) ? 
+            ((x > fabs(m_mirrorY[2])) ? mirrorObjWorldScale[0] : mirrorObjWorldScale[2]):
+            ((y > fabs(m_mirrorY[2])) ? mirrorObjWorldScale[1] : mirrorObjWorldScale[2]);
+        x = fabs(m_mirrorX[0]);
+        y = fabs(m_mirrorX[1]);
+        float width = (x > y) ? 
+            ((x > fabs(m_mirrorX[2])) ? mirrorObjWorldScale[0] : mirrorObjWorldScale[2]):
+            ((y > fabs(m_mirrorX[2])) ? mirrorObjWorldScale[1] : mirrorObjWorldScale[2]);
+        width *= m_mirrorHalfWidth;
+        height *= m_mirrorHalfHeight;
+        //   left = offsetx-width
+        //   right = offsetx+width
+        //   top = offsety+height
+        //   bottom = offsety-height
+        //   near = -offsetz
+        //   far = near+100
+        frustrum.x1 = mirrorOffset[0]-width;
+        frustrum.x2 = mirrorOffset[0]+width;
+        frustrum.y1 = mirrorOffset[1]-height;
+        frustrum.y2 = mirrorOffset[1]+height;
+        frustrum.camnear = -mirrorOffset[2];
+        frustrum.camfar = -mirrorOffset[2]+100.f;
+    }
     const float ortho = 100.0;
     const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
 
@@ -105,12 +194,19 @@ void ImageRender::Render()
     m_rasterizer->DisplayFog();
     // matrix calculation, don't apply any of the stereo mode
     m_rasterizer->SetStereoMode(RAS_IRasterizer::RAS_STEREO_NOSTEREO);
-    if (m_camera->hasValidProjectionMatrix())
+    if (m_mirror)
+    {
+        // frustrum was computed above
+        // get frustrum matrix and set projection matrix
+		MT_Matrix4x4 projmat = m_rasterizer->GetFrustumMatrix(
+			frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
+
+		m_camera->SetProjectionMatrix(projmat);
+    } else if (m_camera->hasValidProjectionMatrix())
 	{
 		m_rasterizer->SetProjectionMatrix(m_camera->GetProjectionMatrix());
     } else 
     {
-		RAS_FrameFrustum frustrum;
 		float lens = m_camera->GetLens();
 		bool orthographic = !m_camera->GetCameraData()->m_perspective;
 		float nearfrust = m_camera->GetCameraNear();
@@ -313,6 +409,274 @@ PyTypeObject ImageRenderType =
 	0,                         /* tp_descr_set */
 	0,                         /* tp_dictoffset */
 	(initproc)ImageRender_init,     /* tp_init */
+	0,                         /* tp_alloc */
+	Image_allocNew,           /* tp_new */
+};
+
+// object initialization
+static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+{
+	// parameters - scene object
+	PyObject * scene;
+	// reference object for mirror
+	PyObject * observer;
+    // object holding the mirror
+    PyObject * mirror;
+    // material of the mirror
+    short materialID = 0;
+	// parameter keywords
+	static char *kwlist[] = {"scene", "observer", "mirror", "material", NULL};
+	// get parameters
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|h", kwlist, &scene, &observer, &mirror, &materialID))
+		return -1;
+	try
+	{
+		// get scene pointer
+		KX_Scene * scenePtr (NULL);
+        if (scene != NULL && PyObject_TypeCheck(scene, &KX_Scene::Type)) 
+            scenePtr = static_cast<KX_Scene*>(scene);
+        else
+            THRWEXCP(SceneInvalid, S_OK);
+
+		// get observer pointer
+		KX_GameObject * observerPtr (NULL);
+		if (observer != NULL && PyObject_TypeCheck(observer, &KX_GameObject::Type))
+            observerPtr = static_cast<KX_GameObject*>(observer);
+        else if (observer != NULL && PyObject_TypeCheck(observer, &KX_Camera::Type))
+            observerPtr = static_cast<KX_Camera*>(observer);
+		else
+            THRWEXCP(ObserverInvalid, S_OK);
+
+		// get mirror pointer
+		KX_GameObject * mirrorPtr (NULL);
+		if (mirror != NULL && PyObject_TypeCheck(mirror, &KX_GameObject::Type))
+            mirrorPtr = static_cast<KX_GameObject*>(mirror);
+		else
+            THRWEXCP(MirrorInvalid, S_OK);
+
+        // locate the material in the mirror
+		RAS_IPolyMaterial * material = getMaterial(mirror, materialID);
+		if (material == NULL)
+            THRWEXCP(MaterialNotAvail, S_OK);
+
+		// get pointer to image structure
+		PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+
+		// create source object
+		if (self->m_image != NULL) 
+        {
+            delete self->m_image;
+            self->m_image = NULL;
+        }
+		self->m_image = new ImageRender(scenePtr, observerPtr, mirrorPtr, material);
+	}
+	catch (Exception & exp)
+	{
+		exp.report();
+		return -1;
+	}
+	// initialization succeded
+	return 0;
+}
+
+// constructor
+ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObject * mirror, RAS_IPolyMaterial * mat) :
+    ImageViewport(),
+    m_render(false),
+    m_scene(scene),
+    m_observer(observer),
+    m_mirror(mirror)
+{
+    // this constructor is used for automatic planar mirror
+    // create a camera, take all data by default, in any case we will recompute the frustrum on each frame
+	RAS_CameraData camdata;
+    vector<RAS_TexVert*> mirrorVerts;
+    vector<RAS_TexVert*>::iterator it;
+    float mirrorArea = 0.f;
+    float mirrorNormal[3] = {0.f, 0.f, 0.f};
+    float mirrorUp[3];
+    float dist, vec[3];
+    float zaxis[3] = {0.f, 0.f, 1.f};
+    float mirrorMat[3][3];
+    float left, right, top, bottom, back;
+	
+	m_camera= new KX_Camera(scene, KX_Scene::m_callbacks, camdata);
+	m_camera->SetName("__mirror__cam__");
+    // don't add the camera to the scene object list, it doesn't need to be accessible
+    m_owncamera = true;
+    // retrieve rendering objects
+    m_engine = KX_GetActiveEngine();
+    m_rasterizer = m_engine->GetRasterizer();
+    m_canvas = m_engine->GetCanvas();
+    m_rendertools = m_engine->GetRenderTools();
+    // locate the vertex assigned to mat and do following calculation in mesh coordinates
+    for (int meshIndex = 0; meshIndex < mirror->GetMeshCount(); meshIndex++)
+    {
+        RAS_MeshObject*	mesh = mirror->GetMesh(meshIndex);
+        int numPolygons = mesh->NumPolygons();
+        for (int polygonIndex=0; polygonIndex < numPolygons; polygonIndex++)
+        {
+            RAS_Polygon* polygon = mesh->GetPolygon(polygonIndex);
+            if (polygon->GetMaterial()->GetPolyMaterial() == mat)
+            {
+                RAS_TexVert *v1, *v2, *v3, *v4;
+                float normal[3];
+                float area;
+                // this polygon is part of the mirror,
+                v1 = polygon->GetVertex(0);
+                v2 = polygon->GetVertex(1);
+                v3 = polygon->GetVertex(2);
+                mirrorVerts.push_back(v1);
+                mirrorVerts.push_back(v2);
+                mirrorVerts.push_back(v3);
+                if (polygon->VertexCount() == 4) 
+                {
+                    v4 = polygon->GetVertex(3);
+                    mirrorVerts.push_back(v4);
+                    area = CalcNormFloat4((float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ(), normal);
+                } else
+                {
+                    area = CalcNormFloat((float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), normal);
+                }
+                area = fabs(area);
+                mirrorArea += area;
+                VecMulf(normal, area);
+                VecAddf(mirrorNormal, mirrorNormal, normal);
+            }
+        }
+    }
+    if (mirrorVerts.size() == 0 || mirrorArea < FLT_EPSILON)
+    {
+        // no vertex or zero size mirror
+       THRWEXCP(MirrorSizeInvalid, S_OK);
+    }
+    // compute average normal of mirror faces
+    VecMulf(mirrorNormal, 1.0f/mirrorArea);
+    if (Normalize(mirrorNormal) == 0.f)
+    {
+        // no normal
+        THRWEXCP(MirrorNormalInvalid, S_OK);
+    }
+    // the mirror plane has an equation of the type ax+by+cz = d where (a,b,c) is the normal vector
+    // mirror up direction is the projection of Z on the plane
+    // scalar product between normal and Z axis
+    dist = Inpf(mirrorNormal, zaxis);
+    if (dist < FLT_EPSILON)
+    {
+        // the mirror is already vertical
+        VecCopyf(mirrorUp, zaxis);
+    }
+    else
+    {
+        // projection of Z to normal
+        VecCopyf(vec, mirrorNormal);
+        VecMulf(vec, dist);
+        VecSubf(mirrorUp, zaxis, mirrorNormal);
+        if (Normalize(mirrorUp) == 0.f)
+        {
+            // mirror is horizontal
+            THRWEXCP(MirrorHorizontal, S_OK);
+            return;
+        }
+    }
+    // compute rotation matrix between local coord and mirror coord
+    // to match camera orientation, we select mirror z = -normal, y = up, x = y x z
+    VecCopyf(mirrorMat[2], mirrorNormal);
+    VecMulf(mirrorMat[2], -1.0f);
+    VecCopyf(mirrorMat[1], mirrorUp);
+    Crossf(mirrorMat[0], mirrorMat[1], mirrorMat[2]);
+    // transpose to make it a orientation matrix from local space to mirror space
+    Mat3Transp(mirrorMat);
+    // transform all vertex to plane coordinates and determine mirror position
+    left = FLT_MAX; 
+    right = -FLT_MAX;
+    bottom = FLT_MAX;
+    top = -FLT_MAX;
+    back = -FLT_MAX; // most backward vertex (=highest Z coord in mirror space)
+    for (it = mirrorVerts.begin(); it != mirrorVerts.end(); it++)
+    {   
+        VecCopyf(vec, (float*)(*it)->getXYZ());
+        Mat3MulVecfl(mirrorMat, vec);
+        if (vec[0] < left)
+            left = vec[0];
+        if (vec[0] > right)
+            right = vec[0];
+        if (vec[1] < bottom)
+            bottom = vec[1];
+        if (vec[1] > top)
+            top = vec[1];
+        if (vec[2] > back)
+            back = vec[2];
+    }
+    // now store this information in the object for later rendering
+    m_mirrorHalfWidth = (right-left)*0.5f;
+    m_mirrorHalfHeight = (top-bottom)*0.5f;
+    if (m_mirrorHalfWidth < 0.01f || m_mirrorHalfHeight < 0.01f)
+    {
+        // mirror too small
+        THRWEXCP(MirrorTooSmall, S_OK);
+    }
+    // mirror position in mirror coord
+    vec[0] = (left+right)*0.5f;
+    vec[1] = (top+bottom)*0.5f;
+    vec[2] = back;
+    // convert it in local space: transpose again the matrix to get back to mirror to local transform
+    Mat3Transp(mirrorMat);
+    Mat3MulVecfl(mirrorMat, vec);
+    // mirror position in local space
+    m_mirrorPos.setValue(vec[0], vec[1], vec[2]);
+    // mirror normal vector (pointed towards the back of the mirror) in local space
+    m_mirrorZ.setValue(-mirrorNormal[0], -mirrorNormal[1], -mirrorNormal[2]);
+    m_mirrorY.setValue(mirrorUp[0], mirrorUp[1], mirrorUp[2]);
+    m_mirrorX = m_mirrorY.cross(m_mirrorZ);
+    m_render = true;
+
+	setBackground(0, 0, 255, 255);
+}
+
+
+
+
+// define python type
+PyTypeObject ImageMirrorType =
+{ 
+	PyObject_HEAD_INIT(NULL)
+	0,                         /*ob_size*/
+	"VideoTexture.ImageMirror",   /*tp_name*/
+	sizeof(PyImage),          /*tp_basicsize*/
+	0,                         /*tp_itemsize*/
+	(destructor)Image_dealloc, /*tp_dealloc*/
+	0,                         /*tp_print*/
+	0,                         /*tp_getattr*/
+	0,                         /*tp_setattr*/
+	0,                         /*tp_compare*/
+	0,                         /*tp_repr*/
+	0,                         /*tp_as_number*/
+	0,                         /*tp_as_sequence*/
+	0,                         /*tp_as_mapping*/
+	0,                         /*tp_hash */
+	0,                         /*tp_call*/
+	0,                         /*tp_str*/
+	0,                         /*tp_getattro*/
+	0,                         /*tp_setattro*/
+	0,                         /*tp_as_buffer*/
+	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+	"Image source from mirror",       /* tp_doc */
+	0,		               /* tp_traverse */
+	0,		               /* tp_clear */
+	0,		               /* tp_richcompare */
+	0,		               /* tp_weaklistoffset */
+	0,		               /* tp_iter */
+	0,		               /* tp_iternext */
+	imageRenderMethods,    /* tp_methods */
+	0,                   /* tp_members */
+	imageRenderGetSets,          /* tp_getset */
+	0,                         /* tp_base */
+	0,                         /* tp_dict */
+	0,                         /* tp_descr_get */
+	0,                         /* tp_descr_set */
+	0,                         /* tp_dictoffset */
+	(initproc)ImageMirror_init,     /* tp_init */
 	0,                         /* tp_alloc */
 	Image_allocNew,           /* tp_new */
 };
