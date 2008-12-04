@@ -734,7 +734,7 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 
 
 /* Draw scrollbars in the given 2d-region */
-void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *scrollers, int flag)
+void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *scrollers)
 {
 	const int darker= -40, dark= 0, light= 20, lighter= 50;
 	rcti vert, hor;
@@ -766,8 +766,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		// XXX will need to update the font drawing when the new stuff comes in
 		if (v2d->scroll & HOR_SCROLLGRID) {
 			View2DGrid *grid= scrollers->grid;
-			float fac, dfac, fac2;
-			int val;
+			float fac, dfac, fac2, val;
 			
 			/* the numbers: convert grid->startx and -dx to scroll coordinates 
 			 *	- fac is x-coordinate to draw to
@@ -777,8 +776,9 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 			fac= hor.xmin + fac*(hor.xmax - hor.xmin);
 			
 			dfac= (grid->dx) / (v2d->cur.xmax - v2d->cur.xmin);
-			dfac= dfac*(hor.xmax-hor.xmin);
+			dfac= dfac * (hor.xmax - hor.xmin);
 			
+			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
 			val= grid->startx;
 			
@@ -828,7 +828,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (v2d->scroll & B_SCROLL)
+		if (v2d->scroll & (B_SCROLL|B_SCROLLO))
 			sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
 		else if (v2d->scroll & T_SCROLL)
 			sdrawline(hor.xmin, hor.ymin, hor.xmax, hor.ymin);
@@ -857,14 +857,41 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
 		if (v2d->scroll & VERT_SCROLLGRID) {
+			View2DGrid *grid= scrollers->grid;
+			float fac, dfac, val;
 			
+			/* the numbers: convert grid->starty and dy to scroll coordinates 
+			 *	- fac is y-coordinate to draw to
+			 *	- dfac is gap between scale markings
+			 *	- these involve a correction for horizontal scrollbar
+			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
+			 */
+			fac= (grid->starty- v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
+			fac= (vert.ymin + SCROLLH) + fac*(vert.ymax - vert.ymin - SCROLLH);
+			
+			dfac= (grid->dy) / (v2d->cur.ymax - v2d->cur.ymin);
+			dfac= dfac * (vert.ymax - vert.ymin - SCROLLH);
+			
+			/* set starting value, and text color */
+			UI_ThemeColor(TH_TEXT);
+			val= grid->starty;
+			
+			/* if vertical clamping (to whole numbers) is used (i.e. in Sequencer), apply correction */
+			// XXX only relevant to Sequencer, so need to review this when we port that code
+			if (scrollers->yclamp == V2D_GRID_CLAMP)
+				fac += 0.5f * dfac;
+				
+			/* draw vertical steps */
+			for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
+				scroll_printstr(scrollers, (float)(vert.xmax)-14.0, fac, val, grid->powery, scrollers->yunits, 'v');
+			}			
 		}	
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
 		if (v2d->scroll & R_SCROLL)
 			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
-		else 
+		else if (v2d->scroll & L_SCROLL)
 			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
 	}
 }

@@ -119,9 +119,10 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	View2DScrollers *scrollers;
 	float col[3];
 	int unit, winx, winy;
-
-	winx= ar->winrct.xmax-ar->winrct.xmin;
-	winy= ar->winrct.ymax-ar->winrct.ymin;
+	
+	// XXX this should become stored in regions too...
+	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
+	winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
 	UI_view2d_update_size(v2d, winx, winy);
 
@@ -153,7 +154,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* scrollers */
 	scrollers= UI_view2d_calc_scrollers(C, v2d, unit, V2D_GRID_CLAMP, 0, 0);
-	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
+	UI_view2d_draw_scrollers(C, v2d, scrollers);
 	UI_view2d_free_scrollers(scrollers);
 }
 

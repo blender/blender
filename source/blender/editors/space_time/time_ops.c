@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"
@@ -175,16 +176,46 @@ void ED_TIME_OT_change_frame(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "frame", PROP_INT, PROP_NONE);
 }
 
+/* ****************** time display toggle operator ****************************/
+
+static int toggle_time_exec(bContext *C, wmOperator *op)
+{
+	SpaceTime *stime;
+	
+	if (ELEM(NULL, C->area, C->area->spacedata.first))
+		return OPERATOR_CANCELLED;
+	
+	/* simply toggle draw frames flag for now */
+	// XXX in past, this displayed menu to choose... (for later!)
+	stime= C->area->spacedata.first;
+	stime->flag ^= TIME_DRAWFRAMES;
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_TIME_OT_toggle_time(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Frames/Seconds";
+	ot->idname= "ED_TIME_OT_toggle_time";
+	
+	/* api callbacks */
+	ot->exec= toggle_time_exec;
+}
+
 /* ************************** registration **********************************/
 
 void time_operatortypes(void)
 {
 	WM_operatortype_append(ED_TIME_OT_change_frame);
+	WM_operatortype_append(ED_TIME_OT_toggle_time);
 }
 
 void time_keymap(wmWindowManager *wm)
 {
 	WM_keymap_verify_item(&wm->timekeymap, "ED_TIME_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(&wm->timekeymap, "ED_TIME_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
+	
 
 	/* markers (XXX move to function?) */
 	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);

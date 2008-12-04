@@ -348,8 +348,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// XXX width should be depend on max length of items (like height)...
-	awidth= width= ar->winrct.xmax - ar->winrct.xmin;
-	aheight= height= ar->winrct.ymax - ar->winrct.ymin;
+	awidth= width= ar->winrct.xmax - ar->winrct.xmin + 1;
+	aheight= height= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
 	UI_view2d_update_size(v2d, awidth, aheight);
 	
@@ -394,6 +394,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 
 	if ((rows*ROW_HEIGHT) > height)
 		height= rows * ROW_HEIGHT;
+	width= (cols + 1) * COLUMN_WIDTH;
 	
 	/* need to validate view2d after updating size of tot */
 	v2d->tot.xmin= 0;
@@ -423,8 +424,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0, 0, 0); // XXX last two vars here are useless
-	UI_view2d_draw_scrollers(C, v2d, scrollers, (0));
+	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0, 0, 0);
+	UI_view2d_draw_scrollers(C, v2d, scrollers);
 	UI_view2d_free_scrollers(scrollers);
 }
 
