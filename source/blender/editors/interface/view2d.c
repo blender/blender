@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -45,6 +46,7 @@
 #include "ED_screen.h"
 
 #include "UI_resources.h"
+#include "UI_text.h"
 #include "UI_view2d.h"
 
 /* *********************************************************************** */
@@ -394,32 +396,32 @@ static void step_to_grid(float *step, int *power, int unit)
 	rem= loga - (*power);
 	rem= pow(10.0, rem);
 	
-	if (loga < 0.0f) {
-		if (rem < 0.2f) rem= 0.2f;
-		else if(rem < 0.5f) rem= 0.5f;
-		else rem= 1.0f;
+	if (loga < 0.0) {
+		if (rem < 0.2) rem= 0.2;
+		else if(rem < 0.5) rem= 0.5;
+		else rem= 1.0;
 		
-		*step= rem * pow(10.0, (double)(*power));
+		*step= rem * pow(10.0, (float)(*power));
 		
 		/* for frames, we want 1.0 frame intervals only */
 		if (unit == V2D_UNIT_FRAMES) {
-			rem = 1.0f;
-			*step = 1.0f;
+			rem = 1.0;
+			*step = 1.0;
 		}
 		
 		/* prevents printing 1.0 2.0 3.0 etc */
-		if (rem == 1.0f) (*power)++;	
+		if (rem == 1.0) (*power)++;	
 	}
 	else {
-		if (rem < 2.0f) rem= 2.0f;
-		else if(rem < 5.0f) rem= 5.0f;
-		else rem= 10.0f;
+		if (rem < 2.0) rem= 2.0;
+		else if(rem < 5.0) rem= 5.0;
+		else rem= 10.0;
 		
-		*step= rem * pow(10.0, (double)(*power));
+		*step= rem * pow(10.0, (float)(*power));
 		
 		(*power)++;
 		/* prevents printing 1.0, 2.0, 3.0, etc. */
-		if (rem == 10.0f) (*power)++;	
+		if (rem == 10.0) (*power)++;	
 	}
 }
 
@@ -444,14 +446,15 @@ View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, shor
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
 	if (unit == V2D_UNIT_FRAMES) {
-		secondgrid= 0;
+		secondgrid= 1;
 		seconddiv= 0.01f * FPS;
 	}
 	else {
-		secondgrid= 1;
+		secondgrid= 0;
 		seconddiv= 1.0f;
 	}
 	
+	/* calculate x-axis grid scale */
 	space= v2d->cur.xmax - v2d->cur.xmin;
 	pixels= v2d->mask.xmax - v2d->mask.xmin;
 	
@@ -465,9 +468,11 @@ View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, shor
 		if (grid->powerx < -2) grid->powerx= -2;
 	}
 	
+	/* calculate y-axis grid scale */
 	space= (v2d->cur.ymax - v2d->cur.ymin);
 	pixels= winy;
-	grid->dy= MINGRIDSTEP*space/pixels;
+	
+	grid->dy= MINGRIDSTEP * space / pixels;
 	step_to_grid(&grid->dy, &grid->powery, unit);
 	
 	if (clamp == V2D_GRID_CLAMP) {
@@ -475,10 +480,11 @@ View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, shor
 		if (grid->powery < 1) grid->powery= 1;
 	}
 	
+	/* calculate start position */
 	grid->startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, grid->dx/seconddiv));
 	if (v2d->cur.xmin < 0.0f) grid->startx-= grid->dx;
 	
-	grid->starty= (v2d->cur.ymin-fmod(v2d->cur.ymin, grid->dy));
+	grid->starty= (v2d->cur.ymin - fmod(v2d->cur.ymin, grid->dy));
 	if (v2d->cur.ymin < 0.0f) grid->starty-= grid->dy;
 
 	return grid;
@@ -544,8 +550,24 @@ void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 			vec2[1]= vec1[1]+= grid->dy;
 		}
 		
+		/* fine grid lines */
+		// er... only in IPO-Editor it seems (how to expose this in nice way)?
 		vec2[1]= vec1[1]-= 0.5f*grid->dy;
 		step++;
+		
+#if 0
+		if (curarea->spacetype==SPACE_IPO) { 
+			UI_ThemeColorShade(TH_GRID, 16);
+			for (a=0; a<step; a++) {
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(vec1); 
+					glVertex2fv(vec2);
+				glEnd();
+				
+				vec2[1]= vec1[1]-= grid->dy;
+			}
+		}
+#endif
 	}
 	
 	/* Axes are drawn as darker lines */
@@ -586,11 +608,15 @@ void UI_view2d_free_grid(View2DGrid *grid)
 /* Scrollbars */
 
 /* View2DScrollers is typedef'd in UI_view2d.h */
-struct View2DScrollers {
-	View2DGrid *grid;		/* grid for coordinate drawing */
+struct View2DScrollers {	
+		/* focus bubbles */
+	int vert_min, vert_max;	/* vertical scrollbar */
+	int hor_min, hor_max;	/* horizontal scrollbar */
 	
-	int vert_min, vert_max;	/* vertical scrollbar - current 'focus' button */
-	int hor_min, hor_max;	/* horizontal scrollbar - current 'focus' button */
+		/* scales */
+	View2DGrid *grid;		/* grid for coordinate drawing */
+	short xunits, xclamp;	/* units and clamping options for x-axis */
+	short yunits, yclamp;	/* units and clamping options for y-axis */
 };
 
 /* Calculate relevant scroller properties */
@@ -647,7 +673,63 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 			scrollers->vert_min= scrollers->vert_max;
 	}
 	
+	/* grid markings on scrollbars */
+	if (v2d->scroll & (HOR_SCROLLGRID|VERT_SCROLLGRID)) {
+		/* store clamping */
+		scrollers->xclamp= xclamp;
+		scrollers->xunits= xunits;
+		scrollers->yclamp= yclamp;
+		scrollers->yunits= yunits;
+		
+		/* calculate grid */
+		if (v2d->scroll & HOR_SCROLLGRID)
+			scrollers->grid= UI_view2d_calc_grid(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		else if (v2d->scroll & VERT_SCROLLGRID)
+			scrollers->grid= UI_view2d_calc_grid(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+	}
+	
+	/* return scrollers */
 	return scrollers;
+}
+
+/* XXX */
+extern void ui_rasterpos_safe(float x, float y, float aspect);
+
+/* Print scale marking along a time scrollbar */
+static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float val, int power, short unit, char dir)
+{
+	int len;
+	char str[32];
+	
+	/* adjust the scale unit to work ok */
+	if (dir == 'v') {
+		/* here we bump up the power by factor of 10, as 
+		 * rotation values (hence 'degrees') are divided by 10 to 
+		 * be able to show the curves at the same time
+		 */
+		if ELEM(unit, V2D_UNIT_DEGREES, V2D_UNIT_TIME) {
+			power += 1;
+			val *= 10;
+		}
+	}
+	
+	/* get string to print */
+	if (power <= 0) sprintf(str, "%.*f", 1-power, val);
+	else sprintf(str, "%d", (int)floor(val + 0.375));
+	
+	/* get length of string, and adjust printing location to fit it into the horizontal scrollbar */
+	len= strlen(str);
+	if (dir == 'h') x-= 4*len;  // err... why not just half len?
+	
+	/* Add degree sympbol to end of string for vertical scrollbar? */
+	if ((dir == 'v') && (unit == V2D_UNIT_DEGREES)) {
+		str[len]= 186;
+		str[len+1]= 0;
+	}
+	
+	/* draw it */
+	ui_rasterpos_safe(x, y, 1.0);
+	UI_DrawString(G.fonts, str, 0); // XXX check this again when new text-drawing api is done
 }
 
 
@@ -683,7 +765,65 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		/* scale indicators */
 		// XXX will need to update the font drawing when the new stuff comes in
 		if (v2d->scroll & HOR_SCROLLGRID) {
+			View2DGrid *grid= scrollers->grid;
+			float fac, dfac, fac2;
+			int val;
 			
+			/* the numbers: convert grid->startx and -dx to scroll coordinates 
+			 *	- fac is x-coordinate to draw to
+			 *	- dfac is gap between scale markings
+			 */
+			fac= (grid->startx- v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
+			fac= hor.xmin + fac*(hor.xmax - hor.xmin);
+			
+			dfac= (grid->dx) / (v2d->cur.xmax - v2d->cur.xmin);
+			dfac= dfac*(hor.xmax-hor.xmin);
+			
+			UI_ThemeColor(TH_TEXT);
+			val= grid->startx;
+			
+			/* if we're clamping to whole numbers only, make sure entries won't be repeated */
+			if (scrollers->xclamp == V2D_GRID_CLAMP) {
+				while (grid->dx < 0.9999f) {
+					grid->dx *= 2.0f;
+					dfac *= 2.0f;
+				}
+			}
+			if (scrollers->xunits == V2D_UNIT_FRAMES)
+				grid->powerx= 1;
+			
+			/* draw numbers in the appropriate range */
+			if (dfac != 0.0f) {
+				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
+					switch (scrollers->xunits) {
+						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
+							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							break;
+						
+						case V2D_UNIT_SECONDS:		/* seconds */
+							fac2= val/FPS;
+							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							break;
+							
+						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
+						{
+							float time;
+							
+							fac2= val/FPS;
+							time= floor(fac2);
+							fac2= fac2-time;
+							
+							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), time+FPS*fac2/100.0, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+						}
+							break;
+							
+						case V2D_UNIT_DEGREES:		/* IPO-Editor for rotation IPO-Drivers */
+							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
+							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							break;
+					}
+				}
+			}
 		}
 		
 		/* decoration outer bevel line */
@@ -732,6 +872,8 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 /* free temporary memory used for drawing scrollers */
 void UI_view2d_free_scrollers(View2DScrollers *scrollers)
 {
+	/* need to free grid as well... */
+	if (scrollers->grid) MEM_freeN(scrollers->grid);
 	MEM_freeN(scrollers);
 }
 

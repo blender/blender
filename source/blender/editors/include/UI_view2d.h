@@ -45,6 +45,8 @@
 /* grid-units (for drawing values) */
 #define V2D_UNIT_VALUES		2
 #define V2D_UNIT_DEGREES	3
+#define V2D_UNIT_TIME		4
+#define V2D_UNIT_SECONDSSEQ	5
 
 /* clamping of grid values to whole numbers */
 #define V2D_GRID_CLAMP		0
