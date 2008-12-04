@@ -1319,9 +1319,6 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_area_join);
 	WM_operatortype_append(ED_SCR_OT_area_rip);
 	
-	/* view2d stuff */
-	
-	
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
 	

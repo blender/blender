@@ -54,7 +54,10 @@
 /* General Polling Funcs */
 
 /* Check if mouse is within scrollbars 
- *	- Returns true or false (1 or 0)
+ *	- Returns appropriate code for match
+ *		'h' = in horizontal scrollbar
+ *		'v' = in vertical scrollbar
+ *		0 = not in scrollbar
  *	
  *	- x,y	= mouse coordinates in screen (not region) space
  */
@@ -64,16 +67,15 @@ static short mouse_in_v2d_scrollers (const bContext *C, View2D *v2d, int x, int 
 	int co[2];
 	
 	/* clamp x,y to region-coordinates first */
-	// FIXME: is this needed?
 	co[0]= x - ar->winrct.xmin;
 	co[1]= y - ar->winrct.ymin;
 	
 	/* check if within scrollbars */
 	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
-		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 1;
+		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 'h';
 	}
 	if (v2d->scroll & VERT_SCROLL) {
-		if (IN_2D_VERT_SCROLL(v2d, co)) return 1;
+		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
 	}	
 	
 	/* not found */
@@ -204,6 +206,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
 	
+	vpd->in_scroller= mouse_in_v2d_scrollers(C, v2d, event->x, event->y);
+	
 #if 0 // XXX - enable this when cursors are working properly
 	if (v2d->keepofs & V2D_LOCKOFS_X)
 		WM_set_cursor(C, BC_NS_SCROLLCURSOR);
@@ -229,8 +233,21 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 		{
 			/* calculate new delta transform, then store mouse-coordinates for next-time */
-			RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
-			RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
+			switch (vpd->in_scroller) {
+				case 'h': /* horizontal scrollbar - so only horizontal scroll (inverse direction) */
+					RNA_int_set(op->ptr, "deltax", (event->x - vpd->lastx));
+					RNA_int_set(op->ptr, "deltay", 0);
+					break;
+				case 'v': /* vertical scrollbar - so only vertical scroll (inverse direction) */
+					RNA_int_set(op->ptr, "deltax", 0);
+					RNA_int_set(op->ptr, "deltay", (event->y - vpd->lasty));
+					break;
+				default:
+					RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
+					RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
+					break;
+			}
+			
 			vpd->lastx= event->x;
 			vpd->lasty= event->y;
 			
@@ -241,6 +258,20 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 			if (event->val==0) {
 				/* calculate overall delta mouse-movement for redo */
+				switch (vpd->in_scroller) {
+					case 'h': /* horizontal scrollbar - so only horizontal scroll (inverse direction) */
+						RNA_int_set(op->ptr, "deltax", (vpd->lastx - vpd->startx));
+						RNA_int_set(op->ptr, "deltay", 0);
+						break;
+					case 'v': /* vertical scrollbar - so only vertical scroll (inverse direction) */
+						RNA_int_set(op->ptr, "deltax", 0);
+						RNA_int_set(op->ptr, "deltay", (vpd->lasty - vpd->starty));
+						break;
+					default:
+						RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+						RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
+						break;
+				}
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
