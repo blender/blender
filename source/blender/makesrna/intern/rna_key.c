@@ -62,9 +62,186 @@ static void *rna_ShapeKey_relative_key_get(PointerRNA *ptr)
 	return NULL;
 }
 
+static float rna_ShapeKeyPoint_co_get(PointerRNA *ptr, int index)
+{
+	float *vec= (float*)ptr->data;
+	return vec[index];
+}
+
+static void rna_ShapeKeyPoint_co_set(PointerRNA *ptr, int index, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[index]= value;
+}
+
+static float rna_ShapeKeyCurvePoint_tilt_get(PointerRNA *ptr)
+{
+	float *vec= (float*)ptr->data;
+	return vec[3];
+}
+
+static void rna_ShapeKeyCurvePoint_tilt_set(PointerRNA *ptr, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[3]= value;
+}
+
+static float rna_ShapeKeyBezierPoint_co_get(PointerRNA *ptr, int index)
+{
+	float *vec= (float*)ptr->data;
+	return vec[index+3];
+}
+
+static void rna_ShapeKeyBezierPoint_co_set(PointerRNA *ptr, int index, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[index+3]= value;
+}
+
+static float rna_ShapeKeyBezierPoint_handle_1_co_get(PointerRNA *ptr, int index)
+{
+	float *vec= (float*)ptr->data;
+	return vec[index];
+}
+
+static void rna_ShapeKeyBezierPoint_handle_1_co_set(PointerRNA *ptr, int index, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[index]= value;
+}
+
+static float rna_ShapeKeyBezierPoint_handle_2_co_get(PointerRNA *ptr, int index)
+{
+	float *vec= (float*)ptr->data;
+	return vec[6+index];
+}
+
+static void rna_ShapeKeyBezierPoint_handle_2_co_set(PointerRNA *ptr, int index, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[6+index]= value;
+}
+
+/*static float rna_ShapeKeyBezierPoint_tilt_get(PointerRNA *ptr)
+{
+	float *vec= (float*)ptr->data;
+	return vec[10];
+}
+
+static void rna_ShapeKeyBezierPoint_tilt_set(PointerRNA *ptr, float value)
+{
+	float *vec= (float*)ptr->data;
+	vec[10]= value;
+}*/
+
+static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Key *key= rna_ShapeKey_find_key(ptr->id.data);
+	KeyBlock *kb= (KeyBlock*)ptr->data;
+	Curve *cu;
+	Nurb *nu;
+	int tot= kb->totelem, size= key->elemsize;
+
+    if(GS(key->from->name) == ID_CU) {
+		cu= (Curve*)key->from;
+		nu= cu->nurb.first;
+
+		if(nu->bezt) {
+			tot /= 3;
+			size *= 3;
+		}
+	}
+
+	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, NULL);
+}
+
+static int rna_ShapeKey_data_length(PointerRNA *ptr)
+{
+	Key *key= rna_ShapeKey_find_key(ptr->id.data);
+	KeyBlock *kb= (KeyBlock*)ptr->data;
+	Curve *cu;
+	Nurb *nu;
+	int tot= kb->totelem;
+
+    if(GS(key->from->name) == ID_CU) {
+		cu= (Curve*)key->from;
+		nu= cu->nurb.first;
+
+		if(nu->bezt)
+			tot /= 3;
+	}
+
+	return tot;
+}
+
+static StructRNA *rna_ShapeKey_data_type(CollectionPropertyIterator *iter)
+{
+	Key *key= rna_ShapeKey_find_key(iter->parent.id.data);
+	Curve *cu;
+	Nurb *nu;
+
+	if(GS(key->from->name) == ID_CU) {
+		cu= (Curve*)key->from;
+		nu= cu->nurb.first;
+
+		if(nu->bezt)
+			return &RNA_ShapeKeyBezierPoint;
+		else
+			return &RNA_ShapeKeyCurvePoint;
+	}
+	else
+		return &RNA_ShapeKeyPoint;
+}
+
 #else
 
-void RNA_def_keyblock(BlenderRNA *brna)
+static void rna_def_keydata(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL, "Shape Key Point");
+
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL, "Shape Key Curve Point");
+
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyCurvePoint_tilt_get", "rna_ShapeKeyCurvePoint_tilt_set", NULL);
+	RNA_def_property_ui_text(prop, "Tilt", "");
+
+	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL, "Shape Key Bezier Point");
+
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_co_get", "rna_ShapeKeyBezierPoint_co_set", NULL);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "handle_1_co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_1_co_get", "rna_ShapeKeyBezierPoint_handle_1_co_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 1 Location", "");
+
+	prop= RNA_def_property(srna, "handle_2_co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_2_co_get", "rna_ShapeKeyBezierPoint_handle_2_co_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 2 Location", "");
+
+	/* appears to be unused currently
+	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_tilt_get", "rna_ShapeKeyBezierPoint_tilt_set", NULL);
+	RNA_def_property_ui_text(prop, "Tilt", "");*/
+}
+
+static void rna_def_keyblock(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -82,14 +259,18 @@ void RNA_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	/* the current value isn't easily editable this way, it's linked to an IPO.
-	prop= RNA_def_property(srna, "current_position", PROP_FLOAT, PROP_NONE);
+	/* keys need to be sorted to edit this */
+	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
-	RNA_def_property_ui_text(prop, "Current Position", "");
+	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys.");
 
-	prop= RNA_def_property(srna, "current_value", PROP_FLOAT, PROP_NONE);
+	/* the current value isn't easily editable this way, it's linked to an IPO.
+	 * these seem to be mostly the values that are being written to, not edited */
+	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
-	RNA_def_property_ui_text(prop, "Current Value", "");*/
+	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -120,15 +301,16 @@ void RNA_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Slider Max", "Maximum for slider.");
 
-	/* KeyBlock.data has to be wrapped still */
+	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "data", "totelem");
+	RNA_def_property_ui_text(prop, "Data", "");
+	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, 0, "rna_ShapeKey_data_type", "rna_ShapeKey_data_length", 0, 0);
 }
 
-void RNA_def_key(BlenderRNA *brna)
+static void rna_def_key(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	RNA_def_keyblock(brna);
 
 	srna= RNA_def_struct(brna, "Key", "ID", "Key");
 
@@ -155,6 +337,13 @@ void RNA_def_key(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "slurph");
 	RNA_def_property_range(prop, -500, 500);
 	RNA_def_property_ui_text(prop, "Slurph", "Creates a delay in amount of frames in applying keypositions, first vertex goes first.");
+}
+
+void RNA_def_key(BlenderRNA *brna)
+{
+	rna_def_key(brna);
+	rna_def_keyblock(brna);
+	rna_def_keydata(brna);
 }
 
 #endif
