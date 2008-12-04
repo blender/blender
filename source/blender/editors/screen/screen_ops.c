@@ -1225,7 +1225,7 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	wmOperator *lastop= C->wm->operators.last;
 	
 	if(lastop) {
-		printf("repeat %s\n", op->type->idname);
+		printf("repeat %s\n", lastop->type->idname);
 		lastop->type->exec(C, lastop);
 	}
 	

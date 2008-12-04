@@ -505,6 +505,18 @@ static ScrArea *area_event_inside(bContext *C, wmEvent *event)
 	return NULL;
 }
 
+static ARegion *region_event_inside(bContext *C, wmEvent *event)
+{
+	ARegion *ar;
+	
+	if(C->screen && C->area)
+		for(ar= C->area->regionbase.first; ar; ar= ar->next)
+			if(BLI_in_rcti(&ar->winrct, event->x, event->y))
+				return ar;
+	return NULL;
+}
+
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
@@ -523,6 +535,7 @@ void wm_event_do_handlers(bContext *C)
 			C->window= win;
 			C->screen= win->screen;
 			C->area= area_event_inside(C, event);
+			C->region= region_event_inside(C, event);
 			
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			wm_window_make_drawable(C, win);
