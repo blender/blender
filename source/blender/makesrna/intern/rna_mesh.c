@@ -958,8 +958,8 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "mr");
 	RNA_def_property_ui_text(prop, "Multires", "");
 
-	/*prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Key", "");*/
+	prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Shape Keys", "");
 
 	rna_def_texmat_common(srna, "rna_Mesh_texspace_editable");
 	rna_def_ipo_common(srna);

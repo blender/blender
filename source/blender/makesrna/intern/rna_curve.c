@@ -54,6 +54,9 @@ void rna_def_curve(BlenderRNA *brna)
 
 	rna_def_ipo_common(srna);
 	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
+
+	prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Shape Keys", "");
 	
 	rna_def_path(brna, srna);
 	rna_def_nurbs(brna, srna);
@@ -102,12 +105,10 @@ void rna_def_curve(BlenderRNA *brna)
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
 	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape.");
 	
 	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
 	
@@ -240,17 +241,14 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "text_on_curve", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "textoncurve");
 	RNA_def_property_ui_text(prop, "Text on Curve", "Curve deforming text object.");
 	
 	prop= RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "VectorFont");
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
 	RNA_def_property_ui_text(prop, "Font", "");
 	
 	prop= RNA_def_property(srna, "textbox", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "TextBox");
 	RNA_def_property_pointer_sdna(prop, NULL, "tb");
 	RNA_def_property_ui_text(prop, "Textbox", "");
 	
@@ -261,7 +259,6 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	*/
 	/*
 	prop= RNA_def_property(srna, "curinfo", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "CharInfo");
 	RNA_def_property_pointer_sdna(prop, NULL, "curinfo");
 	RNA_def_property_ui_text(prop, "curinfo", "");
 	*/

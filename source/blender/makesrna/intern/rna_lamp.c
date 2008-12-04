@@ -161,7 +161,6 @@ void RNA_def_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_struct_type(prop, "CurveMapping");
 	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
 
 	/* Number values */

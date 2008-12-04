@@ -58,7 +58,6 @@ void rna_def_ipodriver(BlenderRNA *brna)
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "ob");
 	RNA_def_property_ui_text(prop, "Driver Object", "Object that controls this Ipo Driver.");
 }
@@ -103,7 +102,6 @@ void rna_def_ipocurve(BlenderRNA *brna)
 	/* Pointers */
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "driver");
-	RNA_def_property_struct_type(prop, "IpoDriver");
 	RNA_def_property_ui_text(prop, "Ipo Driver", "");
 }
 
