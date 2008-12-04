@@ -517,11 +517,7 @@ protected:
 
   bool _record;
 
-#if 1 // FRS_antialiasing
-  float jit[32][2];
 
-  void init_jit(int osa);
-#endif
 
 };
 
