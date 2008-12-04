@@ -77,31 +77,29 @@ typedef struct View2D {
 #define V2D_VIEWLOCK	(1<<0)
 
 /* scrollbar thickness */
-	/* height */
-#define SCROLLH	16
-	/* width */
-#define SCROLLB	16
+#define V2D_SCROLL_HEIGHT	16
+#define V2D_SCROLL_WIDTH	16
 
 /* scrollbar flags for View2D */
 	/* left scrollbar */
-#define L_SCROLL 		(1<<0)		
-#define R_SCROLL 		(1<<1)
-#define VERT_SCROLL 	(L_SCROLL|R_SCROLL)
+#define V2D_SCROLL_LEFT 		(1<<0)		
+#define V2D_SCROLL_RIGHT 		(1<<1)
+#define V2D_SCROLL_VERTICAL 	(V2D_SCROLL_LEFT|V2D_SCROLL_RIGHT)
 	/* horizontal scrollbar */
-#define T_SCROLL 		(1<<2)
-#define B_SCROLL 		(1<<3)
-#define HOR_SCROLL  	(T_SCROLL|B_SCROLL)
+#define V2D_SCROLL_TOP 		(1<<2)
+#define V2D_SCROLL_BOTTOM 		(1<<3)
+#define V2D_SCROLL_HORIZONTAL  	(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
 	/* special hacks for outliner hscroll - prevent hanging older versions of Blender */
-#define B_SCROLLO   	(1<<4)
-#define HOR_SCROLLO 	(T_SCROLL|B_SCROLLO)
+#define V2D_SCROLL_BOTTOM_O   	(1<<4)
+#define V2D_SCROLL_HORIZONTAL_O 	(V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)
 	/* scale markings - vertical */
-#define LGRID_SCROLL	(1<<5)
-#define RGRID_SCROLL	(1<<6)
-#define VERT_SCROLLGRID	(LGRID_SCROLL|RGRID_SCROLL)
+#define V2D_SCROLL_SCALE_LEFT	(1<<5)
+#define V2D_SCROLL_SCALE_RIGHT	(1<<6)
+#define V2D_SCROLL_SCALE_VERTICAL	(V2D_SCROLL_SCALE_LEFT|V2D_SCROLL_SCALE_RIGHT)
 	/* scale markings - horizontal */
-#define BGRID_SCROLL	(1<<7)
-#define TGRID_SCROLL	(1<<8)	
-#define HOR_SCROLLGRID	(BGRID_SCROLL|TGRID_SCROLL)
+#define V2D_SCROLL_SCALE_BOTTOM	(1<<7)
+#define V2D_SCROLL_SCALE_TOP	(1<<8)	
+#define V2D_SCROLL_SCALE_HORIZONTAL	(V2D_SCROLL_SCALE_BOTTOM|V2D_SCROLL_SCALE_TOP)
 
 #endif
 

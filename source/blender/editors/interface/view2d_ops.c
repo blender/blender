@@ -71,10 +71,10 @@ static short mouse_in_v2d_scrollers (const bContext *C, View2D *v2d, int x, int 
 	co[1]= y - ar->winrct.ymin;
 	
 	/* check if within scrollbars */
-	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
 		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 'h';
 	}
-	if (v2d->scroll & VERT_SCROLL) {
+	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
 	}	
 	

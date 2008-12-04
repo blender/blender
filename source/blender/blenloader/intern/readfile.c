@@ -5074,8 +5074,8 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				SpaceOops *soops= sa->spacedata.first;
 				
 				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
-				ar->v2d.scroll &= ~L_SCROLL;
-				ar->v2d.scroll |= R_SCROLL;
+				ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
+				ar->v2d.scroll |= V2D_SCROLL_RIGHT;
 			}
 				break;
 			case SPACE_TIME:
@@ -5083,7 +5083,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				SpaceTime *stime= sa->spacedata.first;
 				memcpy(&ar->v2d, &stime->v2d, sizeof(View2D));
 				
-				ar->v2d.scroll |= (B_SCROLL|BGRID_SCROLL);
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 			}
 				break;

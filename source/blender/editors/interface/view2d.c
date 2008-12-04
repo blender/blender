@@ -66,30 +66,30 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
 	 */
 	if (v2d->scroll) {
 		/* vertical scrollbar */
-		if (v2d->scroll & L_SCROLL) {
+		if (v2d->scroll & V2D_SCROLL_LEFT) {
 			/* on left-hand edge of region */
 			v2d->vert= v2d->mask;
-			v2d->vert.xmax= SCROLLB;
-			v2d->mask.xmin= SCROLLB;
+			v2d->vert.xmax= V2D_SCROLL_WIDTH;
+			v2d->mask.xmin= V2D_SCROLL_WIDTH;
 		}
-		else if (v2d->scroll & R_SCROLL) {
+		else if (v2d->scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
-			v2d->vert.xmin= v2d->vert.xmax-SCROLLB;
+			v2d->vert.xmin= v2d->vert.xmax-V2D_SCROLL_WIDTH;
 			v2d->mask.xmax= v2d->vert.xmin;
 		}
 		
 		/* horizontal scrollbar */
-		if (v2d->scroll & (B_SCROLL|B_SCROLLO)) {
-			/* on bottom edge of region (B_SCROLLO is outliner, the ohter is for standard) */
+		if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
+			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the ohter is for standard) */
 			v2d->hor= v2d->mask;
-			v2d->hor.ymax= SCROLLH;
-			v2d->mask.ymin= SCROLLH;
+			v2d->hor.ymax= V2D_SCROLL_HEIGHT;
+			v2d->mask.ymin= V2D_SCROLL_HEIGHT;
 		}
-		else if (v2d->scroll & T_SCROLL) {
+		else if (v2d->scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
 			v2d->hor= v2d->mask;
-			v2d->hor.ymin= v2d->hor.ymax-SCROLLH;
+			v2d->hor.ymin= v2d->hor.ymax-V2D_SCROLL_HEIGHT;
 			v2d->mask.ymax= v2d->hor.ymin;
 		}
 	}
@@ -107,8 +107,8 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 	float dx, dy, temp, fac, zoom;
 	
 	/* correct winx for scrollbars */
-	if (v2d->scroll & L_SCROLL) winx-= SCROLLB;
-	if (v2d->scroll & (B_SCROLL|B_SCROLLO)) winy-= SCROLLH;
+	if (v2d->scroll & V2D_SCROLL_LEFT) winx-= V2D_SCROLL_WIDTH;
+	if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) winy-= V2D_SCROLL_HEIGHT;
 	
 	/* header completely closed window */
 	if (winy <= 0) return;
@@ -638,7 +638,7 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	 */
 	
 	/* horizontal scrollers */
-	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
 		/* slider 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= hor.xmax - hor.xmin;
@@ -656,7 +656,7 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	}
 	
 	/* vertical scrollers */
-	if (v2d->scroll & VERT_SCROLL) {
+	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 		/* slider 'button' extents */
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= vert.ymax - vert.ymin;
@@ -674,7 +674,7 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	}
 	
 	/* grid markings on scrollbars */
-	if (v2d->scroll & (HOR_SCROLLGRID|VERT_SCROLLGRID)) {
+	if (v2d->scroll & (V2D_SCROLL_SCALE_HORIZONTAL|V2D_SCROLL_SCALE_VERTICAL)) {
 		/* store clamping */
 		scrollers->xclamp= xclamp;
 		scrollers->xunits= xunits;
@@ -682,9 +682,9 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 		scrollers->yunits= yunits;
 		
 		/* calculate grid */
-		if (v2d->scroll & HOR_SCROLLGRID)
+		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)
 			scrollers->grid= UI_view2d_calc_grid(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
-		else if (v2d->scroll & VERT_SCROLLGRID)
+		else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)
 			scrollers->grid= UI_view2d_calc_grid(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 	}
 	
@@ -743,7 +743,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 	hor= v2d->hor;
 	
 	/* horizontal scrollbar */
-	if (v2d->scroll & (HOR_SCROLL|HOR_SCROLLO)) {
+	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
 		/* scroller backdrop */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
@@ -764,7 +764,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* scale indicators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if (v2d->scroll & HOR_SCROLLGRID) {
+		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) {
 			View2DGrid *grid= scrollers->grid;
 			float fac, dfac, fac2, val;
 			
@@ -828,14 +828,14 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (v2d->scroll & (B_SCROLL|B_SCROLLO))
+		if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
 			sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
-		else if (v2d->scroll & T_SCROLL)
+		else if (v2d->scroll & V2D_SCROLL_TOP)
 			sdrawline(hor.xmin, hor.ymin, hor.xmax, hor.ymin);
 	}
 	
 	/* vertical scrollbar */
-	if (v2d->scroll & VERT_SCROLL) {
+	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 		/* scroller backdrop  */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
@@ -856,7 +856,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if (v2d->scroll & VERT_SCROLLGRID) {
+		if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) {
 			View2DGrid *grid= scrollers->grid;
 			float fac, dfac, val;
 			
@@ -867,10 +867,10 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
 			 */
 			fac= (grid->starty- v2d->cur.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
-			fac= (vert.ymin + SCROLLH) + fac*(vert.ymax - vert.ymin - SCROLLH);
+			fac= (vert.ymin + V2D_SCROLL_HEIGHT) + fac*(vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
 			
 			dfac= (grid->dy) / (v2d->cur.ymax - v2d->cur.ymin);
-			dfac= dfac * (vert.ymax - vert.ymin - SCROLLH);
+			dfac= dfac * (vert.ymax - vert.ymin - V2D_SCROLL_HEIGHT);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -889,9 +889,9 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 		
 		/* decoration outer bevel line */
 		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (v2d->scroll & R_SCROLL)
+		if (v2d->scroll & V2D_SCROLL_RIGHT)
 			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
-		else if (v2d->scroll & L_SCROLL)
+		else if (v2d->scroll & V2D_SCROLL_LEFT)
 			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
 	}
 }
