@@ -217,10 +217,9 @@ typedef struct ProjPaintState {
 	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
 	
 	/* projection painting only */
-	MemArena *arena;			/* use for alocating many pixel structs and link-lists */
-	MemArena *arena_mt[BLENDER_MAX_THREADS];		/* Same as above but use for multithreading */
+	MemArena *arena_mt[BLENDER_MAX_THREADS];/* for multithreading, the first item is sometimes used for non threaded cases too */
 	LinkNode **bucketRect;				/* screen sized 2D array, each pixel has a linked list of ProjPixel's */
-	LinkNode **bucketFaces;				/* bucketRect alligned array linkList of faces overlapping each bucket */
+	LinkNode **bucketFaces;				/* bucketRect aligned array linkList of faces overlapping each bucket */
 	unsigned char *bucketFlags;					/* store if the bucks have been initialized  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	char *faceSeamFlags;				/* store info about faces, if they are initialized etc*/
@@ -871,21 +870,30 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 #define ISECT_TRUE_P2 3
 static int line_isect_y(const float p1[2], const float p2[2], const float y_level, float *x_isect)
 {
-	if (y_level==p1[1]) {
+	float y_diff;
+	
+	if (y_level==p1[1]) { /* are we touching the first point? - no interpolation needed */
 		*x_isect = p1[0];
 		return ISECT_TRUE_P1;
 	}
-	if (y_level==p2[1]) {
+	if (y_level==p2[1]) { /* are we touching the second point? - no interpolation needed */
 		*x_isect = p2[0];
 		return ISECT_TRUE_P2;
 	}
 	
+	y_diff= fabs(p1[1]-p2[1]); /* yuck, horizontal line, we cant do much here */
+	
+	if (y_diff < 0.000001) {
+		*x_isect = (p1[0]+p2[0]) * 0.5f;
+		return ISECT_TRUE;		
+	}
+	
 	if (p1[1] > y_level && p2[1] < y_level) {
-		*x_isect = (p2[0]*(p1[1]-y_level) + p1[0]*(y_level-p2[1])) / (p1[1]-p2[1]);
+		*x_isect = (p2[0]*(p1[1]-y_level) + p1[0]*(y_level-p2[1])) / y_diff;  /*(p1[1]-p2[1]);*/
 		return ISECT_TRUE;
 	}
 	else if (p1[1] < y_level && p2[1] > y_level) {
-		*x_isect = (p2[0]*(y_level-p1[1]) + p1[0]*(p2[1]-y_level)) / (p2[1]-p1[1]);
+		*x_isect = (p2[0]*(y_level-p1[1]) + p1[0]*(p2[1]-y_level)) / y_diff;  /*(p2[1]-p1[1]);*/
 		return ISECT_TRUE;
 	}
 	else {
@@ -895,21 +903,30 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 
 static int line_isect_x(const float p1[2], const float p2[2], const float x_level, float *y_isect)
 {
-	if (x_level==p1[0]) {
+	float x_diff;
+	
+	if (x_level==p1[0]) { /* are we touching the first point? - no interpolation needed */
 		*y_isect = p1[1];
 		return ISECT_TRUE_P1;
 	}
-	if (x_level==p2[0]) {
+	if (x_level==p2[0]) { /* are we touching the second point? - no interpolation needed */
 		*y_isect = p2[1];
 		return ISECT_TRUE_P2;
 	}
 	
+	x_diff= fabs(p1[0]-p2[0]); /* yuck, horizontal line, we cant do much here */
+	
+	if (x_diff < 0.000001) { /* yuck, vertical line, we cant do much here */
+		*y_isect = (p1[0]+p2[0]) * 0.5f;
+		return ISECT_TRUE;		
+	}
+	
 	if (p1[0] > x_level && p2[0] < x_level) {
-		*y_isect = (p2[1]*(p1[0]-x_level) + p1[1]*(x_level-p2[0])) / (p1[0]-p2[0]);
+		*y_isect = (p2[1]*(p1[0]-x_level) + p1[1]*(x_level-p2[0])) / x_diff; /*(p1[0]-p2[0]);*/
 		return ISECT_TRUE;
 	}
 	else if (p1[0] < x_level && p2[0] > x_level) {
-		*y_isect = (p2[1]*(x_level-p1[0]) + p1[1]*(p2[0]-x_level)) / (p2[0]-p1[0]);
+		*y_isect = (p2[1]*(x_level-p1[0]) + p1[1]*(p2[0]-x_level)) / x_diff; /*(p2[0]-p1[0]);*/
 		return ISECT_TRUE;
 	}
 	else {
@@ -1811,6 +1828,35 @@ static void project_bucket_clip_face(
 	float uv[2];
 	float bucket_bounds_ss[4][2];
 	float w[3];
+	
+//#if 0
+	rctf bucket_bounds_expand;
+	int use_expanded = 0;
+	bucket_bounds_expand.xmin = bucket_bounds->xmin;
+	bucket_bounds_expand.ymin = bucket_bounds->ymin;
+	bucket_bounds_expand.xmax = bucket_bounds->xmax;
+	bucket_bounds_expand.ymax = bucket_bounds->ymax;
+	
+	if (fabs(v1coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
+	if (fabs(v2coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
+	if (fabs(v3coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
+	
+	if (fabs(v1coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
+	if (fabs(v2coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
+	if (fabs(v3coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
+	
+	if (fabs(v1coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
+	if (fabs(v2coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
+	if (fabs(v3coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
+	
+	if (fabs(v1coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}
+	if (fabs(v2coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}
+	if (fabs(v3coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}	
+
+	if ( use_expanded ) {
+		bucket_bounds = &bucket_bounds_expand;
+	}
+//#endif
 
 	/* get the UV space bounding box */
 	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v1coSS[0], v1coSS[1]);
@@ -1950,7 +1996,7 @@ static void project_bucket_clip_face(
 			isectVAngles[i] = -atan2(vClipSS_A[0]*vClipSS_B[1] - vClipSS_A[1]*vClipSS_B[0], vClipSS_A[0]*vClipSS_B[0]+vClipSS_A[1]*vClipSS_B[1]);
 			if (flip)
 				isectVAngles[i] = -isectVAngles[i];
-		} 
+		}
 #endif	/* end abuse */
 		
 #if 0	/* uses a few more cycles then the above loop */
@@ -2002,8 +2048,9 @@ static void project_bucket_clip_face(
 	{
 		/* If there are ever any problems, */
 		float test_uv[4][2];
-		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv);
-		else				rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv);
+		int i;
+		if (is_ortho)	rect_to_uvspace_ortho(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv, flip);
+		else				rect_to_uvspace_persp(bucket_bounds, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, test_uv, flip);
 		printf("(  [(%f,%f), (%f,%f), (%f,%f), (%f,%f)], ", test_uv[0][0], test_uv[0][1],   test_uv[1][0], test_uv[1][1],    test_uv[2][0], test_uv[2][1],    test_uv[3][0], test_uv[3][1]);
 		
 		printf("  [(%f,%f), (%f,%f), (%f,%f)], ", uv1co[0], uv1co[1],   uv2co[0], uv2co[1],    uv3co[0], uv3co[1]);
@@ -2014,7 +2061,7 @@ static void project_bucket_clip_face(
 		}
 		printf("]),\\\n");
 	}
-	
+}
 	/*
 # This script creates faces in a blender scene from printed data above.
 
@@ -2060,6 +2107,7 @@ def main():
 if __name__ == '__main__':
 	main()
  */	
+	
 #endif
 
 #undef ISECT_1
@@ -2185,7 +2233,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 				uv1co, uv2co, uv3co,
 				uv_clip, &uv_clip_tot
 		);
-
+		
 		
 		/* sometimes this happens, better just allow for 8 intersectiosn even though there should be max 6 */
 		/*
@@ -2241,10 +2289,12 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						}
 						
 					}
+#if 0
 					else if (has_x_isect) {
 						/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
 						break;
 					}
+#endif
 				}
 				
 				
@@ -2618,8 +2668,8 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 	float min[2], max[2], *vCoSS;
 	int bucketMin[2], bucketMax[2]; /* for  ps->bucketRect indexing */
 	int fidx, bucket_x, bucket_y, bucket_index;
-	
 	int has_x_isect = -1, has_isect = 0; /* for early loop exit */
+	MemArena *arena = ps->arena_mt[0]; /* just use the first thread arena since threading has not started yet */
 	
 	INIT_MINMAX2(min, max);
 	
@@ -2641,7 +2691,7 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 				BLI_linklist_prepend_arena(
 					&ps->bucketFaces[ bucket_index ],
 					SET_INT_IN_POINTER(face_index), /* cast to a pointer to shut up the compiler */
-					ps->arena
+					arena
 				);
 				
 				has_x_isect = has_isect = 1;
@@ -2692,15 +2742,8 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	int a, i; /* generic looping vars */
 	int image_index = -1, face_index;
 	
-	/* memory sized to add to arena size */
-	int tot_bucketRectMem=0;
-	int tot_faceSeamFlagsMem=0;
-	int tot_faceSeamUVMem=0;
-	int tot_bucketFacesMem=0;
-	int tot_bucketFlagsMem=0;
-	int tot_vertFacesMem=0;
-	int tot_vertFlagsMem=0;
-
+	MemArena *arena; /* at the moment this is just ps->arena_mt[0], but use this to show were not multithreading */
+	
 	/* ---- end defines ---- */
 	
 	/* paint onto the derived mesh
@@ -2770,10 +2813,6 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */
-	
-	/* since we now run this before the memarena is allocated, this will need its own memory */
-	/*ps->screenCoords = BLI_memarena_alloc(ps->arena, sizeof(float) * ps->dm_totvert * 4);*/
-	
 	INIT_MINMAX2(ps->screenMin, ps->screenMax);
 	
 	ps->screenCoords = MEM_mallocN(sizeof(float) * ps->dm_totvert * 4, "ProjectPaint ScreenVerts");
@@ -2847,56 +2886,16 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	CLAMP(ps->buckets_x, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 	CLAMP(ps->buckets_y, PROJ_BUCKET_RECT_MIN, PROJ_BUCKET_RECT_MAX);
 	
-	tot_bucketRectMem =				sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y;
-	tot_bucketFacesMem =			sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y;
+	ps->bucketRect = (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketRect");
+	ps->bucketFaces= (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
 	
-	tot_bucketFlagsMem =			sizeof(char) * ps->buckets_x * ps->buckets_y;
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-	if (ps->seam_bleed_px > 0.0f) { /* UV Seams for bleeding */
-		tot_vertFacesMem =	sizeof(LinkNode *) * ps->dm_totvert;
-		tot_faceSeamFlagsMem =		sizeof(char) * ps->dm_totface;
-		tot_faceSeamUVMem =			sizeof(float) * ps->dm_totface * 8;
-	}
-#endif
-	
-	if (ps->do_backfacecull && ps->do_mask_normal) {
-		tot_vertFlagsMem = sizeof(char) * ps->dm_totvert;
-	}
-	
-	/* BLI_memarena_new uses calloc */
-	ps->arena =
-		BLI_memarena_new(	tot_bucketRectMem +
-							tot_bucketFacesMem +
-							tot_faceSeamFlagsMem +
-							tot_faceSeamUVMem +
-							tot_vertFacesMem +
-							tot_vertFlagsMem + (1<<16));
-	
-	BLI_memarena_use_calloc(ps->arena);
-	
-	ps->bucketRect = (LinkNode **)BLI_memarena_alloc(ps->arena, tot_bucketRectMem);
-	ps->bucketFaces= (LinkNode **)BLI_memarena_alloc(ps->arena, tot_bucketFacesMem);
-	
-	ps->bucketFlags= (unsigned char *)BLI_memarena_alloc(ps->arena, tot_bucketFlagsMem);
+	ps->bucketFlags= (unsigned char *)MEM_callocN(sizeof(char) * ps->buckets_x * ps->buckets_y, "paint-bucketFaces");
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	if (ps->seam_bleed_px > 0.0f) {
-		ps->vertFaces= (LinkNode **)BLI_memarena_alloc(ps->arena, tot_vertFacesMem);
-		ps->faceSeamFlags = (char *)BLI_memarena_alloc(ps->arena, tot_faceSeamFlagsMem);
-		ps->faceSeamUVs= BLI_memarena_alloc(ps->arena, tot_faceSeamUVMem);
+		ps->vertFaces= (LinkNode **)MEM_callocN(sizeof(LinkNode *) * ps->dm_totvert, "paint-vertFaces");
+		ps->faceSeamFlags = (char *)MEM_callocN(sizeof(char) * ps->dm_totface, "paint-faceSeamFlags");
+		ps->faceSeamUVs= MEM_mallocN(sizeof(float) * ps->dm_totface * 8, "paint-faceSeamUVs");
 	}
-#endif
-	
-	// calloced - memset(ps->bucketRect,		0, tot_bucketRectMem);
-	// calloced -  memset(ps->bucketFaces,		0, tot_bucketFacesMem);
-	// calloced - memset(ps->bucketFlags,	0, tot_bucketFlagsMem);
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-	// calloced - memset(ps->faceSeamFlags,0, tot_faceSeamFlagsMem);
-	
-	// calloced - if (ps->seam_bleed_px > 0.0f) {
-		// calloced - memset(ps->vertFaces,	0, tot_vertFacesMem);
-		/* TODO dosnt need zeroing? */
-		// calloced - memset(ps->faceSeamUVs,	0, tot_faceSeamUVMem);
-	// calloced - }
 #endif
 	
 	/* Thread stuff
@@ -2915,11 +2914,13 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 		ps->arena_mt[a] = BLI_memarena_new(1<<16);
 	}
 	
+	arena = ps->arena_mt[0]; 
+	
 	if (ps->do_backfacecull && ps->do_mask_normal) {
 		MVert *v = ps->dm_mvert;
 		float viewDirPersp[3];
 		
-		ps->vertFlags = BLI_memarena_alloc(ps->arena, tot_vertFlagsMem);
+		ps->vertFlags = MEM_callocN(sizeof(char) * ps->dm_totvert, "paint-vertFlags");
 		
 		for(a=0; a < ps->dm_totvert; a++, v++) {
 			no[0] = (float)(v->no[0] / 32767.0f);
@@ -2965,11 +2966,11 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 		/* add face user if we have bleed enabled, set the UV seam flags later */
 		/* annoying but we need to add all faces even ones we never use elsewhere */
 		if (ps->seam_bleed_px > 0.0f) {
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v1], (void *)face_index, ps->arena);
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v2], (void *)face_index, ps->arena);
-			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v3], (void *)face_index, ps->arena);
+			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v1], (void *)face_index, arena);
+			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v2], (void *)face_index, arena);
+			BLI_linklist_prepend_arena(&ps->vertFaces[mf->v3], (void *)face_index, arena);
 			if (mf->v4) {
-				BLI_linklist_prepend_arena(&ps->vertFaces[ mf->v4 ], (void *)face_index, ps->arena);
+				BLI_linklist_prepend_arena(&ps->vertFaces[ mf->v4 ], (void *)face_index, arena);
 			}
 		}
 #endif
@@ -3069,13 +3070,13 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	}
 	
 	/* build an array of images we use*/
-	projIma = ps->projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena, sizeof(ProjPaintImage) * ps->image_tot);
+	projIma = ps->projImages = (ProjPaintImage *)BLI_memarena_alloc(arena, sizeof(ProjPaintImage) * ps->image_tot);
 	
 	for (node= image_LinkList, i=0; node; node= node->next, i++, projIma++) {
 		projIma->ima = node->link;
 		// calloced - projIma->touch = 0;
 		projIma->ibuf = BKE_image_get_ibuf(projIma->ima, NULL);
-		projIma->partRedrawRect =  BLI_memarena_alloc(ps->arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+		projIma->partRedrawRect =  BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		// calloced - memset(projIma->partRedrawRect, 0, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 	}
 	
@@ -3093,6 +3094,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ImBuf *tmpibuf = NULL, *tmpibuf_float = NULL;
 		LinkNode *pixel_node;
 		UndoTile *tile;
+		MemArena *arena = ps->arena_mt[0]; /* threaded arena re-used for non threaded case */
 				
 		int bucket_tot = (ps->buckets_x * ps->buckets_y); /* we could get an X/Y but easier to loop through all possible buckets */
 		int bucket_index; 
@@ -3107,8 +3109,9 @@ static void project_paint_end(ProjPaintState *ps)
 		int last_tile_width;
 		
 		for(a=0, last_projIma=ps->projImages; a < ps->image_tot; a++, last_projIma++) {
-			last_projIma = &(ps->projImages[a]);
-			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(ps->arena, sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y)); 
+			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
+			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(arena, size);
+			memset(last_projIma->undoRect, 0, size);
 		}
 		
 		for (bucket_index = 0; bucket_index < bucket_tot; bucket_index++) {
@@ -3172,8 +3175,18 @@ static void project_paint_end(ProjPaintState *ps)
 	/* done calculating undo data */
 	
 	MEM_freeN(ps->screenCoords);
+	MEM_freeN(ps->bucketRect);
+	MEM_freeN(ps->bucketFaces);
+	MEM_freeN(ps->bucketFlags);
 	
-	BLI_memarena_free(ps->arena);
+	if (ps->seam_bleed_px > 0.0f) {
+		MEM_freeN(ps->vertFaces);
+		MEM_freeN(ps->faceSeamFlags);
+		MEM_freeN(ps->faceSeamUVs);
+	}
+	
+	if (ps->vertFlags) MEM_freeN(ps->vertFlags);
+	
 	
 	for (a=0; a<ps->thread_tot; a++) {
 		BLI_memarena_free(ps->arena_mt[a]);
@@ -3990,6 +4003,7 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
+	MemArena *arena = ps->arena_mt[0]; /* reuse the first threads memarena for non threaded case */
 	int touch_any = 0;	
 	
 	ProjectHandle handles[BLENDER_MAX_THREADS];
@@ -4016,13 +4030,13 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 		/* thread spesific */
 		handles[a].thread_index = a;
 		
-		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena, ps->image_tot * sizeof(ProjPaintImage));
+		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(arena, ps->image_tot * sizeof(ProjPaintImage));
 		
 		memcpy(handles[a].projImages, ps->projImages, ps->image_tot * sizeof(ProjPaintImage));
 		
 		/* image bounds */
 		for (i=0; i< ps->image_tot; i++) {
-			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
 		}
 
