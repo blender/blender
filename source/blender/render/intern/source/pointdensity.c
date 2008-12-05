@@ -405,14 +405,15 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	if (pd->flag & TEX_PD_TURBULENCE) {
 	
 		if (pd->noise_influence == TEX_PD_NOISE_AGE) {
-			turb = BLI_turbulence(pd->noise_size, texvec[0]+age, texvec[1]+age, texvec[2]+age, pd->noise_depth);
+			turb = BLI_gTurbulence(pd->noise_size, texvec[0]+age, texvec[1]+age, texvec[2]+age, pd->noise_depth, 0, pd->noise_basis);
 		}
 		else if (pd->noise_influence == TEX_PD_NOISE_TIME) {
 			time = R.cfra / (float)R.r.efra;
-			turb = BLI_turbulence(pd->noise_size, texvec[0]+time, texvec[1]+time, texvec[2]+time, pd->noise_depth);
+			turb = BLI_gTurbulence(pd->noise_size, texvec[0]+time, texvec[1]+time, texvec[2]+time, pd->noise_depth, 0, pd->noise_basis);
+			//turb = BLI_turbulence(pd->noise_size, texvec[0]+time, texvec[1]+time, texvec[2]+time, pd->noise_depth);
 		}
 		else {
-			turb = BLI_turbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth);
+			turb = BLI_gTurbulence(pd->noise_size, texvec[0]+vec[0], texvec[1]+vec[1], texvec[2]+vec[2], pd->noise_depth, 0, pd->noise_basis);
 		}
 
 		turb -= 0.5f;	/* re-center 0.0-1.0 range around 0 to prevent offsetting result */

@@ -994,6 +994,11 @@ static void texture_panel_pointdensity_modify(Tex *tex)
 		
 		yco = ymid - BUTH - YSPACE;
 
+		uiDefBut(block, LABEL, B_NOP, "Noise Basis:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, noisebasis_menu(),
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &(pd->noise_basis), 0.0, 0.0, 0, 0, "Noise formula used for tubulence");
+		
 		uiDefBut(block, LABEL, B_NOP, "Noise Influence:",
 			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 			

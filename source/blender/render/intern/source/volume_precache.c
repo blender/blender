@@ -325,6 +325,135 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 
 }
 
+#if 0
+void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
+{
+	int x, y, z;
+
+	float co[3], voxel[3], scatter_col[3];
+	ShadeInput shi;
+	float view[3] = {0.0,0.0,-1.0};
+	float density;
+	float stepsize;
+	
+	float resf, res_3f;
+	int res_2, res_3;
+	
+	int edgeparts=2;
+	int totparts;
+	
+	float i = 1.0f;
+	double time, lasttime= PIL_check_seconds_timer();
+	const int res = ma->vol_precache_resolution;
+	RayTree *tree;
+	
+	R = *re;
+
+	/* create a raytree with just the faces of the instanced ObjectRen, 
+	 * used for checking if the cached point is inside or outside. */
+	tree = create_raytree_obi(obi, bbmin, bbmax);
+	if (!tree) return;
+
+	/* Need a shadeinput to calculate scattering */
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	shi.depth= 1;
+	shi.mask= 1;
+	shi.mat = ma;
+	shi.vlr = NULL;
+	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi.har= shi.mat->har;
+	shi.obi= obi;
+	shi.obr= obi->obr;
+	shi.lay = re->scene->lay;
+	VECCOPY(shi.view, view);
+	
+	stepsize = vol_get_stepsize(&shi, STEPSIZE_VIEW);
+
+	resf = (float)res;
+	res_2 = res*res;
+	res_3 = res*res*res;
+	res_3f = (float)res_3;
+	
+	VecSubf(voxel, bbmax, bbmin);
+	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
+		return;
+	VecMulf(voxel, 1.0f/res);
+	
+	
+	part[0] = parceil(res/(float)xparts); 
+	part[1] = ceil(rex/(float)yparts);
+	part[2] = ceil(rex/(float)zparts);
+	
+	
+	
+	//obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
+	
+	/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
+	 *
+	 * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
+	 * I'm guessing the memory alignment may work out better this way for the purposes
+	 * of doing linear interpolation, but I haven't actually tested this theory! :)
+	 */
+	 /*
+	for (x=0; x < res; x++) {
+		co[0] = bbmin[0] + (voxel[0] * x);
+		
+		for (y=0; y < res; y++) {
+			co[1] = bbmin[1] + (voxel[1] * y);
+			
+			for (z=0; z < res; z++) {
+				co[2] = bbmin[2] + (voxel[2] * z);
+			
+				time= PIL_check_seconds_timer();
+				i++;
+			
+				// display progress every second
+				if(re->test_break()) {
+					if(tree) {
+						RE_ray_tree_free(tree);
+						tree= NULL;
+					}
+					return;
+				}
+				if(time-lasttime>1.0f) {
+					char str[64];
+					sprintf(str, "Precaching volume: %d%%", (int)(100.0f * (i / res_3f)));
+					re->i.infostr= str;
+					re->stats_draw(&re->i);
+					re->i.infostr= NULL;
+					lasttime= time;
+				}
+				
+				// don't bother if the point is not inside the volume mesh
+				
+				if (!point_inside_obi(tree, obi, co)) {
+					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
+					continue;
+				}
+				density = vol_get_density(&shi, co);
+				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
+			
+				obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = scatter_col[0];
+				obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = scatter_col[1];
+				obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = scatter_col[2];
+				
+			}
+		}
+	}
+	*/
+
+	if(tree) {
+		RE_ray_tree_free(tree);
+		tree= NULL;
+	}
+	
+	lightcache_filter(obi->volume_precache, res);
+
+}
+#endif
+
 /* loop through all objects (and their associated materials)
  * marked for pre-caching in convertblender.c, and pre-cache them */
 void volume_precache(Render *re)
