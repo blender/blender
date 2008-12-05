@@ -919,7 +919,10 @@ static void freestyle_enhance_add(RenderPart *pa, RenderLayer *rl)
     for( y = pa->disprect.ymin; y < pa->disprect.ymax; y++) {
         for( x = pa->disprect.xmin; x < pa->disprect.xmax; x++, od++) {
             int sample;
-           
+           	
+			if( x < 0 || y < 0 || x > R.rectx - 1 || y > R.recty - 1 )
+				continue;
+				
             freestyle = freestyle_rl->rectf + 4 * (R.rectx * y + x);
             if( freestyle[3] > 0.0) {
                 for( sample = 0; sample < totsample; sample++) {
