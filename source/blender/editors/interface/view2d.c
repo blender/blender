@@ -52,9 +52,12 @@
 /* *********************************************************************** */
 /* Refresh and Validation */
 
-/* Adjust mask size in response to view size changes */
+/* Adjust mask size in response to view size changes 
+ *	- When drawing a region, this should be called before 
+ *	  any other drawing using View2D happens.
+ */
 // XXX pre2.5 -> this used to be called  calc_scrollrcts()
-void UI_view2d_update_size(View2D *v2d, int winx, int winy)
+void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 {
 	/* mask - view frame */
 	v2d->mask.xmin= v2d->mask.ymin= 0;
@@ -99,8 +102,8 @@ void UI_view2d_update_size(View2D *v2d, int winx, int winy)
  *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-// XXX FIXME - still need to go through this and figure out what it all parts of it do
-void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
+// XXX FIXME - this is an old mess function... let's rewrite!
+void UI_view2d_status_enforce(View2D *v2d, int winx, int winy)
 {
 	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
 	rctf *cur, *tot;
@@ -115,7 +118,7 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 	
 	/* get pointers */
 	cur= &v2d->cur;
-	tot= &v2d->tot;
+	tot= &v2d->cur;
 	
 	/* dx, dy are width and height of v2d->cur, respectively */
 	dx= cur->xmax - cur->xmin;
@@ -216,14 +219,14 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 		}
 		
 		if (do_x) {
-			if ((v2d->keeptot == 2) && (winx < v2d->oldwinx)) {
+			if ((v2d->keeptot == 2) && (winx != v2d->oldwinx)) {
 				/* This is a special hack for the outliner, to ensure that the 
-				 * outliner contents will not eventually get pushed out of view
-				 * when shrinking the view. 
+				 * outliner contents will stay in their relative place in the view 
+				 * when the view is resized
 				 */
 				cur->xmax -= cur->xmin;
 				cur->xmin= 0.0f;
-			}
+			} 
 			else {
 				/* portrait window: correct for x */
 				dx= cur->ymax - cur->ymin;
@@ -326,6 +329,105 @@ void UI_view2d_enforce_status(View2D *v2d, int winx, int winy)
 	}
 }
 
+/* ------------------ */
+
+/* Change the size of the maximum viewable area (i.e. 'tot' rect) 
+ *	- Currently, caller will need to call UI_status_enforce() after this, 
+ *	  with the region width+height to make sure that 'cur' rect is still valid
+ */
+void UI_view2d_totRect_set(View2D *v2d, int width, int height)
+{
+	/* don't do anything if either value is 0 */
+	if (ELEM3(0, v2d, width, height))
+		return;
+		
+	/* handle width - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+		/* width is in negative-x half */
+		v2d->cur.xmin= (float)-width;
+		v2d->cur.xmax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+		/* width is in positive-x half */
+		v2d->cur.xmin= 0.0f;
+		v2d->cur.xmax= (float)width;
+	}
+	else {
+		/* width is centered around x==0 */
+		const float dx= (float)width / 2.0f;
+		
+		v2d->cur.xmin= -dx;
+		v2d->cur.xmax= dx;
+	}
+	
+	/* handle height - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+		/* height is in negative-y half */
+		v2d->cur.ymin= (float)-height;
+		v2d->cur.ymax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+		/* height is in positive-y half */
+		v2d->cur.ymin= 0.0f;
+		v2d->cur.ymax= (float)height;
+	}
+	else {
+		/* height is centered around y==0 */
+		const float dy= (float)height / 2.0f;
+		
+		v2d->cur.ymin= -dy;
+		v2d->cur.ymax= dy;
+	}
+}
+
+/* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) */
+void UI_view2d_curRect_reset (View2D *v2d)
+{
+	float width, height;
+	
+	/* assume width and height of 'cur' rect by default, should be same size as mask */
+	width= (float)(v2d->mask.xmax - v2d->mask.xmin + 1);
+	height= (float)(v2d->mask.ymax - v2d->mask.ymin + 1);
+	
+	/* handle width - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+		/* width is in negative-x half */
+		v2d->cur.xmin= (float)-width;
+		v2d->cur.xmax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+		/* width is in positive-x half */
+		v2d->cur.xmin= 0.0f;
+		v2d->cur.xmax= (float)width;
+	}
+	else {
+		/* width is centered around x==0 */
+		const float dx= (float)width / 2.0f;
+		
+		v2d->cur.xmin= -dx;
+		v2d->cur.xmax= dx;
+	}
+	
+	/* handle height - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+		/* height is in negative-y half */
+		v2d->cur.ymin= (float)-height;
+		v2d->cur.ymax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+		/* height is in positive-y half */
+		v2d->cur.ymin= 0.0f;
+		v2d->cur.ymax= (float)height;
+	}
+	else {
+		/* height is centered around y==0 */
+		const float dy= (float)height / 2.0f;
+		
+		v2d->cur.ymin= -dy;
+		v2d->cur.ymax= dy;
+	}
+}
+
 /* *********************************************************************** */
 /* View Matrix Setup */
 
@@ -345,7 +447,7 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
  *
  *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
-void UI_view2d_view_orthospecial(const bContext *C, View2D *v2d, short xaxis)
+void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 {
 	ARegion *region= C->region;
 	int winx, winy;
@@ -640,14 +742,14 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	/* horizontal scrollers */
 	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
 		/* slider 'button' extents */
-		totsize= v2d->tot.xmax - v2d->tot.xmin;
+		totsize= v2d->cur.xmax - v2d->cur.xmin;
 		scrollsize= hor.xmax - hor.xmin;
 		
-		fac= (v2d->cur.xmin- v2d->tot.xmin) / totsize;
+		fac= (v2d->cur.xmin- v2d->cur.xmin) / totsize;
 		//if (fac < 0.0f) fac= 0.0f;
 		scrollers->hor_min= hor.xmin + (fac * scrollsize);
 		
-		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
+		fac= (v2d->cur.xmax - v2d->cur.xmin) / totsize;
 		//if (fac > 1.0f) fac= 1.0f;
 		scrollers->hor_max= hor.xmin + (fac * scrollsize);
 		
@@ -658,14 +760,14 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	/* vertical scrollers */
 	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 		/* slider 'button' extents */
-		totsize= v2d->tot.ymax - v2d->tot.ymin;
+		totsize= v2d->cur.ymax - v2d->cur.ymin;
 		scrollsize= vert.ymax - vert.ymin;
 		
-		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
+		fac= (v2d->cur.ymin- v2d->cur.ymin) / totsize;
 		//if (fac < 0.0f) fac= 0.0f;
 		scrollers->vert_min= vert.ymin + (fac * scrollsize);
 		
-		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
+		fac= (v2d->cur.ymax - v2d->cur.ymin) / totsize;
 		//if (fac > 1.0f) fac= 1.0f;
 		scrollers->vert_max= vert.ymin + (fac * scrollsize);
 		
@@ -752,13 +854,13 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 			// FIXME: implement fancy one... but only when we get this working first!
 		{
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			glRecti(scrollers->hor_min,  hor.ymin,  scrollers->hor_max,  hor.ymax);
+			glRecti(scrollers->hor_min,  hor.ymin+2,  scrollers->hor_max,  hor.ymax-2);
 			
 				/* draw lines on either end of 'box' */
 			glLineWidth(2.0);
 				UI_ThemeColorShade(TH_SHADE1, darker);
-				sdrawline(scrollers->hor_min, hor.ymin, scrollers->hor_min, hor.ymax);
-				sdrawline(scrollers->hor_max, hor.ymin, scrollers->hor_max, hor.ymax);
+				sdrawline(scrollers->hor_min, hor.ymin+2, scrollers->hor_min, hor.ymax-2);
+				sdrawline(scrollers->hor_max, hor.ymin+2, scrollers->hor_max, hor.ymax-2);
 			glLineWidth(1.0);
 		}
 		
@@ -844,13 +946,13 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 			// FIXME: implement fancy one... but only when we get this working first!
 		{
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			glRecti(vert.xmin,  scrollers->vert_min,  vert.xmax,  scrollers->vert_max);
+			glRecti(vert.xmin+2,  scrollers->vert_min,  vert.xmax-2,  scrollers->vert_max);
 			
 				/* draw lines on either end of 'box' */
 			glLineWidth(2.0);
 				UI_ThemeColorShade(TH_SHADE1, darker);
-				sdrawline(vert.xmin, scrollers->vert_min, vert.xmax, scrollers->vert_min);
-				sdrawline(vert.xmin, scrollers->vert_max, vert.xmax, scrollers->vert_max);
+				sdrawline(vert.xmin+2, scrollers->vert_min, vert.xmax-2, scrollers->vert_min);
+				sdrawline(vert.xmin+2, scrollers->vert_max, vert.xmax-2, scrollers->vert_max);
 			glLineWidth(1.0);
 		}
 		

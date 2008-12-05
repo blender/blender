@@ -346,12 +346,11 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	// XXX width should be depend on max length of items (like height)...
+	
 	awidth= width= ar->winrct.xmax - ar->winrct.xmin + 1;
 	aheight= height= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
-	UI_view2d_update_size(v2d, awidth, aheight);
+	UI_view2d_size_update(v2d, awidth, aheight);
 	
 	/* create table */
 	cell.space= soutliner;
@@ -397,11 +396,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	width= (cols + 1) * COLUMN_WIDTH;
 	
 	/* need to validate view2d after updating size of tot */
-	v2d->tot.xmin= 0;
-	v2d->tot.xmax= width;
-	v2d->tot.ymax= 0;
-	v2d->tot.ymin= -height;
-	UI_view2d_enforce_status(v2d, awidth, aheight);
+	UI_view2d_totRect_set(v2d, width, height);
+	UI_view2d_status_enforce(v2d, awidth, aheight);
 	
 	rct.xmin= 0;
 	rct.ymin= -height;

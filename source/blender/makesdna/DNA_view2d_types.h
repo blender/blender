@@ -50,56 +50,66 @@ typedef struct View2D {
 	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
 	
 	short flag;						/* settings */
+	short align;					/* alignment of content in totrect */
 	
 	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_enforce_status(), for keepaspect */
 	
-	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
 	short around;					/* pivot point for transforms (rotate and scale) */
-	char pad[6];
+	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
+	char pad[4];
 } View2D;
 
 /* ---------------------------------- */
 
-/* v2d->keepzoom */
-#define V2D_KEEPZOOM	0x0001	
-#define V2D_LOCKZOOM_X	0x0100
-#define V2D_LOCKZOOM_Y	0x0200
+/* view zooming restrictions, per axis (v2d->keepzoom) */
+#define V2D_LOCKZOOM_X		0x0100
+#define V2D_LOCKZOOM_Y		0x0200
 
-/* v2d->keepofs */
+/* view panning restrictions, per axis (v2d->keepofs) */
 #define V2D_LOCKOFS_X	(1<<1)
 #define V2D_LOCKOFS_Y	(1<<2)
 
-/* event codes for locking function */
-#define V2D_LOCK_COPY		1
-#define V2D_LOCK_REDRAW		2
-
-/* v2d->flag */
-#define V2D_VIEWLOCK	(1<<0)
+/* general refresh settings (v2d->flag) */
+	/* global view2d horizontal locking (for showing same time interval) */
+#define V2D_VIEWSYNC_X		(1<<0)
+	/* within region view2d vertical locking */
+#define V2D_VIEWSYNC_Y		(1<<1)
 
 /* scrollbar thickness */
 #define V2D_SCROLL_HEIGHT	16
 #define V2D_SCROLL_WIDTH	16
 
-/* scrollbar flags for View2D */
+/* scrollbar flags for View2D (v2d->scroll) */
 	/* left scrollbar */
-#define V2D_SCROLL_LEFT 		(1<<0)		
-#define V2D_SCROLL_RIGHT 		(1<<1)
-#define V2D_SCROLL_VERTICAL 	(V2D_SCROLL_LEFT|V2D_SCROLL_RIGHT)
+#define V2D_SCROLL_LEFT 			(1<<0)		
+#define V2D_SCROLL_RIGHT 			(1<<1)
+#define V2D_SCROLL_VERTICAL 		(V2D_SCROLL_LEFT|V2D_SCROLL_RIGHT)
 	/* horizontal scrollbar */
-#define V2D_SCROLL_TOP 		(1<<2)
-#define V2D_SCROLL_BOTTOM 		(1<<3)
-#define V2D_SCROLL_HORIZONTAL  	(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
+#define V2D_SCROLL_TOP 				(1<<2)
+#define V2D_SCROLL_BOTTOM 			(1<<3)
+#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
 	/* special hacks for outliner hscroll - prevent hanging older versions of Blender */
-#define V2D_SCROLL_BOTTOM_O   	(1<<4)
-#define V2D_SCROLL_HORIZONTAL_O 	(V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)
+#define V2D_SCROLL_BOTTOM_O   		(1<<4)
+#define V2D_SCROLL_HORIZONTAL_O 	(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM_O)
 	/* scale markings - vertical */
-#define V2D_SCROLL_SCALE_LEFT	(1<<5)
-#define V2D_SCROLL_SCALE_RIGHT	(1<<6)
+#define V2D_SCROLL_SCALE_LEFT		(1<<5)
+#define V2D_SCROLL_SCALE_RIGHT		(1<<6)
 #define V2D_SCROLL_SCALE_VERTICAL	(V2D_SCROLL_SCALE_LEFT|V2D_SCROLL_SCALE_RIGHT)
 	/* scale markings - horizontal */
-#define V2D_SCROLL_SCALE_BOTTOM	(1<<7)
-#define V2D_SCROLL_SCALE_TOP	(1<<8)	
+#define V2D_SCROLL_SCALE_BOTTOM		(1<<7)
+#define V2D_SCROLL_SCALE_TOP		(1<<8)	
 #define V2D_SCROLL_SCALE_HORIZONTAL	(V2D_SCROLL_SCALE_BOTTOM|V2D_SCROLL_SCALE_TOP)
+
+/* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
+	/* all quadrants free */
+#define V2D_ALIGN_FREE					0
+	/* horizontal restrictions */
+#define V2D_ALIGN_NO_POS_X		(1<<0)
+#define V2D_ALIGN_NO_NEG_X		(1<<1)
+	/* vertical restrictions */
+#define V2D_ALIGN_NO_POS_Y		(1<<2)
+#define V2D_ALIGN_NO_NEG_Y		(1<<3)
+
 
 #endif
 

@@ -5076,6 +5076,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
 				ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
 				ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 			}
 				break;
 			case SPACE_TIME:
@@ -5084,6 +5085,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				memcpy(&ar->v2d, &stime->v2d, sizeof(View2D));
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 			}
 				break;

@@ -124,7 +124,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
-	UI_view2d_update_size(v2d, winx, winy);
+	UI_view2d_size_update(v2d, winx, winy);
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -146,7 +146,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	time_draw_cfra_time(C, stime, ar);
 	
 	/* markers */
-	UI_view2d_view_orthospecial(C, v2d, 1);
+	UI_view2d_view_orthoSpecial(C, v2d, 1);
 	draw_markers_time(C, 0);
 	
 	/* reset view matrix */
