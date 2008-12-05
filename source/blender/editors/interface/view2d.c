@@ -118,7 +118,7 @@ void UI_view2d_status_enforce(View2D *v2d, int winx, int winy)
 	
 	/* get pointers */
 	cur= &v2d->cur;
-	tot= &v2d->cur;
+	tot= &v2d->tot;
 	
 	/* dx, dy are width and height of v2d->cur, respectively */
 	dx= cur->xmax - cur->xmin;
@@ -344,39 +344,39 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 	/* handle width - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
 		/* width is in negative-x half */
-		v2d->cur.xmin= (float)-width;
-		v2d->cur.xmax= 0.0f;
+		v2d->tot.xmin= (float)-width;
+		v2d->tot.xmax= 0.0f;
 	}
 	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
 		/* width is in positive-x half */
-		v2d->cur.xmin= 0.0f;
-		v2d->cur.xmax= (float)width;
+		v2d->tot.xmin= 0.0f;
+		v2d->tot.xmax= (float)width;
 	}
 	else {
 		/* width is centered around x==0 */
 		const float dx= (float)width / 2.0f;
 		
-		v2d->cur.xmin= -dx;
-		v2d->cur.xmax= dx;
+		v2d->tot.xmin= -dx;
+		v2d->tot.xmax= dx;
 	}
 	
 	/* handle height - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
 		/* height is in negative-y half */
-		v2d->cur.ymin= (float)-height;
-		v2d->cur.ymax= 0.0f;
+		v2d->tot.ymin= (float)-height;
+		v2d->tot.ymax= 0.0f;
 	}
 	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
 		/* height is in positive-y half */
-		v2d->cur.ymin= 0.0f;
-		v2d->cur.ymax= (float)height;
+		v2d->tot.ymin= 0.0f;
+		v2d->tot.ymax= (float)height;
 	}
 	else {
 		/* height is centered around y==0 */
 		const float dy= (float)height / 2.0f;
 		
-		v2d->cur.ymin= -dy;
-		v2d->cur.ymax= dy;
+		v2d->tot.ymin= -dy;
+		v2d->tot.ymax= dy;
 	}
 }
 
@@ -742,14 +742,14 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	/* horizontal scrollers */
 	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
 		/* slider 'button' extents */
-		totsize= v2d->cur.xmax - v2d->cur.xmin;
+		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= hor.xmax - hor.xmin;
 		
-		fac= (v2d->cur.xmin- v2d->cur.xmin) / totsize;
+		fac= (v2d->cur.xmin- v2d->tot.xmin) / totsize;
 		//if (fac < 0.0f) fac= 0.0f;
 		scrollers->hor_min= hor.xmin + (fac * scrollsize);
 		
-		fac= (v2d->cur.xmax - v2d->cur.xmin) / totsize;
+		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
 		//if (fac > 1.0f) fac= 1.0f;
 		scrollers->hor_max= hor.xmin + (fac * scrollsize);
 		
@@ -760,14 +760,14 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	/* vertical scrollers */
 	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 		/* slider 'button' extents */
-		totsize= v2d->cur.ymax - v2d->cur.ymin;
+		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= vert.ymax - vert.ymin;
 		
-		fac= (v2d->cur.ymin- v2d->cur.ymin) / totsize;
+		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
 		//if (fac < 0.0f) fac= 0.0f;
 		scrollers->vert_min= vert.ymin + (fac * scrollsize);
 		
-		fac= (v2d->cur.ymax - v2d->cur.ymin) / totsize;
+		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
 		//if (fac > 1.0f) fac= 1.0f;
 		scrollers->vert_max= vert.ymin + (fac * scrollsize);
 		

@@ -393,7 +393,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 
 	if ((rows*ROW_HEIGHT) > height)
 		height= rows * ROW_HEIGHT;
-	width= (cols + 1) * COLUMN_WIDTH;
+	width= cols * COLUMN_WIDTH;
 	
 	/* need to validate view2d after updating size of tot */
 	UI_view2d_totRect_set(v2d, width, height);
