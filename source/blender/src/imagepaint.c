@@ -159,7 +159,7 @@ typedef struct ImagePaintPartialRedraw {
 
 //#define PROJ_DEBUG_PAINT 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
-//#define PROJ_DEBUG_PRINT_CLIP 1
+#define PROJ_DEBUG_PRINT_CLIP 1
 #define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
@@ -183,6 +183,9 @@ typedef struct ImagePaintPartialRedraw {
 #define PROJ_BUCKET_NULL		0
 #define PROJ_BUCKET_INIT		1<<0
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
+
+/* used for testing doubles, if a point is on a line etc */
+#define PROJ_GEOM_TOLERANCE 0.00001f
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
@@ -885,7 +888,7 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 	
 	y_diff= fabs(p1[1]-p2[1]); /* yuck, horizontal line, we cant do much here */
 	
-	if (y_diff < 0.000001) {
+	if (y_diff < 0.000001f) {
 		*x_isect = (p1[0]+p2[0]) * 0.5f;
 		return ISECT_TRUE;		
 	}
@@ -1239,6 +1242,7 @@ static float lambda_cp_line2(const float p[2], const float l1[2], const float l2
 	return(Inp2f(u, h)/Inp2f(u, u));
 }
 
+
 /* Converts a UV location to a 3D screenspace location
  * Takes a 'uv' and 3 UV coords, and sets the values of pixelScreenCo
  * 
@@ -1527,91 +1531,155 @@ static ProjPixel *project_paint_uvpixel_init(
 }
 
 static int line_clip_rect2f(
-		const rctf *rect,
+		rctf *rect,
 		const float l1[2], const float l2[2],
 		float l1_clip[2], float l2_clip[2])
 {
-	float isect;
-	short ok1 = 0;
-	short ok2 = 0;
-	
-	/* are either of the points inside the rectangle ? */
-	if (	l1[1] >= rect->ymin &&	l1[1] <= rect->ymax &&
-			l1[0] >= rect->xmin &&		l1[0] <= rect->xmax
-	) {
+	/* first account for horizontal, then vertical lines */
+	/* horiz */
+	if (fabs(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) {
+		/* is the line out of range on its Y axis? */
+		if (l1[1] < rect->ymin || l1[1] > rect->ymax) {
+			return 0;
+		}
+		/* line is out of range on its X axis */
+		if ((l1[0] < rect->xmin && l2[0] < rect->xmin) || (l1[0] > rect->xmax && l2[0] > rect->xmax)) {
+			return 0;
+		}
+		
+		
+		if (fabs(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+				VECCOPY2D(l1_clip, l1);
+				VECCOPY2D(l2_clip, l2);
+				return 1;
+			}
+			else {
+				return 0;
+			}
+		}
+		
 		VECCOPY2D(l1_clip, l1);
-		ok1 = 1;
-	}
-	
-	if (	l2[1] >= rect->ymin &&	l2[1] <= rect->ymax &&
-			l2[0] >= rect->xmin &&		l2[0] <= rect->xmax
-	) {
 		VECCOPY2D(l2_clip, l2);
-		ok2 = 1;
-	}
-	
-	/* line inside rect */
-	if (ok1 && ok2) {
+		CLAMP(l1_clip[0], rect->xmin, rect->xmax);
+		CLAMP(l2_clip[0], rect->xmin, rect->xmax);
 		return 1;
 	}
-	
-	/* top/bottom */
-	if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
-		if (l1[1] < l2[1]) { /* line 1 is outside */
-			l1_clip[0] = isect;
-			l1_clip[1] = rect->ymin;
-			ok1 = 1;
+	else if (fabs(l1[0]-l2[0]) < PROJ_GEOM_TOLERANCE) {
+		/* is the line out of range on its X axis? */
+		if (l1[0] < rect->xmin || l1[0] > rect->xmax) {
+			return 0;
 		}
-		else {
-			l2_clip[0] = isect;
-			l2_clip[1] = rect->ymin;
-			ok2 = 2;
+		
+		/* line is out of range on its Y axis */
+		if ((l1[1] < rect->ymin && l2[1] < rect->ymin) || (l1[1] > rect->ymax && l2[1] > rect->ymax)) {
+			return 0;
 		}
-	}
-	if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
-		if (l1[1] > l2[1]) { /* line 1 is outside */
-			l1_clip[0] = isect;
-			l1_clip[1] = rect->ymax;
-			ok1 = 1;
+		
+		if (fabs(l1[1]-l2[1]) < PROJ_GEOM_TOLERANCE) { /* this is a single point  (or close to)*/
+			if (BLI_in_rctf(rect, l1[0], l1[1])) {
+				VECCOPY2D(l1_clip, l1);
+				VECCOPY2D(l2_clip, l2);
+				return 1;
+			}
+			else {
+				return 0;
+			}
 		}
-		else {
-			l2_clip[0] = isect;
-			l2_clip[1] = rect->ymax;
-			ok2 = 2;
-		}
-	}
-	
-	/* left/right */
-	if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
-		if (l1[0] < l2[0]) { /* line 1 is outside */
-			l1_clip[0] = rect->xmin;
-			l1_clip[1] = isect;
-			ok1 = 1;
-		}
-		else {
-			l2_clip[0] = rect->xmin;
-			l2_clip[1] = isect;
-			ok2 = 2;
-		}
-	}
-	if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
-		if (l1[0] > l2[0]) { /* line 1 is outside */
-			l1_clip[0] = rect->xmax;
-			l1_clip[1] = isect;
-			ok1 = 1;
-		}
-		else {
-			l2_clip[0] = rect->xmax;
-			l2_clip[1] = isect;
-			ok2 = 2;
-		}
-	}
-	
-	if (ok1 && ok2) {
+		
+		VECCOPY2D(l1_clip, l1);
+		VECCOPY2D(l2_clip, l2);
+		CLAMP(l1_clip[1], rect->ymin, rect->ymax);
+		CLAMP(l2_clip[1], rect->ymin, rect->ymax);
 		return 1;
 	}
 	else {
-		return 0;
+		float isect;
+		short ok1 = 0;
+		short ok2 = 0;
+		
+		/* Done with vertical lines */
+		
+		/* are either of the points inside the rectangle ? */
+		if (BLI_in_rctf(rect, l1[0], l1[1])) {
+			VECCOPY2D(l1_clip, l1);
+			ok1 = 1;
+		}
+		
+		if (BLI_in_rctf(rect, l2[0], l2[1])) {
+			VECCOPY2D(l2_clip, l2);
+			ok2 = 1;
+		}
+		
+		/* line inside rect */
+		if (ok1 && ok2) return 1;
+		
+		/* top/bottom */
+		if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
+			if (l1[1] < l2[1]) { /* line 1 is outside */
+				l1_clip[0] = isect;
+				l1_clip[1] = rect->ymin;
+				ok1 = 1;
+			}
+			else {
+				l2_clip[0] = isect;
+				l2_clip[1] = rect->ymin;
+				ok2 = 2;
+			}
+		}
+		
+		if (ok1 && ok2) return 1;
+		
+		if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
+			if (l1[1] > l2[1]) { /* line 1 is outside */
+				l1_clip[0] = isect;
+				l1_clip[1] = rect->ymax;
+				ok1 = 1;
+			}
+			else {
+				l2_clip[0] = isect;
+				l2_clip[1] = rect->ymax;
+				ok2 = 2;
+			}
+		}
+		
+		if (ok1 && ok2) return 1;
+		
+		/* left/right */
+		if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
+			if (l1[0] < l2[0]) { /* line 1 is outside */
+				l1_clip[0] = rect->xmin;
+				l1_clip[1] = isect;
+				ok1 = 1;
+			}
+			else {
+				l2_clip[0] = rect->xmin;
+				l2_clip[1] = isect;
+				ok2 = 2;
+			}
+		}
+	
+		if (ok1 && ok2) return 1;
+		
+		if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
+			if (l1[0] > l2[0]) { /* line 1 is outside */
+				l1_clip[0] = rect->xmax;
+				l1_clip[1] = isect;
+				ok1 = 1;
+			}
+			else {
+				l2_clip[0] = rect->xmax;
+				l2_clip[1] = isect;
+				ok2 = 2;
+			}
+		}
+		
+		if (ok1 && ok2) {
+			return 1;
+		}
+		else {
+			return 0;
+		}
 	}
 }
 
@@ -1819,7 +1887,11 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 #define ISECT_4 (1<<3)
 #define ISECT_ALL3 ((1<<3)-1)
 #define ISECT_ALL4 ((1<<4)-1)
-#define ISECT_TOLERANCE 0.0001f
+
+static int IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
+{
+	return (AreaF2Dfl(v1,v2,v3) + limit) > (AreaF2Dfl(pt,v1,v2) + AreaF2Dfl(pt,v2,v3) + AreaF2Dfl(pt,v3,v1)) ? 1 : 0;
+}
 
 static void project_bucket_clip_face(
 		const int is_ortho,
@@ -1829,7 +1901,6 @@ static void project_bucket_clip_face(
 		float bucket_bounds_uv[8][2],
 		int *tot)
 {
-	int quad_idx= 0;
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
 	const int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
@@ -1861,79 +1932,21 @@ static void project_bucket_clip_face(
 	}
 	
 	/* get the UV space bounding box */
+	/* use IsectPT2Df_limit here so we catch points are are touching the tri edge (or a small fraction over) */
 	bucket_bounds_ss[0][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[0][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS) ? ISECT_1 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_1 : 0);
 	bucket_bounds_ss[1][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[1][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS) ? ISECT_2 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_2 : 0);
 
 	bucket_bounds_ss[2][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[2][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS) ? ISECT_3 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_3 : 0);
 
 	bucket_bounds_ss[3][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[3][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS) ? ISECT_4 : 0);
-	
-	
-	/* todo - make into a loop */
-	quad_idx = 0;
-	if ((inside_face_flag & ISECT_1)==0) {
-		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_1;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_1;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_1;
-		}
-	}
-	
-	quad_idx = 1;
-	if ((inside_face_flag & ISECT_2)==0) {
-		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_2;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_2;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_2;
-		}
-	}
-	
-	quad_idx = 2;
-	
-	if ((inside_face_flag & ISECT_3)==0) {
-		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_3;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_3;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_3;
-		}
-	}
-	
-	quad_idx = 3;
-	
-	if ((inside_face_flag & ISECT_4)==0) {
-		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_4;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_4;
-		}
-		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
-			inside_face_flag |= ISECT_4;
-		}
-	}
-	/* end todo */
-	
-	
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_4 : 0);
 	
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
@@ -2069,7 +2082,7 @@ static void project_bucket_clip_face(
 		
 		/* remove doubles */
 		/* first/last check */
-		if (fabs(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < ISECT_TOLERANCE) {
+		if (fabs(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < PROJ_GEOM_TOLERANCE &&  fabs(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < PROJ_GEOM_TOLERANCE) {
 			(*tot)--;
 		}
 		
@@ -2084,7 +2097,7 @@ static void project_bucket_clip_face(
 		while (doubles==TRUE) {
 			doubles = FALSE;
 			for(i=1; i<(*tot); i++) {
-				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < ISECT_TOLERANCE) {
+				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&  fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE) {
 					int j;
 					for(j=i+1; j<(*tot); j++) {
 						isectVCosSS[j-1][0] = isectVCosSS[j][0]; 
@@ -2823,10 +2836,13 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	
 	/* ---- end defines ---- */
 	
-	/* paint onto the derived mesh
-	 * note get_viewedit_datamask checks for paint mode and will always give UVs */
+	/* paint onto the derived mesh */
 	ps->dm = mesh_get_derived_final(ps->ob, get_viewedit_datamask());
 	
+	if ( !CustomData_has_layer( &ps->dm->faceData, CD_MTFACE) ) {
+		ps->dm = NULL;
+		return; 
+	}
 	ps->dm_mvert = ps->dm->getVertArray(ps->dm);
 	ps->dm_mface = ps->dm->getFaceArray(ps->dm);
 	ps->dm_mtface= ps->dm->getFaceDataArray(ps->dm, CD_MTFACE);
@@ -4412,22 +4428,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			return;
 		}
 	}
-
-	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_imagepaint_push_begin("Image Paint");
-
-	/* create painter and paint once */
-	painter= brush_painter_new(s.brush);
-
-	getmouseco_areawin(mval);
-
-	pressure = get_pressure();
-	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 	
-	time= benchmark_time = PIL_check_seconds_timer();
-	prevmval[0]= mval[0];
-	prevmval[1]= mval[1];
-	
+	/* note, if we have no UVs on the derived mesh, then we must return here */
 	if (project) {
 		/* setup projection painting data */
 		ps.do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
@@ -4444,17 +4446,37 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
 #endif
 		ps.normal_angle = settings->imapaint.normal_angle;
+		
 		project_paint_begin(&ps, mval);
 		
+		if (ps.dm==NULL) {
+			return;
+		}
+	}
+	
+	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
+	undo_imagepaint_push_begin("Image Paint");
+
+	/* create painter and paint once */
+	painter= brush_painter_new(s.brush);
+
+	getmouseco_areawin(mval);
+
+	pressure = get_pressure();
+	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
+	
+	time= benchmark_time = PIL_check_seconds_timer();
+	prevmval[0]= mval[0];
+	prevmval[1]= mval[1];
+	
+	if (project) {
 		if (stroke_gp) {
 			tot_gp = imapaint_paint_gp_to_stroke(&points_gp);
 			vec_gp = points_gp;
 			prevmval[0]= (short)vec_gp[0];
 			prevmval[1]= (short)vec_gp[1];
 		}
-		
-	}
-	else {
+	} else {
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
 			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
 			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
