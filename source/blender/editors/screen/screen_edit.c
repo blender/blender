@@ -879,7 +879,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
-	rcti winrct= {0, win->sizex, 0, win->sizey};
+	rcti winrct= {0, win->sizex-1, 0, win->sizey-1};
 	
 	screen_test_scale(win->screen, win->sizex, win->sizey);
 	
