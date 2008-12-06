@@ -1805,13 +1805,13 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 	return -atan2(v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0]+v1[1]*v2[1]);
 }
 
-
 #define ISECT_1 (1)
 #define ISECT_2 (1<<1)
 #define ISECT_3 (1<<2)
 #define ISECT_4 (1<<3)
 #define ISECT_ALL3 ((1<<3)-1)
 #define ISECT_ALL4 ((1<<4)-1)
+#define ISECT_TOLERANCE 0.0001f
 
 static void project_bucket_clip_face(
 		const int is_ortho,
@@ -1821,6 +1821,7 @@ static void project_bucket_clip_face(
 		float bucket_bounds_uv[8][2],
 		int *tot)
 {
+	int quad_idx= 0;
 	int inside_bucket_flag = 0;
 	int inside_face_flag = 0;
 	const int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
@@ -1828,35 +1829,6 @@ static void project_bucket_clip_face(
 	float uv[2];
 	float bucket_bounds_ss[4][2];
 	float w[3];
-	
-//#if 0
-	rctf bucket_bounds_expand;
-	int use_expanded = 0;
-	bucket_bounds_expand.xmin = bucket_bounds->xmin;
-	bucket_bounds_expand.ymin = bucket_bounds->ymin;
-	bucket_bounds_expand.xmax = bucket_bounds->xmax;
-	bucket_bounds_expand.ymax = bucket_bounds->ymax;
-	
-	if (fabs(v1coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
-	if (fabs(v2coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
-	if (fabs(v3coSS[0]-bucket_bounds_expand.xmin) < 0.1f) {bucket_bounds_expand.xmin -= 0.1f; use_expanded = 1;}
-	
-	if (fabs(v1coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
-	if (fabs(v2coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
-	if (fabs(v3coSS[1]-bucket_bounds_expand.ymin) < 0.1f) {bucket_bounds_expand.ymin -= 0.1f; use_expanded = 1;}
-	
-	if (fabs(v1coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
-	if (fabs(v2coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
-	if (fabs(v3coSS[0]-bucket_bounds_expand.xmax) < 0.1f) {bucket_bounds_expand.xmax += 0.1f; use_expanded = 1;}
-	
-	if (fabs(v1coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}
-	if (fabs(v2coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}
-	if (fabs(v3coSS[1]-bucket_bounds_expand.ymax) < 0.1f) {bucket_bounds_expand.ymax += 0.1f; use_expanded = 1;}	
-
-	if ( use_expanded ) {
-		bucket_bounds = &bucket_bounds_expand;
-	}
-//#endif
 
 	/* get the UV space bounding box */
 	inside_bucket_flag |= BLI_in_rctf(bucket_bounds, v1coSS[0], v1coSS[1]);
@@ -1884,7 +1856,6 @@ static void project_bucket_clip_face(
 	bucket_bounds_ss[0][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[0][1] = bucket_bounds->ymin;
 	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS) ? ISECT_1 : 0);
-
 	bucket_bounds_ss[1][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[1][1] = bucket_bounds->ymax;
 	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS) ? ISECT_2 : 0);
@@ -1896,6 +1867,65 @@ static void project_bucket_clip_face(
 	bucket_bounds_ss[3][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[3][1] = bucket_bounds->ymin;
 	inside_face_flag |= (IsectPT2Df(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS) ? ISECT_4 : 0);
+	
+	
+	/* todo - make into a loop */
+	quad_idx = 0;
+	if ((inside_face_flag & ISECT_1)==0) {
+		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_1;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_1;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_1;
+		}
+	}
+	
+	quad_idx = 1;
+	if ((inside_face_flag & ISECT_2)==0) {
+		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_2;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_2;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_2;
+		}
+	}
+	
+	quad_idx = 2;
+	
+	if ((inside_face_flag & ISECT_3)==0) {
+		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_3;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_3;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_3;
+		}
+	}
+	
+	quad_idx = 3;
+	
+	if ((inside_face_flag & ISECT_4)==0) {
+		if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS)) - Vec2Lenf(v1coSS, v2coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_4;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v2coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS)) - Vec2Lenf(v2coSS, v3coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_4;
+		}
+		else if (fabs((Vec2Lenf(bucket_bounds_ss[quad_idx], v3coSS) + Vec2Lenf(bucket_bounds_ss[quad_idx], v1coSS)) - Vec2Lenf(v3coSS, v1coSS)) < ISECT_TOLERANCE) {
+			inside_face_flag |= ISECT_4;
+		}
+	}
+	/* end todo */
+	
+	
 	
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
@@ -2028,6 +2058,37 @@ static void project_bucket_clip_face(
 			}
 		}
 		
+		/* remove doubles */
+		
+		/* first/last check */
+		if (fabs(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < ISECT_TOLERANCE) {
+			(*tot)--;
+		}
+		
+		unsorted = TRUE;
+		while (unsorted==TRUE) {
+			unsorted = FALSE;
+			for(i=1; i<(*tot); i++) {
+				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < ISECT_TOLERANCE) {
+						
+					int j;
+					for(j=i+1; j<(*tot); j++) {
+						isectVCosSS[j-1][0] = isectVCosSS[j][0]; 
+						isectVCosSS[j-1][1] = isectVCosSS[j][1]; 
+					}
+					unsorted = TRUE; /* keep looking for more doubles */
+					(*tot)--;
+				}
+			}
+		}
+		
+		/* its possible there is only a few left after remove doubles */
+		if ((*tot) < 3) {
+			*tot = 0;
+			return;
+		}
+		
+		
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
 				BarycentricWeights2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
@@ -2042,9 +2103,10 @@ static void project_bucket_clip_face(
 		}
 	}
 }
-	
-	/* include this at the bottom of the above function to debug the output */
+
 #if 0
+	/* include this at the bottom of the above function to debug the output */
+
 	{
 		/* If there are ever any problems, */
 		float test_uv[4][2];
@@ -4003,7 +4065,6 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
-	MemArena *arena = ps->arena_mt[0]; /* reuse the first threads memarena for non threaded case */
 	int touch_any = 0;	
 	
 	ProjectHandle handles[BLENDER_MAX_THREADS];
@@ -4030,13 +4091,13 @@ static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *po
 		/* thread spesific */
 		handles[a].thread_index = a;
 		
-		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(arena, ps->image_tot * sizeof(ProjPaintImage));
+		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena_mt[a], ps->image_tot * sizeof(ProjPaintImage));
 		
 		memcpy(handles[a].projImages, ps->projImages, ps->image_tot * sizeof(ProjPaintImage));
 		
 		/* image bounds */
 		for (i=0; i< ps->image_tot; i++) {
-			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(arena, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena_mt[a], sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
 		}
 
