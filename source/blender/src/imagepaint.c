@@ -159,6 +159,7 @@ typedef struct ImagePaintPartialRedraw {
 
 //#define PROJ_DEBUG_PAINT 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
+//#define PROJ_DEBUG_PRINT_CLIP 1
 #define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
@@ -186,7 +187,6 @@ typedef struct ImagePaintPartialRedraw {
 /* vert flags */
 #define PROJ_VERT_CULL 1
 
-/* M_PI_2 is 90d, we want 80 though */
 #define PI_80_DEG ((M_PI_2 / 9) * 8)
 
 /* This is mainly a convenience struct used so we can keep an array of images we use
@@ -245,6 +245,8 @@ typedef struct ProjPaintState {
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;			/* mask out pixels based on their normals */
+	float normal_angle; /* what angle to mask at*/
+
 	short is_ortho;
 	short is_airbrush;					/* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
 	short is_texbrush;					/* only to avoid running  */
@@ -1293,7 +1295,7 @@ float project_paint_uvpixel_mask(
 		const int side,
 		const float w[3])
 {
-	float mask;
+	float mask, mask_angle;
 	
 	/* calculate mask */
 	if (ps->do_mask_normal) {
@@ -1340,22 +1342,28 @@ float project_paint_uvpixel_mask(
 			angle = NormalizedVecAngle2(viewDirPersp, no);
 		}
 		
-		if (angle >= PI_80_DEG) {
+		/*if (angle >= (M_PI_2 / 90) * ps->normal_angle) {
 			return 0.0f;
 		}
-		else {
+		else {*/
 #if 0
 			mask = 1.0f - (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
 #endif
 			
 			/* trickier method that clips the normal so its more useful */
-			mask = (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			/* M_PI_2 is 90d, we want 80 though */
+			mask_angle = ((M_PI_2 / 90) * ps->normal_angle);
+
+			/*printf("normal_angle : %f \n" ,ps->normal_angle);
+			printf("mask_angle : %f \n" ,mask_angle);*/
+
+			mask = (angle / mask_angle); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
 			mask = (1.0f - (mask * mask * mask)) * 1.4f;
 			if (mask > 1.0f) {
 				mask = 1.0f;
 			}
+		/*}*/
 		}
-	}
 	else {
 		mask = 1.0f;
 	}
@@ -1548,7 +1556,7 @@ static int line_clip_rect2f(
 	}
 	
 	/* top/bottom */
-	if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect > rect->xmin) && (isect < rect->xmax)) {
+	if (line_isect_y(l1, l2, rect->ymin, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
 		if (l1[1] < l2[1]) { /* line 1 is outside */
 			l1_clip[0] = isect;
 			l1_clip[1] = rect->ymin;
@@ -1560,7 +1568,7 @@ static int line_clip_rect2f(
 			ok2 = 2;
 		}
 	}
-	if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect > rect->xmin) && (isect < rect->xmax)) {
+	if (line_isect_y(l1, l2, rect->ymax, &isect) && (isect >= rect->xmin) && (isect <= rect->xmax)) {
 		if (l1[1] > l2[1]) { /* line 1 is outside */
 			l1_clip[0] = isect;
 			l1_clip[1] = rect->ymax;
@@ -1574,7 +1582,7 @@ static int line_clip_rect2f(
 	}
 	
 	/* left/right */
-	if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect > rect->ymin) && (isect < rect->ymax)) {
+	if (line_isect_x(l1, l2, rect->xmin, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
 		if (l1[0] < l2[0]) { /* line 1 is outside */
 			l1_clip[0] = rect->xmin;
 			l1_clip[1] = isect;
@@ -1586,7 +1594,7 @@ static int line_clip_rect2f(
 			ok2 = 2;
 		}
 	}
-	if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect > rect->ymin) && (isect < rect->ymax)) {
+	if (line_isect_x(l1, l2, rect->xmax, &isect) && (isect >= rect->ymin) && (isect <= rect->ymax)) {
 		if (l1[0] > l2[0]) { /* line 1 is outside */
 			l1_clip[0] = rect->xmax;
 			l1_clip[1] = isect;
@@ -1963,7 +1971,8 @@ static void project_bucket_clip_face(
 		float cent[2] = {0.0f, 0.0f};
 		/*float up[2] = {0.0f, 1.0f};*/
 		float tmp_f;
-		int i, unsorted;
+		int i;
+		short unsorted, doubles;
 		
 		(*tot) = 0;
 		
@@ -2059,24 +2068,29 @@ static void project_bucket_clip_face(
 		}
 		
 		/* remove doubles */
-		
 		/* first/last check */
 		if (fabs(isectVCosSS[0][0]-isectVCosSS[(*tot)-1][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[0][1]-isectVCosSS[(*tot)-1][1]) < ISECT_TOLERANCE) {
 			(*tot)--;
 		}
 		
-		unsorted = TRUE;
-		while (unsorted==TRUE) {
-			unsorted = FALSE;
+		/* its possible there is only a few left after remove doubles */
+		if ((*tot) < 3) {
+			// printf("removed too many doubles A\n");
+			*tot = 0;
+			return;
+		}
+		
+		doubles = TRUE;
+		while (doubles==TRUE) {
+			doubles = FALSE;
 			for(i=1; i<(*tot); i++) {
 				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < ISECT_TOLERANCE &&  fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < ISECT_TOLERANCE) {
-						
 					int j;
 					for(j=i+1; j<(*tot); j++) {
 						isectVCosSS[j-1][0] = isectVCosSS[j][0]; 
 						isectVCosSS[j-1][1] = isectVCosSS[j][1]; 
 					}
-					unsorted = TRUE; /* keep looking for more doubles */
+					doubles = TRUE; /* keep looking for more doubles */
 					(*tot)--;
 				}
 			}
@@ -2084,6 +2098,7 @@ static void project_bucket_clip_face(
 		
 		/* its possible there is only a few left after remove doubles */
 		if ((*tot) < 3) {
+			// printf("removed too many doubles B\n");
 			*tot = 0;
 			return;
 		}
@@ -2102,9 +2117,8 @@ static void project_bucket_clip_face(
 			}
 		}
 	}
-}
 
-#if 0
+#ifdef PROJ_DEBUG_PRINT_CLIP
 	/* include this at the bottom of the above function to debug the output */
 
 	{
@@ -2123,7 +2137,9 @@ static void project_bucket_clip_face(
 		}
 		printf("]),\\\n");
 	}
+#endif
 }
+
 	/*
 # This script creates faces in a blender scene from printed data above.
 
@@ -2169,8 +2185,7 @@ def main():
 if __name__ == '__main__':
 	main()
  */	
-	
-#endif
+
 
 #undef ISECT_1
 #undef ISECT_2
@@ -2990,14 +3005,14 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 			no[2] = (float)(v->no[2] / 32767.0f);
 			
 			if (ps->is_ortho) {
-				if (NormalizedVecAngle2(ps->viewDir, no) >= PI_80_DEG) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(ps->viewDir, no) >= (M_PI_2 / 90) * ps->normal_angle) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
 			else {
 				VecSubf(viewDirPersp, ps->viewPos, v->co);
 				Normalize(viewDirPersp);
-				if (NormalizedVecAngle2(viewDirPersp, no) >= PI_80_DEG) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(viewDirPersp, no) >= (M_PI_2 / 90) * ps->normal_angle) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
@@ -4426,16 +4441,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		}
 		
 #ifndef PROJ_DEBUG_NOSEAMBLEED
-		if (settings->imapaint.flag & IMAGEPAINT_PROJECT_IGNORE_SEAMS) {
-			ps.seam_bleed_px = 0.0f;
-		}
-		else {
-			ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed  */			
-			if (ps.seam_bleed_px < 2.0f)
-				ps.seam_bleed_px = 2.0f;
-		}
-		
+		ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
 #endif
+		ps.normal_angle = settings->imapaint.normal_angle;
 		project_paint_begin(&ps, mval);
 		
 		if (stroke_gp) {
