@@ -570,7 +570,7 @@ View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, shor
 	grid= MEM_callocN(sizeof(View2DGrid), "View2DGrid");
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
-	if (unit == V2D_UNIT_FRAMES) {
+	if (unit == V2D_UNIT_SECONDS) {
 		secondgrid= 1;
 		seconddiv= 0.01f * FPS;
 	}
