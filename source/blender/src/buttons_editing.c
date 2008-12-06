@@ -6337,14 +6337,16 @@ static void editing_panel_mesh_paint(void)
 		yco= 160;
 
 		uiBlockBeginAlign(block);
-		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-		//uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
-		
-		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-		//uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		80 ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
-		uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");	
+		if ((settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0) {
+			uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+			uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Smear",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+			uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Clone",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");
+		}
+		else { 
+			uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+			uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+			uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+		}	
 		
 		uiBlockEndAlign(block);
 		yco -= 30;
@@ -6368,19 +6370,25 @@ static void editing_panel_mesh_paint(void)
 			uiDefButF(block, NUM, B_NOP, "Rate ", xco+10,yco-45,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
 			uiBlockEndAlign(block);
 			
-			yco -= 25;
+			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_DISABLE, B_REDR, "Project Paint",	xco+10,yco-70,butw,19, &settings->imapaint.flag, 0, 0, 0, 0, "Use projection painting for improved consistency in the brush strokes");
 			
-			/* Projection Painting */
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_XRAY, B_NOP, "Occlude",	xco+10,yco-45,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Only paint onto the faces directly under the brush (slower)");
-			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_BACKFACE, B_NOP, "Cull",	xco+10+butw/2,yco-45,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
+			yco -= 50;
 			
-			uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_FLAT, B_NOP, "Normal",	xco+10,yco-65,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Paint most on faces pointing towards the view");
-			uiDefButC(block, NUM, B_NOP, "", xco+10 +(butw/2),yco-65,butw/2,19, &settings->imapaint.normal_angle, 10.0, 90.0, 0, 0, "Paint most on faces pointing towards the view acording to this angle)");
+			if ((settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0) {
+				//uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_BRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
+				
+				/* Projection Painting */
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_XRAY, B_NOP, "Occlude",	xco+10,yco-45,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Only paint onto the faces directly under the brush (slower)");
+				uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_BACKFACE, B_NOP, "Cull",	xco+10+butw/2,yco-45,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
+				
+				uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_FLAT, B_NOP, "Normal",	xco+10,yco-65,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Paint most on faces pointing towards the view");
+				uiDefButC(block, NUM, B_NOP, "", xco+10 +(butw/2),yco-65,butw/2,19, &settings->imapaint.normal_angle, 10.0, 90.0, 0, 0, "Paint most on faces pointing towards the view acording to this angle)");
+				
+				uiDefButC(block, NUM, B_NOP, "Bleed: ", xco+10,yco-85,butw,19, &settings->imapaint.seam_bleed, 0.0, 8.0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
+				uiBlockEndAlign(block);
+			}
 			
-			uiDefButC(block, NUM, B_NOP, "Bleed: ", xco+10,yco-85,butw,19, &settings->imapaint.seam_bleed, 0.0, 8.0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
-			uiBlockEndAlign(block);
-
 			uiBlockBeginAlign(block);
 			uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
 			uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");

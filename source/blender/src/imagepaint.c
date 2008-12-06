@@ -159,7 +159,7 @@ typedef struct ImagePaintPartialRedraw {
 
 //#define PROJ_DEBUG_PAINT 1
 //#define PROJ_DEBUG_NOSEAMBLEED 1
-#define PROJ_DEBUG_PRINT_CLIP 1
+//#define PROJ_DEBUG_PRINT_CLIP 1
 #define PROJ_DEBUG_WINCLIP 1
 
 /* projectFaceSeamFlags options */
@@ -185,7 +185,7 @@ typedef struct ImagePaintPartialRedraw {
 // #define PROJ_BUCKET_CLONE_INIT	1<<1
 
 /* used for testing doubles, if a point is on a line etc */
-#define PROJ_GEOM_TOLERANCE 0.00001f
+#define PROJ_GEOM_TOLERANCE 0.0002f
 
 /* vert flags */
 #define PROJ_VERT_CULL 1
@@ -1935,18 +1935,18 @@ static void project_bucket_clip_face(
 	/* use IsectPT2Df_limit here so we catch points are are touching the tri edge (or a small fraction over) */
 	bucket_bounds_ss[0][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[0][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_1 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_1 : 0);
 	bucket_bounds_ss[1][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[1][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_2 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_2 : 0);
 
 	bucket_bounds_ss[2][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[2][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_3 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_3 : 0);
 
 	bucket_bounds_ss[3][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[3][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 0.001f) ? ISECT_4 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_4 : 0);
 	
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
@@ -4377,7 +4377,11 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	if(!settings->imapaint.brush)
 		return;
 	
-	project = texpaint;
+	if (texpaint) { /* are we painting in the 3D view ? */
+		if ((settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0) {
+			project= 1;
+		}
+	}
 	
 	
 	if (G.qual & LR_CTRLKEY) {

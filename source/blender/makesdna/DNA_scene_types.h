@@ -803,10 +803,11 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
 
 /* projection painting only */
-#define IMAGEPAINT_PROJECT_XRAY			8
-#define IMAGEPAINT_PROJECT_BACKFACE		16
-#define IMAGEPAINT_PROJECT_CLONE_LAYER	32
-#define IMAGEPAINT_PROJECT_FLAT			64
+#define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
+#define IMAGEPAINT_PROJECT_XRAY			16
+#define IMAGEPAINT_PROJECT_BACKFACE		32
+#define IMAGEPAINT_PROJECT_CLONE_LAYER	64
+#define IMAGEPAINT_PROJECT_FLAT			128
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
