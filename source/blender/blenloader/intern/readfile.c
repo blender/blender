@@ -5074,6 +5074,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				SpaceOops *soops= sa->spacedata.first;
 				
 				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
+				
 				ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
 				ar->v2d.scroll |= V2D_SCROLL_RIGHT;
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);

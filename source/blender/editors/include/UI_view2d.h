@@ -85,7 +85,7 @@ typedef struct View2DScrollers View2DScrollers;
 /* refresh and validation (of view rects) */
 	// XXX rename these...
 void UI_view2d_size_update(struct View2D *v2d, int winx, int winy);
-void UI_view2d_status_enforce(struct View2D *v2d, int winx, int winy);
+void UI_view2d_status_enforce(struct View2D *v2d);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
 void UI_view2d_curRect_reset(struct View2D *v2d);

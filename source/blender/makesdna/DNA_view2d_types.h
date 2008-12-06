@@ -41,12 +41,13 @@ typedef struct View2D {
 	rcti vert, hor;					/* vert - vertical scrollbar region; hor - horizontal scrollbar region */
 	rcti mask;						/* mask - region (in screenspace) within which 'cur' can be viewed */
 	
-	float min[2], max[2];			/* min/max sizes? */
-	float minzoom, maxzoom;			/* self explanatory. allowable zoom factor range */
+	float min[2], max[2];			/* min/max sizes of 'cur' rect (only when keepzoom not set) */
+	float minzoom, maxzoom;			/* self explanatory. allowable zoom factor range (only when keepzoom set) */
 	
 	short scroll;					/* scroll - scrollbars to display (bitflag) */
-	short keeptot;					/* keeptot - 'tot' rect  */
-	short keepaspect, keepzoom;		/* axes that zoomimg cannot occur on, and need to maintain aspect ratio */
+	short keeptot;					/* keeptot - 'cur' rect cannot move outside the 'tot' rect? */
+	short keepaspect;				/* keepaspect - need to maintain aspect ratio (0 or 1 boolean only) */
+	short keepzoom;					/* keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits */
 	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
 	
 	short flag;						/* settings */
@@ -62,6 +63,7 @@ typedef struct View2D {
 /* ---------------------------------- */
 
 /* view zooming restrictions, per axis (v2d->keepzoom) */
+#define V2D_KEEPZOOM		0x0001
 #define V2D_LOCKZOOM_X		0x0100
 #define V2D_LOCKZOOM_Y		0x0200
 

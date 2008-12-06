@@ -390,14 +390,19 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	RNA_property_collection_end(&cell.iter);
-
+	
+	/* determine extents of data
+	 *	- height must be at least the height of the mask area
+	 *	- width is columns + 1, as otherwise, part of last column 
+	 * 	  will be obscured by scrollers
+	 */
 	if ((rows*ROW_HEIGHT) > height)
 		height= rows * ROW_HEIGHT;
-	width= cols * COLUMN_WIDTH;
+	width= (cols + 1) * COLUMN_WIDTH;
 	
 	/* need to validate view2d after updating size of tot */
 	UI_view2d_totRect_set(v2d, width, height);
-	UI_view2d_status_enforce(v2d, awidth, aheight);
+	UI_view2d_status_enforce(v2d);
 	
 	rct.xmin= 0;
 	rct.ymin= -height;

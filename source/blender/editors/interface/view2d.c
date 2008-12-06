@@ -103,101 +103,75 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
 // XXX FIXME - this is an old mess function... let's rewrite!
-void UI_view2d_status_enforce(View2D *v2d, int winx, int winy)
+void UI_view2d_status_enforce(View2D *v2d)
 {
 	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
+	float totwidth, totheight, curwidth, curheight, width, height;
+	int winx, winy;
 	rctf *cur, *tot;
-	float dx, dy, temp, fac, zoom;
 	
-	/* correct winx for scrollbars */
-	if (v2d->scroll & V2D_SCROLL_LEFT) winx-= V2D_SCROLL_WIDTH;
-	if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) winy-= V2D_SCROLL_HEIGHT;
+	/* use mask as size of region that View2D resides in, as it takes into account scrollbars already  */
+	winx= v2d->mask.xmax - v2d->mask.xmin + 1;
+	winy= v2d->mask.ymax - v2d->mask.ymin + 1;
 	
-	/* header completely closed window */
-	if (winy <= 0) return;
-	
-	/* get pointers */
+	/* get pointers to rcts for less typing */
 	cur= &v2d->cur;
 	tot= &v2d->tot;
 	
-	/* dx, dy are width and height of v2d->cur, respectively */
-	dx= cur->xmax - cur->xmin;
-	dy= cur->ymax - cur->ymin;
+	/* we must satisfy the following constraints (in decreasing order of importance):
+	 *	- cur must not fall outside of tot
+	 *	- axis locks (zoom and offset) must be maintained
+	 *	- zoom must not be excessive (check either sizes or zoom values)
+	 *	- aspect ratio should be respected
+	 */
 	
-	/* keepzoom - restore old zoom */
-	if (v2d->keepzoom) {	
-		/* keepzoom on x or y axis - reset size of current-viewable area to size of region (i.e. no zooming happened) */
-		if (v2d->keepzoom & V2D_LOCKZOOM_Y)
-			cur->ymax= cur->ymin + ((float)winy);
-		if (v2d->keepzoom & V2D_LOCKZOOM_X)
-			cur->xmax= cur->xmin + ((float)winx);
+	/* Step 1: if keepzoom, adjust the sizes of the rects only
+	 *	- firstly, we calculate the sizes of the rects
+	 *	- curwidth and curheight are saved as reference... modify width and height values here
+	 */
+	totwidth= tot->xmax - tot->xmin;
+	totheight= tot->ymax - tot->ymin;
+	curwidth= width= cur->xmax - cur->xmin;
+	curheight= height= cur->ymax - cur->ymin;
+	
+	/* if zoom is locked, size on the appropriate axis is reset to mask size */
+	if (v2d->keepzoom & V2D_LOCKZOOM_X)
+		width= (float)winy;
+	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
+		height= (float)winx;
 		
-		/* calculate zoom-factor for x */
-		zoom= ((float)winx)/dx;
+	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
+	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
+	 */
+	if (v2d->keepzoom & V2D_KEEPZOOM) {
+		float zoom, fac;
 		
-		/* if zoom factor is excessive, normalise it and calculate new width */
+		/* check if excessive zoom on x-axis */
+		zoom= (float)winx / width;
 		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-			if (zoom < v2d->minzoom) fac= zoom / v2d->minzoom;
-			else fac= zoom / v2d->maxzoom;
-			
-			dx *= fac;
-			temp= 0.5f * (cur->xmax + cur->xmin);
-			
-			cur->xmin= temp - (0.5f * dx);
-			cur->xmax= temp + (0.5f * dx);
+			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
+			width *= fac;
 		}
 		
-		/* calculate zoom-factor for y */
-		zoom= ((float)winy)/dy;
-		
-		/* if zoom factor is excessive, normalise it and calculate new width */
+		/* check if excessive zoom on y-axis */
+		zoom= (float)winy / height;
 		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-			if (zoom < v2d->minzoom) fac= zoom / v2d->minzoom;
-			else fac= zoom / v2d->maxzoom;
-			
-			dy *= fac;
-			temp= 0.5f * (cur->ymax + cur->ymin);
-			
-			cur->ymin= temp - (0.5f * dy);
-			cur->ymax= temp + (0.5f * dy);
+			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
+			height *= fac;
 		}
 	}
 	else {
-		/* if extents of cur are below or above what's acceptable, interpolate extent to lie halfway */
-		if (dx < v2d->min[0]) {
-			dx= v2d->min[0];
-			temp= 0.5f * (cur->xmax + cur->xmin);
-			
-			cur->xmin= temp - (0.5f * dx);
-			cur->xmax= temp + (0.5f * dx);
-		}
-		else if (dx > v2d->max[0]) {
-			dx= v2d->max[0];
-			temp= 0.5f * (cur->xmax + cur->xmin);
-			
-			cur->xmin= temp - (0.5f * dx);
-			cur->xmax= temp + (0.5f * dx);
-		}
-		
-		if (dy < v2d->min[1]) {
-			dy= v2d->min[1];
-			temp= 0.5f * (cur->ymax + cur->ymin);
-			
-			cur->ymin= temp - (0.5f * dy);
-			cur->ymax= temp + (0.5f * dy);
-		}
-		else if (dy > v2d->max[1]) {
-			dy= v2d->max[1];
-			temp= 0.5f * (cur->ymax + cur->ymin);
-			cur->ymin= temp-0.5*dy;
-			cur->ymax= temp+0.5*dy;
-		}
+		/* make sure sizes don't exceed that of the min/max sizes (even though we're not doing zoom clamping) */
+		CLAMP(width, v2d->min[0], v2d->max[0]);
+		CLAMP(height, v2d->min[1], v2d->max[1]);
 	}
 	
-	/* keep aspect - maintain aspect ratio */
+	/* check if we should restore aspect ratio (if view size changed) */
 	if (v2d->keepaspect) {
-		short do_x=0, do_y=0;
+		short do_x=0, do_y=0, do_cur, do_win;
+		float curRatio, winRatio;
 		
+			// XXX this is old code here to be cleaned up still
 		/* when a window edge changes, the aspect ratio can't be used to
 		 * find which is the best new 'cur' rect. thats why it stores 'old' 
 		 */
@@ -205,43 +179,48 @@ void UI_view2d_status_enforce(View2D *v2d, int winx, int winy)
 		if (winy != v2d->oldwiny) do_y= 1;
 		
 		/* here dx is cur ratio, while dy is win ratio */
-		dx= (cur->ymax - cur->ymin) / (cur->xmax - cur->xmin);
-		dy= ((float)winy) / ((float)winx);
+		curRatio= height / width;
+		winRatio= ((float)winy) / ((float)winx);
 		
 		/* both sizes change (area/region maximised)  */
 		if (do_x == do_y) {
-			if ((do_x==1) && (do_y==1)) {
+			if (do_x && do_y) {
+				/* here is 1,1 case, so all others must be 0,0 */
 				if (ABS(winx - v2d->oldwinx) > ABS(winy - v2d->oldwiny)) do_y= 0;
 				else do_x= 0;
 			}
-			else if (dy > 1.0f) do_x= 0; 
+			else if (winRatio > 1.0f) do_x= 0; 
 			else do_x= 1;
 		}
+		do_cur= do_x;
+		do_win= do_y;
 		
-		if (do_x) {
+		if (do_cur) {
 			if ((v2d->keeptot == 2) && (winx != v2d->oldwinx)) {
-				/* This is a special hack for the outliner, to ensure that the 
-				 * outliner contents will stay in their relative place in the view 
-				 * when the view is resized
+				/* special exception for Outliner (and later channel-lists):
+				 * 	- The view may be moved left to avoid contents being pushed out of view when view shrinks. 
+				 *	- The keeptot code will make sure cur->xmin will not be less than tot->xmin (which cannot be allowed)
+				 *	- width is not adjusted for changed ratios here...
 				 */
-				cur->xmax -= cur->xmin;
-				cur->xmin= 0.0f;
-			} 
+				if (winx < v2d->oldwinx) {
+					float temp = v2d->oldwinx - winx;
+					
+					cur->xmin -= temp;
+					cur->xmax -= temp;
+					
+					/* width does not get modified, as keepaspect here is just set to make 
+					 * sure visible area adjusts to changing view shape! 
+					 */
+				}
+			}
 			else {
 				/* portrait window: correct for x */
-				dx= cur->ymax - cur->ymin;
-				temp= cur->xmax + cur->xmin;
-				
-				cur->xmin= (temp / 2.0f) - (0.5f * dx / dy);
-				cur->xmax= (temp / 2.0f) + (0.5f * dx / dy);
+				width= height / winRatio;
 			}
 		}
 		else {
-			dx= cur->xmax - cur->xmin;
-			temp= cur->ymax + cur->ymin;
-			
-			cur->ymin= (temp / 2.0f) - (0.5f * dy * dx);
-			cur->ymax= (temp / 2.0f) + (0.5f * dy * dx);
+			/* landscape window: correct for y */
+			height = width * winRatio;
 		}
 		
 		/* store region size for next time */
@@ -249,81 +228,125 @@ void UI_view2d_status_enforce(View2D *v2d, int winx, int winy)
 		v2d->oldwiny= winy;
 	}
 	
-	/* keeptot - make sure that size of cur doesn't exceed that of tot, otherwise, adjust! */
+	/* Step 2: apply new sizes of cur rect to cur rect */
+	if ((width != curwidth) || (height != curheight)) {
+		float temp, dh;
+		
+		/* resize around 'center' of frame */
+		// FIXME: maybe we should just scale down on min?
+		if (width != curwidth) {
+			temp= (cur->xmax + cur->xmin) / 2.0f;
+			dh= (width - curwidth) * 0.5f;
+			
+			cur->xmin -= dh;
+			cur->xmax += dh;
+		}
+		if (height != curheight) {
+			temp= (cur->ymax + cur->ymin) / 2.0f;
+			dh= (height - curheight) * 0.5f;
+			
+			cur->ymin -= dh;
+			cur->ymax += dh;
+		}
+	}
+	
+	/* Step 3: adjust so that it doesn't fall outside of bounds of tot */
 	if (v2d->keeptot) {
-		/* calculate extents of cur */
-		dx= cur->xmax - cur->xmin;
-		dy= cur->ymax - cur->ymin;
+		float temp;
 		
-		/* cur is wider than tot? */
-		if (dx > (tot->xmax - tot->xmin)) {
-			if (v2d->keepzoom == 0) {
-				if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
-				if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
-			}
-			else {
-				/* maintaining zoom, so restore cur to tot size */
-				if (cur->xmax < tot->xmax) {
-					dx= tot->xmax - cur->xmax;
-					
-					cur->xmin+= dx;
-					cur->xmax+= dx;
-				}
-				else if (cur->xmin > tot->xmin) {
-					dx= cur->xmin - tot->xmin;
-					
-					cur->xmin-= dx;
-					cur->xmax-= dx;
-				}
-			}
+		/* recalculate extents of cur */
+		curwidth= cur->xmax - cur->xmin;
+		curheight= cur->ymax - cur->ymin;
+		
+		/* width */
+		if ((curwidth > totwidth) && (v2d->keepzoom == 0)) {
+			/* if zoom doesn't have to be maintained, just clamp edges */
+			if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
+			if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
 		}
-		else {
-			/* cur is smaller than tot, but cur cannot be outside of tot */
+		else if (v2d->keeptot == 2) {
+			/* This is an exception for the outliner (and later channel-lists) 
+			 *	- must clamp within tot rect (absolutely no excuses)
+			 *	--> therefore, cur->xmin must not be less than tot->xmin
+			 */
 			if (cur->xmin < tot->xmin) {
-				dx= tot->xmin - cur->xmin;
+				/* move cur across so that it sits at minimum of tot */
+				temp= tot->xmin - cur->xmin;
 				
-				cur->xmin += dx;
-				cur->xmax += dx;
+				cur->xmin += temp;
+				cur->xmax += temp;
 			}
-			else if ((v2d->keeptot != 2) && (cur->xmax > tot->xmax)) {
-				/* NOTE: keeptot is 2, as keeptot!=0 makes sure it does get
-				 * 		too freely scrolled on x-axis, but keeptot=1 will result
-				 *		in a snap-back when clicking on elements
+			else if (cur->xmax > tot->xmax) {
+				/* - only offset by difference of cur-xmax and tot-xmax if that would not move 
+				 * 	cur-xmin to lie past tot-xmin
+				 * - otherwise, simply shift to tot-xmin???
 				 */
-				dx= cur->xmax - tot->xmax;
-				cur->xmin -= dx;
-				cur->xmax -= dx;
-			}
-		}
-		
-		if (dy > (tot->ymax - tot->ymin)) {
-			if (v2d->keepzoom==0) {
-				if (cur->ymin < tot->ymin) cur->ymin= tot->ymin;
-				if (cur->ymax > tot->ymax) cur->ymax= tot->ymax;
-			}
-			else {
-				if (cur->ymax < tot->ymax) {
-					dy= tot->ymax - cur->ymax;
-					cur->ymin+= dy;
-					cur->ymax+= dy;
+				temp= cur->xmax - tot->xmax;
+				
+				if ((cur->xmin - temp) < tot->xmin) {
+					temp= cur->xmin - tot->xmin;
+					
+					cur->xmin -= temp;
+					cur->xmax -= temp;
 				}
-				else if (cur->ymin > tot->ymin) {
-					dy= cur->ymin - tot->ymin;
-					cur->ymin -= dy;
-					cur->ymax -= dy;
+				else {
+					cur->xmin -= temp;
+					cur->xmax -= temp;
 				}
 			}
 		}
 		else {
+			/* This here occurs when:
+			 * 	- width too big, but maintaining zoom (i.e. widths cannot be changed)
+			 *	- width is OK, but need to check if outside of boundaries
+			 * 
+			 * So, resolution is to just shift view by the gap between the extremities.
+			 * We favour moving the 'minimum' across, as that's origin for most things
+			 * (XXX - in the past, max was favoured... if there are bugs, swap!)
+			 */
+			if (cur->xmin > tot->xmin) {
+				/* there's still space remaining, so shift left */
+				temp= cur->xmin - tot->xmin;
+				
+				cur->xmin -= temp;
+				cur->xmax -= temp;
+			}
+			else if (cur->xmax < tot->xmax) {
+				/* there's still space remaining, so shift right */
+				temp= tot->xmax - cur->xmax;
+				
+				cur->xmin += temp;
+				cur->xmax += temp;
+			}
+		}
+		
+		/* height */
+		if ((curheight > totheight) && (v2d->keepzoom == 0)) {
+			/* if zoom doesn't have to be maintained, just clamp edges */
+			if (cur->ymin < tot->ymin) cur->ymin= tot->ymin;
+			if (cur->ymax > tot->ymax) cur->ymax= tot->ymax;
+		}
+		else {
+			/* This here occurs when:
+			 * 	- height too big, but maintaining zoom (i.e. heights cannot be changed)
+			 *	- height is OK, but need to check if outside of boundaries
+			 * 
+			 * So, resolution is to just shift view by the gap between the extremities.
+			 * We favour moving the 'minimum' across, as that's origin for most things
+			 */
 			if (cur->ymin < tot->ymin) {
-				dy= tot->ymin - cur->ymin;
-				cur->ymin += dy;
-				cur->ymax += dy;
+				/* there's still space remaining, so shift up */
+				temp= tot->ymin - cur->ymin;
+				
+				cur->ymin += temp;
+				cur->ymax += temp;
 			}
 			else if (cur->ymax > tot->ymax) {
-				dy= cur->ymax - tot->ymax;
-				cur->ymin-= dy;
-				cur->ymax-= dy;
+				/* there's still space remaining, so shift up */
+				temp= cur->ymax - tot->ymax;
+				
+				cur->ymin -= temp;
+				cur->ymax -= temp;
 			}
 		}
 	}
