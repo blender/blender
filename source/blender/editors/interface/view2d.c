@@ -552,7 +552,7 @@ static void step_to_grid(float *step, int *power, int unit)
 
 /* Intialise settings necessary for drawing gridlines in a 2d-view 
  *	- Currently, will return pointer to View2DGrid struct that needs to 
- *	  be freed with UI_view2d_free_grid()
+ *	  be freed with UI_view2d_grid_free()
  *	- Is used for scrollbar drawing too (for units drawing)
  *	
  *	- unit	= V2D_UNIT_*  grid steps in seconds or frames 
@@ -560,7 +560,7 @@ static void step_to_grid(float *step, int *power, int unit)
  *	- winx	= width of region we're drawing to
  *	- winy	= height of region we're drawing into
  */
-View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, short clamp, int winx, int winy)
+View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short unit, short clamp, int winx, int winy)
 {
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
@@ -616,7 +616,7 @@ View2DGrid *UI_view2d_calc_grid(const bContext *C, View2D *v2d, short unit, shor
 }
 
 /* Draw gridlines in the given 2d-region */
-void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
+void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int flag)
 {
 	float vec1[2], vec2[2];
 	int a, step;
@@ -724,7 +724,7 @@ void UI_view2d_draw_grid(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 }
 
 /* free temporary memory used for drawing grid */
-void UI_view2d_free_grid(View2DGrid *grid)
+void UI_view2d_grid_free(View2DGrid *grid)
 {
 	MEM_freeN(grid);
 }
@@ -745,7 +745,7 @@ struct View2DScrollers {
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp)
+View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp)
 {
 	View2DScrollers *scrollers;
 	rcti vert, hor;
@@ -764,7 +764,7 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	
 	/* horizontal scrollers */
 	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
-		/* slider 'button' extents */
+		/* scroller 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= hor.xmax - hor.xmin;
 		
@@ -782,7 +782,7 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 	
 	/* vertical scrollers */
 	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
-		/* slider 'button' extents */
+		/* scroller 'button' extents */
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= vert.ymax - vert.ymin;
 		
@@ -808,9 +808,9 @@ View2DScrollers *UI_view2d_calc_scrollers(const bContext *C, View2D *v2d, short 
 		
 		/* calculate grid */
 		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)
-			scrollers->grid= UI_view2d_calc_grid(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+			scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 		else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)
-			scrollers->grid= UI_view2d_calc_grid(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+			scrollers->grid= UI_view2d_grid_calc(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 	}
 	
 	/* return scrollers */
@@ -925,7 +925,7 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 
 
 /* Draw scrollbars in the given 2d-region */
-void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *scrollers)
+void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *scrollers)
 {
 	const int darker= -40, dark= 0, light= 20, lighter= 50;
 	rcti vert, hor;
@@ -1088,7 +1088,7 @@ void UI_view2d_draw_scrollers(const bContext *C, View2D *v2d, View2DScrollers *s
 }
 
 /* free temporary memory used for drawing scrollers */
-void UI_view2d_free_scrollers(View2DScrollers *scrollers)
+void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 {
 	/* need to free grid as well... */
 	if (scrollers->grid) MEM_freeN(scrollers->grid);

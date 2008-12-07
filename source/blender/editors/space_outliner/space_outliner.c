@@ -403,7 +403,6 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, width, height);
 	
-	
 	rct.xmin= 0;
 	rct.ymin= -height;
 	rct.xmax= width;
@@ -425,9 +424,9 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_calc_scrollers(C, v2d, 0, 0, 0, 0);
-	UI_view2d_draw_scrollers(C, v2d, scrollers);
-	UI_view2d_free_scrollers(scrollers);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 static void outliner_main_area_free(ARegion *ar)

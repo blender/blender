@@ -138,9 +138,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_calc_grid(C, v2d, unit, V2D_GRID_CLAMP, winx, winy);
-	UI_view2d_draw_grid(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
-	UI_view2d_free_grid(grid);
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, winx, winy);
+	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
+	UI_view2d_grid_free(grid);
 
 	/* current frame */
 	time_draw_cfra_time(C, stime, ar);
@@ -153,9 +153,9 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_calc_scrollers(C, v2d, unit, V2D_GRID_CLAMP, 0, 0);
-	UI_view2d_draw_scrollers(C, v2d, scrollers);
-	UI_view2d_free_scrollers(scrollers);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)

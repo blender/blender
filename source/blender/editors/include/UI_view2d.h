@@ -38,6 +38,9 @@
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
 
+/* 'dummy' argument to pass when argument is irrelevant */
+#define V2D_ARG_DUMMY		-1
+
 /* grid-units (for drawing time) */
 #define V2D_UNIT_SECONDS	0
 #define V2D_UNIT_FRAMES		1
@@ -84,7 +87,6 @@ typedef struct View2DScrollers View2DScrollers;
 /* Prototypes:						    */
 
 /* refresh and validation (of view rects) */
-	// XXX rename these...
 void UI_view2d_size_update(struct View2D *v2d, int winx, int winy);
 void UI_view2d_status_enforce(struct View2D *v2d);
 
@@ -97,14 +99,14 @@ void UI_view2d_view_orthoSpecial(const struct bContext *C, struct View2D *v2d, s
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-View2DGrid *UI_view2d_calc_grid(const struct bContext *C, struct View2D *v2d, short unit, short clamp, int winx, int winy);
-void UI_view2d_draw_grid(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
-void UI_view2d_free_grid(View2DGrid *grid);
+View2DGrid *UI_view2d_grid_calc(const struct bContext *C, struct View2D *v2d, short unit, short clamp, int winx, int winy);
+void UI_view2d_grid_draw(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
+void UI_view2d_grid_free(View2DGrid *grid);
 
 /* scrollbar drawing */
-View2DScrollers *UI_view2d_calc_scrollers(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp);
-void UI_view2d_draw_scrollers(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers);
-void UI_view2d_free_scrollers(View2DScrollers *scrollers);
+View2DScrollers *UI_view2d_scrollers_calc(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp);
+void UI_view2d_scrollers_draw(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers);
+void UI_view2d_scrollers_free(View2DScrollers *scrollers);
 
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy);
