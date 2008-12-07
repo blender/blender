@@ -934,7 +934,7 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 /* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *scrollers)
 {
-	const int darker= -40, dark= 0, light= 20, lighter= 50;
+	const int darker= -50, midark= -20, dark= 0, light= 20, lighter= 50;
 	rcti vert, hor;
 	
 	vert= v2d->vert;
@@ -952,12 +952,19 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 			UI_ThemeColorShade(TH_SHADE1, dark);
 			glRecti(scrollers->hor_min,  hor.ymin+2,  scrollers->hor_max,  hor.ymax-2);
 			
-				/* draw lines on either end of 'box' */
-			glLineWidth(2.0);
+			/* draw 'handles' on either end of bar */
+			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
 				UI_ThemeColorShade(TH_SHADE1, darker);
-				sdrawline(scrollers->hor_min, hor.ymin+2, scrollers->hor_min, hor.ymax-2);
-				sdrawline(scrollers->hor_max, hor.ymin+2, scrollers->hor_max, hor.ymax-2);
-			glLineWidth(1.0);
+			else
+				UI_ThemeColorShade(TH_SHADE1, midark);
+			
+			/* 'minimum' handle */
+			glRecti(scrollers->hor_min-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2,  
+					scrollers->hor_min+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2);
+					
+			/* maximum handle */
+			glRecti(scrollers->hor_max-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2,  
+					scrollers->hor_max+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2);
 		}
 		
 		/* scale indicators */
@@ -1044,12 +1051,19 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 			UI_ThemeColorShade(TH_SHADE1, dark);
 			glRecti(vert.xmin+2,  scrollers->vert_min,  vert.xmax-2,  scrollers->vert_max);
 			
-				/* draw lines on either end of 'box' */
-			glLineWidth(2.0);
+			/* draw 'handles' on either end of bar */
+			if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0)
 				UI_ThemeColorShade(TH_SHADE1, darker);
-				sdrawline(vert.xmin+2, scrollers->vert_min, vert.xmax-2, scrollers->vert_min);
-				sdrawline(vert.xmin+2, scrollers->vert_max, vert.xmax-2, scrollers->vert_max);
-			glLineWidth(1.0);
+			else
+				UI_ThemeColorShade(TH_SHADE1, midark);
+			
+			/* 'minimum' handle */
+			glRecti(vert.xmin+2,  scrollers->vert_min-V2D_SCROLLER_HANDLE_SIZE,  
+					vert.xmax-2,  scrollers->vert_min+V2D_SCROLLER_HANDLE_SIZE);
+					
+			/* maximum handle */
+			glRecti(vert.xmin+2,  scrollers->vert_max-V2D_SCROLLER_HANDLE_SIZE,  
+					vert.xmax-2,  scrollers->vert_max+V2D_SCROLLER_HANDLE_SIZE);
 		}
 		
 		/* scale indiators */

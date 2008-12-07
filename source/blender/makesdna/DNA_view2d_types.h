@@ -83,7 +83,7 @@ typedef struct View2D {
 #define V2D_SCROLL_WIDTH	16
 
 /* half the size (in pixels) of scroller 'handles' */
-#define V2D_SCROLLER_HANDLE_SIZE	8
+#define V2D_SCROLLER_HANDLE_SIZE	5
 
 
 /* scroller flags for View2D (v2d->scroll) */
