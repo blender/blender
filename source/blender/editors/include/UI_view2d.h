@@ -49,8 +49,9 @@
 #define V2D_UNIT_SECONDSSEQ	5
 
 /* clamping of grid values to whole numbers */
-#define V2D_GRID_CLAMP		0
-#define V2D_GRID_NOCLAMP	1
+#define V2D_GRID_NOCLAMP	0
+#define V2D_GRID_CLAMP		1
+
 
 /* flags for grid-lines to draw */
 #define V2D_HORIZONTAL_LINES	(1<<0)

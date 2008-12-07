@@ -354,10 +354,7 @@ void UI_view2d_status_enforce(View2D *v2d)
 
 /* ------------------ */
 
-/* Change the size of the maximum viewable area (i.e. 'tot' rect) 
- *	- Currently, caller will need to call UI_status_enforce() after this, 
- *	  with the region width+height to make sure that 'cur' rect is still valid
- */
+/* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 {
 	/* don't do anything if either value is 0 */
@@ -401,6 +398,9 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 		v2d->tot.ymin= -dy;
 		v2d->tot.ymax= dy;
 	}
+	
+	/* make sure that 'cur' rect is in a valid state as a result of these changes */
+	UI_view2d_status_enforce(v2d);
 }
 
 /* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) */
@@ -476,8 +476,8 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 	int winx, winy;
 	
 	/* calculate extents of region */
-	winx= region->winrct.xmax - region->winrct.xmin;
-	winy= region->winrct.ymax - region->winrct.ymin;
+	winx= region->winrct.xmax - region->winrct.xmin + 1;
+	winy= region->winrct.ymax - region->winrct.ymin + 1;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
@@ -839,12 +839,78 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 	}
 	
 	/* get string to print */
-	if (power <= 0) sprintf(str, "%.*f", 1-power, val);
-	else sprintf(str, "%d", (int)floor(val + 0.375));
+	if (unit == V2D_UNIT_SECONDS) {
+		/* SMPTE timecode style:
+		 *	- In general, minutes and seconds should be shown, as most clips will be
+		 *	  within this length. Hours will only be included if relevant.
+		 *	- Only show frames when zoomed in enough for them to be relevant 
+		 *	  (using separator convention of ';' for frames, ala QuickTime).
+		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
+		 */
+		int hours=0, minutes=0, seconds=0, frames=0;
+		char neg[2]= "";
+		
+		/* get values */
+		if (val < 0) {
+			/* correction for negative values */
+			sprintf(neg, "-");
+			val = -val;
+		}
+		if (val >= 3600) {
+			/* hours */
+			/* XXX should we only display a single digit for hours since clips are 
+			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
+			 *	   go against conventions...
+			 */
+			hours= (int)val / 3600;
+			val= fmod(val, 3600);
+		}
+		if (val >= 60) {
+			/* minutes */
+			minutes= (int)val / 60;
+			val= fmod(val, 60);
+		}
+		if (power <= 0) {
+			/* seconds + frames
+			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
+			 *	to cope with 'half' frames, etc., which should be fine in most cases
+			 */
+			seconds= (int)val;
+			frames= (int)floor( ((val - seconds) * FPS) + 0.5f );
+		}
+		else {
+			/* seconds (with pixel offset) */
+			seconds= (int)floor(val + 0.375f);
+		}
+		
+		/* print timecode to temp string buffer */
+		if (power <= 0) {
+			/* include "frames" in display */
+			if (hours) sprintf(str, "%s%02d:%02d:%02d;%02d", neg, hours, minutes, seconds, frames);
+			else if (minutes) sprintf(str, "%s%02d:%02d;%02d", neg, minutes, seconds, frames);
+			else sprintf(str, "%s%d;%02d", neg, seconds, frames);
+		}
+		else {
+			/* don't include 'frames' in display */
+			if (hours) sprintf(str, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
+			else sprintf(str, "%s%02d:%02d", neg, minutes, seconds);
+		}
+	}
+	else {
+		/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
+		if (power <= 0) sprintf(str, "%.*f", 1-power, val);
+		else sprintf(str, "%d", (int)floor(val + 0.375f));
+	}
 	
 	/* get length of string, and adjust printing location to fit it into the horizontal scrollbar */
 	len= strlen(str);
-	if (dir == 'h') x-= 4*len;  // err... why not just half len?
+	if (dir == 'h') {
+		/* seconds/timecode display has slightly longer strings... */
+		if (unit == V2D_UNIT_SECONDS)
+			x-= 3*len;
+		else
+			x-= 4*len;
+	}
 	
 	/* Add degree sympbol to end of string for vertical scrollbar? */
 	if ((dir == 'v') && (unit == V2D_UNIT_DEGREES)) {

@@ -400,9 +400,9 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 		height= rows * ROW_HEIGHT;
 	width= (cols + 1) * COLUMN_WIDTH;
 	
-	/* need to validate view2d after updating size of tot */
+	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, width, height);
-	UI_view2d_status_enforce(v2d);
+	
 	
 	rct.xmin= 0;
 	rct.ymin= -height;
