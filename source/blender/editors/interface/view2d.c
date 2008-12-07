@@ -772,11 +772,9 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollsize= hor.xmax - hor.xmin;
 		
 		fac= (v2d->cur.xmin- v2d->tot.xmin) / totsize;
-		if (fac < 0.0f) fac= 0.0f;
 		scrollers->hor_min= hor.xmin + (fac * scrollsize);
 		
 		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
-		if (fac > 1.0f) fac= 1.0f;
 		scrollers->hor_max= hor.xmin + (fac * scrollsize);
 		
 		if (scrollers->hor_min > scrollers->hor_max) 
@@ -790,11 +788,9 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollsize= vert.ymax - vert.ymin;
 		
 		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
-		if (fac < 0.0f) fac= 0.0f;
 		scrollers->vert_min= vert.ymin + (fac * scrollsize);
 		
-		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
-		if (fac > 1.0f) fac= 1.0f;
+		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;=
 		scrollers->vert_max= vert.ymin + (fac * scrollsize);
 		
 		if (scrollers->vert_min > scrollers->vert_max) 
