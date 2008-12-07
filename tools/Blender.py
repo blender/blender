@@ -457,7 +457,7 @@ class BlenderEnvironment(SConsEnvironment):
 		print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
 		lenv = self.Clone()
 		if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
-			lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
+			lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
 			if lenv['BF_DEBUG']:
 				lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
 		if  lenv['OURPLATFORM']=='linux2':

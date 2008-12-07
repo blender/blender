@@ -183,19 +183,7 @@ CXX_WARN = []
 
 LLIBS = 'ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid'
 
-PLATFORM_LINKFLAGS = '''
-                       /SUBSYSTEM:CONSOLE
-                       /MACHINE:IX86
-                       /ENTRY:mainCRTStartup
-                       /INCREMENTAL:NO
-                       /NODEFAULTLIB:"msvcprt.lib"
-                       /NODEFAULTLIB:"glut32.lib"
-                       /NODEFAULTLIB:"libc.lib"
-                       /NODEFAULTLIB:"libcd.lib"
-                       /NODEFAULTLIB:"libcpd.lib"
-                       /NODEFAULTLIB:"libcp.lib"
-                       /LARGEADDRESSAWARE
-                   '''
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/LARGEADDRESSAWARE']
 
 BF_BUILDDIR = '..\\build\\win32-vc'
 BF_INSTALLDIR='..\\install\\win32-vc'

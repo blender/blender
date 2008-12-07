@@ -284,6 +284,10 @@ if 'blenderlite' in B.targets:
 	env['BF_NO_ELBEEM'] = True
 	env['WITH_BF_PYTHON'] = False
 
+if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-ming'):
+	env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
+	env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
+
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 #B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
 B.root_build_dir = env['BF_BUILDDIR']
