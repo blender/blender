@@ -347,8 +347,7 @@ typedef struct ImagePaintSettings {
 	short flag, tool;
 	
 	/* for projection painting only - todo - use flags */
-	char seam_bleed,normal_angle;
-	short clone_layer;
+	short seam_bleed,normal_angle;
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
@@ -806,8 +805,10 @@ typedef struct Scene {
 #define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
 #define IMAGEPAINT_PROJECT_XRAY			16
 #define IMAGEPAINT_PROJECT_BACKFACE		32
-#define IMAGEPAINT_PROJECT_CLONE_LAYER	64
-#define IMAGEPAINT_PROJECT_FLAT			128
+#define IMAGEPAINT_PROJECT_FLAT			64
+#define IMAGEPAINT_PROJECT_LAYER_CLONE	128
+#define IMAGEPAINT_PROJECT_LAYER_MASK	256
+#define IMAGEPAINT_PROJECT_LAYER_MASK_INV	512
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1

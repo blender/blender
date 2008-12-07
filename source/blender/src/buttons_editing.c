@@ -184,7 +184,7 @@
 
 static float editbutweight= 1.0;
 float editbutvweight= 1;
-static int actmcol= 0, acttface= 0, acttface_rnd = 0, actmcol_rnd = 0;
+static int actmcol= 0, acttface= 0, acttface_rnd = 0, acttface_clone = 0, acttface_mask = 0, actmcol_rnd = 0;
 
 extern ListBase editNurb;
 
@@ -802,9 +802,9 @@ static void delete_customdata_layer(void *data1, void *data2)
 
 static int customdata_buttons(
 	uiBlock *block,	Mesh *me, CustomData *data,
-	int type, int *activep,	int *renderp,
-	int setevt, int setevt_rnd, int newevt,
-	char *label, char *shortlabel, char *browsetip, char *browsetip_rnd,
+	int type, int *activep,	int *renderp, int *clonep, int *maskp,
+	int setevt, int setevt_rnd, int setevt_clone, int setevt_mask, int newevt,
+	char *label, char *shortlabel, char *browsetip, char *browsetip_rnd, char *browsetip_clone, char *browsetip_mask,
 	char *newtip, char *deltip, int x, int y)
 {
 	CustomDataLayer *layer;
@@ -828,12 +828,27 @@ static int customdata_buttons(
 		layer= &data->layers[i];
 
 		if(layer->type == type) {
+			int xi = 0;
 			*activep= layer->active + 1;
 			*renderp= layer->active_rnd + 1;
+			if (clonep) *clonep= layer->active_clone + 1;
+			if (maskp) *maskp= layer->active_mask + 1;
+			
 			
 			uiDefIconButI(block, ROW, setevt, ICON_VIEW3D, x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
 			uiDefIconButI(block, ROW, setevt_rnd, ICON_SCENE, x+25,y,25,19, renderp, 1.0, count, 0, 0, browsetip_rnd);
-			but=uiDefBut(block, TEX, setevt, "", x+50,y,145,19, layer->name, 0.0, 31.0, 0, 0, label);
+			
+			if (clonep) {
+				uiDefIconButI(block, ROW, setevt_clone, ICON_TEXTURE, x+50,y,25,19, clonep, 1.0, count, 0, 0, browsetip_clone);
+				xi += 25;
+			}
+			
+			if (maskp) {
+				uiDefIconButI(block, ROW, setevt_mask, ICON_PAINT, x+50+xi,y,25,19, maskp, 1.0, count, 0, 0, browsetip_mask);
+				xi += 25;
+			}
+			
+			but=uiDefBut(block, TEX, setevt, "", x+50+xi,y,145-xi,19, layer->name, 0.0, 31.0, 0, 0, label);
 			uiButSetFunc(but, verify_customdata_name_func, data, layer);
 			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, deltip);
 			uiButSetFunc(but, delete_customdata_layer, me, layer);
@@ -902,14 +917,14 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 
 	fdata= (G.obedit)? &G.editMesh->fdata: &me->fdata;
-	yco= customdata_buttons(block, me, fdata, CD_MTFACE, &acttface, &acttface_rnd,
-		B_SETTFACE, B_SETTFACE_RND, B_NEWTFACE, "UV Texture", "UV Texture:",
-		"Set active UV texture", "Set rendering UV texture", "Creates a new UV texture layer",
+	yco= customdata_buttons(block, me, fdata, CD_MTFACE, &acttface, &acttface_rnd, (G.f & G_TEXTUREPAINT ? &acttface_clone : NULL), (G.f & G_TEXTUREPAINT ? &acttface_mask : NULL),
+		B_SETTFACE, B_SETTFACE_RND, B_SETTFACE_CLONE, B_SETTFACE_MASK, B_NEWTFACE, "UV Texture", "UV Texture:",
+		"Set active UV texture", "Set rendering UV texture", "Set the layer used for texturepaint cloning", "Set the layer used for texturepaint masking", "Creates a new UV texture layer",
 		"Removes the current UV texture layer", 190, 130);
 
-	yco= customdata_buttons(block, me, fdata, CD_MCOL, &actmcol, &actmcol_rnd,
-		B_SETMCOL, B_SETMCOL_RND, B_NEWMCOL, "Vertex Color", "Vertex Color:",
-		"Sets active vertex color layer", "Sets rendering vertex color layer", "Creates a new vertex color layer",
+	yco= customdata_buttons(block, me, fdata, CD_MCOL, &actmcol, &actmcol_rnd, NULL, NULL,
+		B_SETMCOL, B_SETMCOL_RND, B_NOP, B_NOP, B_NEWMCOL, "Vertex Color", "Vertex Color:",
+		"Sets active vertex color layer", "Sets rendering vertex color layer", "", "", "Creates a new vertex color layer",
 		"Removes the current vertex color layer", 190, yco-5);
 
 	if(yco < 0)
@@ -4964,7 +4979,22 @@ void do_meshbuts(unsigned short event)
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			break;
-			
+		case B_SETTFACE_CLONE:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_clone(fdata, CD_MTFACE, acttface_clone-1);
+				BIF_undo_push("Set Clone UV Texture");
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
+		case B_SETTFACE_MASK:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_mask(fdata, CD_MTFACE, acttface_mask-1);
+				BIF_undo_push("Set Mask UV Texture");
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
 		case B_FLIPNORM:
 			if(G.obedit) {
 				flip_editnormals();
@@ -6387,6 +6417,12 @@ static void editing_panel_mesh_paint(void)
 				
 				uiDefButC(block, NUM, B_NOP, "Bleed: ", xco+10,yco-85,butw,19, &settings->imapaint.seam_bleed, 0.0, 8.0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_LAYER_MASK, B_NOP, "Layer Mask",	xco+10,yco-110,butw-30,19, &settings->imapaint.flag, 0, 0, 0, 0, "Set the mask layer from the UV layer buttons");
+				uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_LAYER_MASK_INV, B_NOP, "Inv",	xco+10 + butw-30,yco-110,30,19, &settings->imapaint.flag, 0, 0, 0, 0, "Invert the mask");
+				uiBlockEndAlign(block);
+				
 			}
 			
 			uiBlockBeginAlign(block);
@@ -6404,33 +6440,11 @@ static void editing_panel_mesh_paint(void)
 			yco -= 110;
 
 			if (settings->imapaint.tool == PAINT_TOOL_CLONE) {
-				Object *ob = OBACT;
-				if (ob) {
-					Mesh *me = ob->data;
-					int layercount = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-					if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
-						
-						butw = 80;
-						uiBlockBeginAlign(block);
-						uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_CLONE_LAYER, B_REDR, "Clone Layer",	0,yco,butw,20, &settings->imapaint.flag, 0, 0, 0, 0, "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
-						
-						if (settings->imapaint.flag & IMAGEPAINT_PROJECT_CLONE_LAYER) {
-							char str_menu[384], *str_pt; /*384 allows for 11 layers */
-							
-							if (settings->imapaint.clone_layer >= layercount) {
-								settings->imapaint.clone_layer = 0;
-							}
-							
-	
-							
-							/*str_pt = (char *)MEM_mallocN(layercount*40 , "uvmenu"); str[0]='\0';*/
-							str_pt = str_menu;
-							str_pt[0]='\0';
-							mesh_layers_menu_concat(&me->fdata, CD_MTFACE, str_pt);
-							uiDefButI(block, MENU, B_NOP, str_menu ,butw,yco,(180-butw) + 20,20, &settings->imapaint.clone_layer, 0, 0, 0, 0, "Active UV Layer for editing");
-						}
-						uiBlockEndAlign(block);
-					}
+				if ((settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0) {
+					butw = 130;
+					uiBlockBeginAlign(block);
+					uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_LAYER_CLONE, B_REDR, "Clone from Layer",	0,yco,butw,20, &settings->imapaint.flag, 0, 0, 0, 0, "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
+					uiBlockEndAlign(block);
 				}
 			} else {
 				uiBlockSetCol(block, TH_BUT_SETTING2);

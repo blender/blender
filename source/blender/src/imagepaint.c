@@ -218,6 +218,7 @@ typedef struct ProjPaintState {
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
 	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
+	MTFace 		   *dm_mtface_mask;
 	
 	/* projection painting only */
 	MemArena *arena_mt[BLENDER_MAX_THREADS];/* for multithreading, the first item is sometimes used for non threaded cases too */
@@ -245,11 +246,15 @@ typedef struct ProjPaintState {
 	float screen_height;
 	
 	/* options for projection painting */
+	int do_layer_clone;
+	int do_layer_mask;
+	int do_layer_mask_inv;
+	
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;			/* mask out pixels based on their normals */
 	float normal_angle; /* what angle to mask at*/
-
+	
 	short is_ortho;
 	short is_airbrush;					/* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
 	short is_texbrush;					/* only to avoid running  */
@@ -258,7 +263,6 @@ typedef struct ProjPaintState {
 #endif
 	/* clone vars */
 	float cloneOffset[2];
-	int clone_layer;			/* -1 when not in use */
 	
 	float projectMat[4][4];		/* Projection matrix, use for getting screen coords */
 	float viewMat[4][4];
@@ -1292,6 +1296,36 @@ static void screen_px_from_persp(
 	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
+static void project_face_pixel(const MTFace *tf_other, ImBuf *ibuf_other, const float w[3], int side, unsigned char rgba_ub[4], float rgba_f[4])
+{
+	float *uvCo1, *uvCo2, *uvCo3;
+	float uv_other[2], x, y;
+	
+	uvCo1 =  (float *)tf_other->uv[0];
+	if (side==1) {
+		uvCo2 =  (float *)tf_other->uv[2];
+		uvCo3 =  (float *)tf_other->uv[3];
+	}
+	else {
+		uvCo2 =  (float *)tf_other->uv[1];
+		uvCo3 =  (float *)tf_other->uv[2];
+	}
+	
+	Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
+	
+	/* use */
+	uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
+	
+	
+	if (ibuf_other->rect_float) { /* from float to float */
+		bilinear_interpolation_color(ibuf_other, NULL, rgba_f, x, y);
+	}
+	else { /* from char to float */
+		bilinear_interpolation_color(ibuf_other, rgba_ub, NULL, x, y);
+	}
+		
+}
+
 /* run this outside project_paint_uvpixel_init since pixels with mask 0 dont need init */
 float project_paint_uvpixel_mask(
 		const ProjPaintState *ps,
@@ -1300,6 +1334,40 @@ float project_paint_uvpixel_mask(
 		const float w[3])
 {
 	float mask, mask_angle;
+	
+	/* Image Mask */
+	if (ps->do_layer_mask) {
+		/* another UV layers image is masking this one's */
+		ImBuf *ibuf_other;
+		const MTFace *tf_other = ps->dm_mtface_mask + face_index;
+		
+		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL))) {
+			/* BKE_image_get_ibuf - TODO - this may be slow */
+			unsigned char rgba_ub[4];
+			float rgba_f[4];
+			
+			project_face_pixel(tf_other, ibuf_other, w, side, rgba_ub, rgba_f);
+			
+			if (ibuf_other->rect_float) { /* from float to float */
+				mask = ((rgba_f[0]+rgba_f[1]+rgba_f[2])/3.0f) * rgba_f[3];
+			}
+			else { /* from char to float */
+				mask = ((rgba_ub[0]+rgba_ub[1]+rgba_ub[2])/(256*3.0f)) * (rgba_ub[3]/256.0f);
+			}
+			
+			if (!ps->do_layer_mask_inv) /* matching the gimps layer mask black/white rules, white==full opacity */
+				mask = (1.0f - mask);
+
+			if (mask == 0.0f) {
+				return 0.0f;
+			}
+		}
+		else {
+			return 0.0f;
+		}
+	} else {
+		mask = 1.0f;
+	}
 	
 	/* calculate mask */
 	if (ps->do_mask_normal) {
@@ -1346,12 +1414,13 @@ float project_paint_uvpixel_mask(
 			angle = NormalizedVecAngle2(viewDirPersp, no);
 		}
 		
-		/*if (angle >= (M_PI_2 / 90) * ps->normal_angle) {
+		if (angle >= (M_PI_2 / 90) * ps->normal_angle) {
 			return 0.0f;
 		}
-		else {*/
+		else {
+			float mask_no;
 #if 0
-			mask = 1.0f - (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask *= 1.0f - (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
 #endif
 			
 			/* trickier method that clips the normal so its more useful */
@@ -1361,15 +1430,14 @@ float project_paint_uvpixel_mask(
 			/*printf("normal_angle : %f \n" ,ps->normal_angle);
 			printf("mask_angle : %f \n" ,mask_angle);*/
 
-			mask = (angle / mask_angle); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
-			mask = (1.0f - (mask * mask * mask)) * 1.4f;
-			if (mask > 1.0f) {
-				mask = 1.0f;
+			mask_no = (angle / mask_angle); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
+			mask_no = (1.0f - (mask_no * mask_no * mask_no)) * 1.4f;
+			if (mask_no > 1.0f) {
+				mask_no = 1.0f;
 			}
-		/*}*/
+			
+			mask *= mask_no;
 		}
-	else {
-		mask = 1.0f;
 	}
 	
 	if (ps->is_airbrush==0) {
@@ -1438,7 +1506,6 @@ static ProjPixel *project_paint_uvpixel_init(
 	/* which bounding box cell are we in?, needed for undo */
 	projPixel->bb_cell_index = ((int)(((float)x_px/(float)ibuf->x) * PROJ_BOUNDBOX_DIV)) + ((int)(((float)y_px/(float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
 	
-	
 	/* done with view3d_project_float inline */
 	if (ps->tool==PAINT_TOOL_CLONE) {
 		if (ps->dm_mtface_clone) {
@@ -1448,48 +1515,24 @@ static ProjPixel *project_paint_uvpixel_init(
 			if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf((Image *)tf_other->tpage, NULL))) {
 				/* BKE_image_get_ibuf - TODO - this may be slow */
 				
-				float *uvCo1, *uvCo2, *uvCo3;
-				float uv_other[2], x, y;
-				
-				uvCo1 =  (float *)tf_other->uv[0];
-				if (side==1) {
-					uvCo2 =  (float *)tf_other->uv[2];
-					uvCo3 =  (float *)tf_other->uv[3];
-				}
-				else {
-					uvCo2 =  (float *)tf_other->uv[1];
-					uvCo3 =  (float *)tf_other->uv[2];
-				}
-				
-				Vec2Weightf(uv_other, uvCo1, uvCo2, uvCo3, w);
-				
-				/* use */
-				uvco_to_wrapped_pxco(uv_other, ibuf->x, ibuf->y, &x, &y);
-				
-				if (x < 0.0f) x += 1.0f;
-				if (y < 0.0f) y += 1.0f;
-				
-				x = x * ibuf_other->x - 0.5f;
-				y = y * ibuf_other->y - 0.5f;
-				
 				if (ibuf->rect_float) {
 					if (ibuf_other->rect_float) { /* from float to float */
-						bilinear_interpolation_color(ibuf_other, NULL, ((ProjPixelClone *)projPixel)->clonepx.f, x, y);
+						project_face_pixel(tf_other, ibuf_other, w, side, NULL, ((ProjPixelClone *)projPixel)->clonepx.f);
 					}
 					else { /* from char to float */
 						unsigned char rgba_ub[4];
-						bilinear_interpolation_color(ibuf_other, rgba_ub, NULL, x, y);
+						project_face_pixel(tf_other, ibuf_other, w, side, rgba_ub, NULL);
 						IMAPAINT_CHAR_RGBA_TO_FLOAT(((ProjPixelClone *)projPixel)->clonepx.f, rgba_ub);
 					}
 				}
 				else {
 					if (ibuf_other->rect_float) { /* float to char */
 						float rgba[4];
-						bilinear_interpolation_color(ibuf_other, NULL, rgba, x, y);
+						project_face_pixel(tf_other, ibuf_other, w, side, NULL, rgba);
 						IMAPAINT_FLOAT_RGBA_TO_CHAR(((ProjPixelClone *)projPixel)->clonepx.ch, rgba)
 					}
 					else { /* char to char */
-						bilinear_interpolation_color(ibuf_other, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL, x, y);
+						project_face_pixel(tf_other, ibuf_other, w, side, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL);
 					}
 				}
 			}
@@ -2853,15 +2896,34 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 	
 	/* use clone mtface? */
 	
-	if (		ps->tool != PAINT_TOOL_CLONE ||
-				ps->clone_layer==-1 ||
-				ps->clone_layer >= CustomData_number_of_layers(&ps->dm->faceData, CD_MTFACE) 
-	) {
-		ps->dm_mtface_clone = NULL;
+	
+	/* Note, use the original mesh for getting the clone and mask layer index
+	 * this avoids re-generating the derived mesh just to get the new index */
+	if (ps->do_layer_clone) {
+		//int layer_num = CustomData_get_clone_layer(&ps->dm->faceData, CD_MTFACE);
+		int layer_num = CustomData_get_clone_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
+		if (layer_num != -1)
+			ps->dm_mtface_clone = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+		
+		if (ps->dm_mtface_clone==NULL || ps->dm_mtface_clone==ps->dm_mtface) {
+			ps->do_layer_clone = 0;
+			ps->dm_mtface_clone= NULL;
+		}
 	}
-	else {
-		ps->dm_mtface_clone = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, ps->clone_layer);
+	
+	if (ps->do_layer_mask) {
+		//int layer_num = CustomData_get_mask_layer(&ps->dm->faceData, CD_MTFACE);
+		int layer_num = CustomData_get_mask_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
+		if (layer_num != -1)
+			ps->dm_mtface_mask = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+		
+		if (ps->dm_mtface_mask==NULL || ps->dm_mtface_mask==ps->dm_mtface) {
+			ps->do_layer_mask = 0;
+			ps->dm_mtface_mask = NULL;
+		}
 	}
+	
+
 	
 	ps->viewDir[0] = 0.0f;
 	ps->viewDir[1] = 0.0f;
@@ -4458,12 +4520,13 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		ps.do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 		ps.do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
 		ps.do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;;
-		if (settings->imapaint.flag & IMAGEPAINT_PROJECT_CLONE_LAYER) {
-			ps.clone_layer = settings->imapaint.clone_layer;
-		}
-		else {
-			ps.clone_layer = -1;
-		}
+		
+		if (ps.tool == PAINT_TOOL_CLONE)
+			ps.do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
+		
+		ps.do_layer_mask = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK) ? 1 : 0;
+		ps.do_layer_mask_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK_INV) ? 1 : 0;
+		
 		
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 		ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
