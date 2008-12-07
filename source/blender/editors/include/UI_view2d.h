@@ -33,13 +33,14 @@
 #define UI_VIEW2D_H
 
 /* ------------------------------------------ */
-/* Settings: 								*/
+/* Settings and Defines: 					*/
 
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
 
 /* 'dummy' argument to pass when argument is irrelevant */
 #define V2D_ARG_DUMMY		-1
+
 
 /* grid-units (for drawing time) */
 #define V2D_UNIT_SECONDS	0

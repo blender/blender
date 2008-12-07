@@ -5078,6 +5078,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
 				ar->v2d.scroll |= V2D_SCROLL_RIGHT;
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y);
 			}
 				break;
 			case SPACE_TIME:

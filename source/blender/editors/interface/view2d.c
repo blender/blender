@@ -732,7 +732,10 @@ void UI_view2d_grid_free(View2DGrid *grid)
 /* *********************************************************************** */
 /* Scrollbars */
 
-/* View2DScrollers is typedef'd in UI_view2d.h */
+/* View2DScrollers is typedef'd in UI_view2d.h 
+ * WARNING: the start of this struct must not change, as view2d_ops.c uses this too. 
+ * 		   For now, we don't need to have a separate (internal) header for structs like this...
+ */
 struct View2DScrollers {	
 		/* focus bubbles */
 	int vert_min, vert_max;	/* vertical scrollbar */
@@ -769,11 +772,11 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollsize= hor.xmax - hor.xmin;
 		
 		fac= (v2d->cur.xmin- v2d->tot.xmin) / totsize;
-		//if (fac < 0.0f) fac= 0.0f;
+		if (fac < 0.0f) fac= 0.0f;
 		scrollers->hor_min= hor.xmin + (fac * scrollsize);
 		
 		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
-		//if (fac > 1.0f) fac= 1.0f;
+		if (fac > 1.0f) fac= 1.0f;
 		scrollers->hor_max= hor.xmin + (fac * scrollsize);
 		
 		if (scrollers->hor_min > scrollers->hor_max) 
@@ -787,11 +790,11 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollsize= vert.ymax - vert.ymin;
 		
 		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
-		//if (fac < 0.0f) fac= 0.0f;
+		if (fac < 0.0f) fac= 0.0f;
 		scrollers->vert_min= vert.ymin + (fac * scrollsize);
 		
 		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
-		//if (fac > 1.0f) fac= 1.0f;
+		if (fac > 1.0f) fac= 1.0f;
 		scrollers->vert_max= vert.ymin + (fac * scrollsize);
 		
 		if (scrollers->vert_min > scrollers->vert_max) 
@@ -806,11 +809,15 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollers->yclamp= yclamp;
 		scrollers->yunits= yunits;
 		
-		/* calculate grid */
-		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)
-			scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
-		else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)
-			scrollers->grid= UI_view2d_grid_calc(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		/* calculate grid only if clamping + units are valid arguments */
+		if ( !((xclamp == V2D_ARG_DUMMY) && (xunits == V2D_ARG_DUMMY) && (yclamp == V2D_ARG_DUMMY) && (yunits == V2D_ARG_DUMMY)) ) { 
+			/* if both axes show scale, give priority to horizontal.. */
+			// FIXME: this doesn't do justice to the vertical scroller calculations...
+			if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)
+				scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+			else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)
+				scrollers->grid= UI_view2d_grid_calc(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
+		}
 	}
 	
 	/* return scrollers */

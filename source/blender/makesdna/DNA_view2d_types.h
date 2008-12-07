@@ -77,11 +77,16 @@ typedef struct View2D {
 	/* within region view2d vertical locking */
 #define V2D_VIEWSYNC_Y		(1<<1)
 
-/* scrollbar thickness */
+
+/* scroller thickness */
 #define V2D_SCROLL_HEIGHT	16
 #define V2D_SCROLL_WIDTH	16
 
-/* scrollbar flags for View2D (v2d->scroll) */
+/* half the size (in pixels) of scroller 'handles' */
+#define V2D_SCROLLER_HANDLE_SIZE	8
+
+
+/* scroller flags for View2D (v2d->scroll) */
 	/* left scrollbar */
 #define V2D_SCROLL_LEFT 			(1<<0)		
 #define V2D_SCROLL_RIGHT 			(1<<1)
@@ -104,7 +109,7 @@ typedef struct View2D {
 
 /* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
 	/* all quadrants free */
-#define V2D_ALIGN_FREE					0
+#define V2D_ALIGN_FREE			0
 	/* horizontal restrictions */
 #define V2D_ALIGN_NO_POS_X		(1<<0)
 #define V2D_ALIGN_NO_NEG_X		(1<<1)
