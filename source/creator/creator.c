@@ -668,13 +668,13 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'P':
-//XXX 
-#if 1
-			// FOR TESTING ONLY
-			a++;
-			BPY_run_python_script (argv[a]);
-#else
+
 #ifndef DISABLE_PYTHON
+				//XXX 
+				// FOR TESTING ONLY
+				a++;
+				BPY_run_python_script (argv[a]);
+#if 0
 				a++;
 				if (a < argc) {
 					/* If we're not running in background mode, then give python a valid screen */
@@ -685,10 +685,10 @@ int main(int argc, char **argv)
 					BPY_run_python_script (argv[a]);
 				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
+#endif
 #else
 				printf("This blender was built without python support\n");
 #endif /* DISABLE_PYTHON */
-#endif
 				break;
 			case 'o':
 				a++;
