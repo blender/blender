@@ -1413,6 +1413,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, size);
+	//memset(projPixel, 0, size);
 	
 	if (ibuf->rect_float) {
 		projPixel->pixel.f_pt = (float *)ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
@@ -1494,10 +1495,10 @@ static ProjPixel *project_paint_uvpixel_init(
 			}
 			else {
 				if (ibuf->rect_float) {
-					((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
+					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
 				}
 				else {
-					((ProjPixelClone *)projPixel)->clonepx.f[3] = 0;
+					((ProjPixelClone *)projPixel)->clonepx.ch[3] = 0;
 				}
 			}
 			
@@ -3869,6 +3870,103 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 	cp[2]= mfac*cp1[2] + fac*cp2[2];
 }
 
+static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
+{
+	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
+	}
+	else {
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+	}
+}
+
+static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
+{
+	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
+	}
+	else {
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+	}
+}
+
+/* do_projectpaint_smear*
+ * 
+ * note, mask is used to modify the alpha here, this is not correct since it allows
+ * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
+ * really that important to be correct as it is with clone and painting 
+ */
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend, MemArena *smearArena, LinkNode **smearPixels, float co[2])
+{
+	unsigned char rgba_ub[4];
+	
+	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
+		return; 
+	
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
+	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
+} 
+
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
+{
+	unsigned char rgba_ub[4];
+	unsigned char rgba_smear[4];
+	
+	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
+		return;
+	
+	IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
+	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
+}
+
+static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
+{
+	unsigned char rgba_ub[4];
+	
+	if (ps->is_texbrush) {
+		rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
+		rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
+		rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
+		rgba_ub[3] = FTOCHAR(rgba[3]);
+	}
+	else {
+		IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
+		rgba_ub[3] = 255;
+	}
+	
+	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
+	}
+	else {
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+	}
+}
+
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend) {
+	if (ps->is_texbrush) {
+		rgba[0] *= ps->brush->rgb[0];
+		rgba[1] *= ps->brush->rgb[1];
+		rgba[2] *= ps->brush->rgb[2];
+	}
+	else {
+		VECCOPY(rgba, ps->brush->rgb);
+	}
+	
+	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
+		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
+	}
+	else {
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
+	}
+}
+
+
+
 /* run this for single and multithreaded painting */
 static void *do_projectpaint_thread(void *ph_v)
 {
@@ -3888,7 +3986,6 @@ static void *do_projectpaint_thread(void *ph_v)
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
 	float rgba[4], alpha, dist, dist_nosqrt;
-	unsigned char rgba_ub[4];
 	
 	float brush_size_sqared;
 	int bucket_index;
@@ -3898,11 +3995,11 @@ static void *do_projectpaint_thread(void *ph_v)
 	rctf bucket_bounds;
 	
 	/* for smear only */
-	char rgba_smear[4];
 	float pos_ofs[2];
 	float co[2];
+	
 	LinkNode *smearPixels = NULL;
-	LinkNode *smearPixels_float = NULL;
+	LinkNode *smearPixels_f = NULL;
 	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
 	
 	
@@ -3925,9 +4022,6 @@ static void *do_projectpaint_thread(void *ph_v)
 			/* No pixels initialized */
 			project_bucket_init(ps, thread_index, bucket_index, &bucket_bounds);
 		}
-		
-		/* TODO - we may want to init clone data in a separate to project_bucket_init
-		 * so we don't go overboard and init too many clone pixels  */
 
 		for (node = ps->bucketRect[bucket_index]; node; node = node->next) {
 			
@@ -3969,102 +4063,25 @@ static void *do_projectpaint_thread(void *ph_v)
 					case PAINT_TOOL_CLONE:
 						if (is_floatbuf) {
 							if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-								
-								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-									IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
-									blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
-								}
-								else {
-									IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
-								}
+								do_projectpaint_clone_f(ps, projPixel, rgba, alpha, blend);
 							}
 						}
 						else {
-							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
-								if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-									projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-									blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
-								}
-								else {
-									*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-								}
+							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
+								do_projectpaint_clone(ps, projPixel, rgba, alpha, blend);
 							}
 						}
 						break;
 					case PAINT_TOOL_SMEAR:
 						Vec2Subf(co, projPixel->projCoSS, pos_ofs);
-						if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)) {
-							
-							/* note, mask is used to modify the alpha here, this is not correct since it allows
-							 * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
-							 * really that important to be correct as it is with clone and painting 
-							 */ 
-							
-							/* drat! - this could almost be very simple if we ignore
-							 * the fact that applying the color directly gives feedback,
-							 * instead, collect the colors and apply after :/ */
-							
-#if 0						/* looks OK but not correct - also would need float buffer */
-							*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*256), blend);
-#endif
-							
-							/* add to memarena instead */
-							if (is_floatbuf) {
-								/* TODO FLOAT */ /* Smear wont do float properly yet */
-								/* Note, alpha*255 makes pixels darker */
-								IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
-								BLI_linklist_prepend_arena(&smearPixels_float, (void *)projPixel, smearArena);
-							}
-							else {
-								((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
-								BLI_linklist_prepend_arena(&smearPixels, (void *)projPixel, smearArena);
-							}
-						}
+						
+						if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, blend, smearArena, &smearPixels_f, co);
+						else				do_projectpaint_smear(ps, projPixel, rgba, alpha, blend, smearArena, &smearPixels, co);
 						break;
 					default:
-						if (is_floatbuf) {
-							if (ps->is_texbrush) {
-								rgba[0] *= ps->brush->rgb[0];
-								rgba[1] *= ps->brush->rgb[1];
-								rgba[2] *= ps->brush->rgb[2];
-							}
-							else {
-								VECCOPY(rgba, ps->brush->rgb);
-							}
-							
-							if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-								IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
-								blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
-							}
-							else {
-								IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
-							}
-							
-						}
-						else {
-							
-							if (ps->is_texbrush) {
-								rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
-								rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
-								rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
-								rgba_ub[3] = FTOCHAR(rgba[3]);
-							}
-							else {
-								IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
-								rgba_ub[3] = 255;
-							}
-							
-							if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-								projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-								blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
-							}
-							else {
-								*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-							}
-						}
+						if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, blend);
+						else				do_projectpaint_draw(ps, projPixel, rgba, alpha, blend);
 						break;
-						
 					}
 				}
 				/* done painting */
@@ -4080,7 +4097,7 @@ static void *do_projectpaint_thread(void *ph_v)
 			*projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint;
 		}
 		
-		for (node= smearPixels_float; node; node= node->next) { /* this wont run for a float image */
+		for (node= smearPixels_f; node; node= node->next) { /* this wont run for a float image */
 			projPixel = node->link;
 			IMAPAINT_CHAR_RGBA_TO_FLOAT(projPixel->pixel.f_pt,  ((ProjPixelClone *)projPixel)->clonepx.ch);
 			node = node->next;
@@ -4433,6 +4450,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		}
 	}
 	
+	getmouseco_areawin(mval); /* make sure this runs before project_paint_begin() */
+	
 	/* note, if we have no UVs on the derived mesh, then we must return here */
 	if (project) {
 		/* setup projection painting data */
@@ -4463,8 +4482,6 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 	/* create painter and paint once */
 	painter= brush_painter_new(s.brush);
-
-	getmouseco_areawin(mval);
 
 	pressure = get_pressure();
 	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
