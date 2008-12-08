@@ -77,6 +77,7 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_sound.h"
 
 #include "BLI_editVert.h"
@@ -166,6 +167,7 @@ void pushpop_test()
 
 /* ********** free ********** */
 
+/* only to be called on exit blender */
 void free_blender(void)
 {
 	/* samples are in a global list..., also sets G.main->sound->sample NULL */
@@ -174,6 +176,8 @@ void free_blender(void)
 	free_main(G.main);
 	G.main= NULL;
 
+	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
+	
 	IMB_freeImBufdata();		/* imbuf lib */
 	
 	free_nodesystem();	

@@ -36,6 +36,8 @@
 struct wmWindowManager;
 struct wmWindow;
 struct wmNotifier;
+struct SpaceType;
+struct AreagionType;
 
 /* regions */
 void	ED_region_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ARegion *ar);
@@ -48,6 +50,7 @@ void	ED_region_pixelspace(const struct bContext *C, ARegion *ar);
 /* spaces */
 void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
+struct ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);

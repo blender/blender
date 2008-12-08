@@ -66,17 +66,21 @@ enum {
 };
 
 
+/* wm_event_system.c */
 void		wm_event_add(wmWindow *win, wmEvent *event_to_add);
 void		wm_event_free_all		(wmWindow *win);
 wmEvent		*wm_event_next			(wmWindow *win);
 
-/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
+			/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void		wm_event_do_handlers	(bContext *C);
 
 void		wm_event_add_ghostevent(wmWindow *win, int type, void *customdata);
 
 void		wm_event_do_notifiers	(bContext *C);
 void		wm_draw_update			(bContext *C);
+
+/* wm_keymap.c */
+
 
 #endif /* WM_EVENT_SYSTEM_H */
 

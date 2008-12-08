@@ -190,6 +190,7 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 								 0 /* no stereo */);
 	
 	if (ghostwin) {
+		ListBase *keymap;
 		
 		win->ghostwin= ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win);	/* pointer back */
@@ -197,9 +198,12 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 		if(win->eventstate==NULL)
 			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
-		/* add keymap handlers (1 for all keys in map!) */
-		WM_event_add_keymap_handler(&win->handlers, &wm->windowkeymap);
-		WM_event_add_keymap_handler(&win->handlers, &wm->screenkeymap);
+		/* add keymap handlers (1 handler for all keys in map!) */
+		keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+		WM_event_add_keymap_handler(&win->handlers, keymap);
+
+		keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+		WM_event_add_keymap_handler(&win->handlers, keymap);
 		
 		/* until screens get drawn, make it nice grey */
 		glClearColor(.55, .55, .55, 0.0);

@@ -31,8 +31,11 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+
 #include "BLI_blenlib.h"
 
 #include "BKE_screen.h"
@@ -41,8 +44,26 @@
 #include "BPY_extern.h"
 #endif
 
+/* ************ Spacetype/regiontype handling ************** */
+
 /* keep global; this has to be accessible outside of windowmanager */
 static ListBase spacetypes= {NULL, NULL};
+
+/* not SpaceType itself */
+static void spacetype_free(SpaceType *st)
+{
+	BLI_freelistN(&st->regiontypes);
+}
+
+void BKE_spacetypes_free(void)
+{
+	SpaceType *st;
+	
+	for(st= spacetypes.first; st; st= st->next)
+		spacetype_free(st);
+	
+	BLI_freelistN(&spacetypes);
+}
 
 SpaceType *BKE_spacetype_from_id(int spaceid)
 {
@@ -62,8 +83,20 @@ const ListBase *BKE_spacetypes_list()
 
 void BKE_spacetype_register(SpaceType *st)
 {
+	SpaceType *stype;
+	
+	/* sanity check */
+	stype= BKE_spacetype_from_id(st->spaceid);
+	if(stype) {
+		printf("error: redefinition of spacetype %s\n", stype->name);
+		spacetype_free(stype);
+		MEM_freeN(stype);
+	}
+	
 	BLI_addtail(&spacetypes, st);
 }
+
+/* ***************** Space handling ********************** */
 
 void BKE_spacedata_freelist(ListBase *lb)
 {

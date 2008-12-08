@@ -347,20 +347,20 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	}
 }
 
-static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *km)
+static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
 	
-	if(winevent->type!=km->type) return 0;
+	if(winevent->type!=kmi->type) return 0;
 	
-	if(km->val!=KM_ANY)
-		if(winevent->val!=km->val) return 0;
+	if(kmi->val!=KM_ANY)
+		if(winevent->val!=kmi->val) return 0;
 	
-	if(winevent->shift!=km->shift) return 0;
-	if(winevent->ctrl!=km->ctrl) return 0;
-	if(winevent->alt!=km->alt) return 0;
-	if(winevent->oskey!=km->oskey) return 0;
-	if(km->keymodifier)
-		if(winevent->keymodifier!=km->keymodifier) return 0;
+	if(winevent->shift!=kmi->shift) return 0;
+	if(winevent->ctrl!=kmi->ctrl) return 0;
+	if(winevent->alt!=kmi->alt) return 0;
+	if(winevent->oskey!=kmi->oskey) return 0;
+	if(kmi->keymodifier)
+		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	/* optional boundbox */
 	
@@ -449,14 +449,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			action= WM_HANDLER_BREAK;
 
 		if(handler->keymap) {
-			wmKeymapItem *km;
+			wmKeymapItem *kmi;
 			
-			for(km= handler->keymap->first; km; km= km->next) {
-				if(wm_eventmatch(event, km)) {
+			for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
+				if(wm_eventmatch(event, kmi)) {
 					/* if(event->type!=MOUSEMOVE)
-						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, km->idname); */
+						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); */
 					
-					event->keymap_idname= km->idname;	/* weak, but allows interactive callback to not use rawkey */
+					event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 					
 					action= wm_handler_operator_call(C, handlers, handler, event);
 					if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */

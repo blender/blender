@@ -3511,8 +3511,8 @@ void ui_operatortypes(void)
 
 void UI_keymap(wmWindowManager *wm)
 {
-	ui_operatortypes();
+	ListBase *keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
 
-	WM_keymap_add_item(&wm->uikeymap, "ED_UI_OT_button_activate", MOUSEMOVE, 0, 0, 0);
+	WM_keymap_add_item(keymap, "ED_UI_OT_button_activate", MOUSEMOVE, 0, 0, 0);
 }
 

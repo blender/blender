@@ -52,6 +52,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_area.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -496,37 +497,27 @@ static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 	ARegion *ar;
 	
 	/* link area to SpaceXXX struct */
+	sa->type= BKE_spacetype_from_id(SPACE_OOPS);
 
 	/* add handlers to area */
 	/* define how many regions, the order and types */
 	
-	/* add types to regions */
+	/* add types to regions, check handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW) {
-			static ARegionType mainart={NULL, NULL, NULL, NULL, NULL};
+		
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); /* XXX fix type and id */
 
-			mainart.draw= outliner_main_area_draw;
-			mainart.free= outliner_main_area_free;
+		if(ar->handlers.first==NULL) {
+			ListBase *keymap;
+			
+			/* XXX fixme, should be smarter */
+			
+			keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
+			WM_event_add_keymap_handler(&ar->handlers, keymap);
+			
+			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+			WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-			ar->type= &mainart;
-
-			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
-			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap);
-		}
-		else if(ar->regiontype == RGN_TYPE_HEADER) {
-			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
-
-			headerart.draw= outliner_header_area_draw;
-			headerart.free= outliner_header_area_free;
-
-			ar->type= &headerart;
-
-			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
-			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap);
-		}
-		else {
-			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
-			ar->type= &headerart;
 		}
 	}
 }
@@ -551,18 +542,37 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 /* only called once, from screen/spacetypes.c */
 void ED_spacetype_outliner(void)
 {
-	static SpaceType st;
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
+	ARegionType *art;
 	
-	st.spaceid= SPACE_OOPS;
+	st->spaceid= SPACE_OOPS;
+	strncpy(st->name, "Outliner", BKE_ST_MAXNAME);
 	
-	st.new= outliner_new;
-	st.free= outliner_free;
-	st.init= outliner_init;
-	st.refresh= outliner_refresh;
-	st.duplicate= outliner_duplicate;
-	st.operatortypes= outliner_operatortypes;
-	st.keymap= outliner_keymap;
+	st->new= outliner_new;
+	st->free= outliner_free;
+	st->init= outliner_init;
+	st->refresh= outliner_refresh;
+	st->duplicate= outliner_duplicate;
+	st->operatortypes= outliner_operatortypes;
+	st->keymap= outliner_keymap;
 	
-	BKE_spacetype_register(&st);
+	/* regions: main window */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_WINDOW;
+	
+	art->draw= outliner_main_area_draw;
+	art->free= outliner_main_area_free;
+	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: header */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_HEADER;
+	
+	art->draw= outliner_header_area_draw;
+	art->free= outliner_header_area_free;
+	BLI_addhead(&st->regiontypes, art);
+	
+	
+	BKE_spacetype_register(st);
 }
 

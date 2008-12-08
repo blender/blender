@@ -66,13 +66,8 @@ typedef struct wmWindowManager {
 
 	ListBase reports;		/* information and error reports */
 	
-	/* custom keymaps */
-	ListBase windowkeymap;
-	ListBase screenkeymap;
-	ListBase view2dkeymap;
-	ListBase uikeymap;
-	ListBase timekeymap;
-	/* keymaps have to be NULLed in readfile.c */
+	/* used keymaps, optionally/partially saved */
+	ListBase keymaps;
 	
 } wmWindowManager;
 
@@ -156,6 +151,19 @@ typedef struct wmKeymapItem {
 	
 	short pad;
 } wmKeymapItem;
+
+#define KMAP_MAX_NAME	64
+
+/* stored in WM, the actively used keymaps */
+typedef struct wmKeyMap {
+	struct wmKeyMap *next, *prev;
+	
+	ListBase keymap;
+	
+	char nameid[64];	/* global editor keymaps, or for more per space/region */
+	int spaceid;	/* same IDs as in DNA_space_types.h */
+	int regionid;   /* see above */
+} wmKeyMap;
 
 
 /* this one is the operator itself, stored in files for macros etc */

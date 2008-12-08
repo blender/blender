@@ -40,13 +40,15 @@ struct wmWindowManager;
 struct ListBase;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
-spacetypes_init() in editors/area/spacetypes.c   */
+   ED_spacetypes_init() in editors/area/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
+
+#define BKE_ST_MAXNAME	32
 
 typedef struct SpaceType {
 	struct SpaceType *next, *prev;
 	
-	char			name[32];					/* for menus */
+	char			name[BKE_ST_MAXNAME];		/* for menus */
 	int				spaceid;					/* unique space identifier */
 	int				iconid;						/* icon lookup for menus */
 	
@@ -56,7 +58,7 @@ typedef struct SpaceType {
 	void		(*free)(struct SpaceLink *);
 	
 	/* init is to cope with internal contextual changes, adds handlers,
-	 * sets screarea regions */
+	 * creates/sets screarea regions */
 	void		(*init)(struct wmWindowManager *, struct ScrArea *);
 	/* refresh is for external bContext changes */
 	void		(*refresh)(struct bContext *, struct ScrArea *);
@@ -66,23 +68,35 @@ typedef struct SpaceType {
 
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
-	/* add default items to keymap */
+	/* add default items to WM keymap */
 	void		(*keymap)(struct wmWindowManager *);
 
+	/* region type definitions */
+	ListBase	regiontypes;
+	
 	/* read and write... */
 	
 } SpaceType;
 
-/* region type gets allocated and freed in spacetype init/free callback */
-/* data storage for regions is in space struct (also width/height of regions!) */
+/* region types are also defined using spacetypes_init, via a callback */
+
 typedef struct ARegionType {
+	struct ARegionType *next, *prev;
+	
+	int			regionid;	/* unique identifier within this space */
 	
 	void		(*init)(const struct bContext *, struct ARegion *);		/* add handlers, stuff you only do once or on area/region changes */
-	void		(*refresh)(const struct bContext *, struct ARegion *);		/* refresh to match contextual changes */
+	void		(*refresh)(const struct bContext *, struct ARegion *);	/* refresh to match contextual changes */
 	void		(*draw)(const struct bContext *, struct ARegion *);		/* draw entirely, windowsize changes should be handled here */
 	
 	void		(*listener)(struct ARegion *, struct wmNotifier *);
 	void		(*free)(struct ARegion *);
+
+	/* register operator types on startup */
+	void		(*operatortypes)(void);
+	/* add default items to keymap */
+	void		(*keymap)(struct wmWindowManager *);
+	
 } ARegionType;
 
 
@@ -90,9 +104,13 @@ void BKE_screen_area_free(struct ScrArea *sa);
 void BKE_area_region_free(struct ARegion *ar);
 void free_screen(struct bScreen *sc); 
 
+/* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
+void BKE_spacetypes_free(void);	/* only for quitting blender */
+
+/* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
 

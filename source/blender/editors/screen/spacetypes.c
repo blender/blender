@@ -43,8 +43,20 @@
 
 #include "screen_intern.h"	/* own module include */
 
+ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
+{
+	ARegionType *art;
+	
+	for(art= st->regiontypes.first; art; art= art->next)
+		if(art->regionid==regionid)
+			return art;
+	
+	printf("Error, region type missing in %s\n", st->name);
+	return st->regiontypes.first;
+}
 
-/* only call once on startup, storage is static data (no malloc!) in kernel listbase */
+
+/* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
 {
 	const ListBase *spacetypes;
@@ -59,13 +71,17 @@ void ED_spacetypes_init(void)
 	
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
-
+	ui_operatortypes();
+	ui_view2d_operatortypes();
+	
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)
 		type->operatortypes();
 }
 
 /* called in wm.c */
+/* keymap definitions are registered only once per WM initialize, usually on file read,
+   using the keymap the actual areas/regions add the handlers */
 void ED_spacetypes_keymap(wmWindowManager *wm)
 {
 	const ListBase *spacetypes;

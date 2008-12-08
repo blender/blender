@@ -67,6 +67,10 @@ void		WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
+ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid, 
+								 int spaceid, int regionid);
+
+
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 

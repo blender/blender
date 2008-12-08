@@ -277,7 +277,7 @@ static void ui_tooltip_region_free(ARegion *ar)
 
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 {
-	static ARegionType type={NULL, NULL, NULL, NULL, NULL};
+	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
 	int x1, x2, y1, y2, winx, winy;
@@ -288,6 +288,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create area region */
 	ar= ui_add_temporary_region(C->window->screen);
 
+	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_tooltip_region_draw;
 	type.free= ui_tooltip_region_free;
 	ar->type= &type;
@@ -596,7 +597,8 @@ static void ui_block_region_free(ARegion *ar)
 
 uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockFuncFP block_func, void *arg)
 {
-	static ARegionType type={NULL, NULL, NULL, NULL, NULL};
+	static ARegionType type;
+	ListBase *keymap= WM_keymap_listbase(C->wm, "Interface", 0, 0);
 	ARegion *ar;
 	uiBlock *block;
 	uiBut *bt;
@@ -609,11 +611,12 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	/* create area region */
 	ar= ui_add_temporary_region(C->window->screen);
 
+	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_block_region_draw;
 	type.free= ui_block_region_free;
 	ar->type= &type;
 
-	WM_event_add_keymap_handler(&ar->handlers, &C->wm->uikeymap);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	handle->region= ar;
 	ar->regiondata= handle;

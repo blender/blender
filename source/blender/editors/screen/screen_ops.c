@@ -1327,14 +1327,16 @@ void ED_operatortypes_screen(void)
 /* called in spacetypes.c */
 void ED_keymap_screen(wmWindowManager *wm)
 {
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_verify_item(&wm->screenkeymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }
 

@@ -352,10 +352,12 @@ void wm_operatortype_init(void)
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmWindowManager *wm)
 {
+	ListBase *keymap= WM_keymap_listbase(wm, "Window", 0, 0);
+	
 	/* note, this doesn't replace existing keymap items */
-	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->windowkeymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
 

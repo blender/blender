@@ -36,10 +36,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
 #include "ED_area.h"
+#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -226,52 +229,38 @@ static void time_free(SpaceLink *sl)
 {
 }
 
+
 /* spacetype; init callback */
+/* init is called to (re)initialize an existing editor (file read, screen changes) */
 static void time_init(wmWindowManager *wm, ScrArea *sa)
 {
 	ARegion *ar;
 	
 	/* link area to SpaceXXX struct */
+	sa->type= BKE_spacetype_from_id(SPACE_TIME);
 
 	/* add handlers to area */
 	/* define how many regions, the order and types */
 	
-	/* add types to regions */
+	/* add types to regions, check handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype == RGN_TYPE_WINDOW) {
-			static ARegionType mainart={NULL, NULL, NULL, NULL, NULL};
-
-			mainart.init= time_main_area_init;
-			mainart.refresh= time_main_area_refresh;
-			mainart.draw= time_main_area_draw;
-			mainart.listener= time_main_area_listener;
-
-			ar->type= &mainart;
-
-			/* XXX the windowmanager may not be the best place to keep these
-			 * keymaps, and this function callback may not be the best one
-			 * to add the keymap handler, also will need to take care of
-			 * area type changes, etc, basically space callbacks need to
-			 * be looked at further */
-			WM_event_remove_keymap_handler(&ar->handlers, &wm->timekeymap);
-			WM_event_add_keymap_handler(&ar->handlers, &wm->timekeymap);
-			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap); // XXX this should be added automatically!
-		}
-		else if(ar->regiontype == RGN_TYPE_HEADER) {
-			static ARegionType headerart={NULL, NULL, NULL, NULL, NULL};
-
-			headerart.draw= time_header_area_draw;
-			headerart.free= time_header_area_free;
-
-			ar->type= &headerart;
-			WM_event_add_keymap_handler(&ar->handlers, &wm->uikeymap);
-			WM_event_add_keymap_handler(&ar->handlers, &wm->view2dkeymap); // XXX this should be added automatically!
-		}
-		else {
-			static ARegionType art={NULL, NULL, NULL, NULL, NULL};
-
-			/* for time being; register 1 type */
-			ar->type= &art;
+		
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); /* XXX fix type and id */
+		
+		if(ar->handlers.first==NULL) {
+			ListBase *keymap;
+			
+			/* XXX fixme, should be smarter */
+			
+			keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
+			WM_event_add_keymap_handler(&ar->handlers, keymap);
+			
+			/* own keymap */
+			keymap= WM_keymap_listbase(wm, "TimeLine", sa->spacetype, 0);
+			WM_event_add_keymap_handler(&ar->handlers, keymap);
+			
+			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+			WM_event_add_keymap_handler(&ar->handlers, keymap);
 		}
 	}
 }
@@ -291,20 +280,42 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 }
 
 /* only called once, from screen/spacetypes.c */
+/* it defines all callbacks to maintain spaces */
 void ED_spacetype_time(void)
 {
-	static SpaceType st;
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
+	ARegionType *art;
 	
-	st.spaceid= SPACE_TIME;
+	st->spaceid= SPACE_TIME;
+	strncpy(st->name, "Timeline", BKE_ST_MAXNAME);
 	
-	st.new= time_new;
-	st.free= time_free;
-	st.init= time_init;
-	st.refresh= time_refresh;
-	st.duplicate= time_duplicate;
-	st.operatortypes= time_operatortypes;
-	st.keymap= time_keymap;
+	st->new= time_new;
+	st->free= time_free;
+	st->init= time_init;
+	st->refresh= time_refresh;
+	st->duplicate= time_duplicate;
+	st->operatortypes= time_operatortypes;
+	st->keymap= time_keymap;
 	
-	BKE_spacetype_register(&st);
+	/* regions: main window */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_WINDOW;
+
+	art->init= time_main_area_init;
+	art->refresh= time_main_area_refresh;
+	art->draw= time_main_area_draw;
+	art->listener= time_main_area_listener;
+	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: header */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_HEADER;
+	
+	art->draw= time_header_area_draw;
+	art->free= time_header_area_free;
+	BLI_addhead(&st->regiontypes, art);
+	
+	
+	BKE_spacetype_register(st);
 }
 

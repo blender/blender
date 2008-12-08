@@ -185,18 +185,18 @@ void view3d_keymap(struct wmWindowManager *wm)
 /* only called once, from screen/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
-	static SpaceType st;
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
 	
-	st.spaceid= SPACE_VIEW3D;
+	st->spaceid= SPACE_VIEW3D;
 	
-	st.new= view3d_new;
-	st.free= view3d_free;
-	st.init= view3d_init;
-	st.refresh= view3d_refresh;
-	st.duplicate= view3d_duplicate;
-	st.operatortypes= view3d_operatortypes;
-	st.keymap= view3d_keymap;
+	st->new= view3d_new;
+	st->free= view3d_free;
+	st->init= view3d_init;
+	st->refresh= view3d_refresh;
+	st->duplicate= view3d_duplicate;
+	st->operatortypes= view3d_operatortypes;
+	st->keymap= view3d_keymap;
 	
-	BKE_spacetype_register(&st);
+	BKE_spacetype_register(st);
 }
 

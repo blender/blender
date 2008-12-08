@@ -213,24 +213,26 @@ void time_operatortypes(void)
 
 void time_keymap(wmWindowManager *wm)
 {
-	WM_keymap_verify_item(&wm->timekeymap, "ED_TIME_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_TIME_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);
+	
+	WM_keymap_verify_item(keymap, "ED_TIME_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_TIME_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
 	
 
 	/* markers (XXX move to function?) */
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(&wm->timekeymap, "ED_MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(&wm->timekeymap, "ED_MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 						  
 	/* generates event, in end to make select work */
-	WM_keymap_verify_item(&wm->timekeymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
 	
 }
 

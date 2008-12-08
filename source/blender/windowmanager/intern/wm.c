@@ -136,6 +136,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	wmWindow *win;
 	wmOperator *op;
 	wmReport *report;
+	wmKeyMap *km;
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
@@ -152,11 +153,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		wm_report_free(report);
 	}
 
-	BLI_freelistN(&wm->timekeymap);
-	BLI_freelistN(&wm->view2dkeymap);
-	BLI_freelistN(&wm->uikeymap);
-	BLI_freelistN(&wm->windowkeymap);
-	BLI_freelistN(&wm->screenkeymap);
+	while((km= wm->keymaps.first)) {
+		BLI_freelistN(&km->keymap);
+		BLI_remlink(&wm->keymaps, km);
+		MEM_freeN(km);
+	}
 	
 	BLI_freelistN(&wm->queue);
 	

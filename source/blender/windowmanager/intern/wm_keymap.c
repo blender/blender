@@ -47,45 +47,45 @@
 
 /* ***************** generic call, exported **************** */
 
-static void keymap_set(wmKeymapItem *km, short type, short val, int modifier, short keymodifier)
+static void keymap_set(wmKeymapItem *kmi, short type, short val, int modifier, short keymodifier)
 {
-	km->type= type;
-	km->val= val;
-	km->keymodifier= keymodifier;
+	kmi->type= type;
+	kmi->val= val;
+	kmi->keymodifier= keymodifier;
 	
 	if(modifier & KM_SHIFT)
-		km->shift= 1;
+		kmi->shift= 1;
 	else if(modifier & KM_SHIFT2)
-		km->shift= 2;
+		kmi->shift= 2;
 	if(modifier & KM_CTRL)
-		km->ctrl= 1;
+		kmi->ctrl= 1;
 	else if(modifier & KM_CTRL2)
-		km->ctrl= 2;
+		kmi->ctrl= 2;
 	if(modifier & KM_ALT)
-		km->alt= 1;
+		kmi->alt= 1;
 	else if(modifier & KM_ALT2)
-		km->alt= 2;
+		kmi->alt= 2;
 	if(modifier & KM_OSKEY)
-		km->oskey= 1;
+		kmi->oskey= 1;
 	else if(modifier & KM_OSKEY2)
-		km->oskey= 2;	
+		kmi->oskey= 2;	
 }
 
 /* if item was added, then bail out */
 void WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
-	wmKeymapItem *km;
+	wmKeymapItem *kmi;
 	
-	for(km= lb->first; km; km= km->next)
-		if(strncmp(km->idname, idname, OP_MAX_TYPENAME)==0)
+	for(kmi= lb->first; kmi; kmi= kmi->next)
+		if(strncmp(kmi->idname, idname, OP_MAX_TYPENAME)==0)
 			break;
-	if(km==NULL) {
-		km= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	if(kmi==NULL) {
+		kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 		
-		BLI_addtail(lb, km);
-		BLI_strncpy(km->idname, idname, OP_MAX_TYPENAME);
+		BLI_addtail(lb, kmi);
+		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
-		keymap_set(km, type, val, modifier, keymodifier);
+		keymap_set(kmi, type, val, modifier, keymodifier);
 	}
 	
 }
@@ -93,30 +93,55 @@ void WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, in
 /* if item was added, then replace */
 void WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
-	wmKeymapItem *km;
+	wmKeymapItem *kmi;
 	
-	for(km= lb->first; km; km= km->next)
-		if(strncmp(km->idname, idname, OP_MAX_TYPENAME)==0)
+	for(kmi= lb->first; kmi; kmi= kmi->next)
+		if(strncmp(kmi->idname, idname, OP_MAX_TYPENAME)==0)
 			break;
-	if(km==NULL) {
-		km= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	if(kmi==NULL) {
+		kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 	
-		BLI_addtail(lb, km);
-		BLI_strncpy(km->idname, idname, OP_MAX_TYPENAME);
+		BLI_addtail(lb, kmi);
+		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 	}
-	keymap_set(km, type, val, modifier, keymodifier);
+	keymap_set(kmi, type, val, modifier, keymodifier);
 }
 
 /* always add item */
 void WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
-	wmKeymapItem *km= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 	
-	BLI_addtail(lb, km);
-	BLI_strncpy(km->idname, idname, OP_MAX_TYPENAME);
+	BLI_addtail(lb, kmi);
+	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-	keymap_set(km, type, val, modifier, keymodifier);
+	keymap_set(kmi, type, val, modifier, keymodifier);
 }
 
+/* ****************** storage in WM ************ */
 
+/* name id's are for storing general or multiple keymaps, 
+   space/region ids are same as DNA_space_types.h */
+/* gets free'd in wm.c */
+
+ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spaceid, int regionid)
+{
+	wmKeyMap *km;
+	
+	for(km= wm->keymaps.first; km; km= km->next)
+		if(km->spaceid==spaceid && km->regionid==regionid)
+			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
+				break;
+
+	if(km==NULL) {
+		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
+		BLI_strncpy(km->nameid, nameid, KMAP_MAX_NAME);
+		km->spaceid= spaceid;
+		km->regionid= regionid;
+		printf("added keymap %s %d %d\n", nameid, spaceid, regionid);
+		BLI_addtail(&wm->keymaps, km);
+	}
+	
+	return &km->keymap;
+}
 
