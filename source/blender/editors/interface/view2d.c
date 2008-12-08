@@ -790,7 +790,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
 		scrollers->vert_min= vert.ymin + (fac * scrollsize);
 		
-		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;=
+		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
 		scrollers->vert_max= vert.ymin + (fac * scrollsize);
 		
 		if (scrollers->vert_min > scrollers->vert_max) 
