@@ -875,9 +875,14 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 {
 	short in_min, in_max;
 	
-	/* firstly, check if 'bubble' fills entire scroller */
-	// XXX this isn't so good for anim-editors...
-	if ((sh_min <= sc_min) && (sh_max >= sc_max)) {
+	/* firstly, check if 
+	 *	- 'bubble' fills entire scroller 
+	 *	- 'bubble' completely out of view on either side 
+	 */
+	if ( ((sh_min <= sc_min) && (sh_max >= sc_max)) ||
+		 ((sh_min <= sc_min) && (sh_max <= sc_max)) ||
+		 ((sh_min >= sc_max) && (sh_max >= sc_max)) ) 
+	{
 		/* use midpoint to determine which handle to use (favour 'max' handle) */
 		if (mouse >= ((sc_max + sc_min) / 2)) 
 			return SCROLLHANDLE_MAX;
@@ -1157,7 +1162,7 @@ void UI_view2d_keymap(wmWindowManager *wm)
 {
 	ui_view2d_operatortypes();
 	
-	/* pan/scroll operators */
+	/* pan/scroll */
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(&wm->view2dkeymap, "ED_View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_ANY, KM_CTRL, 0);
