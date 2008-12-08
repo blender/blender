@@ -872,7 +872,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 	BLO_write_file(C, tstr, write_flags, &err);
 	
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 void WM_write_autosave(bContext *C)

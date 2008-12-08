@@ -74,11 +74,6 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
 	int tot;
 
-	if(op->ptr) {
-	//	MEM_freeN(op->ptr);
-	//	op->ptr= NULL;
-	}
-	
 	BLI_addtail(&wm->operators, op);
 	tot= BLI_countlist(&wm->operators);
 	
@@ -130,7 +125,7 @@ void wm_add_default(bContext *C)
 }
 
 
-/* context is allowed to be NULL, do net free wm itself (library.c) */
+/* context is allowed to be NULL, do not free wm itself (library.c) */
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
 	wmWindow *win;
