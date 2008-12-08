@@ -310,11 +310,9 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 			wm_operator_register(C->wm, op);
-			handler->op= NULL;
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			wm_operator_free(op);
-			handler->op= NULL;
 		}
 	}
 
