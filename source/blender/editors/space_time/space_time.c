@@ -256,10 +256,10 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 			
 			/* own keymap */
-			keymap= WM_keymap_listbase(wm, "TimeLine", sa->spacetype, 0);
+			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 			
-			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+			keymap= WM_keymap_listbase(wm, "TimeLine", sa->spacetype, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 		}
 	}

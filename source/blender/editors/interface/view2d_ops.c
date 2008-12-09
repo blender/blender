@@ -209,8 +209,6 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
 	
-	vpd->in_scroller= mouse_in_v2d_scrollers(C, v2d, event->x, event->y);
-	
 #if 0 // XXX - enable this when cursors are working properly
 	if (v2d->keepofs & V2D_LOCKOFS_X)
 		WM_set_cursor(C, BC_NS_SCROLLCURSOR);
@@ -236,20 +234,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 		{
 			/* calculate new delta transform, then store mouse-coordinates for next-time */
-			switch (vpd->in_scroller) {
-				case 'h': /* horizontal scrollbar - so only horizontal scroll (inverse direction) */
-					RNA_int_set(op->ptr, "deltax", (event->x - vpd->lastx));
-					RNA_int_set(op->ptr, "deltay", 0);
-					break;
-				case 'v': /* vertical scrollbar - so only vertical scroll (inverse direction) */
-					RNA_int_set(op->ptr, "deltax", 0);
-					RNA_int_set(op->ptr, "deltay", (event->y - vpd->lasty));
-					break;
-				default:
-					RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
-					RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
-					break;
-			}
+			RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
+			RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
 			
 			vpd->lastx= event->x;
 			vpd->lasty= event->y;
@@ -261,20 +247,8 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 			if (event->val==0) {
 				/* calculate overall delta mouse-movement for redo */
-				switch (vpd->in_scroller) {
-					case 'h': /* horizontal scrollbar - so only horizontal scroll (inverse direction) */
-						RNA_int_set(op->ptr, "deltax", (vpd->lastx - vpd->startx));
-						RNA_int_set(op->ptr, "deltay", 0);
-						break;
-					case 'v': /* vertical scrollbar - so only vertical scroll (inverse direction) */
-						RNA_int_set(op->ptr, "deltax", 0);
-						RNA_int_set(op->ptr, "deltay", (vpd->lasty - vpd->starty));
-						break;
-					default:
-						RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
-						RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
-						break;
-				}
+				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
 				view_pan_exit(C, op);
 				//WM_set_cursor(C, CURSOR_STD);		// XXX - enable this when cursors are working properly	
