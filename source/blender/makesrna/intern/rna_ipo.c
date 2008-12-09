@@ -48,7 +48,6 @@ void rna_def_ipodriver(BlenderRNA *brna)
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Ipo Driver types.");
 
@@ -92,12 +91,6 @@ void rna_def_ipocurve(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
-
-	/* Number values */
-	/* can't just edit this most likely ..
-	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "curval");
-	RNA_def_property_ui_text(prop, "Value", "Value of this Ipo Curve at the current frame.");*/
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
