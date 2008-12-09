@@ -1247,18 +1247,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
-		
+
+#ifndef DISABLE_PYTHON
+			/* run any view3d event handler script links */
+		if(sa->scriptlink.totscript) {
+			if(BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
+				return; /* return if event was processed (swallowed) by handler(s) */
+		}
+#endif
+
 		/* - we consider manipulator a button, defaulting to leftmouse 
 		 * - grease-pencil also defaults to leftmouse
 		 */
 		if(event==LEFTMOUSE) {
-#ifndef DISABLE_PYTHON
-			/* run any view3d event handler script links */
-			if (sa->scriptlink.totscript) {
-				if (BPY_do_spacehandlers(sa, event, val, SPACEHANDLER_VIEW3D_EVENT))
-					return; /* return if event was processed (swallowed) by handler(s) */
-			}
-#endif
 			if(gpencil_do_paint(sa, L_MOUSE)) return;
 			if(BIF_do_manipulator(sa)) return;
 		}
@@ -2955,7 +2956,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 		}
 	}
-	
+
+#ifndef DISABLE_PYTHON
+	else { /* val= 0 */
+		/* run any view3d release event handler script links */
+		if(sa->scriptlink.totscript) {
+			if(BPY_do_spacehandlers(sa, event, 0, SPACEHANDLER_VIEW3D_EVENT_ALL))
+				return; /* return if event was processed (swallowed) by handler(s) */
+		}
+	}
+#endif
+
 	if(doredraw) {
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);

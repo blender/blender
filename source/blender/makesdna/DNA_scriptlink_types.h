@@ -65,10 +65,12 @@ typedef struct ScriptLink {
 /* these are special scriptlinks that can be assigned to
  * a given space in a given ScrArea to:
  * - (EVENT type) handle events sent to that space;
- * - (DRAW type) draw on the space after its own drawing function finishes
+ * - (EVENT_ALL type): handle release events, too;
+ * - (DRAW type) draw on the space after its own drawing function finishes.
  */
-#define SPACEHANDLER_VIEW3D_EVENT 1
-#define SPACEHANDLER_VIEW3D_DRAW 2
+#define SPACEHANDLER_VIEW3D_DRAW 1
+#define SPACEHANDLER_VIEW3D_EVENT 2
+#define SPACEHANDLER_VIEW3D_EVENT_ALL 3
 
 
 #ifdef __cplusplus
