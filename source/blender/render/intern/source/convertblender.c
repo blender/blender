@@ -4427,7 +4427,10 @@ void RE_Database_Free(Render *re)
 	free_occ(re);
 	free_strand_surface(re);
 	
-	if( re->freestyle_render ) RE_FreeRender(re->freestyle_render);
+	if( re->freestyle_render ) {
+		RE_FreeRender(re->freestyle_render);
+		re->freestyle_render = NULL;
+	}
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
