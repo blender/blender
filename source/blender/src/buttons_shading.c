@@ -4529,6 +4529,10 @@ static void material_panel_material_volume(Material *ma)
 			X2CLM2, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 	}
 	
+	yco -= YSPACE;
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &ma->group, "Limit Lighting to Lamps in this Group"); 
+	
 }
 
 static void material_panel_nodes(Material *ma)
