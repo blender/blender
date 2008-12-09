@@ -1662,10 +1662,11 @@ int filterInternalExternalReebGraph(ReebGraph *rg, float threshold_internal, flo
 				middleNode = arc->head;
 			}
 			
-			if (middleNode->degree == 2)
+			if (middleNode->degree == 2 && middleNode != rg->nodes.first)
 			{
 #if 1
 				// If middle node is a normal node, it will be removed later
+				// Only if middle node is not the root node
 				/* USE THIS IF YOU WANT TO PROLONG ARCS TO THEIR TERMINAL NODES
 				 * FOR HANDS, THIS IS NOT THE BEST RESULT 
 				 * */
