@@ -722,10 +722,10 @@ static void delete_customdata_layer(void *data1, void *data2)
 	Mesh *me= (Mesh*)data1;
 	CustomData *data= (G.obedit)? &G.editMesh->fdata: &me->fdata;
 	CustomDataLayer *layer= (CustomDataLayer*)data2;
-	void *actlayerdata, *rndlayerdata, *layerdata=layer->data;
+	void *actlayerdata, *rndlayerdata, *clonelayerdata, *masklayerdata, *layerdata=layer->data;
 	int type= layer->type;
 	int index= CustomData_get_layer_index(data, type);
-	int i, actindex, rndindex;
+	int i, actindex, rndindex, cloneindex, maskindex;
 	
 	/*ok, deleting a non-active layer needs to preserve the active layer indices.
 	  to do this, we store a pointer to the .data member of both layer and the active layer,
@@ -736,6 +736,8 @@ static void delete_customdata_layer(void *data1, void *data2)
 	  layer. */
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
+	clonelayerdata = data->layers[CustomData_get_clone_layer_index(data, type)].data;
+	masklayerdata = data->layers[CustomData_get_mask_layer_index(data, type)].data;
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
 	/* Multires is handled seperately because the display data is separate
@@ -787,6 +789,33 @@ static void delete_customdata_layer(void *data1, void *data2)
 		CustomData_set_layer_render(data, type, rndindex);
 	}
 	
+	if (clonelayerdata != layerdata) {
+		/*find index. . .*/
+		cloneindex = CustomData_get_layer_index(data, type);
+		for (i=cloneindex; i<data->totlayer; i++) {
+			if (data->layers[i].data == clonelayerdata) {
+				cloneindex = i - cloneindex;
+				break;
+			}
+		}
+		
+		/*set index. . .*/
+		CustomData_set_layer_clone(data, type, cloneindex);
+	}
+	
+	if (masklayerdata != layerdata) {
+		/*find index. . .*/
+		maskindex = CustomData_get_layer_index(data, type);
+		for (i=maskindex; i<data->totlayer; i++) {
+			if (data->layers[i].data == masklayerdata) {
+				maskindex = i - maskindex;
+				break;
+			}
+		}
+		
+		/*set index. . .*/
+		CustomData_set_layer_mask(data, type, maskindex);
+	}
 	
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	

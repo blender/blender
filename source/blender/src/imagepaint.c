@@ -118,6 +118,9 @@
 
 #define MAXUNDONAME	64
 
+static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint);
+
+
 typedef struct ImagePaintState {
 	Brush *brush;
 	short tool, blend;
@@ -293,7 +296,15 @@ typedef union pixelStore
 
 typedef struct ProjPixel {
 	float projCoSS[2]; /* the floating point screen projection of this pixel */
-	float mask;			/* for various reasons we may want to mask out painting onto this pixel */
+	
+	/* Only used when the airbrush is disabled.
+	 * Store the max mask value to avoid painting over an area with a lower opacity
+	 * with an advantage that we can avoid touching the pixel at all, if the 
+	 * new mask value is lower then mask_max */
+	unsigned short mask_max;
+	
+	/* for various reasons we may want to mask out painting onto this pixel */
+	unsigned short mask;
 	
 	short x_px, y_px;
 	
@@ -943,10 +954,26 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 	}
 }
 
-/* simple func use for comparing UV locations to check if there are seams */
+/* simple func use for comparing UV locations to check if there are seams.
+ * Its possible this gives incorrect results, when the UVs for 1 face go into the next 
+ * tile, but do not do this for the adjacent face, it could return a false positive.
+ * This is so unlikely that Id not worry about it. */
 static int cmp_uv(const float vec2a[2], const float vec2b[2])
 {
-	return ((fabs(vec2a[0]-vec2b[0]) < 0.0001f) && (fabs(vec2a[1]-vec2b[1]) < 0.0001f)) ? 1:0;
+	/* if the UV's are not between 0.0 and 1.0 */
+	float xa = (float)fmod(vec2a[0], 1.0f);
+	float ya = (float)fmod(vec2a[1], 1.0f);
+	
+	float xb = (float)fmod(vec2b[0], 1.0f);
+	float yb = (float)fmod(vec2b[1], 1.0f);	
+	
+	if (xa < 0.0f) xa += 1.0f;
+	if (ya < 0.0f) ya += 1.0f;
+	
+	if (xb < 0.0f) xb += 1.0f;
+	if (yb < 0.0f) yb += 1.0f;
+	
+	return ((fabs(xa-xb) < PROJ_GEOM_TOLERANCE) && (fabs(ya-yb) < PROJ_GEOM_TOLERANCE)) ? 1:0;
 }
 
 
@@ -1440,9 +1467,9 @@ float project_paint_uvpixel_mask(
 		}
 	}
 	
-	if (ps->is_airbrush==0) {
-		mask *= ps->brush->alpha;
-	}
+	// This only works when the opacity dosnt change while paintnig, stylus pressure messes with this
+	// so dont use it.
+	// if (ps->is_airbrush==0) mask *= ps->brush->alpha;
 	
 	return mask;
 }
@@ -1501,7 +1528,8 @@ static ProjPixel *project_paint_uvpixel_init(
 	projPixel->x_px = x_px;
 	projPixel->y_px = y_px;
 	
-	projPixel->mask = mask;
+	projPixel->mask = (unsigned short)(mask * 65535);
+	projPixel->mask_max = 0;
 	
 	/* which bounding box cell are we in?, needed for undo */
 	projPixel->bb_cell_index = ((int)(((float)x_px/(float)ibuf->x) * PROJ_BOUNDBOX_DIV)) + ((int)(((float)y_px/(float)ibuf->y) * PROJ_BOUNDBOX_DIV)) * PROJ_BOUNDBOX_DIV ;
@@ -1934,7 +1962,20 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 
 static int IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
 {
-	return (AreaF2Dfl(v1,v2,v3) + limit) > (AreaF2Dfl(pt,v1,v2) + AreaF2Dfl(pt,v2,v3) + AreaF2Dfl(pt,v3,v1)) ? 1 : 0;
+	return (AreaF2Dfl(v1,v2,v3) + limit) > (AreaF2Dfl(pt,v1,v2) + AreaF2Dfl(pt,v2,v3) + AreaF2Dfl(pt,v3,v1));
+}
+
+/* Clip the face by a bucket and set the uv-space bucket_bounds_uv
+ * so we have the clipped UV's to do pixel intersection tests with 
+ * */
+
+
+static int float_z_sort_flip(const void *p1, const void *p2) {
+	return (((float *)p1)[2] < ((float *)p2)[2] ? 1:-1);
+}
+
+static int float_z_sort(const void *p1, const void *p2) {
+	return (((float *)p1)[2] < ((float *)p2)[2] ?-1:1);
 }
 
 static void project_bucket_clip_face(
@@ -1949,7 +1990,6 @@ static void project_bucket_clip_face(
 	int inside_face_flag = 0;
 	const int flip = ((SIDE_OF_LINE(v1coSS, v2coSS, v3coSS) > 0.0f) != (SIDE_OF_LINE(uv1co, uv2co, uv3co) > 0.0f));
 	
-	float uv[2];
 	float bucket_bounds_ss[4][2];
 	float w[3];
 
@@ -2019,17 +2059,14 @@ static void project_bucket_clip_face(
 		
 		
 		/* Maximum possible 6 intersections when using a rectangle and triangle */
-		float isectVCosSS[8][2];
-		float isectVAngles[8];
-		
-		float vClipSS_A[2], vClipSS_B[2]; 
+		float isectVCosSS[8][3]; /* The 3rd float is used to store angle for qsort(), NOT as a Z location */
+		float v1_clipSS[2], v2_clipSS[2];
 		
 		/* calc center*/
 		float cent[2] = {0.0f, 0.0f};
 		/*float up[2] = {0.0f, 1.0f};*/
-		float tmp_f;
 		int i;
-		short unsorted, doubles;
+		short doubles;
 		
 		(*tot) = 0;
 		
@@ -2043,23 +2080,23 @@ static void project_bucket_clip_face(
 		if (inside_bucket_flag & ISECT_3) {	VECCOPY2D(isectVCosSS[*tot], v3coSS); (*tot)++; }
 		
 		if ((inside_bucket_flag & (ISECT_1|ISECT_2)) != (ISECT_1|ISECT_2)) {
-			if (line_clip_rect2f(bucket_bounds, v1coSS, v2coSS, vClipSS_A, vClipSS_B)) {
-				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			if (line_clip_rect2f(bucket_bounds, v1coSS, v2coSS, v1_clipSS, v2_clipSS)) {
+				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 		
 		if ((inside_bucket_flag & (ISECT_2|ISECT_3)) != (ISECT_2|ISECT_3)) {
-			if (line_clip_rect2f(bucket_bounds, v2coSS, v3coSS, vClipSS_A, vClipSS_B)) {
-				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			if (line_clip_rect2f(bucket_bounds, v2coSS, v3coSS, v1_clipSS, v2_clipSS)) {
+				if ((inside_bucket_flag & ISECT_2)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}	
 		
 		if ((inside_bucket_flag & (ISECT_3|ISECT_1)) != (ISECT_3|ISECT_1)) {
-			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, vClipSS_A, vClipSS_B)) {
-				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_A); (*tot)++; }
-				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], vClipSS_B); (*tot)++; }
+			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
+				if ((inside_bucket_flag & ISECT_3)==0) { VECCOPY2D(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
+				if ((inside_bucket_flag & ISECT_1)==0) { VECCOPY2D(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
 		}
 		
@@ -2081,48 +2118,25 @@ static void project_bucket_clip_face(
 		
 		/* Collect angles for every point around the center point */
 
-#if 1	/* starting not so pretty, slightly faster loop */
-		
-		vClipSS_A[0] = cent[0]; /* Abuse this var for the loop below */
-		vClipSS_A[1] = cent[1] + 1.0f;
-		
-		for(i=0; i<(*tot); i++) {
-			vClipSS_B[0] = isectVCosSS[i][0] - cent[0];
-			vClipSS_B[1] = isectVCosSS[i][1] - cent[1];
-			isectVAngles[i] = -atan2(vClipSS_A[0]*vClipSS_B[1] - vClipSS_A[1]*vClipSS_B[0], vClipSS_A[0]*vClipSS_B[0]+vClipSS_A[1]*vClipSS_B[1]);
-			if (flip)
-				isectVAngles[i] = -isectVAngles[i];
-		}
-#endif	/* end abuse */
 		
 #if 0	/* uses a few more cycles then the above loop */
 		for(i=0; i<(*tot); i++) {
-			isectVAngles[i] = angle_2d_clockwise(up, cent, isectVCosSS[i]);
+			isectVCosSS[i][2] = angle_2d_clockwise(up, cent, isectVCosSS[i]);
 		}
 #endif
+
+		v1_clipSS[0] = cent[0]; /* Abuse this var for the loop below */
+		v1_clipSS[1] = cent[1] + 1.0f;
 		
-		/* kindof sucks donkeyballs we have to sort an array, just to clip a 2D triangle/quad
-		 * but a lot less hassle then other methods we might calc this. */
-		unsorted = TRUE;
-		while (unsorted==TRUE) {
-			unsorted = FALSE;
-			for(i=1; i<(*tot); i++) {
-				if (isectVAngles[i-1] < isectVAngles[i]) {
-					
-					/* swap UV's */
-					VECCOPY2D(uv, isectVCosSS[i]);
-					VECCOPY2D(isectVCosSS[i], isectVCosSS[i-1]);
-					VECCOPY2D(isectVCosSS[i-1], uv);
-					
-					/* swap isectVAngles */
-					tmp_f = isectVAngles[i-1];
-					isectVAngles[i-1] = isectVAngles[i];
-					isectVAngles[i] = tmp_f;
-					
-					unsorted = TRUE;
-				}
-			}
+		for(i=0; i<(*tot); i++) {
+			v2_clipSS[0] = isectVCosSS[i][0] - cent[0];
+			v2_clipSS[1] = isectVCosSS[i][1] - cent[1];
+			isectVCosSS[i][2] = atan2(v1_clipSS[0]*v2_clipSS[1] - v1_clipSS[1]*v2_clipSS[0], v1_clipSS[0]*v2_clipSS[0]+v1_clipSS[1]*v2_clipSS[1]); 
 		}
+		
+		if (flip)	qsort(isectVCosSS, *tot, sizeof(float)*3, float_z_sort_flip);
+		else		qsort(isectVCosSS, *tot, sizeof(float)*3, float_z_sort);
+		
 		
 		/* remove doubles */
 		/* first/last check */
@@ -2141,7 +2155,9 @@ static void project_bucket_clip_face(
 		while (doubles==TRUE) {
 			doubles = FALSE;
 			for(i=1; i<(*tot); i++) {
-				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&  fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE) {
+				if (fabs(isectVCosSS[i-1][0]-isectVCosSS[i][0]) < PROJ_GEOM_TOLERANCE &&
+					fabs(isectVCosSS[i-1][1]-isectVCosSS[i][1]) < PROJ_GEOM_TOLERANCE)
+				{
 					int j;
 					for(j=i+1; j<(*tot); j++) {
 						isectVCosSS[j-1][0] = isectVCosSS[j][0]; 
@@ -3355,6 +3371,531 @@ static void project_paint_end(ProjPaintState *ps)
 /* external functions */
 
 /* 1= an undo, -1 is a redo. */
+static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
+{
+	int tot = PROJ_BOUNDBOX_SQUARED;
+	while (tot--) {
+		pr->x1 = 10000000;
+		pr->y1 = 10000000;
+		
+		pr->x2 = -1;
+		pr->y2 = -1;
+		
+		pr->enabled = 1;
+		
+		pr++;
+	}
+}
+
+
+static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPartialRedraw *pr_other, int tot)
+{
+	int touch;
+	while (tot--) {
+		pr->x1 = MIN2(pr->x1, pr_other->x1);
+		pr->y1 = MIN2(pr->y1, pr_other->y1);
+		
+		pr->x2 = MAX2(pr->x2, pr_other->x2);
+		pr->y2 = MAX2(pr->y2, pr_other->y2);
+		
+		if (pr->x2 != -2)
+			touch = 1;
+		
+		pr++; pr_other++;
+	}
+	
+	return touch;
+}
+
+/* Loop over all images on this mesh and update any we have touched */
+static int project_image_refresh_tagged(ProjPaintState *ps)
+{
+	ImagePaintPartialRedraw *pr;
+	ProjPaintImage *projIma;
+	int a,i;
+	int redraw = 0;
+	
+	
+	for (a=0, projIma=ps->projImages; a < ps->image_tot; a++, projIma++) {
+		if (projIma->touch) {
+			/* look over each bound cell */
+			for (i=0; i<PROJ_BOUNDBOX_SQUARED; i++) {
+				pr = &(projIma->partRedrawRect[i]);
+				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
+					imapaintpartial = *pr;
+					imapaint_image_update(projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
+					redraw = 1;
+				}
+			}
+			
+			projIma->touch = 0; /* clear for reuse */
+		}
+	}
+	
+	return redraw;
+}
+
+/* run this per painting onto each mouse location */
+static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
+{
+	float min_brush[2], max_brush[2];
+	float size_half = ((float)ps->brush->size) * 0.5f;
+	
+	/* so we dont have a bucket bounds that is way too small to paint into */
+	// if (size_half < 1.0f) size_half = 1.0f; // this dosnt work yet :/
+	
+	min_brush[0] = mval_f[0] - size_half;
+	min_brush[1] = mval_f[1] - size_half;
+	
+	max_brush[0] = mval_f[0] + size_half;
+	max_brush[1] = mval_f[1] + size_half;
+	
+	/* offset to make this a valid bucket index */
+	project_paint_bucket_bounds(ps, min_brush, max_brush, ps->bucketMin, ps->bucketMax);
+	
+	/* mouse outside the model areas? */
+	if (ps->bucketMin[0]==ps->bucketMax[0] || ps->bucketMin[1]==ps->bucketMax[1]) {
+		return 0;
+	}
+	
+	ps->context_bucket_x = ps->bucketMin[0];
+	ps->context_bucket_y = ps->bucketMin[1];
+	return 1;
+}
+
+static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
+{
+	if (ps->thread_tot > 1)
+		BLI_lock_thread(LOCK_CUSTOM1);
+	
+	//printf("%d %d \n", ps->context_bucket_x, ps->context_bucket_y);
+	
+	for ( ; ps->context_bucket_y < ps->bucketMax[1]; ps->context_bucket_y++) {
+		for ( ; ps->context_bucket_x < ps->bucketMax[0]; ps->context_bucket_x++) {
+			
+			/* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
+			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
+			
+			if (project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
+				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
+				ps->context_bucket_x++;
+				
+				if (ps->thread_tot > 1)
+					BLI_unlock_thread(LOCK_CUSTOM1);
+				
+				return 1;
+			}
+		}
+		ps->context_bucket_x = ps->bucketMin[0];
+	}
+	
+	if (ps->thread_tot > 1)
+		BLI_unlock_thread(LOCK_CUSTOM1);
+	return 0;
+}
+
+/* Each thread gets one of these, also used as an argument to pass to project_paint_op */
+typedef struct ProjectHandle {
+	/* args */
+	ProjPaintState *ps;
+	float prevmval[2];
+	float mval[2];
+	
+	/* annoying but we need to have image bounds per thread, then merge into ps->projectPartialRedraws */
+	ProjPaintImage *projImages;	/* array of partial redraws */
+	
+	/* thread settings */
+	int thread_index;
+} ProjectHandle;
+
+static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+{
+	/* this and other blending modes previously used >>8 instead of /255. both
+	   are not equivalent (>>8 is /256), and the former results in rounding
+	   errors that can turn colors black fast after repeated blending */
+	const int mfac= 255-fac;
+
+	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+}
+
+static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
+{
+	const float mfac= 1.0-fac;
+	cp[0]= mfac*cp1[0] + fac*cp2[0];
+	cp[1]= mfac*cp1[1] + fac*cp2[1];
+	cp[2]= mfac*cp1[2] + fac*cp2[2];
+}
+
+static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+{
+	if (ps->is_airbrush==0 && mask < 1.0f) {
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
+	}
+	else {
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*mask*255), blend);
+	}
+}
+
+static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+{
+	if (ps->is_airbrush==0 && mask < 1.0f) {
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+	}
+	else {
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha*mask, blend);
+	}
+}
+
+/* do_projectpaint_smear*
+ * 
+ * note, mask is used to modify the alpha here, this is not correct since it allows
+ * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
+ * really that important to be correct as it is with clone and painting 
+ */
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend, MemArena *smearArena, LinkNode **smearPixels, float co[2])
+{
+	unsigned char rgba_ub[4];
+	
+	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
+		return; 
+	
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
+} 
+
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
+{
+	unsigned char rgba_ub[4];
+	unsigned char rgba_smear[4];
+	
+	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
+		return;
+	
+	IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
+}
+
+static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+{
+	unsigned char rgba_ub[4];
+	
+	if (ps->is_texbrush) {
+		rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
+		rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
+		rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
+		rgba_ub[3] = FTOCHAR(rgba[3]);
+	}
+	else {
+		IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
+		rgba_ub[3] = 255;
+	}
+	
+	if (ps->is_airbrush==0 && mask < 1.0f) {
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
+	}
+	else {
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+	}
+}
+
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend) {
+	if (ps->is_texbrush) {
+		rgba[0] *= ps->brush->rgb[0];
+		rgba[1] *= ps->brush->rgb[1];
+		rgba[2] *= ps->brush->rgb[2];
+	}
+	else {
+		VECCOPY(rgba, ps->brush->rgb);
+	}
+	
+	if (ps->is_airbrush==0 && mask < 1.0f) {
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
+		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
+	}
+	else {
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha*mask, blend);
+	}
+}
+
+
+
+/* run this for single and multithreaded painting */
+static void *do_projectpaint_thread(void *ph_v)
+{
+	/* First unpack args from the struct */
+	ProjPaintState *ps =			((ProjectHandle *)ph_v)->ps;
+	ProjPaintImage *projImages =	((ProjectHandle *)ph_v)->projImages;
+	const float *lastpos =			((ProjectHandle *)ph_v)->prevmval;
+	const float *pos =				((ProjectHandle *)ph_v)->mval;
+	const int thread_index =		((ProjectHandle *)ph_v)->thread_index;
+	/* Done with args from ProjectHandle */
+
+	LinkNode *node;
+	ProjPixel *projPixel;
+	
+	int last_index = -1;
+	ProjPaintImage *last_projIma;
+	ImagePaintPartialRedraw *last_partial_redraw_cell;
+	
+	float rgba[4], alpha, dist, dist_nosqrt;
+	
+	float brush_size_sqared;
+	int bucket_index;
+	int is_floatbuf = 0;
+	short blend= ps->blend;
+	const short tool =  ps->tool;
+	rctf bucket_bounds;
+	
+	/* for smear only */
+	float pos_ofs[2];
+	float co[2];
+	float mask = 1.0f; /* airbrush wont use mask */
+	unsigned short mask_short;
+	
+	LinkNode *smearPixels = NULL;
+	LinkNode *smearPixels_f = NULL;
+	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
+	
+	
+	if (tool==PAINT_TOOL_SMEAR) {
+		pos_ofs[0] = pos[0] - lastpos[0];
+		pos_ofs[1] = pos[1] - lastpos[1];
+		
+		smearArena = BLI_memarena_new(1<<16);
+	}
+	
+	/* avoid a square root with every dist comparison */
+	brush_size_sqared = ps->brush->size * ps->brush->size; 
+	
+	/* printf("brush bounds %d %d %d %d\n", bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */
+	
+	while (project_bucket_iter_next(ps, &bucket_index, &bucket_bounds, pos)) {				
+		
+		/* Check this bucket and its faces are initialized */
+		if (ps->bucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
+			/* No pixels initialized */
+			project_bucket_init(ps, thread_index, bucket_index, &bucket_bounds);
+		}
+
+		for (node = ps->bucketRect[bucket_index]; node; node = node->next) {
+			
+			projPixel = (ProjPixel *)node->link;
+			
+			/*dist = Vec2Lenf(projPixel->projCoSS, pos);*/ /* correct but uses a sqrt */
+			dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
+			
+			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
+			if (dist_nosqrt < brush_size_sqared) {
+				dist = (float)sqrt(dist_nosqrt);
+				
+				if (ps->is_texbrush) {
+					brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
+					alpha = rgba[3];
+				} else {
+					alpha = 1.0f;
+				}
+				
+				if (ps->is_airbrush) {
+					/* for an aurbrush there is no real mask, so just multiply the alpha by it */
+					alpha *= brush_sample_falloff(ps->brush, dist);
+					mask = ((float)projPixel->mask)/65535.0f;
+				}
+				else {
+					alpha *= brush_sample_falloff_noalpha(ps->brush, dist);
+					mask_short = projPixel->mask * (alpha*ps->brush->alpha);
+					if (mask_short > projPixel->mask_max) {
+						mask = ((float)mask_short)/65535.0f;
+						projPixel->mask_max = mask_short;
+					}
+					else {
+						/* Go onto the next pixel */
+						continue;
+					}
+				}
+				
+				if (alpha >= 0.0f) {
+					
+					if (last_index != projPixel->image_index) {
+						last_index = projPixel->image_index;
+						last_projIma = projImages + last_index;
+						
+						last_projIma->touch = 1;
+						is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+					}
+					
+					last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
+					last_partial_redraw_cell->x1 = MIN2(last_partial_redraw_cell->x1, projPixel->x_px);
+					last_partial_redraw_cell->y1 = MIN2(last_partial_redraw_cell->y1, projPixel->y_px);
+					
+					last_partial_redraw_cell->x2 = MAX2(last_partial_redraw_cell->x2, projPixel->x_px+1);
+					last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px+1);
+					
+					
+					switch(tool) {
+					case PAINT_TOOL_CLONE:
+						if (is_floatbuf) {
+							if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
+								do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask, blend);
+							}
+						}
+						else {
+							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
+								do_projectpaint_clone(ps, projPixel, rgba, alpha, mask, blend);
+							}
+						}
+						break;
+					case PAINT_TOOL_SMEAR:
+						Vec2Subf(co, projPixel->projCoSS, pos_ofs);
+						
+						if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, blend, smearArena, &smearPixels_f, co);
+						else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, blend, smearArena, &smearPixels, co);
+						break;
+					default:
+						if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, blend);
+						else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask, blend);
+						break;
+					}
+				}
+				/* done painting */
+			}
+		}
+	}
+
+	
+	if (tool==PAINT_TOOL_SMEAR) {
+		
+		for (node= smearPixels; node; node= node->next) { /* this wont run for a float image */
+			projPixel = node->link;
+			*projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint;
+		}
+		
+		for (node= smearPixels_f; node; node= node->next) { /* this wont run for a float image */
+			projPixel = node->link;
+			IMAPAINT_CHAR_RGBA_TO_FLOAT(projPixel->pixel.f_pt,  ((ProjPixelClone *)projPixel)->clonepx.ch);
+			node = node->next;
+		}
+		
+		BLI_memarena_free(smearArena);
+	}
+	
+	return NULL;
+}
+
+static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
+{
+	/* First unpack args from the struct */
+	ProjPaintState *ps = (ProjPaintState *)state;
+	int touch_any = 0;	
+	
+	ProjectHandle handles[BLENDER_MAX_THREADS];
+	ListBase threads;
+	int a,i;
+	
+	if (!project_bucket_iter_init(ps, pos)) {
+		return 0;
+	}
+	
+	if (ps->thread_tot > 1)
+		BLI_init_threads(&threads, do_projectpaint_thread, ps->thread_tot);
+	
+	/* get the threads running */
+	for(a=0; a < ps->thread_tot; a++) {
+		
+		/* set defaults in handles */
+		//memset(&handles[a], 0, sizeof(BakeShade));
+		
+		handles[a].ps = ps;
+		VECCOPY2D(handles[a].mval, pos);
+		VECCOPY2D(handles[a].prevmval, lastpos);
+		
+		/* thread spesific */
+		handles[a].thread_index = a;
+		
+		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena_mt[a], ps->image_tot * sizeof(ProjPaintImage));
+		
+		memcpy(handles[a].projImages, ps->projImages, ps->image_tot * sizeof(ProjPaintImage));
+		
+		/* image bounds */
+		for (i=0; i< ps->image_tot; i++) {
+			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena_mt[a], sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
+			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
+		}
+
+		if (ps->thread_tot > 1)
+			BLI_insert_thread(&threads, &handles[a]);
+	}
+	
+	if (ps->thread_tot > 1) /* wait for everything to be done */
+		BLI_end_threads(&threads);
+	else
+		do_projectpaint_thread(&handles[0]);
+		
+	
+	/* move threaded bounds back into ps->projectPartialRedraws */
+	for(i=0; i < ps->image_tot; i++) {
+		int touch = 0;
+		for(a=0; a < ps->thread_tot; a++) {
+			touch |= partial_redraw_array_merge(ps->projImages[i].partRedrawRect, handles[a].projImages[i].partRedrawRect, PROJ_BOUNDBOX_SQUARED);
+		}
+		
+		if (touch) {
+			ps->projImages[i].touch = 1;
+			touch_any = 1;
+		}
+	}
+	
+	return touch_any;
+}
+
+
+static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, float pressure)
+{
+	
+	/* Use mouse coords as floats for projection painting */
+	float pos[2];
+	
+	pos[0] = mval_i[0];
+	pos[1] = mval_i[1];
+	
+	// we may want to use this later 
+	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
+	
+	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps)) {
+		return 1;
+	}
+	else return 0;
+}
+
+
+static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, int update, float pressure)
+{
+	int a, redraw = 0;
+	
+	for (a=0; a < ps->image_tot; a++) {
+		partial_redraw_array_init(ps->projImages[a].partRedrawRect);
+	}
+	
+	redraw |= project_paint_sub_stroke(ps, painter, prevmval_i, mval_i, time, pressure);
+	
+	if (update) {
+		if (project_image_refresh_tagged(ps)) {
+			if (redraw) {
+				force_draw(0); /* imapaint_redraw just calls this in viewport paint anyway */
+				/* imapaint_redraw(0, 1, NULL); */
+				/* imapaint_clear_partial_redraw(); */ /* not needed since we use our own array */
+			}
+		}
+	}
+	
+	return redraw;
+}
+
 void undo_imagepaint_step(int step)
 {
 	UndoElem *undo;
@@ -3776,468 +4317,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
-static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
-{
-	int tot = PROJ_BOUNDBOX_SQUARED;
-	while (tot--) {
-		pr->x1 = 10000000;
-		pr->y1 = 10000000;
-		
-		pr->x2 = -1;
-		pr->y2 = -1;
-		
-		pr->enabled = 1;
-		
-		pr++;
-	}
-}
-
-static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPartialRedraw *pr_other, int tot)
-{
-	int touch;
-	while (tot--) {
-		pr->x1 = MIN2(pr->x1, pr_other->x1);
-		pr->y1 = MIN2(pr->y1, pr_other->y1);
-		
-		pr->x2 = MAX2(pr->x2, pr_other->x2);
-		pr->y2 = MAX2(pr->y2, pr_other->y2);
-		
-		if (pr->x2 != -2)
-			touch = 1;
-		
-		pr++; pr_other++;
-	}
-	
-	return touch;
-}
-
-/* Loop over all images on this mesh and update any we have touched */
-static int imapaint_refresh_tagged(ProjPaintState *ps)
-{
-	ImagePaintPartialRedraw *pr;
-	ProjPaintImage *projIma;
-	int a,i;
-	int redraw = 0;
-	
-	
-	for (a=0, projIma=ps->projImages; a < ps->image_tot; a++, projIma++) {
-		if (projIma->touch) {
-			/* look over each bound cell */
-			for (i=0; i<PROJ_BOUNDBOX_SQUARED; i++) {
-				pr = &(projIma->partRedrawRect[i]);
-				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
-					imapaintpartial = *pr;
-					imapaint_image_update(projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
-					redraw = 1;
-				}
-			}
-			
-			projIma->touch = 0; /* clear for reuse */
-		}
-	}
-	
-	return redraw;
-}
-
-/* run this per painting onto each mouse location */
-static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
-{
-	float min_brush[2], max_brush[2];
-	float size_half = ((float)ps->brush->size) * 0.5f;
-	
-	/* so we dont have a bucket bounds that is way too small to paint into */
-	// if (size_half < 1.0f) size_half = 1.0f; // this dosnt work yet :/
-	
-	min_brush[0] = mval_f[0] - size_half;
-	min_brush[1] = mval_f[1] - size_half;
-	
-	max_brush[0] = mval_f[0] + size_half;
-	max_brush[1] = mval_f[1] + size_half;
-	
-	/* offset to make this a valid bucket index */
-	project_paint_bucket_bounds(ps, min_brush, max_brush, ps->bucketMin, ps->bucketMax);
-	
-	/* mouse outside the model areas? */
-	if (ps->bucketMin[0]==ps->bucketMax[0] || ps->bucketMin[1]==ps->bucketMax[1]) {
-		return 0;
-	}
-	
-	ps->context_bucket_x = ps->bucketMin[0];
-	ps->context_bucket_y = ps->bucketMin[1];
-	return 1;
-}
-
-static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
-{
-	if (ps->thread_tot > 1)
-		BLI_lock_thread(LOCK_CUSTOM1);
-	
-	//printf("%d %d \n", ps->context_bucket_x, ps->context_bucket_y);
-	
-	for ( ; ps->context_bucket_y < ps->bucketMax[1]; ps->context_bucket_y++) {
-		for ( ; ps->context_bucket_x < ps->bucketMax[0]; ps->context_bucket_x++) {
-			
-			/* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
-			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
-			
-			if (project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
-				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
-				ps->context_bucket_x++;
-				
-				if (ps->thread_tot > 1)
-					BLI_unlock_thread(LOCK_CUSTOM1);
-				
-				return 1;
-			}
-		}
-		ps->context_bucket_x = ps->bucketMin[0];
-	}
-	
-	if (ps->thread_tot > 1)
-		BLI_unlock_thread(LOCK_CUSTOM1);
-	return 0;
-}
-
-/* Each thread gets one of these, also used as an argument to pass to project_paint_op */
-typedef struct ProjectHandle {
-	/* args */
-	ProjPaintState *ps;
-	float prevmval[2];
-	float mval[2];
-	
-	/* annoying but we need to have image bounds per thread, then merge into ps->projectPartialRedraws */
-	ProjPaintImage *projImages;	/* array of partial redraws */
-	
-	/* thread settings */
-	int thread_index;
-} ProjectHandle;
-
-static void blend_color_mix(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
-{
-	/* this and other blending modes previously used >>8 instead of /255. both
-	   are not equivalent (>>8 is /256), and the former results in rounding
-	   errors that can turn colors black fast after repeated blending */
-	const int mfac= 255-fac;
-
-	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
-	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
-	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
-}
-
-static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2, const float fac)
-{
-	const float mfac= 1.0-fac;
-	cp[0]= mfac*cp1[0] + fac*cp2[0];
-	cp[1]= mfac*cp1[1] + fac*cp2[1];
-	cp[2]= mfac*cp1[2] + fac*cp2[2];
-}
-
-static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
-{
-	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
-	}
-	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
-	}
-}
-
-static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
-{
-	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
-		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
-	}
-	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
-	}
-}
-
-/* do_projectpaint_smear*
- * 
- * note, mask is used to modify the alpha here, this is not correct since it allows
- * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
- * really that important to be correct as it is with clone and painting 
- */
-static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend, MemArena *smearArena, LinkNode **smearPixels, float co[2])
-{
-	unsigned char rgba_ub[4];
-	
-	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
-		return; 
-	
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
-	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
-} 
-
-static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
-{
-	unsigned char rgba_ub[4];
-	unsigned char rgba_smear[4];
-	
-	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
-		return;
-	
-	IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*projPixel->mask*255), blend);
-	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
-}
-
-static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend)
-{
-	unsigned char rgba_ub[4];
-	
-	if (ps->is_texbrush) {
-		rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
-		rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
-		rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
-		rgba_ub[3] = FTOCHAR(rgba[3]);
-	}
-	else {
-		IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
-		rgba_ub[3] = 255;
-	}
-	
-	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(projPixel->mask*255));
-	}
-	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
-	}
-}
-
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, short blend) {
-	if (ps->is_texbrush) {
-		rgba[0] *= ps->brush->rgb[0];
-		rgba[1] *= ps->brush->rgb[1];
-		rgba[2] *= ps->brush->rgb[2];
-	}
-	else {
-		VECCOPY(rgba, ps->brush->rgb);
-	}
-	
-	if (ps->is_airbrush==0 && projPixel->mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
-		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, projPixel->mask);
-	}
-	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha, blend);
-	}
-}
-
-
-
-/* run this for single and multithreaded painting */
-static void *do_projectpaint_thread(void *ph_v)
-{
-	/* First unpack args from the struct */
-	ProjPaintState *ps =			((ProjectHandle *)ph_v)->ps;
-	ProjPaintImage *projImages =	((ProjectHandle *)ph_v)->projImages;
-	const float *lastpos =			((ProjectHandle *)ph_v)->prevmval;
-	const float *pos =				((ProjectHandle *)ph_v)->mval;
-	const int thread_index =		((ProjectHandle *)ph_v)->thread_index;
-	/* Done with args from ProjectHandle */
-
-	LinkNode *node;
-	ProjPixel *projPixel;
-	
-	int last_index = -1;
-	ProjPaintImage *last_projIma;
-	ImagePaintPartialRedraw *last_partial_redraw_cell;
-	
-	float rgba[4], alpha, dist, dist_nosqrt;
-	
-	float brush_size_sqared;
-	int bucket_index;
-	int is_floatbuf = 0;
-	short blend= ps->blend;
-	const short tool =  ps->tool;
-	rctf bucket_bounds;
-	
-	/* for smear only */
-	float pos_ofs[2];
-	float co[2];
-	
-	LinkNode *smearPixels = NULL;
-	LinkNode *smearPixels_f = NULL;
-	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
-	
-	
-	if (tool==PAINT_TOOL_SMEAR) {
-		pos_ofs[0] = pos[0] - lastpos[0];
-		pos_ofs[1] = pos[1] - lastpos[1];
-		
-		smearArena = BLI_memarena_new(1<<16);
-	}
-	
-	/* avoid a square root with every dist comparison */
-	brush_size_sqared = ps->brush->size * ps->brush->size; 
-	
-	/* printf("brush bounds %d %d %d %d\n", bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */
-	
-	while (project_bucket_iter_next(ps, &bucket_index, &bucket_bounds, pos)) {				
-		
-		/* Check this bucket and its faces are initialized */
-		if (ps->bucketFlags[bucket_index] == PROJ_BUCKET_NULL) {
-			/* No pixels initialized */
-			project_bucket_init(ps, thread_index, bucket_index, &bucket_bounds);
-		}
-
-		for (node = ps->bucketRect[bucket_index]; node; node = node->next) {
-			
-			projPixel = (ProjPixel *)node->link;
-			
-			/*dist = Vec2Lenf(projPixel->projCoSS, pos);*/ /* correct but uses a sqrt */
-			dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
-			
-			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
-			if (dist_nosqrt < brush_size_sqared) {
-				
-				if (last_index != projPixel->image_index) {
-					last_index = projPixel->image_index;
-					last_projIma = projImages + last_index;
-					
-					last_projIma->touch = 1;
-					is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-				}
-				
-				last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
-				last_partial_redraw_cell->x1 = MIN2(last_partial_redraw_cell->x1, projPixel->x_px);
-				last_partial_redraw_cell->y1 = MIN2(last_partial_redraw_cell->y1, projPixel->y_px);
-				
-				last_partial_redraw_cell->x2 = MAX2(last_partial_redraw_cell->x2, projPixel->x_px+1);
-				last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px+1);
-				
-				dist = (float)sqrt(dist_nosqrt);
-				
-				if (ps->is_airbrush)	alpha = brush_sample_falloff(ps->brush, dist) * projPixel->mask;
-				else					alpha = brush_sample_falloff_noalpha(ps->brush, dist);
-				
-				if (ps->is_texbrush) {
-					brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
-					alpha *= rgba[3];
-				}
-				
-				if (alpha >= 0.0f) {
-					switch(tool) {
-					case PAINT_TOOL_CLONE:
-						if (is_floatbuf) {
-							if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-								do_projectpaint_clone_f(ps, projPixel, rgba, alpha, blend);
-							}
-						}
-						else {
-							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
-								do_projectpaint_clone(ps, projPixel, rgba, alpha, blend);
-							}
-						}
-						break;
-					case PAINT_TOOL_SMEAR:
-						Vec2Subf(co, projPixel->projCoSS, pos_ofs);
-						
-						if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, blend, smearArena, &smearPixels_f, co);
-						else				do_projectpaint_smear(ps, projPixel, rgba, alpha, blend, smearArena, &smearPixels, co);
-						break;
-					default:
-						if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, blend);
-						else				do_projectpaint_draw(ps, projPixel, rgba, alpha, blend);
-						break;
-					}
-				}
-				/* done painting */
-			}
-		}
-	}
-
-	
-	if (tool==PAINT_TOOL_SMEAR) {
-		
-		for (node= smearPixels; node; node= node->next) { /* this wont run for a float image */
-			projPixel = node->link;
-			*projPixel->pixel.uint_pt = ((ProjPixelClone *)projPixel)->clonepx.uint;
-		}
-		
-		for (node= smearPixels_f; node; node= node->next) { /* this wont run for a float image */
-			projPixel = node->link;
-			IMAPAINT_CHAR_RGBA_TO_FLOAT(projPixel->pixel.f_pt,  ((ProjPixelClone *)projPixel)->clonepx.ch);
-			node = node->next;
-		}
-		
-		BLI_memarena_free(smearArena);
-	}
-	
-	return NULL;
-}
-
-static int project_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
-{
-	/* First unpack args from the struct */
-	ProjPaintState *ps = (ProjPaintState *)state;
-	int touch_any = 0;	
-	
-	ProjectHandle handles[BLENDER_MAX_THREADS];
-	ListBase threads;
-	int a,i;
-	
-	if (!project_bucket_iter_init(ps, pos)) {
-		return 0;
-	}
-	
-	if (ps->thread_tot > 1)
-		BLI_init_threads(&threads, do_projectpaint_thread, ps->thread_tot);
-	
-	/* get the threads running */
-	for(a=0; a < ps->thread_tot; a++) {
-		
-		/* set defaults in handles */
-		//memset(&handles[a], 0, sizeof(BakeShade));
-		
-		handles[a].ps = ps;
-		VECCOPY2D(handles[a].mval, pos);
-		VECCOPY2D(handles[a].prevmval, lastpos);
-		
-		/* thread spesific */
-		handles[a].thread_index = a;
-		
-		handles[a].projImages = (ProjPaintImage *)BLI_memarena_alloc(ps->arena_mt[a], ps->image_tot * sizeof(ProjPaintImage));
-		
-		memcpy(handles[a].projImages, ps->projImages, ps->image_tot * sizeof(ProjPaintImage));
-		
-		/* image bounds */
-		for (i=0; i< ps->image_tot; i++) {
-			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena_mt[a], sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
-		}
-
-		if (ps->thread_tot > 1)
-			BLI_insert_thread(&threads, &handles[a]);
-	}
-	
-	if (ps->thread_tot > 1) /* wait for everything to be done */
-		BLI_end_threads(&threads);
-	else
-		do_projectpaint_thread(&handles[0]);
-		
-	
-	/* move threaded bounds back into ps->projectPartialRedraws */
-	for(i=0; i < ps->image_tot; i++) {
-		int touch = 0;
-		for(a=0; a < ps->thread_tot; a++) {
-			touch |= partial_redraw_array_merge(ps->projImages[i].partRedrawRect, handles[a].projImages[i].partRedrawRect, PROJ_BOUNDBOX_SQUARED);
-		}
-		
-		if (touch) {
-			ps->projImages[i].touch = 1;
-			touch_any = 1;
-		}
-	}
-	
-	return touch_any;
-}
-
-
+/* this is only useful for debugging at the moment */
 static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
 {
 	Image *newimage = NULL;
@@ -4319,49 +4399,6 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 }
 
 
-static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, float pressure)
-{
-	
-	/* Use mouse coords as floats for projection painting */
-	float pos[2];
-	
-	pos[0] = mval_i[0];
-	pos[1] = mval_i[1];
-	
-	// we may want to use this later 
-	// brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
-	
-	if (brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps)) {
-		return 1;
-	}
-	else return 0;
-}
-
-
-static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, short *prevmval_i, short *mval_i, double time, int update, float pressure)
-{
-	int a, redraw = 0;
-	
-	for (a=0; a < ps->image_tot; a++) {
-		partial_redraw_array_init(ps->projImages[a].partRedrawRect);
-	}
-	
-	redraw |= project_paint_sub_stroke(ps, painter, prevmval_i, mval_i, time, pressure);
-	
-	if (update) {
-		if (imapaint_refresh_tagged(ps)) {
-			if (redraw) {
-				force_draw(0); /* imapaint_redraw just calls this in viewport paint anyway */
-				/* imapaint_redraw(0, 1, NULL); */
-				/* imapaint_clear_partial_redraw(); */ /* not needed since we use our own array */
-			}
-		}
-	}
-	
-	return redraw;
-}
-
-/* this is only useful for debugging at the moment */
 static int imapaint_paint_gp_to_stroke(float **points_gp) {
 	bGPdata *gpd;
 	bGPDlayer *gpl;
@@ -4561,6 +4598,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			prevmval[1]= (short)vec_gp[1];
 		}
 	} else {
+		/* special exception here for too high pressure values on first touch in
+		 windows for some tablets */ 
 		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
 			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
 			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
@@ -4586,6 +4625,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 		if (project) { /* Projection Painting */
 			int redraw = 1;
+			
 			if (((s.brush->flag & BRUSH_AIRBRUSH) || init)  || ((mval[0] != prevmval[0]) || (mval[1] != prevmval[1]))) {
 				redraw = project_paint_stroke(&ps, painter, prevmval, mval, time, stroke_gp ? 0 : 1, pressure);
 				prevmval[0]= mval[0];
@@ -4605,7 +4645,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			
 			init = 0;
 		}
-		else {
+		else { 
 			if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
 				imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 				prevmval[0]= mval[0];

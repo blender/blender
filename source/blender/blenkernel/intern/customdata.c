@@ -964,9 +964,13 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	if(index > 0 && data->layers[index-1].type == type) {
 		data->layers[index].active = data->layers[index-1].active;
 		data->layers[index].active_rnd = data->layers[index-1].active_rnd;
+		data->layers[index].active_clone = data->layers[index-1].active_clone;
+		data->layers[index].active_mask = data->layers[index-1].active_mask;
 	} else {
 		data->layers[index].active = 0;
 		data->layers[index].active_rnd = 0;
+		data->layers[index].active_clone = 0;
+		data->layers[index].active_mask = 0;
 	}
 	
 	customData_update_offsets(data);
@@ -1026,6 +1030,8 @@ int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 			for (; i < data->totlayer && data->layers[i].type == type; i++) {
 				data->layers[i].active--;
 				data->layers[i].active_rnd--;
+				data->layers[i].active_clone--;
+				data->layers[i].active_mask--;
 			}
 	}
 
