@@ -1960,16 +1960,15 @@ static float angle_2d_clockwise(const float p1[2], const float p2[2], const floa
 #define ISECT_ALL3 ((1<<3)-1)
 #define ISECT_ALL4 ((1<<4)-1)
 
+/* limit must be a fraction over 1.0f */
 static int IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], float limit)
 {
-	return (AreaF2Dfl(v1,v2,v3) + limit) > (AreaF2Dfl(pt,v1,v2) + AreaF2Dfl(pt,v2,v3) + AreaF2Dfl(pt,v3,v1));
+	return ((AreaF2Dfl(pt,v1,v2) + AreaF2Dfl(pt,v2,v3) + AreaF2Dfl(pt,v3,v1)) / (AreaF2Dfl(v1,v2,v3))) < limit;
 }
 
 /* Clip the face by a bucket and set the uv-space bucket_bounds_uv
  * so we have the clipped UV's to do pixel intersection tests with 
  * */
-
-
 static int float_z_sort_flip(const void *p1, const void *p2) {
 	return (((float *)p1)[2] < ((float *)p2)[2] ? 1:-1);
 }
@@ -2019,18 +2018,19 @@ static void project_bucket_clip_face(
 	/* use IsectPT2Df_limit here so we catch points are are touching the tri edge (or a small fraction over) */
 	bucket_bounds_ss[0][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[0][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_1 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[0], v1coSS, v2coSS, v3coSS, 1+PROJ_GEOM_TOLERANCE) ? ISECT_1 : 0);
+	
 	bucket_bounds_ss[1][0] = bucket_bounds->xmax;
 	bucket_bounds_ss[1][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_2 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[1], v1coSS, v2coSS, v3coSS, 1+PROJ_GEOM_TOLERANCE) ? ISECT_2 : 0);
 
 	bucket_bounds_ss[2][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[2][1] = bucket_bounds->ymax;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_3 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[2], v1coSS, v2coSS, v3coSS, 1+PROJ_GEOM_TOLERANCE) ? ISECT_3 : 0);
 
 	bucket_bounds_ss[3][0] = bucket_bounds->xmin;
 	bucket_bounds_ss[3][1] = bucket_bounds->ymin;
-	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 0.01f) ? ISECT_4 : 0);
+	inside_face_flag |= (IsectPT2Df_limit(bucket_bounds_ss[3], v1coSS, v2coSS, v3coSS, 1+PROJ_GEOM_TOLERANCE) ? ISECT_4 : 0);
 	
 	if (inside_face_flag == ISECT_ALL4) {
 		/* bucket is totally inside the screenspace face, we can safely use weights */
