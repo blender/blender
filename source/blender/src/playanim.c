@@ -241,7 +241,7 @@ static void build_pict_list(char * first, int totframes, int fstep)
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
-				sprintf(str, "%s : %d", first, pic);
+				sprintf(str, "%s : %d", first, pic + 1);
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
