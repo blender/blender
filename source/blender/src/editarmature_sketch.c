@@ -2562,6 +2562,11 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 				sk_removeStroke(sketch, stk);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
+			else
+			{
+				sk_selectAllSketch(sketch, -1);
+				stk->selected = 1;
+			}
 			
 			allqueue(REDRAWVIEW3D, 0);
 		}
