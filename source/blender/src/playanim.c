@@ -169,6 +169,7 @@ typedef struct pict{
 static struct ListBase _picsbase = {0,0};
 static struct ListBase *picsbase = &_picsbase;
 static int fromdisk = FALSE;
+static int fstep = 1; 
 static float zoomx = 1.0 , zoomy = 1.0;
 static double ptottime = 0.0, swaptime = 0.04;
 
@@ -208,14 +209,14 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 		char str[512];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
-		sprintf(str, "%s | %.2f frames/s\n", picture->name, 1.0 / swaptime);
+		sprintf(str, "%s | %.2f frames/s\n", picture->name, fstep / swaptime);
 		BMF_DrawString(G.fonts, str);
 	}
 	
 	window_swap_buffers(g_window);
 }
 
-static void build_pict_list(char * first, int totframes)
+static void build_pict_list(char * first, int totframes, int fstep)
 {
 	int size,pic,file;
 	char *mem, name[512];
@@ -240,7 +241,7 @@ static void build_pict_list(char * first, int totframes)
 				picture->anim = anim;
 				picture->frame = pic;
 				picture->IB_flags = IB_rect;
-				sprintf(str, "%s : %d", first, pic + 1);
+				sprintf(str, "%s : %d", first, pic);
 				picture->name = strdup(str);
 				BLI_addtail(picsbase, picture);
 			}
@@ -322,7 +323,7 @@ static void build_pict_list(char * first, int totframes)
 				ptottime = 0.0;
 			}
 			
-			BLI_newname(name, +1);
+			BLI_newname(name, +fstep);
 			
 			while(qtest()){
 				switch(qreadN(&val)){
@@ -393,6 +394,12 @@ void playanim(int argc, char **argv)
 					break;
 				case 'e':
 					efra= MIN2(MAXFRAME, MAX2(1, atoi(argv[2]) ));
+					argc--;
+					argv++;
+					break;
+				case 'j':
+					fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[2])));
+					swaptime*= fstep;
 					argc--;
 					argv++;
 					break;
@@ -486,11 +493,11 @@ void playanim(int argc, char **argv)
 		efra = MAXFRAME;
 	}
 	
-	build_pict_list(name, (efra - sfra) + 1);
+	build_pict_list(name, (efra - sfra) + 1, fstep);
 	
 	for (i = 2; i < argc; i++){
 		strcpy(name, argv[i]);
-		build_pict_list(name, (efra - sfra) + 1);
+		build_pict_list(name, (efra - sfra) + 1, fstep);
 	}
 
 	IMB_freeImBuf(ibuf); 
@@ -571,9 +578,9 @@ void playanim(int argc, char **argv)
 					if (val) {
 						if (qualN & SHIFT) {
 							if (ibuf)
-								printf(" Name: %s | Speed: %.2f frames/s\n", ibuf->name, 1.0 / swaptime);
+								printf(" Name: %s | Speed: %.2f frames/s\n", ibuf->name, fstep / swaptime);
 						} else {
-							swaptime = 1.0 / 5.0;
+							swaptime = fstep / 5.0;
 						}
 					}
 					break;
@@ -688,34 +695,34 @@ void playanim(int argc, char **argv)
 					}
 					break;
 				case PAD1:
-					swaptime = 1.0 / 60.0;
+					swaptime = fstep / 60.0;
 					break;
 				case PAD2:
-					swaptime = 1.0 / 50.0;
+					swaptime = fstep / 50.0;
 					break;
 				case PAD3:
-					swaptime = 1.0 / 30.0;
+					swaptime = fstep / 30.0;
 					break;
 				case PAD4:
 					if (qualN & SHIFT)
-						swaptime = 1.0 / 24.0;
+						swaptime = fstep / 24.0;
 					else
-						swaptime = 1.0 / 25.0;
+						swaptime = fstep / 25.0;
 					break;
 				case PAD5:
-					swaptime = 1.0 / 20.0;
+					swaptime = fstep / 20.0;
 					break;
 				case PAD6:
-					swaptime = 1.0 / 15.0;
+					swaptime = fstep / 15.0;
 					break;
 				case PAD7:
-					swaptime = 1.0 / 12.0;
+					swaptime = fstep / 12.0;
 					break;
 				case PAD8:
-					swaptime = 1.0 / 10.0;
+					swaptime = fstep / 10.0;
 					break;
 				case PAD9:
-					swaptime = 1.0 / 6.0;
+					swaptime = fstep / 6.0;
 					break;
 				case PADPLUSKEY:
 					if (val == 0) break;
