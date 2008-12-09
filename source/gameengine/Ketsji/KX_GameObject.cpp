@@ -615,6 +615,7 @@ void KX_GameObject::setAngularVelocity(const MT_Vector3& ang_vel,bool local)
 		m_pPhysicsController1->SetAngularVelocity(ang_vel,local);
 }
 
+
 void KX_GameObject::ResolveCombinedVelocities(
 	const MT_Vector3 & lin_vel,
 	const MT_Vector3 & ang_vel,
@@ -969,6 +970,10 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
 	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
 	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
+	{"applyForce", (PyCFunction)	KX_GameObject::sPyApplyForce, METH_VARARGS},
+	{"applyTorque", (PyCFunction)	KX_GameObject::sPyApplyTorque, METH_VARARGS},
+	{"applyRotation", (PyCFunction)	KX_GameObject::sPyApplyRotation, METH_VARARGS},
+	{"applyMovement", (PyCFunction)	KX_GameObject::sPyApplyMovement, METH_VARARGS},
 	{"getLinearVelocity", (PyCFunction) KX_GameObject::sPyGetLinearVelocity, METH_VARARGS},
 	{"setLinearVelocity", (PyCFunction) KX_GameObject::sPySetLinearVelocity, METH_VARARGS},
 	{"getAngularVelocity", (PyCFunction) KX_GameObject::sPyGetAngularVelocity, METH_VARARGS},
@@ -1261,6 +1266,65 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 	return SCA_IObject::_setattr(attr, value);
 }
 
+PyObject* KX_GameObject::PyApplyForce(PyObject* self, PyObject* args)
+{
+	int local = 0;
+	PyObject* pyvect;
+
+	if (PyArg_ParseTuple(args, "O|i", &pyvect, &local)) {
+		MT_Vector3 force;
+		if (PyVecTo(pyvect, force)) {
+			ApplyForce(force, (local!=0));
+			Py_RETURN_NONE;
+		}
+	}
+	return NULL;
+}
+
+PyObject* KX_GameObject::PyApplyTorque(PyObject* self, PyObject* args)
+{
+	int local = 0;
+	PyObject* pyvect;
+
+	if (PyArg_ParseTuple(args, "O|i", &pyvect, &local)) {
+		MT_Vector3 torque;
+		if (PyVecTo(pyvect, torque)) {
+			ApplyTorque(torque, (local!=0));
+			Py_RETURN_NONE;
+		}
+	}
+	return NULL;
+}
+
+PyObject* KX_GameObject::PyApplyRotation(PyObject* self, PyObject* args)
+{
+	int local = 0;
+	PyObject* pyvect;
+
+	if (PyArg_ParseTuple(args, "O|i", &pyvect, &local)) {
+		MT_Vector3 rotation;
+		if (PyVecTo(pyvect, rotation)) {
+			ApplyRotation(rotation, (local!=0));
+			Py_RETURN_NONE;
+		}
+	}
+	return NULL;
+}
+
+PyObject* KX_GameObject::PyApplyMovement(PyObject* self, PyObject* args)
+{
+	int local = 0;
+	PyObject* pyvect;
+
+	if (PyArg_ParseTuple(args, "O|i", &pyvect, &local)) {
+		MT_Vector3 movement;
+		if (PyVecTo(pyvect, movement)) {
+			ApplyMovement(movement, (local!=0));
+			Py_RETURN_NONE;
+		}
+	}
+	return NULL;
+}
 
 PyObject* KX_GameObject::PyGetLinearVelocity(PyObject* self, PyObject* args)
 {
