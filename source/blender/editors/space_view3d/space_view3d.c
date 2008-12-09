@@ -45,6 +45,7 @@
 #include "BKE_screen.h"
 
 #include "ED_area.h"
+#include "ED_screen.h"
 
 #include "BIF_gl.h"
 
@@ -122,16 +123,9 @@ static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	ARegion *ar;
 	
-	/* link area to SpaceXXX struct */
-	
-	/* define how many regions, the order and types */
-	
-	/* add types to regions */
+	/* add types to regions, handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		static ARegionType art={NULL, NULL, NULL, NULL, NULL};
-		
-		/* for time being; register 1 type */
-		ar->type= &art;
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
 		
 	}
 }
@@ -186,6 +180,7 @@ void view3d_keymap(struct wmWindowManager *wm)
 void ED_spacetype_view3d(void)
 {
 	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
+	ARegionType *art;
 	
 	st->spaceid= SPACE_VIEW3D;
 	
@@ -196,6 +191,19 @@ void ED_spacetype_view3d(void)
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
+	
+	/* regions: main window */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_WINDOW;
+	
+	BLI_addhead(&st->regiontypes, art);
+	
+	/* regions: header */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art->regionid = RGN_TYPE_HEADER;
+	
+	BLI_addhead(&st->regiontypes, art);
+	
 	
 	BKE_spacetype_register(st);
 }

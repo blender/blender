@@ -911,13 +911,14 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static EnumPropertyItem prop_direction_items[] = {
+	{'h', "HORIZONTAL", "Horizontal", ""},
+	{'v', "VERTICAL", "Vertical", ""},
+	{0, NULL, NULL, NULL}};
+
 void ED_SCR_OT_area_split(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-    static EnumPropertyItem prop_direction_items[] = {
-		{'h', "HORIZONTAL", "Horizontal", ""},
-		{'v', "VERTICAL", "Vertical", ""},
-		{0, NULL, NULL, NULL}};
 
 	ot->name = "Split area";
 	ot->idname = "ED_SCR_OT_area_split";
@@ -1245,6 +1246,61 @@ void ED_SCR_OT_repeat_last(wmOperatorType *ot)
 	
 }
 
+/* ************** region split operator ***************************** */
+
+/* insert a region in the area region list */
+static int region_split_exec(bContext *C, wmOperator *op)
+{
+	ARegion *newar= ED_region_copy(C->region);
+	int dir= RNA_enum_get(op->ptr, "dir");
+	
+	BLI_insertlinkafter(&C->area->regionbase, C->region, newar);
+	
+	newar->alignment= C->region->alignment;
+	
+	if(dir=='h')
+		C->region->alignment= RGN_ALIGN_HSPLIT;
+	else
+		C->region->alignment= RGN_ALIGN_VSPLIT;
+	
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int region_split_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	
+	/* can't do menu, so event is checked manually */
+	if(evt->shift)
+		RNA_enum_set(op->ptr, "dir", 'v');
+	else
+		RNA_enum_set(op->ptr, "dir", 'h');
+
+	return region_split_exec(C, op);
+}
+
+
+void ED_SCR_OT_region_split(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Split Region";
+	ot->idname= "ED_SCR_OT_region_split";
+	
+	/* api callbacks */
+	ot->exec= region_split_exec;
+	ot->invoke= region_split_invoke;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_enum_default(prop, 'h');
+}
+
+
 /* ************** border select operator (template) ***************************** */
 
 /* operator state vars used: (added by default WM callbacks)   
@@ -1318,7 +1374,8 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_area_split);
 	WM_operatortype_append(ED_SCR_OT_area_join);
 	WM_operatortype_append(ED_SCR_OT_area_rip);
-	
+	WM_operatortype_append(ED_SCR_OT_region_split);
+		
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
 	
@@ -1337,6 +1394,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
+	 /* tests */
+	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }
 

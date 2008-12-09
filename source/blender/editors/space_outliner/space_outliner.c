@@ -496,16 +496,10 @@ static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 {
 	ARegion *ar;
 	
-	/* link area to SpaceXXX struct */
-	sa->type= BKE_spacetype_from_id(SPACE_OOPS);
-
-	/* add handlers to area */
-	/* define how many regions, the order and types */
-	
 	/* add types to regions, check handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); /* XXX fix type and id */
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); 
 
 		if(ar->handlers.first==NULL) {
 			ListBase *keymap;

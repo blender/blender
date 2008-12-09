@@ -230,22 +230,16 @@ static void time_free(SpaceLink *sl)
 }
 
 
-/* spacetype; init callback */
+/* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
 static void time_init(wmWindowManager *wm, ScrArea *sa)
 {
 	ARegion *ar;
 	
-	/* link area to SpaceXXX struct */
-	sa->type= BKE_spacetype_from_id(SPACE_TIME);
-
-	/* add handlers to area */
-	/* define how many regions, the order and types */
-	
 	/* add types to regions, check handlers */
 	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); /* XXX fix type and id */
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
 		
 		if(ar->handlers.first==NULL) {
 			ListBase *keymap;
@@ -255,10 +249,10 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 			
-			/* own keymap */
 			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 			
+			/* own keymap */
 			keymap= WM_keymap_listbase(wm, "TimeLine", sa->spacetype, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);
 		}

@@ -61,8 +61,8 @@ struct bGPdata;
 typedef struct SpaceLink {
 	struct SpaceLink *next, *prev;
 	int spacetype;
-	float blockscale;
-	short blockhandler[8];
+	float blockscale;			/* XXX depricate this */
+	short blockhandler[8];		/* XXX depricate this */
 } SpaceLink;
 
 typedef struct SpaceInfo {
@@ -81,7 +81,7 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	
 	unsigned int rowbut, pad2; 
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	void *editipo;
 	ListBase ipokey;
@@ -110,7 +110,7 @@ typedef struct SpaceButs {
 
 	short cursens, curact;
 	short align, tabo;		/* align for panels, tab is old tab */
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	short mainb, menunr;	/* texnr and menunr have to remain shorts */
 	short pin, mainbo;	
@@ -138,7 +138,7 @@ typedef struct SpaceSeq {
 
 	short blockhandler[8];
 
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
 	short mainb, pad;
@@ -191,7 +191,7 @@ typedef struct SpaceOops {
 
 	short blockhandler[8];
 
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	ListBase oops;
 	short pin, visiflag, flag, rt;
@@ -220,7 +220,7 @@ typedef struct SpaceImage {
 
 	short blockhandler[8];
 
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	struct Image *image;
 	struct ImageUser iuser;
@@ -256,7 +256,7 @@ typedef struct SpaceNla {
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
 	
-	View2D v2d;	
+	View2D v2d;	 /* depricated, copied to region */
 } SpaceNla;
 
 typedef struct SpaceText {
@@ -323,7 +323,7 @@ typedef struct SpaceTime {
 	int spacetype;
 	float blockscale;
 	
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	int flag, redraws;
 	
@@ -336,7 +336,7 @@ typedef struct SpaceNode {
 	
 	short blockhandler[8];
 	
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 	
 	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
 	short flag, menunr;			/* menunr: browse id block in header */
@@ -363,7 +363,7 @@ typedef struct SpaceImaSel {
 	
 	short blockhandler[8];
 
-	View2D v2d;
+	View2D v2d; /* depricated, copied to region */
 
 	struct FileList *files;
 
@@ -415,10 +415,12 @@ typedef struct SpaceImaSel {
 } SpaceImaSel;
 
 
-/* **************** SPACE ********************* */
-
-
 /* view3d  Now in DNA_view3d_types.h */
+
+
+
+/* **************** SPACE DEFINES ********************* */
+
 
 /* button defines in BIF_butspace.h */
 

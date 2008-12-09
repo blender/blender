@@ -71,7 +71,7 @@ void ED_spacetypes_init(void)
 	
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
-	ui_operatortypes();
+	UI_operatortypes();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();

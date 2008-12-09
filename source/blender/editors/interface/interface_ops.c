@@ -3503,7 +3503,7 @@ void ED_UI_OT_menu_block_handle(wmOperatorType *ot)
 
 /* ************************** registration **********************************/
 
-void ui_operatortypes(void)
+void UI_operatortypes(void)
 {
 	WM_operatortype_append(ED_UI_OT_button_activate);
 	WM_operatortype_append(ED_UI_OT_menu_block_handle);

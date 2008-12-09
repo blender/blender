@@ -166,9 +166,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		fac= BLI_frand();
 		glColor3f(fac, fac, fac);
 		glRecti(20,  2,  30,  12);
-		
-		region_draw_emboss(ar);
 	}
+	region_draw_emboss(ar);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(C, ar);
@@ -193,7 +192,7 @@ void ED_region_do_refresh(bContext *C, ARegion *ar)
 
 /* *************************************************************** */
 
-
+/* dir is direction to check, not the splitting edge direction! */
 static int rct_fits(rcti *rect, char dir, int size)
 {
 	if(dir=='h') {
@@ -209,8 +208,10 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	if(ar==NULL)
 		return;
 	
-	/* clear state flag first */
+	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
+	if(ar->next==NULL)
+		ar->alignment= RGN_ALIGN_NONE;
 	
 	if(ar->size<ar->minsize)
 		ar->size= ar->minsize;
@@ -220,7 +221,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	/* XXX floating area region, not handled yet here */
 	else if(ar->alignment == RGN_ALIGN_FLOAT);
 	/* remainder is too small for any usage */
-	else if( rct_fits(remainder, 'v', 1)==0 || rct_fits(remainder, 'h', 1) < 0 ) {
+	else if( rct_fits(remainder, 'v', 1)<0 || rct_fits(remainder, 'h', 1) < 0 ) {
 		ar->flag |= RGN_FLAG_TOO_SMALL;
 	}
 	else if(ar->alignment==RGN_ALIGN_NONE) {
@@ -279,12 +280,22 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 		ar->winrct= *remainder;
 		
 		if(ar->alignment==RGN_ALIGN_HSPLIT) {
-			ar->winrct.xmax= (remainder->xmin+remainder->xmax)/2;
-			remainder->xmin= ar->winrct.xmax+1;
+			if( rct_fits(remainder, 'h', ar->size) > 4) {
+				ar->winrct.xmax= (remainder->xmin+remainder->xmax)/2;
+				remainder->xmin= ar->winrct.xmax+1;
+			}
+			else {
+				BLI_init_rcti(remainder, 0, 0, 0, 0);
+			}
 		}
 		else {
-			ar->winrct.ymax= (remainder->ymin+remainder->ymax)/2;
-			remainder->ymin= ar->winrct.ymax+1;
+			if( rct_fits(remainder, 'v', ar->size) > 4) {
+				ar->winrct.ymax= (remainder->ymin+remainder->ymax)/2;
+				remainder->ymin= ar->winrct.ymax+1;
+			}
+			else {
+				BLI_init_rcti(remainder, 0, 0, 0, 0);
+			}
 		}
 	}
 	
@@ -387,9 +398,24 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	area_azone_initialize(sa);
 }
 
+
+ARegion *ED_region_copy(ARegion *ar)
+{
+	ARegion *newar= MEM_dupallocN(ar);
+	
+	newar->handlers.first= newar->handlers.last= NULL;
+	newar->uiblocks.first= newar->uiblocks.last= NULL;
+	newar->swinid= 0;
+	
+	/* XXX regiondata */
+	if(ar->regiondata)
+		newar->regiondata= MEM_dupallocN(ar->regiondata);
+	
+	return newar;
+}
+
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
 /* area vertices were set */
-
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	Panel *pa1, *pa2, *patab;
@@ -429,11 +455,10 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	
 	/* regions */
 	BLI_freelistN(&sa1->regionbase);
-	BLI_duplicatelist(&sa1->regionbase, &sa2->regionbase);
-	for(ar= sa1->regionbase.first; ar; ar= ar->next) {
-		ar->handlers.first= ar->handlers.last= NULL;
-		ar->uiblocks.first= ar->uiblocks.last= NULL;
-		ar->swinid= 0;
+	
+	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
+		ARegion *newar= ED_region_copy(ar);
+		BLI_addtail(&sa1->regionbase, newar);
 	}
 		
 #ifndef DISABLE_PYTHON

@@ -341,7 +341,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 void uiTestRegion(const struct bContext *C); /* XXX 2.50 temporary test */
 
 void UI_keymap(struct wmWindowManager *wm);
-
+void UI_operatortypes(void);
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
