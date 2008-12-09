@@ -326,13 +326,104 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 }
 
 #if 0
+typedef struct VolPrecachePart {
+	struct VolPrecachePart *next, *prev;
+	int num;
+	int minx, maxx;
+	int miny, maxy;
+	int minz, maxz;
+	int res;
+	float bbmin[3], voxel[3];
+	struct RayTree *tree;
+	struct ShadeInput *shi;
+	struct ObjectInstanceRen *obi;
+	int done;
+} VolPrecachePart;
+
+static void *vol_precache_part_test(void *data)
+{
+	VolPrecachePart *vpt =  (VolPrecachePart *)data;
+
+	printf("part number: %d \n", vpt->num);
+
+	return 0;
+}
+
+/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
+ *
+ * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
+ * I'm guessing the memory alignment may work out better this way for the purposes
+ * of doing linear interpolation, but I haven't actually tested this theory! :)
+ */
+static void *vol_precache_part(void *data)
+{
+	VolPrecachePart *vpt =  (VolPrecachePart *)data;
+	ObjectInstanceRen *obi = vpt->obi;
+	RayTree *tree = vpt->tree;
+	ShadeInput *shi = vpt->shi;
+	float scatter_col[3] = {0.f, 0.f, 0.f};
+	float co[3];
+	int x, y, z;
+	const int res=vpt->res, res_2=vpt->res*vpt->res, res_3=vpt->res*vpt->res*vpt->res;
+	const float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
+	
+	res = vpt->res;
+	res_2 = res*res;
+	res_3 = res*res*res;
+	
+	for (x= vpt->minx; x < vpt->maxx; x++) {
+		co[0] = vpt->bbmin[0] + (vpt->voxel[0] * x);
+		
+		for (y= vpt->miny; y < vpt->maxy; y++) {
+			co[1] = vpt->bbmin[1] + (vpt->voxel[1] * y);
+			
+			for (z=vpt->minz; z < vpt->maxz; z++) {
+				co[2] = vpt->bbmin[2] + (vpt->voxel[2] * z);
+			
+				// don't bother if the point is not inside the volume mesh
+				if (!point_inside_obi(tree, obi, co)) {
+					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
+					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
+					continue;
+				}
+				density = vol_get_density(shi, co);
+				vol_get_scattering(shi, scatter_col, co, stepsize, density);
+			
+				obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = scatter_col[0];
+				obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = scatter_col[1];
+				obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = scatter_col[2];
+			}
+		}
+	}
+	
+	return 0;
+}
+
+void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
+{
+	float view[3] = {0.0,0.0,-1.0};
+	
+	memset(&shi, 0, sizeof(ShadeInput)); 
+	shi->depth= 1;
+	shi->mask= 1;
+	shi->mat = ma;
+	shi->vlr = NULL;
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi->har= shi->mat->har;
+	shi->obi= obi;
+	shi->obr= obi->obr;
+	shi->lay = re->scene->lay;
+	VECCOPY(shi->view, view);
+}
+
 void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
 {
 	int x, y, z;
 
 	float co[3], voxel[3], scatter_col[3];
 	ShadeInput shi;
-	float view[3] = {0.0,0.0,-1.0};
+	
 	float density;
 	float stepsize;
 	
@@ -341,6 +432,14 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	
 	int edgeparts=2;
 	int totparts;
+	ListBase threads;
+	int cont= 1;
+	int xparts, yparts, zparts;
+	float part[3];
+	int totthread = re->r.threads;
+	ListBase precache_parts;
+	VolPrecachePart *nextpa;
+	int j;
 	
 	float i = 1.0f;
 	double time, lasttime= PIL_check_seconds_timer();
@@ -355,38 +454,80 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	if (!tree) return;
 
 	/* Need a shadeinput to calculate scattering */
-	memset(&shi, 0, sizeof(ShadeInput)); 
-	shi.depth= 1;
-	shi.mask= 1;
-	shi.mat = ma;
-	shi.vlr = NULL;
-	memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi.har= shi.mat->har;
-	shi.obi= obi;
-	shi.obr= obi->obr;
-	shi.lay = re->scene->lay;
-	VECCOPY(shi.view, view);
-	
-	stepsize = vol_get_stepsize(&shi, STEPSIZE_VIEW);
+	precache_setup_shadeinput(re, obi, ma, &shi);
 
-	resf = (float)res;
-	res_2 = res*res;
-	res_3 = res*res*res;
-	res_3f = (float)res_3;
-	
 	VecSubf(voxel, bbmax, bbmin);
 	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
 		return;
 	VecMulf(voxel, 1.0f/res);
 	
+	part[0] = ceil(res/(float)xparts); 
+	part[1] = ceil(res/(float)yparts);
+	part[2] = ceil(res/(float)zparts);
 	
-	part[0] = parceil(res/(float)xparts); 
-	part[1] = ceil(rex/(float)yparts);
-	part[2] = ceil(rex/(float)zparts);
+	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
 	
+	totparts = edgeparts*edgeparts*edgeparts;
+	precache_parts= MEM_callocN(sizeof(VolPrecachePart)*totparts, "VolPrecachePart");
+	memset(precache_parts, 0, sizeof(VolPrecachePart)*totparts);
+
+	precache_init_parts(precache_parts);
+
+	for(j=0; j < totparts; j++) {
+		VolPrecachePart *pa= MEM_callocN(sizeof(VolPrecachePart), "new precache part");
 	
+		pa->done = 0;
+		pa->num = j;
+		
+		pa->res = res;
+		VECCOPY(pa->bbmin, bbmin);
+		VECCOPY(precache_parts[j].voxel, voxel);
+		precache_parts[j].tree = tree;
+		precache_parts[j].shi = shi;
+		precache_parts[j].obi = obi;
+	}
 	
-	//obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
+	BLI_init_threads(&threads, vol_precache_part, totthread);
+	
+	nextpa = precache_get_new_part(precache_threads);
+	
+	while(cont) {
+
+		if(BLI_available_threads(&threads) && !(re->test_break())) {
+			
+			precache_get_new_part(
+			// get new job (data pointer)
+			for(j=0; j < totparts; j++) {
+				if (!precache_threads[j].done) {
+					// tag job 'processed
+					precache_threads[j].done = 1;
+				}
+			}
+		
+			BLI_insert_thread(&threads, precache_get_new_part(precache_threads));
+		}
+		else PIL_sleep_ms(50);
+
+		// find if a job is ready, this the do_something_func() should write in job somewhere
+		cont= 0;
+		for(go over all jobs)
+			if(job is ready) {
+				if(job was not removed) {
+					BLI_remove_thread(&lb, job);
+				}
+			}
+			else cont= 1;
+		}
+		// conditions to exit loop
+		if(if escape loop event) {
+		if(BLI_available_threadslots(&lb)==maxthreads)
+			break;
+		}
+	}
+
+	BLI_end_threads(&threads);
+	
+	//
 	
 	/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
 	 *
