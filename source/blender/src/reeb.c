@@ -3462,9 +3462,10 @@ static void* nextBucket(void *arg)
 	ReebArcIterator *iter = (ReebArcIterator*)arg;
 	EmbedBucket *result = NULL;
 	
+	iter->index++;
+	
 	if (iter->index < iter->length)
 	{
-		iter->index++;
 		result = &(iter->arc->buckets[iter->start + (iter->stride * iter->index)]);
 	}
 	
@@ -3483,11 +3484,6 @@ static void* nextNBucket(void *arg, int n)
 	if (iter->index < iter->length)
 	{
 		result = &(iter->arc->buckets[iter->start + (iter->stride * iter->index)]);
-	}
-	else
-	{
-		/* stop iterator if passed end */
-		iter->index = iter->length; 
 	}
 	
 	setIteratorValues(iter, result);
@@ -3529,7 +3525,7 @@ static int iteratorStopped(void *arg)
 {
 	ReebArcIterator *iter = (ReebArcIterator*)arg;
 
-	if (iter->index == iter->length)
+	if (iter->index >= iter->length)
 	{
 		return 1;
 	}

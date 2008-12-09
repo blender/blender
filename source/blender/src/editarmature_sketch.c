@@ -1661,9 +1661,9 @@ static void* nextPoint(void *arg)
 	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
 	SK_Point *result = NULL;
 	
+	iter->index++;
 	if (iter->index < iter->length)
 	{
-		iter->index++;
 		result = setIteratorValues(iter, iter->index);
 	}
 
@@ -1681,11 +1681,6 @@ static void* nextNPoint(void *arg, int n)
 	if (iter->index < iter->length)
 	{
 		result = setIteratorValues(iter, iter->index);
-	}
-	else
-	{
-		/* stop iterator if passed end */
-		iter->index = iter->length; 
 	}
 
 	return result;
@@ -1724,7 +1719,7 @@ static int iteratorStopped(void *arg)
 {
 	SK_StrokeIterator *iter = (SK_StrokeIterator*)arg;
 
-	if (iter->index == iter->length)
+	if (iter->index >= iter->length)
 	{
 		return 1;
 	}
