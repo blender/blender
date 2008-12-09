@@ -61,7 +61,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_Camera * camera) :
     m_camera(camera),
     m_owncamera(false),
     m_observer(NULL),
-    m_mirror(NULL)
+    m_mirror(NULL),
+	m_clip(100.f)
 {
 	// initialize background colour
 	setBackground(0, 0, 255, 255);
@@ -178,7 +179,7 @@ void ImageRender::Render()
         frustrum.y1 = mirrorOffset[1]-height;
         frustrum.y2 = mirrorOffset[1]+height;
         frustrum.camnear = -mirrorOffset[2];
-        frustrum.camfar = -mirrorOffset[2]+100.f;
+        frustrum.camfar = -mirrorOffset[2]+m_clip;
     }
     const float ortho = 100.0;
     const RAS_IRasterizer::StereoMode stereomode = m_rasterizer->GetStereoMode();
@@ -479,13 +480,56 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	return 0;
 }
 
+// get background color
+PyObject * getClip (PyImage * self, void * closure)
+{
+	return PyFloat_FromDouble(getImageRender(self)->getClip());
+}
+
+// set clip
+static int setClip (PyImage * self, PyObject * value, void * closure)
+{
+	// check validity of parameter
+	double clip;
+	if (value == NULL || !PyFloat_Check(value) || (clip = PyFloat_AsDouble(value)) < 0.01 || clip > 5000.0)
+	{
+		PyErr_SetString(PyExc_TypeError, "The value must be an float between 0.01 and 5000");
+		return -1;
+	}
+	// set background color
+	getImageRender(self)->setClip(float(clip));
+	// success
+	return 0;
+}
+
+// attributes structure
+static PyGetSetDef imageMirrorGetSets[] =
+{ 
+	{(char*)"clip", (getter)getClip, (setter)setClip, (char*)"clipping distance", NULL},
+	// attribute from ImageRender
+	{(char*)"background", (getter)getBackground, (setter)setBackground, (char*)"background color", NULL},
+    // attribute from ImageViewport
+	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of render area", NULL},
+	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
+	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},
+	// attributes from ImageBase class
+	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
+	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
+	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
+	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
+	{NULL}
+};
+
+
 // constructor
 ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObject * mirror, RAS_IPolyMaterial * mat) :
     ImageViewport(),
     m_render(false),
     m_scene(scene),
     m_observer(observer),
-    m_mirror(mirror)
+    m_mirror(mirror),
+	m_clip(100.f)
 {
     // this constructor is used for automatic planar mirror
     // create a camera, take all data by default, in any case we will recompute the frustrum on each frame
@@ -670,7 +714,7 @@ PyTypeObject ImageMirrorType =
 	0,		               /* tp_iternext */
 	imageRenderMethods,    /* tp_methods */
 	0,                   /* tp_members */
-	imageRenderGetSets,          /* tp_getset */
+	imageMirrorGetSets,          /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */
 	0,                         /* tp_descr_get */

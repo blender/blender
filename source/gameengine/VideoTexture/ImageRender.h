@@ -52,6 +52,11 @@ public:
 	/// set background color
 	void setBackground (int red, int green, int blue, int alpha);
 
+	/// clipping distance
+	float getClip (void) { return m_clip; }
+	/// set whole buffer use
+    void setClip (float clip) { m_clip = clip; }
+
 protected:
     /// true if ready to render
     bool m_render;
@@ -64,6 +69,7 @@ protected:
     /// for mirror operation
     KX_GameObject * m_observer;
     KX_GameObject * m_mirror;
+	float m_clip;						// clipping distance
     float m_mirrorHalfWidth;            // mirror width in mirror space
     float m_mirrorHalfHeight;           // mirror height in mirror space
     MT_Point3 m_mirrorPos;              // mirror center position in local space
