@@ -153,6 +153,8 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 static void wm_window_close(bContext *C, wmWindow *win)
 {
 	BLI_remlink(&C->wm->windows, win);
+	
+	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
 	
 	if(C->wm->windows.first==NULL)
