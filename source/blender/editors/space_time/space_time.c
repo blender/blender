@@ -103,31 +103,31 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 	fdrawline(PEFRA, v2d->cur.ymin, PEFRA, v2d->cur.ymax);
 }
 
-static void time_main_area_init(const bContext *C, ARegion *ar)
+/* add handlers, stuff you only do once or on area/region changes */
+static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	/* add handlers, stuff you only do once or on area/region changes */
+	ListBase *keymap;
+	
+	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void time_main_area_refresh(const bContext *C, ARegion *ar)
-{
-	/* refresh to match contextual changes */
-}
 
 static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
-	/* draw entirely, windowsize changes should be handled here */
+	/* draw entirely, view changes should be handled here */
 	SpaceTime *stime= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	float col[3];
-	int unit, winx, winy;
+	int unit;
 	
-	// XXX this should become stored in regions too...
-	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
-	winy= ar->winrct.ymax - ar->winrct.ymin + 1;
-	
-	UI_view2d_size_update(v2d, winx, winy);
+	/* XXX can be removed */
+	UI_view2d_size_update(v2d, ar->winx, ar->winy);
 
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -141,7 +141,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, winx, winy);
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 
@@ -163,10 +163,11 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
-	/* draw entirely, windowsize changes should be handled here */
+	/* context changes */
 }
 
 /* ************************ header time area region *********************** */
+
 
 static void time_header_area_draw(const bContext *C, ARegion *ar)
 {
@@ -231,36 +232,10 @@ static void time_free(SpaceLink *sl)
 
 /* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
+/* validate spacedata, add own area level handlers */
 static void time_init(wmWindowManager *wm, ScrArea *sa)
 {
-	ARegion *ar;
-	
-	/* add types to regions, check handlers */
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
-		
-		if(ar->handlers.first==NULL) {
-			ListBase *keymap;
-			
-			/* XXX fixme, should be smarter */
-			
-			UI_add_region_handlers(&ar->handlers);
-			
-			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
-			WM_event_add_keymap_handler(&ar->handlers, keymap);
-			
-			/* own keymap */
-			keymap= WM_keymap_listbase(wm, "TimeLine", sa->spacetype, 0);
-			WM_event_add_keymap_handler(&ar->handlers, keymap);
-		}
-	}
-}
 
-/* spacetype; context changed */
-static void time_refresh(bContext *C, ScrArea *sa)
-{
-	
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)
@@ -284,30 +259,31 @@ void ED_spacetype_time(void)
 	st->new= time_new;
 	st->free= time_free;
 	st->init= time_init;
-	st->refresh= time_refresh;
 	st->duplicate= time_duplicate;
 	st->operatortypes= time_operatortypes;
-	st->keymap= time_keymap;
+	st->keymap= NULL;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_WINDOW;
-
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS;
+	
 	art->init= time_main_area_init;
-	art->refresh= time_main_area_refresh;
 	art->draw= time_main_area_draw;
 	art->listener= time_main_area_listener;
+	art->keymap= time_keymap;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI;
 	
 	art->draw= time_header_area_draw;
 	art->free= time_header_area_free;
 	BLI_addhead(&st->regiontypes, art);
-	
-	
+		
 	BKE_spacetype_register(st);
 }
 

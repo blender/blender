@@ -878,7 +878,6 @@ void ED_screen_draw(wmWindow *win)
 void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 {
 	ScrArea *sa;
-	ARegion *ar;
 	rcti winrct= {0, win->sizex-1, 0, win->sizey-1};
 	
 	screen_test_scale(win->screen, win->sizex, win->sizey);
@@ -889,16 +888,11 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		wm_subwindow_position(win, win->screen->mainwin, &winrct);
 	
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		/* set spacetype and region callbacks */
-		/* sets subwindow */
+		/* set spacetype and region callbacks, calls init() */
+		/* sets subwindows for regions, adds handlers */
 		ED_area_initialize(wm, win, sa);
 	}
 
-	for(ar= win->screen->regionbase.first; ar; ar= ar->next) {
-		/* set subwindow */
-		ED_region_initialize(wm, win, ar);
-	}
-	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
 
@@ -942,7 +936,7 @@ void ED_area_exit(bContext *C, ScrArea *sa)
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
-	wmWindow *prevwin= C->window;
+	wmWindow *prevwin= C?C->window:NULL;
 	ScrArea *sa;
 	ARegion *ar;
 

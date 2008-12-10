@@ -40,12 +40,11 @@ struct SpaceType;
 struct AreagionType;
 
 /* regions */
-void	ED_region_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ARegion *ar);
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, ARegion *ar);
-void	ED_region_do_refresh(struct bContext *C, ARegion *ar);
 void	ED_region_exit(struct bContext *C, ARegion *ar);
 void	ED_region_pixelspace(const struct bContext *C, ARegion *ar);
+void	ED_region_init(struct bContext *C, ARegion *ar);
 ARegion *ED_region_copy(ARegion *ar);
 
 /* spaces */
@@ -75,6 +74,10 @@ int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
 int		ED_operator_areaactive(struct bContext *C);
 
+/* default keymaps, bitflags */
+#define ED_KEYMAP_UI		1
+#define ED_KEYMAP_VIEW2D	2
+#define ED_KEYMAP_MARKERS	4
 
 #endif /* ED_SCREEN_H */
 

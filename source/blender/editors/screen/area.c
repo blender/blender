@@ -50,7 +50,9 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -108,13 +110,9 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case WM_NOTE_WINDOW_REDRAW:
 		case WM_NOTE_AREA_REDRAW:
 		case WM_NOTE_REGION_REDRAW:
-			ar->do_draw= 1;
-			break;
 		case WM_NOTE_GESTURE_REDRAW:
-			ar->do_draw= 1;
-			break;
 		case WM_NOTE_SCREEN_CHANGED:
-			ar->do_draw= ar->do_refresh= 1;
+			ar->do_draw= 1;
 			break;
 		default:
 			if(ar->type->listener)
@@ -177,21 +175,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ar->do_draw= 0;
 }
 
-void ED_region_do_refresh(bContext *C, ARegion *ar)
-{
-	ARegionType *at= ar->type;
-
-	/* refresh can be called before window opened */
-	if(ar->swinid)
-		wm_subwindow_set(C->window, ar->swinid);
-	
-	if (at->refresh) {
-		at->refresh(C, ar);
-	}
-	
-	ar->do_refresh= 0;
-}
-
 /* *************************************************************** */
 
 /* dir is direction to check, not the splitting edge direction! */
@@ -207,6 +190,8 @@ static int rct_fits(rcti *rect, char dir, int size)
 
 static void region_rect_recursive(ARegion *ar, rcti *remainder)
 {
+	int prefsizex, prefsizey;
+	
 	if(ar==NULL)
 		return;
 	
@@ -215,8 +200,8 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	if(ar->next==NULL)
 		ar->alignment= RGN_ALIGN_NONE;
 	
-	if(ar->size<ar->minsize)
-		ar->size= ar->minsize;
+	prefsizex= ar->type->minsizex;
+	prefsizey= ar->type->minsizey;
 	
 	/* hidden is user flag */
 	if(ar->flag & RGN_FLAG_HIDDEN);
@@ -233,46 +218,46 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	}
 	else if(ar->alignment==RGN_ALIGN_TOP || ar->alignment==RGN_ALIGN_BOTTOM) {
 		
-		if( rct_fits(remainder, 'v', ar->minsize) < 0 ) {
+		if( rct_fits(remainder, 'v', prefsizey) < 0 ) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
 		}
 		else {
-			int fac= rct_fits(remainder, 'v', ar->size);
+			int fac= rct_fits(remainder, 'v', prefsizey);
 
 			if(fac < 0 )
-				ar->size += fac;
+				prefsizey += fac;
 			
 			ar->winrct= *remainder;
 			
 			if(ar->alignment==RGN_ALIGN_TOP) {
-				ar->winrct.ymin= ar->winrct.ymax - ar->size;
+				ar->winrct.ymin= ar->winrct.ymax - prefsizey;
 				remainder->ymax= ar->winrct.ymin-1;
 			}
 			else {
-				ar->winrct.ymax= ar->winrct.ymin + ar->size;
+				ar->winrct.ymax= ar->winrct.ymin + prefsizey;
 				remainder->ymin= ar->winrct.ymax+1;
 			}
 		}
 	}
 	else if(ar->alignment==RGN_ALIGN_LEFT || ar->alignment==RGN_ALIGN_RIGHT) {
 		
-		if( rct_fits(remainder, 'h', ar->minsize) < 0 ) {
+		if( rct_fits(remainder, 'h', prefsizex) < 0 ) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
 		}
 		else {
-			int fac= rct_fits(remainder, 'h', ar->size);
+			int fac= rct_fits(remainder, 'h', prefsizex);
 			
 			if(fac < 0 )
-				ar->size += fac;
+				prefsizex += fac;
 			
 			ar->winrct= *remainder;
 			
 			if(ar->alignment==RGN_ALIGN_RIGHT) {
-				ar->winrct.xmin= ar->winrct.xmax - ar->size;
+				ar->winrct.xmin= ar->winrct.xmax - prefsizex;
 				remainder->xmax= ar->winrct.xmin-1;
 			}
 			else {
-				ar->winrct.xmax= ar->winrct.xmin + ar->size;
+				ar->winrct.xmax= ar->winrct.xmin + prefsizex;
 				remainder->xmin= ar->winrct.xmax+1;
 			}
 		}
@@ -282,7 +267,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 		ar->winrct= *remainder;
 		
 		if(ar->alignment==RGN_ALIGN_HSPLIT) {
-			if( rct_fits(remainder, 'h', ar->size) > 4) {
+			if( rct_fits(remainder, 'h', prefsizex) > 4) {
 				ar->winrct.xmax= (remainder->xmin+remainder->xmax)/2;
 				remainder->xmin= ar->winrct.xmax+1;
 			}
@@ -291,7 +276,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			}
 		}
 		else {
-			if( rct_fits(remainder, 'v', ar->size) > 4) {
+			if( rct_fits(remainder, 'v', prefsizey) > 4) {
 				ar->winrct.ymax= (remainder->ymin+remainder->ymax)/2;
 				remainder->ymin= ar->winrct.ymax+1;
 			}
@@ -300,6 +285,9 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			}
 		}
 	}
+	/* for speedup */
+	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
+	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
 	region_rect_recursive(ar->next, remainder);
 }
@@ -356,8 +344,8 @@ void area_azone_initialize(ScrArea *sa)
 	}
 }
 
-/* used for area and screen regions */
-void ED_region_initialize(wmWindowManager *wm, wmWindow *win, ARegion *ar)
+/* used for area initialize below */
+static void region_subwindow(wmWindowManager *wm, wmWindow *win, ARegion *ar)
 {
 	if(ar->flag & (RGN_FLAG_HIDDEN|RGN_FLAG_TOO_SMALL)) {
 		if(ar->swinid)
@@ -370,7 +358,25 @@ void ED_region_initialize(wmWindowManager *wm, wmWindow *win, ARegion *ar)
 		wm_subwindow_position(win, ar->swinid, &ar->winrct);
 }
 
-/* called in screen_refresh, or screens_init */
+static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int flag)
+{
+	/* note, add-handler checks if it already exists */
+	
+	if(flag & ED_KEYMAP_UI) {
+		UI_add_region_handlers(handlers);
+	}
+	if(flag & ED_KEYMAP_VIEW2D) {
+		ListBase *keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+	if(flag & ED_KEYMAP_MARKERS) {
+		ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+}
+
+
+/* called in screen_refresh, or screens_init, also area size changes */
 void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
 	ARegion *ar;
@@ -378,26 +384,50 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	
 	/* set typedefinitions */
 	sa->type= BKE_spacetype_from_id(sa->spacetype);
+	
 	if(sa->type==NULL) {
 		sa->spacetype= SPACE_VIEW3D;
 		sa->type= BKE_spacetype_from_id(sa->spacetype);
 	}
 	
-	area_calc_totrct(sa, win->sizex, win->sizey);
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
 	
-	/* regiontype callback, it should create/verify the amount of subregions with minsizes etc */
-	if(sa->type->init)
-		sa->type->init(wm, sa);
+	/* area sizes */
+	area_calc_totrct(sa, win->sizex, win->sizey);
 	
 	/* region rect sizes */
 	rect= sa->totrct;
 	region_rect_recursive(sa->regionbase.first, &rect);
 	
-	/* region windows */
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		ED_region_initialize(wm, win, ar);
+	/* default area handlers */
+	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
+	/* checks spacedata, adds own handlers */
+	if(sa->type->init)
+		sa->type->init(wm, sa);
 	
+	/* region windows, default and own handlers */
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
+		region_subwindow(wm, win, ar);
+		
+		/* default region handlers */
+		ed_default_handlers(wm, &ar->handlers, ar->type->keymapflag);
+
+		if(ar->type->init)
+			ar->type->init(wm, ar);
+		
+	}
 	area_azone_initialize(sa);
+}
+
+/* externally called for floating regions like menus */
+void ED_region_init(bContext *C, ARegion *ar)
+{
+//	ARegionType *at= ar->type;
+	
+	/* refresh can be called before window opened */
+	region_subwindow(C->wm, C->window, ar);
+	
 }
 
 

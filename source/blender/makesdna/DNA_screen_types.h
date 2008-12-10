@@ -122,18 +122,18 @@ typedef struct ARegion {
 	
 	View2D v2d;					/* 2D-View scrolling/zoom info (most regions are 2d anyways) */
 	rcti winrct;				/* coordinates of region */
+	short winx, winy;			/* size */
 	
 	short swinid;
 	short regiontype;			/* window, header, etc. identifier for drawing */
 	short alignment;			/* how it should split */
-	short size;					/* current split size in pixels */
-	short minsize;				/* set by spacedata's region init */
 	short flag;					/* hide, ... */
 	
 	float fsize;				/* current split size in float */
 	
-	int pad;
-	short do_draw, do_refresh;	/* cached notifier events */
+	short do_draw;				/* cached notifier events */
+	short pad;
+	int pad1;
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	

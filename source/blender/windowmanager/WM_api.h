@@ -72,6 +72,9 @@ ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid,
 
 
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
+						/* boundbox, optional subwindow boundbox for offset */
+struct wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bb, rcti *swinbb);
+
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
 struct wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers,

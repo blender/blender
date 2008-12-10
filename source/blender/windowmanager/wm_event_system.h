@@ -45,10 +45,12 @@ typedef struct wmEventHandler {
 	/* keymap handler */
 	ListBase *keymap;			/* pointer to builtin/custom keymaps */
 	
+	rcti *bblocal, *bbwin;		/* optional local and windowspace bb */
+	
 	/* modal operator handler */
-	wmOperator *op;				/* for derived/modal handlers */
-	struct ScrArea *op_area;	/* for derived/modal handlers */
-	struct ARegion *op_region;	/* for derived/modal handlers */
+	wmOperator *op;						/* for derived/modal handlers */
+	struct ScrArea *op_area;			/* for derived/modal handlers */
+	struct ARegion *op_region;			/* for derived/modal handlers */
 
 	/* ui handler */
 	wmUIHandlerFunc ui_handle;  		/* callback receiving events */

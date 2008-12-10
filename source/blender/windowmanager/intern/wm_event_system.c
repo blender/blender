@@ -193,18 +193,12 @@ static int wm_draw_update_test_window(wmWindow *win)
 		return 1;
 
 	for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-		/* cached notifiers */
-		if(ar->do_refresh)
-			return 1;
 		if(ar->swinid && ar->do_draw)
 			return 1;
 	}
 
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		for(ar=sa->regionbase.first; ar; ar= ar->next) {
-			/* cached notifiers */
-			if(ar->do_refresh)
-				return 1;
 			if(ar->swinid && ar->do_draw)
 				return 1;
 		}
@@ -239,10 +233,6 @@ void wm_draw_update(bContext *C)
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
 					C->region= ar;
 					
-					/* cached notifiers */
-					if(ar->do_refresh)
-						ED_region_do_refresh(C, ar);
-					
 					if(ar->swinid && ar->do_draw) {
 						ED_region_do_draw(C, ar);
 						area_do_draw= 1;
@@ -264,10 +254,6 @@ void wm_draw_update(bContext *C)
 			/* regions are menus here */
 			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
 				C->region= ar;
-				
-				/* cached notifiers */
-				if(ar->do_refresh)
-					ED_region_do_refresh(C, ar);
 				
 				if(ar->swinid && ar->do_draw)
 					ED_region_do_draw(C, ar);
@@ -386,7 +372,6 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
-	/* optional boundbox */
 	
 	return 1;
 }
@@ -480,6 +465,20 @@ static int wm_event_always_pass(wmEvent *event)
 	return (event->type == TIMER);
 }
 
+static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
+{
+	if(handler->bbwin) {
+		if(handler->bblocal) {
+			rcti rect= *handler->bblocal;
+			BLI_translate_rcti(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
+			return BLI_in_rcti(&rect, event->x, event->y);
+		}
+		else 
+			return BLI_in_rcti(handler->bbwin, event->x, event->y);
+	}
+	return 1;
+}
+
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmEventHandler *handler, *nexthandler;
@@ -491,36 +490,40 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	for(handler= handlers->first; handler; handler= nexthandler) {
 		nexthandler= handler->next;
 
-		/* modal+blocking handler */
-		if(handler->flag & WM_HANDLER_BLOCKING)
-			action= WM_HANDLER_BREAK;
+		/* optional boundbox */
+		if(handler_boundbox_test(handler, event)) {
+		
+			/* modal+blocking handler */
+			if(handler->flag & WM_HANDLER_BLOCKING)
+				action= WM_HANDLER_BREAK;
 
-		if(handler->keymap) {
-			wmKeymapItem *kmi;
-			
-			for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
-				if(wm_eventmatch(event, kmi)) {
-					/* if(event->type!=MOUSEMOVE)
-						printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); */
-					
-					event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
-					
-					action= wm_handler_operator_call(C, handlers, handler, event);
-					if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
-						break;
+			if(handler->keymap) {
+				wmKeymapItem *kmi;
+				
+				for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
+					if(wm_eventmatch(event, kmi)) {
+						/* if(event->type!=MOUSEMOVE)
+							printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); */
+						
+						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
+						
+						action= wm_handler_operator_call(C, handlers, handler, event);
+						if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
+							break;
+					}
 				}
 			}
-		}
-		else if(handler->ui_handle) {
-			action= wm_handler_ui_call(C, handler, event);
-		}
-		else {
-			/* modal, swallows all */
-			action= wm_handler_operator_call(C, handlers, handler, event);
-		}
+			else if(handler->ui_handle) {
+				action= wm_handler_ui_call(C, handler, event);
+			}
+			else {
+				/* modal, swallows all */
+				action= wm_handler_operator_call(C, handlers, handler, event);
+			}
 
-		if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
-			break;
+			if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
+				break;
+		}
 		
 	}
 	return action;
@@ -668,6 +671,15 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
 
+	return handler;
+}
+
+wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBase *keymap, rcti *bblocal, rcti *bbwin)
+{
+	wmEventHandler *handler= WM_event_add_keymap_handler(handlers, keymap);
+	handler->bblocal= bblocal;
+	handler->bbwin= bbwin;
+	
 	return handler;
 }
 

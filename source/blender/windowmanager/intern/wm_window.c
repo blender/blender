@@ -82,11 +82,10 @@ static void wm_ghostwindow_destroy(wmWindow *win)
 	}
 }
 
-/* including window itself */
+/* including window itself, C can be NULL. 
+   ED_screen_exit should have been called */
 void wm_window_free(bContext *C, wmWindow *win)
 {
-	ED_screen_exit(C, win, win->screen);
-	
 	/* update context */
 	if(C) {
 		if(C->wm->windrawable==win)
@@ -98,8 +97,6 @@ void wm_window_free(bContext *C, wmWindow *win)
 		if(C->screen==win->screen)
 			C->screen= NULL;
 	}	
-
-	/* XXX free screens */
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
 

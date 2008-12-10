@@ -121,19 +121,7 @@ static void view3d_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void view3d_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-	ARegion *ar;
-	
-	/* add types to regions, handlers */
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
-		
-	}
-}
 
-/* spacetype; context changed */
-static void view3d_refresh(bContext *C, ScrArea *sa)
-{
-	
 }
 
 static SpaceLink *view3d_duplicate(SpaceLink *sl)
@@ -187,7 +175,6 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
-	st->refresh= view3d_refresh;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
@@ -201,9 +188,9 @@ void ED_spacetype_view3d(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
 	
 	BLI_addhead(&st->regiontypes, art);
-	
 	
 	BKE_spacetype_register(st);
 }

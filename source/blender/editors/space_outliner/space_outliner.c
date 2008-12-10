@@ -331,6 +331,12 @@ static void rna_table_cell_func(void *userdata, int row, int col, rcti *rct, uiB
 		rna_but(cell, rct, block);
 }
 
+static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+
+}
+
 static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 {
 	uiTable *table;
@@ -349,10 +355,8 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	awidth= width= ar->winrct.xmax - ar->winrct.xmin + 1;
-	aheight= height= ar->winrct.ymax - ar->winrct.ymin + 1;
-	
-	UI_view2d_size_update(v2d, awidth, aheight);
+	awidth= width= ar->winx;
+	aheight= height= ar->winy;
 	
 	/* create table */
 	cell.space= soutliner;
@@ -437,6 +441,7 @@ static void outliner_main_area_free(ARegion *ar)
 
 /* ************************ header outliner area region *********************** */
 
+
 static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 {
 	SpaceOops *soutliner= C->area->spacedata.first;
@@ -493,30 +498,6 @@ static void outliner_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 {
-	ARegion *ar;
-	
-	/* add types to regions, check handlers */
-	for(ar= sa->regionbase.first; ar; ar= ar->next) {
-		
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype); 
-
-		if(ar->handlers.first==NULL) {
-			ListBase *keymap;
-			
-			/* XXX fixme, should be smarter */
-			
-			UI_add_region_handlers(&ar->handlers);
-			
-			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
-			WM_event_add_keymap_handler(&ar->handlers, keymap);
-
-		}
-	}
-}
-
-/* spacetype; context changed */
-static void outliner_refresh(bContext *C, ScrArea *sa)
-{
 	
 }
 
@@ -543,7 +524,6 @@ void ED_spacetype_outliner(void)
 	st->new= outliner_new;
 	st->free= outliner_free;
 	st->init= outliner_init;
-	st->refresh= outliner_refresh;
 	st->duplicate= outliner_duplicate;
 	st->operatortypes= outliner_operatortypes;
 	st->keymap= outliner_keymap;
@@ -551,7 +531,9 @@ void ED_spacetype_outliner(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_WINDOW;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
+	art->init= outliner_main_area_init;
 	art->draw= outliner_main_area_draw;
 	art->free= outliner_main_area_free;
 	BLI_addhead(&st->regiontypes, art);
@@ -559,11 +541,12 @@ void ED_spacetype_outliner(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI;
 	
 	art->draw= outliner_header_area_draw;
 	art->free= outliner_header_area_free;
 	BLI_addhead(&st->regiontypes, art);
-	
 	
 	BKE_spacetype_register(st);
 }

@@ -52,16 +52,15 @@ typedef struct SpaceType {
 	int				spaceid;					/* unique space identifier */
 	int				iconid;						/* icon lookup for menus */
 	
-	/* calls init too */
+	/* initial allocation, after this WM will call init() too */
 	struct SpaceLink	*(*new)(void);
 	/* not free spacelink itself */
 	void		(*free)(struct SpaceLink *);
 	
-	/* init is to cope with internal contextual changes, adds handlers,
-	 * creates/sets screarea regions */
+	/* init is to cope with file load, screen (size) changes, check handlers */
 	void		(*init)(struct wmWindowManager *, struct ScrArea *);
-	/* refresh is for external bContext changes */
-	void		(*refresh)(struct bContext *, struct ScrArea *);
+	/* Listeners can react to bContext changes */
+	void		(*listener)(struct ARegion *, struct wmNotifier *);
 	
 	/* after a spacedata copy, an init should result in exact same situation */
 	struct SpaceLink	*(*duplicate)(struct SpaceLink *);
@@ -76,6 +75,9 @@ typedef struct SpaceType {
 	
 	/* read and write... */
 	
+	/* default keymaps to add */
+	int			keymapflag;
+	
 } SpaceType;
 
 /* region types are also defined using spacetypes_init, via a callback */
@@ -85,18 +87,24 @@ typedef struct ARegionType {
 	
 	int			regionid;	/* unique identifier within this space */
 	
-	void		(*init)(const struct bContext *, struct ARegion *);		/* add handlers, stuff you only do once or on area/region changes */
-	void		(*refresh)(const struct bContext *, struct ARegion *);	/* refresh to match contextual changes */
-	void		(*draw)(const struct bContext *, struct ARegion *);		/* draw entirely, windowsize changes should be handled here */
-	
+	/* add handlers, stuff you only do once or on area/region type/size changes */
+	void		(*init)(struct wmWindowManager *, struct ARegion *);
+	/* draw entirely, view changes should be handled here */
+	void		(*draw)(const struct bContext *, struct ARegion *);	
+	/* contextual changes should be handled here */
 	void		(*listener)(struct ARegion *, struct wmNotifier *);
+	
 	void		(*free)(struct ARegion *);
 
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
-	/* add default items to keymap */
+	/* add own items to keymap */
 	void		(*keymap)(struct wmWindowManager *);
 	
+	/* hardcoded constraints, smaller than these values region is not visible */
+	int			minsizex, minsizey;
+	/* default keymaps to add */
+	int			keymapflag;
 } ARegionType;
 
 

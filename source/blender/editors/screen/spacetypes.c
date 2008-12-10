@@ -84,14 +84,21 @@ void ED_spacetypes_init(void)
 void ED_spacetypes_keymap(wmWindowManager *wm)
 {
 	const ListBase *spacetypes;
-	SpaceType *type;
+	SpaceType *stype;
+	ARegionType *atype;
 
 	ED_keymap_screen(wm);
 	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();
-	for(type=spacetypes->first; type; type=type->next)
-		type->keymap(wm);
+	for(stype=spacetypes->first; stype; stype=stype->next) {
+		if(stype->keymap)
+			stype->keymap(wm);
+		for(atype=stype->regiontypes.first; atype; atype=atype->next) {
+			if(atype->keymap)
+				atype->keymap(wm);
+		}
+	}
 }
 
 /* ****************************** space template *********************** */
@@ -117,12 +124,6 @@ static void xxx_init(wmWindowManager *wm, ScrArea *sa)
 	/* define how many regions, the order and types */
 	
 	/* add types to regions */
-}
-
-/* spacetype; external context changed */
-static void xxx_refresh(bContext *C, ScrArea *sa)
-{
-	
 }
 
 static SpaceLink *xxx_duplicate(SpaceLink *sl)
@@ -151,7 +152,6 @@ void ED_spacetype_xxx(void)
 	st.new= xxx_new;
 	st.free= xxx_free;
 	st.init= xxx_init;
-	st.refresh= xxx_refresh;
 	st.duplicate= xxx_duplicate;
 	st.operatortypes= xxx_operatortypes;
 	st.keymap= xxx_keymap;
