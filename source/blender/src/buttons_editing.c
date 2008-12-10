@@ -6270,6 +6270,94 @@ void weight_paint_buttons(uiBlock *block)
 	}
 }
 
+void brush_buttons(uiBlock *block, short sima,
+		int evt_nop, int evt_change,
+		int evt_browse, int evt_local,
+		int evt_del, int evt_keepdata,
+		int evt_texbrowse, int evt_texdel)
+{
+	ToolSettings *settings= G.scene->toolsettings;
+	Brush *brush= settings->imapaint.brush;
+	ID *id;
+	int yco, xco, butw;
+
+	short *menupoin = sima ? &(G.sima->menunr) : &(G.buts->menunr);
+	
+	yco= 160;
+
+	butw = sima ? 80 : 106;
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, evt_change, "Draw",		0,		yco,butw,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+	uiDefButS(block, ROW, evt_change, "Soften",		butw,	yco,butw,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+	uiDefButS(block, ROW, evt_change, "Smear",		butw*2,	yco,butw,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");
+	if (sima)
+		uiDefButS(block, ROW, evt_change, "Clone",	butw*3,	yco,butw,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_CLONE, 0, 0, "Clone brush, use RMB to drag source image");
+	
+	uiBlockEndAlign(block);
+	yco -= 30;
+	 
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	id= (ID*)settings->imapaint.brush;
+	xco= std_libbuttons(block, 0, yco, 0, NULL, evt_browse, ID_BR, 0, id, NULL, menupoin, 0, evt_local, evt_del, 0, evt_keepdata);
+	uiBlockSetCol(block, TH_AUTO);
+
+	if(brush && !brush->id.lib) {
+
+		butw= 320-(xco+10);
+
+		uiDefButS(block, MENU, evt_nop, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5|Erase Alpha %x6|Add Alpha %x7", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
+
+		uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, evt_change, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, evt_change, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
+		uiDefButF(block, NUM, evt_nop, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
+		uiBlockEndAlign(block);
+
+		yco -= 25;
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, evt_nop, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, evt_nop, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefButI(block, NUMSLI, evt_nop, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
+		uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, evt_nop, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+		uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefButF(block, NUMSLI, evt_nop, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
+	uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiBlockEndAlign(block);
+
+		yco -= 110;
+
+		if(sima && settings->imapaint.tool == PAINT_TOOL_CLONE) {
+			id= (ID*)brush->clone.image;
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMACLONEBROWSE, ID_IM, 0, id, 0, menupoin, 0, 0, B_SIMACLONEDELETE, 0, 0);
+			uiBlockSetCol(block, TH_AUTO);
+			if(id) {
+				butw= 320-(xco+5);
+				uiDefButF(block, NUMSLI, evt_change, "B ",xco+5,yco,butw,19, &brush->clone.alpha , 0.0, 1.0, 0, 0, "Opacity of clone image display");
+			}
+		}
+		else {
+			MTex *mtex= brush->mtex[brush->texact];
+			
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			id= (mtex)? (ID*)mtex->tex: NULL;
+			xco= std_libbuttons(block, 0, yco, 0, NULL, evt_texbrowse, ID_TE, 0, id, NULL, menupoin, 0, 0, evt_texdel, 0, 0);
+			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, evt_change, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
+			uiBlockSetCol(block, TH_AUTO);
+		}
+	}
+	
+#if 0
+		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL_DRAWING, B_SIMABRUSHCHANGE, "TD", 0,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while drawing");
+		uiDefButBitS(block, TOG|BIT, IMAGEPAINT_DRAW_TOOL, B_SIMABRUSHCHANGE, "TP", 50,1,50,19, &settings->imapaint.flag.flag, 0, 0, 0, 0, "Enables brush shape while not drawing");
+#endif
+}
+
 static void editing_panel_mesh_paint(void)
 {
 	uiBlock *block;
@@ -6329,61 +6417,7 @@ static void editing_panel_mesh_paint(void)
 		uiBlockEndAlign(block);
 	}
 	else { /* texture paint */
-		ToolSettings *settings= G.scene->toolsettings;
-		Brush *brush= settings->imapaint.brush;
-		ID *id;
-		int yco, xco, butw;
-
-		yco= 160;
-
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
-		uiBlockEndAlign(block);
-		yco -= 30;
-
-		uiBlockSetCol(block, TH_BUT_SETTING2);
-		id= (ID*)settings->imapaint.brush;
-		xco= std_libbuttons(block, 0, yco, 0, NULL, B_BRUSHBROWSE, ID_BR, 0, id, NULL, &(G.buts->menunr), 0, B_BRUSHLOCAL, B_BRUSHDELETE, 0, B_BRUSHKEEPDATA);
-		uiBlockSetCol(block, TH_AUTO);
-
-		if(brush && !brush->id.lib) {
-			MTex *mtex= brush->mtex[brush->texact];
-
-			butw= 320-(xco+10);
-
-			uiDefButS(block, MENU, B_NOP, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5|Erase Alpha %x6|Add Alpha %x7", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
-
-			uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_BRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
-
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_BRUSHCHANGE, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
-			uiDefButF(block, NUM, B_NOP, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
-			uiBlockEndAlign(block);
-
-			yco -= 25;
-
-			uiBlockBeginAlign(block);
-			uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
-			uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-			uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, B_NOP, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-			uiDefButI(block, NUMSLI, B_NOP, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
-			uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, B_NOP, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-			uiDefButF(block, NUMSLI, B_NOP, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-			uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, B_NOP, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-			uiDefButF(block, NUMSLI, B_NOP, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
-		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, B_NOP, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
-			uiBlockEndAlign(block);
-
-			yco -= 110;
-
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			id= (mtex)? (ID*)mtex->tex: NULL;
-			xco= std_libbuttons(block, 0, yco, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, NULL, &(G.buts->menunr), 0, 0, B_BTEXDELETE, 0, 0);
-			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_BRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
-			uiBlockSetCol(block, TH_AUTO);
-		}
+		brush_buttons(block, 0, B_NOP, B_BRUSHCHANGE, B_BRUSHBROWSE, B_BRUSHLOCAL, B_BRUSHDELETE, B_BRUSHKEEPDATA, B_BTEXBROWSE, B_BTEXDELETE);
 	}
 }
 
