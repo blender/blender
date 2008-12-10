@@ -2439,12 +2439,12 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						}
 						
 					}
-#if 0
+//#if 0
 					else if (has_x_isect) {
 						/* assuming the face is not a bow-tie - we know we cant intersect again on the X */
 						break;
 					}
-#endif
+//#endif
 				}
 				
 				
@@ -3528,25 +3528,25 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 	cp[2]= mfac*cp1[2] + fac*cp2[2];
 }
 
-static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
 {
 	if (ps->is_airbrush==0 && mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), blend);
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
 	}
 	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*mask*255), blend);
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, ((ProjPixelClone*)projPixel)->clonepx.uint, (int)(alpha*mask*255), ps->blend);
 	}
 }
 
-static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
 {
 	if (ps->is_airbrush==0 && mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, blend);
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
 	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha*mask, blend);
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, ((ProjPixelClone *)projPixel)->clonepx.f, alpha*mask, ps->blend);
 	}
 }
 
@@ -3556,18 +3556,18 @@ static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, fl
  * accumulation of color greater then 'projPixel->mask' however in the case of smear its not 
  * really that important to be correct as it is with clone and painting 
  */
-static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend, MemArena *smearArena, LinkNode **smearPixels, float co[2])
+static void do_projectpaint_smear(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels, float co[2])
 {
 	unsigned char rgba_ub[4];
 	
 	if (project_paint_PickColor(ps, co, NULL, rgba_ub, 1)==0)
 		return; 
 	
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend);
 	BLI_linklist_prepend_arena(smearPixels, (void *)projPixel, smearArena);
 } 
 
-static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
+static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, MemArena *smearArena, LinkNode **smearPixels_f, float co[2])
 {
 	unsigned char rgba_ub[4];
 	unsigned char rgba_smear[4];
@@ -3576,11 +3576,11 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 		return;
 	
 	IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_smear, projPixel->pixel.f_pt);
-	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+	((ProjPixelClone *)projPixel)->clonepx.uint = IMB_blend_color(*((unsigned int *)rgba_smear), *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend);
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
-static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend)
+static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
 {
 	unsigned char rgba_ub[4];
 	
@@ -3596,15 +3596,15 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float
 	}
 	
 	if (ps->is_airbrush==0 && mask < 1.0f) {
-		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), blend);
+		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha*255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
 	}
 	else {
-		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), blend);
+		*projPixel->pixel.uint_pt = IMB_blend_color(*projPixel->pixel.uint_pt, *((unsigned int *)rgba_ub), (int)(alpha*mask*255), ps->blend);
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, short blend) {
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask) {
 	if (ps->is_texbrush) {
 		rgba[0] *= ps->brush->rgb[0];
 		rgba[1] *= ps->brush->rgb[1];
@@ -3615,11 +3615,11 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 	}
 	
 	if (ps->is_airbrush==0 && mask < 1.0f) {
-		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, blend);
+		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
 	else {
-		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha*mask, blend);
+		IMB_blend_color_float(projPixel->pixel.f_pt, projPixel->pixel.f_pt, rgba, alpha*mask, ps->blend);
 	}
 }
 
@@ -3643,12 +3643,12 @@ static void *do_projectpaint_thread(void *ph_v)
 	ProjPaintImage *last_projIma;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
-	float rgba[4], alpha, dist, dist_nosqrt;
+	float rgba[4], alpha, dist_nosqrt;
 	
 	float brush_size_sqared;
+	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
-	short blend= ps->blend;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 	
@@ -3692,77 +3692,83 @@ static void *do_projectpaint_thread(void *ph_v)
 			
 			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrt */
 			if (dist_nosqrt < brush_size_sqared) {
-				dist = (float)sqrt(dist_nosqrt);
-				
-				if (ps->is_texbrush) {
-					brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
-					alpha = rgba[3];
-				} else {
-					alpha = 1.0f;
-				}
-				
-				if (ps->is_airbrush) {
-					/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-					alpha *= brush_sample_falloff(ps->brush, dist);
-					mask = ((float)projPixel->mask)/65535.0f;
-				}
-				else {
-					alpha *= brush_sample_falloff_noalpha(ps->brush, dist);
-					mask_short = projPixel->mask * (alpha*ps->brush->alpha);
-					if (mask_short > projPixel->mask_max) {
-						mask = ((float)mask_short)/65535.0f;
-						projPixel->mask_max = mask_short;
+				falloff = brush_sample_falloff_noalpha(ps->brush, sqrt(dist_nosqrt));
+				if (falloff > 0.0f) {
+					if (ps->is_texbrush) {
+						brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
+						alpha = rgba[3];
+					} else {
+						alpha = 1.0f;
+					}
+					
+					if (ps->is_airbrush) {
+						/* for an aurbrush there is no real mask, so just multiply the alpha by it */
+						alpha *= falloff * ps->brush->alpha;
+						mask = ((float)projPixel->mask)/65535.0f;
 					}
 					else {
-						/* Go onto the next pixel */
-						continue;
-					}
-				}
-				
-				if (alpha >= 0.0f) {
-					
-					if (last_index != projPixel->image_index) {
-						last_index = projPixel->image_index;
-						last_projIma = projImages + last_index;
+						/* This brush dosnt accumulate so add some curve to the brushes falloff */
+						falloff = 1.0f - falloff;
+						falloff = 1.0f - (falloff * falloff);
 						
-						last_projIma->touch = 1;
-						is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
-					}
-					
-					last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
-					last_partial_redraw_cell->x1 = MIN2(last_partial_redraw_cell->x1, projPixel->x_px);
-					last_partial_redraw_cell->y1 = MIN2(last_partial_redraw_cell->y1, projPixel->y_px);
-					
-					last_partial_redraw_cell->x2 = MAX2(last_partial_redraw_cell->x2, projPixel->x_px+1);
-					last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px+1);
-					
-					
-					switch(tool) {
-					case PAINT_TOOL_CLONE:
-						if (is_floatbuf) {
-							if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-								do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask, blend);
-							}
+						mask_short = projPixel->mask * (ps->brush->alpha * falloff);
+						if (mask_short > projPixel->mask_max) {
+							mask = ((float)mask_short)/65535.0f;
+							projPixel->mask_max = mask_short;
 						}
 						else {
-							if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
-								do_projectpaint_clone(ps, projPixel, rgba, alpha, mask, blend);
-							}
+							/*mask = ((float)projPixel->mask_max)/65535.0f;*/
+							
+							/* Go onto the next pixel */
+							continue;
 						}
-						break;
-					case PAINT_TOOL_SMEAR:
-						Vec2Subf(co, projPixel->projCoSS, pos_ofs);
-						
-						if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, blend, smearArena, &smearPixels_f, co);
-						else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, blend, smearArena, &smearPixels, co);
-						break;
-					default:
-						if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, blend);
-						else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask, blend);
-						break;
 					}
+					
+					if (alpha > 0.0f) {
+						
+						if (last_index != projPixel->image_index) {
+							last_index = projPixel->image_index;
+							last_projIma = projImages + last_index;
+							
+							last_projIma->touch = 1;
+							is_floatbuf = last_projIma->ibuf->rect_float ? 1 : 0;
+						}
+						
+						last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
+						last_partial_redraw_cell->x1 = MIN2(last_partial_redraw_cell->x1, projPixel->x_px);
+						last_partial_redraw_cell->y1 = MIN2(last_partial_redraw_cell->y1, projPixel->y_px);
+						
+						last_partial_redraw_cell->x2 = MAX2(last_partial_redraw_cell->x2, projPixel->x_px+1);
+						last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px+1);
+						
+						
+						switch(tool) {
+						case PAINT_TOOL_CLONE:
+							if (is_floatbuf) {
+								if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
+									do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask);
+								}
+							}
+							else {
+								if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
+									do_projectpaint_clone(ps, projPixel, rgba, alpha, mask);
+								}
+							}
+							break;
+						case PAINT_TOOL_SMEAR:
+							Vec2Subf(co, projPixel->projCoSS, pos_ofs);
+							
+							if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels_f, co);
+							else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels, co);
+							break;
+						default:
+							if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
+							else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
+							break;
+						}
+					}
+					/* done painting */
 				}
-				/* done painting */
 			}
 		}
 	}
