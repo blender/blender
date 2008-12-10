@@ -37,8 +37,12 @@
 
 //soc
 extern "C" {
+#include "BKE_main.h"
+#include "BKE_global.h"
 #include "BKE_text.h"
+#include "BKE_library.h"
 #include "BPY_extern.h"
+#include "BIF_drawtext.h"
 }
 
 class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
@@ -78,7 +82,11 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 		cout << fn << " (at line " <<  BPY_Err_getLinenumber() << ")" << endl;
 		return BPY_Err_getLinenumber();
 	}
-
+	
+	// cleaning up
+	unlink_text(text);
+	free_libblock(&G.main->text, text);
+	
 	return 0;
   }
 
@@ -121,6 +129,10 @@ private:
 	}
 	
 	BPY_txt_do_python_Text(text);
+	
+	// cleaning up
+	unlink_text(text);
+	free_libblock(&G.main->text, text);
 	
 	//PyRun_SimpleString("from Freestyle import *");
     _initialized = true;
