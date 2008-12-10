@@ -175,6 +175,7 @@ public:
   inline const StrokeRenderer * renderer() const {return _Renderer;}
   inline StyleModule* getCurrentStyleModule() { return _current_sm; }
   virtual bool getRecordFlag() const {return false;}
+	int stroke_count;
 
   /*! modifiers */
   inline void setSelectedFEdge(FEdge *iFEdge) {_SelectedFEdge = iFEdge;}

@@ -636,6 +636,7 @@ void Controller::DrawStrokes()
   _Canvas->Draw();
   real d = _Chrono.stop();
   cout << "Strokes generation  : " << d << endl;
+  cout << "Stroke count  : " << _Canvas->stroke_count << endl;
   resetModified();
 }
 

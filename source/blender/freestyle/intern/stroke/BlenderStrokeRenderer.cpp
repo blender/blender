@@ -56,7 +56,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	lb = scene->r.layers;
 	scene->r= old_scene->r;
 	scene->r.layers= lb;
-	set_scene( scene ); // scene.makeCurrent()
+	set_scene( scene );
 
 	// image dimensions
 	float width = scene->r.xsch;

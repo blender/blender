@@ -18,7 +18,7 @@ NodeGroup* BlenderFileLoader::Load()
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
 
-	cout << "\nImporting triangular meshes into Blender" << endl;
+	cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
 
   // creation of the scene root node
   _Scene = new NodeGroup;

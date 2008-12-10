@@ -150,16 +150,17 @@ extern "C" {
 	void FRS_render_Blender(Render* re) {
 		
 		if( controller->_ViewMap ) {
+			cout << "\n===  Rendering Freestyle with Blender's internal renderer  ===" << endl;
+			
 			// build strokes
 			controller->DrawStrokes();
-		
-			cout << "\n===  Rendering Freestyle with Blender's internal renderer  ===" << endl;
+
 			controller->RenderBlender(re);
 			controller->CloseFile();
 		} else {
 			cout << "Freestyle cannot be used because the view map is not available" << endl;
 		}
-		cout << "###################################################################" << endl;
+		cout << "\n###################################################################" << endl;
 	}	
 	
 #ifdef __cplusplus

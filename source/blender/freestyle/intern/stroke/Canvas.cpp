@@ -114,6 +114,8 @@ void Canvas::Draw()
 
     _Layers[i] = _StyleModules[i]->execute();
 
+	stroke_count += _Layers[i]->strokes_size();
+
     timestamp->increment();
   }
   postDraw();
@@ -146,6 +148,8 @@ void Canvas::Clear()
   }
   if(_steerableViewMap)
     _steerableViewMap->Reset();
+
+	stroke_count = 0;
 }
 
 void Canvas::Erase()
@@ -161,6 +165,8 @@ void Canvas::Erase()
   if(_steerableViewMap)
     _steerableViewMap->Reset();
   update();
+
+stroke_count = 0;
 }
 
 void Canvas::InsertStyleModule(unsigned index, StyleModule *iStyleModule) {
