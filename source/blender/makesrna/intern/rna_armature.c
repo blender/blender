@@ -33,6 +33,20 @@
 
 #ifdef RNA_RUNTIME
 
+
+static void rna_Bone_layer_set(PointerRNA *ptr, int index, int value)
+{
+	Bone *bone= (Bone*)ptr->data;
+
+	if(value) bone->layer |= (1<<index);
+	else {
+		bone->layer &= ~(1<<index);
+		if(bone->layer == 0)
+			bone->layer |= (1<<index);
+	}
+}
+
+
 static void rna_Armature_layer_set(PointerRNA *ptr, int index, int value)
 {
 	bArmature *arm= (bArmature*)ptr->data;
@@ -45,6 +59,20 @@ static void rna_Armature_layer_set(PointerRNA *ptr, int index, int value)
 	}
 }
 
+static void rna_Armature_ghost_start_frame_set(PointerRNA *ptr, int value)
+{
+	bArmature *data= (bArmature*)ptr->data;
+	CLAMP(value, 1, data->ghostef);
+	data->ghostsf= value;
+}
+
+static void rna_Armature_ghost_end_frame_set(PointerRNA *ptr, int value)
+{
+	bArmature *data= (bArmature*)ptr->data;
+	CLAMP(value, data->ghostsf, 300000);
+	data->ghostef= value;
+}
+
 #else
 
 // err... bones should not be directly edited (only editbones should be...)
@@ -55,6 +83,19 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "Bone", NULL, "Bone");
 	
+	/* strings */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+	
+	/* flags */
+		/* layer */
+	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
+	RNA_def_property_array(prop, 16);
+	RNA_def_property_ui_text(prop, "Bone Layers", "Layers bone exists in");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Bone_layer_set");	
 }
 
 void rna_def_armature(BlenderRNA *brna)
@@ -89,7 +130,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Type", "");
 	
 	prop= RNA_def_property(srna, "ghosttype", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_drawtype_items);
+	RNA_def_property_enum_items(prop, prop_ghosttype_items);
 	RNA_def_property_ui_text(prop, "Ghost Drawing", "Method of Onion-skinning for active Action");
 	
 	/* Boolean values */
@@ -98,7 +139,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");	
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
 	
 		/* layer protection */
 	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_NONE);
@@ -181,9 +222,37 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_ACFRA);
 	RNA_def_property_ui_text(prop, "Only show Bone Paths around current frame", "When drawing Armature in Pose Mode, only show section of Bone Paths that falls around current frame");
 	
+	prop= RNA_def_property(srna, "paths_calculate_head_positions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pathflag", ARM_PATH_HEADS);
+	RNA_def_property_ui_text(prop, "Bone Paths Use Heads", "When calculating Bone Paths, use Head locations instead of Tips");
+	
 	/* Number fields */
+		/* ghost/onionskining settings */
+	prop= RNA_def_property(srna, "ghost_step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ghostep");
+	RNA_def_property_range(prop, 0, 30);
+	RNA_def_property_ui_text(prop, "Ghost Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skining method).");
 	
+	prop= RNA_def_property(srna, "ghost_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ghostsize");
+	RNA_def_property_range(prop, 0, 30);
+	RNA_def_property_ui_text(prop, "Ghost Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skining method).");
 	
+	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "Ghost Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
+	
+	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ghostef");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "Ghost End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
+	
+		/* bone path settings */
+	prop= RNA_def_property(srna, "path_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "pathsize");
+	RNA_def_property_range(prop, 0, 30);
+	RNA_def_property_ui_text(prop, "Path Frame Step", "Number of frames between 'dots' on Bone Paths (when drawing).");
 }
 
 void RNA_def_armature(BlenderRNA *brna)
