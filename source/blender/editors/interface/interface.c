@@ -421,7 +421,6 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->func != oldbut->func) return 0;
 	if(but->func_arg1 != oldbut->func_arg1) return 0;
 	if(but->func_arg2 != oldbut->func_arg2) return 0;
-	if(but->func_arg3 != oldbut->func_arg3) return 0;
 
 	return 1;
 }
@@ -1942,15 +1941,15 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 
 	if(block->themecol==TH_AUTO) but->themecol= ui_auto_themecol(but);
 	else but->themecol= block->themecol;
-	
-	if (but->type==BUTM) {
-		but->butm_func= block->butm_func;
-		but->butm_func_arg= block->butm_func_arg;
-	} else {
+
+	if(but->type != BUTM) {
 		but->func= block->func;
 		but->func_arg1= block->func_arg1;
 		but->func_arg2= block->func_arg2;
 	}
+	
+	but->handle_func= block->handle_func;
+	but->handle_func_arg= block->handle_func_arg;
 
 	ui_set_embossfunc(but, block->dt);
 	
@@ -2075,7 +2074,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 }
 
 /* autocomplete callback for ID buttons */
-static void autocomplete_id(char *str, void *arg_v)
+static void autocomplete_id(bContext *C, char *str, void *arg_v)
 {
 	/* int blocktype= (intptr_t)arg_v; */
 	ListBase *listb= NULL /* XXX 2.50 needs context, wich_libbase(G.main, blocktype) */;
@@ -2468,14 +2467,19 @@ int uiButGetRetVal(uiBut *but)
 	return but->retval;
 }
 
-/* Call this function BEFORE adding buttons to the block */
-void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), void *arg)
+void uiBlockSetHandleFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg, int event), void *arg)
 {
-	block->butm_func= menufunc;
+	block->handle_func= func;
+	block->handle_func_arg= arg;
+}
+
+void uiBlockSetButmFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg, int but_a2), void *arg)
+{
+	block->butm_func= func;
 	block->butm_func_arg= arg;
 }
 
-void uiBlockSetFunc(uiBlock *block, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
+void uiBlockSetFunc(uiBlock *block, void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2)
 {
 	block->func= func;
 	block->func_arg1= arg1;
@@ -2487,22 +2491,14 @@ void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)())
 	block->drawextra= func;
 }
 
-void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)
+void uiButSetFunc(uiBut *but, void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2)
 {
 	but->func= func;
 	but->func_arg1= arg1;
 	but->func_arg2= arg2;
 }
 
-void uiButSetFunc3(uiBut *but, void (*func)(void *arg1, void *arg2, void *arg3), void *arg1, void *arg2, void *arg3)
-{
-	but->func3= func;
-	but->func_arg1= arg1;
-	but->func_arg2= arg2;
-	but->func_arg3= arg3;
-}
-
-void uiButSetCompleteFunc(uiBut *but, void (*func)(char *str, void *arg), void *arg)
+void uiButSetCompleteFunc(uiBut *but, void (*func)(struct bContext *C, char *str, void *arg), void *arg)
 {
 	but->autocomplete_func= func;
 	but->autofunc_arg= arg;

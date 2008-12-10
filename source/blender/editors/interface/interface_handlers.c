@@ -139,32 +139,39 @@ static int ui_handler_window(bContext *C, wmEvent *event);
 
 /* ********************** button apply/revert ************************ */
 
-static void ui_apply_but_func(uiBut *but)
+static void ui_apply_but_func(bContext *C, uiBut *but)
 {
-	if (but->func)
-		but->func(but->func_arg1, but->func_arg2);
-	if(but->func3)
-		but->func3(but->func_arg1, but->func_arg2, but->func_arg3);
+	uiBlock *block= but->block;
+
+	if(but->func)
+		but->func(C, but->func_arg1, but->func_arg2);
+	
+	if(block) {
+		if(block->handle_func)
+			block->handle_func(C, block->handle_func_arg, but->retval);
+		if(but->type == BUTM && block->butm_func)
+			block->butm_func(C, block->butm_func_arg, but->a2);
+	}
 }
 
-static void ui_apply_but_BUT(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_BUTM(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_set_but_val(but, but->min);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_BLOCK(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(but->type == COL)
 		ui_set_but_vectorf(but, data->vec);
@@ -172,12 +179,12 @@ static void ui_apply_but_BLOCK(uiBut *but, uiHandleButtonData *data)
 		ui_set_but_val(but, data->value);
 
 	ui_check_but(but);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_TOG(uiBlock *block, uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_TOG(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
 	double value;
 	int w, lvalue, push;
@@ -230,22 +237,22 @@ static void ui_apply_but_TOG(uiBlock *block, uiBut *but, uiHandleButtonData *dat
 			but->poin -= 4;
 	}
 	
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_ROW(uiBlock *block, uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
 	ui_set_but_val(but, but->max);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_TEX(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(!data->str)
 		return;
@@ -256,14 +263,14 @@ static void ui_apply_but_TEX(uiBut *but, uiHandleButtonData *data)
 	/* give butfunc the original text too */
 	/* feature used for bone renaming, channels, etc */
 	if(but->func_arg2==NULL) but->func_arg2= data->origstr;
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	if(but->func_arg2==data->origstr) but->func_arg2= NULL;
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_NUM(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if(data->str) {
 		/* XXX 2.50 missing python api */
@@ -289,20 +296,20 @@ static void ui_apply_but_NUM(uiBut *but, uiHandleButtonData *data)
 
 	ui_set_but_val(but, data->value);
 	ui_check_but(but);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_LABEL(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_LABEL(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_TOG3(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_TOG3(bContext *C, uiBut *but, uiHandleButtonData *data)
 { 
 	if(but->pointype==SHO ) {
 		short *sp= (short *)but->poin;
@@ -330,54 +337,54 @@ static void ui_apply_but_TOG3(uiBut *but, uiHandleButtonData *data)
 	}
 	
 	ui_check_but(but);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_VEC(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_VEC(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_set_but_vectorf(but, data->vec);
 	ui_check_but(but);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_COLORBAND(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_COLORBAND(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_CURVE(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_CURVE(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
-static void ui_apply_but_IDPOIN(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	but->idpoin_func(data->str, but->idpoin_idpp);
+	but->idpoin_func(C, data->str, but->idpoin_idpp);
 	ui_check_but(but);
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 
 #ifdef INTERNATIONAL
-static void ui_apply_but_CHARTAB(uiBut *but, uiHandleButtonData *data)
+static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	ui_apply_but_func(but);
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
 #endif
 
-static void ui_apply_button(uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
+static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, int interactive)
 {
 	char *editstr;
 	double *editval;
@@ -425,10 +432,10 @@ static void ui_apply_button(uiBlock *block, uiBut *but, uiHandleButtonData *data
 	/* handle different types */
 	switch(but->type) {
 		case BUT:
-			ui_apply_but_BUT(but, data);
+			ui_apply_but_BUT(C, but, data);
 			break;
 		case TEX:
-			ui_apply_but_TEX(but, data);
+			ui_apply_but_TEX(C, but, data);
 			break;
 		case TOG: 
 		case TOGR: 
@@ -436,29 +443,29 @@ static void ui_apply_button(uiBlock *block, uiBut *but, uiHandleButtonData *data
 		case ICONTOGN:
 		case TOGN:
 		case BUT_TOGDUAL:
-			ui_apply_but_TOG(block, but, data);
+			ui_apply_but_TOG(C, block, but, data);
 			break;
 		case ROW:
-			ui_apply_but_ROW(block, but, data);
+			ui_apply_but_ROW(C, block, but, data);
 			break;
 		case SCROLL:
 			break;
 		case NUM:
 		case NUMABS:
-			ui_apply_but_NUM(but, data);
+			ui_apply_but_NUM(C, but, data);
 			break;
 		case SLI:
 		case NUMSLI:
-			ui_apply_but_NUM(but, data);
+			ui_apply_but_NUM(C, but, data);
 			break;
 		case HSVSLI:
 			break;
 		case ROUNDBOX:	
 		case LABEL:	
-			ui_apply_but_LABEL(but, data);
+			ui_apply_but_LABEL(C, but, data);
 			break;
 		case TOG3:	
-			ui_apply_but_TOG3(but, data);
+			ui_apply_but_TOG3(C, but, data);
 			break;
 		case MENU:
 		case ICONROW:
@@ -466,27 +473,27 @@ static void ui_apply_button(uiBlock *block, uiBut *but, uiHandleButtonData *data
 		case BLOCK:
 		case PULLDOWN:
 		case COL:
-			ui_apply_but_BLOCK(but, data);
+			ui_apply_but_BLOCK(C, but, data);
 			break;
 		case BUTM:
-			ui_apply_but_BUTM(but, data);
+			ui_apply_but_BUTM(C, but, data);
 			break;
 		case BUT_NORMAL:
 		case HSVCUBE:
-			ui_apply_but_VEC(but, data);
+			ui_apply_but_VEC(C, but, data);
 			break;
 		case BUT_COLORBAND:
-			ui_apply_but_COLORBAND(but, data);
+			ui_apply_but_COLORBAND(C, but, data);
 			break;
 		case BUT_CURVE:
-			ui_apply_but_CURVE(but, data);
+			ui_apply_but_CURVE(C, but, data);
 			break;
 		case IDPOIN:
-			ui_apply_but_IDPOIN(but, data);
+			ui_apply_but_IDPOIN(C, but, data);
 			break;
 #ifdef INTERNATIONAL
 		case CHARTAB:
-			ui_apply_but_CHARTAB(but, data);
+			ui_apply_but_CHARTAB(C, but, data);
 			break;
 #endif
 		case LINK:
@@ -906,13 +913,13 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 	return changed;
 }
 
-static int ui_textedit_autocomplete(uiBut *but, uiHandleButtonData *data)
+static int ui_textedit_autocomplete(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	char *str;
 	int changed= 1;
 
 	str= data->str;
-	but->autocomplete_func(str, but->autofunc_arg);
+	but->autocomplete_func(C, str, but->autofunc_arg);
 	but->pos= strlen(str);
 
 	return changed;
@@ -1179,7 +1186,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			case TABKEY:
 				/* there is a key conflict here, we can't tab with autocomplete */
 				if(but->autocomplete_func) {
-					changed= ui_textedit_autocomplete(but, data);
+					changed= ui_textedit_autocomplete(C, but, data);
 					retval= WM_UI_HANDLER_BREAK;
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
@@ -1202,7 +1209,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	}
 
 	if(changed) {
-		if(data->interactive) ui_apply_button(block, but, data, 1);
+		if(data->interactive) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
 	}
 
@@ -1286,7 +1293,7 @@ static void ui_numedit_end(uiBut *but, uiHandleButtonData *data)
 
 static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data)
 {
-	if(data->interactive) ui_apply_button(block, but, data, 1);
+	if(data->interactive) ui_apply_button(C, block, but, data, 1);
 	else ui_check_but(but);
 
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
@@ -2791,7 +2798,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	}
 
 	/* apply the button action or value */
-	ui_apply_button(block, but, data, 0);
+	ui_apply_button(C, block, but, data, 0);
 
 	/* disable tooltips until mousemove */
 	ui_blocks_set_tooltips(data->region, 0);

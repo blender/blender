@@ -90,9 +90,9 @@ static void end_animated_screen(SpaceTime *stime)
 #define B_TL_INSERTKEY	758
 #define B_TL_DELETEKEY	759
 
-void do_time_buttons(ScrArea *sa, unsigned short event)
+void do_time_buttons(bContext *C, void *arg, int event)
 {
-	SpaceTime *stime= sa->spacedata.first;
+	SpaceTime *stime= C->area->spacedata.first;
 	
 	switch(event) {
 		
@@ -149,10 +149,9 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 	}
 }
 
-static void do_time_redrawmenu(void *arg, int event)
+static void do_time_redrawmenu(bContext *C, void *arg, int event)
 {
-	ScrArea *curarea;
-	SpaceTime *stime= curarea->spacedata.first;
+	SpaceTime *stime= C->area->spacedata.first;
 	
 	if(event < 1001) {
 		
@@ -169,9 +168,9 @@ static void do_time_redrawmenu(void *arg, int event)
 }
 
 
-static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_area)
+static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= arg_area;
+	ScrArea *curarea= C->area;
 	SpaceTime *stime= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120, icon;
@@ -231,9 +230,9 @@ static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	return block;
 }
 
-static void do_time_viewmenu(void *arg, int event)
+static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
-	ScrArea *curarea;
+	ScrArea *curarea= C->area;
 	SpaceTime *stime= curarea->spacedata.first;
 	int first;
 	
@@ -284,9 +283,9 @@ static void do_time_viewmenu(void *arg, int event)
 	//allqueue(REDRAWVIEW3D, 0);
 }
 
-static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_area)
+static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= arg_area;
+	ScrArea *curarea= C->area;
 	SpaceTime *stime= curarea->spacedata.first;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -340,7 +339,7 @@ static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	return block;
 }
 
-static void do_time_framemenu(void *arg, int event)
+static void do_time_framemenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case 1: /*Set as Start */
@@ -386,9 +385,9 @@ static void do_time_framemenu(void *arg, int event)
 	//allqueue(REDRAWSOUND, 0);
 }
 
-static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_area)
+static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= arg_area;
+	ScrArea *curarea= C->area;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -436,7 +435,6 @@ static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 #define AUTOKEY_ON 0
 #define B_DIFF 0
 
-
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= C->area;
@@ -445,6 +443,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
+	uiBlockSetHandleFunc(block, do_time_buttons, NULL);
 	
 	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
 	else uiBlockSetCol(block, TH_HEADERDESEL);

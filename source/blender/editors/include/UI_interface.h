@@ -275,7 +275,7 @@ uiBut *uiDefIconTextButBitS(uiBlock *block, int type, int bit, int retval, int i
 uiBut *uiDefIconTextButC(uiBlock *block, int type, int retval, int icon, char *str, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip);
 uiBut *uiDefIconTextButBitC(uiBlock *block, int type, int bit, int retval, int icon, char *str, short x1, short y1, short x2, short y2, char *poin, float min, float max, float a1, float a2,  char *tip);
 
-typedef void		(*uiIDPoinFuncFP)	(char *str, struct ID **idpp);
+typedef void		(*uiIDPoinFuncFP)	(struct bContext *C, char *str, struct ID **idpp);
 uiBut *uiDefIDPoinBut(struct uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
 
@@ -288,7 +288,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retv
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
 uiBut *uiDefRNABut(uiBlock *block, int retval, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, short x1, short y1, short x2, short y2);
-void uiButSetFunc3(uiBut *but, void (*func)(void *arg1, void *arg2, void *arg3), void *arg1, void *arg2, void *arg3);
 
 void uiAutoBlock(struct uiBlock *block, 
 				 float minx, float miny, 
@@ -315,14 +314,15 @@ int		uiButGetRetVal		(uiBut *but);
 void	uiButSetFlag		(uiBut *but, int flag);
 void	uiButClearFlag		(uiBut *but, int flag);
 
-void	uiBlockSetButmFunc	(uiBlock *block,	void (*butmfunc)(void *arg, int but_a2), void *arg);
+void	uiBlockSetHandleFunc(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int event), void *arg);
+void	uiBlockSetButmFunc	(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int but_a2), void *arg);
 
-void	uiBlockSetFunc		(uiBlock *block,	void (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
-void	uiButSetFunc		(uiBut *but,		void (*func)(void *arg1, void *arg2), void *arg1, void *arg2);
+void	uiBlockSetFunc		(uiBlock *block,	void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2);
+void	uiButSetFunc		(uiBut *but,		void (*func)(struct bContext *C, void *arg1, void *arg2), void *arg1, void *arg2);
 
-void	uiButSetCompleteFunc(uiBut *but,		void (*func)(char *str, void *arg), void *arg);
+void	uiButSetCompleteFunc(uiBut *but,		void (*func)(struct bContext *C, char *str, void *arg), void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct ScrArea *sa, uiBlock *block));
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, uiBlock *block));
 
 /* Panels */
 

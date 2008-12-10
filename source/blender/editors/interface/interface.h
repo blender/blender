@@ -125,16 +125,17 @@ struct uiBut {
 	float a1, a2, hsv[3];	// hsv is temp memory for hsv buttons
 	float aspect;
 
-	void (*func)(void *, void *);
-	void (*func3)(void *, void *, void *); /* XXX remove */
+	void (*func)(struct bContext*, void *, void *);
 	void *func_arg1;
 	void *func_arg2;
-	void *func_arg3; /* XXX remove */
+
+	void (*handle_func)(struct bContext*, void *arg, int event);
+	void *handle_func_arg;
 
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
-	void (*autocomplete_func)(char *, void *);
+	void (*autocomplete_func)(struct bContext*, char *, void *);
 	void *autofunc_arg;
 	
 	uiLink *link;
@@ -155,10 +156,6 @@ struct uiBut {
 
 		/* BLOCK data */
 	uiBlockFuncFP block_func;
-
-		/* BUTM data */
-	void (*butm_func)(void *arg, int event);
-	void *butm_func_arg;
 
 		/* RNA */
 	struct PointerRNA rnapoin;
@@ -192,12 +189,15 @@ struct uiBlock {
 	float minx, miny, maxx, maxy;
 	float aspect;
 
-	void (*butm_func)(void *arg, int event);
-	void *butm_func_arg;
-
-	void (*func)(void *arg1, void *arg2);
+	void (*func)(struct bContext*, void *arg1, void *arg2);
 	void *func_arg1;
 	void *func_arg2;
+
+	void (*butm_func)(struct bContext*, void *arg, int but_a2);
+	void *butm_func_arg;
+
+	void (*handle_func)(struct bContext*, void *arg, int event);
+	void *handle_func_arg;
 	
 	/* extra draw function for custom blocks */
 	void (*drawextra)();

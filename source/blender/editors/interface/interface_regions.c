@@ -1024,7 +1024,7 @@ static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
 
 /* bt1 is palette but, col1 is original color */
 /* callback to copy from/to palette */
-static void do_palette_cb(void *bt1, void *col1)
+static void do_palette_cb(bContext *C, void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
 	float *col= (float *)col1;
@@ -1048,7 +1048,7 @@ static void do_palette_cb(void *bt1, void *col1)
 
 /* bt1 is num but, hsv1 is pointer to original color in hsv space*/
 /* callback to handle changes in num-buts in picker */
-static void do_palette1_cb(void *bt1, void *hsv1)
+static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
 {
 	uiBut *but1= (uiBut *)bt1;
 	float *hsv= (float *)hsv1;
@@ -1067,7 +1067,7 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 
 /* bt1 is num but, col1 is pointer to original color */
 /* callback to handle changes in num-buts in picker */
-static void do_palette2_cb(void *bt1, void *col1)
+static void do_palette2_cb(bContext *C, void *bt1, void *col1)
 {
 	uiBut *but1= (uiBut *)bt1;
 	float *rgb= (float *)col1;
@@ -1084,7 +1084,7 @@ static void do_palette2_cb(void *bt1, void *col1)
 	ui_update_block_buts_hsv(but1->block, fp);
 }
 
-static void do_palette_hex_cb(void *bt1, void *hexcl)
+static void do_palette_hex_cb(bContext *C, void *bt1, void *hexcl)
 {
 	uiBut *but1= (uiBut *)bt1;
 	char *hexcol= (char *)hexcl;
@@ -1093,7 +1093,7 @@ static void do_palette_hex_cb(void *bt1, void *hexcl)
 }
 
 /* used for both 3d view and image window */
-static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
+static void do_palette_sample_cb(bContext *C, void *bt1, void *col1)	/* frontbuf */
 {
 	/* XXX 2.50 this should become an operator? */
 #if 0

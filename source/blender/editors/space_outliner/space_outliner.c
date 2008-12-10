@@ -159,9 +159,9 @@ typedef struct CellRNA {
 	CollectionPropertyIterator iter;
 } CellRNA;
 
-static void rna_back_cb(void *arg_buts, void *arg_unused)
+static void rna_back_cb(bContext *C, void *arg_unused, void *arg_unused2)
 {
-	SpaceOops *soutliner= arg_buts;
+	SpaceOops *soutliner= C->area->spacedata.first;
 	char *newpath;
 
 	newpath= RNA_path_back(soutliner->rnapath);
@@ -170,9 +170,9 @@ static void rna_back_cb(void *arg_buts, void *arg_unused)
 	soutliner->rnapath= newpath;
 }
 
-static void rna_pointer_cb(void *arg_buts, void *arg_prop, void *arg_index)
+static void rna_pointer_cb(bContext *C, void *arg_prop, void *arg_index)
 {
-	SpaceOops *soutliner= arg_buts;
+	SpaceOops *soutliner= C->area->spacedata.first;
 	PropertyRNA *prop= arg_prop;
 	char *newpath;
 	int index= GET_INT_FROM_POINTER(arg_index);;
@@ -240,7 +240,7 @@ static void rna_collection_but(CellRNA *cell, rcti *rct, uiBlock *block)
 	if(nameptr != name)
 		MEM_freeN(nameptr);
 
-	uiButSetFunc3(but, rna_pointer_cb, cell->space, cell->prop, SET_INT_IN_POINTER(cell->index));
+	uiButSetFunc(but, rna_pointer_cb, cell->prop, SET_INT_IN_POINTER(cell->index));
 }
 
 static void rna_but(CellRNA *cell, rcti *rct, uiBlock *block)
@@ -267,7 +267,7 @@ static void rna_but(CellRNA *cell, rcti *rct, uiBlock *block)
 			but= uiDefRNABut(block, 0, &cell->ptr, prop, index, rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin);
 
 			if(type == PROP_POINTER)
-				uiButSetFunc3(but, rna_pointer_cb, cell->space, prop, SET_INT_IN_POINTER(0));
+				uiButSetFunc(but, rna_pointer_cb, prop, SET_INT_IN_POINTER(0));
 		}
 	}
 }
