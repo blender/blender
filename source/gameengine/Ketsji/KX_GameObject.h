@@ -772,6 +772,10 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetPosition);
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyForce);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyTorque);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyRotation);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyMovement);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetLinearVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);

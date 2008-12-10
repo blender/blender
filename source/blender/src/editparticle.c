@@ -165,6 +165,22 @@ void PE_change_act(void *ob_v, void *act_v)
 	}
 }
 
+void PE_change_act_psys(Object *ob, ParticleSystem *psys)
+{
+	ParticleSystem *p;
+	
+	if((p=psys_get_current(ob)))
+		p->flag &= ~PSYS_CURRENT;
+	
+	psys->flag |= PSYS_CURRENT;
+	
+	if(psys_check_enabled(ob, psys)) {
+		if(G.f & G_PARTICLEEDIT && !psys->edit)
+			PE_create_particle_edit(ob, psys);
+		PE_recalc_world_cos(ob, psys);
+	}
+}
+
 /* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set */
 ParticleSystem *PE_get_current(Object *ob)
 {

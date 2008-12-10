@@ -517,6 +517,8 @@ static uiBlock *view3d_view_spacehandlers(void *arg_unused)
 
 			if (handlertype == SPACEHANDLER_VIEW3D_EVENT)
 				BLI_strncpy(menustr, "Event: ", 8);
+			else if (handlertype == SPACEHANDLER_VIEW3D_EVENT_ALL)
+				BLI_strncpy(menustr, "Event+: ", 8);
 			else
 				BLI_strncpy(menustr, "Draw:  ", 8);
 			BLI_strncpy(menustr+7, text->id.name+2, 22);

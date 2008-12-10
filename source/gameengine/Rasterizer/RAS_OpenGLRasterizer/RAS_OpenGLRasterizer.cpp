@@ -406,14 +406,16 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 			break;
 	}
 }
-
 	
 void RAS_OpenGLRasterizer::SetStereoMode(const StereoMode stereomode)
 {
 	m_stereomode = stereomode;
 }
 
-
+RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
+{
+	return m_stereomode;
+}
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
@@ -775,7 +777,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 	float frustnear,
 	float frustfar,
 	float focallength,
-	bool
+	bool 
 ){
 	MT_Matrix4x4 result;
 	double mat[16];

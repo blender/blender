@@ -29,6 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* for setuid / getuid */
+#ifdef __sgi
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"
@@ -201,7 +208,7 @@ static void print_help(void)
 	printf ("    -t <threads>\tUse amount of <threads> for rendering (background mode only).\n");
 	printf ("      [1-8], 0 for systems processor count.\n");
 	printf ("\nAnimation playback options:\n");
-	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
+	printf ("  -a <options> <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
