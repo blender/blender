@@ -28,7 +28,14 @@
 #ifndef ED_UTIL_H
 #define ED_UTIL_H
 
+/* ************** XXX OLD CRUFT WARNING ************* */
+
+#define XIC 20
+#define YIC 20
+
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
+
+int GetButStringLength(char *str);
 
 #endif /* ED_UTIL_H */
 

@@ -32,11 +32,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
 
+#include "UI_text.h"
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
@@ -64,5 +66,15 @@ void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
 	else {
 		if(fac1!= 0.0) *val= fac1*floor(*val/fac1 +.5);
 	}
+}
+
+
+int GetButStringLength(char *str) 
+{
+	int rt;
+	
+	rt= UI_GetStringWidth(G.font, str, (U.transopts & USER_TR_BUTTONS));
+	
+	return rt + 15;
 }
 

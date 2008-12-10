@@ -452,9 +452,12 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 
 	path= (soutliner->rnapath)? soutliner->rnapath: "Main";
 
-	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(MAX2(col[0]-0.3f, 0.0f), MAX2(col[1]-0.3f, 0.0f), MAX2(col[2]-0.3f, 0.0f), 0.0);
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	width= ar->winrct.xmax - ar->winrct.xmin;

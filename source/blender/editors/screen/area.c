@@ -98,8 +98,7 @@ void ED_region_pixelspace(const bContext *C, ARegion *ar)
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
 	wmOrtho2(C->window, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
-	wmLoadIdentity(C->window);
-	
+	wmLoadIdentity(C->window);	
 }
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)

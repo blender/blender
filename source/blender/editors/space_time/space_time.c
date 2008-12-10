@@ -43,6 +43,7 @@
 
 #include "ED_area.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -126,9 +127,6 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	float col[3];
 	int unit;
 	
-	/* XXX can be removed */
-	UI_view2d_size_update(v2d, ar->winx, ar->winy);
-
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -168,17 +166,20 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ************************ header time area region *********************** */
 
-
 static void time_header_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
 
 	/* clear */
-	UI_GetThemeColor3fv(TH_HEADER, col);
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+		
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	uiTestRegion(C);
+	time_header_buttons(C, ar);
 }
 
 static void time_header_area_free(ARegion *ar)

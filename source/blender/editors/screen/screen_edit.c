@@ -958,6 +958,7 @@ void ED_screen_set_subwinactive(wmWindow *win)
 	if(win->screen) {
 		wmEvent *event= win->eventstate;
 		ScrArea *sa;
+		int oldswin= win->screen->subwinactive;
 		
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
@@ -974,7 +975,34 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		else
 			win->screen->subwinactive= win->screen->mainwin;
 		
+		/* check for redraw headers */
+		if(oldswin!=win->screen->subwinactive) {
+			
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				ARegion *ar;
+				int do_draw= 0;
+				
+				for(ar= sa->regionbase.first; ar; ar= ar->next)
+					if(ar->swinid==oldswin || ar->swinid==win->screen->subwinactive)
+						do_draw= 1;
+				
+				if(do_draw)
+					for(ar= sa->regionbase.first; ar; ar= ar->next)
+						if(ar->regiontype==RGN_TYPE_HEADER)
+							ar->do_draw= 1; /* XXX */
+			}
+		}
 	}
 }
 
+int ED_screen_area_active(const bContext *C)
+{
 
+	if(C->screen && C->area) {
+		ARegion *ar;
+		for(ar= C->area->regionbase.first; ar; ar= ar->next)
+			if(ar->swinid == C->screen->subwinactive)
+				return 1;
+	}	
+	return 0;
+}

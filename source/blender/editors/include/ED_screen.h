@@ -41,10 +41,10 @@ struct AreagionType;
 
 /* regions */
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
-void	ED_region_do_draw(struct bContext *C, ARegion *ar);
-void	ED_region_exit(struct bContext *C, ARegion *ar);
-void	ED_region_pixelspace(const struct bContext *C, ARegion *ar);
-void	ED_region_init(struct bContext *C, ARegion *ar);
+void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
+void	ED_region_exit(struct bContext *C, struct ARegion *ar);
+void	ED_region_pixelspace(const struct bContext *C, struct ARegion *ar);
+void	ED_region_init(struct bContext *C, struct ARegion *ar);
 ARegion *ED_region_copy(ARegion *ar);
 
 /* spaces */
@@ -54,17 +54,18 @@ struct ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
-void	ED_area_exit(struct bContext *C, ScrArea *sa);
-void	ED_area_do_draw(struct bContext *C, ScrArea *sa);
+void	ED_area_exit(struct bContext *C, struct ScrArea *sa);
+void	ED_area_do_draw(struct bContext *C, struct ScrArea *sa);
+int		ED_screen_area_active(const struct bContext *C);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);
 void	ED_screen_draw(struct wmWindow *win);
 void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
 void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
-bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
+bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
 void	ED_screen_set_subwinactive(struct wmWindow *win);
-void	ED_screen_exit(struct bContext *C, struct wmWindow *window, bScreen *screen);
+void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);
