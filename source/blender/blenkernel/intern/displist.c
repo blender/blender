@@ -887,7 +887,6 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 			}
 			else if((nu->type & 7)==CU_NURBS) {
 				len= (resolu*SEGMENTSU(nu));
-				if((nu->flagu & CU_CYCLIC)==0) len++;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
@@ -1381,7 +1380,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
 			if(nu->pntsv==1) {
-				len= nu->pntsu*nu->resolu;
+				len= SEGMENTSU(nu)*nu->resolu;
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
