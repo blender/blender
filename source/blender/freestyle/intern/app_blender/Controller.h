@@ -41,7 +41,7 @@
 # include "../system/Interpreter.h"
 # include "../view_map/FEdgeXDetector.h"
 
-class AppGLWidget;
+class AppView;
 class NodeGroup;
 class WShape;
 class SShape;
@@ -68,7 +68,7 @@ public:
   Controller() ;
   ~Controller() ;
   
-  void setView(AppGLWidget *iView);
+  void setView(AppView *iView);
 
   //soc
 	void init_options();
@@ -76,8 +76,6 @@ public:
 	int  LoadMesh( Render *re );
   int  Load3DSFile(const char *iFileName);
   void CloseFile();
-  void LoadViewMapFile(const char *iFileName, bool only_camera = false);
-  void SaveViewMapFile(const char *iFileName);
   void ComputeViewMap();
   void ComputeSteerableViewMap();
   void saveSteerableViewMapImages();
@@ -103,7 +101,7 @@ public:
 		      vector<ViewEdge*>::iterator vedges_end) ;
   
   NodeGroup* debugNode() {return _DebugNode;}
-  AppGLWidget * view() {return _pView;}
+  AppView * view() {return _pView;}
   NodeGroup* debugScene() {return _DebugNode;}
   Grid& grid() {return _Grid;}
   
@@ -111,11 +109,6 @@ public:
 
   void setQuantitativeInvisibility(bool iBool); // if true, we compute quantitativeInvisibility
   bool getQuantitativeInvisibility() const;
-
-  void setFrontBufferFlag(bool b);
-  bool getFrontBufferFlag() const;
-  void setBackBufferFlag(bool b);
-  bool getBackBufferFlag() const;
 
   void setComputeRidgesAndValleysFlag(bool b);
   bool getComputeRidgesAndValleysFlag() const ;
@@ -144,6 +137,9 @@ public:
 	// Viewmap data structure
 	ViewMap * _ViewMap;
 
+	// Canvas
+  AppCanvas *_Canvas;
+
 private:
 
   // Main Window:
@@ -155,12 +151,11 @@ private:
   // Current directories
   //ConfigIO* _current_dirs;
 
-  // Canvas
-  AppCanvas *_Canvas;
+
 
   //View
   // 3D
-  AppGLWidget *_pView;
+  AppView *_pView;
   
   // 2D
   //Viewer2DWindow *_pView2DWindow;

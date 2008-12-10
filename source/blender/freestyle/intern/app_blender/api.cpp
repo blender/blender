@@ -1,6 +1,7 @@
-#include "AppGLWidget.h"
+#include "AppView.h"
 #include "Controller.h"
 #include "AppConfig.h"
+#include "AppCanvas.h"
 
 #include <iostream>
 
@@ -9,7 +10,6 @@ extern "C" {
 #endif
 
 #include "../../FRS_freestyle.h"
-#include "AppCanvas.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
@@ -33,7 +33,7 @@ extern "C" {
 
 	static Config::Path *pathconfig = NULL;
 	static Controller *controller = NULL;
-	static AppGLWidget *view = NULL;
+	static AppView *view = NULL;
 
 	char style_module[255] = "";
 	int freestyle_flags;
@@ -54,7 +54,7 @@ extern "C" {
 			controller = new Controller;
 		
 		if( view == NULL ) {
-			view = new AppGLWidget;
+			view = new AppView;
 			controller->setView(view);
 		}
 		
@@ -76,30 +76,13 @@ extern "C" {
 		
 		view->setWidth( width );
 		view->setHeight( height );
-		view->_camera->setScreenWidthAndHeight( width , height );
 	}
 
 	void FRS_init_camera(Render* re){
 		Object* maincam_obj = re->scene->camera;
 		Camera *cam = (Camera*) maincam_obj->data;
 
-		if(cam->type == CAM_PERSP){
-			view->_camera->setType(AppGLWidget_Camera::PERSPECTIVE);
-			view->_camera->setHorizontalFieldOfView( M_PI / 180.0f * cam->angle );
-		}
-		else if (cam->type == CAM_ORTHO){
-			view->_camera->setType(AppGLWidget_Camera::ORTHOGRAPHIC);
-			// view->_camera->setFocusDistance does not seem to work
-			// integrate cam->ortho_scale parameter
-		}
-		
-		Vec camPosition(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]);
-		Vec camUp( re->viewmat[0][1], re->viewmat[1][1], re->viewmat[2][1]);
-		Vec camDirection( -re->viewmat[0][2], -re->viewmat[1][2], -re->viewmat[2][2]);
-		
-		view->_camera->setPosition(camPosition);
-		view->_camera->setUpVector(camUp);	
-		view->_camera->setViewDirection(camDirection);
+		view->setHorizontalFov( cam->angle );
 		
 		freestyle_viewpoint[0] = maincam_obj->obmat[3][0];
 		freestyle_viewpoint[1] = maincam_obj->obmat[3][1];
@@ -144,6 +127,7 @@ extern "C" {
 			return;
 		
 		// add style module
+			cout << "\n===  Rendering options  ===" << endl;
 		cout << "Module: " << style_module << endl;
 		controller->InsertStyleModule( 0, style_module );
 		controller->toggleLayer(0, true);
@@ -169,12 +153,13 @@ extern "C" {
 			// build strokes
 			controller->DrawStrokes();
 		
-			cout << "Rendering Freestyle with Blender's internal renderer" << endl;
+			cout << "\n===  Rendering Freestyle with Blender's internal renderer  ===" << endl;
 			controller->RenderBlender(re);
 			controller->CloseFile();
 		} else {
 			cout << "Freestyle cannot be used because the view map is not available" << endl;
 		}
+		cout << "###################################################################" << endl;
 	}	
 	
 #ifdef __cplusplus

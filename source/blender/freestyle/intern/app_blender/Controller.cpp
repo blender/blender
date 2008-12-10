@@ -26,7 +26,7 @@
 #include <fstream>
 #include <float.h>
 
-#include "AppGLWidget.h"
+#include "AppView.h"
 #include "AppCanvas.h"
 #include "AppConfig.h"
 
@@ -57,8 +57,19 @@
 #include "../system/StringUtils.h"
 
 #include "../scene_graph/BlenderFileLoader.h"
+#include "../stroke/BlenderStrokeRenderer.h"
 
-#include "../../FRS_freestyle.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+	#include "../../FRS_freestyle.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 Controller::Controller()
 {
@@ -155,7 +166,7 @@ Controller::~Controller()
   //delete _current_dirs;
 }
 
-void Controller::setView(AppGLWidget *iView)
+void Controller::setView(AppView *iView)
 {
   if(NULL == iView)
     return;
@@ -166,8 +177,6 @@ void Controller::setView(AppGLWidget *iView)
 
 int Controller::LoadMesh(Render *re)
 {
-  if (_pView)
-    _pView->setUpdateMode(false);
   
   BlenderFileLoader loader(re);
   
@@ -341,194 +350,7 @@ void Controller::CloseFile()
 
 }
 
-//  static const streamsize buffer_size = 512 * 1024;
 
-void Controller::SaveViewMapFile(const char *oFileName)
-{
-  if (!_ViewMap)
-    return;
-
-  ofstream ofs(oFileName, ios::binary);
-  if (!ofs.is_open()) {
-    cerr << "Error: Cannot save this file" << endl;
-    return;
-  }
-//    char buffer[buffer_size];
-//  #if defined(__GNUC__) && (__GNUC__ < 3)
-//    ofs.rdbuf()->setbuf(buffer, buffer_size);
-//  # else
-//    ofs.rdbuf()->pubsetbuf(buffer, buffer_size);
-//  #endif
-  _Chrono.start();
-
-  ofs << Config::VIEWMAP_MAGIC << endl << Config::VIEWMAP_VERSION << endl;
-
-  // Write the models filenames
-  ofs << _ListOfModels.size() << endl;
-  for (vector<string>::const_iterator i = _ListOfModels.begin(); i != _ListOfModels.end(); i++)
-    ofs << *i << "\n";
-
-  // Save the camera position
-  float position[3];
-  float orientation[4];
-  _pView->getCameraState(position, orientation);
-  ofs.write((char*)position, 3 * sizeof(*position));
-  ofs.write((char*)orientation, 4 * sizeof(*orientation));
-
-  // Write ViewMap
-  if (ViewMapIO::save(ofs, _ViewMap, 0)) {
-    _Chrono.stop();
-    cerr << "Error: Cannot save this file" << endl;
-    return;
-  }
-
-  real d = _Chrono.stop();
-  cout << "ViewMap saving   : " << d << endl;
-}
-
-// void Controller::LoadViewMapFile(const char *iFileName, bool only_camera)
-// {
-//   ifstream ifs(iFileName, ios::binary);
-//   if (!ifs.is_open()) {
-//     cerr << "Error: Cannot load this file" << endl;
-//     return;
-//   }
-// //    char buffer[buffer_size];
-// //  #if defined(__GNUC__) && (__GNUC__ < 3)
-// //    ifs.rdbuf()->setbuf(buffer, buffer_size);
-// //  # else
-// //    ifs.rdbuf()->pubsetbuf(buffer, buffer_size);
-// //  #endif
-// 
-//   // Test File Magic and version
-//   char tmp_buffer[256];
-//   string test;
-//   
-//   ifs.getline(tmp_buffer, 255);
-//   test = tmp_buffer;
-//   if (test != Config::VIEWMAP_MAGIC) {
-//     cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
-//     return;
-//   }
-//   ifs.getline(tmp_buffer, 255);
-//   test = tmp_buffer;
-//   if (test != Config::VIEWMAP_VERSION && !only_camera) {
-//     cerr << "Error: This version of the ." << Config::VIEWMAP_EXTENSION << " file format is no longer supported" << endl;
-//     return;
-//   }
-// 
-//   // Read the models filenames and open them (if not already done)
-//   string tmp;
-//   vector<string> tmp_vec;
-//   unsigned models_nb, i;
-// 
-//   ifs.getline(tmp_buffer, 255);
-//   models_nb = atoi(tmp_buffer);
-//   for (i = 0; i < models_nb; i++) {
-//     ifs.getline(tmp_buffer, 255);
-//     tmp = tmp_buffer;
-//     tmp_vec.push_back(tmp);
-//   }
-//   if (_ListOfModels != tmp_vec && !only_camera) {
-//     CloseFile();
-//     vector<string> pathnames;
-//     int err = 0;
-//     for (vector<string>::const_iterator i = tmp_vec.begin(); i != tmp_vec.end(); i++)
-//       {
-// 	pathnames.clear();
-// 	StringUtils::getPathName(ViewMapIO::Options::getModelsPath(), *i, pathnames);
-// 	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++)
-// 	  if (!(err = Load3DSFile(j->c_str())))
-// 	    break;
-// 	if (err) {
-// 	  cerr << "Error: cannot find model \"" << *i << "\" - check the path in the Options" << endl;
-// 	  return;
-// 	}
-//       }
-//   }
-// 
-//   // set the camera position
-//   float position[3];
-//   float orientation[4];
-//   ifs.read((char*)position, 3 * sizeof(*position));
-//   ifs.read((char*)orientation, 4 * sizeof(*orientation));
-//   _pView->setCameraState(position, orientation);
-//   _pView->saveCameraState();
-// 
-//   if (only_camera) {
-//     return;
-//   }
-// 
-//   // Reset ViewMap
-//   if(NULL != _ViewMap)
-//     {
-//       delete _ViewMap;
-//       _ViewMap = 0;
-//     }
-//   _pView->DetachSilhouette();
-//   if (NULL != _SilhouetteNode)
-//     {
-//       int ref = _SilhouetteNode->destroy();
-//       if(0 == ref)
-// 	delete _SilhouetteNode;
-//     }
-//   //  if(NULL != _ProjectedSilhouette)
-//   //    {
-//   //      int ref = _ProjectedSilhouette->destroy();
-//   //      if(0 == ref)
-//   //	delete _ProjectedSilhouette;
-//   //    }
-//   //  if(NULL != _VisibleProjectedSilhouette)
-//   //    {
-//   //      int ref = _VisibleProjectedSilhouette->destroy();
-//   //      if(0 == ref)
-//   //	{
-//   //	  delete _VisibleProjectedSilhouette;
-//   //	  _VisibleProjectedSilhouette = 0;
-//   //	}
-//    // }
-//   _ViewMap = new ViewMap();
-// 
-//   // Read ViewMap
-//   _Chrono.start();
-//   if (ViewMapIO::load(ifs, _ViewMap, 0)) {
-//     _Chrono.stop();
-// 
-//     cerr << "Error: This is not a valid ." << Config::VIEWMAP_EXTENSION << " file" << endl;
-//     return;
-//   }
-// 
-//   // Update display
-//   ViewMapTesselator3D sTesselator3d;
-//   //ViewMapTesselator2D sTesselator2d;
-//   //sTesselator2d.setNature(_edgeTesselationNature);
-//   sTesselator3d.setNature(_edgeTesselationNature);
-//   
-//   // Tesselate the 3D edges:
-//   _SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
-//   _SilhouetteNode->addRef();
-//   
-//   // Tesselate 2D edges
-//   //  _ProjectedSilhouette = sTesselator2d.Tesselate(_ViewMap);
-//   //  _ProjectedSilhouette->addRef();
-//   //  
-//   _pView->AddSilhouette(_SilhouetteNode);
-//   //_pView->Add2DSilhouette(_ProjectedSilhouette);
-// 
-//   // Update options window
-//   //_pOptionsWindow->updateViewMapFormat();
-// 
-//   real d = _Chrono.stop();
-//   cout << "ViewMap loading  : " << d << endl;
-// 
-//   // Compute the Directional ViewMap:
-//   if(_ComputeSteerableViewMap){
-//     ComputeSteerableViewMap();
-//   }
-// 
-//   // Reset Style modules modification flags
-//   resetModified(true);
-// }
 
 void Controller::ComputeViewMap()
 {
@@ -578,12 +400,10 @@ void Controller::ComputeViewMap()
   //----------------------------------------------------------
   // Save the viewpoint context at the view level in order 
   // to be able to restore it later:
-  _pView->saveCameraState();
 
   // Restore the context of view:
   // we need to perform all these operations while the 
   // 3D context is on.
-  _pView->set3DContext();
   Vec3r vp( freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
 
  	real mv[4][4];
@@ -602,12 +422,10 @@ void Controller::ComputeViewMap()
 	for( int i= 0; i < 4; i++)
 		viewport[i] = freestyle_viewport[i];
 
-
-  real focalLength = _pView->GetFocalLength();
-
   // Flag the WXEdge structure for silhouette edge detection:
   //----------------------------------------------------------
 
+	cout << "\n===  Detecting silhouette edges  ===" << endl;
   _Chrono.start();
  
   edgeDetector.setViewpoint(Vec3r(vp));
@@ -625,17 +443,8 @@ void Controller::ComputeViewMap()
   ViewMapBuilder vmBuilder;
   vmBuilder.setEnableQI(_EnableQI);
   vmBuilder.setViewpoint(Vec3r(vp));
-  
-cout << "focalLength: " << focalLength << endl;
-cout << "aspect: " << _pView->GetAspect() << endl;
-cout << "fovyradian: " << _pView->GetFovyRadian() << endl;
-
-cout << "znear: " << _pView->znear() << endl;
-cout << "zfar: " << _pView->zfar() << endl;
-
-  vmBuilder.setTransform( mv, proj,viewport, focalLength, _pView->GetAspect(), _pView->GetFovyRadian());
-  vmBuilder.setFrustum(_pView->znear(), _pView->zfar());
-  
+  vmBuilder.setTransform( mv, proj,viewport, _pView->GetFocalLength(), _pView->GetAspect(), _pView->GetFovyRadian());
+  vmBuilder.setFrustum(_pView->znear(), _pView->zfar());  
   vmBuilder.setGrid(&_Grid);
   
   // Builds a tesselated form of the silhouette for display purpose:
@@ -645,6 +454,7 @@ cout << "zfar: " << _pView->zfar() << endl;
   //sTesselator2d.setNature(_edgeTesselationNature);
   sTesselator3d.setNature(_edgeTesselationNature);
     
+	cout << "\n===  Building the view map  ===" << endl;
   _Chrono.start();
   // Build View Map
   _ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON);
@@ -816,25 +626,6 @@ void Controller::setComputeSteerableViewMapFlag(bool iBool){
 bool Controller::getComputeSteerableViewMapFlag() const {
   return _ComputeSteerableViewMap;
 }
-void Controller::setFrontBufferFlag(bool iBool)
-{
-  AppGLWidget::setFrontBufferFlag(iBool);
-}
-
-bool Controller::getFrontBufferFlag() const
-{
-  return AppGLWidget::getFrontBufferFlag();
-}
-
-void Controller::setBackBufferFlag(bool iBool)
-{
-  AppGLWidget::setBackBufferFlag(iBool);
-}
-
-bool Controller::getBackBufferFlag() const
-{
-  return AppGLWidget::getBackBufferFlag();
-}
 
 void Controller::DrawStrokes()
 {
@@ -928,30 +719,6 @@ void Controller::resetModified(bool iMod)
 {
   //_pStyleWindow->resetModified(iMod);
   _Canvas->resetModified(iMod);
-}
-
-FEdge* Controller::SelectFEdge(real x, real y)
-{
-  if (!_ViewMap)
-    return NULL;
-
-  FEdge *fedge = (FEdge*)_ViewMap->getClosestFEdge(x,y);
-  //ViewEdge *selection = fedge->viewedge();
-  _pView->setSelectedFEdge(fedge);
-  _Canvas->setSelectedFEdge(fedge);
-  return fedge;
-}
-
-ViewEdge* Controller::SelectViewEdge(real x, real y)
-{
-  if (!_ViewMap)
-    return NULL;
-
-  FEdge *fedge = (FEdge*)_ViewMap->getClosestFEdge(x,y);
-  ViewEdge *selection = fedge->viewedge();
-  _pView->setSelectedFEdge(fedge);
-  _Canvas->setSelectedFEdge(fedge);
-  return selection;
 }
 
 NodeGroup * Controller::BuildRep(vector<ViewEdge*>::iterator vedges_begin, 
@@ -1069,10 +836,6 @@ void Controller::init_options(){
 
 	// Visibility
 	setQuantitativeInvisibility(true);
-
-	// Drawing Buffers
-	setFrontBufferFlag(false);
-	setBackBufferFlag(true);
 
 	// soc: initialize canvas
 	_Canvas->init();

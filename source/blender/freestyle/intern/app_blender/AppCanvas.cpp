@@ -21,7 +21,7 @@
 
 #include "../rendering/GLBlendEquation.h"
 
-#include "AppGLWidget.h"
+#include "AppView.h"
 #include "../image/Image.h"
 #include "../system/TimeStamp.h"
 #include "Controller.h"
@@ -40,7 +40,7 @@ AppCanvas::AppCanvas()
 	_MapsPath = StringUtils::toAscii( Config::Path::getInstance()->getMapsDir() ).c_str();
 }
 
-AppCanvas::AppCanvas(AppGLWidget* iViewer)
+AppCanvas::AppCanvas(AppView* iViewer)
 :Canvas()
 {
   _pViewer = iViewer;
@@ -57,7 +57,7 @@ AppCanvas::~AppCanvas()
   _pViewer = 0;
 }
 
-void AppCanvas::setViewer(AppGLWidget *iViewer)
+void AppCanvas::setViewer(AppView *iViewer)
 {
   _pViewer = iViewer;
 }  
@@ -69,7 +69,7 @@ int AppCanvas::width() const
 
 int AppCanvas::height() const
 {
-  return _pViewer->height();
+  return _pViewer->height();;
 }
 
 BBox<Vec3r> AppCanvas::scene3DBBox() const 

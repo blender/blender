@@ -2,15 +2,14 @@
 #define ARTCANVAS_H
 
 #include "../stroke/Canvas.h"
+#include "AppView.h"
 
-//class AppGLWidget;
 class AppCanvas : public Canvas
 {
-private:
-  mutable AppGLWidget *_pViewer;
+	
 public:
   AppCanvas();
-  AppCanvas(AppGLWidget *iViewer);
+  AppCanvas(AppView *iViewer);
   AppCanvas(const AppCanvas& iBrother);
   virtual ~AppCanvas();
 
@@ -41,10 +40,12 @@ public:
   /*! accessors */
   virtual int width() const ;
   virtual int height() const ;
-  inline const AppGLWidget * viewer() const {return _pViewer;}
+
+	AppView *_pViewer;
+  inline const AppView * viewer() const {return _pViewer;}
 
   /*! modifiers */
-  void setViewer(AppGLWidget *iViewer) ;
+  void setViewer(AppView *iViewer) ;
 };
 
 
