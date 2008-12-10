@@ -920,24 +920,33 @@ void ED_screens_initialize(wmWindowManager *wm)
 
 void ED_region_exit(bContext *C, ARegion *ar)
 {
+	ARegion *prevar= C->region;
+
+	C->region= ar;
 	WM_event_remove_handlers(C, &ar->handlers);
+	C->region= prevar;
 }
 
 void ED_area_exit(bContext *C, ScrArea *sa)
 {
+	ScrArea *prevsa= C->area;
 	ARegion *ar;
 
+	C->area= sa;
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
 	WM_event_remove_handlers(C, &sa->handlers);
+	C->area= prevsa;
 }
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
+	wmWindow *prevwin= C->window;
 	ScrArea *sa;
 	ARegion *ar;
 
+	C->window= window;
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
@@ -945,6 +954,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 		ED_area_exit(C, sa);
 
 	WM_event_remove_handlers(C, &window->handlers);
+	C->window= prevwin;
 }
 
 

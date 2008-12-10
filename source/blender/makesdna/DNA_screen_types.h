@@ -109,7 +109,7 @@ typedef struct ScrArea {
 	struct SpaceType *type;		/* callbacks for this space type */
 	
 	ListBase spacedata;
-	ListBase uiblocks;
+	ListBase uiblocks;		/* uiBlock */
 	ListBase panels;
 	ListBase regionbase;	/* ARegion */
 	ListBase handlers;		/* wmEventHandler */

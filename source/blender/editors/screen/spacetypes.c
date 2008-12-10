@@ -71,7 +71,6 @@ void ED_spacetypes_init(void)
 	
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
-	UI_operatortypes();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
@@ -89,7 +88,6 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 
 	ED_keymap_screen(wm);
 	UI_view2d_keymap(wm);
-	UI_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)

@@ -74,11 +74,13 @@ ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid,
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
-struct wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op);
-void		WM_event_remove_handlers			(bContext *C, ListBase *handlers);
+struct wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers,
+			int (*func)(bContext *C, struct wmEvent *event), void (*remove)(bContext *C));
+void		WM_event_remove_ui_handler(ListBase *handlers);
 
-void		WM_event_add_message(wmWindowManager *wm, void *customdata,
-                                 short customdatafree);
+struct wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op);
+void		WM_event_remove_handlers(bContext *C, ListBase *handlers);
+
 void		WM_event_add_mousemove(bContext *C);
 
 void		WM_event_add_notifier(bContext *C, int type, int value, void *data);

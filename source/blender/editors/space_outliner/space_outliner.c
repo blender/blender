@@ -31,6 +31,7 @@
 
 #include "DNA_color_types.h"
 #include "DNA_object_types.h"
+#include "DNA_oops_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -105,17 +106,17 @@ void UI_table_free(uiTable *table)
 	MEM_freeN(table);
 }
 
-void UI_table_draw(wmWindow *window, ARegion *region, uiTable *table)
+void UI_table_draw(const bContext *C, uiTable *table)
 {
 	uiBlock *block;
 	View2D *v2d;
 	rcti *rct, cellrct;
 	int y, row, col;
 	
-	v2d= &region->v2d;
+	v2d= &C->region->v2d;
 	rct= &table->rct;
 	
-	block= uiBeginBlock(window, region, "table outliner", UI_EMBOSST, UI_HELV);
+	block= uiBeginBlock(C, C->region, "table outliner", UI_EMBOSST, UI_HELV);
 	
 	for(y=rct->ymax, row=0; y>rct->ymin; y-=ROW_HEIGHT, row++) {
 		if(row%2 == 0) {
@@ -141,7 +142,7 @@ void UI_table_draw(wmWindow *window, ARegion *region, uiTable *table)
 	for(col=0; col<table->cols; col++)
 		fdrawline(rct->xmin+COLUMN_WIDTH*(col+1), rct->ymin, rct->xmin+COLUMN_WIDTH*(col+1), rct->ymax);
 
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 	uiDrawBlock(block);
 }
 
@@ -416,7 +417,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	table= UI_table_create(rows, 2, &rct, rna_table_cell_func, &cell);
 
 	RNA_property_collection_begin(&cell.ptr, iterprop, &cell.iter);
-	UI_table_draw(C->window, ar, table);
+	UI_table_draw(C, table);
 	RNA_property_collection_end(&cell.iter);
 
 	UI_table_free(table);
@@ -432,7 +433,6 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 
 static void outliner_main_area_free(ARegion *ar)
 {
-	uiFreeBlocks(&ar->uiblocks);
 }
 
 /* ************************ header outliner area region *********************** */
@@ -466,7 +466,6 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 
 static void outliner_header_area_free(ARegion *ar)
 {
-	uiFreeBlocks(&ar->uiblocks);
 }
 
 /* ******************** default callbacks for outliner space ***************** */
@@ -506,8 +505,7 @@ static void outliner_init(wmWindowManager *wm, ScrArea *sa)
 			
 			/* XXX fixme, should be smarter */
 			
-			keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
-			WM_event_add_keymap_handler(&ar->handlers, keymap);
+			UI_add_region_handlers(&ar->handlers);
 			
 			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);

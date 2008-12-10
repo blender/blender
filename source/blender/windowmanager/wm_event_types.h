@@ -39,7 +39,6 @@
 #define EVT_DATA_TABLET		1
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
-#define EVT_DATA_MESSAGE	4
 
 #define MOUSEX		0x004	
 #define MOUSEY		0x005	
@@ -69,7 +68,6 @@
 #define WINQUIT			0x0108	/* signal from user that app is to go away */
 #define Q_FIRSTTIME		0x0109	/* on startup */
 #define TIMER			0x0110	/* timer event */
-#define MESSAGE			0x0111	/* message event */
 
 /* standard keyboard */
 

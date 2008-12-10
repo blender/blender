@@ -37,6 +37,8 @@ struct wmWindow;
 struct wmWindowManager;
 struct AutoComplete;
 struct bContext;
+struct PointerRNA;
+struct PropertyRNA;
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use one of the themes for drawing */
@@ -72,7 +74,7 @@ struct bContext;
 #define UI_BLOCK_MOVEMOUSE_QUIT	128
 #define UI_BLOCK_KEEP_OPEN		256
 
-/* uiMenuBlockHandle->blockretval */
+/* uiMenuBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
 #define UI_RETURN_OK        2       /* choice made */
 #define UI_RETURN_OUT       4       /* left the menu */
@@ -167,49 +169,68 @@ struct bContext;
 #define NUMABS	(36<<9)
 #define BUTTYPE	(63<<9)
 
-/* Menu Block Handle */
-typedef struct uiMenuBlockHandle {
-	struct ARegion *region;
-	int butretval;
-	int blockretval;
-
-	float retvalue;
-	float retvec[3];
-} uiMenuBlockHandle;
-
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
+
+/* Common Drawing Functions */
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
 void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad, int active);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
-
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag);
-void uiTextBoundsBlock(uiBlock *block, int addval);
+void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+
+/* Popup Menu's */
+
+typedef struct uiMenuBlockHandle {
+	struct ARegion *region;
+	int butretval;
+	int menuretval;
+
+	float retvalue;
+	float retvec[3];
+} uiMenuBlockHandle;
+
+typedef uiBlock* (*uiBlockFuncFP)(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg1);
+
+extern void pupmenu_set_active(int val);
+extern uiMenuBlockHandle *pupmenu_col(struct bContext *C, char *instr, int mx, int my, int maxrow);
+extern uiMenuBlockHandle *pupmenu(struct bContext *C, char *instr, int mx, int my);
+extern void pupmenu_free(struct bContext *C, uiMenuBlockHandle *handle);
+
+/* Block */
+
+uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, char *name, short dt, short font);
+void uiEndBlock(const struct bContext *C, uiBlock *block);
+uiBlock *uiGetBlock(char *name, struct ARegion *ar);
+void uiFreeBlock(const struct bContext *C, uiBlock *block);
+void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
+
 void uiBoundsBlock(struct uiBlock *block, int addval);
 void uiDrawBlock(struct uiBlock *block);
-void uiGetMouse(int win, short *adr);
-void uiComposeLinks(uiBlock *block);
-void uiSetButLock(int val, char *lockstr);
-uiBut *uiFindInlink(uiBlock *block, void *poin);
-void uiClearButLock(void);
-int uiDoBlocks(struct ListBase *lb, int event, int movemouse_quit);
-void uiSetCurFont(uiBlock *block, int index);
-void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small);
-void uiFreeBlock(uiBlock *block);
-void uiFreeBlocks(struct ListBase *lb);
-uiBlock *uiBeginBlock(struct wmWindow *window, struct ARegion *region, char *name, short dt, short font);
-void uiEndBlock(uiBlock *block);
-uiBlock *uiGetBlock(char *name, struct ARegion *ar);
+void uiTextBoundsBlock(uiBlock *block, int addval);
 
-void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
-
+void uiBlockSetButLock(uiBlock *block, int val, char *lockstr);
+void uiBlockClearButLock(uiBlock *block);
 
 /* automatic aligning, horiz or verical */
 void uiBlockBeginAlign(uiBlock *block);
 void uiBlockEndAlign(uiBlock *block);
+
+/* Misc */
+
+void uiSetCurFont(uiBlock *block, int index);
+void *uiSetCurFont_ext(float aspect);
+void uiDefFont(unsigned int index, void *xl, void *large, void *medium, void *small);
+
+void uiComposeLinks(uiBlock *block);
+uiBut *uiFindInlink(uiBlock *block, void *poin);
+
+void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
+
+/* Defining Buttons */
 
 uiBut *uiDefBut(uiBlock *block, 
 					   int type, int retval, char *str, 
@@ -258,7 +279,6 @@ typedef void		(*uiIDPoinFuncFP)	(char *str, struct ID **idpp);
 uiBut *uiDefIDPoinBut(struct uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str,
 						short x1, short y1, short x2, short y2, void *idpp, char *tip);
 
-typedef uiBlock* (*uiBlockFuncFP)	(struct wmWindow *window, struct uiMenuBlockHandle *handle, void *arg1);
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 uiBut *uiDefPulldownBut(uiBlock *block, uiBlockFuncFP func, void *func_arg1, char *str, short x1, short y1, short x2, short y2, char *tip);
 
@@ -267,8 +287,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, int retv
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 
-struct PointerRNA;
-struct PropertyRNA;
 uiBut *uiDefRNABut(uiBlock *block, int retval, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, short x1, short y1, short x2, short y2);
 void uiButSetFunc3(uiBut *but, void (*func)(void *arg1, void *arg2, void *arg3), void *arg1, void *arg2, void *arg3);
 
@@ -306,11 +324,7 @@ void	uiButSetCompleteFunc(uiBut *but,		void (*func)(char *str, void *arg), void 
 
 void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct ScrArea *sa, uiBlock *block));
 
-
-extern void pupmenu_set_active(int val);
-extern uiMenuBlockHandle *pupmenu_col(struct bContext *C, char *instr, int mx, int my, int maxrow);
-extern uiMenuBlockHandle *pupmenu(struct bContext *C, char *instr, int mx, int my);
-extern void pupmenu_free(struct bContext *C, uiMenuBlockHandle *handle);
+/* Panels */
 
 extern void uiFreePanels(struct ListBase *lb);
 extern void uiNewPanelTabbed(char *, char *);
@@ -329,8 +343,7 @@ extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
-extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
-extern void *uiSetCurFont_ext(float aspect);
+/* Autocomplete */
 
 typedef struct AutoComplete AutoComplete;
 
@@ -338,13 +351,17 @@ AutoComplete *autocomplete_begin(char *startname, int maxlen);
 void autocomplete_do_name(AutoComplete *autocpl, const char *name);
 void autocomplete_end(AutoComplete *autocpl, char *autoname);
 
-void uiTestRegion(const struct bContext *C); /* XXX 2.50 temporary test */
+/* Handlers for regions with UI blocks */
 
-void UI_keymap(struct wmWindowManager *wm);
-void UI_operatortypes(void);
+void UI_add_region_handlers(struct ListBase *handlers);
+
+/* Module initialization and exit */
+
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
+
+void uiTestRegion(const struct bContext *C); /* XXX 2.50 temporary test */
 
 #endif /*  UI_INTERFACE_H */
 

@@ -33,9 +33,10 @@
 #include "UI_resources.h"
 #include "RNA_types.h"
 
-struct uiActivateBut;
+struct uiHandleButtonData;
 struct wmWindow;
 struct ARegion;
+struct bContext;
 
 /* general defines */
 
@@ -53,12 +54,6 @@ struct ARegion;
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 /* warn: rest of uiBut->flag in BIF_interface.c */
-
-/* uiBut->activateflag */
-#define UI_ACTIVATE					1
-#define UI_ACTIVATE_APPLY			2
-#define UI_ACTIVATE_TEXT_EDITING	4
-#define UI_ACTIVATE_OPEN			8
 
 /* internal panel drawing defines */
 #define PNL_GRID	4
@@ -170,9 +165,8 @@ struct uiBut {
 	struct PropertyRNA *rnaprop;
 	int rnaindex;
 
-		/* Activation data */
-	struct uiActivateBut *activate;
-	int activateflag;
+		/* activation button data */
+	struct uiHandleButtonData *active;
 
 	char *editstr;
 	double *editval;
@@ -222,9 +216,12 @@ struct uiBlock {
 	char *lockstr;
 	
 	float xofs, yofs;			// offset to parent button
+
 	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
 	ListBase saferct;			// uiSafetyRct list
+
 	uiMenuBlockHandle *handle;	// handle
+	int tooltipdisabled;		// to avoid tooltip after click
 };
 
 typedef struct uiSafetyRct {
@@ -260,10 +257,10 @@ extern int  ui_is_but_float(uiBut *but);
 extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
 /* interface_regions.c */
-uiBlock *ui_block_func_MENU(struct wmWindow *window, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_ICONROW(struct wmWindow *window, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_ICONTEXTROW(struct wmWindow *window, uiMenuBlockHandle *handle, void *arg_but);
-uiBlock *ui_block_func_COL(struct wmWindow *window, uiMenuBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_MENU(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONROW(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_ICONTEXTROW(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_COL(struct bContext *C, uiMenuBlockHandle *handle, void *arg_but);
 
 struct ARegion *ui_tooltip_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
@@ -288,6 +285,9 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
+
+/* interface_handlers.c */
+extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 
 #endif
 

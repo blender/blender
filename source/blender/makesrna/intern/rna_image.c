@@ -216,7 +216,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clamp_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tpageflag", IMA_CLAMP_V);
-	RNA_def_property_ui_text(prop, "Clamp y", "Disable texture repeating vertically.");
+	RNA_def_property_ui_text(prop, "Clamp Y", "Disable texture repeating vertically.");
 }
 
 void RNA_def_image(BlenderRNA *brna)

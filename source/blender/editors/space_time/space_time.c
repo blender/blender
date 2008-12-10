@@ -182,7 +182,6 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 
 static void time_header_area_free(ARegion *ar)
 {
-	uiFreeBlocks(&ar->uiblocks);
 }
 
 /* ******************** default callbacks for time space ***************** */
@@ -246,8 +245,7 @@ static void time_init(wmWindowManager *wm, ScrArea *sa)
 			
 			/* XXX fixme, should be smarter */
 			
-			keymap= WM_keymap_listbase(wm, "Interface", 0, 0);
-			WM_event_add_keymap_handler(&ar->handlers, keymap);
+			UI_add_region_handlers(&ar->handlers);
 			
 			keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
 			WM_event_add_keymap_handler(&ar->handlers, keymap);

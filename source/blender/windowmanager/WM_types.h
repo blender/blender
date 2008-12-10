@@ -86,8 +86,15 @@ typedef struct wmEvent {
 #define KM_RELEASE	0
 #define KM_PRESS	1
 
+/* ************** UI Handler ***************** */
 
-/* ************** notifiers ****************** */
+#define WM_UI_HANDLER_CONTINUE	0
+#define WM_UI_HANDLER_BREAK		1
+
+typedef int (*wmUIHandlerFunc)(bContext *C, struct wmEvent *event);
+typedef void (*wmUIHandlerRemoveFunc)(bContext *C);
+
+/* ************** Notifiers ****************** */
 
 typedef struct wmNotifier {
 	struct wmNotifier *prev, *next;

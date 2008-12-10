@@ -167,7 +167,9 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glColor3f(fac, fac, fac);
 		glRecti(20,  2,  30,  12);
 	}
-	region_draw_emboss(ar);
+
+	if(C->area)
+		region_draw_emboss(ar);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 	ED_region_pixelspace(C, ar);

@@ -337,11 +337,35 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	while((handler=handlers->first)) {
 		BLI_remlink(handlers, handler);
 		
-		if(C && handler->op) {
-			if(handler->op->type->cancel)
+		if(handler->op) {
+			if(handler->op->type->cancel) {
+				ScrArea *area= C->area;
+				ARegion *region= C->region;
+				
+				C->area= handler->op_area;
+				C->region= handler->op_region;
+
 				handler->op->type->cancel(C, handler->op);
+
+				C->area= area;
+				C->region= region;
+			}
+
 			wm_operator_free(handler->op);
 		}
+		else if(handler->ui_remove) {
+			ScrArea *area= C->area;
+			ARegion *region= C->region;
+			
+			if(handler->ui_area) C->area= handler->ui_area;
+			if(handler->ui_region) C->region= handler->ui_region;
+
+			handler->ui_remove(C);
+
+			C->area= area;
+			C->region= region;
+		}
+
 		wm_event_free_handler(handler);
 		MEM_freeN(handler);
 	}
@@ -428,10 +452,32 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	return WM_HANDLER_BREAK;
 }
 
+static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event)
+{
+	ScrArea *area= C->area;
+	ARegion *region= C->region;
+	int retval;
+			
+	/* we set context to where ui handler came from */
+	if(handler->ui_area) C->area= handler->ui_area;
+	if(handler->ui_region) C->region= handler->ui_region;
+
+	retval= handler->ui_handle(C, event);
+
+	/* putting back screen context */
+	C->area= area;
+	C->region= region;
+
+	if(retval == WM_UI_HANDLER_BREAK)
+		return WM_HANDLER_BREAK;
+
+	return WM_HANDLER_CONTINUE;
+}
+
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return (event->type == TIMER || event->type == MESSAGE);
+	return (event->type == TIMER);
 }
 
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
@@ -464,6 +510,9 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 						break;
 				}
 			}
+		}
+		else if(handler->ui_handle) {
+			action= wm_handler_ui_call(C, handler, event);
 		}
 		else {
 			/* modal, swallows all */
@@ -543,26 +592,6 @@ void wm_event_do_handlers(bContext *C)
 				
 			action= wm_handlers_do(C, event, &win->handlers);
 			
-			/* modal menus in Blender use (own) regions linked to screen */
-			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
-				ARegion *ar;
-
-				/* region are in drawing order, i.e. frontmost region last so
-				 * we handle events in the opposite order last to first */
-				for(ar=win->screen->regionbase.last; ar; ar= ar->prev) {
-					if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
-						C->region= ar;
-						wm_handlers_do(C, event, &ar->handlers);
-						C->region= NULL;
-
-						if(!wm_event_always_pass(event)) {
-							action= WM_HANDLER_BREAK;
-							break;
-						}
-					}
-				}
-			}
-	
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
@@ -576,7 +605,7 @@ void wm_event_do_handlers(bContext *C)
 
 						if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
-								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
+								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct) || wm_event_prev_inside_i(event, &ar->winrct)) {
 									C->region= ar;
 									action= wm_handlers_do(C, event, &ar->handlers);
 									C->region= NULL;
@@ -616,13 +645,13 @@ void WM_event_set_handler_flag(wmEventHandler *handler, int flag)
 
 wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op)
 {
-	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
+	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event modal handler");
 	handler->op= op;
 	handler->op_area= C->area;		/* means frozen screen context for modal handlers! */
 	handler->op_region= C->region;
 	
 	BLI_addhead(handlers, handler);
-	
+
 	return handler;
 }
 
@@ -635,7 +664,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap
 		if(handler->keymap==keymap)
 			return handler;
 
-	handler= MEM_callocN(sizeof(wmEventHandler), "event handler");
+	handler= MEM_callocN(sizeof(wmEventHandler), "event keymap handler");
 	BLI_addtail(handlers, handler);
 	handler->keymap= keymap;
 
@@ -656,21 +685,30 @@ void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
 	}
 }
 
-void WM_event_add_message(wmWindowManager *wm, void *customdata, short customdatafree)
+wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove)
 {
-	wmEvent event;
-	wmWindow *win;
+	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event ui handler");
+	handler->ui_handle= func;
+	handler->ui_remove= remove;
+	handler->ui_area= (C)? C->area: NULL;
+	handler->ui_region= (C)? C->region: NULL;
+	
+	BLI_addhead(handlers, handler);
+	
+	return handler;
+}
 
-	for(win=wm->windows.first; win; win=win->next) {
-		event= *(win->eventstate);
-
-		event.type= MESSAGE;
-		if(customdata) {
-			event.custom= EVT_DATA_MESSAGE;
-			event.customdata= customdata;
-			event.customdatafree= customdatafree;
+void WM_event_remove_ui_handler(ListBase *handlers)
+{
+	wmEventHandler *handler;
+	
+	for(handler= handlers->first; handler; handler= handler->next) {
+		if(handler->ui_handle) {
+			BLI_remlink(handlers, handler);
+			wm_event_free_handler(handler);
+			MEM_freeN(handler);
+			break;
 		}
-		wm_event_add(win, &event);
 	}
 }
 
@@ -678,8 +716,9 @@ void WM_event_add_mousemove(bContext *C)
 {
 	wmEvent event= *(C->window->eventstate);
 	event.type= MOUSEMOVE;
+	event.prevx= event.x;
+	event.prevy= event.y;
 	wm_event_add(C->window, &event);
-	
 }
 
 /* ********************* ghost stuff *************** */

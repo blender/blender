@@ -78,7 +78,7 @@
  * ui_blah_blah()	internal function
  */
 
-static void ui_free_but(uiBut *but);
+static void ui_free_but(const bContext *C, uiBut *but);
 
 /* ************ GLOBALS ************* */
 
@@ -109,8 +109,8 @@ void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float gx, gy;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex= ar->winrct.xmax-ar->winrct.xmin;
-	getsizey= ar->winrct.ymax-ar->winrct.ymin;
+	getsizex= ar->winrct.xmax-ar->winrct.xmin+1;
+	getsizey= ar->winrct.ymax-ar->winrct.ymin+1;
 	sx= ar->winrct.xmin;
 	sy= ar->winrct.ymin;
 
@@ -152,8 +152,8 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 	float a, b, c, d, e, f, px, py;
 	int sx, sy, getsizex, getsizey;
 
-	getsizex= ar->winrct.xmax-ar->winrct.xmin;
-	getsizey= ar->winrct.ymax-ar->winrct.ymin;
+	getsizex= ar->winrct.xmax-ar->winrct.xmin+1;
+	getsizey= ar->winrct.ymax-ar->winrct.ymin+1;
 	sx= ar->winrct.xmin;
 	sy= ar->winrct.ymin;
 
@@ -426,7 +426,7 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	return 1;
 }
 
-static int ui_but_update_from_old_block(uiBlock *block, uiBut *but)
+static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut *but)
 {
 	uiBlock *oldblock;
 	uiBut *oldbut;
@@ -438,9 +438,9 @@ static int ui_but_update_from_old_block(uiBlock *block, uiBut *but)
 
 	for(oldbut=oldblock->buttons.first; oldbut; oldbut=oldbut->next) {
 		if(ui_but_equals_old(oldbut, but)) {
-			if(oldbut->activate) {
+			if(oldbut->active) {
 				but->flag= oldbut->flag;
-				but->activate= oldbut->activate;
+				but->active= oldbut->active;
 				but->pos= oldbut->pos;
 				but->editstr= oldbut->editstr;
 				but->editval= oldbut->editval;
@@ -450,12 +450,14 @@ static int ui_but_update_from_old_block(uiBlock *block, uiBut *but)
 				but->selsta= oldbut->selsta;
 				but->selend= oldbut->selend;
 				found= 1;
+
+				oldbut->active= NULL;
 			}
 
 			/* ensures one button can get activated, and in case the buttons
 			 * draw are the same this gives O(1) lookup for each button */
 			BLI_remlink(&oldblock->buttons, oldbut);
-			ui_free_but(oldbut);
+			ui_free_but(C, oldbut);
 			
 			break;
 		}
@@ -464,7 +466,7 @@ static int ui_but_update_from_old_block(uiBlock *block, uiBut *but)
 	return found;
 }
 
-void uiEndBlock(uiBlock *block)
+void uiEndBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 
@@ -473,14 +475,15 @@ void uiEndBlock(uiBlock *block)
 	 * blocking, while still alowing buttons to be remade each redraw as it
 	 * is expected by blender code */
 	for(but=block->buttons.first; but; but=but->next)
-		if(ui_but_update_from_old_block(block, but))
+		if(ui_but_update_from_old_block(C, block, but))
 			ui_check_but(but);
 
 	if(block->oldblock) {
 		block->auto_open= block->oldblock->auto_open;
 		block->auto_open_last= block->oldblock->auto_open_last;
+		block->tooltipdisabled= block->oldblock->tooltipdisabled;
 
-		uiFreeBlock(block->oldblock);
+		uiFreeBlock(C, block->oldblock);
 		block->oldblock= NULL;
 	}
 	
@@ -1340,21 +1343,22 @@ static void ui_free_link(uiLink *link)
 	}
 }
 
-static void ui_free_but(uiBut *but)
+static void ui_free_but(const bContext *C, uiBut *but)
 {
+	if(but->active) ui_button_active_cancel(C, but);
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
 
 	MEM_freeN(but);
 }
 
-void uiFreeBlock(uiBlock *block)
+void uiFreeBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 
 	while( (but= block->buttons.first) ) {
 		BLI_remlink(&block->buttons, but);	
-		ui_free_but(but);
+		ui_free_but(C, but);
 	}
 
 	if(block->panel) block->panel->active= 0;
@@ -1364,22 +1368,24 @@ void uiFreeBlock(uiBlock *block)
 	MEM_freeN(block);
 }
 
-void uiFreeBlocks(ListBase *lb)
+void uiFreeBlocks(const bContext *C, ListBase *lb)
 {
 	uiBlock *block;
 	
 	while( (block= lb->first) ) {
 		BLI_remlink(lb, block);
-		uiFreeBlock(block);
+		uiFreeBlock(C, block);
 	}
 }
 
-uiBlock *uiBeginBlock(wmWindow *window, ARegion *region, char *name, short dt, short font)
+uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, short font)
 {
 	ListBase *lb;
 	uiBlock *block, *oldblock= NULL;
+	wmWindow *window;
 	int getsizex, getsizey;
 
+	window= C->window;
 	lb= &region->uiblocks;
 	
 	/* each listbase only has one block with this name, free block
@@ -2071,7 +2077,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 /* autocomplete callback for ID buttons */
 static void autocomplete_id(char *str, void *arg_v)
 {
-	/* XXX 2.48 int blocktype= (intptr_t)arg_v; */
+	/* int blocktype= (intptr_t)arg_v; */
 	ListBase *listb= NULL /* XXX 2.50 needs context, wich_libbase(G.main, blocktype) */;
 	
 	if(listb==NULL) return;
@@ -2510,7 +2516,7 @@ uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int 
 	ui_check_but(but);
 	
 	if(blocktype)
-		uiButSetCompleteFunc(but, autocomplete_id, 0 /* XXX 2.48 (void *)(intptr_t)blocktype*/);
+		uiButSetCompleteFunc(but, autocomplete_id, (void *)(intptr_t)blocktype);
 
 	return but;
 }

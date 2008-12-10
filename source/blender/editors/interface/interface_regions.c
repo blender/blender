@@ -590,15 +590,9 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 	}
 }
 
-static void ui_block_region_free(ARegion *ar)
-{
-	uiFreeBlocks(&ar->uiblocks);
-}
-
 uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockFuncFP block_func, void *arg)
 {
 	static ARegionType type;
-	ListBase *keymap= WM_keymap_listbase(C->wm, "Interface", 0, 0);
 	ARegion *ar;
 	uiBlock *block;
 	uiBut *bt;
@@ -613,16 +607,15 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_block_region_draw;
-	type.free= ui_block_region_free;
 	ar->type= &type;
 
-	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	UI_add_region_handlers(&ar->handlers);
 
 	handle->region= ar;
 	ar->regiondata= handle;
 
 	/* create ui block */
-	block= block_func(C->window, handle, arg);
+	block= block_func(C, handle, arg);
 	block->handle= handle;
 
 	/* if this is being created from a button */
@@ -674,10 +667,6 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 
-	SWAP(ARegion*, C->region, ar); /* XXX 2.50 bad context swapping */
-	WM_operator_invoke(C, WM_operatortype_find("ED_UI_OT_menu_block_handle"), NULL);
-	SWAP(ARegion*, C->region, ar);
-
 	return handle;
 }
 
@@ -692,7 +681,7 @@ void ui_menu_block_free(bContext *C, uiMenuBlockHandle *handle)
 
 /***************************** Menu Button ***************************/
 
-uiBlock *ui_block_func_MENU(wmWindow *window, uiMenuBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_MENU(bContext *C, uiMenuBlockHandle *handle, void *arg_but)
 {
 	uiBut *but= arg_but;
 	uiBlock *block;
@@ -703,7 +692,7 @@ uiBlock *ui_block_func_MENU(wmWindow *window, uiMenuBlockHandle *handle, void *a
 	int width, height, boxh, columns, rows, startx, starty, x1, y1, xmax, a;
 
 	/* create the block */
-	block= uiBeginBlock(window, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	block->dt= UI_EMBOSSP;
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_MENU_ITEM;
@@ -803,18 +792,18 @@ uiBlock *ui_block_func_MENU(wmWindow *window, uiMenuBlockHandle *handle, void *a
 	block->buttons= lb;
 
 	block->direction= UI_TOP;
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 
 	return block;
 }
 
-uiBlock *ui_block_func_ICONROW(wmWindow *window, uiMenuBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_ICONROW(bContext *C, uiMenuBlockHandle *handle, void *arg_but)
 {
 	uiBut *but= arg_but;
 	uiBlock *block;
 	int a;
 	
-	block= uiBeginBlock(window, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_MENU_ITEM;
 	
@@ -824,19 +813,19 @@ uiBlock *ui_block_func_ICONROW(wmWindow *window, uiMenuBlockHandle *handle, void
 
 	block->direction= UI_TOP;	
 
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 
 	return block;
 }
 
-uiBlock *ui_block_func_ICONTEXTROW(wmWindow *window, uiMenuBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_ICONTEXTROW(bContext *C, uiMenuBlockHandle *handle, void *arg_but)
 {
 	uiBut *but= arg_but;
 	uiBlock *block;
 	MenuData *md;
 	int width, xmax, ypos, a;
 
-	block= uiBeginBlock(window, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT;
 	block->themecol= TH_MENU_ITEM;
 
@@ -885,7 +874,7 @@ uiBlock *ui_block_func_ICONTEXTROW(wmWindow *window, uiMenuBlockHandle *handle, 
 	block->direction= UI_TOP;
 
 	uiBoundsBlock(block, 3);
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 
 	return block;
 }
@@ -1234,14 +1223,14 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiBlockEndAlign(block);
 }
 
-uiBlock *ui_block_func_COL(wmWindow *window, uiMenuBlockHandle *handle, void *arg_but)
+uiBlock *ui_block_func_COL(bContext *C, uiMenuBlockHandle *handle, void *arg_but)
 {
 	uiBut *but= arg_but;
 	uiBlock *block;
 	static float hsvcol[3], oldcol[3];
 	static char hexcol[128];
 	
-	block= uiBeginBlock(window, handle->region, "colorpicker", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS, UI_HELV);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
 	block->themecol= TH_BUT_NUM;
 	
@@ -1294,7 +1283,7 @@ typedef struct uiPupMenuInfo {
 	int maxrow;
 } uiPupMenuInfo;
 
-uiBlock *ui_block_func_PUPMENU(wmWindow *window, uiMenuBlockHandle *handle, void *arg_info)
+uiBlock *ui_block_func_PUPMENU(bContext *C, uiMenuBlockHandle *handle, void *arg_info)
 {
 	uiBlock *block;
 	uiPupMenuInfo *info;
@@ -1309,7 +1298,7 @@ uiBlock *ui_block_func_PUPMENU(wmWindow *window, uiMenuBlockHandle *handle, void
 	height= 0;
 
 	/* block stuff first, need to know the font */
-	block= uiBeginBlock(window, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
 	
@@ -1336,7 +1325,7 @@ uiBlock *ui_block_func_PUPMENU(wmWindow *window, uiMenuBlockHandle *handle, void
 	width+= 10;
 	if (width<50) width=50;
 	
-	wm_window_get_size(window, &xmax, &ymax);
+	wm_window_get_size(C->window, &xmax, &ymax);
 
 	/* set first item */
 	lastselected= 0;
@@ -1428,7 +1417,7 @@ uiBlock *ui_block_func_PUPMENU(wmWindow *window, uiMenuBlockHandle *handle, void
 	}
 	
 	uiBoundsBlock(block, 1);
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 
 	menudata_free(md);
 
@@ -1455,7 +1444,7 @@ uiBlock *ui_block_func_PUPMENU(wmWindow *window, uiMenuBlockHandle *handle, void
 	return block;
 }
 
-uiBlock *ui_block_func_PUPMENUCOL(wmWindow *window, uiMenuBlockHandle *handle, void *arg_info)
+uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *arg_info)
 {
 	uiBlock *block;
 	uiPupMenuInfo *info;
@@ -1470,7 +1459,7 @@ uiBlock *ui_block_func_PUPMENUCOL(wmWindow *window, uiMenuBlockHandle *handle, v
 	height= 0;
 
 	/* block stuff first, need to know the font */
-	block= uiBeginBlock(window, handle->region, "menu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
 	
@@ -1508,7 +1497,7 @@ uiBlock *ui_block_func_PUPMENUCOL(wmWindow *window, uiMenuBlockHandle *handle, v
 	height= rows*MENU_BUTTON_HEIGHT;
 	if (md->title) height+= MENU_BUTTON_HEIGHT;
 	
-	wm_window_get_size(window, &xmax, &ymax);
+	wm_window_get_size(C->window, &xmax, &ymax);
 
 	/* find active item */
 	fvalue= handle->retvalue;
@@ -1596,7 +1585,7 @@ uiBlock *ui_block_func_PUPMENUCOL(wmWindow *window, uiMenuBlockHandle *handle, v
 	}
 	
 	uiBoundsBlock(block, 1);
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 
 #if 0
 	event= uiDoBlocks(&listb, 0, 1);
@@ -1646,13 +1635,13 @@ void pupmenu_free(bContext *C, uiMenuBlockHandle *handle)
 
 /*************** Temporary Buttons Tests **********************/
 
-static uiBlock *test_submenu(wmWindow *window, uiMenuBlockHandle *handle, void *arg)
+static uiBlock *test_submenu(bContext *C, uiMenuBlockHandle *handle, void *arg)
 {
 	ARegion *ar= handle->region;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(window, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
 	//uiBlockSetButmFunc(block, do_test_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
@@ -1682,19 +1671,19 @@ static uiBlock *test_submenu(wmWindow *window, uiMenuBlockHandle *handle, void *
 	uiBlockSetDirection(block, UI_RIGHT);
 
 	uiTextBoundsBlock(block, 50);
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 	
 	return block;
 }
 
-static uiBlock *test_viewmenu(wmWindow *window, uiMenuBlockHandle *handle, void *arg_area)
+static uiBlock *test_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_area)
 {
 	ScrArea *area= arg_area;
 	ARegion *ar= handle->region;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
-	block= uiBeginBlock(window, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
+	block= uiBeginBlock(C, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
 	//uiBlockSetButmFunc(block, do_test_viewmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
@@ -1723,6 +1712,7 @@ static uiBlock *test_viewmenu(wmWindow *window, uiMenuBlockHandle *handle, void 
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
     uiDefIconTextBlockBut(block, test_submenu, NULL, ICON_RIGHTARROW_THIN, "Sub Menu", 0, yco-=20, 120, 19, "");
+    uiDefIconTextBlockBut(block, test_submenu, NULL, ICON_RIGHTARROW_THIN, "Sub Menu", 0, yco-=20, 120, 19, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	if(area->headertype==HEADERTOP) {
@@ -1734,7 +1724,7 @@ static uiBlock *test_viewmenu(wmWindow *window, uiMenuBlockHandle *handle, void 
 	}
 
 	uiTextBoundsBlock(block, 50);
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 	
 	return block;
 }
@@ -1754,7 +1744,7 @@ void uiTestRegion(const bContext *C)
 	static ColorBand *coba= NULL;
 #endif
 
-	block= uiBeginBlock(C->window, C->region, "header buttons", UI_EMBOSS, UI_HELV);
+	block= uiBeginBlock(C, C->region, "header buttons", UI_EMBOSS, UI_HELV);
 
 	uiDefPulldownBut(block, test_viewmenu, C->area,  "View",
 		13, 1, 50, 24, "");
@@ -1796,7 +1786,7 @@ void uiTestRegion(const bContext *C)
 		13+400+100+10, 33, 150, 30, coba, 0.0f, 1.0f, 0, 0, "");
 #endif
 
-	uiEndBlock(block);
+	uiEndBlock(C, block);
 	uiDrawBlock(block);
 }
 

@@ -40,15 +40,21 @@ struct ARegion;
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 	
-	int type, flag;	/* type default=0, rest is custom */
+	int type, flag;				/* type default=0, rest is custom */
 	
-	ListBase *keymap;	/* pointer to builtin/custom keymaps */
+	/* keymap handler */
+	ListBase *keymap;			/* pointer to builtin/custom keymaps */
 	
-	rctf boundbox;	/* float, in bContext space (window, area, region) */
-	
-	wmOperator *op;		/* for derived/modal handlers */
+	/* modal operator handler */
+	wmOperator *op;				/* for derived/modal handlers */
 	struct ScrArea *op_area;	/* for derived/modal handlers */
 	struct ARegion *op_region;	/* for derived/modal handlers */
+
+	/* ui handler */
+	wmUIHandlerFunc ui_handle;  		/* callback receiving events */
+	wmUIHandlerRemoveFunc ui_remove;	/* callback when handler is removed */
+	struct ScrArea *ui_area;			/* for derived/modal handlers */
+	struct ARegion *ui_region;			/* for derived/modal handlers */
 	
 } wmEventHandler;
 
