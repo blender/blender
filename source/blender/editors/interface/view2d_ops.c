@@ -161,7 +161,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	}
 	
 	/* validate that view is in valid configuration after this operation */
-	UI_view2d_status_enforce(v2d);
+	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
 	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
@@ -452,6 +452,24 @@ void ED_View2D_OT_view_scrollup(wmOperatorType *ot)
 
 /* ------------------ 'Shared' stuff ------------------------ */
  
+/* check if step-zoom can be applied */
+static short view_zoomstep_ok(bContext *C)
+{
+	View2D *v2d;
+	
+	/* check if there's a region in context to work with */
+	if (C->region == NULL)
+		return 0;
+	v2d= &C->region->v2d;
+	
+	/* check that 2d-view is zoomable */
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
+		return 0;
+		
+	/* view is zoomable */
+	return 1;
+}
+ 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
@@ -463,17 +481,17 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	dy= (v2d->cur.ymax - v2d->cur.ymin) * (float)RNA_float_get(op->ptr, "zoomfacy");
 	
 	/* only move view on an axis if change is allowed */
-	if ((v2d->keepofs & V2D_LOCKOFS_X)==0) {
+	if ((v2d->keepzoom & V2D_LOCKOFS_X)==0) {
 		v2d->cur.xmin += dx;
 		v2d->cur.xmax -= dx;
 	}
-	if ((v2d->keepofs & V2D_LOCKOFS_Y)==0) {
+	if ((v2d->keepzoom & V2D_LOCKOFS_Y)==0) {
 		v2d->cur.ymin += dy;
 		v2d->cur.ymax -= dy;
 	}
 	
 	/* validate that view is in valid configuration after this operation */
-	UI_view2d_status_enforce(v2d);
+	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
 	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
@@ -486,7 +504,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
-	if (C->region == NULL)
+	if (!view_zoomstep_ok(C))
 		return OPERATOR_CANCELLED;
 	
 	/* set RNA-Props - zooming in by uniform factor */
@@ -524,7 +542,7 @@ void ED_View2D_OT_view_zoomin(wmOperatorType *ot)
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
-	if (C->region == NULL)
+	if (!view_zoomstep_ok(C))
 		return OPERATOR_CANCELLED;
 	
 	/* set RNA-Props - zooming in by uniform factor */
@@ -582,20 +600,23 @@ typedef struct v2dViewZoomData {
 static int view_zoomdrag_init(bContext *C, wmOperator *op)
 {
 	v2dViewZoomData *vzd;
-	ARegion *ar;
 	View2D *v2d;
 	
 	/* regions now have v2d-data by default, so check for region */
 	if (C->region == NULL)
 		return 0;
-	ar= C->region;
+	v2d= &C->region->v2d;
+	
+	/* check that 2d-view is zoomable */
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
+		return 0;
 	
 	/* set custom-data for operator */
 	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
 	op->customdata= vzd;
 	
 	/* set pointers to owners */
-	vzd->v2d= v2d= &ar->v2d;
+	vzd->v2d= v2d;
 	
 	return 1;
 }
@@ -612,17 +633,17 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	dy= RNA_float_get(op->ptr, "deltay");
 	
 	/* only move view on an axis if change is allowed */
-	if ((v2d->keepofs & V2D_LOCKZOOM_X)==0) {
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
 		v2d->cur.xmin += dx;
 		v2d->cur.xmax -= dx;
 	}
-	if ((v2d->keepofs & V2D_LOCKZOOM_Y)==0) {
+	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
 		v2d->cur.ymin += dy;
 		v2d->cur.ymax -= dy;
 	}
 	
 	/* validate that view is in valid configuration after this operation */
-	UI_view2d_status_enforce(v2d);
+	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
 	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
@@ -993,7 +1014,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	}
 	
 	/* validate that view is in valid configuration after this operation */
-	UI_view2d_status_enforce(v2d);
+	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
 	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);

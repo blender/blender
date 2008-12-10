@@ -78,7 +78,7 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 		else if (v2d->scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
-			v2d->vert.xmin= v2d->vert.xmax-V2D_SCROLL_WIDTH;
+			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
 			v2d->mask.xmax= v2d->vert.xmin;
 		}
 		
@@ -92,7 +92,7 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 		else if (v2d->scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
 			v2d->hor= v2d->mask;
-			v2d->hor.ymin= v2d->hor.ymax-V2D_SCROLL_HEIGHT;
+			v2d->hor.ymin= v2d->hor.ymax - V2D_SCROLL_HEIGHT;
 			v2d->mask.ymax= v2d->hor.ymin;
 		}
 	}
@@ -102,17 +102,16 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
  *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-// XXX FIXME - this is an old mess function... let's rewrite!
-void UI_view2d_status_enforce(View2D *v2d)
+void UI_view2d_curRect_validate(View2D *v2d)
 {
 	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
 	float totwidth, totheight, curwidth, curheight, width, height;
-	int winx, winy;
+	float winx, winy;
 	rctf *cur, *tot;
 	
 	/* use mask as size of region that View2D resides in, as it takes into account scrollbars already  */
-	winx= v2d->mask.xmax - v2d->mask.xmin + 1;
-	winy= v2d->mask.ymax - v2d->mask.ymin + 1;
+	winx= (float)(v2d->mask.xmax - v2d->mask.xmin + 1);
+	winy= (float)(v2d->mask.ymax - v2d->mask.ymin + 1);
 	
 	/* get pointers to rcts for less typing */
 	cur= &v2d->cur;
@@ -122,7 +121,7 @@ void UI_view2d_status_enforce(View2D *v2d)
 	 *	- cur must not fall outside of tot
 	 *	- axis locks (zoom and offset) must be maintained
 	 *	- zoom must not be excessive (check either sizes or zoom values)
-	 *	- aspect ratio should be respected
+	 *	- aspect ratio should be respected (NOTE: this is quite closely realted to zoom too)
 	 */
 	
 	/* Step 1: if keepzoom, adjust the sizes of the rects only
@@ -136,9 +135,9 @@ void UI_view2d_status_enforce(View2D *v2d)
 	
 	/* if zoom is locked, size on the appropriate axis is reset to mask size */
 	if (v2d->keepzoom & V2D_LOCKZOOM_X)
-		width= (float)winy;
+		width= winx;
 	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
-		height= (float)winx;
+		height= winy;
 		
 	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
@@ -147,14 +146,14 @@ void UI_view2d_status_enforce(View2D *v2d)
 		float zoom, fac;
 		
 		/* check if excessive zoom on x-axis */
-		zoom= (float)winx / width;
+		zoom= winx / width;
 		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
 			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
 			width *= fac;
 		}
 		
 		/* check if excessive zoom on y-axis */
-		zoom= (float)winy / height;
+		zoom= winy / height;
 		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
 			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
 			height *= fac;
@@ -171,16 +170,14 @@ void UI_view2d_status_enforce(View2D *v2d)
 		short do_x=0, do_y=0, do_cur, do_win;
 		float curRatio, winRatio;
 		
-			// XXX this is old code here to be cleaned up still
 		/* when a window edge changes, the aspect ratio can't be used to
 		 * find which is the best new 'cur' rect. thats why it stores 'old' 
 		 */
 		if (winx != v2d->oldwinx) do_x= 1;
 		if (winy != v2d->oldwiny) do_y= 1;
 		
-		/* here dx is cur ratio, while dy is win ratio */
 		curRatio= height / width;
-		winRatio= ((float)winy) / ((float)winx);
+		winRatio= winy / winx;
 		
 		/* both sizes change (area/region maximised)  */
 		if (do_x == do_y) {
@@ -233,20 +230,19 @@ void UI_view2d_status_enforce(View2D *v2d)
 		float temp, dh;
 		
 		/* resize around 'center' of frame */
-		// FIXME: maybe we should just scale down on min?
 		if (width != curwidth) {
-			temp= (cur->xmax + cur->xmin) / 2.0f;
-			dh= (width - curwidth) * 0.5f;
+			temp= (cur->xmax + cur->xmin) * 0.5f;
+			dh= width * 0.5f;
 			
-			cur->xmin -= dh;
-			cur->xmax += dh;
+			cur->xmin = temp - dh;
+			cur->xmax = temp + dh;
 		}
 		if (height != curheight) {
-			temp= (cur->ymax + cur->ymin) / 2.0f;
-			dh= (height - curheight) * 0.5f;
+			temp= (cur->ymax + cur->ymin) * 0.5f;
+			dh= height * 0.5f;
 			
-			cur->ymin -= dh;
-			cur->ymax += dh;
+			cur->ymin = temp - dh;
+			cur->ymax = temp + dh;
 		}
 	}
 	
@@ -284,6 +280,7 @@ void UI_view2d_status_enforce(View2D *v2d)
 				temp= cur->xmax - tot->xmax;
 				
 				if ((cur->xmin - temp) < tot->xmin) {
+					/* only offset by difference from cur-min and tot-min */
 					temp= cur->xmin - tot->xmin;
 					
 					cur->xmin -= temp;
@@ -342,7 +339,7 @@ void UI_view2d_status_enforce(View2D *v2d)
 				cur->ymax += temp;
 			}
 			else if (cur->ymax > tot->ymax) {
-				/* there's still space remaining, so shift up */
+				/* there's still space remaining, so shift down */
 				temp= cur->ymax - tot->ymax;
 				
 				cur->ymin -= temp;
@@ -353,55 +350,6 @@ void UI_view2d_status_enforce(View2D *v2d)
 }
 
 /* ------------------ */
-
-/* Change the size of the maximum viewable area (i.e. 'tot' rect) */
-void UI_view2d_totRect_set(View2D *v2d, int width, int height)
-{
-	/* don't do anything if either value is 0 */
-	if (ELEM3(0, v2d, width, height))
-		return;
-		
-	/* handle width - posx and negx flags are mutually exclusive, so watch out */
-	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
-		/* width is in negative-x half */
-		v2d->tot.xmin= (float)-width;
-		v2d->tot.xmax= 0.0f;
-	}
-	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
-		/* width is in positive-x half */
-		v2d->tot.xmin= 0.0f;
-		v2d->tot.xmax= (float)width;
-	}
-	else {
-		/* width is centered around x==0 */
-		const float dx= (float)width / 2.0f;
-		
-		v2d->tot.xmin= -dx;
-		v2d->tot.xmax= dx;
-	}
-	
-	/* handle height - posx and negx flags are mutually exclusive, so watch out */
-	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
-		/* height is in negative-y half */
-		v2d->tot.ymin= (float)-height;
-		v2d->tot.ymax= 0.0f;
-	}
-	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
-		/* height is in positive-y half */
-		v2d->tot.ymin= 0.0f;
-		v2d->tot.ymax= (float)height;
-	}
-	else {
-		/* height is centered around y==0 */
-		const float dy= (float)height / 2.0f;
-		
-		v2d->tot.ymin= -dy;
-		v2d->tot.ymax= dy;
-	}
-	
-	/* make sure that 'cur' rect is in a valid state as a result of these changes */
-	UI_view2d_status_enforce(v2d);
-}
 
 /* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) */
 void UI_view2d_curRect_reset (View2D *v2d)
@@ -449,6 +397,55 @@ void UI_view2d_curRect_reset (View2D *v2d)
 		v2d->cur.ymin= -dy;
 		v2d->cur.ymax= dy;
 	}
+}
+
+/* Change the size of the maximum viewable area (i.e. 'tot' rect) */
+void UI_view2d_totRect_set (View2D *v2d, int width, int height)
+{
+	/* don't do anything if either value is 0 */
+	if (ELEM3(0, v2d, width, height))
+		return;
+	
+	/* handle width - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+		/* width is in negative-x half */
+		v2d->tot.xmin= (float)-width;
+		v2d->tot.xmax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+		/* width is in positive-x half */
+		v2d->tot.xmin= 0.0f;
+		v2d->tot.xmax= (float)width;
+	}
+	else {
+		/* width is centered around x==0 */
+		const float dx= (float)width / 2.0f;
+		
+		v2d->tot.xmin= -dx;
+		v2d->tot.xmax= dx;
+	}
+	
+	/* handle height - posx and negx flags are mutually exclusive, so watch out */
+	if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+		/* height is in negative-y half */
+		v2d->tot.ymin= (float)-height;
+		v2d->tot.ymax= 0.0f;
+	}
+	else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+		/* height is in positive-y half */
+		v2d->tot.ymin= 0.0f;
+		v2d->tot.ymax= (float)height;
+	}
+	else {
+		/* height is centered around y==0 */
+		const float dy= (float)height / 2.0f;
+		
+		v2d->tot.ymin= -dy;
+		v2d->tot.ymax= dy;
+	}
+	
+	/* make sure that 'cur' rect is in a valid state as a result of these changes */
+	UI_view2d_curRect_validate(v2d);
 }
 
 /* *********************************************************************** */
