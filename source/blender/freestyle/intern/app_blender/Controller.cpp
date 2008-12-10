@@ -180,8 +180,12 @@ int Controller::LoadMesh(Render *re)
     return 1;
   }
 
-  cout << "Scene loaded\n" << endl;
+	if( blenderScene->numberOfChildren() < 1) {
+		cout << "Empty scene" << endl;
+		return 1;
+	}
 
+	  cout << "Scene loaded" << endl;
   printf("Mesh cleaning    : %lf\n", _Chrono.stop());
   _SceneNumFaces += loader.numFacesRead();
 

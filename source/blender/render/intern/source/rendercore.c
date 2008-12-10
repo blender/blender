@@ -908,7 +908,10 @@ static void freestyle_enhance_add(RenderPart *pa, RenderLayer *rl)
     int totsample;
     int x, y, od;
     float* freestyle;
-   
+
+	if( R.freestyle_render == NULL || R.freestyle_render->result == NULL )
+		return;
+		
     freestyle_rl = render_get_active_layer( R.freestyle_render, R.freestyle_render->result );
     if( freestyle_rl->rectf == NULL)
         return;

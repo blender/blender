@@ -140,7 +140,8 @@ extern "C" {
 		controller->Clear();
 
 		// load mesh
-		controller->LoadMesh(re);
+		if( controller->LoadMesh(re) ) // returns if scene cannot be loaded or if empty
+			return;
 		
 		// add style module
 		cout << "Module: " << style_module << endl;
@@ -161,37 +162,19 @@ extern "C" {
 		// compute view map
 		controller->ComputeViewMap();
 	}
-
-	// void FRS_render_GL(Render* re) {
-	// 	
-	// 
-	// // build strokes
-	// controller->DrawStrokes();
-	//
-	// 	cout << "Rendering Freestyle with OpenGL" << endl;
-	// 	
-	// 	// render strokes
-	// 	view->workingBuffer = GL_BACK;
-	// 	view->draw();
-	// 	
-	// 	// display result
-	// 	RenderResult rres;
-	// 	RE_GetResultImage(re, &rres);
-	// 	view->readPixels(0, 0, re->winx, re->winy, AppGLWidget::RGBA, rres.rectf );		
-	// 	re->result->renlay = render_get_active_layer(re, re->result);
-	// 	re->display_draw(re->result, NULL);
-	// 	
-	// 	controller->CloseFile();
-	// }
 	
 	void FRS_render_Blender(Render* re) {
 		
-		// build strokes
-		controller->DrawStrokes();
+		if( controller->_ViewMap ) {
+			// build strokes
+			controller->DrawStrokes();
 		
-		cout << "Rendering Freestyle with Blender's internal renderer" << endl;
-		controller->RenderBlender(re);
-		controller->CloseFile();
+			cout << "Rendering Freestyle with Blender's internal renderer" << endl;
+			controller->RenderBlender(re);
+			controller->CloseFile();
+		} else {
+			cout << "Freestyle cannot be used because the view map is not available" << endl;
+		}
 	}	
 	
 #ifdef __cplusplus

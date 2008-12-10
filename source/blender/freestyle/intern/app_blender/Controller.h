@@ -140,6 +140,10 @@ public:
 
   void resetInterpreter();
 
+public:
+	// Viewmap data structure
+	ViewMap * _ViewMap;
+
 private:
 
   // Main Window:
@@ -168,8 +172,6 @@ private:
 
   // Winged-Edge structure
   WingedEdge* _winged_edge;
-  
-  ViewMap * _ViewMap;
 
   // Silhouette structure:
   //std::vector<SShape*> _SShapes;
