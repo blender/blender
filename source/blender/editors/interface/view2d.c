@@ -53,8 +53,8 @@
 /* Refresh and Validation */
 
 /* Adjust mask size in response to view size changes 
- *	- When drawing a region, this should be called before 
- *	  any other drawing using View2D happens.
+ *	- This should only be called in region init() callbacks, which are
+ * 	  called when the region is resized or area changes...
  */
 // XXX pre2.5 -> this used to be called  calc_scrollrcts()
 void UI_view2d_size_update(View2D *v2d, int winx, int winy)
@@ -96,6 +96,9 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			v2d->mask.ymax= v2d->hor.ymin;
 		}
 	}
+	
+	/* make sure that 'cur' rect is in a valid state as a result of these changes */
+	UI_view2d_curRect_validate(v2d);
 }
 
 /* Ensure View2D rects remain in a viable configuration 
@@ -104,7 +107,6 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 // XXX pre2.5 -> this used to be called  test_view2d()
 void UI_view2d_curRect_validate(View2D *v2d)
 {
-	/* cur is not allowed to be larger than max, smaller than min, or outside of tot */
 	float totwidth, totheight, curwidth, curheight, width, height;
 	float winx, winy;
 	rctf *cur, *tot;
@@ -146,17 +148,21 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		float zoom, fac;
 		
 		/* check if excessive zoom on x-axis */
-		zoom= winx / width;
-		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
-			width *= fac;
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
+			zoom= winx / width;
+			if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
+				fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
+				width *= fac;
+			}
 		}
 		
 		/* check if excessive zoom on y-axis */
-		zoom= winy / height;
-		if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
-			fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
-			height *= fac;
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
+			zoom= winy / height;
+			if ((zoom < v2d->minzoom) || (zoom > v2d->maxzoom)) {
+				fac= (zoom < v2d->minzoom) ? (zoom / v2d->minzoom) : (zoom / v2d->maxzoom);
+				height *= fac;
+			}
 		}
 	}
 	else {
@@ -248,14 +254,14 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	
 	/* Step 3: adjust so that it doesn't fall outside of bounds of tot */
 	if (v2d->keeptot) {
-		float temp;
+		float temp, diff;
 		
 		/* recalculate extents of cur */
 		curwidth= cur->xmax - cur->xmin;
 		curheight= cur->ymax - cur->ymin;
 		
 		/* width */
-		if ((curwidth > totwidth) && (v2d->keepzoom == 0)) {
+		if ( (curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_X)) ) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
 			if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
@@ -301,7 +307,15 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			 * We favour moving the 'minimum' across, as that's origin for most things
 			 * (XXX - in the past, max was favoured... if there are bugs, swap!)
 			 */
-			if (cur->xmin > tot->xmin) {
+			if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
+				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
+				temp= (tot->ymax + tot->ymin) * 0.5f;
+				diff= curheight * 0.5f;
+				
+				cur->ymin= temp - diff;
+				cur->ymax= temp + diff;
+			}
+			else if (cur->xmin > tot->xmin) {
 				/* there's still space remaining, so shift left */
 				temp= cur->xmin - tot->xmin;
 				
@@ -318,7 +332,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		}
 		
 		/* height */
-		if ((curheight > totheight) && (v2d->keepzoom == 0)) {
+		if ( (curheight > totheight) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_Y)) ) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->ymin < tot->ymin) cur->ymin= tot->ymin;
 			if (cur->ymax > tot->ymax) cur->ymax= tot->ymax;
@@ -331,7 +345,15 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			 * So, resolution is to just shift view by the gap between the extremities.
 			 * We favour moving the 'minimum' across, as that's origin for most things
 			 */
-			if (cur->ymin < tot->ymin) {
+			if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
+				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
+				temp= (tot->ymax + tot->ymin) * 0.5f;
+				diff= curheight * 0.5f;
+				
+				cur->ymin= temp - diff;
+				cur->ymax= temp + diff;
+			}
+			else if (cur->ymin < tot->ymin) {
 				/* there's still space remaining, so shift up */
 				temp= tot->ymin - cur->ymin;
 				
@@ -460,6 +482,9 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	 * as they were causing some unwanted offsets when drawing 
 	 */
 	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
+	
+	/* XXX is this necessary? */
+	wmLoadIdentity(C->window);
 }
 
 /* Set view matrices to only use one axis of 'cur' only
@@ -469,20 +494,18 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
  */
 void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 {
-	ARegion *region= C->region;
-	int winx, winy;
-	
-	/* calculate extents of region */
-	winx= region->winrct.xmax - region->winrct.xmin + 1;
-	winy= region->winrct.ymax - region->winrct.ymin + 1;
+	ARegion *ar= C->region;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
 	if (xaxis)
-		wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, 0, winy);
+		wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, 0, ar->winy);
 	else
-		wmOrtho2(C->window, 0, winx, v2d->cur.ymin, v2d->cur.ymax);
+		wmOrtho2(C->window, 0, ar->winx, v2d->cur.ymin, v2d->cur.ymax);
+		
+	/* XXX is this necessary? */
+	wmLoadIdentity(C->window);
 } 
 
 

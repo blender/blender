@@ -166,6 +166,12 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ************************ header time area region *********************** */
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void time_header_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+}
+
 static void time_header_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
@@ -178,8 +184,14 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 		
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
 	time_header_buttons(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
 }
 
 static void time_header_area_free(ARegion *ar)
@@ -279,8 +291,9 @@ void ED_spacetype_time(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
+	art->init= time_header_area_init;
 	art->draw= time_header_area_draw;
 	art->free= time_header_area_free;
 	BLI_addhead(&st->regiontypes, art);

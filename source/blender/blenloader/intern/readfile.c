@@ -5054,7 +5054,36 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				ar->alignment= RGN_ALIGN_BOTTOM;
 			else
 				ar->alignment= RGN_ALIGN_TOP;
-			// TODO: add conversion stuff for header scrolling to v2d of header region
+			
+			/* initialise view2d data for header region, to allow panning */
+			ar->v2d.keepaspect= 1;
+			ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
+			ar->v2d.keepofs = V2D_LOCKOFS_Y;
+			ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
+			ar->v2d.align = V2D_ALIGN_NO_NEG_X;
+			
+			ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+			
+			ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
+			ar->v2d.mask.xmax= sa->winx;
+			ar->v2d.mask.ymax= HEADERY;
+			
+			ar->v2d.cur.xmin= sa->headbutofs;
+			ar->v2d.cur.xmax= sa->winx + sa->headbutofs;
+			ar->v2d.tot.xmin= 0.0f;
+			ar->v2d.tot.xmax= sa->headbutlen;
+			
+			if (ar->alignment == RGN_ALIGN_BOTTOM) {
+				ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+				ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
+				ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
+			}
+			else {
+				// XXX what were the extents of the old headers?
+				ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+				ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
+				ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
+			}
 		}
 		
 		ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
