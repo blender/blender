@@ -65,7 +65,7 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data= (Scene*)ptr->data;
-	CLAMP(value, data->r.sfra, 300000);
+	CLAMP(value, data->r.sfra, MAXFRAME);
 	data->r.efra= value;
 }
 
