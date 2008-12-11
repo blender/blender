@@ -230,6 +230,7 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
+# silly: libed_screen.a twice :(
 PULIB = $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
@@ -241,6 +242,7 @@ PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
+PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 

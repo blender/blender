@@ -98,8 +98,6 @@ typedef struct DrawInfo {
 static struct ListBase iconfilelist = {0, 0};
 
 
-static int preview_render_size(int miplevel);
-
 /* **************************************************** */
 
 static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
@@ -684,6 +682,7 @@ void UI_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
+#if 0
 static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
 {
 	struct ImBuf *ima;
@@ -732,6 +731,16 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
 		srect += ima->x;
 	}
 	IMB_freeImBuf(ima);
+}
+
+/* Render size for preview images at level miplevel */
+static int preview_render_size(int miplevel)
+{
+	switch (miplevel) {
+		case 0: return 32;
+		case 1: return PREVIEW_DEFAULT_HEIGHT;
+	}
+	return 0;
 }
 
 static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel) 
@@ -794,6 +803,7 @@ static void set_alpha(char* cp, int sizex, int sizey, char alpha)
 		}
 	}
 }
+#endif
 
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
@@ -879,16 +889,6 @@ static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw,
 	}
 	else
 		glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-}
-
-/* Render size for preview images at level miplevel */
-static int preview_render_size(int miplevel)
-{
-	switch (miplevel) {
-		case 0: return 32;
-		case 1: return PREVIEW_DEFAULT_HEIGHT;
-	}
-	return 0;
 }
 
 /* Drawing size for preview images at level miplevel */
@@ -977,7 +977,6 @@ void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)
 
 void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade)
 {
-	
 	if(shade < 0) {
 		float r= (128+shade)/128.0f;
 		glPixelTransferf(GL_ALPHA_SCALE, r);

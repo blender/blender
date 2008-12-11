@@ -55,37 +55,51 @@
 
 static SpaceLink *view3d_new(void)
 {
+	ARegion *ar;
 	View3D *vd;
 	
 	vd= MEM_callocN(sizeof(View3D), "initview3d");
-	
 	vd->spacetype= SPACE_VIEW3D;
 	vd->blockscale= 0.7f;
-	vd->viewquat[0]= 1.0f;
-	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
-	vd->persp= 1;
-	vd->drawtype= OB_WIRE;
-	vd->view= 7;
-	vd->dist= 10.0;
-	vd->lens= 35.0f;
-	vd->near= 0.01f;
-	vd->far= 500.0f;
-	vd->grid= 1.0f;
-	vd->gridlines= 16;
-	vd->gridsubdiv = 10;
-	
 	vd->lay= vd->layact= 1;
 	if(G.scene) {
 		vd->lay= vd->layact= G.scene->lay;
 		vd->camera= G.scene->camera;
 	}
 	vd->scenelock= 1;
+	vd->grid= 1.0f;
+	vd->gridlines= 16;
+	vd->gridsubdiv = 10;
+	vd->drawtype= OB_WIRE;
+	
 	vd->gridflag |= V3D_SHOW_X;
 	vd->gridflag |= V3D_SHOW_Y;
 	vd->gridflag |= V3D_SHOW_FLOOR;
 	vd->gridflag &= ~V3D_SHOW_Z;
 	
 	vd->depths= NULL;
+	
+	/* XXX move view data to region? */
+	vd->viewquat[0]= 1.0f;
+	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
+	vd->persp= 1;
+	vd->view= 7;
+	vd->dist= 10.0;
+	vd->lens= 35.0f;
+	vd->near= 0.01f;
+	vd->far= 500.0f;
+	
+	/* header */
+	ar= MEM_callocN(sizeof(ARegion), "header for view3d");
+	
+	BLI_addtail(&vd->regionbase, ar);
+	ar->regiontype= RGN_TYPE_HEADER;
+	
+	/* main area */
+	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");
+	
+	BLI_addtail(&vd->regionbase, ar);
+	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	return (SpaceLink *)vd;
 }

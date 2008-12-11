@@ -5038,64 +5038,64 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 	}
 }
 
-static void do_versions_windowmanager_2_50(bScreen *screen)
+/* 2.50 patch */
+static void area_add_header_region(ScrArea *sa, ListBase *lb)
 {
-	struct ScrArea *sa;
-	struct ARegion *ar;
+	ARegion *ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 	
-	/* add regions */
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		/* we keep headertype variable to convert old files only */
-		if(sa->headertype) {
-			ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-			BLI_addtail(&sa->regionbase, ar);
-			ar->regiontype= RGN_TYPE_HEADER;
-			if(sa->headertype==1)
-				ar->alignment= RGN_ALIGN_BOTTOM;
-			else
-				ar->alignment= RGN_ALIGN_TOP;
-			
-			/* initialise view2d data for header region, to allow panning */
-			ar->v2d.keepaspect= 1;
-			ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
-			ar->v2d.keepofs = V2D_LOCKOFS_Y;
-			ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
-			ar->v2d.align = V2D_ALIGN_NO_NEG_X;
-			
-			ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
-			
-			ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
-			ar->v2d.mask.xmax= sa->winx;
-			ar->v2d.mask.ymax= HEADERY;
-			
-			ar->v2d.cur.xmin= sa->headbutofs;
-			ar->v2d.cur.xmax= sa->winx + sa->headbutofs;
-			ar->v2d.tot.xmin= 0.0f;
-			ar->v2d.tot.xmax= sa->headbutlen;
-			
-			if (ar->alignment == RGN_ALIGN_BOTTOM) {
-				ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-				ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
-				ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
-			}
-			else {
-				// XXX what were the extents of the old headers?
-				ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-				ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
-				ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
-			}
-		}
-		
-		ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-		BLI_addtail(&sa->regionbase, ar);
-		ar->winrct= sa->totrct;
-		ar->regiontype= RGN_TYPE_WINDOW;
-		
+	BLI_addtail(lb, ar);
+	ar->regiontype= RGN_TYPE_HEADER;
+	if(sa->headertype==1)
+		ar->alignment= RGN_ALIGN_BOTTOM;
+	else
+		ar->alignment= RGN_ALIGN_TOP;
+	
+	/* initialise view2d data for header region, to allow panning */
+	ar->v2d.keepaspect= 1;
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
+	ar->v2d.keepofs = V2D_LOCKOFS_Y;
+	ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
+	ar->v2d.align = V2D_ALIGN_NO_NEG_X;
+	
+	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+	
+	ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
+	ar->v2d.mask.xmax= sa->winx;
+	ar->v2d.mask.ymax= HEADERY;
+	
+	ar->v2d.cur.xmin= sa->headbutofs;
+	ar->v2d.cur.xmax= sa->winx + sa->headbutofs;
+	ar->v2d.tot.xmin= 0.0f;
+	ar->v2d.tot.xmax= sa->headbutlen;
+	
+	if (ar->alignment == RGN_ALIGN_BOTTOM) {
+		ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+		ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
+		ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
+	}
+	else {
+		// XXX what were the extents of the old headers?
+		ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+		ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
+		ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
+	}
+}
+
+/* 2.50 patch */
+static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
+{
+	ARegion *ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+	
+	BLI_addtail(lb, ar);
+	ar->winrct= sa->totrct;
+	ar->regiontype= RGN_TYPE_WINDOW;
+	
+	if(sl) {
 		/* if active spacetype has view2d data, copy that over to main region */
-		switch(sa->spacetype) {
+		switch(sl->spacetype) {
 			case SPACE_OOPS:
 			{
-				SpaceOops *soops= sa->spacedata.first;
+				SpaceOops *soops= (SpaceOops *)sl;
 				
 				memcpy(&ar->v2d, &soops->v2d, sizeof(View2D));
 				
@@ -5107,7 +5107,7 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				break;
 			case SPACE_TIME:
 			{
-				SpaceTime *stime= sa->spacedata.first;
+				SpaceTime *stime= (SpaceTime *)sl;
 				memcpy(&ar->v2d, &stime->v2d, sizeof(View2D));
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
@@ -5115,9 +5115,45 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 			}
 				break;
-			//case SPACE_XXX: // FIXME... add other ones
-			//	memcpy(&ar->v2d, &((SpaceXxx *)sa->spacedata.first)->v2d, sizeof(View2D));
-			//	break;
+				//case SPACE_XXX: // FIXME... add other ones
+				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
+				//	break;
+		}
+		/* further subdivision case, channels for ipo action nla... */
+		switch(sl->spacetype) {
+			case SPACE_IPO:
+				break;
+			case SPACE_ACTION:
+				break;
+			case SPACE_NLA:
+				break;
+		}
+	}
+}
+
+static void do_versions_windowmanager_2_50(bScreen *screen)
+{
+	ScrArea *sa;
+	ARegion *ar;
+	SpaceLink *sl;
+	
+	/* add regions */
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		
+		/* we keep headertype variable to convert old files only */
+		if(sa->headertype)
+			area_add_header_region(sa, &sa->regionbase);
+		
+		area_add_window_regions(sa, sa->spacedata.first, &sa->regionbase);
+		
+		/* pushed back spaces also need regions! */
+		if(sa->spacedata.first) {
+			sl= sa->spacedata.first;
+			for(sl= sl->next; sl; sl= sl->next) {
+				if(sa->headertype)
+					area_add_header_region(sa, &sl->regionbase);
+				area_add_window_regions(sa, sl, &sl->regionbase);
+			}
 		}
 	}
 }
@@ -8156,6 +8192,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(screen= main->screen.first; screen; screen= screen->id.next)
 			do_versions_windowmanager_2_50(screen);
 	}
+	
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

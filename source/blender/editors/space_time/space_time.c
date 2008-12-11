@@ -202,19 +202,31 @@ static void time_header_area_free(ARegion *ar)
 
 static SpaceLink *time_new(void)
 {
+	ARegion *ar;
 	SpaceTime *stime;
 
 	stime= MEM_callocN(sizeof(SpaceTime), "inittime");
 
 	stime->spacetype= SPACE_TIME;
-	stime->blockscale= 0.7;
 	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
+	stime->flag |= TIME_DRAWFRAMES;
 
-	// XXX move to region!
-	stime->v2d.tot.xmin= -4.0;
-	stime->v2d.tot.ymin=  0.0;
-	stime->v2d.tot.xmax= (float)EFRA + 4.0;
-	//stime->v2d.tot.ymax= (float)stime->winy;
+	/* header */
+	ar= MEM_callocN(sizeof(ARegion), "header for time");
+	
+	BLI_addtail(&stime->regionbase, ar);
+	ar->regiontype= RGN_TYPE_HEADER;
+	
+	/* main area */
+	ar= MEM_callocN(sizeof(ARegion), "main area for time");
+	
+	BLI_addtail(&stime->regionbase, ar);
+	ar->regiontype= RGN_TYPE_WINDOW;
+	
+	ar->v2d.tot.xmin= -4.0;
+	ar->v2d.tot.ymin=  0.0;
+	ar->v2d.tot.xmax= (float)EFRA + 4.0;
+	ar->v2d.tot.ymax= 10;
 
 	stime->v2d.cur= stime->v2d.tot;
 
@@ -227,12 +239,9 @@ static SpaceLink *time_new(void)
 	stime->v2d.minzoom= 0.1f;
 	stime->v2d.maxzoom= 10.0;
 
-	stime->v2d.scroll= 0;
-	stime->v2d.keepaspect= 0;
-	stime->v2d.keepzoom= 0;
-	stime->v2d.keeptot= 0;
-
-	stime->flag |= TIME_DRAWFRAMES;
+	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+	ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
+	ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 
 	return (SpaceLink*)stime;
 }
@@ -248,7 +257,7 @@ static void time_free(SpaceLink *sl)
 /* validate spacedata, add own area level handlers */
 static void time_init(wmWindowManager *wm, ScrArea *sa)
 {
-
+	
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)

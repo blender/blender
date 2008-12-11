@@ -60,6 +60,7 @@ struct bGPdata;
 
 typedef struct SpaceLink {
 	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;			/* XXX depricate this */
 	short blockhandler[8];		/* XXX depricate this */
@@ -67,6 +68,7 @@ typedef struct SpaceLink {
 
 typedef struct SpaceInfo {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -75,6 +77,7 @@ typedef struct SpaceInfo {
 
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -102,6 +105,7 @@ typedef struct SpaceIpo {
 
 typedef struct SpaceButs {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	struct RenderInfo *ri;
@@ -133,6 +137,7 @@ typedef struct SpaceButs {
 
 typedef struct SpaceSeq {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -152,6 +157,7 @@ typedef struct SpaceSeq {
 
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	
@@ -186,6 +192,7 @@ typedef struct SpaceFile {
 
 typedef struct SpaceOops {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -215,6 +222,7 @@ typedef struct SpaceOops {
 
 typedef struct SpaceImage {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -247,6 +255,7 @@ typedef struct SpaceImage {
 
 typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -261,6 +270,7 @@ typedef struct SpaceNla {
 
 typedef struct SpaceText {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 
@@ -308,6 +318,7 @@ typedef struct Script {
 
 typedef struct SpaceScript {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	struct Script *script;
@@ -320,6 +331,7 @@ typedef struct SpaceScript {
 
 typedef struct SpaceTime {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	
@@ -331,6 +343,7 @@ typedef struct SpaceTime {
 
 typedef struct SpaceNode {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	
@@ -358,6 +371,7 @@ typedef struct SpaceNode {
 
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
 	

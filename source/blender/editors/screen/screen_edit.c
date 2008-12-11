@@ -246,7 +246,7 @@ static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v
 	sa->v3= v3;
 	sa->v4= v4;
 	sa->headertype= headertype;
-	sa->spacetype= spacetype;
+	sa->spacetype= sa->butspacetype= spacetype;
 	
 	BLI_addtail(&sc->areabase, sa);
 	

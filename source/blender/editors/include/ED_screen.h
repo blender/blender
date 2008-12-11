@@ -51,6 +51,7 @@ ARegion *ED_region_copy(ARegion *ar);
 void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 struct ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
+void	ED_newspace(struct ScrArea *sa, int type);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);

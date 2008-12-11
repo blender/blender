@@ -101,12 +101,17 @@ void BKE_spacetype_register(SpaceType *st)
 void BKE_spacedata_freelist(ListBase *lb)
 {
 	SpaceLink *sl;
+	ARegion *ar;
 	
 	for (sl= lb->first; sl; sl= sl->next) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
 		
 		if(st && st->free) 
 			st->free(sl);
+		/* regions for pushed spaces */
+		for(ar=sl->regionbase.first; ar; ar=ar->next)
+			BKE_area_region_free(ar);
+		BLI_freelistN(&sl->regionbase);
 	}
 	
 	BLI_freelistN(lb);

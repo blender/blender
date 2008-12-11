@@ -372,8 +372,8 @@ static void end_animated_screen(SpaceTime *stime)
 #define B_TL_PREVIEWON	757
 #define B_TL_INSERTKEY	758
 #define B_TL_DELETEKEY	759
+#define B_NEWSPACE		760
 
-#define B_NEWSPACE 0
 #define B_FLIPINFOMENU 0
 #define B_NEWFRAME 0
 #define AUTOKEY_ON 0
@@ -385,6 +385,10 @@ void do_time_buttons(bContext *C, void *arg, int event)
 	SpaceTime *stime= C->area->spacedata.first;
 	
 	switch(event) {
+		case B_NEWSPACE:
+			ED_newspace(C->area, C->area->butspacetype);
+			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+			break;
 		case B_REDRAWALL:
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
