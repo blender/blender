@@ -960,6 +960,10 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		ScrArea *sa;
 		int oldswin= win->screen->subwinactive;
 		
+		/* XXX prevent this call for modal menus now */
+		if(win->screen->regionbase.first)
+			return;
+		
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if(event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
@@ -986,10 +990,11 @@ void ED_screen_set_subwinactive(wmWindow *win)
 					if(ar->swinid==oldswin || ar->swinid==win->screen->subwinactive)
 						do_draw= 1;
 				
-				if(do_draw)
+				if(do_draw) {
 					for(ar= sa->regionbase.first; ar; ar= ar->next)
 						if(ar->regiontype==RGN_TYPE_HEADER)
 							ar->do_draw= 1; /* XXX */
+				}
 			}
 		}
 	}
