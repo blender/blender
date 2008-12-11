@@ -164,15 +164,19 @@ void BKE_screen_area_free(ScrArea *sa)
 /* don't free screen itself */
 void free_screen(bScreen *sc)
 {
-	ScrArea *sa;
-	ARegion *ar;
+	ScrArea *sa, *san;
+	ARegion *ar, *arn;
 	
-	for(ar=sc->regionbase.first; ar; ar=ar->next)
+	for(ar=sc->regionbase.first; ar; ar=arn) {
+		arn= ar->next;
 		BKE_area_region_free(ar);
+	}
 	BLI_freelistN(&sc->regionbase);
 	
-	for(sa= sc->areabase.first; sa; sa= sa->next)
+	for(sa= sc->areabase.first; sa; sa= san) {
+		san= sa->next;
 		BKE_screen_area_free(sa);
+	}
 	
 	BLI_freelistN(&sc->vertbase);
 	BLI_freelistN(&sc->edgebase);

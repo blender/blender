@@ -3530,17 +3530,21 @@ static int ui_handler_region(bContext *C, wmEvent *event)
 
 static void ui_handler_remove_region(bContext *C)
 {
+	bScreen *sc;
 	ARegion *ar;
 
 	ar= C->region;
-	if(ar==NULL) return;
+	if(ar == NULL) return;
 
 	uiFreeBlocks(C, &ar->uiblocks);
+	
+	sc= C->screen;
+	if(sc == NULL) return;
 
 	/* delayed apply callbacks, but not for screen level regions, those
 	 * we rather do at the very end after closing them all, which will
 	 * be done in ui_handler_region/window */
-	if(BLI_findindex(&C->screen->regionbase, ar) == -1)
+	if(BLI_findindex(&sc->regionbase, ar) == -1)
 		ui_apply_but_funcs_after(C);
 }
 
