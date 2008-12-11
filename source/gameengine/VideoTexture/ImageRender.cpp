@@ -539,8 +539,9 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     float mirrorArea = 0.f;
     float mirrorNormal[3] = {0.f, 0.f, 0.f};
     float mirrorUp[3];
-    float dist, vec[3];
+    float dist, vec[3], axis[3];
     float zaxis[3] = {0.f, 0.f, 1.f};
+    float yaxis[3] = {0.f, 1.f, 0.f};
     float mirrorMat[3][3];
     float left, right, top, bottom, back;
 	
@@ -602,23 +603,36 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
         THRWEXCP(MirrorNormalInvalid, S_OK);
     }
     // the mirror plane has an equation of the type ax+by+cz = d where (a,b,c) is the normal vector
-    // mirror up direction is the projection of Z on the plane
-    // scalar product between normal and Z axis
-    dist = Inpf(mirrorNormal, zaxis);
-    if (dist < FLT_EPSILON)
+	// if the mirror is more vertical then horizontal, the Z axis is the up direction.
+	// otherwise the Y axis is the up direction.
+	// If the mirror is not perfectly vertical(horizontal), the Z(Y) axis projection on the mirror
+	// plan by the normal will be the up direction.
+	if (fabs(mirrorNormal[2]) > fabs(mirrorNormal[1]) &&
+		fabs(mirrorNormal[2]) > fabs(mirrorNormal[0]))
+	{
+		// the mirror is more horizontal than vertical
+        VecCopyf(axis, yaxis);
+	}
+	else
+	{
+		// the mirror is more vertical than horizontal
+        VecCopyf(axis, zaxis);
+	}
+    dist = Inpf(mirrorNormal, axis);
+    if (fabs(dist) < FLT_EPSILON)
     {
-        // the mirror is already vertical
-        VecCopyf(mirrorUp, zaxis);
+        // the mirror is already fully aligned with up axis
+        VecCopyf(mirrorUp, axis);
     }
     else
     {
-        // projection of Z to normal
+        // projection of axis to mirror plane through normal
         VecCopyf(vec, mirrorNormal);
         VecMulf(vec, dist);
-        VecSubf(mirrorUp, zaxis, mirrorNormal);
+        VecSubf(mirrorUp, axis, vec);
         if (Normalize(mirrorUp) == 0.f)
         {
-            // mirror is horizontal
+            // should not happen
             THRWEXCP(MirrorHorizontal, S_OK);
             return;
         }
