@@ -134,24 +134,73 @@ typedef struct uiHandleButtonData {
 	uiBut *postbut;
 } uiHandleButtonData;
 
+typedef struct uiAfterFunc {
+	struct uiAfterFunc *next, *prev;
+
+	void (*func)(struct bContext*, void *, void *);
+	void *func_arg1;
+	void *func_arg2;
+
+	void (*handle_func)(struct bContext*, void *arg, int event);
+	void *handle_func_arg;
+	int retval;
+
+	void (*butm_func)(struct bContext*, void *arg, int event);
+	void *butm_func_arg;
+	int a2;
+} uiAfterFunc;
+
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
 static int ui_handler_window(bContext *C, wmEvent *event);
 
-/* ********************** button apply/revert ************************ */
+/* ********************** button apply/revert ************************/
+
+static ListBase UIAfterFuncs = {NULL, NULL};
 
 static void ui_apply_but_func(bContext *C, uiBut *but)
 {
+	uiAfterFunc *after;
 	uiBlock *block= but->block;
 
-	if(but->func)
-		but->func(C, but->func_arg1, but->func_arg2);
-	
-	if(block) {
-		if(block->handle_func)
-			block->handle_func(C, block->handle_func_arg, but->retval);
-		if(but->type == BUTM && block->butm_func)
-			block->butm_func(C, block->butm_func_arg, but->a2);
+	/* these functions are postponed and only executed after all other
+	 * handling is done, i.e. menus are closed, in order to avoid conflicts
+	 * with these functions removing the buttons we are working with */
+
+	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func)) {
+		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+		after->func= but->func;
+		after->func_arg1= but->func_arg1;
+		after->func_arg2= but->func_arg2;
+
+		after->handle_func= block->handle_func;
+		after->handle_func_arg= block->handle_func_arg;
+		after->retval= but->retval;
+
+		if(but->type == BUTM) {
+			after->butm_func= block->butm_func;
+			after->butm_func_arg= block->butm_func_arg;
+			after->a2= but->a2;
+		}
+
+		BLI_addtail(&UIAfterFuncs, after);
 	}
+}
+
+static void ui_apply_but_funcs_after(bContext *C)
+{
+	uiAfterFunc *after;
+
+	for(after=UIAfterFuncs.first; after; after=after->next) {
+		if(after->func)
+			after->func(C, after->func_arg1, after->func_arg2);
+		
+		if(after->handle_func)
+			after->handle_func(C, after->handle_func_arg, after->retval);
+		if(after->butm_func)
+			after->butm_func(C, after->butm_func_arg, after->a2);
+	}
+
+	BLI_freelistN(&UIAfterFuncs);
 }
 
 static void ui_apply_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -3472,6 +3521,9 @@ static int ui_handler_region(bContext *C, wmEvent *event)
 	/* re-enable tooltips */
 	if(event->type == MOUSEMOVE && (event->x!=event->prevx || event->y!=event->prevy))
 		ui_blocks_set_tooltips(ar, 1);
+	
+	/* delayed apply callbacks */
+	ui_apply_but_funcs_after(C);
 
 	return retval;
 }
@@ -3484,6 +3536,12 @@ static void ui_handler_remove_region(bContext *C)
 	if(ar==NULL) return;
 
 	uiFreeBlocks(C, &ar->uiblocks);
+
+	/* delayed apply callbacks, but not for screen level regions, those
+	 * we rather do at the very end after closing them all, which will
+	 * be done in ui_handler_region/window */
+	if(BLI_findindex(&C->screen->regionbase, ar) == -1)
+		ui_apply_but_funcs_after(C);
 }
 
 static int ui_handler_window(bContext *C, wmEvent *event)
@@ -3525,6 +3583,9 @@ static int ui_handler_window(bContext *C, wmEvent *event)
 	/* re-enable tooltips */
 	if(event->type == MOUSEMOVE && (event->x!=event->prevx || event->y!=event->prevy))
 		ui_blocks_set_tooltips(ar, 1);
+
+	/* delayed apply callbacks */
+	ui_apply_but_funcs_after(C);
 
 	/* we block all events, this is modal interaction */
 	return WM_UI_HANDLER_BREAK;

@@ -1948,9 +1948,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		but->func_arg2= block->func_arg2;
 	}
 	
-	but->handle_func= block->handle_func;
-	but->handle_func_arg= block->handle_func_arg;
-
 	ui_set_embossfunc(but, block->dt);
 	
 	but->pos= -1;	/* cursor invisible */
