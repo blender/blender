@@ -78,3 +78,41 @@ int GetButStringLength(char *str)
 	return rt + 15;
 }
 
+char *windowtype_pup(void)
+{
+	return(
+		   "Window type:%t" //14
+		   "|3D View %x1" //30
+		   
+		   "|%l" // 33
+		   
+		   "|Ipo Curve Editor %x2" //54
+		   "|Action Editor %x12" //73
+		   "|NLA Editor %x13" //94
+		   
+		   "|%l" //97
+		   
+		   "|UV/Image Editor %x6" //117
+		   
+		   "|Video Sequence Editor %x8" //143
+		   "|Timeline %x15" //163
+		   "|Audio Window %x11" //163
+		   "|Text Editor %x9" //179
+		   
+		   "|%l" //192
+		   
+		   
+		   "|User Preferences %x7" //213
+		   "|Outliner %x3" //232
+		   "|Buttons Window %x4" //251
+		   "|Node Editor %x16"
+		   "|%l" //254
+		   
+		   "|Image Browser %x10" //273
+		   "|File Browser %x5" //290
+		   
+		   "|%l" //293
+		   
+		   "|Scripts Window %x14"//313
+		   );
+}

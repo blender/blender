@@ -305,6 +305,49 @@ int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
 	return retval;
 }
 
+/* forces event to go to the region window, for header menus */
+int WM_operator_call_rwin(bContext *C, const char *opstring)
+{
+	wmOperatorType *ot= WM_operatortype_find(opstring);
+	
+	/* dummie test */
+	if(ot && C && C->window) {
+		ARegion *ar= C->region;
+		int retval;
+		
+		if(C->area) {
+			ARegion *ar1= C->area->regionbase.first;
+			for(; ar1; ar1= ar1->next)
+				if(ar1->regiontype==RGN_TYPE_WINDOW)
+					break;
+			if(ar1)
+				C->region= ar1;
+		}
+		
+		retval= WM_operator_invoke(C, ot, C->window->eventstate);
+		
+		/* set region back */
+		C->region= ar;
+		
+		return retval;
+	}
+	
+	return 0;
+}
+
+/* invokes operator in context */
+int WM_operator_call(bContext *C, const char *opstring)
+{
+	wmOperatorType *ot= WM_operatortype_find(opstring);
+
+	/* dummie test */
+	if(ot && C && C->window) {
+		return WM_operator_invoke(C, ot, C->window->eventstate);
+	}
+	
+	return 0;
+}
+
 /* ********************* handlers *************** */
 
 

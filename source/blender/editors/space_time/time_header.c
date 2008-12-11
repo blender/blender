@@ -62,92 +62,6 @@
 
 /* ************************ header time area region *********************** */
 
-static void start_animated_screen(SpaceTime *stime)
-{
-// XXX	add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
-	
-//	if(stime->redraws & TIME_WITH_SEQ_AUDIO)
-//		audiostream_start( CFRA );
-	
-//	BKE_ptcache_set_continue_physics((stime->redraws & TIME_CONTINUE_PHYSICS));
-}
-
-static void end_animated_screen(SpaceTime *stime)
-{
-//	rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
-	
-//	audiostream_stop();
-//	BKE_ptcache_set_continue_physics(0);
-}
-
-#define B_TL_REW		751
-#define B_TL_PLAY		752
-#define B_TL_FF			753
-#define B_TL_PREVKEY	754
-#define B_TL_NEXTKEY	755
-#define B_TL_STOP		756
-#define B_TL_PREVIEWON	757
-#define B_TL_INSERTKEY	758
-#define B_TL_DELETEKEY	759
-
-void do_time_buttons(bContext *C, void *arg, int event)
-{
-	SpaceTime *stime= C->area->spacedata.first;
-	
-	switch(event) {
-		
-		case B_TL_REW:
-			CFRA= PSFRA;
-			//update_for_newframe();
-			break;
-		case B_TL_PLAY:
-			start_animated_screen(stime);
-			break;
-		case B_TL_STOP:
-			end_animated_screen(stime);
-			//allqueue(REDRAWALL, 0);
-			break;
-		case B_TL_FF:
-			/* end frame */
-			CFRA= PEFRA;
-			//update_for_newframe();
-			break;
-		case B_TL_PREVKEY:
-			/* previous keyframe */
-			//nextprev_timeline_key(-1);
-			break;
-		case B_TL_NEXTKEY:
-			/* next keyframe */
-			//nextprev_timeline_key(1);
-			break;
-			
-		case B_TL_PREVIEWON:
-			if (G.scene->r.psfra) {
-				/* turn on preview range */
-				G.scene->r.psfra= G.scene->r.sfra;
-				G.scene->r.pefra= G.scene->r.efra;
-			}
-			else {
-				/* turn off preview range */
-				G.scene->r.psfra= 0;
-				G.scene->r.pefra= 0;
-			}
-			//BIF_undo_push("Set anim-preview range");
-			//allqueue(REDRAWALL, 0);
-			break;
-			
-		case B_TL_INSERTKEY:
-			/* insert keyframe */
-			//common_insertkey();
-			//allqueue(REDRAWTIME, 1);
-			break;
-		case B_TL_DELETEKEY:
-			/* delete keyframe */
-			//common_deletekey();
-			//allqueue(REDRAWTIME, 1);
-			break;
-	}
-}
 
 static void do_time_redrawmenu(bContext *C, void *arg, int event)
 {
@@ -162,7 +76,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 	}
 	else {
 		if(event==1001) {
-//			button(&G.scene->r.frs_sec,1,120,"FPS:");
+//			button(&C->scene->r.frs_sec,1,120,"FPS:");
 		}
 	}
 }
@@ -206,7 +120,7 @@ static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d/%f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
+	sprintf(str, "Set Frames/Sec (%d/%f)", C->scene->r.frs_sec, C->scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -234,6 +148,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= C->area;
 	SpaceTime *stime= curarea->spacedata.first;
+	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	int first;
 	
 	switch(event) {
@@ -242,19 +157,21 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			//	start_animated_screen(stime);
 			break;
 		case 3: /* View All */
-			first= G.scene->r.sfra;
-			if(first >= G.scene->r.efra) first= G.scene->r.efra;
-				G.v2d->cur.xmin=G.v2d->tot.xmin= (float)first-2;
-			G.v2d->cur.xmax=G.v2d->tot.xmax= (float)G.scene->r.efra+2;
+			if(v2d) {
+				first= C->scene->r.sfra;
+				if(first >= C->scene->r.efra) first= C->scene->r.efra;
+					v2d->cur.xmin=v2d->tot.xmin= (float)first-2;
+				v2d->cur.xmax=v2d->tot.xmax= (float)C->scene->r.efra+2;
 			
-			//test_view2d(G.v2d, curarea->winx, curarea->winy);
-			//scrarea_queue_winredraw(curarea);
+				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+			}
 			break;
 		case 4: /* Maximize Window */
 			/* using event B_FULL */
 			break;
 		case 5:	/* show time or frames */
 			stime->flag ^= TIME_DRAWFRAMES;
+			WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 			break;
 		case 6:
 			//nextprev_marker(1);
@@ -272,21 +189,24 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			//timeline_frame_to_center();
 			break;
 		case 11:
-			//G.v2d->flag ^= V2D_VIEWSYNC_X;
-			//if(G.v2d->flag & V2D_VIEWSYNC_X)
+			if(v2d) {
+			//v2d->flag ^= V2D_VIEWSYNC_X;
+			//if(v2d->flag & V2D_VIEWSYNC_X)
 			//	view2d_do_locks(curarea, 0);
+			}
 				break;
 		case 12: /* only show keyframes from selected data */
 			stime->flag ^= TIME_ONLYACTSEL;
+			WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
 			break;
 	}
-	//allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	ScrArea *curarea= C->area;
 	SpaceTime *stime= curarea->spacedata.first;
+	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -317,7 +237,7 @@ static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, (handle->region->v2d.flag & V2D_VIEWSYNC_X)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_X)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	
 //	if (!curarea->full) 
@@ -343,46 +263,41 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case 1: /*Set as Start */
-			if (G.scene->r.psfra) {
-				if (G.scene->r.pefra < CFRA)
-					G.scene->r.pefra= CFRA;
-				G.scene->r.psfra= CFRA;
+			if (C->scene->r.psfra) {
+				if (C->scene->r.pefra < CFRA)
+					C->scene->r.pefra= CFRA;
+				C->scene->r.psfra= CFRA;
 			}				
 			else
-				G.scene->r.sfra = CFRA;
-			//allqueue(REDRAWALL, 1);
+				C->scene->r.sfra = CFRA;
+			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case 2: /* Set as End */
-			if (G.scene->r.psfra) {
-				if (CFRA < G.scene->r.psfra)
-					G.scene->r.psfra= CFRA;
-				G.scene->r.pefra= CFRA;
+			if (C->scene->r.psfra) {
+				if (CFRA < C->scene->r.psfra)
+					C->scene->r.psfra= CFRA;
+				C->scene->r.pefra= CFRA;
 			}				
 			else
-				G.scene->r.efra = CFRA;
-			//allqueue(REDRAWALL, 1);
+				C->scene->r.efra = CFRA;
+			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case 3: /* Add Marker */
-			//add_marker(CFRA);
+			WM_operator_call_rwin(C, "ED_MARKER_OT_add");
 			break;
 		case 4: /* Remove Marker */
-			//remove_marker();
+			WM_operator_call_rwin(C, "ED_MARKER_OT_delete");
 			break;
 		case 5: /* Rename Marker */
 			//rename_marker();
 			break;
 		case 6: /* Grab Marker */
-			//transform_markers('g', 0);
+			WM_operator_call_rwin(C, "ED_MARKER_OT_move");
 			break;
 		case 7: /* duplicate marker */
-			//duplicate_marker();
+			WM_operator_call_rwin(C, "ED_MARKER_OT_duplicate");
 			break;
 	}
-	//allqueue(REDRAWTIME, 0);
-	//allqueue(REDRAWIPO, 0);
-	//allqueue(REDRAWACTION, 0);
-	//allqueue(REDRAWNLA, 0);
-	//allqueue(REDRAWSOUND, 0);
 }
 
 static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -429,11 +344,103 @@ static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
+static void start_animated_screen(SpaceTime *stime)
+{
+	// XXX	add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+	
+	//	if(stime->redraws & TIME_WITH_SEQ_AUDIO)
+	//		audiostream_start( CFRA );
+	
+	//	BKE_ptcache_set_continue_physics((stime->redraws & TIME_CONTINUE_PHYSICS));
+}
+
+static void end_animated_screen(SpaceTime *stime)
+{
+	//	rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+	
+	//	audiostream_stop();
+	//	BKE_ptcache_set_continue_physics(0);
+}
+
+#define B_REDRAWALL		750
+#define B_TL_REW		751
+#define B_TL_PLAY		752
+#define B_TL_FF			753
+#define B_TL_PREVKEY	754
+#define B_TL_NEXTKEY	755
+#define B_TL_STOP		756
+#define B_TL_PREVIEWON	757
+#define B_TL_INSERTKEY	758
+#define B_TL_DELETEKEY	759
+
 #define B_NEWSPACE 0
 #define B_FLIPINFOMENU 0
 #define B_NEWFRAME 0
 #define AUTOKEY_ON 0
 #define B_DIFF 0
+
+
+void do_time_buttons(bContext *C, void *arg, int event)
+{
+	SpaceTime *stime= C->area->spacedata.first;
+	
+	switch(event) {
+		case B_REDRAWALL:
+			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			break;
+		case B_TL_REW:
+			CFRA= PSFRA;
+			//update_for_newframe();
+			break;
+		case B_TL_PLAY:
+			start_animated_screen(stime);
+			break;
+		case B_TL_STOP:
+			end_animated_screen(stime);
+			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			break;
+		case B_TL_FF:
+			/* end frame */
+			CFRA= PEFRA;
+			//update_for_newframe();
+			break;
+		case B_TL_PREVKEY:
+			/* previous keyframe */
+			//nextprev_timeline_key(-1);
+			break;
+		case B_TL_NEXTKEY:
+			/* next keyframe */
+			//nextprev_timeline_key(1);
+			break;
+			
+		case B_TL_PREVIEWON:
+			if (C->scene->r.psfra) {
+				/* turn on preview range */
+				C->scene->r.psfra= C->scene->r.sfra;
+				C->scene->r.pefra= C->scene->r.efra;
+			}
+			else {
+				/* turn off preview range */
+				C->scene->r.psfra= 0;
+				C->scene->r.pefra= 0;
+			}
+			//BIF_undo_push("Set anim-preview range");
+			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			break;
+			
+		case B_TL_INSERTKEY:
+			/* insert keyframe */
+			//common_insertkey();
+			//allqueue(REDRAWTIME, 1);
+			break;
+		case B_TL_DELETEKEY:
+			/* delete keyframe */
+			//common_deletekey();
+			//allqueue(REDRAWTIME, 1);
+			break;
+	}
+}
+
 
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
@@ -450,11 +457,11 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 
 	xco = 8;
 	
-//	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
-//					  windowtype_pup(), xco, 0, XIC+10, YIC, 
-//					  &(C->area->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-//					  "Displays Current Window Type. "
-//					  "Click for menu of available types.");
+	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
+					  windowtype_pup(), xco, yco, XIC+10, YIC, 
+					  &(C->area->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
+					  "Displays Current Window Type. "
+					  "Click for menu of available types.");
 	
 	xco += XIC + 14;
 	
@@ -503,35 +510,35 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiDefButI(block, TOG, B_TL_PREVIEWON,"Preview",	
 			  xco,yco, XIC, YIC,
-			  &G.scene->r.psfra,0, 1, 0, 0,
+			  &C->scene->r.psfra,0, 1, 0, 0,
 			  "Show settings for frame range of animation preview");
 	
 	xco += XIC;
 	
-	if (G.scene->r.psfra) {
-		uiDefButI(block, NUM, REDRAWALL,"Start:",	
+	if (C->scene->r.psfra) {
+		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
 				  xco,yco, 4.5*XIC, YIC,
-				  &G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+				  &C->scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation preview (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
-		uiDefButI(block, NUM, REDRAWALL,"End:",	
+		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
 				  xco,yco,4.5*XIC,YIC,
-				  &G.scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
+				  &C->scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
 				  "The end frame of the animation preview (inclusive)");
 	}
 	else {
-		uiDefButI(block, NUM, REDRAWALL,"Start:",	
+		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
 				  xco,yco, 4.5*XIC, YIC,
-				  &G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+				  &C->scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
-		uiDefButI(block, NUM, REDRAWALL,"End:",	
+		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
 				  xco,yco,4.5*XIC,YIC,
-				  &G.scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
+				  &C->scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
 				  "The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
@@ -540,7 +547,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 			  xco,yco,3.5*XIC,YIC,
-			  &(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
+			  &(C->scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
 	xco += (short)(3.5 * XIC + 16);
@@ -556,8 +563,8 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 //		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
 //					 xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
 //	else 	   
-//		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
-//					 xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
+		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
+					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
 	
 	xco+= XIC+4;
 	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
@@ -568,12 +575,12 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC+8;
 	
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
-					 xco, yco, XIC, YIC, &(G.scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+					 xco, yco, XIC, YIC, &(C->scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= XIC;
 	if (C->scene->autokey_mode & AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, 3.5*XIC, YIC, &(G.scene->autokey_mode), 0, 1, 0, 0, 
+				  xco, yco, 3.5*XIC, YIC, &(C->scene->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}

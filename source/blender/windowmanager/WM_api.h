@@ -105,6 +105,8 @@ wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
 int			WM_operator_invoke		(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
+int         WM_operator_call		(struct bContext *C, const char *opstring);
+int         WM_operator_call_rwin	(struct bContext *C, const char *opstring);
 
 			/* default operator callbacks for border/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);

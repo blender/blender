@@ -1226,6 +1226,22 @@ View2D *UI_view2d_fromcontext(const bContext *C)
 	return &(C->region->v2d);
 }
 
+/* same as above, but it returns regionwindow. Utility for pulldowns or buttons */
+View2D *UI_view2d_fromcontext_rwin(const bContext *C)
+{
+	if (C->area == NULL) return NULL;
+	if (C->region == NULL) return NULL;
+	if (C->region->regiontype!=RGN_TYPE_WINDOW) {
+		ARegion *ar= C->area->regionbase.first;
+		for(; ar; ar= ar->next)
+			if(ar->regiontype==RGN_TYPE_WINDOW)
+				return &(ar->v2d);
+		return NULL;
+	}
+	return &(C->region->v2d);
+}
+
+
 /* Calculate the scale per-axis of the drawing-area
  *	- Is used to inverse correct drawing of icons, etc. that need to follow view 
  *	  but not be affected by scale

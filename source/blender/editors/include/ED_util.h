@@ -34,8 +34,8 @@
 #define YIC 20
 
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
-
 int GetButStringLength(char *str);
+char *windowtype_pup(void);
 
 #endif /* ED_UTIL_H */
 
