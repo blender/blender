@@ -106,8 +106,10 @@ static void do_outliner_buttons(bContext *C, void *arg, int event)
 void outliner_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= C->area;
+	SpaceOops *soutliner= sa->spacedata.first;
 	uiBlock *block;
 	int xco, yco= 3;
+	char *path;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_outliner_buttons, NULL);
@@ -151,11 +153,20 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, C->area, 
-						 "View", xco, yco-2, xmax-3, 24, "");
+						 "View", xco, yco-2, xmax-3, 24, ""); 
+		xco += xmax;
+		
+		/* header text */
+		xco += XIC*2;
+		
+		path= (soutliner->rnapath)? soutliner->rnapath: "Main";
+		xmax= GetButStringLength(path);
+		uiDefBut(block, LABEL, 0, path, xco, yco-2, xmax-3, 24, 0, 0, 0, 0, 0, "Current RNA Path");
+		xco += xmax;
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
 	/* always as last  */
 	sa->headbutlen= xco+XIC+80; // +80 because the last button is not an icon
 	

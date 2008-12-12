@@ -146,6 +146,51 @@ static SpaceLink *ipo_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sipon;
 }
 
+
+// XXX this should be defined in some general lib for anim editors...
+static void draw_cfra(const bContext *C, SpaceIpo *sipo, View2D *v2d)
+{
+	Scene *scene= C->scene;
+	Object *ob;
+	float vec[2];
+	
+	//vec[0] = get_ipo_cfra_from_cfra(sipo, scene->r.cfra);
+	vec[0] = scene->r.cfra;
+	vec[0]*= scene->r.framelen;
+	
+	vec[1]= v2d->cur.ymin;
+	UI_ThemeColor(TH_CFRAME);
+	glLineWidth(2.0);
+	
+	glBegin(GL_LINE_STRIP);
+	glVertex2fv(vec);
+	vec[1]= v2d->cur.ymax;
+	glVertex2fv(vec);
+	glEnd();
+	
+#if 0
+	if(sipo->blocktype==ID_OB) {
+		ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
+		if (ob && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) { 
+			vec[0]-= give_timeoffset(ob);
+			
+			UI_ThemeColorShade(TH_HILITE, -30);
+			
+			glBegin(GL_LINE_STRIP);
+			glVertex2fv(vec);
+			vec[1]= G.v2d->cur.ymin;
+			glVertex2fv(vec);
+			glEnd();
+		}
+	}
+#endif
+	
+	glLineWidth(1.0);
+	
+	/* Draw current frame number in a little box */
+	//draw_cfra_number(vec[0]);
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -176,11 +221,16 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* grid */
-	unit= (sipo->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, ar->winx, ar->winy);
-	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
+	unit= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
+	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
-		
+	
+	/* data... */
+	
+	/* current frame */
+	draw_cfra(C, sipo, v2d);
+	
 	/* markers */
 	UI_view2d_view_orthoSpecial(C, v2d, 1);
 	draw_markers_time(C, 0);
@@ -189,7 +239,8 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+		// FIXME: args for scrollers depend on the type of data being shown...
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_UNIT_VALUES/*unit-y*/, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
@@ -256,6 +307,7 @@ void ED_spacetype_ipo(void)
 	art->init= ipo_main_area_init;
 	art->draw= ipo_main_area_draw;
 	art->listener= ipo_main_area_listener;
+	art->keymapflag= ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 	

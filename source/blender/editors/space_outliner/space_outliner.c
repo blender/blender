@@ -444,14 +444,8 @@ static void outliner_main_area_free(ARegion *ar)
 
 static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceOops *soutliner= C->area->spacedata.first;
 	float col[3];
-	int width, height;
-	rctf bbox;
-	char *path;
-
-	path= (soutliner->rnapath)? soutliner->rnapath: "Main";
-
+	
 	if(ED_screen_area_active(C))
 		UI_GetThemeColor3fv(TH_HEADER, col);
 	else
@@ -461,17 +455,6 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	outliner_header_buttons(C, ar);
-	
-	width= ar->winrct.xmax - ar->winrct.xmin;
-	height= ar->winrct.ymax - ar->winrct.ymin;
-
-	/* header text */
-	UI_GetBoundingBox(UI_HELV, path, 0, &bbox);
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	UI_SetScale(1.0);
-	UI_RasterPos(50 + 0.5f*(width - (bbox.xmax - bbox.xmin)), 0.5f*(height - (bbox.ymax - bbox.ymin)));
-	UI_DrawString(UI_HELV, path, 0);
 }
 
 static void outliner_header_area_free(ARegion *ar)

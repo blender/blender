@@ -443,6 +443,8 @@ void UI_view2d_curRect_reset (View2D *v2d)
 	}
 }
 
+/* ------------------ */
+
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 {
@@ -495,12 +497,15 @@ void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 /* *********************************************************************** */
 /* View Matrix Setup */
 
-/* mapping function to ensure 'cur' draws extended over the area were sliders are */
+/* mapping function to ensure 'cur' draws extended over the area where sliders are */
 static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 {
 	*curmasked= v2d->cur;
 	
-	if (v2d->scroll) {
+	/* currently, the following 'hack' is only necessary for Outliner, and will cause
+	 * errors in all other views...
+	 */
+	if ((v2d->scroll) && (v2d->keeptot==2)) {
 		float dx= ((float)(v2d->mask.xmax-v2d->mask.xmin+1))/(v2d->cur.xmax-v2d->cur.xmin);
 		float dy= ((float)(v2d->mask.ymax-v2d->mask.ymin+1))/(v2d->cur.ymax-v2d->cur.ymin);
 		
@@ -675,7 +680,7 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short unit, shor
 	}
 	
 	/* calculate y-axis grid scale */
-	space= (v2d->cur.ymax - v2d->cur.ymin);
+	space= v2d->cur.ymax - v2d->cur.ymin;
 	pixels= winy;
 	
 	grid->dy= MINGRIDSTEP * space / pixels;
@@ -739,15 +744,17 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 	
 	/* horizontal lines */
 	if (flag & V2D_HORIZONTAL_LINES) {
+		puts("draw horizontal lines");
 		/* only major gridlines */
-		vec1[0]= grid->startx;
 		vec1[1]= vec2[1]= grid->starty;
+		vec1[0]= grid->startx;
 		vec2[0]= v2d->cur.xmax;
 		
-		step= (v2d->mask.ymax - v2d->mask.ymax + 1) / MINGRIDSTEP;
+		step= (v2d->mask.ymax - v2d->mask.ymin + 1) / MINGRIDSTEP;
 		
 		UI_ThemeColor(TH_GRID);
 		for (a=0; a<=step; a++) {
+			printf("\t a = %d \n", a);
 			glBegin(GL_LINE_STRIP);
 				glVertex2fv(vec1); 
 				glVertex2fv(vec2);
@@ -757,12 +764,10 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 		}
 		
 		/* fine grid lines */
-		// er... only in IPO-Editor it seems (how to expose this in nice way)?
 		vec2[1]= vec1[1]-= 0.5f*grid->dy;
 		step++;
 		
-#if 0
-		if (curarea->spacetype==SPACE_IPO) { 
+		if (flag & V2D_HORIZONTAL_FINELINES) { 
 			UI_ThemeColorShade(TH_GRID, 16);
 			for (a=0; a<step; a++) {
 				glBegin(GL_LINE_STRIP);
@@ -773,7 +778,6 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 				vec2[1]= vec1[1]-= grid->dy;
 			}
 		}
-#endif
 	}
 	
 	/* Axes are drawn as darker lines */
@@ -890,9 +894,9 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if ( !((xclamp == V2D_ARG_DUMMY) && (xunits == V2D_ARG_DUMMY) && (yclamp == V2D_ARG_DUMMY) && (yunits == V2D_ARG_DUMMY)) ) { 
 			/* if both axes show scale, give priority to horizontal.. */
 			// FIXME: this doesn't do justice to the vertical scroller calculations...
-			if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)
+			if ((v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) && ELEM(V2D_ARG_DUMMY, xclamp, xunits)==0)
 				scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
-			else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)
+			else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL && ELEM(V2D_ARG_DUMMY, yclamp, yunits)==0)
 				scrollers->grid= UI_view2d_grid_calc(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 		}
 	}

@@ -58,10 +58,14 @@
 
 
 /* flags for grid-lines to draw */
-#define V2D_HORIZONTAL_LINES	(1<<0)
-#define V2D_VERTICAL_LINES		(1<<1)
-#define V2D_HORIZONTAL_AXIS		(1<<2)
-#define V2D_VERTICAL_AXIS		(1<<3)
+#define V2D_HORIZONTAL_LINES		(1<<0)
+#define V2D_VERTICAL_LINES			(1<<1)
+#define V2D_HORIZONTAL_AXIS			(1<<2)
+#define V2D_VERTICAL_AXIS			(1<<3)
+#define V2D_HORIZONTAL_FINELINES	(1<<4)
+
+#define V2D_GRIDLINES_MAJOR			(V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS|V2D_HORIZONTAL_LINES|V2D_HORIZONTAL_AXIS)
+#define V2D_GRIDLINES_ALL			(V2D_GRIDLINES_MAJOR|V2D_HORIZONTAL_FINELINES)
 
 
 /* ------------------------------------------ */

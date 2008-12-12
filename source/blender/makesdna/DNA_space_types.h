@@ -543,8 +543,11 @@ typedef struct SpaceImaSel {
 #define SI_DISPGP		1<<22
 
 /* SpaceIpo->flag */
-#define SIPO_LOCK_VIEW			1<<0
-#define SIPO_NOTRANSKEYCULL		1<<1
+#define SIPO_LOCK_VIEW			(1<<0)
+#define SIPO_NOTRANSKEYCULL		(1<<1)
+#define SIPO_NOHANDLES			(1<<2)
+#define SIPO_NODRAWCFRANUM		(1<<3)
+#define SIPO_DRAWTIME			(1<<4)
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
