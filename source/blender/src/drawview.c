@@ -3309,7 +3309,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			fdrawXORcirc((float)c[0], (float)c[1], (float)pset->brush[pset->brushtype].size);
 		}
 	}
-
+	if(!G.obedit && OBACT && G.f&G_TEXTUREPAINT && area_is_active_area(v3d->area) && G.scene->toolsettings->imapaint.brush){
+		short c[2];
+		getmouseco_areawin(c);
+		fdrawXORcirc((float)c[0], (float)c[1], (float)G.scene->toolsettings->imapaint.brush->size/2);
+	}
+	
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
 	

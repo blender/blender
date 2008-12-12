@@ -345,7 +345,9 @@ typedef struct TimeMarker {
 typedef struct ImagePaintSettings {
 	struct Brush *brush;
 	short flag, tool;
-	int pad3;
+	
+	/* for projection painting only */
+	short seam_bleed,normal_angle;
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
@@ -798,6 +800,15 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* projection painting only */
+#define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
+#define IMAGEPAINT_PROJECT_XRAY			16
+#define IMAGEPAINT_PROJECT_BACKFACE		32
+#define IMAGEPAINT_PROJECT_FLAT			64
+#define IMAGEPAINT_PROJECT_LAYER_CLONE	128
+#define IMAGEPAINT_PROJECT_LAYER_MASK	256
+#define IMAGEPAINT_PROJECT_LAYER_MASK_INV	512
 
 /* toolsettings->uvcalc_flag */
 #define UVCALC_FILLHOLES			1
