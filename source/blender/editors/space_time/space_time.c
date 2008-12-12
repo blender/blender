@@ -216,6 +216,8 @@ static SpaceLink *time_new(void)
 	
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
+	ar->alignment= RGN_ALIGN_BOTTOM;
+	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for time");
@@ -268,7 +270,7 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 	return (SpaceLink *)stimen;
 }
 
-/* only called once, from screen/spacetypes.c */
+/* only called once, from space_api/spacetypes.c */
 /* it defines all callbacks to maintain spaces */
 void ED_spacetype_time(void)
 {

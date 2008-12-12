@@ -480,10 +480,32 @@ static void outliner_header_area_free(ARegion *ar)
 
 static SpaceLink *outliner_new(void)
 {
+	ARegion *ar;
 	SpaceOops *soutliner;
 
 	soutliner= MEM_callocN(sizeof(SpaceOops), "initoutliner");
 
+	/* header */
+	ar= MEM_callocN(sizeof(ARegion), "header for outliner");
+	
+	BLI_addtail(&soutliner->regionbase, ar);
+	ar->regiontype= RGN_TYPE_HEADER;
+	ar->alignment= RGN_ALIGN_BOTTOM;
+	UI_view2d_header_default(&ar->v2d);
+	
+	/* main area */
+	ar= MEM_callocN(sizeof(ARegion), "main area for outliner");
+	
+	BLI_addtail(&soutliner->regionbase, ar);
+	ar->regiontype= RGN_TYPE_WINDOW;
+	
+	ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+	ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+	ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y);
+	ar->v2d.keepaspect= 1;
+	ar->v2d.keepzoom= 1;
+	ar->v2d.keeptot= 2;	/* XXX make define */
+	
 	return (SpaceLink*)soutliner;
 }
 
@@ -515,7 +537,7 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 	return (SpaceLink *)soutlinern;
 }
 
-/* only called once, from screen/spacetypes.c */
+/* only called once, from space_api/spacetypes.c */
 void ED_spacetype_outliner(void)
 {
 	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");

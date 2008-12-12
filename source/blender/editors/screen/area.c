@@ -229,12 +229,12 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			ar->winrct= *remainder;
 			
 			if(ar->alignment==RGN_ALIGN_TOP) {
-				ar->winrct.ymin= ar->winrct.ymax - prefsizey;
-				remainder->ymax= ar->winrct.ymin-1;
+				ar->winrct.ymin= ar->winrct.ymax - prefsizey + 1;
+				remainder->ymax= ar->winrct.ymin - 1;
 			}
 			else {
-				ar->winrct.ymax= ar->winrct.ymin + prefsizey;
-				remainder->ymin= ar->winrct.ymax+1;
+				ar->winrct.ymax= ar->winrct.ymin + prefsizey - 1;
+				remainder->ymin= ar->winrct.ymax + 1;
 			}
 		}
 	}
@@ -252,12 +252,12 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			ar->winrct= *remainder;
 			
 			if(ar->alignment==RGN_ALIGN_RIGHT) {
-				ar->winrct.xmin= ar->winrct.xmax - prefsizex;
-				remainder->xmax= ar->winrct.xmin-1;
+				ar->winrct.xmin= ar->winrct.xmax - prefsizex + 1;
+				remainder->xmax= ar->winrct.xmin - 1;
 			}
 			else {
-				ar->winrct.xmax= ar->winrct.xmin + prefsizex;
-				remainder->xmin= ar->winrct.xmax+1;
+				ar->winrct.xmax= ar->winrct.xmin + prefsizex - 1;
+				remainder->xmin= ar->winrct.xmax + 1;
 			}
 		}
 	}
@@ -545,8 +545,8 @@ void ED_newspace(ScrArea *sa, int type)
 				sl->regionbase.first= sl->regionbase.last= NULL;
 			}
 		}
+		
 	}
-	
 }
 
 

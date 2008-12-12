@@ -53,11 +53,11 @@ typedef struct View2D {
 	short flag;						/* settings */
 	short align;					/* alignment of content in totrect */
 	
+	short winx, winy;				/* storage of current winx/winy values, set in UI_view2d_size_update */
 	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_curRect_validate(), for keepaspect */
 	
 	short around;					/* pivot point for transforms (rotate and scale) */
 	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
-	char pad[4];
 } View2D;
 
 /* ---------------------------------- */

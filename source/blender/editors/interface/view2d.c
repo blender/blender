@@ -35,6 +35,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 
+#include "BLI_blenlib.h"
+
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -62,10 +64,13 @@
 // XXX pre2.5 -> this used to be called  calc_scrollrcts()
 void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 {
+	v2d->winx= winx;
+	v2d->winy= winy;
+	
 	/* mask - view frame */
 	v2d->mask.xmin= v2d->mask.ymin= 0;
-	v2d->mask.xmax= winx;
-	v2d->mask.ymax= winy;
+	v2d->mask.xmax= winx - 1;	/* -1 yes! masks are pixels */
+	v2d->mask.ymax= winy - 1;
 	
 	/* scrollbars shrink mask area, but should be based off regionsize 
 	 *	- they can only be on one edge of the region they define
@@ -76,13 +81,13 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			/* on left-hand edge of region */
 			v2d->vert= v2d->mask;
 			v2d->vert.xmax= V2D_SCROLL_WIDTH;
-			v2d->mask.xmin= V2D_SCROLL_WIDTH;
+			v2d->mask.xmin= v2d->vert.xmax + 1;
 		}
 		else if (v2d->scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
 			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
-			v2d->mask.xmax= v2d->vert.xmin;
+			v2d->mask.xmax= v2d->vert.xmin - 1;
 		}
 		
 		/* horizontal scrollbar */
@@ -90,13 +95,26 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the ohter is for standard) */
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= V2D_SCROLL_HEIGHT;
-			v2d->mask.ymin= V2D_SCROLL_HEIGHT;
+			v2d->mask.ymin= v2d->hor.ymax + 1;
 		}
 		else if (v2d->scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
 			v2d->hor= v2d->mask;
 			v2d->hor.ymin= v2d->hor.ymax - V2D_SCROLL_HEIGHT;
-			v2d->mask.ymax= v2d->hor.ymin;
+			v2d->mask.ymax= v2d->hor.ymin - 1;
+		}
+	}
+	
+	/* cope with unitialized veriables for simple cases, like header or outliner */
+	if(v2d->tot.xmin==v2d->tot.xmax || v2d->cur.xmin==v2d->cur.xmax) {
+		if(v2d->keepzoom) {
+			BLI_init_rctf(&v2d->tot, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
+			BLI_init_rctf(&v2d->cur, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
+			
+			v2d->min[0]= v2d->max[0]= winx;
+			v2d->min[1]= v2d->max[1]= winy;
+			v2d->minzoom= 1.0f;
+			v2d->maxzoom= 1.0f;
 		}
 	}
 	
@@ -372,6 +390,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			}
 		}
 	}
+	
 }
 
 /* ------------------ */
@@ -476,15 +495,41 @@ void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 /* *********************************************************************** */
 /* View Matrix Setup */
 
+/* mapping function to ensure 'cur' draws extended over the area were sliders are */
+static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
+{
+	*curmasked= v2d->cur;
+	
+	if (v2d->scroll) {
+		float dx= ((float)(v2d->mask.xmax-v2d->mask.xmin+1))/(v2d->cur.xmax-v2d->cur.xmin);
+		float dy= ((float)(v2d->mask.ymax-v2d->mask.ymin+1))/(v2d->cur.ymax-v2d->cur.ymin);
+		
+		if (v2d->mask.xmin != 0)
+			curmasked->xmin -= dx*(float)v2d->mask.xmin;
+		if (v2d->mask.xmax+1 != v2d->winx)
+			curmasked->xmax += dx*(float)(v2d->winx - v2d->mask.xmax-1);
+		
+		if (v2d->mask.ymin != 0)
+			curmasked->ymin -= dy*(float)v2d->mask.ymin;
+		if (v2d->mask.ymax+1 != v2d->winy)
+			curmasked->ymax += dy*(float)(v2d->winy - v2d->mask.ymax-1);
+		
+	}
+}
+
 /* Set view matrices to use 'cur' rect as viewing frame for View2D drawing 
- *	- this assumes viewport/scissor been set for the region, taking scrollbars into account
- */
+*	- this assumes viewport/scissor been set for the region, taking scrollbars into account
+*/
+
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
+	rctf curmasked;
+	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
-	wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
+	view2d_map_cur_using_mask(v2d, &curmasked);
+	wmOrtho2(C->window, curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
 	
 	/* XXX is this necessary? */
 	wmLoadIdentity(C->window);
@@ -498,14 +543,16 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 {
 	ARegion *ar= C->region;
+	rctf curmasked;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
+	view2d_map_cur_using_mask(v2d, &curmasked);
 	if (xaxis)
-		wmOrtho2(C->window, v2d->cur.xmin, v2d->cur.xmax, 0, ar->winy);
+		wmOrtho2(C->window, curmasked.xmin, curmasked.xmax, 0, ar->winy);
 	else
-		wmOrtho2(C->window, 0, ar->winx, v2d->cur.ymin, v2d->cur.ymax);
+		wmOrtho2(C->window, 0, ar->winx, curmasked.ymin, curmasked.ymax);
 		
 	/* XXX is this necessary? */
 	wmLoadIdentity(C->window);
@@ -516,6 +563,17 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 void UI_view2d_view_restore(const bContext *C)
 {
 	ED_region_pixelspace(C, C->region);
+}
+
+/* allowing horizontal pan */
+void UI_view2d_header_default(View2D *v2d)
+{
+	v2d->keepaspect= 1;
+	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
+	v2d->keepofs = V2D_LOCKOFS_Y;
+	v2d->keeptot = 2; // this keeps the view in place when region size changes...
+	v2d->align = V2D_ALIGN_NO_NEG_X;
+	
 }
 
 /* *********************************************************************** */

@@ -49,6 +49,8 @@
 
 #include "BIF_gl.h"
 
+#include "UI_view2d.h"
+
 #include "view3d_intern.h"	// own include
 
 /* ******************** default callbacks for view3d space ***************** */
@@ -94,6 +96,8 @@ static SpaceLink *view3d_new(void)
 	
 	BLI_addtail(&vd->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
+	ar->alignment= RGN_ALIGN_BOTTOM;
+	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");

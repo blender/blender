@@ -5051,34 +5051,13 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 		ar->alignment= RGN_ALIGN_TOP;
 	
 	/* initialise view2d data for header region, to allow panning */
+	/* is copy from ui_view2d.c */
 	ar->v2d.keepaspect= 1;
 	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
 	ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
 	ar->v2d.align = V2D_ALIGN_NO_NEG_X;
 	
-	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
-	
-	ar->v2d.mask.xmin= ar->v2d.mask.ymin= 0;
-	ar->v2d.mask.xmax= sa->winx;
-	ar->v2d.mask.ymax= HEADERY;
-	
-	ar->v2d.cur.xmin= sa->headbutofs;
-	ar->v2d.cur.xmax= sa->winx + sa->headbutofs;
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.xmax= sa->headbutlen;
-	
-	if (ar->alignment == RGN_ALIGN_BOTTOM) {
-		ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-		ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
-		ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
-	}
-	else {
-		// XXX what were the extents of the old headers?
-		ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-		ar->v2d.tot.ymin= ar->v2d.cur.ymin= 0.0f; // what was area->headrct.ymin?
-		ar->v2d.tot.ymax= ar->v2d.cur.ymax= HEADERY;
-	}
 }
 
 /* 2.50 patch */
