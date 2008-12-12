@@ -256,7 +256,9 @@ typedef struct ProjPaintState {
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;			/* mask out pixels based on their normals */
-	float normal_angle; /* what angle to mask at*/
+	float normal_angle;				/* what angle to mask at*/
+	float normal_angle_inner;
+	float normal_angle_range;		/* difference between normal_angle and normal_angle_inner, for easy access */
 	
 	short is_ortho;
 	short is_airbrush;					/* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
@@ -1433,6 +1435,8 @@ float project_paint_uvpixel_mask(
 				co2 = ps->dm_mvert[mf->v2].co;
 				co3 = ps->dm_mvert[mf->v3].co;
 			}
+
+			/* Get the direction from the viewPoint to the pixel and normalize */
 			viewDirPersp[0] = (ps->viewPos[0] - (w[0]*co1[0] + w[1]*co2[0] + w[2]*co3[0]));
 			viewDirPersp[1] = (ps->viewPos[1] - (w[0]*co1[1] + w[1]*co2[1] + w[2]*co3[1]));
 			viewDirPersp[2] = (ps->viewPos[2] - (w[0]*co1[2] + w[1]*co2[2] + w[2]*co3[2]));
@@ -1441,33 +1445,15 @@ float project_paint_uvpixel_mask(
 			angle = NormalizedVecAngle2(viewDirPersp, no);
 		}
 		
-		if (angle >= (M_PI_2 / 90) * ps->normal_angle) {
-			return 0.0f;
+		if (angle >= ps->normal_angle) {
+			return 0.0f; /* outsize the normal limit*/
 		}
-		else {
-			float mask_no;
-#if 0
-			mask *= 1.0f - (angle / PI_80_DEG); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
-#endif
-			
-			/* trickier method that clips the normal so its more useful */
-			/* M_PI_2 is 90d, we want 80 though */
-			mask_angle = ((M_PI_2 / 90) * ps->normal_angle);
-
-			/*printf("normal_angle : %f \n" ,ps->normal_angle);
-			printf("mask_angle : %f \n" ,mask_angle);*/
-
-			mask_no = (angle / mask_angle); /* map angle to 1.0-facing us, 0.0 right angles to the view direction */
-			mask_no = (1.0f - (mask_no * mask_no * mask_no)) * 1.4f;
-			if (mask_no > 1.0f) {
-				mask_no = 1.0f;
-			}
-			
-			mask *= mask_no;
-		}
+		else if (angle > ps->normal_angle_inner) {
+			mask *= (ps->normal_angle - angle) / ps->normal_angle_range;
+		} /* otherwise no mask normal is needed, were within the limit */
 	}
 	
-	// This only works when the opacity dosnt change while paintnig, stylus pressure messes with this
+	// This only works when the opacity dosnt change while painting, stylus pressure messes with this
 	// so dont use it.
 	// if (ps->is_airbrush==0) mask *= ps->brush->alpha;
 	
@@ -3100,14 +3086,14 @@ static void project_paint_begin(ProjPaintState *ps, short mval[2])
 			no[2] = (float)(v->no[2] / 32767.0f);
 			
 			if (ps->is_ortho) {
-				if (NormalizedVecAngle2(ps->viewDir, no) >= (M_PI_2 / 90) * ps->normal_angle) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(ps->viewDir, no) >= ps->normal_angle) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
 			else {
 				VecSubf(viewDirPersp, ps->viewPos, v->co);
 				Normalize(viewDirPersp);
-				if (NormalizedVecAngle2(viewDirPersp, no) >= (M_PI_2 / 90) * ps->normal_angle) { /* 1 vert of this face is towards us */
+				if (NormalizedVecAngle2(viewDirPersp, no) >= ps->normal_angle) { /* 1 vert of this face is towards us */
 					ps->vertFlags[a] |= PROJ_VERT_CULL;
 				}
 			}
@@ -3367,8 +3353,17 @@ static void project_paint_end(ProjPaintState *ps)
 	ps->dm->release(ps->dm);
 }
 
+/* Use this rather then mouse_cursor()
+ * so rotating the view leaves the 3D Cursor on the clone source surface.
+ */
+static void project_paint_setCursor(void) {
+	float *curs = give_cursor();
+	short mval[2];
 
-/* external functions */
+	mouse_cursor(); /* set the cursor location on the view X/Y */
+	getmouseco_areawin(mval);
+	view_mouse_depth(curs, mval, 1);
+}
 
 /* 1= an undo, -1 is a redo. */
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
@@ -3398,7 +3393,7 @@ static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPar
 		pr->x2 = MAX2(pr->x2, pr_other->x2);
 		pr->y2 = MAX2(pr->y2, pr_other->y2);
 		
-		if (pr->x2 != -2)
+		if (pr->x2 != -1)
 			touch = 1;
 		
 		pr++; pr_other++;
@@ -4404,79 +4399,6 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 	}
 }
 
-
-static int imapaint_paint_gp_to_stroke(float **points_gp) {
-	bGPdata *gpd;
-	bGPDlayer *gpl;
-	bGPDframe *gpf;
-	bGPDstroke *gps;
-	bGPDspoint *pt;
-	
-	int tot_gp = 0;
-	float *vec_gp;
-	
-
-	
-	gpd = gpencil_data_getactive(NULL);
-	
-	if (gpd==NULL)
-		return 0;
-
-	
-	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-
-		
-		if (gpl->flag & GP_LAYER_HIDE) continue;
-		
-		gpf= gpencil_layer_getframe(gpl, CFRA, 0);
-		if (gpf==NULL)	continue;
-		
-		for (gps= gpf->strokes.first; gps; gps= gps->next) {
-			//if (gps->flag & GP_STROKE_2DSPACE) {
-				tot_gp += gps->totpoints;
-			//}
-		}
-	}
-	
-	if (tot_gp==0)
-		return 0;
-	
-	*points_gp = MEM_mallocN(tot_gp*sizeof(float)*2, "gp_points");
-	vec_gp = *points_gp;
-	
-	printf("%d\n" , tot_gp);
-	
-	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-
-		
-		if (gpl->flag & GP_LAYER_HIDE) continue;
-		
-		gpf= gpencil_layer_getframe(gpl, CFRA, 0);
-		if (gpf==NULL)	continue;
-		
-		for (gps= gpf->strokes.first; gps; gps= gps->next) {
-			//if (gps->flag & GP_STROKE_2DSPACE) {
-				int i;
-
-				/* fill up the array with points */
-				for (i=0, pt=gps->points; i < gps->totpoints && pt; i++, pt++) {
-					//printf("- %f %f\n", pt->x, pt->y);
-					
-					vec_gp[0] = pt->x;
-					vec_gp[1] = pt->y;
-					//printf("%f %f\n", vec_gp[0], vec_gp[1]);
-					
-					vec_gp+=2;
-				}
-			//}
-		}
-	}
-	
-	return tot_gp;
-}
-
-extern int view_autodist(float mouse_worldloc[3]); /* view.c */
-
 void imagepaint_paint(short mousebutton, short texpaint)
 {
 	ImagePaintState s;
@@ -4488,14 +4410,6 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	float pressure;
 	int init = 1;
 	
-	/* optional grease pencil stroke path */
-	float *points_gp = NULL;
-	float *vec_gp;
-	int tot_gp = 0, index_gp=0;
-	int stroke_gp = 0;
-	
-	double benchmark_time;
-	
 	if(!settings->imapaint.brush)
 		return;
 	
@@ -4505,18 +4419,11 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		}
 	}
 	
-	
 	if (G.qual & LR_CTRLKEY) {
-		float *curs;
-		mouse_cursor();
-		curs = give_cursor();
-		view_autodist(curs);
+		persp(PERSP_VIEW);
+        project_paint_setCursor();
+		persp(PERSP_WIN);
 		return;
-	}
-	
-	/* TODO - grease pencil stroke is very basic now and only useful for benchmarking, should make this nicer */
-	if (G.rt==123) {
-		stroke_gp = 1;		
 	}
 	
 	/* initialize state */
@@ -4541,7 +4448,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		s.me = get_mesh(s.ob);
 		if (!s.me) return;
 
-		persp(PERSP_VIEW);
+		persp(PERSP_VIEW); /* set back to PERSP_WIN before returning */
 	}
 	else {
 		s.image = G.sima->image;
@@ -4574,11 +4481,26 @@ void imagepaint_paint(short mousebutton, short texpaint)
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 		ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
 #endif
-		ps.normal_angle = settings->imapaint.normal_angle;
+
+		if (ps.do_mask_normal) {
+			ps.normal_angle_inner = settings->imapaint.normal_angle;
+			ps.normal_angle = (ps.normal_angle_inner + 90.0f) * 0.5f;
+		}
+		else {
+			ps.normal_angle_inner= ps.normal_angle= settings->imapaint.normal_angle;
+		}
+
+		ps.normal_angle_inner *=	M_PI_2 / 90;
+		ps.normal_angle *=			M_PI_2 / 90;
+		ps.normal_angle_range = ps.normal_angle - ps.normal_angle_inner;
 		
+		if (ps.normal_angle_range <= 0.0f)
+			ps.do_mask_normal = 0; /* no need to do blending */
+
 		project_paint_begin(&ps, mval);
 		
 		if (ps.dm==NULL) {
+			persp(PERSP_WIN);
 			return;
 		}
 	}
@@ -4592,37 +4514,26 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	pressure = get_pressure();
 	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 	
-	time= benchmark_time = PIL_check_seconds_timer();
+	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
 	
-	if (project) {
-		if (stroke_gp) {
-			tot_gp = imapaint_paint_gp_to_stroke(&points_gp);
-			vec_gp = points_gp;
-			prevmval[0]= (short)vec_gp[0];
-			prevmval[1]= (short)vec_gp[1];
-		}
-	} else {
-		/* special exception here for too high pressure values on first touch in
-		 windows for some tablets */ 
-		if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
-			BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
-			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
-	}
-	/* paint loop */
-	do {
-		if (stroke_gp) {
-			/* Stroke grease pencil path */
-			mval[0]= (short)vec_gp[0];
-			mval[1]= (short)vec_gp[1];
-			//printf("%d %d\n", mval[0], mval[1]);
-			vec_gp+=2;
-			index_gp++;
+	/* special exception here for too high pressure values on first touch in
+	 windows for some tablets */
+	if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
+		BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
+	{
+		if (project) {
+			project_paint_stroke(&ps, painter, prevmval, mval, time, 1, pressure);
 		}
 		else {
-			getmouseco_areawin(mval);
+			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 		}
+	}
+	
+	/* paint loop */
+	do {
+		getmouseco_areawin(mval);
 
 		pressure = get_pressure();
 		s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
@@ -4633,19 +4544,17 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			int redraw = 1;
 			
 			if (((s.brush->flag & BRUSH_AIRBRUSH) || init)  || ((mval[0] != prevmval[0]) || (mval[1] != prevmval[1]))) {
-				redraw = project_paint_stroke(&ps, painter, prevmval, mval, time, stroke_gp ? 0 : 1, pressure);
+				redraw = project_paint_stroke(&ps, painter, prevmval, mval, time, 1, pressure);
 				prevmval[0]= mval[0];
 				prevmval[1]= mval[1];
 			}
 			else {
-				if (stroke_gp==0) {
-					BIF_wait_for_statechange();
-					
-					if (redraw==0) {
-						/* Only so the brush outline is redrawn, pitty we need to do this
-						 * however it wont run when the mouse is still so not too bad */
-						force_draw(0);
-					}
+				BIF_wait_for_statechange();
+
+				if (redraw==0) {
+					/* Only so the brush outline is redrawn, pitty we need to do this
+					 * however it wont run when the mouse is still so not too bad */
+					force_draw(0);
 				}
 			}
 			
@@ -4664,8 +4573,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		}
 		/* do mouse checking at the end, so don't check twice, and potentially
 		   miss a short tap */
-	} while((stroke_gp && index_gp < tot_gp) || (stroke_gp==0 && (get_mbut() & mousebutton)));
-	//} while(get_mbut() & mousebutton);
+	} while(get_mbut() & mousebutton);
 
 	/* clean up */
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
@@ -4675,12 +4583,6 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	if (project) {
 		project_paint_end(&ps);
 	}
-	
-	if (points_gp)
-		MEM_freeN(points_gp);
-	
-	if (stroke_gp)
-		printf("timed test %f\n", (float)(PIL_check_seconds_timer() - benchmark_time));
 	
 	imapaint_redraw(1, texpaint, s.image);
 	undo_imagepaint_push_end();
