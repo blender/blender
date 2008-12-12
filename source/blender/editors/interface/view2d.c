@@ -744,7 +744,6 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 	
 	/* horizontal lines */
 	if (flag & V2D_HORIZONTAL_LINES) {
-		puts("draw horizontal lines");
 		/* only major gridlines */
 		vec1[1]= vec2[1]= grid->starty;
 		vec1[0]= grid->startx;
@@ -754,7 +753,6 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 		
 		UI_ThemeColor(TH_GRID);
 		for (a=0; a<=step; a++) {
-			printf("\t a = %d \n", a);
 			glBegin(GL_LINE_STRIP);
 				glVertex2fv(vec1); 
 				glVertex2fv(vec2);
