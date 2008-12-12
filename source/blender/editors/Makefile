@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/editors
-DIRS = datafiles screen space_outliner space_time space_view3d interface util space_api
+DIRS = datafiles screen space_outliner space_time space_view3d interface util space_api space_ipo
 
 include nan_subdirs.mk
