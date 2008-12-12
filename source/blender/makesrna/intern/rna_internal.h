@@ -100,6 +100,7 @@ void RNA_def_brush(struct BlenderRNA *brna);
 void RNA_def_brushclone(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
 void RNA_def_color(struct BlenderRNA *brna);
+void RNA_def_constraint(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);
 void RNA_def_curve(struct BlenderRNA *brna);
 void RNA_def_gameproperty(struct BlenderRNA *brna);

@@ -898,6 +898,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_brush.c", RNA_def_brush},
 	{"rna_camera.c", RNA_def_camera},
 	{"rna_color.c", RNA_def_color},
+	{"rna_constraint.c", RNA_def_constraint},
 	{"rna_controller.c", RNA_def_controller},
 	{"rna_curve.c", RNA_def_curve},
 	{"rna_group.c", RNA_def_group},

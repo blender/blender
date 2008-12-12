@@ -47,6 +47,8 @@ extern StructRNA RNA_Camera;
 extern StructRNA RNA_CharInfo;
 extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionSensor;
+extern StructRNA RNA_Constraint;
+// ... constraint types...
 extern StructRNA RNA_Controller;
 extern StructRNA RNA_Curve;
 extern StructRNA RNA_CurveMap;

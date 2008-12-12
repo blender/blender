@@ -64,7 +64,11 @@ void RNA_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Scale", "");
-
+	
+	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_ui_text(prop, "Constraints", "");
+	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "");
