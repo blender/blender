@@ -48,6 +48,27 @@ def baseName(path):
 def dirName(path):
 	return path[:-len(baseName(path))]
 
+def imageConvertCompat(path):
+	
+	try:	import os
+	except:
+		return path
+	
+	if path.endswith('.gif'):
+		path_to = path[:-3] + 'png'
+		
+		'''
+		if exists(path_to):
+			return path_to
+		'''
+		# print '\n'+path+'\n'+path_to+'\n'
+		os.system('convert "%s" "%s"' % (path, path_to)) # for now just hope we have image magick
+		
+		if exists(path_to):
+			return path_to
+	
+	return path
+
 # notes
 # transform are relative 
 # order dosnt matter for loc/size/rot
@@ -78,6 +99,7 @@ def vrmlFormat(data):
 			return l
 		
 		# Most cases accounted for! if we have a comment at the end of the line do this...
+		#j = l.find('url "')
 		j = l.find('"')
 		
 		if j == -1: # simple no strings
@@ -96,7 +118,40 @@ def vrmlFormat(data):
 	
 	data = '\n'.join([strip_comment(l) for l in data.split('\n') ]) # remove all whitespace
 	
+	EXTRACT_STRINGS = True # only needed when strings or filesnames containe ,[]{} chars :/
+	
+	if EXTRACT_STRINGS:
 		
+		# We need this so we can detect URL's
+		data = '\n'.join([' '.join(l.split()) for l in data.split('\n')]) # remove all whitespace
+		
+		string_ls = []
+		
+		#search = 'url "'
+		search = '"'
+		
+		ok = True
+		last_i = 0
+		while ok:
+			ok = False
+			i = data.find(search, last_i)
+			if i != -1:
+				
+				start = i + len(search) # first char after end of search
+				end = data.find('"', start)
+				if end != -1:
+					item = data[start:end]
+					string_ls.append( item )
+					data = data[:start] + data[end:]
+					ok = True # keep looking
+					
+					last_i = end - len(item) + 1
+					# print last_i, item, '|' + data[last_i] + '|'
+		
+	# done with messy extracting strings part
+	
+	
+	
 	# Bad, dont take strings into account
 	'''
 	data = data.replace('#', '\n#')
@@ -107,6 +162,27 @@ def vrmlFormat(data):
 	data = data.replace('[', '\n[\n')
 	data = data.replace(']', '\n]\n')
 	data = data.replace(',', ' , ') # make sure comma's seperate
+	
+	if EXTRACT_STRINGS:
+		# add strings back in 
+		
+		search = '"' # fill in these empty strings
+		
+		ok = True
+		last_i = 0
+		while ok:
+			ok = False
+			i = data.find(search + '"', last_i)
+			
+			if i != -1:
+				start = i + len(search) # first char after end of search
+				item = string_ls.pop(0)
+				data = data[:start] + item + data[start:]
+				
+				last_i = start + len(item)
+				
+				ok = True
+	
 	
 	# More annoying obscure cases where USE or DEF are placed on a newline
 	# data = data.replace('\nDEF ', ' DEF ')
@@ -199,21 +275,46 @@ def is_numline(i):
 	'''
 	Does this line start with a number?
 	'''
+	
+	# Works but too slow.
+	'''
 	l = lines[i]
+	for w in l.split():
+		if w==',':
+			pass
+		else:
+			try:
+				float(w)
+				return True
+			
+			except:
+				return False
+	
+	return False
+	'''
+	
+	l = lines[i]
+	
+	line_start = 0
+	
+	if l.startswith(', '):
+		line_start += 2
+	
 	line_end = len(l)-1
-	line_end_new = l.find(' ') # comma's always have a space before them
+	line_end_new = l.find(' ', line_start) # comma's always have a space before them
 	
 	if line_end_new != -1:
 		line_end = line_end_new
 	
 	try:
-		float(l[:line_end]) # works for a float or int
+		float(l[line_start:line_end]) # works for a float or int
 		return True
 	except:
 		return False
+	
 
 class vrmlNode(object):
-	__slots__ = 'id', 'fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'FIELD_NAMESPACE', 'x3dNode'
+	__slots__ = 'id', 'fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'ROUTE_IPO_NAMESPACE', 'FIELD_NAMESPACE', 'x3dNode'
 	def __init__(self, parent, node_type, lineno):
 		self.id = None
 		self.node_type = node_type
@@ -231,6 +332,7 @@ class vrmlNode(object):
 		
 		# Store in the root node because each inline file needs its own root node and its own namespace
 		self.DEF_NAMESPACE = None 
+		self.ROUTE_IPO_NAMESPACE = None 
 		self.FIELD_NAMESPACE = None
 		
 		self.reference = None
@@ -257,12 +359,25 @@ class vrmlNode(object):
 			return self.DEF_NAMESPACE
 		else:
 			return self.parent.getDefDict()
+			
+	def getRouteIpoDict(self):
+		if self.ROUTE_IPO_NAMESPACE != None:
+			return self.ROUTE_IPO_NAMESPACE
+		else:
+			return self.parent.getRouteIpoDict()
 	
 	def setRoot(self, filename):
 		self.filename = filename
-		self.FIELD_NAMESPACE =	{}
-		self.DEF_NAMESPACE=		{}
-		
+		self.FIELD_NAMESPACE =		{}
+		self.DEF_NAMESPACE =		{}
+		self.ROUTE_IPO_NAMESPACE =	{}
+	
+	def isRoot(self):
+		if self.filename == None:
+			return False
+		else:
+			return True
+	
 	def getFilename(self):
 		if self.filename:
 			return self.filename
@@ -283,6 +398,11 @@ class vrmlNode(object):
 			return self_real.id[-1] # its possible this node has no spec
 		except:
 			return None
+	
+	def getPrefix(self):
+		if self.id:
+			return self.id[0]
+		return None
 	
 	def getDefName(self):
 		self_real = self.getRealNode()
@@ -464,11 +584,13 @@ class vrmlNode(object):
 		
 		child_array = None
 		for child in self_real.children:
+			# print "ID IS", child.id
 			if child.id and len(child.id) == 1 and child.id[0] == field:
 				child_array = child
 				break
 		
 		if child_array==None:
+			
 			# For x3d, should work ok with vrml too
 			# for x3d arrays are fields, vrml they are nodes, annoying but not tooo bad.
 			data_split = self.getFieldName(field)
@@ -489,9 +611,12 @@ class vrmlNode(object):
 					print '\tWarning, could not parse array data from field'
 					array_data = []
 		else:
-			
+			# print child_array
 			# Normal vrml
 			array_data = child_array.array_data
+			
+		
+		# print 'array_data', array_data
 		
 		if group==-1 or len(array_data)==0:
 			return array_data
@@ -520,8 +645,6 @@ class vrmlNode(object):
 		# We requested a flat array
 		if group == 0:
 			return flat_array
-			
-			
 		
 		new_array = []
 		sub_array = []
@@ -536,6 +659,30 @@ class vrmlNode(object):
 			print '\twarning, array was not aligned to requested grouping', group, 'remaining value', sub_array
 		
 		return new_array
+	
+	def getFieldAsStringArray(self, field):
+		'''
+		Get a list of strings
+		'''
+		self_real = self.getRealNode() # incase we're an instance
+		
+		child_array = None
+		for child in self_real.children:
+			if child.id and len(child.id) == 1 and child.id[0] == field:
+				child_array = child
+				break
+		if not child_array:
+			return []
+		
+		# each string gets its own list, remove ""'s
+		try:
+			new_array = [f[0][1:-1] for f in child_array.fields]
+		except:
+			print '\twarning, string array could not be made'
+			new_array = []
+		
+		return new_array
+	
 	
 	def getLevel(self):
 		# Ignore self_real
@@ -564,19 +711,24 @@ class vrmlNode(object):
 		else:
 			text = ''
 		
-		text += ind + 'ID: ' + str(self.id) + ' ' + str(level) + ('lineno %d\n' % self.lineno)
+		text += ind + 'ID: ' + str(self.id) + ' ' + str(level) + (' lineno %d\n' % self.lineno)
 		
 		if self.node_type==NODE_REFERENCE:
+			text += ind + "(reference node)\n"
 			return text
 		
-		for item in self.fields:
+		text += ind + 'FIELDS:\n'
+		
+		for i,item in enumerate(self.fields):
+			text += ind + 'FIELD:\n'
 			text += ind + str(item) +'\n'
 		
 		#text += ind + 'ARRAY: ' + str(len(self.array_data)) + ' ' + str(self.array_data) + '\n'
 		text += ind + 'ARRAY: ' + str(len(self.array_data)) + '[...] \n'
 		
 		text += ind + 'CHILDREN: ' + str(len(self.children)) + '\n'
-		for child in self.children:
+		for i, child in enumerate(self.children):
+			text += ind + ('CHILD%d:\n' % i)
 			text += str(child)
 		
 		text += '\n' + ind + brackets[1]
@@ -590,12 +742,24 @@ class vrmlNode(object):
 		
 		# If we were an inline then try load the file
 		if self.node_type == NODE_NORMAL and self.getSpec() == 'Inline':
+			
 			url = self.getFieldAsString('url', None)
 			
 			if url != None:
-				if not exists(url):
-					url = dirName(self.getFilename()) + baseName(url)
-				if not exists(url):
+				urls = []
+				urls.append( url )
+				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
+				
+				urls.append( dirName(self.getFilename()) + baseName(url) )
+				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
+				
+				try:
+					url = [url for url in urls if exists(url)][0]
+					url_found = True
+				except:
+					url_found = False
+				
+				if not url_found:
 					print '\tWarning: Inline URL could not be found:', url
 				else:
 					if url==self.getFilename(): 
@@ -603,12 +767,12 @@ class vrmlNode(object):
 					else:
 						
 						try:
-							f = open(url, 'rU')
+							data = gzipOpen(url)
 						except:
 							print '\tWarning: cant open the file:', url
-							f = None
+							data = None
 						
-						if f:
+						if data:
 							# Tricky - inline another VRML
 							print '\tLoading Inline:"%s"...' % url
 							
@@ -616,12 +780,15 @@ class vrmlNode(object):
 							lines_old = lines[:]
 							
 							
-							lines[:] = vrmlFormat( f.read() )
-							f.close()
+							lines[:] = vrmlFormat( data )
 							
 							lines.insert(0, '{')
 							lines.insert(0, 'root_node____')
 							lines.append('}')
+							'''
+							ff = open('/test.txt', 'w')
+							ff.writelines([l+'\n' for l in lines])
+							'''
 							
 							child = vrmlNode(self, NODE_NORMAL, -1)
 							child.setRoot(url) # initialized dicts
@@ -723,7 +890,9 @@ class vrmlNode(object):
 					values = l_split
 				
 				# This should not extend over multiple lines however it is possible
-				self.array_data.extend( values )
+				# print self.array_data
+				if values:
+					self.array_data.extend( values )
 				i+=1
 			else:
 				words = l.split()
@@ -843,12 +1012,12 @@ def vrml_parse(path):
 	lines.insert(0, '{')
 	lines.insert(0, 'dymmy_node')
 	lines.append('}')
-	
 	# Use for testing our parsed output, so we can check on line numbers.
 	
-	## ff = open('m:\\test.txt', 'w')
-	## ff.writelines([l+'\n' for l in lines])
-	
+	'''
+	ff = open('/test.txt', 'w')
+	ff.writelines([l+'\n' for l in lines])
+	'''
 	
 	# Now evaluate it
 	node_type, new_i = is_nodeline(0, [])
@@ -866,8 +1035,13 @@ def vrml_parse(path):
 	# Parse recursively
 	root.parse(0)
 	
-	# print root
+	# This prints a load of text
+	'''
+	print root
+	'''
+	
 	return root, ''
+
 
 # ====================== END VRML 
 
@@ -996,6 +1170,9 @@ for i, f in enumerate(files):
 # -----------------------------------------------------------------------------------
 import bpy
 import BPyImage
+import BPySys
+reload(BPySys)
+reload(BPyImage)
 import Blender
 from Blender import Texture, Material, Mathutils, Mesh, Types, Window
 from Blender.Mathutils import TranslationMatrix
@@ -1088,6 +1265,7 @@ def translateTexTransform(node):
 			new_mat = mtx * new_mat
 	
 	return new_mat
+
 
 
 def getFinalMatrix(node, mtx, ancestry):
@@ -1343,7 +1521,8 @@ def importMesh_IndexedFaceSet(geom, bpyima):
 					if len(ifs_vcol) < color_index:
 						c.r, c.g, c.b = ifs_vcol[color_index]
 					else:
-						print '\tWarning: per face color index out of range'
+						#print '\tWarning: per face color index out of range'
+						pass
 			else:
 				if vcolor_spot: # use 1 color, when ifs_vcol is []
 					for c in fcol:
@@ -1517,6 +1696,9 @@ def importShape(node, ancestry):
 		bpymat = None
 		bpyima = None
 		texmtx = None
+		
+		depth = 0 # so we can set alpha face flag later
+		
 		if appr:
 			
 			#mat = appr.getChildByName('material') # 'Material'
@@ -1561,12 +1743,17 @@ def importShape(node, ancestry):
 			
 			
 			if ima:
-				# print ima
+				
 				ima_url =			ima.getFieldAsString('url')
+				
+				if ima_url==None:
+					try:		ima_url = ima.getFieldAsStringArray('url')[0] # in some cases we get a list of images.
+					except:		ima_url = None
+				
 				if ima_url==None:
 					print "\twarning, image with no URL, this is odd"
 				else:
-					bpyima= BPyImage.comprehensiveImageLoad(ima_url, dirName(node.getFilename()), PLACE_HOLDER= False, RECURSIVE= False)
+					bpyima= BPyImage.comprehensiveImageLoad(ima_url, dirName(node.getFilename()), PLACE_HOLDER= False, RECURSIVE= False, CONVERT_CALLBACK= imageConvertCompat)
 					if bpyima:
 						texture= bpy.data.textures.new()
 						texture.setType('Image')
@@ -1588,7 +1775,8 @@ def importShape(node, ancestry):
 						ima_repS =			ima.getFieldAsBool('repeatS', True)
 						ima_repT =			ima.getFieldAsBool('repeatT', True)
 						
-						texture.repeat =	max(1, ima_repS * 512), max(1, ima_repT * 512)
+						# To make this work properly we'd need to scale the UV's too, better to ignore th
+						# texture.repeat =	max(1, ima_repS * 512), max(1, ima_repT * 512)
 						
 						if not ima_repS: bpyima.clampX = True
 						if not ima_repT: bpyima.clampY = True
@@ -1632,15 +1820,22 @@ def importShape(node, ancestry):
 				# Only ever 1 material per shape
 				if bpymat:	bpydata.materials = [bpymat]
 				
-				if bpydata.faceUV and texmtx:
-					# Apply texture transform?
-					uv_copy = Vector()
-					for f in bpydata.faces:
-						for uv in f.uv:
-							uv_copy.x = uv.x
-							uv_copy.y = uv.y
-							
-							uv.x, uv.y = (uv_copy * texmtx)[0:2]
+				if bpydata.faceUV:
+					
+					if depth==32: # set the faces alpha flag?
+						transp = Mesh.FaceTranspModes.ALPHA
+						for f in bpydata.faces:
+							f.transp = transp
+				
+					if texmtx:
+						# Apply texture transform?
+						uv_copy = Vector()
+						for f in bpydata.faces:
+							for uv in f.uv:
+								uv_copy.x = uv.x
+								uv_copy.y = uv.y
+								
+								uv.x, uv.y = (uv_copy * texmtx)[0:2]
 				# Done transforming the texture
 				
 				
@@ -1733,7 +1928,7 @@ def importLamp_SpotLight(node):
 	# Convert 
 	
 	# lamps have their direction as -z, y==up
-	mtx = TranslationMatrix(Vector(location)) * Vector(direction).toTrackQuat('-z', 'y').toMatrix().resize4x4()
+	mtx = Vector(direction).toTrackQuat('-z', 'y').toMatrix().resize4x4() * TranslationMatrix(Vector(location))
 	
 	return bpylamp, mtx
 
@@ -1760,14 +1955,14 @@ def importViewpoint(node, ancestry):
 	fieldOfView = node.getFieldAsFloat('fieldOfView', 0.785398) * RAD_TO_DEG # max is documented to be 1.0 but some files have higher.
 	# jump = node.getFieldAsBool('jump', True)
 	orientation = node.getFieldAsFloatTuple('orientation', (0.0, 0.0, 1.0, 0.0))
-	position = node.getFieldAsFloatTuple('position', (0.0, 0.0, 10.0))
+	position = node.getFieldAsFloatTuple('position', (0.0, 0.0, 0.0))
 	description = node.getFieldAsString('description', '')
 	
 	bpycam = bpy.data.cameras.new(name)
 	
 	bpycam.angle = fieldOfView
 	
-	mtx = TranslationMatrix(Vector(position)) * translateRotation(orientation) * MATRIX_Z_TO_Y
+	mtx = translateRotation(orientation) * TranslationMatrix(Vector(position))
 	
 	
 	bpyob = node.blendObject = bpy.data.scenes.active.objects.new(bpycam)
@@ -1780,6 +1975,149 @@ def importTransform(node, ancestry):
 	
 	bpyob = node.blendObject = bpy.data.scenes.active.objects.new('Empty', name) # , name)
 	bpyob.setMatrix( getFinalMatrix(node, None, ancestry) )
+
+	
+#def importTimeSensor(node):
+
+
+def translatePositionInterpolator(node, ipo):
+	key = node.getFieldAsArray('key', 0)
+	keyValue = node.getFieldAsArray('keyValue', 3)
+	
+	loc_x = ipo.addCurve('LocX')
+	loc_y = ipo.addCurve('LocY')
+	loc_z = ipo.addCurve('LocZ')
+	
+	loc_x.interpolation = loc_y.interpolation = loc_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+	
+	for i, time in enumerate(key):
+		x,y,z = keyValue[i]
+		
+		loc_x.append((time,x))
+		loc_y.append((time,y))
+		loc_z.append((time,z))
+
+def translateOrientationInterpolator(node, ipo):
+	key = node.getFieldAsArray('key', 0)
+	keyValue = node.getFieldAsArray('keyValue', 4)
+	
+	rot_x = ipo.addCurve('RotX')
+	rot_y = ipo.addCurve('RotY')
+	rot_z = ipo.addCurve('RotZ')
+	
+	rot_x.interpolation = rot_y.interpolation = rot_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+	
+	for i, time in enumerate(key):
+		
+		mtx = translateRotation(keyValue[i])
+		eul = mtx.toEuler()
+		rot_x.append((time,eul.x/10.0))
+		rot_y.append((time,eul.y/10.0))
+		rot_z.append((time,eul.z/10.0))
+
+# Untested!
+def translateScalarInterpolator(node, ipo):
+	key = node.getFieldAsArray('key', 0)
+	keyValue = node.getFieldAsArray('keyValue', 4)
+	
+	sca_x = ipo.addCurve('SizeX')
+	sca_y = ipo.addCurve('SizeY')
+	sca_z = ipo.addCurve('SizeZ')
+	
+	sca_x.interpolation = sca_y.interpolation = sca_z.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+	
+	for i, time in enumerate(key):
+		x,y,z = keyValue[i]
+		sca_x.append((time,x/10.0))
+		sca_y.append((time,y/10.0))
+		sca_z.append((time,z/10.0))
+
+def translateTimeSensor(node, ipo):
+	'''
+	Apply a time sensor to an IPO, VRML has many combinations of loop/start/stop/cycle times
+	to give different results, for now just do the basics
+	'''
+	
+	time_cu = ipo.addCurve('Time')
+	time_cu.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+	
+	cycleInterval = node.getFieldAsFloat('cycleInterval', None)
+	
+	startTime = node.getFieldAsFloat('startTime', 0.0)
+	stopTime = node.getFieldAsFloat('stopTime', 250.0)
+		
+	if cycleInterval != None:
+		stopTime = startTime+cycleInterval
+	
+	loop = node.getFieldAsBool('loop', False)
+	
+	time_cu.append((1+startTime, 0.0))
+	time_cu.append((1+stopTime, 1.0/10.0))# anoying, the UI uses /10
+	
+	
+	if loop:
+		time_cu.extend = Blender.IpoCurve.ExtendTypes.CYCLIC # or - EXTRAP, CYCLIC_EXTRAP, CONST, 
+
+
+def importRoute(node):
+	'''
+	Animation route only at the moment
+	'''
+	
+	routeIpoDict = node.getRouteIpoDict()
+	
+	def getIpo(id):
+		try: ipo =	routeIpoDict[id]
+		except: ipo = routeIpoDict[id] = bpy.data.ipos.new('web3d_ipo', 'Object')
+		return ipo
+	
+	# for getting definitions
+	defDict = node.getDefDict()
+	'''
+	Handles routing nodes to eachother
+	
+ROUTE vpPI.value_changed TO champFly001.set_position
+ROUTE vpOI.value_changed TO champFly001.set_orientation
+ROUTE vpTs.fraction_changed TO vpPI.set_fraction
+ROUTE vpTs.fraction_changed TO vpOI.set_fraction
+ROUTE champFly001.bindTime TO vpTs.set_startTime
+	'''
+	
+	#from_id, from_type = node.id[1].split('.')
+	#to_id, to_type = node.id[3].split('.')
+	
+	#value_changed
+	set_position_node = None
+	set_orientation_node = None
+	time_node = None
+	
+	for field in node.fields:
+		if field and field[0]=='ROUTE':
+			from_id, from_type = field[1].split('.')
+			to_id, to_type = field[3].split('.')
+			
+			if from_type == 'value_changed':
+				if to_type == 'set_position':
+					ipo = getIpo(to_id)
+					set_data_from_node = defDict[from_id]
+					translatePositionInterpolator(set_data_from_node, ipo)
+				
+				if to_type == 'set_orientation':
+					ipo = getIpo(to_id)
+					set_data_from_node = defDict[from_id]
+					translateOrientationInterpolator(set_data_from_node, ipo)
+				
+				if to_type == 'set_scale':
+					ipo = getIpo(to_id)
+					set_data_from_node = defDict[from_id]
+					translateScalarInterpolator(set_data_from_node, ipo)
+				
+			elif from_type == 'bindTime':
+				ipo = getIpo(from_id)
+				time_node = defDict[to_id]
+				translateTimeSensor(time_node, ipo)
+			
+		
 
 
 def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
@@ -1818,14 +2156,44 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 		elif spec=='Transform':
 			# Only use transform nodes when we are not importing a flat object hierarchy
 			if PREF_FLAT==False:
-				importTransform(node, ancestry)			
-		else:
+				importTransform(node, ancestry)
+			'''
+		# These are delt with later within importRoute
+		elif spec=='PositionInterpolator':
+			ipo = bpy.data.ipos.new('web3d_ipo', 'Object')
+			translatePositionInterpolator(node, ipo)
+			'''
 			
+		else:
 			# Note, include this function so the VRML/X3D importer can be extended
 			# by an external script.
 			if HELPER_FUNC:
 				HELPER_FUNC(node, ancestry)
+
+
+
+	# After we import all nodes, route events - anim paths
+	for node, ancestry in all_nodes:
+		importRoute(node)
+	
+	for node, ancestry in all_nodes:
+		if node.isRoot():
+			# we know that all nodes referenced from will be in 
+			# routeIpoDict so no need to run node.getDefDict() for every node.
+			routeIpoDict = node.getRouteIpoDict()
+			defDict = node.getDefDict()
 			
+			for key, ipo in routeIpoDict.iteritems():
+				
+				# Assign anim curves
+				node = defDict[key]
+				if node.blendObject==None: # Add an object if we need one for animation
+					node.blendObject = bpy.data.scenes.active.objects.new('Empty', 'AnimOb') # , name)
+					
+				node.blendObject.setIpo(ipo)
+
+	
+	
 	# Add in hierarchy
 	if PREF_FLAT==False:
 		child_dict = {}
@@ -1886,7 +2254,7 @@ def load_ui(path):
 if __name__ == '__main__':
 	Window.FileSelector(load_ui, 'Import X3D/VRML97')
 	
-	
+
 # Testing stuff
 
 # load_web3d('/test.x3d')
