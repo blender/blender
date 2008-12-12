@@ -49,6 +49,9 @@
 #include "UI_text.h"
 #include "UI_view2d.h"
 
+#include "UI_interface.h"
+#include "interface.h"
+
 /* *********************************************************************** */
 /* Refresh and Validation */
 
@@ -946,13 +949,16 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 	UI_DrawString(G.fonts, str, 0); // XXX check this again when new text-drawing api is done
 }
 
+/* local define for radius of scroller 'button' caps */
+#define V2D_SCROLLCAP_RAD	5
 
 /* Draw scrollbars in the given 2d-region */
-void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *scrollers)
+void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
-	const int darker= -50, midark= -20, dark= 0, light= 20, lighter= 50;
+	const int darker= -50, dark= -10, light= 20, lighter= 50;
 	rcti vert, hor;
 	
+	/* make copies of rects for less typing */
 	vert= v2d->vert;
 	hor= v2d->hor;
 	
@@ -962,31 +968,54 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
 		
-		/* slider 'button' */
-			// FIXME: implement fancy one... but only when we get this working first!
-		{
+		/* scroller 'button' 
+		 *	- if view is zoomable in x, draw handles too 
+		 *	- handles are drawn darker
+		 */
+		if (v2d->keepzoom & V2D_LOCKZOOM_X) {
+			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			glRecti(scrollers->hor_min,  hor.ymin+2,  scrollers->hor_max,  hor.ymax-2);
 			
-			/* draw 'handles' on either end of bar */
-			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0)
-				UI_ThemeColorShade(TH_SHADE1, darker);
-			else
-				UI_ThemeColorShade(TH_SHADE1, midark);
+			uiSetRoundBox(15);
+			gl_round_box_shade(GL_POLYGON, 
+					vs->hor_min, hor.ymin+2, 
+					vs->hor_max, hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
+		}
+		else {
+			/* base bar drawn as shaded rect */
+			UI_ThemeColorShade(TH_SHADE1, dark);
+			uiSetRoundBox(0);
+			gl_round_box_shade(GL_POLYGON, 
+					vs->hor_min, hor.ymin+2, 
+					vs->hor_max, hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
+			
+			/* handles draw darker */
+			// XXX handles are drawn with the two last args set to same values, otherwise, max appears darker than min
+			UI_ThemeColorShade(TH_SHADE1, darker);
 			
 			/* 'minimum' handle */
-			glRecti(scrollers->hor_min-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2,  
-					scrollers->hor_min+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2);
-					
+			uiSetRoundBox(9);
+			gl_round_box_shade(GL_POLYGON, 
+					vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
+					vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, 0.07f, -0.07f);
+					//V2D_SCROLLCAP_RAD, 0, 0);
+			
 			/* maximum handle */
-			glRecti(scrollers->hor_max-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2,  
-					scrollers->hor_max+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2);
+			uiSetRoundBox(6);
+			gl_round_box_shade(GL_POLYGON, 
+					vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
+					vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, 0.07f, -0.07f);
+					//V2D_SCROLLCAP_RAD, 0, 0);
 		}
 		
 		/* scale indicators */
 		// XXX will need to update the font drawing when the new stuff comes in
 		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) {
-			View2DGrid *grid= scrollers->grid;
+			View2DGrid *grid= vs->grid;
 			float fac, dfac, fac2, val;
 			
 			/* the numbers: convert grid->startx and -dx to scroll coordinates 
@@ -1004,26 +1033,26 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 			val= grid->startx;
 			
 			/* if we're clamping to whole numbers only, make sure entries won't be repeated */
-			if (scrollers->xclamp == V2D_GRID_CLAMP) {
+			if (vs->xclamp == V2D_GRID_CLAMP) {
 				while (grid->dx < 0.9999f) {
 					grid->dx *= 2.0f;
 					dfac *= 2.0f;
 				}
 			}
-			if (scrollers->xunits == V2D_UNIT_FRAMES)
+			if (vs->xunits == V2D_UNIT_FRAMES)
 				grid->powerx= 1;
 			
 			/* draw numbers in the appropriate range */
 			if (dfac != 0.0f) {
 				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
-					switch (scrollers->xunits) {
+					switch (vs->xunits) {
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
-							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
 							fac2= val/FPS;
-							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
 						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
@@ -1034,13 +1063,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 							time= floor(fac2);
 							fac2= fac2-time;
 							
-							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), time+FPS*fac2/100.0, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), time+FPS*fac2/100.0, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
 						}
 							break;
 							
 						case V2D_UNIT_DEGREES:		/* IPO-Editor for rotation IPO-Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(scrollers, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
 					}
 				}
@@ -1061,31 +1090,51 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
 		
-		/* slider 'button' */
-			// FIXME: implement fancy one... but only when we get this working first!
-		{
+		/* scroller 'button' 
+		 *	- if view is zoomable in y, draw handles too 
+		 *	- handles are drawn darker
+		 */
+		// XXX gl_round_box_shade is currently hardcoded to do horizontal buts only... need a vertical region
+		if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
+			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			glRecti(vert.xmin+2,  scrollers->vert_min,  vert.xmax-2,  scrollers->vert_max);
 			
-			/* draw 'handles' on either end of bar */
-			if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0)
-				UI_ThemeColorShade(TH_SHADE1, darker);
-			else
-				UI_ThemeColorShade(TH_SHADE1, midark);
+			uiSetRoundBox(15);
+			gl_round_box_shade(GL_POLYGON, 
+					vert.xmin+2, vs->vert_min, 
+					vert.xmax-2, vs->vert_max, 
+					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
+		}
+		else {
+			/* for now, draw base bar as unshaded rect */
+			// FIXME: this should be shaded horizontally too
+			UI_ThemeColorShade(TH_SHADE1, dark);
+			glRecti(vert.xmin+2, vs->vert_min,  
+					vert.xmax-2, vs->vert_max);
+			
+			/* handles draw darker */
+			// XXX handles are drawn with the two last args set to same values, otherwise, max appears darker than min
+			UI_ThemeColorShade(TH_SHADE1, darker);
 			
 			/* 'minimum' handle */
-			glRecti(vert.xmin+2,  scrollers->vert_min-V2D_SCROLLER_HANDLE_SIZE,  
-					vert.xmax-2,  scrollers->vert_min+V2D_SCROLLER_HANDLE_SIZE);
-					
+			uiSetRoundBox(12);
+			gl_round_box_shade(GL_POLYGON, 
+					vert.xmin+2, vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
+					vert.xmax-2, vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
+					V2D_SCROLLCAP_RAD, 0, 0);
+			
 			/* maximum handle */
-			glRecti(vert.xmin+2,  scrollers->vert_max-V2D_SCROLLER_HANDLE_SIZE,  
-					vert.xmax-2,  scrollers->vert_max+V2D_SCROLLER_HANDLE_SIZE);
+			uiSetRoundBox(3);
+			gl_round_box_shade(GL_POLYGON, 
+					vert.xmin+2, vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
+					vert.xmax-2, vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
+					V2D_SCROLLCAP_RAD, 0, 0);
 		}
 		
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
 		if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) {
-			View2DGrid *grid= scrollers->grid;
+			View2DGrid *grid= vs->grid;
 			float fac, dfac, val;
 			
 			/* the numbers: convert grid->starty and dy to scroll coordinates 
@@ -1106,12 +1155,12 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *s
 			
 			/* if vertical clamping (to whole numbers) is used (i.e. in Sequencer), apply correction */
 			// XXX only relevant to Sequencer, so need to review this when we port that code
-			if (scrollers->yclamp == V2D_GRID_CLAMP)
+			if (vs->yclamp == V2D_GRID_CLAMP)
 				fac += 0.5f * dfac;
 				
 			/* draw vertical steps */
 			for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
-				scroll_printstr(scrollers, (float)(vert.xmax)-14.0, fac, val, grid->powery, scrollers->yunits, 'v');
+				scroll_printstr(vs, (float)(vert.xmax)-14.0, fac, val, grid->powery, vs->yunits, 'v');
 			}			
 		}	
 		

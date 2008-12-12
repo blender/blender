@@ -5115,7 +5115,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 			}
 				break;
-				//case SPACE_XXX: // FIXME... add other ones
+			//case SPACE_XXX: // FIXME... add other ones
 				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
 				//	break;
 		}
