@@ -37,5 +37,9 @@ struct wmWindowManager;
 void outliner_operatortypes(void);
 void outliner_keymap(struct wmWindowManager *wm);
 
+/* outliner_header.c */
+void outliner_header_buttons(const bContext *C, ARegion *ar);
+
+
 #endif /* ED_OUTLINER_INTERN_H */
 

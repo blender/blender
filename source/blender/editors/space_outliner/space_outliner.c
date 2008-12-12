@@ -460,6 +460,8 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	outliner_header_buttons(C, ar);
+	
 	width= ar->winrct.xmax - ar->winrct.xmin;
 	height= ar->winrct.ymax - ar->winrct.ymin;
 
@@ -468,7 +470,7 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 	UI_SetScale(1.0);
-	UI_RasterPos(0.5f*(width - (bbox.xmax - bbox.xmin)), 0.5f*(height - (bbox.ymax - bbox.ymin)));
+	UI_RasterPos(50 + 0.5f*(width - (bbox.xmax - bbox.xmin)), 0.5f*(height - (bbox.ymax - bbox.ymin)));
 	UI_DrawString(UI_HELV, path, 0);
 }
 
