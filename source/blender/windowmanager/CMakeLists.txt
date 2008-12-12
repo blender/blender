@@ -29,13 +29,13 @@ FILE(GLOB SRC intern/*.c)
 SET(INC .
   ../editors/include
   ../../../intern/guardedalloc ../../../intern/memutil
-  ../blenlib ../makesdna ../blenkernel
+  ../blenlib ../makesdna ../makesrna ../blenkernel
   ../include ../../../intern/bmfont ../imbuf ../render/extern/include
   ../../../intern/bsp/extern ../radiosity/extern/include
   ../../../intern/decimation/extern ../blenloader ../python
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
-  ../../../intern/ghost ../../../intern/opennl/extern
+  ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
   ${PYTHON_INC}
   ${SDL_INC}

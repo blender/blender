@@ -29,23 +29,24 @@
 
 FILE(GLOB SRC */*.c)
 
-SET(INC ../windowmanager
-  ../editors/include
-  ../../../intern/guardedalloc ../../../intern/memutil
-  ../blenlib ../makesdna ../blenkernel
-  ../include ../../../intern/bmfont ../imbuf ../render/extern/include
-  ../../../intern/bsp/extern ../radiosity/extern/include
-  ../../../intern/decimation/extern ../blenloader ../python
-  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
-  ../quicktime ../../../intern/elbeem/extern
-  ../../../intern/ghost ../../../intern/opennl/extern
-  ../nodes
+SET(INC ../../windowmanager
+  ../../editors/include
+  ../../../../intern/guardedalloc ../../../../intern/memutil
+  ../../blenlib ../../makesdna ../../makesrna ../../blenkernel
+  ../../include ../../../../intern/bmfont ../../imbuf 
+  ../../render/extern/include ../../../../intern/bsp/extern 
+  ../../radiosity/extern/include
+  ../../../intern/decimation/extern ../../blenloader ../../python
+  ../../../kernel/gen_system ../../../../intern/SoundSystem ../../readstreamglue
+  ../../quicktime ../../../../intern/elbeem/extern
+  ../../../../intern/ghost ../../../../intern/opennl/extern
+  ../../nodes
   ${PYTHON_INC}
   ${SDL_INC}
 )
 
 IF(WITH_INTERNATIONAL)
-  SET(INC ${INC} ../ftfont)
+  SET(INC ${INC} ../../ftfont)
   ADD_DEFINITIONS(-DINTERNATIONAL)
   ADD_DEFINITIONS(-DFTGL_STATIC_LIBRARY)
 ENDIF(WITH_INTERNATIONAL)

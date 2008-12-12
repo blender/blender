@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 17433 2008-11-12 21:16:53Z blendix $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -24,20 +24,11 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna makesrna python radiosity readblenfile render yafray)
+FILE(GLOB SRC *.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
 
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
+FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
+ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})
 
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
+MESSAGE(STATUS "Configuring makesrna")

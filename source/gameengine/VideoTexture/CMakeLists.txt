@@ -39,6 +39,7 @@ SET(INC
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
   ../../../source/blender/makesdna
+  ../../../source/blender/editors/include
   ../../../source/blender/imbuf
   ../../../source/blender/python
   ../../../source/blender/gpu

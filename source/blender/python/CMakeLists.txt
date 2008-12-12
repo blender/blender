@@ -26,8 +26,8 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../blenlib ../makesdna
-  ../blenkernel ../editors/include
+  . ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
+  ../blenkernel ../editors/include ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)

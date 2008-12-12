@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 13161 2008-01-07 19:13:47Z hos $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -24,20 +24,4 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon gpu makesdna makesrna python radiosity readblenfile render yafray)
-
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(ftfont)
-ENDIF(WITH_INTERNATIONAL)
-
-IF(WITH_OPENEXR)
-  SUBDIRS(imbuf/intern/openexr)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_DDS)
-  SUBDIRS(imbuf/intern/dds)
-ENDIF(WITH_DDS)
-
-IF(WITH_QUICKTIME)
-  SUBDIRS(quicktime)
-ENDIF(WITH_QUICKTIME)
+SUBDIRS(intern)
