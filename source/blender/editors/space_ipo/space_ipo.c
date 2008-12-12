@@ -238,7 +238,7 @@ static void ipo_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_ipo(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype ipo");
 	ARegionType *art;
 	
 	st->spaceid= SPACE_IPO;
@@ -251,7 +251,7 @@ void ED_spacetype_ipo(void)
 	st->keymap= ipo_keymap;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= ipo_main_area_init;
 	art->draw= ipo_main_area_draw;
@@ -260,7 +260,7 @@ void ED_spacetype_ipo(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
@@ -271,7 +271,7 @@ void ED_spacetype_ipo(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype ipo region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 80;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
