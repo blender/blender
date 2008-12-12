@@ -65,7 +65,6 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_gpencil_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_global.h"
@@ -92,7 +91,6 @@
 
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
-#include "BDR_gpencil.h"
 #include "GPU_draw.h"
 
 #include "GHOST_Types.h"
@@ -4318,7 +4316,6 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	else return 0;
 }
 
-/* this is only useful for debugging at the moment */
 static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
 {
 	Image *newimage = NULL;

@@ -5020,7 +5020,7 @@ void do_meshbuts(unsigned short event)
 			if (G.obedit || me) {
 				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
 				CustomData_set_layer_mask(fdata, CD_MTFACE, acttface_mask-1);
-				BIF_undo_push("Set Mask UV Texture");
+				BIF_undo_push("Set Stencil UV Texture");
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			break;
@@ -6393,7 +6393,7 @@ void brush_buttons(uiBlock *block, short sima,
 				uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_BACKFACE, B_NOP, "Cull",	xco+10+butw/2,yco-45,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Ignore faces pointing away from the view (faster)");
 				
 				uiDefButBitS(block, TOGN|BIT, IMAGEPAINT_PROJECT_FLAT, B_NOP, "Normal",	xco+10,yco-65,butw/2,19, &settings->imapaint.flag, 0, 0, 0, 0, "Paint most on faces pointing towards the view");
-				uiDefButS(block, NUM, B_NOP, "", xco+10 +(butw/2),yco-65,butw/2,19, &settings->imapaint.normal_angle, 10.0, 90.0, 0, 0, "Paint most on faces pointing towards the view acording to this angle)");
+				uiDefButS(block, NUM, B_NOP, "", xco+10 +(butw/2),yco-65,butw/2,19, &settings->imapaint.normal_angle, 10.0, 90.0, 0, 0, "Paint most on faces pointing towards the view acording to this angle");
 				
 				uiDefButS(block, NUM, B_NOP, "Bleed: ", xco+10,yco-85,butw,19, &settings->imapaint.seam_bleed, 0.0, 8.0, 0, 0, "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
 				uiBlockEndAlign(block);

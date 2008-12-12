@@ -346,7 +346,7 @@ typedef struct ImagePaintSettings {
 	struct Brush *brush;
 	short flag, tool;
 	
-	/* for projection painting only - todo - use flags */
+	/* for projection painting only */
 	short seam_bleed,normal_angle;
 } ImagePaintSettings;
 
