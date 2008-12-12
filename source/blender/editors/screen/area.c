@@ -500,4 +500,53 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 #endif
 }
 
+void ED_newspace(ScrArea *sa, int type)
+{
+	if(sa->spacetype != type) {
+		SpaceType *st= BKE_spacetype_from_id(type);
+		SpaceLink *slold= sa->spacedata.first;
+		SpaceLink *sl;
+		
+		sa->spacetype= type;
+		sa->butspacetype= type;
+		
+		/* check previously stored space */
+		for (sl= sa->spacedata.first; sl; sl= sl->next)
+			if(sl->spacetype==type)
+				break;
+		
+		/* old spacedata... happened during work on 2.50, remove */
+		if(sl && sl->regionbase.first==NULL) {
+			st->free(sl);
+			MEM_freeN(sl);
+			sl= NULL;
+		}
+		
+		if (sl) {
+			
+			/* swap regions */
+			slold->regionbase= sa->regionbase;
+			sa->regionbase= sl->regionbase;
+			sl->regionbase.first= sl->regionbase.last= NULL;
+			
+			/* put in front of list */
+			BLI_remlink(&sa->spacedata, sl);
+			BLI_addhead(&sa->spacedata, sl);
+		} 
+		else {
+			/* new space */
+			if(st) {
+				sl= st->new();
+				BLI_addhead(&sa->spacedata, sl);
+				
+				/* swap regions */
+				slold->regionbase= sa->regionbase;
+				sa->regionbase= sl->regionbase;
+				sl->regionbase.first= sl->regionbase.last= NULL;
+			}
+		}
+	}
+	
+}
+
 

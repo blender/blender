@@ -3,6 +3,7 @@ Import ('env')
 
 
 SConscript(['datafiles/SConscript',
+			'space_api/SConscript',
 			'util/SConscript',
 			'interface/SConscript',
 			'mesh/SConscript',

@@ -386,7 +386,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case B_NEWSPACE:
-			//ED_newspace(C->area, C->area->butspacetype);  // XXX for ton (breaks compiling, so disabled for now) - Aligorith
+			ED_newspace(C->area, C->area->butspacetype);
 			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 			break;
 		case B_REDRAWALL:

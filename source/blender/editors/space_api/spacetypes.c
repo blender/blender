@@ -27,6 +27,8 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 
+#include "DNA_windowmanager_types.h"
+
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
@@ -35,13 +37,9 @@
 
 #include "BIF_gl.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "ED_screen.h"
 #include "ED_area.h"
 
-#include "screen_intern.h"	/* own module include */
 
 ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
 {
