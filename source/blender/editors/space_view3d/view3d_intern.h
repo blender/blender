@@ -38,6 +38,8 @@ typedef struct ViewDepths {
 	char damaged;
 } ViewDepths;
 
+/* view3d_header.c */
+void view3d_header_buttons(const bContext *C, ARegion *ar);
 
 
 #endif /* ED_VIEW3D_INTERN_H */

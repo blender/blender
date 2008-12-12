@@ -39,7 +39,6 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "ED_area.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -385,7 +384,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	sa->type= BKE_spacetype_from_id(sa->spacetype);
 	
 	if(sa->type==NULL) {
-		sa->spacetype= SPACE_VIEW3D;
+		sa->butspacetype= sa->spacetype= SPACE_VIEW3D;
 		sa->type= BKE_spacetype_from_id(sa->spacetype);
 	}
 	

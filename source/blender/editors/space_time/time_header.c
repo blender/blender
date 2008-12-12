@@ -41,7 +41,6 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_area.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 

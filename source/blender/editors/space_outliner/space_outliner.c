@@ -52,7 +52,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "ED_area.h"
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "WM_api.h"

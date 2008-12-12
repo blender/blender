@@ -41,7 +41,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_area.h"
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 
@@ -194,9 +194,6 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void time_header_area_free(ARegion *ar)
-{
-}
 
 /* ******************** default callbacks for time space ***************** */
 
@@ -306,7 +303,6 @@ void ED_spacetype_time(void)
 	
 	art->init= time_header_area_init;
 	art->draw= time_header_area_draw;
-	art->free= time_header_area_free;
 	BLI_addhead(&st->regiontypes, art);
 		
 	BKE_spacetype_register(st);

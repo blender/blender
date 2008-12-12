@@ -54,7 +54,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "outliner_intern.h"
+#include "ipo_intern.h"
 
 
 /* ************************ header area region *********************** */
@@ -92,7 +92,7 @@ static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 
 #define B_NEWSPACE		100
 
-static void do_outliner_buttons(bContext *C, void *arg, int event)
+static void do_ipo_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case B_NEWSPACE:
@@ -103,14 +103,14 @@ static void do_outliner_buttons(bContext *C, void *arg, int event)
 }
 
 
-void outliner_header_buttons(const bContext *C, ARegion *ar)
+void ipo_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= C->area;
 	uiBlock *block;
 	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	uiBlockSetHandleFunc(block, do_outliner_buttons, NULL);
+	uiBlockSetHandleFunc(block, do_ipo_buttons, NULL);
 	
 	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
 	else uiBlockSetCol(block, TH_HEADERDESEL);

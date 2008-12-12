@@ -38,7 +38,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_area.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"

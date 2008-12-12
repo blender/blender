@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 
 #include "ED_screen.h"
-#include "ED_area.h"
+#include "ED_space_api.h"
 
 #include "RNA_access.h"
 

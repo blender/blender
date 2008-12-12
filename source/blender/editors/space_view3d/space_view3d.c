@@ -44,11 +44,15 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
-#include "ED_area.h"
+#include "ED_space_api.h"
 #include "ED_screen.h"
 
 #include "BIF_gl.h"
 
+#include "WM_api.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "view3d_intern.h"	// own include
@@ -182,7 +186,36 @@ void view3d_keymap(struct wmWindowManager *wm)
 {
 }
 
-/* only called once, from screen/spacetypes.c */
+/* add handlers, stuff you only do once or on area/region changes */
+static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+}
+
+static void view3d_header_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear */
+	if(ED_screen_area_active(C))
+		UI_GetThemeColor3fv(TH_HEADER, col);
+	else
+		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
+	
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+	
+	view3d_header_buttons(C, ar);
+	
+	/* restore view matrix? */
+	UI_view2d_view_restore(C);
+}
+
+
+/* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
 	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
@@ -207,6 +240,10 @@ void ED_spacetype_view3d(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	
+	art->init= view3d_header_area_init;
+	art->draw= view3d_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

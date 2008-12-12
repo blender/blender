@@ -186,7 +186,8 @@ typedef struct ARegion {
 /* regiontype, first two are the default set */
 #define RGN_TYPE_WINDOW		0
 #define RGN_TYPE_HEADER		1
-#define RGN_TYPE_TEMPORARY	2
+#define RGN_TYPE_CHANNELS	2
+#define RGN_TYPE_TEMPORARY	3
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

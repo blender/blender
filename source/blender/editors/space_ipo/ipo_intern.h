@@ -25,16 +25,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef ED_IPO_INTERN_H
+#define ED_IPO_INTERN_H
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+/* internal exports only */
 
-/* the pluginnable API for export to editors */
 
-/* calls for registering default spaces */
-void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
-void ED_spacetype_view3d(void);
+/* ipo_header.c */
+void ipo_header_buttons(const bContext *C, ARegion *ar);
 
-#endif /* ED_AREA_H */
+
+#endif /* ED_IPO_INTERN_H */
 

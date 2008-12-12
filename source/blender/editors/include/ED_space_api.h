@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
  * 
@@ -26,20 +26,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <string.h>
-#include <stdio.h>
+#ifndef ED_AREA_H
+#define ED_AREA_H
 
-#include "MEM_guardedalloc.h"
+/* the pluginnable API for export to editors */
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
+/* calls for registering default spaces */
+void ED_spacetype_outliner(void);
+void ED_spacetype_time(void);
+void ED_spacetype_view3d(void);
+void ED_spacetype_ipo(void);
 
-#include "BKE_global.h"
-#include "BKE_screen.h"
-
-#include "ED_screen.h"
-
-/* */
-
-
+#endif /* ED_AREA_H */
 

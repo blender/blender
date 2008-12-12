@@ -38,7 +38,7 @@
 #include "BIF_gl.h"
 
 #include "ED_screen.h"
-#include "ED_area.h"
+#include "ED_space_api.h"
 
 
 ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
@@ -64,7 +64,7 @@ void ED_spacetypes_init(void)
 	ED_spacetype_outliner();
 	ED_spacetype_time();
 	ED_spacetype_view3d();
-//	ED_spacetype_ipo();
+	ED_spacetype_ipo();
 //	...
 	
 	/* register operator types for screen and all spaces */

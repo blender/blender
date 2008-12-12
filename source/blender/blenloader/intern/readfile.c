@@ -5063,10 +5063,30 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 /* 2.50 patch */
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
-	ARegion *ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+	ARegion *ar;
+	
+	if(sl) {
+		/* first channels for ipo action nla... */
+		switch(sl->spacetype) {
+			case SPACE_IPO:
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				
+				break;
+			case SPACE_ACTION:
+				break;
+			case SPACE_NLA:
+				break;
+		}
+	}
+	/* main region */
+	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 	
 	BLI_addtail(lb, ar);
 	ar->winrct= sa->totrct;
+	
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	if(sl) {
@@ -5097,18 +5117,18 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.min[1]= ar->v2d.max[1]= 500.0;
 			}
 				break;
+			case SPACE_IPO:
+			{
+				SpaceIpo *sipo= (SpaceIpo *)sl;
+				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_LEFT);
+				
+			}
 			//case SPACE_XXX: // FIXME... add other ones
 				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
 				//	break;
-		}
-		/* further subdivision case, channels for ipo action nla... */
-		switch(sl->spacetype) {
-			case SPACE_IPO:
-				break;
-			case SPACE_ACTION:
-				break;
-			case SPACE_NLA:
-				break;
 		}
 	}
 }
