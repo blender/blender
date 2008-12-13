@@ -539,47 +539,45 @@ static float AreaSignedF2Dfl(float *v1, float *v2, float *v3)
 (v1[1]-v2[1])*(v3[0]-v2[0])));
 }
 
-static void BarycentricWeights2f(float v1[2], float v2[2], float v3[2], float pt[2], float w[3])
+static void BarycentricWeights2f(float pt[2], float v1[2], float v2[2], float v3[2], float w[3])
 {
-   float wtot_inv, wtot, wsign[3];
+   float wtot_inv, wtot;
 
-   wsign[0] = AreaSignedF2Dfl(v2, v3, pt);
-   wsign[1] = AreaSignedF2Dfl(v3, v1, pt);
-   wsign[2] = AreaSignedF2Dfl(v1, v2, pt);
-   wtot = wsign[0]+wsign[1]+wsign[2];
+   w[0] = AreaSignedF2Dfl(v2, v3, pt);
+   w[1] = AreaSignedF2Dfl(v3, v1, pt);
+   w[2] = AreaSignedF2Dfl(v1, v2, pt);
+   wtot = w[0]+w[1]+w[2];
 
-   if (fabs(wtot) > 0.0f) {
+   if (wtot != 0.0f) {
        wtot_inv = 1.0f/wtot;
 
-       w[0] = wsign[0]*wtot_inv;
-       w[1] = wsign[1]*wtot_inv;
-       w[2] = wsign[2]*wtot_inv;
+       w[0] = w[0]*wtot_inv;
+       w[1] = w[1]*wtot_inv;
+       w[2] = w[2]*wtot_inv;
    }
    else /* dummy values for zero area face */
        w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
-
-static void BarycentricWeightsPersp2f(float v1[4], float v2[4], float v3[4], float pt[2], float w[3])
+static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
 {
-	float persp_tot, persp_tot_inv;
-	BarycentricWeights2f(v1, v2, v3, pt, w);
-	
-	w[0] /= v1[3];
-	w[1] /= v2[3];
-	w[2] /= v3[3];
-	
-	persp_tot = w[0]+w[1]+w[2];
-	if (persp_tot > 0.0f) {
-		persp_tot_inv = 1.0f / persp_tot;
-		w[0] *= persp_tot_inv;
-		w[1] *= persp_tot_inv;
-		w[2] *= persp_tot_inv;
-	}
-	else {
-		w[0] = w[1] = w[2] = 1.0f/3.0f; /* dummy values for zero area face */
-	}
+   float wtot_inv, wtot;
+
+   w[0] = AreaSignedF2Dfl(v2, v3, pt) / v1[3];
+   w[1] = AreaSignedF2Dfl(v3, v1, pt) / v2[3];
+   w[2] = AreaSignedF2Dfl(v1, v2, pt) / v3[3];
+   wtot = w[0]+w[1]+w[2];
+
+   if (wtot != 0.0f) {
+       wtot_inv = 1.0f/wtot;
+
+       w[0] = w[0]*wtot_inv;
+       w[1] = w[1]*wtot_inv;
+       w[2] = w[2]*wtot_inv;
+   }
+   else /* dummy values for zero area face */
+       w[0] = w[1] = w[2] = 1.0f/3.0f;
 }
 
 static void VecWeightf(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
@@ -595,9 +593,15 @@ static void Vec2Weightf(float p[2], const float v1[2], const float v2[2], const 
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
-static float tri_depth_2d(float v1[3], float v2[3], float v3[3], float pt[2], float w[3])
+static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
-	BarycentricWeights2f(v1, v2, v3, pt, w);
+	BarycentricWeights2f(pt, v1, v2, v3, w);
+	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
+}
+
+static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
+{
+	BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
@@ -633,7 +637,9 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 		v3= ps->screenCoords[mf->v3];
 		
 		if (IsectPT2Df(pt, v1, v2, v3)) {
-			z_depth= tri_depth_2d(v1, v2, v3, pt, w_tmp);
+			if (ps->is_ortho)	z_depth= VecZDepthOrtho(pt, v1, v2, v3, w_tmp);
+			else				z_depth= VecZDepthPersp(pt, v1, v2, v3, w_tmp);
+			
 			if (z_depth < z_depth_best) {
 				best_face_index = face_index;
 				best_side = 0;
@@ -645,7 +651,9 @@ static int project_paint_PickFace(const ProjPaintState *ps, float pt[2], float w
 			v4= ps->screenCoords[mf->v4];
 			
 			if (IsectPT2Df(pt, v1, v3, v4)) {
-				z_depth= tri_depth_2d(v1, v3, v4, pt, w_tmp);
+				if (ps->is_ortho)	z_depth= VecZDepthOrtho(pt, v1, v3, v4, w_tmp);
+				else				z_depth= VecZDepthPersp(pt, v1, v3, v4, w_tmp);
+
 				if (z_depth < z_depth_best) {
 					best_face_index = face_index;
 					best_side= 1;
@@ -768,9 +776,10 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
  * return...
  *  0	: no occlusion
  * -1	: no occlusion but 2D intersection is true (avoid testing the other half of a quad)
- *  1	: occluded */
+ *  1	: occluded
+    2	: occluded with w[3] weights set (need to know in some cases) */
 
-static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], float v3[3])
+static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], float v3[3], float w[3], int is_ortho)
 {
 	/* if all are behind us, return false */
 	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
@@ -787,10 +796,13 @@ static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], floa
 		return 1;
 	}
 	else {
-		float w[3];
 		/* we intersect? - find the exact depth at the point of intersection */
-		if (tri_depth_2d(v1, v2, v3, pt, w) < pt[2]) {
-			return 1; /* This point is occluded by another face */
+		/* Is this point is occluded by another face? */
+		if (is_ortho) {
+			if (VecZDepthOrtho(pt, v1, v2, v3, w) < pt[2]) return 2;
+		}
+		else {
+			if (VecZDepthPersp(pt, v1, v2, v3, w) < pt[2]) return 2;
 		}
 	}
 	return -1;
@@ -803,19 +815,17 @@ static int project_paint_occlude_ptv_clip(
 		const int side )
 {
 	float w[3], wco[3];
-	
-	/* if all are behind us, return false */
-	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
-		return 0;
-		
-	/* do a 2D point in try intersection */
-	if (!IsectPT2Df(pt, v1, v2, v3))
-		return 0; /* we know there is  */
-	
-	/* we intersect? - find the exact depth at the point of intersection */
-	if (tri_depth_2d(v1, v2, v3, pt, w) > pt[2])
-		return -1;
-	
+	int ret = project_paint_occlude_ptv(pt, v1, v2, v3, w, ps->is_ortho);
+
+	if (ret <= 0)
+		return ret;
+
+	if (ret==1) { /* weights not calculated */
+		if (ps->is_ortho)	BarycentricWeights2f(pt, v1, v2, v3, w);
+		else				BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
+	}
+
+	/* Test if we're in the clipped area, */
 	if (side)	VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 	else		VecWeightf(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 	
@@ -836,47 +846,32 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 	MFace *mf;
 	int face_index;
 	int isect_ret;
+	float w[3]; /* not needed when clipping */
 	
 	/* we could return 0 for 1 face buckets, as long as this function assumes
 	 * that the point its testing is only every originated from an existing face */
-	
-	if(G.vd->flag & V3D_CLIPPING) {
-		for (; bucketFace; bucketFace = bucketFace->next) {
-			face_index = (int)bucketFace->link;
-			
-			if (orig_face != face_index) {
-				mf = ps->dm_mface + face_index;
-					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], 0);
-					
-					/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
-					if (isect_ret==0 && mf->v4) {
-						isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
-					}
-				if (isect_ret==1) {
-					/* TODO - we may want to cache the first hit,
-					 * it is not possible to swap the face order in the list anymore */
-					return 1; 
-				}
+
+	for (; bucketFace; bucketFace = bucketFace->next) {
+		face_index = (int)bucketFace->link;
+
+		if (orig_face != face_index) {
+			mf = ps->dm_mface + face_index;
+			if(G.vd->flag & V3D_CLIPPING)
+				isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], 0);
+			else
+				isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], w, ps->is_ortho);
+
+			/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
+			if (isect_ret==0 && mf->v4) {
+				if(G.vd->flag & V3D_CLIPPING)
+					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
+				else
+					isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], w, ps->is_ortho);
 			}
-		}
-	}
-	else {
-		for (; bucketFace; bucketFace = bucketFace->next) {
-			face_index = (int)bucketFace->link;
-			
-			if (orig_face != face_index) {
-				mf = ps->dm_mface + face_index;
-					isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3]);
-					
-					/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
-					if (isect_ret==0 && mf->v4) {
-						isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4]);
-					}
-				if (isect_ret==1) {
-					/* TODO - we may want to cache the first hit,
-					 * it is not possible to swap the face order in the list anymore */
-					return 1; 
-				}
+			if (isect_ret==1) {
+				/* TODO - we may want to cache the first hit,
+				 * it is not possible to swap the face order in the list anymore */
+				return 1;
 			}
 		}
 	}
@@ -1285,7 +1280,7 @@ static void screen_px_from_ortho(
 		float pixelScreenCo[4],
 		float w[3])
 {
-	BarycentricWeights2f(uv1co, uv2co, uv3co, uv, w);
+	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
 	VecWeightf(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
@@ -1300,7 +1295,7 @@ static void screen_px_from_persp(
 {
 
 	float wtot_inv, wtot;
-	BarycentricWeights2f(uv1co, uv2co, uv3co, uv, w);
+	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
 	
 	/* re-weight from the 4th coord of each screen vert */
 	w[0] *= v1co[3];
@@ -1360,7 +1355,7 @@ float project_paint_uvpixel_mask(
 		const int side,
 		const float w[3])
 {
-	float mask, mask_angle;
+	float mask;
 	
 	/* Image Mask */
 	if (ps->do_layer_mask) {
@@ -1872,22 +1867,22 @@ static void rect_to_uvspace_ortho(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -1906,22 +1901,22 @@ static void rect_to_uvspace_persp(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);	
+	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, uv, w);
+	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
 	Vec2Weightf(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -2163,13 +2158,13 @@ static void project_bucket_clip_face(
 		
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeights2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				BarycentricWeights2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
 				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 		else {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeightsPersp2f(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
+				BarycentricWeightsPersp2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
 				Vec2Weightf(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
@@ -2597,10 +2592,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
 												/* TODO, this is not QUITE correct since UV is not inside the UV's but good enough for seams */
 												if (side) {
-													BarycentricWeights2f(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
+													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], w);
 												}
 												else {
-													BarycentricWeights2f(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
+													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], w);
 												}
 												
 											}
