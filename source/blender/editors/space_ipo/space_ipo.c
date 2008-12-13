@@ -151,7 +151,6 @@ static SpaceLink *ipo_duplicate(SpaceLink *sl)
 static void draw_cfra(const bContext *C, SpaceIpo *sipo, View2D *v2d)
 {
 	Scene *scene= C->scene;
-	Object *ob;
 	float vec[2];
 	
 	//vec[0] = get_ipo_cfra_from_cfra(sipo, scene->r.cfra);
@@ -253,6 +252,17 @@ void ipo_keymap(struct wmWindowManager *wm)
 {
 }
 
+static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_SHADE2, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void ipo_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -329,7 +339,7 @@ void ED_spacetype_ipo(void)
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 //	art->init= ipo_channel_area_init;
-//	art->draw= ipo_channel_area_draw;
+	art->draw= ipo_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

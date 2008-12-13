@@ -186,6 +186,19 @@ void view3d_keymap(struct wmWindowManager *wm)
 {
 }
 
+static void view3d_main_area_draw(const bContext *C, ARegion *ar)
+{
+	/* draw entirely, view changes should be handled here */
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+}
+
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -233,6 +246,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_WINDOW;
+	art->draw= view3d_main_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
