@@ -13,5 +13,6 @@ SConscript(['datafiles/SConscript',
 			'space_view3d/SConscript',
 			'space_ipo/SConscript',
 			'space_image/SConscript',
+			'space_node/SConscript',
 			'transform/SConscript',
 			'screen/SConscript'])

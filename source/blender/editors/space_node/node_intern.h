@@ -25,19 +25,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef ED_NODE_INTERN_H
+#define ED_NODE_INTERN_H
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+/* internal exports only */
 
-/* the pluginnable API for export to editors */
 
-/* calls for registering default spaces */
-void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
-void ED_spacetype_view3d(void);
-void ED_spacetype_ipo(void);
-void ED_spacetype_image(void);
-void ED_spacetype_node(void);
+/* node_header.c */
+void node_header_buttons(const bContext *C, ARegion *ar);
 
-#endif /* ED_AREA_H */
+
+#endif /* ED_NODE_INTERN_H */
 

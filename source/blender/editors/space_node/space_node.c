@@ -29,7 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -57,92 +57,104 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "ED_markers.h"
+#include "node_intern.h"	// own include
 
-#include "image_intern.h"	// own include
+/* ******************** default callbacks for node space ***************** */
 
-/* ******************** default callbacks for image space ***************** */
-
-static SpaceLink *image_new(void)
+static SpaceLink *node_new(void)
 {
 	ARegion *ar;
-	SpaceImage *simage;
+	SpaceNode *snode;
 	
-	simage= MEM_callocN(sizeof(SpaceImage), "initimage");
-	simage->spacetype= SPACE_IMAGE;
-	simage->zoom= 1;
-	
-	simage->iuser.ok= 1;
-	simage->iuser.fie_ima= 2;
-	simage->iuser.frames= 100;
-	
+	snode= MEM_callocN(sizeof(SpaceNode), "initnode");
+	snode->spacetype= SPACE_NODE;	
 	
 	/* header */
-	ar= MEM_callocN(sizeof(ARegion), "header for image");
+	ar= MEM_callocN(sizeof(ARegion), "header for node");
 	
-	BLI_addtail(&simage->regionbase, ar);
+	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for image");
+	ar= MEM_callocN(sizeof(ARegion), "main area for node");
 	
-	BLI_addtail(&simage->regionbase, ar);
+	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* channel list region XXX */
-
+	ar->v2d.tot.xmin=  -10.0f;
+	ar->v2d.tot.ymin=  -10.0f;
+	ar->v2d.tot.xmax= 512.0f;
+	ar->v2d.tot.ymax= 512.0f;
 	
-	return (SpaceLink *)simage;
+	ar->v2d.cur.xmin=  0.0f;
+	ar->v2d.cur.ymin=  0.0f;
+	ar->v2d.cur.xmax= 512.0f;
+	ar->v2d.cur.ymax= 512.0f;
+	
+	ar->v2d.min[0]= 1.0f;
+	ar->v2d.min[1]= 1.0f;
+	
+	ar->v2d.max[0]= 32000.0f;
+	ar->v2d.max[1]= 32000.0f;
+	
+	ar->v2d.minzoom= 0.5f;
+	ar->v2d.maxzoom= 1.21f;
+	
+	ar->v2d.scroll= 0;
+	ar->v2d.keepaspect= 1;
+	ar->v2d.keepzoom= 1;
+	ar->v2d.keeptot= 0;
+	
+	
+	return (SpaceLink *)snode;
 }
 
 /* not spacelink itself */
-static void image_free(SpaceLink *sl)
+static void node_free(SpaceLink *sl)
 {	
-	SpaceImage *simage= (SpaceImage*) sl;
+//	SpaceNode *snode= (SpaceNode*) sl;
 	
-	if(simage->cumap)
-		curvemapping_free(simage->cumap);
-//	if(simage->gpd)
-// XXX		free_gpencil_data(simage->gpd);
-	
+// XXX	if(snode->gpd) free_gpencil_data(snode->gpd);
 }
 
 
 /* spacetype; init callback */
-static void image_init(struct wmWindowManager *wm, ScrArea *sa)
+static void node_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 
 }
 
-static SpaceLink *image_duplicate(SpaceLink *sl)
+static SpaceLink *node_duplicate(SpaceLink *sl)
 {
-	SpaceImage *simagen= MEM_dupallocN(sl);
+	SpaceNode *snoden= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
+	snoden->nodetree= NULL;
+// XXX	snoden->gpd= gpencil_data_duplicate(snode->gpd);
 	
-	return (SpaceLink *)simagen;
+	return (SpaceLink *)snoden;
 }
 
 
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
 	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void image_main_area_draw(const bContext *C, ARegion *ar)
+static void node_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceImage *simage= C->area->spacedata.first;
+	// SpaceNode *snode= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
 	float col[3];
 	
@@ -162,23 +174,23 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-void image_operatortypes(void)
+void node_operatortypes(void)
 {
 	
 }
 
-void image_keymap(struct wmWindowManager *wm)
+void node_keymap(struct wmWindowManager *wm)
 {
 	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void image_header_area_init(wmWindowManager *wm, ARegion *ar)
+static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
 }
 
-static void image_header_area_draw(const bContext *C, ARegion *ar)
+static void node_header_area_draw(const bContext *C, ARegion *ar)
 {
 	float col[3];
 	
@@ -194,61 +206,61 @@ static void image_header_area_draw(const bContext *C, ARegion *ar)
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 	
-	image_header_buttons(C, ar);
+	node_header_buttons(C, ar);
 	
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
 
-static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
+static void node_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 }
 
 /* only called once, from space/spacetypes.c */
-void ED_spacetype_image(void)
+void ED_spacetype_node(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype image");
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype node");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_IMAGE;
+	st->spaceid= SPACE_NODE;
 	
-	st->new= image_new;
-	st->free= image_free;
-	st->init= image_init;
-	st->duplicate= image_duplicate;
-	st->operatortypes= image_operatortypes;
-	st->keymap= image_keymap;
+	st->new= node_new;
+	st->free= node_free;
+	st->init= node_init;
+	st->duplicate= node_duplicate;
+	st->operatortypes= node_operatortypes;
+	st->keymap= node_keymap;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init= image_main_area_init;
-	art->draw= image_main_area_draw;
-	art->listener= image_main_area_listener;
+	art->init= node_main_area_init;
+	art->draw= node_main_area_draw;
+	art->listener= node_main_area_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-	art->init= image_header_area_init;
-	art->draw= image_header_area_draw;
+	art->init= node_header_area_init;
+	art->draw= node_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->minsizex= 80;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-//	art->init= image_channel_area_init;
-//	art->draw= image_channel_area_draw;
+//	art->init= node_channel_area_init;
+//	art->draw= node_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

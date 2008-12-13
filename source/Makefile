@@ -235,6 +235,7 @@ PULIB = $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/ed_space/libed_space.a
+PULIB += $(OCGDIR)/blender/ed_node/libed_node.a
 PULIB += $(OCGDIR)/blender/ed_image/libed_image.a
 PULIB += $(OCGDIR)/blender/ed_ipo/libed_ipo.a
 PULIB += $(OCGDIR)/blender/ed_outliner/libed_outliner.a
