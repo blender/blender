@@ -502,12 +502,9 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 {
 	*curmasked= v2d->cur;
 	
-	/* currently, the following 'hack' is only necessary for Outliner, and will cause
-	 * errors in all other views...
-	 */
-	if ((v2d->scroll) && (v2d->keeptot==2)) {
-		float dx= ((float)(v2d->mask.xmax-v2d->mask.xmin+1))/(v2d->cur.xmax-v2d->cur.xmin);
-		float dy= ((float)(v2d->mask.ymax-v2d->mask.ymin+1))/(v2d->cur.ymax-v2d->cur.ymin);
+	if ((v2d->scroll)) {
+		float dx= (v2d->cur.xmax-v2d->cur.xmin)/((float)(v2d->mask.xmax-v2d->mask.xmin+1));
+		float dy= (v2d->cur.ymax-v2d->cur.ymin)/((float)(v2d->mask.ymax-v2d->mask.ymin+1));
 		
 		if (v2d->mask.xmin != 0)
 			curmasked->xmin -= dx*(float)v2d->mask.xmin;
