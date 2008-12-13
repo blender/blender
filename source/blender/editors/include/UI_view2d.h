@@ -103,7 +103,7 @@ void UI_view2d_view_orthoSpecial(const struct bContext *C, struct View2D *v2d, s
 void UI_view2d_view_restore(const struct bContext *C);
 
 /* grid drawing */
-View2DGrid *UI_view2d_grid_calc(const struct bContext *C, struct View2D *v2d, short unit, short clamp, int winx, int winy);
+View2DGrid *UI_view2d_grid_calc(const struct bContext *C, struct View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy);
 void UI_view2d_grid_draw(const struct bContext *C, struct View2D *v2d, View2DGrid *grid, int flag);
 void UI_view2d_grid_free(View2DGrid *grid);
 

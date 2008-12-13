@@ -222,7 +222,7 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* grid */
 	unit= (sipo->flag & SIPO_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_UNIT_VALUES/*unit-y*/, V2D_GRID_NOCLAMP, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 	

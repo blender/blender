@@ -5114,8 +5114,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 				ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
-				
-				/* XXX hrmf, force Y zoom to be fixed? */
+				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
 				ar->v2d.min[1]= ar->v2d.max[1]= 500.0;
 			}
 				break;
@@ -5124,7 +5123,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceIpo *sipo= (SpaceIpo *)sl;
 				memcpy(&ar->v2d, &sipo->v2d, sizeof(View2D));
 				
-				ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_LEFT);
 				
 			}

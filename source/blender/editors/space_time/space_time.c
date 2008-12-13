@@ -139,7 +139,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* grid */
 	unit= (stime->flag & TIME_DRAWFRAMES)? V2D_UNIT_FRAMES: V2D_UNIT_SECONDS;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, ar->winx, ar->winy);
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
 

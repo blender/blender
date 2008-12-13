@@ -640,23 +640,29 @@ static void step_to_grid(float *step, int *power, int unit)
  *	- Currently, will return pointer to View2DGrid struct that needs to 
  *	  be freed with UI_view2d_grid_free()
  *	- Is used for scrollbar drawing too (for units drawing)
+ *	- Units + clamping args will be checked, to make sure they are valid values that can be used
+ *	  so it is very possible that we won't return grid at all!
  *	
- *	- unit	= V2D_UNIT_*  grid steps in seconds or frames 
- *	- clamp	= V2D_CLAMP_* only show whole-number intervals
- *	- winx	= width of region we're drawing to
- *	- winy	= height of region we're drawing into
+ *	- xunits,yunits	= V2D_UNIT_*  grid steps in seconds or frames 
+ *	- xclamp,yclamp	= V2D_CLAMP_* only show whole-number intervals
+ *	- winx			= width of region we're drawing to
+ *	- winy			= height of region we're drawing into
  */
-View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short unit, short clamp, int winx, int winy)
+View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy)
 {
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
 	int secondgrid;
 	
+	/* check that there are at least some workable args */
+	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) && ELEM(V2D_ARG_DUMMY, yunits, yclamp))
+		return NULL;
+	
 	/* grid here is allocated... */
 	grid= MEM_callocN(sizeof(View2DGrid), "View2DGrid");
 	
 	/* rule: gridstep is minimal GRIDSTEP pixels */
-	if (unit == V2D_UNIT_SECONDS) {
+	if (xunits == V2D_UNIT_SECONDS) {
 		secondgrid= 1;
 		seconddiv= 0.01f * FPS;
 	}
@@ -665,39 +671,46 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short unit, shor
 		seconddiv= 1.0f;
 	}
 	
-	/* calculate x-axis grid scale */
-	space= v2d->cur.xmax - v2d->cur.xmin;
-	pixels= v2d->mask.xmax - v2d->mask.xmin;
-	
-	grid->dx= (MINGRIDSTEP * space) / (seconddiv * pixels);
-	step_to_grid(&grid->dx, &grid->powerx, unit);
-	grid->dx *= seconddiv;
-	
-	if (clamp == V2D_GRID_CLAMP) {
-		if (grid->dx < 0.1f) grid->dx= 0.1f;
-		grid->powerx-= 2;
-		if (grid->powerx < -2) grid->powerx= -2;
+	/* calculate x-axis grid scale (only if both args are valid) */
+	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) == 0) {
+		space= v2d->cur.xmax - v2d->cur.xmin;
+		pixels= v2d->mask.xmax - v2d->mask.xmin;
+		
+		grid->dx= (MINGRIDSTEP * space) / (seconddiv * pixels);
+		step_to_grid(&grid->dx, &grid->powerx, xunits);
+		grid->dx *= seconddiv;
+		
+		if (xclamp == V2D_GRID_CLAMP) {
+			if (grid->dx < 0.1f) grid->dx= 0.1f;
+			grid->powerx-= 2;
+			if (grid->powerx < -2) grid->powerx= -2;
+		}
 	}
 	
-	/* calculate y-axis grid scale */
-	space= v2d->cur.ymax - v2d->cur.ymin;
-	pixels= winy;
-	
-	grid->dy= MINGRIDSTEP * space / pixels;
-	step_to_grid(&grid->dy, &grid->powery, unit);
-	
-	if (clamp == V2D_GRID_CLAMP) {
-		if (grid->dy < 1.0f) grid->dy= 1.0f;
-		if (grid->powery < 1) grid->powery= 1;
+	/* calculate y-axis grid scale (only if both args are valid) */
+	if (ELEM(V2D_ARG_DUMMY, yunits, yclamp) == 0) {
+		space= v2d->cur.ymax - v2d->cur.ymin;
+		pixels= winy;
+		
+		grid->dy= MINGRIDSTEP * space / pixels;
+		step_to_grid(&grid->dy, &grid->powery, yunits);
+		
+		if (yclamp == V2D_GRID_CLAMP) {
+			if (grid->dy < 1.0f) grid->dy= 1.0f;
+			if (grid->powery < 1) grid->powery= 1;
+		}
 	}
 	
 	/* calculate start position */
-	grid->startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, grid->dx/seconddiv));
-	if (v2d->cur.xmin < 0.0f) grid->startx-= grid->dx;
+	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) == 0) {
+		grid->startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, grid->dx/seconddiv));
+		if (v2d->cur.xmin < 0.0f) grid->startx-= grid->dx;
+	}
+	if (ELEM(V2D_ARG_DUMMY, yunits, yclamp) == 0) {
+		grid->starty= (v2d->cur.ymin - fmod(v2d->cur.ymin, grid->dy));
+		if (v2d->cur.ymin < 0.0f) grid->starty-= grid->dy;
+	}
 	
-	grid->starty= (v2d->cur.ymin - fmod(v2d->cur.ymin, grid->dy));
-	if (v2d->cur.ymin < 0.0f) grid->starty-= grid->dy;
-
 	return grid;
 }
 
@@ -706,6 +719,10 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 {
 	float vec1[2], vec2[2];
 	int a, step;
+	
+	/* check for grid first, as it may not exist */
+	if (grid == NULL)
+		return;
 	
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
@@ -809,7 +826,9 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 /* free temporary memory used for drawing grid */
 void UI_view2d_grid_free(View2DGrid *grid)
 {
-	MEM_freeN(grid);
+	/* only free if there's a grid */
+	if (grid)
+		MEM_freeN(grid);
 }
 
 /* *********************************************************************** */
@@ -888,15 +907,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		scrollers->yclamp= yclamp;
 		scrollers->yunits= yunits;
 		
-		/* calculate grid only if clamping + units are valid arguments */
-		if ( !((xclamp == V2D_ARG_DUMMY) && (xunits == V2D_ARG_DUMMY) && (yclamp == V2D_ARG_DUMMY) && (yunits == V2D_ARG_DUMMY)) ) { 
-			/* if both axes show scale, give priority to horizontal.. */
-			// FIXME: this doesn't do justice to the vertical scroller calculations...
-			if ((v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) && ELEM(V2D_ARG_DUMMY, xclamp, xunits)==0)
-				scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
-			else if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL && ELEM(V2D_ARG_DUMMY, yclamp, yunits)==0)
-				scrollers->grid= UI_view2d_grid_calc(C, v2d, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
-		}
+		scrollers->grid= UI_view2d_grid_calc(C, v2d, xunits, xclamp, yunits, yclamp, (hor.xmax - hor.xmin), (vert.ymax - vert.ymin));
 	}
 	
 	/* return scrollers */
@@ -1074,7 +1085,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* scale indicators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) {
+		if ((v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, fac2, val;
 			
@@ -1082,7 +1093,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	- fac is x-coordinate to draw to
 			 *	- dfac is gap between scale markings
 			 */
-			fac= (grid->startx- v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
+			fac= (grid->startx - v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
 			fac= hor.xmin + fac*(hor.xmax - hor.xmin);
 			
 			dfac= (grid->dx) / (v2d->cur.xmax - v2d->cur.xmin);
@@ -1193,7 +1204,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
-		if (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) {
+		if ((v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) && (vs->grid)) {
 			View2DGrid *grid= vs->grid;
 			float fac, dfac, val;
 			
