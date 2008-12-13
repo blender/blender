@@ -1,0 +1,444 @@
+/**
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Raul Fernandez Hernandez (Farsthary), Matt Ebb.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "MEM_guardedalloc.h"
+
+#include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+
+#include "BKE_global.h"
+#include "BKE_main.h"
+
+#include "DNA_texture_types.h"
+#include "render_types.h"
+#include "renderdatabase.h"
+#include "texture.h"
+
+/*---------------------------Utils----------------------------------------*/
+int _I(int x,int y,int z,int n)
+{
+	return (z*(n)+y)*(n)+x;
+}
+
+float Linear(float xx,float yy,float zz,float *x0,int n)
+{
+	float sx1,sx0,sy1,sy0,sz1,sz0,v0,v1;
+	int i0,i1,j0,j1,k0,k1;
+	
+	if (xx<0.5) xx=0.5f; if (xx>n+0.5) xx=n+0.5f; i0=(int)xx; i1=i0+1;
+	if (yy<0.5) yy=0.5f; if (yy>n+0.5) yy=n+0.5f; j0=(int)yy; j1=j0+1;
+	if (zz<0.5) zz=0.5f; if (zz>n+0.5) zz=n+0.5f; k0=(int)zz; k1=k0+1;
+	
+	sx1 = xx-i0; sx0 = 1-sx1;
+	sy1 = yy-j0; sy0 = 1-sy1;
+	sz1 = zz-k0; sz0 = 1-sz1;
+	v0 = sx0*(sy0*x0[_I(i0,j0,k0,n)]+sy1*x0[_I(i0,j1,k0,n)])+sx1*(sy0*x0[_I(i1,j0,k0,n)]+sy1*x0[_I(i1,j1,k0,n)]);
+	v1 = sx0*(sy0*x0[_I(i0,j0,k1,n)]+sy1*x0[_I(i0,j1,k1,n)])+sx1*(sy0*x0[_I(i1,j0,k1,n)]+sy1*x0[_I(i1,j1,k1,n)]);
+	return sz0*v0 + sz1*v1;
+	
+}
+
+int C[64][64] = {
+	{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 9,-9,-9, 9, 0, 0, 0, 0, 6, 3,-6,-3, 0, 0, 0, 0, 6,-6, 3,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-6, 6, 6,-6, 0, 0, 0, 0,-3,-3, 3, 3, 0, 0, 0, 0,-4, 4,-2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-2,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-6, 6, 6,-6, 0, 0, 0, 0,-4,-2, 4, 2, 0, 0, 0, 0,-3, 3,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 4,-4,-4, 4, 0, 0, 0, 0, 2, 2,-2,-2, 0, 0, 0, 0, 2,-2, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,-9,-9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 3,-6,-3, 0, 0, 0, 0, 6,-6, 3,-3, 0, 0, 0, 0, 4, 2, 2, 1, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3,-3, 3, 3, 0, 0, 0, 0,-4, 4,-2, 2, 0, 0, 0, 0,-2,-2,-1,-1, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4,-2, 4, 2, 0, 0, 0, 0,-3, 3,-3, 3, 0, 0, 0, 0,-2,-1,-2,-1, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,-4,-4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2,-2,-2, 0, 0, 0, 0, 2,-2, 2,-2, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
+	{-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 9,-9, 0, 0,-9, 9, 0, 0, 6, 3, 0, 0,-6,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6,-6, 0, 0, 3,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-6, 6, 0, 0, 6,-6, 0, 0,-3,-3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 4, 0, 0,-2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-2, 0, 0,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,-9, 0, 0,-9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 0,-6,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6,-6, 0, 0, 3,-3, 0, 0, 4, 2, 0, 0, 2, 1, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 0, 0, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3,-3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 4, 0, 0,-2, 2, 0, 0,-2,-2, 0, 0,-1,-1, 0, 0},
+	{ 9, 0,-9, 0,-9, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 3, 0,-6, 0,-3, 0, 6, 0,-6, 0, 3, 0,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 9, 0,-9, 0,-9, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 3, 0,-6, 0,-3, 0, 6, 0,-6, 0, 3, 0,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 0, 2, 0, 1, 0},
+	{-27,27,27,-27,27,-27,-27,27,-18,-9,18, 9,18, 9,-18,-9,-18,18,-9, 9,18,-18, 9,-9,-18,18,18,-18,-9, 9, 9,-9,-12,-6,-6,-3,12, 6, 6, 3,-12,-6,12, 6,-6,-3, 6, 3,-12,12,-6, 6,-6, 6,-3, 3,-8,-4,-4,-2,-4,-2,-2,-1},
+	{18,-18,-18,18,-18,18,18,-18, 9, 9,-9,-9,-9,-9, 9, 9,12,-12, 6,-6,-12,12,-6, 6,12,-12,-12,12, 6,-6,-6, 6, 6, 6, 3, 3,-6,-6,-3,-3, 6, 6,-6,-6, 3, 3,-3,-3, 8,-8, 4,-4, 4,-4, 2,-2, 4, 4, 2, 2, 2, 2, 1, 1},
+	{-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0,-3, 0, 3, 0, 3, 0,-4, 0, 4, 0,-2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-2, 0,-1, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0,-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0,-3, 0, 3, 0, 3, 0,-4, 0, 4, 0,-2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-2, 0,-1, 0,-1, 0},
+	{18,-18,-18,18,-18,18,18,-18,12, 6,-12,-6,-12,-6,12, 6, 9,-9, 9,-9,-9, 9,-9, 9,12,-12,-12,12, 6,-6,-6, 6, 6, 3, 6, 3,-6,-3,-6,-3, 8, 4,-8,-4, 4, 2,-4,-2, 6,-6, 6,-6, 3,-3, 3,-3, 4, 2, 4, 2, 2, 1, 2, 1},
+	{-12,12,12,-12,12,-12,-12,12,-6,-6, 6, 6, 6, 6,-6,-6,-6, 6,-6, 6, 6,-6, 6,-6,-8, 8, 8,-8,-4, 4, 4,-4,-3,-3,-3,-3, 3, 3, 3, 3,-4,-4, 4, 4,-2,-2, 2, 2,-4, 4,-4, 4,-2, 2,-2, 2,-2,-2,-2,-2,-1,-1,-1,-1},
+	{ 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{-6, 6, 0, 0, 6,-6, 0, 0,-4,-2, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 4,-4, 0, 0,-4, 4, 0, 0, 2, 2, 0, 0,-2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 0, 0, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4,-2, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0,-3, 3, 0, 0,-2,-1, 0, 0,-2,-1, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,-4, 0, 0,-4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,-2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 2,-2, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
+	{-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 0,-2, 0, 4, 0, 2, 0,-3, 0, 3, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0,-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 0,-2, 0, 4, 0, 2, 0,-3, 0, 3, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0,-2, 0,-1, 0},
+	{18,-18,-18,18,-18,18,18,-18,12, 6,-12,-6,-12,-6,12, 6,12,-12, 6,-6,-12,12,-6, 6, 9,-9,-9, 9, 9,-9,-9, 9, 8, 4, 4, 2,-8,-4,-4,-2, 6, 3,-6,-3, 6, 3,-6,-3, 6,-6, 3,-3, 6,-6, 3,-3, 4, 2, 2, 1, 4, 2, 2, 1},
+	{-12,12,12,-12,12,-12,-12,12,-6,-6, 6, 6, 6, 6,-6,-6,-8, 8,-4, 4, 8,-8, 4,-4,-6, 6, 6,-6,-6, 6, 6,-6,-4,-4,-2,-2, 4, 4, 2, 2,-3,-3, 3, 3,-3,-3, 3, 3,-4, 4,-2, 2,-4, 4,-2, 2,-2,-2,-1,-1,-2,-2,-1,-1},
+	{ 4, 0,-4, 0,-4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0,-2, 0,-2, 0, 2, 0,-2, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{ 0, 0, 0, 0, 0, 0, 0, 0, 4, 0,-4, 0,-4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0,-2, 0,-2, 0, 2, 0,-2, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0},
+	{-12,12,12,-12,12,-12,-12,12,-8,-4, 8, 4, 8, 4,-8,-4,-6, 6,-6, 6, 6,-6, 6,-6,-6, 6, 6,-6,-6, 6, 6,-6,-4,-2,-4,-2, 4, 2, 4, 2,-4,-2, 4, 2,-4,-2, 4, 2,-3, 3,-3, 3,-3, 3,-3, 3,-2,-1,-2,-1,-2,-1,-2,-1},
+	{ 8,-8,-8, 8,-8, 8, 8,-8, 4, 4,-4,-4,-4,-4, 4, 4, 4,-4, 4,-4,-4, 4,-4, 4, 4,-4,-4, 4, 4,-4,-4, 4, 2, 2, 2, 2,-2,-2,-2,-2, 2, 2,-2,-2, 2, 2,-2,-2, 2,-2, 2,-2, 2,-2, 2,-2, 1, 1, 1, 1, 1, 1, 1, 1}};
+
+int ijk2n(int i, int j, int k) {
+	return(i+4*j+16*k);
+}
+
+void tricubic_get_coeff_stacked(float a[64], float x[64]) {
+	int i,j;
+	for (i=0;i<64;i++) {
+		a[i]=(float)(0.0);
+		for (j=0;j<64;j++) {
+			a[i]+=C[i][j]*x[j];
+		}
+	}
+}
+
+void point2xyz(int p, int *x, int *y, int *z) {
+	switch (p) {
+		case 0: *x=0; *y=0; *z=0; break;
+		case 1: *x=1; *y=0; *z=0; break;
+		case 2: *x=0; *y=1; *z=0; break;
+		case 3: *x=1; *y=1; *z=0; break;
+		case 4: *x=0; *y=0; *z=1; break;
+		case 5: *x=1; *y=0; *z=1; break;
+		case 6: *x=0; *y=1; *z=1; break;
+		case 7: *x=1; *y=1; *z=1; break;
+		default:*x=0; *y=0; *z=0;
+	}
+}
+
+
+void tricubic_get_coeff(float a[64], float f[8], float dfdx[8], float dfdy[8], float dfdz[8], float d2fdxdy[8], float d2fdxdz[8], float d2fdydz[8], float d3fdxdydz[8]) {
+	int i;
+	float x[64];
+	for (i=0;i<8;i++) {
+		x[0+i]=f[i];
+		x[8+i]=dfdx[i];
+		x[16+i]=dfdy[i];
+		x[24+i]=dfdz[i];
+		x[32+i]=d2fdxdy[i];
+		x[40+i]=d2fdxdz[i];
+		x[48+i]=d2fdydz[i];
+		x[56+i]=d3fdxdydz[i];
+	}
+	tricubic_get_coeff_stacked(a,x);
+}
+
+float tricubic_eval(float a[64], float x, float y, float z) {
+	int i,j,k;
+	float ret=(float)(0.0);
+	
+	for (i=0;i<4;i++) {
+		for (j=0;j<4;j++) {
+			for (k=0;k<4;k++) {
+				ret+=a[ijk2n(i,j,k)]*pow(x,i)*pow(y,j)*pow(z,k);
+			}
+		}
+	}
+	return(ret);
+}
+
+
+float tricubic(float xx,float yy,float zz,float *heap,int n)
+{
+	
+	int xi,yi,zi;	
+	
+	if (xx<0.5) xx=0.5f; if (xx>n+0.5) xx=n+0.5f; xi=(int)xx; 
+	if (yy<0.5) yy=0.5f; if (yy>n+0.5) yy=n+0.5f; yi=(int)yy; 
+	if (zz<0.5) zz=0.5f; if (zz>n+0.5) zz=n+0.5f; zi=(int)zz; 
+	
+	float a[64]; 
+	
+	float fval[8]={heap[_I(xi,yi,zi,n)],heap[_I(xi+1,yi,zi,n)],heap[_I(xi,yi+1,zi,n)],heap[_I(xi+1,yi+1,zi,n)],heap[_I(xi,yi,zi+1,n)],heap[_I(xi+1,yi,zi+1,n)],heap[_I(xi,yi+1,zi+1,n)],heap[_I(xi+1,yi+1,zi+1,n)]}; 
+	
+	float dfdxval[8]={0.5f*(heap[_I(xi+1,yi,zi,n)]-heap[_I(xi-1,yi,zi,n)]),0.5f*(heap[_I(xi+2,yi,zi,n)]-heap[_I(xi,yi,zi,n)]),
+		0.5f*(heap[_I(xi+1,yi+1,zi,n)]-heap[_I(xi-1,yi+1,zi,n)]),0.5f*(heap[_I(xi+2,yi+1,zi,n)]-heap[_I(xi,yi+1,zi,n)]),
+		0.5f*(heap[_I(xi+1,yi,zi+1,n)]-heap[_I(xi-1,yi,zi+1,n)]),0.5f*(heap[_I(xi+2,yi,zi+1,n)]-heap[_I(xi,yi,zi+1,n)]),
+		0.5f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi-1,yi+1,zi+1,n)]),
+	0.5f*(heap[_I(xi+2,yi+1,zi+1,n)]-heap[_I(xi,yi+1,zi+1,n)])};						
+	
+	float dfdyval[8]={0.5f*(heap[_I(xi,yi+1,zi,n)]-heap[_I(xi,yi-1,zi,n)]),0.5f*(heap[_I(xi+1,yi+1,zi,n)]-heap[_I(xi+1,yi-1,zi,n)]),
+		0.5f*(heap[_I(xi,yi+2,zi,n)]-heap[_I(xi,yi,zi,n)]),0.5f*(heap[_I(xi+1,yi+2,zi,n)]-heap[_I(xi+1,yi,zi,n)]),
+		0.5f*(heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi,yi-1,zi+1,n)]),0.5f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi+1,yi-1,zi+1,n)]),
+		0.5f*(heap[_I(xi,yi+2,zi+1,n)]-heap[_I(xi,yi,zi+1,n)]),
+	0.5f*(heap[_I(xi+1,yi+2,zi+1,n)]-heap[_I(xi+1,yi,zi+1,n)])};						 
+	
+	float dfdzval[8]={0.5f*(heap[_I(xi,yi,zi+1,n)]-heap[_I(xi,yi,zi-1,n)]),0.5f*(heap[_I(xi+1,yi,zi+1,n)]-heap[_I(xi+1,yi,zi-1,n)]),
+		0.5f*(heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi,yi+1,zi-1,n)]),0.5f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi+1,yi+1,zi-1,n)]),
+		0.5f*(heap[_I(xi,yi,zi+2,n)]-heap[_I(xi,yi,zi,n)]),0.5f*(heap[_I(xi+1,yi,zi+2,n)]-heap[_I(xi+1,yi,zi,n)]),
+		0.5f*(heap[_I(xi,yi+1,zi+2,n)]-heap[_I(xi,yi+1,zi,n)]),
+	0.5f*(heap[_I(xi+1,yi+1,zi+2,n)]-heap[_I(xi+1,yi+1,zi,n)])};						 
+	
+	float d2fdxdyval[8]={0.25*(heap[_I(xi+1,yi+1,zi,n)]-heap[_I(xi-1,yi+1,zi,n)]-heap[_I(xi+1,yi-1,zi,n)]+heap[_I(xi-1,yi-1,zi,n)]),
+		0.25*(heap[_I(xi+2,yi+1,zi,n)]-heap[_I(xi,yi+1,zi,n)]-heap[_I(xi+2,yi-1,zi,n)]+heap[_I(xi,yi-1,zi,n)]),
+		0.25*(heap[_I(xi+1,yi+2,zi,n)]-heap[_I(xi-1,yi+2,zi,n)]-heap[_I(xi+1,yi,zi,n)]+heap[_I(xi-1,yi,zi,n)]),
+		0.25*(heap[_I(xi+2,yi+2,zi,n)]-heap[_I(xi,yi+2,zi,n)]-heap[_I(xi+2,yi,zi,n)]+heap[_I(xi,yi,zi,n)]),
+		0.25*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi-1,yi+1,zi+1,n)]-heap[_I(xi+1,yi-1,zi+1,n)]+heap[_I(xi-1,yi-1,zi+1,n)]),
+		0.25*(heap[_I(xi+2,yi+1,zi+1,n)]-heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi+2,yi-1,zi+1,n)]+heap[_I(xi,yi-1,zi+1,n)]),
+		0.25*(heap[_I(xi+1,yi+2,zi+1,n)]-heap[_I(xi-1,yi+2,zi+1,n)]-heap[_I(xi+1,yi,zi+1,n)]+heap[_I(xi-1,yi,zi+1,n)]),
+	0.25*(heap[_I(xi+2,yi+2,zi+1,n)]-heap[_I(xi,yi+2,zi+1,n)]-heap[_I(xi+2,yi,zi+1,n)]+heap[_I(xi,yi,zi+1,n)])};						 
+	
+	float d2fdxdzval[8]={0.25f*(heap[_I(xi+1,yi,zi+1,n)]-heap[_I(xi-1,yi,zi+1,n)]-heap[_I(xi+1,yi,zi-1,n)]+heap[_I(xi-1,yi,zi-1,n)]),
+		0.25f*(heap[_I(xi+2,yi,zi+1,n)]-heap[_I(xi,yi,zi+1,n)]-heap[_I(xi+2,yi,zi-1,n)]+heap[_I(xi,yi,zi-1,n)]),
+		0.25f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi-1,yi+1,zi+1,n)]-heap[_I(xi+1,yi+1,zi-1,n)]+heap[_I(xi-1,yi+1,zi-1,n)]),
+		0.25f*(heap[_I(xi+2,yi+1,zi+1,n)]-heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi+2,yi+1,zi-1,n)]+heap[_I(xi,yi+1,zi-1,n)]),
+		0.25f*(heap[_I(xi+1,yi,zi+2,n)]-heap[_I(xi-1,yi,zi+2,n)]-heap[_I(xi+1,yi,zi,n)]+heap[_I(xi-1,yi,zi,n)]),
+		0.25f*(heap[_I(xi+2,yi,zi+2,n)]-heap[_I(xi,yi,zi+2,n)]-heap[_I(xi+2,yi,zi,n)]+heap[_I(xi,yi,zi,n)]),
+		0.25f*(heap[_I(xi+1,yi+1,zi+2,n)]-heap[_I(xi-1,yi+1,zi+2,n)]-heap[_I(xi+1,yi+1,zi,n)]+heap[_I(xi-1,yi+1,zi,n)]),
+	0.25f*(heap[_I(xi+2,yi+1,zi+2,n)]-heap[_I(xi,yi+1,zi+2,n)]-heap[_I(xi+2,yi+1,zi,n)]+heap[_I(xi,yi+1,zi,n)])};
+	
+	
+	float d2fdydzval[8]={0.25f*(heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi,yi-1,zi+1,n)]-heap[_I(xi,yi+1,zi-1,n)]+heap[_I(xi,yi-1,zi-1,n)]),
+		0.25f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi+1,yi-1,zi+1,n)]-heap[_I(xi+1,yi+1,zi-1,n)]+heap[_I(xi+1,yi-1,zi-1,n)]),
+		0.25f*(heap[_I(xi,yi+2,zi+1,n)]-heap[_I(xi,yi,zi+1,n)]-heap[_I(xi,yi+2,zi-1,n)]+heap[_I(xi,yi,zi-1,n)]),
+		0.25f*(heap[_I(xi+1,yi+2,zi+1,n)]-heap[_I(xi+1,yi,zi+1,n)]-heap[_I(xi+1,yi+2,zi-1,n)]+heap[_I(xi+1,yi,zi-1,n)]),
+		0.25f*(heap[_I(xi,yi+1,zi+2,n)]-heap[_I(xi,yi-1,zi+2,n)]-heap[_I(xi,yi+1,zi,n)]+heap[_I(xi,yi-1,zi,n)]),
+		0.25f*(heap[_I(xi+1,yi+1,zi+2,n)]-heap[_I(xi+1,yi-1,zi+2,n)]-heap[_I(xi+1,yi+1,zi,n)]+heap[_I(xi+1,yi-1,zi,n)]),
+		0.25f*(heap[_I(xi,yi+2,zi+2,n)]-heap[_I(xi,yi,zi+2,n)]-heap[_I(xi,yi+2,zi,n)]+heap[_I(xi,yi,zi,n)]),
+	0.25f*(heap[_I(xi+1,yi+2,zi+2,n)]-heap[_I(xi+1,yi,zi+2,n)]-heap[_I(xi+1,yi+2,zi,n)]+heap[_I(xi+1,yi,zi,n)])};
+	
+	
+	float d3fdxdydzval[8]={0.125f*(heap[_I(xi+1,yi+1,zi+1,n)]-heap[_I(xi-1,yi+1,zi+1,n)]-heap[_I(xi+1,yi-1,zi+1,n)]+heap[_I(xi-1,yi-1,zi+1,n)]-heap[_I(xi+1,yi+1,zi-1,n)]+heap[_I(xi-1,yi+1,zi-1,n)]+heap[_I(xi+1,yi-1,zi-1,n)]-heap[_I(xi-1,yi-1,zi-1,n)]),
+		0.125f*(heap[_I(xi+2,yi+1,zi+1,n)]-heap[_I(xi,yi+1,zi+1,n)]-heap[_I(xi+2,yi-1,zi+1,n)]+heap[_I(xi,yi-1,zi+1,n)]-heap[_I(xi+2,yi+1,zi-1,n)]+heap[_I(xi,yi+1,zi-1,n)]+heap[_I(xi+2,yi-1,zi-1,n)]-heap[_I(xi,yi-1,zi-1,n)]),
+		0.125f*(heap[_I(xi+1,yi+2,zi+1,n)]-heap[_I(xi-1,yi+2,zi+1,n)]-heap[_I(xi+1,yi,zi+1,n)]+heap[_I(xi-1,yi,zi+1,n)]-heap[_I(xi+1,yi+2,zi-1,n)]+heap[_I(xi-1,yi+2,zi-1,n)]+heap[_I(xi+1,yi,zi-1,n)]-heap[_I(xi-1,yi,zi-1,n)]),
+		0.125f*(heap[_I(xi+2,yi+2,zi+1,n)]-heap[_I(xi,yi+2,zi+1,n)]-heap[_I(xi+2,yi,zi+1,n)]+heap[_I(xi,yi,zi+1,n)]-heap[_I(xi+2,yi+2,zi-1,n)]+heap[_I(xi,yi+2,zi-1,n)]+heap[_I(xi+2,yi,zi-1,n)]-heap[_I(xi,yi,zi-1,n)]),
+		0.125f*(heap[_I(xi+1,yi+1,zi+2,n)]-heap[_I(xi-1,yi+1,zi+2,n)]-heap[_I(xi+1,yi-1,zi+2,n)]+heap[_I(xi-1,yi-1,zi+2,n)]-heap[_I(xi+1,yi+1,zi,n)]+heap[_I(xi-1,yi+1,zi,n)]+heap[_I(xi+1,yi-1,zi,n)]-heap[_I(xi-1,yi-1,zi,n)]),
+		0.125f*(heap[_I(xi+2,yi+1,zi+2,n)]-heap[_I(xi,yi+1,zi+2,n)]-heap[_I(xi+2,yi-1,zi+2,n)]+heap[_I(xi,yi-1,zi+2,n)]-heap[_I(xi+2,yi+1,zi,n)]+heap[_I(xi,yi+1,zi,n)]+heap[_I(xi+2,yi-1,zi,n)]-heap[_I(xi,yi-1,zi,n)]),
+		0.125f*(heap[_I(xi+1,yi+2,zi+2,n)]-heap[_I(xi-1,yi+2,zi+2,n)]-heap[_I(xi+1,yi,zi+2,n)]+heap[_I(xi-1,yi,zi+2,n)]-heap[_I(xi+1,yi+2,zi,n)]+heap[_I(xi-1,yi+2,zi,n)]+heap[_I(xi+1,yi,zi,n)]-heap[_I(xi-1,yi,zi,n)]),
+	0.125f*(heap[_I(xi+2,yi+2,zi+2,n)]-heap[_I(xi,yi+2,zi+2,n)]-heap[_I(xi+2,yi,zi+2,n)]+heap[_I(xi,yi,zi+2,n)]-heap[_I(xi+2,yi+2,zi,n)]+heap[_I(xi,yi+2,zi,n)]+heap[_I(xi+2,yi,zi,n)]-heap[_I(xi,yi,zi,n)])};
+	
+	tricubic_get_coeff(a,fval,dfdxval,dfdyval,dfdzval,d2fdxdyval,d2fdxdzval,d2fdydzval,d3fdxdydzval);
+	
+	float dx=xx-xi;
+	float dy=yy-yi;
+	float dz=zz-zi;
+	
+	return tricubic_eval(a,dx,dy,dz);
+	
+}
+
+
+
+
+
+/*--------------------------------------------------------------------*/
+
+void load_frame (FILE *fp,float *F, int size,int frame)
+{
+	
+	fseek(fp,frame*size*sizeof(float),0);
+	fread(F,sizeof(float),size,fp);
+}
+
+
+
+
+void cache_voxeldata(struct Render *re,Tex *tex)
+{	
+	VoxelData *vd = tex->vd;
+	FILE *fp;
+	int size;
+	
+	if (!vd) return;
+	
+	vd->resolY=vd->resolX; //for now only support cubic datasets (rectangular datasets could be added latter)
+	vd->resolZ=vd->resolX;
+	size = (vd->resolX)*(vd->resolY)*(vd->resolZ);	
+	
+	vd->dataset=MEM_mallocN(sizeof(float)*size, "voxel dataset");	
+	
+	if (!BLI_exists(vd->source_path)) return;
+	fp = fopen(vd->source_path,"rb");
+	if (!fp) return;
+	
+	load_frame(fp, vd->dataset, size, re->r.cfra); //here improve the dataset loading function for more dataset types	
+	
+	fclose(fp);
+	
+}
+
+void make_voxeldata(struct Render *re)
+{
+    Tex *tex;
+	
+	if(re->scene->r.scemode & R_PREVIEWBUTS)
+		return;
+	
+	re->i.infostr= "Loading voxel datasets";
+	re->stats_draw(&re->i);
+	
+	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
+		if(tex->id.us && tex->type==TEX_VOXELDATA) {
+			cache_voxeldata(re, tex);
+		}
+	}
+	
+	re->i.infostr= NULL;
+	re->stats_draw(&re->i);
+	
+}
+
+static void free_voxeldata_one(Render *re, Tex *tex)
+{
+	VoxelData *vd = tex->vd;
+	
+	if (vd->dataset) {
+		MEM_freeN(vd->dataset);
+		vd->dataset = NULL;
+	}
+}
+
+
+void free_voxeldata(Render *re)
+{
+	Tex *tex;
+	
+	if(re->scene->r.scemode & R_PREVIEWBUTS)
+		return;
+	
+	for (tex= G.main->tex.first; tex; tex= tex->id.next) {
+		if(tex->id.us && tex->type==TEX_VOXELDATA) {
+			free_voxeldata_one(re, tex);
+		}
+	}
+}
+
+int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
+{	 
+    int retval = TEX_INT;
+	VoxelData *vd = tex->vd;	
+	float vec[3] = {0.0, 0.0, 0.0};	
+	float co[3];
+	float dx, dy, dz;
+	int xi, yi, zi;
+	float xf, yf, zf;
+	int i=0, fail=0;
+	int resolX, resolY, resolZ;
+	
+	if ((!vd) || (vd->dataset==NULL)) {
+		texres->tin = 0.0f;
+		return 0;
+	}
+	
+	//here do the calculation of the interpolation types 
+	
+	resolX=vd->resolX;
+	resolY=vd->resolY;
+	resolZ=vd->resolZ;
+	
+	VECCOPY(co, texvec);	
+	
+	dx=1.0f/(resolX);
+	dy=1.0f/(resolY);
+	dz=1.0f/(resolZ);
+	
+	xi=co[0]/dx;
+	yi=co[1]/dy;
+	zi=co[2]/dz;
+	
+	xf=co[0]/dx;
+	yf=co[1]/dy;
+	zf=co[2]/dz;
+	
+	if (xi>1 && xi<resolX)
+	{
+		if (yi>1 && yi<resolY)
+		{
+			if (zi>1 && zi<resolZ)
+			{
+				
+				switch (vd->interp_type)
+				{
+						
+					case TEX_VD_NEARESTNEIGHBOR:
+					{
+						texres->tin = vd->dataset[_I(xi,yi,zi,resolX)];
+						BRICONT; 	
+						break;  
+					}
+					case TEX_VD_LINEAR:
+					{
+						texres->tin = Linear(xf,yf,zf,vd->dataset,resolX);						
+					}
+					case TEX_VD_TRICUBIC:
+					{
+						texres->tin = tricubic(xf,yf,zf,vd->dataset,resolX);
+					}
+						
+				}				  				   
+				
+				
+				
+			} else fail++;
+		} else fail++;
+	} else fail++;
+	
+	if (fail) texres->tin=0.0f;
+
+	texres->tin *= vd->int_multiplier;
+	
+	texres->tr = texres->tin;
+	texres->tg = texres->tin;
+	texres->tb = texres->tin;
+	texres->ta = texres->tin;
+	BRICONTRGB;
+	
+	return retval;	
+}
+
+
