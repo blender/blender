@@ -5125,9 +5125,21 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_LEFT);
-				
+				break;
 			}
-			//case SPACE_XXX: // FIXME... add other ones
+			case SPACE_NODE:
+			{
+				SpaceNode *snode= (SpaceNode *)sl;
+				memcpy(&ar->v2d, &snode->v2d, sizeof(View2D));
+				break;
+			}
+			case SPACE_BUTS:
+			{
+				SpaceButs *sbuts= (SpaceButs *)sl;
+				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
+				break;
+			}
+				//case SPACE_XXX: // FIXME... add other ones
 				//	memcpy(&ar->v2d, &((SpaceXxx *)sl)->v2d, sizeof(View2D));
 				//	break;
 		}

@@ -152,6 +152,7 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, dummy_viewmenu, C->area, 
 						 "View", xco, yco-2, xmax-3, 24, "");
+		xco+=XIC+xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);

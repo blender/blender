@@ -38,6 +38,7 @@ void ED_spacetype_view3d(void);
 void ED_spacetype_ipo(void);
 void ED_spacetype_image(void);
 void ED_spacetype_node(void);
+void ED_spacetype_buttons(void);
 
 #endif /* ED_AREA_H */
 
