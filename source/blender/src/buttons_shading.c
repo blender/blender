@@ -264,6 +264,19 @@ static int vergcband(const void *a1, const void *a2)
 	return 0;
 }
 
+static void voxeldata_filename(char *str, void *tex_v, void *unused)	/* called from fileselect */
+{
+	Tex *tex= tex_v;
+	
+	if(tex->type!=TEX_VOXELDATA) return;
+	
+	strcpy(tex->vd->source_path, str);
+	
+	allqueue(REDRAWBUTSSHADING, 0);
+	BIF_preview_changed(ID_TE);
+	BIF_undo_push("Open voxel data source");
+}
+
 void do_texbuts(unsigned short event)
 {
 	Tex *tex;
@@ -425,7 +438,25 @@ void do_texbuts(unsigned short event)
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWIPO, 0);
 		break;
+	
+	case B_VOXELDATA_LOAD:
+		if (tex->vd==NULL) {
+			tex->vd= BKE_add_voxeldata();
+#ifdef _WIN32
+			if (strcmp (U.textudir, "/") == 0)
+				strcpy(str, G.sce);
+			else
+				strcpy(str, U.textudir);
+#else
+			strcpy(str, U.textudir);
+#endif
+		}
+		else strcpy(str, tex->vd->source_path);
 		
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+		activate_fileselect_args(FILE_SPECIAL, "Open Voxel Data", str, voxeldata_filename, tex, NULL);
+		break;
 	default:
 		if(event>=B_PLUGBUT && event<=B_PLUGBUT+23) {
 			PluginTex *pit= tex->plugin;
@@ -1014,6 +1045,48 @@ static void texture_panel_pointdensity_modify(Tex *tex)
 			X2CLM2, yco-=2*BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
 	}
 
+}
+
+static void texture_panel_voxeldata(Tex *tex)
+{
+	uiBlock *block;
+	VoxelData *vd;
+	short yco=PANEL_YMAX;
+
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voxeldata", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Voxel Data", "Texture", PANELX, PANELY, PANELW, PANELH)==0) return;
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+
+	if(tex->vd==NULL) {
+		tex->vd= BKE_add_voxeldata();
+	}
+
+	if(tex->vd) {
+		vd= tex->vd;
+		
+		uiDefBut(block, LABEL, B_NOP, "Data source:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+			
+		uiDefIconTextBut(block, BUT, B_VOXELDATA_LOAD, ICON_FILESEL, "Open",
+			X4CLM1, yco-=BUTH, BUTW4, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, 0, "",
+			X4CLM2+XSPACE, yco, BUTW2+BUTW4+2*XSPACE, BUTH, &vd->source_path, 0.0, 79.0, 0, 0, "File path to the voxel data set");
+
+		yco -= YSPACE;
+		
+		uiDefBut(block, LABEL, B_NOP, "Interpolation:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, 0, 0, 0, 0, 0, "");
+		uiDefButI(block, MENU, B_REDR, "None %x0|Linear %x1|Tricubic %x2",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &vd->interp_type, 0.0, 0.0, 0, 0, "Interpolation type");		
+		
+		uiDefButI(block, NUM, B_REDR, "Resolution: ",
+			X2CLM2, yco, BUTW2, BUTH, &(vd->resolX), 1, 10000, 0, 0, "Resolution of the voxel data");
+			
+		yco -= YSPACE;
+		
+		uiDefButF(block, NUM, B_REDR, "Intensity: ",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &(vd->int_multiplier), 0.0001, 10000.0, 0, 0, "Multiplier to scale up or down the texture's intensity");
+	}
 }
 
 static char *layer_menu(RenderResult *rr, short *curlay)
@@ -1865,7 +1938,7 @@ static void texture_panel_texture(MTex *actmtex, Material *ma, World *wrld, Lamp
 		/* newnoise: all texture types as menu, not enough room for more buttons.
 		 * Can widen panel, but looks ugly when other panels overlap it */
 		if( !tex->use_nodes ) {
-			sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d|Point Density %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE, TEX_POINTDENSITY);
+			sprintf(textypes, "Texture Type %%t|None %%x%d|Image %%x%d|EnvMap %%x%d|Clouds %%x%d|Marble %%x%d|Stucci %%x%d|Wood %%x%d|Magic %%x%d|Blend %%x%d|Noise %%x%d|Plugin %%x%d|Musgrave %%x%d|Voronoi %%x%d|DistortedNoise %%x%d|Point Density %%x%d|Voxel Data %%x%d", 0, TEX_IMAGE, TEX_ENVMAP, TEX_CLOUDS, TEX_MARBLE, TEX_STUCCI, TEX_WOOD, TEX_MAGIC, TEX_BLEND, TEX_NOISE, TEX_PLUGIN, TEX_MUSGRAVE, TEX_VORONOI, TEX_DISTNOISE, TEX_POINTDENSITY, TEX_VOXELDATA);
 			uiDefBut(block, LABEL, 0, "Texture Type",		160, 150, 140, 20, 0, 0.0, 0.0, 0, 0, "");
 			uiDefButS(block, MENU, B_TEXTYPE, textypes,	160, 125, 140, 25, &tex->type, 0,0,0,0, "Select texture type");
 		}
@@ -4449,6 +4522,8 @@ static void material_panel_material_volume(Material *ma)
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_stepsize), 0.001, 100.0, 10, 2, "Ray marching step size");
 	uiDefButS(block, MENU, B_TEXREDR_PRV, "Step Size Calculation %t|Randomized %x0|Constant %x1",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &ma->vol_stepsize_type, 0.0, 0.0, 0, 0, "Step size calculation, randomized replaces banding with jittering");
+	uiDefButF(block, NUM, B_MATPRV, "Depth Cutoff: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->vol_depth_cutoff), 0.001, 1.0, 10, 2, "Stop ray marching early if transmission drops below this luminance - higher values give speedups in dense volumes at the expense of accuracy ");
 	uiBlockEndAlign(block);
 	
 	yco -= YSPACE;
@@ -4920,6 +4995,9 @@ void texture_panels()
 			case TEX_POINTDENSITY:
 				texture_panel_pointdensity(tex);
 				texture_panel_pointdensity_modify(tex);
+				break;
+			case TEX_VOXELDATA:
+				texture_panel_voxeldata(tex);
 				break;
 			}
 		}

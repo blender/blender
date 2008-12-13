@@ -69,6 +69,8 @@ typedef struct Material {
 	short vol_stepsize_type;
 	short vol_precache_resolution;
 	float vol_stepsize, vol_shade_stepsize;
+	float vol_depth_cutoff;
+	float vpad;
 	float vol_density_scale;
 	float vol_absorption, vol_scattering;
 	float vol_absorption_col[3];

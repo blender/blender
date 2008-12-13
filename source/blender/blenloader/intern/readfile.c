@@ -2535,6 +2535,11 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		tex->pd->coba= newdataadr(fd, tex->pd->coba);
 	}
 	
+	tex->vd= newdataadr(fd, tex->vd);
+	if(tex->vd) {
+		tex->vd->dataset = NULL;
+	}
+	
 	tex->nodetree= newdataadr(fd, tex->nodetree);
 	if(tex->nodetree)
 		direct_link_nodetree(fd, tex->nodetree);
@@ -7939,6 +7944,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol_density_scale = 1.0f;
 			if (ma->vol_precache_resolution == 0)
 				ma->vol_precache_resolution = 50;
+			if (ma->vol_depth_cutoff < 0.0001)
+				ma->vol_depth_cutoff = 0.05;
 		}
 		
 		for(tex=main->tex.first; tex; tex= tex->id.next) {
@@ -7955,6 +7962,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (tex->pd->coba == NULL) {
 				tex->pd->coba = add_colorband(1);
 				tex->pd->speed_scale = 1.0f;
+			}
+			
+			if (tex->vd == NULL) {
+				tex->vd = BKE_add_voxeldata();
+			} else if (tex->vd->resolX == 0) {
+				tex->vd->dataset = NULL;
+				tex->vd->resolX = 1;
+				tex->vd->resolY = 1;
+				tex->vd->resolZ = 1;
+				tex->vd->interp_type= TEX_VD_NEARESTNEIGHBOR;
+				tex->vd->int_multiplier = 1.0;
 			}
 		}
 		

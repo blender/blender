@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Matt Ebb, Raul Hernandez.
+ * Contributor(s): Matt Ebb, Raul Fernandez Hernandez (Farsthary)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -132,6 +132,11 @@ float vol_get_stepsize(struct ShadeInput *shi, int context)
 	}
 	
 	return shi->mat->vol_stepsize;
+}
+
+static float vol_get_depth_cutoff(struct ShadeInput *shi)
+{
+	return shi->mat->vol_depth_cutoff;
 }
 
 /* SHADING */
@@ -278,7 +283,7 @@ float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w
 void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 {
 	float dummy = 1.0f;
-	float absorption = shi->mat->vol_absorption;
+	const float absorption = shi->mat->vol_absorption;
 	
 	VECCOPY(absorb_col, shi->mat->vol_absorption_col);
 	
@@ -296,14 +301,13 @@ void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, float density, float stepsize)
 {
 	/* input density = density at co */
-	float dist;
 	float absorb_col[3];
 	int s, nsteps;
 	float step_vec[3], step_sta[3], step_end[3];
+	const float dist = VecLenf(co, endco);
 
 	vol_get_absorption(shi, absorb_col, co);
 
-	dist = VecLenf(co, endco);
 	nsteps = (int)((dist / stepsize) + 0.5);
 	
 	/* trigger for recalculating density */
@@ -468,6 +472,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	float tau[3], emit_col[3], scatter_col[3] = {0.0, 0.0, 0.0};
 	float stepvec[3], step_sta[3], step_end[3], step_mid[3];
 	float density = vol_get_density(shi, co);
+	const float depth_cutoff = vol_get_depth_cutoff(shi);
 	
 	/* multiply col_behind with beam transmittance over entire distance */
 	vol_get_attenuation(shi, tau, co, endco, density, stepsize);
@@ -524,6 +529,9 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 
 		VecCopyf(step_sta, step_end);
 		VecAddf(step_end, step_end, stepvec);
+		
+		/* luminance rec. 709 */
+		if ((0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]) < depth_cutoff) break;	
 	}
 	
 	VecCopyf(col, radiance);

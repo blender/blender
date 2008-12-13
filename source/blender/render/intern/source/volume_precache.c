@@ -400,7 +400,7 @@ static void *vol_precache_part(void *data)
 	return 0;
 }
 
-void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
+static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
 {
 	float view[3] = {0.0,0.0,-1.0};
 	
@@ -417,6 +417,34 @@ void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma,
 	VECCOPY(shi->view, view);
 }
 
+static void precache_init_parts(ListBase *precache_parts, RayTree *tree, ShadeInput *shi, ObjectInstanceRen *obi, float *bbmin, float *bbmax, int res)
+{
+	int i;
+	float voxel[3];
+
+	VecSubf(voxel, bbmax, bbmin);
+	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
+		return;
+	VecMulf(voxel, 1.0f/res);
+
+	for(i=0; i < totparts; i++) {
+		VolPrecachePart *pa= MEM_callocN(sizeof(VolPrecachePart), "new precache part");
+	
+		pa->done = 0;
+		pa->num = i;
+		
+		pa->res = res;
+		VECCOPY(pa->bbmin, bbmin);
+		VECCOPY(precache_parts[j].voxel, voxel);
+		precache_parts[j].tree = tree;
+		precache_parts[j].shi = shi;
+		precache_parts[j].obi = obi;
+		
+		BLI_addtail(precache_parts, pa);
+	}
+	
+}
+
 void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
 {
 	int x, y, z;
@@ -431,13 +459,12 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	int res_2, res_3;
 	
 	int edgeparts=2;
-	int totparts;
-	ListBase threads;
+	ListBase threads, precache_parts;
 	int cont= 1;
 	int xparts, yparts, zparts;
 	float part[3];
 	int totthread = re->r.threads;
-	ListBase precache_parts;
+	int totparts = edgeparts*edgeparts*edgeparts;
 	VolPrecachePart *nextpa;
 	int j;
 	
@@ -452,41 +479,13 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	 * used for checking if the cached point is inside or outside. */
 	tree = create_raytree_obi(obi, bbmin, bbmax);
 	if (!tree) return;
+	
+	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
 
 	/* Need a shadeinput to calculate scattering */
 	precache_setup_shadeinput(re, obi, ma, &shi);
+	precache_init_parts(&precache_parts, tree, shi, obi, bbmin, bbmax, res);
 
-	VecSubf(voxel, bbmax, bbmin);
-	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
-		return;
-	VecMulf(voxel, 1.0f/res);
-	
-	part[0] = ceil(res/(float)xparts); 
-	part[1] = ceil(res/(float)yparts);
-	part[2] = ceil(res/(float)zparts);
-	
-	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
-	
-	totparts = edgeparts*edgeparts*edgeparts;
-	precache_parts= MEM_callocN(sizeof(VolPrecachePart)*totparts, "VolPrecachePart");
-	memset(precache_parts, 0, sizeof(VolPrecachePart)*totparts);
-
-	precache_init_parts(precache_parts);
-
-	for(j=0; j < totparts; j++) {
-		VolPrecachePart *pa= MEM_callocN(sizeof(VolPrecachePart), "new precache part");
-	
-		pa->done = 0;
-		pa->num = j;
-		
-		pa->res = res;
-		VECCOPY(pa->bbmin, bbmin);
-		VECCOPY(precache_parts[j].voxel, voxel);
-		precache_parts[j].tree = tree;
-		precache_parts[j].shi = shi;
-		precache_parts[j].obi = obi;
-	}
-	
 	BLI_init_threads(&threads, vol_precache_part, totthread);
 	
 	nextpa = precache_get_new_part(precache_threads);
@@ -600,12 +599,15 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 void volume_precache(Render *re)
 {
 	ObjectInstanceRen *obi;
-	VolPrecache *vp;
+	VolumeOb *vo;
 
-	for(vp= re->vol_precache_obs.first; vp; vp= vp->next) {
-		for(obi= re->instancetable.first; obi; obi= obi->next) {
-			if (obi->obr == vp->obr) 
-				vol_precache_objectinstance(re, obi, vp->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+	for(vo= re->volumes.first; vo; vo= vo->next) {
+		if (vo->ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
+			for(obi= re->instancetable.first; obi; obi= obi->next) {
+				if (obi->obr == vo->obr) {
+					vol_precache_objectinstance(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+				}
+			}
 		}
 	}
 	
@@ -623,4 +625,20 @@ void free_volume_precache(Render *re)
 	}
 	
 	BLI_freelistN(&re->vol_precache_obs);
+}
+
+int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co)
+{
+	RayTree *tree;
+	int inside=0;
+	
+	tree = create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+	if (!tree) return 0;
+	
+	inside = point_inside_obi(tree, obi, co);
+	
+	RE_ray_tree_free(tree);
+	tree= NULL;
+	
+	return inside;
 }

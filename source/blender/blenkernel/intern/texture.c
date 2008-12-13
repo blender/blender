@@ -420,6 +420,7 @@ void free_texture(Tex *tex)
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
+	if(tex->vd) BKE_free_voxeldata(tex->vd);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -489,6 +490,11 @@ void default_tex(Tex *tex)
 	if (tex->pd) {
 		tex->pd->radius = 0.3f;
 		tex->pd->falloff_type = TEX_PD_FALLOFF_STD;
+	}
+	
+	if (tex->vd) {
+		tex->vd->resolX=50;
+		tex->vd->interp_type=0;
 	}
 
 	pit = tex->plugin;
@@ -588,6 +594,7 @@ Tex *copy_texture(Tex *tex)
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	if(texn->pd) texn->pd= BKE_copy_pointdensity(texn->pd);
+	if(texn->vd) texn->vd=BKE_copy_voxeldata(texn->vd);
 	
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
@@ -944,6 +951,48 @@ void BKE_free_pointdensity(PointDensity *pd)
 	BKE_free_pointdensitydata(pd);
 	MEM_freeN(pd);
 }
+
+
+void BKE_free_voxeldatadata(struct VoxelData *vd)
+{
+	if (vd->dataset) {
+		MEM_freeN(vd->dataset);
+		vd->dataset = NULL;
+	}
+
+}
+ 
+void BKE_free_voxeldata(struct VoxelData *vd)
+{
+	BKE_free_voxeldatadata(vd);
+	MEM_freeN(vd);
+}
+ 
+struct VoxelData *BKE_add_voxeldata(void)
+{
+	VoxelData *vd;
+
+	vd= MEM_callocN(sizeof(struct VoxelData), "voxeldata");
+	vd->dataset = NULL;
+	vd->resolX = 1;
+	vd->resolY = 1;
+	vd->resolZ = 1;
+	vd->interp_type= TEX_VD_NEARESTNEIGHBOR;
+	vd->int_multiplier = 1.0;
+	
+	return vd;
+ }
+ 
+struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
+{
+	VoxelData *vdn;
+
+	vdn= MEM_dupallocN(vd);	
+	vdn->dataset = NULL;
+
+	return vdn;
+}
+
 
 /* ------------------------------------------------------------------------- */
 int BKE_texture_dependsOnTime(const struct Tex *texture)

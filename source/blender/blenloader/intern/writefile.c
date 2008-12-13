@@ -1339,6 +1339,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "PointDensity", 1, tex->pd);
 				if(tex->pd->coba) writestruct(wd, DATA, "ColorBand", 1, tex->pd->coba);
 			}
+			if(tex->vd) writestruct(wd, DATA, "VoxelData", 1, tex->vd);
 			
 			/* nodetree is integral part of texture, no libdata */
 			if(tex->nodetree) {

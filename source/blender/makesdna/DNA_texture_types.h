@@ -154,13 +154,25 @@ typedef struct PointDensity {
 	short noise_depth;
 	short noise_influence;
 	short noise_basis;
-	short pdpad3[3];
+    short pdpad3[3];
 	float noise_fac;
 	
 	float speed_scale;
 	struct ColorBand *coba;	/* for time -> color */
 	
 } PointDensity;
+
+typedef struct VoxelData {
+	int resolX, resolY, resolZ;
+	int interp_type;
+
+	float int_multiplier;
+	float vxpad;
+	
+	char source_path[240];
+	float *dataset;
+ 
+} VoxelData;
 
 typedef struct Tex {
 	ID id;
@@ -209,6 +221,7 @@ typedef struct Tex {
 	struct EnvMap *env;
 	struct PreviewImage * preview;
 	struct PointDensity *pd;
+	struct VoxelData *vd;
 	
 	char use_nodes;
 	char pad[7];
@@ -250,6 +263,7 @@ typedef struct TexMapping {
 #define TEX_DISTNOISE	13
 /* predicting ocean texture for 14 */
 #define TEX_POINTDENSITY	15
+#define TEX_VOXELDATA		16
 
 /* musgrave stype */
 #define TEX_MFRACTAL		0
@@ -464,6 +478,14 @@ typedef struct TexMapping {
 
 #define POINT_DATA_VEL		1
 #define POINT_DATA_LIFE		2
+
+/******************** Voxel Data *****************************/ 
+#define TEX_VD_CUBIC              0
+#define TEX_VD_PARALLELOGRAM      1
+ 
+#define TEX_VD_NEARESTNEIGHBOR		0
+#define TEX_VD_LINEAR			1
+#define TEX_VD_TRICUBIC				2
 
 #endif
 

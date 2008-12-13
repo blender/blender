@@ -260,6 +260,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ENV_FREE_ALL	1357
 #define B_TEX_USENODES		1358
 
+#define B_VOXELDATA_LOAD	1359
+
 
 /* **************** animbuts = object buttons ******* */
 #define B_ANIMBUTS		1500

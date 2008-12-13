@@ -65,6 +65,7 @@
 
 #include "envmap.h"
 #include "pointdensity.h"
+#include "voxeldata.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "rendercore.h"
@@ -1257,6 +1258,10 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_POINTDENSITY:
 		retval= pointdensitytex(tex, texvec, texres);
 		break;
+	case TEX_VOXELDATA:
+		retval= voxeldatatex(tex, texvec, texres);  
+		break;
+
 	}
 
 	if (tex->flag & TEX_COLORBAND) {
