@@ -65,6 +65,7 @@ void ED_spacetypes_init(void)
 	ED_spacetype_time();
 	ED_spacetype_view3d();
 	ED_spacetype_ipo();
+	ED_spacetype_image();
 //	...
 	
 	/* register operator types for screen and all spaces */
