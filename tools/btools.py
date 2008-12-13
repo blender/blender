@@ -558,7 +558,7 @@ def NSIS_Installer(target=None, source=None, env=None):
 	print "Preparing nsis file looks ok\n"
 
 	os.chdir(start_dir)
-	print "try to lauch makensis ...make sure it is on the path \n"
+	print "try to launch 'makensis' ...make sure it is on the path \n"
 
 	cmdline = "makensis " + "\""+tmpnsi+"\""
 
