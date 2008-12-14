@@ -504,13 +504,18 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 /* *********** Space switching code, local now *********** */
 /* XXX make operator for this */
 
-static void newspace(ScrArea *sa, int type)
+static void newspace(bContext *C, ScrArea *sa, int type)
 {
 	if(sa->spacetype != type) {
-		SpaceType *st= BKE_spacetype_from_id(type);
-		SpaceLink *slold= sa->spacedata.first;
+		SpaceType *st;
+		SpaceLink *slold;
 		SpaceLink *sl;
-		
+
+		ED_area_exit(C, sa);
+
+		st= BKE_spacetype_from_id(type);
+		slold= sa->spacedata.first;
+
 		sa->spacetype= type;
 		sa->butspacetype= type;
 		
@@ -594,7 +599,7 @@ static char *windowtype_pup(void)
 
 static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
-	newspace(C->area, C->area->butspacetype);
+	newspace(C, C->area, C->area->butspacetype);
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 }
 
