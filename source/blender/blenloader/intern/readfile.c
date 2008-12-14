@@ -5090,8 +5090,16 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				break;
 			case SPACE_ACTION:
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_LEFT;
 				break;
 			case SPACE_NLA:
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_LEFT;
 				break;
 		}
 	}
@@ -5139,6 +5147,42 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_LEFT);
+				break;
+			}
+			case SPACE_SOUND:
+			{
+				SpaceSound *ssound= (SpaceSound *)sl;
+				memcpy(&ar->v2d, &ssound->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_LEFT);
+				break;
+			}
+			case SPACE_NLA:
+			{
+				SpaceNla *snla= (SpaceNla *)sl;
+				memcpy(&ar->v2d, &snla->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+				break;
+			}
+			case SPACE_ACTION:
+			{
+				SpaceAction *saction= (SpaceAction *)sl;
+				memcpy(&ar->v2d, &saction->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				SpaceSeq *sseq= (SpaceSeq *)sl;
+				memcpy(&ar->v2d, &sseq->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+				ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_SCALE_RIGHT);
 				break;
 			}
 			case SPACE_NODE:

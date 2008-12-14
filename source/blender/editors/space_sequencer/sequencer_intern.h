@@ -25,28 +25,17 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef ED_SEQUENCER_INTERN_H
+#define ED_SEQUENCER_INTERN_H
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+#define MAXSEQ          32
 
-/* the pluginnable API for export to editors */
+/* internal exports only */
 
-/* calls for registering default spaces */
-void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
-void ED_spacetype_view3d(void);
-void ED_spacetype_ipo(void);
-void ED_spacetype_image(void);
-void ED_spacetype_node(void);
-void ED_spacetype_buttons(void);
-void ED_spacetype_info(void);
-void ED_spacetype_file(void);
-void ED_spacetype_sound(void);
-void ED_spacetype_action(void);
-void ED_spacetype_nla(void);
-void ED_spacetype_script(void);
-void ED_spacetype_text(void);
-void ED_spacetype_sequencer(void);
 
-#endif /* ED_AREA_H */
+/* sequencer_header.c */
+void sequencer_header_buttons(const bContext *C, ARegion *ar);
+
+
+#endif /* ED_SEQUENCER_INTERN_H */
 
