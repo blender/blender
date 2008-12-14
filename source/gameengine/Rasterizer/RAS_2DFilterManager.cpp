@@ -58,7 +58,7 @@
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),
 canvaswidth(-1), canvasheight(-1),
-numberoffilters(0)
+numberoffilters(0), need_tex_update(true)
 {
 	isshadersupported = GLEW_ARB_shader_objects &&
 		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;
@@ -217,50 +217,50 @@ void RAS_2DFilterManager::StartShaderProgram(int passindex)
 	glActiveTextureARB(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texname[0]);
 
-    if (uniformLoc != -1)
-    {
+	if (uniformLoc != -1)
+	{
 		glUniform1iARB(uniformLoc, 0);
-    }
+	}
 
-    /* send depth texture to glsl program if it needs */
+	/* send depth texture to glsl program if it needs */
 	if(texflag[passindex] & 0x1){
-    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture");
-    	glActiveTextureARB(GL_TEXTURE1);
-    	glBindTexture(GL_TEXTURE_2D, texname[1]);
+		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_DepthTexture");
+		glActiveTextureARB(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texname[1]);
 
-    	if (uniformLoc != -1)
-    	{
-    		glUniform1iARB(uniformLoc, 1);
-    	}
-    }
+		if (uniformLoc != -1)
+		{
+			glUniform1iARB(uniformLoc, 1);
+		}
+	}
 
-    /* send luminance texture to glsl program if it needs */
+	/* send luminance texture to glsl program if it needs */
 	if(texflag[passindex] & 0x2){
-    	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture");
-    	glActiveTextureARB(GL_TEXTURE2);
-    	glBindTexture(GL_TEXTURE_2D, texname[2]);
+		uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_LuminanceTexture");
+		glActiveTextureARB(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, texname[2]);
 
-    	if (uniformLoc != -1)
-    	{
-    		glUniform1iARB(uniformLoc, 2);
-    	}
+		if (uniformLoc != -1)
+		{
+			glUniform1iARB(uniformLoc, 2);
+		}
 	}
 	
 	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_TextureCoordinateOffset");
-    if (uniformLoc != -1)
-    {
-        glUniform2fvARB(uniformLoc, 9, textureoffsets);
-    }
+	if (uniformLoc != -1)
+	{
+		glUniform2fvARB(uniformLoc, 9, textureoffsets);
+	}
 	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureWidth");
-    if (uniformLoc != -1)
-    {
+	if (uniformLoc != -1)
+	{
 		glUniform1fARB(uniformLoc,texturewidth);
-    }
+	}
 	uniformLoc = glGetUniformLocationARB(m_filters[passindex], "bgl_RenderedTextureHeight");
-    if (uniformLoc != -1)
-    {
+	if (uniformLoc != -1)
+	{
 		glUniform1fARB(uniformLoc,textureheight);
-    }
+	}
 
 	int i, objProperties = m_properties[passindex].size();
 	for(i=0; i<objProperties; i++)
@@ -332,20 +332,20 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 	RAS_Rect canvas_rect = canvas->GetWindowArea();
 	canvaswidth = canvas->GetWidth();
 	canvasheight = canvas->GetHeight();
-	texturewidth = canvaswidth;
-	textureheight = canvasheight;
 
+	texturewidth = canvaswidth + canvas_rect.GetLeft();
+	textureheight = canvasheight + canvas_rect.GetBottom();
 	GLint i,j;
 	i = 0;
-    while ((1 << i) <= texturewidth)
-        i++;
-    texturewidth = (1 << (i));
+	while ((1 << i) <= texturewidth)
+		i++;
+	texturewidth = (1 << (i));
 
-    // Now for height
-    i = 0;
-    while ((1 << i) <= textureheight)
-        i++;
-    textureheight = (1 << (i));
+	// Now for height
+	i = 0;
+	while ((1 << i) <= textureheight)
+		i++;
+	textureheight = (1 << (i));
 
 	GLfloat	xInc = 1.0f / (GLfloat)texturewidth;
 	GLfloat yInc = 1.0f / (GLfloat)textureheight;
@@ -358,6 +358,23 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(RAS_ICanvas* canvas)
 			textureoffsets[(((i*3)+j)*2)+1] = (-1.0f * yInc) + ((GLfloat)j * yInc);
 		}
 	}
+}
+
+void RAS_2DFilterManager::UpdateCanvasTextureCoord(unsigned int * viewport)
+{
+	/*
+	This function update canvascoord[].
+	These parameters are used to create texcoord[1]
+	That way we can access the texcoord relative to the canvas:
+	(0.0,0.0) bottom left, (1.0,1.0) top right, (0.5,0.5) center
+	*/
+	canvascoord[0] = (GLfloat) viewport[0] / viewport[2];
+	canvascoord[0] *= -1;
+	canvascoord[1] = (GLfloat) (texturewidth - viewport[0]) / viewport[2];
+ 
+	canvascoord[2] = (GLfloat) viewport[1] / viewport[3];
+	canvascoord[2] *= -1;
+	canvascoord[3] = (GLfloat)(textureheight - viewport[1]) / viewport[3];
 }
 
 void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
@@ -387,27 +404,35 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if(num_filters <= 0)
 		return;
 
+	GLuint	viewport[4]={0};
+	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+
 	if(canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
 	{
 		UpdateOffsetMatrix(canvas);
-		SetupTextures(need_depth, need_luminance);
+		UpdateCanvasTextureCoord((unsigned int*)viewport);
+		need_tex_update = true;
 	}
-	GLuint	viewport[4]={0};
+	
+	if(need_tex_update)
+	{
+		SetupTextures(need_depth, need_luminance);
+		need_tex_update = false;
+	}
 
 	if(need_depth){
 		glActiveTextureARB(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, viewport[0], viewport[1], texturewidth,textureheight, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0, 0, texturewidth,textureheight, 0);
 	}
 	
 	if(need_luminance){
 		glActiveTextureARB(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texname[2]);
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, viewport[0], viewport[1] , texturewidth,textureheight, 0);
+		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0, 0, texturewidth,textureheight, 0);
 	}
 
-	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
-	glViewport(viewport[0],viewport[1], texturewidth, textureheight);
+	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_TEXTURE);
@@ -425,20 +450,15 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 			glActiveTextureARB(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texname[0]);
-			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, viewport[0], viewport[1], texturewidth, textureheight, 0);
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, texturewidth, textureheight, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
-
-			float canvascoordx, canvascoordy;
-
-			canvascoordx = (GLfloat) texturewidth / canvaswidth;
-			canvascoordy = (GLfloat) textureheight / canvasheight;
 
 			glBegin(GL_QUADS);
 				glColor4f(1.f, 1.f, 1.f, 1.f);
-				glTexCoord2f(1.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, canvascoordx, canvascoordy); glVertex2f(1,1);
-				glTexCoord2f(0.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, canvascoordy);          glVertex2f(-1,1);
-				glTexCoord2f(0.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, 0.0);                   glVertex2f(-1,-1);
-				glTexCoord2f(1.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE1_ARB, canvascoordx, 0.0);          glVertex2f(1,-1);
+				glTexCoord2f(1.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[3]); glVertex2f(1,1);
+				glTexCoord2f(0.0, 1.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[3]); glVertex2f(-1,1);
+				glTexCoord2f(0.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[0], canvascoord[2]); glVertex2f(-1,-1);
+				glTexCoord2f(1.0, 0.0);	glMultiTexCoord2fARB(GL_TEXTURE3_ARB, canvascoord[1], canvascoord[2]); glVertex2f(1,-1);
 			glEnd();
 		}
 	}
@@ -454,7 +474,7 @@ void RAS_2DFilterManager::EnableFilter(vector<STR_String>& propNames, void* game
 		return;
 	if(pass<0 || pass>=MAX_RENDER_PASS)
 		return;
-
+	need_tex_update = true;
 	if(mode == RAS_2DFILTER_DISABLED)
 	{
 		m_enabled[pass] = 0;

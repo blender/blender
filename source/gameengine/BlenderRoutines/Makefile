@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_SOLID)
 CPPFLAGS += -I$(NAN_STRING)/include    

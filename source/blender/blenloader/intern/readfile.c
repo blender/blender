@@ -8259,6 +8259,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 2)) {
+		Scene *sce;
+		
+		/* Note, these will need to be added for painting */
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
+			sce->toolsettings->imapaint.seam_bleed = 2;
+			sce->toolsettings->imapaint.normal_angle = 80;
+		}
+	}
+
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		

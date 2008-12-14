@@ -154,12 +154,18 @@ int writePng(const char *fileName, unsigned char **rowsp, int w, int h);
  */
 
 /* minimum */
+#ifdef MIN
+#undef MIN
+#endif
 template < class T >
 inline T
 MIN( T a, T b )
 { return (a < b) ? a : b ; }
 
 /* maximum */
+#ifdef MAX
+#undef MAX
+#endif
 template < class T >
 inline T
 MAX( T a, T b )

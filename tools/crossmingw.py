@@ -109,7 +109,7 @@ def shlib_emitter(target, source, env):
 #JB  """ I'm blindly susbstuting lines from the mingw.py
 #JB      file becase these lines cause python errors here. """
 #JB shlib_action = SCons.Action.Action(shlib_generator,generator=1)
-shlib_action = SCons.Action.CommandGenerator(shlib_generator)
+shlib_action = SCons.Action.CommandGeneratorAction(shlib_generator)
 
 res_action = SCons.Action.Action('$RCCOM', '$RCCOMSTR')
 

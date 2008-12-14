@@ -79,7 +79,7 @@ def addSlash(path):
 	return path + sys.sep
 
 
-def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=True, VERBOSE=False):
+def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=True, VERBOSE=False, CONVERT_CALLBACK=None):
 	'''
 	imagePath: The image filename
 		If a path precedes it, this will be searched as well.
@@ -93,13 +93,30 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 	
 	RECURSIVE: If True, directories will be recursivly searched.
 		Be carefull with this if you have files in your root directory because it may take a long time.
+	
+	CASE_INSENSITIVE: for non win32 systems, find the correct case for the file.
+	
+	CONVERT_CALLBACK: a function that takes an existing path and returns a new one.
+		Use this when loading image formats blender may not support, the CONVERT_CALLBACK
+		can take the path for a GIF (for example), convert it to a PNG and return the PNG's path.
+		For formats blender can read, simply return the path that is given.
 	'''
 	
+	# VERBOSE = True
+	
 	if VERBOSE: print 'img:', imagePath, 'file:', filePath
+	
+	if os == None and CASE_INSENSITIVE:
+		CASE_INSENSITIVE = True
+	
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
 		#if path.endswith('\\') or path.endswith('/'):
 		#	raise 'INVALID PATH'
+		
+		if CONVERT_CALLBACK:
+			path = CONVERT_CALLBACK(path)
+		
 		try:
 			img = bpy.data.images.new(filename=path)
 			if VERBOSE: print '\t\tImage loaded "%s"' % path

@@ -1249,7 +1249,7 @@ void KX_Scene::MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj,KX_Cam
 	// If the camera is inside this node, then the object is visible.
 	if (!vis)
 	{
-		vis = gameobj->GetSGNode()->inside( GetActiveCamera()->GetCameraLocation() );
+		vis = gameobj->GetSGNode()->inside( cam->GetCameraLocation() );
 	}
 		
 	// Test the object's bound sphere against the view frustum.

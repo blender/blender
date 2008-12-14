@@ -42,7 +42,7 @@
 
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
-#include "Windows.h"
+#include "windows.h"
 #elif defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>

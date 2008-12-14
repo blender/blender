@@ -72,11 +72,19 @@ ifeq ($(OS),freebsd)
 endif
 
 ifeq ($(OS),irix)
-    LDFLAGS += -mips3
-    LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldmedia
-    LLIBS += -lcl -laudio -ldb -lCio -lz
-    LLIBS += -lpthread
-    LLIBS += -woff 84,171
+    ifeq ($(IRIX_USE_GCC), true)
+        LDFLAGS += -mabi=n32 -mips4 
+        DBG_LDFLAGS += -LD_LAYOUT:lgot_buffer=40
+    else
+        LDFLAGS += -n32 -mips3
+        LDFLAGS += -woff 84,171
+    endif
+    LLIBS = -lmovieGL -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldmedia
+    LLIBS += -lcl -laudio
+    ifneq ($(IRIX_USE_GCC), true)
+        LLIBS += -lCio -ldb
+    endif
+    LLIBS += -lz -lpthread
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
@@ -90,7 +98,7 @@ ifeq ($(OS),linux)
   ifeq ($(CPU),$(findstring $(CPU), "i386 x86_64 ia64 parisc64 powerpc sparc64"))
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
-    LLIBS += -lutil -lc -lm -ldl -lpthread 
+    LLIBS += -lutil -lc -lm -ldl -lpthread
 #    LLIBS += -L$(NAN_ODE)/lib -lode
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU

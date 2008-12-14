@@ -52,6 +52,8 @@ extern bNodeType tex_node_curve_rgb;
 extern bNodeType tex_node_curve_time;
 extern bNodeType tex_node_invert;
 extern bNodeType tex_node_hue_sat;
+extern bNodeType tex_node_coord;
+extern bNodeType tex_node_distance;
 
 extern bNodeType tex_node_rotate;
 extern bNodeType tex_node_translate;

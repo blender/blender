@@ -249,7 +249,7 @@ if len(B.quickdebug) > 0 and printdebug != 0:
 # remove stdc++ from LLIBS if we are building a statc linked CXXFLAGS
 if env['WITH_BF_STATICCXX']:
 	if 'stdc++' in env['LLIBS']:
-		env['LLIBS'] = env['LLIBS'].replace('stdc++', ' ')
+		env['LLIBS'].remove('stdc++')
 	else:
 		print '\tcould not remove stdc++ library from LLIBS, WITH_BF_STATICCXX may not work for your platform'
 
@@ -425,8 +425,18 @@ if  env['OURPLATFORM']!='darwin':
 				dn.remove('CVS')
 			if '.svn' in dn:
 				dn.remove('.svn')
+			
 			for f in df:
-				dotblendlist.append(dp+os.sep+f)
+				if not env['WITH_BF_INTERNATIONAL']:
+					if 'locale' in dp:
+						continue
+					if f == '.Blanguages':
+						continue
+				if not env['WITH_BF_FREETYPE']:
+					if f.endswith('.ttf'):
+						continue
+				
+				dotblendlist.append(os.path.join(dp, f))
 				dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
 
 		dotblenderinstall = []
@@ -434,16 +444,17 @@ if  env['OURPLATFORM']!='darwin':
 			td, tf = os.path.split(targetdir)
 			dotblenderinstall.append(env.Install(dir=td, source=srcfile))
 		
-		#-- .blender/scripts	
-		scriptpath='release/scripts'
-		for dp, dn, df in os.walk(scriptpath):
-			if 'CVS' in dn:
-				dn.remove('CVS')
-			if '.svn' in dn:
-				dn.remove('.svn')
-			dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
-			source=[dp+os.sep+f for f in df]
-			scriptinstall.append(env.Install(dir=dir,source=source))
+		if env['WITH_BF_PYTHON']:
+			#-- .blender/scripts	
+			scriptpath='release/scripts'
+			for dp, dn, df in os.walk(scriptpath):
+				if 'CVS' in dn:
+					dn.remove('CVS')
+				if '.svn' in dn:
+					dn.remove('.svn')
+				dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
+				source=[dp+os.sep+f for f in df]
+				scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
 if env['OURPLATFORM']=='linux2':
@@ -464,6 +475,13 @@ if env['OURPLATFORM']=='linux2':
 	for targetdir,srcfile in zip(icontargetlist, iconlist):
 		td, tf = os.path.split(targetdir)
 		iconinstall.append(env.Install(dir=td, source=srcfile))
+
+# dlls for linuxcross
+# TODO - add more libs, for now this lets blenderlite run
+if env['OURPLATFORM']=='linuxcross':
+	dir=env['BF_INSTALLDIR']
+	source = ['../lib/windows/pthreads/lib/pthreadGC2.dll']
+	scriptinstall.append(env.Install(dir=dir, source=source))
 
 #-- plugins
 pluglist = []
