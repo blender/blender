@@ -57,10 +57,12 @@ static void spacetype_free(SpaceType *st)
 
 void BKE_spacetypes_free(void)
 {
-	SpaceType *st;
+	SpaceType *st, *stn;
 	
-	for(st= spacetypes.first; st; st= st->next)
+	for(st= spacetypes.first; st; st= stn) {
+		stn= st->next;
 		spacetype_free(st);
+	}
 	
 	BLI_freelistN(&spacetypes);
 }
@@ -100,17 +102,20 @@ void BKE_spacetype_register(SpaceType *st)
 
 void BKE_spacedata_freelist(ListBase *lb)
 {
-	SpaceLink *sl;
-	ARegion *ar;
+	SpaceLink *sl, *sln;
+	ARegion *ar, *arn;
 	
-	for (sl= lb->first; sl; sl= sl->next) {
+	for (sl= lb->first; sl; sl= sln) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
+		sln= sl->next;
 		
 		if(st && st->free) 
 			st->free(sl);
 		/* regions for pushed spaces */
-		for(ar=sl->regionbase.first; ar; ar=ar->next)
+		for(ar=sl->regionbase.first; ar; ar=arn) {
+			arn= ar->next;
 			BKE_area_region_free(ar);
+		}
 		BLI_freelistN(&sl->regionbase);
 	}
 	
