@@ -109,14 +109,15 @@ void BKE_spacedata_freelist(ListBase *lb)
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
 		sln= sl->next;
 		
-		if(st && st->free) 
-			st->free(sl);
 		/* regions for pushed spaces */
 		for(ar=sl->regionbase.first; ar; ar=arn) {
 			arn= ar->next;
 			BKE_area_region_free(ar);
 		}
 		BLI_freelistN(&sl->regionbase);
+		
+		if(st && st->free) 
+			st->free(sl);
 	}
 	
 	BLI_freelistN(lb);
