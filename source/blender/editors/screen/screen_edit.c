@@ -252,10 +252,13 @@ static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v
 	return sa;
 }
 
-static void screen_delarea(bScreen *sc, ScrArea *sa)
+static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
 {
-	/* XXX need context to cancel operators ED_area_exit(C, sa); */
+	
+	ED_area_exit(C, sa);
+	
 	BKE_screen_area_free(sa);
+	
 	BLI_remlink(&sc->areabase, sa);
 	MEM_freeN(sa);
 }
@@ -475,7 +478,7 @@ int area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb)
 /* Helper function to join 2 areas, it has a return value, 0=failed 1=success
 * 	used by the split, join operators
 */
-int screen_area_join(bScreen* scr, ScrArea *sa1, ScrArea *sa2) 
+int screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2) 
 {
 	int dir;
 	
@@ -514,7 +517,7 @@ int screen_area_join(bScreen* scr, ScrArea *sa1, ScrArea *sa2)
 		screen_addedge(scr, sa1->v3, sa1->v4);
 	}
 	
-	screen_delarea(scr, sa2);
+	screen_delarea(C, scr, sa2);
 	removedouble_scrverts(scr);
 	sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 	
@@ -567,7 +570,7 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
 	ScrVert *sv=NULL;
-	ScrArea *sa, *san;
+	ScrArea *sa;
 	int sizex, sizey;
 	float facx, facy, tempf, min[2], max[2];
 	
@@ -616,11 +619,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
-	for(sa= sc->areabase.first; sa; sa= san) {
-		san= sa->next;
-		if(sa->v1==sa->v2 || sa->v3==sa->v4 || sa->v2==sa->v3)
-			screen_delarea(sc, sa);
-	}
+	/* ton: removed option now, it needs Context... */
 	
 	/* make each window at least HEADERY high */
 	for(sa= sc->areabase.first; sa; sa= sa->next) {

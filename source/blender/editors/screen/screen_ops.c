@@ -823,7 +823,7 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 
-	if (screen_area_join(C->screen,sd->sarea, sd->narea)) {
+	if (screen_area_join(C, C->screen, sd->sarea, sd->narea)) {
 		if (C->area == sd->narea) {
 			C->area = NULL;
 		}
@@ -975,7 +975,7 @@ static int area_join_apply(bContext *C, wmOperator *op)
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	if (!jd) return 0;
 
-	if(!screen_area_join(C->screen,jd->sa1,jd->sa2)){
+	if(!screen_area_join(C, C->screen, jd->sa1, jd->sa2)){
 		return 0;
 	}
 	if (C->area == jd->sa2) {
