@@ -57,10 +57,9 @@ static void spacetype_free(SpaceType *st)
 
 void BKE_spacetypes_free(void)
 {
-	SpaceType *st, *stn;
+	SpaceType *st;
 	
-	for(st= spacetypes.first; st; st= stn) {
-		stn= st->next;
+	for(st= spacetypes.first; st; st= st->next) {
 		spacetype_free(st);
 	}
 	
@@ -102,16 +101,14 @@ void BKE_spacetype_register(SpaceType *st)
 
 void BKE_spacedata_freelist(ListBase *lb)
 {
-	SpaceLink *sl, *sln;
-	ARegion *ar, *arn;
+	SpaceLink *sl;
+	ARegion *ar;
 	
-	for (sl= lb->first; sl; sl= sln) {
+	for (sl= lb->first; sl; sl= sl->next) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
-		sln= sl->next;
 		
-		/* regions for pushed spaces */
-		for(ar=sl->regionbase.first; ar; ar=arn) {
-			arn= ar->next;
+		/* free regions for pushed spaces */
+		for(ar=sl->regionbase.first; ar; ar=ar->next) {
 			BKE_area_region_free(ar);
 		}
 		BLI_freelistN(&sl->regionbase);
@@ -123,6 +120,37 @@ void BKE_spacedata_freelist(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
+ARegion *BKE_area_region_copy(ARegion *ar)
+{
+	ARegion *newar= MEM_dupallocN(ar);
+	
+	newar->handlers.first= newar->handlers.last= NULL;
+	newar->uiblocks.first= newar->uiblocks.last= NULL;
+	newar->swinid= 0;
+	
+	/* XXX regiondata callback */
+	if(ar->regiondata)
+		newar->regiondata= MEM_dupallocN(ar->regiondata);
+	
+	return newar;
+}
+
+
+/* from lb2 to lb1, lb1 is supposed to be free'd */
+static void region_copylist(ListBase *lb1, ListBase *lb2)
+{
+	ARegion *ar;
+	
+	/* to be sure */
+	lb1->first= lb1->last= NULL;
+	
+	for(ar= lb2->first; ar; ar= ar->next) {
+		ARegion *arnew= BKE_area_region_copy(ar);
+		BLI_addtail(lb1, arnew);
+	}
+}
+
+
 /* lb1 should be empty */
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 {
@@ -133,8 +161,13 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 	for (sl= lb2->first; sl; sl= sl->next) {
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
 		
-		if(st && st->duplicate)
-			BLI_addtail(lb1, st->duplicate(sl));
+		if(st && st->duplicate) {
+			SpaceLink *slnew= st->duplicate(sl);
+			
+			BLI_addtail(lb1, slnew);
+			
+			region_copylist(&slnew->regionbase, &sl->regionbase);
+		}
 	}
 }
 

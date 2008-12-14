@@ -46,7 +46,6 @@ void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void	ED_region_exit(struct bContext *C, struct ARegion *ar);
 void	ED_region_pixelspace(const struct bContext *C, struct ARegion *ar);
 void	ED_region_init(struct bContext *C, struct ARegion *ar);
-ARegion *ED_region_copy(ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);

@@ -431,21 +431,6 @@ void ED_region_init(bContext *C, ARegion *ar)
 }
 
 
-ARegion *ED_region_copy(ARegion *ar)
-{
-	ARegion *newar= MEM_dupallocN(ar);
-	
-	newar->handlers.first= newar->handlers.last= NULL;
-	newar->uiblocks.first= newar->uiblocks.last= NULL;
-	newar->swinid= 0;
-	
-	/* XXX regiondata */
-	if(ar->regiondata)
-		newar->regiondata= MEM_dupallocN(ar->regiondata);
-	
-	return newar;
-}
-
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
 /* area vertices were set */
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
@@ -485,11 +470,11 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 		}
 	}
 	
-	/* regions */
+	/* regions... XXX */
 	BLI_freelistN(&sa1->regionbase);
 	
 	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
-		ARegion *newar= ED_region_copy(ar);
+		ARegion *newar= BKE_area_region_copy(ar);
 		BLI_addtail(&sa1->regionbase, newar);
 	}
 		

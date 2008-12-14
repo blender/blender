@@ -108,10 +108,6 @@ typedef struct ARegionType {
 } ARegionType;
 
 
-void BKE_screen_area_free(struct ScrArea *sa);
-void BKE_area_region_free(struct ARegion *ar);
-void free_screen(struct bScreen *sc); 
-
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
 const struct ListBase *BKE_spacetypes_list(void);
@@ -121,6 +117,15 @@ void BKE_spacetypes_free(void);	/* only for quitting blender */
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
+
+/* area/regions */
+struct ARegion *BKE_area_region_copy(struct ARegion *ar);
+void	BKE_area_region_free(struct ARegion *ar);
+
+void BKE_screen_area_free(struct ScrArea *sa);
+
+void free_screen(struct bScreen *sc); 
+
 
 #endif
 

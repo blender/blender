@@ -548,6 +548,10 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
 	if(soutlinern->rnapath)
 		soutlinern->rnapath= MEM_dupallocN(soutlinern->rnapath);
 	
+	soutlinern->oops.first= soutlinern->oops.last= NULL;
+	soutlinern->tree.first= soutlinern->tree.last= NULL;
+	soutlinern->treestore= NULL;
+	
 	return (SpaceLink *)soutlinern;
 }
 

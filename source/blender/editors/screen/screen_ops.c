@@ -1208,7 +1208,7 @@ void ED_SCR_OT_repeat_last(wmOperatorType *ot)
 /* insert a region in the area region list */
 static int region_split_exec(bContext *C, wmOperator *op)
 {
-	ARegion *newar= ED_region_copy(C->region);
+	ARegion *newar= BKE_area_region_copy(C->region);
 	int dir= RNA_enum_get(op->ptr, "dir");
 	
 	BLI_insertlinkafter(&C->area->regionbase, C->region, newar);
