@@ -46,12 +46,12 @@ typedef struct View2D {
 	
 	short scroll;					/* scroll - scrollbars to display (bitflag) */
 	short keeptot;					/* keeptot - 'cur' rect cannot move outside the 'tot' rect? */
-	short keepaspect;				/* keepaspect - need to maintain aspect ratio (0 or 1 boolean only) */
 	short keepzoom;					/* keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits */
 	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
 	
 	short flag;						/* settings */
 	short align;					/* alignment of content in totrect */
+	short type;						/* basic 'type' of View2D (for easy init) */ // err... do we want to store this?
 	
 	short winx, winy;				/* storage of current winx/winy values, set in UI_view2d_size_update */
 	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_curRect_validate(), for keepaspect */
@@ -64,6 +64,7 @@ typedef struct View2D {
 
 /* view zooming restrictions, per axis (v2d->keepzoom) */
 #define V2D_KEEPZOOM		0x0001
+#define V2D_KEEPASPECT		0x0002
 #define V2D_LOCKZOOM_X		0x0100
 #define V2D_LOCKZOOM_Y		0x0200
 

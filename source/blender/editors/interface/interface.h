@@ -274,6 +274,7 @@ extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
 extern void ui_scale_panel(uiBlock *block);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
+extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);

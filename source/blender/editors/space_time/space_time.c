@@ -223,17 +223,17 @@ static SpaceLink *time_new(void)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= -4.0;
-	ar->v2d.tot.ymin=  0.0;
+	ar->v2d.tot.ymin= -10.0;
 	ar->v2d.tot.xmax= (float)EFRA + 4.0;
 	ar->v2d.tot.ymax= 10;
 
 	ar->v2d.cur= ar->v2d.tot;
 
 	ar->v2d.min[0]= 1.0;
-	ar->v2d.min[1]= 500.0; /* XXX */
+	ar->v2d.min[1]= 20.0; /* XXX */
 
 	ar->v2d.max[0]= 32000.0;
-	ar->v2d.max[1]= 500;   /* XXX */
+	ar->v2d.max[1]= 20;   /* XXX */
 
 	ar->v2d.minzoom= 0.1f;
 	ar->v2d.maxzoom= 10.0;
@@ -241,6 +241,7 @@ static SpaceLink *time_new(void)
 	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
 	ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 	ar->v2d.keepofs |= V2D_LOCKOFS_Y;
+	ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
 
 	return (SpaceLink*)stime;
 }

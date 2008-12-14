@@ -179,19 +179,19 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	if(roundboxtype & 4) {
 		
 		round_box_shade_col(coltop, coldown, 0.0);
-		glVertex2f( maxx-rad, miny);
+		glVertex2f(maxx-rad, miny);
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, vec[a][1]/div);
-			glVertex2f( maxx-rad+vec[a][0], miny+vec[a][1]);
+			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
 		}
 		
 		round_box_shade_col(coltop, coldown, rad/div);
-		glVertex2f( maxx, miny+rad);
+		glVertex2f(maxx, miny+rad);
 	}
 	else {
 		round_box_shade_col(coltop, coldown, 0.0);
-		glVertex2f( maxx, miny);
+		glVertex2f(maxx, miny);
 	}
 	
 	/* corner right-top */
@@ -202,14 +202,14 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-rad+vec[a][1])/div);
-			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
+			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
 		round_box_shade_col(coltop, coldown, 1.0);
-		glVertex2f( maxx-rad, maxy);
+		glVertex2f(maxx-rad, maxy);
 	}
 	else {
 		round_box_shade_col(coltop, coldown, 1.0);
-		glVertex2f( maxx, maxy);
+		glVertex2f(maxx, maxy);
 	}
 	
 	/* corner left-top */
@@ -224,30 +224,135 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 		}
 		
 		round_box_shade_col(coltop, coldown, (div-rad)/div);
-		glVertex2f( minx, maxy-rad);
+		glVertex2f(minx, maxy-rad);
 	}
 	else {
 		round_box_shade_col(coltop, coldown, 1.0);
-		glVertex2f( minx, maxy);
+		glVertex2f(minx, maxy);
 	}
 	
 	/* corner left-bottom */
 	if(roundboxtype & 8) {
 		
 		round_box_shade_col(coltop, coldown, rad/div);
-		glVertex2f( minx, miny+rad);
+		glVertex2f(minx, miny+rad);
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (rad-vec[a][1])/div);
-			glVertex2f( minx+vec[a][1], miny+rad-vec[a][0]);
+			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
 		}
 		
 		round_box_shade_col(coltop, coldown, 0.0);
-		glVertex2f( minx+rad, miny);
+		glVertex2f(minx+rad, miny);
 	}
 	else {
 		round_box_shade_col(coltop, coldown, 0.0);
-		glVertex2f( minx, miny);
+		glVertex2f(minx, miny);
+	}
+	
+	glEnd();
+	glShadeModel(GL_FLAT);
+}
+
+/* linear vertical shade within button or in outline */
+void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight)
+{
+	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	float div= maxx-minx;
+	float colLeft[3], colRight[3], color[4];
+	int a;
+	
+	/* mult */
+	for(a=0; a<7; a++) {
+		vec[a][0]*= rad; vec[a][1]*= rad;
+	}
+	/* get current color, needs to be outside of glBegin/End */
+	glGetFloatv(GL_CURRENT_COLOR, color);
+
+	/* 'shade' defines strength of shading */	
+	colLeft[0]= color[0]+shadeLeft; if(colLeft[0]>1.0) colLeft[0]= 1.0;
+	colLeft[1]= color[1]+shadeLeft; if(colLeft[1]>1.0) colLeft[1]= 1.0;
+	colLeft[2]= color[2]+shadeLeft; if(colLeft[2]>1.0) colLeft[2]= 1.0;
+	colRight[0]= color[0]+shadeRight; if(colRight[0]<0.0) colRight[0]= 0.0;
+	colRight[1]= color[1]+shadeRight; if(colRight[1]<0.0) colRight[1]= 0.0;
+	colRight[2]= color[2]+shadeRight; if(colRight[2]<0.0) colRight[2]= 0.0;
+
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glShadeModel(GL_SMOOTH);
+		glBegin(mode);
+	}
+
+	/* start with corner right-bottom */
+	if(roundboxtype & 4) {
+		round_box_shade_col(colLeft, colRight, 0.0);
+		glVertex2f(maxx-rad, miny);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(colLeft, colRight, vec[a][0]/div);
+			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
+		}
+		
+		round_box_shade_col(colLeft, colRight, rad/div);
+		glVertex2f(maxx, miny+rad);
+	}
+	else {
+		round_box_shade_col(colLeft, colRight, 0.0);
+		glVertex2f(maxx, miny);
+	}
+	
+	/* corner right-top */
+	if(roundboxtype & 2) {
+		round_box_shade_col(colLeft, colRight, 0.0);
+		glVertex2f(maxx, maxy-rad);
+		
+		for(a=0; a<7; a++) {
+			
+			round_box_shade_col(colLeft, colRight, (div-rad-vec[a][0])/div);
+			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
+		}
+		round_box_shade_col(colLeft, colRight, (div-rad)/div);
+		glVertex2f(maxx-rad, maxy);
+	}
+	else {
+		round_box_shade_col(colLeft, colRight, 0.0);
+		glVertex2f(maxx, maxy);
+	}
+	
+	/* corner left-top */
+	if(roundboxtype & 1) {
+		round_box_shade_col(colLeft, colRight, (div-rad)/div);
+		glVertex2f(minx+rad, maxy);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(colLeft, colRight, (div-rad+vec[a][0])/div);
+			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
+		}
+		
+		round_box_shade_col(colLeft, colRight, 1.0);
+		glVertex2f(minx, maxy-rad);
+	}
+	else {
+		round_box_shade_col(colLeft, colRight, 1.0);
+		glVertex2f(minx, maxy);
+	}
+	
+	/* corner left-bottom */
+	if(roundboxtype & 8) {
+		round_box_shade_col(colLeft, colRight, 1.0);
+		glVertex2f(minx, miny+rad);
+		
+		for(a=0; a<7; a++) {
+			round_box_shade_col(colLeft, colRight, (vec[a][0])/div);
+			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
+		}
+		
+		round_box_shade_col(colLeft, colRight, 1.0);
+		glVertex2f(minx+rad, miny);
+	}
+	else {
+		round_box_shade_col(colLeft, colRight, 1.0);
+		glVertex2f(minx, miny);
 	}
 	
 	glEnd();

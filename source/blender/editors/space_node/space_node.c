@@ -103,8 +103,7 @@ static SpaceLink *node_new(void)
 	ar->v2d.maxzoom= 1.21f;
 	
 	ar->v2d.scroll= 0;
-	ar->v2d.keepaspect= 1;
-	ar->v2d.keepzoom= 1;
+	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 	ar->v2d.keeptot= 0;
 	
 	

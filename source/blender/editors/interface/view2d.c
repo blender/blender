@@ -57,6 +57,26 @@
 /* *********************************************************************** */
 /* Refresh and Validation */
 
+#if 0 // experimental code - not ready to be used yet!
+/* common View2D view types */
+// XXX move this to header as part of API
+enum {
+		/* 4 quadrants, centered at (0,0), zoomable and pannable, best for flexible sized data with precision needed */
+	V2D_VIEWTYPE_CANVAS	= 0,
+	V2D_VIEWTYPE_LIST,
+	V2D_VIEWTYPE_PANEL,
+		/* same as canvas, except aspect ratio is important */
+		// XXX is this more of the sort tweaks that region should do to its view2d data first?
+	V2D_VIEWTYPE_IMAGE,
+} eView2D_CommonViewTypes;
+
+/* Initialise all View2D data for a given region */
+void UI_view2d_regiondata_init(View2D *v2d, short type, int winx, int winy)
+{
+	
+}
+#endif
+
 /* Adjust mask size in response to view size changes 
  *	- This should only be called in region init() callbacks, which are
  * 	  called when the region is resized or area changes...
@@ -106,6 +126,7 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 	}
 	
 	/* cope with unitialized veriables for simple cases, like header or outliner */
+	// XXX er... this shouldn't be here??? or at least some extra checks are needed for some things...
 	if(v2d->tot.xmin==v2d->tot.xmax || v2d->cur.xmin==v2d->cur.xmax) {
 		if(v2d->keepzoom) {
 			BLI_init_rctf(&v2d->tot, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
@@ -157,10 +178,14 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	curheight= height= cur->ymax - cur->ymin;
 	
 	/* if zoom is locked, size on the appropriate axis is reset to mask size */
-	if (v2d->keepzoom & V2D_LOCKZOOM_X)
-		width= winx;
-	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
-		height= winy;
+	if (v2d->keepzoom & V2D_LOCKZOOM_X) {
+		cur->xmax= cur->xmin + winx;
+		curwidth= width= winx;
+	}
+	if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
+		cur->ymax= cur->ymin + winy;
+		curheight= height= winy;
+	}
 		
 	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
@@ -193,7 +218,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	}
 	
 	/* check if we should restore aspect ratio (if view size changed) */
-	if (v2d->keepaspect) {
+	if (v2d->keepzoom & V2D_KEEPASPECT) {
 		short do_x=0, do_y=0, do_cur, do_win;
 		float curRatio, winRatio;
 		
@@ -336,19 +361,31 @@ void UI_view2d_curRect_validate(View2D *v2d)
 				cur->ymin= temp - diff;
 				cur->ymax= temp + diff;
 			}
-			else if (cur->xmin > tot->xmin) {
-				/* there's still space remaining, so shift left */
-				temp= cur->xmin - tot->xmin;
-				
-				cur->xmin -= temp;
-				cur->xmax -= temp;
-			}
-			else if (cur->xmax < tot->xmax) {
-				/* there's still space remaining, so shift right */
-				temp= tot->xmax - cur->xmax;
+			else if (cur->xmin < tot->xmin) {
+				/* move cur across so that it sits at minimum of tot */
+				temp= tot->xmin - cur->xmin;
 				
 				cur->xmin += temp;
 				cur->xmax += temp;
+			}
+			else if (cur->xmax > tot->xmax) {
+				/* - only offset by difference of cur-xmax and tot-xmax if that would not move 
+				 * 	cur-xmin to lie past tot-xmin
+				 * - otherwise, simply shift to tot-xmin???
+				 */
+				temp= cur->xmax - tot->xmax;
+				
+				if ((cur->xmin - temp) < tot->xmin) {
+					/* only offset by difference from cur-min and tot-min */
+					temp= cur->xmin - tot->xmin;
+					
+					cur->xmin -= temp;
+					cur->xmax -= temp;
+				}
+				else {
+					cur->xmin -= temp;
+					cur->xmax -= temp;
+				}
 			}
 		}
 		
@@ -570,8 +607,7 @@ void UI_view2d_view_restore(const bContext *C)
 /* allowing horizontal pan */
 void UI_view2d_header_default(View2D *v2d)
 {
-	v2d->keepaspect= 1;
-	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
+	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	v2d->keepofs = V2D_LOCKOFS_Y;
 	v2d->keeptot = 2; // this keeps the view in place when region size changes...
 	v2d->align = V2D_ALIGN_NO_NEG_X;
@@ -1017,13 +1053,18 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 	UI_DrawString(G.fonts, str, 0); // XXX check this again when new text-drawing api is done
 }
 
-/* local define for radius of scroller 'button' caps */
-#define V2D_SCROLLCAP_RAD	5
+/* local defines for scrollers drawing */
+	/* radius of scroller 'button' caps */
+#define V2D_SCROLLCAP_RAD		5
+	/* shading factor for scroller 'bar' */
+#define V2D_SCROLLBAR_SHADE		0.1f
+	/* shading factor for scroller 'button' caps */
+#define V2D_SCROLLCAP_SHADE		0.2f
 
 /* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
-	const int darker= -50, dark= -10, light= 20, lighter= 50;
+	const short darker= -50, dark= -10, light= 20, lighter= 50;
 	rcti vert, hor;
 	
 	/* make copies of rects for less typing */
@@ -1043,41 +1084,54 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		if (v2d->keepzoom & V2D_LOCKZOOM_X) {
 			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			
 			uiSetRoundBox(15);
-			gl_round_box_shade(GL_POLYGON, 
+			
+			/* check that box is large enough for round drawing */
+			if ((vs->hor_max - vs->hor_min) < (V2D_SCROLLCAP_RAD * 2)) {
+				/* Rounded box still gets drawn at the minimum size limit
+				 * This doesn't represent extreme scaling well, but looks nicer...
+				 */
+				float mid= 0.5f * (vs->hor_max + vs->hor_min);
+				
+				gl_round_box_shade(GL_POLYGON, 
+					mid-V2D_SCROLLCAP_RAD, hor.ymin+2, 
+					mid+V2D_SCROLLCAP_RAD, hor.ymax-2, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+			}
+			else {
+				/* draw rounded box as per normal */
+				gl_round_box_shade(GL_POLYGON, 
 					vs->hor_min, hor.ymin+2, 
 					vs->hor_max, hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
+					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+			}
 		}
 		else {
 			/* base bar drawn as shaded rect */
 			UI_ThemeColorShade(TH_SHADE1, dark);
 			uiSetRoundBox(0);
 			gl_round_box_shade(GL_POLYGON, 
-					vs->hor_min, hor.ymin+2, 
-					vs->hor_max, hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
-			
-			/* handles draw darker */
-			// XXX handles are drawn with the two last args set to same values, otherwise, max appears darker than min
-			UI_ThemeColorShade(TH_SHADE1, darker);
+				vs->hor_min, hor.ymin+2, 
+				vs->hor_max, hor.ymax-2, 
+				V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
 			
 			/* 'minimum' handle */
 			uiSetRoundBox(9);
+			UI_ThemeColorShade(TH_SHADE1, darker);
+			
 			gl_round_box_shade(GL_POLYGON, 
-					vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
-					vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, 0.07f, -0.07f);
-					//V2D_SCROLLCAP_RAD, 0, 0);
+				vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
+				vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
+				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 			
 			/* maximum handle */
 			uiSetRoundBox(6);
+			UI_ThemeColorShade(TH_SHADE1, darker);
+			
 			gl_round_box_shade(GL_POLYGON, 
-					vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
-					vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, 0.07f, -0.07f);
-					//V2D_SCROLLCAP_RAD, 0, 0);
+				vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, hor.ymin+2, 
+				vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, hor.ymax-2, 
+				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 		}
 		
 		/* scale indicators */
@@ -1162,41 +1216,57 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		 *	- if view is zoomable in y, draw handles too 
 		 *	- handles are drawn darker
 		 */
-		// XXX gl_round_box_shade is currently hardcoded to do horizontal buts only... need a vertical region
 		if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
 			/* draw base bar as rounded shape */
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			
 			uiSetRoundBox(15);
-			gl_round_box_shade(GL_POLYGON, 
+			
+			/* check that box is large enough for round drawing */
+			if ((vs->vert_max - vs->vert_min) < (V2D_SCROLLCAP_RAD * 2)) {
+				/* Rounded box still gets drawn at the minimum size limit
+				 * This doesn't represent extreme scaling well, but looks nicer...
+				 */
+				float mid= 0.5f * (vs->vert_max + vs->vert_min);
+				
+				gl_round_box_vertical_shade(GL_POLYGON, 
+					vert.xmin+2, mid-V2D_SCROLLCAP_RAD, 
+					vert.xmax-2, mid+V2D_SCROLLCAP_RAD, 
+					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+			}
+			else {
+				/* draw rounded box as per normal */
+				gl_round_box_vertical_shade(GL_POLYGON, 
 					vert.xmin+2, vs->vert_min, 
 					vert.xmax-2, vs->vert_max, 
-					V2D_SCROLLCAP_RAD, 0.05f, -0.05f);
+					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
+			}
 		}
 		else {
-			/* for now, draw base bar as unshaded rect */
-			// FIXME: this should be shaded horizontally too
+			/* base bar drawn as shaded rect */
 			UI_ThemeColorShade(TH_SHADE1, dark);
-			glRecti(vert.xmin+2, vs->vert_min,  
-					vert.xmax-2, vs->vert_max);
-			
-			/* handles draw darker */
-			// XXX handles are drawn with the two last args set to same values, otherwise, max appears darker than min
-			UI_ThemeColorShade(TH_SHADE1, darker);
+			uiSetRoundBox(0);
+			gl_round_box_vertical_shade(GL_POLYGON, 
+				vert.xmin+2, vs->vert_min, 
+				vert.xmax-2, vs->vert_max,
+				V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
 			
 			/* 'minimum' handle */
+			UI_ThemeColorShade(TH_SHADE1, darker);
 			uiSetRoundBox(12);
-			gl_round_box_shade(GL_POLYGON, 
-					vert.xmin+2, vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
-					vert.xmax-2, vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
-					V2D_SCROLLCAP_RAD, 0, 0);
+			
+			gl_round_box_vertical_shade(GL_POLYGON, 
+				vert.xmin+2, vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
+				vert.xmax-2, vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
+				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 			
 			/* maximum handle */
+			UI_ThemeColorShade(TH_SHADE1, darker);
 			uiSetRoundBox(3);
-			gl_round_box_shade(GL_POLYGON, 
-					vert.xmin+2, vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
-					vert.xmax-2, vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
-					V2D_SCROLLCAP_RAD, 0, 0);
+			
+			gl_round_box_vertical_shade(GL_POLYGON, 
+				vert.xmin+2, vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
+				vert.xmax-2, vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
+				V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
 		}
 		
 		/* scale indiators */

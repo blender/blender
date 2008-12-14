@@ -5052,8 +5052,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	
 	/* initialise view2d data for header region, to allow panning */
 	/* is copy from ui_view2d.c */
-	ar->v2d.keepaspect= 1;
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
 	ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
 	ar->v2d.align = V2D_ALIGN_NO_NEG_X;
@@ -5101,9 +5100,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll &= ~V2D_SCROLL_LEFT;
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_HORIZONTAL_O);
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y);
+				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT);
 				ar->v2d.keeptot = 2;
-				ar->v2d.keepaspect= 1;
 			}
 				break;
 			case SPACE_TIME:
@@ -5115,7 +5113,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 				ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
-				ar->v2d.min[1]= ar->v2d.max[1]= 500.0;
+				ar->v2d.tot.ymin= ar->v2d.cur.ymin= -10.0;
+				ar->v2d.min[1]= ar->v2d.max[1]= 20.0;
 			}
 				break;
 			case SPACE_IPO:
@@ -5137,6 +5136,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
+				ar->v2d.keepzoom |= V2D_KEEPASPECT;
 				break;
 			}
 				//case SPACE_XXX: // FIXME... add other ones
@@ -7439,8 +7439,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							simasel->v2d.minzoom= 0.5f;
 							simasel->v2d.maxzoom= 1.21f;						
 							simasel->v2d.scroll= 0;
-							simasel->v2d.keepaspect= 1;
-							simasel->v2d.keepzoom= 1;
+							simasel->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 							simasel->v2d.keeptot= 0;
 							simasel->prv_h = 96;
 							simasel->prv_w = 96;

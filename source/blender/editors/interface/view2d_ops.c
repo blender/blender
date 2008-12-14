@@ -878,11 +878,15 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 		 ((sh_min <= sc_min) && (sh_max <= sc_max)) ||
 		 ((sh_min >= sc_max) && (sh_max >= sc_max)) ) 
 	{
-		/* use midpoint to determine which handle to use (favour 'max' handle) */
-		if (mouse >= ((sc_max + sc_min) / 2)) 
+		/* handles are only activated if the mouse is within the relative quater lengths of the scroller */
+		int qLen = (sc_max + sc_min) / 4;
+		
+		if (mouse >= (sc_max - qLen))
 			return SCROLLHANDLE_MAX;
-		else
+		else if (mouse <= qLen)
 			return SCROLLHANDLE_MIN;
+		else
+			return SCROLLHANDLE_BAR;
 	}
 	
 	/* check if mouse is in or past either handle */
@@ -894,12 +898,11 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 		return SCROLLHANDLE_BAR;
 	if (in_max)
 		return SCROLLHANDLE_MAX;
-	else if (in_min)
+	if (in_min)
 		return SCROLLHANDLE_MIN;
 		
 	/* unlikely to happen, though we just cover it in case */
-	else
-		return SCROLLHANDLE_BAR;
+	return SCROLLHANDLE_BAR;
 } 
 
 /* initialise customdata for scroller manipulation operator */

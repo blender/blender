@@ -101,9 +101,8 @@ static SpaceLink *buttons_new(void)
 	sbuts->v2d.minzoom= 0.5f;
 	sbuts->v2d.maxzoom= 1.21f;
 	
-	sbuts->v2d.scroll= 0;
-	sbuts->v2d.keepaspect= 1;
-	sbuts->v2d.keepzoom= 1;
+	sbuts->v2d.scroll= 0;  // TODO: will we need scrollbars?
+	sbuts->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 	sbuts->v2d.keeptot= 1;
 	sbuts->v2d.cur= sbuts->v2d.tot;
 	

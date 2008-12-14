@@ -484,11 +484,9 @@ static SpaceLink *outliner_new(void)
 	BLI_addtail(&soutliner->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.scroll |= V2D_SCROLL_RIGHT;
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM_O);
 	ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-	ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y);
-	ar->v2d.keepaspect= 1;
-	ar->v2d.keepzoom= 1;
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	ar->v2d.keeptot= 2;	/* XXX make define */
 	
 	return (SpaceLink*)soutliner;
