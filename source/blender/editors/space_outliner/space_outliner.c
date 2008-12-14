@@ -492,15 +492,46 @@ static SpaceLink *outliner_new(void)
 	return (SpaceLink*)soutliner;
 }
 
+static void free_oops(Oops *oops)	/* also oops itself */
+{
+	BLI_freelistN(&oops->link);
+	MEM_freeN(oops);
+}
+
+static void outliner_free_tree(ListBase *lb)
+{
+	
+	while(lb->first) {
+		TreeElement *te= lb->first;
+		
+		outliner_free_tree(&te->subtree);
+		BLI_remlink(lb, te);
+		MEM_freeN(te);
+	}
+}
+
 /* not spacelink itself */
 static void outliner_free(SpaceLink *sl)
 {
 	SpaceOops *soutliner= (SpaceOops*)sl;
+	Oops *oops;
 
 	if(soutliner->rnapath) {
 		MEM_freeN(soutliner->rnapath);
 		soutliner->rnapath= NULL;
 	}
+	
+	while( (oops= soutliner->oops.first) ) {
+		BLI_remlink(&soutliner->oops, oops);
+		free_oops(oops);
+	}
+	
+	outliner_free_tree(&soutliner->tree);
+	if(soutliner->treestore) {
+		if(soutliner->treestore->data) MEM_freeN(soutliner->treestore->data);
+		MEM_freeN(soutliner->treestore);
+	}
+	
 }
 
 /* spacetype; init callback */

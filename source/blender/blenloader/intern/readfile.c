@@ -4510,8 +4510,17 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	allocname= dataname(GS(id->name));
 	
 		/* read all data */
+	
 	while(bhead && bhead->code==DATA) {
-		void *data= read_struct(fd, bhead, allocname);
+		void *data;
+		/* XXX BAD DEBUGGING OPTION TO GIVE NAMES */		
+		short *sp= fd->filesdna->structs[bhead->SDNAnr];
+		char *allocname = fd->filesdna->types[ sp[0] ];
+		char *tmp= malloc(100);
+		
+		strcpy(tmp, allocname);
+		
+		data= read_struct(fd, bhead, tmp);
 
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
