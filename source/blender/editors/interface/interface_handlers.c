@@ -189,8 +189,13 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 static void ui_apply_but_funcs_after(bContext *C)
 {
 	uiAfterFunc *after;
+	ListBase funcs;
 
-	for(after=UIAfterFuncs.first; after; after=after->next) {
+	/* copy to avoid recursive calls */
+	funcs= UIAfterFuncs;
+	UIAfterFuncs.first= UIAfterFuncs.last= NULL;
+
+	for(after=funcs.first; after; after=after->next) {
 		if(after->func)
 			after->func(C, after->func_arg1, after->func_arg2);
 		
@@ -200,7 +205,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 	}
 
-	BLI_freelistN(&UIAfterFuncs);
+	BLI_freelistN(&funcs);
 }
 
 static void ui_apply_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data)
