@@ -150,7 +150,7 @@ static float D(ShadeInput *shi, int rgb, int x, int y, int z)
 	return shi->obi->volume_precache[rgb*res*res*res + x*res*res + y*res + z];
 }
 
-inline float lerp(float t, float v1, float v2) {
+static inline float lerp(float t, float v1, float v2) {
 	return (1.f - t) * v1 + t * v2;
 }
 

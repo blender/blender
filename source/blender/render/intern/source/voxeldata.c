@@ -44,7 +44,7 @@
 #include "texture.h"
 
 /*---------------------------Utils----------------------------------------*/
-int _I(int x,int y,int z,int n)
+static inline int _I(int x,int y,int z,int n)
 {
 	return (z*(n)+y)*(n)+x;
 }
@@ -66,6 +66,51 @@ float Linear(float xx,float yy,float zz,float *x0,int n)
 	return sz0*v0 + sz1*v1;
 	
 }
+
+
+static float D(float *data, const int res, int x, int y, int z)
+{
+	CLAMP(x, 0, res-1);
+	CLAMP(y, 0, res-1);
+	CLAMP(z, 0, res-1);
+	return data[ _I(x, y, z, res) ];
+}
+
+static inline float lerp(float t, float v1, float v2) {
+	return (1.f - t) * v1 + t * v2;
+}
+
+/* trilinear interpolation */
+static float trilinear(float *data, const int res, float *co)
+{
+	float voxx, voxy, voxz;
+	int vx, vy, vz;
+	float dx, dy, dz;
+	float d00, d10, d01, d11, d0, d1, d_final;
+	float dim[3];
+		
+	if (!data) return;
+	
+	voxx = co[0] * res - 0.5f;
+	voxy = co[1] * res - 0.5f;
+	voxz = co[2] * res - 0.5f;
+	
+	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
+	
+	dx = voxx - vx; dy = voxy - vy; dz = voxz - vz;
+	
+	d00 = lerp(dx, D(data, res, vx, vy, vz), 		D(data, res, vx+1, vy, vz));
+	d10 = lerp(dx, D(data, res, vx, vy+1, vz), 		D(data, res, vx+1, vy+1, vz));
+	d01 = lerp(dx, D(data, res, vx, vy, vz+1), 		D(data, res, vx+1, vy, vz+1));
+	d11 = lerp(dx, D(data, res, vx, vy+1, vz+1), 	D(data, res, vx+1, vy+1, vz+1));
+	d0 = lerp(dy, d00, d10);
+	d1 = lerp(dy, d01, d11);
+	d_final = lerp(dz, d0, d1);
+	
+	return d_final;
+
+}
+
 
 int C[64][64] = {
 	{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -196,14 +241,16 @@ float tricubic_eval(float a[64], float x, float y, float z) {
 float tricubic(float xx,float yy,float zz,float *heap,int n)
 {
 	
-	int xi,yi,zi;	
+	int xi,yi,zi;
+	float dx,dy,dz;
+	float a[64];
+
 	
 	if (xx<0.5) xx=0.5f; if (xx>n+0.5) xx=n+0.5f; xi=(int)xx; 
 	if (yy<0.5) yy=0.5f; if (yy>n+0.5) yy=n+0.5f; yi=(int)yy; 
 	if (zz<0.5) zz=0.5f; if (zz>n+0.5) zz=n+0.5f; zi=(int)zz; 
 	
-	float a[64]; 
-	
+	{
 	float fval[8]={heap[_I(xi,yi,zi,n)],heap[_I(xi+1,yi,zi,n)],heap[_I(xi,yi+1,zi,n)],heap[_I(xi+1,yi+1,zi,n)],heap[_I(xi,yi,zi+1,n)],heap[_I(xi+1,yi,zi+1,n)],heap[_I(xi,yi+1,zi+1,n)],heap[_I(xi+1,yi+1,zi+1,n)]}; 
 	
 	float dfdxval[8]={0.5f*(heap[_I(xi+1,yi,zi,n)]-heap[_I(xi-1,yi,zi,n)]),0.5f*(heap[_I(xi+2,yi,zi,n)]-heap[_I(xi,yi,zi,n)]),
@@ -261,12 +308,14 @@ float tricubic(float xx,float yy,float zz,float *heap,int n)
 		0.125f*(heap[_I(xi+2,yi+1,zi+2,n)]-heap[_I(xi,yi+1,zi+2,n)]-heap[_I(xi+2,yi-1,zi+2,n)]+heap[_I(xi,yi-1,zi+2,n)]-heap[_I(xi+2,yi+1,zi,n)]+heap[_I(xi,yi+1,zi,n)]+heap[_I(xi+2,yi-1,zi,n)]-heap[_I(xi,yi-1,zi,n)]),
 		0.125f*(heap[_I(xi+1,yi+2,zi+2,n)]-heap[_I(xi-1,yi+2,zi+2,n)]-heap[_I(xi+1,yi,zi+2,n)]+heap[_I(xi-1,yi,zi+2,n)]-heap[_I(xi+1,yi+2,zi,n)]+heap[_I(xi-1,yi+2,zi,n)]+heap[_I(xi+1,yi,zi,n)]-heap[_I(xi-1,yi,zi,n)]),
 	0.125f*(heap[_I(xi+2,yi+2,zi+2,n)]-heap[_I(xi,yi+2,zi+2,n)]-heap[_I(xi+2,yi,zi+2,n)]+heap[_I(xi,yi,zi+2,n)]-heap[_I(xi+2,yi+2,zi,n)]+heap[_I(xi,yi+2,zi,n)]+heap[_I(xi+2,yi,zi,n)]-heap[_I(xi,yi,zi,n)])};
+
 	
 	tricubic_get_coeff(a,fval,dfdxval,dfdyval,dfdzval,d2fdxdyval,d2fdxdzval,d2fdydzval,d3fdxdydzval);
-	
-	float dx=xx-xi;
-	float dy=yy-yi;
-	float dz=zz-zi;
+	}
+		
+	dx = xx-xi;
+	dy = yy-yi;
+	dz = zz-zi;
 	
 	return tricubic_eval(a,dx,dy,dz);
 	
@@ -390,7 +439,7 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	xi=co[0]/dx;
 	yi=co[1]/dy;
 	zi=co[2]/dz;
-	
+		
 	xf=co[0]/dx;
 	yf=co[1]/dy;
 	zf=co[2]/dz;
@@ -401,29 +450,24 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 		{
 			if (zi>1 && zi<resolZ)
 			{
-				
 				switch (vd->interp_type)
 				{
-						
 					case TEX_VD_NEARESTNEIGHBOR:
 					{
 						texres->tin = vd->dataset[_I(xi,yi,zi,resolX)];
-						BRICONT; 	
 						break;  
 					}
 					case TEX_VD_LINEAR:
 					{
-						texres->tin = Linear(xf,yf,zf,vd->dataset,resolX);						
+						texres->tin = trilinear(vd->dataset, resolX, co);
+						break;					
 					}
 					case TEX_VD_TRICUBIC:
 					{
 						texres->tin = tricubic(xf,yf,zf,vd->dataset,resolX);
+						break;
 					}
-						
 				}				  				   
-				
-				
-				
 			} else fail++;
 		} else fail++;
 	} else fail++;
@@ -431,6 +475,8 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 	if (fail) texres->tin=0.0f;
 
 	texres->tin *= vd->int_multiplier;
+	
+	BRICONT;
 	
 	texres->tr = texres->tin;
 	texres->tg = texres->tin;
