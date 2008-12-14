@@ -277,7 +277,6 @@ static int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
 		} else {
 			WM_set_cursor(C, CURSOR_X_MOVE);
 		}
-		return OPERATOR_FINISHED;
 	} 
 	else {
 		ScrArea *sa= NULL;

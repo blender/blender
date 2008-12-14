@@ -635,14 +635,16 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			wm_window_make_drawable(C, win);
-				
+			
 			action= wm_handlers_do(C, event, &win->handlers);
 			
 			if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 				ScrArea *sa;
 				ARegion *ar;
 				int doit= 0;
-
+				
+				ED_screen_set_subwinactive(win);	/* state variables in screen */
+				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_always_pass(event) || wm_event_prev_inside_i(event, &sa->totrct)) {
 						doit= 1;
@@ -895,8 +897,6 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.type= MOUSEMOVE;
 				event.x= evt->x= cx;
 				event.y= evt->y= (win->sizey-1) - cy;
-				
-				ED_screen_set_subwinactive(win);	/* state variables in screen */
 				
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);

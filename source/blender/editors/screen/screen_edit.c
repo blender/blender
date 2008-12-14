@@ -1026,10 +1026,6 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		ScrArea *sa;
 		int oldswin= win->screen->subwinactive;
 		
-		/* XXX prevent this call for modal menus now */
-		if(win->screen->regionbase.first)
-			return;
-		
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if(event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
