@@ -499,7 +499,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\file_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\filesel.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\space_file.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_info"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_info\info_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_info\info_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_info\space_info.c"
 				>
 			</File>
 		</Filter>
