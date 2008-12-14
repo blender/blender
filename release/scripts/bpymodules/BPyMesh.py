@@ -479,7 +479,7 @@ def pickMeshRayFaceWeight(me, orig, rdir):
 	
 	w0 = (l1+l2)
 	w1 = (l0+l2)
-	w2 = (l1+l2)
+	w2 = (l1+l0)
 	
 	totw= w0 + w1 + w2
 	w0=w0/totw
