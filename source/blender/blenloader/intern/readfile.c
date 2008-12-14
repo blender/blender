@@ -4206,8 +4206,12 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		sa->type= NULL;	/* spacetype callbacks */
 		
 		/* accident can happen when read/save new file with older version */
-		if(sa->spacedata.first==NULL && sa->spacetype>SPACE_NLA)
-			sa->spacetype= SPACE_EMPTY;
+		/* 2.50: we now always add spacedata for info */
+		if(sa->spacedata.first==NULL) {
+			SpaceInfo *sinfo= MEM_callocN(sizeof(SpaceInfo), "spaceinfo");
+			sa->spacetype= SPACE_INFO;
+			BLI_addtail(&sa->spacedata, sinfo);
+		}
 		
 		for(pa= sa->panels.first; pa; pa=pa->next) {
 			pa->paneltab= newdataadr(fd, pa->paneltab);
@@ -4513,15 +4517,17 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	
 	while(bhead && bhead->code==DATA) {
 		void *data;
-		/* XXX BAD DEBUGGING OPTION TO GIVE NAMES */		
+#if 0		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
 		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
 		
 		strcpy(tmp, allocname);
-		
 		data= read_struct(fd, bhead, tmp);
-
+#endif
+		data= read_struct(fd, bhead, allocname);
+		
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
 		}

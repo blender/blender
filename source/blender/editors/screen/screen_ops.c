@@ -416,48 +416,6 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 	}
 }
 
-static void select_connected_scredge(bScreen *sc, ScrEdge *edge)
-{
-	ScrEdge *se;
-	ScrVert *sv;
-	int oneselected;
-	char dir;
-	
-	/* select connected, only in the right direction */
-	/* 'dir' is the direction of EDGE */
-	
-	if(edge->v1->vec.x==edge->v2->vec.x) dir= 'v';
-	else dir= 'h';
-	
-	sv= sc->vertbase.first;
-	while(sv) {
-		sv->flag = 0;
-		sv= sv->next;
-	}
-	
-	edge->v1->flag= 1;
-	edge->v2->flag= 1;
-	
-	oneselected= 1;
-	while(oneselected) {
-		se= sc->edgebase.first;
-		oneselected= 0;
-		while(se) {
-			if(se->v1->flag + se->v2->flag==1) {
-				if(dir=='h') if(se->v1->vec.y==se->v2->vec.y) {
-					se->v1->flag= se->v2->flag= 1;
-					oneselected= 1;
-				}
-					if(dir=='v') if(se->v1->vec.x==se->v2->vec.x) {
-						se->v1->flag= se->v2->flag= 1;
-						oneselected= 1;
-					}
-			}
-				se= se->next;
-		}
-	}
-}
-
 /* validate selection inside screen, set variables OK */
 /* return 0: init failed */
 static int area_move_init (bContext *C, wmOperator *op)

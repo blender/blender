@@ -25,30 +25,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_SCREEN_INTERN_H
-#define ED_SCREEN_INTERN_H
+#ifndef ED_INFO_INTERN_H
+#define ED_INFO_INTERN_H
 
 /* internal exports only */
-struct wmWindow;
-
-/* area.c */
-void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
-
-/* screen_edit.c */
-bScreen		*screen_add(struct wmWindow *win, char *name);
-ScrEdge		*screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
-ScrArea		*area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac);
-int			screen_area_join(bScreen* scr, ScrArea *sa1, ScrArea *sa2);
-int			area_getorientation(bScreen *screen, ScrArea *sa, ScrArea *sb);
-void		select_connected_scredge(bScreen *sc, ScrEdge *edge);
-
-void		removenotused_scrverts(bScreen *sc);
-void		removedouble_scrverts(bScreen *sc);
-void		removedouble_scredges(bScreen *sc);
-void		removenotused_scredges(bScreen *sc);
-
-#endif /* ED_SCREEN_INTERN_H */
 
 
+/* info_header.c */
+void info_header_buttons(const bContext *C, ARegion *ar);
 
+
+#endif /* ED_INFO_INTERN_H */
 

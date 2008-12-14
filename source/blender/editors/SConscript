@@ -15,5 +15,6 @@ SConscript(['datafiles/SConscript',
 			'space_image/SConscript',
 			'space_node/SConscript',
 			'space_buttons/SConscript',
+			'space_info/SConscript',
 			'transform/SConscript',
 			'screen/SConscript'])
