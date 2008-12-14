@@ -182,10 +182,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\ED_area.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_datafiles.h"
 				>
 			</File>
@@ -206,11 +202,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_previewrender.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_screen.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_screen_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_space_api.h"
 				>
 			</File>
 			<File
@@ -287,11 +291,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\interface\interface_icons.c"
+				RelativePath="..\..\..\source\blender\editors\interface\interface_handlers.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\interface\interface_ops.c"
+				RelativePath="..\..\..\source\blender\editors\interface\interface_icons.c"
 				>
 			</File>
 			<File
@@ -323,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_intern.h"
 				>
 			</File>
@@ -339,6 +347,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_time\time_header.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_time\time_intern.h"
 				>
 			</File>
@@ -350,6 +362,10 @@
 		<Filter
 			Name="space_outliner"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner_header.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner_intern.h"
 				>
@@ -387,14 +403,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\screen\space.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\screen\spacetypes.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\screen\stubs.c"
 				>
 			</File>
@@ -404,6 +412,82 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\util\ed_util.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_api"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_api\space.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_api\spacetypes.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_ipo"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\space_ipo.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_image"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\space_image.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_node"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\space_node.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_buttons"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\space_buttons.c"
 				>
 			</File>
 		</Filter>
