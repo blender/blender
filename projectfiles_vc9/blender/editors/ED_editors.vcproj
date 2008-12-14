@@ -491,6 +491,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="space_file"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\file_header.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\space_file.c"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

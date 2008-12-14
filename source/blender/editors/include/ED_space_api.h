@@ -40,6 +40,7 @@ void ED_spacetype_image(void);
 void ED_spacetype_node(void);
 void ED_spacetype_buttons(void);
 void ED_spacetype_info(void);
+void ED_spacetype_file(void);
 
 #endif /* ED_AREA_H */
 
