@@ -125,9 +125,8 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			v2d->mask.ymax= v2d->hor.ymin - 1;
 		}
 		
-#if 0 // FIXME: we currently have overlap bugs there...
 		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
-		if (v2d->scroll & /*V2D_SCROLL_VERTICAL*/) {
+		if (v2d->scroll & V2D_SCROLL_VERTICAL) {
 			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
 			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
 				/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
@@ -138,7 +137,6 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 				v2d->vert.ymax= v2d->mask.ymax;
 			}
 		}
-#endif
 	}
 	
 	/* cope with unitialized veriables for simple cases, like header or outliner */
@@ -1081,7 +1079,7 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
 	const short darker= -50, dark= -10, light= 20, lighter= 50;
-	rcti vert, hor;
+	rcti vert, hor, corner;
 	
 	/* make copies of rects for less typing */
 	vert= v2d->vert;
@@ -1324,6 +1322,29 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
 		else if (v2d->scroll & V2D_SCROLL_LEFT)
 			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
+	}
+	
+	/* draw a 'sunken square' to cover up any overlapping corners resulting from intersection of overflowing scroller data */
+	if ((v2d->scroll & V2D_SCROLL_VERTICAL) && (v2d->scroll & V2D_SCROLL_HORIZONTAL)) {
+		/* set bounds (these should be right) */
+		corner.xmin= vert.xmin;
+		corner.xmax= vert.xmax;
+		corner.ymin= hor.ymin;
+		corner.ymax= hor.ymax;
+		
+		/* firstly, draw using background color to cover up any overlapping junk */
+		UI_ThemeColor(TH_SHADE1);
+		glRecti(corner.xmin, corner.ymin, corner.xmax, corner.ymax);
+		
+		/* now, draw suggestive highlighting... */
+			/* first, dark lines on top to suggest scrollers overlap box */
+		UI_ThemeColorShade(TH_SHADE1, darker);
+		sdrawline(corner.xmin, corner.ymin, corner.xmin, corner.ymax);
+		sdrawline(corner.xmin, corner.ymax, corner.xmax, corner.ymax);
+			/* now, light lines on bottom to show box is sunken in */
+		UI_ThemeColorShade(TH_SHADE1, lighter);
+		sdrawline(corner.xmax, corner.ymin, corner.xmax, corner.ymax);
+		sdrawline(corner.xmin, corner.ymin, corner.xmax, corner.ymin);
 	}
 }
 

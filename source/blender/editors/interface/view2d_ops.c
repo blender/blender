@@ -868,16 +868,24 @@ enum {
  */
 static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
 {
-	short in_min, in_max;
+	short in_min, in_max, in_view=1;
 	
 	/* firstly, check if 
 	 *	- 'bubble' fills entire scroller 
 	 *	- 'bubble' completely out of view on either side 
 	 */
-	if ( ((sh_min <= sc_min) && (sh_max >= sc_max)) ||
-		 ((sh_min <= sc_min) && (sh_max <= sc_max)) ||
-		 ((sh_min >= sc_max) && (sh_max >= sc_max)) ) 
-	{
+	if ((sh_min <= sc_min) && (sh_max >= sc_max)) in_view= 0;
+	if (sh_min == sh_max) {
+		if (sh_min <= sc_min) in_view= 0;
+		if (sh_max >= sc_max) in_view= 0;
+	}
+	else {
+		if (sh_max <= sc_min) in_view= 0;
+		if (sh_min >= sc_max) in_view= 0;
+	}
+	
+	
+	if (in_view == 0) {
 		/* handles are only activated if the mouse is within the relative quater lengths of the scroller */
 		int qLen = (sc_max + sc_min) / 4;
 		
@@ -890,15 +898,15 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	}
 	
 	/* check if mouse is in or past either handle */
-	in_max= (mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE));
-	in_min= (mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE));
+	in_max= ( (mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)) );
+	in_min= ( (mouse <= (sh_min + V2D_SCROLLER_HANDLE_SIZE)) && (mouse >= (sh_min - V2D_SCROLLER_HANDLE_SIZE)) );
 	
 	/* check if overlap --> which means user clicked on bar, as bar is within handles region */
 	if (in_max && in_min)
 		return SCROLLHANDLE_BAR;
-	if (in_max)
+	else if (in_max)
 		return SCROLLHANDLE_MAX;
-	if (in_min)
+	else if (in_min)
 		return SCROLLHANDLE_MIN;
 		
 	/* unlikely to happen, though we just cover it in case */
@@ -960,7 +968,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, wmEvent *event, 
 		}
 		else {
 			/* check which handle we're in */
-			vsm->zone= mouse_in_scroller_handle(y, v2d->vert.xmin, v2d->vert.xmax, scrollers->vert_min, scrollers->vert_max); 
+			vsm->zone= mouse_in_scroller_handle(y, v2d->vert.ymin, v2d->vert.ymax, scrollers->vert_min, scrollers->vert_max); 
 		}
 	}
 	UI_view2d_scrollers_free(scrollers);
