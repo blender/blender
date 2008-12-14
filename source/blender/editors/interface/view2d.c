@@ -92,11 +92,12 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 	v2d->mask.xmax= winx - 1;	/* -1 yes! masks are pixels */
 	v2d->mask.ymax= winy - 1;
 	
-	/* scrollbars shrink mask area, but should be based off regionsize 
-	 *	- they can only be on one edge of the region they define
+	/* scrollers shrink mask area, but should be based off regionsize 
+	 *	- they can only be on one to two edges of the region they define
+	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
 	 */
 	if (v2d->scroll) {
-		/* vertical scrollbar */
+		/* vertical scroller */
 		if (v2d->scroll & V2D_SCROLL_LEFT) {
 			/* on left-hand edge of region */
 			v2d->vert= v2d->mask;
@@ -110,9 +111,9 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			v2d->mask.xmax= v2d->vert.xmin - 1;
 		}
 		
-		/* horizontal scrollbar */
+		/* horizontal scroller */
 		if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
-			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the ohter is for standard) */
+			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= V2D_SCROLL_HEIGHT;
 			v2d->mask.ymin= v2d->hor.ymax + 1;
@@ -123,12 +124,27 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 			v2d->hor.ymin= v2d->hor.ymax - V2D_SCROLL_HEIGHT;
 			v2d->mask.ymax= v2d->hor.ymin - 1;
 		}
+		
+#if 0 // FIXME: we currently have overlap bugs there...
+		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
+		if (v2d->scroll & /*V2D_SCROLL_VERTICAL*/) {
+			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
+			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)) {
+				/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
+				v2d->vert.ymin= v2d->mask.ymin;
+			}
+			else if (v2d->scroll & V2D_SCROLL_TOP) {
+				/* on upper edge of region */
+				v2d->vert.ymax= v2d->mask.ymax;
+			}
+		}
+#endif
 	}
 	
 	/* cope with unitialized veriables for simple cases, like header or outliner */
 	// XXX er... this shouldn't be here??? or at least some extra checks are needed for some things...
-	if(v2d->tot.xmin==v2d->tot.xmax || v2d->cur.xmin==v2d->cur.xmax) {
-		if(v2d->keepzoom) {
+	if ((v2d->tot.xmin==v2d->tot.xmax) || (v2d->cur.xmin==v2d->cur.xmax)) {
+		if (v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y)) {
 			BLI_init_rctf(&v2d->tot, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
 			BLI_init_rctf(&v2d->cur, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
 			
@@ -178,14 +194,10 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	curheight= height= cur->ymax - cur->ymin;
 	
 	/* if zoom is locked, size on the appropriate axis is reset to mask size */
-	if (v2d->keepzoom & V2D_LOCKZOOM_X) {
-		cur->xmax= cur->xmin + winx;
-		curwidth= width= winx;
-	}
-	if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
-		cur->ymax= cur->ymin + winy;
-		curheight= height= winy;
-	}
+	if (v2d->keepzoom & V2D_LOCKZOOM_X)
+		width= winx;
+	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
+		height= winy;
 		
 	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
@@ -718,6 +730,8 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 			grid->powerx-= 2;
 			if (grid->powerx < -2) grid->powerx= -2;
 		}
+		
+		grid->startx= v2d->cur.xmin;
 	}
 	
 	/* calculate y-axis grid scale (only if both args are valid) */
@@ -732,6 +746,8 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 			if (grid->dy < 1.0f) grid->dy= 1.0f;
 			if (grid->powery < 1) grid->powery= 1;
 		}
+		
+		grid->starty= v2d->cur.ymin;
 	}
 	
 	/* calculate start position */
