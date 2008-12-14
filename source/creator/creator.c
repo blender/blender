@@ -279,13 +279,11 @@ int main(int argc, char **argv)
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
-		extern void	wm_window_process_events(int wait_for_event);
 		extern int GHOST_HACK_getFirstFile(char buf[]);
 		static char firstfilebuf[512];
 
 		argc= 1;
 
-		wm_window_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
 			argc= 2;
 			argv[1]= firstfilebuf;
