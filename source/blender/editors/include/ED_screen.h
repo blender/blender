@@ -38,6 +38,7 @@ struct wmWindow;
 struct wmNotifier;
 struct SpaceType;
 struct AreagionType;
+struct uiBlock;
 
 /* regions */
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
@@ -50,8 +51,8 @@ ARegion *ED_region_copy(ARegion *ar);
 /* spaces */
 void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
-struct ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
-void	ED_newspace(struct ScrArea *sa, int type);
+struct	ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
+int		ED_area_header_standardbuttons(const bContext *C, struct uiBlock *block, int yco);
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);

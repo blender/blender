@@ -57,6 +57,8 @@
 #include "BPY_extern.h"
 #endif
 
+#include "ED_util.h"
+
 #include "screen_intern.h"
 
 /* general area and region code */
@@ -499,7 +501,10 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 #endif
 }
 
-void ED_newspace(ScrArea *sa, int type)
+/* *********** Space switching code, local now *********** */
+/* XXX make operator for this */
+
+static void newspace(ScrArea *sa, int type)
 {
 	if(sa->spacetype != type) {
 		SpaceType *st= BKE_spacetype_from_id(type);
@@ -548,4 +553,86 @@ void ED_newspace(ScrArea *sa, int type)
 	}
 }
 
+static char *windowtype_pup(void)
+{
+	return(
+		   "Window type:%t" //14
+		   "|3D View %x1" //30
+		   
+		   "|%l" // 33
+		   
+		   "|Ipo Curve Editor %x2" //54
+		   "|Action Editor %x12" //73
+		   "|NLA Editor %x13" //94
+		   
+		   "|%l" //97
+		   
+		   "|UV/Image Editor %x6" //117
+		   
+		   "|Video Sequence Editor %x8" //143
+		   "|Timeline %x15" //163
+		   "|Audio Window %x11" //163
+		   "|Text Editor %x9" //179
+		   
+		   "|%l" //192
+		   
+		   
+		   "|User Preferences %x7" //213
+		   "|Outliner %x3" //232
+		   "|Buttons Window %x4" //251
+		   "|Node Editor %x16"
+		   "|%l" //254
+		   
+		   "|Image Browser %x10" //273
+		   "|File Browser %x5" //290
+		   
+		   "|%l" //293
+		   
+		   "|Scripts Window %x14"//313
+		   );
+}
+
+static void spacefunc(struct bContext *C, void *arg1, void *arg2)
+{
+	newspace(C->area, C->area->butspacetype);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+}
+
+/* returns offset for next button in header */
+int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
+{
+	uiBut *but;
+	int xco= 8;
+	
+	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
+	else uiBlockSetCol(block, TH_HEADERDESEL);
+	
+	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
+						   windowtype_pup(), xco, yco, XIC+10, YIC, 
+						   &(C->area->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
+						   "Displays Current Window Type. "
+						   "Click for menu of available types.");
+	uiButSetFunc(but, spacefunc, NULL, NULL);
+	
+	xco += XIC + 14;
+	
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if (C->area->flag & HEADER_NO_PULLDOWN) {
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
+						 ICON_DISCLOSURE_TRI_RIGHT,
+						 xco,yco,XIC,YIC-2,
+						 &(C->area->flag), 0, 0, 0, 0, 
+						 "Show pulldown menus");
+	}
+	else {
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
+						 ICON_DISCLOSURE_TRI_DOWN,
+						 xco,yco,XIC,YIC-2,
+						 &(C->area->flag), 0, 0, 0, 0, 
+						 "Hide pulldown menus");
+	}
+	xco+=XIC;
+	
+	return xco;
+}
 

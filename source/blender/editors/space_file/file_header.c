@@ -54,6 +54,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "file_intern.h"
+
 
 /* ************************ header area region *********************** */
 
@@ -88,16 +90,11 @@ static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-#define B_NEWSPACE		100
 
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_NEWSPACE:
-			ED_newspace(C->area, C->area->butspacetype);
-			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
-			break;
-		}
+	}
 }
 
 
@@ -105,41 +102,12 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= C->area;
 	uiBlock *block;
-	short xco, yco= 3;
+	int xco, yco= 3;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 	
-	if(ED_screen_area_active(C)) uiBlockSetCol(block, TH_HEADER);
-	else uiBlockSetCol(block, TH_HEADERDESEL);
-
-	xco = 8;
-	
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, 
-					  windowtype_pup(), xco, yco, XIC+10, YIC, 
-					  &(C->area->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-					  "Displays Current Window Type. "
-					  "Click for menu of available types.");
-	
-	xco += XIC + 14;
-	
-	uiBlockSetEmboss(block, UI_EMBOSSN);
-	if (sa->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
-						 ICON_DISCLOSURE_TRI_RIGHT,
-						 xco,yco,XIC,YIC-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Show pulldown menus");
-	}
-	else {
-		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
-						 ICON_DISCLOSURE_TRI_DOWN,
-						 xco,yco,XIC,YIC-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Hide pulldown menus");
-	}
-	uiBlockSetEmboss(block, UI_EMBOSS);
-	xco+=XIC;
+	xco= ED_area_header_standardbuttons(C, block, yco);
 	
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
 		int xmax;

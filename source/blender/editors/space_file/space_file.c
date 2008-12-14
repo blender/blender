@@ -29,13 +29,14 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLO_readfile.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -57,18 +58,22 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "ED_markers.h"
 
-/* ******************** default callbacks for image space ***************** */
+#include "file_intern.h"	// own include
+
+/* ******************** default callbacks for file space ***************** */
 
 static SpaceLink *file_new(void)
 {
 	ARegion *ar;
 	SpaceFile *sfile;
 	
-	sfile= MEM_callocN(sizeof(SpaceImage), "initimage");
+	sfile= MEM_callocN(sizeof(SpaceFile), "initfile");
 	sfile->spacetype= SPACE_FILE;
 	
-	/* XXX init cleaned up file space */
+	sfile->dir[0]= '/';
+	sfile->type= FILE_UNIX;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
@@ -84,9 +89,8 @@ static SpaceLink *file_new(void)
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* bookmark region XXX */
+	/* channel list region XXX */
 
-	/* button region XXX */
 	
 	return (SpaceLink *)sfile;
 }
@@ -94,9 +98,14 @@ static SpaceLink *file_new(void)
 /* not spacelink itself */
 static void file_free(SpaceLink *sl)
 {	
-	SpaceFile *sfile= (SpaceFile*) sl;
-	
-	/* XXX free necessary items */
+	SpaceFile *sfile= (SpaceFile *) sl;
+
+	if(sfile->libfiledata)	
+		BLO_blendhandle_close(sfile->libfiledata);
+	if(sfile->filelist)
+		freefilelist(sfile);
+	if(sfile->pupmenu)
+		MEM_freeN(sfile->pupmenu);
 	
 }
 
@@ -109,11 +118,11 @@ static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
 {
-	SpaceImage *file_dup= MEM_dupallocN(sl);
+	SpaceFile *sfilen= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	
-	return (SpaceLink *)file_dup;
+	return (SpaceLink *)sfilen;
 }
 
 
@@ -126,14 +135,14 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Image", SPACE_IMAGE, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceImage *simage= C->area->spacedata.first;
+	// SpaceFile *sfile= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
 	float col[3];
 	
@@ -224,13 +233,26 @@ void ED_spacetype_file(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	
 	art->init= file_header_area_init;
 	art->draw= file_header_area_draw;
-	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;	
 	
 	BLI_addhead(&st->regiontypes, art);
-
+	
+	/* regions: channels */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_CHANNELS;
+	art->minsizex= 80;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	
+//	art->init= file_channel_area_init;
+//	art->draw= file_channel_area_draw;
+	
+	BLI_addhead(&st->regiontypes, art);
+	
+	
 	BKE_spacetype_register(st);
 }
 

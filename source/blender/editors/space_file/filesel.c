@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -26,57 +26,67 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <math.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#ifdef WIN32
+#include <io.h>
+#include <direct.h>
+#include "BLI_winstuff.h"
+#else
+#include <unistd.h>
+#include <sys/times.h>
+#endif   
+
+#include "DNA_space_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-
 #include "BLI_blenlib.h"
+#include "BLI_linklist.h"
+#include "BLI_storage_types.h"
+#include "BLI_dynstr.h"
 
 #include "BKE_global.h"
+#include "BKE_screen.h"
 
+#include "ED_screen.h"
 #include "ED_util.h"
 
-#include "UI_text.h"
+#include "WM_api.h"
+#include "WM_types.h"
 
-/* ********* general editor util funcs, not BKE stuff please! ********* */
-/* ***** XXX: functions are using old blender names, cleanup later ***** */
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+#include "UI_view2d.h"
+
+#include "file_intern.h"
 
 
-/* now only used in 2d spaces, like time, ipo, nla, sima... */
-/* XXX clean G.qual */
-void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
+void freefilelist(SpaceFile *sfile)
 {
-	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	int ctrl;
+	int num;
 	
-	if(invert) {
-		if(G.qual & LR_CTRLKEY) ctrl= 0;
-		else ctrl= 1;
-	}
-	else ctrl= (G.qual & LR_CTRLKEY);
+	num= sfile->totfile-1;
 	
-	if(ctrl && (G.qual & LR_SHIFTKEY)) {
-		if(fac3!= 0.0) *val= fac3*floor(*val/fac3 +.5);
-	}
-	else if(ctrl) {
-		if(fac2!= 0.0) *val= fac2*floor(*val/fac2 +.5);
-	}
-	else {
-		if(fac1!= 0.0) *val= fac1*floor(*val/fac1 +.5);
-	}
-}
-
-
-int GetButStringLength(char *str) 
-{
-	int rt;
+	if (sfile->filelist==0) return;
 	
-	rt= UI_GetStringWidth(G.font, str, (U.transopts & USER_TR_BUTTONS));
-	
-	return rt + 15;
+	for(; num>=0; num--){
+		MEM_freeN(sfile->filelist[num].relname);
+		
+		if (sfile->filelist[num].string) MEM_freeN(sfile->filelist[num].string);
+	}
+	free(sfile->filelist);
+	sfile->filelist= 0;
 }
 

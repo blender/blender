@@ -25,16 +25,18 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_UTIL_H
-#define ED_UTIL_H
+#ifndef ED_FILE_INTERN_H
+#define ED_FILE_INTERN_H
 
-/* ************** XXX OLD CRUFT WARNING ************* */
+/* internal exports only */
 
-#define XIC 20
-#define YIC 20
 
-void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
-int GetButStringLength(char *str);
+/* file_header.c */
+void file_header_buttons(const bContext *C, ARegion *ar);
 
-#endif /* ED_UTIL_H */
+/* filesel.c */
+
+void freefilelist(SpaceFile *sfile);
+
+#endif /* ED_FILE_INTERN_H */
 
