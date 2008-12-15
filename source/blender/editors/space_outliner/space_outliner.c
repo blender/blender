@@ -230,7 +230,8 @@ static void rna_collection_but(CellRNA *cell, rcti *rct, uiBlock *block)
 
 		if(nameprop)
 			nameptr= RNA_property_string_get_alloc(&lookup, nameprop, name, sizeof(name));
-		else
+
+		if(!nameprop || strlen(nameptr) == 0)
 			sprintf(nameptr, "%d", cell->index+1);
 	}
 

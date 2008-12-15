@@ -638,6 +638,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_NONE: return "PROP_NONE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_FILEPATH: return "PROP_FILEPATH";
+		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_COLOR: return "PROP_COLOR";
 		case PROP_VECTOR: return "PROP_VECTOR";
 		case PROP_MATRIX: return "PROP_MATRIX";
@@ -921,6 +922,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_scene.c", RNA_def_scene},
 	{"rna_screen.c", RNA_def_screen},
 	{"rna_sensor.c", RNA_def_sensor},
+	{"rna_sequence.c", RNA_def_sequence},
 	{"rna_vfont.c", RNA_def_vfont},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_world.c", RNA_def_world},	

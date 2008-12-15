@@ -182,9 +182,6 @@ typedef struct Editing {
 	ListBase *seqbasep;
 	ListBase seqbase;
 	ListBase metastack;
-	short flag;
-	short pad;
-	int rt;
 } Editing;
 
 /* ************* Effect Variable Structs ********* */

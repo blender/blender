@@ -145,7 +145,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
-	RNA_def_property_ui_text(prop, "Premultiply", "Convert from key alpha to premultiplied alpha.");
+	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha.");
 
 	/* generated image (image_generated_change_cb) */
 	prop= RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);
