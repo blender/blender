@@ -909,18 +909,18 @@ static PyObject *displace_getter( BPy_Modifier * self, int type )
 
 	switch( type ) {
 	case EXPP_MOD_TEXTURE:
-		if (md->texture)	Texture_CreatePyObject( md->texture );
+		if (md->texture)	return Texture_CreatePyObject( md->texture );
 		else				Py_RETURN_NONE;
 	case EXPP_MOD_STRENGTH:
 		return PyFloat_FromDouble( (double)md->strength );
 	case EXPP_MOD_DIRECTION:
-		PyInt_FromLong( md->direction );
+		return PyInt_FromLong( md->direction );
 	case EXPP_MOD_VERTGROUP:
 		return PyString_FromString( md->defgrp_name ) ;
 	case EXPP_MOD_MID_LEVEL:
 		return PyFloat_FromDouble( (double)md->midlevel );
 	case EXPP_MOD_MAPPING:
-		PyInt_FromLong( md->texmapping );
+		return PyInt_FromLong( md->texmapping );
 	case EXPP_MOD_OBJECT:
 		return Object_CreatePyObject( md->map_object );
 	case EXPP_MOD_UVLAYER:
