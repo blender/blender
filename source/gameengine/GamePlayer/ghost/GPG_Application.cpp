@@ -686,8 +686,9 @@ bool GPG_Application::startEngine(void)
 		initGameKeys();
 		initPythonConstraintBinding();
 		initMathutils();
+#ifdef WITH_FFMPEG
         initVideoTexture();
-
+#endif
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
