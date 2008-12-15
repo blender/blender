@@ -994,9 +994,6 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
-
-	/* cursor types too */
-	ED_screen_set_subwinactive(win);
 }
 
 /* file read, set all screens, ... */
@@ -1077,15 +1074,15 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 
 
 /* called in wm_event_system.c. sets state var in screen */
-void ED_screen_set_subwinactive(wmWindow *win)
+void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 {
 	if(win->screen) {
-		wmEvent *event= win->eventstate;
+		bScreen *scr= win->screen;
 		ScrArea *sa;
 		ARegion *ar;
-		int oldswin= win->screen->subwinactive;
-		
-		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		int oldswin= scr->subwinactive;
+
+		for(sa= scr->areabase.first; sa; sa= sa->next) {
 			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if(event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
 					if(NULL==is_in_area_actionzone(sa, event->x, event->y))
@@ -1094,20 +1091,20 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		if(sa) {
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
 				if(BLI_in_rcti(&ar->winrct, event->x, event->y))
-					win->screen->subwinactive= ar->swinid;
+					scr->subwinactive= ar->swinid;
 			}
 		}
 		else
-			win->screen->subwinactive= win->screen->mainwin;
+			scr->subwinactive= scr->mainwin;
 		
 		/* check for redraw headers */
-		if(oldswin!=win->screen->subwinactive) {
+		if(oldswin!=scr->subwinactive) {
 
-			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			for(sa= scr->areabase.first; sa; sa= sa->next) {
 				int do_draw= 0;
 				
 				for(ar= sa->regionbase.first; ar; ar= ar->next)
-					if(ar->swinid==oldswin || ar->swinid==win->screen->subwinactive)
+					if(ar->swinid==oldswin || ar->swinid==scr->subwinactive)
 						do_draw= 1;
 				
 				if(do_draw) {
@@ -1119,14 +1116,14 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		}
 		
 		/* cursors, for time being set always on edges, otherwise aregion doesnt switch */
-		if(win->screen->subwinactive==win->screen->mainwin) {
+		if(scr->subwinactive==scr->mainwin) {
 			screen_cursor_set(win, event);
 		}
-		else if(oldswin!=win->screen->subwinactive) {
+		else if(oldswin!=scr->subwinactive) {
 			/* cursor space type switching */
-			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			for(sa= scr->areabase.first; sa; sa= sa->next) {
 				for(ar= sa->regionbase.first; ar; ar= ar->next) {
-					if(ar->swinid==win->screen->subwinactive) {
+					if(ar->swinid==scr->subwinactive) {
 						if(sa->type->cursor)
 							sa->type->cursor(win, ar);
 						else 

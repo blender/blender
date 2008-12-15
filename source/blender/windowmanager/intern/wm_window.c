@@ -413,8 +413,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->eventstate->x= cx;
 				win->eventstate->y= (win->sizey-1) - cy;
 				
-				ED_screen_set_subwinactive(win);	/* active subwindow in screen */
-				
 				wm_window_make_drawable(C, win);
 				break;
 			}
