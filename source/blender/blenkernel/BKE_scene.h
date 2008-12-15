@@ -40,19 +40,6 @@ struct QuicktimeCodecData;
 struct SculptData;
 struct RenderData;
 
-/* sequence related defines */
-
-#define WHILE_SEQ(base)	{											\
-	int totseq_, seq_; Sequence **seqar;	\
-		build_seqar( base,  &seqar, &totseq_);	\
-			for(seq_ = 0; seq_ < totseq_; seq_++) {	\
-				seq= seqar[seq_];
-				
-				
-#define END_SEQ					}						\
-				if(seqar) MEM_freeN(seqar);		\
-}
-
 /* note; doesn't work when scene is empty */
 #define SETLOOPER(s, b) sce= s, b= (Base*)sce->base.first; b; b= (Base*)(b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
 

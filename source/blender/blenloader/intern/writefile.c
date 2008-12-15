@@ -155,7 +155,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
 #include "BKE_screen.h" // for waitcursor
-#include "BKE_scene.h" // for do_seq
+#include "BKE_sequence.h"
 #include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
@@ -1471,13 +1471,13 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 			/* reset write flags too */
 			
-			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
+			SEQ_BEGIN(ed, seq) {
 				if(seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
-			END_SEQ
+			SEQ_END
 
-			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
+			SEQ_BEGIN(ed, seq) {
 				if(seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 
@@ -1524,7 +1524,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					strip->done= 1;
 				}
 			}
-			END_SEQ
+			SEQ_END
 				
 			/* new; meta stack too, even when its nasty restore code */
 			for(ms= ed->metastack.first; ms; ms= ms->next) {

@@ -63,9 +63,7 @@ void copy_view3d_lock() {}
 
 /* seq */
 void do_render_seq() {}
-void free_editing() {}
 void get_forground_frame_seq() {}
-void build_seqar() {}
 
 /* sculpt */
 void sculptmode_free_all() {}

@@ -134,6 +134,7 @@
 #include "BKE_softbody.h"	// sbNew()
 #include "BKE_bullet.h"		// bsbNew()
 #include "BKE_sculpt.h"
+#include "BKE_sequence.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
@@ -3443,7 +3444,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 {
 	Scene *sce;
 	Base *base, *next;
-	Editing *ed;
 	Sequence *seq;
 	SceneRenderLayer *srl;
 	int a;
@@ -3486,23 +3486,20 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 			}
 
-			ed= sce->ed;
-			if(ed) {
-				WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
-					if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
-					if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
-					if(seq->sound) {
-						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
-						if (seq->sound) {
-							seq->sound->id.us++;
-							seq->sound->flags |= SOUND_FLAGS_SEQUENCE;
-						}
+			SEQ_BEGIN(sce->ed, seq) {
+				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
+				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
+				if(seq->sound) {
+					seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
+					if (seq->sound) {
+						seq->sound->id.us++;
+						seq->sound->flags |= SOUND_FLAGS_SEQUENCE;
 					}
-					seq->anim= 0;
-					seq->hdaudio = 0;
 				}
-				END_SEQ
+				seq->anim= 0;
+				seq->hdaudio = 0;
 			}
+			SEQ_END
 			
 			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
 			
@@ -3526,11 +3523,10 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 	Sequence *seq;
 
 	link_list(fd, lb);
-	seq= lb->first;
-	while(seq) {
-		if(seq->seqbase.first) link_recurs_seq(fd, &seq->seqbase);
-		seq= seq->next;
-	}
+
+	for(seq=lb->first; seq; seq=seq->next)
+		if(seq->seqbase.first)
+			link_recurs_seq(fd, &seq->seqbase);
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)
@@ -3572,7 +3568,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 
-		WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
+		SEQ_BEGIN(ed, seq) {
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
@@ -3630,7 +3626,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				}
 			}
 		}
-		END_SEQ
+		SEQ_END
 		
 		/* link metastack, slight abuse of structs here, have to restore pointer to internal part in struct */
 		{
@@ -3714,30 +3710,26 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 */
 static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
 {
-	Editing *ed;
-	Sequence *seq = NULL;
+	Sequence *seq;
+	Scene *sce;
+	
+	for(sce=main->scene.first; sce; sce=sce->id.next) {
+		int found = 0;
 
-	Scene * sce= main->scene.first;
-	while(sce) {
-		if(sce->ed) {
-			int found = 0;
-
-			ed= sce->ed;
-
-			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
-				if (seq->ipo == ipo) {
-					found = 1;
-					break;
-				}
-			} 
-			END_SEQ
-			if (found) {
+		SEQ_BEGIN(sce->ed, seq) {
+			if (seq->ipo == ipo) {
+				found = 1;
 				break;
 			}
-			seq = NULL;
+		} 
+		SEQ_END
+
+		if (found) {
+			break;
 		}
-		sce= sce->id.next;
+		seq = NULL;
 	}
+
 	if (seq)
         return seq;
 	else
@@ -5022,7 +5014,7 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 	/* if we do, set alpha sort if the game engine did it before */
 	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
 		if(mf->mat_nr < me->totcol) {
-			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
+			ma= newlibadr(fd, lib, me->mat[(int)mf->mat_nr]);
 			texalpha = 0;
 
 			/* we can't read from this if it comes from a library,
@@ -5208,7 +5200,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 static void do_versions_windowmanager_2_50(bScreen *screen)
 {
 	ScrArea *sa;
-	ARegion *ar;
 	SpaceLink *sl;
 	
 	/* add regions */
@@ -6522,10 +6513,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(sce) {
 			ed= sce->ed;
 			if(ed) {
-				WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
-					if(seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE) seq->flag |= SEQ_MAKE_PREMUL;
+				SEQ_BEGIN(sce->ed, seq) {
+					if(seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE)
+						seq->flag |= SEQ_MAKE_PREMUL;
 				}
-				END_SEQ
+				SEQ_END
 			}
 			
 			sce= sce->id.next;
@@ -8021,22 +8013,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 14)) {
-		Scene *sce= main->scene.first;
+		Scene *sce;
 		Sequence *seq;
 		Editing *ed;
 		
-		while(sce) {
-			ed= sce->ed;
-			if(ed) {
-				WHILE_SEQ(&ed->seqbase) {
-					if (seq->blend_mode == 0) {
-						seq->blend_opacity = 100.0;
-					}
-				}
-				END_SEQ
+		for(sce=main->scene.first; sce; sce=sce->id.next) {
+			SEQ_BEGIN(ed, seq) {
+				if (seq->blend_mode == 0)
+					seq->blend_opacity = 100.0;
 			}
-			
-			sce= sce->id.next;
+			SEQ_END
 		}
 	}
 	

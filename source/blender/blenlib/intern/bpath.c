@@ -26,33 +26,32 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BLI_bpath.h"
-#include "BKE_global.h"
-//XXX #include "BIF_screen.h" /* only for wait cursor */
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h" /* Library */
 #include "DNA_vfont_types.h"
 #include "DNA_image_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
 #include "DNA_sequence_types.h"
-#include <stdlib.h>
-#include <string.h>
+#include "DNA_text_types.h"
 
-#include "BKE_main.h" /* so we can access G.main->*.first */
+#include "BLI_blenlib.h"
+#include "BLI_bpath.h"
+
+#include "BKE_global.h"
 #include "BKE_image.h" /* so we can check the image's type */
-
+#include "BKE_main.h" /* so we can access G.main->*.first */
+#include "BKE_sequence.h"
+#include "BKE_text.h" /* for writing to a textblock */
 #include "BKE_utildefines.h"
-#include "MEM_guardedalloc.h"
 
+//XXX #include "BIF_screen.h" /* only for wait cursor */
+//
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
 #define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_HD_SOUND || seq->type==SEQ_RAM_SOUND || seq->type==SEQ_IMAGE)
-
-/* for writing to a textblock */
-#include "BKE_text.h" 
-#include "BLI_blenlib.h"
-#include "DNA_text_types.h"
 
 /* path/file handeling stuff */
 #ifndef WIN32
@@ -70,7 +69,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #define FILE_MAX			240
 
@@ -219,7 +218,7 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 		if (bpi->seqdata.scene->ed) {
 			if (bpi->seqdata.seqar == NULL) {
 				/* allocate the sequencer array */
-				build_seqar( &(((Editing *)bpi->seqdata.scene->ed)->seqbase), &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
+				seq_array(bpi->seqdata.scene->ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
 				bpi->seqdata.seq = 0;
 			}
 			

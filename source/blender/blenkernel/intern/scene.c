@@ -76,6 +76,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sculpt.h"
+#include "BKE_sequence.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
@@ -138,7 +139,7 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
-	//XXX free_editing(sce->ed);
+	seq_free_editing(sce->ed);
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
