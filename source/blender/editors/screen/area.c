@@ -589,7 +589,7 @@ static char *windowtype_pup(void)
 static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
 	newspace(C, C->area, C->area->butspacetype);
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 }
 
 /* returns offset for next button in header */
