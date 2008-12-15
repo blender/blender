@@ -1256,6 +1256,38 @@ void ED_SCR_OT_region_split(wmOperatorType *ot)
 	RNA_def_property_enum_default(prop, 'h');
 }
 
+/* ************** region flip operator ***************************** */
+
+/* flip a region alignment */
+static int region_flip_exec(bContext *C, wmOperator *op)
+{
+	if(C->region->alignment==RGN_ALIGN_TOP)
+		C->region->alignment= RGN_ALIGN_BOTTOM;
+	else if(C->region->alignment==RGN_ALIGN_BOTTOM)
+		C->region->alignment= RGN_ALIGN_TOP;
+	else if(C->region->alignment==RGN_ALIGN_LEFT)
+		C->region->alignment= RGN_ALIGN_RIGHT;
+	else if(C->region->alignment==RGN_ALIGN_RIGHT)
+		C->region->alignment= RGN_ALIGN_LEFT;
+	
+	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_SCR_OT_region_flip(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Flip Region";
+	ot->idname= "ED_SCR_OT_region_flip";
+	
+	/* api callbacks */
+	ot->exec= region_flip_exec;
+	
+	ot->poll= ED_operator_areaactive;
+}
+
 
 /* ************** border select operator (template) ***************************** */
 
@@ -1331,6 +1363,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_area_join);
 	WM_operatortype_append(ED_SCR_OT_area_rip);
 	WM_operatortype_append(ED_SCR_OT_region_split);
+	WM_operatortype_append(ED_SCR_OT_region_flip);
 		
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
@@ -1353,6 +1386,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	 /* tests */
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }
 
