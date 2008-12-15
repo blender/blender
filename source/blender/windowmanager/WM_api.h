@@ -55,10 +55,11 @@ void		WM_read_autosavefile(struct bContext *C);
 void		WM_write_autosave	(struct bContext *C);
 
 			/* mouse cursors */
-void		WM_init_cursor_data	(void);
-void		WM_set_cursor		(struct bContext *C, int curs);
-void		WM_waitcursor		(struct bContext *C, int val);
-void		WM_timecursor		(struct bContext *C, int nr);
+void		WM_cursor_set		(struct wmWindow *win, int curs);
+void		WM_cursor_modal		(struct wmWindow *win, int curs);
+void		WM_cursor_restore	(struct wmWindow *win);
+void		WM_cursor_wait		(struct wmWindow *win, int val);
+void		WM_timecursor		(struct wmWindow *win, int nr);
 
 			/* keymap and handlers */
 wmKeymapItem *WM_keymap_set_item	(ListBase *lb, char *idname, short type, 

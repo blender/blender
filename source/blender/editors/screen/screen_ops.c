@@ -118,7 +118,7 @@ static ScrArea *screen_areahascursor(bScreen *scr, int x, int y)
 }
 
 
-static AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
+AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 {
 	AZone *az= NULL;
 	int i= 0;
@@ -231,78 +231,6 @@ void ED_SCR_OT_actionzone(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 }
-
-/* ****************** cursor near edge operator ********************************* */
-
-static int scredge_is_horizontal(ScrEdge *se)
-{
-	return (se->v1->vec.y == se->v2->vec.y);
-}
-
-static ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
-{
-	ScrEdge *se;
-	
-	for (se= sc->edgebase.first; se; se= se->next) {
-		if (scredge_is_horizontal(se)) {
-			short min, max;
-			min= MIN2(se->v1->vec.x, se->v2->vec.x);
-			max= MAX2(se->v1->vec.x, se->v2->vec.x);
-			
-			if (abs(my-se->v1->vec.y)<=2 && mx>=min && mx<=max)
-				return se;
-		} 
-		else {
-			short min, max;
-			min= MIN2(se->v1->vec.y, se->v2->vec.y);
-			max= MAX2(se->v1->vec.y, se->v2->vec.y);
-			
-			if (abs(mx-se->v1->vec.x)<=2 && my>=min && my<=max)
-				return se;
-		}
-	}
-	
-	return NULL;
-}
-
-
-/* operator cb */
-static int screen_cursor_test(bContext *C, wmOperator *op, wmEvent *event)
-{
-	if (C->screen->subwinactive==C->screen->mainwin) {
-		ScrEdge *actedge= screen_find_active_scredge(C->screen, event->x, event->y);
-		
-		if (actedge && scredge_is_horizontal(actedge)) {
-			WM_set_cursor(C, CURSOR_Y_MOVE);
-		} else {
-			WM_set_cursor(C, CURSOR_X_MOVE);
-		}
-	} 
-	else {
-		ScrArea *sa= NULL;
-		AZone *az= NULL;
-		
-		for(sa= C->screen->areabase.first; sa; sa= sa->next) {
-			az= is_in_area_actionzone(sa, event->x, event->y);
-			if(az!=NULL) break;
-		}
-		
-		if(az!=NULL) WM_set_cursor(C, CURSOR_EDIT);
-		else WM_set_cursor(C, CURSOR_STD);
-	}
-	
-	return OPERATOR_PASS_THROUGH;
-}
-
-static void ED_SCR_OT_cursor_type(wmOperatorType *ot)
-{
-    ot->name= "Cursor type";
-    ot->idname= "ED_SCR_OT_cursor_type";
-	
-    ot->invoke= screen_cursor_test;
-    ot->poll= ED_operator_screenactive;
-}
-
 
 
 /* *********** Rip area operator ****************** */
@@ -1224,12 +1152,6 @@ static int region_split_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int region_split_invoke(bContext *C, wmOperator *op, wmEvent *evt)
-{
-	return region_split_exec(C, op);
-}
-
-
 void ED_SCR_OT_region_split(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1240,8 +1162,6 @@ void ED_SCR_OT_region_split(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= region_split_exec;
-	ot->invoke= region_split_invoke;
-	
 	ot->poll= ED_operator_areaactive;
 	
 	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
@@ -1346,7 +1266,6 @@ void ED_SCR_OT_border_select(wmOperatorType *ot)
 void ED_operatortypes_screen(void)
 {
 	/* generic UI stuff */
-	WM_operatortype_append(ED_SCR_OT_cursor_type);
 	WM_operatortype_append(ED_SCR_OT_actionzone);
 	WM_operatortype_append(ED_SCR_OT_repeat_last);
 	
@@ -1367,9 +1286,7 @@ void ED_operatortypes_screen(void)
 void ED_keymap_screen(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
-	wmKeymapItem *kmi;
 	
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -1378,10 +1295,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
-	kmi= WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "dir", 'h');
-	kmi= WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "dir", 'v');
+	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
+	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }

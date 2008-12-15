@@ -46,6 +46,11 @@ void		removenotused_scrverts(bScreen *sc);
 void		removedouble_scrverts(bScreen *sc);
 void		removedouble_scredges(bScreen *sc);
 void		removenotused_scredges(bScreen *sc);
+int			scredge_is_horizontal(ScrEdge *se);
+ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
+
+AZone *is_in_area_actionzone(ScrArea *sa, int x, int y);
+
 
 #endif /* ED_SCREEN_INTERN_H */
 

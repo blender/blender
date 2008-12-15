@@ -503,6 +503,7 @@ static void newspace(bContext *C, ScrArea *sa, int type)
 
 		sa->spacetype= type;
 		sa->butspacetype= type;
+		sa->type= st;
 		
 		/* check previously stored space */
 		for (sl= sa->spacedata.first; sl; sl= sl->next)

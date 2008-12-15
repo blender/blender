@@ -209,14 +209,12 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
 	
-#if 0 // XXX - enable this when cursors are working properly
 	if (v2d->keepofs & V2D_LOCKOFS_X)
-		WM_set_cursor(C, BC_NS_SCROLLCURSOR);
+		WM_cursor_modal(C->window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)
-		WM_set_cursor(C, BC_EW_SCROLLCURSOR);
+		WM_cursor_modal(C->window, BC_EW_SCROLLCURSOR);
 	else
-		WM_set_cursor(C, BC_NSEW_SCROLLCURSOR);
-#endif // XXX - enable this when cursors are working properly
+		WM_cursor_modal(C->window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
 	WM_event_add_modal_handler(C, &C->window->handlers, op);
@@ -251,7 +249,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
 				
 				view_pan_exit(C, op);
-				//WM_set_cursor(C, CURSOR_STD);		// XXX - enable this when cursors are working properly	
+				WM_cursor_restore(C->window);
 				
 				return OPERATOR_FINISHED;
 			}
@@ -689,14 +687,12 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_float_set(op->ptr, "deltax", 0);
 	RNA_float_set(op->ptr, "deltay", 0);
 	
-#if 0 // XXX - enable this when cursors are working properly
 	if (v2d->keepofs & V2D_LOCKOFS_X)
-		WM_set_cursor(C, BC_NS_SCROLLCURSOR);
+		WM_cursor_modal(C->window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)
-		WM_set_cursor(C, BC_EW_SCROLLCURSOR);
+		WM_cursor_modal(C->window, BC_EW_SCROLLCURSOR);
 	else
-		WM_set_cursor(C, BC_NSEW_SCROLLCURSOR);
-#endif // XXX - enable this when cursors are working properly
+		WM_cursor_modal(C->window, BC_NSEW_SCROLLCURSOR);
 	
 	/* add temp handler */
 	WM_event_add_modal_handler(C, &C->window->handlers, op);
@@ -784,7 +780,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				/* free customdata */
 				view_zoomdrag_exit(C, op);
-				//WM_set_cursor(C, CURSOR_STD);		// XXX - enable this when cursors are working properly	
+				WM_cursor_restore(C->window);
 				
 				return OPERATOR_FINISHED;
 			}

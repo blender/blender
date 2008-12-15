@@ -236,6 +236,39 @@ void removenotused_scredges(bScreen *sc)
 	}
 }
 
+int scredge_is_horizontal(ScrEdge *se)
+{
+	return (se->v1->vec.y == se->v2->vec.y);
+}
+
+ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
+{
+	ScrEdge *se;
+	
+	for (se= sc->edgebase.first; se; se= se->next) {
+		if (scredge_is_horizontal(se)) {
+			short min, max;
+			min= MIN2(se->v1->vec.x, se->v2->vec.x);
+			max= MAX2(se->v1->vec.x, se->v2->vec.x);
+			
+			if (abs(my-se->v1->vec.y)<=2 && mx>=min && mx<=max)
+				return se;
+		} 
+		else {
+			short min, max;
+			min= MIN2(se->v1->vec.y, se->v2->vec.y);
+			max= MAX2(se->v1->vec.y, se->v2->vec.y);
+			
+			if (abs(mx-se->v1->vec.x)<=2 && my>=min && my<=max)
+				return se;
+		}
+	}
+	
+	return NULL;
+}
+
+
+
 /* adds no space data */
 static ScrArea *screen_addarea(bScreen *sc, ScrVert *v1, ScrVert *v2, ScrVert *v3, ScrVert *v4, short headertype, short spacetype)
 {
@@ -962,6 +995,8 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
 
+	/* cursor types too */
+	ED_screen_set_subwinactive(win);
 }
 
 /* file read, set all screens, ... */
@@ -1017,6 +1052,29 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	C->window= prevwin;
 }
 
+/* case when on area-edge or in azones */
+static void screen_cursor_set(wmWindow *win, wmEvent *event)
+{
+	ScrArea *sa;
+	
+	for(sa= win->screen->areabase.first; sa; sa= sa->next)
+		if(is_in_area_actionzone(sa, event->x, event->y))
+			break;
+	
+	if(sa) {
+		WM_cursor_set(win, CURSOR_EDIT);
+	}
+	else {
+		ScrEdge *actedge= screen_find_active_scredge(win->screen, event->x, event->y);
+		
+		if (actedge && scredge_is_horizontal(actedge)) {
+			WM_cursor_set(win, CURSOR_Y_MOVE);
+		} else {
+			WM_cursor_set(win, CURSOR_X_MOVE);
+		}
+	} 
+}
+
 
 /* called in wm_event_system.c. sets state var in screen */
 void ED_screen_set_subwinactive(wmWindow *win)
@@ -1024,15 +1082,16 @@ void ED_screen_set_subwinactive(wmWindow *win)
 	if(win->screen) {
 		wmEvent *event= win->eventstate;
 		ScrArea *sa;
+		ARegion *ar;
 		int oldswin= win->screen->subwinactive;
 		
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 			if(event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if(event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
-					break;
+					if(NULL==is_in_area_actionzone(sa, event->x, event->y))
+						break;
 		}
 		if(sa) {
-			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
 				if(BLI_in_rcti(&ar->winrct, event->x, event->y))
 					win->screen->subwinactive= ar->swinid;
@@ -1043,9 +1102,8 @@ void ED_screen_set_subwinactive(wmWindow *win)
 		
 		/* check for redraw headers */
 		if(oldswin!=win->screen->subwinactive) {
-			
+
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				ARegion *ar;
 				int do_draw= 0;
 				
 				for(ar= sa->regionbase.first; ar; ar= ar->next)
@@ -1057,6 +1115,25 @@ void ED_screen_set_subwinactive(wmWindow *win)
 						if(ar->regiontype==RGN_TYPE_HEADER)
 							ar->do_draw= 1; /* XXX */
 				}
+			}
+		}
+		
+		/* cursors, for time being set always on edges, otherwise aregion doesnt switch */
+		if(win->screen->subwinactive==win->screen->mainwin) {
+			screen_cursor_set(win, event);
+		}
+		else if(oldswin!=win->screen->subwinactive) {
+			/* cursor space type switching */
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				for(ar= sa->regionbase.first; ar; ar= ar->next) {
+					if(ar->swinid==win->screen->subwinactive) {
+						if(sa->type->cursor)
+							sa->type->cursor(win, ar);
+						else 
+							WM_cursor_set(win, CURSOR_STD);
+					}
+				}
+					
 			}
 		}
 	}

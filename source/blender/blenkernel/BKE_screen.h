@@ -37,6 +37,7 @@ struct bScreen;
 struct ARegion;
 struct wmNotifier;
 struct wmWindowManager;
+struct wmWindow;
 struct ListBase;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
@@ -69,6 +70,8 @@ typedef struct SpaceType {
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
 	void		(*keymap)(struct wmWindowManager *);
+	/* sets default cursor per region */
+	void		(*cursor)(struct wmWindow *win, struct ARegion *ar);
 
 	/* region type definitions */
 	ListBase	regiontypes;

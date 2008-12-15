@@ -86,15 +86,12 @@ static void window_set_custom_cursor_ex(wmWindow *win, BCursor *cursor, int useB
 
 /* Cursor Globals */
 static BCursor *BlenderCursor[BC_NUMCURSORS]; /*Points to static BCursor Structs */
-static short CurrentCursor=-1, LastCursor=-1;
 
-void WM_set_cursor(bContext *C, int curs)
+void WM_cursor_set(wmWindow *win, int curs)
 {
-	wmWindow *win= C->window;
 
 	if (win==NULL) return; /* Can't set custom cursor before Window init */
-	win->cursor= curs;
-	
+
 	if (curs==CURSOR_NONE) {
 		GHOST_SetCursorVisibility(win->ghostwin, 0);
 		return;
@@ -102,18 +99,14 @@ void WM_set_cursor(bContext *C, int curs)
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
 	
-	LastCursor=CurrentCursor;
-	CurrentCursor=curs;
-	
-	/* previous cursor? */
-	if (curs==LASTCURSOR) curs=LastCursor;
+	win->cursor= curs;
 	
 	/* detect if we use system cursor or Blender cursor */
 	if(curs>=BC_GHOST_CURSORS) {
 		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
 	}
 	else {
-		if ((curs<LASTCURSOR)||(curs>=BC_NUMCURSORS)) return;	
+		if ((curs<SYSCURSOR) || (curs>=BC_NUMCURSORS)) return;	
 
 		if (curs==SYSCURSOR) {  /* System default Cursor */
 			GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
@@ -127,18 +120,34 @@ void WM_set_cursor(bContext *C, int curs)
 	}
 }
 
-void WM_waitcursor(bContext *C, int val)
+static int LastCursor=-1;	/* global, assumed we only have one */
+
+void WM_cursor_modal(wmWindow *win, int val)
 {
-	if(C->window) {
-		if(val) {
-			WM_set_cursor(C, CURSOR_WAIT);
-		} else {
-			WM_set_cursor(C, LASTCURSOR);
-		}
+	if(LastCursor == -1)
+		LastCursor = win->cursor;
+	WM_cursor_set(win, val);
+}
+
+void WM_cursor_restore(wmWindow *win)
+{
+	if(LastCursor != -1)
+		WM_cursor_set(win, LastCursor);
+	LastCursor = -1;
+}
+
+
+void WM_cursor_wait(wmWindow *win, int val)
+{
+	if(val) {
+		WM_cursor_modal(win, CURSOR_WAIT);
+	} else {
+		WM_cursor_restore(win);
 	}
 }
 
-void WM_timecursor(bContext *C, int nr)
+/* afer this you can call restore too */
+void WM_timecursor(wmWindow *win, int nr)
 {
 	/* 10 8x8 digits */
 	static char number_bitmaps[10][8]= {
@@ -157,6 +166,9 @@ void WM_timecursor(bContext *C, int nr)
 	unsigned char bitmap[16][2];
 	int i, idx;
 	
+	if(LastCursor != -1)
+		LastCursor= win->cursor; 
+	
 	memset(&bitmap, 0x00, sizeof(bitmap));
 	memset(&mask, 0xFF, sizeof(mask));
 	
@@ -171,7 +183,7 @@ void WM_timecursor(bContext *C, int nr)
 		nr/= 10;
 	}
 	
-	window_set_custom_cursor(C->window, mask, bitmap, 7, 7);
+	window_set_custom_cursor(win, mask, bitmap, 7, 7);
 }
 
 
@@ -217,7 +229,7 @@ are for */
 #define BEGIN_CURSOR_BLOCK {
 #define END_CURSOR_BLOCK   }
 
-void WM_init_cursor_data(void){
+void wm_init_cursor_data(void){
 
 	/********************** NW_ARROW Cursor **************************/
 BEGIN_CURSOR_BLOCK

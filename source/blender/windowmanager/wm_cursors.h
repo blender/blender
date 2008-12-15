@@ -32,6 +32,8 @@
 #ifndef WM_CURSORS_H
 #define WM_CURSORS_H
 
+void wm_init_cursor_data(void);
+
 #define BC_GHOST_CURSORS 1000
 
 /* old cursors */
@@ -72,7 +74,6 @@ typedef struct BCursor {
 
 } BCursor;
 
-#define LASTCURSOR -2
 #define SYSCURSOR -1
 enum {
 	BC_NW_ARROWCURSOR=0, 

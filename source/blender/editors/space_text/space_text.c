@@ -153,12 +153,20 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-void text_operatortypes(void)
+static void text_operatortypes(void)
 {
 	
 }
 
-void text_keymap(struct wmWindowManager *wm)
+static void text_cursor(wmWindow *win, ARegion *ar)
+{
+	if(ar->regiontype==RGN_TYPE_WINDOW)
+		WM_cursor_set(win, BC_TEXTEDITCURSOR);
+	else
+		WM_cursor_set(win, CURSOR_STD);
+}
+
+static void text_keymap(struct wmWindowManager *wm)
 {
 	
 }
@@ -209,6 +217,7 @@ void ED_spacetype_text(void)
 	st->init= text_init;
 	st->duplicate= text_duplicate;
 	st->operatortypes= text_operatortypes;
+	st->cursor= text_cursor;
 	st->keymap= text_keymap;
 	
 	/* regions: main window */

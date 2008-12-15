@@ -74,6 +74,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "wm_cursors.h"
 #include "wm_event_system.h"
 #include "wm.h"
 #include "wm_files.h"
@@ -110,6 +112,7 @@ void WM_init(bContext *C)
 {
 	
 	wm_ghost_init(C);	/* note: it assigns C to ghost! */
+	wm_init_cursor_data();
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
