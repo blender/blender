@@ -142,7 +142,10 @@ typedef struct wmOperatorType {
 typedef struct wmKeymapItem {
 	struct wmKeymapItem *next, *prev;
 	
+	/* these are same order as wmOperator because RNA depends on it, fixme XXX */
 	char idname[64];				/* used to retrieve operator type pointer */
+	IDProperty *properties;			/* default operator properties */
+	struct PointerRNA *ptr;			/* rna pointer to access properties */
 	
 	short type;						/* event code itself */
 	short val;						/* 0=any, 1=click, 2=release, or wheelvalue, or... */
@@ -170,18 +173,15 @@ typedef struct wmKeyMap {
 /* operator + operatortype should be able to redo entirely, but for different contextes */
 typedef struct wmOperator {
 	struct wmOperator *next, *prev;
-	
-	wmOperatorType *type;
-	char idname[64];		/* used to retrieve type pointer */
-	
-	/* custom storage, only while operator runs, not saved */
-	void *customdata; 
-	/* IDproperty list */
-	IDProperty *properties;
 
+	/* saved */
+	char idname[64];			/* used to retrieve type pointer */
+	IDProperty *properties;		/* saved, user-settable properties */
+	
 	/* runtime */
-	struct PointerRNA *ptr;
-	ListBase *modallist;
+	wmOperatorType *type;		/* operator type definition from idname */
+	void *customdata;			/* custom storage, only while operator runs */
+	struct PointerRNA *ptr;		/* rna pointer to access properties */
 } wmOperator;
 
 /* operator type exec(), invoke() modal(), return values */

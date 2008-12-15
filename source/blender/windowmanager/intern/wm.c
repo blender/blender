@@ -132,6 +132,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	wmOperator *op;
 	wmReport *report;
 	wmKeyMap *km;
+	wmKeymapItem *kmi;
 	
 	while((win= wm->windows.first)) {
 		BLI_remlink(&wm->windows, win);
@@ -149,6 +150,16 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	}
 
 	while((km= wm->keymaps.first)) {
+		for(kmi=km->keymap.first; kmi; kmi=kmi->next) {
+			if(kmi->ptr)
+				MEM_freeN(kmi->ptr);
+
+			if(kmi->properties) {
+				IDP_FreeProperty(kmi->properties);
+				MEM_freeN(kmi->properties);
+			}
+		}
+
 		BLI_freelistN(&km->keymap);
 		BLI_remlink(&wm->keymaps, km);
 		MEM_freeN(km);

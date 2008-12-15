@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
+#include "BKE_idprop.h"
 #include "BKE_global.h"
 
 #include "ED_screen.h"
@@ -275,12 +276,15 @@ void wm_draw_update(bContext *C)
 /* ********************* operators ******************* */
 
 
-int WM_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, IDProperty *properties)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 
 	if(ot->poll==NULL || ot->poll(C)) {
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
+
+		if(properties)
+			op->properties= IDP_CopyProperty(properties);
 
 		/* XXX adding new operator could be function, only happens here now */
 		op->type= ot;
@@ -324,7 +328,7 @@ int WM_operator_call_rwin(bContext *C, const char *opstring)
 				C->region= ar1;
 		}
 		
-		retval= WM_operator_invoke(C, ot, C->window->eventstate);
+		retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
 		
 		/* set region back */
 		C->region= ar;
@@ -342,7 +346,7 @@ int WM_operator_call(bContext *C, const char *opstring)
 
 	/* dummie test */
 	if(ot && C && C->window) {
-		return WM_operator_invoke(C, ot, C->window->eventstate);
+		return wm_operator_invoke(C, ot, C->window->eventstate, NULL);
 	}
 	
 	return 0;
@@ -420,7 +424,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 }
 
 /* Warning: this function removes a modal handler, when finished */
-static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
+static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, IDProperty *properties)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 	
@@ -471,7 +475,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
 
 		if(ot)
-			retval= WM_operator_invoke(C, ot, event);
+			retval= wm_operator_invoke(C, ot, event, properties);
 	}
 
 	if(retval & OPERATOR_PASS_THROUGH)
@@ -550,7 +554,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 						
 						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 						
-						action= wm_handler_operator_call(C, handlers, handler, event);
+						action= wm_handler_operator_call(C, handlers, handler, event, kmi->properties);
 						if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
 							break;
 					}
@@ -561,7 +565,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 			}
 			else {
 				/* modal, swallows all */
-				action= wm_handler_operator_call(C, handlers, handler, event);
+				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
 			if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)

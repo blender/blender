@@ -39,6 +39,9 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
+#include "RNA_access.h"
+#include "RNA_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_window.h"
@@ -47,7 +50,7 @@
 
 /* ***************** generic call, exported **************** */
 
-static void keymap_set(wmKeymapItem *kmi, short type, short val, int modifier, short keymodifier)
+static void keymap_event_set(wmKeymapItem *kmi, short type, short val, int modifier, short keymodifier)
 {
 	kmi->type= type;
 	kmi->val= val;
@@ -71,6 +74,20 @@ static void keymap_set(wmKeymapItem *kmi, short type, short val, int modifier, s
 		kmi->oskey= 2;	
 }
 
+static void keymap_properties_set(wmKeymapItem *kmi)
+{
+	wmOperatorType *ot;
+	
+	if(!kmi->ptr) {
+		ot= WM_operatortype_find(kmi->idname);
+
+		if(ot) {
+			kmi->ptr= MEM_callocN(sizeof(PointerRNA), "wmKeymapItemPtr");
+			RNA_pointer_create(NULL, NULL, ot->srna, kmi, kmi->ptr);
+		}
+	}
+}
+
 /* if item was added, then bail out */
 wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
@@ -85,7 +102,8 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, shor
 		BLI_addtail(lb, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 		
-		keymap_set(kmi, type, val, modifier, keymodifier);
+		keymap_event_set(kmi, type, val, modifier, keymodifier);
+		keymap_properties_set(kmi);
 	}
 	return kmi;
 }
@@ -104,7 +122,8 @@ wmKeymapItem *WM_keymap_set_item(ListBase *lb, char *idname, short type, short v
 		BLI_addtail(lb, kmi);
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 	}
-	keymap_set(kmi, type, val, modifier, keymodifier);
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+	keymap_properties_set(kmi);
 	return kmi;
 }
 
@@ -116,13 +135,9 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
 	BLI_addtail(lb, kmi);
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
-	keymap_set(kmi, type, val, modifier, keymodifier);
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+	keymap_properties_set(kmi);
 	return kmi;
-}
-
-void WM_keymap_property_set(wmKeymapItem *km, const char *propname, const char *propval)
-{
-	/* todo */
 }
 
 /* ****************** storage in WM ************ */

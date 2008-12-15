@@ -1226,13 +1226,6 @@ static int region_split_exec(bContext *C, wmOperator *op)
 
 static int region_split_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
-	
-	/* can't do menu, so event is checked manually */
-	if(evt->shift)
-		RNA_enum_set(op->ptr, "dir", 'v');
-	else
-		RNA_enum_set(op->ptr, "dir", 'h');
-
 	return region_split_exec(C, op);
 }
 
@@ -1374,6 +1367,7 @@ void ED_operatortypes_screen(void)
 void ED_keymap_screen(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+	wmKeymapItem *kmi;
 	
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_cursor_type", MOUSEMOVE, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -1384,8 +1378,10 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
 
 	 /* tests */
-	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi= WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "dir", 'h');
+	kmi= WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "dir", 'v');
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 }

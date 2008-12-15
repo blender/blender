@@ -67,7 +67,6 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-void		WM_keymap_property_set(wmKeymapItem *km, const char *propname, const char *propval);
 ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 
@@ -105,7 +104,6 @@ int			WM_operator_winactive	(struct bContext *C);
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
-int			WM_operator_invoke		(struct bContext *C, wmOperatorType *ot, struct wmEvent *event);
 int         WM_operator_call		(struct bContext *C, const char *opstring);
 int         WM_operator_call_rwin	(struct bContext *C, const char *opstring);
 

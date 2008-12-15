@@ -56,18 +56,10 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 static void rna_def_operator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Operator", NULL, "Operator");
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_funcs(srna, NULL, "rna_Operator_refine");
-
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Operator name.");
-	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
-
-	RNA_def_struct_name_property(srna, prop);
 }
 
 static void rna_def_windowmanager(BlenderRNA *brna)
