@@ -57,25 +57,24 @@
 /* *********************************************************************** */
 /* Refresh and Validation */
 
-#if 0 // experimental code - not ready to be used yet!
-/* common View2D view types */
-// XXX move this to header as part of API
-enum {
-		/* 4 quadrants, centered at (0,0), zoomable and pannable, best for flexible sized data with precision needed */
-	V2D_VIEWTYPE_CANVAS	= 0,
-	V2D_VIEWTYPE_LIST,
-	V2D_VIEWTYPE_PANEL,
-		/* same as canvas, except aspect ratio is important */
-		// XXX is this more of the sort tweaks that region should do to its view2d data first?
-	V2D_VIEWTYPE_IMAGE,
-} eView2D_CommonViewTypes;
-
 /* Initialise all View2D data for a given region */
+// eView2D_CommonViewTypes <--- only check handle these types...
 void UI_view2d_regiondata_init(View2D *v2d, short type, int winx, int winy)
 {
 	
 }
-#endif
+
+
+/* allowing horizontal pan */
+// XXX this should become one of 'standard' setups...
+void UI_view2d_header_default(View2D *v2d)
+{
+	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	v2d->keepofs = V2D_LOCKOFS_Y;
+	v2d->keeptot = 2; // this keeps the view in place when region size changes...
+	v2d->align = V2D_ALIGN_NO_NEG_X;
+	
+}
 
 /* Adjust mask size in response to view size changes 
  *	- This should only be called in region init() callbacks, which are
@@ -614,16 +613,6 @@ void UI_view2d_view_restore(const bContext *C)
 	ED_region_pixelspace(C, C->region);
 }
 
-/* allowing horizontal pan */
-void UI_view2d_header_default(View2D *v2d)
-{
-	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
-	v2d->keepofs = V2D_LOCKOFS_Y;
-	v2d->keeptot = 2; // this keeps the view in place when region size changes...
-	v2d->align = V2D_ALIGN_NO_NEG_X;
-	
-}
-
 /* *********************************************************************** */
 /* Gridlines */
 
@@ -915,7 +904,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	 */
 	
 	/* horizontal scrollers */
-	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
+	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller 'button' extents */
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= hor.xmax - hor.xmin;
@@ -1086,7 +1075,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	hor= v2d->hor;
 	
 	/* horizontal scrollbar */
-	if (v2d->scroll & (V2D_SCROLL_HORIZONTAL|V2D_SCROLL_HORIZONTAL_O)) {
+	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller backdrop */
 		UI_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);

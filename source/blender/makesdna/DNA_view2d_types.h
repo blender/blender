@@ -45,13 +45,14 @@ typedef struct View2D {
 	float minzoom, maxzoom;			/* self explanatory. allowable zoom factor range (only when keepzoom set) */
 	
 	short scroll;					/* scroll - scrollbars to display (bitflag) */
+	short scroll_ui;				/* scroll_ui - temp settings used for UI drawing of scrollers */
+	
 	short keeptot;					/* keeptot - 'cur' rect cannot move outside the 'tot' rect? */
 	short keepzoom;					/* keepzoom - axes that zooming cannot occur on, and also clamp within zoom-limits */
 	short keepofs;					/* keepofs - axes that translation is not allowed to occur on */
 	
 	short flag;						/* settings */
 	short align;					/* alignment of content in totrect */
-	short type;						/* basic 'type' of View2D (for easy init) */ // err... do we want to store this?
 	
 	short winx, winy;				/* storage of current winx/winy values, set in UI_view2d_size_update */
 	short oldwinx, oldwiny;			/* storage of previous winx/winy values encountered by UI_view2d_curRect_validate(), for keepaspect */
@@ -63,29 +64,36 @@ typedef struct View2D {
 /* ---------------------------------- */
 
 /* view zooming restrictions, per axis (v2d->keepzoom) */
+	/* zoom is clamped to lie within limits set by minzoom and maxzoom */
 #define V2D_KEEPZOOM		0x0001
+	/* aspect ratio is maintained on view resize */
 #define V2D_KEEPASPECT		0x0002
+	/* zooming on x-axis is not allowed */
 #define V2D_LOCKZOOM_X		0x0100
+	/* zooming on y-axis is not allowed */
 #define V2D_LOCKZOOM_Y		0x0200
 
 /* view panning restrictions, per axis (v2d->keepofs) */
+	/* panning on x-axis is not allowed */
 #define V2D_LOCKOFS_X	(1<<1)
+	/* panning on y-axis is not allowed */
 #define V2D_LOCKOFS_Y	(1<<2)
+
+/* view extent restrictions (v2d->keeptot) */
+	/* 'cur' view can be out of extents of 'tot' */
+#define V2D_KEEPTOT_FREE		0
+	/* 'cur' rect is adjusted so that it satisfies the extents of 'tot', with some compromises */
+#define V2D_KEEPTOT_BOUNDS		1
+	/* 'cur' rect is moved so that the 'minimum' bounds of the 'tot' rect are always respected (particularly in x-axis) */
+#define V2D_KEEPTOT_STRICT		2
 
 /* general refresh settings (v2d->flag) */
 	/* global view2d horizontal locking (for showing same time interval) */
 #define V2D_VIEWSYNC_X		(1<<0)
 	/* within region view2d vertical locking */
 #define V2D_VIEWSYNC_Y		(1<<1)
-
-
-/* scroller thickness */
-#define V2D_SCROLL_HEIGHT	16
-#define V2D_SCROLL_WIDTH	16
-
-/* half the size (in pixels) of scroller 'handles' */
-#define V2D_SCROLLER_HANDLE_SIZE	5
-
+	/* view settings need to be set still... */
+#define V2D_NEEDS_INIT		(1<<10)
 
 /* scroller flags for View2D (v2d->scroll) */
 	/* left scrollbar */
@@ -95,18 +103,13 @@ typedef struct View2D {
 	/* horizontal scrollbar */
 #define V2D_SCROLL_TOP 				(1<<2)
 #define V2D_SCROLL_BOTTOM 			(1<<3)
-#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
-	/* special hacks for outliner hscroll - prevent hanging older versions of Blender */
+	/* special hack for outliner hscroll - prevent hanging older versions of Blender */
 #define V2D_SCROLL_BOTTOM_O   		(1<<4)
-#define V2D_SCROLL_HORIZONTAL_O 	(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM_O)
+#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)
 	/* scale markings - vertical */
-#define V2D_SCROLL_SCALE_LEFT		(1<<5)
-#define V2D_SCROLL_SCALE_RIGHT		(1<<6)
-#define V2D_SCROLL_SCALE_VERTICAL	(V2D_SCROLL_SCALE_LEFT|V2D_SCROLL_SCALE_RIGHT)
-	/* scale markings - horizontal */
-#define V2D_SCROLL_SCALE_BOTTOM		(1<<7)
-#define V2D_SCROLL_SCALE_TOP		(1<<8)	
-#define V2D_SCROLL_SCALE_HORIZONTAL	(V2D_SCROLL_SCALE_BOTTOM|V2D_SCROLL_SCALE_TOP)
+#define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
+	/* scale markings - horizontal */	
+#define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
 
 /* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
 	/* all quadrants free */

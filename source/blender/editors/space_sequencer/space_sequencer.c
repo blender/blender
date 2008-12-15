@@ -106,8 +106,8 @@ static SpaceLink *sequencer_new(void)
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 100.0f;
 	
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
-	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_SCALE_RIGHT);
+	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
 	ar->v2d.keepzoom= 0;
 	ar->v2d.keeptot= 0;
 	

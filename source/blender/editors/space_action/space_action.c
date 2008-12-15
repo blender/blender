@@ -106,7 +106,7 @@ static SpaceLink *action_new(void)
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
 	
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	saction->v2d.keepzoom= V2D_LOCKZOOM_Y;
 	

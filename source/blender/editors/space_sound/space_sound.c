@@ -104,7 +104,7 @@ static SpaceLink *sound_new(void)
 	ar->v2d.minzoom= 0.1f;
 	ar->v2d.maxzoom= 10.0f;
 	
-	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT);
 	ar->v2d.keepzoom= 0;
 	ar->v2d.keeptot= 0;

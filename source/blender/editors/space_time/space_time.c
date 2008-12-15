@@ -238,7 +238,7 @@ static SpaceLink *time_new(void)
 	ar->v2d.minzoom= 0.1f;
 	ar->v2d.maxzoom= 10.0;
 
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
+	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
 	ar->v2d.keepofs |= V2D_LOCKOFS_Y;
 	ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;

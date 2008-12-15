@@ -84,7 +84,7 @@ static SpaceLink *ipo_new(void)
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_RIGHT;
+	ar->alignment= RGN_ALIGN_LEFT;
 	
 	/* XXX view2d init for channels */
 	
@@ -107,8 +107,8 @@ static SpaceLink *ipo_new(void)
 	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= 10000.0f;
 	
-	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_BOTTOM);
-	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_LEFT);
+	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
 	
 	ar->v2d.keeptot= 0;
 	

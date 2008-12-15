@@ -35,43 +35,70 @@
 /* ------------------------------------------ */
 /* Settings and Defines: 					*/
 
+/* ---- General Defines ---- */
+
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
+
+/* common View2D view types */
+enum {
+		/* custom view type (region has defined all necessary flags already) */
+	V2D_COMMONVIEW_CUSTOM = 0,
+		/* listview (i.e. Outliner) */
+	V2D_COMMONVIEW_LIST,
+		/* headers (this is basically the same as listview, but no y-panning) */
+	V2D_COMMONVIEW_HEADER,
+} eView2D_CommonViewTypes;
+
+/* ---- Defines for Scroller/Grid Arguments ----- */
 
 /* 'dummy' argument to pass when argument is irrelevant */
 #define V2D_ARG_DUMMY		-1
 
-
-/* grid-units (for drawing time) */
-#define V2D_UNIT_SECONDS	0
-#define V2D_UNIT_FRAMES		1
-
-/* grid-units (for drawing values) */
-#define V2D_UNIT_VALUES		2
-#define V2D_UNIT_DEGREES	3
-#define V2D_UNIT_TIME		4
-#define V2D_UNIT_SECONDSSEQ	5
+/* Grid units */
+enum {
+	/* for drawing time */
+	V2D_UNIT_SECONDS = 0,
+	V2D_UNIT_FRAMES,
+	
+	/* for drawing values */
+	V2D_UNIT_VALUES,
+	V2D_UNIT_DEGREES,
+	V2D_UNIT_TIME,
+	V2D_UNIT_SECONDSSEQ,
+} eView2D_Units;
 
 /* clamping of grid values to whole numbers */
-#define V2D_GRID_NOCLAMP	0
-#define V2D_GRID_CLAMP		1
-
+enum {
+	V2D_GRID_NOCLAMP = 0,
+	V2D_GRID_CLAMP,
+} eView2D_Clamp;
 
 /* flags for grid-lines to draw */
-#define V2D_HORIZONTAL_LINES		(1<<0)
-#define V2D_VERTICAL_LINES			(1<<1)
-#define V2D_HORIZONTAL_AXIS			(1<<2)
-#define V2D_VERTICAL_AXIS			(1<<3)
-#define V2D_HORIZONTAL_FINELINES	(1<<4)
+enum {
+	V2D_HORIZONTAL_LINES		= (1<<0),
+	V2D_VERTICAL_LINES			= (1<<1),
+	V2D_HORIZONTAL_AXIS			= (1<<2),
+	V2D_VERTICAL_AXIS			= (1<<3),
+	V2D_HORIZONTAL_FINELINES	= (1<<4),
+	
+	V2D_GRIDLINES_MAJOR			= (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS|V2D_HORIZONTAL_LINES|V2D_HORIZONTAL_AXIS),
+	V2D_GRIDLINES_ALL			= (V2D_GRIDLINES_MAJOR|V2D_HORIZONTAL_FINELINES),
+} eView2D_Gridlines;
 
-#define V2D_GRIDLINES_MAJOR			(V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS|V2D_HORIZONTAL_LINES|V2D_HORIZONTAL_AXIS)
-#define V2D_GRIDLINES_ALL			(V2D_GRIDLINES_MAJOR|V2D_HORIZONTAL_FINELINES)
+/* ------ Defines for Scrollers ----- */
 
+/* scroller thickness */
+#define V2D_SCROLL_HEIGHT	16
+#define V2D_SCROLL_WIDTH	16
+
+/* half the size (in pixels) of scroller 'handles' */
+#define V2D_SCROLLER_HANDLE_SIZE	5
 
 /* ------------------------------------------ */
 /* Macros:								*/
 
-/* test if mouse in a scrollbar */
+/* test if mouse in a scrollbar (assume that scroller availability has been tested) */
 #define IN_2D_VERT_SCROLL(v2d, co) (BLI_in_rcti(&v2d->vert, co[0], co[1]))
 #define IN_2D_HORIZ_SCROLL(v2d, co) (BLI_in_rcti(&v2d->hor, co[0], co[1]))
 
@@ -92,9 +119,14 @@ typedef struct View2DScrollers View2DScrollers;
 /* Prototypes:						    */
 
 /* refresh and validation (of view rects) */
+void UI_view2d_regiondata_init(struct View2D *v2d, short type, int winx, int winy);
+void UI_view2d_header_default(struct View2D *v2d);
+
 void UI_view2d_size_update(struct View2D *v2d, int winx, int winy);
+
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);
+
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
 
 /* view matrix operations */
@@ -121,7 +153,6 @@ void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *re
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
-void UI_view2d_header_default(struct View2D *v2d);
 
 /* operators */
 void ui_view2d_operatortypes(void);
