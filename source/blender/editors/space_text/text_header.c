@@ -123,7 +123,7 @@ void text_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* always as last  */
-	sa->headbutlen= xco+XIC+80; // +80 because the last button is not an icon
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(block);

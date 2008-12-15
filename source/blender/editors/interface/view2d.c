@@ -72,7 +72,7 @@ void UI_view2d_header_default(View2D *v2d)
 	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	v2d->keepofs = V2D_LOCKOFS_Y;
 	v2d->keeptot = 2; // this keeps the view in place when region size changes...
-	v2d->align = V2D_ALIGN_NO_NEG_X;
+	v2d->align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
 	
 }
 

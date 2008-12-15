@@ -5062,7 +5062,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
 	ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
-	ar->v2d.align = V2D_ALIGN_NO_NEG_X;
+	ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
 	
 }
 

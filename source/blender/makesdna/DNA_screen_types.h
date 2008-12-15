@@ -101,7 +101,7 @@ typedef struct ScrArea {
 	short winx, winy;				/* size */
 	
 	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
-	short headbutlen, headbutofs;	/* OLD! */
+	int pad;
 	short cursor, flag;
 
 	ScriptLink scriptlink;

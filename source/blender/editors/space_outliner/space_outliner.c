@@ -442,6 +442,11 @@ static void outliner_main_area_free(ARegion *ar)
 
 /* ************************ header outliner area region *********************** */
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void outliner_header_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+}
 
 static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 {
@@ -454,6 +459,9 @@ static void outliner_header_area_draw(const bContext *C, ARegion *ar)
 	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
 
 	outliner_header_buttons(C, ar);
 }
@@ -586,8 +594,9 @@ void ED_spacetype_outliner(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
+	art->init= outliner_header_area_init;
 	art->draw= outliner_header_area_draw;
 	art->free= outliner_header_area_free;
 	BLI_addhead(&st->regiontypes, art);

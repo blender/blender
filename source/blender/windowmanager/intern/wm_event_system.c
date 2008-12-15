@@ -549,8 +549,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				
 				for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
 					if(wm_eventmatch(event, kmi)) {
-						/* if(event->type!=MOUSEMOVE)
-							printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); */
+						if((G.f & G_DEBUG) && event->type!=MOUSEMOVE)
+							printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); 
 						
 						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 						
