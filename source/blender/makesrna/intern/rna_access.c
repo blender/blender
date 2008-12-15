@@ -87,6 +87,14 @@ static void rna_pointer_inherit_id(PointerRNA *parent, PointerRNA *ptr)
 	}
 }
 
+void RNA_blender_rna_pointer_create(PointerRNA *r_ptr)
+{
+	r_ptr->id.type= NULL;
+	r_ptr->id.data= NULL;
+	r_ptr->type= &RNA_BlenderRNA;
+	r_ptr->data= &BLENDER_RNA;
+}
+
 /* ID Properties */
 
 IDProperty *rna_idproperties_get(StructRNA *type, void *data, int create)

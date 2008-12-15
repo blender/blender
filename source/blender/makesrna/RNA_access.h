@@ -40,13 +40,15 @@ extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
 extern StructRNA RNA_Armature;
-extern StructRNA RNA_BooleanProperty;
+extern StructRNA RNA_BlenderRNA;
 extern StructRNA RNA_Bone;
+extern StructRNA RNA_BooleanProperty;
 extern StructRNA RNA_Brush;
 extern StructRNA RNA_Camera;
 extern StructRNA RNA_CharInfo;
 extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionSensor;
+extern StructRNA RNA_ColorSequence;
 extern StructRNA RNA_Constraint;
 // ... constraint types...
 extern StructRNA RNA_Controller;
@@ -55,6 +57,7 @@ extern StructRNA RNA_CurveMap;
 extern StructRNA RNA_CurveMapPoint;
 extern StructRNA RNA_CurveMapping;
 extern StructRNA RNA_DelaySensor;
+extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_ExpressionController;
@@ -65,11 +68,13 @@ extern StructRNA RNA_GameIntProperty;
 extern StructRNA RNA_GameProperty;
 extern StructRNA RNA_GameStringProperty;
 extern StructRNA RNA_GameTimeProperty;
+extern StructRNA RNA_GlowSequence;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 extern StructRNA RNA_Image;
+extern StructRNA RNA_ImageSequence;
 extern StructRNA RNA_ImageUser;
 extern StructRNA RNA_IntProperty;
 extern StructRNA RNA_Ipo;
@@ -77,7 +82,6 @@ extern StructRNA RNA_IpoCurve;
 extern StructRNA RNA_IpoDriver;
 extern StructRNA RNA_JoystickSensor;
 extern StructRNA RNA_Key;
-extern StructRNA RNA_KeyBlock;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_Lattice;
@@ -104,8 +108,10 @@ extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MessageSensor;
 extern StructRNA RNA_MetaBall;
 extern StructRNA RNA_MetaElement;
-extern StructRNA RNA_ModifierData;
+extern StructRNA RNA_MetaSequence;
+extern StructRNA RNA_Modifier;
 extern StructRNA RNA_MouseSensor;
+extern StructRNA RNA_MovieSequence;
 extern StructRNA RNA_NandController;
 extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_Node;
@@ -116,6 +122,7 @@ extern StructRNA RNA_Operator;
 extern StructRNA RNA_OrController;
 extern StructRNA RNA_PackedFile;
 extern StructRNA RNA_Panel;
+extern StructRNA RNA_PluginSequence;
 extern StructRNA RNA_PointerProperty;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
@@ -126,18 +133,34 @@ extern StructRNA RNA_RandomSensor;
 extern StructRNA RNA_RaySensor;
 extern StructRNA RNA_Region;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_ScrArea;
 extern StructRNA RNA_ScrEdge;
 extern StructRNA RNA_ScrVert;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_Sensor;
+extern StructRNA RNA_Sequence;
+extern StructRNA RNA_SequenceColorBalance;
+extern StructRNA RNA_SequenceCrop;
+extern StructRNA RNA_SequenceEditor;
+extern StructRNA RNA_SequenceElement;
+extern StructRNA RNA_SequenceProxy;
+extern StructRNA RNA_SequenceTransform;
+extern StructRNA RNA_ShapeKey;
+extern StructRNA RNA_ShapeKeyBezierPoint;
+extern StructRNA RNA_ShapeKeyCurvePoint;
+extern StructRNA RNA_ShapeKeyPoint;
+extern StructRNA RNA_SoundSequence;
+extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_StringProperty;
 extern StructRNA RNA_Struct;
 extern StructRNA RNA_TextBox;
 extern StructRNA RNA_TouchSensor;
+extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_VectorFont;
 extern StructRNA RNA_WindowManager;
+extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_World;
 extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
@@ -149,11 +172,15 @@ extern StructRNA RNA_XorController;
  * - a pointer to a datablock can be created with the type and id data pointer
  * - a pointer to data contained in a datablock can be created with the id type
  *   and id data pointer, and the data type and pointer to the struct itself.
+ *
+ * There is also a way to get a pointer with the information about all structs.
  */
 
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr);
 void RNA_id_pointer_create(StructRNA *idtype, struct ID *id, PointerRNA *r_ptr);
 void RNA_pointer_create(StructRNA *idtype, struct ID *id, StructRNA *type, void *data, PointerRNA *r_ptr);
+
+void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
 /* Structs */
 

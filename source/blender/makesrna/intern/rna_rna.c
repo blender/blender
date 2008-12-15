@@ -52,6 +52,11 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 	return strlen(((StructRNA*)ptr->data)->name);
 }
 
+static void *rna_Struct_from_get(PointerRNA *ptr)
+{
+	return ((StructRNA*)ptr->data)->from;
+}
+
 static void *rna_Struct_name_property_get(PointerRNA *ptr)
 {
 	return ((StructRNA*)ptr->data)->nameproperty;
@@ -368,6 +373,13 @@ static void *rna_CollectionProperty_fixed_type_get(PointerRNA *ptr)
 	return ((CollectionPropertyRNA*)prop)->structtype;
 }
 
+/* Blender RNA */
+
+static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	rna_iterator_listbase_begin(iter, &((BlenderRNA*)ptr->data)->structs, NULL);
+}
+
 #else
 
 static void rna_def_struct(BlenderRNA *brna)
@@ -387,6 +399,12 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
+
+	prop= RNA_def_property(srna, "from", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "Struct");
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_from_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "From", "Struct definition this is derived from.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -562,6 +580,7 @@ static void rna_def_pointer_property(StructRNA *srna, PropertyType type)
 void RNA_def_rna(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	/* Struct*/
 	rna_def_struct(brna);
@@ -596,6 +615,15 @@ void RNA_def_rna(BlenderRNA *brna)
 	/* CollectionProperty */
 	srna= RNA_def_struct(brna, "CollectionProperty", "Property", "Collection Definition");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
+
+	/* Blender RNA */
+	srna= RNA_def_struct(brna, "BlenderRNA", NULL, "Blender RNA");
+
+	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "Struct");
+	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Structs", "");
 }
 
 #endif
