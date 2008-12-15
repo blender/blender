@@ -43,6 +43,10 @@
 #include "renderdatabase.h"
 #include "texture.h"
 
+#if defined( _MSC_VER ) && !defined( __cplusplus )
+# define inline __inline
+#endif // defined( _MSC_VER ) && !defined( __cplusplus )
+
 /*---------------------------Utils----------------------------------------*/
 static inline int _I(int x,int y,int z,int n)
 {
