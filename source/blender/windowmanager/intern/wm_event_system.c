@@ -643,6 +643,7 @@ void wm_event_do_handlers(bContext *C)
 				ARegion *ar;
 				int doit= 0;
 				
+				/* XXX to solve, here screen handlers? */
 				ED_screen_set_subwinactive(win);	/* state variables in screen */
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {

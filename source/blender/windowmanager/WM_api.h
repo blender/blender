@@ -61,12 +61,13 @@ void		WM_waitcursor		(struct bContext *C, int val);
 void		WM_timecursor		(struct bContext *C, int nr);
 
 			/* keymap and handlers */
-void		WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
+wmKeymapItem *WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-void		WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
+wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-void		WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
+wmKeymapItem *WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
+void		WM_keymap_property_set(wmKeymapItem *km, const char *propname, const char *propval);
 ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 

@@ -72,7 +72,7 @@ static void keymap_set(wmKeymapItem *kmi, short type, short val, int modifier, s
 }
 
 /* if item was added, then bail out */
-void WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *kmi;
 	
@@ -87,11 +87,11 @@ void WM_keymap_verify_item(ListBase *lb, char *idname, short type, short val, in
 		
 		keymap_set(kmi, type, val, modifier, keymodifier);
 	}
-	
+	return kmi;
 }
 
 /* if item was added, then replace */
-void WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+wmKeymapItem *WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *kmi;
 	
@@ -105,10 +105,11 @@ void WM_keymap_set_item(ListBase *lb, char *idname, short type, short val, int m
 		BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 	}
 	keymap_set(kmi, type, val, modifier, keymodifier);
+	return kmi;
 }
 
 /* always add item */
-void WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
+wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int modifier, short keymodifier)
 {
 	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
 	
@@ -116,6 +117,12 @@ void WM_keymap_add_item(ListBase *lb, char *idname, short type, short val, int m
 	BLI_strncpy(kmi->idname, idname, OP_MAX_TYPENAME);
 
 	keymap_set(kmi, type, val, modifier, keymodifier);
+	return kmi;
+}
+
+void WM_keymap_property_set(wmKeymapItem *km, const char *propname, const char *propval)
+{
+	/* todo */
 }
 
 /* ****************** storage in WM ************ */
