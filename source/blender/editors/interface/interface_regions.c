@@ -1,4 +1,5 @@
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -585,10 +586,8 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
 
-	for(block=ar->uiblocks.first; block; block=block->next) {
-		wm_subwindow_getmatrix(C->window, ar->swinid, block->winmat);
+	for(block=ar->uiblocks.first; block; block=block->next)
 		uiDrawBlock(block);
-	}
 }
 
 uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockFuncFP block_func, void *arg)
@@ -666,6 +665,10 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
+
+	/* get winmat now that we actually have the subwindow */
+	wm_subwindow_set(C->window, ar->swinid);
+	wm_subwindow_getmatrix(C->window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
@@ -1604,9 +1607,10 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	return block;
 }
 
-uiMenuBlockHandle *pupmenu_col(bContext *C, char *instr, int mx, int my, int maxrow)
+void pupmenu_col(bContext *C, char *instr, int mx, int my, int maxrow, uiPupmenuFunc func, void *arg)
 {
 	uiPupMenuInfo info;
+	uiMenuBlockHandle *menu;
 
 	memset(&info, 0, sizeof(info));
 	info.instr= instr;
@@ -1614,181 +1618,61 @@ uiMenuBlockHandle *pupmenu_col(bContext *C, char *instr, int mx, int my, int max
 	info.my= my;
 	info.maxrow= maxrow;
 
-	return ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENUCOL, &info);
+	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENUCOL, &info);
+	menu->popup= 1;
+
+	UI_add_popup_handlers(&C->window->handlers, menu);
+	WM_event_add_mousemove(C);
+
+	menu->popup_func= func;
+	menu->popup_arg= arg;
 }
 
-uiMenuBlockHandle *pupmenu(bContext *C, char *instr, int mx, int my)
+void pupmenu(bContext *C, char *instr, int mx, int my, uiPupmenuFunc func, void *arg)
 {
 	uiPupMenuInfo info;
+	uiMenuBlockHandle *menu;
 
 	memset(&info, 0, sizeof(info));
 	info.instr= instr;
 	info.mx= mx;
 	info.my= my;
 
-	return ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENU, &info);
+	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENU, &info);
+	menu->popup= 1;
+
+	UI_add_popup_handlers(&C->window->handlers, menu);
+	WM_event_add_mousemove(C);
+
+	menu->popup_func= func;
+	menu->popup_arg= arg;
 }
 
-
-void pupmenu_free(bContext *C, uiMenuBlockHandle *handle)
+/* XXX test */
+static void operator_callback(bContext *C, void *arg, int retval)
 {
-	ui_menu_block_free(C, handle);
+	const char *opname= arg;
+
+	if(retval > 0)
+		WM_operator_call(C, opname);
 }
 
-/*************** Temporary Buttons Tests **********************/
-
-static uiBlock *test_submenu(bContext *C, uiMenuBlockHandle *handle, void *arg)
+void okee_operator(bContext *C, char *opname, char *str, ...)
 {
-	ARegion *ar= handle->region;
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
-	//uiBlockSetButmFunc(block, do_test_viewmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	va_list ap;
+	char *s, buf[512];
+	int mx, my;
 
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT,
-					 "Only Selected Data Keys|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Marker|PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Marker|PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Key|Ctrl PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Key|Ctrl PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT,
-					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
+	mx= C->window->eventstate->x;
+	my= C->window->eventstate->y;
 
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
+	va_start(ap, str);
 
-static uiBlock *test_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_area)
-{
-	ScrArea *area= arg_area;
-	ARegion *ar= handle->region;
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "test_viewmenu", UI_EMBOSSP, UI_HELV);
-	//uiBlockSetButmFunc(block, do_test_viewmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	s= buf;
+	s += sprintf(s, "OK? %%i%d%%t|", ICON_HELP);
+	vsprintf(s, str, ap);
+	va_end(ap);
 
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT,
-					 "Only Selected Data Keys|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Marker|PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Marker|PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Key|Ctrl PageUp", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Key|Ctrl PageDown", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, 
-					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-    uiDefIconTextBlockBut(block, test_submenu, NULL, ICON_RIGHTARROW_THIN, "Sub Menu", 0, yco-=20, 120, 19, "");
-    uiDefIconTextBlockBut(block, test_submenu, NULL, ICON_RIGHTARROW_THIN, "Sub Menu", 0, yco-=20, 120, 19, "");
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	if(area->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
-void uiTestRegion(const bContext *C)
-{
-	uiBlock *block;
-	short xco;
-	
-	static float testcol[3];
-	static char testtext[64];
-	static float testnumf=5.0f;
-	static short testchoice= 0, testtog= 0, testicontog= 0;
-
-#if 0
-	static CurveMapping *cumap= NULL;
-	static ColorBand *coba= NULL;
-#endif
-
-	block= uiBeginBlock(C, C->region, "header buttons", UI_EMBOSS, UI_HELV);
-
-	uiDefPulldownBut(block, test_viewmenu, C->area,  "View",
-		13, 1, 50, 24, "");
-
-	uiDefBut(block, BUT, 31415, "Type BUT",
-		13+50+5, 3, 80, 20, NULL, 0, 0, 0, 0, "A tooltip.");
-	uiDefButS(block, MENU, 31416, "Gather Method%t|Raytrace %x0|Approximate %x1",
-		13+50+5+80+5, 3, 100, 20, &testchoice, 0, 0, 0, 0, "Method for occlusion gathering");
-	uiDefButBitS(block, TOG, 1, 31417, "Pixel Cache",
-		13+50+5+80+5+100+5, 3, 100, 20, &testtog, 0, 0, 0, 0, "Cache AO results in pixels and interpolate over neighbouring pixels for speedup.");
-
-	uiDefBut(block, TEX, 31418, "Text: ",
-		13+50+5+80+5+100+5+100+5, 3, 200, 20, testtext, 0, sizeof(testtext), 0, 0, "User defined text");
-
-	uiDefButF(block, NUMSLI, 31419, "Slider: ",
-		13+50+5+80+5+100+5+100+5+200+5, 3, 150, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
-	uiDefButF(block, NUM, 31419, "N: ",
-		13+50+5+80+5+100+5+100+5+200+5+150+5, 3, 100, 20, &testnumf, 0.0, 10.0, 0, 0, "Some tooltip.");
-
-    uiDefButF(block, COL, 3142, "",
-		13+50+5+80+5+100+5+100+5+200+5+150+5+100+5, 3, 100, 20, testcol, 0, 0, 0, 0 /*B_BANDCOL*/, "");
-
-	xco = 13+50+5+80+5+100+5+100+5+200+5+150+5+100+5+100+5;
-	uiDefIconButBitS(block, ICONTOG, 1 /*AUTOKEY_ON*/, REDRAWINFO, ICON_PYTHON,
-			xco, 3, 20, 20, &testicontog, 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
-	xco += 5;
-
-#if 0
-	if(!cumap) {
-		cumap= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);  
-		cumap->flag &= ~CUMA_DO_CLIP;
-	}
-	if(!coba)
-		coba= add_colorband(0);
-
-    uiDefBut(block, BUT_CURVE, 3143, "",
-		13+400, 33, 100, 100, cumap, 0.0f, 1.0f, 0, 0, "");
-    uiDefBut(block, BUT_COLORBAND, 3143, "",
-		13+400+100+10, 33, 150, 30, coba, 0.0f, 1.0f, 0, 0, "");
-#endif
-
-	uiEndBlock(C, block);
-	uiDrawBlock(block);
+	pupmenu(C, buf, mx, my, operator_callback, opname);
 }
 

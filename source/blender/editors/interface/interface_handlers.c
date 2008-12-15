@@ -82,14 +82,6 @@ typedef enum uiHandleButtonState {
 	BUTTON_STATE_EXIT
 } uiHandleButtonState;
 
-typedef struct uiHandleMenuData {
-	uiMenuBlockHandle *handle;
-
-	int towardsx, towardsy;
-	double towardstime;
-	int dotowards;
-} uiHandleMenuData;
-
 typedef struct uiHandleButtonData {
 	wmWindow *window;
 	ARegion *region;
@@ -126,7 +118,7 @@ typedef struct uiHandleButtonData {
 	CBData *dragcbd;
 
 	/* menu open */
-	uiHandleMenuData *menu;
+	uiMenuBlockHandle *menu;
 	int menuretval;
 
 	/* post activate */
@@ -151,7 +143,9 @@ typedef struct uiAfterFunc {
 } uiAfterFunc;
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
-static int ui_handler_window(bContext *C, wmEvent *event);
+static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
+static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
+static void ui_handler_remove_popup(bContext *C, void *userdata);
 
 /* ********************** button apply/revert ************************/
 
@@ -1393,8 +1387,9 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	if(func) {
-		data->menu= MEM_callocN(sizeof(uiHandleMenuData), "uiHandleMenuData");
-		data->menu->handle= ui_menu_block_create(C, data->region, but, func, arg);
+		data->menu= ui_menu_block_create(C, data->region, but, func, arg);
+		if(but->block->handle)
+			data->menu->popup= but->block->handle->popup;
 	}
 
 	/* this makes adjacent blocks auto open from now on */
@@ -1411,8 +1406,7 @@ static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 	}
 
 	if(data->menu) {
-		ui_menu_block_free(C, data->menu->handle);
-		MEM_freeN(data->menu);
+		ui_menu_block_free(C, data->menu);
 		data->menu= NULL;
 	}
 }
@@ -2649,6 +2643,9 @@ static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 {
 	uiBlock *block;
 
+	if(!ar)
+		return;
+
 	/* we disabled buttons when when they were already shown, and
 	 * re-enable them on mouse move */
 	for(block=ar->uiblocks.first; block; block=block->next)
@@ -2786,14 +2783,17 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		data->flashtimer= NULL;
 	}
 
-	/* add a blocking ui handler at the window handler for blocking, modal states */
-	if(button_modal_state(state)) {
-		if(!button_modal_state(data->state))
-			WM_event_add_ui_handler(C, &data->window->handlers, ui_handler_window, NULL);
-	}
-	else {
-		if(button_modal_state(data->state))
-			WM_event_remove_ui_handler(&data->window->handlers);
+	/* add a blocking ui handler at the window handler for blocking, modal states
+	 * but not for popups, because we already have a window level handler*/
+	if(!(but->block->handle && but->block->handle->popup)) {
+		if(button_modal_state(state)) {
+			if(!button_modal_state(data->state))
+				WM_event_add_ui_handler(C, &data->window->handlers, ui_handler_region_menu, NULL, data);
+		}
+		else {
+			if(button_modal_state(data->state))
+				WM_event_remove_ui_handler(&data->window->handlers, ui_handler_region_menu, NULL, data);
+		}
 	}
 
 	data->state= state;
@@ -2840,19 +2840,19 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	if(data->state != BUTTON_STATE_EXIT)
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 
+	/* apply the button action or value */
+	ui_apply_button(C, block, but, data, 0);
+
 	/* if this button is in a menu, this will set the button return
 	 * value to the button value and the menu return value to ok, the
 	 * menu return value will be picked up and the menu will close */
 	if(block->handle && !(block->flag & UI_BLOCK_KEEP_OPEN) && !data->cancel) {
-		uiMenuBlockHandle *handle;
+		uiMenuBlockHandle *menu;
 
-		handle= block->handle;
-		handle->butretval= data->retval;
-		handle->menuretval= UI_RETURN_OK;
+		menu= block->handle;
+		menu->butretval= data->retval;
+		menu->menuretval= UI_RETURN_OK;
 	}
-
-	/* apply the button action or value */
-	ui_apply_button(C, block, but, data, 0);
 
 	/* disable tooltips until mousemove */
 	ui_blocks_set_tooltips(data->region, 0);
@@ -3070,27 +3070,27 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 static void ui_handle_button_closed_submenu(bContext *C, uiBut *but)
 {
 	uiHandleButtonData *data;
-	uiMenuBlockHandle *handle;
+	uiMenuBlockHandle *menu;
 
 	data= but->active;
-	handle= data->menu->handle;
+	menu= data->menu;
 
 	/* copy over return values from the closing menu */
-	if(handle->menuretval == UI_RETURN_OK) {
+	if(menu->menuretval == UI_RETURN_OK) {
 		if(but->type == COL)
-			VECCOPY(data->vec, handle->retvec)
+			VECCOPY(data->vec, menu->retvec)
 		else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
-			data->value= handle->retvalue;
+			data->value= menu->retvalue;
 	}
 	
 	/* now change button state or exit, which will close the submenu */
-	if(ELEM(handle->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
-		if(handle->menuretval != UI_RETURN_OK)
+	if(ELEM(menu->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
+		if(menu->menuretval != UI_RETURN_OK)
 			data->cancel= 1;
 
 		button_activate_exit(C, data, but, 1);
 	}
-	else if(handle->menuretval == UI_RETURN_OUT)
+	else if(menu->menuretval == UI_RETURN_OUT)
 		button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 }
 
@@ -3149,7 +3149,7 @@ static uiBut *ui_but_last(uiBlock *block)
  * - only for 1 second
  */
 
-static void ui_mouse_motion_towards_init(uiHandleMenuData *menu, int mx, int my)
+static void ui_mouse_motion_towards_init(uiMenuBlockHandle *menu, int mx, int my)
 {
 	if(!menu->dotowards) {
 		menu->dotowards= 1;
@@ -3159,7 +3159,7 @@ static void ui_mouse_motion_towards_init(uiHandleMenuData *menu, int mx, int my)
 	}
 }
 
-static int ui_mouse_motion_towards_check(uiBlock *block, uiHandleMenuData *menu, int mx, int my)
+static int ui_mouse_motion_towards_check(uiBlock *block, uiMenuBlockHandle *menu, int mx, int my)
 {
 	int fac, dx, dy, domx, domy;
 
@@ -3213,17 +3213,15 @@ static int ui_mouse_motion_towards_check(uiBlock *block, uiHandleMenuData *menu,
 	return menu->dotowards;
 }
 
-int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, int topmenu)
+int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, int topmenu)
 {
 	ARegion *ar;
 	uiBlock *block;
 	uiBut *but, *bt;
-	uiMenuBlockHandle *handle;
 	int inside, act, count, mx, my, retval;
 
-	ar= menu->handle->region;
+	ar= menu->region;
 	block= ar->uiblocks.first;
-	handle= menu->handle;
 	
 	act= 0;
 	retval= WM_UI_HANDLER_CONTINUE;
@@ -3248,7 +3246,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 			case LEFTARROWKEY:
 				if(event->val && (block->flag & UI_BLOCK_LOOP))
 					if(BLI_countlist(&block->saferct) > 0)
-						handle->menuretval= UI_RETURN_OUT;
+						menu->menuretval= UI_RETURN_OUT;
 
 				retval= WM_UI_HANDLER_BREAK;
 				break;
@@ -3372,18 +3370,19 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 
 				if(ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) && event->val)
 					if(saferct && !BLI_in_rctf(&saferct->parent, event->x, event->y))
-						handle->menuretval= UI_RETURN_OK;
+						menu->menuretval= UI_RETURN_OK;
 			}
 
-			if(handle->menuretval);
+			if(menu->menuretval);
 			else if(event->type==ESCKEY && event->val) {
 				/* esc cancels this and all preceding menus */
-				handle->menuretval= UI_RETURN_CANCEL;
+				menu->menuretval= UI_RETURN_CANCEL;
 			}
 			else if(ELEM(event->type, RETKEY, PADENTER) && event->val) {
-				/* enter will always close this block, but note that the event
-				 * can still get pass through so the button is executed */
-				handle->menuretval= UI_RETURN_OK;
+				/* enter will always close this block, but we let the event
+				 * get handled by the button if it is activated */
+				if(!ui_but_find_activated(ar))
+					menu->menuretval= UI_RETURN_OK;
 			}
 			else {
 				ui_mouse_motion_towards_check(block, menu, mx, my);
@@ -3407,7 +3406,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 
 					/* strict check, and include the parent rect */
 					if(!menu->dotowards && !saferct)
-						handle->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
+						menu->menuretval= (block->flag & UI_BLOCK_KEEP_OPEN)? UI_RETURN_OK: UI_RETURN_OUT;
 					else if(menu->dotowards && event->type==MOUSEMOVE)
 						retval= WM_UI_HANDLER_BREAK;
 				}
@@ -3417,7 +3416,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 
 	/* if we are inside the region and didn't handle the event yet, lets
 	 * pass it on to buttons inside this region */
-	if((inside && !handle->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
+	if((inside && !menu->menuretval && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
 
 		if(but)
@@ -3429,7 +3428,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 	/* if we set a menu return value, ensure we continue passing this on to
 	 * lower menus and buttons, so always set continue then, and if we are
 	 * inside the region otherwise, ensure we swallow the event */
-	if(handle->menuretval)
+	if(menu->menuretval)
 		return WM_UI_HANDLER_CONTINUE;
 	else if(inside)
 		return WM_UI_HANDLER_BREAK;
@@ -3437,29 +3436,27 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiHandleMenuData *menu, in
 		return retval;
 }
 
-static int ui_handle_menu_closed_submenu(bContext *C, uiHandleMenuData *menu)
+static int ui_handle_menu_closed_submenu(bContext *C, uiMenuBlockHandle *menu)
 {
 	ARegion *ar;
 	uiBut *but;
 	uiBlock *block;
 	uiHandleButtonData *data;
-	uiMenuBlockHandle *handle, *subhandle;
+	uiMenuBlockHandle *submenu;
 
-	ar= menu->handle->region;
+	ar= menu->region;
 	block= ar->uiblocks.first;
-	handle= menu->handle;
 
 	but= ui_but_find_activated(ar);
 	data= but->active;
-	subhandle= data->menu->handle;
 
-	if(subhandle->menuretval) {
+	if(submenu->menuretval) {
 		/* first decide if we want to close our own menu cascading, if
 		 * so pass on the sub menu return value to our own menu handle */
-		if(ELEM(subhandle->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
+		if(ELEM(submenu->menuretval, UI_RETURN_OK, UI_RETURN_CANCEL)) {
 			if(!(block->flag & UI_BLOCK_KEEP_OPEN)) {
-				handle->menuretval= subhandle->menuretval;
-				handle->butretval= data->retval;
+				menu->menuretval= submenu->menuretval;
+				menu->butretval= data->retval;
 			}
 		}
 
@@ -3468,21 +3465,21 @@ static int ui_handle_menu_closed_submenu(bContext *C, uiHandleMenuData *menu)
 		ui_handle_button_closed_submenu(C, but);
 	}
 
-	if(handle->menuretval)
+	if(menu->menuretval)
 		return WM_UI_HANDLER_CONTINUE;
 	else
 		return WM_UI_HANDLER_BREAK;
 }
 
-static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiHandleMenuData *menu)
+static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiMenuBlockHandle *menu)
 {
 	uiBut *but;
 	uiHandleButtonData *data;
-	uiHandleMenuData *submenu;
+	uiMenuBlockHandle *submenu;
 	int retval= WM_UI_HANDLER_CONTINUE;
 
 	/* check if we have a submenu, and handle events for it first */
-	but= ui_but_find_activated(menu->handle->region);
+	but= ui_but_find_activated(menu->region);
 	data= (but)? but->active: NULL;
 	submenu= (data)? data->menu: NULL;
 
@@ -3491,7 +3488,7 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiHandleMenuDa
 
 	/* now handle events for our own menu */
 	if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
-		if(submenu && submenu->handle->menuretval)
+		if(submenu && submenu->menuretval)
 			retval= ui_handle_menu_closed_submenu(C, menu);
 		else
 			retval= ui_handle_menu_event(C, event, menu, (submenu == NULL));
@@ -3502,7 +3499,7 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiHandleMenuDa
 
 /* *************** UI event handlers **************** */
 
-static int ui_handler_region(bContext *C, wmEvent *event)
+static int ui_handler_region(bContext *C, wmEvent *event, void *userdata)
 {
 	ARegion *ar;
 	uiBut *but;
@@ -3533,7 +3530,7 @@ static int ui_handler_region(bContext *C, wmEvent *event)
 	return retval;
 }
 
-static void ui_handler_remove_region(bContext *C)
+static void ui_handler_remove_region(bContext *C, void *userdata)
 {
 	bScreen *sc;
 	ARegion *ar;
@@ -3553,7 +3550,7 @@ static void ui_handler_remove_region(bContext *C)
 		ui_apply_but_funcs_after(C);
 }
 
-static int ui_handler_window(bContext *C, wmEvent *event)
+static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 {
 	ARegion *ar;
 	uiBut *but;
@@ -3563,11 +3560,10 @@ static int ui_handler_window(bContext *C, wmEvent *event)
 	/* here we handle buttons at the window level, modal, for example
 	 * while number sliding, text editing, or when a menu block is open */
 	ar= C->region;
-
-	/* handle activated button events */
 	but= ui_but_find_activated(ar);
 
 	if(but) {
+		/* handle activated button events */
 		data= but->active;
 
 		if(data->state == BUTTON_STATE_MENU_OPEN) {
@@ -3577,7 +3573,7 @@ static int ui_handler_window(bContext *C, wmEvent *event)
 
 			/* handle events for the activated button */
 			if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
-				if(data->menu->handle->menuretval)
+				if(data->menu->menuretval)
 					ui_handle_button_closed_submenu(C, but);
 				else
 					ui_handle_button_event(C, event, but);
@@ -3600,9 +3596,52 @@ static int ui_handler_window(bContext *C, wmEvent *event)
 	return WM_UI_HANDLER_BREAK;
 }
 
+static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
+{
+	uiMenuBlockHandle *menu= userdata;
+
+	ui_handle_menus_recursive(C, event, menu);
+
+	/* free if done, does not free handle itself */
+	if(menu->menuretval) {
+		ui_menu_block_free(C, menu);
+		WM_event_remove_ui_handler(&C->window->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+
+		if(menu->menuretval == UI_RETURN_OK && menu->popup_func)
+			menu->popup_func(C, menu->popup_arg, menu->retvalue);
+	}
+	else {
+		/* re-enable tooltips */
+		if(event->type == MOUSEMOVE && (event->x!=event->prevx || event->y!=event->prevy))
+			ui_blocks_set_tooltips(menu->region, 1);
+	}
+
+	/* delayed apply callbacks */
+	ui_apply_but_funcs_after(C);
+
+	/* we block all events, this is modal interaction */
+	return WM_UI_HANDLER_BREAK;
+}
+
+static void ui_handler_remove_popup(bContext *C, void *userdata)
+{
+	uiMenuBlockHandle *menu= userdata;
+
+	/* free menu block if window is closed for some reason */
+	ui_menu_block_free(C, menu);
+
+	/* delayed apply callbacks */
+	ui_apply_but_funcs_after(C);
+}
+
 void UI_add_region_handlers(ListBase *handlers)
 {
-	WM_event_remove_ui_handler(handlers);
-	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region);
+	WM_event_remove_ui_handler(handlers, ui_handler_region, ui_handler_remove_region, NULL);
+	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
+}
+
+void UI_add_popup_handlers(ListBase *handlers, uiMenuBlockHandle *menu)
+{
+	WM_event_add_ui_handler(NULL, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 }
 

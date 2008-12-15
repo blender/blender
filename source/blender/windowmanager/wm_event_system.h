@@ -55,6 +55,7 @@ typedef struct wmEventHandler {
 	/* ui handler */
 	wmUIHandlerFunc ui_handle;  		/* callback receiving events */
 	wmUIHandlerRemoveFunc ui_remove;	/* callback when handler is removed */
+	void *ui_userdata;					/* user data pointer */
 	struct ScrArea *ui_area;			/* for derived/modal handlers */
 	struct ARegion *ui_region;			/* for derived/modal handlers */
 	

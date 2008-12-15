@@ -91,8 +91,8 @@ typedef struct wmEvent {
 #define WM_UI_HANDLER_CONTINUE	0
 #define WM_UI_HANDLER_BREAK		1
 
-typedef int (*wmUIHandlerFunc)(bContext *C, struct wmEvent *event);
-typedef void (*wmUIHandlerRemoveFunc)(bContext *C);
+typedef int (*wmUIHandlerFunc)(bContext *C, struct wmEvent *event, void *userdata);
+typedef void (*wmUIHandlerRemoveFunc)(bContext *C, void *userdata);
 
 /* ************** Notifiers ****************** */
 

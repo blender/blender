@@ -79,8 +79,11 @@ struct wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBa
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
 struct wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers,
-			int (*func)(bContext *C, struct wmEvent *event), void (*remove)(bContext *C));
-void		WM_event_remove_ui_handler(ListBase *handlers);
+			int (*func)(bContext *C, struct wmEvent *event, void *userdata),
+			void (*remove)(bContext *C, void *userdata), void *userdata);
+void		WM_event_remove_ui_handler(ListBase *handlers,
+			int (*func)(bContext *C, struct wmEvent *event, void *userdata),
+			void (*remove)(bContext *C, void *userdata), void *userdata);
 
 struct wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op);
 void		WM_event_remove_handlers(bContext *C, ListBase *handlers);

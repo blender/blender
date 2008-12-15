@@ -185,20 +185,31 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 /* Popup Menu's */
 
 typedef struct uiMenuBlockHandle {
+	/* internal */
 	struct ARegion *region;
+	int towardsx, towardsy;
+	double towardstime;
+	int dotowards;
+
+	int popup;
+	void (*popup_func)(struct bContext *C, void *arg, int event);
+	void *popup_arg;
+
+	/* return values */
 	int butretval;
 	int menuretval;
-
 	float retvalue;
 	float retvec[3];
 } uiMenuBlockHandle;
 
 typedef uiBlock* (*uiBlockFuncFP)(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg1);
+typedef void (*uiPupmenuFunc)(struct bContext *C, void *arg, int event);
 
 extern void pupmenu_set_active(int val);
-extern uiMenuBlockHandle *pupmenu_col(struct bContext *C, char *instr, int mx, int my, int maxrow);
-extern uiMenuBlockHandle *pupmenu(struct bContext *C, char *instr, int mx, int my);
-extern void pupmenu_free(struct bContext *C, uiMenuBlockHandle *handle);
+extern void pupmenu_col(struct bContext *C, char *instr, int mx, int my, int maxrow, uiPupmenuFunc func, void *arg);
+extern void pupmenu(struct bContext *C, char *instr, int mx, int my, uiPupmenuFunc func, void *arg);
+
+void okee_operator(struct bContext *C, char *opname, char *str, ...);
 
 /* Block */
 
@@ -354,14 +365,13 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 /* Handlers for regions with UI blocks */
 
 void UI_add_region_handlers(struct ListBase *handlers);
+void UI_add_popup_handlers(struct ListBase *handlers, uiMenuBlockHandle *menu);
 
 /* Module initialization and exit */
 
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
-
-void uiTestRegion(const struct bContext *C); /* XXX 2.50 temporary test */
 
 #endif /*  UI_INTERFACE_H */
 

@@ -393,7 +393,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 			if(handler->ui_area) C->area= handler->ui_area;
 			if(handler->ui_region) C->region= handler->ui_region;
 
-			handler->ui_remove(C);
+			handler->ui_remove(C, handler->ui_userdata);
 
 			C->area= area;
 			C->region= region;
@@ -494,7 +494,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	if(handler->ui_area) C->area= handler->ui_area;
 	if(handler->ui_region) C->region= handler->ui_region;
 
-	retval= handler->ui_handle(C, event);
+	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
 	/* putting back screen context */
 	C->area= area;
@@ -748,11 +748,12 @@ void WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap)
 	}
 }
 
-wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove)
+wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
 {
 	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event ui handler");
 	handler->ui_handle= func;
 	handler->ui_remove= remove;
+	handler->ui_userdata= userdata;
 	handler->ui_area= (C)? C->area: NULL;
 	handler->ui_region= (C)? C->region: NULL;
 	
@@ -761,12 +762,12 @@ wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHan
 	return handler;
 }
 
-void WM_event_remove_ui_handler(ListBase *handlers)
+void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHandlerRemoveFunc remove, void *userdata)
 {
 	wmEventHandler *handler;
 	
 	for(handler= handlers->first; handler; handler= handler->next) {
-		if(handler->ui_handle) {
+		if(handler->ui_handle == func && handler->ui_remove == remove && handler->ui_userdata == userdata) {
 			BLI_remlink(handlers, handler);
 			wm_event_free_handler(handler);
 			MEM_freeN(handler);

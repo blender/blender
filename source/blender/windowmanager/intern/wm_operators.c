@@ -46,6 +46,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -138,6 +140,22 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 
 	ot->invoke= NULL; /* do confirm stuff */
 	ot->exec= wm_exit_blender_op;
+	ot->poll= WM_operator_winactive;
+}
+
+static int exit_okee_blender_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	okee_operator(C, "WM_OT_exit_blender", "Quit Blender");
+
+	return OPERATOR_FINISHED;
+}
+
+static void WM_OT_exit_okee_blender(wmOperatorType *ot)
+{
+	ot->name= "Exit Blender";
+	ot->idname= "WM_OT_exit_okee_blender";
+
+	ot->invoke= exit_okee_blender_invoke;
 	ot->poll= WM_operator_winactive;
 }
 
@@ -346,6 +364,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
+	WM_operatortype_append(WM_OT_exit_okee_blender);
 	WM_operatortype_append(WM_OT_tweak_gesture);
 }
 
@@ -358,6 +377,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_exit_okee_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
 
