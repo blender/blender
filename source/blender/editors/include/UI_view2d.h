@@ -95,6 +95,12 @@ enum {
 /* half the size (in pixels) of scroller 'handles' */
 #define V2D_SCROLLER_HANDLE_SIZE	5
 
+/* ------ Define for UI_view2d_sync ----- */
+
+/* means copy it from the other v2d */
+#define V2D_LOCK_COPY	1
+
+
 /* ------------------------------------------ */
 /* Macros:								*/
 
@@ -153,6 +159,7 @@ void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *re
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
+void UI_view2d_sync(struct View2D *v2d, struct View2D *v2dfrom, int flag);
 
 /* operators */
 void ui_view2d_operatortypes(void);

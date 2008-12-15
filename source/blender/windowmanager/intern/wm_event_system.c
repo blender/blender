@@ -102,13 +102,14 @@ void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 	
 	note->window= C->window;
 
-	/* catch global notifications here */
+	/* catch local notifications here */
 	switch (type) {
-		case WM_NOTE_WINDOW_REDRAW:
-		case WM_NOTE_SCREEN_CHANGED:
-			break;
-		default:
-			if(C->region) note->swinid= C->region->swinid;
+		case WM_NOTE_AREA_REDRAW:
+		case WM_NOTE_REGION_REDRAW:
+		case WM_NOTE_GESTURE_REDRAW:
+			if(C->region) 
+				note->swinid= C->region->swinid;
+		break;
 	}
 	
 	note->type= type;
@@ -174,8 +175,7 @@ void wm_event_do_notifiers(bContext *C)
 			C->window= NULL;
 			C->screen= NULL;
 		}
-		if(note->data)
-			MEM_freeN(note->data);
+		
 		MEM_freeN(note);
 	}	
 }

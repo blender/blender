@@ -104,7 +104,7 @@ void ED_region_pixelspace(const bContext *C, ARegion *ar)
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
-	
+
 	/* generic notes first */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:

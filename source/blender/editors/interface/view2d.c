@@ -1466,3 +1466,18 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 	if (x) *x = (v2d->mask.xmax - v2d->mask.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
 	if (y) *y = (v2d->mask.ymax - v2d->mask.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 }
+
+
+void UI_view2d_sync(View2D *v2d, View2D *v2dfrom, int flag)
+{
+	
+	if(flag == V2D_LOCK_COPY) {
+		v2d->cur.xmin= v2dfrom->cur.xmin;
+		v2d->cur.xmax= v2dfrom->cur.xmax;
+	}
+	else {
+		v2dfrom->cur.xmin= v2d->cur.xmin;
+		v2dfrom->cur.xmax= v2d->cur.xmax;
+	}
+}
+

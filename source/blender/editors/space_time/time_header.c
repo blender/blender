@@ -189,11 +189,11 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 11:
 			if(v2d) {
-			//v2d->flag ^= V2D_VIEWSYNC_X;
-			//if(v2d->flag & V2D_VIEWSYNC_X)
-			//	view2d_do_locks(curarea, 0);
+				v2d->flag ^= V2D_VIEWSYNC_X;
+				if(v2d->flag & V2D_VIEWSYNC_X)
+					WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, 0, v2d);	/* XXX can notifier be called after data free? */
 			}
-				break;
+			break;
 		case 12: /* only show keyframes from selected data */
 			stime->flag ^= TIME_ONLYACTSEL;
 			WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
