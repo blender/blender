@@ -578,7 +578,6 @@ static char *windowtype_pup(void)
 		   "|Node Editor %x16"
 		   "|%l" //254
 		   
-		   "|Image Browser %x10" //273
 		   "|File Browser %x5" //290
 		   
 		   "|%l" //293

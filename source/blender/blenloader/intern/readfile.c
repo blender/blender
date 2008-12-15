@@ -5211,6 +5211,12 @@ static void do_versions_windowmanager_2_50(bScreen *screen)
 		
 		area_add_window_regions(sa, sa->spacedata.first, &sa->regionbase);
 		
+		/* space imageselect is depricated */
+		for(sl= sa->spacedata.first; sl; sl= sl->next) {
+			if(sl->spacetype==SPACE_IMASEL)
+				sl->spacetype= SPACE_INFO;	/* spacedata then matches */
+		}		
+		
 		/* pushed back spaces also need regions! */
 		if(sa->spacedata.first) {
 			sl= sa->spacedata.first;
