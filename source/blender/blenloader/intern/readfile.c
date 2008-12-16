@@ -8021,10 +8021,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 14)) {
 		Scene *sce;
 		Sequence *seq;
-		Editing *ed;
 		
 		for(sce=main->scene.first; sce; sce=sce->id.next) {
-			SEQ_BEGIN(ed, seq) {
+			SEQ_BEGIN(sce->ed, seq) {
 				if (seq->blend_mode == 0)
 					seq->blend_opacity = 100.0;
 			}
