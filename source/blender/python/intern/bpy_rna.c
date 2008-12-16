@@ -1145,3 +1145,17 @@ PyObject *BPY_rna_module( void )
 	//submodule = Py_InitModule3( "rna", M_rna_methods, "rna module" );
 	return pyrna_struct_CreatePyObject(&ptr);
 }
+
+/* This is a way we can access docstrings for RNA types
+ * without having the datatypes in blender */
+PyObject *BPY_rna_doc( void )
+{
+	PointerRNA ptr;
+	
+	/* for now, return the base RNA type rather then a real module */
+	RNA_blender_rna_pointer_create(&ptr);
+	
+	return pyrna_struct_CreatePyObject(&ptr);
+}
+
+

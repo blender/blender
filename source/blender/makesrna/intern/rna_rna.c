@@ -436,6 +436,7 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_NONE, "NONE", "None", ""},
 		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number", ""},
 		{PROP_FILEPATH, "FILEPATH", "File Path", ""},
+		{PROP_DIRPATH, "DIRPATH", "Directory Path", ""},
 		{PROP_COLOR, "COLOR", "Color", ""},
 		{PROP_VECTOR, "VECTOR", "Vector", ""},
 		{PROP_MATRIX, "MATRIX", "Matrix", ""},

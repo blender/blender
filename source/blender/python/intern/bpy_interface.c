@@ -25,6 +25,9 @@ static PyObject *CreateGlobalDictionary( void )
 	PyDict_SetItemString( dict, "bpy", item );
 	Py_DECREF(item);
 	
+	item = BPY_rna_doc();
+	PyDict_SetItemString( dict, "bpydoc", item );
+	Py_DECREF(item);
 	
 	return dict;
 }
