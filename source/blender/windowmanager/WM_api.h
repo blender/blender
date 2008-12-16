@@ -61,7 +61,7 @@ void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
-			/* keymap and handlers */
+			/* keymap */
 wmKeymapItem *WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
@@ -71,6 +71,9 @@ wmKeymapItem *WM_keymap_add_item	(ListBase *lb, char *idname, short type,
 ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 
+char		*WM_key_event_string(short type);
+
+			/* handlers */
 
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, ListBase *keymap);
 						/* boundbox, optional subwindow boundbox for offset */

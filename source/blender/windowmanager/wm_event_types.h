@@ -188,11 +188,6 @@
 #define COMMANDKEY	172
 #define GRLESSKEY	173
 
-/* used as fake leftmouse events, special handled in interface.c */
-#define BUT_ACTIVATE	200
-#define BUT_NEXT		201
-#define BUT_PREV		202
-
 /* **************** BLENDER QUEUE EVENTS ********************* */
 
 #define CHANGED				0x4000

@@ -1449,17 +1449,14 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 		if(event->type == MOUSEMOVE)
 			return WM_UI_HANDLER_CONTINUE;
 
-		/* XXX 2.50 missing function */
-#if 0
 		if(event->val) {
-			if(!key_event_to_string(event)[0])
-				data->cancel= 1;
-			else
+			if(WM_key_event_string(event->type)[0])
 				ui_set_but_val(but, event->type);
+			else
+				data->cancel= 1;
 
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-#endif
 	}
 
 	return WM_UI_HANDLER_CONTINUE;
@@ -2660,8 +2657,12 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 
 	/* check if the mouse is in the region, and in case of a view2d also check
 	 * if it is inside the view2d itself, not over scrollbars for example */
-	if(!BLI_in_rcti(&ar->winrct, x, y))
+	if(!BLI_in_rcti(&ar->winrct, x, y)) {
+		for(block=ar->uiblocks.first; block; block=block->next)
+			block->auto_open= 0;
+
 		return NULL;
+	}
 
 	if(ar->v2d.mask.xmin!=ar->v2d.mask.xmax) {
 		mx= x;

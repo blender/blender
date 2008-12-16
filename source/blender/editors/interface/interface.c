@@ -44,6 +44,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -1587,8 +1588,7 @@ void ui_check_but(uiBut *but)
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
 		} else {
-			/* XXX 2.50 function not supported */
-			/* strcat(but->drawstr, key_event_to_string((short) ui_get_but_val(but))); */
+			strcat(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
 		}
 		break;
 
@@ -2073,8 +2073,8 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 /* autocomplete callback for ID buttons */
 static void autocomplete_id(bContext *C, char *str, void *arg_v)
 {
-	/* int blocktype= (intptr_t)arg_v; */
-	ListBase *listb= NULL /* XXX 2.50 needs context, wich_libbase(G.main, blocktype) */;
+	int blocktype= (intptr_t)arg_v;
+	ListBase *listb= wich_libbase(G.main, blocktype); /* XXX */
 	
 	if(listb==NULL) return;
 	
