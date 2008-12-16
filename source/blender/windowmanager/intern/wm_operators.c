@@ -56,6 +56,8 @@
 #include "wm_subwindow.h"
 #include "wm_event_system.h"
 
+#include "ED_screen.h"
+
 static ListBase global_ops= {NULL, NULL};
 
 /* ************ operator API, exported ********** */

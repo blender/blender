@@ -20,8 +20,9 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
- * Contributor(s): Blender Foundation
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -190,8 +191,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 		case 11:
 			if(v2d) {
 				v2d->flag ^= V2D_VIEWSYNC_X;
-				if(v2d->flag & V2D_VIEWSYNC_X)
-					WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_SET, v2d);
+				UI_view2d_sync(C->screen, v2d, V2D_LOCK_SET);
 			}
 			break;
 		case 12: /* only show keyframes from selected data */

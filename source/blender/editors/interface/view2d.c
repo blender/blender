@@ -1526,17 +1526,32 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 	if (y) *y = (v2d->mask.ymax - v2d->mask.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 }
 
-/* called by notifier WM_NOTE_TIMELINE_SYNC */
-void UI_view2d_sync(View2D *v2d, View2D *v2dfrom, int flag)
+/* called by menus to activate it, or by view2d operators */
+void UI_view2d_sync(bScreen *screen, View2D *v2dcur, int flag)
 {
+	ScrArea *sa;
+	ARegion *ar;
 	
-	if(flag == V2D_LOCK_COPY) {
-		v2d->cur.xmin= v2dfrom->cur.xmin;
-		v2d->cur.xmax= v2dfrom->cur.xmax;
-	}
-	else {
-		v2dfrom->cur.xmin= v2d->cur.xmin;
-		v2dfrom->cur.xmax= v2d->cur.xmax;
+	if(!(v2dcur->flag & V2D_VIEWSYNC_X))
+		return;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(v2dcur != &ar->v2d) {
+				if(ar->v2d.flag & V2D_VIEWSYNC_X) {
+					if(flag == V2D_LOCK_COPY) {
+						
+						ar->v2d.cur.xmin= v2dcur->cur.xmin;
+						ar->v2d.cur.xmax= v2dcur->cur.xmax;
+					}
+					else { /* V2D_LOCK_SET */
+						v2dcur->cur.xmin= ar->v2d.cur.xmin;
+						v2dcur->cur.xmax= ar->v2d.cur.xmax;
+					}
+					ED_region_tag_redraw(ar);
+				}
+			}
+		}
 	}
 }
 
