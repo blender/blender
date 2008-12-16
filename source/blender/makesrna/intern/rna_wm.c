@@ -33,13 +33,30 @@
 
 #ifdef RNA_RUNTIME
 
-static StructRNA *rna_Operator_refine(PointerRNA *ptr)
+static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
-	wmOperator *op= (wmOperator*)ptr->data;
-	return op->type->srna;
+	wmWindowManager *wm= ptr->id.data;
+	wmOperator *op;
+
+	if(wm)
+		for(op=wm->operators.first; op; op=op->next)
+			if(op->properties == ptr->data)
+				return op;
+	
+	return NULL;
 }
 
-/*static void rna_Operator_name_get(PointerRNA *ptr, char *value)
+static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
+{
+	wmOperator *op= rna_OperatorProperties_find_operator(ptr);
+
+	if(op)
+		return op->type->srna;
+	else
+		return &RNA_OperatorProperties;
+}
+
+static void rna_Operator_name_get(PointerRNA *ptr, char *value)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
 	strcpy(value, op->type->name);
@@ -49,17 +66,30 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
 	return strlen(op->type->name);
-}*/
+}
 
 #else
 
 static void rna_def_operator(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Operator", NULL, "Operator");
 	RNA_def_struct_sdna(srna, "wmOperator");
-	RNA_def_struct_funcs(srna, NULL, "rna_Operator_refine");
+
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "OperatorProperties");
+	RNA_def_property_ui_text(prop, "Properties", "");
+
+	srna= RNA_def_struct(brna, "OperatorProperties", NULL, "Operator Properties");
+	RNA_def_struct_funcs(srna, NULL, "rna_OperatorProperties_refine");
 }
 
 static void rna_def_windowmanager(BlenderRNA *brna)

@@ -41,6 +41,7 @@
 #include "PIL_time.h"
 
 #include "BKE_colortools.h"
+#include "BKE_idprop.h"
 #include "BKE_global.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -143,6 +144,7 @@ typedef struct uiAfterFunc {
 
 	const char *opname;
 	int opcontext;
+	IDProperty *opproperties;
 } uiAfterFunc;
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
@@ -182,6 +184,11 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
 		after->opname= but->opname;
 		after->opcontext= but->opcontext;
+		after->opproperties= but->opproperties;
+
+		but->opname= NULL;
+		but->opcontext= 0;
+		but->opproperties= NULL;
 
 		BLI_addtail(&UIAfterFuncs, after);
 	}
@@ -205,8 +212,12 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after->butm_func)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 
-		if(after->opname) /* make WM_operatora_call option? */
-			WM_operator_call(C, after->opname, after->opcontext);
+		if(after->opname)
+			WM_operator_call(C, after->opname, after->opcontext, after->opproperties);
+		if(after->opproperties) {
+			IDP_FreeProperty(after->opproperties);
+			MEM_freeN(after->opproperties);
+		}
 	}
 
 	BLI_freelistN(&funcs);
@@ -1428,6 +1439,10 @@ static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEv
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(event->type == LEFTMOUSE && event->val) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if(event->type == LEFTMOUSE && but->block->handle) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if(ELEM(event->type, PADENTER, RETKEY) && event->val) {
@@ -2659,10 +2674,9 @@ static void ui_blocks_set_tooltips(ARegion *ar, int enable)
 		block->tooltipdisabled= !enable;
 }
 
-static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
-	uiBut *but, *butover= NULL;
 	int mx, my;
 
 	/* check if the mouse is in the region, and in case of a view2d also check
@@ -2671,7 +2685,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		for(block=ar->uiblocks.first; block; block=block->next)
 			block->auto_open= 0;
 
-		return NULL;
+		return 0;
 	}
 
 	if(ar->v2d.mask.xmin!=ar->v2d.mask.xmax) {
@@ -2680,8 +2694,33 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_region(ar, &mx, &my);
 
 		if(!BLI_in_rcti(&ar->v2d.mask, mx, my))
-			return NULL;
+			return 0;
 	}
+
+	return 1;
+}
+
+static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
+{
+	if(!ui_mouse_inside_region(ar, x, y))
+		return 0;
+
+	ui_window_to_block(ar, but->block, &x, &y);
+
+	if(!ui_but_contains_pt(but, x, y))
+		return 0;
+	
+	return 1;
+}
+
+static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+{
+	uiBlock *block;
+	uiBut *but, *butover= NULL;
+	int mx, my;
+
+	if(!ui_mouse_inside_region(ar, x, y))
+		return NULL;
 
 	for(block=ar->uiblocks.first; block; block=block->next) {
 		mx= x;
@@ -2949,7 +2988,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	ARegion *ar;
 	uiBut *postbut;
 	uiButtonActivateType posttype;
-	int retval, mx, my;
+	int retval;
 
 	data= but->active;
 	block= but->block;
@@ -2961,11 +3000,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		switch(event->type) {
 			case MOUSEMOVE:
 				/* verify if we are still over the button, if not exit */
-				mx= event->x;
-				my= event->y;
-				ui_window_to_block(ar, block, &mx, &my);
-
-				if(!ui_but_contains_pt(but, mx, my)) {
+				if(!ui_mouse_inside_button(ar, but, event->x, event->y)) {
 					data->cancel= 1;
 					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
@@ -2990,11 +3025,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					WM_event_remove_window_timer(data->window, data->autoopentimer);
 					data->autoopentimer= NULL;
 
-					mx= event->x;
-					my= event->y;
-					ui_window_to_block(ar, block, &mx, &my);
-
-					if(ui_but_contains_pt(but, mx, my))
+					if(ui_mouse_inside_button(ar, but, event->x, event->y))
 						button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 				}
 
@@ -3010,11 +3041,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		switch(event->type) {
 			case MOUSEMOVE:
 				/* deselect the button when moving the mouse away */
-				mx= event->x;
-				my= event->y;
-				ui_window_to_block(ar, block, &mx, &my);
-
-				if(ui_but_contains_pt(but, mx, my)) {
+				if(ui_mouse_inside_button(ar, but, event->x, event->y)) {
 					if(!(but->flag & UI_SELECT)) {
 						but->flag |= UI_SELECT;
 						data->cancel= 0;
@@ -3082,7 +3109,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	return retval;
 }
 
-static void ui_handle_button_closed_submenu(bContext *C, uiBut *but)
+static void ui_handle_button_closed_submenu(bContext *C, wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data;
 	uiMenuBlockHandle *menu;
@@ -3105,8 +3132,15 @@ static void ui_handle_button_closed_submenu(bContext *C, uiBut *but)
 
 		button_activate_exit(C, data, but, 1);
 	}
-	else if(menu->menuretval == UI_RETURN_OUT)
-		button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
+	else if(menu->menuretval == UI_RETURN_OUT) {
+		if(ui_mouse_inside_button(data->region, but, event->x, event->y)) {
+			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
+		}
+		else {
+			data->cancel= 1;
+			button_activate_exit(C, data, but, 1);
+		}
+	}
 }
 
 /* ******************** menu navigation helpers ************** */
@@ -3451,7 +3485,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 		return retval;
 }
 
-static int ui_handle_menu_closed_submenu(bContext *C, uiMenuBlockHandle *menu)
+static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiMenuBlockHandle *menu)
 {
 	ARegion *ar;
 	uiBut *but;
@@ -3477,7 +3511,7 @@ static int ui_handle_menu_closed_submenu(bContext *C, uiMenuBlockHandle *menu)
 
 		/* now let activated button in this menu exit, which
 		 * will actually close the submenu too */
-		ui_handle_button_closed_submenu(C, but);
+		ui_handle_button_closed_submenu(C, event, but);
 	}
 
 	if(menu->menuretval)
@@ -3504,7 +3538,7 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiMenuBlockHan
 	/* now handle events for our own menu */
 	if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 		if(submenu && submenu->menuretval)
-			retval= ui_handle_menu_closed_submenu(C, menu);
+			retval= ui_handle_menu_closed_submenu(C, event, menu);
 		else
 			retval= ui_handle_menu_event(C, event, menu, (submenu == NULL));
 	}
@@ -3589,7 +3623,7 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 			/* handle events for the activated button */
 			if(retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 				if(data->menu->menuretval)
-					ui_handle_button_closed_submenu(C, but);
+					ui_handle_button_closed_submenu(C, event, but);
 				else
 					ui_handle_button_event(C, event, but);
 			}

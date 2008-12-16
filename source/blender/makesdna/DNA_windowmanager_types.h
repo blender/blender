@@ -142,7 +142,6 @@ typedef struct wmOperatorType {
 typedef struct wmKeymapItem {
 	struct wmKeymapItem *next, *prev;
 	
-	/* these are same order as wmOperator because RNA depends on it, fixme XXX */
 	char idname[64];				/* used to retrieve operator type pointer */
 	IDProperty *properties;			/* default operator properties */
 	struct PointerRNA *ptr;			/* rna pointer to access properties */

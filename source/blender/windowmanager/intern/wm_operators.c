@@ -80,7 +80,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	wmOperatorType *ot;
 	
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "Operator", "");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties", "");
 	opfunc(ot);
 	RNA_def_struct_identifier(ot->srna, ot->idname, ot->name);
 	BLI_addtail(&global_ops, ot);

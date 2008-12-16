@@ -75,11 +75,11 @@ void RNA_pointer_create(StructRNA *idtype, ID *id, StructRNA *type, void *data, 
 	r_ptr->data= data;
 }
 
-static void rna_pointer_inherit_id(PointerRNA *parent, PointerRNA *ptr)
+static void rna_pointer_inherit_id(StructRNA *type, PointerRNA *parent, PointerRNA *ptr)
 {
-	if(ptr->type && ptr->type->flag & STRUCT_ID) {
+	if(type && type->flag & STRUCT_ID) {
 		ptr->id.data= ptr->data;
-		ptr->id.type= ptr->type;
+		ptr->id.type= type;
 	}
 	else {
 		ptr->id.data= parent->id.data;
@@ -103,16 +103,16 @@ IDProperty *rna_idproperties_get(StructRNA *type, void *data, int create)
 		return IDP_GetProperties(data, create);
 	else if(type == &RNA_IDPropertyGroup)
 		return data;
-	else if(type->from == &RNA_Operator) {
-		wmOperator *op= (wmOperator*)data;
+	else if(type->from == &RNA_OperatorProperties) {
+		IDProperty **properties= (IDProperty**)data;
 
-		if(create && !op->properties) {
+		if(create && !*properties) {
 			IDPropertyTemplate val;
 			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
-			op->properties= IDP_New(IDP_GROUP, val, "property");
+			*properties= IDP_New(IDP_GROUP, val, "property");
 		}
 
-		return op->properties;
+		return *properties;
 	}
 	else
 		return NULL;
@@ -839,8 +839,12 @@ static StructRNA *rna_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop, 
 	else
 		type= pprop->structtype;
 	
-	if(type && type->refine)
-		type= type->refine(r_ptr);
+	if(type) {
+		rna_pointer_inherit_id(type, ptr, r_ptr);
+
+		if(type->refine)
+			type= type->refine(r_ptr);
+	}
 	
 	r_ptr->type= type;
 	return type;
@@ -858,9 +862,7 @@ void RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_
 	else
 		r_ptr->data= NULL;
 
-	if(r_ptr->data && rna_property_pointer_type(ptr, prop, r_ptr))
-		rna_pointer_inherit_id(ptr, r_ptr);
-	else
+	if(!(r_ptr->data && rna_property_pointer_type(ptr, prop, r_ptr)))
 		memset(r_ptr, 0, sizeof(*r_ptr));
 }
 
@@ -882,9 +884,13 @@ static StructRNA *rna_property_collection_type(CollectionPropertyIterator *iter)
 	else
 		type= cprop->structtype;
 	
-	if(type->refine)
-		type= type->refine(&iter->ptr);
+	if(type) {
+		rna_pointer_inherit_id(type, &iter->parent, &iter->ptr);
 
+		if(type->refine)
+			type= type->refine(&iter->ptr);
+	}
+	
 	iter->ptr.type= type;
 	return type;
 }
@@ -895,9 +901,7 @@ static void rna_property_collection_get(CollectionPropertyIterator *iter)
 
 	iter->ptr.data= cprop->get(iter);
 
-	if(iter->ptr.data && rna_property_collection_type(iter))
-		rna_pointer_inherit_id(&iter->parent, &iter->ptr);
-	else
+	if(!(iter->ptr.data && rna_property_collection_type(iter)))
 		memset(&iter->ptr, 0, sizeof(iter->ptr));
 }
 
@@ -970,7 +974,7 @@ int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int k
 		if(r_ptr->data) {
 			if(!r_ptr->type)
 				r_ptr->type= cprop->structtype;
-			rna_pointer_inherit_id(ptr, r_ptr);
+			rna_pointer_inherit_id(r_ptr->type, ptr, r_ptr);
 
 			return 1;
 		}
@@ -1011,7 +1015,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 		if(r_ptr->data) {
 			if(!r_ptr->type)
 				r_ptr->type= cprop->structtype;
-			rna_pointer_inherit_id(ptr, r_ptr);
+			rna_pointer_inherit_id(r_ptr->type, ptr, r_ptr);
 
 			return 1;
 		}

@@ -32,6 +32,7 @@
 #include "DNA_windowmanager_types.h"
 
 struct bContext;
+struct IDProperty;
 struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
@@ -112,7 +113,7 @@ int			WM_operator_winactive	(struct bContext *C);
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
-int         WM_operator_call		(struct bContext *C, const char *opstring, int context);
+int         WM_operator_call		(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);
 
 			/* default operator callbacks for border/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);

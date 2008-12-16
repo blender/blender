@@ -295,7 +295,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
 		
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		RNA_pointer_create(&RNA_WindowManager, &C->wm->id, ot->srna, op, op->ptr);
+		RNA_pointer_create(&RNA_WindowManager, &C->wm->id, ot->srna, &op->properties, op->ptr);
 
 		if(op->type->invoke)
 			retval= (*op->type->invoke)(C, op, event);
@@ -314,7 +314,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 }
 
 /* invokes operator in context */
-int WM_operator_call(bContext *C, const char *opstring, int context)
+int WM_operator_call(bContext *C, const char *opstring, int context, IDProperty *properties)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	int retval;
@@ -334,7 +334,7 @@ int WM_operator_call(bContext *C, const char *opstring, int context)
 					C->region= ar1;
 			}
 			
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
 			
 			/* set region back */
 			C->region= ar;
@@ -346,7 +346,7 @@ int WM_operator_call(bContext *C, const char *opstring, int context)
 			ARegion *ar= C->region;
 
 			C->region= NULL;
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
 			C->region= ar;
 
 			return retval;
@@ -358,14 +358,14 @@ int WM_operator_call(bContext *C, const char *opstring, int context)
 
 			C->region= NULL;
 			C->area= NULL;
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
 			C->region= ar;
 			C->area= area;
 
 			return retval;
 		}
 		else
-			return wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			return wm_operator_invoke(C, ot, C->window->eventstate, properties);
 	}
 	
 	return 0;

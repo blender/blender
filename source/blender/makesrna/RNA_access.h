@@ -119,6 +119,7 @@ extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Operator;
+extern StructRNA RNA_OperatorProperties;
 extern StructRNA RNA_OrController;
 extern StructRNA RNA_PackedFile;
 extern StructRNA RNA_Panel;

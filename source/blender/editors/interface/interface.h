@@ -35,6 +35,7 @@
 
 struct ARegion;
 struct bContext;
+struct IDProperty;
 struct uiHandleButtonData;
 struct wmWindow;
 
@@ -162,6 +163,8 @@ struct uiBut {
 		/* Operator */
 	const char *opname;
 	int opcontext;
+	struct IDProperty *opproperties;
+	struct PointerRNA *opptr;
 
 		/* active button data */
 	struct uiHandleButtonData *active;

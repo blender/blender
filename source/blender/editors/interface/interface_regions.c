@@ -1679,7 +1679,7 @@ static void operator_callback(bContext *C, void *arg, int retval)
 	const char *opname= arg;
 
 	if(retval > 0)
-		WM_operator_call(C, opname, WM_OP_DEFAULT);
+		WM_operator_call(C, opname, WM_OP_DEFAULT, NULL);
 }
 
 void okee_operator(bContext *C, char *opname, char *str, ...)

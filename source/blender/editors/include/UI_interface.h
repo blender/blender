@@ -334,6 +334,8 @@ int		uiButGetRetVal		(uiBut *but);
 void	uiButSetFlag		(uiBut *but, int flag);
 void	uiButClearFlag		(uiBut *but, int flag);
 
+struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
+
 void	uiBlockSetHandleFunc(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int event), void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	void (*func)(struct bContext *C, void *arg, int but_a2), void *arg);
 

@@ -84,7 +84,7 @@ static void keymap_properties_set(wmKeymapItem *kmi)
 
 		if(ot) {
 			kmi->ptr= MEM_callocN(sizeof(PointerRNA), "wmKeymapItemPtr");
-			RNA_pointer_create(NULL, NULL, ot->srna, kmi, kmi->ptr);
+			RNA_pointer_create(NULL, NULL, ot->srna, &kmi->properties, kmi->ptr);
 		}
 	}
 }
