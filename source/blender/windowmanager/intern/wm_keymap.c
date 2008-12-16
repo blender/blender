@@ -495,6 +495,9 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	if(kmi->ctrl)
 		strcat(buf, "Ctrl ");
 
+	if(kmi->alt)
+		strcat(buf, "Alt ");
+
 	if(kmi->oskey)
 		strcat(buf, "OS ");
 

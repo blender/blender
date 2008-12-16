@@ -2708,15 +2708,19 @@ static int button_modal_state(uiHandleButtonState state)
 		BUTTON_STATE_TEXT_SELECTING, BUTTON_STATE_MENU_OPEN);
 }
 
-static void button_tooltip_timer_start(uiBut *but)
+static void button_tooltip_timer_reset(uiBut *but)
 {
 	uiHandleButtonData *data;
 
 	data= but->active;
 
-	/* XXX 2.50 U missing from context */
+	if(data->tooltiptimer) {
+		WM_event_remove_window_timer(data->window, data->tooltiptimer);
+		data->tooltiptimer= NULL;
+	}
+
 	if(U.flag & USER_TOOLTIPS)
-		if(!data->tooltiptimer && !but->block->tooltipdisabled)
+		if(!but->block->tooltipdisabled)
 			data->tooltiptimer= WM_event_add_window_timer(data->window, BUTTON_TOOLTIP_DELAY, ~0);
 }
 
@@ -2732,7 +2736,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	if(state == BUTTON_STATE_HIGHLIGHT) {
 		but->flag &= ~UI_SELECT;
 
-		button_tooltip_timer_start(but);
+		button_tooltip_timer_reset(but);
 
 		/* automatic open pulldown block timer */
 		if(but->type==BLOCK || but->type==MENU || but->type==PULLDOWN || but->type==ICONTEXTROW) {
@@ -2766,7 +2770,6 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			data->autoopentimer= NULL;
 		}
 	}
-	ED_region_tag_redraw(data->region);
 
 	/* text editing */
 	if(state == BUTTON_STATE_TEXT_EDITING && data->state != BUTTON_STATE_TEXT_SELECTING)
@@ -2809,6 +2812,9 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	}
 
 	data->state= state;
+
+	/* redraw */
+	ED_region_tag_redraw(data->region);
 }
 
 static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type)
@@ -2966,7 +2972,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 				else if(event->x!=event->prevx || event->y!=event->prevy) {
 					/* re-enable tooltip on mouse move */
 					ui_blocks_set_tooltips(ar, 1);
-					button_tooltip_timer_start(but);
+					button_tooltip_timer_reset(but);
 				}
 
 				break;
@@ -2976,10 +2982,8 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					WM_event_remove_window_timer(data->window, data->tooltiptimer);
 					data->tooltiptimer= NULL;
 
-					if(!data->tooltip) {
+					if(!data->tooltip)
 						data->tooltip= ui_tooltip_create(C, data->region, but);
-						ED_region_tag_redraw(data->region);
-					}
 				}
 				/* handle menu auto open timer */
 				else if(event->customdata == data->autoopentimer) {
