@@ -2766,6 +2766,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			data->autoopentimer= NULL;
 		}
 	}
+	ED_region_tag_redraw(data->region);
 
 	/* text editing */
 	if(state == BUTTON_STATE_TEXT_EDITING && data->state != BUTTON_STATE_TEXT_SELECTING)
