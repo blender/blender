@@ -309,44 +309,59 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 	return retval;
 }
 
-/* forces event to go to the region window, for header menus */
-int WM_operator_call_rwin(bContext *C, const char *opstring)
-{
-	wmOperatorType *ot= WM_operatortype_find(opstring);
-	
-	/* dummie test */
-	if(ot && C && C->window) {
-		ARegion *ar= C->region;
-		int retval;
-		
-		if(C->area) {
-			ARegion *ar1= C->area->regionbase.first;
-			for(; ar1; ar1= ar1->next)
-				if(ar1->regiontype==RGN_TYPE_WINDOW)
-					break;
-			if(ar1)
-				C->region= ar1;
-		}
-		
-		retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
-		
-		/* set region back */
-		C->region= ar;
-		
-		return retval;
-	}
-	
-	return 0;
-}
-
 /* invokes operator in context */
-int WM_operator_call(bContext *C, const char *opstring)
+int WM_operator_call(bContext *C, const char *opstring, int context)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
+	int retval;
 
 	/* dummie test */
 	if(ot && C && C->window) {
-		return wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+		if(context == WM_OP_REGION_WIN) {
+			/* forces event to go to the region window, for header menus */
+			ARegion *ar= C->region;
+			
+			if(C->area) {
+				ARegion *ar1= C->area->regionbase.first;
+				for(; ar1; ar1= ar1->next)
+					if(ar1->regiontype==RGN_TYPE_WINDOW)
+						break;
+				if(ar1)
+					C->region= ar1;
+			}
+			
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			
+			/* set region back */
+			C->region= ar;
+			
+			return retval;
+		}
+		else if(context == WM_OP_AREA) {
+			/* remove region from context */
+			ARegion *ar= C->region;
+
+			C->region= NULL;
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			C->region= ar;
+
+			return retval;
+		}
+		else if(context == WM_OP_SCREEN) {
+			/* remove region + area from context */
+			ARegion *ar= C->region;
+			ScrArea *area= C->area;
+
+			C->region= NULL;
+			C->area= NULL;
+			retval= wm_operator_invoke(C, ot, C->window->eventstate, NULL);
+			C->region= ar;
+			C->area= area;
+
+			return retval;
+		}
+		else
+			return wm_operator_invoke(C, ot, C->window->eventstate, NULL);
 	}
 	
 	return 0;

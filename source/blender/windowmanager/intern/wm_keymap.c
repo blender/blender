@@ -28,6 +28,7 @@
 
 #include <string.h>
 
+#include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -480,5 +481,70 @@ char *WM_key_event_string(short type)
 	}
 	
 	return "";
+}
+
+static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
+{
+	char buf[100];
+
+	buf[0]= 0;
+
+	if(kmi->shift)
+		strcat(buf, "Shift ");
+
+	if(kmi->ctrl)
+		strcat(buf, "Ctrl ");
+
+	if(kmi->oskey)
+		strcat(buf, "OS ");
+
+	strcat(buf, WM_key_event_string(kmi->type));
+	BLI_strncpy(str, buf, len);
+
+	return str;
+}
+
+char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, char *str, int len)
+{
+	wmEventHandler *handler;
+	wmKeymapItem *kmi;
+	ListBase *handlers= NULL;
+
+	/* find right handler list based on specified context */
+	if(opcontext == WM_OP_REGION_WIN) {
+		if(C->area) {
+			ARegion *ar= C->area->regionbase.first;
+			for(; ar; ar= ar->next)
+				if(ar->regiontype==RGN_TYPE_WINDOW)
+					break;
+
+			if(ar)
+				handlers= &ar->handlers;
+		}
+	}
+	else if(opcontext == WM_OP_AREA) {
+		if(C->area)
+			handlers= &C->area->handlers;
+	}
+	else if(opcontext == WM_OP_SCREEN) {
+		if(C->window)
+			handlers= &C->window->handlers;
+	}
+	else {
+		if(C->region)
+			handlers= &C->region->handlers;
+	}
+
+	if(!handlers)
+		return NULL;
+	
+	/* find keymap item in handlers */
+	for(handler=handlers->first; handler; handler=handler->next)
+		if(handler->keymap)
+			for(kmi=handler->keymap->first; kmi; kmi=kmi->next)
+				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0])
+					return wm_keymap_item_to_string(kmi, str, len);
+
+	return NULL;
 }
 

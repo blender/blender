@@ -72,6 +72,7 @@ ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid,
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
+char		*WM_key_event_operator_string(bContext *C, char *opname, int opcontext, char *str, int len);
 
 			/* handlers */
 
@@ -111,8 +112,7 @@ int			WM_operator_winactive	(struct bContext *C);
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
-int         WM_operator_call		(struct bContext *C, const char *opstring);
-int         WM_operator_call_rwin	(struct bContext *C, const char *opstring);
+int         WM_operator_call		(struct bContext *C, const char *opstring, int context);
 
 			/* default operator callbacks for border/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);

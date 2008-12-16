@@ -38,6 +38,14 @@
 /* flag */
 #define OPTYPE_REGISTER		1
 
+/* context to call operator in for WM_operator_call */
+enum {
+	WM_OP_DEFAULT,
+	WM_OP_REGION_WIN,
+	WM_OP_AREA,
+	WM_OP_SCREEN
+};
+
 /* ************** wmEvent ************************ */
 
 /* each event should have full modifier state */

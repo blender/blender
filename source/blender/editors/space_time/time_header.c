@@ -282,19 +282,19 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case 3: /* Add Marker */
-			WM_operator_call_rwin(C, "ED_MARKER_OT_add");
+			WM_operator_call(C, "ED_MARKER_OT_add", WM_OP_REGION_WIN);
 			break;
 		case 4: /* Remove Marker */
-			WM_operator_call_rwin(C, "ED_MARKER_OT_delete");
+			WM_operator_call(C, "ED_MARKER_OT_delete", WM_OP_REGION_WIN);
 			break;
 		case 5: /* Rename Marker */
 			//rename_marker();
 			break;
 		case 6: /* Grab Marker */
-			WM_operator_call_rwin(C, "ED_MARKER_OT_move");
+			WM_operator_call(C, "ED_MARKER_OT_move", WM_OP_REGION_WIN);
 			break;
 		case 7: /* duplicate marker */
-			WM_operator_call_rwin(C, "ED_MARKER_OT_duplicate");
+			WM_operator_call(C, "ED_MARKER_OT_duplicate", WM_OP_REGION_WIN);
 			break;
 	}
 }
