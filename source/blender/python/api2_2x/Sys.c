@@ -427,9 +427,6 @@ static PyObject *M_sys_relpath( PyObject * self, PyObject * args )
 	char *path;
 	char relpath[FILE_MAXDIR + FILE_MAXFILE];
 	
-	char dir[FILE_MAXDIR];
-	char file[FILE_MAXFILE];
-	
 	if( !PyArg_ParseTuple( args, "s|s:Blender.sys.relpath", &path, &base ) )
 		return NULL;
 	
