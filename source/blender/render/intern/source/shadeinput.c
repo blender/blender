@@ -354,7 +354,7 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 		Normalize(shi->vn);
 
 		if(INPR(shi->vn, shi->view) < 0.0f)
-			VecMulf(shi->vn, -1.0f);
+			VecNegf(shi->vn);
 	}
 
 	VECCOPY(shi->vno, shi->vn);

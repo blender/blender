@@ -535,10 +535,10 @@ void progressiverad()
 
 		if(shoot->first->f & RAD_TWOSIDED) {
 			VECCOPY(unshot, shoot->unshot);
-			VecMulf(shoot->norm, -1.0);
+			VecNegf(shoot->norm);
 			if(makeformfactors(shoot))
 				applyformfactors(shoot);
-			VecMulf(shoot->norm, -1.0);
+			VecNegf(shoot->norm);
 			VECCOPY(shoot->unshot, unshot);
 		}
 	
