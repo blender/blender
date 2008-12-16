@@ -55,6 +55,7 @@
 #include "BIF_sketch.h"
 #include "BIF_retarget.h"
 #include "BIF_generate.h"
+#include "BIF_interface.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -108,6 +109,7 @@ typedef struct SK_Intersection
 	int			after;
 	int			gesture_index;
 	float		p[3];
+	float		lambda; /* used for sorting intersection points */
 } SK_Intersection;
 
 typedef struct SK_Sketch
@@ -799,6 +801,68 @@ void sk_trimStroke(SK_Stroke *stk, int start, int end)
 	}
 	
 	stk->nb_points = size;
+}
+
+void sk_cutoutStroke(SK_Stroke *stk, int start, int end, float p_start[3], float p_end[3])
+{
+	int size = end - start + 1;
+	
+	if (size == 1)
+	{
+		int move_size = stk->nb_points - end;
+		
+		sk_growStrokeBuffer(stk);
+		
+		memmove(stk->points + end + 1, stk->points + end, move_size * sizeof(SK_Point));
+		end++;
+		size++; 
+		stk->nb_points++;
+	}
+	
+	stk->points[start].type = PT_EXACT;
+	VECCOPY(stk->points[start].p, p_start);
+	stk->points[end].type = PT_EXACT;
+	VECCOPY(stk->points[end].p, p_end);
+	
+	if (size > 2)
+	{
+		int move_size = stk->nb_points - end;
+		
+		memmove(stk->points + start + 1, stk->points + end, move_size * sizeof(SK_Point));
+		
+		stk->nb_points = stk->nb_points - (size - 2);
+	}
+}
+
+void sk_flattenStroke(SK_Stroke *stk, int start, int end)
+{
+	float normal[3], distance[3];
+	float limit;
+	int i, total;
+	
+	total = end - start + 1;
+	
+	VECCOPY(normal, stk->points[start].no);
+	
+	VecSubf(distance, stk->points[end].p, stk->points[start].p);
+	Projf(normal, distance, normal);
+	limit = Normalize(normal);
+	
+	for (i = 1; i < total - 1; i++)
+	{
+		float d = limit * i / total;
+		float offset[3];
+		float *p = stk->points[start + i].p;
+
+		VecSubf(distance, p, stk->points[start].p);
+		Projf(distance, distance, normal);
+		
+		VECCOPY(offset, normal);
+		VecMulf(offset, d);
+		
+		VecSubf(p, p, distance);
+		VecAddf(p, p, offset);
+	} 
 }
 
 void sk_removeStroke(SK_Sketch *sketch, SK_Stroke *stk)
@@ -1891,6 +1955,36 @@ int sk_getSelfIntersections(ListBase *list, SK_Stroke *gesture)
 	return added;
 }
 
+int cmpIntersections(void *i1, void *i2)
+{
+	SK_Intersection *isect1 = i1, *isect2 = i2;
+	
+	if (isect1->stroke == isect2->stroke)
+	{
+		if (isect1->before < isect2->before)
+		{
+			return -1;
+		}
+		else if (isect1->before > isect2->before)
+		{
+			return 1;
+		}
+		else
+		{
+			if (isect1->lambda < isect2->lambda)
+			{
+				return -1;
+			}
+			else if (isect1->lambda > isect2->lambda)
+			{
+				return 1;
+			}
+		}
+	}
+	
+	return 0;
+}
+
 
 /* returns the maximum number of intersections per stroke */
 int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
@@ -1932,6 +2026,7 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 					isect->before = s_i;
 					isect->after = s_i + 1;
 					isect->stroke = stk;
+					isect->lambda = lambda;
 					
 					mval[0] = (short)(vi[0]);
 					mval[1] = (short)(vi[1]);
@@ -1954,6 +2049,7 @@ int sk_getIntersections(ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 		added = MAX2(s_added, added);
 	}
 	
+	BLI_sortlist(list, cmpIntersections);
 	
 	return added;
 }
@@ -2060,6 +2156,51 @@ void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, 
 			sk_trimStroke(isect->stroke, isect->before, isect->stroke->nb_points - 1);
 		}
 	
+	}
+}
+
+int sk_detectCommandGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	return 1;
+}
+
+void sk_applyCommandGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+{
+	SK_Intersection *isect;
+	int command;
+	
+	command = pupmenu("Action %t|Flatten %x1|Cut Out %x2");
+	if(command < 1) return;
+
+	for (isect = list->first; isect; isect = isect->next)
+	{
+		SK_Intersection *i2, *i3;
+		
+		i2 = isect->next;
+		
+		if (i2 && i2->stroke == isect->stroke)
+		{
+			i3 = i2->next;
+			
+			if (i3 && i3->stroke == i2->stroke)
+			{
+				switch (command)
+				{
+					case 1:
+						sk_flattenStroke(isect->stroke, isect->before, i3->after);
+						break;
+					case 2:
+						sk_cutoutStroke(isect->stroke, isect->after, i3->before, isect->p, i3->p);
+						break;
+				}
+
+				isect = i3;
+			}
+			else
+			{
+				isect = i2;
+			}
+		}
 	}
 }
 
@@ -2268,6 +2409,10 @@ void sk_applyGesture(SK_Sketch *sketch)
 	else if (nb_segments > 2 && nb_intersections == 2 && sk_detectReverseGesture(sketch, sketch->gesture, &intersections, segments))
 	{
 		sk_applyReverseGesture(sketch, sketch->gesture, &intersections, segments);
+	}
+	else if (nb_segments > 2 && nb_intersections == 3 && nb_self_intersections == 1 && sk_detectCommandGesture(sketch, sketch->gesture, &intersections, segments))
+	{
+		sk_applyCommandGesture(sketch, sketch->gesture, &intersections, segments);
 	}
 	else if (nb_segments > 2 && nb_self_intersections == 1)
 	{
