@@ -140,6 +140,9 @@ typedef struct uiAfterFunc {
 	void (*butm_func)(struct bContext*, void *arg, int event);
 	void *butm_func_arg;
 	int a2;
+
+	const char *opname;
+	int opcontext;
 } uiAfterFunc;
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
@@ -162,6 +165,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
 	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func)) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+
 		after->func= but->func;
 		after->func_arg1= but->func_arg1;
 		after->func_arg2= but->func_arg2;
@@ -175,6 +179,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 			after->butm_func_arg= block->butm_func_arg;
 			after->a2= but->a2;
 		}
+
+		after->opname= but->opname;
+		after->opcontext= but->opcontext;
 
 		BLI_addtail(&UIAfterFuncs, after);
 	}
@@ -197,6 +204,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->handle_func(C, after->handle_func_arg, after->retval);
 		if(after->butm_func)
 			after->butm_func(C, after->butm_func_arg, after->a2);
+
+		if(after->opname) /* make WM_operatora_call option? */
+			WM_operator_call(C, after->opname, after->opcontext);
 	}
 
 	BLI_freelistN(&funcs);

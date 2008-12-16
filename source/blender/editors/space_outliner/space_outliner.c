@@ -244,6 +244,66 @@ static void rna_collection_but(CellRNA *cell, rcti *rct, uiBlock *block)
 	uiButSetFunc(but, rna_pointer_cb, cell->prop, SET_INT_IN_POINTER(cell->index));
 }
 
+static uiBut *rna_auto_but(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
+{
+	uiBut *but;
+	const char *propname= RNA_property_identifier(ptr, prop);
+
+	switch(RNA_property_type(ptr, prop)) {
+		case PROP_BOOLEAN: {
+			int value, length;
+
+			length= RNA_property_array_length(ptr, prop);
+
+			if(length)
+				value= RNA_property_boolean_get_array(ptr, prop, index);
+			else
+				value= RNA_property_boolean_get(ptr, prop);
+
+			but= uiDefButR(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		}
+		case PROP_INT:
+		case PROP_FLOAT:
+			but= uiDefButR(block, NUM, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		case PROP_ENUM:
+			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		case PROP_STRING:
+			but= uiDefButR(block, TEX, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		case PROP_POINTER: {
+			PointerRNA pptr;
+			PropertyRNA *nameprop;
+			char name[256]= "", *nameptr= name;
+
+			RNA_property_pointer_get(ptr, prop, &pptr);
+
+			if(pptr.data) {
+				nameprop= RNA_struct_name_property(&pptr);
+				if(pptr.type && nameprop)
+					nameptr= RNA_property_string_get_alloc(&pptr, nameprop, name, sizeof(name));
+				else
+					strcpy(nameptr, "->");
+			}
+
+			but= uiDefButR(block, BUT, 0, nameptr, x1, y1, x2, y2, ptr, propname, index, 0, 0, 0, 0, NULL);
+			uiButSetFlag(but, UI_TEXT_LEFT);
+
+			if(nameptr != name)
+				MEM_freeN(nameptr);
+
+			break;
+		}
+		default:
+			but= NULL;
+			break;
+	}
+
+	return but;
+}
+
 static void rna_but(CellRNA *cell, rcti *rct, uiBlock *block)
 {
 	uiBut *but;
@@ -265,7 +325,7 @@ static void rna_but(CellRNA *cell, rcti *rct, uiBlock *block)
 		index= (arraylength)? cell->index: 0;
 
 		if(index >= 0) {
-			but= uiDefRNABut(block, 0, &cell->ptr, prop, index, rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin);
+			but= rna_auto_but(block, &cell->ptr, prop, index, rct->xmin, rct->ymin, rct->xmax-rct->xmin, rct->ymax-rct->ymin);
 
 			if(type == PROP_POINTER)
 				uiButSetFunc(but, rna_pointer_cb, prop, SET_INT_IN_POINTER(0));

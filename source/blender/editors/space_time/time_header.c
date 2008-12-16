@@ -281,20 +281,8 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 				C->scene->r.efra = CFRA;
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
-		case 3: /* Add Marker */
-			WM_operator_call(C, "ED_MARKER_OT_add", WM_OP_REGION_WIN);
-			break;
-		case 4: /* Remove Marker */
-			WM_operator_call(C, "ED_MARKER_OT_delete", WM_OP_REGION_WIN);
-			break;
-		case 5: /* Rename Marker */
+		case 3: /* Rename Marker */
 			//rename_marker();
-			break;
-		case 6: /* Grab Marker */
-			WM_operator_call(C, "ED_MARKER_OT_move", WM_OP_REGION_WIN);
-			break;
-		case 7: /* duplicate marker */
-			WM_operator_call(C, "ED_MARKER_OT_duplicate", WM_OP_REGION_WIN);
 			break;
 	}
 }
@@ -307,27 +295,27 @@ static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	
 	block= uiBeginBlock(C, handle->region, "time_framemenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_time_framemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Shift D", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+
+	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_add", WM_OP_REGION_WIN, ICON_BLANK1, "Add Marker",
+					  0, yco-=2, menuwidth, 19, "");
+	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_duplicate", WM_OP_REGION_WIN, ICON_BLANK1, "Duplicate Marker",
+					  0, yco-=20, menuwidth, 19, "");
+	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_delete", WM_OP_REGION_WIN, ICON_BLANK1, "Delete Marker",
+					  0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|G", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M",
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_move", WM_OP_REGION_WIN, ICON_BLANK1, "Grab/Move Marker",
+					  0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set as Start|S", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set as End|E", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set as Start|S",
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set as End|E",
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

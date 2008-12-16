@@ -33,10 +33,10 @@
 #include "UI_resources.h"
 #include "RNA_types.h"
 
-struct uiHandleButtonData;
-struct wmWindow;
 struct ARegion;
 struct bContext;
+struct uiHandleButtonData;
+struct wmWindow;
 
 /* general defines */
 
@@ -159,7 +159,11 @@ struct uiBut {
 	struct PropertyRNA *rnaprop;
 	int rnaindex;
 
-		/* activation button data */
+		/* Operator */
+	const char *opname;
+	int opcontext;
+
+		/* active button data */
 	struct uiHandleButtonData *active;
 
 	char *editstr;
