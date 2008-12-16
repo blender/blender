@@ -104,8 +104,6 @@ void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 
 	/* catch local notifications here */
 	switch (type) {
-		case WM_NOTE_AREA_REDRAW:
-		case WM_NOTE_REGION_REDRAW:
 		case WM_NOTE_GESTURE_REDRAW:
 			if(C->region) 
 				note->swinid= C->region->swinid;
@@ -180,24 +178,39 @@ void wm_event_do_notifiers(bContext *C)
 	}	
 }
 
+static void wm_flush_draw_updates(bScreen *screen, rcti *dirty)
+{
+	ScrArea *sa;
+	ARegion *ar;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		for(ar=sa->regionbase.first; ar; ar= ar->next) {
+			if( BLI_isect_rcti(dirty, &ar->winrct, NULL) )
+				ar->do_draw= 1;
+		}
+	}
+}
+
 /* quick test to prevent changing window drawable */
 static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
 	
+	/* flush */
+	for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
+		if(ar->swinid && ar->do_draw) {
+			wm_flush_draw_updates(win->screen, &ar->winrct);
+		}
+	}
+
 	if(win->screen->do_refresh)
 		return 1;
 	if(win->screen->do_draw)
 		return 1;
 	if(win->screen->do_gesture)
 		return 1;
-
-	for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-		if(ar->swinid && ar->do_draw)
-			return 1;
-	}
-
+	
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		for(ar=sa->regionbase.first; ar; ar= ar->next) {
 			if(ar->swinid && ar->do_draw)

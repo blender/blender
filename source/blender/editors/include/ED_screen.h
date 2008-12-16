@@ -47,6 +47,7 @@ void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void	ED_region_exit(struct bContext *C, struct ARegion *ar);
 void	ED_region_pixelspace(const struct bContext *C, struct ARegion *ar);
 void	ED_region_init(struct bContext *C, struct ARegion *ar);
+void	ED_region_tag_redraw(struct ARegion *ar);
 
 /* spaces */
 void	ED_spacetypes_init(void);
@@ -59,6 +60,7 @@ void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct
 void	ED_area_exit(struct bContext *C, struct ScrArea *sa);
 void	ED_area_do_draw(struct bContext *C, struct ScrArea *sa);
 int		ED_screen_area_active(const struct bContext *C);
+void	ED_area_tag_redraw(ScrArea *sa);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);

@@ -166,7 +166,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->type) {
 		case WM_NOTE_TIMELINE_SYNC:
 			if(ar->v2d.flag & V2D_VIEWSYNC_X) {
-				ar->do_draw= 1;	/* XXX GAH! */
+				ED_region_tag_redraw(ar);
 				UI_view2d_sync(&ar->v2d, wmn->data, wmn->value);
 			}
 			break;

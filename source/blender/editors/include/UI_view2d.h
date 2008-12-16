@@ -101,7 +101,9 @@ enum {
 
 /* ------ Define for UI_view2d_sync ----- */
 
-/* means copy it from the other v2d */
+/* means copy it from another v2d */
+#define V2D_LOCK_SET	0
+/* means copy it to the other v2ds */
 #define V2D_LOCK_COPY	1
 
 

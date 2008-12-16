@@ -188,13 +188,17 @@ void view3d_keymap(struct wmWindowManager *wm)
 static void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	float col[3];
+	float col[3], fac;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	/* swapbuffers indicator */
+	fac= BLI_frand();
+	glColor3f(fac, fac, fac);
+	glRecti(20,  2,  30,  12);
 }
 
 

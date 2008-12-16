@@ -48,6 +48,8 @@
 
 #include "BIF_gl.h"
 
+#include "ED_screen.h"
+
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -164,7 +166,7 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	if(v2d->flag & V2D_VIEWSYNC_X)
 		WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_COPY, v2d);
 }
@@ -493,7 +495,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	if(v2d->flag & V2D_VIEWSYNC_X)
 		WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_COPY, v2d);
 }
@@ -646,7 +648,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	if(v2d->flag & V2D_VIEWSYNC_X)
 		WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_COPY, v2d);
 }
@@ -1027,7 +1029,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	if(v2d->flag & V2D_VIEWSYNC_X)
 		WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_COPY, v2d);
 }

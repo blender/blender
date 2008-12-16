@@ -924,7 +924,7 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 	}
 }
 
-
+/* only for edge lines between areas, and the blended join arrows */
 void ED_screen_draw(wmWindow *win)
 {
 	ScrArea *sa;
@@ -1009,6 +1009,9 @@ void ED_screens_initialize(wmWindowManager *wm)
 		ED_screen_refresh(wm, win);
 	}
 }
+
+
+/* *********** exit calls are for closing running stuff ******** */
 
 void ED_region_exit(bContext *C, ARegion *ar)
 {
@@ -1110,7 +1113,7 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 				if(do_draw) {
 					for(ar= sa->regionbase.first; ar; ar= ar->next)
 						if(ar->regiontype==RGN_TYPE_HEADER)
-							ar->do_draw= 1; /* XXX */
+							ED_region_tag_redraw(ar);
 				}
 			}
 		}

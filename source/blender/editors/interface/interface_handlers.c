@@ -47,6 +47,8 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "ED_screen.h"
+
 #include "UI_interface.h"
 #include "UI_text.h"
 #include "interface.h"
@@ -1272,7 +1274,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	}
 
 	if(changed || (retval == WM_UI_HANDLER_BREAK))
-		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		ED_region_tag_redraw(data->region);
 }
 
 static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
@@ -1298,7 +1300,7 @@ static void ui_do_but_textedit_select(bContext *C, uiBlock *block, uiBut *but, u
 
 	if(retval == WM_UI_HANDLER_BREAK) {
 		ui_check_but(but);
-		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		ED_region_tag_redraw(data->region);
 	}
 }
 
@@ -1354,7 +1356,7 @@ static void ui_numedit_apply(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	if(data->interactive) ui_apply_button(C, block, but, data, 1);
 	else ui_check_but(but);
 
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	ED_region_tag_redraw(data->region);
 }
 
 /* ****************** menu opening for various types **************** */
@@ -2808,7 +2810,6 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	}
 
 	data->state= state;
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
 
 static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type)
@@ -2880,7 +2881,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	but->flag &= ~(UI_ACTIVE|UI_SELECT);
 
 	/* redraw */
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	ED_region_tag_redraw(data->region);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is
 	 * still over a button. we cannot just check for this ourselfs because
@@ -2978,7 +2979,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 
 					if(!data->tooltip) {
 						data->tooltip= ui_tooltip_create(C, data->region, but);
-						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						ED_region_tag_redraw(data->region);
 					}
 				}
 				/* handle menu auto open timer */
@@ -3014,14 +3015,14 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 					if(!(but->flag & UI_SELECT)) {
 						but->flag |= UI_SELECT;
 						data->cancel= 0;
-						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						ED_region_tag_redraw(data->region);
 					}
 				}
 				else {
 					if(but->flag & UI_SELECT) {
 						but->flag &= ~UI_SELECT;
 						data->cancel= 1;
-						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						ED_region_tag_redraw(data->region);
 					}
 				}
 				break;

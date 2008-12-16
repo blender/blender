@@ -332,7 +332,7 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);	
 	
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 }
 
 
@@ -374,7 +374,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case RIGHTMOUSE:
 			if(WM_modal_tweak_check(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
-				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+				ED_area_tag_redraw(C->area);
 				return OPERATOR_FINISHED;
 			}
 			
@@ -451,7 +451,7 @@ XXX					else if (mm->slink->spacetype == SPACE_ACTION) {
 					}
 				}
 				
-				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+				ED_area_tag_redraw(C->area);
 				// headerprint(str); XXX
 			}
 	}
@@ -619,7 +619,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 		select_timeline_marker_frame(cfra, 0);
 	
 	/* XXX notifier for markers... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 
 	return OPERATOR_PASS_THROUGH;
 }
@@ -713,7 +713,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* XXX notifier for markers... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 
 	return 1;
 }
@@ -767,7 +767,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* XXX notifier for markers... */
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 
 	return OPERATOR_FINISHED;
 }
@@ -815,7 +815,7 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 	
 	/* XXX notifier for markers... */
 	if(changed)
-		WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+		ED_area_tag_redraw(C->area);
 
 	return OPERATOR_FINISHED;
 }

@@ -1526,7 +1526,7 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 	if (y) *y = (v2d->mask.ymax - v2d->mask.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 }
 
-
+/* called by notifier WM_NOTE_TIMELINE_SYNC */
 void UI_view2d_sync(View2D *v2d, View2D *v2dfrom, int flag)
 {
 	

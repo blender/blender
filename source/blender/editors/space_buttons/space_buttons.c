@@ -158,7 +158,7 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	// SpaceButs *sbuts= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
-	float col[3];
+	float col[3], fac;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -167,6 +167,11 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	
 	UI_view2d_view_ortho(C, v2d);
 		
+	/* swapbuffers indicator */
+	fac= BLI_frand();
+	glColor3f(fac, fac, fac);
+	glRecti(20,  2,  30,  12);
+	
 	/* data... */
 	
 	

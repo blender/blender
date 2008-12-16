@@ -355,7 +355,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ED_region_init(C, ar);
 	
 	/* notify change and redraw */
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	ED_region_tag_redraw(ar);
 
 	return ar;
 }
@@ -671,7 +671,7 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	wm_subwindow_getmatrix(C->window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	ED_region_tag_redraw(ar);
 
 	return handle;
 }

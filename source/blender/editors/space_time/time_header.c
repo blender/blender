@@ -162,7 +162,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 					v2d->cur.xmin=v2d->tot.xmin= (float)first-2;
 				v2d->cur.xmax=v2d->tot.xmax= (float)C->scene->r.efra+2;
 			
-				WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+				ED_area_tag_redraw(C->area);
 			}
 			break;
 		case 4: /* Maximize Window */
@@ -170,7 +170,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 5:	/* show time or frames */
 			stime->flag ^= TIME_DRAWFRAMES;
-			WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+			ED_area_tag_redraw(C->area);
 			break;
 		case 6:
 			//nextprev_marker(1);
@@ -191,12 +191,12 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			if(v2d) {
 				v2d->flag ^= V2D_VIEWSYNC_X;
 				if(v2d->flag & V2D_VIEWSYNC_X)
-					WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, 0, v2d);	/* XXX can notifier be called after data free? */
+					WM_event_add_notifier(C, WM_NOTE_TIMELINE_SYNC, V2D_LOCK_SET, v2d);
 			}
 			break;
 		case 12: /* only show keyframes from selected data */
 			stime->flag ^= TIME_ONLYACTSEL;
-			WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+			ED_area_tag_redraw(C->area);
 			break;
 	}
 }

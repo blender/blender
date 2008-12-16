@@ -108,11 +108,9 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	/* generic notes first */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:
-		case WM_NOTE_AREA_REDRAW:
-		case WM_NOTE_REGION_REDRAW:
 		case WM_NOTE_GESTURE_REDRAW:
 		case WM_NOTE_SCREEN_CHANGED:
-			ar->do_draw= 1;
+			ED_region_tag_redraw(ar);
 			break;
 		default:
 			if(ar->type->listener)
@@ -174,6 +172,26 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	
 	ar->do_draw= 0;
 }
+
+/* **********************************
+   maybe silly, but let's try for now
+   to keep do_draw tags protected
+   ********************************** */
+
+void ED_region_tag_redraw(ARegion *ar)
+{
+	ar->do_draw= 1;
+}
+
+void ED_area_tag_redraw(ScrArea *sa)
+{
+	ARegion *ar;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		ar->do_draw= 1;
+}
+
+
 
 /* *************************************************************** */
 
@@ -489,7 +507,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 /* *********** Space switching code, local now *********** */
 /* XXX make operator for this */
 
-static void newspace(bContext *C, ScrArea *sa, int type)
+static void area_newspace(bContext *C, ScrArea *sa, int type)
 {
 	if(sa->spacetype != type) {
 		SpaceType *st;
@@ -538,10 +556,10 @@ static void newspace(bContext *C, ScrArea *sa, int type)
 				slold->regionbase= sa->regionbase;
 				sa->regionbase= sl->regionbase;
 				sl->regionbase.first= sl->regionbase.last= NULL;
-				
-				ED_area_initialize(C->wm, C->window, sa);
 			}
 		}
+		
+		ED_area_initialize(C->wm, C->window, sa);
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
@@ -588,8 +606,8 @@ static char *windowtype_pup(void)
 
 static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
-	newspace(C, C->area, C->area->butspacetype);
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	area_newspace(C, C->area, C->area->butspacetype);
+	ED_area_tag_redraw(C->area);
 }
 
 /* returns offset for next button in header */

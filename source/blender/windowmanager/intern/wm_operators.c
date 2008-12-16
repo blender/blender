@@ -201,7 +201,7 @@ static void border_select_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	
 }
 
@@ -284,7 +284,7 @@ static void tweak_gesture_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	WM_event_add_notifier(C, WM_NOTE_AREA_REDRAW, 0, NULL);
+	ED_area_tag_redraw(C->area);
 	
 }
 
