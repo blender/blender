@@ -716,7 +716,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float dx, dy;
 			
 			/* calculate new delta transform, based on zooming mode */
-			if (U.viewzoom == USER_ZOOM_SCALE) { // XXX store this setting as RNA prop?
+			if (U.viewzoom == USER_ZOOM_SCALE) {
 				/* 'scale' zooming */
 				float dist;
 				

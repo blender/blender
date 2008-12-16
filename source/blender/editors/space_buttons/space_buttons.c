@@ -77,7 +77,6 @@ static SpaceLink *buttons_new(void)
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for buts");
@@ -102,6 +101,7 @@ static SpaceLink *buttons_new(void)
 	sbuts->v2d.maxzoom= 1.21f;
 	
 	sbuts->v2d.scroll= 0;  // TODO: will we need scrollbars?
+	sbuts->v2d.align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
 	sbuts->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 	sbuts->v2d.keeptot= 1;
 	sbuts->v2d.cur= sbuts->v2d.tot;
@@ -146,7 +146,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
@@ -189,7 +189,7 @@ void buttons_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void buttons_header_area_draw(const bContext *C, ARegion *ar)

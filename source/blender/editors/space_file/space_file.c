@@ -81,7 +81,6 @@ static SpaceLink *file_new(void)
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for file");
@@ -132,7 +131,7 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);	/* XXX weak? */
@@ -175,7 +174,7 @@ void file_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void file_header_area_draw(const bContext *C, ARegion *ar)
@@ -233,7 +232,6 @@ void ED_spacetype_file(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= file_header_area_init;
@@ -244,7 +242,6 @@ void ED_spacetype_file(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 //	art->init= file_channel_area_init;

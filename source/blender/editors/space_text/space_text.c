@@ -78,7 +78,6 @@ static SpaceLink *text_new(void)
 	BLI_addtail(&stext->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for text");
@@ -123,7 +122,7 @@ static void text_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_VIEWCANVAS, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Text", SPACE_TEXT, 0);	/* XXX weak? */
@@ -174,7 +173,7 @@ static void text_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void text_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void text_header_area_draw(const bContext *C, ARegion *ar)

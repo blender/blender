@@ -77,7 +77,6 @@ static SpaceLink *nla_new(void)
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for nla");
@@ -149,7 +148,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "NLA", SPACE_NLA, 0);	/* XXX weak? */
@@ -192,7 +191,7 @@ void nla_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void nla_header_area_draw(const bContext *C, ARegion *ar)
@@ -261,11 +260,11 @@ void ED_spacetype_nla(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
+	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-//	art->init= nla_channel_area_init;
-//	art->draw= nla_channel_area_draw;
+	//art->init= nla_channel_area_init;
+	//art->draw= nla_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

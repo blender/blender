@@ -77,7 +77,6 @@ static SpaceLink *script_new(void)
 	BLI_addtail(&sscript->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for script");
@@ -130,7 +129,7 @@ static void script_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_VIEWCANVAS, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Script", SPACE_SCRIPT, 0);	/* XXX weak? */
@@ -173,7 +172,7 @@ void script_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void script_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void script_header_area_draw(const bContext *C, ARegion *ar)

@@ -44,10 +44,14 @@
 enum {
 		/* custom view type (region has defined all necessary flags already) */
 	V2D_COMMONVIEW_CUSTOM = 0,
+		/* view canvas ('standard' view, view limits/restrictions still need to be set first!) */
+	V2D_COMMONVIEW_VIEWCANVAS,
 		/* listview (i.e. Outliner) */
 	V2D_COMMONVIEW_LIST,
 		/* headers (this is basically the same as listview, but no y-panning) */
 	V2D_COMMONVIEW_HEADER,
+		/* timegrid (this sets the settings for x/horizontal, but y/vertical settings still need to be set first!) */
+	V2D_COMMONVIEW_TIMELINE,
 } eView2D_CommonViewTypes;
 
 /* ---- Defines for Scroller/Grid Arguments ----- */
@@ -125,10 +129,7 @@ typedef struct View2DScrollers View2DScrollers;
 /* Prototypes:						    */
 
 /* refresh and validation (of view rects) */
-void UI_view2d_regiondata_init(struct View2D *v2d, short type, int winx, int winy);
-void UI_view2d_header_default(struct View2D *v2d);
-
-void UI_view2d_size_update(struct View2D *v2d, int winx, int winy);
+void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy);
 
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);

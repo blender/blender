@@ -57,32 +57,18 @@
 /* *********************************************************************** */
 /* Refresh and Validation */
 
-/* Initialise all View2D data for a given region */
-// eView2D_CommonViewTypes <--- only check handle these types...
-void UI_view2d_regiondata_init(View2D *v2d, short type, int winx, int winy)
-{
-	
-}
-
-
-/* allowing horizontal pan */
-// XXX this should become one of 'standard' setups...
-void UI_view2d_header_default(View2D *v2d)
-{
-	v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
-	v2d->keepofs = V2D_LOCKOFS_Y;
-	v2d->keeptot = 2; // this keeps the view in place when region size changes...
-	v2d->align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
-	
-}
-
-/* Adjust mask size in response to view size changes 
- *	- This should only be called in region init() callbacks, which are
- * 	  called when the region is resized or area changes...
+/* Initialise all relevant View2D data (including view rects if first time) and/or refresh mask sizes after view resize
+ *	- for some of these presets, it is expected that the region will have defined some
+ * 	  additional settings necessary for the customisation of the 2D viewport to its requirements
+ *	- this function should only be called from region init() callbacks, where it is expected that
+ *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialised. 
  */
-// XXX pre2.5 -> this used to be called  calc_scrollrcts()
-void UI_view2d_size_update(View2D *v2d, int winx, int winy)
+// eView2D_CommonViewTypes <--- only check handle these types...
+void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
+	short tot_changed= 0;
+	
+	/* store view size */
 	v2d->winx= winx;
 	v2d->winy= winy;
 	
@@ -138,22 +124,96 @@ void UI_view2d_size_update(View2D *v2d, int winx, int winy)
 		}
 	}
 	
-	/* cope with unitialized veriables for simple cases, like header or outliner */
-	// XXX er... this shouldn't be here??? or at least some extra checks are needed for some things...
-	if ((v2d->tot.xmin==v2d->tot.xmax) || (v2d->cur.xmin==v2d->cur.xmax)) {
-		if (v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y)) {
-			BLI_init_rctf(&v2d->tot, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
-			BLI_init_rctf(&v2d->cur, v2d->mask.xmin, v2d->mask.xmax, v2d->mask.ymin, v2d->mask.ymax);
+	/* initialise data if there is a need for such */
+	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
+		v2d->flag |= V2D_IS_INITIALISED;
+		
+		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+		switch (type) {
+			/* 'standard view' - from (0,0) to (winx,winy), with other restrictions defined by region already */
+			case V2D_COMMONVIEW_VIEWCANVAS: 
+			{
+				/* just set 'tot' rect alignment restictions for now */
+				v2d->align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
+				tot_changed= 1;
+				
+				// XXX... should we set min/max here too? probably not essential yet
+			}
+				break;
 			
-			v2d->min[0]= v2d->max[0]= winx;
-			v2d->min[1]= v2d->max[1]= winy;
-			v2d->minzoom= 1.0f;
-			v2d->maxzoom= 1.0f;
+			/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
+			case V2D_COMMONVIEW_LIST:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* scroller settings are currently not set here... that is left for regions... */
+			}
+				break;
+				
+			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
+			case V2D_COMMONVIEW_HEADER:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				v2d->min[0]= v2d->max[0]= winx;
+				v2d->min[1]= v2d->max[1]= winy;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* panning in y-axis is prohibited */
+				v2d->keepofs= V2D_LOCKOFS_Y;
+				
+				/* absolutely no scrollers allowed */
+				v2d->scroll= 0;
+			}
+				break;
+				
+			/* 'timeline/animeditors' - only set x-axis settings (y axis settings have already been set by regions, so don't overwrite! */
+			case V2D_COMMONVIEW_TIMELINE:
+			{
+				/* zoom on x-axis is free, but zoom factors are usually standard */
+				v2d->minzoom= 0.5f;
+				v2d->maxzoom= 10.0f;
+				
+				/* size limits on x-axis are also standard */
+				v2d->min[0]= 0.0f; // XXX... would 1.0f be better?
+				v2d->max[0]= MAXFRAMEF;
+				
+				/* scrollers for x-axis must be shown, and with scales */
+				v2d->scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+				
+				/* 'tot' rect x-axis size */
+				v2d->tot.xmin= (float)(SFRA - 10);
+				v2d->tot.xmax= (float)(EFRA + 10);
+				v2d->cur.xmin= v2d->mask.xmin;
+				v2d->cur.xmax= v2d->mask.xmax;
+				tot_changed= 0; // er..
+			}
+				break;
+				
+			/* other view types are completely defined using their own settings already */
+			default:
+				/* we don't do anything here, as settings should be fine, but just make sure that rect */
+				break;	
 		}
 	}
 	
-	/* make sure that 'cur' rect is in a valid state as a result of these changes */
-	UI_view2d_curRect_validate(v2d);
+	/* set 'tot' rect before setting cur? */
+	if (tot_changed) 
+		UI_view2d_totRect_set(v2d, winx, winy);
+	else
+		UI_view2d_curRect_validate(v2d);
 }
 
 /* Ensure View2D rects remain in a viable configuration 
@@ -254,7 +314,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		do_win= do_y;
 		
 		if (do_cur) {
-			if ((v2d->keeptot == 2) && (winx != v2d->oldwinx)) {
+			if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {
 				/* special exception for Outliner (and later channel-lists):
 				 * 	- The view may be moved left to avoid contents being pushed out of view when view shrinks. 
 				 *	- The keeptot code will make sure cur->xmin will not be less than tot->xmin (which cannot be allowed)
@@ -321,8 +381,8 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
 			if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
 		}
-		else if (v2d->keeptot == 2) {
-			/* This is an exception for the outliner (and later channel-lists) 
+		else if (v2d->keeptot == V2D_KEEPTOT_STRICT) {
+			/* This is an exception for the outliner (and later channel-lists, headers) 
 			 *	- must clamp within tot rect (absolutely no excuses)
 			 *	--> therefore, cur->xmin must not be less than tot->xmin
 			 */
@@ -441,7 +501,9 @@ void UI_view2d_curRect_validate(View2D *v2d)
 
 /* ------------------ */
 
-/* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) */
+/* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) 
+ * This does not take into account if zooming the view on an axis will improve the view (if allowed)
+ */
 void UI_view2d_curRect_reset (View2D *v2d)
 {
 	float width, height;
@@ -949,9 +1011,6 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	/* return scrollers */
 	return scrollers;
 }
-
-/* XXX */
-extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 /* Print scale marking along a time scrollbar */
 static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float val, int power, short unit, char dir)

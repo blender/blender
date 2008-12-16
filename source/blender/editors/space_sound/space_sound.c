@@ -77,7 +77,6 @@ static SpaceLink *sound_new(void)
 	BLI_addtail(&ssound->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for sound");
@@ -108,6 +107,7 @@ static SpaceLink *sound_new(void)
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT);
 	ar->v2d.keepzoom= 0;
 	ar->v2d.keeptot= 0;
+	ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
 	
 	
 	return (SpaceLink *)ssound;
@@ -144,7 +144,7 @@ static void sound_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Sound", SPACE_SOUND, 0);	/* XXX weak? */
@@ -187,7 +187,7 @@ void sound_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void sound_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void sound_header_area_draw(const bContext *C, ARegion *ar)

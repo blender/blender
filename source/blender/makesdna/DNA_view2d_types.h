@@ -93,7 +93,7 @@ typedef struct View2D {
 	/* within region view2d vertical locking */
 #define V2D_VIEWSYNC_Y		(1<<1)
 	/* view settings need to be set still... */
-#define V2D_NEEDS_INIT		(1<<10)
+#define V2D_IS_INITIALISED		(1<<10)
 
 /* scroller flags for View2D (v2d->scroll) */
 	/* left scrollbar */

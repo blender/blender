@@ -5061,7 +5061,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	/* is copy from ui_view2d.c */
 	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
-	ar->v2d.keeptot = 2; // this keeps the view in place when region size changes...
+	ar->v2d.keeptot = V2D_KEEPTOT_STRICT; 
 	ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
 	
 }
@@ -5116,7 +5116,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM_O);
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT);
-				ar->v2d.keeptot = 2;
+				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 			}
 				break;
 			case SPACE_TIME:
@@ -5130,6 +5131,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
 				ar->v2d.tot.ymin= ar->v2d.cur.ymin= -10.0;
 				ar->v2d.min[1]= ar->v2d.max[1]= 20.0;
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 			}
 				break;
 			case SPACE_IPO:
@@ -5139,6 +5141,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_SOUND:
@@ -5148,6 +5151,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT);
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_NLA:
@@ -5157,6 +5161,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_ACTION:
@@ -5166,6 +5171,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_SEQ:
@@ -5175,12 +5181,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_NODE:
 			{
 				SpaceNode *snode= (SpaceNode *)sl;
 				memcpy(&ar->v2d, &snode->v2d, sizeof(View2D));
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_BUTS:
@@ -5188,6 +5196,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
 				ar->v2d.keepzoom |= V2D_KEEPASPECT;
+				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 				//case SPACE_XXX: // FIXME... add other ones

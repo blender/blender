@@ -101,7 +101,6 @@ static SpaceLink *view3d_new(void)
 	BLI_addtail(&vd->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");
@@ -202,7 +201,7 @@ static void view3d_main_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void view3d_header_area_draw(const bContext *C, ARegion *ar)

@@ -109,7 +109,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);	/* XXX weak? */
@@ -178,7 +178,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void time_header_area_draw(const bContext *C, ARegion *ar)
@@ -223,7 +223,6 @@ static SpaceLink *time_new(void)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for time");
@@ -231,26 +230,18 @@ static SpaceLink *time_new(void)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= -4.0;
-	ar->v2d.tot.ymin= 0.0;
-	ar->v2d.tot.xmax= (float)EFRA + 4.0;
-	ar->v2d.tot.ymax= 50.0;
+		/* only need to set y-locks for view2d of main area, 
+		 * as the rest is taken care of by View2D preset for TimeGrids 
+		 */
+	ar->v2d.min[1]= 20.0;
+	ar->v2d.max[1]= 20.0; 
 	
-	ar->v2d.cur= ar->v2d.tot;
+	ar->v2d.cur.ymin= ar->v2d.tot.ymin= 0.0f;
+	ar->v2d.cur.ymax= ar->v2d.tot.ymax= 20.0f;
 
-	ar->v2d.min[0]= 1.0;
-	ar->v2d.min[1]= 50.0;
-
-	ar->v2d.max[0]= 32000.0;
-	ar->v2d.max[1]= 50.0; 
-
-	ar->v2d.minzoom= 0.1f;
-	ar->v2d.maxzoom= 10.0;
-
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-	ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
-	ar->v2d.keepofs |= V2D_LOCKOFS_Y;
-	ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
+	ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
+	ar->v2d.keepofs = V2D_LOCKOFS_Y;
+	ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
 
 	return (SpaceLink*)stime;
 }

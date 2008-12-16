@@ -79,7 +79,6 @@ static SpaceLink *action_new(void)
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	UI_view2d_header_default(&ar->v2d);
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for action");
@@ -92,23 +91,13 @@ static SpaceLink *action_new(void)
 	ar->v2d.tot.xmax= 1000.0f;
 	ar->v2d.tot.ymax= 0.0f;
 	
-	ar->v2d.cur.xmin= -5.0f;
-	ar->v2d.cur.ymin= -75.0f;
-	ar->v2d.cur.xmax= 65.0f;
-	ar->v2d.cur.ymax= 5.0f;
-	
-	ar->v2d.min[0]= 0.0f;
 	ar->v2d.min[1]= 0.0f;
-	
-	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= 1000.0f;
 	
-	ar->v2d.minzoom= 0.01f;
-	ar->v2d.maxzoom= 50;
+	ar->v2d.scroll = V2D_SCROLL_RIGHT;
 	
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-	saction->v2d.keepzoom= V2D_LOCKZOOM_Y;
+	ar->v2d.align= saction->v2d.align= V2D_ALIGN_NO_POS_Y;
+	ar->v2d.keepzoom= saction->v2d.keepzoom= V2D_LOCKZOOM_Y;
 	
 	/* channel list region XXX */
 	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
@@ -150,7 +139,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Action", SPACE_ACTION, 0);	/* XXX weak? */
@@ -193,7 +182,7 @@ void action_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_size_update(&ar->v2d, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 
 static void action_header_area_draw(const bContext *C, ARegion *ar)
@@ -262,11 +251,11 @@ void ED_spacetype_action(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
+	art->minsizex = 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-//	art->init= action_channel_area_init;
-//	art->draw= action_channel_area_draw;
+	//art->init= action_channel_area_init;
+	//art->draw= action_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
