@@ -32,7 +32,8 @@
 typedef struct AZone {
 	struct AZone *next, *prev;
 	int type;
-	int flag;
+	short flag;
+	short do_draw;
 	int pos;
 	short x1, y1, x2, y2;
 } AZone;
@@ -40,6 +41,8 @@ typedef struct AZone {
 /* actionzone type */
 #define	AZONE_TRI			1
 #define AZONE_QUAD			2
+
+/* actionzone flag */
 
 /* actionzone pos */
 #define AZONE_S				1

@@ -104,7 +104,6 @@ void ED_region_pixelspace(const bContext *C, ARegion *ar)
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
-
 	/* generic notes first */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:
@@ -118,24 +117,54 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	}
 }
 
-/* only internal decoration, AZone for now */
-void ED_area_do_draw(bContext *C, ScrArea *sa)
+/* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
+void ED_area_overdraw_flush(bContext *C)
 {
-	AZone *az;
+	ScrArea *sa;
 	
-	/* hrmf, screenspace for zones */
-	wm_subwindow_set(C->window, C->window->screen->mainwin);
-	
-	/* temporary viz for 'action corner' */
-	for(az= sa->actionzones.first; az; az= az->next) {
+	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+		ARegion *ar;
 		
-		glEnable( GL_BLEND );
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glColor4ub(0, 0, 0, 80);
-		if(az->type==AZONE_TRI) sdrawtrifill(az->x1, az->y1, az->x2, az->y2);
-		//if(az->type==AZONE_TRI) sdrawtri(az->x1, az->y1, az->x2, az->y2);
-		glDisable( GL_BLEND );
-	}
+		for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->do_draw) {
+				AZone *az;
+				
+				for(az= sa->actionzones.first; az; az= az->next) {
+					int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
+		
+					/* test if inside */
+					if(BLI_in_rcti(&ar->winrct, xs, ys)) {
+						az->do_draw= 1;
+					}
+				}
+			}
+		}
+	}	
+}
+
+void ED_area_overdraw(bContext *C)
+{
+	ScrArea *sa;
+	
+	/* Draw AZones, in screenspace */
+	wm_subwindow_set(C->window, C->window->screen->mainwin);
+
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	
+	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+		AZone *az;
+		for(az= sa->actionzones.first; az; az= az->next) {
+			if(az->do_draw) {
+				if(az->type==AZONE_TRI) {
+					glColor4ub(0, 0, 0, 70);
+					sdrawtrifill(az->x1, az->y1, az->x2, az->y2);
+				}
+				az->do_draw= 0;
+			}
+		}
+	}	
+	glDisable( GL_BLEND );
 	
 }
 
@@ -180,15 +209,17 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 void ED_region_tag_redraw(ARegion *ar)
 {
-	ar->do_draw= 1;
+	if(ar)
+		ar->do_draw= 1;
 }
 
 void ED_area_tag_redraw(ScrArea *sa)
 {
 	ARegion *ar;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		ar->do_draw= 1;
+	if(sa)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			ar->do_draw= 1;
 }
 
 
@@ -327,6 +358,7 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	sa->winx= sa->totrct.xmax-sa->totrct.xmin+1;
 	sa->winy= sa->totrct.ymax-sa->totrct.ymin+1;
 }
+
 
 #define AZONESPOT		12
 void area_azone_initialize(ScrArea *sa) 

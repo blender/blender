@@ -293,6 +293,12 @@ static void ipo_header_area_draw(const bContext *C, ARegion *ar)
 static void ipo_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
+	switch(wmn->type) {
+		
+		case WM_NOTE_MARKERS_CHANGED:
+			ED_region_tag_redraw(ar);
+			break;
+	}
 }
 
 /* only called once, from space/spacetypes.c */
@@ -316,7 +322,7 @@ void ED_spacetype_ipo(void)
 	art->init= ipo_main_area_init;
 	art->draw= ipo_main_area_draw;
 	art->listener= ipo_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS;
 
 	BLI_addhead(&st->regiontypes, art);
 	

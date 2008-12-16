@@ -54,11 +54,13 @@ void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 struct	ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
 int		ED_area_header_standardbuttons(const bContext *C, struct uiBlock *block, int yco);
+void	ED_area_overdraw(struct bContext *C);
+void	ED_area_overdraw_flush(struct bContext *C);
+
 
 /* areas */
 void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
 void	ED_area_exit(struct bContext *C, struct ScrArea *sa);
-void	ED_area_do_draw(struct bContext *C, struct ScrArea *sa);
 int		ED_screen_area_active(const struct bContext *C);
 void	ED_area_tag_redraw(ScrArea *sa);
 

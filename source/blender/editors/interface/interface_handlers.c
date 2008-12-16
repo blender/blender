@@ -2880,13 +2880,13 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	if(data->origstr)
 		MEM_freeN(data->origstr);
 
+	/* redraw (data is but->active!) */
+	ED_region_tag_redraw(data->region);
+	
 	/* clean up button */
 	MEM_freeN(but->active);
 	but->active= NULL;
 	but->flag &= ~(UI_ACTIVE|UI_SELECT);
-
-	/* redraw */
-	ED_region_tag_redraw(data->region);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is
 	 * still over a button. we cannot just check for this ourselfs because

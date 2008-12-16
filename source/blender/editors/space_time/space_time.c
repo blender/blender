@@ -162,8 +162,11 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	
 	switch(wmn->type) {
+		
+		case WM_NOTE_MARKERS_CHANGED:
+			ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

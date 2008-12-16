@@ -218,8 +218,8 @@ void time_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_TIME_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_TIME_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
 	
-
 	/* markers (XXX move to function?) */
+	keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 	WM_keymap_verify_item(keymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);

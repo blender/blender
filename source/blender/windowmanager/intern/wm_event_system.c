@@ -101,15 +101,8 @@ void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 	BLI_addtail(&C->wm->queue, note);
 	
 	note->window= C->window;
-
-	/* catch local notifications here */
-	switch (type) {
-		case WM_NOTE_GESTURE_REDRAW:
-			if(C->region) 
-				note->swinid= C->region->swinid;
-		break;
-	}
-	
+	if(C->region)
+		note->swinid= C->region->swinid;
 	note->type= type;
 	note->value= value;
 	note->data= data;
@@ -136,7 +129,7 @@ void wm_event_do_notifiers(bContext *C)
 			ARegion *ar;
 
 			C->window= win;
-			C->screen= win->screen;
+			C->screen= win->screen;	/* XXX context in notifiers? */
 			
 			if(note->window && note->window!=win)
 				continue;
@@ -147,27 +140,13 @@ void wm_event_do_notifiers(bContext *C)
 			ED_screen_do_listen(win, note);
 
 			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-				if(note->swinid && note->swinid!=ar->swinid)
-					continue;
-
-				C->region= ar;
 				ED_region_do_listen(ar, note);
-				C->region= NULL;
 			}
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				C->area= sa;
-
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
-					if(note->swinid && note->swinid!=ar->swinid)
-						continue;
-
-					C->region= ar;
 					ED_region_do_listen(ar, note);
-					C->region= NULL;
 				}
-
-				C->area= NULL;
 			}
 
 			C->window= NULL;
@@ -178,7 +157,8 @@ void wm_event_do_notifiers(bContext *C)
 	}	
 }
 
-static void wm_flush_draw_updates(bScreen *screen, rcti *dirty)
+/* mark regions to redraw if overlapped with rect */
+static void wm_flush_regions(bScreen *screen, rcti *dirty)
 {
 	ScrArea *sa;
 	ARegion *ar;
@@ -191,19 +171,28 @@ static void wm_flush_draw_updates(bScreen *screen, rcti *dirty)
 	}
 }
 
+/* all the overlay management, menus, actionzones, region tabs, etc */
+static void wm_flush_draw_update(bContext *C)
+{
+	ARegion *ar;
+	
+	/* flush redraws of screen regions (menus) down */
+	for(ar= C->screen->regionbase.first; ar; ar= ar->next) {
+		if(ar->swinid && ar->do_draw) {
+			wm_flush_regions(C->screen, &ar->winrct);
+		}
+	}
+	
+	/* sets redraws for Azones, future region tabs, etc */
+	ED_area_overdraw_flush(C);
+}
+
 /* quick test to prevent changing window drawable */
 static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
 	
-	/* flush */
-	for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-		if(ar->swinid && ar->do_draw) {
-			wm_flush_draw_updates(win->screen, &ar->winrct);
-		}
-	}
-
 	if(win->screen->do_refresh)
 		return 1;
 	if(win->screen->do_draw)
@@ -211,12 +200,15 @@ static int wm_draw_update_test_window(wmWindow *win)
 	if(win->screen->do_gesture)
 		return 1;
 	
-	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-		for(ar=sa->regionbase.first; ar; ar= ar->next) {
+	for(ar= win->screen->regionbase.first; ar; ar= ar->next)
+		if(ar->swinid && ar->do_draw)
+			return 1;
+		
+	for(sa= win->screen->areabase.first; sa; sa= sa->next)
+		for(ar=sa->regionbase.first; ar; ar= ar->next)
 			if(ar->swinid && ar->do_draw)
 				return 1;
-		}
-	}
+
 	return 0;
 }
 
@@ -238,25 +230,22 @@ void wm_draw_update(bContext *C)
 			/* notifiers for screen redraw */
 			if(win->screen->do_refresh)
 				ED_screen_refresh(C->wm, win);
+			
+			/* flush draw updates for multiple layers */
+			wm_flush_draw_update(C);
 
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-				int area_do_draw= 0;
 				
 				C->area= sa;
 				
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
 					C->region= ar;
 					
-					if(ar->swinid && ar->do_draw) {
+					if(ar->swinid && ar->do_draw)
 						ED_region_do_draw(C, ar);
-						area_do_draw= 1;
-					}
 					
 					C->region= NULL;
 				}
-				/* only internal decoration, like AZone */
-				if(area_do_draw)
-					ED_area_do_draw(C, sa);
 				
 				C->area = NULL;
 			}
@@ -264,6 +253,8 @@ void wm_draw_update(bContext *C)
 			/* move this here so we can do area 'overlay' drawing */
 			if(win->screen->do_draw)
 				ED_screen_draw(win);
+			
+			ED_area_overdraw(C);
 
 			/* regions are menus here */
 			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
