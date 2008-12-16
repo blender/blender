@@ -115,8 +115,9 @@ if toolset:
 		env.Tool('mstoolkit', ['tools'])
 	else:
 		env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
-		if env:
-			btools.SetupSpawn(env)
+		# xxx commented out, as was supressing warnings under mingw..
+		#if env:
+		#	btools.SetupSpawn(env)
 else:
 	env = BlenderEnvironment(ENV = os.environ)
 
