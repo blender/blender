@@ -1052,7 +1052,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	C->window= prevwin;
 }
 
-/* case when on area-edge or in azones */
+/* case when on area-edge or in azones, or outside window */
 static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {
 	ScrArea *sa;
@@ -1067,11 +1067,14 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 	else {
 		ScrEdge *actedge= screen_find_active_scredge(win->screen, event->x, event->y);
 		
-		if (actedge && scredge_is_horizontal(actedge)) {
-			WM_cursor_set(win, CURSOR_Y_MOVE);
-		} else {
-			WM_cursor_set(win, CURSOR_X_MOVE);
+		if (actedge) {
+			if(scredge_is_horizontal(actedge))
+				WM_cursor_set(win, CURSOR_Y_MOVE);
+			else
+				WM_cursor_set(win, CURSOR_X_MOVE);
 		}
+		else
+			WM_cursor_set(win, CURSOR_STD);
 	} 
 }
 

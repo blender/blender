@@ -130,11 +130,6 @@ void wm_event_do_notifiers(bContext *C)
 
 			C->window= win;
 			C->screen= win->screen;	/* XXX context in notifiers? */
-			
-			if(note->window && note->window!=win)
-				continue;
-			if(win->screen==NULL)
-				continue;
 
 			/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
 			ED_screen_do_listen(win, note);
