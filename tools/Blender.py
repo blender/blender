@@ -421,10 +421,6 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv = self.Clone()
 			lenv.Append(CPPPATH=includes)
 			lenv.Append(CPPDEFINES=defines)
-			if lenv['WITH_BF_GAMEENGINE']:
-					lenv.Append(CPPDEFINES=['GAMEBLENDER=1'])
-			if lenv['WITH_BF_BULLET']:
-					lenv.Append(CPPDEFINES=['WITH_BULLET=1'])
 			if lenv['BF_DEBUG'] or (libname in quickdebug):
 					lenv.Append(CFLAGS = lenv['BF_DEBUG_CFLAGS'])
 					lenv.Append(CCFLAGS = lenv['BF_DEBUG_CCFLAGS'])
