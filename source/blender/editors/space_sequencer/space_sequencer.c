@@ -148,7 +148,7 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);	/* XXX weak? */

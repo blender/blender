@@ -142,7 +142,7 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_VIEWCANVAS, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Node", SPACE_NODE, 0);	/* XXX weak? */
@@ -154,6 +154,7 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	// SpaceNode *snode= C->area->spacedata.first;
 	View2D *v2d= &ar->v2d;
+	//View2DGrid *grid;
 	float col[3];
 	
 	/* clear and setup matrix */
@@ -162,7 +163,14 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);
-		
+	
+#if 0
+	/* grid */
+	grid= UI_view2d_grid_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP, ar->winx, ar->winy);
+	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
+	UI_view2d_grid_free(grid);
+#endif
+	
 	/* data... */
 	
 	

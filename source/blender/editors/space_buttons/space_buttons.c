@@ -84,27 +84,29 @@ static SpaceLink *buttons_new(void)
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
+#if 0 // disabled, as this currently draws badly in new system
 	/* buts space goes from (0,0) to (1280, 228) */
+	ar->v2d.tot.xmin= 0.0f;
+	ar->v2d.tot.ymin= 0.0f;
+	ar->v2d.tot.xmax= 1279.0f;
+	ar->v2d.tot.ymax= 228.0f;
 	
-	sbuts->v2d.tot.xmin= 0.0f;
-	sbuts->v2d.tot.ymin= 0.0f;
-	sbuts->v2d.tot.xmax= 1279.0f;
-	sbuts->v2d.tot.ymax= 228.0f;
+	ar->v2d.cur= sbuts->v2d.tot;
 	
-	sbuts->v2d.min[0]= 256.0f;
-	sbuts->v2d.min[1]= 42.0f;
+	ar->v2d.min[0]= 256.0f;
+	ar->v2d.min[1]= 42.0f;
 	
-	sbuts->v2d.max[0]= 2048.0f;
-	sbuts->v2d.max[1]= 450.0f;
+	ar->v2d.max[0]= 2048.0f;
+	ar->v2d.max[1]= 450.0f;
 	
-	sbuts->v2d.minzoom= 0.5f;
-	sbuts->v2d.maxzoom= 1.21f;
+	ar->v2d.minzoom= 0.5f;
+	ar->v2d.maxzoom= 1.21f;
 	
-	sbuts->v2d.scroll= 0;  // TODO: will we need scrollbars?
-	sbuts->v2d.align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
-	sbuts->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
-	sbuts->v2d.keeptot= 1;
-	sbuts->v2d.cur= sbuts->v2d.tot;
+	ar->v2d.scroll= 0;  // TODO: will we need scrollbars?
+	ar->v2d.align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
+	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
+#endif	
 	
 	
 	return (SpaceLink *)sbuts;
@@ -146,7 +148,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */

@@ -113,7 +113,7 @@ static SpaceLink *nla_new(void)
 	BLI_addtail(&snla->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
 	ar->alignment= RGN_ALIGN_LEFT;
-				
+		
 	
 	return (SpaceLink *)snla;
 }
@@ -148,7 +148,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "NLA", SPACE_NLA, 0);	/* XXX weak? */

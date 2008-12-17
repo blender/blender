@@ -40,18 +40,20 @@
 /* generic value to use when coordinate lies out of view when converting */
 #define V2D_IS_CLIPPED	12000
 
-/* common View2D view types */
+/* Common View2D view types 
+ * NOTE: only define a type here if it completely sets all (+/- a few) of the relevant flags 
+ *	    and settings for a View2D region, and that set of settings is used in more
+ *	    than one specific place
+ */
 enum {
 		/* custom view type (region has defined all necessary flags already) */
-	V2D_COMMONVIEW_CUSTOM = 0,
-		/* view canvas ('standard' view, view limits/restrictions still need to be set first!) */
-	V2D_COMMONVIEW_VIEWCANVAS,
+	V2D_COMMONVIEW_CUSTOM = -1,
+		/* standard (only use this when setting up a new view, as a sensible base for most settings) */
+	V2D_COMMONVIEW_STANDARD,
 		/* listview (i.e. Outliner) */
 	V2D_COMMONVIEW_LIST,
 		/* headers (this is basically the same as listview, but no y-panning) */
 	V2D_COMMONVIEW_HEADER,
-		/* timegrid (this sets the settings for x/horizontal, but y/vertical settings still need to be set first!) */
-	V2D_COMMONVIEW_TIMELINE,
 } eView2D_CommonViewTypes;
 
 /* ---- Defines for Scroller/Grid Arguments ----- */

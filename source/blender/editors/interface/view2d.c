@@ -68,6 +68,88 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
 	
+	/* initialise data if there is a need for such */
+	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
+		/* set initialised flag so that View2D doesn't get reinitialised next time again */
+		v2d->flag |= V2D_IS_INITIALISED;
+		
+		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+		switch (type) {
+			/* 'standard view' - optimum setup for 'standard' view behaviour, that should be used new views as basis for their
+			 * 	own unique View2D settings, which should be used instead of this in most cases...
+			 */
+			case V2D_COMMONVIEW_STANDARD:
+			{
+				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->minzoom= 0.01f;
+				v2d->maxzoom= 1000.0f;
+				
+				/* tot rect and cur should be same size, and aligned using 'standard' OpenGL coordinates for now 
+				 *	- region can resize 'tot' later to fit other data
+				 *	- keeptot is only within bounds, as strict locking is not that critical
+				 *	- view is aligned for (0,0) -> (winx-1, winy-1) setup
+				 */
+				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
+				
+				v2d->tot.xmin= v2d->tot.ymin= 0.0f;
+				v2d->tot.xmax= (float)(winx - 1);
+				v2d->tot.ymax= (float)(winy - 1);
+				
+				v2d->cur= v2d->tot;
+				
+				/* scrollers - should we have these by default? */
+				// XXX for now, we don't override this, or set it either!
+			}
+				break;
+			
+			/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
+			case V2D_COMMONVIEW_LIST:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* scroller settings are currently not set here... that is left for regions... */
+			}
+				break;
+				
+			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
+			case V2D_COMMONVIEW_HEADER:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				v2d->min[0]= v2d->max[0]= winx;
+				v2d->min[1]= v2d->max[1]= winy;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* panning in y-axis is prohibited */
+				v2d->keepofs= V2D_LOCKOFS_Y;
+				
+				/* absolutely no scrollers allowed */
+				v2d->scroll= 0;
+			}
+				break;
+			
+			/* other view types are completely defined using their own settings already */
+			default:
+				/* we don't do anything here, as settings should be fine, but just make sure that rect */
+				break;	
+		}
+	}
+	
+	
 	/* store view size */
 	v2d->winx= winx;
 	v2d->winy= winy;
@@ -121,91 +203,6 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				/* on upper edge of region */
 				v2d->vert.ymax= v2d->mask.ymax;
 			}
-		}
-	}
-	
-	/* initialise data if there is a need for such */
-	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
-		v2d->flag |= V2D_IS_INITIALISED;
-		
-		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
-		switch (type) {
-			/* 'standard view' - from (0,0) to (winx,winy), with other restrictions defined by region already */
-			case V2D_COMMONVIEW_VIEWCANVAS: 
-			{
-				/* just set 'tot' rect alignment restictions for now */
-				v2d->align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
-				tot_changed= 1;
-				
-				// XXX... should we set min/max here too? probably not essential yet
-			}
-				break;
-			
-			/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
-			case V2D_COMMONVIEW_LIST:
-			{
-				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
-				v2d->minzoom= v2d->maxzoom= 1.0f;
-				
-				/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
-				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot = V2D_KEEPTOT_STRICT;
-				tot_changed= 1;
-				
-				/* scroller settings are currently not set here... that is left for regions... */
-			}
-				break;
-				
-			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
-			case V2D_COMMONVIEW_HEADER:
-			{
-				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
-				v2d->minzoom= v2d->maxzoom= 1.0f;
-				v2d->min[0]= v2d->max[0]= winx;
-				v2d->min[1]= v2d->max[1]= winy;
-				
-				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
-				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
-				v2d->keeptot = V2D_KEEPTOT_STRICT;
-				tot_changed= 1;
-				
-				/* panning in y-axis is prohibited */
-				v2d->keepofs= V2D_LOCKOFS_Y;
-				
-				/* absolutely no scrollers allowed */
-				v2d->scroll= 0;
-			}
-				break;
-				
-			/* 'timeline/animeditors' - only set x-axis settings (y axis settings have already been set by regions, so don't overwrite! */
-			case V2D_COMMONVIEW_TIMELINE:
-			{
-				/* zoom on x-axis is free, but zoom factors are usually standard */
-				v2d->minzoom= 0.5f;
-				v2d->maxzoom= 10.0f;
-				
-				/* size limits on x-axis are also standard */
-				v2d->min[0]= 0.0f; // XXX... would 1.0f be better?
-				v2d->max[0]= MAXFRAMEF;
-				
-				/* scrollers for x-axis must be shown, and with scales */
-				v2d->scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-				
-				/* 'tot' rect x-axis size */
-				v2d->tot.xmin= (float)(SFRA - 10);
-				v2d->tot.xmax= (float)(EFRA + 10);
-				v2d->cur.xmin= v2d->mask.xmin;
-				v2d->cur.xmax= v2d->mask.xmax;
-				tot_changed= 0; // er..
-			}
-				break;
-				
-			/* other view types are completely defined using their own settings already */
-			default:
-				/* we don't do anything here, as settings should be fine, but just make sure that rect */
-				break;	
 		}
 	}
 	

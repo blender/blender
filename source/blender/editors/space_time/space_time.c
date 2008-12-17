@@ -109,7 +109,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);	/* XXX weak? */
@@ -227,18 +227,27 @@ static SpaceLink *time_new(void)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-		/* only need to set y-locks for view2d of main area, 
-		 * as the rest is taken care of by View2D preset for TimeGrids 
-		 */
-	ar->v2d.min[1]= 20.0;
-	ar->v2d.max[1]= 20.0; 
+	ar->v2d.tot.xmin= (float)(SFRA - 4);
+	ar->v2d.tot.ymin= 0.0f;
+	ar->v2d.tot.xmax= (float)(EFRA + 4);
+	ar->v2d.tot.ymax= 50.0f;
 	
-	ar->v2d.cur.ymin= ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.cur.ymax= ar->v2d.tot.ymax= 20.0f;
+	ar->v2d.cur= ar->v2d.tot;
 
-	ar->v2d.align = V2D_ALIGN_NO_NEG_Y;
-	ar->v2d.keepofs = V2D_LOCKOFS_Y;
-	ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
+	ar->v2d.min[0]= 1.0f;
+	ar->v2d.min[1]= 50.0f;
+
+	ar->v2d.max[0]= MAXFRAMEF;
+	ar->v2d.max[1]= 50.0; 
+
+	ar->v2d.minzoom= 0.1f;
+	ar->v2d.maxzoom= 10.0;
+
+	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.align |= V2D_ALIGN_NO_NEG_Y;
+	ar->v2d.keepofs |= V2D_LOCKOFS_Y;
+	ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
+
 
 	return (SpaceLink*)stime;
 }

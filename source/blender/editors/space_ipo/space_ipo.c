@@ -104,7 +104,7 @@ static SpaceLink *ipo_new(void)
 	ar->v2d.min[1]= 0.01f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
-	ar->v2d.max[1]= 10000.0f;
+	ar->v2d.max[1]= 50000.0f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
@@ -194,7 +194,7 @@ static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_TIMELINE, ar->winx, ar->winy);
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Ipo", SPACE_IPO, 0);	/* XXX weak? */

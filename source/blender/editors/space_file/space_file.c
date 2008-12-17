@@ -232,6 +232,7 @@ void ED_spacetype_file(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_HEADER;
+	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= file_header_area_init;
@@ -242,6 +243,7 @@ void ED_spacetype_file(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
+	art->minsizex= 80;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 //	art->init= file_channel_area_init;

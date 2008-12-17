@@ -5196,7 +5196,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
 				ar->v2d.keepzoom |= V2D_KEEPASPECT;
-				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 				//case SPACE_XXX: // FIXME... add other ones
