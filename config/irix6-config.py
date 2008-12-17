@@ -146,7 +146,7 @@ WITH_BF_BINRELOC = 'false'
 WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
 # Uncomment the following two lines to use system's ffmpeg
 BF_FFMPEG = LCGDIR+'/ffmpeg'
-BF_FFMPEG_LIB = 'avformat avcodec swscale avutil faad faac vorbis x264 ogg mp3lame z'
+BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice faad faac vorbis x264 ogg mp3lame z'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 

@@ -21,7 +21,7 @@ BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 
 WITH_BF_FFMPEG = False
-BF_FFMPEG_LIB = 'avformat swscale avcodec avutil xvidcore x264'
+BF_FFMPEG_LIB = 'avformat swscale avcodec avutil avdevice xvidcore x264'
 BF_FFMPEG_LIBPATH = LIBDIR + '/gcc/ffmpeg/lib'
 BF_FFMPEG_INC =  LIBDIR + '/gcc/ffmpeg/include'
 
