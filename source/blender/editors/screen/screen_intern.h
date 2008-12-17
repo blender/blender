@@ -33,6 +33,7 @@ struct wmWindow;
 
 /* area.c */
 void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
+void		area_newspace(bContext *C, ScrArea *sa, int type);
 
 /* screen_edit.c */
 bScreen		*screen_add(struct wmWindow *win, char *name);
@@ -49,8 +50,10 @@ void		removenotused_scredges(bScreen *sc);
 int			scredge_is_horizontal(ScrEdge *se);
 ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
 
-AZone *is_in_area_actionzone(ScrArea *sa, int x, int y);
+AZone		*is_in_area_actionzone(ScrArea *sa, int x, int y);
 
+void		ed_screen_set(bContext *C, bScreen *sc);
+void		ed_screen_fullarea(bContext *C);
 
 #endif /* ED_SCREEN_INTERN_H */
 

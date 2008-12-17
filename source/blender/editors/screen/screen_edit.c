@@ -419,7 +419,7 @@ bScreen *screen_add(wmWindow *win, char *name)
 	screen_addedge(sc, sv4, sv1);
 	
 	/* dummy type, no spacedata */
-	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_INFO);
+	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_EMPTY);
 		
 	return sc;
 }
@@ -1042,6 +1042,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	ARegion *ar;
 
 	C->window= window;
+	
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
@@ -1155,7 +1156,7 @@ int ED_screen_area_active(const bContext *C)
 
 /* operator call, WM + Window + screen already existed before */
 /* Do NOT call in area/region queues! */
-void ED_screen_set(bContext *C, bScreen *sc)
+void ed_screen_set(bContext *C, bScreen *sc)
 {
 	
 	if(sc->full) {				/* find associated full */
@@ -1167,7 +1168,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 				break;
 			}
 		}
-		if(sc1==NULL) printf("setscreen error\n");
+		if(sc1==NULL) printf("set screen error\n");
 	}
 	
 	if (C->screen != sc) {
@@ -1178,5 +1179,78 @@ void ED_screen_set(bContext *C, bScreen *sc)
 		ED_screen_refresh(C->wm, C->window);
 		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	}
+}
+
+/* this function toggles: if area is full then the parent will be restored */
+void ed_screen_fullarea(bContext *C)
+{
+	bScreen *sc, *oldscreen;
+	ScrArea *newa, *old;
+	short fulltype;
+	
+	if(C->area->full) {
+		sc= C->area->full;		/* the old screen to restore */
+		oldscreen= C->screen;	/* the one disappearing */
+		
+		fulltype = sc->full;
+		
+		/* refuse to go out of SCREENAUTOPLAY as long as G_FLAGS_AUTOPLAY
+		   is set */
+		
+		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FILE_AUTOPLAY) == 0) {
+			sc->full= 0;
+			
+			/* find old area */
+			for(old= sc->areabase.first; old; old= old->next) 
+				if(old->full) break;
+			if(old==NULL) {
+				printf("something wrong in areafullscreen\n"); 
+				return;
+			}
+			    // old feature described below (ton)
+				// in autoplay screens the headers are disabled by 
+				// default. So use the old headertype instead
+			
+			area_copy_data(old, C->area, 1);	/*  1 = swap spacelist */
+			
+			old->full= NULL;
+			
+			ed_screen_set(C, sc);
+			
+			free_screen(oldscreen);
+			free_libblock(&G.main->screen, oldscreen);
+		}
+	}
+	else {
+		/* is there only 1 area? */
+		if(C->screen->areabase.first==C->screen->areabase.last) return;
+		if(C->area->spacetype==SPACE_INFO) return;
+		
+		C->screen->full = SCREENFULL;
+		
+		oldscreen= C->screen;
+		sc= screen_add(C->window, "temp");	/* sets C->window->screen! */
+		
+		/* returns the top small area */
+		newa= area_split(C->window, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
+		area_newspace(C, newa, SPACE_INFO);
+
+		/* copy area */
+		newa= newa->prev;
+		area_copy_data(newa, C->area, 1);	/* 1 = swap spacelist */
+
+		C->area->full= oldscreen;
+		newa->full= oldscreen;
+		newa->next->full= oldscreen;
+
+		C->screen= oldscreen;
+		ed_screen_set(C, sc);
+	}
+
+	/* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
+	C->area= sc->areabase.first;
+
+	/* XXX retopo_force_update(); */
+
 }
 

@@ -490,6 +490,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
+	sa1->butspacetype= sa2->butspacetype;
 	
 	if(swap_space) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
@@ -539,7 +540,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 /* *********** Space switching code, local now *********** */
 /* XXX make operator for this */
 
-static void area_newspace(bContext *C, ScrArea *sa, int type)
+void area_newspace(bContext *C, ScrArea *sa, int type)
 {
 	if(sa->spacetype != type) {
 		SpaceType *st;
@@ -585,7 +586,8 @@ static void area_newspace(bContext *C, ScrArea *sa, int type)
 				BLI_addhead(&sa->spacedata, sl);
 				
 				/* swap regions */
-				slold->regionbase= sa->regionbase;
+				if(slold)
+					slold->regionbase= sa->regionbase;
 				sa->regionbase= sl->regionbase;
 				sl->regionbase.first= sl->regionbase.last= NULL;
 			}
