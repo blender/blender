@@ -857,6 +857,49 @@ void ED_SCR_OT_frame_offset(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
 }
 
+/* ************** switch screen operator ***************************** */
+
+
+/* function to be called outside UI context, or for redo */
+static int screen_set_exec(bContext *C, wmOperator *op)
+{
+	bScreen *screen= C->screen;
+	int delta= RNA_int_get(op->ptr, "delta");
+	
+	if(delta==1) {
+		screen= screen->id.next;
+		if(screen==NULL) screen= G.main->screen.first;
+	}
+	else if(delta== -1) {
+		screen= screen->id.prev;
+		if(screen==NULL) screen= G.main->screen.last;
+	}
+	else {
+		screen= NULL;
+	}
+	
+	if(screen) {
+		ED_screen_set(C, screen);
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_CANCELLED;
+}
+
+void ED_SCR_OT_screen_set(wmOperatorType *ot)
+{
+	ot->name = "Set Screen";
+	ot->idname = "ED_SCR_OT_screen_set";
+	
+	ot->exec= screen_set_exec;
+	ot->poll= ED_operator_screenactive;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "screen", PROP_POINTER, PROP_NONE);
+	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+}
+
+
+
 /* ************** join area operator ********************************************** */
 
 /* operator state vars used:  
@@ -1312,7 +1355,8 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_area_rip);
 	WM_operatortype_append(ED_SCR_OT_region_split);
 	WM_operatortype_append(ED_SCR_OT_region_flip);
-		
+	WM_operatortype_append(ED_SCR_OT_screen_set);
+	
 	/*frame changes*/
 	WM_operatortype_append(ED_SCR_OT_frame_offset);
 
@@ -1332,10 +1376,13 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 
 	 /* tests */
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
+						  
 	/*frame offsets*/
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);

@@ -1048,7 +1048,6 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		ED_area_exit(C, sa);
 
-	WM_event_remove_handlers(C, &window->handlers);
 	C->window= prevwin;
 }
 
@@ -1153,3 +1152,31 @@ int ED_screen_area_active(const bContext *C)
 	}	
 	return 0;
 }
+
+/* operator call, WM + Window + screen already existed before */
+/* Do NOT call in area/region queues! */
+void ED_screen_set(bContext *C, bScreen *sc)
+{
+	
+	if(sc->full) {				/* find associated full */
+		bScreen *sc1;
+		for(sc1= G.main->screen.first; sc1; sc1= sc1->id.next) {
+			ScrArea *sa= sc1->areabase.first;
+			if(sa->full==sc) {
+				sc= sc1;
+				break;
+			}
+		}
+		if(sc1==NULL) printf("setscreen error\n");
+	}
+	
+	if (C->screen != sc) {
+		ED_screen_exit(C, C->window, C->screen);
+		C->window->screen= sc;
+		C->screen= sc;
+		
+		ED_screen_refresh(C->wm, C->window);
+		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	}
+}
+

@@ -167,14 +167,9 @@ void WM_exit(bContext *C)
 	/* modal handlers are on window level freed, others too? */
 	if(C && C->wm) {
 		for(win= C->wm->windows.first; win; win= win->next) {
-			ARegion *ar;
 			
 			C->window= win;	/* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
-			
-			for(ar= win->screen->regionbase.first; ar; ar= ar->next)
-				WM_event_remove_handlers(C, &ar->handlers);
-			
 			ED_screen_exit(C, win, win->screen);
 		}
 	}
