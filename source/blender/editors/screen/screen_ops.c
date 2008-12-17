@@ -35,6 +35,8 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "DNA_scene_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -824,6 +826,37 @@ void ED_SCR_OT_area_split(wmOperatorType *ot)
 	RNA_def_property_float_default(prop, 0.5f);
 }
 
+/* ************** frame change operator ***************************** */
+
+
+/* function to be called outside UI context, or for redo */
+static int frame_offset_exec(bContext *C, wmOperator *op)
+{
+	int delta;
+
+	delta = RNA_int_get(op->ptr, "delta");
+
+	C->scene->r.cfra += delta;
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	/* XXX: add WM_NOTE_TIME_CHANGED? */
+
+	return OPERATOR_FINISHED;
+}
+
+void ED_SCR_OT_frame_offset(wmOperatorType *ot)
+{
+	ot->name = "Frame Offset";
+	ot->idname = "ED_SCR_OT_frame_offset";
+
+	ot->exec= frame_offset_exec;
+
+	ot->poll= ED_operator_screenactive;
+	ot->flag= OPTYPE_REGISTER;
+
+	/* rna */
+	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+}
+
 /* ************** join area operator ********************************************** */
 
 /* operator state vars used:  
@@ -1280,6 +1313,9 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(ED_SCR_OT_region_split);
 	WM_operatortype_append(ED_SCR_OT_region_flip);
 		
+	/*frame changes*/
+	WM_operatortype_append(ED_SCR_OT_frame_offset);
+
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
 	
@@ -1300,6 +1336,12 @@ void ED_keymap_screen(wmWindowManager *wm)
 	 /* tests */
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
+	/*frame offsets*/
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
+	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	
