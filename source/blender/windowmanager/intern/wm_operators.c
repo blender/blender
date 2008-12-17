@@ -47,6 +47,7 @@
 #include "RNA_define.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -88,13 +89,24 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 
 /* ************ default op callbacks, exported *********** */
 
+static void operator_callback(bContext *C, void *arg, int retval)
+{
+	wmOperator *op= arg;
+	
+	if(retval > 0)
+		op->type->exec(C, op);
+}
+
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
-//	if(okee(op->type->name)) {
-//		return op->type->exec(C, op);
-//	}
-	return 0;
+	char buf[512];
+	
+	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
+	pupmenu(C, buf, event->x, event->y, operator_callback, op);
+	
+	return 1;
 }
+
 int WM_operator_winactive(bContext *C)
 {
 	if(C->window==NULL) return 0;
@@ -108,7 +120,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
 	
-	ot->invoke= NULL; //WM_operator_confirm;
+	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -118,7 +130,7 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
 	
-	ot->invoke= NULL; //WM_operator_confirm;
+	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
 	ot->poll= WM_operator_winactive;
 	
@@ -130,7 +142,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->name= "Toggle Fullscreen";
     ot->idname= "WM_OT_window_fullscreen_toggle";
 
-    ot->invoke= NULL;
+    ot->invoke= WM_operator_confirm;
     ot->exec= wm_window_fullscreen_toggle_op;
     ot->poll= WM_operator_winactive;
 }
@@ -140,24 +152,8 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 	ot->name= "Exit Blender";
 	ot->idname= "WM_OT_exit_blender";
 
-	ot->invoke= NULL; /* do confirm stuff */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
-	ot->poll= WM_operator_winactive;
-}
-
-static int exit_okee_blender_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	okee_operator(C, "WM_OT_exit_blender", "Quit Blender");
-
-	return OPERATOR_FINISHED;
-}
-
-static void WM_OT_exit_okee_blender(wmOperatorType *ot)
-{
-	ot->name= "Exit Blender";
-	ot->idname= "WM_OT_exit_okee_blender";
-
-	ot->invoke= exit_okee_blender_invoke;
 	ot->poll= WM_operator_winactive;
 }
 
@@ -366,7 +362,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_save_homefile);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
-	WM_operatortype_append(WM_OT_exit_okee_blender);
 	WM_operatortype_append(WM_OT_tweak_gesture);
 }
 
@@ -379,6 +374,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_exit_okee_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
 

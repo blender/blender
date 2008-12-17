@@ -271,7 +271,7 @@ void ED_SCR_OT_area_rip(wmOperatorType *ot)
 	ot->name= "Rip Area into New Window";
 	ot->idname= "ED_SCR_OT_area_rip";
 	
-	ot->invoke= NULL; //WM_operator_confirm;
+	ot->invoke= WM_operator_confirm;
 	ot->exec= screen_area_rip_op;
 	ot->poll= ED_operator_areaactive;
 }
@@ -1124,6 +1124,7 @@ void ED_SCR_OT_repeat_last(wmOperatorType *ot)
 	ot->idname= "ED_SCR_OT_repeat_last";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;	
 	ot->exec= repeat_last_exec;
 	
 	ot->poll= ED_operator_screenactive;
@@ -1161,6 +1162,7 @@ void ED_SCR_OT_region_split(wmOperatorType *ot)
 	ot->idname= "ED_SCR_OT_region_split";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= region_split_exec;
 	ot->poll= ED_operator_areaactive;
 	
@@ -1196,6 +1198,7 @@ void ED_SCR_OT_region_flip(wmOperatorType *ot)
 	ot->idname= "ED_SCR_OT_region_flip";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= region_flip_exec;
 	
 	ot->poll= ED_operator_areaactive;
@@ -1299,5 +1302,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	
+	/* screen level global keymaps */
+	ED_marker_keymap(wm);
 }
 

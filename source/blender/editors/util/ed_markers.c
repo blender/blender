@@ -197,6 +197,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	sprintf(marker->name, "Frame %d", frame); // XXX - temp code only
 	BLI_addtail(markers, marker);
 	
+	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
 	//BIF_undo_push("Add Marker");
 	
 	return OPERATOR_FINISHED;
@@ -824,6 +825,7 @@ static void ED_MARKER_OT_delete(wmOperatorType *ot)
 	ot->idname= "ED_MARKER_OT_delete";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= ed_marker_delete_exec;
 	ot->poll= ED_operator_areaactive;
 	
@@ -831,7 +833,7 @@ static void ED_MARKER_OT_delete(wmOperatorType *ot)
 
 /* ************************** registration **********************************/
 
-/* called in ED_operatortypes_screen() */
+/* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void)
 {
 	WM_operatortype_append(ED_MARKER_OT_add);
@@ -844,4 +846,23 @@ void ED_marker_operatortypes(void)
 	WM_operatortype_append(ED_MARKER_OT_delete);
 }
 
+/* called in screen_ops.c:ED_keymap_screen() */
+void ED_marker_keymap(wmWindowManager *wm)
+{
+	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 	
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ED_MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "ED_MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
+	
+	/* generates event, in end to make select work */
+	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
+	
+}

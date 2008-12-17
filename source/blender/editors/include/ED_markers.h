@@ -34,13 +34,14 @@ enum {
 	DRAW_MARKERS_LOCAL	= (1<<1)
 };
 
-
+struct wmWindowManager;
 
 void draw_markers_time(const bContext *C, int flag);
 
-/* register operators, called in ED_operatortypes_screen() */
+/* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void); 
-
+/* called in screen_ops.c:ED_keymap_screen() */
+void ED_marker_keymap(struct wmWindowManager *wm);
 
 #endif /* ED_MARKERS_H */
 
