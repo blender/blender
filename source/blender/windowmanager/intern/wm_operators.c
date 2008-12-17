@@ -102,7 +102,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 	char buf[512];
 	
 	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	pupmenu(C, buf, event->x, event->y, operator_callback, op);
+	uiPupmenu(C, 0, operator_callback, op, buf);
 	
 	return 1;
 }

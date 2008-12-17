@@ -1278,7 +1278,7 @@ uiBlock *ui_block_func_COL(bContext *C, uiMenuBlockHandle *handle, void *arg_but
 
 static int pupmenu_set= 0;
 
-void pupmenu_set_active(int val)
+void uiPupmenuSetActive(int val)
 {
 	pupmenu_set= val;
 }
@@ -1632,36 +1632,16 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	return block;
 }
 
-void pupmenu_col(bContext *C, char *instr, int mx, int my, int maxrow, uiPupmenuFunc func, void *arg)
+void uiPupmenu(bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...)
 {
 	uiPupMenuInfo info;
 	uiMenuBlockHandle *menu;
 
 	memset(&info, 0, sizeof(info));
-	info.instr= instr;
-	info.mx= mx;
-	info.my= my;
+	info.mx= C->window->eventstate->x;
+	info.my= C->window->eventstate->y;
 	info.maxrow= maxrow;
-
-	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENUCOL, &info);
-	menu->popup= 1;
-
-	UI_add_popup_handlers(&C->window->handlers, menu);
-	WM_event_add_mousemove(C);
-
-	menu->popup_func= func;
-	menu->popup_arg= arg;
-}
-
-void pupmenu(bContext *C, char *instr, int mx, int my, uiPupmenuFunc func, void *arg)
-{
-	uiPupMenuInfo info;
-	uiMenuBlockHandle *menu;
-
-	memset(&info, 0, sizeof(info));
-	info.instr= instr;
-	info.mx= mx;
-	info.my= my;
+	info.instr= str;
 
 	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENU, &info);
 	menu->popup= 1;
@@ -1673,31 +1653,87 @@ void pupmenu(bContext *C, char *instr, int mx, int my, uiPupmenuFunc func, void 
 	menu->popup_arg= arg;
 }
 
-/* XXX test */
-static void operator_callback(bContext *C, void *arg, int retval)
+/* standard pupmenus */
+
+static void operator_cb(bContext *C, void *arg, int retval)
 {
 	const char *opname= arg;
 
-	if(retval > 0)
+	if(opname && retval > 0)
 		WM_operator_call(C, opname, WM_OP_DEFAULT, NULL);
 }
 
-void okee_operator(bContext *C, char *opname, char *str, ...)
+static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
 {
-	va_list ap;
 	char *s, buf[512];
-	int mx, my;
-
-	mx= C->window->eventstate->x;
-	my= C->window->eventstate->y;
-
-	va_start(ap, str);
 
 	s= buf;
-	s += sprintf(s, "OK? %%i%d%%t|", ICON_HELP);
-	vsprintf(s, str, ap);
-	va_end(ap);
+	if (title) s+= sprintf(s, "%s%%t|", title);
+	vsprintf(s, itemfmt, ap);
 
-	pupmenu(C, buf, mx, my, operator_callback, opname);
+	uiPupmenu(C, 0, operator_cb, opname, buf);
+}
+
+static void confirm(bContext *C, char *opname, char *title, char *itemfmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, itemfmt);
+	vconfirm(C, opname, title, itemfmt, ap);
+	va_end(ap);
+}
+
+void uiPupmenuOkee(bContext *C, char *opname, char *str, ...)
+{
+	va_list ap;
+	char titlestr[256];
+
+	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
+
+	va_start(ap, str);
+	vconfirm(C, opname, titlestr, str, ap);
+	va_end(ap);
+}
+
+void uiPupmenuSaveOver(bContext *C, char *opname, char *filename, ...)
+{
+	size_t len= strlen(filename);
+
+	if(len==0)
+		return;
+
+	if(BLI_exists(filename)==0)
+		operator_cb(C, opname, 1);
+
+	if(filename[len-1]=='/' || filename[len-1]=='\\') {
+		uiPupmenuError(C, "Cannot overwrite a directory");
+		return;
+	}
+
+	confirm(C, opname, "Save over", filename);
+}
+
+void uiPupmenuNotice(bContext *C, char *str, ...)
+{
+	va_list ap;
+
+	va_start(ap, str);
+	vconfirm(C, NULL, NULL, str, ap);
+	va_end(ap);
+}
+
+void uiPupmenuError(bContext *C, char *str, ...)
+{
+	va_list ap;
+	char nfmt[256];
+	char titlestr[256];
+
+	sprintf(titlestr, "Error %%i%d", ICON_ERROR);
+
+	sprintf(nfmt, "%s", str);
+
+	va_start(ap, str);
+	vconfirm(C, NULL, titlestr, nfmt, ap);
+	va_end(ap);
 }
 

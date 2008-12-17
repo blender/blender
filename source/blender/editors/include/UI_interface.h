@@ -205,11 +205,13 @@ typedef struct uiMenuBlockHandle {
 typedef uiBlock* (*uiBlockFuncFP)(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg1);
 typedef void (*uiPupmenuFunc)(struct bContext *C, void *arg, int event);
 
-extern void pupmenu_set_active(int val);
-extern void pupmenu_col(struct bContext *C, char *instr, int mx, int my, int maxrow, uiPupmenuFunc func, void *arg);
-extern void pupmenu(struct bContext *C, char *instr, int mx, int my, uiPupmenuFunc func, void *arg);
+void uiPupmenuSetActive(int val);
+void uiPupmenu(struct bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...);
 
-void okee_operator(struct bContext *C, char *opname, char *str, ...);
+void uiPupmenuOkee(struct bContext *C, char *opname, char *str, ...);
+void uiPupmenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
+void uiPupmenuNotice(struct bContext *C, char *str, ...);
+void uiPupmenuError(struct bContext *C, char *str, ...);
 
 /* Block */
 

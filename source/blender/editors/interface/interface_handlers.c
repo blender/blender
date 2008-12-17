@@ -165,7 +165,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func)) {
+	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
