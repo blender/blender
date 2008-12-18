@@ -258,6 +258,7 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	
 	/* allocs new screen and adds to newly created window, using window size */
 	newsc= screen_add(win, C->screen->id.name+2);
+	win->screen= newsc;
 	
 	/* copy area to new screen */
 	area_copy_data((ScrArea *)newsc->areabase.first, C->area, 0);

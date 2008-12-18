@@ -406,8 +406,6 @@ bScreen *screen_add(wmWindow *win, char *name)
 	sc->scene= G.scene;
 	sc->do_refresh= 1;
 	
-	win->screen= sc;
-	
 	sv1= screen_addvert(sc, 0, 0);
 	sv2= screen_addvert(sc, 0, win->sizey-1);
 	sv3= screen_addvert(sc, win->sizex-1, win->sizey-1);
@@ -902,6 +900,8 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	newsc= screen_add(win, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
+	/* set in window */
+	win->screen= newsc;
 	
 	return newsc;
 }
@@ -1229,7 +1229,7 @@ void ed_screen_fullarea(bContext *C)
 		C->screen->full = SCREENFULL;
 		
 		oldscreen= C->screen;
-		sc= screen_add(C->window, "temp");	/* sets C->window->screen! */
+		sc= screen_add(C->window, "temp");
 		
 		/* returns the top small area */
 		newa= area_split(C->window, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
