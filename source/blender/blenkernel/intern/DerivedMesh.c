@@ -1991,9 +1991,10 @@ DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 
 CustomDataMask get_viewedit_datamask()
 {
+#if 0
+	XXX
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
-
 	/* check if we need tfaces & mcols due to face select or texture paint */
 	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
@@ -2022,6 +2023,8 @@ CustomDataMask get_viewedit_datamask()
 		mask |= CD_MASK_MCOL;
 
 	return mask;
+#endif
+	return 0;
 }
 
 static float *get_editmesh_orco_verts(EditMesh *em)
