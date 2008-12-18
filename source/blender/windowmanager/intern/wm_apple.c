@@ -28,6 +28,7 @@
 
 #ifdef __APPLE__
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "WM_api.h"
 
