@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -165,6 +166,22 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	return 0;
 }
 
+static int rna_validate_identifier(const char *identifier)
+{
+	int a=0;
+	
+	if (!isalpha(identifier[0])) {
+		return 0;
+	}
+	
+	for(a=1; identifier[a] != '\0'; a++) {
+		if (identifier[a]=='_')			continue;
+		if (isalnum(identifier[a])==0)	return 0;
+	}
+	
+	return 1;
+}
+
 /* Blender Data Definition */
 
 BlenderRNA *RNA_create()
@@ -280,7 +297,14 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	StructRNA *srna, *srnafrom= NULL;
 	StructDefRNA *ds= NULL, *dsfrom= NULL;
 	PropertyRNA *prop, *propfrom;
-
+	
+	if(DefRNA.preprocess) {
+		if (rna_validate_identifier(identifier) == 0) {
+			fprintf(stderr, "RNA_def_struct: struct identifier \"%s\" is an invalid name\n", identifier);
+			DefRNA.error= 1;
+		}
+	}
+	
 	if(from) {
 		/* find struct to derive from */
 		for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->next)
@@ -500,6 +524,13 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	PropertyRNA *prop;
 
 	if(DefRNA.preprocess) {
+		
+		if (rna_validate_identifier(identifier) == 0) {
+			fprintf(stderr, "RNA_def_property: property identifier \"%s\" is an invalid name\n", identifier);
+			DefRNA.error= 1;
+			return NULL;
+		}
+		
 		ds= DefRNA.structs.last;
 		dp= MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
 		rna_addtail(&ds->properties, dp);
