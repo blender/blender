@@ -92,6 +92,10 @@ typedef struct View2D {
 #define V2D_VIEWSYNC_X		(1<<0)
 	/* within region view2d vertical locking */
 #define V2D_VIEWSYNC_Y		(1<<1)
+	/* apply pixel offsets on x-axis */
+#define V2D_PIXELOFS_X		(1<<2)
+	/* apply pixel offsets on y-axis */
+#define V2D_PIXELOFS_Y		(1<<3)
 	/* view settings need to be set still... */
 #define V2D_IS_INITIALISED		(1<<10)
 

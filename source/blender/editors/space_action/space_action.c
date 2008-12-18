@@ -80,41 +80,44 @@ static SpaceLink *action_new(void)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+	/* channel list region */
+	ar= MEM_callocN(sizeof(ARegion), "channel area for action");
+	BLI_addtail(&saction->regionbase, ar);
+	ar->regiontype= RGN_TYPE_CHANNELS;
+	ar->alignment= RGN_ALIGN_LEFT;
+	
+		/* only need to set scroll settings, as this will use 'listview' v2d configuration */
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	ar->v2d.flag = V2D_VIEWSYNC_Y;
+	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for action");
 	
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= 1.0f;
-	ar->v2d.tot.ymin= -1000.0f;
-	ar->v2d.tot.xmax= 1000.0f;
+	ar->v2d.tot.xmin= -5.0f;
+	ar->v2d.tot.ymin= -2000.0f;
+	ar->v2d.tot.xmax= 1000.0f; // xxx - use end frame instead?
 	ar->v2d.tot.ymax= 0.0f;
 	
-	ar->v2d.cur.xmin= -5.0f;
-	ar->v2d.cur.ymin= -75.0f;
-	ar->v2d.cur.xmax= 65.0f;
-	ar->v2d.cur.ymax= 5.0f;
+	ar->v2d.cur.xmin= -2.0f;
+	ar->v2d.cur.ymin= -200.0f;
+	ar->v2d.cur.xmax= 100.0f;
+	ar->v2d.cur.ymax= 0.0f;
 	
 	ar->v2d.min[0]= 0.0f;
  	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 1000.0f;
+ 	ar->v2d.max[1]= 2000.0f;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
-	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+	ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
-	ar->v2d.align= V2D_ALIGN_NO_POS_X;
-	
-	/* channel list region XXX */
-	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-	BLI_addtail(&saction->regionbase, ar);
-	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;
-				
+	ar->v2d.align= V2D_ALIGN_NO_POS_Y;
 	
 	return (SpaceLink *)saction;
 }
@@ -159,9 +162,12 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
+	View2DGrid *grid;
+	View2DScrollers *scrollers;
 	float col[3];
+	int unit;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -170,13 +176,22 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	
 	UI_view2d_view_ortho(C, v2d);
 		
-	/* data... */
+	/* time grid */
+	unit= (saction->flag & SACTION_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
+	UI_view2d_grid_free(grid);
 	
+	/* data? */
+		
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
-	/* scrollers? */
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 void action_operatortypes(void)
@@ -188,6 +203,46 @@ void action_keymap(struct wmWindowManager *wm)
 {
 	
 }
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+	
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "Action", SPACE_ACTION, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+}
+
+static void action_channel_area_draw(const bContext *C, ARegion *ar)
+{
+	/* draw entirely, view changes should be handled here */
+	//SpaceAction *saction= C->area->spacedata.first;
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	UI_view2d_view_ortho(C, v2d);
+	
+	/* data... */
+	
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+}
+
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -261,11 +316,11 @@ void ED_spacetype_action(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex = 200;
+	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-	//art->init= action_channel_area_init;
-	//art->draw= action_channel_area_draw;
+	art->init= action_channel_area_init;
+	art->draw= action_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

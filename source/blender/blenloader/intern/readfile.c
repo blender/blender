@@ -5079,19 +5079,21 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				BLI_addtail(lb, ar);
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT; 
-				
+				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				break;
 			case SPACE_ACTION:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT;
+				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				break;
 			case SPACE_NLA:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT;
+				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 				break;
 		}
 	}
@@ -5117,7 +5119,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT);
 				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 			}
 				break;
 			case SPACE_TIME:
@@ -5131,7 +5133,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
 				ar->v2d.tot.ymin= ar->v2d.cur.ymin= -10.0;
 				ar->v2d.min[1]= ar->v2d.max[1]= 20.0;
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 			}
 				break;
 			case SPACE_IPO:
@@ -5141,7 +5143,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_SOUND:
@@ -5151,7 +5153,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT);
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_NLA:
@@ -5161,7 +5163,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_ACTION:
@@ -5171,7 +5173,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_SEQ:

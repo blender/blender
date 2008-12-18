@@ -64,7 +64,6 @@
  *	- this function should only be called from region init() callbacks, where it is expected that
  *	  this is called before UI_view2d_size_update(), as this one checks that the rects are properly initialised. 
  */
-// eView2D_CommonViewTypes <--- only check handle these types...
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
@@ -127,8 +126,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				/* zoom + aspect ratio are locked */
 				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 				v2d->minzoom= v2d->maxzoom= 1.0f;
-				v2d->min[0]= v2d->max[0]= winx;
-				v2d->min[1]= v2d->max[1]= winy;
+				v2d->min[0]= v2d->max[0]= winx-1;
+				v2d->min[1]= v2d->max[1]= winy-1;
 				
 				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
 				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
@@ -140,6 +139,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				
 				/* absolutely no scrollers allowed */
 				v2d->scroll= 0;
+				
+				/* pixel offsets need to be applied for smooth UI controls */
+				v2d->flag |= (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 			}
 				break;
 			
@@ -335,8 +337,15 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			}
 		}
 		else {
-			/* landscape window: correct for y */
-			height = width * winRatio;
+			if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winy != v2d->oldwiny)) {
+				/* special exception for Outliner (and later channel-lists):
+				 *	- Currently, no actions need to be taken here...
+				 */
+			}
+			else {
+				/* landscape window: correct for y */
+				height = width * winRatio;
+			}
 		}
 		
 		/* store region size for next time */
@@ -625,28 +634,30 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 	}
 }
 
-/* Set view matrices to use 'cur' rect as viewing frame for View2D drawing 
-*	- this assumes viewport/scissor been set for the region, taking scrollbars into account
-*/
-
+/* Set view matrices to use 'cur' rect as viewing frame for View2D drawing */
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
 	wmWindow *window= CTX_wm_window(C);
 	rctf curmasked;
+	float xofs, yofs;
 	
-	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
-	 * as they were causing some unwanted offsets when drawing 
+	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
+	 * but only applied where requsted
 	 */
+	xofs= (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
+	yofs= (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+	
+	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
-	wmOrtho2(window, curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
+	
+	/* set matrix on all appropriate axes */
+	wmOrtho2(window, curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
 	
 	/* XXX is this necessary? */
 	wmLoadIdentity(window);
 }
 
 /* Set view matrices to only use one axis of 'cur' only
- *	- this assumes viewport/scissor been set for the region, taking scrollbars into account
- *
  *	- xaxis 	= if non-zero, only use cur x-axis, otherwise use cur-yaxis (mostly this will be used for x)
  */
 void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
@@ -654,15 +665,22 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 	wmWindow *window= CTX_wm_window(C);
 	ARegion *ar= CTX_wm_region(C);
 	rctf curmasked;
+	float xofs, yofs;
 	
-	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
-	 * as they were causing some unwanted offsets when drawing 
+	/* pixel offsets (-0.375f) are needed to get 1:1 correspondance with pixels for smooth UI drawing, 
+	 * but only applied where requsted
 	 */
+	xofs= (v2d->flag & V2D_PIXELOFS_X) ? 0.375f : 0.0f;
+	yofs= (v2d->flag & V2D_PIXELOFS_Y) ? 0.375f : 0.0f;
+	
+	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
+	
+	/* only set matrix with 'cur' coordinates on relevant axes */
 	if (xaxis)
-		wmOrtho2(window, curmasked.xmin, curmasked.xmax, 0, ar->winy);
+		wmOrtho2(window, curmasked.xmin-xofs, curmasked.xmax-xofs, -yofs, ar->winy-yofs);
 	else
-		wmOrtho2(window, 0, ar->winx, curmasked.ymin, curmasked.ymax);
+		wmOrtho2(window, -xofs, ar->winx-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
 		
 	/* XXX is this necessary? */
 	wmLoadIdentity(window);
@@ -779,8 +797,6 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 			grid->powerx-= 2;
 			if (grid->powerx < -2) grid->powerx= -2;
 		}
-		
-		grid->startx= v2d->cur.xmin;
 	}
 	
 	/* calculate y-axis grid scale (only if both args are valid) */
@@ -795,8 +811,6 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 			if (grid->dy < 1.0f) grid->dy= 1.0f;
 			if (grid->powery < 1) grid->powery= 1;
 		}
-		
-		grid->starty= v2d->cur.ymin;
 	}
 	
 	/* calculate start position */
@@ -804,10 +818,15 @@ View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, sh
 		grid->startx= seconddiv*(v2d->cur.xmin/seconddiv - fmod(v2d->cur.xmin/seconddiv, grid->dx/seconddiv));
 		if (v2d->cur.xmin < 0.0f) grid->startx-= grid->dx;
 	}
+	else
+		grid->startx= v2d->cur.xmin;
+		
 	if (ELEM(V2D_ARG_DUMMY, yunits, yclamp) == 0) {
 		grid->starty= (v2d->cur.ymin - fmod(v2d->cur.ymin, grid->dy));
 		if (v2d->cur.ymin < 0.0f) grid->starty-= grid->dy;
 	}
+	else
+		grid->starty= v2d->cur.ymin;
 	
 	return grid;
 }

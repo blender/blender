@@ -78,6 +78,14 @@ static SpaceLink *nla_new(void)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+	/* channel list region XXX */
+	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+	BLI_addtail(&snla->regionbase, ar);
+	ar->regiontype= RGN_TYPE_CHANNELS;
+	ar->alignment= RGN_ALIGN_LEFT;
+	
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for nla");
 	
@@ -106,13 +114,6 @@ static SpaceLink *nla_new(void)
 	ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
-	
-	
-	/* channel list region XXX */
-	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
-	BLI_addtail(&snla->regionbase, ar);
-	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;
 		
 	
 	return (SpaceLink *)snla;
