@@ -38,9 +38,40 @@ typedef struct ViewDepths {
 	char damaged;
 } ViewDepths;
 
+/* drawing flags: */
+#define DRAW_PICKING	1
+#define DRAW_CONSTCOLOR	2
+#define DRAW_SCENESET	4
+
+/* project short */
+#define IS_CLIPPED        12000
+
 /* view3d_header.c */
 void view3d_header_buttons(const bContext *C, ARegion *ar);
 
+/* view3d_draw.c */
+void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d);
+int view3d_test_clipping(View3D *v3d, float *vec);
+void circf(float x, float y, float rad);
+void circ(float x, float y, float rad);
+void view3d_update_depths(ARegion *ar, View3D *v3d);
+
+/* view3d_view.c */
+float *give_cursor(Scene *scene, View3D *v3d);
+void initgrabz(View3D *v3d, float x, float y, float z);
+void window_to_3d(ARegion *ar, View3D *v3d, float *vec, short mx, short my);
+void view3d_project_float(ARegion *a, float *vec, float *adr, float mat[4][4]);
+void project_short(ARegion *ar, View3D *v3d, float *vec, short *adr);
+void project_int(ARegion *ar, View3D *v3d, float *vec, int *adr);
+void project_int_noclip(ARegion *ar, View3D *v3d, float *vec, int *adr);
+void project_short_noclip(ARegion *ar, View3D *v3d, float *vec, short *adr);
+void project_float(ARegion *ar, View3D *v3d, float *vec, float *adr);
+void project_float_noclip(ARegion *ar, View3D *v3d, float *vec, float *adr);
+int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
+
+
+void setwinmatrixview3d(wmWindow *win, View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
+void setviewmatrixview3d(View3D *v3d);
 
 #endif /* ED_VIEW3D_INTERN_H */
 
