@@ -327,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_header.c"
 				>
 			</File>
@@ -334,14 +338,14 @@
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_intern.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="space_time"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\editors\space_time\ed_markers.c"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_time\space_time.c"
 				>
@@ -410,6 +414,10 @@
 		<Filter
 			Name="util"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\ed_markers.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\util\ed_util.c"
 				>

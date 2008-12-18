@@ -201,10 +201,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_report.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_subwindow.c"
 				>
 			</File>
