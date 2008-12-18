@@ -511,7 +511,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\filelist.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\filelist.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\filesel.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\fsmenu.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\fsmenu.h"
 				>
 			</File>
 			<File
