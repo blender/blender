@@ -450,13 +450,13 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_name_get", "rna_Property_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_identifier_get", "rna_Property_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
-
+	RNA_def_struct_name_property(srna, prop);
+		
 	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Property_description_get", "rna_Property_description_length", NULL);
