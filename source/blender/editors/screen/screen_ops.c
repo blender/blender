@@ -264,7 +264,7 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	
 	/* allocs new screen and adds to newly created window, using window size */
 	newsc= screen_add(newwin, sc->id.name+2);
-	win->screen= newsc;
+	newwin->screen= newsc;
 	
 	/* copy area to new screen */
 	area_copy_data((ScrArea *)newsc->areabase.first, sa, 0);
@@ -767,6 +767,7 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 	if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
 		if (CTX_wm_area(C) == sd->narea) {
 			CTX_wm_area_set(C, NULL);
+			CTX_wm_region_set(C, NULL);
 		}
 		sd->narea = NULL;
 	}
@@ -1018,6 +1019,7 @@ static int area_join_apply(bContext *C, wmOperator *op)
 	}
 	if (CTX_wm_area(C) == jd->sa2) {
 		CTX_wm_area_set(C, NULL);
+		CTX_wm_region_set(C, NULL);
 	}
 
 	return 1;

@@ -3649,16 +3649,25 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 {
 	uiMenuBlockHandle *menu= userdata;
+	void (*popup_func)(struct bContext *C, void *arg, int event)= NULL;
+	void *popup_arg= NULL;
+	int retval= 0;
 
 	ui_handle_menus_recursive(C, event, menu);
 
 	/* free if done, does not free handle itself */
 	if(menu->menuretval) {
+		if(menu->menuretval == UI_RETURN_OK) {
+			popup_func= menu->popup_func;
+			popup_arg= menu->popup_arg;
+			retval= menu->retvalue;
+		}
+
 		ui_menu_block_free(C, menu);
 		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
-		if(menu->menuretval == UI_RETURN_OK && menu->popup_func)
-			menu->popup_func(C, menu->popup_arg, menu->retvalue);
+		if(popup_func)
+			popup_func(C, popup_arg, retval);
 	}
 	else {
 		/* re-enable tooltips */

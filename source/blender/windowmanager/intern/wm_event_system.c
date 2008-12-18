@@ -441,6 +441,12 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	return 1;
 }
 
+static int wm_event_always_pass(wmEvent *event)
+{
+	/* some events we always pass on, to ensure proper communication */
+	return (event->type == TIMER);
+}
+
 /* Warning: this function removes a modal handler, when finished */
 static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, IDProperty *properties)
 {
@@ -462,8 +468,15 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			retval= ot->modal(C, op, event);
 
 			/* putting back screen context */
-			CTX_wm_area_set(C, area);
-			CTX_wm_region_set(C, region);
+			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
+				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, region);
+			}
+			else {
+				/* this special cases is for areas and regions that get removed */
+				CTX_wm_area_set(C, NULL);
+				CTX_wm_region_set(C, NULL);
+			}
 			
 			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 				wm_operator_register(CTX_wm_manager(C), op);
@@ -473,7 +486,6 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				wm_operator_free(op);
 				handler->op= NULL;
 			}
-			
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
@@ -522,12 +534,6 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 		return WM_HANDLER_BREAK;
 
 	return WM_HANDLER_CONTINUE;
-}
-
-static int wm_event_always_pass(wmEvent *event)
-{
-	/* some events we always pass on, to ensure proper communication */
-	return (event->type == TIMER);
 }
 
 static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
