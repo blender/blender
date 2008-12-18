@@ -40,8 +40,8 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
+#include "BKE_context.h"
 #include "BKE_colortools.h"
-#include "BKE_global.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
@@ -129,7 +129,7 @@ static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceInfo *sinfo= C->area->spacedata.first;
+	// SpaceInfo *sinfo= (SpaceInfo*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	float col[3];
 	

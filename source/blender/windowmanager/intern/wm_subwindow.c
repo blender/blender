@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 
 #include "BIF_gl.h"

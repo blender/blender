@@ -37,7 +37,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -54,15 +54,17 @@
 wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 {
 	wmGesture *gesture= MEM_callocN(sizeof(wmGesture), "new gesture");
+	wmWindow *window= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	int sx, sy;
 	
-	BLI_addtail(&C->window->gesture, gesture);
+	BLI_addtail(&window->gesture, gesture);
 	
 	gesture->type= type;
 	gesture->event_type= event->type;
-	gesture->swinid= C->screen->subwinactive;	/* means only in area-region context! */
+	gesture->swinid= screen->subwinactive;	/* means only in area-region context! */
 	
-	wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 	
 	if( ELEM3(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK)) {
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
@@ -79,7 +81,7 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 
 void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
-	BLI_remlink(&C->window->gesture, gesture);
+	BLI_remlink(&CTX_wm_window(C)->gesture, gesture);
 	MEM_freeN(gesture->customdata);
 	MEM_freeN(gesture);
 }

@@ -32,6 +32,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -1015,33 +1016,33 @@ void ED_screens_initialize(wmWindowManager *wm)
 
 void ED_region_exit(bContext *C, ARegion *ar)
 {
-	ARegion *prevar= C->region;
+	ARegion *prevar= CTX_wm_region(C);
 
-	C->region= ar;
+	CTX_wm_region_set(C, ar);
 	WM_event_remove_handlers(C, &ar->handlers);
-	C->region= prevar;
+	CTX_wm_region_set(C, prevar);
 }
 
 void ED_area_exit(bContext *C, ScrArea *sa)
 {
-	ScrArea *prevsa= C->area;
+	ScrArea *prevsa= CTX_wm_area(C);
 	ARegion *ar;
 
-	C->area= sa;
+	CTX_wm_area_set(C, sa);
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
 
 	WM_event_remove_handlers(C, &sa->handlers);
-	C->area= prevsa;
+	CTX_wm_area_set(C, prevsa);
 }
 
 void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
-	wmWindow *prevwin= C?C->window:NULL;
+	wmWindow *prevwin= CTX_wm_window(C);
 	ScrArea *sa;
 	ARegion *ar;
 
-	C->window= window;
+	CTX_wm_window_set(C, window);
 	
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
@@ -1049,7 +1050,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		ED_area_exit(C, sa);
 
-	C->window= prevwin;
+	CTX_wm_window_set(C, prevwin);
 }
 
 /* case when on area-edge or in azones, or outside window */
@@ -1144,11 +1145,13 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 
 int ED_screen_area_active(const bContext *C)
 {
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa= CTX_wm_area(C);
 
-	if(C->screen && C->area) {
+	if(sc && sa) {
 		ARegion *ar;
-		for(ar= C->area->regionbase.first; ar; ar= ar->next)
-			if(ar->swinid == C->screen->subwinactive)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(ar->swinid == sc->subwinactive)
 				return 1;
 	}	
 	return 0;
@@ -1158,7 +1161,6 @@ int ED_screen_area_active(const bContext *C)
 /* Do NOT call in area/region queues! */
 void ed_screen_set(bContext *C, bScreen *sc)
 {
-	
 	if(sc->full) {				/* find associated full */
 		bScreen *sc1;
 		for(sc1= G.main->screen.first; sc1; sc1= sc1->id.next) {
@@ -1171,12 +1173,11 @@ void ed_screen_set(bContext *C, bScreen *sc)
 		if(sc1==NULL) printf("set screen error\n");
 	}
 	
-	if (C->screen != sc) {
-		ED_screen_exit(C, C->window, C->screen);
-		C->window->screen= sc;
-		C->screen= sc;
+	if (CTX_wm_screen(C) != sc) {
+		ED_screen_exit(C, CTX_wm_window(C), CTX_wm_screen(C));
+		CTX_wm_window(C)->screen= sc;
 		
-		ED_screen_refresh(C->wm, C->window);
+		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	}
 }
@@ -1188,9 +1189,9 @@ void ed_screen_fullarea(bContext *C)
 	ScrArea *newa, *old;
 	short fulltype;
 	
-	if(C->area->full) {
-		sc= C->area->full;		/* the old screen to restore */
-		oldscreen= C->screen;	/* the one disappearing */
+	if(CTX_wm_area(C)->full) {
+		sc= CTX_wm_area(C)->full;		/* the old screen to restore */
+		oldscreen= CTX_wm_screen(C);	/* the one disappearing */
 		
 		fulltype = sc->full;
 		
@@ -1211,7 +1212,7 @@ void ed_screen_fullarea(bContext *C)
 				// in autoplay screens the headers are disabled by 
 				// default. So use the old headertype instead
 			
-			area_copy_data(old, C->area, 1);	/*  1 = swap spacelist */
+			area_copy_data(old, CTX_wm_area(C), 1);	/*  1 = swap spacelist */
 			
 			old->full= NULL;
 			
@@ -1222,33 +1223,33 @@ void ed_screen_fullarea(bContext *C)
 		}
 	}
 	else {
+		oldscreen= CTX_wm_screen(C);
+
 		/* is there only 1 area? */
-		if(C->screen->areabase.first==C->screen->areabase.last) return;
-		if(C->area->spacetype==SPACE_INFO) return;
+		if(oldscreen->areabase.first==CTX_wm_screen(C)->areabase.last) return;
+		if(CTX_wm_area(C)->spacetype==SPACE_INFO) return;
 		
-		C->screen->full = SCREENFULL;
+		oldscreen->full = SCREENFULL;
 		
-		oldscreen= C->screen;
-		sc= screen_add(C->window, "temp");
+		sc= screen_add(CTX_wm_window(C), "temp");
 		
 		/* returns the top small area */
-		newa= area_split(C->window, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
+		newa= area_split(CTX_wm_window(C), sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
 		area_newspace(C, newa, SPACE_INFO);
 
 		/* copy area */
 		newa= newa->prev;
-		area_copy_data(newa, C->area, 1);	/* 1 = swap spacelist */
+		area_copy_data(newa, CTX_wm_area(C), 1);	/* 1 = swap spacelist */
 
-		C->area->full= oldscreen;
+		CTX_wm_area(C)->full= oldscreen;
 		newa->full= oldscreen;
 		newa->next->full= oldscreen;
 
-		C->screen= oldscreen;
 		ed_screen_set(C, sc);
 	}
 
 	/* XXX bad code: setscreen() ends with first area active. fullscreen render assumes this too */
-	C->area= sc->areabase.first;
+	CTX_wm_area_set(C, sc->areabase.first);
 
 	/* XXX retopo_force_update(); */
 

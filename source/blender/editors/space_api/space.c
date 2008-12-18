@@ -34,7 +34,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"

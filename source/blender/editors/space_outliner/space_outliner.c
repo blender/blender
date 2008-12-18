@@ -47,7 +47,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_colortools.h"
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -108,15 +108,16 @@ void UI_table_free(uiTable *table)
 
 void UI_table_draw(const bContext *C, uiTable *table)
 {
+	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	View2D *v2d;
 	rcti *rct, cellrct;
 	int y, row, col;
 	
-	v2d= &C->region->v2d;
+	v2d= &ar->v2d;
 	rct= &table->rct;
 	
-	block= uiBeginBlock(C, C->region, "table outliner", UI_EMBOSST, UI_HELV);
+	block= uiBeginBlock(C, ar, "table outliner", UI_EMBOSST, UI_HELV);
 	
 	for(y=rct->ymax, row=0; y>rct->ymin; y-=ROW_HEIGHT, row++) {
 		if(row%2 == 0) {
@@ -161,7 +162,7 @@ typedef struct CellRNA {
 
 static void rna_back_cb(bContext *C, void *arg_unused, void *arg_unused2)
 {
-	SpaceOops *soutliner= C->area->spacedata.first;
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
 	char *newpath;
 
 	newpath= RNA_path_back(soutliner->rnapath);
@@ -172,7 +173,7 @@ static void rna_back_cb(bContext *C, void *arg_unused, void *arg_unused2)
 
 static void rna_pointer_cb(bContext *C, void *arg_prop, void *arg_index)
 {
-	SpaceOops *soutliner= C->area->spacedata.first;
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
 	PropertyRNA *prop= arg_prop;
 	char *newpath;
 	int index= GET_INT_FROM_POINTER(arg_index);;
@@ -406,7 +407,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	PointerRNA newptr;
 	float col[3];
 	int rows, cols, awidth, aheight, width, height;
-	SpaceOops *soutliner= C->area->spacedata.first;
+	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 
@@ -421,7 +422,7 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	/* create table */
 	cell.space= soutliner;
 	cell.lastrow= -1;
-	RNA_main_pointer_create(G.main, &cell.ptr);
+	RNA_main_pointer_create(CTX_data_main(C), &cell.ptr);
 	cell.prop= NULL;
 
 	/* solve RNA path or reset if fails */

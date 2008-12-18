@@ -38,7 +38,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -66,7 +66,7 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 
 static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
+	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -100,7 +100,7 @@ static void do_info_buttons(bContext *C, void *arg, int event)
 
 void info_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= C->area;
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -116,23 +116,23 @@ void info_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("File");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, "File",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "File",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Add");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, "Add",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Add",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Timeline");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, "Timeline",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Timeline",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Game");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, "Game",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Game",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Render");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, "Render",	xco, yco, xmax-3, 22, "");
+		uiDefPulldownBut(block, dummy_viewmenu, sa, "Render",	xco, yco, xmax-3, 22, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Help");

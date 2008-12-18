@@ -54,7 +54,7 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"

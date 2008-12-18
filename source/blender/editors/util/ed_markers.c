@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -79,7 +80,7 @@ static ListBase *context_get_markers(const bContext *C)
 	else
 #endif
 	
-	return &C->scene->markers;
+	return &CTX_data_scene(C)->markers;
 }
 
 /* ************* Marker Drawing ************ */
@@ -162,12 +163,12 @@ void draw_markers_time(const bContext *C, int flag)
 	
 	/* unselected markers are drawn at the first time */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if (!(marker->flag & SELECT)) draw_marker(v2d, marker, C->scene->r.cfra, flag);
+		if (!(marker->flag & SELECT)) draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
 	}
 	
 	/* selected markers are drawn later */
 	for (marker= markers->first; marker; marker= marker->next) {
-		if (marker->flag & SELECT) draw_marker(v2d, marker, C->scene->r.cfra, flag);
+		if (marker->flag & SELECT) draw_marker(v2d, marker, CTX_data_scene(C)->r.cfra, flag);
 	}
 }
 
@@ -180,7 +181,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 {
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
-	int frame= C->scene->r.cfra;
+	int frame= CTX_data_scene(C)->r.cfra;
 	
 	/* two markers can't be at the same place */
 	for(marker= markers->first; marker; marker= marker->next)
@@ -264,7 +265,7 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	if (totmark==0) return 0;
 	
 	op->customdata= mm= MEM_callocN(sizeof(MarkerMove), "Markermove");
-	mm->slink= C->area->spacedata.first;
+	mm->slink= CTX_wm_space_data(C);
 	mm->markers= markers;
 	mm->oldframe= MEM_callocN(totmark*sizeof(int), "MarkerMove oldframe");
 	
@@ -298,7 +299,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		mm->event_type= evt->type;
 		
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &C->window->handlers, op);
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 		
 		/* reset frs delta */
 		RNA_int_set(op->ptr, "frs", 0);
@@ -563,12 +564,12 @@ static void ED_MARKER_OT_duplicate(wmOperatorType *ot)
 /* ************************** selection ************************************/
 
 /* select/deselect TimeMarker at current frame */
-static void select_timeline_marker_frame(int frame, unsigned char shift)
+static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned char shift)
 {
 	TimeMarker *marker;
 	int select=0;
 	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+	for(marker= markers->first; marker; marker= marker->next) {
 		/* if Shift is not set, then deselect Markers */
 		if(!shift) marker->flag &= ~SELECT;
 		/* this way a not-shift select will allways give 1 selected marker */
@@ -607,17 +608,17 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	float viewx;
 	int x, y, cfra;
 	
-	x= evt->x - C->region->winrct.xmin;
-	y= evt->y - C->region->winrct.ymin;
+	x= evt->x - CTX_wm_region(C)->winrct.xmin;
+	y= evt->y - CTX_wm_region(C)->winrct.ymin;
 	
 	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);	
 	
 	cfra= find_nearest_marker_time(markers, viewx);
 	
 	if (extend)
-		select_timeline_marker_frame(cfra, 1);
+		select_timeline_marker_frame(markers, cfra, 1);
 	else
-		select_timeline_marker_frame(cfra, 0);
+		select_timeline_marker_frame(markers, cfra, 0);
 	
 	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
 

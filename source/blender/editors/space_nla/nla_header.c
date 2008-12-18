@@ -38,7 +38,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -66,7 +66,7 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 
 static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
+	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -99,7 +99,7 @@ static void do_nla_buttons(bContext *C, void *arg, int event)
 
 void nla_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= C->area;
+	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -115,7 +115,7 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, 
+		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, "");
 		xco+=XIC+xmax;
 	}

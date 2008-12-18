@@ -38,7 +38,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
@@ -66,7 +66,7 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 
 static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
+	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -106,8 +106,8 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= C->area;
-	SpaceButs *sbuts= sa->spacedata.first;
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -123,7 +123,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, dummy_viewmenu, C->area, 
+		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
 						 "View", xco, yco-2, xmax-3, 24, "");
 		
 		xco+=XIC+xmax;
@@ -182,7 +182,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	xco+=XIC;
-	uiDefButI(block, NUM, B_NEWFRAME, "",	(xco+20),yco,60,YIC, &(C->scene->r.cfra), 1.0, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
+	uiDefButI(block, NUM, B_NEWFRAME, "",	(xco+20),yco,60,YIC, &(CTX_data_scene(C)->r.cfra), 1.0, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
 	
 // XXX	buttons_active_id(&id, &idfrom);

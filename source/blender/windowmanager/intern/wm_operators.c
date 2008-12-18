@@ -37,7 +37,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -109,7 +109,7 @@ int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 
 int WM_operator_winactive(bContext *C)
 {
-	if(C->window==NULL) return 0;
+	if(CTX_wm_window(C)==NULL) return 0;
 	return 1;
 }
 
@@ -199,7 +199,7 @@ static void border_select_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	ED_area_tag_redraw(C->area);
+	ED_area_tag_redraw(CTX_wm_area(C));
 	
 }
 
@@ -208,7 +208,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
 	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 
@@ -224,7 +224,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch(event->type) {
 		case MOUSEMOVE:
 			
-			wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 			
 			if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 				rect->xmin= rect->xmax= event->x - sx;
@@ -268,7 +268,7 @@ static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
 	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
 	
@@ -282,12 +282,13 @@ static void tweak_gesture_end(bContext *C, wmOperator *op)
 	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
 	op->customdata= NULL;
 
-	ED_area_tag_redraw(C->area);
+	ED_area_tag_redraw(CTX_wm_area(C));
 	
 }
 
 static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	wmWindow *window= CTX_wm_window(C);
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
 	int sx, sy, val;
@@ -295,7 +296,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 	switch(event->type) {
 		case MOUSEMOVE:
 			
-			wm_subwindow_getorigin(C->window, gesture->swinid, &sx, &sy);
+			wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 			
 			rect->xmax= event->x - sx;
 			rect->ymax= event->y - sy;
@@ -303,7 +304,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if((val= wm_gesture_evaluate(C, gesture))) {
 				wmEvent event;
 					
-				event= *(C->window->eventstate);
+				event= *(window->eventstate);
 				if(gesture->event_type==LEFTMOUSE)
 					event.type= EVT_TWEAK_L;
 				else if(gesture->event_type==RIGHTMOUSE)
@@ -312,7 +313,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 					event.type= EVT_TWEAK_M;
 				event.val= val;
 				/* mouse coords! */
-				wm_event_add(C->window, &event);
+				wm_event_add(window, &event);
 				
 				tweak_gesture_end(C, op);
 				return OPERATOR_FINISHED;

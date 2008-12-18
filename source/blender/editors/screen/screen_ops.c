@@ -29,7 +29,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
@@ -53,25 +53,25 @@
 
 int ED_operator_areaactive(bContext *C)
 {
-	if(C->window==NULL) return 0;
-	if(C->screen==NULL) return 0;
-	if(C->area==NULL) return 0;
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	if(CTX_wm_area(C)==NULL) return 0;
 	return 1;
 }
 
 int ED_operator_screenactive(bContext *C)
 {
-	if(C->window==NULL) return 0;
-	if(C->screen==NULL) return 0;
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
 	return 1;
 }
 
 /* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
-	if(C->window==NULL) return 0;
-	if(C->screen==NULL) return 0;
-	if (C->screen->subwinactive!=C->screen->mainwin) return 0;
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	if (CTX_wm_screen(C)->subwinactive!=CTX_wm_screen(C)->mainwin) return 0;
 	return 1;
 }
 
@@ -141,7 +141,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, int x, int y)
 
 static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	AZone *az= is_in_area_actionzone(C->area, event->x, event->y);
+	AZone *az= is_in_area_actionzone(CTX_wm_area(C), event->x, event->y);
 	sActionzoneData *sad;
 	
 	/* quick escape */
@@ -150,12 +150,12 @@ static int actionzone_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* ok we do the actionzone */
 	sad= op->customdata= MEM_callocN(sizeof(sActionzoneData), "sActionzoneData");
-	sad->sa1= C->area;
+	sad->sa1= CTX_wm_area(C);
 	sad->az= az;
 	sad->x= event->x; sad->y= event->y;
 	
 	/* add modal handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -171,14 +171,15 @@ static void actionzone_exit(bContext *C, wmOperator *op)
 static void actionzone_apply(bContext *C, wmOperator *op)
 {
 	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
 	
-	event= *(C->window->eventstate);	/* XXX huh huh? make api call */
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
 	event.type= EVT_ACTIONZONE;
 	event.customdata= op->customdata;
 	event.customdatafree= TRUE;
 	op->customdata= NULL;
 	
-	wm_event_add(C->window, &event);
+	wm_event_add(win, &event);
 }
 
 static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -205,7 +206,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(ABS(deltax) > 12 || ABS(deltay) > 12) {
 				
 				/* second area, for join */
-				sad->sa2= screen_areahascursor(C->screen, event->x, event->y);
+				sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
 				/* apply sends event */
 				actionzone_apply(C, op);
 				actionzone_exit(C, op);
@@ -243,25 +244,30 @@ void ED_SCR_OT_actionzone(wmOperatorType *ot)
 conventions: 'atomic' and 'dont think for user' :) */
 static int screen_area_rip_op(bContext *C, wmOperator *op)
 {
-	wmWindow *win;
-	bScreen *newsc;
+	wmWindow *newwin, *win;
+	bScreen *newsc, *sc;
+	ScrArea *sa;
 	rcti rect;
 	
+	win= CTX_wm_window(C);
+	sc= CTX_wm_screen(C);
+	sa= CTX_wm_area(C);
+
 	/*  poll() checks area context, but we don't accept full-area windows */
-	if(C->screen->full != SCREENNORMAL) 
+	if(sc->full != SCREENNORMAL) 
 		return OPERATOR_CANCELLED;
 	
 	/* adds window to WM */
-	rect= C->area->totrct;
-	BLI_translate_rcti(&rect, C->window->posx, C->window->posy);
-	win= WM_window_open(C, &rect);
+	rect= sa->totrct;
+	BLI_translate_rcti(&rect, win->posx, win->posy);
+	newwin= WM_window_open(C, &rect);
 	
 	/* allocs new screen and adds to newly created window, using window size */
-	newsc= screen_add(win, C->screen->id.name+2);
+	newsc= screen_add(newwin, sc->id.name+2);
 	win->screen= newsc;
 	
 	/* copy area to new screen */
-	area_copy_data((ScrArea *)newsc->areabase.first, C->area, 0);
+	area_copy_data((ScrArea *)newsc->areabase.first, sa, 0);
 	
 	/* screen, areas init */
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
@@ -350,6 +356,7 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 /* return 0: init failed */
 static int area_move_init (bContext *C, wmOperator *op)
 {
+	bScreen *sc= CTX_wm_screen(C);
 	ScrEdge *actedge;
 	sAreaMoveData *md;
 	int x, y;
@@ -359,7 +366,7 @@ static int area_move_init (bContext *C, wmOperator *op)
 	y= RNA_int_get(op->ptr, "y");
 
 	/* setup */
-	actedge= screen_find_active_scredge(C->screen, x, y);
+	actedge= screen_find_active_scredge(sc, x, y);
 	if(actedge==NULL) return 0;
 
 	md= MEM_callocN(sizeof(sAreaMoveData), "sAreaMoveData");
@@ -369,10 +376,10 @@ static int area_move_init (bContext *C, wmOperator *op)
 	if(md->dir=='h') md->origval= actedge->v1->vec.y;
 	else md->origval= actedge->v1->vec.x;
 	
-	select_connected_scredge(C->screen, actedge);
+	select_connected_scredge(sc, actedge);
 	/* now all vertices with 'flag==1' are the ones that can be moved. */
 
-	area_move_set_limits(C->screen, md->dir, &md->bigger, &md->smaller);
+	area_move_set_limits(sc, md->dir, &md->bigger, &md->smaller);
 	
 	return 1;
 }
@@ -380,26 +387,28 @@ static int area_move_init (bContext *C, wmOperator *op)
 /* moves selected screen edge amount of delta, used by split & move */
 static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int bigger, int smaller)
 {
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *sc= CTX_wm_screen(C);
 	ScrVert *v1;
 	
 	delta= CLAMPIS(delta, -smaller, bigger);
 	
-	for (v1= C->screen->vertbase.first; v1; v1= v1->next) {
+	for (v1= sc->vertbase.first; v1; v1= v1->next) {
 		if (v1->flag) {
 			/* that way a nice AREAGRID  */
-			if((dir=='v') && v1->vec.x>0 && v1->vec.x<C->window->sizex-1) {
+			if((dir=='v') && v1->vec.x>0 && v1->vec.x<win->sizex-1) {
 				v1->vec.x= origval + delta;
 				if(delta != bigger && delta != -smaller) v1->vec.x-= (v1->vec.x % AREAGRID);
 			}
-			if((dir=='h') && v1->vec.y>0 && v1->vec.y<C->window->sizey-1) {
+			if((dir=='h') && v1->vec.y>0 && v1->vec.y<win->sizey-1) {
 				v1->vec.y= origval + delta;
 
 				v1->vec.y+= AREAGRID-1;
 				v1->vec.y-= (v1->vec.y % AREAGRID);
 				
 				/* prevent too small top header */
-				if(v1->vec.y > C->window->sizey-AREAMINY)
-					v1->vec.y= C->window->sizey-AREAMINY;
+				if(v1->vec.y > win->sizey-AREAMINY)
+					v1->vec.y= win->sizey-AREAMINY;
 			}
 		}
 	}
@@ -423,8 +432,8 @@ static void area_move_exit(bContext *C, wmOperator *op)
 	op->customdata= NULL;
 	
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scrverts(C->screen);
-	removedouble_scredges(C->screen);
+	removedouble_scrverts(CTX_wm_screen(C));
+	removedouble_scredges(CTX_wm_screen(C));
 }
 
 static int area_move_exec(bContext *C, wmOperator *op)
@@ -448,7 +457,7 @@ static int area_move_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 	
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -575,26 +584,27 @@ typedef struct sAreaSplitData
 /* generic init, no UI stuff here */
 static int area_split_init(bContext *C, wmOperator *op)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	sAreaSplitData *sd;
 	int dir;
 	
 	/* required context */
-	if(C->area==NULL) return 0;
+	if(sa==NULL) return 0;
 	
 	/* required properties */
 	dir= RNA_enum_get(op->ptr, "dir");
 	
 	/* minimal size */
-	if(dir=='v' && C->area->winx < 2*AREAMINX) return 0;
-	if(dir=='h' && C->area->winy < 2*AREAMINY) return 0;
+	if(dir=='v' && sa->winx < 2*AREAMINX) return 0;
+	if(dir=='h' && sa->winy < 2*AREAMINY) return 0;
 	   
 	/* custom data */
 	sd= (sAreaSplitData*)MEM_callocN(sizeof (sAreaSplitData), "op_area_split");
 	op->customdata= sd;
 	
-	sd->sarea= C->area;
-	sd->origsize= dir=='v' ? C->area->winx:C->area->winy;
-	sd->origmin = dir=='v' ? C->area->totrct.xmin:C->area->totrct.ymin;
+	sd->sarea= sa;
+	sd->origsize= dir=='v' ? sa->winx:sa->winy;
+	sd->origmin = dir=='v' ? sa->totrct.xmin:sa->totrct.ymin;
 	
 	return 1;
 }
@@ -632,6 +642,7 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 /* do the split, return success */
 static int area_split_apply(bContext *C, wmOperator *op)
 {
+	bScreen *sc= CTX_wm_screen(C);
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 	float fac;
 	int dir;
@@ -639,15 +650,15 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	fac= RNA_float_get(op->ptr, "fac");
 	dir= RNA_enum_get(op->ptr, "dir");
 
-	sd->narea= area_split(C->window, C->screen, sd->sarea, dir, fac);
+	sd->narea= area_split(CTX_wm_window(C), sc, sd->sarea, dir, fac);
 	
 	if(sd->narea) {
 		ScrVert *sv;
 		
-		sd->nedge= area_findsharededge(C->screen, sd->sarea, sd->narea);
+		sd->nedge= area_findsharededge(sc, sd->sarea, sd->narea);
 	
 		/* select newly created edge, prepare for moving edge */
-		for(sv= C->screen->vertbase.first; sv; sv= sv->next)
+		for(sv= sc->vertbase.first; sv; sv= sv->next)
 			sv->flag = 0;
 		
 		sd->nedge->v1->flag= 1;
@@ -674,8 +685,8 @@ static void area_split_exit(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scrverts(C->screen);
-	removedouble_scredges(C->screen);
+	removedouble_scrverts(CTX_wm_screen(C));
+	removedouble_scredges(CTX_wm_screen(C));
 }
 
 
@@ -693,7 +704,7 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* is this our *sad? if areas not equal it should be passed on */
-		if(C->area!=sad->sa1 || sad->sa1!=sad->sa2)
+		if(CTX_wm_area(C)!=sad->sa1 || sad->sa1!=sad->sa2)
 			return OPERATOR_PASS_THROUGH;
 		
 		/* prepare operator state vars */
@@ -718,10 +729,10 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* do the split */
 		if(area_split_apply(C, op)) {
-			area_move_set_limits(C->screen, dir, &sd->bigger, &sd->smaller);
+			area_move_set_limits(CTX_wm_screen(C), dir, &sd->bigger, &sd->smaller);
 			
 			/* add temp handler for edge move or cancel */
-			WM_event_add_modal_handler(C, &C->window->handlers, op);
+			WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 			
 			return OPERATOR_RUNNING_MODAL;
 		}
@@ -753,9 +764,9 @@ static int area_split_cancel(bContext *C, wmOperator *op)
 {
 	sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
 
-	if (screen_area_join(C, C->screen, sd->sarea, sd->narea)) {
-		if (C->area == sd->narea) {
-			C->area = NULL;
+	if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
+		if (CTX_wm_area(C) == sd->narea) {
+			CTX_wm_area_set(C, NULL);
 		}
 		sd->narea = NULL;
 	}
@@ -837,7 +848,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 
 	delta = RNA_int_get(op->ptr, "delta");
 
-	C->scene->r.cfra += delta;
+	CTX_data_scene(C)->r.cfra += delta;
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
 
@@ -864,20 +875,20 @@ void ED_SCR_OT_frame_offset(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
-	bScreen *screen= C->screen;
+	bScreen *screen= CTX_wm_screen(C);
 	int delta= RNA_int_get(op->ptr, "delta");
 	
 	/* this screen is 'fake', solve later XXX */
-	if(C->area->full)
+	if(CTX_wm_area(C)->full)
 		return OPERATOR_CANCELLED;
 	
 	if(delta==1) {
 		screen= screen->id.next;
-		if(screen==NULL) screen= G.main->screen.first;
+		if(screen==NULL) screen= CTX_data_main(C)->screen.first;
 	}
 	else if(delta== -1) {
 		screen= screen->id.prev;
-		if(screen==NULL) screen= G.main->screen.last;
+		if(screen==NULL) screen= CTX_data_main(C)->screen.last;
 	}
 	else {
 		screen= NULL;
@@ -979,8 +990,8 @@ static int area_join_init(bContext *C, wmOperator *op)
 	x2= RNA_int_get(op->ptr, "x2");
 	y2= RNA_int_get(op->ptr, "y2");
 	
-	sa1 = screen_areahascursor(C->screen, x1, y1);
-	sa2 = screen_areahascursor(C->screen, x2, y2);
+	sa1 = screen_areahascursor(CTX_wm_screen(C), x1, y1);
+	sa2 = screen_areahascursor(CTX_wm_screen(C), x2, y2);
 	if(sa1==NULL || sa2==NULL || sa1==sa2)
 		return 0;
 
@@ -1002,11 +1013,11 @@ static int area_join_apply(bContext *C, wmOperator *op)
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	if (!jd) return 0;
 
-	if(!screen_area_join(C, C->screen, jd->sa1, jd->sa2)){
+	if(!screen_area_join(C, CTX_wm_screen(C), jd->sa1, jd->sa2)){
 		return 0;
 	}
-	if (C->area == jd->sa2) {
-		C->area = NULL;
+	if (CTX_wm_area(C) == jd->sa2) {
+		CTX_wm_area_set(C, NULL);
 	}
 
 	return 1;
@@ -1021,9 +1032,9 @@ static void area_join_exit(bContext *C, wmOperator *op)
 	}
 
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scredges(C->screen);
-	removenotused_scredges(C->screen);
-	removenotused_scrverts(C->screen);
+	removedouble_scredges(CTX_wm_screen(C));
+	removenotused_scredges(CTX_wm_screen(C));
+	removenotused_scrverts(CTX_wm_screen(C));
 }
 
 static int area_join_exec(bContext *C, wmOperator *op)
@@ -1062,7 +1073,7 @@ static int area_join_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_PASS_THROUGH;
 	
 		/* add temp handler */
-		WM_event_add_modal_handler(C, &C->window->handlers, op);
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -1093,6 +1104,7 @@ static int area_join_cancel(bContext *C, wmOperator *op)
 /* modal callback while selecting area (space) that will be removed */
 static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	bScreen *sc= CTX_wm_screen(C);
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	
 	/* execute the events */
@@ -1100,12 +1112,12 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 		case MOUSEMOVE: 
 			{
-				ScrArea *sa = screen_areahascursor(C->screen, event->x, event->y);
+				ScrArea *sa = screen_areahascursor(sc, event->x, event->y);
 				int dir;
 				
 				if (sa) {					
 					if (jd->sa1 != sa) {
-						dir = area_getorientation(C->screen, jd->sa1, sa);
+						dir = area_getorientation(sc, jd->sa1, sa);
 						if (dir >= 0) {
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = sa;
@@ -1116,7 +1128,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 							   we check if area has common border with the one marked for removal
 							   in this case we can swap areas.
 							*/
-							dir = area_getorientation(C->screen, sa, jd->sa2);
+							dir = area_getorientation(sc, sa, jd->sa2);
 							if (dir >= 0) {
 								if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
@@ -1142,13 +1154,13 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 							jd->sa2 = sa;
 							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-							dir = area_getorientation(C->screen, jd->sa1, jd->sa2);
+							dir = area_getorientation(sc, jd->sa1, jd->sa2);
 							if (dir < 0) {
 								printf("oops, didn't expect that!\n");
 							}
 						} 
 						else {
-							dir = area_getorientation(C->screen, jd->sa1, sa);
+							dir = area_getorientation(sc, jd->sa1, sa);
 							if (dir >= 0) {
 								if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 								jd->sa2 = sa;
@@ -1207,7 +1219,7 @@ void ED_SCR_OT_area_join(wmOperatorType *ot)
 
 static int repeat_last_exec(bContext *C, wmOperator *op)
 {
-	wmOperator *lastop= C->wm->operators.last;
+	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
 	if(lastop) {
 		printf("repeat %s\n", lastop->type->idname);
@@ -1236,17 +1248,19 @@ void ED_SCR_OT_repeat_last(wmOperatorType *ot)
 /* insert a region in the area region list */
 static int region_split_exec(bContext *C, wmOperator *op)
 {
-	ARegion *newar= BKE_area_region_copy(C->region);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	ARegion *newar= BKE_area_region_copy(ar);
 	int dir= RNA_enum_get(op->ptr, "dir");
 	
-	BLI_insertlinkafter(&C->area->regionbase, C->region, newar);
+	BLI_insertlinkafter(&sa->regionbase, CTX_wm_region(C), newar);
 	
-	newar->alignment= C->region->alignment;
+	newar->alignment= ar->alignment;
 	
 	if(dir=='h')
-		C->region->alignment= RGN_ALIGN_HSPLIT;
+		ar->alignment= RGN_ALIGN_HSPLIT;
 	else
-		C->region->alignment= RGN_ALIGN_VSPLIT;
+		ar->alignment= RGN_ALIGN_VSPLIT;
 	
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 	
@@ -1276,14 +1290,16 @@ void ED_SCR_OT_region_split(wmOperatorType *ot)
 /* flip a region alignment */
 static int region_flip_exec(bContext *C, wmOperator *op)
 {
-	if(C->region->alignment==RGN_ALIGN_TOP)
-		C->region->alignment= RGN_ALIGN_BOTTOM;
-	else if(C->region->alignment==RGN_ALIGN_BOTTOM)
-		C->region->alignment= RGN_ALIGN_TOP;
-	else if(C->region->alignment==RGN_ALIGN_LEFT)
-		C->region->alignment= RGN_ALIGN_RIGHT;
-	else if(C->region->alignment==RGN_ALIGN_RIGHT)
-		C->region->alignment= RGN_ALIGN_LEFT;
+	ARegion *ar= CTX_wm_region(C);
+
+	if(ar->alignment==RGN_ALIGN_TOP)
+		ar->alignment= RGN_ALIGN_BOTTOM;
+	else if(ar->alignment==RGN_ALIGN_BOTTOM)
+		ar->alignment= RGN_ALIGN_TOP;
+	else if(ar->alignment==RGN_ALIGN_LEFT)
+		ar->alignment= RGN_ALIGN_RIGHT;
+	else if(ar->alignment==RGN_ALIGN_RIGHT)
+		ar->alignment= RGN_ALIGN_LEFT;
 	
 	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
 	

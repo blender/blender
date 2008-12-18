@@ -63,27 +63,6 @@ struct BMF_Font;
 struct EditMesh;
 struct BME_Glob;
 
-/* former global stuff. context is derived, not storage! */
-typedef struct bContext {
-	
-	/* windowmanager tree context */
-	struct wmWindowManager *wm;
-	struct wmWindow *window;
-	struct bScreen *screen;
-	struct ScrArea *area;
-	struct ARegion *region;
-	
-	/* data context */
-	struct Scene *scene;
-	struct Object *obact;
-	struct Object *obedit;
-	
-	/* edit data context */
-	struct EditMesh *editMesh;
-	struct ListBase edbo;			/* Armature Editmode bones */
-	
-} bContext;
-
 typedef struct Global {
 
 	/* active pointers */

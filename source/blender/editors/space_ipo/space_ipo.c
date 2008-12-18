@@ -41,7 +41,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
@@ -149,7 +149,7 @@ static SpaceLink *ipo_duplicate(SpaceLink *sl)
 // XXX this should be defined in some general lib for anim editors...
 static void draw_cfra(const bContext *C, SpaceIpo *sipo, View2D *v2d)
 {
-	Scene *scene= C->scene;
+	Scene *scene= CTX_data_scene(C);
 	float vec[2];
 	
 	//vec[0] = get_ipo_cfra_from_cfra(sipo, scene->r.cfra);
@@ -168,7 +168,7 @@ static void draw_cfra(const bContext *C, SpaceIpo *sipo, View2D *v2d)
 	
 #if 0
 	if(sipo->blocktype==ID_OB) {
-		ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
+		ob= (scene->basact) ? (scene->basact->object) : 0;
 		if (ob && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) { 
 			vec[0]-= give_timeoffset(ob);
 			
@@ -204,7 +204,7 @@ static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceIpo *sipo= C->area->spacedata.first;
+	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;

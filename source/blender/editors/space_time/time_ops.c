@@ -38,7 +38,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_utildefines.h"
 
 #include "UI_interface.h"
@@ -56,7 +56,7 @@
 
 static int change_frame_init(bContext *C, wmOperator *op)
 {
-	SpaceTime *stime= C->area->spacedata.first;
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 
 	stime->flag |= TIME_CFRA_NUM;
 	
@@ -65,6 +65,7 @@ static int change_frame_init(bContext *C, wmOperator *op)
 
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	int cfra;
 
 	cfra= RNA_int_get(op->ptr, "frame");
@@ -83,8 +84,8 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	else PIL_sleep_ms(30);
 #endif
 
-	if(cfra!=CFRA)
-		CFRA= cfra;
+	if(cfra!=scene->r.cfra)
+		scene->r.cfra= cfra;
 	
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 	/* XXX: add WM_NOTE_TIME_CHANGED? */
@@ -92,7 +93,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 
 static void change_frame_exit(bContext *C, wmOperator *op)
 {
-	SpaceTime *stime= C->area->spacedata.first;
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 
 	stime->flag &= ~TIME_CFRA_NUM;
 }
@@ -109,7 +110,7 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 
 static int frame_from_event(bContext *C, wmEvent *event)
 {
-	ARegion *region= C->region;
+	ARegion *region= CTX_wm_region(C);
 	int x, y;
 	float viewx;
 	
@@ -127,7 +128,7 @@ static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	change_frame_apply(C, op);
 
 	/* add temp handler */
-	WM_event_add_modal_handler(C, &C->window->handlers, op);
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -182,12 +183,12 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 {
 	SpaceTime *stime;
 	
-	if (ELEM(NULL, C->area, C->area->spacedata.first))
+	if (ELEM(NULL, CTX_wm_area(C), CTX_wm_space_data(C)))
 		return OPERATOR_CANCELLED;
 	
 	/* simply toggle draw frames flag for now */
 	// XXX in past, this displayed menu to choose... (for later!)
-	stime= C->area->spacedata.first;
+	stime= (SpaceTime*)CTX_wm_space_data(C);
 	stime->flag ^= TIME_DRAWFRAMES;
 	
 	return OPERATOR_FINISHED;

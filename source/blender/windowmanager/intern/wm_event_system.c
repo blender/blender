@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
 
@@ -98,11 +99,11 @@ void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
-	BLI_addtail(&C->wm->queue, note);
+	BLI_addtail(&CTX_wm_manager(C)->queue, note);
 	
-	note->window= C->window;
-	if(C->region)
-		note->swinid= C->region->swinid;
+	note->window= CTX_wm_window(C);
+	if(CTX_wm_region(C))
+		note->swinid= CTX_wm_region(C)->swinid;
 	note->type= type;
 	note->value= value;
 	note->data= data;
@@ -119,17 +120,18 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 /* called in mainloop */
 void wm_event_do_notifiers(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note;
 	
-	while( (note=wm_notifier_next(C->wm)) ) {
+	while( (note=wm_notifier_next(wm)) ) {
 		wmWindow *win;
 		
-		for(win= C->wm->windows.first; win; win= win->next) {
+		for(win= wm->windows.first; win; win= win->next) {
 			ScrArea *sa;
 			ARegion *ar;
 
-			C->window= win;
-			C->screen= win->screen;	/* XXX context in notifiers? */
+			/* XXX context in notifiers? */
+			CTX_wm_window_set(C, win);
 
 			/* printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2); */
 			ED_screen_do_listen(win, note);
@@ -144,8 +146,7 @@ void wm_event_do_notifiers(bContext *C)
 				}
 			}
 
-			C->window= NULL;
-			C->screen= NULL;
+			CTX_wm_window_set(C, NULL);
 		}
 		
 		MEM_freeN(note);
@@ -170,11 +171,12 @@ static void wm_flush_regions(bScreen *screen, rcti *dirty)
 static void wm_flush_draw_update(bContext *C)
 {
 	ARegion *ar;
+	bScreen *screen= CTX_wm_screen(C);
 	
 	/* flush redraws of screen regions (menus) down */
-	for(ar= C->screen->regionbase.first; ar; ar= ar->next) {
+	for(ar= screen->regionbase.first; ar; ar= ar->next) {
 		if(ar->swinid && ar->do_draw) {
-			wm_flush_regions(C->screen, &ar->winrct);
+			wm_flush_regions(screen, &ar->winrct);
 		}
 	}
 	
@@ -209,40 +211,40 @@ static int wm_draw_update_test_window(wmWindow *win)
 
 void wm_draw_update(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 	
-	for(win= C->wm->windows.first; win; win= win->next) {
+	for(win= wm->windows.first; win; win= win->next) {
 		if(wm_draw_update_test_window(win)) {
 			ScrArea *sa;
 			ARegion *ar;
 
-			C->window= win;
-			C->screen= win->screen;
+			CTX_wm_window_set(C, win);
 			
 			/* sets context window+screen */
 			wm_window_make_drawable(C, win);
 			
 			/* notifiers for screen redraw */
 			if(win->screen->do_refresh)
-				ED_screen_refresh(C->wm, win);
+				ED_screen_refresh(wm, win);
 			
 			/* flush draw updates for multiple layers */
 			wm_flush_draw_update(C);
 
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				
-				C->area= sa;
+				CTX_wm_area_set(C, sa);
 				
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
-					C->region= ar;
+					CTX_wm_region_set(C, ar);
 					
 					if(ar->swinid && ar->do_draw)
 						ED_region_do_draw(C, ar);
 					
-					C->region= NULL;
+					CTX_wm_region_set(C, NULL);
 				}
 				
-				C->area = NULL;
+				CTX_wm_area_set(C, NULL);
 			}
 			
 			/* move this here so we can do area 'overlay' drawing */
@@ -253,12 +255,12 @@ void wm_draw_update(bContext *C)
 
 			/* regions are menus here */
 			for(ar=win->screen->regionbase.first; ar; ar= ar->next) {
-				C->region= ar;
+				CTX_wm_region_set(C, ar);
 				
 				if(ar->swinid && ar->do_draw)
 					ED_region_do_draw(C, ar);
 
-				C->region= NULL;
+				CTX_wm_region_set(C, NULL);
 			}
 			
 			if(win->screen->do_gesture)
@@ -266,8 +268,7 @@ void wm_draw_update(bContext *C)
 
 			wm_window_swap_buffers(win);
 
-			C->window= NULL;
-			C->screen= NULL;
+			CTX_wm_window_set(C, NULL);
 		}
 	}
 }
@@ -277,6 +278,7 @@ void wm_draw_update(bContext *C)
 
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, IDProperty *properties)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
 
 	if(ot->poll==NULL || ot->poll(C)) {
@@ -290,7 +292,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
 		
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		RNA_pointer_create(&RNA_WindowManager, &C->wm->id, ot->srna, &op->properties, op->ptr);
+		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, &op->properties, op->ptr);
 
 		if(op->type->invoke)
 			retval= (*op->type->invoke)(C, op, event);
@@ -298,7 +300,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 			retval= op->type->exec(C, op);
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-			wm_operator_register(C->wm, op);
+			wm_operator_register(wm, op);
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			wm_operator_free(op);
@@ -312,55 +314,57 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 int WM_operator_call(bContext *C, const char *opstring, int context, IDProperty *properties)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmWindow *window= CTX_wm_window(C);
 	int retval;
 
 	/* dummie test */
-	if(ot && C && C->window) {
+	if(ot && C && window) {
 		if(context == WM_OP_REGION_WIN) {
 			/* forces event to go to the region window, for header menus */
-			ARegion *ar= C->region;
+			ARegion *ar= CTX_wm_region(C);
+			ScrArea *area= CTX_wm_area(C);
 			
-			if(C->area) {
-				ARegion *ar1= C->area->regionbase.first;
+			if(area) {
+				ARegion *ar1= area->regionbase.first;
 				for(; ar1; ar1= ar1->next)
 					if(ar1->regiontype==RGN_TYPE_WINDOW)
 						break;
 				if(ar1)
-					C->region= ar1;
+					CTX_wm_region_set(C, ar1);
 			}
 			
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
+			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
 			
 			/* set region back */
-			C->region= ar;
+			CTX_wm_region_set(C, ar);
 			
 			return retval;
 		}
 		else if(context == WM_OP_AREA) {
 			/* remove region from context */
-			ARegion *ar= C->region;
+			ARegion *ar= CTX_wm_region(C);
 
-			C->region= NULL;
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
-			C->region= ar;
+			CTX_wm_region_set(C, NULL);
+			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
+			CTX_wm_region_set(C, ar);
 
 			return retval;
 		}
 		else if(context == WM_OP_SCREEN) {
 			/* remove region + area from context */
-			ARegion *ar= C->region;
-			ScrArea *area= C->area;
+			ARegion *ar= CTX_wm_region(C);
+			ScrArea *area= CTX_wm_area(C);
 
-			C->region= NULL;
-			C->area= NULL;
-			retval= wm_operator_invoke(C, ot, C->window->eventstate, properties);
-			C->region= ar;
-			C->area= area;
+			CTX_wm_region_set(C, NULL);
+			CTX_wm_area_set(C, NULL);
+			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
+			CTX_wm_region_set(C, ar);
+			CTX_wm_area_set(C, area);
 
 			return retval;
 		}
 		else
-			return wm_operator_invoke(C, ot, C->window->eventstate, properties);
+			return wm_operator_invoke(C, ot, window->eventstate, properties);
 	}
 	
 	return 0;
@@ -386,31 +390,31 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 		
 		if(handler->op) {
 			if(handler->op->type->cancel) {
-				ScrArea *area= C->area;
-				ARegion *region= C->region;
+				ScrArea *area= CTX_wm_area(C);
+				ARegion *region= CTX_wm_region(C);
 				
-				C->area= handler->op_area;
-				C->region= handler->op_region;
+				CTX_wm_area_set(C, handler->op_area);
+				CTX_wm_region_set(C, handler->op_region);
 
 				handler->op->type->cancel(C, handler->op);
 
-				C->area= area;
-				C->region= region;
+				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, region);
 			}
 
 			wm_operator_free(handler->op);
 		}
 		else if(handler->ui_remove) {
-			ScrArea *area= C->area;
-			ARegion *region= C->region;
+			ScrArea *area= CTX_wm_area(C);
+			ARegion *region= CTX_wm_region(C);
 			
-			if(handler->ui_area) C->area= handler->ui_area;
-			if(handler->ui_region) C->region= handler->ui_region;
+			if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
+			if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
 
 			handler->ui_remove(C, handler->ui_userdata);
 
-			C->area= area;
-			C->region= region;
+			CTX_wm_area_set(C, area);
+			CTX_wm_region_set(C, region);
 		}
 
 		wm_event_free_handler(handler);
@@ -449,20 +453,20 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 		if(ot->modal) {
 			/* we set context to where modal handler came from */
-			ScrArea *area= C->area;
-			ARegion *region= C->region;
+			ScrArea *area= CTX_wm_area(C);
+			ARegion *region= CTX_wm_region(C);
 			
-			C->area= handler->op_area;
-			C->region= handler->op_region;
+			CTX_wm_area_set(C, handler->op_area);
+			CTX_wm_region_set(C, handler->op_region);
 			
 			retval= ot->modal(C, op, event);
 
 			/* putting back screen context */
-			C->area= area;
-			C->region= region;
+			CTX_wm_area_set(C, area);
+			CTX_wm_region_set(C, region);
 			
 			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
-				wm_operator_register(C->wm, op);
+				wm_operator_register(CTX_wm_manager(C), op);
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
@@ -500,19 +504,19 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event)
 {
-	ScrArea *area= C->area;
-	ARegion *region= C->region;
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *region= CTX_wm_region(C);
 	int retval;
 			
 	/* we set context to where ui handler came from */
-	if(handler->ui_area) C->area= handler->ui_area;
-	if(handler->ui_region) C->region= handler->ui_region;
+	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
+	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
 
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
 	/* putting back screen context */
-	C->area= area;
-	C->region= region;
+	CTX_wm_area_set(C, area);
+	CTX_wm_region_set(C, region);
 
 	if(retval == WM_UI_HANDLER_BREAK)
 		return WM_HANDLER_BREAK;
@@ -564,7 +568,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
 					if(wm_eventmatch(event, kmi)) {
 						if((G.f & G_DEBUG) && event->type!=MOUSEMOVE)
-							printf("handle evt %d win %d op %s\n", event->type, C->window->winid, kmi->idname); 
+							printf("handle evt %d win %d op %s\n", event->type, CTX_wm_window(C)->winid, kmi->idname); 
 						
 						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 						
@@ -610,10 +614,11 @@ static int wm_event_prev_inside_i(wmEvent *event, rcti *rect)
 
 static ScrArea *area_event_inside(bContext *C, wmEvent *event)
 {
+	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa;
 	
-	if(C->screen)
-		for(sa= C->screen->areabase.first; sa; sa= sa->next)
+	if(screen)
+		for(sa= screen->areabase.first; sa; sa= sa->next)
 			if(BLI_in_rcti(&sa->totrct, event->x, event->y))
 				return sa;
 	return NULL;
@@ -621,10 +626,12 @@ static ScrArea *area_event_inside(bContext *C, wmEvent *event)
 
 static ARegion *region_event_inside(bContext *C, wmEvent *event)
 {
+	bScreen *screen= CTX_wm_screen(C);
+	ScrArea *area= CTX_wm_area(C);
 	ARegion *ar;
 	
-	if(C->screen && C->area)
-		for(ar= C->area->regionbase.first; ar; ar= ar->next)
+	if(screen && area)
+		for(ar= area->regionbase.first; ar; ar= ar->next)
 			if(BLI_in_rcti(&ar->winrct, event->x, event->y))
 				return ar;
 	return NULL;
@@ -637,7 +644,7 @@ void wm_event_do_handlers(bContext *C)
 {
 	wmWindow *win;
 
-	for(win= C->wm->windows.first; win; win= win->next) {
+	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
 		if( win->screen==NULL )
@@ -646,10 +653,9 @@ void wm_event_do_handlers(bContext *C)
 		while( (event=wm_event_next(win)) ) {
 			int action;
 
-			C->window= win;
-			C->screen= win->screen;
-			C->area= area_event_inside(C, event);
-			C->region= region_event_inside(C, event);
+			CTX_wm_window_set(C, win);
+			CTX_wm_area_set(C, area_event_inside(C, event));
+			CTX_wm_region_set(C, region_event_inside(C, event));
 			
 			/* MVC demands to not draw in event handlers... for now we leave it */
 			wm_window_make_drawable(C, win);
@@ -668,15 +674,15 @@ void wm_event_do_handlers(bContext *C)
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_always_pass(event) || wm_event_prev_inside_i(event, &sa->totrct)) {
 						doit= 1;
-						C->area= sa;
+						CTX_wm_area_set(C, sa);
 						action= wm_handlers_do(C, event, &sa->handlers);
 
 						if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
 								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct) || wm_event_prev_inside_i(event, &ar->winrct)) {
-									C->region= ar;
+									CTX_wm_region_set(C, ar);
 									action= wm_handlers_do(C, event, &ar->handlers);
-									C->region= NULL;
+									CTX_wm_region_set(C, NULL);
 
 									if(!wm_event_always_pass(event)) {
 										if(action==WM_HANDLER_BREAK)
@@ -686,21 +692,20 @@ void wm_event_do_handlers(bContext *C)
 							}
 						}
 
-						C->area= NULL;
+						CTX_wm_area_set(C, NULL);
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
 				}
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
 				if(doit) {
-					C->window->eventstate->prevx= event->x;
-					C->window->eventstate->prevy= event->y;
+					CTX_wm_window(C)->eventstate->prevx= event->x;
+					CTX_wm_window(C)->eventstate->prevy= event->y;
 				}
 			}
 			wm_event_free(event);
 			
-			C->window= NULL;
-			C->screen= NULL;
+			CTX_wm_window_set(C, NULL);
 		}
 	}
 }
@@ -715,8 +720,8 @@ wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOp
 {
 	wmEventHandler *handler= MEM_callocN(sizeof(wmEventHandler), "event modal handler");
 	handler->op= op;
-	handler->op_area= C->area;		/* means frozen screen context for modal handlers! */
-	handler->op_region= C->region;
+	handler->op_area= CTX_wm_area(C);		/* means frozen screen context for modal handlers! */
+	handler->op_region= CTX_wm_region(C);
 	
 	BLI_addhead(handlers, handler);
 
@@ -768,8 +773,8 @@ wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers, wmUIHan
 	handler->ui_handle= func;
 	handler->ui_remove= remove;
 	handler->ui_userdata= userdata;
-	handler->ui_area= (C)? C->area: NULL;
-	handler->ui_region= (C)? C->region: NULL;
+	handler->ui_area= (C)? CTX_wm_area(C): NULL;
+	handler->ui_region= (C)? CTX_wm_region(C): NULL;
 	
 	BLI_addhead(handlers, handler);
 	
@@ -792,11 +797,12 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 
 void WM_event_add_mousemove(bContext *C)
 {
-	wmEvent event= *(C->window->eventstate);
+	wmWindow *window= CTX_wm_window(C);
+	wmEvent event= *(window->eventstate);
 	event.type= MOUSEMOVE;
 	event.prevx= event.x;
 	event.prevy= event.y;
-	wm_event_add(C->window, &event);
+	wm_event_add(window, &event);
 }
 
 /* ********************* ghost stuff *************** */

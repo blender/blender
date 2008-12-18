@@ -145,6 +145,7 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -483,9 +484,9 @@ static void write_renderinfo(bContext *C, WriteData *wd)		/* for renderdeamon */
 	Scene *sce;
 	int data[8];
 
-	sce= G.main->scene.first;
+	sce= CTX_data_main(C)->scene.first;
 	while(sce) {
-		if(sce->id.lib==0  && ( sce==C->scene || (sce->r.scemode & R_BG_RENDER)) ) {
+		if(sce->id.lib==0  && ( sce==CTX_data_scene(C) || (sce->r.scemode & R_BG_RENDER)) ) {
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
@@ -2019,8 +2020,8 @@ static void write_global(bContext *C, WriteData *wd)
 	FileGlobal fg;
 	char subvstr[8];
 	
-	fg.curscreen= C->screen;
-	fg.curscene= C->scene;
+	fg.curscreen= CTX_wm_screen(C);
+	fg.curscene= CTX_data_scene(C);
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...

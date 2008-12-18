@@ -43,6 +43,7 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # Reference to the types in makesdna and imbuf
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 # This mod uses the BLI and BLO module
 CPPFLAGS += -I../../blenlib

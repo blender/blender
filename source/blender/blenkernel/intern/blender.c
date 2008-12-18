@@ -67,6 +67,7 @@
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -324,7 +325,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		SWAP(ListBase, G.main->script, bfd->main->script);
 		
 		/* we re-use current screen */
-		curscreen= C->screen;
+		curscreen= CTX_wm_screen(C);
 		/* but use new Scene pointer */
 		curscene= bfd->curscene;
 		if(curscene==NULL) curscene= bfd->main->scene.first;
@@ -341,6 +342,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if(mode!='u') G.save_over = 1;
 	
 	G.main= bfd->main;
+	CTX_data_main_set(C, G.main);
 	
 	if (bfd->user) {
 		
@@ -356,20 +358,20 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {
-		C->screen= curscreen;
-		C->scene= curscene;
+		CTX_wm_screen_set(C, curscreen);
+		CTX_data_scene_set(C, curscene);
 	}
 	else {
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
-		C->screen= bfd->curscreen;
-		C->scene= C->screen->scene;
+		CTX_wm_screen_set(C, bfd->curscreen);
+		CTX_data_scene_set(C, bfd->curscreen->scene);
 	}
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
-	if(C->scene==NULL) {
-		C->scene= G.main->scene.first;
-		C->screen->scene= C->scene;
+	if(CTX_data_scene(C)==NULL) {
+		CTX_data_scene_set(C, G.main->scene.first);
+		CTX_wm_screen(C)->scene= CTX_data_scene(C);
 	}
 
 	/* special cases, override loaded flags: */
@@ -385,7 +387,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	}
 	
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(C->scene);
+	set_scene_bg(CTX_data_scene(C));
 
 	/* clear BONE_UNKEYED flags, these are not valid anymore for proxies */
 	framechange_poses_clear_unkeyed();
@@ -397,7 +399,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	}
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */
-	DAG_scene_update_flags(C->scene, C->scene->lay);
+	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
 	
 	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */

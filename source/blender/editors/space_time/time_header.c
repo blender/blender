@@ -39,6 +39,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
@@ -65,7 +66,7 @@
 
 static void do_time_redrawmenu(bContext *C, void *arg, int event)
 {
-	SpaceTime *stime= C->area->spacedata.first;
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	
 	if(event < 1001) {
 		
@@ -76,7 +77,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 	}
 	else {
 		if(event==1001) {
-//			button(&C->scene->r.frs_sec,1,120,"FPS:");
+//			button(&CTX_data_scene(C)->r.frs_sec,1,120,"FPS:");
 		}
 	}
 }
@@ -84,8 +85,9 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 
 static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
-	SpaceTime *stime= curarea->spacedata.first;
+	ScrArea *curarea= CTX_wm_area(C);
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120, icon;
 	char str[32];
@@ -120,7 +122,7 @@ static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d/%f)", C->scene->r.frs_sec, C->scene->r.frs_sec_base);
+	sprintf(str, "Set Frames/Sec (%d/%f)", scene->r.frs_sec, scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -146,9 +148,10 @@ static uiBlock *time_redrawmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 
 static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
-	ScrArea *curarea= C->area;
-	SpaceTime *stime= curarea->spacedata.first;
+	ScrArea *curarea= CTX_wm_area(C);
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
+	Scene *scene= CTX_data_scene(C);
 	int first;
 	
 	switch(event) {
@@ -158,12 +161,12 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 3: /* View All */
 			if(v2d) {
-				first= C->scene->r.sfra;
-				if(first >= C->scene->r.efra) first= C->scene->r.efra;
+				first= scene->r.sfra;
+				if(first >= scene->r.efra) first= scene->r.efra;
 					v2d->cur.xmin=v2d->tot.xmin= (float)first-2;
-				v2d->cur.xmax=v2d->tot.xmax= (float)C->scene->r.efra+2;
+				v2d->cur.xmax=v2d->tot.xmax= (float)scene->r.efra+2;
 			
-				ED_area_tag_redraw(C->area);
+				ED_area_tag_redraw(curarea);
 			}
 			break;
 		case 4: /* Maximize Window */
@@ -171,7 +174,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 5:	/* show time or frames */
 			stime->flag ^= TIME_DRAWFRAMES;
-			ED_area_tag_redraw(C->area);
+			ED_area_tag_redraw(curarea);
 			break;
 		case 6:
 			//nextprev_marker(1);
@@ -191,20 +194,20 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 		case 11:
 			if(v2d) {
 				v2d->flag ^= V2D_VIEWSYNC_X;
-				UI_view2d_sync(C->screen, v2d, V2D_LOCK_SET);
+				UI_view2d_sync(CTX_wm_screen(C), v2d, V2D_LOCK_SET);
 			}
 			break;
 		case 12: /* only show keyframes from selected data */
 			stime->flag ^= TIME_ONLYACTSEL;
-			ED_area_tag_redraw(C->area);
+			ED_area_tag_redraw(curarea);
 			break;
 	}
 }
 
 static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
-	SpaceTime *stime= curarea->spacedata.first;
+	ScrArea *curarea= CTX_wm_area(C);
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -260,25 +263,27 @@ static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 
 static void do_time_framemenu(bContext *C, void *arg, int event)
 {
+	Scene *scene= CTX_data_scene(C);
+
 	switch(event) {
 		case 1: /*Set as Start */
-			if (C->scene->r.psfra) {
-				if (C->scene->r.pefra < CFRA)
-					C->scene->r.pefra= CFRA;
-				C->scene->r.psfra= CFRA;
+			if (scene->r.psfra) {
+				if (scene->r.pefra < scene->r.cfra)
+					scene->r.pefra= scene->r.cfra;
+				scene->r.psfra= scene->r.cfra;
 			}				
 			else
-				C->scene->r.sfra = CFRA;
+				scene->r.sfra = scene->r.cfra;
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case 2: /* Set as End */
-			if (C->scene->r.psfra) {
-				if (CFRA < C->scene->r.psfra)
-					C->scene->r.psfra= CFRA;
-				C->scene->r.pefra= CFRA;
+			if (scene->r.psfra) {
+				if (scene->r.cfra < scene->r.psfra)
+					scene->r.psfra= scene->r.cfra;
+				scene->r.pefra= scene->r.cfra;
 			}				
 			else
-				C->scene->r.efra = CFRA;
+				scene->r.efra = scene->r.cfra;
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case 3: /* Rename Marker */
@@ -289,7 +294,7 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 
 static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	ScrArea *curarea= C->area;
+	ScrArea *curarea= CTX_wm_area(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -368,14 +373,15 @@ static void end_animated_screen(SpaceTime *stime)
 
 void do_time_buttons(bContext *C, void *arg, int event)
 {
-	SpaceTime *stime= C->area->spacedata.first;
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
 		case B_REDRAWALL:
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case B_TL_REW:
-			CFRA= PSFRA;
+			scene->r.cfra= PSFRA;
 			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
@@ -387,7 +393,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_TL_FF:
 			/* end frame */
-			CFRA= PEFRA;
+			scene->r.cfra= PEFRA;
 			//update_for_newframe();
 			break;
 		case B_TL_PREVKEY:
@@ -400,15 +406,15 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 			
 		case B_TL_PREVIEWON:
-			if (C->scene->r.psfra) {
+			if (scene->r.psfra) {
 				/* turn on preview range */
-				C->scene->r.psfra= C->scene->r.sfra;
-				C->scene->r.pefra= C->scene->r.efra;
+				scene->r.psfra= scene->r.sfra;
+				scene->r.pefra= scene->r.efra;
 			}
 			else {
 				/* turn off preview range */
-				C->scene->r.psfra= 0;
-				C->scene->r.pefra= 0;
+				scene->r.psfra= 0;
+				scene->r.pefra= 0;
 			}
 			//BIF_undo_push("Set anim-preview range");
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
@@ -430,8 +436,9 @@ void do_time_buttons(bContext *C, void *arg, int event)
 
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= C->area;
-	SpaceTime *stime= sa->spacedata.first;
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	
@@ -447,16 +454,16 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, time_viewmenu, C->area, 
+		uiDefPulldownBut(block, time_viewmenu, sa, 
 						 "View", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		xmax= GetButStringLength("Frame");
-		uiDefPulldownBut(block, time_framemenu, C->area, 
+		uiDefPulldownBut(block, time_framemenu, sa, 
 						 "Frame", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Playback");
-		uiDefPulldownBut(block, time_redrawmenu, C->area, 
+		uiDefPulldownBut(block, time_redrawmenu, sa, 
 						 "Playback", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
@@ -467,35 +474,35 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiDefButI(block, TOG, B_TL_PREVIEWON,"Preview",	
 			  xco,yco, XIC, YIC,
-			  &C->scene->r.psfra,0, 1, 0, 0,
+			  &scene->r.psfra,0, 1, 0, 0,
 			  "Show settings for frame range of animation preview");
 	
 	xco += XIC;
 	
-	if (C->scene->r.psfra) {
+	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
 				  xco,yco, 4.5*XIC, YIC,
-				  &C->scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+				  &scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation preview (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
 				  xco,yco,4.5*XIC,YIC,
-				  &C->scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
+				  &scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
 				  "The end frame of the animation preview (inclusive)");
 	}
 	else {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
 				  xco,yco, 4.5*XIC, YIC,
-				  &C->scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+				  &scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
 				  "The start frame of the animation (inclusive)");
 		
 		xco += (short)(4.5*XIC);
 		
 		uiDefButI(block, NUM, B_REDRAWALL,"End:",	
 				  xco,yco,4.5*XIC,YIC,
-				  &C->scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
+				  &scene->r.efra,(float)SFRA,MAXFRAMEF, 0, 0,
 				  "The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
@@ -504,7 +511,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 			  xco,yco,3.5*XIC,YIC,
-			  &(C->scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
+			  &(scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
 	xco += (short)(3.5 * XIC + 16);
@@ -532,12 +539,12 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC+8;
 	
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, REDRAWINFO, ICON_REC,
-					 xco, yco, XIC, YIC, &(C->scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+					 xco, yco, XIC, YIC, &(scene->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= XIC;
-	if (C->scene->autokey_mode & AUTOKEY_ON) {
+	if (scene->autokey_mode & AUTOKEY_ON) {
 		uiDefButS(block, MENU, REDRAWINFO, 
 				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, 3.5*XIC, YIC, &(C->scene->autokey_mode), 0, 1, 0, 0, 
+				  xco, yco, 3.5*XIC, YIC, &(scene->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (4*XIC);
 	}

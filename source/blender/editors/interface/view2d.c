@@ -37,6 +37,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -630,16 +631,17 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
+	wmWindow *window= CTX_wm_window(C);
 	rctf curmasked;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
 	 * as they were causing some unwanted offsets when drawing 
 	 */
 	view2d_map_cur_using_mask(v2d, &curmasked);
-	wmOrtho2(C->window, curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
+	wmOrtho2(window, curmasked.xmin, curmasked.xmax, curmasked.ymin, curmasked.ymax);
 	
 	/* XXX is this necessary? */
-	wmLoadIdentity(C->window);
+	wmLoadIdentity(window);
 }
 
 /* Set view matrices to only use one axis of 'cur' only
@@ -649,7 +651,8 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
  */
 void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 {
-	ARegion *ar= C->region;
+	wmWindow *window= CTX_wm_window(C);
+	ARegion *ar= CTX_wm_region(C);
 	rctf curmasked;
 	
 	/* set the matrix - pixel offsets (-0.375) for 1:1 correspondance are not applied, 
@@ -657,19 +660,19 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 	 */
 	view2d_map_cur_using_mask(v2d, &curmasked);
 	if (xaxis)
-		wmOrtho2(C->window, curmasked.xmin, curmasked.xmax, 0, ar->winy);
+		wmOrtho2(window, curmasked.xmin, curmasked.xmax, 0, ar->winy);
 	else
-		wmOrtho2(C->window, 0, ar->winx, curmasked.ymin, curmasked.ymax);
+		wmOrtho2(window, 0, ar->winx, curmasked.ymin, curmasked.ymax);
 		
 	/* XXX is this necessary? */
-	wmLoadIdentity(C->window);
+	wmLoadIdentity(window);
 } 
 
 
 /* Restore view matrices after drawing */
 void UI_view2d_view_restore(const bContext *C)
 {
-	ED_region_pixelspace(C, C->region);
+	ED_region_pixelspace(C, CTX_wm_region(C));
 }
 
 /* *********************************************************************** */
@@ -1490,24 +1493,30 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, 
 /* View2D data by default resides in region, so get from region stored in context */
 View2D *UI_view2d_fromcontext(const bContext *C)
 {
-	if (C->area == NULL) return NULL;
-	if (C->region == NULL) return NULL;
-	return &(C->region->v2d);
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *region= CTX_wm_region(C);
+
+	if (area == NULL) return NULL;
+	if (region == NULL) return NULL;
+	return &(region->v2d);
 }
 
 /* same as above, but it returns regionwindow. Utility for pulldowns or buttons */
 View2D *UI_view2d_fromcontext_rwin(const bContext *C)
 {
-	if (C->area == NULL) return NULL;
-	if (C->region == NULL) return NULL;
-	if (C->region->regiontype!=RGN_TYPE_WINDOW) {
-		ARegion *ar= C->area->regionbase.first;
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *region= CTX_wm_region(C);
+
+	if (area == NULL) return NULL;
+	if (region == NULL) return NULL;
+	if (region->regiontype!=RGN_TYPE_WINDOW) {
+		ARegion *ar= area->regionbase.first;
 		for(; ar; ar= ar->next)
 			if(ar->regiontype==RGN_TYPE_WINDOW)
 				return &(ar->v2d);
 		return NULL;
 	}
-	return &(C->region->v2d);
+	return &(region->v2d);
 }
 
 

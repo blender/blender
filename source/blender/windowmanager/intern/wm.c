@@ -33,7 +33,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_idprop.h"
@@ -90,36 +90,40 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 
 void wm_check(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	
 	/* wm context */
-	if(C->wm==NULL) C->wm= G.main->wm.first;
-	if(C->wm==NULL) return;
-	if(C->wm->windows.first==NULL) return;
+	if(CTX_wm_manager(C)==NULL) {
+		wm= CTX_data_main(C)->wm.first;
+		CTX_wm_manager_set(C, wm);
+	}
+	if(wm==NULL) return;
+	if(wm->windows.first==NULL) return;
 	
 	/* case: no open windows at all, for old file reads */
-	wm_window_add_ghostwindows(C->wm);
+	wm_window_add_ghostwindows(wm);
 	
 	/* case: fileread */
-	if(C->wm->initialized==0) {
+	if(wm->initialized==0) {
 		
-		wm_window_keymap(C->wm);
-		ED_spacetypes_keymap(C->wm);
+		wm_window_keymap(wm);
+		ED_spacetypes_keymap(wm);
 		
-		ED_screens_initialize(C->wm);
-		C->wm->initialized= 1;
+		ED_screens_initialize(wm);
+		wm->initialized= 1;
 	}
 }
 
 /* on startup, it adds all data, for matching */
 void wm_add_default(bContext *C)
 {
-	wmWindowManager *wm= alloc_libblock(&G.main->wm, ID_WM, "WinMan");
+	wmWindowManager *wm= alloc_libblock(&CTX_data_main(C)->wm, ID_WM, "WinMan");
 	wmWindow *win;
 	
-	C->wm= wm;
+	CTX_wm_manager_set(C, wm);
 	
 	win= wm_window_new(C);
-	win->screen= C->screen;
+	win->screen= CTX_wm_screen(C); /* XXX from window? */
 	wm->winactive= win;
 	wm_window_make_drawable(C, win); 
 }
@@ -130,7 +134,6 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
 	wmWindow *win;
 	wmOperator *op;
-	wmReport *report;
 	wmKeyMap *km;
 	wmKeymapItem *kmi;
 	
@@ -142,11 +145,6 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	while((op= wm->operators.first)) {
 		BLI_remlink(&wm->operators, op);
 		wm_operator_free(op);
-	}
-
-	while((report= wm->reports.first)) {
-		BLI_remlink(&wm->reports, report);
-		wm_report_free(report);
 	}
 
 	while((km= wm->keymaps.first)) {
@@ -167,7 +165,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	
 	BLI_freelistN(&wm->queue);
 	
-	if(C && C->wm==wm) C->wm= NULL;
+	if(C && CTX_wm_manager(C)==wm) CTX_wm_manager_set(C, NULL);
 }
 
 void wm_close_and_free_all(bContext *C, ListBase *wmlist)

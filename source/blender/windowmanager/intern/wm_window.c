@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -88,14 +89,14 @@ void wm_window_free(bContext *C, wmWindow *win)
 {
 	/* update context */
 	if(C) {
-		if(C->wm->windrawable==win)
-			C->wm->windrawable= NULL;
-		if(C->wm->winactive==win)
-			C->wm->winactive= NULL;
-		if(C->window==win)
-			C->window= NULL;
-		if(C->screen==win->screen)
-			C->screen= NULL;
+		wmWindowManager *wm= CTX_wm_manager(C);
+
+		if(wm->windrawable==win)
+			wm->windrawable= NULL;
+		if(wm->winactive==win)
+			wm->winactive= NULL;
+		if(CTX_wm_window(C)==win)
+			CTX_wm_window_set(C, NULL);
 	}	
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
@@ -123,10 +124,11 @@ static int find_free_winid(wmWindowManager *wm)
 /* dont change context itself */
 wmWindow *wm_window_new(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= MEM_callocN(sizeof(wmWindow), "window");
 	
-	BLI_addtail(&C->wm->windows, win);
-	win->winid= find_free_winid(C->wm);
+	BLI_addtail(&wm->windows, win);
+	win->winid= find_free_winid(wm);
 
 	return win;
 }
@@ -152,12 +154,13 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 /* this is event from ghost */
 static void wm_window_close(bContext *C, wmWindow *win)
 {
-	BLI_remlink(&C->wm->windows, win);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	BLI_remlink(&wm->windows, win);
 	
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
 	
-	if(C->wm->windows.first==NULL)
+	if(wm->windows.first==NULL)
 		WM_exit(C);
 }
 
@@ -256,6 +259,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 /* area-rip calls this */
 wmWindow *WM_window_open(bContext *C, rcti *rect)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win= wm_window_new(C);
 	
 	win->posx= rect->xmin;
@@ -263,7 +267,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->sizex= rect->xmax - rect->xmin;
 	win->sizey= rect->ymax - rect->ymin;
 	
-	wm_window_add_ghostwindow(C->wm, "Blender", win);
+	wm_window_add_ghostwindow(wm, "Blender", win);
 	
 	return win;
 }
@@ -274,7 +278,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 /* operator callback */
 int wm_window_duplicate_op(bContext *C, wmOperator *op)
 {
-	wm_window_copy(C, C->window);
+	wm_window_copy(C, CTX_wm_window(C));
 	wm_check(C);
 	
 	return OPERATOR_FINISHED;
@@ -284,11 +288,12 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 /* fullscreen operator callback */
 int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 {
-	GHOST_TWindowState state = GHOST_GetWindowState(C->window->ghostwin);
+	wmWindow *window= CTX_wm_window(C);
+	GHOST_TWindowState state = GHOST_GetWindowState(window->ghostwin);
 	if(state!=GHOST_kWindowStateFullScreen)
-		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateFullScreen);
+		GHOST_SetWindowState(window->ghostwin, GHOST_kWindowStateFullScreen);
 	else
-		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateNormal);
+		GHOST_SetWindowState(window->ghostwin, GHOST_kWindowStateNormal);
 
 	return OPERATOR_FINISHED;
 	
@@ -298,7 +303,9 @@ int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
 /* exit blender */
 int wm_exit_blender_op(bContext *C, wmOperator *op)
 {
-	wmWindow *win= C->wm->windows.first;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win= wm->windows.first;
+
 	while(win) {
 		wm_window_close(C, win);
 		win= win->next;
@@ -337,10 +344,12 @@ static int query_qual(char qual)
 
 void wm_window_make_drawable(bContext *C, wmWindow *win) 
 {
-	if (win != C->wm->windrawable && win->ghostwin) {
+	wmWindowManager *wm= CTX_wm_manager(C);
+
+	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
 		
-		C->wm->windrawable= win;
+		wm->windrawable= win;
 		if(G.f & G_DEBUG) printf("set drawable %d\n", win->winid);
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
@@ -382,7 +391,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				GHOST_TEventKeyData kdata;
 				int cx, cy, wx, wy;
 				
-				C->wm->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
+				CTX_wm_manager(C)->winactive= win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
 				win->active= 1;
 //				window_handle(win, INPUTCHANGE, win->active);

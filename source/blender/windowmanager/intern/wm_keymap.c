@@ -36,7 +36,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_blender.h"
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 
@@ -515,8 +515,8 @@ char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, cha
 
 	/* find right handler list based on specified context */
 	if(opcontext == WM_OP_REGION_WIN) {
-		if(C->area) {
-			ARegion *ar= C->area->regionbase.first;
+		if(CTX_wm_area(C)) {
+			ARegion *ar= CTX_wm_area(C)->regionbase.first;
 			for(; ar; ar= ar->next)
 				if(ar->regiontype==RGN_TYPE_WINDOW)
 					break;
@@ -526,16 +526,16 @@ char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, cha
 		}
 	}
 	else if(opcontext == WM_OP_AREA) {
-		if(C->area)
-			handlers= &C->area->handlers;
+		if(CTX_wm_area(C))
+			handlers= &CTX_wm_area(C)->handlers;
 	}
 	else if(opcontext == WM_OP_SCREEN) {
-		if(C->window)
-			handlers= &C->window->handlers;
+		if(CTX_wm_window(C))
+			handlers= &CTX_wm_window(C)->handlers;
 	}
 	else {
-		if(C->region)
-			handlers= &C->region->handlers;
+		if(CTX_wm_region(C))
+			handlers= &CTX_wm_region(C)->handlers;
 	}
 
 	if(!handlers)

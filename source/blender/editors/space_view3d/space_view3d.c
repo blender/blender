@@ -41,6 +41,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 

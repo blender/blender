@@ -43,6 +43,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
@@ -165,10 +166,10 @@ void WM_exit(bContext *C)
 	
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
-	if(C && C->wm) {
-		for(win= C->wm->windows.first; win; win= win->next) {
+	if(C && CTX_wm_manager(C)) {
+		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 			
-			C->window= win;	/* needed by operator close callbacks */
+			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
 			ED_screen_exit(C, win, win->screen);
 		}
@@ -258,7 +259,7 @@ void WM_exit(bContext *C)
 
 	RNA_exit();
 	
-	MEM_freeN(C);
+	CTX_free(C);
 	
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());

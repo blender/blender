@@ -35,7 +35,7 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h" 
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 
 #include "WM_api.h"
 #include "wm_cursors.h"

@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
 
@@ -64,7 +65,7 @@
 /* draws a current frame indicator for the TimeLine */
 static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
-	Scene *scene= C->scene;
+	Scene *scene= CTX_data_scene(C);
 	float vec[2];
 	
 	vec[0]= scene->r.cfra*scene->r.framelen;
@@ -120,7 +121,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceTime *stime= C->area->spacedata.first;
+	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;

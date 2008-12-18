@@ -41,8 +41,9 @@
 #include "PIL_time.h"
 
 #include "BKE_colortools.h"
+#include "BKE_context.h"
 #include "BKE_idprop.h"
-#include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -345,7 +346,7 @@ static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 		/* XXX 2.50 missing python api */
 #if 0
 		if(BPY_button_eval(data->str, &data->value)) {
-			WM_report(C, WM_LOG_WARNING, "Invalid Python expression, check console");
+			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
 			data->value = 0.0f; /* Zero out value on error */
 			
 			if(data->str[0]) {
@@ -2536,14 +2537,14 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if(ELEM(event->type, LEFTMOUSE, RETKEY)) {
 		if(but->lock) {
 			if(but->lockstr) {
-				WM_report(C, WM_LOG_WARNING, but->lockstr);
+				BKE_report(CTX_reports(C), RPT_WARNING, but->lockstr);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				return WM_UI_HANDLER_BREAK;
 			}
 		} 
 		else if(but->pointype && but->poin==0) {
 			/* there's a pointer needed */
-			WM_reportf(C, WM_LOG_WARNING, "DoButton pointer error: %s", but->str);
+			BKE_reportf(CTX_reports(C), RPT_WARNING, "DoButton pointer error: %s", but->str);
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -2862,7 +2863,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	/* setup struct */
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
-	data->window= C->window;
+	data->window= CTX_wm_window(C);
 	data->region= ar;
 	data->interactive= 0;
 	data->state = BUTTON_STATE_INIT;
@@ -3555,7 +3556,7 @@ static int ui_handler_region(bContext *C, wmEvent *event, void *userdata)
 	int retval;
 
 	/* here we handle buttons at the region level, non-modal */
-	ar= C->region;
+	ar= CTX_wm_region(C);
 	retval= WM_UI_HANDLER_CONTINUE;
 
 	if(ar==NULL) return retval;
@@ -3584,12 +3585,12 @@ static void ui_handler_remove_region(bContext *C, void *userdata)
 	bScreen *sc;
 	ARegion *ar;
 
-	ar= C->region;
+	ar= CTX_wm_region(C);
 	if(ar == NULL) return;
 
 	uiFreeBlocks(C, &ar->uiblocks);
 	
-	sc= C->screen;
+	sc= CTX_wm_screen(C);
 	if(sc == NULL) return;
 
 	/* delayed apply callbacks, but not for screen level regions, those
@@ -3608,7 +3609,7 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 
 	/* here we handle buttons at the window level, modal, for example
 	 * while number sliding, text editing, or when a menu block is open */
-	ar= C->region;
+	ar= CTX_wm_region(C);
 	but= ui_but_find_activated(ar);
 
 	if(but) {
@@ -3654,7 +3655,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 	/* free if done, does not free handle itself */
 	if(menu->menuretval) {
 		ui_menu_block_free(C, menu);
-		WM_event_remove_ui_handler(&C->window->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
+		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
 		if(menu->menuretval == UI_RETURN_OK && menu->popup_func)
 			menu->popup_func(C, menu->popup_arg, menu->retvalue);

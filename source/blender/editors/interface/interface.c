@@ -41,7 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_screen.h"
@@ -1389,7 +1389,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 	wmWindow *window;
 	int getsizex, getsizey;
 
-	window= C->window;
+	window= CTX_wm_window(C);
 	lb= &region->uiblocks;
 	
 	/* each listbase only has one block with this name, free block
@@ -2196,7 +2196,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname)
 static void autocomplete_id(bContext *C, char *str, void *arg_v)
 {
 	int blocktype= (intptr_t)arg_v;
-	ListBase *listb= wich_libbase(G.main, blocktype); /* XXX */
+	ListBase *listb= wich_libbase(CTX_data_main(C), blocktype);
 	
 	if(listb==NULL) return;
 	

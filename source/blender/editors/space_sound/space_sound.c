@@ -42,7 +42,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_colortools.h"
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
@@ -154,7 +154,7 @@ static void sound_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void sound_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceSound *ssound= C->area->spacedata.first;
+	// SpaceSound *ssound= (SpaceSound*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	float col[3];
 	

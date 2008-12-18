@@ -31,14 +31,17 @@
 #ifndef BKE_SCREEN_H
 #define BKE_SCREEN_H
 
-struct SpaceType;
-struct ScrArea;
-struct bScreen;
 struct ARegion;
-struct wmNotifier;
-struct wmWindowManager;
-struct wmWindow;
+struct bContext;
+struct bContextDataMember;
+struct bContextDataResult;
+struct bScreen;
 struct ListBase;
+struct ScrArea;
+struct SpaceType;
+struct wmNotifier;
+struct wmWindow;
+struct wmWindowManager;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
    ED_spacetypes_init() in editors/area/spacetypes.c   */
@@ -73,6 +76,9 @@ typedef struct SpaceType {
 	/* sets default cursor per region */
 	void		(*cursor)(struct wmWindow *win, struct ARegion *ar);
 
+	/* return context data */
+	int			(*context)(const struct bContext *, const struct bContextDataMember *, struct bContextDataResult *);
+
 	/* region type definitions */
 	ListBase	regiontypes;
 	
@@ -104,6 +110,9 @@ typedef struct ARegionType {
 	/* add own items to keymap */
 	void		(*keymap)(struct wmWindowManager *);
 	
+	/* return context data */
+	int			(*context)(const struct bContext *, const struct bContextDataMember *, struct bContextDataResult *);
+
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
 	/* default keymaps to add */

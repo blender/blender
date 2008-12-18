@@ -35,7 +35,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -95,11 +95,12 @@ static void region_draw_emboss(ARegion *ar)
 
 void ED_region_pixelspace(const bContext *C, ARegion *ar)
 {
+	wmWindow *win= CTX_wm_window(C);
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
-	wmOrtho2(C->window, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
-	wmLoadIdentity(C->window);	
+	wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmLoadIdentity(win);
 }
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
@@ -122,7 +123,7 @@ void ED_area_overdraw_flush(bContext *C)
 {
 	ScrArea *sa;
 	
-	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+	for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next) {
 		ARegion *ar;
 		
 		for(ar= sa->regionbase.first; ar; ar= ar->next) {
@@ -144,15 +145,17 @@ void ED_area_overdraw_flush(bContext *C)
 
 void ED_area_overdraw(bContext *C)
 {
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa;
 	
 	/* Draw AZones, in screenspace */
-	wm_subwindow_set(C->window, C->window->screen->mainwin);
+	wm_subwindow_set(win, screen->mainwin);
 
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	
-	for(sa= C->screen->areabase.first; sa; sa= sa->next) {
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
 		AZone *az;
 		for(az= sa->actionzones.first; az; az= az->next) {
 			if(az->do_draw) {
@@ -170,12 +173,14 @@ void ED_area_overdraw(bContext *C)
 
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa= CTX_wm_area(C);
 	ARegionType *at= ar->type;
 	
-	wm_subwindow_set(C->window, ar->swinid);
+	wm_subwindow_set(win, ar->swinid);
 	
 	if(ar->swinid && at->draw) {
-		UI_SetTheme(C->area);
+		UI_SetTheme(sa);
 		at->draw(C, ar);
 		UI_SetTheme(NULL);
 	}
@@ -193,7 +198,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glRecti(20,  2,  30,  12);
 	}
 
-	if(C->area)
+	if(sa)
 		region_draw_emboss(ar);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
@@ -476,7 +481,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 //	ARegionType *at= ar->type;
 	
 	/* refresh can be called before window opened */
-	region_subwindow(C->wm, C->window, ar);
+	region_subwindow(CTX_wm_manager(C), CTX_wm_window(C), ar);
 	
 }
 
@@ -593,7 +598,7 @@ void area_newspace(bContext *C, ScrArea *sa, int type)
 			}
 		}
 		
-		ED_area_initialize(C->wm, C->window, sa);
+		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
@@ -640,13 +645,14 @@ static char *windowtype_pup(void)
 
 static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
-	area_newspace(C, C->area, C->area->butspacetype);
-	ED_area_tag_redraw(C->area);
+	area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
+	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 /* returns offset for next button in header */
 int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	uiBut *but;
 	int xco= 8;
 	
@@ -655,7 +661,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   windowtype_pup(), xco, yco, XIC+10, YIC, 
-						   &(C->area->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
+						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
 						   "Displays Current Window Type. "
 						   "Click for menu of available types.");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
@@ -663,18 +669,18 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	xco += XIC + 14;
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	if (C->area->flag & HEADER_NO_PULLDOWN) {
+	if (sa->flag & HEADER_NO_PULLDOWN) {
 		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
 						 ICON_DISCLOSURE_TRI_RIGHT,
 						 xco,yco,XIC,YIC-2,
-						 &(C->area->flag), 0, 0, 0, 0, 
+						 &(sa->flag), 0, 0, 0, 0, 
 						 "Show pulldown menus");
 	}
 	else {
 		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
 						 ICON_DISCLOSURE_TRI_DOWN,
 						 xco,yco,XIC,YIC-2,
-						 &(C->area->flag), 0, 0, 0, 0, 
+						 &(sa->flag), 0, 0, 0, 0, 
 						 "Hide pulldown menus");
 	}
 	xco+=XIC;

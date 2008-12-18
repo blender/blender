@@ -37,7 +37,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -312,7 +312,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		return NULL;
 
 	/* create area region */
-	ar= ui_add_temporary_region(C->window->screen);
+	ar= ui_add_temporary_region(CTX_wm_screen(C));
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_tooltip_region_draw;
@@ -353,7 +353,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		y2 += butregion->winrct.ymin;
 	}
 
-	wm_window_get_size(C->window, &winx, &winy);
+	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 
 	if(x2 > winx) {
 		/* super size */
@@ -387,7 +387,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 void ui_tooltip_free(bContext *C, ARegion *ar)
 {
-	ui_remove_temporary_region(C, C->window->screen, ar);
+	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
 
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 }
@@ -617,6 +617,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 
 uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockFuncFP block_func, void *arg)
 {
+	wmWindow *window= CTX_wm_window(C);
 	static ARegionType type;
 	ARegion *ar;
 	uiBlock *block;
@@ -628,7 +629,7 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	handle= MEM_callocN(sizeof(uiMenuBlockHandle), "uiMenuBlockHandle");
 
 	/* create area region */
-	ar= ui_add_temporary_region(C->window->screen);
+	ar= ui_add_temporary_region(CTX_wm_screen(C));
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw= ui_block_region_draw;
@@ -657,7 +658,7 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 		if(but->flag & UI_MAKE_LEFT) block->direction |= UI_LEFT;
 		if(but->flag & UI_MAKE_RIGHT) block->direction |= UI_RIGHT;
 
-		ui_block_position(C->window, butregion, but, block);
+		ui_block_position(window, butregion, but, block);
 	}
 	else {
 		/* keep a list of these, needed for pulldown menus */
@@ -692,8 +693,8 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	ED_region_init(C, ar);
 
 	/* get winmat now that we actually have the subwindow */
-	wm_subwindow_set(C->window, ar->swinid);
-	wm_subwindow_getmatrix(C->window, ar->swinid, block->winmat);
+	wm_subwindow_set(window, ar->swinid);
+	wm_subwindow_getmatrix(window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */
 	ED_region_tag_redraw(ar);
@@ -703,7 +704,7 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 
 void ui_menu_block_free(bContext *C, uiMenuBlockHandle *handle)
 {
-	ui_remove_temporary_region(C, C->window->screen, handle->region);
+	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	MEM_freeN(handle);
 
 	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
@@ -1355,7 +1356,7 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiMenuBlockHandle *handle, void *arg
 	width+= 10;
 	if (width<50) width=50;
 	
-	wm_window_get_size(C->window, &xmax, &ymax);
+	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
 
 	/* set first item */
 	lastselected= 0;
@@ -1527,7 +1528,7 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	height= rows*MENU_BUTTON_HEIGHT;
 	if (md->title) height+= MENU_BUTTON_HEIGHT;
 	
-	wm_window_get_size(C->window, &xmax, &ymax);
+	wm_window_get_size(CTX_wm_window(C), &xmax, &ymax);
 
 	/* find active item */
 	fvalue= handle->retvalue;
@@ -1616,10 +1617,6 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	
 	uiBoundsBlock(block, 1);
 	uiEndBlock(C, block);
-
-#if 0
-	event= uiDoBlocks(&listb, 0, 1);
-#endif
 	
 	menudata_free(md);
 	
@@ -1634,19 +1631,20 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 
 void uiPupmenu(bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...)
 {
+	wmWindow *window= CTX_wm_window(C);
 	uiPupMenuInfo info;
 	uiMenuBlockHandle *menu;
 
 	memset(&info, 0, sizeof(info));
-	info.mx= C->window->eventstate->x;
-	info.my= C->window->eventstate->y;
+	info.mx= window->eventstate->x;
+	info.my= window->eventstate->y;
 	info.maxrow= maxrow;
 	info.instr= str;
 
 	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENU, &info);
 	menu->popup= 1;
 
-	UI_add_popup_handlers(&C->window->handlers, menu);
+	UI_add_popup_handlers(&window->handlers, menu);
 	WM_event_add_mousemove(C);
 
 	menu->popup_func= func;

@@ -57,6 +57,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_exotic.h"
 #include "BKE_font.h"
@@ -373,7 +374,7 @@ return;
 	/* we take apart the used screens from non-active window */
 	for(win= wm->windows.first; win; win= win->next) {
 		BLI_strncpy(win->screenname, win->screen->id.name, MAX_ID_NAME);
-		if(win!=C->wm->winactive) {
+		if(win!=wm->winactive) {
 			BLI_remlink(&G.main->screen, win->screen);
 			//BLI_addtail(screenbase, win->screen);
 		}
@@ -410,7 +411,7 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 					win->screen= (bScreen *)find_id("SR", win->screenname);
 
 					if(win->screen==NULL)
-						win->screen= ED_screen_duplicate(win, C->screen); /* active screen */
+						win->screen= ED_screen_duplicate(win, CTX_wm_screen(C)); /* active screen */
 							
 					if(win->screen->winid==0)
 						win->screen->winid= win->winid;
@@ -807,7 +808,7 @@ void WM_write_file(bContext *C, char *target)
 	}
  
 	/* send the OnSave event */
-// XXX	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&C->scene->id, SCRIPT_ONSAVE);
+// XXX	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&CTX_data_scene(C)->id, SCRIPT_ONSAVE);
 
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {

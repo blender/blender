@@ -53,6 +53,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -261,7 +262,7 @@ double PIL_check_seconds_timer(void);
 int main(int argc, char **argv)
 {
 	SYS_SystemHandle syshandle;
-	bContext *C= MEM_callocN(sizeof(bContext), "creator.c context");
+	bContext *C= CTX_create();
 	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/;
 
 #if defined(WIN32) || defined (__linux__)

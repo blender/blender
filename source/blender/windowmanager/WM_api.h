@@ -126,10 +126,6 @@ void		WM_OT_tweak_gesture(wmOperatorType *ot);
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
-			/* Reporting information and errors */
-void		WM_report(struct bContext *C, int type, const char *message);
-void		WM_reportf(struct bContext *C, int type, const char *format, ...);
-
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
 void		wmGetMatrix			(wmWindow *win, float mat[][4]);

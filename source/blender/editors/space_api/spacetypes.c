@@ -29,7 +29,7 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "UI_interface.h"
