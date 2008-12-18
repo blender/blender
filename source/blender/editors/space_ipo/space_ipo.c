@@ -85,6 +85,8 @@ static SpaceLink *ipo_new(void)
 	ar->regiontype= RGN_TYPE_CHANNELS;
 	ar->alignment= RGN_ALIGN_LEFT;
 	
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	
 	/* XXX view2d init for channels */
 	
 	/* main area */
@@ -251,8 +253,16 @@ void ipo_keymap(struct wmWindowManager *wm)
 {
 }
 
+static void ipo_channel_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+}
+
 static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
 {
+	//SpaceIpo *sipo= C->area->spacedata.first;
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	float col[3];
 	
 	/* clear and setup matrix */
@@ -260,6 +270,17 @@ static void ipo_channel_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
+	UI_view2d_view_ortho(C, v2d);
+	
+	/* data... */
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -343,7 +364,7 @@ void ED_spacetype_ipo(void)
 	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-//	art->init= ipo_channel_area_init;
+	art->init= ipo_channel_area_init;
 	art->draw= ipo_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);

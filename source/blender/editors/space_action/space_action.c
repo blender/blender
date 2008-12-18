@@ -87,7 +87,7 @@ static SpaceLink *action_new(void)
 	ar->alignment= RGN_ALIGN_LEFT;
 	
 		/* only need to set scroll settings, as this will use 'listview' v2d configuration */
-	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
 	ar->v2d.flag = V2D_VIEWSYNC_Y;
 	
 	/* main area */
@@ -104,7 +104,7 @@ static SpaceLink *action_new(void)
 	ar->v2d.cur.xmin= -2.0f;
 	ar->v2d.cur.ymin= -200.0f;
 	ar->v2d.cur.xmax= 100.0f;
-	ar->v2d.cur.ymax= 0.0f;
+	ar->v2d.cur.ymax= -20.0f;
 	
 	ar->v2d.min[0]= 0.0f;
  	ar->v2d.min[1]= 0.0f;
