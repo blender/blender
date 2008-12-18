@@ -326,8 +326,9 @@ static void rna_def_key(BlenderRNA *brna)
 
 	rna_def_ipo_common(srna);
 
-	prop= RNA_def_property(srna, "from", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "From", "Datablock using these shape keys.");
+	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "from");
+	RNA_def_property_ui_text(prop, "User", "Datablock using these shape keys.");
 
 	prop= RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", KEY_RELATIVE);

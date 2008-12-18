@@ -166,17 +166,44 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	return 0;
 }
 
-static int rna_validate_identifier(const char *identifier)
+static int rna_validate_identifier(const char *identifier, char *error)
 {
 	int a=0;
 	
+	/*  list from http://docs.python.org/reference/lexical_analysis.html#id5 */
+	static char *kwlist[] = {
+		"and", "as", "assert", "break",
+		"class", "continue", "def", "del",
+		"elif", "else", "except", "exec",
+		"finally", "for", "from", "global",
+		"if", "import", "in", "is",
+		"lambda", "not", "or", "pass",
+		"print", "raise", "return", "try",
+		"while", "with", "yield", NULL
+	};
+	
+	
 	if (!isalpha(identifier[0])) {
+		strcpy(error, "first character failed isalpha() check");
 		return 0;
 	}
 	
 	for(a=1; identifier[a] != '\0'; a++) {
-		if (identifier[a]=='_')			continue;
-		if (isalnum(identifier[a])==0)	return 0;
+		if (identifier[a]=='_') {
+			continue;
+		}
+		
+		if (isalnum(identifier[a])==0) {
+			strcpy(error, "one of the characters failed an isalnum() check and is not an underscore");
+			return 0;
+		}
+	}
+	
+	for(a=0; kwlist[a]; a++) {
+		if (strcmp(identifier, kwlist[a]) == 0) {
+			strcpy(error, "this keyword is reserved by python");
+			return 0;
+		}
 	}
 	
 	return 1;
@@ -299,8 +326,9 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	PropertyRNA *prop, *propfrom;
 	
 	if(DefRNA.preprocess) {
-		if (rna_validate_identifier(identifier) == 0) {
-			fprintf(stderr, "RNA_def_struct: struct identifier \"%s\" is an invalid name\n", identifier);
+		char error[512];
+		if (rna_validate_identifier(identifier, error) == 0) {
+			fprintf(stderr, "RNA_def_struct: struct identifier \"%s\" error - %s\n", identifier, error);
 			DefRNA.error= 1;
 		}
 	}
@@ -524,9 +552,10 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	PropertyRNA *prop;
 
 	if(DefRNA.preprocess) {
+		char error[512];
 		
-		if (rna_validate_identifier(identifier) == 0) {
-			fprintf(stderr, "RNA_def_property: property identifier \"%s\" is an invalid name\n", identifier);
+		if (rna_validate_identifier(identifier, error) == 0) {
+			fprintf(stderr, "RNA_def_property: property identifier \"%s\" - %s\n", identifier, error);
 			DefRNA.error= 1;
 			return NULL;
 		}

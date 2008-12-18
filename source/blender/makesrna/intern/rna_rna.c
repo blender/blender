@@ -52,7 +52,7 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 	return strlen(((StructRNA*)ptr->data)->name);
 }
 
-static void *rna_Struct_from_get(PointerRNA *ptr)
+static void *rna_Struct_base_get(PointerRNA *ptr)
 {
 	return ((StructRNA*)ptr->data)->from;
 }
@@ -400,11 +400,11 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 	RNA_def_struct_name_property(srna, prop);
 	
-	prop= RNA_def_property(srna, "from", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_from_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "From", "Struct definition this is derived from.");
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "base", "Struct definition this is derived from.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -551,12 +551,12 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_name_get", "rna_EnumPropertyItem_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
-	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_identifier_get", "rna_EnumPropertyItem_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
