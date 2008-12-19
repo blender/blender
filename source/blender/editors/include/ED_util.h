@@ -30,7 +30,7 @@
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 
-void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
+void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert);
 int GetButStringLength(char *str);
 
 #endif /* ED_UTIL_H */

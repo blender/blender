@@ -94,6 +94,7 @@
 Global G;
 UserDef U;
 ListBase WMlist= {NULL, NULL};
+short ENDIAN_ORDER;
 
 char versionstr[48]= "";
 
@@ -200,15 +201,13 @@ void initglobals(void)
 
 	strcpy(G.ima, "//");
 
-	G.version= BLENDER_VERSION;
-
-	G.order= 1;
-	G.order= (((char*)&G.order)[0])?L_ENDIAN:B_ENDIAN;
+	ENDIAN_ORDER= 1;
+	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		sprintf(versionstr, "www.blender.org %d.%d", G.version, BLENDER_SUBVERSION);
+		sprintf(versionstr, "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		sprintf(versionstr, "www.blender.org %d", G.version);
+		sprintf(versionstr, "www.blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -244,13 +243,6 @@ static void clear_global(void)
 	G.main= NULL;
 	
 	G.obedit= NULL;
-	G.saction= NULL;
-	G.buts= NULL;
-	G.v2d= NULL;
-	G.vd= NULL;
-	G.soops= NULL;
-	G.sima= NULL;
-	G.sipo= NULL;
 	
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
 }

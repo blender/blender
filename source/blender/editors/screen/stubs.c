@@ -29,14 +29,8 @@
 #include <string.h>
 
 /* various UI stuff */
-void blender_test_break() {}
-void error() {}
 void set_timecursor() {}
-void waitcursor() {}
 void mainqenter() {}
-void saveover() {}
-void BIF_icons_free() {}
-void BIF_icons_init() {}
 
 char texstr[20][12];
 

@@ -210,7 +210,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		int tmp_lay= G.scene->lay;
 		Object *tmp_camera = G.scene->camera;
 
-		if (G.vd->scenelock==0){
+		if (v3d->scenelock==0){
 			G.scene->lay= v3d->lay;
 			G.scene->camera= v3d->camera;
 		}
@@ -477,7 +477,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			gameLogic_keys = NULL;
 		}
 		//lock frame and camera enabled - restoring global values
-		if (G.vd->scenelock==0){
+		if (v3d->scenelock==0){
 			G.scene->lay= tmp_lay;
 			G.scene->camera= tmp_camera;
 		}

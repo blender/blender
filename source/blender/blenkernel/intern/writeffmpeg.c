@@ -302,7 +302,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 	/* Do RGBA-conversion and flipping in one step depending
 	   on CPU-Endianess */
 
-	if (G.order == L_ENDIAN) {
+	if (ENDIAN_ORDER == L_ENDIAN) {
 		int y;
 		for (y = 0; y < height; y++) {
 			uint8_t* target = rgb_frame->data[0]

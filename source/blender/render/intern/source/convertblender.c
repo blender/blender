@@ -5512,7 +5512,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 /* Sticky texture coords													 */
 /* ------------------------------------------------------------------------- */
 
-void RE_make_sticky(void)
+void RE_make_sticky(View3D *v3d)
 {
 	Object *ob;
 	Base *base;
@@ -5523,7 +5523,7 @@ void RE_make_sticky(void)
 	float ho[4], mat[4][4];
 	int a;
 	
-	if(G.vd==NULL) {
+	if(v3d==NULL) {
 		printf("Need a 3d view to make sticky\n");
 		return;
 	}
@@ -5549,7 +5549,7 @@ void RE_make_sticky(void)
 	RE_SetView(re, mat);
 	
 	for(base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(base) {
+		if TESTBASELIB(v3d, base) {
 			if(base->object->type==OB_MESH) {
 				ob= base->object;
 				

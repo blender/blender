@@ -34,9 +34,6 @@ extern "C" {
 
 #include "BLI_blenlib.h"
 
-/* need error(), so extern declare here */
-extern void error (char *fmt, ...);
-
 #ifdef __cplusplus
 }
 #endif

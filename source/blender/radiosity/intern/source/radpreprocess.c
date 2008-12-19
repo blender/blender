@@ -293,7 +293,7 @@ static int materialIndex(Material *ma)
 	return -1;
 }
 
-void rad_collect_meshes()
+void rad_collect_meshes(View3D *v3d)
 {
 	extern Material defmaterial;
 	Base *base;
@@ -309,7 +309,7 @@ void rad_collect_meshes()
 	float *vd, *v1, *v2, *v3, *v4 = NULL;
 	int a, b, offs, index, mfdatatot;
 	
-	if (G.vd==NULL) {
+	if (v3d==NULL) {
 		printf("Error, trying to collect radiosity meshes with no 3d view\n");
 		return;
 	}
@@ -330,7 +330,7 @@ void rad_collect_meshes()
 	RG.totface= 0;
 	base= (G.scene->base.first);
 	while(base) {
-		if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+		if(((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
 				base->flag |= OB_RADIO;
 				me= base->object->data;
@@ -353,7 +353,7 @@ void rad_collect_meshes()
 	/* min-max and material array */
 	base= (G.scene->base.first);
 	while(base) {
-		if( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				mvert= me->mvert;
@@ -420,7 +420,7 @@ void rad_collect_meshes()
 	
 	base= (G.scene->base.first);
 	while(base) {
-		if( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) )  {
+		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) )  {
 			if(base->object->type==OB_MESH) {
 				ob= base->object;
 				me= ob->data;

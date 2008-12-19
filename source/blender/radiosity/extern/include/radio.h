@@ -41,6 +41,7 @@
 #include "radio_types.h"
 
 extern RadGlobal RG;
+struct View3D;
 
 /* radfactors.c */
 extern float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area);
@@ -111,7 +112,7 @@ extern void splitconnected(void);
 extern int vergedge(const void *v1,const void *v2);
 extern void addedge(float *v1, float *v2, EdSort *es);
 extern void setedgepointers(void);
-extern void rad_collect_meshes(void);
+extern void rad_collect_meshes(struct View3D *v3d);
 extern void countelem(RNode *rn);
 extern void countglobaldata(void);
 extern void addelem(RNode ***el, RNode *rn, RPatch *rp);

@@ -210,7 +210,7 @@ void setlinestyle(int nr);
 
 
 /* own working polygon offset */
-void bglPolygonOffset(float dist);
+void bglPolygonOffset(float viewdist, float dist);
 
 /* For caching opengl matrices (gluProject/gluUnProject) */
 typedef struct bglMats {

@@ -37,10 +37,11 @@
 extern "C" {
 #endif
 
-struct MTFace;
 struct Image;
-struct Scene;
+struct MTFace;
 struct Object;
+struct Scene;
+struct View3d;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously
@@ -61,8 +62,8 @@ void GPU_state_init(void);
  *   GPU_enable_material returns 0 if drawing should be skipped
  * - after drawing, the material must be disabled again */
 
-void GPU_set_object_materials(struct Scene *scene, struct Object *ob,
-	int glsl, int *do_alpha_pass);
+void GPU_set_object_materials(struct View3D *v3d, struct Scene *scene,
+	struct Object *ob, int glsl, int *do_alpha_pass);
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);
 

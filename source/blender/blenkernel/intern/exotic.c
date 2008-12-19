@@ -105,6 +105,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -181,7 +182,7 @@ static int is_stl(char *str)
     return;                                             \
   }                                                     \
   else {                                                \
-    if (G.order==B_ENDIAN) {                            \
+    if (ENDIAN_ORDER==B_ENDIAN) {                       \
       SWITCH_INT(mvert->co[0]);                         \
       SWITCH_INT(mvert->co[1]);                         \
       SWITCH_INT(mvert->co[2]);                         \
@@ -250,7 +251,7 @@ static void read_stl_mesh_binary(char *str)
 
 	fseek(fpSTL, 80, SEEK_SET);
 	fread(&numfacets, 4*sizeof(char), 1, fpSTL);
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
                 SWITCH_INT(numfacets);
         }
 
@@ -2459,7 +2460,7 @@ static void write_vert_stl(Object *ob, MVert *verts, int index, FILE *fpSTL)
 	VECCOPY(vert, verts[(index)].co);
 	Mat4MulVecfl(ob->obmat, vert);
 
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
 		SWITCH_INT(vert[0]);
 		SWITCH_INT(vert[1]);
 		SWITCH_INT(vert[2]);
@@ -2564,7 +2565,7 @@ void write_stl(char *str)
 	*/
 	fseek(fpSTL, 80, SEEK_SET);
 
-	if (G.order==B_ENDIAN) {
+	if (ENDIAN_ORDER==B_ENDIAN) {
                 SWITCH_INT(numfacets);
         }
 	fwrite(&numfacets, 4*sizeof(char), 1, fpSTL);
@@ -2605,7 +2606,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			cp[1]= (unsigned char) (255.0*ma->b);
 			cp[2]= (unsigned char) (255.0*ma->g);
 			cp[3]= (unsigned char) (255.0*ma->r);
-			if(G.order==L_ENDIAN) SWITCH_INT(kleur[a]);
+			if(ENDIAN_ORDER==L_ENDIAN) SWITCH_INT(kleur[a]);
 		}
 		else kleur[a]= 0x00C0C0C0;
 	
@@ -3026,7 +3027,7 @@ void write_vrml(char *str)
 	
 	/* FIRST: write all the datablocks */
 	
-	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V%d\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n", G.version);
+	fprintf(fp, "#VRML V1.0 ascii\n\n# Blender V%d\n\n# 'Switch' is used as a hack, to ensure it is not part of the drawing\n\n", BLENDER_VERSION);
 	fprintf(fp, "Separator {\n");
 	fprintf(fp, "Switch {\n");
 

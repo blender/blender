@@ -194,7 +194,7 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 	else
 		return 0;
 }
-static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
+static void draw_tfaces3D(View3D *v3d, Object *ob, Mesh *me, DerivedMesh *dm)
 {
 	struct { Mesh *me; EdgeHash *eh; } data;
 
@@ -203,7 +203,7 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	bglPolygonOffset(1.0);
+	bglPolygonOffset(v3d->dist, 1.0);
 
 		/* Draw (Hidden) Edges */
 	UI_ThemeColor(TH_EDGE_FACESEL);
@@ -230,7 +230,7 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 		glDisable(GL_BLEND);
 	}
 	
-	bglPolygonOffset(1.0);
+	bglPolygonOffset(v3d->dist, 1.0);
 
 		/* Draw Stippled Outline for selected faces */
 	glColor3ub(255, 255, 255);
@@ -240,7 +240,7 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 
 	dm->drawMappedEdges(dm, draw_tfaces3D__setActiveOpts, &data);
 
-	bglPolygonOffset(0.0);	// resets correctly now, even after calling accumulated offsets
+	bglPolygonOffset(v3d->dist, 0.0);	// resets correctly now, even after calling accumulated offsets
 
 	BLI_edgehash_free(data.eh, NULL);
 }
@@ -567,7 +567,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 	
 	/* draw edges and selected faces over textured mesh */
 	if(!G.obedit && faceselect)
-		draw_tfaces3D(ob, me, dm);
+		draw_tfaces3D(v3d, ob, me, dm);
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);

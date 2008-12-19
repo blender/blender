@@ -394,9 +394,9 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				fac= ((float)(evt->x - mm->firstx)*dx);
 				
 				if (ELEM(mm->slink->spacetype, SPACE_TIME, SPACE_SOUND)) 
-					apply_keyb_grid(&fac, 0.0, FPS, 0.1*FPS, 0);
+					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, FPS, 0.1*FPS, 0);
 				else
-					apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
+					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 				
 				offs= (int)fac;
 				RNA_int_set(op->ptr, "frs", offs);

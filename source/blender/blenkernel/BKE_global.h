@@ -66,15 +66,6 @@ struct BME_Glob;
 typedef struct Global {
 
 	/* active pointers */
-	struct View3D *vd;
-	struct View2D *v2d;
-	struct SpaceIpo *sipo;
-	struct SpaceButs *buts;
-	struct SpaceImage *sima;
-	struct SpaceOops *soops;
-	struct SpaceSound *ssound;
-	struct SpaceAction *saction;		/* __NLA */
-	struct SpaceNla *snla;
 	struct Main *main;
 	struct Scene *scene;			/* denk aan file.c */
 	struct bScreen *curscreen;
@@ -99,14 +90,11 @@ typedef struct Global {
 	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
     
 	short afbreek, moving;
-	short qual, background;
+	short background;
 	short winpos, displaymode;	/* used to be in Render */
 	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
-	/**
-	 * The current version of Blender.
-	 */
-	short version;
-	short simulf, order, rt;
+
+	short rt;
 	int f;
 
 	/* Editmode lists */
@@ -235,28 +223,11 @@ typedef struct Global {
 #define G_WINDOWSTATE_BORDER		1
 #define G_WINDOWSTATE_FULLSCREEN	2
 
-/* G.simulf */
-#define G_LOADFILE	2
-#define G_RESTART	4
-#define G_QUIT		8
-#define G_SETSCENE	16
-
-/* G.qual */
-#define R_SHIFTKEY		1
-#define L_SHIFTKEY		2
-#define LR_SHIFTKEY 	3
-#define R_ALTKEY		4
-#define L_ALTKEY		8
-#define LR_ALTKEY		12
-#define R_CTRLKEY		16
-#define L_CTRLKEY		32
-#define LR_CTRLKEY  	48
-#define LR_COMMANDKEY 	64
-
-/* G.order: indicates what endianness the platform where the file was
+/* ENDIAN_ORDER: indicates what endianness the platform where the file was
  * written had. */
 #define L_ENDIAN	1
 #define B_ENDIAN	0
+extern short ENDIAN_ORDER;
 
 /* G.moving, signals drawing in (3d) window to denote transform */
 #define G_TRANSFORM_OBJ			1

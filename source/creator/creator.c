@@ -144,20 +144,20 @@ static void blender_esc(int sig)
 static void print_version(void)
 {
 #ifdef BUILD_DATE
-	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
+	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	printf ("\tbuild date: %s\n", build_date);
 	printf ("\tbuild time: %s\n", build_time);
 	printf ("\tbuild revision: %s\n", build_rev);
 	printf ("\tbuild platform: %s\n", build_platform);
 	printf ("\tbuild type: %s\n", build_type);
 #else
-	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
+	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 #endif
 }
 
 static void print_help(void)
 {
-	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
+	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
 	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
@@ -429,7 +429,7 @@ int main(int argc, char **argv)
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
-					printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
+					printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 					MEM_set_memory_debug();
 #ifdef NAN_BUILDINFO
 					printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);

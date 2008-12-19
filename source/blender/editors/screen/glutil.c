@@ -739,12 +739,8 @@ void bgl_get_mats(bglMats *mats)
 
 /* *************** glPolygonOffset hack ************* */
 
-// both temporal, so here for now (ton)
-#include "BKE_global.h"
-#include "DNA_view3d_types.h"
-
 /* dist is only for ortho now... */
-void bglPolygonOffset(float dist) 
+void bglPolygonOffset(float viewdist, float dist) 
 {
 	static float winmat[16], offset=0.0;	
 	
@@ -760,7 +756,7 @@ void bglPolygonOffset(float dist)
 		
 		/* dist is from camera to center point */
 		
-		if(winmat[15]>0.5) offs= 0.00001*dist*G.vd->dist;  // ortho tweaking
+		if(winmat[15]>0.5) offs= 0.00001*dist*viewdist;  // ortho tweaking
 		else offs= 0.0005*dist;  // should be clipping value or so...
 		
 		winmat[14]-= offs;

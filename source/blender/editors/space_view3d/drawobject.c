@@ -1804,7 +1804,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em)
 	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
-	if(v3d->zbuf) bglPolygonOffset(5.0);
+	if(v3d->zbuf) bglPolygonOffset(v3d->dist, 5.0);
 	
 	if(G.f & G_DRAW_EDGELEN) {
 		UI_GetThemeColor3fv(TH_TEXT, col);
@@ -1939,7 +1939,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, EditMesh *em)
 	
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(0.0);
+		bglPolygonOffset(v3d->dist, 0.0);
 	}
 }
 
@@ -2014,7 +2014,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, Object *ob, EditMesh *em, D
 		// write to show selected edge wires better
 		UI_ThemeColor(TH_WIRE);
 
-		bglPolygonOffset(1.0);
+		bglPolygonOffset(v3d->dist, 1.0);
 		glDepthMask(0);
 	} 
 	else {
@@ -2117,7 +2117,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, Object *ob, EditMesh *em, D
 
 	if(dt>OB_WIRE) {
 		glDepthMask(1);
-		bglPolygonOffset(0.0);
+		bglPolygonOffset(v3d->dist, 0.0);
 		GPU_disable_material();
 	}
 
@@ -2349,7 +2349,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 				* otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
 				*/
 		if (dt!=OB_WIRE && draw_wire==2) {
-			bglPolygonOffset(1.0);
+			bglPolygonOffset(v3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 		
@@ -2357,7 +2357,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 		
 		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);
-			bglPolygonOffset(0.0);
+			bglPolygonOffset(v3d->dist, 0.0);
 		}
 	}
 
@@ -2388,7 +2388,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_set_object_materials(scene, ob, glsl, NULL);
+			GPU_set_object_materials(v3d, scene, ob, glsl, NULL);
 		}
 
 		draw_em_fancy(scene, v3d, ob, G.editMesh, cageDM, finalDM, dt);
@@ -2407,7 +2407,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 			check_alpha = check_material_alpha(base, ob, glsl);
 
 			if(dt==OB_SOLID || glsl) {
-				GPU_set_object_materials(scene, ob, glsl,
+				GPU_set_object_materials(v3d, scene, ob, glsl,
 					(check_alpha)? &do_alpha_pass: NULL);
 			}
 
@@ -2722,7 +2722,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 			}
 			else {
 				if(draw_glsl_material(scene, ob, v3d, dt)) {
-					GPU_set_object_materials(scene, ob, 1, NULL);
+					GPU_set_object_materials(v3d, scene, ob, 1, NULL);
 					drawDispListsolid(lb, ob, 1);
 				}
 				else if(dt == OB_SHADED) {
@@ -2730,7 +2730,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					GPU_set_object_materials(scene, ob, 0, NULL);
+					GPU_set_object_materials(v3d, scene, ob, 0, NULL);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob, 0);
 				}
@@ -2760,7 +2760,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 			if(dl->nors==NULL) addnormalsDispList(ob, lb);
 			
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
-				GPU_set_object_materials(scene, ob, 1, NULL);
+				GPU_set_object_materials(v3d, scene, ob, 1, NULL);
 				drawDispListsolid(lb, ob, 1);
 			}
 			else if(dt==OB_SHADED) {
@@ -2768,7 +2768,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 				drawDispListshaded(lb, ob);
 			}
 			else {
-				GPU_set_object_materials(scene, ob, 0, NULL);
+				GPU_set_object_materials(v3d, scene, ob, 0, NULL);
 				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 			
 				drawDispListsolid(lb, ob, 0);
@@ -2788,7 +2788,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 			if(solid) {
 				
 				if(draw_glsl_material(scene, ob, v3d, dt)) {
-					GPU_set_object_materials(scene, ob, 1, NULL);
+					GPU_set_object_materials(v3d, scene, ob, 1, NULL);
 					drawDispListsolid(lb, ob, 1);
 				}
 				else if(dt == OB_SHADED) {
@@ -2797,7 +2797,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					GPU_set_object_materials(scene, ob, 0, NULL);
+					GPU_set_object_materials(v3d, scene, ob, 0, NULL);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 				
 					drawDispListsolid(lb, ob, 0);
@@ -4593,7 +4593,7 @@ static void drawWireExtra(Scene *scene, View3D *v3d, Object *ob)
 		}
 	}
 	
-	bglPolygonOffset(1.0);
+	bglPolygonOffset(v3d->dist, 1.0);
 	glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 	
 	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
@@ -4610,7 +4610,7 @@ static void drawWireExtra(Scene *scene, View3D *v3d, Object *ob)
 	}
 
 	glDepthMask(1);
-	bglPolygonOffset(0.0);
+	bglPolygonOffset(v3d->dist, 0.0);
 }
 
 /* should be called in view space */
@@ -5376,7 +5376,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 
 			em_solidoffs= bbs_mesh_solid_EM(scene, v3d, dm, scene->selectmode & SCE_SELECT_FACE);
 			
-			bglPolygonOffset(1.0);
+			bglPolygonOffset(v3d->dist, 1.0);
 			
 			// we draw edges always, for loop (select) tools
 			em_wireoffs= bbs_mesh_wire(dm, em_solidoffs);
@@ -5386,7 +5386,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 				em_vertoffs= bbs_mesh_verts(dm, em_wireoffs);
 			else em_vertoffs= em_wireoffs;
 			
-			bglPolygonOffset(0.0);
+			bglPolygonOffset(v3d->dist, 0.0);
 
 			dm->release(dm);
 
@@ -5430,7 +5430,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, Object *ob, int
 
 		if(dm) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_set_object_materials(scene, ob, glsl, NULL);
+			GPU_set_object_materials(v3d, scene, ob, glsl, NULL);
 		}
 		else {
 			glEnable(GL_COLOR_MATERIAL);

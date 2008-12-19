@@ -757,6 +757,9 @@ static struct GPUMaterialState {
 	Material *gboundmat;
 	Object *gob;
 	Scene *gscene;
+	int glay;
+	float (*gviewmat)[4];
+	float (*gviewinv)[4];
 
 	GPUBlendMode blendmode[MAXMATBUF];
 	int alphapass;
@@ -779,7 +782,7 @@ Material *gpu_active_node_material(Material *ma)
 	return ma;
 }
 
-void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
+void GPU_set_object_materials(View3D *v3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
 {
 	extern Material defmaterial; /* from material.c */
 	Material *ma;
@@ -796,8 +799,11 @@ void GPU_set_object_materials(Scene *scene, Object *ob, int glsl, int *do_alpha_
 	GMS.gob = ob;
 	GMS.gscene = scene;
 	GMS.totmat= ob->totcol;
+	GMS.glay= v3d->lay;
+	GMS.gviewmat= v3d->viewmat;
+	GMS.gviewinv= v3d->viewinv;
 
-	GMS.alphapass = (G.vd && G.vd->transp);
+	GMS.alphapass = (v3d && v3d->transp);
 	if(do_alpha_pass)
 		*do_alpha_pass = 0;
 
@@ -918,8 +924,8 @@ int GPU_enable_material(int nr, void *attribs)
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
-			GPU_material_bind(gpumat, GMS.gob->lay, G.vd->lay, 1.0);
-			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, G.vd->viewmat, G.vd->viewinv, GMS.gob->col);
+			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0);
+			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
 
 			if(GMS.alphapass) glDepthMask(1);

@@ -47,19 +47,14 @@
 
 
 /* now only used in 2d spaces, like time, ipo, nla, sima... */
-/* XXX clean G.qual */
-void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
+/* XXX shift/ctrl not configurable */
+void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert)
 {
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	int ctrl;
+	if(invert)
+		ctrl= !ctrl;
 	
-	if(invert) {
-		if(G.qual & LR_CTRLKEY) ctrl= 0;
-		else ctrl= 1;
-	}
-	else ctrl= (G.qual & LR_CTRLKEY);
-	
-	if(ctrl && (G.qual & LR_SHIFTKEY)) {
+	if(ctrl && shift) {
 		if(fac3!= 0.0) *val= fac3*floor(*val/fac3 +.5);
 	}
 	else if(ctrl) {

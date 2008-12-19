@@ -2071,7 +2071,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 
 	wd= bgnwrite(handle, compare, current, write_flags);
 	
-	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (G.order==B_ENDIAN)?'V':'v', G.version);
+	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (ENDIAN_ORDER==B_ENDIAN)?'V':'v', BLENDER_VERSION);
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd, mainvar);

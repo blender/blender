@@ -921,7 +921,7 @@ void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
 		else {
 			base= FIRSTBASE;
 			while(base) {
-				if TESTBASE(base)  {
+				if TESTBASE(v3d, base)  {
 					minmax_object(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay= base->lay;
@@ -1003,7 +1003,7 @@ void centerview(ARegion *ar, View3D *v3d)	/* like a localview without local! */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;
 		for(base=FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(base)) {
+			if(TESTBASELIB(v3d, base)) {
 				if(base->object->type==OB_ARMATURE)
 					if(base->object->flag & OB_POSEMODE)
 						break;
@@ -1047,7 +1047,7 @@ void centerview(ARegion *ar, View3D *v3d)	/* like a localview without local! */
 	else {
 		Base *base= FIRSTBASE;
 		while(base) {
-			if TESTBASE(base)  {
+			if TESTBASE(v3d, base)  {
 				minmax_object(base->object, min, max);
 				/* account for duplis */
 				minmax_object_duplis(base->object, min, max);
