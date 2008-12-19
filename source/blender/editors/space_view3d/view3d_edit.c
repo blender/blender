@@ -64,6 +64,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -89,6 +92,7 @@ typedef struct ViewOpsData {
 	float reverse, dist0;
 	
 	int origx, origy, oldx, oldy;
+	int origkey;
 	
 } ViewOpsData;
 
@@ -135,6 +139,7 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 	QUATCOPY(vod->oldquat, v3d->viewquat);
 	vod->origx= vod->oldx= event->x;
 	vod->origy= vod->oldy= event->y;
+	vod->origkey= event->type;
 	
 	calctrackballvec(&vod->ar->winrct, event->x, event->y, vod->trackvec);
 	
@@ -344,22 +349,22 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
 
 static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod= op->customdata;
 
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			viewrotate_apply(op->customdata, event->x, event->y, event->ctrl);
+			viewrotate_apply(vod, event->x, event->y, event->ctrl);
 			break;
 			
-		case MIDDLEMOUSE:
-			if(event->val==0) {
+		default:
+			if(event->type==vod->origkey && event->val==0) {
 				
-				MEM_freeN(op->customdata);
+				MEM_freeN(vod);
 				op->customdata= NULL;
 				
 				return OPERATOR_FINISHED;
 			}
-			break;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -400,6 +405,7 @@ void ED_VIEW3D_OT_viewrotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
+	ot->poll= ED_operator_areaactive;
 }
 
 /* ************************ viewmove ******************************** */
@@ -431,21 +437,22 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 
 static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 {	
+	ViewOpsData *vod= op->customdata;
+	
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			viewmove_apply(op->customdata, event->x, event->y);
+			viewmove_apply(vod, event->x, event->y);
 			break;
 			
-		case MIDDLEMOUSE:
-			if(event->val==0) {
+		default:
+			if(event->type==vod->origkey && event->val==0) {
 				
-				MEM_freeN(op->customdata);
+				MEM_freeN(vod);
 				op->customdata= NULL;
 				
 				return OPERATOR_FINISHED;
 			}
-			break;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -473,6 +480,7 @@ void ED_VIEW3D_OT_viewmove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewmove_invoke;
 	ot->modal= viewmove_modal;
+	ot->poll= ED_operator_areaactive;
 }
 
 /* ************************ viewzoom ******************************** */
@@ -579,35 +587,71 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 
 static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {	
+	ViewOpsData *vod= op->customdata;
+	
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			viewzoom_apply(op->customdata, event->x, event->y);
+			viewzoom_apply(vod, event->x, event->y);
 			break;
 			
-		case MIDDLEMOUSE:
-			if(event->val==0) {
+		default:
+			if(event->type==vod->origkey && event->val==0) {
 				
-				MEM_freeN(op->customdata);
+				MEM_freeN(vod);
 				op->customdata= NULL;
 				
 				return OPERATOR_FINISHED;
 			}
-			break;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int viewzoom_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	int delta= RNA_int_get(op->ptr, "delta");
+
+	if(delta < 0) {
+		/* this min and max is also in viewmove() */
+		if(v3d->persp==V3D_CAMOB) {
+			v3d->camzoom-= 10;
+			if(v3d->camzoom<-30) v3d->camzoom= -30;
+		}
+		else if(v3d->dist<10.0*v3d->far) v3d->dist*=1.2f;
+	}
+	else {
+		if(v3d->persp==V3D_CAMOB) {
+			v3d->camzoom+= 10;
+			if(v3d->camzoom>300) v3d->camzoom= 300;
+		}
+		else if(v3d->dist> 0.001*v3d->grid) v3d->dist*=.83333f;
+	}
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
 static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	/* makes op->customdata */
-	viewops_data(C, op, event);
-	
-	/* add temp handler */
-	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
-	
-	return OPERATOR_RUNNING_MODAL;
+	int delta= RNA_int_get(op->ptr, "delta");
+
+	if(delta) {
+		viewzoom_exec(C, op);
+	}
+	else {
+		/* makes op->customdata */
+		viewops_data(C, op, event);
+		
+		/* add temp handler */
+		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
+	return OPERATOR_FINISHED;
 }
 
 
@@ -620,7 +664,11 @@ void ED_VIEW3D_OT_viewzoom(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= viewzoom_invoke;
+	ot->exec= viewzoom_exec;
 	ot->modal= viewzoom_modal;
+	ot->poll= ED_operator_areaactive;
+	
+	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
 }
 
 /* ************************* below the line! *********************** */
