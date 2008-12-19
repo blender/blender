@@ -95,7 +95,7 @@ def rna2epy(target_path):
 					out.write('\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
 				elif rna_prop_type == 'int' or rna_prop_type == 'float':
 					out.write('\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
-					out.write('\t@type %s: %s%s%s in [%s, %s]\n' %  (rna_prop_identifier, rna_prop_type, array_str, range_str(rna_prop.hard_min), range_str(rna_prop.hard_max), readonly_str ))
+					out.write('\t@type %s: %s%s%s in [%s, %s]\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str, range_str(rna_prop.hard_min), range_str(rna_prop.hard_max) ))
 				elif rna_prop_type == 'string':
 					out.write('\t@ivar %s: %s (maximum length of %s)\n' %  (rna_prop_identifier, rna_desc, rna_prop.max_length))
 					out.write('\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str))
