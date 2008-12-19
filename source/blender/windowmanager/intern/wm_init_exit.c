@@ -139,7 +139,6 @@ void WM_init(bContext *C)
 	
 // XXX	UI_filelist_init_icons();
 	
-	GPU_state_init();
 	GPU_extensions_init();
 	
 	read_Blog();

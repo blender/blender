@@ -55,6 +55,8 @@
 
 #include "ED_screen.h"
 
+#include "GPU_draw.h"
+
 /* the global to talk to ghost */
 GHOST_SystemHandle g_system= NULL;
 
@@ -215,6 +217,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
+		
+		GPU_state_init();
 	}
 }
 
