@@ -247,7 +247,7 @@ PyParentObject SCA_ILogicBrick::Parents[] = {
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
   {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
-  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_NOARGS},
+  {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPyGetExecutePriority, METH_NOARGS},
   {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
   {NULL,NULL} //Sentinel
 };
