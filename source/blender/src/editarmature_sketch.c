@@ -140,6 +140,27 @@ typedef struct SK_StrokeIterator {
 	int stride;
 } SK_StrokeIterator;
 
+typedef struct SK_Gesture {
+	SK_Stroke	*stk;
+	SK_Stroke	*segments;
+
+	ListBase	intersections;
+	ListBase	self_intersections;
+
+	int			nb_self_intersections;
+	int			nb_intersections;
+	int			nb_segments;
+} SK_Gesture;
+
+typedef int  (*GestureDetectFct)(SK_Gesture*, SK_Sketch *);
+typedef void (*GestureApplyFct)(SK_Gesture*, SK_Sketch *);
+
+typedef struct SK_GestureAction {
+	char name[64];
+	GestureDetectFct	detect;
+	GestureApplyFct		apply;
+} SK_GestureAction;
+
 SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
 
@@ -155,6 +176,33 @@ void sk_freeStroke(SK_Stroke *stk);
 void sk_freeSketch(SK_Sketch *sketch);
 
 SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
+
+int sk_detectCutGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyCutGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectTrimGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyTrimGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectCommandGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectDeleteGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyDeleteGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectMergeGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyMergeGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectReverseGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyReverseGesture(SK_Gesture *gest, SK_Sketch *sketch);
+
+
+/******************** GESTURE ACTIONS ******************************/
+
+SK_GestureAction GESTURE_ACTIONS[] =
+	{
+		{"Cut", sk_detectCutGesture, sk_applyCutGesture},
+		{"Trim", sk_detectTrimGesture, sk_applyTrimGesture},
+		{"Command", sk_detectCommandGesture, sk_applyCommandGesture},
+		{"Delete", sk_detectDeleteGesture, sk_applyDeleteGesture},
+		{"Merge", sk_detectMergeGesture, sk_applyMergeGesture},
+		{"Reverse", sk_detectReverseGesture, sk_applyReverseGesture},
+		{"", NULL, NULL}
+	};
 
 /******************** TEMPLATES UTILS *************************/
 
@@ -2089,11 +2137,21 @@ int sk_getSegments(SK_Stroke *segments, SK_Stroke *gesture)
 	return segments->nb_points - 1;
 }
 
-void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectCutGesture(SK_Gesture *gest, SK_Sketch *sketch)
+{
+	if (gest->nb_segments == 1 && gest->nb_intersections == 1)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+void sk_applyCutGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
 		SK_Point pt;
 		
@@ -2105,34 +2163,35 @@ void sk_applyCutGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, S
 	}
 }
 
-int sk_detectTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectTrimGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
-	float s1[3], s2[3];
-	float angle;
-	
-	VecSubf(s1, segments->points[1].p, segments->points[0].p);
-	VecSubf(s2, segments->points[2].p, segments->points[1].p);
-	
-	angle = VecAngle2(s1, s2);
-	
-	if (angle > 60 && angle < 120)
+	if (gest->nb_segments == 2 && gest->nb_intersections == 1 && gest->nb_self_intersections == 0)
 	{
-		return 1;
+		float s1[3], s2[3];
+		float angle;
+		
+		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
+		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
+		
+		angle = VecAngle2(s1, s2);
+	
+		if (angle > 60 && angle < 120)
+		{
+			return 1;
+		}
 	}
-	else
-	{
-		return 0;
-	}
+
+	return 0;
 }
 
-void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+void sk_applyTrimGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	float trim_dir[3];
 	
-	VecSubf(trim_dir, segments->points[2].p, segments->points[1].p);
+	VecSubf(trim_dir, gest->segments->points[2].p, gest->segments->points[1].p);
 	
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
 		SK_Point pt;
 		float stroke_dir[3];
@@ -2159,12 +2218,34 @@ void sk_applyTrimGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, 
 	}
 }
 
-int sk_detectCommandGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
-	return 1;
+	if (gest->nb_segments > 2 && gest->nb_intersections == 2 && gest->nb_self_intersections == 1)
+	{
+		SK_Intersection *isect, *self_isect;
+		
+		/* get the the last intersection of the first pair */
+		for( isect = gest->intersections.first; isect; isect = isect->next )
+		{
+			if (isect->stroke == isect->next->stroke)
+			{
+				isect = isect->next;
+				break;
+			}
+		}
+		
+		self_isect = gest->self_intersections.first;
+		
+		if (isect && isect->gesture_index < self_isect->gesture_index)
+		{
+			return 1;
+		}
+	}
+	
+	return 0;
 }
 
-void sk_applyCommandGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	int command;
@@ -2172,63 +2253,55 @@ void sk_applyCommandGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *lis
 	command = pupmenu("Action %t|Flatten %x1|Cut Out %x2");
 	if(command < 1) return;
 
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
-		SK_Intersection *i2, *i3;
+		SK_Intersection *i2;
 		
 		i2 = isect->next;
 		
 		if (i2 && i2->stroke == isect->stroke)
 		{
-			i3 = i2->next;
-			
-			if (i3 && i3->stroke == i2->stroke)
+			switch (command)
 			{
-				switch (command)
-				{
-					case 1:
-						sk_flattenStroke(isect->stroke, isect->before, i3->after);
-						break;
-					case 2:
-						sk_cutoutStroke(isect->stroke, isect->after, i3->before, isect->p, i3->p);
-						break;
-				}
+				case 1:
+					sk_flattenStroke(isect->stroke, isect->before, i2->after);
+					break;
+				case 2:
+					sk_cutoutStroke(isect->stroke, isect->after, i2->before, isect->p, i2->p);
+					break;
+			}
 
-				isect = i3;
-			}
-			else
-			{
-				isect = i2;
-			}
+			isect = i2;
 		}
 	}
 }
 
-int sk_detectDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectDeleteGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
-	float s1[3], s2[3];
-	float angle;
-	
-	VecSubf(s1, segments->points[1].p, segments->points[0].p);
-	VecSubf(s2, segments->points[2].p, segments->points[1].p);
-	
-	angle = VecAngle2(s1, s2);
-	
-	if (angle > 120)
+	if (gest->nb_segments == 2 && gest->nb_intersections == 2)
 	{
-		return 1;
+		float s1[3], s2[3];
+		float angle;
+		
+		VecSubf(s1, gest->segments->points[1].p, gest->segments->points[0].p);
+		VecSubf(s2, gest->segments->points[2].p, gest->segments->points[1].p);
+		
+		angle = VecAngle2(s1, s2);
+		
+		if (angle > 120)
+		{
+			return 1;
+		}
 	}
-	else
-	{
-		return 0;
-	}
+	
+	return 0;
 }
 
-void sk_applyDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+void sk_applyDeleteGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
 		/* only delete strokes that are crossed twice */
 		if (isect->next && isect->next->stroke == isect->stroke)
@@ -2240,60 +2313,59 @@ void sk_applyDeleteGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list
 	}
 }
 
-int sk_detectMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectMergeGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
-	short start_val[2], end_val[2];
-	short dist;
-	
-	project_short_noclip(gesture->points[0].p, start_val);
-	project_short_noclip(gesture->points[gesture->nb_points - 1].p, end_val);
-	
-	dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
-	
-	/* if gesture is a circle */
-	if ( dist <= 20 )
+	if (gest->nb_segments > 2 && gest->nb_intersections == 2)
 	{
-		SK_Intersection *isect;
+		short start_val[2], end_val[2];
+		short dist;
 		
-		/* check if it circled around an exact point */
-		for (isect = list->first; isect; isect = isect->next)
+		project_short_noclip(gest->stk->points[0].p, start_val);
+		project_short_noclip(sk_lastStrokePoint(gest->stk)->p, end_val);
+		
+		dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));
+		
+		/* if gesture is a circle */
+		if ( dist <= 20 )
 		{
-			/* only delete strokes that are crossed twice */
-			if (isect->next && isect->next->stroke == isect->stroke)
+			SK_Intersection *isect;
+			
+			/* check if it circled around an exact point */
+			for (isect = gest->intersections.first; isect; isect = isect->next)
 			{
-				int start_index, end_index;
-				int i;
-				
-				start_index = MIN2(isect->after, isect->next->after);
-				end_index = MAX2(isect->before, isect->next->before);
-
-				for (i = start_index; i <= end_index; i++)
+				/* only delete strokes that are crossed twice */
+				if (isect->next && isect->next->stroke == isect->stroke)
 				{
-					if (isect->stroke->points[i].type == PT_EXACT)
+					int start_index, end_index;
+					int i;
+					
+					start_index = MIN2(isect->after, isect->next->after);
+					end_index = MAX2(isect->before, isect->next->before);
+	
+					for (i = start_index; i <= end_index; i++)
 					{
-						return 1; /* at least one exact point found, stop detect here */
+						if (isect->stroke->points[i].type == PT_EXACT)
+						{
+							return 1; /* at least one exact point found, stop detect here */
+						}
 					}
+	
+					/* skip next */				
+					isect = isect->next;
 				}
-
-				/* skip next */				
-				isect = isect->next;
 			}
 		}
-			
-		return 0;
 	}
-	else
-	{
-		return 0;
-	}
+				
+	return 0;
 }
 
-void sk_applyMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+void sk_applyMergeGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	
 	/* check if it circled around an exact point */
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
 		/* only merge strokes that are crossed twice */
 		if (isect->next && isect->next->stroke == isect->stroke)
@@ -2319,50 +2391,53 @@ void sk_applyMergeGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list,
 	}
 }
 
-int sk_detectReverseGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+int sk_detectReverseGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
-	SK_Intersection *isect;
-	
-	/* check if it circled around an exact point */
-	for (isect = list->first; isect; isect = isect->next)
+	if (gest->nb_segments > 2 && gest->nb_intersections == 2 && gest->nb_self_intersections == 0)
 	{
-		/* only delete strokes that are crossed twice */
-		if (isect->next && isect->next->stroke == isect->stroke)
+		SK_Intersection *isect;
+		
+		/* check if it circled around an exact point */
+		for (isect = gest->intersections.first; isect; isect = isect->next)
 		{
-			float start_v[3], end_v[3];
-			float angle;
-			
-			if (isect->gesture_index < isect->next->gesture_index)
+			/* only delete strokes that are crossed twice */
+			if (isect->next && isect->next->stroke == isect->stroke)
 			{
-				VecSubf(start_v, isect->p, gesture->points[0].p);
-				VecSubf(end_v, sk_lastStrokePoint(gesture)->p, isect->next->p);
+				float start_v[3], end_v[3];
+				float angle;
+				
+				if (isect->gesture_index < isect->next->gesture_index)
+				{
+					VecSubf(start_v, isect->p, gest->stk->points[0].p);
+					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->next->p);
+				}
+				else
+				{
+					VecSubf(start_v, isect->next->p, gest->stk->points[0].p);
+					VecSubf(end_v, sk_lastStrokePoint(gest->stk)->p, isect->p);
+				}
+				
+				angle = VecAngle2(start_v, end_v);
+				
+				if (angle > 120)
+				{
+					return 1;
+				}
+	
+				/* skip next */				
+				isect = isect->next;
 			}
-			else
-			{
-				VecSubf(start_v, isect->next->p, gesture->points[0].p);
-				VecSubf(end_v, sk_lastStrokePoint(gesture)->p, isect->p);
-			}
-			
-			angle = VecAngle2(start_v, end_v);
-			
-			if (angle > 120)
-			{
-				return 1;
-			}
-
-			/* skip next */				
-			isect = isect->next;
 		}
 	}
 		
 	return 0;
 }
 
-void sk_applyReverseGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *list, SK_Stroke *segments)
+void sk_applyReverseGesture(SK_Gesture *gest, SK_Sketch *sketch)
 {
 	SK_Intersection *isect;
 	
-	for (isect = list->first; isect; isect = isect->next)
+	for (isect = gest->intersections.first; isect; isect = isect->next)
 	{
 		/* only reverse strokes that are crossed twice */
 		if (isect->next && isect->next->stroke == isect->stroke)
@@ -2375,59 +2450,44 @@ void sk_applyReverseGesture(SK_Sketch *sketch, SK_Stroke *gesture, ListBase *lis
 	}
 }
 
+static void sk_initGesture(SK_Gesture *gest, SK_Sketch *sketch)
+{
+	gest->intersections.first = gest->intersections.last = NULL;
+	gest->self_intersections.first = gest->self_intersections.last = NULL;
+	
+	gest->segments = sk_createStroke();
+	gest->stk = sketch->gesture;
+
+	gest->nb_self_intersections = sk_getSelfIntersections(&gest->self_intersections, gest->stk);
+	gest->nb_intersections = sk_getIntersections(&gest->intersections, sketch, gest->stk);
+	gest->nb_segments = sk_getSegments(gest->segments, gest->stk);
+}
+
+static void sk_freeGesture(SK_Gesture *gest)
+{
+	sk_freeStroke(gest->segments);
+	BLI_freelistN(&gest->intersections);
+	BLI_freelistN(&gest->self_intersections);
+}
+
 void sk_applyGesture(SK_Sketch *sketch)
 {
-	ListBase intersections;
-	ListBase self_intersections;
-	SK_Stroke *segments = sk_createStroke();
-	int nb_self_intersections, nb_intersections, nb_segments;
+	SK_Gesture gest;
+	SK_GestureAction *act;
 	
-	intersections.first = intersections.last = NULL;
-	self_intersections.first = self_intersections.last = NULL;
-	
-	nb_self_intersections = sk_getSelfIntersections(&self_intersections, sketch->gesture);
-	nb_intersections = sk_getIntersections(&intersections, sketch, sketch->gesture);
-	nb_segments = sk_getSegments(segments, sketch->gesture);
+	sk_initGesture(&gest, sketch);
 	
 	/* detect and apply */
-	if (nb_segments == 1 && nb_intersections == 1)
+	for (act = GESTURE_ACTIONS; act->apply != NULL; act++)
 	{
-		sk_applyCutGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments == 2 && nb_intersections == 1 && sk_detectTrimGesture(sketch, sketch->gesture, &intersections, segments))
-	{
-		sk_applyTrimGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments == 2 && nb_intersections == 2 && sk_detectDeleteGesture(sketch, sketch->gesture, &intersections, segments))
-	{
-		sk_applyDeleteGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments > 2 && nb_intersections == 2 && sk_detectMergeGesture(sketch, sketch->gesture, &intersections, segments))
-	{
-		sk_applyMergeGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments > 2 && nb_intersections == 2 && sk_detectReverseGesture(sketch, sketch->gesture, &intersections, segments))
-	{
-		sk_applyReverseGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments > 2 && nb_intersections == 3 && nb_self_intersections == 1 && sk_detectCommandGesture(sketch, sketch->gesture, &intersections, segments))
-	{
-		sk_applyCommandGesture(sketch, sketch->gesture, &intersections, segments);
-	}
-	else if (nb_segments > 2 && nb_self_intersections == 1)
-	{
-		sk_convert(sketch);
-		BIF_undo_push("Convert Sketch");
-		allqueue(REDRAWBUTSEDIT, 0);
-	}
-	else if (nb_segments > 2 && nb_self_intersections == 2)
-	{
-		sk_deleteSelectedStrokes(sketch);
+		if (act->detect(&gest, sketch))
+		{
+			act->apply(&gest, sketch);
+			break;
+		}
 	}
 	
-	sk_freeStroke(segments);
-	BLI_freelistN(&intersections);
-	BLI_freelistN(&self_intersections);
+	sk_freeGesture(&gest);
 }
 
 /********************************************/
