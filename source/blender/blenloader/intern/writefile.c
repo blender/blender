@@ -145,14 +145,13 @@ Any case: direct data is ALWAYS after the lib block
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
-#include "BKE_context.h"
 #include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
-#include "BKE_main.h" // G.main
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
 #include "BKE_report.h"
@@ -480,14 +479,29 @@ static void write_scriptlink(WriteData *wd, ScriptLink *slink)
 	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);
 }
 
-static void write_renderinfo(bContext *C, WriteData *wd)		/* for renderdeamon */
+static void current_screen_compat(Main *mainvar, bScreen **screen)
 {
+	wmWindowManager *wm;
+	wmWindow *window;
+
+	/* find a global current screen in the first open window, to have
+	 * a reasonable default for reading in older versions */
+	wm= mainvar->wm.first;
+	window= (wm)? wm->windows.first: NULL;
+	*screen= (window)? window->screen: NULL;
+}
+
+static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
+{
+	bScreen *curscreen;
 	Scene *sce;
 	int data[8];
 
-	sce= CTX_data_main(C)->scene.first;
+	current_screen_compat(mainvar, &curscreen);
+
+	sce= mainvar->scene.first;
 	while(sce) {
-		if(sce->id.lib==0  && ( sce==CTX_data_scene(C) || (sce->r.scemode & R_BG_RENDER)) ) {
+		if(sce->id.lib==0  && ( sce==G.scene || (sce->r.scemode & R_BG_RENDER)) ) {
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
@@ -2018,14 +2032,17 @@ static void write_scripts(WriteData *wd, ListBase *idbase)
 /* context is usually defined by WM, two cases where no WM is available:
  * - for forward compatibility, curscreen has to be saved
  * - for undofile, curscene needs to be saved */
-/* XXX still remap G */
-static void write_global(bContext *C, WriteData *wd)
+static void write_global(WriteData *wd, Main *mainvar)
 {
 	FileGlobal fg;
+	bScreen *screen;
 	char subvstr[8];
 	
-	fg.curscreen= CTX_wm_screen(C);
-	fg.curscene= CTX_data_scene(C);
+	current_screen_compat(mainvar, &screen);
+
+	/* XXX still remap G */
+	fg.curscreen= screen;
+	fg.curscene= G.scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
@@ -2042,7 +2059,7 @@ static void write_global(bContext *C, WriteData *wd)
 }
 
 /* if MemFile * there's filesave to memory */
-static int write_file_handle(bContext *C, int handle, MemFile *compare, MemFile *current, 
+static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFile *current, 
 							 int write_user_block, int write_flags)
 {
 	BHead bhead;
@@ -2050,47 +2067,47 @@ static int write_file_handle(bContext *C, int handle, MemFile *compare, MemFile 
 	char buf[16];
 	WriteData *wd;
 
-	blo_split_main(&mainlist, G.main);
+	blo_split_main(&mainlist, mainvar);
 
 	wd= bgnwrite(handle, compare, current, write_flags);
 	
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (G.order==B_ENDIAN)?'V':'v', G.version);
 	mywrite(wd, buf, 12);
 
-	write_renderinfo(C, wd);
-	write_global(C, wd);
+	write_renderinfo(wd, mainvar);
+	write_global(wd, mainvar);
 
 	/* no UI save in undo */
 	if(current==NULL) {
-		write_windowmanagers(wd, &G.main->wm);
-		write_screens  (wd, &G.main->screen);
+		write_windowmanagers(wd, &mainvar->wm);
+		write_screens  (wd, &mainvar->screen);
 	}
-	write_scenes   (wd, &G.main->scene);
-	write_curves   (wd, &G.main->curve);
-	write_mballs   (wd, &G.main->mball);
-	write_images   (wd, &G.main->image);
-	write_cameras  (wd, &G.main->camera);
-	write_lamps    (wd, &G.main->lamp);
-	write_lattices (wd, &G.main->latt);
-	write_vfonts   (wd, &G.main->vfont);
-	write_ipos     (wd, &G.main->ipo);
-	write_keys     (wd, &G.main->key);
-	write_worlds   (wd, &G.main->world);
-	write_texts    (wd, &G.main->text);
-	write_sounds   (wd, &G.main->sound);
-	write_groups   (wd, &G.main->group);
-	write_armatures(wd, &G.main->armature);
-	write_actions  (wd, &G.main->action);
-	write_objects  (wd, &G.main->object);
-	write_materials(wd, &G.main->mat);
-	write_textures (wd, &G.main->tex);
-	write_meshs    (wd, &G.main->mesh);
-	write_particlesettings(wd, &G.main->particle);
-	write_nodetrees(wd, &G.main->nodetree);
-	write_brushes  (wd, &G.main->brush);
-	write_scripts  (wd, &G.main->script);
+	write_scenes   (wd, &mainvar->scene);
+	write_curves   (wd, &mainvar->curve);
+	write_mballs   (wd, &mainvar->mball);
+	write_images   (wd, &mainvar->image);
+	write_cameras  (wd, &mainvar->camera);
+	write_lamps    (wd, &mainvar->lamp);
+	write_lattices (wd, &mainvar->latt);
+	write_vfonts   (wd, &mainvar->vfont);
+	write_ipos     (wd, &mainvar->ipo);
+	write_keys     (wd, &mainvar->key);
+	write_worlds   (wd, &mainvar->world);
+	write_texts    (wd, &mainvar->text);
+	write_sounds   (wd, &mainvar->sound);
+	write_groups   (wd, &mainvar->group);
+	write_armatures(wd, &mainvar->armature);
+	write_actions  (wd, &mainvar->action);
+	write_objects  (wd, &mainvar->object);
+	write_materials(wd, &mainvar->mat);
+	write_textures (wd, &mainvar->tex);
+	write_meshs    (wd, &mainvar->mesh);
+	write_particlesettings(wd, &mainvar->particle);
+	write_nodetrees(wd, &mainvar->nodetree);
+	write_brushes  (wd, &mainvar->brush);
+	write_scripts  (wd, &mainvar->script);
 	if(current==NULL)	
-		write_libraries(wd,  G.main->next); /* no library save in undo */
+		write_libraries(wd,  mainvar->next); /* no library save in undo */
 
 	if (write_user_block) {
 		write_userdef(wd);
@@ -2105,13 +2122,12 @@ static int write_file_handle(bContext *C, int handle, MemFile *compare, MemFile 
 	mywrite(wd, &bhead, sizeof(BHead));
 
 	blo_join_main(&mainlist);
-	G.main= mainlist.first;
 
 	return endwrite(wd);
 }
 
 /* return: success (1) */
-int BLO_write_file(bContext *C, char *dir, int write_flags, ReportList *reports)
+int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE];
@@ -2129,7 +2145,7 @@ int BLO_write_file(bContext *C, char *dir, int write_flags, ReportList *reports)
 
 	write_user_block= BLI_streq(dir, userfilename);
 
-	err= write_file_handle(C, file, NULL,NULL, write_user_block, write_flags);
+	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
 	if(!err) {
@@ -2166,11 +2182,11 @@ int BLO_write_file(bContext *C, char *dir, int write_flags, ReportList *reports)
 }
 
 /* return: success (1) */
-int BLO_write_file_mem(bContext *C, MemFile *compare, MemFile *current, int write_flags, ReportList *reports)
+int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int write_flags, ReportList *reports)
 {
 	int err;
 
-	err= write_file_handle(C, 0, compare, current, 0, write_flags);
+	err= write_file_handle(mainvar, 0, compare, current, 0, write_flags);
 	
 	if(err==0) return 1;
 	return 0;
@@ -2264,7 +2280,7 @@ cleanup:
 	return !(reports->flag & RPT_HAS_ERROR);
 }
 
-int BLO_write_runtime(bContext *C, char *file, char *exename, ReportList *reports) 
+int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports) 
 {
 	char gamename[FILE_MAXDIR+FILE_MAXFILE];
 	int outfd = -1;
@@ -2282,7 +2298,7 @@ int BLO_write_runtime(bContext *C, char *file, char *exename, ReportList *report
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 
-		write_file_handle(C, outfd, NULL,NULL, 0, G.fileflags);
+		write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags);
 
 		if (write(outfd, " ", 1) != 1) {
 			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
@@ -2346,7 +2362,7 @@ static int handle_write_msb_int(int handle, int i)
 	return (write(handle, buf, 4)==4);
 }
 
-int BLO_write_runtime(bContext *C, char *file, char *exename, ReportList *reports)
+int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports)
 {
 	int outfd= open(file, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	int datastart;
@@ -2360,7 +2376,7 @@ int BLO_write_runtime(bContext *C, char *file, char *exename, ReportList *report
 
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
-	write_file_handle(C, outfd, NULL,NULL, 0, G.fileflags);
+	write_file_handle(mainvar, outfd, NULL,NULL, 0, G.fileflags);
 
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		BKE_report(reports, RPT_ERROR, "Unable to write to output file.");

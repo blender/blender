@@ -113,9 +113,9 @@ FileData *blo_openblenderfile( char *name, struct ReportList *reports);
 FileData *blo_openblendermemory( void *buffer, int buffersize, struct ReportList *reports);
 FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
-void blo_clear_proxy_pointers_from_lib(FileData *fd);
-void blo_make_image_pointer_map(FileData *fd);
-void blo_end_image_pointer_map(FileData *fd);
+void blo_clear_proxy_pointers_from_lib(FileData *fd, Main *oldmain);
+void blo_make_image_pointer_map(FileData *fd, Main *oldmain);
+void blo_end_image_pointer_map(FileData *fd, Main *oldmain);
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
 
 void blo_freefiledata( FileData *fd);

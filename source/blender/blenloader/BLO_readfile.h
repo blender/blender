@@ -95,9 +95,10 @@ BlendFileData*	BLO_read_from_file		(char *file, struct ReportList *reports);
 BlendFileData*	BLO_read_from_memory(void *mem, int memsize, struct ReportList *reports);
 
 /**
+ * oldmain is old main, from which we will keep libraries, images, ..
  * file name is current file, only for retrieving library data */
 
-BlendFileData *BLO_read_from_memfile(const char *filename, struct MemFile *memfile, struct ReportList *reports);
+BlendFileData *BLO_read_from_memfile(struct Main *oldmain, const char *filename, struct MemFile *memfile, struct ReportList *reports);
 
 /**
  * Free's a BlendFileData structure and _all_ the
@@ -199,10 +200,10 @@ BLO_blendhandle_close(
 char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
 
-void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode, struct Scene *scene);
+void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode, struct Main *mainvar, struct Scene *scene);
 void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, 
-						 char *dir, char* file, short flag, int idcode, struct Scene *scene);
-void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Scene *scene);
+						 char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene *scene);
+void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Main *mainvar, struct Scene *scene);
 
 BlendFileData* blo_read_blendafterruntime(int file, char *name, int actualsize, struct ReportList *reports);
 

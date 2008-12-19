@@ -53,7 +53,6 @@
 #include "BKE_utildefines.h" // for ENDB
 
 #include "BKE_main.h"
-#include "BKE_global.h"
 #include "BKE_library.h" // for free_main
 #include "BKE_report.h"
 
@@ -360,7 +359,7 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, ReportList *reports)
+BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFile *memfile, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
@@ -370,16 +369,16 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Rep
 	if (fd) {
 		strcpy(fd->filename, filename);
 		
-		/* clear ob->proxy_from pointers in G.main */
-		blo_clear_proxy_pointers_from_lib(fd);
+		/* clear ob->proxy_from pointers in old main */
+		blo_clear_proxy_pointers_from_lib(fd, oldmain);
 
-		/* separate libraries from G.main */
-		blo_split_main(&mainlist, G.main);
+		/* separate libraries from old main */
+		blo_split_main(&mainlist, oldmain);
 		/* add the library pointers in oldmap lookup */
 		blo_add_library_pointer_map(&mainlist, fd);
 		
-		/* makes lookup of existing images in G.main */
-		blo_make_image_pointer_map(fd);
+		/* makes lookup of existing images in old main */
+		blo_make_image_pointer_map(fd, oldmain);
 		
 		bfd= blo_read_file_internal(fd, reports);
 		if (bfd) {
@@ -388,17 +387,17 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Rep
 		}
 		
 		/* ensures relinked images are not freed */
-		blo_end_image_pointer_map(fd);
+		blo_end_image_pointer_map(fd, oldmain);
 		
-		/* move libraries from G.main to new main */
+		/* move libraries from old main to new main */
 		if(bfd && mainlist.first!=mainlist.last) {
 			
 			/* Library structs themselves */
-			bfd->main->library= G.main->library;
-			G.main->library.first= G.main->library.last= NULL;
+			bfd->main->library= oldmain->library;
+			oldmain->library.first= oldmain->library.last= NULL;
 			
 			/* add the Library mainlist to the new main */
-			BLI_remlink(&mainlist, G.main);
+			BLI_remlink(&mainlist, oldmain);
 			BLI_addhead(&mainlist, bfd->main);
 		}
 		blo_join_main(&mainlist);

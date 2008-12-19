@@ -70,7 +70,7 @@ void				filelist_setfiletypes(struct FileList* filelist, short has_quicktime);
 int					filelist_islibrary (struct FileList* filelist, char* dir, char* group);
 void				filelist_from_main(struct FileList* filelist);
 void				filelist_from_library(struct FileList* filelist);
-void				filelist_append_library(struct FileList* filelist, char *dir, char* file, short flag, int idcode, struct Scene* scene);
+void				filelist_append_library(struct FileList* filelist, char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene* scene);
 void				filelist_settype(struct FileList* filelist, int type);
 short				filelist_gettype(struct FileList* filelist);
 void				filelist_setipotype(struct FileList* filelist, short ipotype);

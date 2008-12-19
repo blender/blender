@@ -847,7 +847,7 @@ void WM_write_file(bContext *C, char *target)
 
 	BKE_reports_init(&reports, RPT_STORE);
 	
-	if (BLO_write_file(C, di, writeflags, &reports)) {
+	if (BLO_write_file(CTX_data_main(C), di, writeflags, &reports)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
@@ -880,7 +880,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 
 	// XXX error reporting to the user
 	BKE_reports_init(&reports, RPT_PRINT);
-	BLO_write_file(C, tstr, write_flags, &reports);
+	BLO_write_file(CTX_data_main(C), tstr, write_flags, &reports);
 	BKE_reports_clear(&reports);
 	
 	return OPERATOR_FINISHED;
@@ -898,7 +898,7 @@ void WM_write_autosave(bContext *C)
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 
 	BKE_reports_init(&reports, RPT_PRINT);
-	BLO_write_file(C, tstr, write_flags, &reports);
+	BLO_write_file(CTX_data_main(C), tstr, write_flags, &reports);
 	BKE_reports_clear(&reports);
 }
 

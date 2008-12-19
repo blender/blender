@@ -486,7 +486,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 	
 	BKE_reports_init(&reports, RPT_STORE);
 
-	bfd= BLO_read_from_memfile(G.sce, memfile, &reports);
+	bfd= BLO_read_from_memfile(CTX_data_main(C), G.sce, memfile, &reports);
 	if (bfd) {
 		setup_app_data(C, bfd, "<memory1>");
 	} else {
@@ -594,7 +594,7 @@ void BKE_write_undo(bContext *C, char *name)
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
 		BKE_reports_init(&reports, 0);
-		success= BLO_write_file(C, tstr, G.fileflags, &reports);
+		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, &reports);
 		BKE_reports_clear(&reports);
 		
 		strcpy(curundo->str, tstr);
@@ -607,7 +607,7 @@ void BKE_write_undo(bContext *C, char *name)
 		
 		memused= MEM_get_memory_in_use();
 		BKE_reports_init(&reports, 0);
-		success= BLO_write_file_mem(C, prevfile, &curundo->memfile, G.fileflags, &reports);
+		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags, &reports);
 		BKE_reports_clear(&reports);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}

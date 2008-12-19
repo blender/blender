@@ -905,9 +905,9 @@ void filelist_from_library(struct FileList* filelist)
 	filelist_filter(filelist);
 }
 
-void filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode, struct Scene* scene)
+void filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode, struct Main *mainvar, struct Scene* scene)
 {
-	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, scene);
+	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, mainvar, scene);
 }
 
 void filelist_from_main(struct FileList *filelist)

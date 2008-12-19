@@ -32,13 +32,13 @@
 #define BLO_WRITEFILE_H
 
 struct MemFile;
-struct bContext;
+struct Main;
 struct ReportList;
 
-extern int BLO_write_file(struct bContext *C, char *dir, int write_flags, struct ReportList *reports);
-extern int BLO_write_file_mem(struct bContext *C, struct MemFile *compare, struct MemFile *current, 
+extern int BLO_write_file(struct Main *mainvar, char *dir, int write_flags, struct ReportList *reports);
+extern int BLO_write_file_mem(struct Main *mainvar, struct MemFile *compare, struct MemFile *current, 
 							  int write_flags, struct ReportList *reports);
-extern int BLO_write_runtime(struct bContext *C, char *file, char *exename, struct ReportList *reports);
+extern int BLO_write_runtime(struct Main *mainvar, char *file, char *exename, struct ReportList *reports);
 
 #endif
 

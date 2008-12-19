@@ -1123,20 +1123,19 @@ static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, voi
  * to clear that pointer before reading the undo memfile since
  * the object might be removed, it is set again in reading
  * if the local object still exists */
-void blo_clear_proxy_pointers_from_lib(FileData *fd)
+void blo_clear_proxy_pointers_from_lib(FileData *fd, Main *oldmain)
 {
-	Object *ob= G.main->object.first;
+	Object *ob= oldmain->object.first;
 	
 	for(;ob; ob= ob->id.next)
 		if(ob->id.lib)
 			ob->proxy_from= NULL;
 }
 
-/* assumed; G.main still exists */
-void blo_make_image_pointer_map(FileData *fd)
+void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 {
-	Image *ima= G.main->image.first;
-	Scene *sce= G.main->scene.first;
+	Image *ima= oldmain->image.first;
+	Scene *sce= oldmain->scene.first;
 	
 	fd->imamap= oldnewmap_new();
 	
@@ -1156,13 +1155,13 @@ void blo_make_image_pointer_map(FileData *fd)
 	}
 }
 
-/* set G.main image ibufs to zero if it has been restored */
-/* this works because freeing G.main only happens after this call */
-void blo_end_image_pointer_map(FileData *fd)
+/* set old main image ibufs to zero if it has been restored */
+/* this works because freeing old main only happens after this call */
+void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 {
 	OldNew *entry= fd->imamap->entries;
-	Image *ima= G.main->image.first;
-	Scene *sce= G.main->scene.first;
+	Image *ima= oldmain->image.first;
+	Scene *sce= oldmain->scene.first;
 	int i;
 	
 	/* used entries were restored, so we put them to zero */
@@ -9246,24 +9245,24 @@ static void expand_main(FileData *fd, Main *mainvar)
 	}
 }
 
-static int object_in_any_scene(Object *ob)
+static int object_in_any_scene(Main *mainvar, Object *ob)
 {
 	Scene *sce;
 	
-	for(sce= G.main->scene.first; sce; sce= sce->id.next)
+	for(sce= mainvar->scene.first; sce; sce= sce->id.next)
 		if(object_in_scene(ob, sce))
 			return 1;
 	return 0;
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib, int is_group_append)
+static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is_group_append)
 {
 	Object *ob;
 	Base *base;
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
-	for(ob= lb->first; ob; ob= ob->id.next) {
+	for(ob= mainvar->object.first; ob; ob= ob->id.next) {
 		
 		if( ob->id.flag & LIB_INDIRECT ) {
 			
@@ -9279,7 +9278,7 @@ static void give_base_to_objects(Scene *sce, ListBase *lb, Library *lib, int is_
 				if(ob->id.us==0)
 					do_it= 1;
 				else if(ob->id.us==1 && lib)
-					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(ob)==0)
+					if(ob->id.lib==lib && (ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0)
 						do_it= 1;
 						
 				if(do_it) {
@@ -9380,14 +9379,14 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Library* library_append(Scene *scene, char* file, char *dir, int idcode,
+static Library* library_append(Main *mainvar, Scene *scene, char* file, char *dir, int idcode,
 		int totsel, FileData **fd, struct direntry* filelist, int totfile, short flag)
 {
 	Main *mainl;
 	Library *curlib;
 
 	/* make mains */
-	blo_split_main(&(*fd)->mainlist, G.main);
+	blo_split_main(&(*fd)->mainlist, mainvar);
 
 	/* which one do we need? */
 	mainl = blo_find_main(*fd, &(*fd)->mainlist, dir, G.sce);
@@ -9424,21 +9423,21 @@ static Library* library_append(Scene *scene, char* file, char *dir, int idcode,
 	}
 
 	blo_join_main(&(*fd)->mainlist);
-	G.main= (*fd)->mainlist.first;
+	mainvar= (*fd)->mainlist.first;
 
-	lib_link_all(*fd, G.main);
-	lib_verify_nodetree(G.main, 0);
-	fix_relpaths_library(G.sce, G.main); /* make all relative paths, relative to the open blend file */
+	lib_link_all(*fd, mainvar);
+	lib_verify_nodetree(mainvar, 0);
+	fix_relpaths_library(G.sce, mainvar); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(idcode==ID_GR) {
 		if (flag & FILE_LINK) {
-			give_base_to_objects(scene, &(G.main->object), NULL, 0);
+			give_base_to_objects(mainvar, scene, NULL, 0);
 		} else {
-			give_base_to_objects(scene, &(G.main->object), curlib, 1);
+			give_base_to_objects(mainvar, scene, curlib, 1);
 		}	
 	} else {
-		give_base_to_objects(scene, &(G.main->object), NULL, 0);
+		give_base_to_objects(mainvar, scene, NULL, 0);
 	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
@@ -9459,10 +9458,10 @@ static Library* library_append(Scene *scene, char* file, char *dir, int idcode,
 /* this should probably be moved into the Python code anyway */
 
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, 
-		int idcode, short flag, Scene *scene )
+		int idcode, short flag, Main *mainvar, Scene *scene)
 {
 	/* try to append the requested object */
-	library_append(scene, name, dir, idcode, 0, (FileData **)bh, NULL, 0, flag );
+	library_append(mainvar, scene, name, dir, idcode, 0, (FileData **)bh, NULL, 0, flag );
 
 	/* do we need to do this? */
 	DAG_scene_sort(scene);
@@ -9470,14 +9469,14 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 
 /* append to scene */
 /* dir is a full path */	
-void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Scene *scene)
+void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Main *mainvar, Scene *scene)
 {
 	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, 
-						dir, sfile->file, sfile->flag, idcode, scene);
+						dir, sfile->file, sfile->flag, idcode, mainvar, scene);
 }
 
 void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, 
-						 char *dir, char* file, short flag, int idcode, Scene *scene)
+						 char *dir, char* file, short flag, int idcode, Main *mainvar, Scene *scene)
 {
 	Library *curlib;
 	Base *centerbase;
@@ -9511,7 +9510,7 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 	
 	if(flag & FILE_AUTOSELECT) scene_deselect_all(scene);
 
-	curlib = library_append(scene, file, dir, idcode, totsel, (FileData**) libfiledata, filelist, totfile,flag );
+	curlib = library_append(mainvar, scene, file, dir, idcode, totsel, (FileData**) libfiledata, filelist, totfile,flag );
 
 	/* when not linking (appending)... */
 	if((flag & FILE_LINK)==0) {
