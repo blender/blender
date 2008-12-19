@@ -4143,6 +4143,15 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 	}
 }
 
+static void direct_link_region(FileData *fd, ARegion *ar)
+{
+	ar->handlers.first= ar->handlers.last= NULL;
+	ar->uiblocks.first= ar->uiblocks.last= NULL;
+	ar->regiondata= NULL;
+	ar->swinid= 0;
+	ar->type= NULL;
+}
+
 static void direct_link_screen(FileData *fd, bScreen *sc)
 {
 	ScrArea *sa;
@@ -4212,6 +4221,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		}
 		
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
+			link_list(fd, &(sl->regionbase));
+
+			for(ar= sl->regionbase.first; ar; ar= ar->next)
+				direct_link_region(fd, ar);
+
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
@@ -4275,13 +4289,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 		}
 		
-		for(ar= sa->regionbase.first; ar; ar= ar->next) {
-			ar->handlers.first= ar->handlers.last= NULL;
-			ar->uiblocks.first= ar->uiblocks.last= NULL;
-			ar->regiondata= NULL;
-			ar->swinid= 0;
-			ar->type= NULL;
-		}
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			direct_link_region(fd, ar);
 		
 		sa->actionzones.first= sa->actionzones.last= NULL;
 

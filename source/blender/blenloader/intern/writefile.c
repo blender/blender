@@ -1651,6 +1651,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 			sl= sa->spacedata.first;
 			while(sl) {
+				for(ar= sl->regionbase.first; ar; ar= ar->next)
+					writestruct(wd, DATA, "ARegion", 1, ar);
+
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
 					writestruct(wd, DATA, "View3D", 1, v3d);
