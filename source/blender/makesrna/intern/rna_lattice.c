@@ -46,7 +46,8 @@ void RNA_def_lattice(BlenderRNA *brna)
 		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Lattice", "ID", "Lattice");
+	srna= RNA_def_struct(brna, "Lattice", "ID");
+	RNA_def_struct_ui_text(srna, "Lattice", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "points_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");

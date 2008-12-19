@@ -50,8 +50,9 @@ void rna_def_curve(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "Curve", "ID", "Curve");
-
+	srna= RNA_def_struct(brna, "Curve", "ID");
+	RNA_def_struct_ui_text(srna, "Curve", "Curve Object Data for storing any number of bezier splines, nurbs or poly lines");
+	
 	rna_def_ipo_common(srna);
 	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
 
@@ -294,7 +295,8 @@ void rna_def_textbox(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "TextBox", NULL, "TextBox");
+	srna= RNA_def_struct(brna, "TextBox", NULL);
+	RNA_def_struct_ui_text(srna, "Text Box", "DOC_BROKEN");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
@@ -323,7 +325,8 @@ void rna_def_charinfo(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "CharInfo", NULL, "CharInfo");
+	srna= RNA_def_struct(brna, "CharInfo", NULL);
+	RNA_def_struct_ui_text(srna, "Character Info", "DOC_BROKEN");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "style", PROP_BOOLEAN, PROP_NONE);

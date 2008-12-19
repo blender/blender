@@ -861,6 +861,8 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	rna_print_c_string(f, srna->identifier);
 	fprintf(f, ", %d, ", srna->flag);
 	rna_print_c_string(f, srna->name);
+	fprintf(f, ", ");
+	rna_print_c_string(f, srna->description);
 	fprintf(f, ",\n");
 
 	prop= srna->nameproperty;

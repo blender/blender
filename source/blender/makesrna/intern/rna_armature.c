@@ -96,7 +96,8 @@ static void rna_def_bone(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "Bone", NULL, "Bone");
+	srna= RNA_def_struct(brna, "Bone", NULL);
+	RNA_def_struct_ui_text(srna, "Bone", "member of the 'Armature' type");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -251,7 +252,9 @@ void rna_def_armature(BlenderRNA *brna)
 		{ARM_GHOST_KEYS, "KEYS", "On Keyframes", "Draw Ghosts of poses on Keyframes."},
 		{0, NULL, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "Armature", "ID", "Armature");
+	srna= RNA_def_struct(brna, "Armature", "ID");
+	RNA_def_struct_ui_text(srna, "Armature", "'Object' containing a hierarchy of 'Bones', often used to rig characters");
+	
 	RNA_def_struct_sdna(srna, "bArmature");
 	
 	/* Collections */

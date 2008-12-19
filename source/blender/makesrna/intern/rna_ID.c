@@ -106,7 +106,9 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 
 	/* this is struct is used for holding the virtual
 	 * PropertyRNA's for ID properties */
-	srna= RNA_def_struct(brna, "IDProperty", NULL, "ID Property");
+	srna= RNA_def_struct(brna, "IDProperty", NULL);
+	RNA_def_struct_ui_text(srna, "ID Property", "stores arbitrary properties");
+	
 
 	/* IDP_STRING */
 	prop= RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
@@ -146,7 +148,8 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	/* ID property groups > level 0, since level 0 group is merged
 	 * with native RNA properties. the builtin_properties will take
 	 * care of the properties here */
-	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL, "ID Property Group");
+	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL);
+	RNA_def_struct_ui_text(srna, "ID Property Group", "a collection of properties");
 }
 
 static void rna_def_ID(BlenderRNA *brna)
@@ -154,7 +157,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "ID", NULL, "ID");
+	srna= RNA_def_struct(brna, "ID", NULL);
+	RNA_def_struct_ui_text(srna, "ID", "Used as a basis for dealing with many types with unique names, garbage collection and linked libraries");
+	
 	RNA_def_struct_flag(srna, STRUCT_ID);
 	RNA_def_struct_funcs(srna, NULL, "rna_ID_refine");
 
@@ -186,7 +191,8 @@ static void rna_def_library(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Library", "ID", "Library");
+	srna= RNA_def_struct(brna, "Library", "ID");
+	RNA_def_struct_ui_text(srna, "Library", "reference to an external blend file");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
@@ -195,8 +201,11 @@ static void rna_def_library(BlenderRNA *brna)
 }
 void RNA_def_ID(BlenderRNA *brna)
 {
+	StructRNA *srna;
 	/* simple built-in unknown type */
-	RNA_def_struct(brna, "UnknownType", NULL, "Unknown Type");
+	srna= RNA_def_struct(brna, "UnknownType", NULL);
+	RNA_def_struct_ui_text(srna, "Unknown Type", "");
+	
 
 	rna_def_ID(brna);
 	rna_def_ID_properties(brna);

@@ -319,7 +319,7 @@ static PropertyDefRNA *rna_find_def_property(StructRNA *srna, PropertyRNA *prop)
 
 /* Struct Definition */
 
-StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from, const char *name)
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from)
 {
 	StructRNA *srna, *srnafrom= NULL;
 	StructDefRNA *ds= NULL, *dsfrom= NULL;
@@ -363,7 +363,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	}
 
 	srna->identifier= identifier;
-	srna->name= name;
+	srna->name= identifier; /* may be overwritten later RNA_def_struct_ui_text */
+	srna->description= "";
 
 	rna_addtail(&brna->structs, srna);
 
@@ -532,7 +533,7 @@ void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refin
 }
 
 
-void RNA_def_struct_identifier(StructRNA *srna, const char *identifier, const char *name)
+void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
 {
 	if(DefRNA.preprocess) {
 		fprintf(stderr, "RNA_def_struct_name_runtime: only at runtime.\n");
@@ -540,7 +541,12 @@ void RNA_def_struct_identifier(StructRNA *srna, const char *identifier, const ch
 	}
 
 	srna->identifier= identifier;
+}
+
+void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description)
+{
 	srna->name= name;
+	srna->description= description;
 }
 
 /* Property Definition */

@@ -72,7 +72,8 @@ void RNA_def_modifier(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	/* data */
-	srna= RNA_def_struct(brna, "Modifier", NULL , "Object Modifier");
+	srna= RNA_def_struct(brna, "Modifier", NULL);
+	RNA_def_struct_ui_text(srna , "Object Modifier", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "ModifierData");
 	
 	/* strings */

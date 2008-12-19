@@ -62,7 +62,9 @@ void RNA_def_actuator(BlenderRNA *brna)
 		{ACT_STATE, "STATE", "State", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Actuator", NULL , "Actuator");
+	srna= RNA_def_struct(brna, "Actuator", NULL);
+	RNA_def_struct_ui_text(srna, "Actuator", "logic brick to apply actions in the game engine");
+	
 	RNA_def_struct_sdna(srna, "bActuator");
 
 	prop= RNA_def_property(srna, "actuator_name", PROP_STRING, PROP_NONE);

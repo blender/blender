@@ -60,7 +60,8 @@ void RNA_def_material(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	
-	srna= RNA_def_struct(brna, "Material", "ID", "Material");
+	srna= RNA_def_struct(brna, "Material", "ID");
+	RNA_def_struct_ui_text(srna, "Material", "DOC_BROKEN");
 		
 	prop= RNA_def_property(srna, "color_model", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "colormodel");

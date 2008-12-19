@@ -113,7 +113,8 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SequenceElement", NULL, "Sequence Element");
+	srna = RNA_def_struct(brna, "SequenceElement", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Element", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "StripElem");
 	
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
@@ -126,7 +127,8 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SequenceCrop", NULL, "Sequence Crop");
+	srna = RNA_def_struct(brna, "SequenceCrop", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Crop", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "StripCrop");
 
 	prop= RNA_def_property(srna, "top", PROP_INT, PROP_UNSIGNED);
@@ -151,7 +153,8 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SequenceTransform", NULL, "Sequence Transform");
+	srna = RNA_def_struct(brna, "SequenceTransform", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Transform", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "StripTransform");
 
 	prop= RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
@@ -170,7 +173,8 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SequenceProxy", NULL, "Sequence Proxy");
+	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Proxy", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "StripProxy");
 	
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
@@ -183,7 +187,8 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "SequenceColorBalance", NULL, "Sequence Color Balance");
+	srna = RNA_def_struct(brna, "SequenceColorBalance", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "StripColorBalance");
 
 	prop= RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR);
@@ -270,7 +275,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}
 	};
 	
-	srna = RNA_def_struct(brna, "Sequence", NULL, "Sequence");
+	srna = RNA_def_struct(brna, "Sequence", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence", "DOC_BROKEN");
 	RNA_def_struct_funcs(srna, NULL, "rna_Sequence_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -372,7 +378,8 @@ void rna_def_editor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SequenceEditor", NULL, "Sequence Editor");
+	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
+	RNA_def_struct_ui_text(srna, "Sequence Editor", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Editing");
 
 	prop= RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
@@ -505,7 +512,8 @@ static void rna_def_image(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "ImageSequence", "Sequence", "Image Sequence");
+	srna = RNA_def_struct(brna, "ImageSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Image Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
@@ -528,7 +536,8 @@ static void rna_def_meta(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "MetaSequence", "Sequence", "Meta Sequence");
+	srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Meta Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
@@ -546,7 +555,8 @@ static void rna_def_scene(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SceneSequence", "Sequence", "Scene Sequence");
+	srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Scene Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
@@ -562,7 +572,8 @@ static void rna_def_movie(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "MovieSequence", "Sequence", "Movie Sequence");
+	srna = RNA_def_struct(brna, "MovieSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Movie Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "mpeg_preseek", PROP_INT, PROP_NONE);
@@ -588,7 +599,8 @@ static void rna_def_sound(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "SoundSequence", "Sequence", "Sound Sequence");
+	srna = RNA_def_struct(brna, "SoundSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Sound Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
@@ -611,7 +623,8 @@ static void rna_def_effect(BlenderRNA *brna)
 {
 	StructRNA *srna;
 
-	srna = RNA_def_struct(brna, "EffectSequence", "Sequence", "Effect Sequence");
+	srna = RNA_def_struct(brna, "EffectSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Effect Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	rna_def_proxy(srna);
@@ -622,7 +635,8 @@ static void rna_def_plugin(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "PluginSequence", "EffectSequence", "Plugin Sequence");
+	srna = RNA_def_struct(brna, "PluginSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "Plugin Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "PluginSeq", "plugin");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
@@ -654,7 +668,8 @@ static void rna_def_wipe(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence", "Wipe Sequence");
+	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "Wipe Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "WipeVars", "effectdata");
 
 	prop= RNA_def_property(srna, "blur_width", PROP_FLOAT, PROP_UNSIGNED);
@@ -683,7 +698,8 @@ static void rna_def_glow(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "GlowSequence", "EffectSequence", "Glow Sequence");
+	srna = RNA_def_struct(brna, "GlowSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "Glow Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "GlowVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
@@ -734,7 +750,8 @@ static void rna_def_transform(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence", "Transform Sequence");
+	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "Transform Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "TransformVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "scale_start_x", PROP_FLOAT, PROP_UNSIGNED);
@@ -802,7 +819,8 @@ static void rna_def_solid_color(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence", "Color Sequence");
+	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "Color Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
@@ -815,7 +833,8 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "SpeedControlSequence", "EffectSequence", "SpeedControl Sequence");
+	srna = RNA_def_struct(brna, "SpeedControlSequence", "EffectSequence");
+	RNA_def_struct_ui_text(srna, "SpeedControl Sequence", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "SpeedControlVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);

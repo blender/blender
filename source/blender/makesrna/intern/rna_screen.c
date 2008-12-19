@@ -65,7 +65,8 @@ static void RNA_def_vectypes(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
-	srna= RNA_def_struct(brna, "vec2s", NULL, "vec2s");
+	srna= RNA_def_struct(brna, "vec2s", NULL);
+	RNA_def_struct_ui_text(srna, "vec2s", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "vec2s");	
 }
 
@@ -74,7 +75,8 @@ static void RNA_def_scrvert(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "ScrVert", NULL, "Screen Vertex");
+	srna= RNA_def_struct(brna, "ScrVert", NULL);
+	RNA_def_struct_ui_text(srna, "Screen Vertex", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "ScrVert");
 	
 	prop= RNA_def_property(srna, "Location", PROP_INT, PROP_VECTOR);
@@ -89,7 +91,8 @@ static void RNA_def_scredge(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "ScrEdge", NULL, "Screen Edge");
+	srna= RNA_def_struct(brna, "ScrEdge", NULL);
+	RNA_def_struct_ui_text(srna, "Screen Edge", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "ScrEdge");
 	
 	prop= RNA_def_property(srna, "start", PROP_INT, PROP_VECTOR);
@@ -110,7 +113,8 @@ static void RNA_def_scrarea(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "ScrArea", NULL, "Area");
+	srna= RNA_def_struct(brna, "ScrArea", NULL);
+	RNA_def_struct_ui_text(srna, "Area", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "ScrArea");
 	
 	prop= RNA_def_property(srna, "v1", PROP_INT, PROP_VECTOR);
@@ -142,7 +146,8 @@ static void RNA_def_panel(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
-	srna= RNA_def_struct(brna, "Panel", NULL, "Panel");
+	srna= RNA_def_struct(brna, "Panel", NULL);
+	RNA_def_struct_ui_text(srna, "Panel", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Panel");
 }
 
@@ -150,7 +155,8 @@ static void RNA_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
-	srna= RNA_def_struct(brna, "Region", NULL, "Area Region");
+	srna= RNA_def_struct(brna, "Region", NULL);
+	RNA_def_struct_ui_text(srna, "Area Region", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "ARegion");
 }
 
@@ -159,7 +165,8 @@ static void RNA_def_bscreen(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "Screen", "ID", "Screen");
+	srna= RNA_def_struct(brna, "Screen", "ID");
+	RNA_def_struct_ui_text(srna, "Screen", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bScreen");
 	
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);

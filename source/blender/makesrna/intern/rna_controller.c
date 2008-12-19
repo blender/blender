@@ -78,7 +78,8 @@ void RNA_def_controller(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	/* Controller */
-	srna= RNA_def_struct(brna, "Controller", NULL , "Controller");
+	srna= RNA_def_struct(brna, "Controller", NULL);
+	RNA_def_struct_ui_text(srna, "Controller", "logic brick to connect 'Sensors' to 'Actuators'");
 	RNA_def_struct_sdna(srna, "bController");
 	RNA_def_struct_funcs(srna, NULL, "rna_Controller_refine");
 
@@ -93,7 +94,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 
 	/* Expression Controller */
-	srna= RNA_def_struct(brna, "ExpressionController", "Controller", "Expression Controller");
+	srna= RNA_def_struct(brna, "ExpressionController", "Controller");
+	RNA_def_struct_ui_text(srna, "Expression Controller", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bExpressionCont", "data");
 
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
@@ -102,7 +104,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expression", "");
 
 	/* Python Controller */
-	srna= RNA_def_struct(brna, "PythonController", "Controller" , "Python Controller");
+	srna= RNA_def_struct(brna, "PythonController", "Controller" );
+	RNA_def_struct_ui_text(srna, "Python Controller", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bPythonCont", "data");
 
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
@@ -110,12 +113,23 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Python Text", "");
 
 	/* Other Controllers */
-	RNA_def_struct(brna, "AndController", "Controller", "And Controller");
-	RNA_def_struct(brna, "OrController", "Controller", "Or Controller");
-	RNA_def_struct(brna, "NorController", "Controller", "Nor Controller");
-	RNA_def_struct(brna, "NandController", "Controller", "Nand Controller");
-	RNA_def_struct(brna, "XorController", "Controller", "Xor Controller");
-	RNA_def_struct(brna, "XnorController", "Controller", "Xnor Controller");
+	srna= RNA_def_struct(brna, "AndController", "Controller");
+	RNA_def_struct_ui_text(srna, "And Controller", "DOC_BROKEN");
+	
+	srna= RNA_def_struct(brna, "OrController", "Controller");
+	RNA_def_struct_ui_text(srna, "Or Controller", "DOC_BROKEN");
+	
+	srna= RNA_def_struct(brna, "NorController", "Controller");
+	RNA_def_struct_ui_text(srna, "Nor Controller", "DOC_BROKEN");
+	
+	srna= RNA_def_struct(brna, "NandController", "Controller");
+	RNA_def_struct_ui_text(srna, "Nand Controller", "DOC_BROKEN");
+	
+	srna= RNA_def_struct(brna, "XorController", "Controller");
+	RNA_def_struct_ui_text(srna, "Xor Controller", "DOC_BROKEN");
+	
+	srna= RNA_def_struct(brna, "XnorController", "Controller");
+	RNA_def_struct_ui_text(srna, "Xnor Controller", "DOC_BROKEN");
 }
 
 #endif

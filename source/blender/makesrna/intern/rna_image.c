@@ -43,7 +43,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "ImageUser", NULL, "ImageUser");
+	srna= RNA_def_struct(brna, "ImageUser", NULL);
+	RNA_def_struct_ui_text(srna, "Image User", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
@@ -111,7 +112,8 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_REFLECT, "REFLECTION", "Reflection", "Use reflection mapping for mapping the image"},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Image", "ID", "Image");
+	srna= RNA_def_struct(brna, "Image", "ID");
+	RNA_def_struct_ui_text(srna, "Image", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");

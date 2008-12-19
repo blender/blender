@@ -45,7 +45,8 @@ void RNA_def_radio(BlenderRNA *brna)
 		{RAD_GOURAUD, "GOURAUD", "Gouraud", "Enables Gouraud draw mode"},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Radiosity", NULL, "Radiosity");
+	srna= RNA_def_struct(brna, "Radiosity", NULL);
+	RNA_def_struct_ui_text(srna, "Radiosity", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "Radio");
 
 	/* Enums */

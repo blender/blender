@@ -39,13 +39,14 @@ void RNA_exit(void);
 
 /* Struct */
 
-StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from, const char *name);
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from);
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname);
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refine);
-void RNA_def_struct_identifier(StructRNA *srna, const char *identifier, const char *name);
+void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
+void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
 
 /* Property */
 
@@ -91,4 +92,5 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *type, const char *length, const char *lookupint, const char *lookupstring);
 
 #endif /* RNA_DEFINE_H */
+
 

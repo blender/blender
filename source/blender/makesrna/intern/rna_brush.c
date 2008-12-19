@@ -50,7 +50,8 @@ void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", "Add Alpha", "Add alpha while painting."},
 		{0, NULL, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "Brush", "ID", "Brush");
+	srna= RNA_def_struct(brna, "Brush", "ID");
+	RNA_def_struct_ui_text(srna, "Brush", "stores brush setting for painting in the image view, sculpting and projection painting");
 	
 	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);

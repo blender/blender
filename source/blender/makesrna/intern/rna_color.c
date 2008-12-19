@@ -121,25 +121,26 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}
     };
 
-	srna= RNA_def_struct(brna, "CurveMapPoint", NULL, "CurveMapPoint");
+	srna= RNA_def_struct(brna, "CurveMapPoint", NULL);
+	RNA_def_struct_ui_text(srna, "CurveMapPoint", "member of 'CurveMap' where these points make up a curve");
 
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
-    prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-    RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_text(prop, "Location", "");
 
 	prop= RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_handle_type_items);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-    RNA_def_property_ui_text(prop, "Handle Type", "");
+	RNA_def_property_ui_text(prop, "Handle Type", "");
 
-    prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_SELECT);
-    RNA_def_property_ui_text(prop, "Selected", "");
+	RNA_def_property_ui_text(prop, "Selected", "");
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)
@@ -152,7 +153,8 @@ static void rna_def_curvemap(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}
     };
 
-	srna= RNA_def_struct(brna, "CurveMap", NULL, "CurveMap");
+	srna= RNA_def_struct(brna, "CurveMap", NULL);
+	RNA_def_struct_ui_text(srna, "CurveMap", "User editable curve, member of 'CurveMapping'");
 
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
@@ -160,48 +162,49 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_extend_items);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-    RNA_def_property_ui_text(prop, "Extend", "");
+	RNA_def_property_ui_text(prop, "Extend", "");
 
-    prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curve", "totpoint");
-    RNA_def_property_struct_type(prop, "CurveMapPoint");
-    RNA_def_property_ui_text(prop, "Points", "");
+	RNA_def_property_struct_type(prop, "CurveMapPoint");
+	RNA_def_property_ui_text(prop, "Points", "");
 }
 
 static void rna_def_curvemapping(BlenderRNA *brna)
 {
 	StructRNA *srna;
-    PropertyRNA *prop;
+	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "CurveMapping", NULL, "CurveMapping");
-
-    prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
-    RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
-    RNA_def_property_ui_text(prop, "Clip", "");
+	srna= RNA_def_struct(brna, "CurveMapping", NULL);
+	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve used to alter color or intensity of one or more inputs");
+	
+	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);
+	RNA_def_property_ui_text(prop, "Clip", "");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_CurveMapping_clip_set");
 
-    prop= RNA_def_property(srna, "clip_min_x", PROP_FLOAT, PROP_NONE);
-    RNA_def_property_float_sdna(prop, NULL, "clipr.xmin");
+	prop= RNA_def_property(srna, "clip_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clipr.xmin");
 	RNA_def_property_range(prop, -100.0f, 100.0f);
-    RNA_def_property_ui_text(prop, "Clip Min X", "");
+	RNA_def_property_ui_text(prop, "Clip Min X", "");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipminx_range");
 
-    prop= RNA_def_property(srna, "clip_min_y", PROP_FLOAT, PROP_NONE);
-    RNA_def_property_float_sdna(prop, NULL, "clipr.ymin");
+	prop= RNA_def_property(srna, "clip_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clipr.ymin");
 	RNA_def_property_range(prop, -100.0f, 100.0f);
-    RNA_def_property_ui_text(prop, "Clip Min Y", "");
+	RNA_def_property_ui_text(prop, "Clip Min Y", "");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipminy_range");
 
-    prop= RNA_def_property(srna, "clip_max_x", PROP_FLOAT, PROP_NONE);
-    RNA_def_property_float_sdna(prop, NULL, "clipr.xmax");
+	prop= RNA_def_property(srna, "clip_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clipr.xmax");
 	RNA_def_property_range(prop, -100.0f, 100.0f);
-    RNA_def_property_ui_text(prop, "Clip Max X", "");
+	RNA_def_property_ui_text(prop, "Clip Max X", "");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxx_range");
 
-    prop= RNA_def_property(srna, "clip_max_y", PROP_FLOAT, PROP_NONE);
-    RNA_def_property_float_sdna(prop, NULL, "clipr.ymax");
+	prop= RNA_def_property(srna, "clip_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clipr.ymax");
 	RNA_def_property_range(prop, -100.0f, 100.0f);
-    RNA_def_property_ui_text(prop, "Clip Max Y", "");
+	RNA_def_property_ui_text(prop, "Clip Max Y", "");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
 	prop= RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
@@ -209,13 +212,13 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "CurveMap");
 	RNA_def_property_ui_text(prop, "Curves", "");
 
-    prop= RNA_def_property(srna, "black_level", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "black_level", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "black");
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Black Level", "");
 	RNA_def_property_float_funcs(prop, NULL, "rna_CurveMapping_black_level_set", NULL);
 
-    prop= RNA_def_property(srna, "white_level", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "white_level", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "white");
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "White Level", "");

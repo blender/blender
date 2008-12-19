@@ -187,6 +187,7 @@ void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
 const char *RNA_struct_identifier(PointerRNA *ptr);
 const char *RNA_struct_ui_name(PointerRNA *ptr);
+const char *RNA_struct_ui_description(PointerRNA *ptr);
 
 PropertyRNA *RNA_struct_name_property(PointerRNA *ptr);
 PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
@@ -330,5 +331,6 @@ void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 #endif /* RNA_ACCESS */
+
 
 

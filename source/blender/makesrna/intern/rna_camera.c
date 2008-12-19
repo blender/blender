@@ -48,7 +48,8 @@ void RNA_def_camera(BlenderRNA *brna)
 		{CAM_ANGLETOGGLE, "DEGREES", "Degrees", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Camera", "ID", "Camera");
+	srna= RNA_def_struct(brna, "Camera", "ID");
+	RNA_def_struct_ui_text(srna, "Camera", "'Object' data where camera settings are stored and animated");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

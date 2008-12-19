@@ -214,7 +214,9 @@ struct StructRNA {
 
 	/* user readable name */
 	const char *name;
-
+	/* single line description, displayed in the tooltip for example */
+	const char *description;
+	
 	/* property that defines the name */
 	PropertyRNA *nameproperty;
 

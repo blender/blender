@@ -44,7 +44,8 @@ void rna_def_ipodriver(BlenderRNA *brna)
 		{IPO_DRIVER_TYPE_PYTHON, "SCRIPTED", "Scripted", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "IpoDriver", NULL, "Ipo Driver");
+	srna= RNA_def_struct(brna, "IpoDriver", NULL);
+	RNA_def_struct_ui_text(srna, "Ipo Driver", "DOC_BROKEN");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -77,7 +78,8 @@ void rna_def_ipocurve(BlenderRNA *brna)
 		{IPO_CYCLX, "CYCLICX", "Cyclic Extrapolation", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "IpoCurve", NULL, "Ipo Curve");
+	srna= RNA_def_struct(brna, "IpoCurve", NULL);
+	RNA_def_struct_ui_text(srna, "Ipo Curve", "DOC_BROKEN");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
@@ -119,7 +121,8 @@ void rna_def_ipo(BlenderRNA *brna)
 		{ID_PA, "PARTICLES", "Particles", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Ipo", "ID", "Ipo");
+	srna= RNA_def_struct(brna, "Ipo", "ID");
+	RNA_def_struct_ui_text(srna, "Ipo", "DOC_BROKEN");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "block_type", PROP_ENUM, PROP_NONE);

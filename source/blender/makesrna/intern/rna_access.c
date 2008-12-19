@@ -240,6 +240,11 @@ const char *RNA_struct_ui_name(PointerRNA *ptr)
 	return ptr->type->name;
 }
 
+const char *RNA_struct_ui_description(PointerRNA *ptr)
+{
+	return ptr->type->description;
+}
+
 PropertyRNA *RNA_struct_name_property(PointerRNA *ptr)
 {
 	return ptr->type->nameproperty;

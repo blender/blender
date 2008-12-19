@@ -75,7 +75,8 @@ static void rna_def_operator(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Operator", NULL, "Operator");
+	srna= RNA_def_struct(brna, "Operator", NULL);
+	RNA_def_struct_ui_text(srna, "Operator", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "wmOperator");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -88,7 +89,8 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 
-	srna= RNA_def_struct(brna, "OperatorProperties", NULL, "Operator Properties");
+	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
+	RNA_def_struct_ui_text(srna, "Operator Properties", "DOC_BROKEN");
 	RNA_def_struct_funcs(srna, NULL, "rna_OperatorProperties_refine");
 }
 
@@ -97,7 +99,8 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "WindowManager", "ID", "Window Manager");
+	srna= RNA_def_struct(brna, "WindowManager", "ID");
+	RNA_def_struct_ui_text(srna, "Window Manager", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "wmWindowManager");
 
 	prop= RNA_def_property(srna, "operators", PROP_COLLECTION, PROP_NONE);

@@ -42,6 +42,16 @@ static int rna_Struct_identifier_length(PointerRNA *ptr)
 	return strlen(((StructRNA*)ptr->data)->identifier);
 }
 
+static void rna_Struct_description_get(PointerRNA *ptr, char *value)
+{
+	strcpy(value, ((StructRNA*)ptr->data)->description);
+}
+
+static int rna_Struct_description_length(PointerRNA *ptr)
+{
+	return strlen(((StructRNA*)ptr->data)->description);
+}
+
 static void rna_Struct_name_get(PointerRNA *ptr, char *value)
 {
 	strcpy(value, ((StructRNA*)ptr->data)->name);
@@ -232,6 +242,12 @@ static int rna_Property_subtype_get(PointerRNA *ptr)
 	return prop->subtype;
 }
 
+static int rna_Property_readonly_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	return RNA_property_editable(ptr, prop) ? 0 : 1;
+}
+
 static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -387,7 +403,8 @@ static void rna_def_struct(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Struct", NULL, "Struct Definition");
+	srna= RNA_def_struct(brna, "Struct", NULL);
+	RNA_def_struct_ui_text(srna, "Struct Definition", "RNA Structure definition");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -399,6 +416,11 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Struct_identifier_get", "rna_Struct_identifier_length", NULL);
 	RNA_def_property_ui_text(prop, "Identifier", "Unique name used in the code and scripting.");
 	RNA_def_struct_name_property(srna, prop);
+	
+	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
+	RNA_def_property_ui_text(prop, "description", "This field explains the Struct's purpose");
 	
 	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -443,7 +465,8 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_ROTATION, "ROTATION", "Rotation", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Property", NULL, "Property Definition");
+	srna= RNA_def_struct(brna, "Property", NULL);
+	RNA_def_struct_ui_text(srna, "Property Definition", "DOC_BROKEN2");
 	RNA_def_struct_funcs(srna, NULL, "rna_Property_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -473,6 +496,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
+	
+	prop= RNA_def_property(srna, "readonly", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_Property_readonly_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Read Only", "Read Only setting for this property");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
@@ -545,7 +573,8 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_collection_funcs(prop, "rna_EnumProperty_items_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
 
-	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL, "Enum Item Definition");
+	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL);
+	RNA_def_struct_ui_text(srna, "Enum Item Definition", "DOC_BROKEN3");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -590,35 +619,43 @@ void RNA_def_rna(BlenderRNA *brna)
 	rna_def_property(brna);
 
 	/* BooleanProperty */
-	srna= RNA_def_struct(brna, "BooleanProperty", "Property", "Boolean Definition");
+	srna= RNA_def_struct(brna, "BooleanProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Boolean Definition", "DOC_BROKEN4");
 	rna_def_number_property(srna, PROP_BOOLEAN);
 
 	/* IntProperty */
-	srna= RNA_def_struct(brna, "IntProperty", "Property", "Int Definition");
+	srna= RNA_def_struct(brna, "IntProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Int Definition", "DOC_BROKEN5");
 	rna_def_number_property(srna, PROP_INT);
 
 	/* FloatProperty */
-	srna= RNA_def_struct(brna, "FloatProperty", "Property", "Float Definition");
+	srna= RNA_def_struct(brna, "FloatProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Float Definition", "DOC_BROKEN6");
 	rna_def_number_property(srna, PROP_FLOAT);
 
 	/* StringProperty */
-	srna= RNA_def_struct(brna, "StringProperty", "Property", "String Definition");
+	srna= RNA_def_struct(brna, "StringProperty", "Property");
+	RNA_def_struct_ui_text(srna, "String Definition", "DOC_BROKEN7");
 	rna_def_string_property(srna);
 
 	/* EnumProperty */
-	srna= RNA_def_struct(brna, "EnumProperty", "Property", "Enum Definition");
+	srna= RNA_def_struct(brna, "EnumProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Enum Definition", "DOC_BROKEN8");
 	rna_def_enum_property(brna, srna);
 
 	/* PointerProperty */
-	srna= RNA_def_struct(brna, "PointerProperty", "Property", "Pointer Definition");
+	srna= RNA_def_struct(brna, "PointerProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Pointer Definition", "DOC_BROKEN9");
 	rna_def_pointer_property(srna, PROP_POINTER);
 
 	/* CollectionProperty */
-	srna= RNA_def_struct(brna, "CollectionProperty", "Property", "Collection Definition");
+	srna= RNA_def_struct(brna, "CollectionProperty", "Property");
+	RNA_def_struct_ui_text(srna, "Collection Definition", "DOC_BROKEN10");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
 
 	/* Blender RNA */
-	srna= RNA_def_struct(brna, "BlenderRNA", NULL, "Blender RNA");
+	srna= RNA_def_struct(brna, "BlenderRNA", NULL);
+	RNA_def_struct_ui_text(srna, "Blender RNA", "RNA Structures");
 
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);

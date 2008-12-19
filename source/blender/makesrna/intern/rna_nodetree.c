@@ -40,7 +40,8 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "NodeTree", "ID", "Node Tree");
+	srna= RNA_def_struct(brna, "NodeTree", "ID");
+	RNA_def_struct_ui_text(srna, "Node Tree", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 
 	prop= RNA_def_property(srna, "Nodes", PROP_COLLECTION, PROP_NONE);
@@ -49,7 +50,8 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Nodes", "");
 	
-	srna= RNA_def_struct(brna, "Node", NULL, "Node");
+	srna= RNA_def_struct(brna, "Node", NULL);
+	RNA_def_struct_ui_text(srna, "Node", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bNode");
 	
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);

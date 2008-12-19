@@ -42,7 +42,8 @@ void RNA_def_object(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "Object", "ID", "Object");
+	srna= RNA_def_struct(brna, "Object", "ID");
+	RNA_def_struct_ui_text(srna, "Object", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");

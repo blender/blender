@@ -95,7 +95,8 @@ void rna_def_sensor(BlenderRNA *brna)
 		{SENS_DELAY, "DELAY", "Delay", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Sensor", NULL, "Sensor");
+	srna= RNA_def_struct(brna, "Sensor", NULL);
+	RNA_def_struct_ui_text(srna, "Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bSensor");
 	RNA_def_struct_funcs(srna, NULL, "rna_Sensor_refine");
 
@@ -130,7 +131,9 @@ void rna_def_sensor(BlenderRNA *brna)
 
 void rna_def_always_sensor(BlenderRNA *brna)
 {
-	RNA_def_struct(brna, "AlwaysSensor", "Sensor", "Always Sensor");
+	StructRNA *srna;
+	srna= RNA_def_struct(brna, "AlwaysSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Always Sensor", "DOC_BROKEN");
 }
 
 void rna_def_near_sensor(BlenderRNA *brna)
@@ -138,7 +141,8 @@ void rna_def_near_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "NearSensor", "Sensor" , "Near Sensor");
+	srna= RNA_def_struct(brna, "NearSensor", "Sensor");
+	RNA_def_struct_ui_text(srna , "Near Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bNearSensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -172,7 +176,8 @@ void rna_def_mouse_sensor(BlenderRNA *brna)
 		{BL_SENS_MOUSE_MOUSEOVER_ANY, "MOUSEOVERANY", "Mouse Over Any", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "MouseSensor", "Sensor", "Mouse Sensor");
+	srna= RNA_def_struct(brna, "MouseSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Mouse Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bMouseSensor", "data");
 
 	prop= RNA_def_property(srna, "mouse_event", PROP_ENUM, PROP_NONE);
@@ -186,7 +191,8 @@ void rna_def_touch_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "TouchSensor", "Sensor", "Touch Sensor");
+	srna= RNA_def_struct(brna, "TouchSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Touch Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bTouchSensor", "data");
 
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
@@ -199,7 +205,8 @@ void rna_def_keyboard_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "KeyboardSensor", "Sensor", "Keyboard Sensor");
+	srna= RNA_def_struct(brna, "KeyboardSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Keyboard Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bKeyboardSensor", "data");
 
 	prop= RNA_def_property(srna, "key", PROP_INT, PROP_NONE);
@@ -244,7 +251,8 @@ void rna_def_property_sensor(BlenderRNA *brna)
 		/* {SENS_PROP_EXPRESSION, "PROPEXPRESSION", "Expression", ""},  NOT_USED_IN_UI */
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "PropertySensor", "Sensor", "Property Sensor");
+	srna= RNA_def_struct(brna, "PropertySensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Property Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bPropertySensor", "data");
 
 	prop= RNA_def_property(srna, "evaluation_type", PROP_ENUM, PROP_NONE);
@@ -274,7 +282,8 @@ void rna_def_actuator_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "ActuatorSensor", "Sensor", "Actuator Sensor");
+	srna= RNA_def_struct(brna, "ActuatorSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Actuator Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bActuatorSensor", "data");
 
 	prop= RNA_def_property(srna, "actuator", PROP_STRING, PROP_NONE);
@@ -287,7 +296,8 @@ void rna_def_delay_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "DelaySensor", "Sensor", "Delay Sensor");
+	srna= RNA_def_struct(brna, "DelaySensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Delay Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bDelaySensor", "data");
 
 	prop= RNA_def_property(srna, "delay", PROP_INT, PROP_NONE);
@@ -312,7 +322,8 @@ void rna_def_collision_sensor(BlenderRNA *brna)
 		{1, "MATERIAL", "Material", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "CollisionSensor", "Sensor", "Collision Sensor");
+	srna= RNA_def_struct(brna, "CollisionSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Collision Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bCollisionSensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -342,7 +353,8 @@ void rna_def_radar_sensor(BlenderRNA *brna)
 		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", "-Z axis", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "RadarSensor", "Sensor", "Radar Sensor");
+	srna= RNA_def_struct(brna, "RadarSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Radar Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bRadarSensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -368,7 +380,8 @@ void rna_def_random_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "RandomSensor", "Sensor", "Random Sensor");
+	srna= RNA_def_struct(brna, "RandomSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Random Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bRandomSensor", "data");
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
@@ -393,7 +406,8 @@ void rna_def_ray_sensor(BlenderRNA *brna)
 		{1, "MATERIAL", "Material", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "RaySensor", "Sensor", "Ray Sensor");
+	srna= RNA_def_struct(brna, "RaySensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Ray Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bRaySensor", "data");
 
 	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
@@ -428,7 +442,8 @@ void rna_def_message_sensor(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "MessageSensor", "Sensor", "Message Sensor");
+	srna= RNA_def_struct(brna, "MessageSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Message Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bMessageSensor", "data");
 
 	prop= RNA_def_property(srna, "subject", PROP_STRING, PROP_NONE);
@@ -453,7 +468,8 @@ void rna_def_joystick_sensor(BlenderRNA *brna)
 		{SENS_JOY_NEG_Y_AXIS, "DOWNAXIS", "Down Axis", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "JoystickSensor", "Sensor", "Joystick Sensor");
+	srna= RNA_def_struct(brna, "JoystickSensor", "Sensor");
+	RNA_def_struct_ui_text(srna, "Joystick Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bJoystickSensor", "data");
 	
 	prop= RNA_def_property(srna, "joystick_index", PROP_INT, PROP_NONE);

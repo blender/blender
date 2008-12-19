@@ -116,7 +116,8 @@ void RNA_def_lamp(BlenderRNA *brna)
 		{LA_FALLOFF_SLIDERS, "SLIDERS", "Lin/Quad Weighted", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "Lamp", "ID", "Lamp");
+	srna= RNA_def_struct(brna, "Lamp", "ID");
+	RNA_def_struct_ui_text(srna, "Lamp", "DOC_BROKEN");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

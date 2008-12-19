@@ -200,14 +200,16 @@ static void rna_def_keydata(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL, "Shape Key Point");
+	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL);
+	RNA_def_struct_ui_text(srna, "Shape Key Point", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL, "Shape Key Curve Point");
+	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
+	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
@@ -218,7 +220,8 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyCurvePoint_tilt_get", "rna_ShapeKeyCurvePoint_tilt_set", NULL);
 	RNA_def_property_ui_text(prop, "Tilt", "");
 
-	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL, "Shape Key Bezier Point");
+	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
+	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
@@ -252,7 +255,8 @@ static void rna_def_keyblock(BlenderRNA *brna)
 		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "ShapeKey", NULL, "Shape Key");
+	srna= RNA_def_struct(brna, "ShapeKey", NULL);
+	RNA_def_struct_ui_text(srna, "Shape Key", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "KeyBlock");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -312,7 +316,8 @@ static void rna_def_key(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Key", "ID", "Key");
+	srna= RNA_def_struct(brna, "Key", "ID");
+	RNA_def_struct_ui_text(srna, "Key", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
