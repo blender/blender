@@ -181,52 +181,52 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "text_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fsize");
 	RNA_def_property_range(prop, 0.1f, 10.0f);
-	RNA_def_property_ui_text(prop, "Text Size", "");
+	RNA_def_property_ui_text(prop, "Font size", "");
 	
 	prop= RNA_def_property(srna, "line_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "linedist");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Distance Between Lines of Text", "");
+	RNA_def_property_ui_text(prop, "Distance between lines of text", "");
 	
 	prop= RNA_def_property(srna, "word_spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "wordspace");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Word Spacing", "");
+	RNA_def_property_ui_text(prop, "Spacing between words", "");
 	
 	prop= RNA_def_property(srna, "spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Character Spacing", "");
+	RNA_def_property_ui_text(prop, "Global spacing between characters", "");
 	
 	prop= RNA_def_property(srna, "shear", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shear");
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Shear", "Italic angle of the characters.");
+	RNA_def_property_ui_text(prop, "Shear", "Italic angle of the characters");
 	
 	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
 	RNA_def_property_range(prop, -50.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "X Offset", "Horizontal offset from the object center.");
+	RNA_def_property_ui_text(prop, "X Offset", "Horizontal offset from the object center");
 	
 	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_range(prop, -50.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "Y Offset", "Vertical offset from the object center.");
+	RNA_def_property_ui_text(prop, "Y Offset", "Vertical offset from the object center");
 	
 	prop= RNA_def_property(srna, "ul_position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ulpos");
 	RNA_def_property_range(prop, -0.2f, 0.8f);
-	RNA_def_property_ui_text(prop, "Underline Position", "Vertical position of underline.");
+	RNA_def_property_ui_text(prop, "Underline position", "Vertical position of underline");
 	
 	prop= RNA_def_property(srna, "ul_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ulheight");
 	RNA_def_property_range(prop, -0.2f, 0.8f);
-	RNA_def_property_ui_text(prop, "Underline Thickness", "");
+	RNA_def_property_ui_text(prop, "Underline thickness", "");
 	
 	prop= RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "actbox");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Active Textbox", "");
+	RNA_def_property_ui_text(prop, "The active text box", "");
 	
 	/* strings */
 	prop= RNA_def_property(srna, "family", PROP_STRING, PROP_NONE);
@@ -326,7 +326,7 @@ void rna_def_charinfo(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "CharInfo", NULL);
-	RNA_def_struct_ui_text(srna, "Character Info", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Character Info", "Specific properties per character");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "style", PROP_BOOLEAN, PROP_NONE);
