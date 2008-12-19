@@ -138,6 +138,8 @@ void		wmFrustum			(wmWindow *win, float x1, float x2, float y1, float y2, float 
 void		wmOrtho				(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(wmWindow *win, float x1, float x2, float y1, float y2);
 
+			/* utilities */
+void		WM_set_framebuffer_index_color(int index);
 
 #endif /* WM_API_H */
 

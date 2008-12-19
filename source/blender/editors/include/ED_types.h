@@ -31,8 +31,9 @@
 /* **************** GENERAL EDITOR-WIDE TYPES AND DEFINES ************************** */
 
 /* old blender defines... should be depricated? */
-#define SELECT	1
-#define ACTIVE	2
+#define DESELECT 0
+#define SELECT	 1
+#define ACTIVE	 2
 
 
 #endif /* ED_TYPES_H */

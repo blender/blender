@@ -57,6 +57,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../nodes
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenloader
+CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I../../ftfont
 CPPFLAGS += -I../../radiosity/extern/include

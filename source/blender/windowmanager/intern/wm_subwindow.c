@@ -445,7 +445,7 @@ static unsigned int index_to_framebuffer(int index)
 
 #endif
 
-void set_framebuffer_index_color(int index)
+void WM_set_framebuffer_index_color(int index)
 {
 	cpack(index_to_framebuffer(index));
 }

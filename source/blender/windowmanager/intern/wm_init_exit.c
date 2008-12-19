@@ -69,8 +69,6 @@
 
 #include "SYS_System.h"
 
-#include "UI_interface.h"
-
 #include "RNA_define.h"
 
 #include "WM_api.h"
@@ -83,6 +81,12 @@
 #include "wm_window.h"
 
 #include "ED_screen.h"
+
+#include "UI_interface.h"
+
+#include "GPU_extensions.h"
+#include "GPU_draw.h"
+
 
 static void initbuttons(void)
 {
@@ -135,7 +139,9 @@ void WM_init(bContext *C)
 	
 // XXX	UI_filelist_init_icons();
 	
-//	init_gl_stuff();	/* drawview.c, after homefile */
+	GPU_state_init();
+	GPU_extensions_init();
+	
 	read_Blog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }

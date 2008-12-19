@@ -33,6 +33,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -72,11 +73,15 @@
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_types.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "GPU_draw.h"
+#include "GPU_material.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -1145,6 +1150,178 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	// XXX	areawinset(ar->win);	// restore viewport / scissor
 }
 
+/* ****************** View3d afterdraw *************** */
+
+typedef struct View3DAfter {
+	struct View3DAfter *next, *prev;
+	struct Base *base;
+	int type, flag;
+} View3DAfter;
+
+/* temp storage of Objects that need to be drawn as last */
+void add_view3d_after(View3D *v3d, Base *base, int type, int flag)
+{
+	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
+	
+	BLI_addtail(&v3d->afterdraw, v3da);
+	v3da->base= base;
+	v3da->type= type;
+	v3da->flag= flag;
+}
+
+/* clears zbuffer and draws it over */
+static void view3d_draw_xray(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, int clear)
+{
+	View3DAfter *v3da, *next;
+	int doit= 0;
+	
+	for(v3da= v3d->afterdraw.first; v3da; v3da= v3da->next)
+		if(v3da->type==V3D_XRAY) doit= 1;
+	
+	if(doit) {
+		if(clear && v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
+		v3d->xray= TRUE;
+		
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(C, scene, ar, v3d, v3da->base, v3da->flag);
+				BLI_remlink(&v3d->afterdraw, v3da);
+				MEM_freeN(v3da);
+			}
+		}
+		v3d->xray= FALSE;
+	}
+}
+
+/* disables write in zbuffer and draws it over */
+static void view3d_draw_transp(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d)
+{
+	View3DAfter *v3da, *next;
+	
+	glDepthMask(0);
+	v3d->transp= TRUE;
+	
+	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+		next= v3da->next;
+		if(v3da->type==V3D_TRANSP) {
+			draw_object(C, scene, ar, v3d, v3da->base, v3da->flag);
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+	}
+	v3d->transp= FALSE;
+	
+	glDepthMask(1);
+	
+}
+
+/* *********************** */
+
+/*
+	In most cases call draw_dupli_objects,
+	draw_dupli_objects_color was added because when drawing set dupli's
+	we need to force the color
+ */
+static void draw_dupli_objects_color(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
+{	
+	ListBase *lb;
+	DupliObject *dob;
+	Base tbase;
+	BoundBox *bb= NULL;
+	GLuint displist=0;
+	short transflag, use_displist= -1;	/* -1 is initialize */
+	char dt, dtx;
+	
+	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
+	
+	tbase.flag= OB_FROMDUPLI|base->flag;
+	lb= object_duplilist(scene, base->object);
+	
+	for(dob= lb->first; dob; dob= dob->next) {
+		if(dob->no_draw);
+		else {
+			tbase.object= dob->ob;
+			
+			/* extra service: draw the duplicator in drawtype of parent */
+			/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+			dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
+			dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+			
+			/* negative scale flag has to propagate */
+			transflag= tbase.object->transflag;
+			if(base->object->transflag & OB_NEG_SCALE)
+				tbase.object->transflag ^= OB_NEG_SCALE;
+			
+			UI_ThemeColorBlend(color, TH_BACK, 0.5);
+			
+			/* generate displist, test for new object */
+			if(use_displist==1 && dob->prev && dob->prev->ob!=dob->ob) {
+				use_displist= -1;
+				glDeleteLists(displist, 1);
+			}
+			/* generate displist */
+			if(use_displist == -1) {
+				
+				/* lamp drawing messes with matrices, could be handled smarter... but this works */
+				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP)
+					use_displist= 0;
+				else {
+					/* disable boundbox check for list creation */
+					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+					/* need this for next part of code */
+					bb= object_get_boundbox(dob->ob);
+					
+					Mat4One(dob->ob->obmat);	/* obmat gets restored */
+					
+					displist= glGenLists(1);
+					glNewList(displist, GL_COMPILE);
+					draw_object(C, scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+					glEndList();
+					
+					use_displist= 1;
+					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				}
+			}
+			if(use_displist) {
+				wmMultMatrix(CTX_wm_window(C), dob->mat);
+				if(boundbox_clip(v3d, dob->mat, bb))
+					glCallList(displist);
+				wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+			}
+			else {
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				draw_object(C, scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+			}
+			
+			tbase.object->dt= dt;
+			tbase.object->dtx= dtx;
+			tbase.object->transflag= transflag;
+		}
+	}
+	
+	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
+	
+	free_object_duplilist(lb);	/* does restore */
+	
+	if(use_displist)
+		glDeleteLists(displist, 1);
+}
+
+static void draw_dupli_objects(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base *base)
+{
+	/* define the color here so draw_dupli_objects_color can be called
+	* from the set loop */
+	
+	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
+	/* debug */
+	if(base->object->dup_group && base->object->dup_group->id.us<1)
+		color= TH_REDALERT;
+	
+	draw_dupli_objects_color(C, scene, ar, v3d, base, color);
+}
+
+
 void view3d_update_depths(ARegion *ar, View3D *v3d)
 {
 	/* Create storage for, and, if necessary, copy depth buffer */
@@ -1174,7 +1351,7 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 }
 
 /* Enable sculpting in wireframe mode by drawing sculpt object only to the depth buffer */
-static void draw_sculpt_depths(Scene *scene, View3D *v3d)
+static void draw_sculpt_depths(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d)
 {
 	Object *ob = OBACT;
 	
@@ -1193,7 +1370,7 @@ static void draw_sculpt_depths(Scene *scene, View3D *v3d)
 		
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 		glEnable(GL_DEPTH_TEST);
-// XXX		draw_object(BASACT, 0);
+		draw_object(C, scene, ar, v3d, BASACT, 0);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		if(!depth_on)
 			glDisable(GL_DEPTH_TEST);
@@ -1202,6 +1379,185 @@ static void draw_sculpt_depths(Scene *scene, View3D *v3d)
 		v3d->zbuf = orig_zbuf;
 		ob->dt = orig_odt;
 	}
+}
+
+void draw_depth(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
+{
+	Base *base;
+	Scene *sce;
+	short zbuf, flag;
+	float glalphaclip;
+	/* temp set drawtype to solid */
+	
+	/* Setting these temporarily is not nice */
+	zbuf = v3d->zbuf;
+	flag = v3d->flag;
+	glalphaclip = U.glalphaclip;
+	
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	
+	setwinmatrixview3d(CTX_wm_window(C), v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d(v3d);	/* note: calls where_is_object for camera... */
+	
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	
+	glClear(GL_DEPTH_BUFFER_BIT);
+	
+	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+//	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
+	
+	if(v3d->flag & V3D_CLIPPING) {
+		view3d_set_clipping(v3d);
+	}
+	
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+	
+	/* draw set first */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base)) {
+			if(v3d->lay & base->lay) {
+				if (func == NULL || func(base)) {
+					draw_object(C, scene, ar, v3d, base, 0);
+					if(base->object->transflag & OB_DUPLI) {
+						draw_dupli_objects_color(C, scene, ar, v3d, base, TH_WIRE);
+					}
+				}
+			}
+		}
+	}
+	
+	for(base= scene->base.first; base; base= base->next) {
+		if(v3d->lay & base->lay) {
+			if (func == NULL || func(base)) {
+				/* dupli drawing */
+				if(base->object->transflag & OB_DUPLI) {
+					draw_dupli_objects(C, scene, ar, v3d, base);
+				}
+				draw_object(C, scene, ar, v3d, base, 0);
+			}
+		}
+	}
+	
+	/* this isnt that nice, draw xray objects as if they are normal */
+	if (v3d->afterdraw.first) {
+		View3DAfter *v3da, *next;
+		int num = 0;
+		v3d->xray= TRUE;
+		
+		glDepthFunc(GL_ALWAYS); /* always write into the depth bufer, overwriting front z values */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(C, scene, ar, v3d, v3da->base, 0);
+				num++;
+			}
+			/* dont remove this time */
+		}
+		v3d->xray= FALSE;
+		
+		glDepthFunc(GL_LEQUAL); /* Now write the depth buffer normally */
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				v3d->xray= TRUE; v3d->transp= FALSE;  
+			} else if (v3da->type==V3D_TRANSP) {
+				v3d->xray= FALSE; v3d->transp= TRUE;
+			}
+			
+			draw_object(C, scene, ar, v3d, v3da->base, 0); /* Draw Xray or Transp objects normally */
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+		v3d->xray= FALSE;
+		v3d->transp= FALSE;
+	}
+	
+	v3d->zbuf = zbuf;
+	U.glalphaclip = glalphaclip;
+	v3d->flag = flag;
+}
+
+typedef struct View3DShadow {
+	struct View3DShadow *next, *prev;
+	GPULamp *lamp;
+} View3DShadow;
+
+static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par, float obmat[][4], ListBase *shadows)
+{
+	GPULamp *lamp;
+	View3DShadow *shadow;
+	
+	lamp = GPU_lamp_from_blender(scene, ob, par);
+	
+	if(lamp) {
+		GPU_lamp_update(lamp, ob->lay, obmat);
+		
+		if((ob->lay & v3d->lay) && GPU_lamp_has_shadow_buffer(lamp)) {
+			shadow= MEM_callocN(sizeof(View3DShadow), "View3DShadow");
+			shadow->lamp = lamp;
+			BLI_addtail(shadows, shadow);
+		}
+	}
+}
+
+static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
+{
+	ListBase shadows;
+	View3DShadow *shadow;
+	Scene *sce;
+	Base *base;
+	Object *ob;
+	
+	shadows.first= shadows.last= NULL;
+	
+	/* update lamp transform and gather shadow lamps */
+	for(SETLOOPER(scene, base)) {
+		ob= base->object;
+		
+		if(ob->type == OB_LAMP)
+			gpu_render_lamp_update(scene, v3d, ob, NULL, ob->obmat, &shadows);
+		
+		if (ob->transflag & OB_DUPLI) {
+			DupliObject *dob;
+			ListBase *lb = object_duplilist(scene, ob);
+			
+			for(dob=lb->first; dob; dob=dob->next)
+				if(dob->ob->type==OB_LAMP)
+					gpu_render_lamp_update(scene, v3d, dob->ob, ob, dob->mat, &shadows);
+			
+			free_object_duplilist(lb);
+		}
+	}
+	
+	/* render shadows after updating all lamps, nested object_duplilist
+		* don't work correct since it's replacing object matrices */
+	for(shadow=shadows.first; shadow; shadow=shadow->next) {
+		/* this needs to be done better .. */
+		float viewmat[4][4], winmat[4][4];
+		int drawtype, lay, winsize, flag2;
+		
+		drawtype= v3d->drawtype;
+		lay= v3d->lay;
+		flag2= v3d->flag2 & V3D_SOLID_TEX;
+		
+		v3d->drawtype = OB_SOLID;
+		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
+		v3d->flag2 &= ~V3D_SOLID_TEX;
+		
+		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
+// XXX		drawview3d_render(v3d, viewmat, winsize, winsize, winmat, 1);
+		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
+		
+		v3d->drawtype= drawtype;
+		v3d->lay= lay;
+		v3d->flag2 |= flag2;
+	}
+	
+	BLI_freelistN(&shadows);
 }
 
 
@@ -1228,8 +1584,8 @@ void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d)
 	}
 	
 	/* shadow buffers, before we setup matrices */
-//	if(draw_glsl_material(NULL, v3d->drawtype))
-//		gpu_update_lamps_shadows(scene, v3d);
+	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+		gpu_update_lamps_shadows(scene, v3d);
 	
 	setwinmatrixview3d(CTX_wm_window(C), v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d(v3d);	/* note: calls where_is_object for camera... */
@@ -1319,10 +1675,10 @@ void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d)
 			if(v3d->lay & base->lay) {
 				
 				UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-// XXX				draw_object(base, DRAW_CONSTCOLOR|DRAW_SCENESET);
+				draw_object(C, scene, ar, v3d, base, DRAW_CONSTCOLOR|DRAW_SCENESET);
 				
 				if(base->object->transflag & OB_DUPLI) {
-// XXX					draw_dupli_objects_color(v3d, base, TH_WIRE);
+					draw_dupli_objects_color(C, scene, ar, v3d, base, TH_WIRE);
 				}
 			}
 		}
@@ -1336,10 +1692,11 @@ void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d)
 			
 			/* dupli drawing */
 			if(base->object->transflag & OB_DUPLI) {
-// XXX				draw_dupli_objects(v3d, base);
+				draw_dupli_objects(C, scene, ar, v3d, base);
 			}
 			if((base->flag & SELECT)==0) {
-// XXX				if(base->object!=G.obedit) draw_object(base, 0);
+				if(base->object!=G.obedit) 
+					draw_object(C, scene, ar, v3d, base, 0);
 			}
 		}
 	}
@@ -1352,14 +1709,14 @@ void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d)
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
-//			if (base->object==G.obedit || ( base->flag & SELECT) ) 
-// XXX				draw_object(base, 0);
+			if (base->object==G.obedit || ( base->flag & SELECT) ) 
+				draw_object(C, scene, ar, v3d, base, 0);
 		}
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
 		if(G.f & G_SCULPTMODE)
-			draw_sculpt_depths(scene, v3d);
+			draw_sculpt_depths(C, scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
 	
@@ -1375,12 +1732,12 @@ void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d)
 //	if(scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-//	view3d_draw_transp(v3d);
-//	view3d_draw_xray(v3d, 1);	// clears zbuffer if it is used!
+	view3d_draw_transp(C, scene, ar, v3d);
+	view3d_draw_xray(C, scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		if(G.f & G_SCULPTMODE)
-			draw_sculpt_depths(scene, v3d);
+			draw_sculpt_depths(C, scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
 	
