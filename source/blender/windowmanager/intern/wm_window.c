@@ -157,6 +157,7 @@ static void wm_window_close(bContext *C, wmWindow *win)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	BLI_remlink(&wm->windows, win);
 	
+	WM_event_remove_handlers(C, &win->handlers);
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
 	
