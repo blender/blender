@@ -637,7 +637,6 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 /* Set view matrices to use 'cur' rect as viewing frame for View2D drawing */
 void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 {
-	wmWindow *window= CTX_wm_window(C);
 	rctf curmasked;
 	float xofs, yofs;
 	
@@ -651,10 +650,10 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
 	view2d_map_cur_using_mask(v2d, &curmasked);
 	
 	/* set matrix on all appropriate axes */
-	wmOrtho2(window, curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
+	wmOrtho2(curmasked.xmin-xofs, curmasked.xmax-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
 	
 	/* XXX is this necessary? */
-	wmLoadIdentity(window);
+	wmLoadIdentity();
 }
 
 /* Set view matrices to only use one axis of 'cur' only
@@ -662,7 +661,6 @@ void UI_view2d_view_ortho(const bContext *C, View2D *v2d)
  */
 void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 {
-	wmWindow *window= CTX_wm_window(C);
 	ARegion *ar= CTX_wm_region(C);
 	rctf curmasked;
 	float xofs, yofs;
@@ -678,19 +676,19 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 	
 	/* only set matrix with 'cur' coordinates on relevant axes */
 	if (xaxis)
-		wmOrtho2(window, curmasked.xmin-xofs, curmasked.xmax-xofs, -yofs, ar->winy-yofs);
+		wmOrtho2(curmasked.xmin-xofs, curmasked.xmax-xofs, -yofs, ar->winy-yofs);
 	else
-		wmOrtho2(window, -xofs, ar->winx-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
+		wmOrtho2(-xofs, ar->winx-xofs, curmasked.ymin-yofs, curmasked.ymax-yofs);
 		
 	/* XXX is this necessary? */
-	wmLoadIdentity(window);
+	wmLoadIdentity();
 } 
 
 
 /* Restore view matrices after drawing */
 void UI_view2d_view_restore(const bContext *C)
 {
-	ED_region_pixelspace(C, CTX_wm_region(C));
+	ED_region_pixelspace(CTX_wm_region(C));
 }
 
 /* *********************************************************************** */

@@ -92,14 +92,13 @@ static void region_draw_emboss(ARegion *ar)
 	glDisable( GL_BLEND );
 }
 
-void ED_region_pixelspace(const bContext *C, ARegion *ar)
+void ED_region_pixelspace(ARegion *ar)
 {
-	wmWindow *win= CTX_wm_window(C);
 	int width= ar->winrct.xmax-ar->winrct.xmin+1;
 	int height= ar->winrct.ymax-ar->winrct.ymin+1;
 	
-	wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
-	wmLoadIdentity(win);
+	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmLoadIdentity();
 }
 
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
@@ -149,7 +148,7 @@ void ED_area_overdraw(bContext *C)
 	ScrArea *sa;
 	
 	/* Draw AZones, in screenspace */
-	wm_subwindow_set(win, screen->mainwin);
+	wmSubWindowSet(win, screen->mainwin);
 
 	glEnable( GL_BLEND );
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -176,7 +175,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegionType *at= ar->type;
 	
-	wm_subwindow_set(win, ar->swinid);
+	/* note; this sets state, so we can use wmOrtho and friends */
+	wmSubWindowSet(win, ar->swinid);
 	
 	if(ar->swinid && at->draw) {
 		UI_SetTheme(sa);
@@ -201,7 +201,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		region_draw_emboss(ar);
 	
 	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
-	ED_region_pixelspace(C, ar);
+	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
 }

@@ -51,7 +51,6 @@
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
-#include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -536,7 +535,7 @@ int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, flo
 
 
 /* important to not set windows active in here, can be renderwin for example */
-void setwinmatrixview3d(wmWindow *win, View3D *v3d, int winx, int winy, rctf *rect)		/* rect: for picking */
+void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect)		/* rect: for picking */
 {
 	rctf viewplane;
 	float clipsta, clipend, x1, y1, x2, y2;
@@ -559,18 +558,18 @@ void setwinmatrixview3d(wmWindow *win, View3D *v3d, int winx, int winy, rctf *re
 		rect->ymax/= (float)winy;
 		rect->ymax= y1+rect->ymax*(y2-y1);
 		
-		if(orth) wmOrtho(win, rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
-		else wmFrustum(win, rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
+		if(orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
+		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
 		
 	}
 	else {
-		if(orth) wmOrtho(win, x1, x2, y1, y2, clipsta, clipend);
-		else wmFrustum(win, x1, x2, y1, y2, clipsta, clipend);
+		if(orth) wmOrtho(x1, x2, y1, y2, clipsta, clipend);
+		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
 	}
 
 	/* not sure what this was for? (ton) */
 	glMatrixMode(GL_PROJECTION);
-	wmGetMatrix(win, v3d->winmat);
+	wmGetMatrix(v3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -751,7 +750,7 @@ void setcameratoview3d(View3D *v3d)
 *   This is an error, "Too many objects in select buffer"
 *   and no action should be taken (can crash blender) if this happens
 */
-short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input)
+short view3d_opengl_select(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input)
 {
 	rctf rect;
 	short code, hits;
@@ -773,7 +772,7 @@ short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, 
 	}
 	
 	/* get rid of overlay button matrix XXX ?*/
-	setwinmatrixview3d(CTX_wm_window(C), v3d, ar->winx, ar->winy, &rect);
+	setwinmatrixview3d(v3d, ar->winx, ar->winy, &rect);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
 	
 	if(v3d->drawtype > OB_WIRE) {
@@ -791,10 +790,10 @@ short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, 
 	code= 1;
 	
 	if(G.obedit && G.obedit->type==OB_MBALL) {
-		draw_object(C, scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		draw_object(C, scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
+		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else {
 		Base *base;
@@ -808,7 +807,7 @@ short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, 
 				else {
 					base->selcol= code;
 					glLoadName(code);
-					draw_object(C, scene, ar, v3d, base, DRAW_PICKING|DRAW_CONSTCOLOR);
+					draw_object(scene, ar, v3d, base, DRAW_PICKING|DRAW_CONSTCOLOR);
 					
 					/* we draw group-duplicators for selection too */
 					if((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
@@ -823,7 +822,7 @@ short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, 
 							tbase.object= dob->ob;
 							Mat4CpyMat4(dob->ob->obmat, dob->mat);
 							
-							draw_object(C, scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
+							draw_object(scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
 							
 							Mat4CpyMat4(dob->ob->obmat, dob->omat);
 						}
@@ -840,7 +839,7 @@ short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, 
 	hits= glRenderMode(GL_RENDER);
 	
 	G.f &= ~G_PICKSEL;
-	setwinmatrixview3d(CTX_wm_window(C), v3d, ar->winx, ar->winy, NULL);
+	setwinmatrixview3d(v3d, ar->winx, ar->winy, NULL);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
 	
 	if(v3d->drawtype > OB_WIRE) {

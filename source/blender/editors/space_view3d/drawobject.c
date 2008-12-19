@@ -73,7 +73,6 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"			//for the where_on_path function
-#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
@@ -662,7 +661,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	return;
 }
 
-static void drawlamp(const bContext *C, Scene *scene, View3D *v3d, Object *ob)
+static void drawlamp(Scene *scene, View3D *v3d, Object *ob)
 {
 	Lamp *la;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
@@ -677,7 +676,7 @@ static void drawlamp(const bContext *C, Scene *scene, View3D *v3d, Object *ob)
 	
 	/* we first draw only the screen aligned & fixed scale stuff */
 	glPushMatrix();
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 
 	/* lets calculate the scale: */
 	pixsize= v3d->persmat[0][3]*ob->obmat[3][0]+ v3d->persmat[1][3]*ob->obmat[3][1]+ v3d->persmat[2][3]*ob->obmat[3][2]+ v3d->persmat[3][3];
@@ -888,7 +887,7 @@ static void drawlamp(const bContext *C, Scene *scene, View3D *v3d, Object *ob)
 	}
 	
 	/* and back to viewspace */
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 	VECCOPY(vec, ob->obmat[3]);
 
 	setlinestyle(0);
@@ -954,7 +953,7 @@ static void draw_focus_cross(float dist, float size)
 }
 
 /* flag similar to draw_object() */
-static void drawcamera(const bContext *C, Scene *scene, View3D *v3d, Object *ob, int flag)
+static void drawcamera(Scene *scene, View3D *v3d, Object *ob, int flag)
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
@@ -1039,13 +1038,13 @@ static void drawcamera(const bContext *C, Scene *scene, View3D *v3d, Object *ob,
 
 	if(flag==0) {
 		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
-			wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+			wmLoadMatrix(v3d->viewmat);
 			Mat4CpyMat4(vec, ob->obmat);
 			Mat4Ortho(vec);
-			wmMultMatrix(CTX_wm_window(C), vec);
+			wmMultMatrix(vec);
 
 			MTC_Mat4SwapMat4(v3d->persmat, tmat);
-			wmGetSingleMatrix(CTX_wm_window(C), v3d->persmat);
+			wmGetSingleMatrix(v3d->persmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
@@ -2827,7 +2826,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 /* 5. start filling the arrays				*/
 /* 6. draw the arrays						*/
 /* 7. clean up								*/
-static void draw_new_particle_system(const bContext *C, View3D *v3d, Base *base, ParticleSystem *psys, int dt)
+static void draw_new_particle_system(View3D *v3d, Base *base, ParticleSystem *psys, int dt)
 {
 	Object *ob=base->object;
 	ParticleSystemModifierData *psmd;
@@ -2915,12 +2914,12 @@ static void draw_new_particle_system(const bContext *C, View3D *v3d, Base *base,
 
 	timestep= psys_get_timestep(part);
 
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		float mat[4][4];
 		Mat4MulMat4(mat, psys->imat, ob->obmat);
-		wmMultMatrix(CTX_wm_window(C), mat);
+		wmMultMatrix(mat);
 	}
 
 	totpart=psys->totpart;
@@ -3498,11 +3497,11 @@ static void draw_new_particle_system(const bContext *C, View3D *v3d, Base *base,
 		psys->lattice=0;
 	}
 
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
-	wmMultMatrix(CTX_wm_window(C), ob->obmat);	// bring back local matrix for dtx
+	wmLoadMatrix(v3d->viewmat);
+	wmMultMatrix(ob->obmat);	// bring back local matrix for dtx
 }
 
-static void draw_particle_edit(const bContext *C, Scene *scene, View3D *v3d, Object *ob, ParticleSystem *psys, int dt)
+static void draw_particle_edit(Scene *scene, View3D *v3d, Object *ob, ParticleSystem *psys, int dt)
 {
 	ParticleEdit *edit = psys->edit;
 	ParticleData *pa;
@@ -3534,7 +3533,7 @@ static void draw_particle_edit(const bContext *C, Scene *scene, View3D *v3d, Obj
 	if((v3d->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 
 	/* get selection theme colors */
 	UI_GetThemeColor3ubv(TH_VERTEX_SELECT, sel);
@@ -3684,7 +3683,7 @@ static void draw_particle_edit(const bContext *C, Scene *scene, View3D *v3d, Obj
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
 
-	wmMultMatrix(CTX_wm_window(C), ob->obmat);	// bring back local matrix for dtx
+	wmMultMatrix(ob->obmat);	// bring back local matrix for dtx
 	glPointSize(1.0);
 }
 
@@ -4164,7 +4163,7 @@ static void drawcone(float *vec, float radius, float height, float tmat[][4])
 	glEnd();
 }
 /* return 1 if nothing was drawn */
-static int drawmball(const bContext *C, Scene *scene, View3D *v3d, Base *base, int dt)
+static int drawmball(Scene *scene, View3D *v3d, Base *base, int dt)
 {
 	Object *ob= base->object;
 	MetaBall *mb;
@@ -4194,7 +4193,7 @@ static int drawmball(const bContext *C, Scene *scene, View3D *v3d, Base *base, i
 	}
 	else UI_ThemeColor(TH_WIRE);
 
-	wmGetMatrix(CTX_wm_window(C), tmat);
+	wmGetMatrix(tmat);
 	Mat4Invert(imat, tmat);
 	Normalize(imat[0]);
 	Normalize(imat[1]);
@@ -4230,7 +4229,7 @@ static int drawmball(const bContext *C, Scene *scene, View3D *v3d, Base *base, i
 	return 0;
 }
 
-static void draw_forcefield(const bContext *C, Scene *scene, Object *ob)
+static void draw_forcefield(Scene *scene, Object *ob)
 {
 	PartDeflect *pd= ob->pd;
 	float imat[4][4], tmat[4][4];
@@ -4252,7 +4251,7 @@ static void draw_forcefield(const bContext *C, Scene *scene, Object *ob)
 	else size = 1.0;
 	
 	/* calculus here, is reused in PFIELD_FORCE */
-	wmGetMatrix(CTX_wm_window(C), tmat);
+	wmGetMatrix(tmat);
 	Mat4Invert(imat, tmat);
 //	Normalize(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
 //	Normalize(imat[1]);
@@ -4687,7 +4686,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 }
 
 /* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR, DRAW_SCENESET */
-void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
+void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 {
 	static int warning_recursive= 0;
 	Object *ob;
@@ -4756,7 +4755,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 							base->flag= 0;
 
 							where_is_object_time(ob, (scene->r.cfra));
-							draw_object(C, scene, ar, v3d, base, 0);
+							draw_object(scene, ar, v3d, base, 0);
 						}
 						ce= ce->next;
 					}
@@ -4770,7 +4769,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 						base->flag= SELECT;
 
 						where_is_object_time(ob, (scene->r.cfra));
-						draw_object(C, scene, ar, v3d, base, 0);
+						draw_object(scene, ar, v3d, base, 0);
 					}
 					ce= ce->next;
 				}
@@ -4798,7 +4797,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(ob); */
 
-	wmMultMatrix(CTX_wm_window(C), ob->obmat);
+	wmMultMatrix(ob->obmat);
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
@@ -5015,21 +5014,21 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 			break;
 		case OB_MBALL:
 			if(ob==G.obedit) 
-				drawmball(C, scene, v3d, base, dt);
+				drawmball(scene, v3d, base, dt);
 			else if(dt==OB_BOUNDBOX) 
 				draw_bounding_volume(ob);
 			else 
-				empty_object= drawmball(C, scene, v3d, base, dt);
+				empty_object= drawmball(scene, v3d, base, dt);
 			break;
 		case OB_EMPTY:
 			drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
-			drawlamp(C, scene, v3d, ob);
-			if(dtx || (base->flag & SELECT)) wmMultMatrix(CTX_wm_window(C), ob->obmat);
+			drawlamp(scene, v3d, ob);
+			if(dtx || (base->flag & SELECT)) wmMultMatrix(ob->obmat);
 			break;
 		case OB_CAMERA:
-			drawcamera(C, scene, v3d, ob, flag);
+			drawcamera(scene, v3d, ob, flag);
 			break;
 		case OB_LATTICE:
 			drawlattice(v3d, ob);
@@ -5042,7 +5041,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 		default:
 			drawaxes(1.0, flag, OB_ARROWS);
 	}
-	if(ob->pd && ob->pd->forcefield) draw_forcefield(C, scene, ob);
+	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
 
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
@@ -5055,12 +5054,12 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 		glDepthMask(GL_FALSE);
 		
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			draw_new_particle_system(C, v3d, base, psys, dt);
+			draw_new_particle_system(v3d, base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
 			psys= NULL; // XXX PE_get_current(ob);
 			if(psys && !G.obedit && psys_in_edit_mode(psys))
-				draw_particle_edit(C, scene, v3d, ob, psys, dt);
+				draw_particle_edit(scene, v3d, ob, psys, dt);
 		}
 		glDepthMask(GL_TRUE); 
 		if(col) cpack(col);
@@ -5108,7 +5107,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 			float tmat[4][4], imat[4][4], vec[3];
 
 			vec[0]= vec[1]= vec[2]= 0.0;
-			wmGetMatrix(CTX_wm_window(C), tmat);
+			wmGetMatrix(tmat);
 			Mat4Invert(imat, tmat);
 
 			setlinestyle(2);
@@ -5117,7 +5116,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 		}
 	}
 
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 
 	if(zbufoff) glDisable(GL_DEPTH_TEST);
 
@@ -5215,7 +5214,7 @@ void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base
 	free_old_images();
 }
 
-void draw_object_ext(const bContext *C, ARegion *ar, View3D *v3d, Scene *scene, Base *base)
+void draw_object_ext(ARegion *ar, View3D *v3d, Scene *scene, Base *base)
 {
 	
 	if(v3d==NULL || base==NULL) return;
@@ -5233,7 +5232,7 @@ void draw_object_ext(const bContext *C, ARegion *ar, View3D *v3d, Scene *scene, 
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_set_clipping(v3d);
 	
-	draw_object(C, scene, ar, v3d, base, 0);
+	draw_object(scene, ar, v3d, base, 0);
 
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -5362,10 +5361,10 @@ static void bbs_mesh_solid(Object *ob)
 	dm->release(dm);
 }
 
-void draw_object_backbufsel(const bContext *C, Scene *scene, View3D *v3d, Object *ob)
+void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 {
 
-	wmMultMatrix(CTX_wm_window(C), ob->obmat);
+	wmMultMatrix(ob->obmat);
 
 	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -5403,7 +5402,7 @@ void draw_object_backbufsel(const bContext *C, Scene *scene, View3D *v3d, Object
 		break;
 	}
 
-	wmLoadMatrix(CTX_wm_window(C), v3d->viewmat);
+	wmLoadMatrix(v3d->viewmat);
 }
 
 

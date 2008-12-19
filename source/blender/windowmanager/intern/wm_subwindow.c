@@ -135,31 +135,6 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 		Mat4MulMat4(mat, swin->viewmat, swin->winmat);
 }
 
-void wm_subwindow_set(wmWindow *win, int swinid)
-{
-	wmSubWindow *swin= swin_from_swinid(win, swinid);
-	int width, height;
-	
-	if(swin==NULL) {
-		printf("wm_subwindow_set %d: doesn't exist\n", swinid);
-		return;
-	}
-	
-	win->curswin= swin;
-	wm_subwindow_getsize(win, swinid, &width, &height);
-
-	glViewport(swin->winrct.xmin, swin->winrct.ymin, width, height);
-	glScissor(swin->winrct.xmin, swin->winrct.ymin, width, height);
-	
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(&swin->winmat[0][0]);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(&swin->viewmat[0][0]);
-
-	glFlush();
-	
-}
-
 /* always sets pixel-precise 2D window/view matrices */
 /* coords is in whole pixels. xmin = 15, xmax= 16: means window is 2 pix big */
 int wm_subwindow_open(wmWindow *win, rcti *winrct)
@@ -183,12 +158,12 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 	Mat4One(swin->winmat);
 	
 	/* and we appy it all right away */
-	wm_subwindow_set(win, swin->swinid);
+	wmSubWindowSet(win, swin->swinid);
 	
 	/* extra service */
 	wm_subwindow_getsize(win, swin->swinid, &width, &height);
-	wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
-	wmLoadIdentity(win);
+	wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+	wmLoadIdentity();
 
 	return swin->swinid;
 }
@@ -240,9 +215,9 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 			swin->winrct.ymax= win->sizey-1;
 		
 		/* extra service */
-		wm_subwindow_set(win, swinid);
+		wmSubWindowSet(win, swinid);
 		wm_subwindow_getsize(win, swinid, &width, &height);
-		wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
+		wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
 	}
 	else {
 		printf("wm_subwindow_position: Internal error, bad winid: %d\n", swinid);
@@ -252,106 +227,137 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 /* ---------------- WM versions of OpenGL calls, using glBlah() syntax ------------------------ */
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
+/* internal state, no threaded opengl! XXX */
+static wmWindow *_curwindow= NULL;
+static wmSubWindow *_curswin= NULL;
 
-void wmLoadMatrix(wmWindow *win, float mat[][4])
+/* enable the WM versions of opengl calls */
+void wmSubWindowSet(wmWindow *win, int swinid)
 {
-	if(win->curswin==NULL) return;
+	_curswin= swin_from_swinid(win, swinid);
+	int width, height;
+	
+	if(_curswin==NULL) {
+		printf("wmSubWindowSet %d: doesn't exist\n", swinid);
+		return;
+	}
+	
+	win->curswin= _curswin;
+	_curwindow= win;
+	
+	width= _curswin->winrct.xmax - _curswin->winrct.xmin + 1;
+	height= _curswin->winrct.ymax - _curswin->winrct.ymin + 1;
+	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+	glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixf(&_curswin->winmat[0][0]);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(&_curswin->viewmat[0][0]);
+	
+	glFlush();
+	
+}
+
+void wmLoadMatrix(float mat[][4])
+{
+	if(_curswin==NULL) return;
 	
 	glLoadMatrixf(mat);
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		Mat4CpyMat4(win->curswin->viewmat, mat);
+		Mat4CpyMat4(_curswin->viewmat, mat);
 	else
-		Mat4CpyMat4(win->curswin->winmat, mat);
+		Mat4CpyMat4(_curswin->winmat, mat);
 }
 
-void wmGetMatrix(wmWindow *win, float mat[][4])
+void wmGetMatrix(float mat[][4])
 {
-	if(win->curswin==NULL) return;
+	if(_curswin==NULL) return;
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW) {
-		Mat4CpyMat4(mat, win->curswin->viewmat);
+		Mat4CpyMat4(mat, _curswin->viewmat);
 	} else {
-		Mat4CpyMat4(mat, win->curswin->winmat);
+		Mat4CpyMat4(mat, _curswin->winmat);
 	}
 }
 
-void wmMultMatrix(wmWindow *win, float mat[][4])
+void wmMultMatrix(float mat[][4])
 {
-	if(win->curswin==NULL) return;
+	if(_curswin==NULL) return;
 	
 	glMultMatrixf((float*) mat);
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->curswin->viewmat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->viewmat);
 	else
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->curswin->winmat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->winmat);
 }
 
-void wmGetSingleMatrix(wmWindow *win, float mat[][4])
+void wmGetSingleMatrix(float mat[][4])
 {
-	if(win->curswin)
-		Mat4MulMat4(mat, win->curswin->viewmat, win->curswin->winmat);
+	if(_curswin)
+		Mat4MulMat4(mat, _curswin->viewmat, _curswin->winmat);
 }
 
-void wmScale(wmWindow *win, float x, float y, float z)
+void wmScale(float x, float y, float z)
 {
-	if(win->curswin==NULL) return;
+	if(_curswin==NULL) return;
 	
 	glScalef(x, y, z);
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->curswin->viewmat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->viewmat);
 	else
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->curswin->winmat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)_curswin->winmat);
 	
 }
 
-void wmLoadIdentity(wmWindow *win)
+void wmLoadIdentity(void)
 {
-	if(win->curswin==NULL) return;
+	if(_curswin==NULL) return;
 	
 	if (glaGetOneInteger(GL_MATRIX_MODE)==GL_MODELVIEW)
-		Mat4One(win->curswin->viewmat);
+		Mat4One(_curswin->viewmat);
 	else
-		Mat4One(win->curswin->winmat);
+		Mat4One(_curswin->winmat);
 	
 	glLoadIdentity();
 }
 
-void wmFrustum(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f)
+void wmFrustum(float x1, float x2, float y1, float y2, float n, float f)
 {
-	if(win->curswin) {
+	if(_curswin) {
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glFrustum(x1, x2, y1, y2, n, f);
 
-		glGetFloatv(GL_PROJECTION_MATRIX, (float *)win->curswin->winmat);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)_curswin->winmat);
 		glMatrixMode(GL_MODELVIEW);
 	}
 }
 
-void wmOrtho(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f)
+void wmOrtho(float x1, float x2, float y1, float y2, float n, float f)
 {
-	if(win->curswin) {
+	if(_curswin) {
 		
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		
 		glOrtho(x1, x2, y1, y2, n, f);
 		
-		glGetFloatv(GL_PROJECTION_MATRIX, (float *)win->curswin->winmat);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)_curswin->winmat);
 		glMatrixMode(GL_MODELVIEW);
 	}
 }
 
-void wmOrtho2(wmWindow *win, float x1, float x2, float y1, float y2)
+void wmOrtho2(float x1, float x2, float y1, float y2)
 {
 	/* prevent opengl from generating errors */
 	if(x1==x2) x2+=1.0;
 	if(y1==y2) y2+=1.0;
-	wmOrtho(win, x1, x2, y1, y2, -100, 100);
+	wmOrtho(x1, x2, y1, y2, -100, 100);
 }
 
 

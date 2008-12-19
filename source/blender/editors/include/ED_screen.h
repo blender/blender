@@ -37,6 +37,7 @@ struct wmWindowManager;
 struct wmWindow;
 struct wmNotifier;
 struct wmEvent;
+struct bContext;
 struct SpaceType;
 struct AreagionType;
 struct uiBlock;
@@ -45,7 +46,7 @@ struct uiBlock;
 void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
 void	ED_region_do_draw(struct bContext *C, struct ARegion *ar);
 void	ED_region_exit(struct bContext *C, struct ARegion *ar);
-void	ED_region_pixelspace(const struct bContext *C, struct ARegion *ar);
+void	ED_region_pixelspace(struct ARegion *ar);
 void	ED_region_init(struct bContext *C, struct ARegion *ar);
 void	ED_region_tag_redraw(struct ARegion *ar);
 
@@ -53,7 +54,7 @@ void	ED_region_tag_redraw(struct ARegion *ar);
 void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 struct	ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
-int		ED_area_header_standardbuttons(const bContext *C, struct uiBlock *block, int yco);
+int		ED_area_header_standardbuttons(const struct bContext *C, struct uiBlock *block, int yco);
 void	ED_area_overdraw(struct bContext *C);
 void	ED_area_overdraw_flush(struct bContext *C);
 

@@ -49,7 +49,6 @@
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
-#include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -335,7 +334,7 @@ void viewmoveNDOFfly(ARegion *ar, View3D *v3d, int mode)
 }
 
 /* Zooms in on a border drawn by the user */
-static int view_autodist(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mouse_worldloc[3] ) //, float *autodist )
+static int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mouse_worldloc[3] ) //, float *autodist )
 {
 	rcti rect;
 	/* ZBuffer depth vars */
@@ -357,7 +356,7 @@ static int view_autodist(const bContext *C, Scene *scene, ARegion *ar, View3D *v
 	
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
-	draw_depth(C, scene, ar, v3d, NULL);
+	draw_depth(scene, ar, v3d, NULL);
 	
 	/* force updating */
 	if (v3d->depths) {
@@ -453,7 +452,7 @@ static void view_zoom_mouseloc(ARegion *ar, View3D *v3d, float dfac, short *mous
 #define COS45 0.70710678118654746
 #define SIN45 COS45
 
-void viewmove(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, int mode)
+void viewmove(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	static float lastofs[3] = {0,0,0};
 	Object *ob = OBACT;
@@ -524,7 +523,7 @@ void viewmove(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, int mod
 		VecMulf(obofs, -1.0f);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
-		if ((use_sel= view_autodist(C, scene, ar, v3d, mval, obofs))) {
+		if ((use_sel= view_autodist(scene, ar, v3d, mval, obofs))) {
 			if (v3d->persp==V3D_PERSP) {
 				float my_origin[3]; /* original v3d->ofs */
 				float my_pivot[3]; /* view */

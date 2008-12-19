@@ -192,7 +192,7 @@ static void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;	/* XXX get from region */
 	
-	drawview3dspace(C, ar, v3d);
+	drawview3dspace(CTX_data_scene(C), ar, v3d);
 }
 
 

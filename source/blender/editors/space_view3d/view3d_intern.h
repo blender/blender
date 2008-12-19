@@ -30,7 +30,6 @@
 
 /* internal exports only */
 
-struct wmWindow;
 struct BoundBox;
 struct Object;
 struct DerivedMesh;
@@ -55,18 +54,18 @@ typedef struct ViewDepths {
 #define IS_CLIPPED        12000
 
 /* view3d_header.c */
-void view3d_header_buttons(const bContext *C, ARegion *ar);
+void view3d_header_buttons(const struct bContext *C, ARegion *ar);
 
 /* drawobject.c */
-void draw_object(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
+void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMesh *dm, int faceselect);
 
 /* view3d_draw.c */
-void drawview3dspace(const bContext *C, ARegion *ar, View3D *v3d);
-void draw_depth(const bContext *C, Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *));
+void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d);
+void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *));
 int view3d_test_clipping(View3D *v3d, float *vec);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(View3D *v3d);
@@ -103,7 +102,7 @@ int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, flo
 void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens);
 void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth);
 
-short view3d_opengl_select(bContext *C, Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input);
+short view3d_opengl_select(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input);
 void initlocalview(Scene *scene, ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);
@@ -116,7 +115,7 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3]);
 void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens);
 void smooth_view_to_camera(View3D *v3d);
 
-void setwinmatrixview3d(struct wmWindow *win, View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
+void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(View3D *v3d);
 
 #endif /* ED_VIEW3D_INTERN_H */

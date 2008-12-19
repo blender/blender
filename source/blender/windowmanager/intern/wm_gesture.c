@@ -186,7 +186,7 @@ void wm_gesture_draw(wmWindow *win)
 	
 	for(; gt; gt= gt->next) {
 		/* all in subwindow space */
-		wm_subwindow_set(win, gt->swinid);
+		wmSubWindowSet(win, gt->swinid);
 		
 		if(gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(win, gt);

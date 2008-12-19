@@ -934,7 +934,7 @@ void ED_screen_draw(wmWindow *win)
 	int dir = -1;
 	int dira = -1;
 
-	wm_subwindow_set(win, win->screen->mainwin);
+	wmSubWindowSet(win, win->screen->mainwin);
 	
 	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 		if (sa->flag & AREA_FLAG_DRAWJOINFROM) sa1 = sa;

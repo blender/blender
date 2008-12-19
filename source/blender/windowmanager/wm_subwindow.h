@@ -36,7 +36,6 @@
 void	wm_subwindows_free(wmWindow *win);
 
 int		wm_subwindow_open(wmWindow *win, rcti *winrct);
-void	wm_subwindow_set(wmWindow *win, int swinid);	/* set drawable */
 void	wm_subwindow_close(wmWindow *win, int swinid);
 int		wm_subwindow_get(wmWindow *win);				/* returns id */
 

@@ -73,7 +73,7 @@ ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid,
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
-char		*WM_key_event_operator_string(bContext *C, char *opname, int opcontext, char *str, int len);
+char		*WM_key_event_operator_string(struct bContext *C, char *opname, int opcontext, char *str, int len);
 
 			/* handlers */
 
@@ -83,19 +83,19 @@ struct wmEventHandler *WM_event_add_keymap_handler_bb(ListBase *handlers, ListBa
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, ListBase *keymap);
 
-struct wmEventHandler *WM_event_add_ui_handler(bContext *C, ListBase *handlers,
-			int (*func)(bContext *C, struct wmEvent *event, void *userdata),
-			void (*remove)(bContext *C, void *userdata), void *userdata);
+struct wmEventHandler *WM_event_add_ui_handler(struct bContext *C, ListBase *handlers,
+			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 void		WM_event_remove_ui_handler(ListBase *handlers,
-			int (*func)(bContext *C, struct wmEvent *event, void *userdata),
-			void (*remove)(bContext *C, void *userdata), void *userdata);
+			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 
-struct wmEventHandler *WM_event_add_modal_handler(bContext *C, ListBase *handlers, wmOperator *op);
-void		WM_event_remove_handlers(bContext *C, ListBase *handlers);
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, ListBase *handlers, wmOperator *op);
+void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
-void		WM_event_add_mousemove(bContext *C);
+void		WM_event_add_mousemove(struct bContext *C);
 
-void		WM_event_add_notifier(bContext *C, int type, int value, void *data);
+void		WM_event_add_notifier(struct bContext *C, int type, int value, void *data);
 
 void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
@@ -126,17 +126,19 @@ void		WM_OT_tweak_gesture(wmOperatorType *ot);
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
-			/* OpenGL wrappers, mimicing opengl syntax */
-void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
-void		wmGetMatrix			(wmWindow *win, float mat[][4]);
-void		wmMultMatrix		(wmWindow *win, float mat[][4]);
-void		wmGetSingleMatrix	(wmWindow *win, float mat[][4]);
-void		wmScale				(wmWindow *win, float x, float y, float z);
-void		wmLoadIdentity		(wmWindow *win);	/* note: old name clear_view_mat */
+			/* OpenGL wrappers, mimicking opengl syntax */
+void		wmSubWindowSet		(wmWindow *win, int swinid);
 
-void		wmFrustum			(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f);
-void		wmOrtho				(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f);
-void		wmOrtho2			(wmWindow *win, float x1, float x2, float y1, float y2);
+void		wmLoadMatrix		(float mat[][4]);
+void		wmGetMatrix			(float mat[][4]);
+void		wmMultMatrix		(float mat[][4]);
+void		wmGetSingleMatrix	(float mat[][4]);
+void		wmScale				(float x, float y, float z);
+void		wmLoadIdentity		(void);		/* note: old name clear_view_mat */
+
+void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
+void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
+void		wmOrtho2			(float x1, float x2, float y1, float y2);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);

@@ -693,7 +693,7 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 	ED_region_init(C, ar);
 
 	/* get winmat now that we actually have the subwindow */
-	wm_subwindow_set(window, ar->swinid);
+	wmSubWindowSet(window, ar->swinid);
 	wm_subwindow_getmatrix(window, ar->swinid, block->winmat);
 	
 	/* notify change and redraw */

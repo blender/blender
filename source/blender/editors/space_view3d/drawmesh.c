@@ -51,7 +51,6 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_bmfont.h"
-#include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
