@@ -44,6 +44,7 @@
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
+#include "ED_types.h"
 #include "ED_util.h"
 
 #include "WM_api.h"

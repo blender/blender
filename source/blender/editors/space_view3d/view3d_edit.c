@@ -69,6 +69,8 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "ED_types.h"
+
 #include "PIL_time.h" /* smoothview */
 
 #include "view3d_intern.h"	// own include

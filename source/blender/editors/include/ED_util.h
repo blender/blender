@@ -30,14 +30,6 @@
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 
-#define XIC 20
-#define YIC 20
-
-/* proposal = put scene pointers on function calls? */
-#define BASACT                    (scene->basact)
-#define OBACT                     (BASACT? BASACT->object: 0)
-
-
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);
 int GetButStringLength(char *str);
 

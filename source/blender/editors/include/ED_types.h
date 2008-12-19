@@ -35,6 +35,20 @@
 #define SELECT	 1
 #define ACTIVE	 2
 
+/* nonstandard define, sometimes in math.h */
+#ifndef MAXFLOAT
+#define MAXFLOAT  ((float)3.40282347e+38)
+#endif
+
+/* buttons */
+#define XIC 20
+#define YIC 20
+
+/* proposal = put scene pointers on function calls? */
+#define BASACT                    (scene->basact)
+#define OBACT                     (BASACT? BASACT->object: 0)
+
+
 
 #endif /* ED_TYPES_H */
 

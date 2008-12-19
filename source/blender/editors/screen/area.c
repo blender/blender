@@ -39,12 +39,13 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "ED_screen.h"
-#include "ED_screen_types.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_subwindow.h"
+
+#include "ED_screen.h"
+#include "ED_screen_types.h"
+#include "ED_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -56,8 +57,6 @@
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
 #endif
-
-#include "ED_util.h"
 
 #include "screen_intern.h"
 

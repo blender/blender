@@ -44,6 +44,7 @@
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
