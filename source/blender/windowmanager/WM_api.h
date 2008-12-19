@@ -108,6 +108,9 @@ void		WM_event_remove_window_timer(wmWindow *wm, struct wmTimerHandle *handle);
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* context checks */
 int			WM_operator_winactive	(struct bContext *C);
+	
+			/* default error box */
+void		WM_error(bContext *C, char *str);
 
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);

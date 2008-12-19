@@ -481,6 +481,7 @@ void WM_read_file(bContext *C, char *name)
 	
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
+	/* note; it should set some error message somewhere... (ton) */
 	retval= BKE_read_exotic(name);
 	
 	/* we didn't succeed, now try to read Blender file */
@@ -513,6 +514,8 @@ void WM_read_file(bContext *C, char *name)
 	}
 //	else if(retval==1)
 // XXX		BIF_undo_push("Import file");
+	else if(retval == -1) 
+		WM_error(C, "Cannot read file");
 }
 
 static void outliner_242_patch(void)

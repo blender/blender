@@ -30,6 +30,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -40,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
@@ -94,8 +96,18 @@ static void operator_callback(bContext *C, void *arg, int retval)
 {
 	wmOperator *op= arg;
 	
-	if(retval > 0)
+	if(op && retval > 0)
 		op->type->exec(C, op);
+}
+
+void WM_error(bContext *C, char *str)
+{
+	char buf[148], testbuf[128];
+	
+	BLI_strncpy(testbuf, str, 128);
+	sprintf(buf, "Error %%i%d%%t|%s", ICON_ERROR, testbuf);
+	uiPupmenu(C, 0, operator_callback, NULL, buf);
+	
 }
 
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
@@ -137,6 +149,66 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	
 	ot->flag= OPTYPE_REGISTER;
 }
+
+/* ********* recent file *********** */
+
+static void recent_filelist(char *pup)
+{
+	struct RecentFile *recent;
+	int i, ofs= 0;
+	char *p;
+	
+	p= pup + sprintf(pup, "Open Recent%%t");
+	
+	if (G.sce[0]) {
+		p+= sprintf(p, "|%s %%x%d", G.sce, 1);
+		ofs = 1;
+	}
+	
+	for (recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
+		if (strcmp(recent->filename, G.sce)) {
+			p+= sprintf(p, "|%s %%x%d", recent->filename, i+ofs+1);
+		}
+	}
+}
+
+static void recentfile_callback(bContext *C, void *arg, int event)
+{
+	
+	if(event>0) {
+		if (G.sce[0] && (event==1))
+			WM_read_file(C, G.sce);
+		else {
+			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-2);
+			if(recent) {
+				WM_read_file(C, recent->filename);
+			}
+		}
+	}
+}
+
+static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	char pup[2048];
+	
+	recent_filelist(pup);
+	uiPupmenu(C, 0, recentfile_callback, op, pup);
+	
+	return 1;
+}
+
+static void WM_OT_open_recentfile(wmOperatorType *ot)
+{
+	ot->name= "Open Recent File";
+	ot->idname= "WM_OT_open_recentfile";
+	
+	ot->invoke= wm_recentfile_invoke;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* *********************** */
 
 static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
@@ -365,6 +437,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_tweak_gesture);
+	WM_operatortype_append(WM_OT_open_recentfile);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -375,6 +448,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
