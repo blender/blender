@@ -476,8 +476,17 @@ extern Object workob;
 #define OB_SHAPE_TEMPLOCK	2
 
 /* ob->nlaflag */
-#define OB_NLA_OVERRIDE		1
-#define OB_NLA_COLLAPSED	2
+#define OB_NLA_OVERRIDE		(1<<0)
+#define OB_NLA_COLLAPSED	(1<<1)
+
+	/* object-channel expanded status */
+#define OB_ADS_COLLAPSED	(1<<10)
+	/* object's ipo-block */
+#define OB_ADS_SHOWIPO		(1<<11)
+	/* object's constraint channels */
+#define OB_ADS_SHOWCONS		(1<<12)
+	/* object's material channels */
+#define OB_ADS_SHOWMATS		(1<<13)
 
 /* ob->protectflag */
 #define OB_LOCK_LOCX	1

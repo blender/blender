@@ -118,6 +118,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
+#include "BKE_ipo.h"
 #include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
@@ -3901,6 +3902,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
 						saction->action = newlibadr(fd, sc->id.lib, saction->action);
+						saction->ads.source= newlibadr(fd, sc->id.lib, saction->ads.source);
 					}
 					else if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima= (SpaceImage *)sl;
@@ -4082,6 +4084,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
+					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
@@ -5580,7 +5583,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl= sa->spacedata.first;
 				while(sl) {
 					if(sl->spacetype==SPACE_BUTS) {
-						SpaceButs *sbuts= (SpaceButs*) sl;
+						//SpaceButs *sbuts= (SpaceButs*) sl;
 						//XXX sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 					}
 					sl= sl->next;
@@ -8277,11 +8280,56 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 2)) {
 		Scene *sce;
+		Ipo *ipo;
+		IpoCurve *icu;
+		
+		/* fix IPO-curves to work with new interpolation options */
+		for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
+			for (icu= ipo->curve.first; icu; icu= icu->next) 
+				set_interpolation_ipocurve(icu, icu->ipo);
+		}
 		
 		/* Note, these will need to be added for painting */
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
+		}
+	}
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		bScreen *sc;
+		
+		/* adjust default settings for Animation Editors */
+		for (sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			
+			for (sa= sc->areabase.first; sa; sa= sa->next) { 
+				SpaceLink *sl;
+				
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					switch (sl->spacetype) {
+						case SPACE_ACTION:
+						{
+							SpaceAction *sact= (SpaceAction *)sl;
+							
+							sact->mode= SACTCONT_DOPESHEET;
+							sact->autosnap= SACTSNAP_FRAME;
+						}
+							break;
+						case SPACE_IPO:
+						{
+							SpaceIpo *sipo= (SpaceIpo *)sl;
+							sipo->autosnap= SACTSNAP_FRAME;
+						}
+							break;
+						case SPACE_NLA:
+						{
+							SpaceNla *snla= (SpaceNla *)sl;
+							snla->autosnap= SACTSNAP_FRAME;
+						}
+							break;
+					}
+				}
+			}
 		}
 	}
 

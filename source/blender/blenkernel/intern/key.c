@@ -59,6 +59,7 @@
 
 #include "BLI_blenlib.h"
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -1398,6 +1399,21 @@ KeyBlock *key_get_keyblock(Key *key, int index)
 			kb= kb->next;
 			
 			if (index==i)
+				return kb;
+		}
+	}
+	
+	return NULL;
+}
+
+/* get the appropriate KeyBlock given a name to search for */
+KeyBlock *key_get_named_keyblock(Key *key, const char name[])
+{
+	KeyBlock *kb;
+	
+	if (key && name) {
+		for (kb= key->block.first; kb; kb= kb->next) {
+			if (strcmp(name, kb->name)==0)
 				return kb;
 		}
 	}

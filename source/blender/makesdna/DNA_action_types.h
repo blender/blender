@@ -22,6 +22,7 @@
  *
  * Contributor(s): Original design: Reevan McKay
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
+ * Contributor(s): Animation recode, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -70,9 +71,13 @@ typedef struct bPoseChannel {
 	void				*dual_quat;
 	void				*b_bone_dual_quats;
 	
-	float		loc[3];				/* written in by actions or transform */
+	float		loc[3];				/* transforms - written in by actions or transform */
 	float		size[3];
+	
+	float 		eul[3];				/* rotations - written in by actions or transform (but only euler/quat in use at any one time!) */
 	float		quat[4];
+	short 		rotmode;			/* for now either quat (0), or xyz-euler (1) */
+	short 		pad;
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
 	float		pose_mat[4][4];		/* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat */
@@ -166,11 +171,20 @@ typedef struct bAction {
 	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
 	
 	int active_marker;			/* Index of active-marker (first marker = 1) */
-	int pad;
+	int flag;					/* flags for this action */
 } bAction;
 
 
 /* ------------- Action Editor --------------------- */
+
+/* Storage for Dopesheet/Grease-Pencil Editor data */
+typedef struct bDopeSheet {
+	ID 		*source;		/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
+	ListBase chanbase;		/* cache for channels (only initialised when pinned) */  // XXX not used!
+	
+	int filterflag;			/* flags to use for filtering data */
+	int flag;				/* standard flags */
+} bDopeSheet;
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
@@ -178,18 +192,18 @@ typedef struct SpaceAction {
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
-	View2D v2d;	
+	View2D v2d;					/* depricated, copied to region */
 	
 	bAction		*action;		/* the currently active action */
+	bDopeSheet 	ads;			/* the currently active context (when not showing action) */
 	
 	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
 	short flag, actnr; 			/* flag: bitmapped settings; */
 	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
-	short actwidth;				/* width of the left-hand side name panel (in pixels?) */
+	short actwidth;				/* width of the left-hand side name panel (in pixels?) */  // XXX depreceated!
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
 
@@ -220,6 +234,42 @@ typedef enum AGRP_FLAG {
 	AGRP_MOVED 		= (1<<31)
 } AGRP_FLAG;
 
+
+/* 'Action' Channel flags */
+typedef enum ACT_FLAG {
+	ACTC_SELECTED	= (1<<0),
+	ACTC_EXPANDED	= (1<<1),
+} ACT_FLAG;
+
+/* ------------ DopeSheet Flags ------------------ */
+
+/* DopeSheet filter-flag */
+typedef enum DOPESHEET_FILTERFLAG {
+		/* general filtering */
+	ADS_FILTER_ONLYSEL			= (1<<0),
+	
+		/* datatype-based filtering */
+	ADS_FILTER_NOOBJ			= (1<<4),
+	ADS_FILTER_NOARM			= (1<<5),
+	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
+	ADS_FILTER_NOIPOS			= (1<<7),
+	ADS_FILTER_NOACTS			= (1<<8),
+	ADS_FILTER_NOCONSTRAINTS	= (1<<9),
+	ADS_FILTER_NOCAM			= (1<<10),
+	ADS_FILTER_NOMAT			= (1<<11),
+	ADS_FILTER_NOLAM			= (1<<12),
+	ADS_FILTER_NOCUR			= (1<<13),
+	
+		/* combination filters (some only used at runtime) */
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR),
+	ADS_FILTER_NLADUMMY = (ADS_FILTER_NOACTS|ADS_FILTER_NOSHAPEKEYS|ADS_FILTER_NOOBDATA),
+} DOPESHEET_FILTERFLAG;	
+
+/* DopeSheet general flags */
+//typedef enum DOPESHEET_FLAG {
+	
+//} DOPESHEET_FLAG;
+
 /* ------------ Action Editor Flags -------------- */
 
 /* SpaceAction flag */
@@ -239,7 +289,9 @@ typedef enum SACTION_FLAG {
 		/* hack for moving pose-markers (temp flag)  */
 	SACTION_POSEMARKERS_MOVE = (1<<6),
 		/* don't draw action channels using group colours (where applicable) */
-	SACTION_NODRAWGCOLORS = (1<<7)
+	SACTION_NODRAWGCOLORS = (1<<7),
+		/* don't draw current frame number beside frame indicator */
+	SACTION_NODRAWCFRANUM = (1<<8),
 } SACTION_FLAG;	
 
 /* SpaceAction Mode Settings */
@@ -250,7 +302,7 @@ typedef enum SACTCONT_MODES {
 	SACTCONT_SHAPEKEY,
 		/* editing of gpencil data */
 	SACTCONT_GPENCIL,
-		/* dopesheet (unimplemented... future idea?) */
+		/* dopesheet */
 	SACTCONT_DOPESHEET
 } SACTCONTEXT_MODES;
 
@@ -326,6 +378,13 @@ typedef enum PCHAN_IKFLAG {
 	BONE_IK_NO_ZDOF_TEMP = (1<<12)
 } PCHAN_IKFLAG;
 
+/* PoseChannel->rotmode */
+typedef enum PCHAN_ROTMODE {
+		/* quaternion rotations (default, and for older Blender versions) */
+	PCHAN_ROT_QUAT	= 0,
+		/* euler rotations (xyz only) */
+	PCHAN_ROT_EUL,
+} PCHAN_ROTMODE;
 
 #endif
 

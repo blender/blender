@@ -102,8 +102,9 @@ int ob_ar[OB_TOTIPO]= {
 };
 
 int ac_ar[AC_TOTIPO]= {
-	AC_LOC_X, AC_LOC_Y, AC_LOC_Z,  
-	 AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z,
+	AC_LOC_X, AC_LOC_Y, AC_LOC_Z,
+	AC_EUL_X, AC_EUL_Y, AC_EUL_Z,
+	AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z,
 	AC_SIZE_X, AC_SIZE_Y, AC_SIZE_Z
 };
 
@@ -584,6 +585,35 @@ float frame_to_float (int cfra)		/* see also bsystem_time in object.c */
 	return ctime;
 }
 
+/* Calculate the extents of IPO block's keyframes */
+void calc_ipo_range (Ipo *ipo, float *start, float *end)
+{
+	IpoCurve *icu;
+	float min=999999999.0f, max=-999999999.0f;
+	short foundvert=0;
+
+	if (ipo) {
+		for (icu=ipo->curve.first; icu; icu=icu->next) {
+			if (icu->totvert) {
+				min= MIN2(min, icu->bezt[0].vec[1][0]);
+				max= MAX2(max, icu->bezt[icu->totvert-1].vec[1][0]);
+				foundvert=1;
+			}
+		}
+	}	
+	
+	/* minimum length is 1 frame */
+	if (foundvert) {
+		if (min == max) max += 1.0f;
+		*start= min;
+		*end= max;
+	}
+	else {
+		*start= 0.0f;
+		*end= 1.0f;
+	}
+}
+
 /* ***************************** IPO Curve Sanity ********************************* */
 /* The functions here are used in various parts of Blender, usually after some editing
  * of keyframe data has occurred. They ensure that keyframe data is properly ordered and
@@ -803,7 +833,6 @@ void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
 	}
 }
 
-#if 0 // TODO: enable when we have per-segment interpolation
 /* This function sets the interpolation mode for an entire Ipo-Curve. 
  * It is primarily used for patching old files, but is also used in the interface
  * to make sure that all segments of the curve use the same interpolation.
@@ -824,7 +853,6 @@ void set_interpolation_ipocurve (IpoCurve *icu, short ipo)
 	for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++)
 		bezt->ipo= ipo;
 }
-#endif // TODO: enable when we have per-segment interpolation
 
 /* ***************************** Curve Calculations ********************************* */
 
@@ -1028,7 +1056,6 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 	else
 #endif /* DISABLE_PYTHON */
 	{
-
 		Object *ob= driver->ob;
 		
 		/* must have an object to evaluate */
@@ -1140,7 +1167,7 @@ static float eval_driver (IpoDriver *driver, float ipotime)
 }
 
 /* evaluate and return the value of the given IPO-curve at the specified frame ("evaltime") */
-float eval_icu(IpoCurve *icu, float evaltime) 
+float eval_icu (IpoCurve *icu, float evaltime) 
 {
 	float cvalue = 0.0f;
 	
@@ -1157,7 +1184,7 @@ float eval_icu(IpoCurve *icu, float evaltime)
 		/* get pointers */
 		BezTriple *bezt, *prevbezt, *lastbezt;
 		float v1[2], v2[2], v3[2], v4[2], opl[32], dx, fac;
-		float cycdx, cycdy, ofs, cycyofs= 0.0;
+		float cycdx, cycdy, ofs, cycyofs= 0.0f;
 		int a, b;
 		
 		/* get pointers */
@@ -1192,12 +1219,11 @@ float eval_icu(IpoCurve *icu, float evaltime)
 		}
 		
 		/* evaluation time at or past endpoints? */
-		// TODO: for per-bezt interpolation, replace all icu->ipo with (bezt)->ipo
 		if (prevbezt->vec[1][0] >= evaltime) {
 			/* before or on first keyframe */
-			if ((icu->extrap & IPO_DIR) && (icu->ipo != IPO_CONST)) {
+			if ((icu->extrap & IPO_DIR) && (prevbezt->ipo != IPO_CONST)) {
 				/* linear or bezier interpolation */
-				if (icu->ipo==IPO_LIN) {
+				if (prevbezt->ipo==IPO_LIN) {
 					/* Use the next center point instead of our own handle for
 					 * linear interpolated extrapolate 
 					 */
@@ -1242,9 +1268,9 @@ float eval_icu(IpoCurve *icu, float evaltime)
 		}
 		else if (lastbezt->vec[1][0] <= evaltime) {
 			/* after or on last keyframe */
-			if( (icu->extrap & IPO_DIR) && (icu->ipo != IPO_CONST)) {
+			if( (icu->extrap & IPO_DIR) && (lastbezt->ipo != IPO_CONST)) {
 				/* linear or bezier interpolation */
-				if (icu->ipo==IPO_LIN) {
+				if (lastbezt->ipo==IPO_LIN) {
 					/* Use the next center point instead of our own handle for
 					 * linear interpolated extrapolate 
 					 */
@@ -1289,16 +1315,15 @@ float eval_icu(IpoCurve *icu, float evaltime)
 		}
 		else {
 			/* evaltime occurs somewhere in the middle of the curve */
-			// TODO: chould be optimised by using a binary search instead???
 			for (a=0; prevbezt && bezt && (a < icu->totvert-1); a++, prevbezt=bezt, bezt++) {  
 				/* evaltime occurs within the interval defined by these two keyframes */
 				if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) {
 					/* value depends on interpolation mode */
-					if (icu->ipo == IPO_CONST) {
+					if (prevbezt->ipo == IPO_CONST) {
 						/* constant (evaltime not relevant, so no interpolation needed) */
 						cvalue= prevbezt->vec[1][1];
 					}
-					else if (icu->ipo == IPO_LIN) {
+					else if (prevbezt->ipo == IPO_LIN) {
 						/* linear - interpolate between values of the two keyframes */
 						fac= bezt->vec[1][0] - prevbezt->vec[1][0];
 						
@@ -1339,7 +1364,7 @@ float eval_icu(IpoCurve *icu, float evaltime)
 		}
 		
 		/* apply y-offset (for 'cyclic extrapolation') to calculated value */
-		cvalue+= cycyofs;
+		cvalue += cycyofs;
 	}
 	
 	/* clamp evaluated value to lie within allowable value range for this channel */
@@ -1467,12 +1492,17 @@ void execute_action_ipo (bActionChannel *achan, bPoseChannel *pchan)
 	if (achan && achan->ipo && pchan) {
 		IpoCurve *icu;
 		
-		/* loop over IPO-curves, getting a pointer to pchan var to write to
-		 *	- assume for now that only 'float' channels will ever get written into
-		 */
+		/* loop over IPO-curves, getting a pointer to pchan var to write to */
 		for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
 			void *poin= get_pchan_ipo_poin(pchan, icu->adrcode);
-			if (poin) write_ipo_poin(poin, IPO_FLOAT, icu->curval);
+			
+			if (poin) {
+				/* only euler-rotations are of type float-degree, all others are 'float' only */
+				if (ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))
+					write_ipo_poin(poin, IPO_FLOAT_DEGR, icu->curval);
+				else
+					write_ipo_poin(poin, IPO_FLOAT, icu->curval);
+			}
 		}
 	}
 }
@@ -1791,6 +1821,7 @@ void clear_delta_obipo(Ipo *ipo)
 /* --------------------- Get Pointer API ----------------------------- */ 
 
 /* get pointer to pose-channel's channel, but set appropriate flags first */
+// TODO: most channels (except euler rots, which are float-degr) are floats, so do we need type arg?
 void *get_pchan_ipo_poin (bPoseChannel *pchan, int adrcode)
 {
 	void *poin= NULL;
@@ -1811,6 +1842,22 @@ void *get_pchan_ipo_poin (bPoseChannel *pchan, int adrcode)
 		case AC_QUAT_Z:
 			poin= &(pchan->quat[3]); 
 			pchan->flag |= POSE_ROT;
+			break;
+			
+		case AC_EUL_X:
+			poin= &(pchan->eul[0]);
+			pchan->flag |= POSE_ROT;
+			//type= IPO_FLOAT_DEGR;
+			break;
+		case AC_EUL_Y:
+			poin= &(pchan->eul[1]);
+			pchan->flag |= POSE_ROT;
+			//type= IPO_FLOAT_DEGR;
+			break;
+		case AC_EUL_Z:
+			poin= &(pchan->eul[2]);
+			pchan->flag |= POSE_ROT;
+			//type= IPO_FLOAT_DEGR;
 			break;
 			
 		case AC_LOC_X:

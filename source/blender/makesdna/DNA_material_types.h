@@ -154,6 +154,8 @@ typedef struct Material {
 /* flag */
 		/* for render */
 #define MA_IS_USED		1
+		/* for dopesheet */
+#define MA_DS_EXPAND	2
 
 /* mode (is int) */
 #define MA_TRACEBLE		1

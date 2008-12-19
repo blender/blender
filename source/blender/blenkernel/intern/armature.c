@@ -180,7 +180,7 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
 	Bone	*curBone, *newChildBone;
 	
 	/*	Copy this bone's list*/
-	BLI_duplicatelist (&newBone->childbase, &oldBone->childbase);
+	BLI_duplicatelist(&newBone->childbase, &oldBone->childbase);
 	
 	/*	For each child in the list, update it's children*/
 	newChildBone=newBone->childbase.first;
@@ -1216,7 +1216,10 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 	if (pchan==NULL) return;
 	
 	/* get the inverse matrix of the pchan's transforms */
-	LocQuatSizeToMat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
+	if (pchan->rotmode)
+		LocEulSizeToMat4(pc_trans, pchan->loc, pchan->eul, pchan->size);
+	else
+		LocQuatSizeToMat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
 	Mat4Invert(inv_trans, pc_trans);
 	
 	/* Remove the pchan's transforms from it's pose_mat.
@@ -1967,22 +1970,29 @@ void chan_calc_mat(bPoseChannel *chan)
 	float rmat[3][3];
 	float tmat[3][3];
 	
+	/* get scaling matrix */
 	SizeToMat3(chan->size, smat);
 	
-	NormalQuat(chan->quat);
-
-	QuatToMat3(chan->quat, rmat);
+	/* rotations may either be quats or eulers (no rotation modes for now...) */
+	if (chan->rotmode) {
+		/* euler rotations (will cause gimble lock... no rotation order to solve that yet) */
+		EulToMat3(chan->eul, rmat);
+	}
+	else {
+		/* quats are normalised before use to eliminate scaling issues */
+		NormalQuat(chan->quat);
+		QuatToMat3(chan->quat, rmat);
+	}
 	
+	/* calculate matrix of bone (as 3x3 matrix, but then copy the 4x4) */
 	Mat3MulMat3(tmat, rmat, smat);
-	
 	Mat4CpyMat3(chan->chan_mat, tmat);
 	
 	/* prevent action channels breaking chains */
 	/* need to check for bone here, CONSTRAINT_TYPE_ACTION uses this call */
-	if (chan->bone==NULL || !(chan->bone->flag & BONE_CONNECTED)) {
+	if ((chan->bone==NULL) || !(chan->bone->flag & BONE_CONNECTED)) {
 		VECCOPY(chan->chan_mat[3], chan->loc);
 	}
-
 }
 
 /* transform from bone(b) to bone(b+1), store in chan_mat */

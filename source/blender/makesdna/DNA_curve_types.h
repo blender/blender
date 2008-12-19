@@ -88,7 +88,8 @@ typedef struct BevPoint {
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
-	short h1, h2; 				/* h1, h2: the handle type of the two handles */
+	short ipo;					/* ipo: interpolation mode for segment from this BezTriple to the next */
+	char h1, h2; 				/* h1, h2: the handle type of the two handles */
 	char f1, f2, f3, hide;		/* f1, f2, f3: used for selection status,  hide: used to indicate whether BezTriple is hidden */
 } BezTriple;
 
@@ -204,6 +205,7 @@ typedef struct Curve {
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */
 #define CU_RETOPO               1024
+#define CU_DS_EXPAND	2048
 
 /* spacemode */
 #define CU_LEFT			0

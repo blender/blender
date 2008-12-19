@@ -45,7 +45,7 @@ struct CurveMapping;
 typedef struct Lamp {
 	ID id;
 	
-	short type, pad3;
+	short type, flag;
 	int mode;
 	
 	short colormodel, totex;
@@ -112,6 +112,9 @@ typedef struct Lamp {
 } Lamp;
 
 /* **************** LAMP ********************* */
+
+/* flag */
+#define LA_DS_EXPAND	1
 
 /* type */
 #define LA_LOCAL		0

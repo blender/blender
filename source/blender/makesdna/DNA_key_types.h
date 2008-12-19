@@ -85,7 +85,8 @@ typedef struct Key {
 #define KEY_BSPLINE     2
 
 /* keyblock->flag */
-#define KEYBLOCK_MUTE	1
+#define KEYBLOCK_MUTE		1
+#define KEYBLOCK_DS_EXPAND	2
 
 #endif
 

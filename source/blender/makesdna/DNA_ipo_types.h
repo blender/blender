@@ -349,8 +349,8 @@ typedef struct Ipo {
 
 /* ******* PoseChannel (ID_PO) ********* */
 
-#define AC_TOTIPO	10
-#define AC_TOTNAM	10
+#define AC_TOTIPO	13
+#define AC_TOTNAM	13
 
 #define AC_LOC_X	1
 #define AC_LOC_Y	2
@@ -359,6 +359,10 @@ typedef struct Ipo {
 #define AC_SIZE_X	13
 #define AC_SIZE_Y	14
 #define AC_SIZE_Z	15
+
+#define AC_EUL_X	16
+#define AC_EUL_Y	17
+#define AC_EUL_Z	18
 
 #define AC_QUAT_W	25
 #define AC_QUAT_X	26

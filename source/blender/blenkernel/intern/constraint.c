@@ -69,6 +69,7 @@
 #include "BPY_extern.h"
 #endif
 
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -3021,44 +3022,53 @@ static void clampto_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 				float len= (curveMax[clamp_axis] - curveMin[clamp_axis]);
 				float offset;
 				
-				/* find bounding-box range where target is located */
-				if (ownLoc[clamp_axis] < curveMin[clamp_axis]) {
-					/* bounding-box range is before */
-					offset= curveMin[clamp_axis];
-					
-					while (ownLoc[clamp_axis] < offset)
-						offset -= len;
-					
-					/* now, we calculate as per normal, except using offset instead of curveMin[clamp_axis] */
-					curvetime = (ownLoc[clamp_axis] - offset) / (len);
-				}
-				else if (ownLoc[clamp_axis] > curveMax[clamp_axis]) {
-					/* bounding-box range is after */
-					offset= curveMax[clamp_axis];
-					
-					while (ownLoc[clamp_axis] > offset) {
-						if ((offset + len) > ownLoc[clamp_axis])
-							break;
-						else
-							offset += len;
+				/* check to make sure len is not so close to zero that it'll cause errors */
+				if (IS_EQ(len, 0) == 0) {
+					/* find bounding-box range where target is located */
+					if (ownLoc[clamp_axis] < curveMin[clamp_axis]) {
+						/* bounding-box range is before */
+						offset= curveMin[clamp_axis];
+						
+						while (ownLoc[clamp_axis] < offset)
+							offset -= len;
+						
+						/* now, we calculate as per normal, except using offset instead of curveMin[clamp_axis] */
+						curvetime = (ownLoc[clamp_axis] - offset) / (len);
 					}
-					
-					/* now, we calculate as per normal, except using offset instead of curveMax[clamp_axis] */
-					curvetime = (ownLoc[clamp_axis] - offset) / (len);
+					else if (ownLoc[clamp_axis] > curveMax[clamp_axis]) {
+						/* bounding-box range is after */
+						offset= curveMax[clamp_axis];
+						
+						while (ownLoc[clamp_axis] > offset) {
+							if ((offset + len) > ownLoc[clamp_axis])
+								break;
+							else
+								offset += len;
+						}
+						
+						/* now, we calculate as per normal, except using offset instead of curveMax[clamp_axis] */
+						curvetime = (ownLoc[clamp_axis] - offset) / (len);
+					}
+					else {
+						/* as the location falls within bounds, just calculate */
+						curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (len);
+					}
 				}
 				else {
-					/* as the location falls within bounds, just calculate */
-					curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (len);
+					/* as length is close to zero, curvetime by default should be 0 (i.e. the start) */
+					curvetime= 0.0f;
 				}
 			}
 			else {
 				/* no cyclic, so position is clamped to within the bounding box */
 				if (ownLoc[clamp_axis] <= curveMin[clamp_axis])
-					curvetime = 0.0;
+					curvetime = 0.0f;
 				else if (ownLoc[clamp_axis] >= curveMax[clamp_axis])
-					curvetime = 1.0;
-				else
+					curvetime = 1.0f;
+				else if ( IS_EQ((curveMax[clamp_axis] - curveMin[clamp_axis]), 0) == 0 )
 					curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (curveMax[clamp_axis] - curveMin[clamp_axis]);
+				else 
+					curvetime = 0.0f;
 			}
 			
 			/* 3. position on curve */

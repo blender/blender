@@ -98,7 +98,7 @@ typedef struct SpaceIpo {
 	short butofs, channel;
 	short showkey, blocktype;
 	short menunr, lock;
-	int flag;
+	short flag, autosnap;
 	float median[3];
 	rctf tot;
 } SpaceIpo;
@@ -108,9 +108,10 @@ typedef struct SpaceButs {
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
-	struct RenderInfo *ri;
-
+	
 	short blockhandler[8];
+	
+	struct RenderInfo *ri;
 
 	short cursens, curact;
 	short align, tabo;		/* align for panels, tab is old tab */
@@ -638,10 +639,11 @@ typedef struct SpaceImaSel {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
-#define SNLA_ALLKEYED		1
-#define SNLA_ACTIVELAYERS	2
-#define SNLA_DRAWTIME		4
-#define SNLA_NOTRANSKEYCULL	8
+#define SNLA_ALLKEYED		(1<<0)
+#define SNLA_ACTIVELAYERS	(1<<1)
+#define SNLA_DRAWTIME		(1<<2)
+#define SNLA_NOTRANSKEYCULL	(1<<3)
+#define SNLA_NODRAWCFRANUM	(1<<4)
 
 /* time->flag */
 	/* show timing in frames instead of in seconds */
