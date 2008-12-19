@@ -323,6 +323,14 @@
 			Name="space_view3d"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\drawmesh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\drawobject.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\space_view3d.c"
 				>
 			</File>
@@ -331,11 +339,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_ops.c"
 				>
 			</File>
 			<File
