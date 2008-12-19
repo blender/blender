@@ -77,6 +77,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sound.h"
@@ -435,11 +436,13 @@ static void handle_subversion_warning(Main *main)
 
 int BKE_read_file(bContext *C, char *dir, void *unused) 
 {
-	BlendReadError bre;
+	ReportList reports;
 	BlendFileData *bfd;
 	int retval= 1;
 	
-	bfd= BLO_read_from_file(dir, &bre);
+	BKE_reports_init(&reports, RPT_STORE);
+
+	bfd= BLO_read_from_file(dir, &reports);
 	if (bfd) {
 		if(bfd->user) retval= 2;
 		
@@ -450,38 +453,48 @@ int BKE_read_file(bContext *C, char *dir, void *unused)
 	else {
 // XXX		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
 	}
+
+	BKE_reports_clear(&reports);
 		
 	return (bfd?retval:0);
 }
 
 int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused)
 {
-	BlendReadError bre;
+	ReportList reports;
 	BlendFileData *bfd;
-			
-	bfd= BLO_read_from_memory(filebuf, filelength, &bre);
+
+	BKE_reports_init(&reports, RPT_STORE);
+
+	bfd= BLO_read_from_memory(filebuf, filelength, &reports);
 	if (bfd) {
 		setup_app_data(C, bfd, "<memory2>");
 	} else {
 // XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
 		
+	BKE_reports_clear(&reports);
+
 	return (bfd?1:0);
 }
 
 /* memfile is the undo buffer */
 int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 {
-	BlendReadError bre;
+	ReportList reports;
 	BlendFileData *bfd;
 	
-	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
+	BKE_reports_init(&reports, RPT_STORE);
+
+	bfd= BLO_read_from_memfile(G.sce, memfile, &reports);
 	if (bfd) {
 		setup_app_data(C, bfd, "<memory1>");
 	} else {
 // XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
 		
+	BKE_reports_clear(&reports);
+
 	return (bfd?1:0);
 }
 
@@ -568,8 +581,9 @@ void BKE_write_undo(bContext *C, char *name)
 
 	/* disk save version */
 	if(UNDO_DISK) {
+		ReportList reports;
 		static int counter= 0;
-		char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
+		char tstr[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
 		
 		/* calculate current filename */
@@ -579,18 +593,22 @@ void BKE_write_undo(bContext *C, char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
-		success= BLO_write_file(C, tstr, G.fileflags, &err);
+		BKE_reports_init(&reports, 0);
+		success= BLO_write_file(C, tstr, G.fileflags, &reports);
+		BKE_reports_clear(&reports);
 		
 		strcpy(curundo->str, tstr);
 	}
 	else {
+		ReportList reports;
 		MemFile *prevfile=NULL;
-		char *err;
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
 		memused= MEM_get_memory_in_use();
-		success= BLO_write_file_mem(C, prevfile, &curundo->memfile, G.fileflags, &err);
+		BKE_reports_init(&reports, 0);
+		success= BLO_write_file_mem(C, prevfile, &curundo->memfile, G.fileflags, &reports);
+		BKE_reports_clear(&reports);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}
 

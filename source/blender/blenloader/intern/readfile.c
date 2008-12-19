@@ -129,6 +129,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h" // for get_ob_property
+#include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
@@ -925,19 +926,19 @@ static FileData *filedata_new(void)
 	return fd;
 }
 
-static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
+static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 {
 	decode_blender_header(fd);
 
 	if (fd->flags & FD_FLAGS_FILE_OK) {
 		if (!read_file_dna(fd)) {
-			*error_r = BRE_INCOMPLETE;
+			BKE_report(reports, RPT_ERROR, "File incomplete");
 			blo_freefiledata(fd);
 			fd= NULL;
 		}
 	} 
 	else {
-		*error_r = BRE_NOT_A_BLEND;
+		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
 		blo_freefiledata(fd);
 		fd= NULL;
 	}
@@ -947,14 +948,14 @@ static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
 
 /* cannot be called with relative paths anymore! */
 /* on each new library added, it now checks for the current FileData and expands relativeness */
-FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
+FileData *blo_openblenderfile(char *name, ReportList *reports)
 {
 	gzFile gzfile;
 	
 	gzfile= gzopen(name, "rb");
 
 	if (NULL == gzfile) {
-		*error_r = BRE_UNABLE_TO_OPEN;
+		BKE_report(reports, RPT_ERROR, "Unable to open");
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -964,14 +965,14 @@ FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 		/* needed for library_append and read_libraries */
 		BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
-		return blo_decode_and_check(fd, error_r);
+		return blo_decode_and_check(fd, reports);
 	}
 }
 
-FileData *blo_openblendermemory(void *mem, int memsize, BlendReadError *error_r)
+FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
-		*error_r = mem?BRE_UNABLE_TO_READ:BRE_UNABLE_TO_OPEN;
+		BKE_report(reports, RPT_ERROR, (mem)? "Unable to read": "Unable to open");
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();
@@ -980,14 +981,14 @@ FileData *blo_openblendermemory(void *mem, int memsize, BlendReadError *error_r)
 		fd->read= fd_read_from_memory;
 		fd->flags|= FD_FLAGS_NOT_MY_BUFFER;
 
-		return blo_decode_and_check(fd, error_r);
+		return blo_decode_and_check(fd, reports);
 	}
 }
 
-FileData *blo_openblendermemfile(MemFile *memfile, BlendReadError *error_r)
+FileData *blo_openblendermemfile(MemFile *memfile, ReportList *reports)
 {
 	if (!memfile) {
-		*error_r = BRE_UNABLE_TO_OPEN;
+		BKE_report(reports, RPT_ERROR, "Unable to open");
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();
@@ -996,7 +997,7 @@ FileData *blo_openblendermemfile(MemFile *memfile, BlendReadError *error_r)
 		fd->read= fd_read_from_memfile;
 		fd->flags|= FD_FLAGS_NOT_MY_BUFFER;
 
-		return blo_decode_and_check(fd, error_r);
+		return blo_decode_and_check(fd, reports);
 	}
 }
 
@@ -3102,7 +3103,8 @@ static void lib_link_object(FileData *fd, Main *main)
 		ob= ob->id.next;
 	}
 
-	if(warn); //XXX error("WARNING IN CONSOLE");
+	if(warn) //XXX error("WARNING IN CONSOLE");
+		BKE_report(fd->reports, RPT_WARNING, "Warning in console");
 }
 
 
@@ -4323,6 +4325,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 				MEM_freeN(lib);
 				
 				//XXX error("Library had multiple instances, save and reload!");
+				BKE_report(fd->reports, RPT_WARNING, "Library had multiple instances, save and reload!");
+
 				return;
 			}
 		}
@@ -8350,7 +8354,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	return bhead;
 }
 
-BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
+BlendFileData *blo_read_file_internal(FileData *fd, ReportList *reports)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
@@ -9538,9 +9542,13 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd= mainptr->curlib->filedata;
 
 				if(fd==NULL) {
-					BlendReadError err;
+					ReportList reports;
+
 					printf("read library: lib %s\n", mainptr->curlib->name);
-					fd= blo_openblenderfile(mainptr->curlib->filename, &err);
+					BKE_reports_init(&reports, 0);
+					fd= blo_openblenderfile(mainptr->curlib->filename, &reports);
+					BKE_reports_clear(&reports);
+
 					if (fd) {
 						if (fd->libmap)
 							oldnewmap_free(fd->libmap);
@@ -9639,7 +9647,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 /* reading runtime */
 
-BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, BlendReadError *error_r) 
+BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd = filedata_new();
@@ -9650,11 +9658,11 @@ BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, 
 	/* needed for library_append and read_libraries */
 	BLI_strncpy(fd->filename, name, sizeof(fd->filename));
 
-	fd = blo_decode_and_check(fd, error_r);
+	fd = blo_decode_and_check(fd, reports);
 	if (!fd)
 		return NULL;
 
-	bfd= blo_read_file_internal(fd, error_r);
+	bfd= blo_read_file_internal(fd, reports);
 	blo_freefiledata(fd);
 
 	return bfd;

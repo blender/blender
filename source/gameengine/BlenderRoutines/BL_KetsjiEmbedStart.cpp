@@ -70,6 +70,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 //XXX #include "BIF_screen.h"
 //XXX #include "BIF_scrarea.h"
@@ -91,12 +92,21 @@ void update_for_newframe();
 }
 #endif
 
-static BlendFileData *load_game_data(char *filename) {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
+static BlendFileData *load_game_data(char *filename)
+{
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_file(filename, &reports);
+
 	if (!bfd) {
-		printf("Loading %s failed: %s\n", filename, BLO_bre_as_string(error));
+		printf("Loading %s failed: ", filename);
+		BKE_reports_print(&reports, RPT_ERROR);
 	}
+
+	BKE_reports_clear(&reports);
+
 	return bfd;
 }
 

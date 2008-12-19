@@ -65,6 +65,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_report.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -797,7 +798,7 @@ void WM_write_file(bContext *C, char *target)
 	Library *li;
 	int writeflags, len;
 	char di[FILE_MAX];
-	char *err;
+	ReportList reports;
 	
 	len = strlen(target);
 	
@@ -843,8 +844,10 @@ void WM_write_file(bContext *C, char *target)
 	writeflags= G.fileflags & ~G_FILE_COMPRESS;
 	if(U.flag & USER_FILECOMPRESS)
 		writeflags |= G_FILE_COMPRESS;
+
+	BKE_reports_init(&reports, RPT_STORE);
 	
-	if (BLO_write_file(C, di, writeflags, &err)) {
+	if (BLO_write_file(C, di, writeflags, &reports)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
@@ -858,34 +861,45 @@ void WM_write_file(bContext *C, char *target)
 // XXX		error("%s", err);
 	}
 
+	BKE_reports_clear(&reports);
+
 // XXX	waitcursor(0);
 }
 
 /* operator entry */
 int WM_write_homefile(bContext *C, wmOperator *op)
 {
-	char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
+	ReportList reports;
+	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B.blend");
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(C, tstr, write_flags, &err);
+
+	// XXX error reporting to the user
+	BKE_reports_init(&reports, RPT_PRINT);
+	BLO_write_file(C, tstr, write_flags, &reports);
+	BKE_reports_clear(&reports);
 	
 	return OPERATOR_FINISHED;
 }
 
 void WM_write_autosave(bContext *C)
 {
-	char *err, tstr[FILE_MAXDIR+FILE_MAXFILE];
+	ReportList reports;
+	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
 	get_autosave_location(tstr);
 
 		/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
-	BLO_write_file(C, tstr, write_flags, &err);
+
+	BKE_reports_init(&reports, RPT_PRINT);
+	BLO_write_file(C, tstr, write_flags, &reports);
+	BKE_reports_clear(&reports);
 }
 
 /* if global undo; remove tempsave, otherwise rename */

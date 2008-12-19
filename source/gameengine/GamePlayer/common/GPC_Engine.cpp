@@ -39,6 +39,7 @@
 
 #include "BKE_blender.h"  // initglobals()
 #include "BKE_global.h"  // Global G
+#include "BKE_report.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"  // Camera
 #include "DNA_object_types.h"  // Object
@@ -135,15 +136,19 @@ GPC_Engine::~GPC_Engine()
 
 bool GPC_Engine::Start(char *filename)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_file(filename, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here
 		cout << "Unable to load: " << filename << endl;
 		return false;
 	}
-	
+
 	StartKetsji();
 
 	if(bfd->type == BLENFILETYPE_PUB)
@@ -156,8 +161,12 @@ bool GPC_Engine::Start(char *filename)
 bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 		unsigned int blenderDataBufferSize)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here

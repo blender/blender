@@ -57,15 +57,16 @@ static char *report_type_str(int type)
 	}
 }
 
-void BKE_report_list_init(ReportList *reports, int flags)
+void BKE_reports_init(ReportList *reports, int flag)
 {
 	memset(reports, 0, sizeof(ReportList));
 
-	reports->level= RPT_WARNING;
-	reports->flags= flags;
+	reports->storelevel= RPT_WARNING;
+	reports->printlevel= RPT_WARNING;
+	reports->flag= flag;
 }
 
-void BKE_report_list_clear(ReportList *reports)
+void BKE_reports_clear(ReportList *reports)
 {
 	Report *report;
 
@@ -80,15 +81,18 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 	Report *report;
 	int len;
 
-	if(!reports || type < reports->level)
+	if(!reports)
 		return;
+	
+	if(type >= RPT_ERROR)
+		reports->flag |= RPT_HAS_ERROR;
 
-	if(reports->flags & RPT_PRINT) {
+	if((reports->flag & RPT_PRINT) && (type >= reports->printlevel)) {
 		printf("%s: %s\n", report_type_str(type), message);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if(reports->flags & RPT_STORE) {
+	if((reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
 		report= MEM_callocN(sizeof(Report), "Report");
 		report->type= type;
 		report->typestr= report_type_str(type);
@@ -108,17 +112,20 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 	char *message;
 	int len= 256, maxlen= 65536, retval;
 
-	if(!reports || type < reports->level)
+	if(!reports)
 		return;
 
-	if(reports->flags & RPT_PRINT) {
+	if(type >= RPT_ERROR)
+		reports->flag |= RPT_HAS_ERROR;
+
+	if((reports->flag & RPT_PRINT) && (type >= reports->printlevel)) {
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if(reports->flags & RPT_STORE) {
+	if((reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
 		while(1) {
 			message= MEM_callocN(sizeof(char)*len+1, "ReportMessage");
 
@@ -160,27 +167,37 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 	}
 }
 
-ReportType BKE_report_level(ReportList *reports)
+ReportType BKE_report_print_level(ReportList *reports)
 {
-	return reports->level;
+	return reports->printlevel;
 }
 
-void BKE_report_level_set(ReportList *reports, ReportType level)
+void BKE_report_print_level_set(ReportList *reports, ReportType level)
 {
-	reports->level= level;
+	reports->printlevel= level;
 }
 
-int BKE_report_has_error(ReportList *reports)
+ReportType BKE_report_store_level(ReportList *reports)
+{
+	return reports->storelevel;
+}
+
+void BKE_report_store_level_set(ReportList *reports, ReportType level)
+{
+	reports->storelevel= level;
+}
+
+void BKE_reports_print(ReportList *reports, ReportType level)
 {
 	Report *report;
 
 	if(!reports)
-		return 0;
-
-	for(report=reports->list.first; report; report=report->next)
-		if(report->type >= RPT_ERROR)
-			return 1;
+		return;
 	
-	return 0;
+	for(report=reports->list.first; report; report=report->next)
+		if(report->type >= level)
+			printf("%s: %s\n", report->typestr, report->message);
+
+	fflush(stdout);
 }
 

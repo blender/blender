@@ -55,6 +55,7 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h" // for free_main
+#include "BKE_report.h"
 
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -166,9 +167,14 @@ int BLO_idcode_from_name(char *name)
 	 
 BlendHandle *BLO_blendhandle_from_file(char *file) 
 {
-	BlendReadError err;
+	ReportList reports;
+	BlendHandle *bh;
 
-	return (BlendHandle*) blo_openblenderfile(file, &err);
+	BKE_reports_init(&reports, 0);
+	bh= (BlendHandle*)blo_openblenderfile(file, &reports);
+	BKE_reports_clear(&reports);
+
+	return bh;
 }
 
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
@@ -318,14 +324,14 @@ void BLO_blendhandle_close(BlendHandle *bh) {
 
 	/**********/
 
-BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblenderfile(file, error_r);
+	fd = blo_openblenderfile(file, reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, error_r);
+		bfd= blo_read_file_internal(fd, reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
@@ -336,14 +342,14 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r)
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblendermemory(mem, memsize,  error_r);
+	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, error_r);
+		bfd= blo_read_file_internal(fd, reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strcpy(bfd->main->name, "");
@@ -354,13 +360,13 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 	return bfd;	
 }
 
-BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, BlendReadError *error_r) 
+BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, ReportList *reports)
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 	ListBase mainlist;
 	
-	fd = blo_openblendermemfile(memfile, error_r);
+	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
 		strcpy(fd->filename, filename);
 		
@@ -375,7 +381,7 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Ble
 		/* makes lookup of existing images in G.main */
 		blo_make_image_pointer_map(fd);
 		
-		bfd= blo_read_file_internal(fd, error_r);
+		bfd= blo_read_file_internal(fd, reports);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strcpy(bfd->main->name, "");
@@ -416,43 +422,3 @@ void BLO_blendfiledata_free(BlendFileData *bfd)
 	MEM_freeN(bfd);
 }
 
-char *BLO_bre_as_string(BlendReadError error) 
-{
-	switch (error) {
-	case BRE_NONE:
-		return "No error";
-	
-	case BRE_UNABLE_TO_OPEN:
-		return "Unable to open";
-	case BRE_UNABLE_TO_READ:
-		return "Unable to read";
-		
-	case BRE_OUT_OF_MEMORY:
-		return "Out of memory";
-	case BRE_INTERNAL_ERROR:
-		return "<internal error>";
-
-	case BRE_NOT_A_BLEND:
-		return "File is not a Blender file";
-	case BRE_NOT_A_PUBFILE:
-		return "File is not a compressed, locked or signed Blender file";
-	case BRE_INCOMPLETE:
-		return "File incomplete";
-	case BRE_CORRUPT:
-		return "File corrupt";
-
-	case BRE_TOO_NEW:
-		return "File needs newer Blender version, please upgrade";
-	case BRE_NOT_ALLOWED:
-		return "File is locked";
-						
-	case BRE_NO_SCREEN:
-		return "File has no screen";
-	case BRE_NO_SCENE:
-		return "File has no scene";
-		
-	default:
-	case BRE_INVALID:
-		return "<invalid read error>";
-	}
-}

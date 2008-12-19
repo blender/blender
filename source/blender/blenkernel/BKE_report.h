@@ -48,7 +48,8 @@ typedef enum ReportType {
 
 enum ReportListFlags {
 	RPT_PRINT = 1,
-	RPT_STORE = 2
+	RPT_STORE = 2,
+	RPT_HAS_ERROR = 4
 };
 
 typedef struct Report {
@@ -60,20 +61,24 @@ typedef struct Report {
 
 typedef struct ReportList {
 	ListBase list;
-	ReportType level;
-	int flags;
+	ReportType printlevel;
+	ReportType storelevel;
+	int flag;
 } ReportList;
 
-void BKE_report_list_init(ReportList *reports, int flag);
-void BKE_report_list_clear(ReportList *reports);
+void BKE_reports_init(ReportList *reports, int flag);
+void BKE_reports_clear(ReportList *reports);
 
 void BKE_report(ReportList *reports, ReportType type, const char *message);
 void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...);
 
-ReportType BKE_report_level(ReportList *reports);
-void BKE_report_level_set(ReportList *reports, ReportType level);
+ReportType BKE_report_print_level(ReportList *reports);
+void BKE_report_print_level_set(ReportList *reports, ReportType level);
 
-int BKE_report_has_error(ReportList *reports);
+ReportType BKE_report_store_level(ReportList *reports);
+void BKE_report_store_level_set(ReportList *reports, ReportType level);
+
+void BKE_reports_print(ReportList *reports, ReportType level);
 
 #ifdef __cplusplus
 }

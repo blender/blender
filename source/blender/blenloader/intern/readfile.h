@@ -35,6 +35,7 @@
 struct OldNewMap;
 struct MemFile;
 struct bheadsort;
+struct ReportList;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -83,7 +84,7 @@ typedef struct FileData {
 		 * data through streamglue.
 		 */
 	BlendFileData **bfd_r;
-	BlendReadError *error_r;
+	struct ReportList *reports;
 } FileData;
 
 typedef struct BHeadN {
@@ -106,11 +107,11 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal( FileData *fd,  BlendReadError *error_r);
+BlendFileData *blo_read_file_internal( FileData *fd, struct ReportList *reports);
 
-FileData *blo_openblenderfile( char *name, BlendReadError *error_r);
-FileData *blo_openblendermemory( void *buffer, int buffersize, BlendReadError *error_r);
-FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_r);
+FileData *blo_openblenderfile( char *name, struct ReportList *reports);
+FileData *blo_openblendermemory( void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
 void blo_clear_proxy_pointers_from_lib(FileData *fd);
 void blo_make_image_pointer_map(FileData *fd);
