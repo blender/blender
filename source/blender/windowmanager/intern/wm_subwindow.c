@@ -234,8 +234,8 @@ static wmSubWindow *_curswin= NULL;
 /* enable the WM versions of opengl calls */
 void wmSubWindowSet(wmWindow *win, int swinid)
 {
-	_curswin= swin_from_swinid(win, swinid);
 	int width, height;
+	_curswin= swin_from_swinid(win, swinid);
 	
 	if(_curswin==NULL) {
 		printf("wmSubWindowSet %d: doesn't exist\n", swinid);
