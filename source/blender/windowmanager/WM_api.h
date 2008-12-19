@@ -110,7 +110,7 @@ int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wm
 int			WM_operator_winactive	(struct bContext *C);
 	
 			/* default error box */
-void		WM_error(bContext *C, char *str);
+void		WM_error(struct bContext *C, char *str);
 
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);

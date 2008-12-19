@@ -99,7 +99,8 @@ void calc_curvepath(Object *ob)
 	if(ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
 	//XXX if(ob==G.obedit) nu= editNurb.first;
-	//XXX else nu= cu->nurb.first;
+	//XXX else 
+	nu= cu->nurb.first;
 	
 	if(cu->path) free_path(cu->path);
 	cu->path= NULL;

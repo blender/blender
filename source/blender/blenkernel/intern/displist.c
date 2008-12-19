@@ -1455,7 +1455,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
 		int obedit= (G.obedit && G.obedit->data==ob->data && G.obedit->type==OB_CURVE);
-		ListBase *nubase; //XXX ListBase *nubase = obedit?&editNurb:&cu->nurb;
+		ListBase *nubase= &cu->nurb; //XXX ListBase *nubase = obedit?&editNurb:&cu->nurb;
 		int numVerts;
 
 		BLI_freelistN(&(cu->bev));
