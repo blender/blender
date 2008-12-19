@@ -178,14 +178,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
-void view3d_operatortypes(void)
-{
-}
-
-void view3d_keymap(struct wmWindowManager *wm)
-{
-}
-
 static void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
@@ -193,6 +185,17 @@ static void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d= sa->spacedata.first;	/* XXX get from region */
 	
 	drawview3dspace(CTX_data_scene(C), ar, v3d);
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+	
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap,NULL, NULL);
+							   
 }
 
 
@@ -244,6 +247,7 @@ void ED_spacetype_view3d(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->draw= view3d_main_area_draw;
+	art->init= view3d_main_area_init;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

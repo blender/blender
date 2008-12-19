@@ -33,6 +33,7 @@
 struct BoundBox;
 struct Object;
 struct DerivedMesh;
+struct wmOperatorType;
 
 typedef struct ViewDepths {
 	unsigned short w, h;
@@ -55,6 +56,15 @@ typedef struct ViewDepths {
 
 /* view3d_header.c */
 void view3d_header_buttons(const struct bContext *C, ARegion *ar);
+
+/* view3d_ops.c */
+void view3d_operatortypes(void);
+void view3d_keymap(struct wmWindowManager *wm);
+
+/* view3d_edit.c */
+void ED_VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
