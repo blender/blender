@@ -1672,6 +1672,7 @@ static uiBlock *info_game_glslmenu(void *arg_unused)
 static void do_info_gamemenu(void *arg, int event)
 {
 	switch (event) {
+	case G_FILE_IGNORE_DEPRECATION_WARNINGS:
 	case G_FILE_ENABLE_ALL_FRAMES:
 	case G_FILE_DISPLAY_LISTS:
 	case G_FILE_SHOW_FRAMERATE:
@@ -1748,6 +1749,12 @@ static uiBlock *info_gamemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS, "");
+	}
+
+	if(G.fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Ignore Deprecation Warnings",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_IGNORE_DEPRECATION_WARNINGS, ""); 
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Ignore Deprecation Warnings",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_IGNORE_DEPRECATION_WARNINGS, "");
 	}
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 1, 0, "");

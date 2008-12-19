@@ -424,6 +424,9 @@ void space_set_commmandline_options(void) {
 		a= (G.fileflags & G_FILE_GAME_TO_IPO);
 		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
 
+		a= (G.fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS);
+		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", a);
+
 		a=(G.fileflags & G_FILE_GAME_MAT);
 		SYS_WriteCommandLineInt(syshandle, "blender_material", a);
 		a=(G.fileflags & G_FILE_GAME_MAT_GLSL);
