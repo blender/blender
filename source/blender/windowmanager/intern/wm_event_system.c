@@ -426,8 +426,18 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
+	int kmitype= kmi->type;
 	
-	if(winevent->type!=kmi->type) return 0;
+	/* first do default mappings */
+	if(kmitype==SELECTMOUSE) {
+		if(U.flag & USER_LMOUSESELECT)
+			kmitype= LEFTMOUSE;
+		else
+			kmitype= RIGHTMOUSE;
+	}
+	
+	/* the matching rules */
+	if(winevent->type!=kmitype) return 0;
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;

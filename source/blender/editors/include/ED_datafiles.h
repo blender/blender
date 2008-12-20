@@ -41,7 +41,7 @@ extern int datatoc_splash_jpg_size;
 extern char datatoc_splash_jpg[];
 
 extern int datatoc_Bfont_size;
-extern char datatoc_Bfont;
+extern char datatoc_Bfont[];
 
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];

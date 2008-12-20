@@ -67,6 +67,7 @@ void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_select(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);

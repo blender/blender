@@ -51,6 +51,7 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
@@ -893,6 +894,435 @@ void ED_VIEW3D_OT_viewcenter(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 }
 
+/* ************************** mouse select ************************* */
+
+
+#define MAXPICKBUF      10000
+/* The max number of menu items in an object select menu */
+#define SEL_MENU_SIZE	22
+
+void set_active_base(Scene *scene, Base *base)
+{
+	Base *tbase;
+	
+	/* activating a non-mesh, should end a couple of modes... */
+//	if(base && base->object->type!=OB_MESH)
+// XXX		exit_paint_modes();
+	
+	/* sets scene->basact */
+	BASACT= base;
+	
+	if(base) {
+		
+		/* signals to buttons */
+//		redraw_test_buttons(base->object);
+		
+		/* signal to ipo */
+//		allqueue(REDRAWIPO, base->object->ipowin);
+		
+//		allqueue(REDRAWACTION, 0);
+//		allqueue(REDRAWNLA, 0);
+//		allqueue(REDRAWNODE, 0);
+		
+		/* signal to action */
+//		select_actionchannel_by_name(base->object->action, "Object", 1);
+		
+		/* disable temporal locks */
+		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
+			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
+				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+				DAG_object_flush_update(G.scene, tbase->object, OB_RECALC_DATA);
+			}
+		}
+	}
+}
+
+
+/* simple API for object selection, rather than just using the flag
+  * this takes into account the 'restrict selection in 3d view' flag.
+  * deselect works always, the restriction just prevents selection */
+void select_base_v3d(Base *base, short mode)
+{
+	if (base) {
+		if (mode==BA_SELECT) {
+			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
+				if (mode==BA_SELECT) base->flag |= SELECT;
+		}
+		else if (mode==BA_DESELECT) {
+			base->flag &= ~SELECT;
+		}
+	}
+}
+
+static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
+{
+	Base *base;
+	
+	for(base= FIRSTBASE; base; base= base->next) {
+		if (base->flag & SELECT) {
+			if(b!=base) {
+				select_base_v3d(base, BA_DESELECT);
+				base->object->flag= base->flag;
+			}
+		}
+	}
+}
+
+static Base *mouse_select_menu(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, int hits, short *mval)
+{
+	Base *baseList[SEL_MENU_SIZE]={NULL}; /*baseList is used to store all possible bases to bring up a menu */
+	Base *base;
+	short baseCount = 0;
+	char menuText[20 + SEL_MENU_SIZE*32] = "Select Object%t";	/* max ob name = 22 */
+	char str[32];
+	
+	for(base=FIRSTBASE; base; base= base->next) {
+		if (BASE_SELECTABLE(v3d, base)) {
+			baseList[baseCount] = NULL;
+			
+			/* two selection methods, the CTRL select uses max dist of 15 */
+			if(buffer) {
+				int a;
+				for(a=0; a<hits; a++) {
+					/* index was converted */
+					if(base->selcol==buffer[ (4 * a) + 3 ]) baseList[baseCount] = base;
+				}
+			}
+			else {
+				int temp, dist=15;
+				
+				project_short(ar, v3d, base->object->obmat[3], &base->sx);
+				
+				temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
+				if(temp<dist ) baseList[baseCount] = base;
+			}
+			
+			if(baseList[baseCount]) {
+				if (baseCount < SEL_MENU_SIZE) {
+					baseList[baseCount] = base;
+					sprintf(str, "|%s %%x%d", base->object->id.name+2, baseCount+1);	/* max ob name == 22 */
+							strcat(menuText, str);
+							baseCount++;
+				}
+			}
+		}
+	}
+
+	if(baseCount<=1) return baseList[0];
+	else {
+		baseCount = -1; // XXX = pupmenu(menuText);
+		
+		if (baseCount != -1) { /* If nothing is selected then dont do anything */
+			return baseList[baseCount-1];
+		}
+		else return NULL;
+	}
+}
+
+/* we want a select buffer with bones, if there are... */
+/* so check three selection levels and compare */
+static short mixed_bones_object_selectbuffer(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, short *mval)
+{
+	rcti rect;
+	int offs;
+	short a, hits15, hits9=0, hits5=0;
+	short has_bones15=0, has_bones9=0, has_bones5=0;
+	
+	BLI_init_rcti(&rect, mval[0]-14, mval[0]+14, mval[1]-14, mval[1]+14);
+	hits15= view3d_opengl_select(scene, ar, v3d, buffer, MAXPICKBUF, &rect);
+	if(hits15>0) {
+		for(a=0; a<hits15; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones15= 1;
+		
+		offs= 4*hits15;
+		BLI_init_rcti(&rect, mval[0]-9, mval[0]+9, mval[1]-9, mval[1]+9);
+		hits9= view3d_opengl_select(scene, ar, v3d, buffer+offs, MAXPICKBUF-offs, &rect);
+		if(hits9>0) {
+			for(a=0; a<hits9; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones9= 1;
+			
+			offs+= 4*hits9;
+			BLI_init_rcti(&rect, mval[0]-5, mval[0]+5, mval[1]-5, mval[1]+5);
+			hits5= view3d_opengl_select(scene, ar, v3d, buffer+offs, MAXPICKBUF-offs, &rect);
+			if(hits5>0) {
+				for(a=0; a<hits5; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones5= 1;
+			}
+		}
+		
+		if(has_bones5) {
+			offs= 4*hits15 + 4*hits9;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits5;
+		}
+		if(has_bones9) {
+			offs= 4*hits15;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits9;
+		}
+		if(has_bones15) {
+			return hits15;
+		}
+		
+		if(hits5>0) {
+			offs= 4*hits15 + 4*hits9;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits5;
+		}
+		if(hits9>0) {
+			offs= 4*hits15;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits9;
+		}
+		return hits15;
+	}
+	
+	return 0;
+}
+
+/* mval is region coords */
+static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
+{
+	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
+	unsigned int buffer[4*MAXPICKBUF];
+	int temp, a, dist=100;
+	short hits;
+	short ctrl=0, shift=0, alt=0;
+	
+	/* always start list from basact in wire mode */
+	startbase=  FIRSTBASE;
+	if(BASACT && BASACT->next) startbase= BASACT->next;
+	
+	/* This block uses the control key to make the object selected by its center point rather then its contents */
+	if(G.obedit==0 && ctrl) {
+		
+		/* note; shift+alt goes to group-flush-selecting */
+		if(alt && ctrl) 
+			basact= mouse_select_menu(scene, ar, v3d, NULL, 0, mval);
+		else {
+			base= startbase;
+			while(base) {
+				if (BASE_SELECTABLE(v3d, base)) {
+					project_short(ar, v3d, base->object->obmat[3], &base->sx);
+					
+					temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
+					if(base==BASACT) temp+=10;
+					if(temp<dist ) {
+						
+						dist= temp;
+						basact= base;
+					}
+				}
+				base= base->next;
+				
+				if(base==0) base= FIRSTBASE;
+				if(base==startbase) break;
+			}
+		}
+	}
+	else {
+		/* if objects have posemode set, the bones are in the same selection buffer */
+		
+		hits= mixed_bones_object_selectbuffer(scene, ar, v3d, buffer, mval);
+		
+		if(hits>0) {
+			int has_bones= 0;
+			
+			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
+
+			/* note; shift+alt goes to group-flush-selecting */
+			if(has_bones==0 && (alt)) 
+				basact= mouse_select_menu(scene, ar, v3d, buffer, hits, mval);
+			else {
+				static short lastmval[2]={-100, -100};
+				int donearest= 0;
+				
+				/* define if we use solid nearest select or not */
+				if(v3d->drawtype>OB_WIRE) {
+					donearest= 1;
+					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
+						if(!has_bones)	/* hrms, if theres bones we always do nearest */
+							donearest= 0;
+					}
+				}
+				lastmval[0]= mval[0]; lastmval[1]= mval[1];
+				
+				if(donearest) {
+					unsigned int min= 0xFFFFFFFF;
+					int selcol= 0, notcol=0;
+					
+
+					if(has_bones) {
+						/* we skip non-bone hits */
+						for(a=0; a<hits; a++) {
+							if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
+								min= buffer[4*a+1];
+								selcol= buffer[4*a+3] & 0xFFFF;
+							}
+						}
+					}
+					else {
+						/* only exclude active object when it is selected... */
+						if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
+					
+						for(a=0; a<hits; a++) {
+							if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
+								min= buffer[4*a+1];
+								selcol= buffer[4*a+3] & 0xFFFF;
+							}
+						}
+					}
+
+					base= FIRSTBASE;
+					while(base) {
+						if(base->lay & v3d->lay) {
+							if(base->selcol==selcol) break;
+						}
+						base= base->next;
+					}
+					if(base) basact= base;
+				}
+				else {
+					
+					base= startbase;
+					while(base) {
+						/* skip objects with select restriction, to prevent prematurely ending this loop
+						 * with an un-selectable choice */
+						if (base->object->restrictflag & OB_RESTRICT_SELECT) {
+							base=base->next;
+							if(base==NULL) base= FIRSTBASE;
+							if(base==startbase) break;
+						}
+					
+						if(base->lay & v3d->lay) {
+							for(a=0; a<hits; a++) {
+								if(has_bones) {
+									/* skip non-bone objects */
+									if((buffer[4*a+3] & 0xFFFF0000)) {
+										if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+											basact= base;
+									}
+								}
+								else {
+									if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+										basact= base;
+								}
+							}
+						}
+						
+						if(basact) break;
+						
+						base= base->next;
+						if(base==NULL) base= FIRSTBASE;
+						if(base==startbase) break;
+					}
+				}
+			}
+			
+			if(has_bones && basact) {
+				if(0) {// XXX do_pose_selectbuffer(basact, buffer, hits) ) {	/* then bone is found */
+				
+					/* we make the armature selected: 
+					   not-selected active object in posemode won't work well for tools */
+					basact->flag|= SELECT;
+					basact->object->flag= basact->flag;
+					
+					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
+					if(G.f & G_WEIGHTPAINT) {
+						/* prevent activating */
+						basact= NULL;
+					}
+				}
+				/* prevent bone selecting to pass on to object selecting */
+				if(basact==BASACT)
+					basact= NULL;
+			}
+		}
+	}
+	
+	/* so, do we have something selected? */
+	if(basact) {
+		
+		if(G.obedit) {
+			/* only do select */
+			deselectall_except(scene, basact);
+			select_base_v3d(basact, BA_SELECT);
+		}
+		/* also prevent making it active on mouse selection */
+		else if (BASE_SELECTABLE(v3d, basact)) {
+
+			oldbasact= BASACT;
+			BASACT= basact;
+			
+			if(shift==0) {
+				deselectall_except(scene, basact);
+				select_base_v3d(basact, BA_SELECT);
+			}
+			else if(shift && alt) {
+				// XXX select_all_from_groups(basact);
+			}
+			else {
+				if(basact->flag & SELECT) {
+					if(basact==oldbasact)
+						select_base_v3d(basact, BA_DESELECT);
+				}
+				else select_base_v3d(basact, BA_SELECT);
+			}
+
+			/* copy */
+			basact->object->flag= basact->flag;
+			
+			if(oldbasact != basact) {
+				set_active_base(scene, basact);
+			}
+
+			/* for visual speed, only in wire mode */
+			if(v3d->drawtype==OB_WIRE) {
+				/* however, not for posemodes */
+// XXX				if(basact->object->flag & OB_POSEMODE);
+//				else if(oldbasact && (oldbasact->object->flag & OB_POSEMODE));
+//				else {
+//					if(oldbasact && oldbasact != basact && (oldbasact->lay & v3d->lay)) 
+//						draw_object_ext(oldbasact);
+//					draw_object_ext(basact);
+//				}
+			}
+			
+		}
+	}
+
+	/* note; make it notifier! */
+	ED_region_tag_redraw(ar);
+	
+//	countall();
+
+}
+
+static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	short mval[2];
+	
+	/* note; otherwise opengl select won't work. do this for every glSelectBuffer() */
+	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
+	
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
+	mouse_select(CTX_data_scene(C), ar, v3d, mval);
+
+	return OPERATOR_FINISHED;
+}
+
+void ED_VIEW3D_OT_select(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Activate/Select";
+	ot->idname= "ED_VIEW3D_OT_select";
+	
+	/* api callbacks */
+	ot->invoke= view3d_select_invoke;
+	ot->poll= ED_operator_areaactive;
+}
 
 /* ************************* below the line! *********************** */
 
