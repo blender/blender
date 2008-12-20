@@ -133,7 +133,6 @@ void EM_init_index_arrays(int x, int y, int z) {} // XXX
 void EM_free_index_arrays(void) {}		// XXX
 #define EM_FGON	0
 EditFace *EM_get_actFace(int x) {return NULL;} // XXX
-int draw_armature(Base *base, int x, int y) {return 0;}	// XXX
 int em_solidoffs;	// XXX
 int em_wireoffs;
 int em_vertoffs;
@@ -4542,7 +4541,7 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawSolidSelect(View3D *v3d, Base *base) 
+static void drawSolidSelect(Scene *scene, View3D *v3d, Base *base) 
 {
 	Object *ob= base->object;
 	
@@ -4562,7 +4561,7 @@ static void drawSolidSelect(View3D *v3d, Base *base)
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(!(ob->flag & OB_POSEMODE))
-			draw_armature(base, OB_WIRE, 0);
+			draw_armature(scene, v3d, base, OB_WIRE, 0);
 	}
 
 	glLineWidth(1.0);
@@ -4888,7 +4887,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if((v3d->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit && (flag && DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
-				drawSolidSelect(v3d, base);
+				drawSolidSelect(scene, v3d, base);
 			}
 		}
 	}
@@ -5033,7 +5032,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_ARMATURE:
 			if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
-			empty_object= draw_armature(base, dt, flag);
+			empty_object= draw_armature(scene, v3d, base, dt, flag);
 			if(dt>OB_WIRE) GPU_disable_material();
 			break;
 		default:

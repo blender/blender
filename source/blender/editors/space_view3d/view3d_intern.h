@@ -71,6 +71,12 @@ void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
+void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
+void draw_object_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline);
+void drawaxes(float size, int flag, char drawtype);
+
+/* drawarmature.c */
+int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMesh *dm, int faceselect);
