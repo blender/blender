@@ -141,6 +141,8 @@ void WM_init(bContext *C)
 	
 	GPU_extensions_init();
 	
+	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
+	
 	read_Blog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }
