@@ -57,6 +57,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "ED_anim_api.h"
 #include "ED_markers.h"
 
 #include "action_intern.h"	// own include
@@ -167,7 +168,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	float col[3];
-	int unit;
+	short unit=0, flag=0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -184,6 +185,13 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data? */
 		
+	/* current frame */
+	if (saction->flag & SACTION_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
+	if ((saction->flag & SACTION_NODRAWCFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
+	ANIM_draw_cfra(C, v2d, flag);
+	
+	/* preview range */
+	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -298,7 +306,7 @@ void ED_spacetype_action(void)
 	art->init= action_main_area_init;
 	art->draw= action_main_area_draw;
 	art->listener= action_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS;
 
 	BLI_addhead(&st->regiontypes, art);
 	

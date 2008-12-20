@@ -85,7 +85,8 @@ static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar
 
 static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
-    View2D *v2d= UI_view2d_fromcontext(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
+	//Scene *scene= CTX_data_scene(C);
 	
 	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */

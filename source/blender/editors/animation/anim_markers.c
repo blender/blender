@@ -105,7 +105,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
-	/* verticle line */
+	/* vertical line */
 	if (flag & DRAW_MARKERS_LINES) {
 		setlinestyle(3);
 		if(marker->flag & SELECT)

@@ -181,15 +181,17 @@ void ED_TIME_OT_change_frame(wmOperatorType *ot)
 
 static int toggle_time_exec(bContext *C, wmOperator *op)
 {
-	SpaceTime *stime;
+	SpaceTime *stime= (SpaceTime *)CTX_wm_space_data(C);
+	ScrArea *curarea= CTX_wm_area(C);
 	
-	if (ELEM(NULL, CTX_wm_area(C), CTX_wm_space_data(C)))
+	if (ELEM(NULL, curarea, stime))
 		return OPERATOR_CANCELLED;
 	
 	/* simply toggle draw frames flag for now */
-	// XXX in past, this displayed menu to choose... (for later!)
-	stime= (SpaceTime*)CTX_wm_space_data(C);
+	// in past, this asked user to choose in a menu beforehand, but that is clumsy
 	stime->flag ^= TIME_DRAWFRAMES;
+	
+	ED_area_tag_redraw(curarea);
 	
 	return OPERATOR_FINISHED;
 }
