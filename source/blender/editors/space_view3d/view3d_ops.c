@@ -67,6 +67,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(ED_VIEW3D_OT_viewhome);
 	WM_operatortype_append(ED_VIEW3D_OT_viewcenter);
 	WM_operatortype_append(ED_VIEW3D_OT_select);
+	WM_operatortype_append(ED_VIEW3D_OT_borderselect);
 }
 
 void view3d_keymap(wmWindowManager *wm)
@@ -87,6 +88,7 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ED_VIEW3D_OT_viewhome", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "center", 1);
 
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 
 }
 

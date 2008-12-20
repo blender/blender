@@ -133,9 +133,8 @@ void EM_init_index_arrays(int x, int y, int z) {} // XXX
 void EM_free_index_arrays(void) {}		// XXX
 #define EM_FGON	0
 EditFace *EM_get_actFace(int x) {return NULL;} // XXX
-int em_solidoffs;	// XXX
-int em_wireoffs;
-int em_vertoffs;
+
+extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
 /* check for glsl drawing */
 
@@ -1260,6 +1259,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], index);
 	}
 }
+
 void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
@@ -1292,6 +1292,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
 }
+
 void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; float pmat[4][4], vmat[4][4]; } data;

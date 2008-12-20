@@ -117,12 +117,12 @@ void editmesh_align_view_to_selected(void *x, int y) {}
 void play_anim(int x) {}
 void add_blockhandler(void *x, int y, int z) {}
 void toggle_blockhandler(void *x, int y, int z) {}
-void view3d_edit_clipping(void *x) {}
-void view3d_border_zoom(void) {}
+void view3d_edit_clipping(void *x);
+void view3d_border_zoom(void);
 void selectlinks(void) {}
 void countall(void) {}
 void select_object_grouped() {}
-void borderselect() {}
+extern void borderselect();
 int BIF_snappingSupported() {return 1;}
 void BIF_undo_push() {}
 int retopo_mesh_paint_check() {return 0;}

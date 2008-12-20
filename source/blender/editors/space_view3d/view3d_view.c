@@ -771,7 +771,6 @@ short view3d_opengl_select(Scene *scene, ARegion *ar, View3D *v3d, unsigned int 
 		rect.ymax= input->ymax;
 	}
 	
-	/* get rid of overlay button matrix XXX ?*/
 	setwinmatrixview3d(v3d, ar->winx, ar->winy, &rect);
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
 	
@@ -921,7 +920,7 @@ void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
 		else {
 			base= FIRSTBASE;
 			while(base) {
-				if TESTBASE(v3d, base)  {
+				if(TESTBASE(v3d, base))  {
 					minmax_object(base->object, min, max);
 					base->lay |= locallay;
 					base->object->lay= base->lay;

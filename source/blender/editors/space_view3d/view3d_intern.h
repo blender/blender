@@ -34,6 +34,12 @@ struct BoundBox;
 struct Object;
 struct DerivedMesh;
 struct wmOperatorType;
+struct EditVert;
+struct EditEdge;
+struct EditFace;
+struct Nurb;
+struct BezTriple;
+struct BPoint;
 
 typedef struct ViewDepths {
 	unsigned short w, h;
@@ -68,6 +74,7 @@ void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_select(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
@@ -75,6 +82,11 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 void draw_object_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline);
 void drawaxes(float size, int flag, char drawtype);
+void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
+void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
+void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
+void nurbs_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
+void lattice_foreachScreenVert(void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
@@ -90,6 +102,7 @@ void view3d_clr_clipping(void);
 void view3d_set_clipping(View3D *v3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
 void make_axis_color(char *col, char *col2, char axis);
+void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
