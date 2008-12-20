@@ -159,12 +159,14 @@ static void wm_flush_regions(bScreen *screen, rcti *dirty)
 	ScrArea *sa;
 	ARegion *ar;
 	
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		for(ar=sa->regionbase.first; ar; ar= ar->next) {
-			if( BLI_isect_rcti(dirty, &ar->winrct, NULL) )
+	for(ar= screen->regionbase.first; ar; ar= ar->next)
+		if(BLI_isect_rcti(dirty, &ar->winrct, NULL))
+			ar->do_draw= 1;
+
+	for(sa= screen->areabase.first; sa; sa= sa->next)
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			if(BLI_isect_rcti(dirty, &ar->winrct, NULL))
 				ar->do_draw= 1;
-		}
-	}
 }
 
 /* all the overlay management, menus, actionzones, region tabs, etc */
@@ -174,7 +176,7 @@ static void wm_flush_draw_update(bContext *C)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	/* flush redraws of screen regions (menus) down */
-	for(ar= screen->regionbase.first; ar; ar= ar->next) {
+	for(ar= screen->regionbase.last; ar; ar= ar->prev) {
 		if(ar->swinid && ar->do_draw) {
 			wm_flush_regions(screen, &ar->winrct);
 		}

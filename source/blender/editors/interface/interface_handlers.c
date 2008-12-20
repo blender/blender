@@ -3499,6 +3499,7 @@ static int ui_handle_menu_closed_submenu(bContext *C, wmEvent *event, uiMenuBloc
 
 	but= ui_but_find_activated(ar);
 	data= but->active;
+	submenu= data->menu;
 
 	if(submenu->menuretval) {
 		/* first decide if we want to close our own menu cascading, if
