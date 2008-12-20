@@ -30,6 +30,7 @@
 #define DNA_MESHDATA_TYPES_H
 
 #include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 
 struct Bone;
 struct Image;

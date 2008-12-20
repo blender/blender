@@ -1,4 +1,7 @@
-/* $Id$ 
+/**
+ * blenlib/BLI_listBase.h    mar 2001 Nzc
+ *
+ * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -24,22 +27,40 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
+ * More low-level fileops from Daniel Dunbar. Two functions were also
+ * defined in storage.c. These are the old fop_ prefixes. There is
+ * definitely some redundancy here!
+ * */
+
+#ifndef BLI_FILEOPS_H
+#define BLI_FILEOPS_H
+
+
+
+void  BLI_recurdir_fileops(char *dirname);
+int BLI_link(char *file, char *to);
+int BLI_is_writable(char *filename);
+
+/**
+ * @attention Do not confuse with BLI_exist
  */
-#ifndef BLI_STORAGE_H
-#define BLI_STORAGE_H
+int   BLI_exists(char *file);
+int   BLI_copy_fileops(char *file, char *to);
+int   BLI_rename(char *from, char *to);
+int   BLI_gzip(char *from, char *to);
+int   BLI_delete(char *file, int dir, int recursive);
+int   BLI_move(char *file, char *to);
+int   BLI_touch(const char *file);
+char *BLI_last_slash(const char *string);
+void  BLI_add_slash(char *string);
+void  BLI_del_slash(char *string);
+char *first_slash(char *string);
 
-#ifndef __APPLE__
+/* only for the sane unix world: direct calls to system functions :( */
 #ifndef WIN32
-#define _LARGEFILE_SOURCE 1
-#define _FILE_OFFSET_BITS 64
-#endif
+void BLI_setCmdCallBack(int (*f)(char*));
 #endif
 
-#include "BLI_storage_types.h"
-
-void   BLI_adddirstrings(void);
-void   BLI_builddir(char *dirname, char *relname);
-int    BLI_compare(struct direntry *entry1, struct direntry *entry2);
-
-#endif /* BLI_STORAGE_H */
+#endif
 

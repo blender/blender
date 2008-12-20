@@ -2201,27 +2201,6 @@ int BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int wr
 #define PATHSEPERATOR		"/"
 #endif
 
-char *get_install_dir(void) {
-	extern char bprogname[];
-	char *tmpname = BLI_strdup(bprogname);
-	char *cut;
-
-#ifdef __APPLE__
-	cut = strstr(tmpname, ".app");
-	if (cut) cut[0] = 0;
-#endif
-
-	cut = BLI_last_slash(tmpname);
-
-	if (cut) {
-		cut[0] = 0;
-		return tmpname;
-	} else {
-		MEM_freeN(tmpname);
-		return NULL;
-	}
-}
-
 static char *get_runtime_path(char *exename) {
 	char *installpath= get_install_dir();
 

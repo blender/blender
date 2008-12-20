@@ -42,7 +42,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "DNA_listbase.h"
+#include "DNA_listBase.h"
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_camera_types.h"

@@ -120,6 +120,10 @@ int closedir (DIR *dp);
 void get_default_root(char *root);
 int check_file_chars(char *filename);
 
+#ifdef WIN32
+int BLI_getInstallationDir(char *str);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
