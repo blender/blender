@@ -439,10 +439,6 @@
 			Name="util"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\util\ed_markers.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\util\ed_util.c"
 				>
 			</File>

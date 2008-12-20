@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BL_imbuf"
 	ProjectGUID="{415BFD6E-64CF-422B-AF88-C07F040A7292}"
+	RootNamespace="BL_imbuf"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -52,7 +53,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\imbuf\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"

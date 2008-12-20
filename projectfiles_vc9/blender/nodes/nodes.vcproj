@@ -193,7 +193,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\nodes\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\nodes\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\nodes\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="0"

@@ -55,6 +55,9 @@ int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
 void BLI_splitdirstring(char *di,char *fi);
 
+/* make sure path separators conform to system one */
+void BLI_clean(char *path);
+
 /**
 	 * dir can be any input, like from buttons, and this function
 	 * converts it to a regular full path.

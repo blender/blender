@@ -128,7 +128,7 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_9\source\blender\gpu\debug\"
 				ObjectFile="..\..\..\..\build\msvc_9\source\blender\gpu\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_9\source\blender\gpu\debug\"
-				WarningLevel="2"
+				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"

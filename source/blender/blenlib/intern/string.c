@@ -36,8 +36,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_string.h"
 
 char *BLI_strdupn(const char *str, int len) {
 	char *n= MEM_mallocN(len+1, "strdup");
