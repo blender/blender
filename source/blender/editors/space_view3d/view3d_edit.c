@@ -32,6 +32,7 @@
 #include <float.h>
 
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
@@ -670,6 +671,228 @@ void ED_VIEW3D_OT_viewzoom(wmOperatorType *ot)
 	
 	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
 }
+
+static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	Base *base;
+
+	int center= RNA_boolean_get(op->ptr, "center");
+	
+	float size, min[3], max[3], afm[3];
+	int ok= 1, onedone=0;
+
+	if(center) {
+		min[0]= min[1]= min[2]= 0.0f;
+		max[0]= max[1]= max[2]= 0.0f;
+	}
+	else {
+		INIT_MINMAX(min, max);
+	}
+	
+	for(base= scene->base.first; base; base= base->next) {
+		if(base->lay & v3d->lay) {
+			onedone= 1;
+			minmax_object(base->object, min, max);
+		}
+	}
+	if(!onedone) return OPERATOR_FINISHED; /* TODO - should this be cancel? */
+	
+	afm[0]= (max[0]-min[0]);
+	afm[1]= (max[1]-min[1]);
+	afm[2]= (max[2]-min[2]);
+	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
+	if(size==0.0) ok= 0;
+		
+	if(ok) {
+		float new_dist;
+		float new_ofs[3];
+		
+		new_dist = size;
+		new_ofs[0]= -(min[0]+max[0])/2.0f;
+		new_ofs[1]= -(min[1]+max[1])/2.0f;
+		new_ofs[2]= -(min[2]+max[2])/2.0f;
+		
+		// correction for window aspect ratio
+		if(ar->winy>2 && ar->winx>2) {
+			size= (float)ar->winx/(float)ar->winy;
+			if(size<1.0) size= 1.0f/size;
+			new_dist*= size;
+		}
+		
+		if (v3d->persp==V3D_CAMOB && v3d->camera) {
+			/* switch out of camera view */
+			float orig_lens= v3d->lens;
+			
+			v3d->persp= V3D_PERSP;
+			v3d->dist= 0.0;
+			view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
+			smooth_view(v3d, new_ofs, NULL, &new_dist, &orig_lens); /* TODO - this dosnt work yet */
+			
+		} else {
+			if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
+			smooth_view(v3d, new_ofs, NULL, &new_dist, NULL); /* TODO - this dosnt work yet */
+		}
+	}
+// XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void ED_VIEW3D_OT_viewhome(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "View home";
+	ot->idname= "ED_VIEW3D_OT_viewhome";
+
+	/* api callbacks */
+	ot->exec= viewhome_exec;
+	ot->poll= ED_operator_areaactive;
+
+	RNA_def_property(ot->srna, "center", PROP_BOOLEAN, PROP_NONE);
+}
+
+static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
+{	
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= OBACT;
+	float size, min[3], max[3], afm[3];
+	int ok=0;
+
+	/* SMOOTHVIEW */
+	float new_ofs[3];
+	float new_dist;
+
+	INIT_MINMAX(min, max);
+
+	if (G.f & G_WEIGHTPAINT) {
+		/* hardcoded exception, we look for the one selected armature */
+		/* this is weak code this way, we should make a generic active/selection callback interface once... */
+		Base *base;
+		for(base=scene->base.first; base; base= base->next) {
+			if(TESTBASELIB(v3d, base)) {
+				if(base->object->type==OB_ARMATURE)
+					if(base->object->flag & OB_POSEMODE)
+						break;
+			}
+		}
+		if(base)
+			ob= base->object;
+	}
+
+
+	if(G.obedit) {
+// XXX		ok = minmax_verts(min, max);	/* only selected */
+	}
+	else if(ob && (ob->flag & OB_POSEMODE)) {
+		if(ob->pose) {
+			bArmature *arm= ob->data;
+			bPoseChannel *pchan;
+			float vec[3];
+
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				if(pchan->bone->flag & BONE_SELECTED) {
+					if(pchan->bone->layer & arm->layer) {
+						ok= 1;
+						VECCOPY(vec, pchan->pose_head);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+						VECCOPY(vec, pchan->pose_tail);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+					}
+				}
+			}
+		}
+	}
+	else if (FACESEL_PAINT_TEST) {
+// XXX		ok= minmax_tface(min, max);
+	}
+	else if (G.f & G_PARTICLEEDIT) {
+// XXX		ok= PE_minmax(min, max);
+	}
+	else {
+		Base *base= FIRSTBASE;
+		while(base) {
+			if TESTBASE(v3d, base)  {
+				minmax_object(base->object, min, max);
+				/* account for duplis */
+				minmax_object_duplis(base->object, min, max);
+
+				ok= 1;
+			}
+			base= base->next;
+		}
+	}
+
+	if(ok==0) return OPERATOR_FINISHED;
+
+	afm[0]= (max[0]-min[0]);
+	afm[1]= (max[1]-min[1]);
+	afm[2]= (max[2]-min[2]);
+	size= 0.7f*MAX3(afm[0], afm[1], afm[2]);
+
+	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
+
+	new_ofs[0]= -(min[0]+max[0])/2.0f;
+	new_ofs[1]= -(min[1]+max[1])/2.0f;
+	new_ofs[2]= -(min[2]+max[2])/2.0f;
+
+	new_dist = size;
+
+	/* correction for window aspect ratio */
+	if(ar->winy>2 && ar->winx>2) {
+		size= (float)ar->winx/(float)ar->winy;
+		if(size<1.0f) size= 1.0f/size;
+		new_dist*= size;
+	}
+
+	v3d->cursor[0]= -new_ofs[0];
+	v3d->cursor[1]= -new_ofs[1];
+	v3d->cursor[2]= -new_ofs[2];
+
+	if (v3d->persp==V3D_CAMOB && v3d->camera) {
+		float orig_lens= v3d->lens;
+
+		v3d->persp=V3D_PERSP;
+		v3d->dist= 0.0f;
+		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
+		smooth_view(v3d, new_ofs, NULL, &new_dist, &orig_lens);
+	} else {
+		if(v3d->persp==V3D_CAMOB)
+			v3d->persp= V3D_PERSP;
+
+		smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
+	}
+
+// XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void ED_VIEW3D_OT_viewcenter(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "View center";
+	ot->idname= "ED_VIEW3D_OT_viewcenter";
+
+	/* api callbacks */
+	ot->exec= viewcenter_exec;
+	ot->poll= ED_operator_areaactive;
+}
+
 
 /* ************************* below the line! *********************** */
 

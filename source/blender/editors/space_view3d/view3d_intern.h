@@ -65,6 +65,8 @@ void view3d_keymap(struct wmWindowManager *wm);
 void ED_VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
@@ -118,7 +120,6 @@ void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);
 
 void centerview(ARegion *ar, View3D *v3d);
-void view3d_home(View3D *v3d, ARegion *ar, int center);
 
 void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3]);
 
