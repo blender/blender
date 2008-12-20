@@ -182,11 +182,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_anim_api.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_datafiles.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_keyframing.h"
 				>
 			</File>
 			<File
@@ -660,6 +668,26 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_sound\space_sound.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="animation"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_filter.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_keyframing.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_markers.c"
 				>
 			</File>
 		</Filter>
