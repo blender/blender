@@ -3,16 +3,19 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
+#include "BKE_context.h"
+
 #include "bpy_compat.h"
 
 #include "bpy_rna.h"
+#include "bpy_operator.h"
 
 
 /*****************************************************************************
 * Description: This function creates a new Python dictionary object.
 *****************************************************************************/
 
-static PyObject *CreateGlobalDictionary( void )
+static PyObject *CreateGlobalDictionary( bContext *C )
 {
 	PyObject *dict = PyDict_New(  );
 	PyObject *item = PyUnicode_FromString( "__main__" );
@@ -27,6 +30,10 @@ static PyObject *CreateGlobalDictionary( void )
 	
 	item = BPY_rna_doc();
 	PyDict_SetItemString( dict, "bpydoc", item );
+	Py_DECREF(item);
+
+	item = BPY_operator_module(C);
+	PyDict_SetItemString( dict, "bpyoperator", item );
 	Py_DECREF(item);
 	
 	return dict;
@@ -60,7 +67,7 @@ static void BPY_end_python( void )
 	return;
 }
 
-void BPY_run_python_script( const char *fn )
+void BPY_run_python_script( bContext *C, const char *fn )
 {
 	PyObject *py_dict, *py_result;
 	char pystring[512];
@@ -73,7 +80,7 @@ void BPY_run_python_script( const char *fn )
 	
 	gilstate = PyGILState_Ensure();
 	
-	py_dict = CreateGlobalDictionary();
+	py_dict = CreateGlobalDictionary(C);
 	
 	py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
 	

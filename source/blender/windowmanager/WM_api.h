@@ -114,6 +114,7 @@ void		WM_error(struct bContext *C, char *str);
 
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);
+wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
 int         WM_operator_call		(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);

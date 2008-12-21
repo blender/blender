@@ -679,7 +679,7 @@ int main(int argc, char **argv)
 				//XXX 
 				// FOR TESTING ONLY
 				a++;
-				BPY_run_python_script (argv[a]);
+				BPY_run_python_script(C, argv[a]);
 #if 0
 				a++;
 				if (a < argc) {
@@ -688,7 +688,7 @@ int main(int argc, char **argv)
 						main_init_screen();
 						scr_init = 1;
 					}
-					BPY_run_python_script (argv[a]);
+					BPY_run_python_script(C, argv[a]);
 				}
 				else printf("\nError: you must specify a Python script after '-P '.\n");
 #endif

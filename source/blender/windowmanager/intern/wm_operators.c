@@ -77,6 +77,11 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 	return NULL;
 }
 
+wmOperatorType *WM_operatortype_first(void)
+{
+	return global_ops.first;
+}
+
 /* all ops in 1 list (for time being... needs evaluation later) */
 void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 {
