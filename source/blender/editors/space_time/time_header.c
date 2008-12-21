@@ -337,23 +337,6 @@ static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-static void start_animated_screen(SpaceTime *stime)
-{
-	// XXX	add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
-	
-	//	if(stime->redraws & TIME_WITH_SEQ_AUDIO)
-	//		audiostream_start( CFRA );
-	
-	//	BKE_ptcache_set_continue_physics((stime->redraws & TIME_CONTINUE_PHYSICS));
-}
-
-static void end_animated_screen(SpaceTime *stime)
-{
-	//	rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
-	
-	//	audiostream_stop();
-	//	BKE_ptcache_set_continue_physics(0);
-}
 
 #define B_REDRAWALL		750
 #define B_TL_REW		751
@@ -374,7 +357,7 @@ static void end_animated_screen(SpaceTime *stime)
 
 void do_time_buttons(bContext *C, void *arg, int event)
 {
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+//	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
@@ -386,10 +369,10 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
-			start_animated_screen(stime);
+			ED_animation_timer(CTX_wm_window(C), 1);
 			break;
 		case B_TL_STOP:
-			end_animated_screen(stime);
+			ED_animation_timer(CTX_wm_window(C), 0);
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case B_TL_FF:
@@ -524,10 +507,10 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
 	xco+= XIC+4;
 	
-//	if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
-//		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
-//					 xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
-//	else 	   
+	if(CTX_wm_window(C)->animtimer)
+		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
+					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
+	else 	   
 		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
 	

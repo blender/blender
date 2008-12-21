@@ -1310,7 +1310,6 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 
 void ED_SCR_OT_region_flip(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Flip Region";
 	ot->idname= "ED_SCR_OT_region_flip";
@@ -1322,6 +1321,38 @@ void ED_SCR_OT_region_flip(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 }
 
+/* ****************** anim player, typically with timer ***************** */
+
+static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	if(win->animtimer==event->customdata) {
+		Scene *scene= CTX_data_scene(C);
+		
+		scene->r.cfra++;
+		if(scene->r.cfra > scene->r.efra)
+			scene->r.cfra= scene->r.sfra;
+
+		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void ED_SCR_OT_animation_play(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Animation player";
+	ot->idname= "ED_SCR_OT_animation_play";
+	
+	/* api callbacks */
+	ot->invoke= screen_animation_play;
+	
+	ot->poll= ED_operator_screenactive;
+	
+}
 
 /* ************** border select operator (template) ***************************** */
 
@@ -1402,7 +1433,8 @@ void ED_operatortypes_screen(void)
 	
 	/*frame changes*/
 	WM_operatortype_append(ED_SCR_OT_frame_offset);
-
+	WM_operatortype_append(ED_SCR_OT_animation_play);
+	
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
 	
@@ -1430,6 +1462,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 						  
 	/*frame offsets*/
+	WM_keymap_add_item(keymap, "ED_SCR_OT_animation_play", TIMER, KM_ANY, 0, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);

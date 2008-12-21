@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -1261,5 +1262,16 @@ void ed_screen_fullarea(bContext *C)
 
 	/* XXX retopo_force_update(); */
 
+}
+
+void ED_animation_timer(wmWindow *win, int enable)
+{
+	
+	if(win->animtimer)
+		WM_event_remove_window_timer(win, win->animtimer);
+	win->animtimer= NULL;
+	
+	if(enable)
+		win->animtimer= WM_event_add_window_timer(win, (int)(1000/FPS), (int)(1000/FPS));
 }
 

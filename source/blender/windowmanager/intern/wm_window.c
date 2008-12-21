@@ -498,8 +498,21 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
 void wm_window_process_events(int wait_for_event) 
 {
-	GHOST_ProcessEvents(g_system, wait_for_event);
-	GHOST_DispatchEvents(g_system);
+	int handled= 0;
+	
+	/* ghost only processes 1 (timer?) event a time... we want to accumulate all */
+	while(1) {
+		if(GHOST_ProcessEvents(g_system, 0)) {
+			GHOST_DispatchEvents(g_system);
+			handled= 1;
+		}
+		else
+			break;
+	}
+	if(handled==0 && wait_for_event) {
+		GHOST_ProcessEvents(g_system, wait_for_event);
+		GHOST_DispatchEvents(g_system);
+	}
 }
 
 /* **************** init ********************** */

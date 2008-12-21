@@ -675,7 +675,7 @@ void wm_event_do_handlers(bContext *C)
 			CTX_wm_area_set(C, area_event_inside(C, event));
 			CTX_wm_region_set(C, region_event_inside(C, event));
 			
-			/* MVC demands to not draw in event handlers... for now we leave it */
+			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
 			
 			action= wm_handlers_do(C, event, &win->handlers);
