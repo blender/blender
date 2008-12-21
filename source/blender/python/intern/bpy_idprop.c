@@ -61,8 +61,8 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 	} else if (PyLong_Check(ob)) {
 		val.i = (int) PyLong_AsLong(ob);
 		prop = IDP_New(IDP_INT, val, name);
-	} else if (/*PyUnicode_Check(ob)*/0) {
-		//val.str = _PyUnicode_AsString(ob);
+	} else if (PyUnicode_Check(ob)) {
+		val.str = _PyUnicode_AsString(ob);
 		prop = IDP_New(IDP_STRING, val, name);
 	} else if (PySequence_Check(ob)) {
 		PyObject *item;
@@ -106,7 +106,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 		for (i=0; i<len; i++) {
 			key = PySequence_GetItem(keys, i);
 			pval = PySequence_GetItem(vals, i);
-			if (/*!PyUnicode_Check(key)*/1) {
+			if (!PyUnicode_Check(key)) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
 				Py_XDECREF(keys);
@@ -115,7 +115,7 @@ static char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group,
 				Py_XDECREF(pval);
 				return "invalid element in subgroup dict template!";
 			}
-			if (/*BPy_IDProperty_Map_ValidateAndCreate(PyUnicode_AsString(key), prop, pval)*/0) {
+			if (BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, pval)) {
 				IDP_FreeProperty(prop);
 				MEM_freeN(prop);
 				Py_XDECREF(keys);
@@ -144,12 +144,12 @@ static int BPy_IDGroup_Map_SetItem(IDProperty *prop, PyObject *key, PyObject *va
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"unsubscriptable object");
 			
-	if (/*!PyUnicode_Check(key)*/1)
+	if (!PyUnicode_Check(key))
 		return EXPP_ReturnIntError( PyExc_TypeError,
 		   "only strings are allowed as subgroup keys" );
 
 	if (val == NULL) {
-		IDProperty *pkey = 0;//IDP_GetPropertyFromGroup(prop, PyUnicode_AsString(key));
+		IDProperty *pkey = IDP_GetPropertyFromGroup(prop, _PyUnicode_AsString(key));
 		if (pkey) {
 			IDP_RemFromGroup(prop, pkey);
 			IDP_FreeProperty(pkey);
@@ -158,7 +158,7 @@ static int BPy_IDGroup_Map_SetItem(IDProperty *prop, PyObject *key, PyObject *va
 		} else return EXPP_ReturnIntError( PyExc_RuntimeError, "property not found in group" );
 	}
 	
-	//err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, val);
+	err = BPy_IDProperty_Map_ValidateAndCreate(_PyUnicode_AsString(key), prop, val);
 	if (err) return EXPP_ReturnIntError( PyExc_RuntimeError, err );
 	
 	return 0;
