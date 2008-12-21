@@ -86,6 +86,7 @@ int		ED_operator_areaactive(struct bContext *C);
 #define ED_KEYMAP_UI		1
 #define ED_KEYMAP_VIEW2D	2
 #define ED_KEYMAP_MARKERS	4
+#define ED_KEYMAP_ANIMATION	8
 
 #endif /* ED_SCREEN_H */
 

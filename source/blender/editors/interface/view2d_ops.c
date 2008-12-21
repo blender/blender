@@ -1097,7 +1097,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* firstly, check context to see if mouse is actually in region */
 	// XXX isn't this the job of poll() callbacks which can't check events, but only context?
 	if (ar == NULL) 
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;//OPERATOR_CANCELLED;
 	else
 		v2d= &ar->v2d;
 		

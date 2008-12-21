@@ -305,7 +305,7 @@ void ED_spacetype_ipo(void)
 	art->init= ipo_main_area_init;
 	art->draw= ipo_main_area_draw;
 	art->listener= ipo_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 	

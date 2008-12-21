@@ -179,7 +179,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 		
 	/* time grid */
 	unit= (saction->flag & SACTION_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 	
@@ -202,7 +202,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_NOCLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
@@ -311,7 +311,7 @@ void ED_spacetype_action(void)
 	art->init= action_main_area_init;
 	art->draw= action_main_area_draw;
 	art->listener= action_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS;
+	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 	

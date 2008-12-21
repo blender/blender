@@ -216,6 +216,12 @@ void ANIM_draw_cfra(const bContext *C, struct View2D *v2d, short flag);
 void ANIM_draw_previewrange(const bContext *C, struct View2D *v2d);
 
 /* ************************************************* */
+/* OPERATORS */
+
+void ED_operatortypes_anim(void);
+void ED_keymap_anim(struct wmWindowManager *wm);
+
+/* ************************************************ */
 
 #endif /* ED_ANIM_API_H */
 

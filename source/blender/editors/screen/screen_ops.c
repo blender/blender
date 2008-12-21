@@ -1439,6 +1439,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	
 	/* screen level global keymaps */
+	// err...
 	ED_marker_keymap(wm);
 }
 
