@@ -114,7 +114,7 @@ void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "planer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "planar", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_3D);
 	RNA_def_property_ui_text(prop, "2D Curve", "Define curve in two dimensions only. Note that fill only works when this is enabled.");
 	
