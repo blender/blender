@@ -368,6 +368,16 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	*wmlist= G.main->wm;
 	G.main->wm.first= G.main->wm.last= NULL;
 	
+	/* first wrap up running stuff */
+	/* code copied from wm_init_exit.c */
+	for(wm= wmlist->first; wm; wm= wm->id.next) {
+		for(win= wm->windows.first; win; win= win->next) {
+		
+			CTX_wm_window_set(C, win);	/* needed by operator close callbacks */
+			ED_screen_exit(C, win, win->screen);
+		}
+	}
+	
 return;	
 	if(wm==NULL) return;
 	if(G.fileflags & G_FILE_NO_UI) return;
@@ -389,13 +399,13 @@ return;
   4- current wm, and wm in file: try match ghostwin 
 
 */
-static void wm_window_match_do(bContext *C, ListBase *wmlist)
+static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 {
 	wmWindowManager *oldwm, *wm;
 	wmWindow *oldwin, *win;
 	
 	/* cases 1 and 2 */
-	if(wmlist->first==NULL) {
+	if(oldwmlist->first==NULL) {
 		if(G.main->wm.first); /* nothing todo */
 		else
 			wm_add_default(C);
@@ -407,7 +417,7 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 		if(G.main->wm.first==NULL) {
 			/* match oldwm to new dbase, only old files */
 			
-			for(wm= wmlist->first; wm; wm= wm->id.next) {
+			for(wm= oldwmlist->first; wm; wm= wm->id.next) {
 				for(win= wm->windows.first; win; win= win->next) {
 					win->screen= (bScreen *)find_id("SR", win->screenname);
 
@@ -420,12 +430,12 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 			}
 			/* XXX still solve, case where multiple windows open */
 			
-			G.main->wm= *wmlist;
+			G.main->wm= *oldwmlist;
 		}
 		else {
 			/* what if old was 3, and loaded 1? */
 			/* this code could move to setup_appdata */
-			oldwm= wmlist->first;
+			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 			/* only first wm in list has ghostwins */
 			for(win= wm->windows.first; win; win= win->next) {
@@ -437,7 +447,7 @@ static void wm_window_match_do(bContext *C, ListBase *wmlist)
 					}
 				}
 			}
-			wm_close_and_free_all(C, wmlist);
+			wm_close_and_free_all(C, oldwmlist);
 		}
 	}
 }

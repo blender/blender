@@ -73,6 +73,7 @@ void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_clipping(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
@@ -107,7 +108,6 @@ void circ(float x, float y, float rad);
 void view3d_update_depths(ARegion *ar, View3D *v3d);
 
 /* view3d_select.c */
-void ED_VIEW3D_OT_clipping(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_select(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 

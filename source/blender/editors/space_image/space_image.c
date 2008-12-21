@@ -120,6 +120,8 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
 	SpaceImage *simagen= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
+	if(simagen->cumap)
+		simagen->cumap= curvemapping_copy(simagen->cumap);
 	
 	return (SpaceLink *)simagen;
 }
