@@ -4151,6 +4151,7 @@ static void direct_link_region(FileData *fd, ARegion *ar)
 {
 	ar->handlers.first= ar->handlers.last= NULL;
 	ar->uiblocks.first= ar->uiblocks.last= NULL;
+	ar->headerstr= NULL;
 	ar->regiondata= NULL;
 	ar->swinid= 0;
 	ar->type= NULL;

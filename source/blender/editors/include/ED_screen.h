@@ -64,6 +64,7 @@ void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct
 void	ED_area_exit(struct bContext *C, struct ScrArea *sa);
 int		ED_screen_area_active(const struct bContext *C);
 void	ED_area_tag_redraw(ScrArea *sa);
+void	ED_area_headerprint(ScrArea *sa, const char *str);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);

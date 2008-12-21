@@ -36,6 +36,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -53,6 +54,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+
+#include "BMF_Api.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -181,30 +184,31 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowSet(win, ar->swinid);
 	
-	if(ar->swinid && at->draw) {
-		UI_SetTheme(sa);
-		at->draw(C, ar);
-		UI_SetTheme(NULL);
+	if(ar->swinid) {
+		/* optional header info instead? */
+		if(ar->headerstr) {
+			float col[3];
+			UI_SetTheme(sa);
+			UI_GetThemeColor3fv(TH_HEADER, col);
+			glClearColor(col[0], col[1], col[2], 0.0);
+			glClear(GL_COLOR_BUFFER_BIT);
+			
+			UI_ThemeColor(TH_MENU_TEXT);
+			glRasterPos2i(20, 6);
+			BMF_DrawString(G.font, ar->headerstr);
+		}
+		else if(at->draw) {
+			UI_SetTheme(sa);
+			at->draw(C, ar);
+			UI_SetTheme(NULL);
+		}
+		
+		if(sa)
+			region_draw_emboss(ar);
+		
+		/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+		ED_region_pixelspace(ar);
 	}
-	else {
-		float fac= 0.1*ar->swinid;
-		
-		fac= fac - (int)fac;
-		
-		glClearColor(0.5, fac, 1.0f-fac, 0.0); 
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		/* swapbuffers indicator */
-		fac= BLI_frand();
-		glColor3f(fac, fac, fac);
-		glRecti(20,  2,  30,  12);
-	}
-
-	if(sa)
-		region_draw_emboss(ar);
-	
-	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
-	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
 }
@@ -230,6 +234,28 @@ void ED_area_tag_redraw(ScrArea *sa)
 }
 
 
+/* *************************************************************** */
+
+/* use NULL to disable it */
+void ED_area_headerprint(ScrArea *sa, const char *str)
+{
+	ARegion *ar;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_HEADER) {
+			if(str) {
+				if(ar->headerstr==NULL)
+					ar->headerstr= MEM_mallocN(256, "headerprint");
+				BLI_strncpy(ar->headerstr, str, 256);
+			}
+			else if(ar->headerstr) {
+				MEM_freeN(ar->headerstr);
+				ar->headerstr= NULL;
+			}
+			ED_region_tag_redraw(ar);
+		}
+	}
+}
 
 /* *************************************************************** */
 

@@ -140,6 +140,7 @@ typedef struct ARegion {
 	ListBase uiblocks;
 	ListBase handlers;			/* wmEventHandler */
 	
+	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;
 
