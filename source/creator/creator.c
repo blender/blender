@@ -72,7 +72,7 @@
 
 //XXX #include "playanim_ext.h"
 #include "wm_event_types.h"
-//XXX #include "nla.h"
+#include "ED_datafiles.h"
 //XXX #include "datatoc.h"
 
 #include "WM_api.h"
@@ -403,7 +403,7 @@ int main(int argc, char **argv)
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
 	
 	/* background render uses this font too */
-	//XXX BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
+	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 	
 	init_def_material();
 

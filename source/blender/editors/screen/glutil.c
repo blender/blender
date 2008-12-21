@@ -199,17 +199,6 @@ void sdrawXORline(int x0, int y0, int x1, int y1)
 	set_inverted_drawing(0);
 }
 
-void glutil_draw_front_xor_line(int x0, int y0, int x1, int y1)
-{
-	glReadBuffer(GL_FRONT);
-	glDrawBuffer(GL_FRONT);
-	sdrawXORline(x0, y0, x1, y1);
-	glFlush();
-	glReadBuffer(GL_BACK);
-	glDrawBuffer(GL_BACK);
-	
-}
-
 void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 {
 	static short old[4][2][2];

@@ -1673,14 +1673,12 @@ void ED_VIEW3D_OT_borderselect(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_areaactive;
 	
-	
 	/* rna */
 	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
-	
 }
 
 
@@ -2019,74 +2017,106 @@ void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
 	smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
 }
 
+/* ********************* set clipping operator ****************** */
 
-void view3d_edit_clipping(ARegion *ar, View3D *v3d)
+static int view3d_clipping_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	rcti rect;
+	double mvmatrix[16];
+	double projmatrix[16];
+	double xs, ys, p[3];
+	GLint viewport[4];
+	short val;
+	
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	
+	v3d->flag |= V3D_CLIPPING;
+	v3d->clipbb= MEM_callocN(sizeof(BoundBox), "clipbb");
+	
+	/* note; otherwise opengl won't work */
+	view3d_operator_needs_opengl(C);
+	
+	/* Get the matrices needed for gluUnProject */
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+
+	/* near zero floating point values can give issues with gluUnProject
+	   in side view on some implementations */
+	if(fabs(mvmatrix[0]) < 1e-6) mvmatrix[0]= 0.0;
+	if(fabs(mvmatrix[5]) < 1e-6) mvmatrix[5]= 0.0;
+	
+	/* Set up viewport so that gluUnProject will give correct values */
+	viewport[0] = 0;
+	viewport[1] = 0;
+	
+	/* four clipping planes and bounding volume */
+	/* first do the bounding volume */
+	for(val=0; val<4; val++) {
+		
+		xs= (val==0||val==3)?rect.xmin:rect.xmax;
+		ys= (val==0||val==1)?rect.ymin:rect.ymax;
+		
+		gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(v3d->clipbb->vec[val], p);
+		
+		gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
+		VECCOPY(v3d->clipbb->vec[4+val], p);
+	}
+	
+	/* then plane equations */
+	for(val=0; val<4; val++) {
+		
+		CalcNormFloat(v3d->clipbb->vec[val], v3d->clipbb->vec[val==3?0:val+1], v3d->clipbb->vec[val+4],
+					  v3d->clip[val]); 
+		
+		v3d->clip[val][3]= - v3d->clip[val][0]*v3d->clipbb->vec[val][0] 
+						   - v3d->clip[val][1]*v3d->clipbb->vec[val][1] 
+						   - v3d->clip[val][2]*v3d->clipbb->vec[val][2];
+	}
+	return OPERATOR_FINISHED;
+}
+
+static int view3d_clipping_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
 	
 	if(v3d->flag & V3D_CLIPPING) {
 		v3d->flag &= ~V3D_CLIPPING;
-		ED_region_tag_redraw(ar);
+		ED_area_tag_redraw(sa);
 		if(v3d->clipbb) MEM_freeN(v3d->clipbb);
 		v3d->clipbb= NULL;
+		return OPERATOR_FINISHED;
 	}
 	else {
-		rcti rect;
-		double mvmatrix[16];
-		double projmatrix[16];
-		double xs, ys, p[3];
-		GLint viewport[4];
-		short val;
-		
-		/* get border in window coords */
-		setlinestyle(2);
-		val= 0; // XX get_border(&rect, 3);
-		setlinestyle(0);
-		if(val==0) return;
-		
-		v3d->flag |= V3D_CLIPPING;
-		v3d->clipbb= MEM_callocN(sizeof(BoundBox), "clipbb");
-		
-		/* convert border to 3d coordinates */
-		
-		/* Get the matrices needed for gluUnProject */
-		glGetIntegerv(GL_VIEWPORT, viewport);
-		glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-		glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
-
-		/* near zero floating point values can give issues with gluUnProject
-		   in side view on some implementations */
-		if(fabs(mvmatrix[0]) < 1e-6) mvmatrix[0]= 0.0;
-		if(fabs(mvmatrix[5]) < 1e-6) mvmatrix[5]= 0.0;
-		
-		/* Set up viewport so that gluUnProject will give correct values */
-		viewport[0] = 0;
-		viewport[1] = 0;
-		
-		/* four clipping planes and bounding volume */
-		/* first do the bounding volume */
-		for(val=0; val<4; val++) {
-			
-			xs= (val==0||val==3)?rect.xmin:rect.xmax;
-			ys= (val==0||val==1)?rect.ymin:rect.ymax;
-			
-			gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-			VECCOPY(v3d->clipbb->vec[val], p);
-			
-			gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
-			VECCOPY(v3d->clipbb->vec[4+val], p);
-		}
-		
-		/* then plane equations */
-		for(val=0; val<4; val++) {
-			
-			CalcNormFloat(v3d->clipbb->vec[val], v3d->clipbb->vec[val==3?0:val+1], v3d->clipbb->vec[val+4],
-						  v3d->clip[val]); 
-			
-			v3d->clip[val][3]= - v3d->clip[val][0]*v3d->clipbb->vec[val][0] 
-							   - v3d->clip[val][1]*v3d->clipbb->vec[val][1] 
-							   - v3d->clip[val][2]*v3d->clipbb->vec[val][2];
-		}
+		return WM_border_select_invoke(C, op, event);
 	}
 }
 
-
+/* toggles */
+void ED_VIEW3D_OT_clipping(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Border Select";
+	ot->idname= "ED_VIEW3D_OT_clipping";
+	
+	/* api callbacks */
+	ot->invoke= view3d_clipping_invoke;
+	ot->exec= view3d_clipping_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+}

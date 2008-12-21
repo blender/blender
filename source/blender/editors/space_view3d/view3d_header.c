@@ -117,7 +117,6 @@ void editmesh_align_view_to_selected(void *x, int y) {}
 void play_anim(int x) {}
 void add_blockhandler(void *x, int y, int z) {}
 void toggle_blockhandler(void *x, int y, int z) {}
-void view3d_edit_clipping(void *x);
 void view3d_border_zoom(void);
 void selectlinks(void) {}
 void countall(void) {}
@@ -563,7 +562,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
-		view3d_edit_clipping(v3d);
+		WM_operator_call(C, "ED_VIEW3D_OT_clipping", WM_OP_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
 		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);

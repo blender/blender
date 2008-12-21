@@ -51,6 +51,7 @@
 
 #include "BKE_anim.h"
 #include "BKE_action.h"
+#include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -75,6 +76,28 @@
 #include "view3d_intern.h"	// own include
 
 #define BL_NEAR_CLIP 0.001
+
+/* use this call when executing an operator,
+   event system doesn't set for each event the
+   opengl drawing context */
+void view3d_operator_needs_opengl(const bContext *C)
+{
+	ARegion *ar= CTX_wm_region(C);
+
+	/* for debugging purpose, context should always be OK */
+	if(ar->regiontype!=RGN_TYPE_WINDOW)
+		printf("view3d_operator_needs_opengl error, wrong region\n");
+	else {
+		ScrArea *sa= CTX_wm_area(C);
+		View3D *v3d= sa->spacedata.first;
+		
+		wmSubWindowSet(CTX_wm_window(C), ar->swinid);
+		glMatrixMode(GL_PROJECTION);
+		wmLoadMatrix(v3d->winmat);
+		glMatrixMode(GL_MODELVIEW);
+		wmLoadMatrix(v3d->viewmat);
+	}
+}
 
 float *give_cursor(Scene *scene, View3D *v3d)
 {

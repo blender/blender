@@ -44,15 +44,6 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
 void fdrawXORellipse(float xofs, float yofs, float hw, float hh);
 void fdrawXORcirc(float xofs, float yofs, float rad);
 
-	/**
-	 * Draw an XOR'd line in the front buffer between
-	 * the given points. 
-	 *
-	 * @attention This function also handles flushing the GL
-	 * pipeline, which means it is inappropriate for drawing
-	 * a large number of lines at once.
-	 */
-void glutil_draw_front_xor_line(int x0, int y0, int x1, int y1);
 
 	/**
 	 * Draw a lined (non-looping) arc with the given

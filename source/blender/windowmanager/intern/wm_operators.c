@@ -264,8 +264,8 @@ static void border_select_apply(bContext *C, wmOperator *op, int event_type)
 	RNA_int_set(op->ptr, "ymin", rect->ymin);
 	RNA_int_set(op->ptr, "xmax", rect->xmax);
 	RNA_int_set(op->ptr, "ymax", rect->ymax);
-	
-	RNA_int_set(op->ptr, "event_type", event_type);
+	if( RNA_property_is_set(op->ptr, "event_type"))
+		RNA_int_set(op->ptr, "event_type", event_type);
 	
 	op->type->exec(C, op);
 }
