@@ -170,10 +170,17 @@ static void *actedit_get_context (const bContext *C, SpaceAction *saction, short
 
 /* ----------- Private Stuff - IPO Editor ------------- */
 
+/* Get data being edited in IPO Editor (depending on current 'mode') */
+static void *ipoedit_get_context (const bContext *C, SpaceIpo *sipo, short *datatype)
+{
+	// XXX FIXME...
+	return NULL;
+}
+
 /* ----------- Public API --------------- */
 
 /* Obtain current anim-data context from Blender Context info */
-void *animdata_get_context (const bContext *C, short *datatype)
+void *ANIM_animdata_get_context (const bContext *C, short *datatype)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
@@ -194,7 +201,7 @@ void *animdata_get_context (const bContext *C, short *datatype)
 		case SPACE_IPO:
 		{
 			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-			// ...
+			return ipoedit_get_context(C, sipo, datatype);
 		}
 			break;
 	}
@@ -204,5 +211,57 @@ void *animdata_get_context (const bContext *C, short *datatype)
 }
 
 /* ************************************************************ */
+/* Blender Data <-- Filter --> Channels to be operated on */
+
+/* ----------- 'Private' Stuff --------------- */
+
+
+/* ----------- Public API --------------- */
+
+/* This function filters the active data source to leave only the desired
+ * data types. 'Public' api call.
+ * 	*act_data: is a pointer to a ListBase, to which the filtered animation channels
+ *		will be placed for use.
+ *	filter_mode: how should the data be filtered - bitmapping accessed flags
+ */
+void ANIM_animdata_filter (ListBase *anim_data, int filter_mode, void *data, short datatype)
+{
+	/* only filter data if there's somewhere to put it */
+	if (data && anim_data) {
+		bAnimListElem *ale, *next;
+		
+		/* firstly filter the data */
+		switch (datatype) {
+			case ANIMCONT_ACTION:
+				//animdata_filter_action(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE);
+				break;
+			case ANIMCONT_SHAPEKEY:
+				//animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE);
+				break;
+			case ANIMCONT_GPENCIL:
+				//animdata_filter_gpencil(anim_data, data, filter_mode);
+				break;
+			case ANIMCONT_DOPESHEET:
+				//animdata_filter_dopesheet(anim_data, data, filter_mode);
+				break;
+		}
+			
+		/* remove any weedy entries */
+		// XXX this is weedy code!
+		for (ale= anim_data->first; ale; ale= next) {
+			next= ale->next;
+			
+			if (ale->type == ANIMTYPE_NONE)
+				BLI_freelinkN(anim_data, ale);
+			
+			if (filter_mode & ALEFILTER_IPOKEYS) {
+				if (ale->datatype != ALE_IPO)
+					BLI_freelinkN(anim_data, ale);
+				else if (ale->key_data == NULL)
+					BLI_freelinkN(anim_data, ale);
+			}
+		}
+	}
+}
 
 /* ************************************************************ */

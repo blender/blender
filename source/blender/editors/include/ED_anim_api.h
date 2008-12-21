@@ -63,6 +63,7 @@ typedef struct bAnimListElem {
 
 
 /* Some types for easier type-testing */
+// XXX was ACTTYPE_*
 typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
 	ANIMTYPE_SPECIALDATA,
@@ -109,6 +110,7 @@ typedef enum eAnim_KeyType {
 } eAnim_KeyType;
 
 /* Main Data container types */
+// XXX was ACTCONT_*
 typedef enum eAnimCont_Types {
 	ANIMCONT_NONE = 0,		/* invalid or no data */
 	ANIMCONT_ACTION,		/* action (bAction) */
@@ -118,6 +120,7 @@ typedef enum eAnimCont_Types {
 } eAnimCont_Types;
 
 /* filtering flags  - under what circumstances should a channel be added */
+// XXX was ACTFILTER_*
 typedef enum eAnimFilter_Flags {
 	ALEFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
 	ALEFILTER_SEL			= (1<<1),	/* should channels be selected */
@@ -133,10 +136,10 @@ typedef enum eAnimFilter_Flags {
 /* ---------------- API  -------------------- */
 
 /* Obtain list of filtered Animation channels to operate on */
-void animdata_filter(struct ListBase *act_data, int filter_mode, void *data, short datatype);
+void ANIM_animdata_filter(struct ListBase *anim_data, int filter_mode, void *data, short datatype);
 
 /* Obtain current anim-data context from Blender Context info */
-void *animdata_get_context(const struct bContext *C, short *datatype);
+void *ANIM_animdata_get_context(const struct bContext *C, short *datatype);
 
 /* ************************************************ */
 /* DRAWING API */

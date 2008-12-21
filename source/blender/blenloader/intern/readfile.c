@@ -5078,7 +5078,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
 	ar->v2d.keeptot = V2D_KEEPTOT_STRICT; 
 	ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
-	
+	ar->v2d.flag = (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 }
 
 /* 2.50 patch */

@@ -46,6 +46,8 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_anim_api.h"
+#include "ED_markers.h"
 
 #include "BIF_gl.h"
 
@@ -55,8 +57,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "ED_markers.h"
 
 #include "ipo_intern.h"	// own include
 
@@ -147,50 +147,6 @@ static SpaceLink *ipo_duplicate(SpaceLink *sl)
 	return (SpaceLink *)sipon;
 }
 
-
-// XXX this should be defined in some general lib for anim editors...
-static void draw_cfra(const bContext *C, SpaceIpo *sipo, View2D *v2d)
-{
-	Scene *scene= CTX_data_scene(C);
-	float vec[2];
-	
-	//vec[0] = get_ipo_cfra_from_cfra(sipo, scene->r.cfra);
-	vec[0] = scene->r.cfra;
-	vec[0]*= scene->r.framelen;
-	
-	vec[1]= v2d->cur.ymin;
-	UI_ThemeColor(TH_CFRAME);
-	glLineWidth(2.0);
-	
-	glBegin(GL_LINE_STRIP);
-	glVertex2fv(vec);
-	vec[1]= v2d->cur.ymax;
-	glVertex2fv(vec);
-	glEnd();
-	
-#if 0
-	if(sipo->blocktype==ID_OB) {
-		ob= (scene->basact) ? (scene->basact->object) : 0;
-		if (ob && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) { 
-			vec[0]-= give_timeoffset(ob);
-			
-			UI_ThemeColorShade(TH_HILITE, -30);
-			
-			glBegin(GL_LINE_STRIP);
-			glVertex2fv(vec);
-			vec[1]= G.v2d->cur.ymin;
-			glVertex2fv(vec);
-			glEnd();
-		}
-	}
-#endif
-	
-	glLineWidth(1.0);
-	
-	/* Draw current frame number in a little box */
-	//draw_cfra_number(vec[0]);
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void ipo_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -211,7 +167,7 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	float col[3];
-	int unit;
+	short unit=0, flag=0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -229,11 +185,17 @@ static void ipo_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	
 	/* current frame */
-	draw_cfra(C, sipo, v2d);
+	if (sipo->flag & SIPO_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
+	if ((sipo->flag & SIPO_NODRAWCFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
+	ANIM_draw_cfra(C, v2d, flag);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(C, v2d, 1);
 	draw_markers_time(C, 0);
+	
+	/* preview range */
+	UI_view2d_view_ortho(C, v2d);
+	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

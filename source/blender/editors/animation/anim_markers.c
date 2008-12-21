@@ -95,8 +95,8 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	int icon_id= 0;
 	
 	xpos = marker->frame;
-	/* no time correction for framelen! space is drawn with old values */
 	
+	/* no time correction for framelen! space is drawn with old values */
 	ypixels= v2d->mask.ymax-v2d->mask.ymin;
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	
@@ -105,18 +105,20 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
-	/* vertical line */
+	/* vertical line - dotted */
 	if (flag & DRAW_MARKERS_LINES) {
 		setlinestyle(3);
-		if(marker->flag & SELECT)
-			glColor4ub(255,255,255, 96);
+		
+		if (marker->flag & SELECT)
+			glColor4ub(255, 255, 255, 96);
 		else
-			glColor4ub(0,0,0, 96);
+			glColor4ub(0, 0, 0, 96);
 		
 		glBegin(GL_LINES);
-		glVertex2f((xpos*xscale)+0.5, 12);
-		glVertex2f((xpos*xscale)+0.5, 34*yscale); /* a bit lazy but we know it cant be greater then 34 strips high*/
+			glVertex2f((xpos*xscale)+0.5, 12);
+			glVertex2f((xpos*xscale)+0.5, 34*yscale); /* a bit lazy but we know it cant be greater then 34 strips high*/
 		glEnd();
+		
 		setlinestyle(0);
 	}
 	
@@ -137,7 +139,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glDisable(GL_BLEND);
 	
 	/* and the marker name too, shifted slightly to the top-right */
-	if(marker->name && marker->name[0]) {
+	if (marker->name && marker->name[0]) {
 		if(marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
 			ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);

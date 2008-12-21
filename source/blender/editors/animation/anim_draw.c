@@ -44,6 +44,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -58,7 +59,11 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_text.h"
 #include "UI_view2d.h"
+
+/* XXX */
+extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 /* *************************************************** */
 /* CURRENT FRAME DRAWING */
@@ -66,9 +71,9 @@
 /* Draw current frame number in a little green box beside the current frame indicator */
 static void draw_cfra_number (View2D *v2d, float cfra, short time)
 {
-	float xscale, yscale, yspace, ypixels, x;
-	short slen;
+	float xscale, yscale, x, y;
 	char str[32];
+	short slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_getscale(v2d, &xscale, &yscale);
@@ -78,23 +83,23 @@ static void draw_cfra_number (View2D *v2d, float cfra, short time)
 		sprintf(str, "   %.2f", FRA2TIME(CFRA));
 	else 
 		sprintf(str, "   %d", CFRA);
-	slen= UI_GetStringWidth(G.font, str, 0);
+	slen= UI_GetStringWidth(G.font, str, 0) - 1;
 	
 	/* get starting coordinates for drawing */
 	x= cfra * xscale;
+	y= 18;
 	
 	/* draw green box around/behind text */
-	UI_ThemeColor(TH_CFRAME);
 	UI_ThemeColorShadeAlpha(TH_CFRAME, 0, -100);
-	glRectf(x, 0,  x+slen,  15);
+	glRectf(x, y,  x+slen,  y+15);
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	ui_rasterpos_safe(x-5, 17, 1.0);
-	UI_DrawString(G.fonts, str, 0);
+	ui_rasterpos_safe(x-5, y+3, 1.0);
+	UI_DrawString(G.fonts, str, 0); // XXX may need to be updated for font stuff
 	
 	/* restore view transform */
-	glScalef(xscale, yscale, 1.0);
+	glScalef(xscale, 1.0, 1.0);
 }
 
 /* General call for drawing current frame indicator in a */

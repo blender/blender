@@ -97,9 +97,9 @@ static SpaceLink *action_new(void)
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= -5.0f;
+	ar->v2d.tot.xmin= -2.0f;
 	ar->v2d.tot.ymin= -2000.0f;
-	ar->v2d.tot.xmax= 1000.0f; // xxx - use end frame instead?
+	ar->v2d.tot.xmax= 100.0f;
 	ar->v2d.tot.ymax= 0.0f;
 	
 	ar->v2d.cur.xmin= -2.0f;
@@ -190,7 +190,12 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	if ((saction->flag & SACTION_NODRAWCFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
 	ANIM_draw_cfra(C, v2d, flag);
 	
+	/* markers */
+	UI_view2d_view_orthoSpecial(C, v2d, 1);
+	draw_markers_time(C, 0);
+	
 	/* preview range */
+	UI_view2d_view_ortho(C, v2d);
 	ANIM_draw_previewrange(C, v2d);
 	
 	/* reset view matrix */
