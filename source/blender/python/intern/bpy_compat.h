@@ -55,6 +55,15 @@
 /* older then python 2.5 - define these */
 #if (PY_VERSION_HEX < 0x02050000)
 #define Py_ssize_t ssize_t
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE	return Py_BuildValue("O", Py_None)
+#endif
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE  return PyBool_FromLong(0) 
+#endif
+#ifndef Py_RETURN_TRUE
+#define Py_RETURN_TRUE  return PyBool_FromLong(1)
+#endif
 #endif
 
 #endif /* BPY_COMPAT_H__ */

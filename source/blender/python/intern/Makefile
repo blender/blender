@@ -55,6 +55,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../nodes
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenloader
+CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../render/extern/include
 
 # path to the guarded memory allocator

@@ -30,6 +30,7 @@
 #include "BKE_idprop.h"
 
 #include "bpy_idprop.h"
+#include "bpy_compat.h"
 
 #include "MEM_guardedalloc.h"
 
