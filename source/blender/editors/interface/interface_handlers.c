@@ -2865,7 +2865,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	data->interactive= 0;
+	data->interactive= 1;
 	data->state = BUTTON_STATE_INIT;
 
 	/* activate button */
