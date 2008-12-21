@@ -568,14 +568,18 @@ void wm_window_lower(wmWindow *win)
 void wm_window_raise(wmWindow *win) 
 {
 	GHOST_SetWindowOrder(win->ghostwin, GHOST_kWindowOrderTop);
-#ifdef _WIN32
-//	markdirty_all(); /* to avoid redraw errors in fullscreen mode (aphex) */
-#endif
 }
 
 void wm_window_swap_buffers(wmWindow *win)
 {
+	
+#ifdef WIN32
+	glDisable(GL_SCISSOR_TEST);
 	GHOST_SwapWindowBuffers(win->ghostwin);
+	glEnable(GL_SCISSOR_TEST);
+#else
+	GHOST_SwapWindowBuffers(win->ghostwin);
+#endif
 }
 
 /* ******************* exported api ***************** */
