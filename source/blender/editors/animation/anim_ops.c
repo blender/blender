@@ -228,11 +228,11 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	float sfra, efra;
 	int xmin, xmax;
 	
-	/* convert min/max values from borderselect to region coordinates */
-	xmin= RNA_int_get(op->ptr, "xmin")/* - ar->winrct.xmin*/;
-	xmax= RNA_int_get(op->ptr, "xmax")/* - ar->winrct.xmin*/;
+	/* get min/max values from border select rect (already in region coordinates, not screen) */
+	xmin= RNA_int_get(op->ptr, "xmin");
+	xmax= RNA_int_get(op->ptr, "xmax");
 	
-	/* convert min/max values to frames */
+	/* convert min/max values to frames (i.e. region to 'tot' rect) */
 	UI_view2d_region_to_view(&ar->v2d, xmin, 0, &sfra, NULL);
 	UI_view2d_region_to_view(&ar->v2d, xmax, 0, &efra, NULL);
 	
@@ -244,10 +244,10 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	if (efra < 1) efra = 1.0f;
 	if (efra < sfra) efra= sfra;
 	
-	scene->r.psfra= (int)sfra;
-	scene->r.pefra= (int)efra;
+	scene->r.psfra= (int)floor(sfra + 0.5f);
+	scene->r.pefra= (int)floor(efra + 0.5f);
 	
-	//BIF_undo_push("Clear Preview Range");
+	//BIF_undo_push("Set Preview Range");
 	
 	return OPERATOR_FINISHED;
 } 

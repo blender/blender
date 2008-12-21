@@ -125,6 +125,7 @@ struct View2DScrollers;
 
 struct wmWindowManager;
 struct bScreen;
+struct ScrArea;
 struct bContext;
 
 typedef struct View2DGrid View2DGrid;
@@ -138,6 +139,7 @@ void UI_view2d_region_reinit(struct View2D *v2d, short type, int winx, int winy)
 
 void UI_view2d_curRect_validate(struct View2D *v2d);
 void UI_view2d_curRect_reset(struct View2D *v2d);
+void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v2dcur, int flag);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
 
@@ -165,7 +167,6 @@ void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *re
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
-void UI_view2d_sync(struct bScreen *screen, struct View2D *v2dcur, int flag);
 
 /* operators */
 void ui_view2d_operatortypes(void);

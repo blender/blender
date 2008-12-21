@@ -508,6 +508,70 @@ void UI_view2d_curRect_validate(View2D *v2d)
 
 /* ------------------ */
 
+/* Called by menus to activate it, or by view2d operators to make sure 'related' views stay in synchrony */
+void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
+{
+	ScrArea *sa;
+	ARegion *ar;
+	
+	/* don't continue if no view syncing to be done */
+	if ((v2dcur->flag & (V2D_VIEWSYNC_SCREEN_TIME|V2D_VIEWSYNC_AREA_VERTICAL)) == 0)
+		return;
+		
+	/* check if doing within area syncing (i.e. channels/vertical) */
+	if (v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+		for (ar= area->regionbase.first; ar; ar= ar->next) {
+			/* don't operate on self */
+			if (v2dcur != &ar->v2d) {
+				/* only if view has vertical locks enabled */
+				if (ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+					if (flag == V2D_LOCK_COPY) {
+						/* other views with locks on must copy active */
+						ar->v2d.cur.ymin= v2dcur->cur.ymin;
+						ar->v2d.cur.ymax= v2dcur->cur.ymax;
+					}
+					else { /* V2D_LOCK_SET */
+						/* active must copy others */
+						v2dcur->cur.ymin= ar->v2d.cur.ymin;
+						v2dcur->cur.ymax= ar->v2d.cur.ymax;
+					}
+					
+					/* region possibly changed, so refresh */
+					ED_region_tag_redraw(ar);
+				}
+			}
+		}
+	}
+	
+	/* check if doing whole screen syncing (i.e. time/horizontal) */
+	if (v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) {
+		for (sa= screen->areabase.first; sa; sa= sa->next) {
+			for (ar= sa->regionbase.first; ar; ar= ar->next) {
+				/* don't operate on self */
+				if (v2dcur != &ar->v2d) {
+					/* only if view has horizontal locks enabled */
+					if (ar->v2d.flag & V2D_VIEWSYNC_SCREEN_TIME) {
+						if (flag == V2D_LOCK_COPY) {
+							/* other views with locks on must copy active */
+							ar->v2d.cur.xmin= v2dcur->cur.xmin;
+							ar->v2d.cur.xmax= v2dcur->cur.xmax;
+						}
+						else { /* V2D_LOCK_SET */
+							/* active must copy others */
+							v2dcur->cur.xmin= ar->v2d.cur.xmin;
+							v2dcur->cur.xmax= ar->v2d.cur.xmax;
+						}
+						
+						/* region possibly changed, so refresh */
+						ED_region_tag_redraw(ar);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 /* Restore 'cur' rect to standard orientation (i.e. optimal maximum view of tot) 
  * This does not take into account if zooming the view on an axis will improve the view (if allowed)
  */
@@ -1547,34 +1611,5 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 {
 	if (x) *x = (v2d->mask.xmax - v2d->mask.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
 	if (y) *y = (v2d->mask.ymax - v2d->mask.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
-}
-
-/* called by menus to activate it, or by view2d operators */
-void UI_view2d_sync(bScreen *screen, View2D *v2dcur, int flag)
-{
-	ScrArea *sa;
-	ARegion *ar;
-	
-	if(!(v2dcur->flag & V2D_VIEWSYNC_X))
-		return;
-	
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		for(ar= sa->regionbase.first; ar; ar= ar->next) {
-			if(v2dcur != &ar->v2d) {
-				if(ar->v2d.flag & V2D_VIEWSYNC_X) {
-					if(flag == V2D_LOCK_COPY) {
-						
-						ar->v2d.cur.xmin= v2dcur->cur.xmin;
-						ar->v2d.cur.xmax= v2dcur->cur.xmax;
-					}
-					else { /* V2D_LOCK_SET */
-						v2dcur->cur.xmin= ar->v2d.cur.xmin;
-						v2dcur->cur.xmax= ar->v2d.cur.xmax;
-					}
-					ED_region_tag_redraw(ar);
-				}
-			}
-		}
-	}
 }
 

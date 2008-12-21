@@ -89,7 +89,7 @@ static SpaceLink *action_new(void)
 	
 		/* only need to set scroll settings, as this will use 'listview' v2d configuration */
 	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
-	ar->v2d.flag = V2D_VIEWSYNC_Y;
+	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for action");
@@ -119,6 +119,7 @@ static SpaceLink *action_new(void)
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
 	ar->v2d.align= V2D_ALIGN_NO_POS_Y;
+	ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 	
 	return (SpaceLink *)saction;
 }
@@ -245,7 +246,11 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* data... */
-	
+	// temp... line for testing
+	glColor3f(0, 0, 0);
+	glLineWidth(2.0f);
+	sdrawline(10, 0, 190, 0);
+	glLineWidth(1.0f);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

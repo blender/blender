@@ -89,15 +89,15 @@ typedef struct View2D {
 
 /* general refresh settings (v2d->flag) */
 	/* global view2d horizontal locking (for showing same time interval) */
-#define V2D_VIEWSYNC_X		(1<<0)
-	/* within region view2d vertical locking */
-#define V2D_VIEWSYNC_Y		(1<<1)
-	/* apply pixel offsets on x-axis */
-#define V2D_PIXELOFS_X		(1<<2)
-	/* apply pixel offsets on y-axis */
-#define V2D_PIXELOFS_Y		(1<<3)
+#define V2D_VIEWSYNC_SCREEN_TIME	(1<<0)
+	/* within area (i.e. between regions) view2d vertical locking */
+#define V2D_VIEWSYNC_AREA_VERTICAL	(1<<1)
+	/* apply pixel offsets on x-axis when setting view matrices */
+#define V2D_PIXELOFS_X				(1<<2)
+	/* apply pixel offsets on y-axis when setting view matrices */
+#define V2D_PIXELOFS_Y				(1<<3)
 	/* view settings need to be set still... */
-#define V2D_IS_INITIALISED		(1<<10)
+#define V2D_IS_INITIALISED			(1<<10)
 
 /* scroller flags for View2D (v2d->scroll) */
 	/* left scrollbar */

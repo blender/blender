@@ -194,8 +194,8 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 11:
 			if(v2d) {
-				v2d->flag ^= V2D_VIEWSYNC_X;
-				UI_view2d_sync(CTX_wm_screen(C), v2d, V2D_LOCK_SET);
+				v2d->flag ^= V2D_VIEWSYNC_SCREEN_TIME;
+				UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_SET);
 			}
 			break;
 		case 12: /* only show keyframes from selected data */
@@ -240,7 +240,7 @@ static uiBlock *time_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_X)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+	uiDefIconTextBut(block, BUTM, 1, (v2d->flag & V2D_VIEWSYNC_SCREEN_TIME)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	
 //	if (!curarea->full) 

@@ -5102,6 +5102,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
+				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
 			case SPACE_NLA:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
@@ -5179,6 +5180,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
+				ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
@@ -5190,6 +5192,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
+				ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
