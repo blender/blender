@@ -3964,18 +3964,35 @@ static void drawnurb(Scene *scene, View3D *v3d, Base *base, Nurb *nurb, int dt)
 /* draw a sphere for use as an empty drawtype */
 static void draw_empty_sphere (float size)
 {
-	float cent=0;
-	GLUquadricObj *qobj = gluNewQuadric(); 
-	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		
-	glPushMatrix();
-	glTranslatef(cent, cent, cent);
-	glScalef(size, size, size);
-	gluSphere(qobj, 1.0, 8, 5);
-		
-	glPopMatrix();
+	static GLuint displist=0;
 	
-	gluDeleteQuadric(qobj); 
+	if (displist == 0) {
+		GLUquadricObj	*qobj;
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		
+		glPushMatrix();
+		
+		qobj	= gluNewQuadric(); 
+		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+		gluDisk(qobj, 0.0,  1, 16, 1);
+		
+		glRotatef(90, 0, 1, 0);
+		gluDisk(qobj, 0.0,  1, 16, 1);
+		
+		glRotatef(90, 1, 0, 0);
+		gluDisk(qobj, 0.0,  1, 16, 1);
+		
+		gluDeleteQuadric(qobj);  
+		
+		glPopMatrix();
+		glEndList();
+	}
+	
+	glScalef(size, size, size);
+		glCallList(displist);
+	glScalef(1/size, 1/size, 1/size);
 }
 
 /* draw a cone for use as an empty drawtype */
