@@ -122,13 +122,13 @@ short id_frame_has_keyframe(struct ID *id, float frame, short filter);
  */
 enum {
 		/* general */
-	ANIMFILTER_LOCAL	= (1<<0),		/* only include locally available anim data */
-	ANIMFILTER_MUTED	= (1<<1),		/* include muted elements */
-	ANIMFILTER_ACTIVE	= (1<<2),		/* only include active-subelements */
+	ANIMFILTER_KEYS_LOCAL	= (1<<0),		/* only include locally available anim data */
+	ANIMFILTER_KEYS_MUTED	= (1<<1),		/* include muted elements */
+	ANIMFILTER_KEYS_ACTIVE	= (1<<2),		/* only include active-subelements */
 	
 		/* object specific */
-	ANIMFILTER_NOMAT		= (1<<9),		/* don't include material keyframes */
-	ANIMFILTER_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
+	ANIMFILTER_KEYS_NOMAT		= (1<<9),		/* don't include material keyframes */
+	ANIMFILTER_KEYS_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
 
 #endif /*  BIF_KEYFRAMING_H */

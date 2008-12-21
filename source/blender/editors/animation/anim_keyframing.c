@@ -2100,7 +2100,7 @@ short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
 		return 0;
 		
 	/* if only check non-muted, check if muted */
-	if ((filter & ANIMFILTER_MUTED) || (ipo->muteipo))
+	if ((filter & ANIMFILTER_KEYS_MUTED) || (ipo->muteipo))
 		return 0;
 	
 	/* loop over IPO-curves, using binary-search to try to find matches 
@@ -2110,7 +2110,7 @@ short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
 		/* only check if there are keyframes (currently only of type BezTriple) */
 		if (icu->bezt) {
 			/* we either include all regardless of muting, or only non-muted  */
-			if ((filter & ANIMFILTER_MUTED) || (icu->flag & IPO_MUTE)==0) {
+			if ((filter & ANIMFILTER_KEYS_MUTED) || (icu->flag & IPO_MUTE)==0) {
 				short replace = -1;
 				int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
 				
@@ -2146,7 +2146,7 @@ short action_frame_has_keyframe (bAction *act, float frame, short filter)
 		/* we either include all regardless of muting, or only non-muted 
 		 *	- here we include 'hidden' channels in the muted definition
 		 */
-		if ((filter & ANIMFILTER_MUTED) || (achan->flag & ACHAN_HIDDEN)==0) {
+		if ((filter & ANIMFILTER_KEYS_MUTED) || (achan->flag & ACHAN_HIDDEN)==0) {
 			if (ipo_frame_has_keyframe(achan->ipo, frame, filter))
 				return 1;
 		}
@@ -2176,7 +2176,7 @@ short object_frame_has_keyframe (Object *ob, float frame, short filter)
 		/* priority check here goes to pose-channel checks (for armatures) */
 		if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
 			/* only relevant check here is to only show active... */
-			if (filter & ANIMFILTER_ACTIVE) {
+			if (filter & ANIMFILTER_KEYS_ACTIVE) {
 				bPoseChannel *pchan= get_active_posechannel(ob);
 				bActionChannel *achan= (pchan) ? get_action_channel(ob->action, pchan->name) : NULL;
 				
@@ -2196,7 +2196,7 @@ short object_frame_has_keyframe (Object *ob, float frame, short filter)
 	}
 	
 	/* try shapekey keyframes (if available, and allowed by filter) */
-	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOSKEY) ) {
+	if ( !(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOSKEY) ) {
 		Key *key= ob_get_key(ob);
 		
 		/* shapekeys can have keyframes ('Relative Shape Keys') 
@@ -2212,9 +2212,9 @@ short object_frame_has_keyframe (Object *ob, float frame, short filter)
 	}
 	
 	/* try materials */
-	if ( !(filter & ANIMFILTER_LOCAL) && !(filter & ANIMFILTER_NOMAT) ) {
+	if ( !(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOMAT) ) {
 		/* if only active, then we can skip a lot of looping */
-		if (filter & ANIMFILTER_ACTIVE) {
+		if (filter & ANIMFILTER_KEYS_ACTIVE) {
 			Material *ma= give_current_material(ob, (ob->actcol + 1));
 			
 			/* we only retrieve the active material... */
