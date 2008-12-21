@@ -70,6 +70,7 @@
 
 #include "WM_api.h"
 
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"
@@ -795,9 +796,9 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-// XXX		if (id_frame_has_keyframe((ID *)ob, frame_to_float(CFRA), v3d->keyflags))
-//			UI_ThemeColor(TH_VERTEX_SELECT);
-//		else
+	if (id_frame_has_keyframe((ID *)ob, frame_to_float(CFRA), v3d->keyflags))
+			UI_ThemeColor(TH_VERTEX_SELECT);
+		else
 			UI_ThemeColor(TH_TEXT_HI);
 	}
 	else {

@@ -92,6 +92,12 @@ void do_all_shape_actions(struct Object *);
  */
 struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
 									   const char *name);
+									   
+/**
+ * Return a pointer to the active pose channel from this Object.
+ * (Note: Object, not bPose is used here, as we need layer info from Armature)
+ */
+struct bPoseChannel *get_active_posechannel(struct Object *ob);
 
 /** 
  * Looks to see if the channel with the given name

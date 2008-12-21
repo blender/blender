@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#if 0 // XXX reenable this file again later...
+
 
 #include <stdio.h>
 #include <string.h>
@@ -381,6 +381,8 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 		bezt->ipo= icu->ipo;
 	}
 }
+
+#if 0 // XXX code to clean up
 
 /* ------------------- Get Data ------------------------ */
 
@@ -2083,6 +2085,8 @@ void common_deletekey (void)
 	common_modifykey(COMMONKEY_MODE_DELETE);
 }
 
+#endif // XXX reenable this file again later...
+
 /* ************************************************** */
 /* KEYFRAME DETECTION */
 
@@ -2282,5 +2286,3 @@ short id_frame_has_keyframe (ID *id, float frame, short filter)
 }
 
 /* ************************************************** */
-
-#endif // XXX reenable this file again later...

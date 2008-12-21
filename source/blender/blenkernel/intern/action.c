@@ -278,6 +278,24 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	return chan;
 }
 
+/* Find the active posechannel for an object (we can't just use pose, as layer info is in armature) */
+bPoseChannel *get_active_posechannel (Object *ob)
+{
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPoseChannel *pchan;
+	
+	if ELEM3(NULL, ob, ob->pose, arm)
+		return NULL;
+	
+	/* find active */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
+			return pchan;
+	}
+	
+	return NULL;
+}
+
 
 /* dst should be freed already, makes entire duplicate */
 void copy_pose(bPose **dst, bPose *src, int copycon)
