@@ -362,6 +362,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case B_REDRAWALL:
+		case B_NEWFRAME:
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case B_TL_REW:

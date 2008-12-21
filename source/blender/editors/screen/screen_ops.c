@@ -1331,6 +1331,11 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 		Scene *scene= CTX_data_scene(C);
 		
 		scene->r.cfra++;
+		
+		/* XXX TODO: 
+		 * 'preview' range (psfra and pefra instead of sfra and efra)
+		 * should be used instead if set...  	
+		 */
 		if(scene->r.cfra > scene->r.efra)
 			scene->r.cfra= scene->r.sfra;
 

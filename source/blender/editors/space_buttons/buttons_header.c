@@ -101,7 +101,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
-		}
+	}
 }
 
 
