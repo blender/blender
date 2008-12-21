@@ -219,6 +219,94 @@ void ED_ANIM_OT_change_frame(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "frame", PROP_INT, PROP_NONE);
 }
 
+/* ****************** set preview range operator ****************************/
+
+static int previewrange_define_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	float sfra, efra;
+	int xmin, xmax;
+	
+	/* convert min/max values from borderselect to region coordinates */
+	xmin= RNA_int_get(op->ptr, "xmin")/* - ar->winrct.xmin*/;
+	xmax= RNA_int_get(op->ptr, "xmax")/* - ar->winrct.xmin*/;
+	
+	/* convert min/max values to frames */
+	UI_view2d_region_to_view(&ar->v2d, xmin, 0, &sfra, NULL);
+	UI_view2d_region_to_view(&ar->v2d, xmax, 0, &efra, NULL);
+	
+	/* set start/end frames for preview-range 
+	 *	- must clamp within allowable limits
+	 *	- end must not be before start (though this won't occur most of the time)
+	 */
+	if (sfra < 1) sfra = 1.0f;
+	if (efra < 1) efra = 1.0f;
+	if (efra < sfra) efra= sfra;
+	
+	scene->r.psfra= (int)sfra;
+	scene->r.pefra= (int)efra;
+	
+	//BIF_undo_push("Set Preview Range");
+	
+	return OPERATOR_FINISHED;
+} 
+
+void ED_ANIM_OT_previewrange_define(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Preview Range";
+	ot->idname= "ED_ANIM_OT_previewrange_define";
+	
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= previewrange_define_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* rna */
+		/* used to define frame range */
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+		/* these are not used, but are needed by borderselect gesture operator stuff */
+	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+}
+
+/* ****************** clear preview range operator ****************************/
+
+static int previewrange_clear_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *curarea= CTX_wm_area(C);
+	
+	/* sanity checks */
+	if (ELEM(NULL, scene, curarea))
+		return OPERATOR_CANCELLED;
+	
+	/* simply clear values */
+	scene->r.psfra= 0;
+	scene->r.pefra= 0;
+	
+	ED_area_tag_redraw(curarea);
+	
+	//BIF_undo_push("Clear Preview Range");
+	
+	return OPERATOR_FINISHED;
+} 
+
+void ED_ANIM_OT_previewrange_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Preview Range";
+	ot->idname= "ED_ANIM_OT_previewrange_clear";
+	
+	/* api callbacks */
+	ot->exec= previewrange_clear_exec;
+}
+
 /* ****************** time display toggle operator ****************************/
 
 static int toggle_time_exec(bContext *C, wmOperator *op)
@@ -287,6 +375,9 @@ void ED_operatortypes_anim(void)
 {
 	WM_operatortype_append(ED_ANIM_OT_change_frame);
 	WM_operatortype_append(ED_ANIM_OT_toggle_time);
+	
+	WM_operatortype_append(ED_ANIM_OT_previewrange_define);
+	WM_operatortype_append(ED_ANIM_OT_previewrange_clear);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)
@@ -295,5 +386,9 @@ void ED_keymap_anim(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "ED_ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ED_ANIM_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
+	
+		/* preview range */
+	WM_keymap_verify_item(keymap, "ED_ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "ED_ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }
 
