@@ -1859,3 +1859,45 @@ void obedit_selectionCB(Scene *scene, ARegion *ar, View3D *v3d, short selecting,
 //	force_draw(0);
 }
 
+static int view3d_circle_select(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Base *base;
+
+	int x= RNA_int_get(op->ptr, "x");
+	int y= RNA_int_get(op->ptr, "y");
+	int radius= RNA_int_get(op->ptr, "radius");
+	
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(base->lay & v3d->lay) {
+			project_short(ar, v3d, base->object->obmat[3], &base->sx);
+			if(base->sx!=IS_CLIPPED) {
+				int dx= base->sx-x;
+				int dy= base->sy-y;
+				if( dx*dx + dy*dy < radius*radius)
+				
+					select_base_v3d(base, BA_SELECT);
+				base->object->flag= base->flag;
+			}
+		}
+	}
+	return 0;
+}
+
+void ED_VIEW3D_OT_circle_select(wmOperatorType *ot)
+{
+	ot->name= "Circle Select";
+	ot->idname= "ED_VIEW3D_OT_circle_select";
+	
+	ot->invoke= WM_gesture_circle_invoke;
+	ot->modal= WM_gesture_circle_modal;
+	ot->exec= view3d_circle_select;
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_property(ot->srna, "x", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "y", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_INT, PROP_NONE);
+	
+}

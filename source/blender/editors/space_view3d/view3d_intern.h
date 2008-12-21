@@ -110,6 +110,7 @@ void view3d_update_depths(ARegion *ar, View3D *v3d);
 /* view3d_select.c */
 void ED_VIEW3D_OT_select(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_borderselect(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void view3d_operator_needs_opengl(const struct bContext *C);

@@ -66,14 +66,18 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 	
 	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 	
-	if( ELEM3(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK)) {
+	if( ELEM4(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK, WM_GESTURE_CIRCLE)) {
 		rcti *rect= MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata= rect;
 		rect->xmin= event->x - sx;
 		rect->ymin= event->y - sy;
-		rect->xmax= event->x - sx;
-		rect->ymax= event->y - sy;
+		if(type==WM_GESTURE_CIRCLE)
+			rect->xmax= 25;	// XXX temp
+		else {
+			rect->xmax= event->x - sx;
+			rect->ymax= event->y - sy;
+		}
 	}
 	
 	return gesture;
@@ -162,6 +166,26 @@ static void wm_gesture_draw_line(wmWindow *win, wmGesture *gt)
 	
 }
 
+static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
+{
+	rcti *rect= (rcti *)gt->customdata;
+
+	glTranslatef((float)rect->xmin, (float)rect->ymin, 0.0f);
+
+	glEnable(GL_LINE_STIPPLE);
+	glColor3ub(0, 0, 0);
+	glLineStipple(1, 0xAAAA);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, rect->xmax, 40);
+	glColor3ub(255, 255, 255);
+	glLineStipple(1, 0x5555);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, rect->xmax, 40);
+	
+	glDisable(GL_LINE_STIPPLE);
+	glTranslatef((float)-rect->xmin, (float)-rect->ymin, 0.0f);
+	
+}
+
+
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
 	rcti *rect= (rcti *)gt->customdata;
@@ -192,6 +216,8 @@ void wm_gesture_draw(wmWindow *win)
 			wm_gesture_draw_rect(win, gt);
 		else if(gt->type==WM_GESTURE_TWEAK)
 			wm_gesture_draw_line(win, gt);
+		else if(gt->type==WM_GESTURE_CIRCLE)
+			wm_gesture_draw_circle(win, gt);
 		else if(gt->type==WM_GESTURE_CROSS_RECT) {
 			if(gt->mode==1)
 				wm_gesture_draw_rect(win, gt);

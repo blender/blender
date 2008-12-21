@@ -69,7 +69,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(ED_VIEW3D_OT_select);
 	WM_operatortype_append(ED_VIEW3D_OT_borderselect);
 	WM_operatortype_append(ED_VIEW3D_OT_clipping);
-	
+	WM_operatortype_append(ED_VIEW3D_OT_circle_select);
 }
 
 void view3d_keymap(wmWindowManager *wm)
@@ -92,6 +92,7 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 
 }
 

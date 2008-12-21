@@ -119,9 +119,11 @@ void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 
 int         WM_operator_call		(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);
 
-			/* default operator callbacks for border/lasso */
+			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);
 int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_invoke(struct bContext *C, wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_modal(struct bContext *C, wmOperator *op, struct wmEvent *event);
 
 			/* default operator for arearegions, generates event */
 void		WM_OT_tweak_gesture(wmOperatorType *ot);

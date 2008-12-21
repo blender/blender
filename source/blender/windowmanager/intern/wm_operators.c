@@ -249,7 +249,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static void border_select_apply(bContext *C, wmOperator *op, int event_type)
+static void border_apply(bContext *C, wmOperator *op, int event_type)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -264,13 +264,13 @@ static void border_select_apply(bContext *C, wmOperator *op, int event_type)
 	RNA_int_set(op->ptr, "ymin", rect->ymin);
 	RNA_int_set(op->ptr, "xmax", rect->xmax);
 	RNA_int_set(op->ptr, "ymax", rect->ymax);
-	if( RNA_property_is_set(op->ptr, "event_type"))
+	if( RNA_struct_find_property(op->ptr, "event_type") )
 		RNA_int_set(op->ptr, "event_type", event_type);
 	
 	op->type->exec(C, op);
 }
 
-static void border_select_end(bContext *C, wmOperator *op)
+static void border_end(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	
@@ -327,17 +327,124 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			else {
-				border_select_apply(C, op, event->type);
-				border_select_end(C, op);
+				border_apply(C, op, event->type);
+				border_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			break;
 		case ESCKEY:
-			border_select_end(C, op);
+			border_end(C, op);
 			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
+
+/* **************** circle gesture *************** */
+/* works now only for selection or modal paint stuff, calls exec while hold mouse */
+
+int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CIRCLE);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static void gesture_circle_end(bContext *C, wmOperator *op)
+{
+	wmGesture *gesture= op->customdata;
+	
+	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
+	op->customdata= NULL;
+	
+	ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+static void gesture_circle_apply(bContext *C, wmOperator *op, int event_type)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	
+	/* operator arguments and storage. */
+	RNA_int_set(op->ptr, "x", rect->xmin);
+	RNA_int_set(op->ptr, "y", rect->ymin);
+	RNA_int_set(op->ptr, "radius", rect->xmax);
+	if( RNA_struct_find_property(op->ptr, "event_type") )
+		RNA_int_set(op->ptr, "event_type", event_type);
+	
+	if(op->type->exec)
+		op->type->exec(C, op);
+}
+
+int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmGesture *gesture= op->customdata;
+	rcti *rect= gesture->customdata;
+	int sx, sy;
+	
+	switch(event->type) {
+		case MOUSEMOVE:
+			
+			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+			
+			rect->xmin= event->x - sx;
+			rect->ymin= event->y - sy;
+			
+			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			
+			if(gesture->mode)
+				gesture_circle_apply(C, op, event->type);
+
+			break;
+		case WHEELUPMOUSE:
+			rect->xmax += 2 + rect->xmax/10;
+			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			break;
+		case WHEELDOWNMOUSE:
+			rect->xmax -= 2 + rect->xmax/10;
+			if(rect->xmax < 1) rect->xmax= 1;
+			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			break;
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			if(event->val==0) {	/* key release */
+				gesture_circle_end(C, op);
+				return OPERATOR_FINISHED;
+			}
+			else
+				gesture->mode= 1;
+
+			break;
+		case ESCKEY:
+			gesture_circle_end(C, op);
+			return OPERATOR_CANCELLED;
+	}
+	return OPERATOR_RUNNING_MODAL;
+}
+
+#if 0
+/* template to copy from */
+void WM_OT_circle_gesture(wmOperatorType *ot)
+{
+	ot->name= "Circle Gesture";
+	ot->idname= "WM_OT_circle_gesture";
+	
+	ot->invoke= WM_gesture_circle_invoke;
+	ot->modal= WM_gesture_circle_modal;
+	
+	ot->poll= WM_operator_winactive;
+	
+	RNA_def_property(ot->srna, "x", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "y", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_INT, PROP_NONE);
+
+}
+#endif
 
 /* **************** Tweak gesture *************** */
 
@@ -456,5 +563,6 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
+
 }
 

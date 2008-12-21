@@ -173,6 +173,7 @@ void WM_exit(bContext *C)
 	
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
+	/* note; same code copied in wm_files.c */
 	if(C && CTX_wm_manager(C)) {
 		for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
 			

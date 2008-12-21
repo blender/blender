@@ -146,6 +146,7 @@ typedef struct wmGesture {
 	
 	void *customdata;
 	/* customdata for border is a recti */
+	/* customdata for circle is recti, (xmin, ymin) is center, xmax radius */
 	
 } wmGesture;
 

@@ -106,9 +106,12 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	/* generic notes first */
 	switch(note->type) {
 		case WM_NOTE_WINDOW_REDRAW:
-		case WM_NOTE_GESTURE_REDRAW:
 		case WM_NOTE_SCREEN_CHANGED:
 			ED_region_tag_redraw(ar);
+			break;
+		case WM_NOTE_GESTURE_REDRAW:
+			if(note->swinid==ar->swinid)
+				ED_region_tag_redraw(ar);
 			break;
 		default:
 			if(ar->type->listener)
