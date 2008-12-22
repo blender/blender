@@ -922,51 +922,37 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 		switch(align) {
 			case UI_BUT_ALIGN_TOP:
 				uiSetRoundBox(12);
-				round_align_fix= 4;
 				break;
 			case UI_BUT_ALIGN_DOWN:
 				uiSetRoundBox(3);
-				round_align_fix= 2;
 				break;
 			case UI_BUT_ALIGN_LEFT:
 				uiSetRoundBox(6);
-				round_align_fix= 6;
 				break;
 			case UI_BUT_ALIGN_RIGHT:
 				uiSetRoundBox(9);
-				round_align_fix= 9;
 				break;
 				
 			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_RIGHT:
 				uiSetRoundBox(1);
-				round_align_fix= 0;
 				break;
 			case UI_BUT_ALIGN_DOWN|UI_BUT_ALIGN_LEFT:
 				uiSetRoundBox(2);
-				round_align_fix= 2;
 				break;
 			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_RIGHT:
 				uiSetRoundBox(8);
-				round_align_fix= 0;
 				break;
 			case UI_BUT_ALIGN_TOP|UI_BUT_ALIGN_LEFT:
 				uiSetRoundBox(4);
-				round_align_fix= 4;
 				break;
 				
 			default:
 				uiSetRoundBox(0);
-				round_align_fix= 0;
 				break;
 		}
 	} 
 	else {
 		uiSetRoundBox(15);
-		if (x2 - x1 > 19) {
-			round_align_fix= 6;
-		} else {
-			round_align_fix= 15;
-		}
 	}
 	/* end alignment */
 	
@@ -1694,24 +1680,12 @@ static void round_button(float x1, float y1, float x2, float y2, float asp,
 		gl_round_box(GL_POLYGON, x2-menudeco, y1, x2, y2, rad);
 	}
 	
-	/* fake AA */
+	/* outline */
+	UI_ThemeColorBlendShade(TH_BUT_OUTLINE, TH_BACK, 0.1, -30);
+	
 	uiSetRoundBox(round);
-	glEnable( GL_BLEND );
-
-	UI_GetThemeColor3ubv(colorid, col);
-		
-	if(col[0]<100) col[0]= 0; else col[0]-= 100;
-	if(col[1]<100) col[1]= 0; else col[1]-= 100;
-	if(col[2]<100) col[2]= 0; else col[2]-= 100;
-	col[3]= 80;
-	glColor4ubv((GLubyte *)col);
-	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad - asp);
-	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad + asp);
-	col[3]= 180;
-	glColor4ubv((GLubyte *)col);
-	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad);
-
-	glDisable( GL_BLEND );
+	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
+	/* end outline */
 }
 
 /* button in midst of alignment row */
@@ -3093,7 +3067,7 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 		case TH_ROUNDSHADED:
 		default:
 			but->embossfunc= ui_draw_roundshaded;
-			but->sliderfunc= ui_default_slider;
+			// but->sliderfunc= ui_default_slider;
 			break;
 		}
 	}
