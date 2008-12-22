@@ -562,7 +562,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 		return;
 		
 	/* check if doing within area syncing (i.e. channels/vertical) */
-	if (v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) {
+	if ((v2dcur->flag & V2D_VIEWSYNC_AREA_VERTICAL) && (area)) {
 		for (ar= area->regionbase.first; ar; ar= ar->next) {
 			/* don't operate on self */
 			if (v2dcur != &ar->v2d) {
@@ -587,7 +587,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 	}
 	
 	/* check if doing whole screen syncing (i.e. time/horizontal) */
-	if (v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) {
+	if ((v2dcur->flag & V2D_VIEWSYNC_SCREEN_TIME) && (screen)) {
 		for (sa= screen->areabase.first; sa; sa= sa->next) {
 			for (ar= sa->regionbase.first; ar; ar= ar->next) {
 				/* don't operate on self */

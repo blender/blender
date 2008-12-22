@@ -101,6 +101,8 @@ static short mouse_in_v2d_scrollers (const bContext *C, View2D *v2d, int x, int 
  
 /* temp customdata for operator */
 typedef struct v2dViewPanData {
+	bScreen *sc;			/* screen where view pan was initiated */
+	ScrArea *sa;			/* area where view pan was initiated */
 	View2D *v2d;			/* view2d we're operating in */
 	
 	float facx, facy;		/* amount to move view relative to zoom */
@@ -129,6 +131,8 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	op->customdata= vpd;
 	
 	/* set pointers to owners */
+	vpd->sc= CTX_wm_screen(C);
+	vpd->sa= CTX_wm_area(C);
 	vpd->v2d= v2d= &ar->v2d;
 	
 	/* calculate translation factor - based on size of view */
@@ -165,8 +169,8 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_area_tag_redraw(CTX_wm_area(C));
-	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	ED_area_tag_redraw(vpd->sa);
+	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
 }
 
 /* cleanup temp customdata  */

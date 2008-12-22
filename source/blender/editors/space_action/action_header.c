@@ -329,66 +329,68 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* get context... (also syncs data) */
-	if ((ANIM_animdata_get_context(C, &ac)) && (ac.data)) { 
-		if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
-			/* pull down menus */
-			uiBlockSetEmboss(block, UI_EMBOSSP);
-			
-			xmax= GetButStringLength("View");
-			uiDefPulldownBut(block, action_viewmenu, CTX_wm_area(C), 
-						  "View", xco, yco, xmax-3, 24, "");
+	ANIM_animdata_get_context(C, &ac);
+	
+	if ((sa->flag & HEADER_NO_PULLDOWN)==0) {
+		/* pull down menus */
+		uiBlockSetEmboss(block, UI_EMBOSSP);
+		
+		xmax= GetButStringLength("View");
+		uiDefPulldownBut(block, action_viewmenu, CTX_wm_area(C), 
+					  "View", xco, yco, xmax-3, 24, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Select");
+		uiDefPulldownBut(block, action_selectmenu, CTX_wm_area(C), 
+					  "Select", xco, yco, xmax-3, 24, "");
+		xco+= xmax;
+		
+		if ( (saction->mode == SACTCONT_DOPESHEET) ||
+			 ((saction->action) && (saction->mode==SACTCONT_ACTION)) ) 
+		{
+			xmax= GetButStringLength("Channel");
+			uiDefPulldownBut(block, action_channelmenu, CTX_wm_area(C), 
+						  "Channel", xco, yco, xmax-3, 24, "");
 			xco+= xmax;
-			
-			xmax= GetButStringLength("Select");
-			uiDefPulldownBut(block, action_selectmenu, CTX_wm_area(C), 
-						  "Select", xco, yco, xmax-3, 24, "");
-			xco+= xmax;
-			
-			if ( (saction->mode == SACTCONT_DOPESHEET) ||
-				 ((saction->action) && (saction->mode==SACTCONT_ACTION)) ) 
-			{
-				xmax= GetButStringLength("Channel");
-				uiDefPulldownBut(block, action_channelmenu, CTX_wm_area(C), 
-							  "Channel", xco, yco, xmax-3, 24, "");
-				xco+= xmax;
-			}
-			else if (saction->mode==SACTCONT_GPENCIL) {
-				xmax= GetButStringLength("Channel");
-				uiDefPulldownBut(block, action_gplayermenu, CTX_wm_area(C), 
-							  "Channel", xco, yco, xmax-3, 24, "");
-				xco+= xmax;
-			}
-			
-			xmax= GetButStringLength("Marker");
-			uiDefPulldownBut(block, action_markermenu, CTX_wm_area(C), 
-						  "Marker", xco, yco, xmax-3, 24, "");
-			xco+= xmax;
-			
-			if (saction->mode == SACTCONT_GPENCIL) {
-				xmax= GetButStringLength("Frame");
-				uiDefPulldownBut(block, action_framemenu, CTX_wm_area(C), 
-							  "Frame", xco, yco, xmax-3, 24, "");
-				xco+= xmax;
-			}
-			else {
-				xmax= GetButStringLength("Key");
-				uiDefPulldownBut(block, action_keymenu, CTX_wm_area(C), 
-							  "Key", xco, yco, xmax-3, 24, "");
-				xco+= xmax;
-			}
 		}
+		else if (saction->mode==SACTCONT_GPENCIL) {
+			xmax= GetButStringLength("Channel");
+			uiDefPulldownBut(block, action_gplayermenu, CTX_wm_area(C), 
+						  "Channel", xco, yco, xmax-3, 24, "");
+			xco+= xmax;
+		}
+		
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block, action_markermenu, CTX_wm_area(C), 
+					  "Marker", xco, yco, xmax-3, 24, "");
+		xco+= xmax;
+		
+		if (saction->mode == SACTCONT_GPENCIL) {
+			xmax= GetButStringLength("Frame");
+			uiDefPulldownBut(block, action_framemenu, CTX_wm_area(C), 
+						  "Frame", xco, yco, xmax-3, 24, "");
+			xco+= xmax;
+		}
+		else {
+			xmax= GetButStringLength("Key");
+			uiDefPulldownBut(block, action_keymenu, CTX_wm_area(C), 
+						  "Key", xco, yco, xmax-3, 24, "");
+			xco+= xmax;
+		}
+	}
 
-		uiBlockSetEmboss(block, UI_EMBOSS);
-		
-		/* MODE SELECTOR */
-		uiDefButC(block, MENU, B_REDR, 
-				"Editor Mode %t|DopeSheet %x3|Action Editor %x0|ShapeKey Editor %x1|Grease Pencil %x2", 
-				xco,yco,90,YIC, &saction->mode, 0, 1, 0, 0, 
-				"Editing modes for this editor");
-
-		
-		xco += (90 + 8);
-		
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	/* MODE SELECTOR */
+	uiDefButC(block, MENU, B_REDR, 
+			"Editor Mode %t|DopeSheet %x3|Action Editor %x0|ShapeKey Editor %x1|Grease Pencil %x2", 
+			xco,yco,90,YIC, &saction->mode, 0, 1, 0, 0, 
+			"Editing modes for this editor");
+	
+	
+	xco += (90 + 8);
+	
+	if (ac.data) {
 		/* MODE-DEPENDENT DRAWING */
 		if (saction->mode == SACTCONT_DOPESHEET) {
 			/* FILTERING OPTIONS */
