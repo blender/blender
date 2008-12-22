@@ -36,6 +36,7 @@ struct View2D;
 struct gla2DDrawInfo;
 struct Object;
 struct bActionGroup;
+struct IpoCurve;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -243,15 +244,24 @@ enum {
 } eAnimEditDraw_CurrentFrame; 
 
 /* main call to draw current-frame indicator in an Animation Editor */
-void ANIM_draw_cfra(const bContext *C, struct View2D *v2d, short flag);
+void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 
 /* ------------- Preview Range Drawing -------------- */
 
 /* main call to draw preview range curtains */
-void ANIM_draw_previewrange(const bContext *C, struct View2D *v2d);
+void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
+
+/* ------------ IPO Adrcode <-> Icons/Names Mapping ------------ */
+
+
+int geticon_ipo_blocktype(short blocktype);
+char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob);
+
+unsigned int ipo_rainbow(int cur, int tot);
+
 
 /* ------------- NLA-Mapping ----------------------- */
 

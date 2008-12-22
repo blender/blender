@@ -351,6 +351,8 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	glDisable(GL_BLEND);
 }
 
+/* *************************** Channel Drawing Funcs *************************** */
+
 void draw_object_channel(gla2DDrawInfo *di, ActKeysInc *aki, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
@@ -420,7 +422,7 @@ void draw_gpl_channel(gla2DDrawInfo *di, ActKeysInc *aki, bGPDlayer *gpl, float 
 	BLI_freelistN(&keys);
 }
 
-/* --------------- Conversion: data -> keyframe list ------------------ */
+/* *************************** Keyframe List Conversions *************************** */
 
 void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {

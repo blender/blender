@@ -730,11 +730,10 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						mute = ICON_MUTE_IPO_OFF;
 					
 					sel = SEL_ICU(icu);
-					//if (saction->pin)
-					//	sprintf(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
-					//else
-					//	sprintf(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
-					sprintf(name, "[IPO Curve]"); // FIXME xxx
+					if (saction->pin)
+						sprintf(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
+					else
+						sprintf(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
 				}
 					break;
 				case ANIMTYPE_FILLIPO: /* ipo expand widget */
@@ -742,7 +741,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					bActionChannel *achan = (bActionChannel *)ale->data;
 					
 					indent = 1;
-					//special = geticon_ipo_blocktype(achan->ipo->blocktype); // xxx func to eventually eliminate
+					special = geticon_ipo_blocktype(achan->ipo->blocktype); // xxx func to eventually eliminate
 					
 					group= (ale->grp) ? 1 : 0;
 					grp= ale->grp;
@@ -817,7 +816,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						case SPACE_VIEW3D:
 						{
 							/* this shouldn't cause any overflow... */
-							//sprintf(name, "3DView[%02d]:%s", sa->win, view3d_get_name(sa->spacedata.first)); // XXX missing func..
+							//sprintf(name, "3DView:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
+							sprintf(name, "3dView");
 							special= ICON_VIEW3D;
 						}
 							break;
