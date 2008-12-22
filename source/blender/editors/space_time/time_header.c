@@ -458,11 +458,11 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockBeginAlign(block);
 	
 	uiDefButI(block, TOG, B_TL_PREVIEWON,"PR",	
-			  xco,yco, XIC*3, YIC,
+			  xco,yco, XIC*2, YIC,
 			  &scene->r.psfra,0, 1, 0, 0,
 			  "Show settings for frame range of animation preview");
 	
-	xco += XIC;
+	xco += XIC*2;
 	
 	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
