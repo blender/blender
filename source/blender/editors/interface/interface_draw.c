@@ -905,7 +905,6 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 {
 	float rad, maxrad;
 	int align= (flag & UI_BUT_ALIGN);
-	int round_align_fix= 0;
 	
 	/* rounded corners */
 	if (ELEM4(type, MENU, ROW, ICONROW, ICONTEXTROW)) maxrad = 5.0;
@@ -1465,6 +1464,7 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 	}
 }
 
+#if 0
 static void ui_default_slider(int colorid, float fac, float aspect, float x1, float y1, float x2, float y2, int flag)
 {
 	float ymid, yc;
@@ -1539,6 +1539,7 @@ static void ui_default_slider(int colorid, float fac, float aspect, float x1, fl
 
 	glShadeModel(GL_FLAT);
 }
+#endif
 
 /* default theme callback */
 static void ui_draw_default(int type, int colorid, float aspect, float x1, float y1, float x2, float y2, int flag)
@@ -1666,7 +1667,6 @@ static void round_button(float x1, float y1, float x2, float y2, float asp,
 						 int colorid, int round, int menudeco, int curshade)
 {
 	float rad;
-	char col[4];
 	
 	rad= (y2-y1)/2.0;
 	if(rad>7.0) rad= 7.0;
