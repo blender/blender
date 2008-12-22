@@ -167,6 +167,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
@@ -187,7 +188,9 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 	
 	/* data */
-	draw_channel_strips(C, saction, ar);
+	if ((ANIM_animdata_get_context(C, &ac)) && (ac.data)) {
+		draw_channel_strips(&ac, saction, ar);
+	}
 	
 	/* current frame */
 	if (saction->flag & SACTION_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
@@ -237,6 +240,7 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -249,8 +253,9 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* data */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	draw_channel_names(C, saction, ar);
+	if ((ANIM_animdata_get_context(C, &ac)) && (ac.data)) {
+		draw_channel_names(&ac, saction, ar);
+	}
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

@@ -314,19 +314,18 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 				totCurves = (startCurves>endCurves)? endCurves: startCurves;
 				
 			if (ab->totcurve >= totCurves) {
-				int sc_xa, sc_xb, sc_y;
+				int sc_xa, sc_xb, sc_ya, sc_yb;
 				
 				/* get co-ordinates of block */
-				// XXX only use x-coordinates... y are dummy ones!
-				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_y);
-				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_y);
+				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
+				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
 				
 				/* draw block */
 				if (ab->sel)
 					UI_ThemeColor4(TH_STRIP_SELECT);
 				else
 					UI_ThemeColor4(TH_STRIP);
-				glRectf((float)sc_xa, (float)ypos-3, (float)sc_xb, (float)ypos+5);
+				glRectf((float)sc_xa, (float)sc_ya-3, (float)sc_xb, (float)sc_yb+5);
 			}
 		}
 	}
@@ -337,12 +336,11 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 			int sc_x, sc_y;
 			
 			/* get co-ordinate to draw at */
-			// XXX only use x-coordinates... y are dummy ones!
 			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
 			/* draw using icons - old way which is slower but more proven */
-			if (ak->sel & SELECT)UI_icon_draw_aspect((float)sc_x-7, (float)ypos-6, ICON_SPACE2, 1.0f);
-			else UI_icon_draw_aspect((float)sc_x-7, (float)ypos-6, ICON_SPACE3, 1.0f);
+			if (ak->sel & SELECT) UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
+			else UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
 			
 			/* draw using OpenGL - slightly uglier but faster */
 			// 	NOTE: disabled for now, as some intel cards seem to have problems with this
@@ -511,6 +509,7 @@ static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
 		return 1;
 		
 	/* if nla-scaling is in effect, apply appropriate scaling adjustments */
+#if 0 // XXX this was from some buggy code... do not port for now
 	if (aki->ob) {
 		float frame= get_action_frame_inv(aki->ob, bezt->vec[1][0]);
 		return IN_RANGE(frame, aki->start, aki->end);
@@ -519,6 +518,8 @@ static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
 		/* check if in range */
 		return IN_RANGE(bezt->vec[1][0], aki->start, aki->end);
 	}
+#endif // XXX this was from some buggy code... do not port for now
+	return 1;
 }
 
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)

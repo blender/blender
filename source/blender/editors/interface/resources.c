@@ -316,8 +316,24 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_SEQ_META:
 				cp= ts->meta; break;
 				
+			case TH_HANDLE_VERTEX:
+				cp= ts->handle_vertex;
+				break;
+			case TH_HANDLE_VERTEX_SELECT:
+				cp= ts->handle_vertex_select;
+				break;
+			case TH_HANDLE_VERTEX_SIZE:
+				cp= &ts->handle_vertex_size;
+				break;
+				
+			case TH_DOPESHEET_CHANNELOB:
+				cp= ts->ds_channel;
+				break;
+			case TH_DOPESHEET_CHANNELSUBOB:
+				cp= ts->ds_subchannel;
+				break;	
+				
 			}
-
 		}
 	}
 	

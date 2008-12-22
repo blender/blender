@@ -29,14 +29,15 @@
 #define ED_ACTION_INTERN_H
 
 struct bContext;
+struct bAnimContext;
 struct SpaceAction;
 struct ARegion;
 
 /* internal exports only */
 
 /* action_draw.c */
-void draw_channel_names(const struct bContext *C, struct SpaceAction *saction, struct ARegion *ar); 
-void draw_channel_strips(const struct bContext *C, struct SpaceAction *saction, struct ARegion *ar);
+void draw_channel_names(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar); 
+void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
 
 /* action_header.c */
 void action_header_buttons(const struct bContext *C, struct ARegion *ar);

@@ -112,6 +112,10 @@
 	#include "BSE_view.h"
 #endif // XXX old defines for reference only
 
+/* XXX */
+extern void ui_rasterpos_safe(float x, float y, float aspect);
+extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+
 /********************************** Slider Stuff **************************** */
 
 #if 0 // XXX all of this slider stuff will need a rethink!
@@ -135,16 +139,16 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS, UI_HELV, curarea->win);
 
-	x = NAMEWIDTH + 1;
+	x = ACHANNEL_NAMEWIDTH + 1;
     y = 0.0f;
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if (!(G.saction->flag & SACTION_SLIDERS)) {
-		ACTWIDTH = NAMEWIDTH;
+		ACTWIDTH = ACHANNEL_NAMEWIDTH;
 		but=uiDefIconButBitS(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
-					  NAMEWIDTH - XIC - 5, (short)y + CHANNELHEIGHT,
+					  ACHANNEL_NAMEWIDTH - XIC - 5, (short)y + CHANNELHEIGHT,
 					  XIC,YIC-2,
 					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Show action window sliders");
@@ -154,19 +158,19 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	else {
 		but= uiDefIconButBitS(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_DOWN,
-					  NAMEWIDTH - XIC - 5, (short)y + CHANNELHEIGHT,
+					  ACHANNEL_NAMEWIDTH - XIC - 5, (short)y + CHANNELHEIGHT,
 					  XIC,YIC-2,
 					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Hide action window sliders");
 		/* no hilite, the winmatrix is not correct later on... */
 		uiButSetFlag(but, UI_NO_HILITE);
 		
-		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
+		ACTWIDTH = ACHANNEL_NAMEWIDTH + SLIDERWIDTH;
 		
 		/* sliders are open so draw them */
 		BIF_ThemeColor(TH_FACE); 
 		
-		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
+		glRects(ACHANNEL_NAMEWIDTH,  0,  ACHANNEL_NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1; i < key->totkey; i++) {
 			make_rvk_slider(block, ob, i, 
@@ -299,7 +303,7 @@ static void action_icu_buts(SpaceAction *saction)
     block= uiNewBlock (&curarea->uiblocks, str, 
                        UI_EMBOSS, UI_HELV, curarea->win);
 
-	x = (float)NAMEWIDTH + 1;
+	x = (float)ACHANNEL_NAMEWIDTH + 1;
     y = 0.0f;
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -317,7 +321,7 @@ static void action_icu_buts(SpaceAction *saction)
 		
 		/* draw backdrop first */
 		BIF_ThemeColor(TH_FACE); // change this color... it's ugly
-		glRects(NAMEWIDTH,  (short)G.v2d->cur.ymin,  NAMEWIDTH+SLIDERWIDTH,  (short)G.v2d->cur.ymax);
+		glRects(ACHANNEL_NAMEWIDTH,  (short)G.v2d->cur.ymin,  ACHANNEL_NAMEWIDTH+SLIDERWIDTH,  (short)G.v2d->cur.ymax);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (ale= act_data.first; ale; ale= ale->next) {
@@ -389,35 +393,24 @@ static void action_icu_buts(SpaceAction *saction)
 #endif // XXX all of this slider stuff will need a rethink 
 
 
-/********************************** Left-Hand Panel + Generics **************************** */
-
-// XXX
-extern void gl_round_box(short, float,  float, float, float, short);
+/* ************************************************************************* */
+/* Channel List */
 
 /* left hand part */
-void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar) 
+void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
-	bAnimContext ac;
 	bAnimListElem *ale;
 	int filter;
 	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= (float)(-ACHANNEL_HEIGHT_HALF);
-	
-	/* determine what type of data we are operating on */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
-		return;
-	
-	/* set default color back to black */
-	//glColor3ub(0x00, 0x00, 0x00);
+	float x= 0.0f, y= 0.0f;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop through channels, and set up drawing depending on their type  */
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	/* loop through channels, and set up drawing depending on their type  */	
+	y= (float)(-ACHANNEL_HEIGHT);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
@@ -740,7 +733,7 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 					//if (saction->pin)
 					//	sprintf(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
 					//else
-					//	sprintf(name, getname_ipocurve(icu, ac.obact)); // xxx func to eventually eliminate
+					//	sprintf(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
 					sprintf(name, "[IPO Curve]"); // FIXME xxx
 				}
 					break;
@@ -906,8 +899,11 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 				}
 					break;
 			}	
-
+			
 			/* now, start drawing based on this information */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			
 			/* draw backing strip behind channel name */
 			if (group == 4) {
 				/* only used in dopesheet... */
@@ -915,7 +911,7 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 					/* object channel - darker */
 					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
 					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 				}
 				else {
 					/* sub-object folders - lighter */
@@ -925,8 +921,8 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 					glBegin(GL_QUADS);
 						glVertex2f(x+offset, yminc);
 						glVertex2f(x+offset, ymaxc);
-						glVertex2f((float)NAMEWIDTH, ymaxc);
-						glVertex2f((float)NAMEWIDTH, yminc);
+						glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
+						glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
 					glEnd();
 					
 					/* clear group value, otherwise we cause errors... */
@@ -937,7 +933,7 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 				/* only for gp-data channels */
 				UI_ThemeColorShade(TH_GROUP, 20);
 				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 			}
 			else if (group == 2) {
 				/* only for action group channels */
@@ -946,7 +942,7 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 				else
 					UI_ThemeColorShade(TH_GROUP, 20);
 				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NAMEWIDTH, ymaxc, 8);
+				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
 			}
 			else {
 				/* for normal channels 
@@ -978,8 +974,8 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 				glBegin(GL_QUADS);
 					glVertex2f(x+offset, yminc);
 					glVertex2f(x+offset, ymaxc);
-					glVertex2f((float)NAMEWIDTH, ymaxc);
-					glVertex2f((float)NAMEWIDTH, yminc);
+					glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
+					glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
 				glEnd();
 			}
 			
@@ -1002,30 +998,36 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 					offset += 17;
 				}
 			}
-				
+			glDisable(GL_BLEND);
+			
 			/* draw name */
 			if (sel)
 				UI_ThemeColor(TH_TEXT_HI);
 			else
 				UI_ThemeColor(TH_TEXT);
 			offset += 3;
-			glRasterPos2f(x+offset, y-4);
+			ui_rasterpos_safe(x+offset, y-4, 1.0f);
 			UI_DrawString(G.font, name, 0);
 			
 			/* reset offset - for RHS of panel */
 			offset = 0;
 			
+			/* set blending again, as text drawing may clear it */
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			
 			/* draw protect 'lock' */
 			if (protect > -1) {
 				offset = 16;
-				UI_icon_draw((float)NAMEWIDTH-offset, yminc, protect);
+				UI_icon_draw((float)ACHANNEL_NAMEWIDTH-offset, yminc, protect);
 			}
 			
 			/* draw mute 'eye' */
 			if (mute > -1) {
 				offset += 16;
-				UI_icon_draw((float)(NAMEWIDTH-offset), yminc, mute);
+				UI_icon_draw((float)(ACHANNEL_NAMEWIDTH-offset), yminc, mute);
 			}
+			glDisable(GL_BLEND);
 		}
 		
 		/* adjust y-position for next one */
@@ -1035,6 +1037,9 @@ void draw_channel_names(const bContext *C, SpaceAction *saction, ARegion *ar)
 	/* free tempolary channels */
 	BLI_freelistN(&anim_data);
 }
+
+/* ************************************************************************* */
+/* Keyframes */
 
 static ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
 {
@@ -1058,10 +1063,10 @@ static ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
 }
 
 
-void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
+/* draw keyframes in each channel */
+void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 {
 	ListBase anim_data = {NULL, NULL};
-	bAnimContext ac;
 	bAnimListElem *ale;
 	int filter;
 	
@@ -1086,10 +1091,6 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 	
 	UI_GetThemeColor3ubv(TH_DOPESHEET_CHANNELOB, col1b);
 	UI_GetThemeColor3ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
-
-	/* get editor data */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
-		return;
 	
 	/* set view-mapping rect (only used for x-axis), for NLA-scaling mapping with less calculation */
 	scr_rct.xmin= ar->winrct.xmin + ar->v2d.mask.xmin;
@@ -1099,14 +1100,14 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 	di= glaBegin2DDraw(&scr_rct, &v2d->cur);
 
 	/* if in NLA there's a strip active, map the view */
-	if (ac.datatype == ANIMCONT_ACTION) {
-		nob= ANIM_nla_mapping_get(&ac, NULL);
+	if (ac->datatype == ANIMCONT_ACTION) {
+		nob= ANIM_nla_mapping_get(ac, NULL);
 		
 		if (nob)
 			ANIM_nla_mapping_draw(di, nob, 0);
 		
 		/* start and end of action itself */
-		calc_action_range(ac.data, &sta, &end, 0);
+		calc_action_range(ac->data, &sta, &end, 0);
 		gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
 		gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
 		
@@ -1116,11 +1117,12 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* first backdrop strips */
-	y= (float)(-ACHANNEL_HEIGHT_HALF);
+	y= (float)(-ACHANNEL_HEIGHT);
 	glEnable(GL_BLEND);
+	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
@@ -1173,7 +1175,7 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 						break;
 				}
 				
-				if (ELEM(ac.datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+				if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 					gla2DDrawTranslatePt(di, v2d->cur.xmin, y, &frame1_x, &channel_y);
 					
 					switch (ale->type) {
@@ -1212,10 +1214,10 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 					/* draw region twice: firstly backdrop, then the current range */
 					glRectf((float)frame1_x,  (float)channel_y-ACHANNEL_HEIGHT_HALF,  (float)v2d->hor.xmax,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
 					
-					if (ac.datatype == ANIMCONT_ACTION)
+					if (ac->datatype == ANIMCONT_ACTION)
 						glRectf((float)act_start,  (float)channel_y-ACHANNEL_HEIGHT_HALF,  (float)act_end,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
 				}
-				else if (ac.datatype == ANIMCONT_SHAPEKEY) {
+				else if (ac->datatype == ANIMCONT_SHAPEKEY) {
 					gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 					
 					/* all frames that have a frame number less than one
@@ -1228,7 +1230,7 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 					glColor4ub(col2[0], col2[1], col2[2], 0x44);
 					glRectf((float)frame1_x, (float)channel_y-ACHANNEL_HEIGHT_HALF, (float)v2d->hor.xmax,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
 				}
-				else if (ac.datatype == ANIMCONT_GPENCIL) {
+				else if (ac->datatype == ANIMCONT_GPENCIL) {
 					gla2DDrawTranslatePt(di, v2d->cur.xmin, y, &frame1_x, &channel_y);
 					
 					/* frames less than one get less saturated background */
@@ -1254,7 +1256,8 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 	 *	   This is to try to optimise this for heavier data sets
 	 *	2) Keyframes which are out of view horizontally are disregarded 
 	 */
-	y= (float)(-ACHANNEL_HEIGHT_HALF);
+	y= (float)(-ACHANNEL_HEIGHT);
+	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
@@ -1265,8 +1268,8 @@ void draw_channel_strips(const bContext *C, SpaceAction *saction, ARegion *ar)
 		{
 			/* check if anything to show for this channel */
 			if (ale->datatype != ALE_NONE) {
-				ActKeysInc *aki= init_aki_data(&ac, ale); 
-				nob= ANIM_nla_mapping_get(&ac, ale);
+				ActKeysInc *aki= init_aki_data(ac, ale); 
+				nob= ANIM_nla_mapping_get(ac, ale);
 				
 				if (nob)
 					ANIM_nla_mapping_draw(di, nob, 0);

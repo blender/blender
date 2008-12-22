@@ -209,8 +209,7 @@ typedef enum eAnimFilter_Flags {
 #define ACHANNEL_HEIGHT_HALF	8
 #define	ACHANNEL_SKIP			2
 #define ACHANNEL_STEP			(ACHANNEL_HEIGHT + ACHANNEL_SKIP)
-	// FIXME: needs to be renamed...
-#define NAMEWIDTH				190
+#define ACHANNEL_NAMEWIDTH		200
 
 /* ---------------- API  -------------------- */
 
