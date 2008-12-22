@@ -44,7 +44,6 @@ static bNodeSocketType outputs[]= {
 static void valuefn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
 {
 	float coord1[3], coord2[3];
-	float x, y, z;
 
 	tex_input_vec(coord1, in[0], coord, thread);
 	tex_input_vec(coord2, in[1], coord, thread);

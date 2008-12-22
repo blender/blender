@@ -2022,7 +2022,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 /* draw bone paths
  *	- in view space 
  */
-static void draw_pose_paths(View3D *v3d, Object *ob)
+static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -2547,7 +2547,7 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 						else if(G.f & G_WEIGHTPAINT)
 							arm->flag |= ARM_POSEMODE;
 					
-						draw_pose_paths(v3d, ob);
+						draw_pose_paths(scene, v3d, ob);
 					}
 				}	
 			}

@@ -452,7 +452,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-void draw_mesh_text(Object *ob, int glsl)
+void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *ddm;
@@ -561,7 +561,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 
 	/* draw game engine text hack */
 	if(get_ob_property(ob, "Text")) 
-		draw_mesh_text(ob, 0);
+		draw_mesh_text(scene, ob, 0);
 
 	draw_textured_end();
 	

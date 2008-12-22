@@ -71,7 +71,7 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 /* CURRENT FRAME DRAWING */
 
 /* Draw current frame number in a little green box beside the current frame indicator */
-static void draw_cfra_number (View2D *v2d, float cfra, short time)
+static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 {
 	float xscale, yscale, x, y;
 	char str[32];
@@ -147,7 +147,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	/* Draw current frame number in a little box */
 	if (flag & DRAWCFRA_SHOW_NUMBOX) {
 		UI_view2d_view_orthoSpecial(C, v2d, 1);
-		draw_cfra_number(v2d, vec[0], (flag & DRAWCFRA_UNIT_SECONDS));
+		draw_cfra_number(scene, v2d, vec[0], (flag & DRAWCFRA_UNIT_SECONDS));
 	}
 }
 

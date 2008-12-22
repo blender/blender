@@ -2824,7 +2824,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 /* 5. start filling the arrays				*/
 /* 6. draw the arrays						*/
 /* 7. clean up								*/
-static void draw_new_particle_system(View3D *v3d, Base *base, ParticleSystem *psys, int dt)
+static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, ParticleSystem *psys, int dt)
 {
 	Object *ob=base->object;
 	ParticleSystemModifierData *psmd;
@@ -5069,7 +5069,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		glDepthMask(GL_FALSE);
 		
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
-			draw_new_particle_system(v3d, base, psys, dt);
+			draw_new_particle_system(scene, v3d, base, psys, dt);
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
 			psys= NULL; // XXX PE_get_current(ob);

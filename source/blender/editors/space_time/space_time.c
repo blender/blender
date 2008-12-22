@@ -86,7 +86,7 @@ static void time_draw_cfra_time(const bContext *C, SpaceTime *stime, ARegion *ar
 static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar)
 {
 	View2D *v2d= UI_view2d_fromcontext(C);
-	//Scene *scene= CTX_data_scene(C);
+	Scene *scene= CTX_data_scene(C);
 	
 	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range */
@@ -229,9 +229,10 @@ static SpaceLink *time_new(void)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= (float)(SFRA - 4);
+	/* XXX here sfra and efra was used.... */
+	ar->v2d.tot.xmin= (float)(- 4);
 	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= (float)(EFRA + 4);
+	ar->v2d.tot.xmax= (float)(250 +  4);
 	ar->v2d.tot.ymax= 50.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;

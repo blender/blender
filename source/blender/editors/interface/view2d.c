@@ -867,6 +867,7 @@ static void step_to_grid(float *step, int *power, int unit)
  */
 View2DGrid *UI_view2d_grid_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int winx, int winy)
 {
+	Scene *scene= CTX_data_scene(C);
 	View2DGrid *grid;
 	float space, pixels, seconddiv;
 	int secondgrid;
@@ -1137,7 +1138,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 }
 
 /* Print scale marking along a time scrollbar */
-static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float val, int power, short unit, char dir)
+static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, float y, float val, int power, short unit, char dir)
 {
 	int len;
 	char str[32];
@@ -1250,6 +1251,7 @@ static void scroll_printstr(View2DScrollers *scrollers, float x, float y, float 
 /* Draw scrollbars in the given 2d-region */
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
+	Scene *scene= CTX_data_scene(C);
 	const short darker= -50, dark= -10, light= 20, lighter= 50;
 	rcti vert, hor, corner;
 	
@@ -1355,12 +1357,12 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
 					switch (vs->xunits) {
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
-							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							scroll_printstr(vs, scene, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
 							fac2= val/FPS;
-							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							scroll_printstr(vs, scene, fac, 3.0+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
 						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
@@ -1371,13 +1373,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							time= floor(fac2);
 							fac2= fac2-time;
 							
-							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), time+FPS*fac2/100.0, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							scroll_printstr(vs, scene, fac, 3.0+(float)(hor.ymin), time+FPS*fac2/100.0, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
 						}
 							break;
 							
 						case V2D_UNIT_DEGREES:		/* IPO-Editor for rotation IPO-Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(vs, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							scroll_printstr(vs, scene, fac, 3.0+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
 					}
 				}
@@ -1484,7 +1486,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				
 			/* draw vertical steps */
 			for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
-				scroll_printstr(vs, (float)(vert.xmax)-14.0, fac, val, grid->powery, vs->yunits, 'v');
+				scroll_printstr(vs, scene, (float)(vert.xmax)-14.0, fac, val, grid->powery, vs->yunits, 'v');
 			}			
 		}	
 		

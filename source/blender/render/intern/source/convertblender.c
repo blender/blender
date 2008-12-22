@@ -1473,7 +1473,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	MCol *mcol= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
-	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
+	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)re->scene->r.cfra,0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
@@ -1570,7 +1570,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if(part->flag&PART_GLOB_TIME)
-		cfra=bsystem_time(0,(float)CFRA,0.0);
+		cfra=bsystem_time(0,(float)re->scene->r.cfra,0.0);
 
 	if(part->type==PART_REACTOR){
 		psys_get_reactor_target(ob, psys, &tob, &tpsys);
@@ -5512,7 +5512,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 /* Sticky texture coords													 */
 /* ------------------------------------------------------------------------- */
 
-void RE_make_sticky(View3D *v3d)
+void RE_make_sticky(Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	Base *base;

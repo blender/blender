@@ -36,8 +36,9 @@
 
 /* called by meshtools */
 struct View3D;
+struct Scene;
 
-void	RE_make_sticky(struct View3D *v3d);
+void	RE_make_sticky(struct Scene *scene, struct View3D *v3d);
 	
 /* for radiosity module */	
 struct RadView;

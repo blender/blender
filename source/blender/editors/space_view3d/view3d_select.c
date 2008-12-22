@@ -723,7 +723,7 @@ void mouse_cursor(Scene *scene, ARegion *ar, View3D *v3d, short mx, short my)
 	
 }
 
-void deselectall(View3D *v3d)	/* is toggle */
+void deselectall(Scene *scene, View3D *v3d)	/* is toggle */
 {
 	Base *base;
 	int a=0, ok=0; 
@@ -806,7 +806,7 @@ void selectrandom(Scene *scene, View3D *v3d)
 }
 
 /* selects all objects of a particular type, on currently visible layers */
-void selectall_type(View3D *v3d, short obtype) 
+void selectall_type(Scene *scene, View3D *v3d, short obtype) 
 {
 	Base *base;
 	
@@ -825,7 +825,7 @@ void selectall_type(View3D *v3d, short obtype)
 	BIF_undo_push("Select all per type");
 }
 /* selects all objects on a particular layer */
-void selectall_layer(unsigned int layernum) 
+void selectall_layer(Scene *scene, unsigned int layernum) 
 {
 	Base *base;
 	
@@ -1863,6 +1863,7 @@ static int view3d_circle_select(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
 

@@ -724,22 +724,22 @@ typedef struct Scene {
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
-#define FIRSTBASE		G.scene->base.first
-#define LASTBASE		G.scene->base.last
-#define BASACT			(G.scene->basact)
+#define FIRSTBASE		scene->base.first
+#define LASTBASE		scene->base.last
+#define BASACT			(scene->basact)
 #define OBACT			(BASACT? BASACT->object: 0)
 #define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
 #define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
 #define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
-#define	CFRA			(G.scene->r.cfra)
-#define	F_CFRA			((float)(G.scene->r.cfra))
-#define	SFRA			(G.scene->r.sfra)
-#define	EFRA			(G.scene->r.efra)
-#define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
-#define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
-#define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)
-#define TIME2FRA(a)           ((((double) G.scene->r.frs_sec) * (a)) / G.scene->r.frs_sec_base)
-#define FPS                     (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base)
+#define	CFRA			(scene->r.cfra)
+#define	F_CFRA			((float)(scene->r.cfra))
+#define	SFRA			(scene->r.sfra)
+#define	EFRA			(scene->r.efra)
+#define PSFRA			((scene->r.psfra != 0)? (scene->r.psfra): (scene->r.sfra))
+#define PEFRA			((scene->r.psfra != 0)? (scene->r.pefra): (scene->r.efra))
+#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
+#define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
 
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2

@@ -362,6 +362,7 @@ int WM_modal_tweak_check(wmEvent *evt, int tweak_event)
 
 static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 {
+	Scene *scene= CTX_data_scene(C);
 	MarkerMove *mm= op->customdata;
 	View2D *v2d= UI_view2d_fromcontext(C);
 	TimeMarker *marker, *selmarker=NULL;

@@ -1267,11 +1267,11 @@ void ed_screen_fullarea(bContext *C)
 void ED_animation_timer(wmWindow *win, int enable)
 {
 	
-	if(win->animtimer)
-		WM_event_remove_window_timer(win, win->animtimer);
-	win->animtimer= NULL;
+//	if(win->animtimer)
+//		WM_event_remove_window_timer(win, win->animtimer);
+//	win->animtimer= NULL;
 	
-	if(enable)
-		win->animtimer= WM_event_add_window_timer(win, (int)(1000/FPS), (int)(1000/FPS));
+//	if(enable)
+//		win->animtimer= WM_event_add_window_timer(win, (int)(1000/FPS), (int)(1000/FPS));
 }
 

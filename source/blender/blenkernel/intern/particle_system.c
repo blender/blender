@@ -4429,7 +4429,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	part= psys->part;
 	cache= psys->pointcache;
 
-	framenr= (int)CFRA;
+	framenr= (int)G.scene->r.cfra;
 	framedelta= framenr - cache->simframe;
 
 	BKE_ptcache_id_from_particles(&pid, ob, psys);
