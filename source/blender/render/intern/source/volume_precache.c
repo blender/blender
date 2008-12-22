@@ -35,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_threads.h"
 
 #include "PIL_time.h"
 
@@ -46,6 +47,9 @@
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "volumetric.h"
+
+
+#include "BKE_global.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
@@ -207,11 +211,7 @@ static void lightcache_filter(float *cache, int res)
 	}
 }
 
-/* Precache a volume into a 3D voxel grid.
- * The voxel grid is stored in the ObjectInstanceRen, 
- * in camera space, aligned with the ObjectRen's bounding box.
- * Resolution is defined by the user.
- */
+
 void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
 {
 	int x, y, z;
@@ -325,29 +325,20 @@ void vol_precache_objectinstance(Render *re, ObjectInstanceRen *obi, Material *m
 
 }
 
-#if 0
-typedef struct VolPrecachePart {
-	struct VolPrecachePart *next, *prev;
-	int num;
-	int minx, maxx;
-	int miny, maxy;
-	int minz, maxz;
-	int res;
-	float bbmin[3], voxel[3];
-	struct RayTree *tree;
-	struct ShadeInput *shi;
-	struct ObjectInstanceRen *obi;
-	int done;
-} VolPrecachePart;
-
+#if 0 // debug stuff
 static void *vol_precache_part_test(void *data)
 {
-	VolPrecachePart *vpt =  (VolPrecachePart *)data;
+	VolPrecachePart *pa = data;
 
-	printf("part number: %d \n", vpt->num);
+	printf("part number: %d \n", pa->num);
+	printf("done: %d \n", pa->done);
+	printf("x min: %d   x max: %d \n", pa->minx, pa->maxx);
+	printf("y min: %d   y max: %d \n", pa->miny, pa->maxy);
+	printf("z min: %d   z max: %d \n", pa->minz, pa->maxz);
 
-	return 0;
+	return NULL;
 }
+#endif
 
 /* Iterate over the 3d voxel grid, and fill the voxels with scattering information
  *
@@ -357,28 +348,24 @@ static void *vol_precache_part_test(void *data)
  */
 static void *vol_precache_part(void *data)
 {
-	VolPrecachePart *vpt =  (VolPrecachePart *)data;
-	ObjectInstanceRen *obi = vpt->obi;
-	RayTree *tree = vpt->tree;
-	ShadeInput *shi = vpt->shi;
-	float scatter_col[3] = {0.f, 0.f, 0.f};
+	VolPrecachePart *pa =  (VolPrecachePart *)data;
+	ObjectInstanceRen *obi = pa->obi;
+	RayTree *tree = pa->tree;
+	ShadeInput *shi = pa->shi;
+	float density, scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3];
 	int x, y, z;
-	const int res=vpt->res, res_2=vpt->res*vpt->res, res_3=vpt->res*vpt->res*vpt->res;
+	const int res=pa->res, res_2=pa->res*pa->res, res_3=pa->res*pa->res*pa->res;
 	const float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
-	
-	res = vpt->res;
-	res_2 = res*res;
-	res_3 = res*res*res;
-	
-	for (x= vpt->minx; x < vpt->maxx; x++) {
-		co[0] = vpt->bbmin[0] + (vpt->voxel[0] * x);
+
+	for (x= pa->minx; x < pa->maxx; x++) {
+		co[0] = pa->bbmin[0] + (pa->voxel[0] * x);
 		
-		for (y= vpt->miny; y < vpt->maxy; y++) {
-			co[1] = vpt->bbmin[1] + (vpt->voxel[1] * y);
+		for (y= pa->miny; y < pa->maxy; y++) {
+			co[1] = pa->bbmin[1] + (pa->voxel[1] * y);
 			
-			for (z=vpt->minz; z < vpt->maxz; z++) {
-				co[2] = vpt->bbmin[2] + (vpt->voxel[2] * z);
+			for (z=pa->minz; z < pa->maxz; z++) {
+				co[2] = pa->bbmin[2] + (pa->voxel[2] * z);
 			
 				// don't bother if the point is not inside the volume mesh
 				if (!point_inside_obi(tree, obi, co)) {
@@ -397,14 +384,17 @@ static void *vol_precache_part(void *data)
 		}
 	}
 	
+	pa->done = 1;
+	
 	return 0;
 }
+
 
 static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Material *ma, ShadeInput *shi)
 {
 	float view[3] = {0.0,0.0,-1.0};
 	
-	memset(&shi, 0, sizeof(ShadeInput)); 
+	memset(shi, 0, sizeof(ShadeInput)); 
 	shi->depth= 1;
 	shi->mask= 1;
 	shi->mat = ma;
@@ -417,61 +407,102 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	VECCOPY(shi->view, view);
 }
 
-static void precache_init_parts(ListBase *precache_parts, RayTree *tree, ShadeInput *shi, ObjectInstanceRen *obi, float *bbmin, float *bbmax, int res)
+static void precache_init_parts(Render *re, RayTree *tree, ShadeInput *shi, ObjectInstanceRen *obi, float *bbmin, float *bbmax, int res, int totthread, int *parts)
 {
-	int i;
+	int i=0, x, y, z;
 	float voxel[3];
-
+	int sizex, sizey, sizez;
+	int minx, maxx;
+	int miny, maxy;
+	int minz, maxz;
+	
+	BLI_freelistN(&re->volume_precache_parts);
+	
+	/* currently we just subdivide the box, number of threads per side */
+	parts[0] = parts[1] = parts[2] = totthread;
+	
 	VecSubf(voxel, bbmax, bbmin);
 	if ((voxel[0] < FLT_EPSILON) || (voxel[1] < FLT_EPSILON) || (voxel[2] < FLT_EPSILON))
 		return;
 	VecMulf(voxel, 1.0f/res);
 
-	for(i=0; i < totparts; i++) {
-		VolPrecachePart *pa= MEM_callocN(sizeof(VolPrecachePart), "new precache part");
-	
-		pa->done = 0;
-		pa->num = i;
+	for (x=0; x < parts[0]; x++) {
+		sizex = ceil(res / (float)parts[0]);
+		minx = x * sizex;
+		maxx = minx + sizex;
+		maxx = (maxx>res)?res:maxx;
 		
-		pa->res = res;
-		VECCOPY(pa->bbmin, bbmin);
-		VECCOPY(precache_parts[j].voxel, voxel);
-		precache_parts[j].tree = tree;
-		precache_parts[j].shi = shi;
-		precache_parts[j].obi = obi;
-		
-		BLI_addtail(precache_parts, pa);
+		for (y=0; y < parts[1]; y++) {
+			sizey = ceil(res / (float)parts[1]);
+			miny = y * sizey;
+			maxy = miny + sizey;
+			maxy = (maxy>res)?res:maxy;
+			
+			for (z=0; z < parts[2]; z++) {
+				VolPrecachePart *pa= MEM_callocN(sizeof(VolPrecachePart), "new precache part");
+				
+				sizez = ceil(res / (float)parts[2]);
+				minz = z * sizez;
+				maxz = minz + sizez;
+				maxz = (maxz>res)?res:maxz;
+						
+				pa->done = 0;
+				pa->working = 0;
+				
+				pa->num = i;
+				pa->tree = tree;
+				pa->shi = shi;
+				pa->obi = obi;
+				VECCOPY(pa->bbmin, bbmin);
+				VECCOPY(pa->voxel, voxel);
+				pa->res = res;
+				
+				pa->minx = minx; pa->maxx = maxx;
+				pa->miny = miny; pa->maxy = maxy;
+				pa->minz = minz; pa->maxz = maxz;
+				
+				
+				BLI_addtail(&re->volume_precache_parts, pa);
+				
+				i++;
+			}
+		}
 	}
-	
 }
 
+static VolPrecachePart *precache_get_new_part(Render *re)
+{
+	VolPrecachePart *pa, *nextpa=NULL;
+	
+	for (pa = re->volume_precache_parts.first; pa; pa=pa->next)
+	{
+		if (pa->done==0 && pa->working==0) {
+			nextpa = pa;
+			break;
+		}
+	}
+
+	return nextpa;
+}
+
+/* Precache a volume into a 3D voxel grid.
+ * The voxel grid is stored in the ObjectInstanceRen, 
+ * in camera space, aligned with the ObjectRen's bounding box.
+ * Resolution is defined by the user.
+ */
 void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Material *ma, float *bbmin, float *bbmax)
 {
-	int x, y, z;
-
-	float co[3], voxel[3], scatter_col[3];
-	ShadeInput shi;
-	
-	float density;
-	float stepsize;
-	
-	float resf, res_3f;
-	int res_2, res_3;
-	
-	int edgeparts=2;
-	ListBase threads, precache_parts;
-	int cont= 1;
-	int xparts, yparts, zparts;
-	float part[3];
-	int totthread = re->r.threads;
-	int totparts = edgeparts*edgeparts*edgeparts;
-	VolPrecachePart *nextpa;
-	int j;
-	
-	float i = 1.0f;
-	double time, lasttime= PIL_check_seconds_timer();
-	const int res = ma->vol_precache_resolution;
+	VolPrecachePart *nextpa, *pa;
 	RayTree *tree;
+	ShadeInput shi;
+	ListBase threads;
+	const int res = ma->vol_precache_resolution;
+	int parts[3], totparts;
+	
+	int caching=1, counter=0;
+	int totthread = re->r.threads;
+	
+	double time, lasttime= PIL_check_seconds_timer();
 	
 	R = *re;
 
@@ -480,119 +511,62 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 	tree = create_raytree_obi(obi, bbmin, bbmax);
 	if (!tree) return;
 	
-	obi->volume_precache = MEM_callocN(sizeof(float)*res_3*3, "volume light cache");
+	obi->volume_precache = MEM_callocN(sizeof(float)*res*res*res*3, "volume light cache");
 
 	/* Need a shadeinput to calculate scattering */
 	precache_setup_shadeinput(re, obi, ma, &shi);
-	precache_init_parts(&precache_parts, tree, shi, obi, bbmin, bbmax, res);
-
+	
+	precache_init_parts(re, tree, &shi, obi, bbmin, bbmax, res, totthread, parts);
+	totparts = parts[0] * parts[1] * parts[2];
+	
 	BLI_init_threads(&threads, vol_precache_part, totthread);
 	
-	nextpa = precache_get_new_part(precache_threads);
-	
-	while(cont) {
+	while(caching) {
 
 		if(BLI_available_threads(&threads) && !(re->test_break())) {
-			
-			precache_get_new_part(
-			// get new job (data pointer)
-			for(j=0; j < totparts; j++) {
-				if (!precache_threads[j].done) {
-					// tag job 'processed
-					precache_threads[j].done = 1;
-				}
+			nextpa = precache_get_new_part(re);
+			if (nextpa) {
+				nextpa->working = 1;
+				BLI_insert_thread(&threads, nextpa);
 			}
-		
-			BLI_insert_thread(&threads, precache_get_new_part(precache_threads));
 		}
 		else PIL_sleep_ms(50);
 
-		// find if a job is ready, this the do_something_func() should write in job somewhere
-		cont= 0;
-		for(go over all jobs)
-			if(job is ready) {
-				if(job was not removed) {
-					BLI_remove_thread(&lb, job);
-				}
-			}
-			else cont= 1;
+		caching=0;
+		counter=0;
+		for(pa= re->volume_precache_parts.first; pa; pa= pa->next) {
+			
+			if(pa->done) {
+				counter++;
+				BLI_remove_thread(&threads, pa);
+			} else
+				caching = 1;
 		}
-		// conditions to exit loop
-		if(if escape loop event) {
-		if(BLI_available_threadslots(&lb)==maxthreads)
-			break;
-		}
-	}
-
-	BLI_end_threads(&threads);
-	
-	//
-	
-	/* Iterate over the 3d voxel grid, and fill the voxels with scattering information
-	 *
-	 * It's stored in memory as 3 big float grids next to each other, one for each RGB channel.
-	 * I'm guessing the memory alignment may work out better this way for the purposes
-	 * of doing linear interpolation, but I haven't actually tested this theory! :)
-	 */
-	 /*
-	for (x=0; x < res; x++) {
-		co[0] = bbmin[0] + (voxel[0] * x);
 		
-		for (y=0; y < res; y++) {
-			co[1] = bbmin[1] + (voxel[1] * y);
-			
-			for (z=0; z < res; z++) {
-				co[2] = bbmin[2] + (voxel[2] * z);
-			
-				time= PIL_check_seconds_timer();
-				i++;
-			
-				// display progress every second
-				if(re->test_break()) {
-					if(tree) {
-						RE_ray_tree_free(tree);
-						tree= NULL;
-					}
-					return;
-				}
-				if(time-lasttime>1.0f) {
-					char str[64];
-					sprintf(str, "Precaching volume: %d%%", (int)(100.0f * (i / res_3f)));
-					re->i.infostr= str;
-					re->stats_draw(&re->i);
-					re->i.infostr= NULL;
-					lasttime= time;
-				}
-				
-				// don't bother if the point is not inside the volume mesh
-				
-				if (!point_inside_obi(tree, obi, co)) {
-					obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = -1.0f;
-					obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = -1.0f;
-					continue;
-				}
-				density = vol_get_density(&shi, co);
-				vol_get_scattering(&shi, scatter_col, co, stepsize, density);
-			
-				obi->volume_precache[0*res_3 + x*res_2 + y*res + z] = scatter_col[0];
-				obi->volume_precache[1*res_3 + x*res_2 + y*res + z] = scatter_col[1];
-				obi->volume_precache[2*res_3 + x*res_2 + y*res + z] = scatter_col[2];
-				
-			}
+		if (re->test_break() && BLI_available_threads(&threads)==totthread)
+			caching=0;
+		
+		time= PIL_check_seconds_timer();
+		if(time-lasttime>1.0f) {
+			char str[64];
+			sprintf(str, "Precaching volume: %d%%", (int)(100.0f * ((float)counter / (float)totparts)));
+			re->i.infostr= str;
+			re->stats_draw(&re->i);
+			re->i.infostr= NULL;
+			lasttime= time;
 		}
 	}
-	*/
-
+	
+	BLI_end_threads(&threads);
+	BLI_freelistN(&re->volume_precache_parts);
+	
 	if(tree) {
 		RE_ray_tree_free(tree);
 		tree= NULL;
 	}
 	
 	lightcache_filter(obi->volume_precache, res);
-
 }
-#endif
 
 /* loop through all objects (and their associated materials)
  * marked for pre-caching in convertblender.c, and pre-cache them */
@@ -605,7 +579,8 @@ void volume_precache(Render *re)
 		if (vo->ma->vol_shadeflag & MA_VOL_PRECACHESHADING) {
 			for(obi= re->instancetable.first; obi; obi= obi->next) {
 				if (obi->obr == vo->obr) {
-					vol_precache_objectinstance(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+					if (G.rt==10) vol_precache_objectinstance(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+					else vol_precache_objectinstance_threads(re, obi, vo->ma, obi->obr->boundbox[0], obi->obr->boundbox[1]);
 				}
 			}
 		}
@@ -624,7 +599,7 @@ void free_volume_precache(Render *re)
 			MEM_freeN(obi->volume_precache);
 	}
 	
-	BLI_freelistN(&re->vol_precache_obs);
+	BLI_freelistN(&re->volumes);
 }
 
 int point_inside_volume_objectinstance(ObjectInstanceRen *obi, float *co)
