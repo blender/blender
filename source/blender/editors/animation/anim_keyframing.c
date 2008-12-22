@@ -382,6 +382,8 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 	}
 }
 
+#if 0 // XXX code to clean up
+
 /* ------------------- Get Data ------------------------ */
 
 /* Get pointer to use to get values from */
@@ -770,7 +772,6 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 		return 0.0;
 }
 
-#if 0 // XXX code to clean up
 /* ------------------------- Insert Key API ------------------------- */
 
 /* Main Keyframing API call:
