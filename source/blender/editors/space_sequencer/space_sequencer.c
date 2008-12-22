@@ -62,8 +62,9 @@
 
 /* ******************** default callbacks for sequencer space ***************** */
 
-static SpaceLink *sequencer_new(void)
+static SpaceLink *sequencer_new(const bContext *C)
 {
+	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
 	SpaceSeq *sseq;
 	
@@ -87,11 +88,11 @@ static SpaceLink *sequencer_new(void)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	
-	/* seq space goes from (0,8) to (250, 0) */
+	/* seq space goes from (0,8) to (0, efra) */
 	
 	ar->v2d.tot.xmin= 0.0f;
 	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= 250.0f;
+	ar->v2d.tot.xmax= scene->r.efra;
 	ar->v2d.tot.ymax= 8.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;

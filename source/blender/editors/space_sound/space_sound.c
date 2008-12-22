@@ -63,7 +63,7 @@
 
 /* ******************** default callbacks for sound space ***************** */
 
-static SpaceLink *sound_new(void)
+static SpaceLink *sound_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceSound *ssound;

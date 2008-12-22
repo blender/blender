@@ -63,7 +63,7 @@
 
 /* ******************** default callbacks for text space ***************** */
 
-static SpaceLink *text_new(void)
+static SpaceLink *text_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceText *stext;

@@ -63,7 +63,7 @@
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(void)
+static SpaceLink *image_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceImage *simage;

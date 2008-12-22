@@ -57,7 +57,7 @@ typedef struct SpaceType {
 	int				iconid;						/* icon lookup for menus */
 	
 	/* initial allocation, after this WM will call init() too */
-	struct SpaceLink	*(*new)(void);
+	struct SpaceLink	*(*new)(const struct bContext *C);
 	/* not free spacelink itself */
 	void		(*free)(struct SpaceLink *);
 	

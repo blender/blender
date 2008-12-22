@@ -60,8 +60,9 @@
 
 /* ******************** default callbacks for view3d space ***************** */
 
-static SpaceLink *view3d_new(void)
+static SpaceLink *view3d_new(const bContext *C)
 {
+	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
 	View3D *vd;
 	
@@ -69,9 +70,9 @@ static SpaceLink *view3d_new(void)
 	vd->spacetype= SPACE_VIEW3D;
 	vd->blockscale= 0.7f;
 	vd->lay= vd->layact= 1;
-	if(G.scene) {
-		vd->lay= vd->layact= G.scene->lay;
-		vd->camera= G.scene->camera;
+	if(scene) {
+		vd->lay= vd->layact= scene->lay;
+		vd->camera= scene->camera;
 	}
 	vd->scenelock= 1;
 	vd->grid= 1.0f;

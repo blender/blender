@@ -116,7 +116,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 /* ****************************** space template *********************** */
 
 /* allocate and init some vars */
-static SpaceLink *xxx_new(void)
+static SpaceLink *xxx_new(const bContext *C)
 {
 	return NULL;
 }

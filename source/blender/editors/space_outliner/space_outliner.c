@@ -532,7 +532,7 @@ static void outliner_header_area_free(ARegion *ar)
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_new(void)
+static SpaceLink *outliner_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceOops *soutliner;

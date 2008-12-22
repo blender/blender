@@ -205,8 +205,9 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 
 /* ******************** default callbacks for time space ***************** */
 
-static SpaceLink *time_new(void)
+static SpaceLink *time_new(const bContext *C)
 {
+	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
 	SpaceTime *stime;
 
@@ -229,10 +230,9 @@ static SpaceLink *time_new(void)
 	BLI_addtail(&stime->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* XXX here sfra and efra was used.... */
-	ar->v2d.tot.xmin= (float)(- 4);
+	ar->v2d.tot.xmin= (float)(SFRA - 4);
 	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= (float)(250 +  4);
+	ar->v2d.tot.xmax= (float)(EFRA + 4);
 	ar->v2d.tot.ymax= 50.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;

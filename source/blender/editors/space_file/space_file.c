@@ -64,7 +64,7 @@
 
 /* ******************** default callbacks for file space ***************** */
 
-static SpaceLink *file_new(void)
+static SpaceLink *file_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceFile *sfile;

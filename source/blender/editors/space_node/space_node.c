@@ -61,7 +61,7 @@
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_new(void)
+static SpaceLink *node_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceNode *snode;

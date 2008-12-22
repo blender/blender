@@ -62,7 +62,7 @@
 
 /* ******************** default callbacks for info space ***************** */
 
-static SpaceLink *info_new(void)
+static SpaceLink *info_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceInfo *sinfo;

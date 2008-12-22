@@ -62,7 +62,7 @@
 
 /* ******************** default callbacks for script space ***************** */
 
-static SpaceLink *script_new(void)
+static SpaceLink *script_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceScript *sscript;

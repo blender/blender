@@ -62,7 +62,7 @@
 
 /* ******************** default callbacks for buttons space ***************** */
 
-static SpaceLink *buttons_new(void)
+static SpaceLink *buttons_new(const bContext *C)
 {
 	ARegion *ar;
 	SpaceButs *sbuts;
