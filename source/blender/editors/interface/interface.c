@@ -1725,7 +1725,7 @@ void uiBlockEndAlign(uiBlock *block)
 	int flag= 0, cols=0, rows=0;
 	int theme= UI_GetThemeValue(TH_BUT_DRAWTYPE);
 	
-	if ( !(ELEM3(theme, TH_MINIMAL, TH_SHADED, TH_ROUNDED)) ) {
+	if ( !(ELEM4(theme, TH_MINIMAL, TH_SHADED, TH_ROUNDED, TH_ROUNDSHADED)) ) {
 		block->flag &= ~UI_BUT_ALIGN;	// all 4 flags
 		return;
 	}
