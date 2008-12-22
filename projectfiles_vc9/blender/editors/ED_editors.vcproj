@@ -202,6 +202,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_keyframes_draw.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_keyframing.h"
 				>
 			</File>
@@ -591,6 +595,10 @@
 			Name="space_action"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_action\action_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_action\action_header.c"
 				>
 			</File>
@@ -692,6 +700,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_filter.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_keyframes_draw.c"
 				>
 			</File>
 			<File
