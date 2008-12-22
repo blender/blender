@@ -103,9 +103,9 @@ static SpaceLink *action_new(void)
 	ar->v2d.tot.ymax= 0.0f;
 	
 	ar->v2d.cur.xmin= -2.0f;
-	ar->v2d.cur.ymin= -200.0f;
+	ar->v2d.cur.ymin= -2000.0f; /* ideally this would be the size of the region, but since we don't know that, set for 1:1 */
 	ar->v2d.cur.xmax= 100.0f;
-	ar->v2d.cur.ymax= -20.0f;
+	ar->v2d.cur.ymax= 0.0f;
 	
 	ar->v2d.min[0]= 0.0f;
  	ar->v2d.min[1]= 0.0f;

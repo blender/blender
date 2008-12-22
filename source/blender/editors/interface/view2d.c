@@ -235,6 +235,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	tot= &v2d->tot;
 	
 	/* we must satisfy the following constraints (in decreasing order of importance):
+	 *	- alignment restrictions are respected
 	 *	- cur must not fall outside of tot
 	 *	- axis locks (zoom and offset) must be maintained
 	 *	- zoom must not be excessive (check either sizes or zoom values)
@@ -353,11 +354,11 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		v2d->oldwiny= winy;
 	}
 	
-	/* Step 2: apply new sizes of cur rect to cur rect */
+	/* Step 2: apply new sizes to cur rect, but need to take into account alignment settings here... */
 	if ((width != curwidth) || (height != curheight)) {
 		float temp, dh;
 		
-		/* resize around 'center' of frame */
+		/* resize from centerpoint */
 		if (width != curwidth) {
 			temp= (cur->xmax + cur->xmin) * 0.5f;
 			dh= width * 0.5f;
@@ -374,7 +375,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		}
 	}
 	
-	/* Step 3: adjust so that it doesn't fall outside of bounds of tot */
+	/* Step 3: adjust so that it doesn't fall outside of bounds of 'tot' */
 	if (v2d->keeptot) {
 		float temp, diff;
 		
@@ -504,6 +505,48 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		}
 	}
 	
+	/* Step 4: Make sure alignment restrictions are respected */
+	if (v2d->align) {
+		/* If alignment flags are set (but keeptot is not), they must still be respected, as although
+		 * they don't specify any particular bounds to stay within, they do define ranges which are 
+		 * invalid.
+		 *
+		 * Here, we only check to make sure that on each axis, the 'cur' rect doesn't stray into these 
+		 * invalid zones, otherwise we offset.
+		 */
+		
+		/* handle width - posx and negx flags are mutually exclusive, so watch out */
+		if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+			/* width is in negative-x half */
+			if (v2d->cur.xmax > 0) {
+				v2d->cur.xmin -= v2d->cur.xmax;
+				v2d->cur.xmax= 0.0f;
+			}
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+			/* width is in positive-x half */
+			if (v2d->cur.xmin < 0) {
+				v2d->cur.xmax -= v2d->cur.xmin;
+				v2d->cur.xmin = 0.0f;
+			}
+		}
+		
+		/* handle height - posx and negx flags are mutually exclusive, so watch out */
+		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+			/* height is in negative-y half */
+			if (v2d->cur.ymax > 0) {
+				v2d->cur.ymin -= v2d->cur.ymax;
+				v2d->cur.ymax = 0.0f;
+			}
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+			/* height is in positive-y half */
+			if (v2d->cur.ymin < 0) {
+				v2d->cur.ymax -= v2d->cur.ymin;
+				v2d->cur.ymin = 0.0f;
+			}
+		}
+	}
 }
 
 /* ------------------ */
