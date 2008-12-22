@@ -384,6 +384,32 @@ void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad
 	glDisable( GL_BLEND );
 }
 
+/* (old, used in outliner) plain antialiased filled box */
+void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
+{
+	float color[4];
+	
+	if(roundboxtype & UI_RB_ALPHA) {
+		glGetFloatv(GL_CURRENT_COLOR, color);
+		color[3]= 0.5;
+		glColor4fv(color);
+		glEnable( GL_BLEND );
+	}
+	
+	/* solid part */
+	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
+	
+	/* set antialias line */
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
+	
+	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
+	
+	glDisable( GL_BLEND );
+	glDisable( GL_LINE_SMOOTH );
+}
 
 void uiTriangleFakeAA(float x1, float y1, float x2, float y2, float x3, float y3)
 {

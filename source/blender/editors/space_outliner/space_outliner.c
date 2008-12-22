@@ -395,10 +395,17 @@ static void rna_table_cell_func(void *userdata, int row, int col, rcti *rct, uiB
 
 static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap;
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+	
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);	/* XXX weak? */
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+							   
 }
 
-static void outliner_main_area_draw(const bContext *C, ARegion *ar)
+static void outliner_rna_draw(const bContext *C, ARegion *ar)
 {
 	uiTable *table;
 	rcti rct;
@@ -496,6 +503,39 @@ static void outliner_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
+static void outliner_tree_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	float col[3];
+	
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	draw_outliner(C);
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+}
+
+static void outliner_main_area_draw(const bContext *C, ARegion *ar)
+{
+	SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+	
+	if(so->type==SO_RNA)
+		outliner_rna_draw(C, ar);
+	else
+		outliner_tree_draw(C, ar);
+}
+
+
 static void outliner_main_area_free(ARegion *ar)
 {
 }
@@ -538,7 +578,8 @@ static SpaceLink *outliner_new(const bContext *C)
 	SpaceOops *soutliner;
 
 	soutliner= MEM_callocN(sizeof(SpaceOops), "initoutliner");
-
+	soutliner->spacetype= SPACE_OOPS;
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for outliner");
 	
@@ -589,7 +630,7 @@ static void outliner_free(SpaceLink *sl)
 		MEM_freeN(soutliner->rnapath);
 		soutliner->rnapath= NULL;
 	}
-	
+
 	while( (oops= soutliner->oops.first) ) {
 		BLI_remlink(&soutliner->oops, oops);
 		free_oops(oops);

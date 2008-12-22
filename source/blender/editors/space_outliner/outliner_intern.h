@@ -32,8 +32,11 @@
 /* internal exports only */
 
 struct wmWindowManager;
-
+struct wmOperatorType;
 struct TreeStoreElem;
+struct bContext;
+struct Scene;
+struct ARegion;
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
@@ -66,11 +69,7 @@ typedef struct TreeElement {
 #define TSE_SCRIPT_BASE		12
 #define TSE_POSE_BASE		13
 #define TSE_POSE_CHANNEL	14
-/*#ifdef WITH_VERSE*/
-#define TSE_VERSE_SESSION	15
-#define TSE_VERSE_OBJ_NODE	16
-#define TSE_VERSE_GEOM_NODE	17
-/*#endif*/
+
 #define TSE_PROXY			18
 #define TSE_R_LAYER_BASE	19
 #define TSE_R_LAYER			20
@@ -80,9 +79,10 @@ typedef struct TreeElement {
 #define TSE_LINKED_LAMP		23
 #define TSE_POSEGRP_BASE	24
 #define TSE_POSEGRP			25
-#define TSE_SEQUENCE	26
-#define TSE_SEQ_STRIP	27
-#define TSE_SEQUENCE_DUP 28
+#define TSE_SEQUENCE		26
+#define TSE_SEQ_STRIP		27
+#define TSE_SEQUENCE_DUP	28
+#define TSE_LINKED_PSYS     29
 
 /* outliner search flags */
 #define OL_FIND					0
@@ -99,8 +99,31 @@ void outliner_operatortypes(void);
 void outliner_keymap(struct wmWindowManager *wm);
 
 /* outliner_header.c */
-void outliner_header_buttons(const bContext *C, ARegion *ar);
+void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+/* outliner.c */
+void outliner_operation_menu(struct Scene *scene, struct ARegion *ar, struct SpaceOops *soops);
+void outliner_select(struct ARegion *ar, struct SpaceOops *so);
+void draw_outliner(const struct bContext *C);
+
+void ED_OUTLINER_OT_activate_click(struct wmOperatorType *ot);
+
+#if 0
+extern void outliner_free_tree(struct ListBase *lb);
+extern void outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, short event);
+extern void outliner_toggle_visible(SpaceOops *soops);
+extern void outliner_show_active(ARegion *ar, SpaceOops *soops);
+extern void outliner_show_hierarchy(Scene *scene, SpaceOops *soops);
+extern void outliner_one_level(SpaceOops *soops, int add);
+extern void outliner_select(Scene *scene, SpaceOops *soops);
+extern void outliner_toggle_selected(Scene *scene, SpaceOops *soops);
+extern void outliner_toggle_visibility(Scene *scene, SpaceOops *soops);
+extern void outliner_toggle_selectability(Scene *scene, SpaceOops *soops);
+extern void outliner_toggle_renderability(Scene *scene, SpaceOops *soops);
+extern void outliner_del(Scene *scene, SpaceOops *soops);
+extern void outliner_page_up_down(Scene *scene, ARegion *ar, SpaceOops *soops, int up);
+extern void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again, int flags);
+#endif
 
 #endif /* ED_OUTLINER_INTERN_H */
 

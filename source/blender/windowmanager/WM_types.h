@@ -28,6 +28,9 @@
 #ifndef WM_TYPES_H
 #define WM_TYPES_H
 
+struct bContext;
+struct wmEvent;
+
 /* exported types for WM */
 
 #include "wm_cursors.h"
@@ -99,8 +102,8 @@ typedef struct wmEvent {
 #define WM_UI_HANDLER_CONTINUE	0
 #define WM_UI_HANDLER_BREAK		1
 
-typedef int (*wmUIHandlerFunc)(bContext *C, struct wmEvent *event, void *userdata);
-typedef void (*wmUIHandlerRemoveFunc)(bContext *C, void *userdata);
+typedef int (*wmUIHandlerFunc)(struct bContext *C, struct wmEvent *event, void *userdata);
+typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 
 /* ************** Notifiers ****************** */
 

@@ -28,15 +28,29 @@
 
 #include <stdlib.h>
 
+#include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+#include "ED_screen.h"
+
+#include "outliner_intern.h"
 
 /* ************************** registration **********************************/
 
+
+
 void outliner_operatortypes(void)
 {
+	WM_operatortype_append(ED_OUTLINER_OT_activate_click);
 }
 
 void outliner_keymap(wmWindowManager *wm)
 {
+	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);
+	
+	WM_keymap_verify_item(keymap, "ED_OUTLINER_OT_activate_click", LEFTMOUSE, KM_PRESS, 0, 0);
+
 }
 

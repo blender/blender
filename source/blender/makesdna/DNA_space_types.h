@@ -437,7 +437,34 @@ typedef struct SpaceImaSel {
 /* **************** SPACE DEFINES ********************* */
 
 
-/* button defines in BIF_butspace.h */
+/* button defines  */
+/* warning: the values of these defines are used in sbuts->tabs[7] */
+/* buts->mainb new */
+#define CONTEXT_SCENE	0
+#define CONTEXT_OBJECT	1
+#define CONTEXT_TYPES	2
+#define CONTEXT_SHADING	3
+#define CONTEXT_EDITING	4
+#define CONTEXT_SCRIPT	5
+#define CONTEXT_LOGIC	6
+
+/* buts->tab new */
+#define TAB_SHADING_MAT 	0
+#define TAB_SHADING_TEX 	1
+#define TAB_SHADING_RAD 	2
+#define TAB_SHADING_WORLD	3
+#define TAB_SHADING_LAMP	4
+
+#define TAB_OBJECT_OBJECT	0
+#define TAB_OBJECT_PHYSICS 	1
+#define TAB_OBJECT_PARTICLE	2
+
+#define TAB_SCENE_RENDER	0
+#define TAB_SCENE_WORLD     	1
+#define TAB_SCENE_ANIM		2
+#define TAB_SCENE_SOUND		3
+#define TAB_SCENE_SEQUENCER	4
+
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
@@ -560,6 +587,7 @@ typedef struct SpaceImaSel {
 #define SO_OOPS			0
 #define SO_OUTLINER		1
 #define SO_DEPSGRAPH    2
+#define SO_RNA			3
 
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1
