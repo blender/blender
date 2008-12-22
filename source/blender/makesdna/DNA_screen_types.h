@@ -38,6 +38,7 @@ struct SpaceType;
 struct SpaceLink;
 struct ARegionType;
 struct Scene;
+struct wmTimer;
 
 typedef struct bScreen {
 	ID id;
@@ -57,6 +58,8 @@ typedef struct bScreen {
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
+	
+	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	
 	short handler[8];					/* similar to space handler */
 } bScreen;

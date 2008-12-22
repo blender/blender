@@ -55,6 +55,8 @@
 
 #include "ED_screen.h"
 
+#include "PIL_time.h"
+
 #include "GPU_draw.h"
 
 /* the global to talk to ghost */
@@ -102,7 +104,8 @@ void wm_window_free(bContext *C, wmWindow *win)
 	}	
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
-
+	BLI_freelistN(&win->timers);
+	
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
 	
@@ -496,23 +499,49 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 	return 1;
 }
 
-void wm_window_process_events(int wait_for_event) 
+
+/* This timer system only gives maximum 1 timer event per redraw cycle,
+   to prevent queues to get overloaded. 
+   Timer handlers should check for delta to decide if they just
+   update, or follow real time 
+*/
+static int wm_window_timer(const bContext *C)
 {
-	int handled= 0;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win;
+	double time= PIL_check_seconds_timer();
+	int retval= 0;
 	
-	/* ghost only processes 1 (timer?) event a time... we want to accumulate all */
-	while(1) {
-		if(GHOST_ProcessEvents(g_system, 0)) {
-			GHOST_DispatchEvents(g_system);
-			handled= 1;
+	for(win= wm->windows.first; win; win= win->next) {
+		wmTimer *wt;
+		for(wt= win->timers.first; wt; wt= wt->next) {
+			if(wt->sleep==0) {
+				if(wt->timestep < time - wt->ltime) {
+					wt->delta= time - wt->ltime;
+					wt->duration += wt->delta;
+					wt->ltime= time;
+					
+					wm_event_add_ghostevent(win, GHOST_kEventTimer, wt);
+					retval= 1;
+				}
+			}
 		}
-		else
-			break;
 	}
-	if(handled==0 && wait_for_event) {
-		GHOST_ProcessEvents(g_system, wait_for_event);
+	return retval;
+}
+
+void wm_window_process_events(const bContext *C) 
+{
+	int hasevent= GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
+	
+	if(hasevent)
 		GHOST_DispatchEvents(g_system);
-	}
+	
+	hasevent |= wm_window_timer(C);
+
+	/* no event, we sleep 5 milliseconds */
+	if(hasevent==0)
+		PIL_sleep_ms(5);
 }
 
 /* **************** init ********************** */
@@ -529,24 +558,42 @@ void wm_ghost_init(bContext *C)
 
 /* **************** timer ********************** */
 
-static void window_event_timer_proc(GHOST_TimerTaskHandle timer, GHOST_TUns64 time)
+/* to (de)activate running timers temporary */
+void WM_event_window_timer_sleep(wmWindow *win, wmTimer *timer, int dosleep)
 {
-	wmWindow *window;
-
-	window= GHOST_GetTimerTaskUserData(timer);
-
-	wm_event_add_ghostevent(window, GHOST_kEventTimer, (wmTimerHandle*)timer);
+	wmTimer *wt;
+	
+	for(wt= win->timers.first; wt; wt= wt->next)
+		if(wt==timer)
+			break;
+	if(wt) {
+		wt->sleep= dosleep;
+	}		
 }
 
-wmTimerHandle *WM_event_add_window_timer(wmWindow *win, int delay_ms, int interval_ms)
+wmTimer *WM_event_add_window_timer(wmWindow *win, double timestep)
 {
-	return (wmTimerHandle*)GHOST_InstallTimer(g_system, delay_ms, interval_ms,
-		window_event_timer_proc, win);
+	wmTimer *wt= MEM_callocN(sizeof(wmTimer), "window timer");
+	
+	wt->ltime= PIL_check_seconds_timer();
+	wt->timestep= timestep;
+	
+	BLI_addtail(&win->timers, wt);
+	
+	return wt;
 }
 
-void WM_event_remove_window_timer(wmWindow *wm, wmTimerHandle *handle)
+void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 {
-	GHOST_RemoveTimer(g_system, (GHOST_TimerTaskHandle)handle);
+	wmTimer *wt;
+	
+	for(wt= win->timers.first; wt; wt= wt->next)
+		if(wt==timer)
+			break;
+	if(wt) {
+		BLI_remlink(&win->timers, wt);
+		MEM_freeN(wt);
+	}
 }
 
 /* ************************************ */

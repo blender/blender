@@ -30,6 +30,7 @@
 
 #include "DNA_vec_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -994,6 +995,10 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 		ED_area_initialize(wm, win, sa);
 	}
 
+	/* wake up animtimer */
+	if(win->screen->animtimer)
+		WM_event_window_timer_sleep(win, win->screen->animtimer, 0);
+	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
 }
@@ -1052,6 +1057,10 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	ARegion *ar;
 
 	CTX_wm_window_set(C, window);
+	
+	if(screen->animtimer)
+		WM_event_remove_window_timer(window, screen->animtimer);
+	screen->animtimer= NULL;
 	
 	for(ar= screen->regionbase.first; ar; ar= ar->next)
 		ED_region_exit(C, ar);
@@ -1170,6 +1179,8 @@ int ED_screen_area_active(const bContext *C)
 /* Do NOT call in area/region queues! */
 void ed_screen_set(bContext *C, bScreen *sc)
 {
+	bScreen *oldscreen= CTX_wm_screen(C);
+	
 	if(sc->full) {				/* find associated full */
 		bScreen *sc1;
 		for(sc1= G.main->screen.first; sc1; sc1= sc1->id.next) {
@@ -1182,8 +1193,17 @@ void ed_screen_set(bContext *C, bScreen *sc)
 		if(sc1==NULL) printf("set screen error\n");
 	}
 	
-	if (CTX_wm_screen(C) != sc) {
-		ED_screen_exit(C, CTX_wm_window(C), CTX_wm_screen(C));
+	if (oldscreen != sc) {
+		wmTimer *wt= oldscreen->animtimer;
+		
+		/* we put timer to sleep, so screen_exit has to think there's no timer */
+		oldscreen->animtimer= NULL;
+		if(wt)
+			WM_event_window_timer_sleep(CTX_wm_window(C), wt, 1);
+		
+		ED_screen_exit(C, CTX_wm_window(C), oldscreen);
+		oldscreen->animtimer= wt;
+		
 		CTX_wm_window(C)->screen= sc;
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
@@ -1225,6 +1245,10 @@ void ed_screen_fullarea(bContext *C)
 			
 			old->full= NULL;
 			
+			/* animtimer back */
+			sc->animtimer= oldscreen->animtimer;
+			oldscreen->animtimer= NULL;
+			
 			ed_screen_set(C, sc);
 			
 			free_screen(oldscreen);
@@ -1241,6 +1265,10 @@ void ed_screen_fullarea(bContext *C)
 		oldscreen->full = SCREENFULL;
 		
 		sc= screen_add(CTX_wm_window(C), "temp");
+		
+		/* timer */
+		sc->animtimer= oldscreen->animtimer;
+		oldscreen->animtimer= NULL;
 		
 		/* returns the top small area */
 		newa= area_split(CTX_wm_window(C), sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
@@ -1264,14 +1292,17 @@ void ed_screen_fullarea(bContext *C)
 
 }
 
-void ED_animation_timer(wmWindow *win, int enable)
+void ED_screen_animation_timer(bContext *C, int enable)
 {
+	bScreen *screen= CTX_wm_screen(C);
+	wmWindow *win= CTX_wm_window(C);
+	Scene *scene= CTX_data_scene(C);
 	
-//	if(win->animtimer)
-//		WM_event_remove_window_timer(win, win->animtimer);
-//	win->animtimer= NULL;
+	if(screen->animtimer)
+		WM_event_remove_window_timer(win, screen->animtimer);
+	screen->animtimer= NULL;
 	
-//	if(enable)
-//		win->animtimer= WM_event_add_window_timer(win, (int)(1000/FPS), (int)(1000/FPS));
+	if(enable)
+		screen->animtimer= WM_event_add_window_timer(win, (1.0/FPS));
 }
 

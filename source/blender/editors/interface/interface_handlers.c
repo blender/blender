@@ -58,8 +58,8 @@
 
 /***************** structs and defines ****************/
 
-#define BUTTON_TOOLTIP_DELAY		500
-#define BUTTON_FLASH_DELAY			20
+#define BUTTON_TOOLTIP_DELAY		0.500
+#define BUTTON_FLASH_DELAY			0.020
 #define BUTTON_AUTO_OPEN_THRESH		0.3
 #define BUTTON_MOUSE_TOWARDS_THRESH	1.0
 
@@ -94,7 +94,7 @@ typedef struct uiHandleButtonData {
 	uiHandleButtonState state;
 	int cancel, retval;
 	int applied, appliedinteractive;
-	wmTimerHandle *flashtimer;
+	wmTimer *flashtimer;
 
 	/* edited value */
 	char *str, *origstr;
@@ -106,8 +106,8 @@ typedef struct uiHandleButtonData {
 
 	/* tooltip */
 	ARegion *tooltip;
-	wmTimerHandle *tooltiptimer;
-	wmTimerHandle *autoopentimer;
+	wmTimer *tooltiptimer;
+	wmTimer *autoopentimer;
 
 	/* text selection/editing */
 	int maxlen, selextend, selstartx;
@@ -2761,7 +2761,7 @@ static void button_tooltip_timer_reset(uiBut *but)
 
 	if(U.flag & USER_TOOLTIPS)
 		if(!but->block->tooltipdisabled)
-			data->tooltiptimer= WM_event_add_window_timer(data->window, BUTTON_TOOLTIP_DELAY, ~0);
+			data->tooltiptimer= WM_event_add_window_timer(data->window, BUTTON_TOOLTIP_DELAY);
 }
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state)
@@ -2789,7 +2789,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				else time= -1;
 
 				if(time >= 0)
-					data->autoopentimer= WM_event_add_window_timer(data->window, time*20, ~0);
+					data->autoopentimer= WM_event_add_window_timer(data->window, 0.02*(double)time);
 			}
 		}
 	}
@@ -2831,7 +2831,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	/* add a short delay before exiting, to ensure there is some feedback */
 	if(state == BUTTON_STATE_WAIT_FLASH) {
-		data->flashtimer= WM_event_add_window_timer(data->window, BUTTON_FLASH_DELAY, ~0);
+		data->flashtimer= WM_event_add_window_timer(data->window, BUTTON_FLASH_DELAY);
 	}
 	else if(data->flashtimer) {
 		WM_event_remove_window_timer(data->window, data->flashtimer);

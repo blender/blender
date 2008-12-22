@@ -441,11 +441,14 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	
 	if(kmi->val!=KM_ANY)
 		if(winevent->val!=kmi->val) return 0;
-	
-	if(winevent->shift!=kmi->shift) return 0;
-	if(winevent->ctrl!=kmi->ctrl) return 0;
-	if(winevent->alt!=kmi->alt) return 0;
-	if(winevent->oskey!=kmi->oskey) return 0;
+	if(kmi->shift!=KM_ANY)
+		if(winevent->shift!=kmi->shift) return 0;
+	if(kmi->ctrl!=KM_ANY)
+		if(winevent->ctrl!=kmi->ctrl) return 0;
+	if(kmi->alt!=KM_ANY)
+		if(winevent->alt!=kmi->alt) return 0;
+	if(kmi->oskey!=KM_ANY)
+		if(winevent->oskey!=kmi->oskey) return 0;
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	

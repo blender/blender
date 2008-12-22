@@ -370,10 +370,10 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
-			ED_animation_timer(CTX_wm_window(C), 1);
+			ED_screen_animation_timer(C, 1);
 			break;
 		case B_TL_STOP:
-			ED_animation_timer(CTX_wm_window(C), 0);
+			ED_screen_animation_timer(C, 0);
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case B_TL_FF:
@@ -508,7 +508,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
 	xco+= XIC+4;
 	
-	if(CTX_wm_window(C)->animtimer)
+	if(CTX_wm_screen(C)->animtimer)
 		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
 	else 	   

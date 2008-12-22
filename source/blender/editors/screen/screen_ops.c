@@ -1325,19 +1325,21 @@ void ED_SCR_OT_region_flip(wmOperatorType *ot)
 
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 {
-	wmWindow *win= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	
-	if(win->animtimer==event->customdata) {
+	if(screen->animtimer==event->customdata) {
 		Scene *scene= CTX_data_scene(C);
 		
 		scene->r.cfra++;
 		
-		/* XXX TODO: 
-		 * 'preview' range (psfra and pefra instead of sfra and efra)
-		 * should be used instead if set...  	
-		 */
-		if(scene->r.cfra > scene->r.efra)
-			scene->r.cfra= scene->r.sfra;
+		if (scene->r.psfra) {
+			if(scene->r.cfra > scene->r.pefra)
+				scene->r.cfra= scene->r.psfra;
+		}
+		else {
+			if(scene->r.cfra > scene->r.efra)
+				scene->r.cfra= scene->r.sfra;
+		}
 
 		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 		
@@ -1467,7 +1469,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 						  
 	/*frame offsets*/
-	WM_keymap_add_item(keymap, "ED_SCR_OT_animation_play", TIMER, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "ED_SCR_OT_animation_play", TIMER, KM_ANY, KM_ANY, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);

@@ -184,8 +184,7 @@ void WM_main(bContext *C)
 	while(1) {
 		
 		/* get events from ghost, handle window events, add to window queues */
-		/* WM_init has assigned to ghost the bContext already */
-		wm_window_process_events(1); 
+		wm_window_process_events(C); 
 		
 		/* per window, all events to the window, screen, area and region handlers */
 		wm_event_do_handlers(C);

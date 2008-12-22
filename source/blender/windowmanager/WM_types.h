@@ -163,8 +163,17 @@ typedef struct wmTabletData {
 	float Ytilt;		/* as above */
 } wmTabletData;
 
-struct wmTimerHandle;
-typedef struct wmTimerHandle wmTimerHandle;
+typedef struct wmTimer {
+	struct wmTimer *next, *prev;
+	double timestep;		/* set by timer user */
+	
+	double duration;		/* total running time in seconds */
+	double delta;			/* time since previous step in seconds */
+	
+	double ltime;			/* internal, last time timer was activated */
+	int sleep;				/* internal, put timers to sleep when needed */
+} wmTimer;
+
 
 /* ****************** Messages ********************* */
 

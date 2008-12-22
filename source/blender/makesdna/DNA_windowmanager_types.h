@@ -47,7 +47,7 @@ struct wmLocal;
 struct bScreen;
 struct uiBlock;
 struct wmSubWindow;
-struct wmTimerHandle;
+struct wmTimer;
 struct StructRNA;
 struct PointerRNA;
 
@@ -94,7 +94,7 @@ typedef struct wmWindow {
 	
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 	
-	struct wmTimerHandle *animtimer;
+	ListBase timers;
 	
 	ListBase queue;				/* all events (ghost level events were handled) */
 	ListBase handlers;			/* window+screen handlers, overriding all queues */
