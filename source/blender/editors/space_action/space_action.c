@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -58,6 +59,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_draw.h"
 #include "ED_markers.h"
 
 #include "action_intern.h"	// own include
@@ -177,15 +179,16 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	UI_view2d_view_ortho(C, v2d);
-		
+	
 	/* time grid */
 	unit= (saction->flag & SACTION_DRAWTIME)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
 	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 	
-	/* data? */
-		
+	/* data */
+	draw_channel_strips(C, saction, ar);
+	
 	/* current frame */
 	if (saction->flag & SACTION_DRAWTIME) 	flag |= DRAWCFRA_UNIT_SECONDS;
 	if ((saction->flag & SACTION_NODRAWCFRANUM)==0)  flag |= DRAWCFRA_SHOW_NUMBOX;
@@ -233,7 +236,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_channel_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	//SpaceAction *saction= C->area->spacedata.first;
+	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -245,12 +248,9 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	UI_view2d_view_ortho(C, v2d);
 	
-	/* data... */
-	// temp... line for testing
-	glColor3f(0, 0, 0);
-	glLineWidth(2.0f);
-	sdrawline(10, 0, 190, 0);
-	glLineWidth(1.0f);
+	/* data */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	draw_channel_names(C, saction, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

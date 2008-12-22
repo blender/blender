@@ -140,86 +140,110 @@ Key *actedit_get_shapekeys (const bContext *C, SpaceAction *saction)
 }
 
 /* Get data being edited in Action Editor (depending on current 'mode') */
-static void *actedit_get_context (const bContext *C, SpaceAction *saction, short *datatype)
+static short actedit_get_context (const bContext *C, bAnimContext *ac, SpaceAction *saction)
 {
-	Scene *scene= CTX_data_scene(C);
-	
 	/* sync settings with current view status, then return appropriate data */
 	switch (saction->mode) {
 		case SACTCONT_ACTION: /* 'Action Editor' */
 			/* if not pinned, sync with active object */
 			if (saction->pin == 0) {
-				if (OBACT)
-					saction->action = OBACT->action;
+				if (ac->obact)
+					saction->action = ac->obact->action;
 				else
 					saction->action= NULL;
 			}
-				
-			*datatype= ANIMCONT_ACTION;
-			return saction->action;
+			
+			ac->datatype= ANIMCONT_ACTION;
+			ac->data= saction->action;
+			
+			ac->mode= saction->mode;
+			return 1;
 			
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
-			*datatype= ANIMCONT_SHAPEKEY;
-			return actedit_get_shapekeys(C, saction);
+			ac->datatype= ANIMCONT_SHAPEKEY;
+			ac->data= actedit_get_shapekeys(C, saction);
+			
+			ac->mode= saction->mode;
+			return 1;
 			
 		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
-			*datatype=ANIMCONT_GPENCIL;
-			return CTX_wm_screen(C); // FIXME: add that dopesheet type thing here!
-			break;
+			ac->datatype=ANIMCONT_GPENCIL;
+			ac->data= CTX_wm_screen(C); // FIXME: add that dopesheet type thing here!
+			
+			ac->mode= saction->mode;
+			return 1;
 			
 		case SACTCONT_DOPESHEET: /* DopeSheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
-			saction->ads.source= (ID *)scene;
+			saction->ads.source= (ID *)ac->scene;
 			
-			*datatype= ANIMCONT_DOPESHEET;
-			return &saction->ads;
+			ac->datatype= ANIMCONT_DOPESHEET;
+			ac->data= &saction->ads;
+			
+			ac->mode= saction->mode;
+			return 1;
 		
 		default: /* unhandled yet */
-			*datatype= ANIMCONT_NONE;
-			return NULL;
+			ac->datatype= ANIMCONT_NONE;
+			ac->data= NULL;
+			
+			ac->mode= -1;
+			return 0;
 	}
 }
 
 /* ----------- Private Stuff - IPO Editor ------------- */
 
 /* Get data being edited in IPO Editor (depending on current 'mode') */
-static void *ipoedit_get_context (const bContext *C, SpaceIpo *sipo, short *datatype)
+static short ipoedit_get_context (const bContext *C, bAnimContext *ac, SpaceIpo *sipo)
 {
 	// XXX FIXME...
-	return NULL;
+	return 0;
 }
 
 /* ----------- Public API --------------- */
 
-/* Obtain current anim-data context from Blender Context info */
-void *ANIM_animdata_get_context (const bContext *C, short *datatype)
+/* Obtain current anim-data context from Blender Context info 
+ *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *	  allocation/freeing costs (which are not that avoidable with channels).
+ *	- 
+ */
+short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa= CTX_wm_area(C); // XXX it is assumed that this will always be valid
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	
-	/* set datatype to 'None' for convenience */
-	if (datatype == NULL) return NULL;
-	*datatype= ANIMCONT_NONE;
-	if (sa == NULL) return NULL; /* highly unlikely to happen, but still! */
+	/* clear old context info */
+	if (ac == NULL) return 0;
+	memset(ac, 0, sizeof(bAnimContext));
+	
+	/* set default context settings */
+	ac->scene= scene;
+	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
+	ac->sa= sa;
+	ac->spacetype= sa->spacetype;
+	ac->regiontype= ar->regiontype;
 	
 	/* context depends on editor we are currently in */
 	switch (sa->spacetype) {
 		case SPACE_ACTION:
 		{
 			SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
-			return actedit_get_context(C, saction, datatype);
+			return actedit_get_context(C, ac, saction);
 		}
 			break;
 			
 		case SPACE_IPO:
 		{
 			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-			return ipoedit_get_context(C, sipo, datatype);
+			return ipoedit_get_context(C, ac, sipo);
 		}
 			break;
 	}
 	
 	/* nothing appropriate */
-	return NULL;
+	return 0;
 }
 
 /* ************************************************************ */
@@ -1207,6 +1231,10 @@ void ANIM_animdata_filter (ListBase *anim_data, int filter_mode, void *data, sho
 				break;
 			case ANIMCONT_DOPESHEET:
 				animdata_filter_dopesheet(anim_data, data, filter_mode);
+				break;
+				
+			case ANIMCONT_IPO:
+				// FIXME: this will be used for showing a single IPO-block (not too useful from animator perspective though!)
 				break;
 		}
 			

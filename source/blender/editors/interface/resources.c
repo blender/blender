@@ -430,6 +430,10 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
 	btheme->tipo.vertex_size= 3;
 
+	SETCOL(btheme->tipo.handle_vertex, 0xff, 0x70, 0xff, 255);
+	SETCOL(btheme->tipo.handle_vertex_select, 0xff, 0xff, 0x70, 255);
+	btheme->tipo.handle_vertex_size= 3;
+
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
@@ -453,6 +457,11 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
 	SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 255);
 	SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 255);
+	SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
+	SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
+	SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
+	SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;

@@ -42,8 +42,10 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -173,6 +175,82 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 		}
 		
 		glDisable(GL_BLEND);
+	}
+}
+
+/* *************************************************** */
+/* KEYFRAME DRAWING UTILITIES */
+
+/* Obtain the Object providing NLA-scaling for the given channel (if applicable) */
+Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
+{
+	/* sanity checks */
+	if (ac == NULL)
+		return NULL;
+	
+	/* handling depends on the type of animation-context we've got */
+	if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_IPO)) {
+		/* Action Editor (action mode) or Ipo Editor (ipo mode):
+		 * Only use if editor is not pinned, and active object has action
+		 */
+		if (ac->obact && ac->obact->action) {
+			/* Action Editor */
+			if (ac->datatype == ANIMCONT_ACTION) {
+				SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+				
+				if (saction->pin == 0)
+					return ac->obact;
+			}
+			/* IPO Editor */
+			else if (ac->datatype == ANIMCONT_IPO) {
+				SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+				
+				if (sipo->pin == 0)
+					return ac->obact;
+			}
+		}
+	}
+	else if ((ac->datatype == ANIMCONT_DOPESHEET) && (ale)) {
+		/* Dopesheet:
+		 *	Only if channel is available, and is owned by an Object with an Action
+		 */
+		if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
+			Object *ob= (Object *)ale->id;
+			
+			if (ob->action)
+				return ob;
+		}
+	}
+	
+	/* no appropriate object found */
+	return NULL;
+}
+
+/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time
+ *	- the old mapping is stored in a static var, but that shouldn't be too bad as UI drawing
+ *	  (where this is called) is single-threaded anyway
+ */
+// XXX was called: map_active_strip()
+void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
+{
+	static rctf stored;
+	
+	if (restore) {
+		/* restore un-mapped coordinates */
+		gla2DSetMap(di, &stored);
+	}
+	else {
+		/* set mapped coordinates */
+		rctf map;
+		
+		gla2DGetMap(di, &stored);
+		map= stored;
+		
+		map.xmin= get_action_frame(ob, map.xmin);
+		map.xmax= get_action_frame(ob, map.xmax);
+		
+		if (map.xmin == map.xmax) map.xmax += 1.0f;
+		gla2DSetMap(di, &map);
 	}
 }
 

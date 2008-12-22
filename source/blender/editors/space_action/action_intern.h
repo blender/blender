@@ -28,11 +28,18 @@
 #ifndef ED_ACTION_INTERN_H
 #define ED_ACTION_INTERN_H
 
+struct bContext;
+struct SpaceAction;
+struct ARegion;
+
 /* internal exports only */
 
+/* action_draw.c */
+void draw_channel_names(const struct bContext *C, struct SpaceAction *saction, struct ARegion *ar); 
+void draw_channel_strips(const struct bContext *C, struct SpaceAction *saction, struct ARegion *ar);
 
 /* action_header.c */
-void action_header_buttons(const bContext *C, ARegion *ar);
+void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 
 #endif /* ED_ACTION_INTERN_H */

@@ -33,12 +33,43 @@ struct ID;
 struct ListBase;
 struct bContext;
 struct View2D;
+struct gla2DDrawInfo;
+struct Object;
 struct bActionGroup;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 
-/* --------------- Data Types -------------------- */
+/* --------------- Context --------------------- */
+
+/* This struct defines a structure used for animation-specific 
+ * 'context' information
+ */
+typedef struct bAnimContext {
+	void *data;				/* data to be filtered for use in animation editor */
+	short datatype;			/* type of data eAnimCont_Types */
+	
+	short mode;				/* editor->mode */
+	short spacetype;		/* sa->spacetype */
+	short regiontype;		/* active region -> type (channels or main) */
+	struct ScrArea *sa;		/* editor */ 
+	
+	struct Scene *scene;	/* active scene */
+	struct Object *obact;	/* active object */
+} bAnimContext;
+
+/* Main Data container types */
+// XXX was ACTCONT_*
+typedef enum eAnimCont_Types {
+	ANIMCONT_NONE = 0,		/* invalid or no data */
+	ANIMCONT_ACTION,		/* action (bAction) */
+	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
+	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
+	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
+	ANIMCONT_IPO,			/* single IPO (Ipo) */
+} eAnimCont_Types;
+
+/* --------------- Channels -------------------- */
 
 /* This struct defines a structure used for quick and uniform access for 
  * channels of animation data
@@ -109,15 +140,7 @@ typedef enum eAnim_KeyType {
 	ALE_GROUP,			/* Action Group summary */
 } eAnim_KeyType;
 
-/* Main Data container types */
-// XXX was ACTCONT_*
-typedef enum eAnimCont_Types {
-	ANIMCONT_NONE = 0,		/* invalid or no data */
-	ANIMCONT_ACTION,		/* action (bAction) */
-	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
-	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
-	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-} eAnimCont_Types;
+/* ----------------- Filtering -------------------- */
 
 /* filtering flags  - under what circumstances should a channel be added */
 // XXX was ACTFILTER_*
@@ -179,13 +202,28 @@ typedef enum eAnimFilter_Flags {
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
 #define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
 
+/* -------------- Channel Defines -------------- */
+
+/* channel heights */
+#define	ACHANNEL_HEIGHT			16
+#define ACHANNEL_HEIGHT_HALF	8
+#define	ACHANNEL_SKIP			2
+#define ACHANNEL_STEP			(ACHANNEL_HEIGHT + ACHANNEL_SKIP)
+	// FIXME: needs to be renamed...
+#define NAMEWIDTH				190
+
 /* ---------------- API  -------------------- */
 
 /* Obtain list of filtered Animation channels to operate on */
 void ANIM_animdata_filter(struct ListBase *anim_data, int filter_mode, void *data, short datatype);
 
 /* Obtain current anim-data context from Blender Context info */
-void *ANIM_animdata_get_context(const struct bContext *C, short *datatype);
+/** Example usage (example to be removed...):
+	// get editor data
+	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+		return;
+ */
+short ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
 /* ************************************************ */
 /* DRAWING API */
@@ -210,10 +248,22 @@ void ANIM_draw_cfra(const bContext *C, struct View2D *v2d, short flag);
 
 /* ------------- Preview Range Drawing -------------- */
 
-// XXX should preview range get its own file?
-
 /* main call to draw preview range curtains */
 void ANIM_draw_previewrange(const bContext *C, struct View2D *v2d);
+
+/* ************************************************* */
+/* ASSORTED TOOLS */
+
+/* ------------- NLA-Mapping ----------------------- */
+
+/* Obtain the Object providing NLA-scaling for the given channel if applicable */
+struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
+
+/* set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time */
+void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
+
+/* ------------- xxx macros ----------------------- */
+#define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
 
 /* ************************************************* */
 /* OPERATORS */

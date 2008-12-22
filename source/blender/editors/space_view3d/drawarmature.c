@@ -70,6 +70,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_keyframes_draw.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -79,26 +81,6 @@
 
 /* XXX ***************** */
 int pose_channel_in_IK_chain() {return 0;}
-void ipo_to_keylist() {}
-void *ob_get_action() {return NULL;}
-void action_to_keylist() {}
-
-typedef struct ActKeyColumn {
-	struct ActKeyColumn *next, *prev;
-	short sel, handle_type;
-	float cfra;
-	
-	/* only while drawing - used to determine if long-keyframe needs to be drawn */
-	short modified;
-	short totcurve;
-} ActKeyColumn;
-typedef struct ActKeysInc {
-	struct Object *ob;				/* if present, used to find action-scaled time */
-	float start, end;				/* frames (global-time) to only consider keys between */
-} ActKeysInc;
-
-/* ******************** */
-
 
 /* *************** Armature Drawing - Coloring API ***************************** */
 
@@ -2192,7 +2174,7 @@ static void draw_pose_paths(View3D *v3d, Object *ob)
 				if (arm->pathflag & ARM_PATH_KFRAS) {
 					/* build list of all keyframes in active action for pchan */
 					keys.first = keys.last = NULL;	
-					act= ob_get_action(ob);
+					act= ob->action;
 					if (act) {
 						achan= get_action_channel(act, pchan->name);
 						if (achan) 
@@ -2338,7 +2320,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 {
 	Object *ob= base->object;
-	bAction *act= ob_get_action(ob);
+	bAction *act= ob->action;
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	ListBase keys= {NULL, NULL};

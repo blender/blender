@@ -90,7 +90,8 @@ typedef struct ThemeSpace {
 	char normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
-	char cframe[4], pad[4];
+	char cframe[4];
+	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
@@ -105,7 +106,7 @@ typedef struct ThemeSpace {
 	char handle_vertex[4];
 	char handle_vertex_select[4];
 	char handle_vertex_size;
-	char hpad[7];
+	char hpad[3];
 } ThemeSpace;
 
 
