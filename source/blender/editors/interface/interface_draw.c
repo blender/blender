@@ -146,6 +146,54 @@ static void round_box_shade_col(float *col1, float *col2, float fac)
 	glColor3fv(col);
 }
 
+/* only for headers */
+static void gl_round_box_topshade(float minx, float miny, float maxx, float maxy, float rad)
+{
+	float vec[7][2]= {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
+	                  {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
+	char col[7]= {140, 165, 195, 210, 230, 245, 255};
+	int a;
+	char alpha=255;
+	
+	if(roundboxtype & UI_RB_ALPHA) alpha= 128;
+	
+	/* mult */
+	for(a=0; a<7; a++) {
+		vec[a][0]*= rad; vec[a][1]*= rad;
+	}
+
+	/* shades from grey->white->grey */
+	glBegin(GL_LINE_STRIP);
+	
+	if(roundboxtype & 3) {
+		/* corner right-top */
+		glColor4ub(140, 140, 140, alpha);
+		glVertex2f( maxx, maxy-rad);
+		for(a=0; a<7; a++) {
+			glColor4ub(col[a], col[a], col[a], alpha);
+			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
+		}
+		glColor4ub(225, 225, 225, alpha);
+		glVertex2f( maxx-rad, maxy);
+	
+		
+		/* corner left-top */
+		glVertex2f( minx+rad, maxy);
+		for(a=0; a<7; a++) {
+			glColor4ub(col[6-a], col[6-a], col[6-a], alpha);
+			glVertex2f( minx+rad-vec[a][0], maxy-vec[a][1]);
+		}
+		glVertex2f( minx, maxy-rad);
+	}
+	else {
+		glColor4ub(225, 225, 225, alpha);
+		glVertex2f( minx, maxy);
+		glVertex2f( maxx, maxy);
+	}
+	
+	glEnd();
+}
+
 /* linear horizontal shade within button or in outline */
 void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown)
 {
@@ -440,6 +488,77 @@ void uiTriangleFakeAA(float x1, float y1, float x2, float y2, float x3, float y3
 	
 	glDisable( GL_BLEND );
 }
+
+/* for headers and floating panels */
+void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad, int active)
+{
+	float color[4];
+	
+	if(roundboxtype & UI_RB_ALPHA) {
+		glGetFloatv(GL_CURRENT_COLOR, color);
+		color[3]= 0.5;
+		glColor4fv(color);
+		glEnable( GL_BLEND );
+	}
+	
+	/* solid part */
+	//if(active)
+	//	gl_round_box_shade(GL_POLYGON, minx, miny, maxx, maxy, rad, 0.10, -0.05);
+	// else
+	/* shading doesnt work for certain buttons yet (pulldown) need smarter buffer caching (ton) */
+	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
+	
+	/* set antialias line */
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
+
+	/* top shade */
+	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
+
+	/* total outline */
+	if(roundboxtype & UI_RB_ALPHA) glColor4ub(0,0,0, 128); else glColor4ub(0,0,0, 200);
+	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
+   
+	glDisable( GL_LINE_SMOOTH );
+
+	/* bottom shade for header down */
+	if((roundboxtype & 12)==12) {
+		glColor4ub(0,0,0, 80);
+		fdrawline(minx+rad-1.0, miny+1.0, maxx-rad+1.0, miny+1.0);
+	}
+	glDisable( GL_BLEND );
+}
+
+/* plain antialiased filled box */
+#if 0
+void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
+{
+	float color[4];
+	
+	if(roundboxtype & UI_RB_ALPHA) {
+		glGetFloatv(GL_CURRENT_COLOR, color);
+		color[3]= 0.5;
+		glColor4fv(color);
+		glEnable( GL_BLEND );
+	}
+	
+	/* solid part */
+	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
+	
+	/* set antialias line */
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
+		
+	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
+   
+	glDisable( GL_BLEND );
+	glDisable( GL_LINE_SMOOTH );
+}
+#endif
 
 
 /* ************** safe rasterpos for pixmap alignment with pixels ************* */

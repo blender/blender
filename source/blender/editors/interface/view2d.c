@@ -1046,6 +1046,37 @@ void UI_view2d_grid_draw(const bContext *C, View2D *v2d, View2DGrid *grid, int f
 	}
 }
 
+/* Draw a constant grid in given 2d-region */
+void UI_view2d_constant_grid_draw(const bContext *C, View2D *v2d)
+{
+	float start, step= 25.0f;
+
+	UI_ThemeColorShade(TH_BACK, -10);
+	
+	start= v2d->cur.xmin -fmod(v2d->cur.xmin, step);
+	
+	glBegin(GL_LINES);
+	for(; start<v2d->cur.xmax; start+=step) {
+		glVertex2f(start, v2d->cur.ymin);
+		glVertex2f(start, v2d->cur.ymax);
+	}
+
+	start= v2d->cur.ymin -fmod(v2d->cur.ymin, step);
+	for(; start<v2d->cur.ymax; start+=step) {
+		glVertex2f(v2d->cur.xmin, start);
+		glVertex2f(v2d->cur.xmax, start);
+	}
+	
+	/* X and Y axis */
+	UI_ThemeColorShade(TH_BACK, -18);
+	glVertex2f(0.0f, v2d->cur.ymin);
+	glVertex2f(0.0f, v2d->cur.ymax);
+	glVertex2f(v2d->cur.xmin, 0.0f);
+	glVertex2f(v2d->cur.xmax, 0.0f);
+	
+	glEnd();
+}
+
 /* free temporary memory used for drawing grid */
 void UI_view2d_grid_free(View2DGrid *grid)
 {
