@@ -388,39 +388,63 @@ void ui_theme_init_userdef(void)
 	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
 	
 	/* space view3d */
-	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
-	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tv3d.header, 195, 195, 195, 255);
-	SETCOL(btheme->tv3d.panel, 	165, 165, 165, 127);
-	
-	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
-	SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
+SETCOL(btheme->tui.outline,     0xA0,0xA0,0xA0, 255);
+       SETCOL(btheme->tui.neutral,     180, 180, 180, 255);
+       SETCOL(btheme->tui.action,              180, 180, 180, 255);
+       SETCOL(btheme->tui.setting,     180, 180, 180, 255);
+       SETCOL(btheme->tui.setting1,    180, 180, 180, 255);
+       SETCOL(btheme->tui.setting2,    180, 180, 180, 255);
+       SETCOL(btheme->tui.num,                 143, 143, 143, 255);
+       SETCOL(btheme->tui.textfield,   143, 142, 143, 255);
+       SETCOL(btheme->tui.textfield_hi,255, 151, 26,  255);
+       SETCOL(btheme->tui.popup,               174, 174, 174, 255);
 
-	SETCOL(btheme->tv3d.grid, 	92, 92, 92, 255);
-	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
-	SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
-	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
-	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
-	SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
-	SETCOL(btheme->tv3d.group_active, 0x55, 0xbb, 0x55, 255);
-	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
-	SETCOL(btheme->tv3d.vertex, 0xff, 0x70, 0xff, 255);
-	SETCOL(btheme->tv3d.vertex_select, 0xff, 0xff, 0x70, 255);
-	btheme->tv3d.vertex_size= 2;
-	SETCOL(btheme->tv3d.edge, 	0x0, 0x0, 0x0, 255);
-	SETCOL(btheme->tv3d.edge_select, 0xb0, 0xb0, 0x30, 255);
-	SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
-	SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
-	SETCOL(btheme->tv3d.face, 	0, 50, 150, 30);
-	SETCOL(btheme->tv3d.face_select, 200, 100, 200, 60);
-	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
-	SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
-	btheme->tv3d.facedot_size= 4;
-	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-	
-	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);		// alpha 80 is not meant editable, used for wire+action draw
+       SETCOL(btheme->tui.text,                0,0,0, 255);
+       SETCOL(btheme->tui.text_hi,     255, 255, 255, 255);
+
+       SETCOL(btheme->tui.menu_back,   0xD2,0xD2,0xD2, 255);
+       SETCOL(btheme->tui.menu_item,   0xDA,0xDA,0xDA, 255);
+       SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
+       SETCOL(btheme->tui.menu_text,   0, 0, 0, 255);
+       SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
+       btheme->tui.but_drawtype= TH_ROUNDSHADED;
+
+       BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
+
+		/* space view3d */
+		SETCOL(btheme->tv3d.back,       90, 90, 90, 255);
+		SETCOL(btheme->tv3d.text,       0, 0, 0, 255);
+		SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
+		SETCOL(btheme->tv3d.header, 195, 195, 195, 255);
+		SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
+
+		SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);
+		SETCOL(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
+
+		SETCOL(btheme->tv3d.grid,       74, 74, 74	, 255);
+		SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
+		SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
+		SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
+		SETCOL(btheme->tv3d.active, 255, 140, 25, 255);
+		SETCOL(btheme->tv3d.group,      16, 64, 16, 255);
+		SETCOL(btheme->tv3d.group_active, 85, 187, 85, 255);
+		SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
+		SETCOL(btheme->tv3d.vertex, 0, 0, 0, 255);
+		SETCOL(btheme->tv3d.vertex_select, 255, 133, 0, 255);
+		btheme->tv3d.vertex_size= 3;
+		SETCOL(btheme->tv3d.edge,       0x0, 0x0, 0x0, 255);
+		SETCOL(btheme->tv3d.edge_select, 255, 160, 0, 255);
+		SETCOL(btheme->tv3d.edge_seam, 219, 37, 18, 255);
+		SETCOL(btheme->tv3d.edge_facesel, 75, 75, 75, 255);
+		SETCOL(btheme->tv3d.face,       0, 0, 0, 18);
+		SETCOL(btheme->tv3d.face_select, 255, 133, 0, 60);
+		SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+		SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
+		btheme->tv3d.facedot_size= 4;
+		SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
+
+		SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
+		SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
 	
 	
 	/* space buttons */
@@ -469,12 +493,12 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tact.grid,  94, 94, 94, 255);
 	SETCOL(btheme->tact.face,  166, 166, 166, 255);	// RVK
 	SETCOL(btheme->tact.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tact.shade2,  84, 44, 31, 100);	// bar
-	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
-	SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 255);
-	SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 255);
-	SETCOL(btheme->tact.group, 0x39, 0x7d, 0x1b, 255);
-	SETCOL(btheme->tact.group_active, 0x7d, 0xe9, 0x60, 255);
+	SETCOL(btheme->tact.shade2,  74, 74, 74, 100);	// bar
+	SETCOL(btheme->tact.hilite,  255, 160, 0, 100);	// bar
+	SETCOL(btheme->tact.strip_select, 	255, 160, 0, 255);
+	SETCOL(btheme->tact.strip, 78, 78, 78, 255);
+	SETCOL(btheme->tact.group, 22, 112, 0, 255);
+	SETCOL(btheme->tact.group_active, 125, 233, 96, 255);
 	SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
 	SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
 
