@@ -316,6 +316,86 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */
 
+/* ******************** Deselect All Operator ***************************** */
+
+/* Deselects keyframes in the action editor
+ *	- This is called by the deselect all operator, as well as other ones!
+ */
+static void deselect_action_keys (bAnimContext *ac, short test, short sel)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* determine type-based settings */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	
+	/* filter data */
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* See if we should be selecting or deselecting */
+	if (test) {
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			if (ale->type == ANIMTYPE_GPLAYER) {
+				//if (is_gplayer_frame_selected(ale->data)) {
+				//	sel= 0;
+				//	break;
+				//}
+			}
+			else {
+				if (is_ipo_key_selected(ale->key_data)) {
+					sel= 0;
+					break;
+				}
+			}
+		}
+	}
+		
+	/* Now set the flags */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		//if (ale->type == ACTTYPE_GPLAYER)
+		//	set_gplayer_frame_selection(ale->data, sel);
+		//else
+			set_ipo_key_selection(ale->key_data, sel);
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_deselectall_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+		return OPERATOR_CANCELLED;
+		
+	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	deselect_action_keys(&ac, 1, 1);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ED_ACT_OT_keyframes_deselectall (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Deselect All";
+	ot->idname= "ED_ACT_OT_keyframes_deselectall";
+	
+	/* api callbacks */
+	ot->invoke= actkeys_deselectall_invoke;
+	//ot->poll= ED_operator_areaactive;
+}
+
 /* ******************** Column Select Operator **************************** */
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -343,8 +423,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	bGPdata *gpd = NULL;
 	bGPDlayer *gpl = NULL;
 	
-	void *act_channel;
-	short sel, act_type = 0;
+	void *anim_channel;
+	short sel, chan_type = 0;
 	float selx = 0.0f, selxa;
 	
 	/* determine what type of data we are operating on */
@@ -355,48 +435,48 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	else if (ac->datatype == ANIMCONT_GPENCIL) 
 		gpd= (bGPdata *)ac->data;
 
-	act_channel= get_nearest_action_key(ac, mval, &selx, &sel, &act_type, &achan);
-	if (act_channel) {
+	anim_channel= get_nearest_action_key(ac, mval, &selx, &sel, &chan_type, &achan);
+	if (anim_channel) {
 		/* must have been a channel */
-		switch (act_type) {
+		switch (chan_type) {
 			case ANIMTYPE_ICU:
-				icu= (IpoCurve *)act_channel;
+				icu= (IpoCurve *)anim_channel;
 				break;
 			case ANIMTYPE_CONCHAN:
-				conchan= (bConstraintChannel *)act_channel;
+				conchan= (bConstraintChannel *)anim_channel;
 				break;
 			case ANIMTYPE_ACHAN:
-				achan= (bActionChannel *)act_channel;
+				achan= (bActionChannel *)anim_channel;
 				break;
 			case ANIMTYPE_GROUP:
-				agrp= (bActionGroup *)act_channel;
+				agrp= (bActionGroup *)anim_channel;
 				break;
 			case ANIMTYPE_DSMAT:
-				ipo= ((Material *)act_channel)->ipo;
+				ipo= ((Material *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_DSLAM:
-				ipo= ((Lamp *)act_channel)->ipo;
+				ipo= ((Lamp *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_DSCAM:
-				ipo= ((Camera *)act_channel)->ipo;
+				ipo= ((Camera *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_DSCUR:
-				ipo= ((Curve *)act_channel)->ipo;
+				ipo= ((Curve *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_DSSKEY:
-				ipo= ((Key *)act_channel)->ipo;
+				ipo= ((Key *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_FILLACTD:
-				act= (bAction *)act_channel;
+				act= (bAction *)anim_channel;
 				break;
 			case ANIMTYPE_FILLIPOD:
-				ipo= ((Object *)act_channel)->ipo;
+				ipo= ((Object *)anim_channel)->ipo;
 				break;
 			case ANIMTYPE_OBJECT:
-				ob= ((Base *)act_channel)->object;
+				ob= ((Base *)anim_channel)->object;
 				break;
 			case ANIMTYPE_GPLAYER:
-				gpl= (bGPDlayer *)act_channel;
+				gpl= (bGPDlayer *)anim_channel;
 				break;
 			default:
 				return;
@@ -405,7 +485,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		if (selectmode == SELECT_REPLACE) {
 			selectmode = SELECT_ADD;
 			
-			//deselect_action_keys(0, 0); // XXX fixme
+			deselect_action_keys(ac, 0, 0);
 			
 			if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 				//deselect_action_channels(0);
@@ -485,8 +565,6 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	ARegion *ar;
 	short in_scroller, selectmode;
 	int mval[2];
-	
-	puts("Action click select invoke");
 	
 	/* get editor data */
 	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))

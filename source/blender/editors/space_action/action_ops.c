@@ -63,6 +63,7 @@ void action_operatortypes(void)
 	
 	/* keyframes */
 	WM_operatortype_append(ED_ACT_OT_keyframes_clickselect);
+	WM_operatortype_append(ED_ACT_OT_keyframes_deselectall);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -73,6 +74,9 @@ static void action_keymap_keyframes (ListBase *keymap)
 	WM_keymap_add_item(keymap, "ED_ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ED_ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ED_ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", 1);
+	
+		/* deselect all */
+	WM_keymap_add_item(keymap, "ED_ACT_OT_keyframes_deselectall", AKEY, KM_PRESS, 0, 0);
 }
 
 /* --------------- */

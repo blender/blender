@@ -98,6 +98,9 @@ BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 void select_ipo_key(struct Scene *scene, struct Ipo *ipo, float selx, short selectmode);
 void select_icu_key(struct Scene *scene, struct IpoCurve *icu, float selx, short selectmode);
 
+short is_ipo_key_selected(struct Ipo *ipo);
+void set_ipo_key_selection(struct Ipo *ipo, short sel);
+
 
 /* ************************************************ */
 
