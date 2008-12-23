@@ -281,6 +281,12 @@ void ANIM_nla_mapping_apply(struct Object *ob, struct Ipo *ipo, short restore, s
 /* ------------- xxx macros ----------------------- */
 #define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
 
+
+/* --------- anim_deps.c, animation updates -------- */
+
+/* generic update flush, reads from Context screen (layers) and scene */
+void ED_anim_dag_flush_update(struct bContext *C);
+
 /* ************************************************* */
 /* OPERATORS */
 

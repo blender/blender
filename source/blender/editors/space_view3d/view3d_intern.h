@@ -28,6 +28,8 @@
 #ifndef ED_VIEW3D_INTERN_H
 #define ED_VIEW3D_INTERN_H
 
+#include "ED_view3d.h"
+
 /* internal exports only */
 
 struct BoundBox;
@@ -115,7 +117,6 @@ void ED_VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void view3d_operator_needs_opengl(const struct bContext *C);
-float *give_cursor(Scene *scene, View3D *v3d);
 void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
 void viewray(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
 

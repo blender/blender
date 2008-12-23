@@ -25,18 +25,15 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_OBJECT_H
-#define ED_OBJECT_H
+#ifndef ED_OBJECT_INTERN_H
+#define ED_OBJECT_INTERN_H
 
-struct wmWindowManager;
-struct Object;
+/* internal exports only */
 
-void ED_operatortypes_object(void);
-void ED_keymap_object(struct wmWindowManager *wm);
 
-/* cleanup */
-int object_data_is_libdata(struct Object *ob);
-int object_is_libdata(struct Object *ob);
+/* object_edit.c */
+void ED_VIEW3D_OT_make_parent(wmOperatorType *ot);
 
-#endif /* ED_OBJECT_H */
+
+#endif /* ED_OBJECT_INTERN_H */
 

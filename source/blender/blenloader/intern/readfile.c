@@ -5867,8 +5867,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while (ob) {
 			prop= ob->prop.first;
 			while(prop) {
-				if (prop->type == PROP_TIME) {
-					// convert old PROP_TIME values from int to float
+				if (prop->type == GPROP_TIME) {
+					// convert old GPROP_TIME values from int to float
 					*((float *)&prop->data) = (float) prop->data;
 				}
 

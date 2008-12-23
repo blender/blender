@@ -25,18 +25,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_OBJECT_H
-#define ED_OBJECT_H
+#ifndef ED_VIEW3D_H
+#define ED_VIEW3D_H
 
-struct wmWindowManager;
-struct Object;
+/* ********* exports for space_view3d/ module ********** */
 
-void ED_operatortypes_object(void);
-void ED_keymap_object(struct wmWindowManager *wm);
+float *give_cursor(Scene *scene, View3D *v3d);
 
-/* cleanup */
-int object_data_is_libdata(struct Object *ob);
-int object_is_libdata(struct Object *ob);
-
-#endif /* ED_OBJECT_H */
+#endif /* ED_VIEW3D_H */
 

@@ -195,9 +195,12 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *keymap;
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);	/* XXX weak? */
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap,NULL, NULL);
-							   
+	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
+	/* object ops, modal later... */
+	keymap= WM_keymap_listbase(wm, "View3D Object", SPACE_VIEW3D, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
+	
 }
 
 

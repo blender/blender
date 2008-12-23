@@ -39,15 +39,15 @@ static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)
 	bProperty *property= (bProperty*)ptr->data;
 
 	switch(property->type){
-		case PROP_BOOL:
+		case GPROP_BOOL:
 			return &RNA_GameBooleanProperty;
-		case PROP_INT:
+		case GPROP_INT:
 			return &RNA_GameIntProperty;
-		case PROP_FLOAT:
+		case GPROP_FLOAT:
 			return &RNA_GameFloatProperty;
-		case PROP_STRING:
+		case GPROP_STRING:
 			return &RNA_GameStringProperty;
-		case PROP_TIME:
+		case GPROP_TIME:
 			return &RNA_GameTimeProperty;
 		default:
 			return &RNA_GameProperty;
@@ -76,11 +76,11 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem gameproperty_type_items[] ={
-		{PROP_BOOL, "BOOL", "Boolean", ""},
-		{PROP_INT, "INT", "Integer", ""},
-		{PROP_FLOAT, "FLOAT", "Float", ""},
-		{PROP_STRING, "STRING", "String", ""},
-		{PROP_TIME, "TIME", "Time", ""},
+		{GPROP_BOOL, "BOOL", "Boolean", ""},
+		{GPROP_INT, "INT", "Integer", ""},
+		{GPROP_FLOAT, "FLOAT", "Float", ""},
+		{GPROP_STRING, "STRING", "String", ""},
+		{GPROP_TIME, "TIME", "Time", ""},
 		{0, NULL, NULL, NULL}};
 
 	/* Base Struct for GameProperty */

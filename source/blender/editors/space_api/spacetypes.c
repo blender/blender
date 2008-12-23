@@ -38,6 +38,7 @@
 #include "BIF_gl.h"
 
 #include "ED_screen.h"
+#include "ED_object.h"
 #include "ED_space_api.h"
 #include "ED_anim_api.h"
 
@@ -81,8 +82,9 @@ void ED_spacetypes_init(void)
 	
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
-	ui_view2d_operatortypes();
 	ED_operatortypes_anim();
+	ED_operatortypes_object();
+	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)
@@ -99,8 +101,9 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ARegionType *atype;
 
 	ED_keymap_screen(wm);
-	UI_view2d_keymap(wm);
 	ED_keymap_anim(wm);
+	ED_keymap_object(wm);
+	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();
 	for(stype=spacetypes->first; stype; stype=stype->next) {

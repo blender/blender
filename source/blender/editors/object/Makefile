@@ -28,7 +28,7 @@
 #
 # Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_screen
+LIBNAME = ed_object
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
@@ -45,6 +45,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 
 # own include 

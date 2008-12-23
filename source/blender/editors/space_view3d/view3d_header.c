@@ -63,6 +63,7 @@
 #include "BKE_utildefines.h" /* for VECCOPY */
 
 #include "ED_screen.h"
+#include "ED_object.h"
 #include "ED_util.h"
 #include "ED_types.h"
 
@@ -109,23 +110,19 @@
 						if( (v3d->lay & G.obedit->lay)==0 ) return;
 
 /* XXX port over */
-void handle_view3d_lock(void) {}
-void allqueue(int x, int y) {}
-void persptoetsen(int x) {}
-void fly(void) {}
-void editmesh_align_view_to_selected(void *x, int y) {}
-void play_anim(int x) {}
-void add_blockhandler(void *x, int y, int z) {}
-void toggle_blockhandler(void *x, int y, int z) {}
-void view3d_border_zoom(void);
-void selectlinks(void) {}
-void countall(void) {}
-void select_object_grouped() {}
+static void handle_view3d_lock(void) {}
+static void allqueue(int x, int y) {}
+static void persptoetsen(int x) {}
+static void fly(void) {}
+static void editmesh_align_view_to_selected(void *x, int y) {}
+static void play_anim(int x) {}
+static void add_blockhandler(void *x, int y, int z) {}
+static void toggle_blockhandler(void *x, int y, int z) {}
+static void countall(void) {}
 extern void borderselect();
-int BIF_snappingSupported() {return 1;}
-void BIF_undo_push() {}
-int retopo_mesh_paint_check() {return 0;}
-int object_data_is_libdata() {return 0;}
+static int BIF_snappingSupported() {return 1;}
+static void BIF_undo_push() {}
+static int retopo_mesh_paint_check() {return 0;}
 
 /* view3d handler codes */
 #define VIEW3D_HANDLER_BACKGROUND	1
@@ -569,7 +566,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
 		break;
 	case 19: /* zoom within border */
-		view3d_border_zoom();
+//		view3d_border_zoom();
 		break;
 	case 20: /* Transform  Space Panel */
 		add_blockhandler(sa, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
