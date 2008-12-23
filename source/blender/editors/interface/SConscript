@@ -14,4 +14,4 @@ if env['WITH_BF_INTERNATIONAL']:
     defs.append('INTERNATIONAL')
     defs.append('FTGL_STATIC_LIBRARY')
 
-env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core','intern'], priority=[40, 45] )
+env.BlenderLib ( 'bf_editors_interface', sources, Split(incs), Split(defs), libtype=['core','intern'], priority=[45, 50] )
