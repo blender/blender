@@ -881,7 +881,6 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	return OPERATOR_FINISHED;
 }
-
 void ED_VIEW3D_OT_viewcenter(wmOperatorType *ot)
 {
 
@@ -892,6 +891,266 @@ void ED_VIEW3D_OT_viewcenter(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= viewcenter_exec;
 	ot->poll= ED_operator_areaactive;
+}
+
+static EnumPropertyItem prop_view_items[] = {
+	{V3D_VIEW_FRONT, "FRONT", "Front", "View From the Front"},
+	{V3D_VIEW_BACK, "BACK", "Back", "View From the Back"},
+	{V3D_VIEW_LEFT, "LEFT", "Left", "View From the Left"},
+	{V3D_VIEW_RIGHT, "RIGHT", "Right", "View From the Right"},
+	{V3D_VIEW_TOP, "TOP", "Top", "View From the Top"},
+	{V3D_VIEW_BOTTOM, "BOTTOM", "Bottom", "View From the Bottom"},
+	{V3D_VIEW_PERSPORTHO, "PERSPORTHO", "Persp-Ortho", "Switch between Perspecive and Orthographic View"},
+	{V3D_VIEW_CAMERA, "CAMERA", "Camera", "View From the active amera"},
+	{V3D_VIEW_STEPLEFT, "STEPLEFT", "Step Left", "Step the view around to the Left"},
+	{V3D_VIEW_STEPRIGHT, "STEPRIGHT", "Step Right", "Step the view around to the Right"},
+	{V3D_VIEW_STEPUP, "STEPUP", "Step Up", "Step the view Up"},
+	{V3D_VIEW_STEPDOWN, "STEPDOWN", "Step Down", "Step the view Down"},
+	{V3D_VIEW_PANLEFT, "PANLEFT", "Pan Left", "Pan the view to the Left"},
+	{V3D_VIEW_PANRIGHT, "PANRIGHT", "Pan Right", "Pan the view to the Right"},
+	{V3D_VIEW_PANUP, "PANUP", "Pan Up", "Pan the view Up"},
+	{V3D_VIEW_PANDOWN, "PANDOWN", "Pan Down", "Pan the view Down"},
+	{0, NULL, NULL, NULL}};
+
+static void axis_set_view(View3D *v3d, float q1, float q2, float q3, float q4, short view, int perspo)
+{
+	float new_quat[4];
+	new_quat[0]= q1; new_quat[1]= q2;
+	new_quat[2]= q3; new_quat[3]= q4;
+	v3d->view=0;
+
+
+	if (v3d->persp==V3D_CAMOB && v3d->camera) {
+		/* Is this switching from a camera view ? */
+		float orig_ofs[3];
+		float orig_lens= v3d->lens;
+		VECCOPY(orig_ofs, v3d->ofs);
+		view_settings_from_ob(v3d->camera, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
+
+
+		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
+		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
+
+		smooth_view(v3d, orig_ofs, new_quat, NULL, &orig_lens);
+	} else {
+
+		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
+		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
+
+		smooth_view(v3d, NULL, new_quat, NULL, NULL);
+	}
+	v3d->view= view;
+}
+
+static int viewnumpad_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	Object *act_cam_orig=NULL;
+
+	float phi, si, q1[4], vec[3];
+	static int perspo=V3D_PERSP;
+	float orig_ofs[3];
+	int viewnum;
+
+	viewnum = RNA_enum_get(op->ptr, "viewnum");
+
+	/* Use this to test if we started out with a camera */
+
+	if (v3d->persp == V3D_CAMOB)
+		act_cam_orig = v3d->camera;
+
+	/* Indicate that this view is inverted,
+	 * but only if it actually _was_ inverted (jobbe) */
+	if (viewnum == V3D_VIEW_BOTTOM || viewnum == V3D_VIEW_BACK || viewnum == V3D_VIEW_LEFT)
+		v3d->flag2 |= V3D_OPP_DIRECTION_NAME;
+	else if (viewnum != V3D_VIEW_PERSPORTHO)
+			v3d->flag2 &= ~V3D_OPP_DIRECTION_NAME;
+
+	switch (viewnum) {
+		case V3D_VIEW_BOTTOM :
+			axis_set_view(v3d,0.0, -1.0, 0.0, 0.0, 7, perspo);
+			break;
+
+		case V3D_VIEW_BACK:
+			axis_set_view(v3d,0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), 1, perspo);
+			break;
+
+		case V3D_VIEW_LEFT:
+			axis_set_view(v3d,0.5, -0.5, 0.5, 0.5, 3, perspo);
+			break;
+
+		case V3D_VIEW_TOP:
+			axis_set_view(v3d,1.0, 0.0, 0.0, 0.0, 7, perspo);
+			break;
+
+		case V3D_VIEW_FRONT:
+			axis_set_view(v3d,(float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, 1, perspo);
+			break;
+
+		case V3D_VIEW_RIGHT:
+			axis_set_view(v3d,0.5, -0.5, -0.5, -0.5, 3, perspo);
+			break;
+
+		case V3D_VIEW_PERSPORTHO:
+
+			if (U.smooth_viewtx) {
+				if(v3d->persp==V3D_PERSP) { v3d->persp=V3D_ORTHO;
+				} else if (act_cam_orig) {
+					/* were from a camera view */
+					float orig_dist= v3d->dist;
+					float orig_lens= v3d->lens;
+					VECCOPY(orig_ofs, v3d->ofs);
+					v3d->persp=V3D_PERSP;
+					v3d->dist= 0.0;
+
+					view_settings_from_ob(act_cam_orig, v3d->ofs, NULL, NULL, &v3d->lens);
+					smooth_view(v3d, orig_ofs, NULL, &orig_dist, &orig_lens);
+				} else {
+					v3d->persp=V3D_PERSP;
+				}
+			} else {
+				if(v3d->persp==V3D_PERSP) v3d->persp=V3D_ORTHO;
+				else v3d->persp=V3D_PERSP;
+			}
+			break;
+
+		case V3D_VIEW_CAMERA:
+			/* lastview -  */
+
+			if(v3d->persp != V3D_CAMOB) {
+				/* store settings of current view before allowing overwriting with camera view */
+				QUATCOPY(v3d->lviewquat, v3d->viewquat);
+				v3d->lview= v3d->view;
+				v3d->lpersp= v3d->persp;
+			}
+			else{
+				/* return to settings of last view */
+
+				axis_set_view(v3d,v3d->lviewquat[0], v3d->lviewquat[1], v3d->lviewquat[2], v3d->lviewquat[3], v3d->lview, v3d->lpersp);
+			}
+#if 0
+			if(G.qual==LR_ALTKEY) {
+				if(oldcamera && is_an_active_object(oldcamera)) {
+					v3d->camera= oldcamera;
+				}
+				handle_view3d_lock();
+			}
+#endif
+
+			if(BASACT) {
+			/* check both G.vd as G.scene cameras */
+			if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
+				v3d->camera= OBACT;
+				/*handle_view3d_lock();*/
+				}
+			}
+
+			if(v3d->camera==0) {
+				v3d->camera= scene_find_camera(scene);
+				/*handle_view3d_lock();*/
+			}
+			if(v3d->camera && (v3d->camera != act_cam_orig)) {
+				v3d->persp= V3D_CAMOB;
+				v3d->view= 0;
+
+			} else if (U.smooth_viewtx) {
+				/* move 3d view to camera view */
+				float orig_lens = v3d->lens;
+				VECCOPY(orig_ofs, v3d->ofs);
+
+				if (act_cam_orig)
+					view_settings_from_ob(act_cam_orig, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
+
+				smooth_view_to_camera(v3d);
+				VECCOPY(v3d->ofs, orig_ofs);
+				v3d->lens = orig_lens;
+			}
+			break;
+
+		case V3D_VIEW_STEPLEFT:
+		case V3D_VIEW_STEPRIGHT:
+		case V3D_VIEW_STEPUP:
+		case V3D_VIEW_STEPDOWN:
+
+			if(v3d->persp != V3D_CAMOB) {
+				if(viewnum == V3D_VIEW_STEPLEFT || viewnum == V3D_VIEW_STEPRIGHT) {
+					/* z-axis */
+					phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+					if(viewnum == V3D_VIEW_STEPRIGHT) phi= -phi;
+					si= (float)sin(phi);
+					q1[0]= (float)cos(phi);
+					q1[1]= q1[2]= 0.0;
+					q1[3]= si;
+					QuatMul(v3d->viewquat, v3d->viewquat, q1);
+					v3d->view= 0;
+				}
+				if(viewnum == V3D_VIEW_STEPDOWN || viewnum == V3D_VIEW_STEPUP) {
+					/* horizontal axis */
+					VECCOPY(q1+1, v3d->viewinv[0]);
+
+					Normalize(q1+1);
+					phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+					if(viewnum == V3D_VIEW_STEPDOWN) phi= -phi;
+					si= (float)sin(phi);
+					q1[0]= (float)cos(phi);
+					q1[1]*= si;
+					q1[2]*= si;
+					q1[3]*= si;
+					QuatMul(v3d->viewquat, v3d->viewquat, q1);
+					v3d->view= 0;
+				}
+			}
+			break;
+
+		case V3D_VIEW_PANRIGHT:
+		case V3D_VIEW_PANLEFT:
+		case V3D_VIEW_PANUP:
+		case V3D_VIEW_PANDOWN:
+
+			initgrabz(v3d, 0.0, 0.0, 0.0);
+
+			if(viewnum == V3D_VIEW_PANRIGHT) window_to_3d(ar, v3d, vec, -32, 0);
+			else if(viewnum == V3D_VIEW_PANLEFT) window_to_3d(ar, v3d, vec, 32, 0);
+			else if(viewnum == V3D_VIEW_PANUP) window_to_3d(ar, v3d, vec, 0, -25);
+			else if(viewnum == V3D_VIEW_PANDOWN) window_to_3d(ar, v3d, vec, 0, 25);
+			v3d->ofs[0]+= vec[0];
+			v3d->ofs[1]+= vec[1];
+			v3d->ofs[2]+= vec[2];
+
+			break;
+
+		default :
+			break;
+	}
+
+	if(v3d->persp != V3D_CAMOB) perspo= v3d->persp;
+
+
+	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void ED_VIEW3D_OT_viewnumpad(wmOperatorType *ot)
+{
+
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "View numpad";
+	ot->idname= "ED_VIEW3D_OT_viewnumpad";
+
+	/* api callbacks */
+	ot->exec= viewnumpad_exec;
+	ot->poll= ED_operator_areaactive;
+	ot->flag= OPTYPE_REGISTER;
+
+	prop = RNA_def_property(ot->srna, "viewnum", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_view_items);
 }
 
 /* ********************* set clipping operator ****************** */

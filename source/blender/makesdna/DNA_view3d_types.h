@@ -185,6 +185,23 @@ typedef struct View3D {
 #define V3D_LOCAL		 2
 #define V3D_ACTIVE		 4
 
+/*View3D view types*/
+#define V3D_VIEW_FRONT		 1
+#define V3D_VIEW_BACK		 2
+#define V3D_VIEW_LEFT		 3
+#define V3D_VIEW_RIGHT		 4
+#define V3D_VIEW_TOP		 5
+#define V3D_VIEW_BOTTOM		 6
+#define V3D_VIEW_PERSPORTHO		 7
+#define V3D_VIEW_CAMERA		 8
+#define V3D_VIEW_STEPLEFT		 9
+#define V3D_VIEW_STEPRIGHT		 10
+#define V3D_VIEW_STEPDOWN		 11
+#define V3D_VIEW_STEPUP		 12
+#define V3D_VIEW_PANLEFT		 13
+#define V3D_VIEW_PANRIGHT		 14
+#define V3D_VIEW_PANDOWN		 15
+#define V3D_VIEW_PANUP		 16
 
 /* View3d->persp */
 #define V3D_ORTHO				0

@@ -72,6 +72,7 @@ void ED_VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
+void ED_VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 void ED_VIEW3D_OT_clipping(struct wmOperatorType *ot);
 
