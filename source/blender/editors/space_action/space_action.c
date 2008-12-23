@@ -316,7 +316,7 @@ void ED_spacetype_action(void)
 	art->init= action_main_area_init;
 	art->draw= action_main_area_draw;
 	art->listener= action_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|ED_KEYMAP_MARKERS|ED_KEYMAP_ANIMATION;
+	art->keymapflag= ED_KEYMAP_VIEW2D/*|ED_KEYMAP_MARKERS*/|ED_KEYMAP_ANIMATION;
 
 	BLI_addhead(&st->regiontypes, art);
 	

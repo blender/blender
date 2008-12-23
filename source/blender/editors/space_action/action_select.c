@@ -181,7 +181,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 	*par= NULL;
 	
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-    clickmin = (int) (((ACHANNEL_HEIGHT_HALF) - y) / (ACHANNEL_STEP)); // xxx max y-co (first) is -ACHANNEL_HEIGHT
+    clickmin = (int) ((-y) / (ACHANNEL_STEP));
 	clickmax = clickmin;
 	
 	/* x-range to check is +/- 7 on either side of mouse click (size of keyframe icon) */

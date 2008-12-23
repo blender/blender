@@ -656,9 +656,9 @@ void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListB
 			 *	- scaling correction only does times for center-points, so should be faster
 			 */
 			if (achan->ipo) {
-				//actstrip_map_ipo_keys(ob, achan->ipo, 0, 1); // XXX
+				ANIM_nla_mapping_apply(ob, achan->ipo, 0, 1);
 				ipo_to_keylist(achan->ipo, keys, blocks, aki);
-				//actstrip_map_ipo_keys(ob, achan->ipo, 1, 1); // XXX
+				ANIM_nla_mapping_apply(ob, achan->ipo, 1, 1);
 			}
 			
 			/* then, add keys from constraint channels 

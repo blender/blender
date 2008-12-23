@@ -222,6 +222,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	ac->scene= scene;
 	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
 	ac->sa= sa;
+	ac->ar= ar;
 	ac->spacetype= sa->spacetype;
 	ac->regiontype= ar->regiontype;
 	

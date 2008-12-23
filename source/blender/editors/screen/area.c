@@ -456,6 +456,7 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	if(flag & ED_KEYMAP_MARKERS) {
 		ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
+		// XXX need boundbox check urgently!!!
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
 		ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
