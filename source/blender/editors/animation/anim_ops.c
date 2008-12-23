@@ -270,7 +270,6 @@ void ED_ANIM_OT_previewrange_define(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
 		/* these are not used, but are needed by borderselect gesture operator stuff */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }

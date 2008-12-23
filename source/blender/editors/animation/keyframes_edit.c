@@ -613,7 +613,7 @@ int fullselect_ipo_keys(Ipo *ipo)
 }
 
 
-void borderselect_icu_key(Scene *scene, IpoCurve *icu, float xmin, float xmax, BeztEditFunc select_cb)
+void borderselect_icu_key(IpoCurve *icu, float xmin, float xmax, BeztEditFunc select_cb)
 {
 	/* Selects all bezier triples in the Ipocurve 
 	 * between times xmin and xmax, using the selection
@@ -623,18 +623,19 @@ void borderselect_icu_key(Scene *scene, IpoCurve *icu, float xmin, float xmax, B
 	int i;
 	
 	/* loop through all of the bezier triples in
-	* the Ipocurve -- if the triple occurs between
-	* times xmin and xmax then select it using the selection
-	* function
-	*/
+	 * the Ipocurve -- if the triple occurs between
+	 * times xmin and xmax then select it using the selection
+	 * function
+	 */
 	for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
 		if ((bezt->vec[1][0] > xmin) && (bezt->vec[1][0] < xmax)) {
-			select_cb(scene, bezt);
+			/* scene is NULL (irrelevant here) */
+			select_cb(NULL, bezt); 
 		}
 	}
 }
 
-void borderselect_ipo_key(Scene *scene, Ipo *ipo, float xmin, float xmax, short selectmode)
+void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, short selectmode)
 {
 	/* Selects all bezier triples in each Ipocurve of the
 	 * Ipo between times xmin and xmax, using the selection mode.
@@ -660,7 +661,7 @@ void borderselect_ipo_key(Scene *scene, Ipo *ipo, float xmin, float xmax, short 
 		* function
 		*/
 	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		borderselect_icu_key(scene, icu, xmin, xmax, select_cb);
+		borderselect_icu_key(icu, xmin, xmax, select_cb);
 	}
 }
 

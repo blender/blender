@@ -317,9 +317,20 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 /* KEYFRAMES STUFF */
 
 /* ******************** Deselect All Operator ***************************** */
+/* This operator works in one of three ways:
+ *	1) (de)select all (AKEY) - test if select all or deselect all
+ *	2) invert all (CTRL-IKEY) - invert selection of all keyframes
+ *	3) (de)select all - no testing is done; only for use internal tools as normal function...
+ */
 
 /* Deselects keyframes in the action editor
  *	- This is called by the deselect all operator, as well as other ones!
+ *
+ * 	- test: check if select or deselect all
+ *	- sel: how to select keyframes 
+ *		0 = deselect
+ *		1 = select
+ *		2 = invert
  */
 static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 {
@@ -368,7 +379,7 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 
 /* ------------------- */
 
-static int actkeys_deselectall_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	
@@ -377,7 +388,10 @@ static int actkeys_deselectall_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
-	deselect_action_keys(&ac, 1, 1);
+	if (RNA_boolean_get(op->ptr, "invert"))
+		deselect_action_keys(&ac, 0, 2);
+	else
+		deselect_action_keys(&ac, 1, 1);
 	
 	/* set notifier tha things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
@@ -388,12 +402,223 @@ static int actkeys_deselectall_invoke(bContext *C, wmOperator *op, wmEvent *even
 void ED_ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselect All";
+	ot->name= "Select All";
 	ot->idname= "ED_ACT_OT_keyframes_deselectall";
 	
 	/* api callbacks */
-	ot->invoke= actkeys_deselectall_invoke;
-	//ot->poll= ED_operator_areaactive;
+	ot->exec= actkeys_deselectall_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* props */
+	RNA_def_property(ot->srna, "invert", PROP_BOOLEAN, PROP_NONE);
+}
+
+/* ******************** Border Select Operator **************************** */
+/* This operator works in one of three ways:
+ *	1) borderselect over keys (BKEY) - mouse over main area when initialised; will select keys in region
+ *	2) borderselect over horizontal scroller - mouse over horizontal scroller when initialised; will select keys in frame range
+ *	3) borderselect over vertical scroller - mouse over vertical scroller when initialised; will select keys in row range
+ */
+
+static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller, short selectmode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ac->ar->v2d;
+	BeztEditFunc select_cb;
+	rctf rectf;
+	float ymin=0, ymax=ACHANNEL_HEIGHT;
+	
+	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* get selection editing func */
+	select_cb= ANIM_editkeyframes_select(selectmode);
+	
+	/* loop over data, doing border select */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		ymin= ymax - ACHANNEL_STEP;
+		
+		/* if action is mapped in NLA, it returns a correction */
+		if (nob) {
+			rectf.xmin= get_action_frame(nob, rectf.xmin);
+			rectf.xmax= get_action_frame(nob, rectf.xmax);
+		}
+		
+		/* what gets selected depends on the mode (based on initial position of cursor) */
+		switch (in_scroller) {
+		case 'h': /* all in frame(s) */
+			if (ale->key_data) {
+				if (ale->datatype == ALE_IPO)
+					borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
+				else if (ale->datatype == ALE_ICU)
+					borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_cb);
+			}
+			else if (ale->type == ANIMTYPE_GROUP) {
+				bActionGroup *agrp= ale->data;
+				bActionChannel *achan;
+				bConstraintChannel *conchan;
+				
+				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+					borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
+					
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+				}
+			}
+			//else if (ale->type == ANIMTYPE_GPLAYER) {
+			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+			//}
+			break;
+		case 'v': /* all in channel(s) */
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+				if (ale->key_data) {
+					if (ale->datatype == ALE_IPO)
+						ipo_keys_bezier_loop(ac->scene, ale->key_data, select_cb, NULL);
+					else if (ale->datatype == ALE_ICU)
+						icu_keys_bezier_loop(ac->scene, ale->key_data, select_cb, NULL);
+				}
+				else if (ale->type == ANIMTYPE_GROUP) {
+					bActionGroup *agrp= ale->data;
+					bActionChannel *achan;
+					bConstraintChannel *conchan;
+					
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+						ipo_keys_bezier_loop(ac->scene, achan->ipo, select_cb, NULL);
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+							ipo_keys_bezier_loop(ac->scene, conchan->ipo, select_cb, NULL);
+					}
+				}
+				//else if (ale->type == ANIMTYPE_GPLAYER) {
+				//	select_gpencil_frames(ale->data, selectmode);
+				//}
+			}
+			break;
+		default: /* any keyframe inside region defined by region */
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+				if (ale->key_data) {
+					if (ale->datatype == ALE_IPO)
+						borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
+					else if (ale->datatype == ALE_ICU)
+						borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_cb);
+				}
+				else if (ale->type == ANIMTYPE_GROUP) {
+					// fixme: need a nicer way of dealing with summaries!
+					bActionGroup *agrp= ale->data;
+					bActionChannel *achan;
+					bConstraintChannel *conchan;
+					
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+						borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+					}
+				}
+				else if (ale->type == ANIMTYPE_ACT) {
+					// fixme: need a nicer way of dealing with summaries!
+				}
+				else if (ale->type == ANIMTYPE_OB) {
+					// fixme: need a nicer way of dealing with summaries!
+				}
+				//else if (ale->type == ANIMTYPE_GPLAYER) {
+				////	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+				//}
+			}
+		}
+		
+		/* if action is mapped in NLA, unapply correction */
+		if (nob) {
+			rectf.xmin= get_action_frame_inv(nob, rectf.xmin);
+			rectf.xmax= get_action_frame_inv(nob, rectf.xmax);
+		}
+		
+		ymax=ymin;
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	rcti rect;
+	short in_scroller, selectmode;
+	int event;
+	
+	/* get editor data */
+	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+		return OPERATOR_CANCELLED;
+	
+	/* get settings from operator */
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	
+	in_scroller= RNA_int_get(op->ptr, "in_scroller");
+	
+	event= RNA_int_get(op->ptr, "event_type");
+	if (event == LEFTMOUSE) // FIXME... hardcoded
+		selectmode = SELECT_ADD;
+	else
+		selectmode = SELECT_SUBTRACT;
+		
+	borderselect_action(&ac, rect, in_scroller, selectmode);
+	
+	return OPERATOR_FINISHED;
+} 
+
+static int actkeys_borderselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+	ARegion *ar;
+	
+	/* get editor data */
+	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+		return OPERATOR_CANCELLED;
+	ar= ac.ar;
+		
+	/* check if mouse is in a scroller */
+	// XXX move this to keymap level thing (boundbox checking)?
+	RNA_enum_set(op->ptr, "in_scroller", UI_view2d_mouse_in_scrollers(C, &ar->v2d, event->x, event->y));
+	
+	/* now init borderselect operator to handle borderselect as per normal */
+	return WM_border_select_invoke(C, op, event);
+}
+
+void ED_ACT_OT_keyframes_borderselect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Borderselect";
+	ot->idname= "ED_ACT_OT_keyframes_borderselect";
+	
+	/* api callbacks */
+	ot->invoke= actkeys_borderselect_invoke;//WM_border_select_invoke;
+	ot->exec= actkeys_borderselect_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "in_scroller", PROP_INT, PROP_NONE); // as enum instead?
+	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }
 
 /* ******************** Column Select Operator **************************** */

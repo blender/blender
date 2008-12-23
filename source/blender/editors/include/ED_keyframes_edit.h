@@ -101,6 +101,9 @@ void select_icu_key(struct Scene *scene, struct IpoCurve *icu, float selx, short
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);
 
+void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, short selectmode);
+void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, BeztEditFunc select_cb);
+
 
 /* ************************************************ */
 
