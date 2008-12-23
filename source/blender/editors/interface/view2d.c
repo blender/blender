@@ -1689,3 +1689,32 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 	if (y) *y = (v2d->mask.ymax - v2d->mask.ymin) / (v2d->cur.ymax - v2d->cur.ymin);
 }
 
+/* Check if mouse is within scrollers
+ *	- Returns appropriate code for match
+ *		'h' = in horizontal scroller
+ *		'v' = in vertical scroller
+ *		0 = not in scroller
+ *	
+ *	- x,y	= mouse coordinates in screen (not region) space
+ */
+short UI_view2d_mouse_in_scrollers (const bContext *C, View2D *v2d, int x, int y)
+{
+	ARegion *ar= CTX_wm_region(C);
+	int co[2];
+	
+	/* clamp x,y to region-coordinates first */
+	co[0]= x - ar->winrct.xmin;
+	co[1]= y - ar->winrct.ymin;
+	
+	/* check if within scrollbars */
+	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
+		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 'h';
+	}
+	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
+		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
+	}	
+	
+	/* not found */
+	return 0;
+}
+

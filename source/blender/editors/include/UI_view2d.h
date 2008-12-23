@@ -167,7 +167,11 @@ void UI_view2d_to_region_no_clip(struct View2D *v2d, float x, float y, short *re
 /* utilities */
 struct View2D *UI_view2d_fromcontext(const struct bContext *C);
 struct View2D *UI_view2d_fromcontext_rwin(const struct bContext *C);
+
 void UI_view2d_getscale(struct View2D *v2d, float *x, float *y);
+
+short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d, int x, int y);
+
 
 /* operators */
 void ui_view2d_operatortypes(void);

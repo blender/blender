@@ -254,4 +254,39 @@ void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
 	}
 }
 
+/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block
+ * 	- restore = whether to map points back to ipo-time 
+ * 	- only_keys = whether to only adjust the location of the center point of beztriples
+ */
+// was called actstrip_map_ipo_keys()
+void ANIM_nla_mapping_apply(Object *ob, Ipo *ipo, short restore, short only_keys)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int a;
+	
+	if (ipo==NULL) return;
+	
+	/* loop through all ipo curves, adjusting the times of the selected keys */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++) {
+			/* are the times being adjusted for editing, or has editing finished */
+			if (restore) {
+				if (only_keys == 0) {
+					bezt->vec[0][0]= get_action_frame(ob, bezt->vec[0][0]);
+					bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
+				}					
+				bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
+			}
+			else {
+				if (only_keys == 0) {
+					bezt->vec[0][0]= get_action_frame_inv(ob, bezt->vec[0][0]);
+					bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
+				}
+				bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+			}
+		}
+	}
+}
+
 /* *************************************************** */

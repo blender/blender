@@ -28,6 +28,7 @@
 #ifndef ED_MARKERS_H
 #define ED_MARKERS_H
 
+
 /* flags for drawing markers */
 enum {
 	DRAW_MARKERS_LINES	= (1<<0),
@@ -35,8 +36,9 @@ enum {
 };
 
 struct wmWindowManager;
+struct bContext;
 
-void draw_markers_time(const bContext *C, int flag);
+void draw_markers_time(const struct bContext *C, int flag);
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void); 

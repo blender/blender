@@ -53,38 +53,6 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-/* ********************************************************* */
-/* General Polling Funcs */
-
-/* Check if mouse is within scrollbars 
- *	- Returns appropriate code for match
- *		'h' = in horizontal scrollbar
- *		'v' = in vertical scrollbar
- *		0 = not in scrollbar
- *	
- *	- x,y	= mouse coordinates in screen (not region) space
- */
-static short mouse_in_v2d_scrollers (const bContext *C, View2D *v2d, int x, int y)
-{
-	ARegion *ar= CTX_wm_region(C);
-	int co[2];
-	
-	/* clamp x,y to region-coordinates first */
-	co[0]= x - ar->winrct.xmin;
-	co[1]= y - ar->winrct.ymin;
-	
-	/* check if within scrollbars */
-	if (v2d->scroll & V2D_SCROLL_HORIZONTAL) {
-		if (IN_2D_HORIZ_SCROLL(v2d, co)) return 'h';
-	}
-	if (v2d->scroll & V2D_SCROLL_VERTICAL) {
-		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
-	}	
-	
-	/* not found */
-	return 0;
-} 
-
 
 /* ********************************************************* */
 /* VIEW PANNING OPERATOR								 */
@@ -1106,7 +1074,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		v2d= &ar->v2d;
 		
 	/* check if mouse in scrollbars, if they're enabled */
-	in_scroller= mouse_in_v2d_scrollers(C, v2d, event->x, event->y);
+	in_scroller= UI_view2d_mouse_in_scrollers(C, v2d, event->x, event->y);
 	
 	/* if in a scroller, init customdata then set modal handler which will catch mousedown to start doing useful stuff */
 	if (in_scroller) {

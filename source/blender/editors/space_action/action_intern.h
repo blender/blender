@@ -32,6 +32,8 @@ struct bContext;
 struct bAnimContext;
 struct SpaceAction;
 struct ARegion;
+struct wmWindowManager;
+struct wmOperatorType;
 
 /* internal exports only */
 
@@ -42,6 +44,12 @@ void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, s
 /* action_header.c */
 void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+/* action_select.c */
+void ED_ACT_OT_keyframes_clickselect(struct wmOperatorType *ot);
+
+/* action_ops.c */
+void action_operatortypes(void);
+void action_keymap(struct wmWindowManager *wm);
 
 #endif /* ED_ACTION_INTERN_H */
 

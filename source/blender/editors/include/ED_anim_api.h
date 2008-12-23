@@ -32,6 +32,9 @@
 struct ID;
 struct ListBase;
 struct bContext;
+struct wmWindowManager;
+struct ScrArea;
+struct ARegion;
 struct View2D;
 struct gla2DDrawInfo;
 struct Object;
@@ -54,6 +57,7 @@ typedef struct bAnimContext {
 	short spacetype;		/* sa->spacetype */
 	short regiontype;		/* active region -> type (channels or main) */
 	struct ScrArea *sa;		/* editor */ 
+	struct ARegion *ar;		/* region within editor */
 	
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
@@ -215,7 +219,7 @@ typedef enum eAnimFilter_Flags {
 /* ---------------- API  -------------------- */
 
 /* Obtain list of filtered Animation channels to operate on */
-void ANIM_animdata_filter(struct ListBase *anim_data, int filter_mode, void *data, short datatype);
+int ANIM_animdata_filter(struct ListBase *anim_data, int filter_mode, void *data, short datatype);
 
 /* Obtain current anim-data context from Blender Context info */
 /** Example usage (example to be removed...):
@@ -268,8 +272,11 @@ unsigned int ipo_rainbow(int cur, int tot);
 /* Obtain the Object providing NLA-scaling for the given channel if applicable */
 struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
-/* set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time */
+/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time */
 void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
+
+/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
+void ANIM_nla_mapping_apply(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 /* ------------- xxx macros ----------------------- */
 #define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
