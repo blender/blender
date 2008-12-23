@@ -36,6 +36,8 @@ __bpydoc__ = """\
 This script is an importer for the X3D and VRML97 file formats.
 """
 
+DEBUG = False
+
 # This should work without a blender at all
 try:
 	from Blender.sys import exists
@@ -244,44 +246,23 @@ def getNodePreText(i, words):
 	# print "error value!!!", words
 	return 0, -1
 
-def is_protoline(i, words, proto_field_defs):
-	
-	node_type = NODE_NORMAL
-	# print "PRPTOTOOOO ---- test", i, lines[i]
-	if not lines[i].startswith('PROTO' ):
-		# print 'not a proto'
-		return node_type, -1
-	
-	words[:] = lines[i].split() # TODO - maybe multiline proto's exist?
-	
-	i+=1
-	if lines[i].startswith('['): # ']\n'
-		while not lines[i].startswith(']'):
-			proto_field_defs.append(lines[i].split())
-			i+=1
-		i+=1 # advance past the ']\n'
-	
-	if lines[i].startswith('{'):
-		node_type = NODE_NORMAL
-		i+=1 # advance past the '{\n'
-	
-	elif lines[i].startswith('['): # does this even exist??, add incase
-		node_type = NODE_ARRAY
-		i+=1 # advance past the '{\n'
-	
-	print "IS PROTO", i, node_type
-	return node_type, i
-
-def is_nodeline(i, words, proto_field_defs):
+def is_nodeline(i, words):
 	
 	if not lines[i][0].isalpha():
 		return 0, 0
 	
+	#if lines[i].startswith('field'):
+	#	return 0, 0
+	
 	# Is this a prototype??
+	if lines[i].startswith('PROTO'):
+		words[:] = lines[i].split()
+		return NODE_NORMAL, i+1 # TODO - assumes the next line is a '[\n', skip that
+	'''
 	proto_type, new_i = is_protoline(i, words, proto_field_defs)
 	if new_i != -1:
 		return proto_type, new_i
-		
+	'''
 	
 	# Simple "var [" type
 	if lines[i+1] == '[':
@@ -292,7 +273,7 @@ def is_nodeline(i, words, proto_field_defs):
 	node_type, new_i = getNodePreText(i, words)
 	
 	if not node_type:
-		print "not node_type", lines[i]
+		if DEBUG: print "not node_type", lines[i]
 		return 0, 0
 	
 	# Ok, we have a { after some values
@@ -354,7 +335,7 @@ def is_numline(i):
 
 
 class vrmlNode(object):
-	__slots__ = 'id', 'fields', 'proto_field_defs', 'proto_fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'ROUTE_IPO_NAMESPACE', 'PROTO_NAMESPACE', 'x3dNode'
+	__slots__ = 'id', 'fields', 'proto_node', 'proto_field_defs', 'proto_fields', 'node_type', 'parent', 'children', 'parent', 'array_data', 'reference', 'lineno', 'filename', 'blendObject', 'DEF_NAMESPACE', 'ROUTE_IPO_NAMESPACE', 'PROTO_NAMESPACE', 'x3dNode'
 	def __init__(self, parent, node_type, lineno):
 		self.id = None
 		self.node_type = node_type
@@ -369,6 +350,7 @@ class vrmlNode(object):
 		# This is only set from the root nodes.
 		# Having a filename also denotes a root node
 		self.filename = None
+		self.proto_node = None # proto field definition eg: "field SFColor seatColor .6 .6 .1"
 		
 		# Store in the root node because each inline file needs its own root node and its own namespace
 		self.DEF_NAMESPACE = None 
@@ -388,6 +370,7 @@ class vrmlNode(object):
 			return 
 		
 		self.fields = [] # fields have no order, in some cases rool level values are not unique so dont use a dict
+		
 		self.proto_field_defs = [] # proto field definition eg: "field SFColor seatColor .6 .6 .1"
 		self.proto_fields = [] # proto field usage "diffuseColor IS seatColor"
 		self.children = []
@@ -516,10 +499,10 @@ class vrmlNode(object):
 				if child.getProtoName() == None:
 					child.getSerialized(results, ancestry)
 				else:
-					print "\n\n\n\nTEST!!!!!!!!!!!!!"
-					print child.getProtoName(), self.getSpec()
+					
+					if DEBUG: print 'getSerialized() is proto:', child.getProtoName(), self.getSpec()
 					if child.getProtoName()==self.getSpec():
-						print "PROTO!!!!!!!!!!!!!!!!\n"
+						if DEBUG: "FoundProto!"
 						child.getSerialized(results, ancestry)
 		
 		return results
@@ -533,7 +516,7 @@ class vrmlNode(object):
 			child.searchNodeTypeID(node_spec, results)
 		return results
 	
-	def getFieldName(self, field, ancestry):
+	def getFieldName(self, field, ancestry, AS_CHILD=False):
 		self_real = self.getRealNode() # incase we're an instance
 		
 		for f in self_real.fields:
@@ -546,39 +529,69 @@ class vrmlNode(object):
 					
 					# print "\n\n\n\n\n\nFOND IS!!!"
 					f_proto_lookup = None
+					f_proto_child_lookup = None
 					i = len(ancestry)
 					while i:
 						i -= 1
 						node = ancestry[i]
+						node = node.getRealNode()
 						
-						# Get the default value from the proto, this can be overwridden by the proto instace
-						# 'field SFColor legColor .8 .4 .7'
-						for f_def in node.proto_field_defs:
-							if len(f_def) >= 4:
-								if f_def[0]=='field' and f_def[2]==field_id:
-									f_proto_lookup = f_def[3:]
+						# proto settings are stored in "self.proto_node"
+						if node.proto_node: 
+							# Get the default value from the proto, this can be overwridden by the proto instace
+							# 'field SFColor legColor .8 .4 .7'
+							if AS_CHILD:
+								for child in node.proto_node.children:
+									#if child.id  and  len(child.id) >= 3  and child.id[2]==field_id:
+									if child.id and ('point' in child.id or 'points' in child.id):
+										f_proto_child_lookup = child
+							
+							else:
+								for f_def in node.proto_node.proto_field_defs:
+									if len(f_def) >= 4:
+										if f_def[0]=='field' and f_def[2]==field_id:
+											f_proto_lookup = f_def[3:]
 						
 						# Node instance, Will be 1 up from the proto-node in the ancestry list. but NOT its parent.
 						# This is the setting as defined by the instance, including this setting is optional,
 						# and will override the default PROTO value 
 						# eg: 'legColor 1 0 0'
-						for f_def in node.fields:
-							# print "\n\n\n\n\nASSSSSSSS", f_def
-							if len(f_def) >= 2:
-								if f_def[0]==field_id:
-									f_proto_lookup = f_def[1:]
-					# print "\n\n\n\nWOOOOHOOO", field, f_proto_lookup
+						if AS_CHILD:
+							for child in node.children:
+								if child.id and child.id[0]==field_id:
+									f_proto_child_lookup = child
+						else:
+							for f_def in node.fields:
+								if len(f_def) >= 2:
+									if f_def[0]==field_id:
+										if DEBUG: print "getFieldName(), found proto", f_def
+										f_proto_lookup = f_def[1:]
+						
 					
-					return f_proto_lookup
+					if AS_CHILD:
+						if f_proto_child_lookup:
+							if DEBUG:
+								print "getFieldName() - AS_CHILD=True, child found"
+								print f_proto_child_lookup
+						return f_proto_child_lookup
+					else:
+						return f_proto_lookup
 				else:
-					# Not using a proto
-					return f[1:]
+					if AS_CHILD:
+						return None
+					else:
+						# Not using a proto
+						return f[1:]
+						
 		# print '\tfield not found', field
 		
 		
 		# See if this is a proto name
-		
-		
+		if AS_CHILD:
+			child_array = None
+			for child in self_real.children:
+				if child.id and len(child.id) == 1 and child.id[0] == field:
+					return child
 		
 		return None
 	
@@ -690,13 +703,11 @@ class vrmlNode(object):
 		'''
 		self_real = self.getRealNode() # incase we're an instance
 		
-		child_array = None
-		for child in self_real.children:
-			# print "ID IS", child.id
-			if child.id and len(child.id) == 1 and child.id[0] == field:
-				child_array = child
-				break
+		child_array = self_real.getFieldName(field, ancestry, True)
 		
+		#if type(child_array)==list: # happens occasionaly
+		#	array_data = child_array 
+			
 		if child_array==None:
 			
 			# For x3d, should work ok with vrml too
@@ -806,7 +817,6 @@ class vrmlNode(object):
 	def __repr__(self):
 		level = self.getLevel()
 		ind = '  ' * level
-		print self.id
 		if self.node_type==NODE_REFERENCE:
 			brackets = ''
 		elif self.node_type==NODE_NORMAL:
@@ -825,14 +835,25 @@ class vrmlNode(object):
 			text += ind + "(reference node)\n"
 			return text
 		
+		if self.proto_node:
+			text += ind + 'PROTO NODE...\n'
+			text += str(self.proto_node)
+			text += ind + 'PROTO NODE_DONE\n'
+		
 		text += ind + 'FIELDS:' + str(len(self.fields)) + '\n'
 		
 		for i,item in enumerate(self.fields):
 			text += ind + 'FIELD:\n'
 			text += ind + str(item) +'\n'
+
+		text += ind + 'PROTO_FIELD_DEFS:' + str(len(self.proto_field_defs)) + '\n'
 		
-		#text += ind + 'ARRAY: ' + str(len(self.array_data)) + ' ' + str(self.array_data) + '\n'
-		text += ind + 'ARRAY: ' + str(len(self.array_data)) + '[...] \n'
+		for i,item in enumerate(self.proto_field_defs):
+			text += ind + 'PROTO_FIELD:\n'
+			text += ind + str(item) +'\n'
+
+		text += ind + 'ARRAY: ' + str(len(self.array_data)) + ' ' + str(self.array_data) + '\n'
+		#text += ind + 'ARRAY: ' + str(len(self.array_data)) + '[...] \n'
 		
 		text += ind + 'CHILDREN: ' + str(len(self.children)) + '\n'
 		for i, child in enumerate(self.children):
@@ -843,8 +864,8 @@ class vrmlNode(object):
 		
 		return text
 	
-	def parse(self, i):
-		new_i = self.__parse(i)
+	def parse(self, i, IS_PROTO_DATA=False):
+		new_i = self.__parse(i, IS_PROTO_DATA)
 		
 		# print self.id, self.getFilename()
 		
@@ -911,7 +932,7 @@ class vrmlNode(object):
 		
 		return new_i
 	
-	def __parse(self, i):
+	def __parse(self, i, IS_PROTO_DATA=False):
 		'''
 		print 'parsing at', i,
 		print i, self.id, self.lineno
@@ -924,9 +945,8 @@ class vrmlNode(object):
 			i+=1
 		else:
 			words = []
-			proto_field_defs = []
 			
-			node_type, new_i = is_nodeline(i, words, proto_field_defs)
+			node_type, new_i = is_nodeline(i, words)
 			if not node_type: # fail for parsing new node.
 				print "Failed to parse new node"
 				raise ValueError
@@ -940,7 +960,6 @@ class vrmlNode(object):
 				return new_i
 			
 			self.id = tuple(words)
-			self.proto_field_defs[:] = proto_field_defs
 			
 			# fill in DEF/USE
 			key = self.getDefName()
@@ -951,6 +970,17 @@ class vrmlNode(object):
 			proto_dict = self.getProtoDict()
 			if key != None:
 				proto_dict[ key ] = self
+				
+				# Parse the proto nodes fields
+				self.proto_node = vrmlNode(self, NODE_ARRAY, new_i)
+				new_i = self.proto_node.parse(new_i)
+				
+				self.children.remove(self.proto_node)
+				
+				# print self.proto_node
+				
+				new_i += 1 # skip past the {
+				
 			
 			else: # If we're a proto instance, add the proto node as our child.
 				spec = self.getSpec()
@@ -988,12 +1018,10 @@ class vrmlNode(object):
 				### print "returning", i
 				return i+1
 				
-			node_type, new_i = is_nodeline(i, [], [])
+			node_type, new_i = is_nodeline(i, [])
 			if node_type: # check text\n{
-				### print '\t\tgroup', i
 				child = vrmlNode(self, node_type, i)
 				i = child.parse(i)
-				# print child.id, 'YYY'
 				
 			elif l=='[': # some files have these anonymous lists
 				child = vrmlNode(self, NODE_ARRAY, i)
@@ -1099,27 +1127,9 @@ class vrmlNode(object):
 						
 						if value[0]=='field':
 							# field SFFloat creaseAngle 4
-							''' #oldproto
-							self.getFieldDict()[value[2]] = value[3:] # skip the first 3 values
-							'''
-							#self.proto_field_defs.append(value)
 							self.proto_field_defs.append(value)
 						else:
-							# Get referenced field
-							if len(value) >= 3 and value[1]=='IS':
-								self.fields.append(value)
-								
-								'''
-								try:
-									value = [ value[0] ] + self.getFieldDict()[ value[2] ]
-								except:
-									print '\tWarning, field could not be found:', value, 'TODO add support for exposedField'
-									print '\t', self.getFieldDict()
-									self.fields.append(value)
-								'''
-							else:
-								print "ADDING '%s'" % value
-								self.fields.append(value)
+							self.fields.append(value)
 				i+=1
 
 def gzipOpen(path):
@@ -1164,7 +1174,7 @@ def vrml_parse(path):
 	
 	
 	# Now evaluate it
-	node_type, new_i = is_nodeline(0, [], [])
+	node_type, new_i = is_nodeline(0, [])
 	if not node_type:
 		return None, 'Error: VRML file has no starting Node'
 	
@@ -1180,9 +1190,8 @@ def vrml_parse(path):
 	root.parse(0)
 	
 	# This prints a load of text
-	'''
-	print root
-	'''
+	if DEBUG:
+		print root
 	
 	return root, ''
 
@@ -1199,7 +1208,7 @@ class x3dNode(vrmlNode):
 		vrmlNode.__init__(self, parent, node_type, -1)
 		self.x3dNode = x3dNode
 		
-	def parse(self):
+	def parse(self, IS_PROTO_DATA=False):
 		# print self.x3dNode.tagName
 		
 		define = self.x3dNode.getAttributeNode('DEF')
@@ -1660,7 +1669,12 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 				fv = f.verts
 				for i,c in enumerate(fcol):
 					color_index = fv[i].index # color index is vert index
-					if ifs_color_index: color_index = ifs_color_index[color_index]
+					if ifs_color_index:
+						try:
+							color_index = ifs_color_index[color_index]
+						except:
+							print '\tWarning: per vertex color index out of range'
+							continue
 					
 					if len(ifs_vcol) < color_index:
 						c.r, c.g, c.b = ifs_vcol[color_index]
@@ -1684,7 +1698,10 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 					
 					col = ifs_vcol[color_index]
 					for i,c in enumerate(fcol):
-						c.r, c.g, c.b = col
+						try:
+							c.r, c.g, c.b = col
+						except:
+							pass # incase its not between 0 and 255
 	
 	bpymesh.verts.delete([0,]) # EEKADOODLE
 	
@@ -2253,8 +2270,12 @@ ROUTE champFly001.bindTime TO vpTs.set_startTime
 	
 	for field in node.fields:
 		if field and field[0]=='ROUTE':
-			from_id, from_type = field[1].split('.')
-			to_id, to_type = field[3].split('.')
+			try:
+				from_id, from_type = field[1].split('.')
+				to_id, to_type = field[3].split('.')
+			except:
+				print "Warning, invalid ROUTE", field
+				continue
 			
 			if from_type == 'value_changed':
 				if to_type == 'set_position':
@@ -2470,7 +2491,7 @@ def test():
 		#if i < 126 or i > 1000000:
 		#	continue
 		
-		if i < 181 or i > 1000000:
+		if i != 1068:
 			continue
 		
 		#if i != 12686:
