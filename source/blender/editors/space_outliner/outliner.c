@@ -3372,7 +3372,7 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	int starty, startx;
 	float col[4];
 	
-#ifdef INTERNATIONAL
+#if 0 // XXX was #ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
 	BIF_SetScale(1.0);
 #endif

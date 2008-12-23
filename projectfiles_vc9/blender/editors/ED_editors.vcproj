@@ -411,6 +411,10 @@
 			Name="space_outliner"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_outliner\outliner_header.c"
 				>
 			</File>
@@ -436,6 +440,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\screen\glutil.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\screen\screen_context.c"
 				>
 			</File>
 			<File
@@ -607,6 +615,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_action\action_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_action\action_select.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_action\space_action.c"
 				>
 			</File>
@@ -703,11 +719,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\animation\anim_keyframes_draw.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\animation\anim_keyframing.c"
+				RelativePath="..\..\..\source\blender\editors\animation\anim_ipo_utils.c"
 				>
 			</File>
 			<File
@@ -716,6 +728,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\keyframes_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\keyframes_edit.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\keyframing.c"
 				>
 			</File>
 		</Filter>
