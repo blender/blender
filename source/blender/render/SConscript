@@ -28,4 +28,4 @@ if env['WITH_BF_OPENEXR']:
 if env['OURPLATFORM']=='linux2':
     cflags='-pthread'
 
-env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=55, compileflags=cflags )
+env.BlenderLib ( libname = 'bf_render', sources = sources, includes = Split(incs), defines=defs, libtype='core', priority=145, compileflags=cflags )

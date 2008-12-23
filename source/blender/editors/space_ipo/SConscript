@@ -6,4 +6,4 @@ sources = env.Glob('*.c')
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 
-env.BlenderLib ( 'bf_editors_space_ipo', sources, Split(incs), [], libtype=['core'], priority=[35] )
+env.BlenderLib ( 'bf_editors_space_ipo', sources, Split(incs), [], libtype=['core'], priority=[50] )

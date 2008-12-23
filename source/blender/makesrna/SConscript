@@ -8,4 +8,4 @@ objs += o
 
 incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
 
-env.BlenderLib ( 'bf_rna', objs, Split(incs), [], libtype=['core','intern'], priority = [95, 95] )
+env.BlenderLib ( 'bf_rna', objs, Split(incs), [], libtype=['core'], priority = [195] )

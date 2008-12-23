@@ -59,4 +59,4 @@ if env['BF_NO_ELBEEM']:
 if env['WITH_BF_PLAYER']:
     SConscript(['bad_level_call_stubs/SConscript'])
 
-env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )
+env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [155] )

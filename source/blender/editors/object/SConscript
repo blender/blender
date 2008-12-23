@@ -8,4 +8,4 @@ incs += ' ../../windowmanager #/intern/guardedalloc'
 incs += ' #/intern/guardedalloc #intern/bmfont'
 incs += ' ../../makesrna'
 
-env.BlenderLib ( 'bf_editors_object', sources, Split(incs), [], libtype=['core','intern'], priority=[33, 38] )
+env.BlenderLib ( 'bf_editors_object', sources, Split(incs), [], libtype=['core'], priority=[35] )

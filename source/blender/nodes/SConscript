@@ -48,4 +48,4 @@ if env['WITH_BF_QUICKTIME']:
 
 defs += ' WITH_CCGSUBSURF '
 
-env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [80, 15] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [175] )
