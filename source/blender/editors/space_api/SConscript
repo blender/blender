@@ -12,4 +12,4 @@ defs = ''
 if not env['WITH_BF_PYTHON']:
     defs += 'DISABLE_PYTHON'
 
-env.BlenderLib ( 'bf_editors_space_api', sources, Split(incs), Split(defs), libtype=['core','intern'], priority=[30, 35] )
+env.BlenderLib ( 'bf_editors_space_api', sources, Split(incs), Split(defs), libtype=['core'], priority=[30] )

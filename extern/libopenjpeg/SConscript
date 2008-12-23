@@ -20,5 +20,5 @@ if not env['OURPLATFORM'] == 'win32-vc':
 oj_env.BlenderLib ( libname='extern_openjpeg', 
                     sources=sources, includes=Split(incs),
                     defines=[],
-                    libtype=['core','intern','player'],
-                    priority=[10, 10, 300], compileflags = flags)
+                    libtype=['extern'],
+                    priority=[10], compileflags = flags)
