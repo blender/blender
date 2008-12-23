@@ -602,7 +602,7 @@ void area_newspace(bContext *C, ScrArea *sa, int type)
 		/* old spacedata... happened during work on 2.50, remove */
 		if(sl && sl->regionbase.first==NULL) {
 			st->free(sl);
-			MEM_freeN(sl);
+			BLI_freelinkN(&sa->spacedata, sl);
 			sl= NULL;
 		}
 		
