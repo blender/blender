@@ -35,6 +35,8 @@
 
 #include "RNA_access.h"
 
+#include "BLI_listbase.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -58,8 +60,6 @@ struct bContext {
 		struct ARegion *region;
 		struct uiBlock *block;
 
-		bContextDataCallback manager_cb;
-		bContextDataCallback window_cb;
 		bContextDataCallback screen_cb;
 		bContextDataCallback area_cb;
 		bContextDataCallback region_cb;
@@ -70,6 +70,8 @@ struct bContext {
 	struct {
 		struct Main *main;
 		struct Scene *scene;
+
+		int recursion;
 	} data;
 	
 	/* data evaluation */
@@ -189,12 +191,14 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 	C->wm.window= win;
 	C->wm.screen= (win)? win->screen: NULL;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	C->wm.screen_cb= (C->wm.screen)? C->wm.screen->context: NULL;
 }
 
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
 {
 	C->wm.screen= screen;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
+	C->wm.screen_cb= (C->wm.screen)? C->wm.screen->context: NULL;
 }
 
 void CTX_wm_area_set(bContext *C, ScrArea *area)
@@ -223,32 +227,46 @@ struct bContextDataMember {
 	int collection;
 };
 
-bContextDataMember CTX_DataMain = {&RNA_Main, "main", 0};
-bContextDataMember CTX_DataScene = {&RNA_Scene, "scene", 0};
+struct bContextDataResult {
+	void *pointer;
+	ListBase list;
+};
 
-bContextDataMember CTX_DataObjects = {&RNA_Object, "objects", 1};
-
-bContextDataMember CTX_DataEditObject = {&RNA_Object, "edit_object", 0};
-bContextDataMember CTX_DataEditArmature = {NULL, "edit_armature", 0};
-bContextDataMember CTX_DataEditMesh = {NULL, "edit_mesh", 0};
-
-static int ctx_data_get(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+static int ctx_data_get(bContext *C, const bContextDataMember *member, bContextDataResult *result)
 {
-	if(C->wm.block_cb && C->wm.block_cb(C, member, result)) return 1;
-	if(C->wm.region_cb && C->wm.region_cb(C, member, result)) return 1;
-	if(C->wm.area_cb && C->wm.area_cb(C, member, result)) return 1;
-	if(C->wm.screen_cb && C->wm.screen_cb(C, member, result)) return 1;
-	if(C->wm.window_cb && C->wm.window_cb(C, member, result)) return 1;
-	if(C->wm.manager_cb && C->wm.manager_cb(C, member, result)) return 1;
+	int done= 0, recursion= C->data.recursion;
 
-	return 0;
+	memset(result, 0, sizeof(bContextDataResult));
+
+	/* we check recursion to ensure that we do not get infinite
+	 * loops requesting data from ourselfs in a context callback */
+	if(!done && recursion < 1 && C->wm.block_cb) {
+		C->data.recursion= 1;
+		done= C->wm.block_cb(C, member, result);
+	}
+	if(!done && recursion < 2 && C->wm.region_cb) {
+		C->data.recursion= 2;
+		done= C->wm.region_cb(C, member, result);
+	}
+	if(!done && recursion < 3 && C->wm.area_cb) {
+		C->data.recursion= 3;
+		done= C->wm.area_cb(C, member, result);
+	}
+	if(!done && recursion < 4 && C->wm.screen_cb) {
+		C->data.recursion= 4;
+		done= C->wm.screen_cb(C, member, result);
+	}
+
+	C->data.recursion= recursion;
+
+	return done;
 }
 
 static void *ctx_data_pointer_get(const bContext *C, const bContextDataMember *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get(C, member, &result))
+	if(ctx_data_get((bContext*)C, member, &result))
 		return result.pointer;
 
 	return NULL;
@@ -258,7 +276,7 @@ static int ctx_data_pointer_verify(const bContext *C, const bContextDataMember *
 {
 	bContextDataResult result;
 
-	if(ctx_data_get(C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result)) {
 		*pointer= result.pointer;
 		return 1;
 	}
@@ -268,16 +286,31 @@ static int ctx_data_pointer_verify(const bContext *C, const bContextDataMember *
 	}
 }
 
-static int ctx_data_collection_get(const bContext *C, const bContextDataMember *member, bContextDataIterator *iter)
+static int ctx_data_collection_get(const bContext *C, const bContextDataMember *member, ListBase *list)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get(C, member, &result)) {
-		*iter= result.iterator;
+	if(ctx_data_get((bContext*)C, member, &result)) {
+		*list= result.list;
 		return 1;
 	}
 
 	return 0;
+}
+
+void CTX_data_pointer_set(bContextDataResult *result, void *data)
+{
+	result->pointer= data;
+}
+
+void CTX_data_list_add(bContextDataResult *result, void *data)
+{
+	LinkData *link;
+	
+	link= MEM_callocN(sizeof(LinkData), "LinkData");
+	link->data= data;
+
+	BLI_addtail(&result->list, link);
 }
 
 /* data context */
@@ -286,7 +319,7 @@ Main *CTX_data_main(const bContext *C)
 {
 	Main *bmain;
 
-	if(ctx_data_pointer_verify(C, &CTX_DataMain, (void*)&bmain))
+	if(ctx_data_pointer_verify(C, CTX_data_main, (void*)&bmain))
 		return bmain;
 	else
 		return C->data.main;
@@ -301,7 +334,7 @@ Scene *CTX_data_scene(const bContext *C)
 {
 	Scene *scene;
 
-	if(ctx_data_pointer_verify(C, &CTX_DataScene, (void*)&scene))
+	if(ctx_data_pointer_verify(C, CTX_data_scene, (void*)&scene))
 		return scene;
 	else
 		return C->data.scene;
@@ -322,24 +355,39 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
 		return NULL;
 }
 
-int CTX_data_objects(const bContext *C, bContextDataIterator *iter)
+int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
-	return ctx_data_collection_get(C, &CTX_DataObjects, iter);
+	return ctx_data_collection_get(C, CTX_data_selected_objects, list);
+}
+
+int CTX_data_selected_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_bases, list);
+}
+
+struct Object *CTX_data_active_object(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_active_object);
+}
+
+struct Base *CTX_data_active_base(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_active_base);
 }
 
 struct Object *CTX_data_edit_object(const bContext *C)
 {
-	return ctx_data_pointer_get(C, &CTX_DataEditObject);
+	return ctx_data_pointer_get(C, CTX_data_edit_object);
 }
 
 struct EditMesh *CTX_data_edit_mesh(const bContext *C)
 {
-	return ctx_data_pointer_get(C, &CTX_DataEditMesh);
+	return ctx_data_pointer_get(C, CTX_data_edit_mesh);
 }
 
 ListBase *CTX_data_edit_armature(const bContext *C)
 {
-	return ctx_data_pointer_get(C, &CTX_DataEditArmature);
+	return ctx_data_pointer_get(C, CTX_data_edit_armature);
 }
 
 /* data evaluation */

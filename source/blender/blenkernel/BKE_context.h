@@ -55,30 +55,10 @@ struct wmWindowManager;
 struct bContext;
 typedef struct bContext bContext;
 
-struct bContextDataMember;
-typedef struct bContextDataMember bContextDataMember;
+typedef void bContextDataMember;
 
-extern bContextDataMember CTX_DataMain;
-extern bContextDataMember CTX_DataScene;
-extern bContextDataMember CTX_DataObjects;
-extern bContextDataMember CTX_DataEditObject;
-extern bContextDataMember CTX_DataEditArmature;
-extern bContextDataMember CTX_DataEditMesh;
-
-typedef struct bContextDataIterator {
-	void *data;
-	int valid;
-
-	void (*begin)(bContext *C, struct bContextDataIterator *iter);
-	void (*next)(struct bContextDataIterator *iter);
-	void (*end)(struct bContextDataIterator *iter);
-	void *internal;
-} bContextDataIterator;
-
-typedef struct bContextDataResult {
-	void *pointer;
-	bContextDataIterator iterator;
-} bContextDataResult;
+struct bContextDataResult;
+typedef struct bContextDataResult bContextDataResult;
 
 typedef int (*bContextDataCallback)(const bContext *C,
 	const bContextDataMember *member, bContextDataResult *result);
@@ -124,7 +104,28 @@ void CTX_wm_area_set(bContext *C, struct ScrArea *win);
 void CTX_wm_region_set(bContext *C, struct ARegion *win);
 void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallback cb);
 
-/* Data Context */
+/* Data Context
+
+   - note: listbases consist of LinkData items and must be
+     freed with BLI_freelistN! */
+
+void CTX_data_pointer_set(bContextDataResult *result, void *data);
+void CTX_data_list_add(bContextDataResult *result, void *data);
+
+#define CTX_DATA_BEGIN(C, Type, instance, member) \
+	{ \
+		ListBase ctx_data_list; \
+		LinkData *link; \
+		CTX_data_##member(C, &ctx_data_list); \
+		for(link=ctx_data_list.first; link; link=link->next) { \
+			Type instance= link->data;
+
+#define CTX_DATA_END \
+		} \
+		BLI_freelistN(&ctx_data_list); \
+	}
+
+/* Data Context Members */
 
 struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
@@ -133,7 +134,11 @@ struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *bmain);
 
-int CTX_data_objects(const bContext *C, bContextDataIterator *iter);
+int CTX_data_selected_objects(const bContext *C, ListBase *list);
+int CTX_data_selected_bases(const bContext *C, ListBase *list);
+
+struct Object *CTX_data_active_object(const bContext *C);
+struct Base *CTX_data_active_base(const bContext *C);
 
 struct Object *CTX_data_edit_object(const bContext *C);
 struct EditMesh *CTX_data_edit_mesh(const bContext *C);

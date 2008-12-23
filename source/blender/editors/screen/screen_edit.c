@@ -1001,6 +1001,8 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	
 	if(G.f & G_DEBUG) printf("set screen\n");
 	win->screen->do_refresh= 0;
+
+	win->screen->context= ed_screen_context;
 }
 
 /* file read, set all screens, ... */

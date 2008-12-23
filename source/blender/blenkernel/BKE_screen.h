@@ -33,7 +33,6 @@
 
 struct ARegion;
 struct bContext;
-struct bContextDataMember;
 struct bContextDataResult;
 struct bScreen;
 struct ListBase;
@@ -77,7 +76,7 @@ typedef struct SpaceType {
 	void		(*cursor)(struct wmWindow *win, struct ARegion *ar);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, const struct bContextDataMember *, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const void *, struct bContextDataResult *);
 
 	/* region type definitions */
 	ListBase	regiontypes;
@@ -111,7 +110,7 @@ typedef struct ARegionType {
 	void		(*keymap)(struct wmWindowManager *);
 	
 	/* return context data */
-	int			(*context)(const struct bContext *, const struct bContextDataMember *, struct bContextDataResult *);
+	int			(*context)(const struct bContext *, const void *, struct bContextDataResult *);
 
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;

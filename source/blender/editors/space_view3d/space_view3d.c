@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -228,6 +229,47 @@ static void view3d_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
+static int view3d_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+{
+	View3D *v3d= (View3D*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Base *base;
+
+	if(ELEM(member, CTX_data_selected_objects, CTX_data_selected_bases)) {
+		for(base=scene->base.first; base; base=base->next) {
+			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if(member == CTX_data_selected_objects)
+						CTX_data_list_add(result, base->object);
+					else
+						CTX_data_list_add(result, base);
+				}
+			}
+		}
+
+		return 1;
+	}
+	else if(member == CTX_data_active_base) {
+		if(scene->basact && (scene->basact->lay & v3d->lay))
+			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
+				CTX_data_pointer_set(result, scene->basact);
+
+		return 1;
+	}
+	else if(member == CTX_data_active_object) {
+		if(scene->basact && (scene->basact->lay & v3d->lay))
+			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
+				CTX_data_pointer_set(result, scene->basact->object);
+
+		return 1;
+	}
+	else if(member == CTX_data_edit_object) {
+		CTX_data_pointer_set(result, G.obedit);
+		return 1;
+	}
+
+	return 0;
+}
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
@@ -243,6 +285,7 @@ void ED_spacetype_view3d(void)
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
+	st->context= view3d_context;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");

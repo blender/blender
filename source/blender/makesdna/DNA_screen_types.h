@@ -60,6 +60,7 @@ typedef struct bScreen {
 	short subwinactive;					/* active subwindow */
 	
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
+	void *context;						/* context callback */
 	
 	short handler[8];					/* similar to space handler */
 } bScreen;
