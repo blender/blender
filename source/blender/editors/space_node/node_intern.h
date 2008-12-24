@@ -30,10 +30,23 @@
 
 /* internal exports only */
 
+struct ARegion;
+struct View2D;
+struct bContext;
+
 
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
 
+/* node_draw.c */
+void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
+
+/* drawnode.c */
+void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
+void node_draw_link_bezier(View2D *v2d, float vec[][3], int th_col1, int th_col2, int do_shaded);
+
+/* node_edit.c */
+void snode_set_context(SpaceNode *snode, Scene *scene);
 
 #endif /* ED_NODE_INTERN_H */
 

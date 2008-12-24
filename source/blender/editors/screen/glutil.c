@@ -49,6 +49,34 @@
 
 /* ******************************************** */
 
+void fdrawbezier(float vec[4][3])
+{
+	float dist;
+	float curve_res = 24, spline_step = 0.0f;
+	
+	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
+	
+	/* check direction later, for top sockets */
+	vec[1][0]= vec[0][0]+dist;
+	vec[1][1]= vec[0][1];
+	
+	vec[2][0]= vec[3][0]-dist;
+	vec[2][1]= vec[3][1];
+	/* we can reuse the dist variable here to increment the GL curve eval amount*/
+	dist = 1.0f/curve_res;
+	
+	cpack(0x0);
+	glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
+	glBegin(GL_LINE_STRIP);
+	while (spline_step < 1.000001f) {
+		/*if(do_shaded)
+			UI_ThemeColorBlend(th_col1, th_col2, spline_step);*/
+		glEvalCoord1f(spline_step);
+		spline_step += dist;
+	}
+	glEnd();
+}
+
 void fdrawline(float x1, float y1, float x2, float y2)
 {
 	float v[2];

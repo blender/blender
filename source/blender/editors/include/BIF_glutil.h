@@ -31,6 +31,7 @@
 struct rcti;
 struct rctf;
 
+void fdrawbezier(float vec[4][3]);
 void fdrawline(float x1, float y1, float x2, float y2);
 void fdrawbox(float x1, float y1, float x2, float y2);
 void sdrawline(short x1, short y1, short x2, short y2);

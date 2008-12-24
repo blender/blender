@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 #include "DNA_space_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -62,7 +63,7 @@
 
 static void do_viewmenu(bContext *C, void *arg, int event)
 {
-	
+
 }
 
 static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -123,7 +124,7 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(block);

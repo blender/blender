@@ -101,10 +101,9 @@ static SpaceLink *node_new(const bContext *C)
 	ar->v2d.minzoom= 0.5f;
 	ar->v2d.maxzoom= 1.21f;
 	
-	ar->v2d.scroll= 0;
+	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 	ar->v2d.keeptot= 0;
-	
 	
 	return (SpaceLink *)snode;
 }
@@ -152,32 +151,11 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void node_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	//SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
-	//View2DGrid *grid;
-	float col[3];
 	
-	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	drawnodespace(C, ar, v2d);
 	
-	UI_view2d_view_ortho(C, v2d);
-	
-#if 0
-	/* grid */
-	grid= UI_view2d_grid_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP, ar->winx, ar->winy);
-	UI_view2d_grid_draw(C, v2d, grid, V2D_GRIDLINES_ALL);
-	UI_view2d_grid_free(grid);
-#endif
-	
-	/* data... */
-	
-	
-	/* reset view matrix */
-	UI_view2d_view_restore(C);
-	
-	/* scrollers? */
 }
 
 void node_operatortypes(void)
