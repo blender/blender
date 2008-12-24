@@ -29,4 +29,4 @@ if env['WITH_BF_FFMPEG']:
     incs += ' ' + env['BF_FFMPEG_INC']
     defs += ' __STDC_CONSTANT_MACROS'
 
-env.BlenderLib ( 'bf_videotex', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[25, 72], compileflags = cflags )
+env.BlenderLib ( 'bf_videotex', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[300, 72], compileflags = cflags )

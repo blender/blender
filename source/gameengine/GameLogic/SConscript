@@ -17,4 +17,4 @@ if env['WITH_BF_SDL']:
 else:
 	defs += ' DISABLE_SDL'
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), Split(defs), libtype=['game','player'], priority=[30, 100] )
+env.BlenderLib ( 'bf_logic', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[315, 100] )

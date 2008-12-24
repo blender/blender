@@ -3,7 +3,7 @@ Import ('env')
 
 SConscript(['BlenderRoutines/SConscript',
             'Converter/SConscript',
-            'Expressions/SConscript',
+            'Expressions/SConscript', #310
             'GameLogic/SConscript',
             'Ketsji/SConscript',
             'Ketsji/KXNetwork/SConscript',

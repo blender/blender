@@ -12,4 +12,4 @@ if env['OURPLATFORM']=='win32-vc':
     cflags.append('/GR')
     cflags.append('/O2')
 
-env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,80] )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360,80] )

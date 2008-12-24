@@ -22,4 +22,4 @@ if env['OURPLATFORM']=='win32-vc':
 	cflags.append('/GR')
 	cflags.append('/O1')
 
-env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['game2','player'], priority=[40, 55] , compileflags=cflags)
+env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['core','player'], priority=[400, 55] , compileflags=cflags)
