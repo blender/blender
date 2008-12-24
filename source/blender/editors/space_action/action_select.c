@@ -114,7 +114,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 	clickmax = clickmin;
 	
 	if (clickmax < 0) {
-		*ret_type= ACTTYPE_NONE;
+		*ret_type= ANIMTYPE_NONE;
 		return NULL;
 	}
 	
@@ -455,7 +455,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 		
 		/* what gets selected depends on the mode (based on initial position of cursor) */
 		switch (in_scroller) {
-		case 'h': /* all in frame(s) */
+		case 'h': /* all in frame(s) (option 3) */
 			if (ale->key_data) {
 				if (ale->datatype == ALE_IPO)
 					borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
@@ -478,7 +478,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			//}
 			break;
-		case 'v': /* all in channel(s) */
+		case 'v': /* all in channel(s) (option 2) */
 			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
 				if (ale->key_data) {
 					if (ale->datatype == ALE_IPO)
@@ -503,7 +503,7 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 				//}
 			}
 			break;
-		default: /* any keyframe inside region defined by region */
+		default: /* any keyframe inside region defined by region (option 1) */
 			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
 				if (ale->key_data) {
 					if (ale->datatype == ALE_IPO)
@@ -523,12 +523,6 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
 							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
 					}
-				}
-				else if (ale->type == ANIMTYPE_ACT) {
-					// fixme: need a nicer way of dealing with summaries!
-				}
-				else if (ale->type == ANIMTYPE_OB) {
-					// fixme: need a nicer way of dealing with summaries!
 				}
 				//else if (ale->type == ANIMTYPE_GPLAYER) {
 				////	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
@@ -602,7 +596,7 @@ static int actkeys_borderselect_invoke(bContext *C, wmOperator *op, wmEvent *eve
 void ED_ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Borderselect";
+	ot->name= "Border Select";
 	ot->idname= "ED_ACT_OT_keyframes_borderselect";
 	
 	/* api callbacks */
@@ -781,12 +775,62 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		//	select_gpencil_frame(gpl, (int)selx, selectmode);
 	}
 }
+
+/* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
+static void selectkeys_leftright (bAnimContext *ac, short leftright, short select_mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	Scene *scene= ac->scene;
+	float min, max;
+	
+	if (select_mode==SELECT_REPLACE) {
+		select_mode=SELECT_ADD;
+		deselect_action_keys(ac, 0, 0);
+	}
+	
+	if (leftright == 1) {
+		min = -MAXFRAMEF;
+		max = (float)(CFRA + 0.1f);
+	} 
+	else {
+		min = (float)(CFRA - 0.1f);
+		max = MAXFRAMEF;
+	}
+	
+	/* filter data */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+		
+	/* select keys on the side where most data occurs */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		if (nob) {
+			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1);
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+		}
+		//else if (ale->type == ANIMTYPE_GPLAYER)
+		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+		else
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
  
 /* ------------------- */
 
 static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
+	Scene *scene;
 	ARegion *ar;
 	short in_scroller, selectmode;
 	int mval[2];
@@ -796,6 +840,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
+	scene= ac.scene;
 	ar= ac.ar;
 	
 	/* get mouse coordinates (in region coordinates) */
@@ -822,7 +867,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	else if (RNA_boolean_get(op->ptr, "left_right")) {
 		/* select all keys on same side of current frame as mouse */
-		
+		selectkeys_leftright(&ac, (mval[0] < CFRA), selectmode);
 	}
 	else {
 		/* select keyframe under mouse */

@@ -32,6 +32,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -44,6 +45,7 @@
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
+#include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 
@@ -66,6 +68,8 @@
 
 // FIXME: it would be useful to be able to supply custom properties to the bezt function...
 // workaround for those callbacks that need this now, is to set globals...
+
+/* --------------------------- Base Functions ------------------------------------ */
 
 /* This function is used to loop over BezTriples in the given IpoCurve, applying a given 
  * operation on them, and optionally applies an IPO-curve validate function afterwards.
@@ -110,6 +114,21 @@ short ipo_keys_bezier_loop(Scene *scene, Ipo *ipo, BeztEditFunc bezt_cb, IcuEdit
 
     return 0;
 }
+
+/* This function is used to loop over the channels in an Action Group to modify the IPO blocks within them */
+short actgroup_keys_bezier_loop(Scene *scene, bActionGroup *agrp, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+{
+	
+}
+
+/* -------------------------------- Further Abstracted ----------------------------- */
+
+/* this function is called to apply the same operation to all types of channels */
+short animchannel_keys_bezier_loop(Scene *scene, bAnimListElem *ale, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+{
+
+}
+
 
 /* ******************************************* */
 /* Transform */
