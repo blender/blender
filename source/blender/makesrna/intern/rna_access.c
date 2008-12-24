@@ -1588,6 +1588,28 @@ void RNA_enum_set(PointerRNA *ptr, const char *name, int value)
 		printf("RNA_enum_set: %s.%s not found.\n", ptr->type->identifier, name);
 }
 
+int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+	const EnumPropertyItem *item;
+	int a, totitem;
+
+	if(prop) {
+		RNA_property_enum_items(ptr, prop, &item, &totitem);
+
+		for(a=0; a<totitem; a++)
+			if(strcmp(item->identifier, enumname) == 0)
+				return (item->value == RNA_property_enum_get(ptr, prop));
+
+		printf("RNA_enum_is_equal: %s.%s item %s not found.\n", ptr->type->identifier, name, enumname);
+		return 0;
+	}
+	else {
+		printf("RNA_enum_is_equal: %s.%s not found.\n", ptr->type->identifier, name);
+		return 0;
+	}
+}
+
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
