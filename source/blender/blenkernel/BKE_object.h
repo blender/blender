@@ -45,7 +45,9 @@ struct BulletSoftBody;
 struct Group;
 struct bAction;
 
-void clear_workob(void);
+void clear_workob(struct Object *workob);
+void what_does_parent(struct Object *ob, struct Object *workob);
+
 void copy_baseflags(void);
 void copy_objectflags(void);
 struct SoftBody *copy_softbody(struct SoftBody *sb);
@@ -103,8 +105,6 @@ int during_scriptlink(void);
 void where_is_object_time(struct Object *ob, float ctime);
 void where_is_object(struct Object *ob);
 void where_is_object_simul(struct Object *ob);
-
-void what_does_parent(struct Object *ob);
 
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);

@@ -133,7 +133,7 @@ void extract_pose_from_action(struct bPose *pose, struct bAction *act, float cti
 /**
  * Get the effects of the given action using a workob 
  */
-void what_does_obaction(struct Object *ob, struct bAction *act, float cframe);
+void what_does_obaction(struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
 
 /**
  * Iterate through the action channels of the action

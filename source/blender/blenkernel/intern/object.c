@@ -120,13 +120,12 @@
 static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
 float originmat[3][3];	/* after where_is_object(), can be used in other functions (bad!) */
-Object workob;
 
-void clear_workob(void)
+void clear_workob(Object *workob)
 {
-	memset(&workob, 0, sizeof(Object));
+	memset(workob, 0, sizeof(Object));
 	
-	workob.size[0]= workob.size[1]= workob.size[2]= 1.0;
+	workob->size[0]= workob->size[1]= workob->size[2]= 1.0;
 	
 }
 
@@ -2106,29 +2105,30 @@ for a lamp that is the child of another object */
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
-void what_does_parent(Object *ob)
+void what_does_parent(Object *ob, Object *workob)
 {
-	clear_workob();
-	Mat4One(workob.obmat);
-	Mat4One(workob.parentinv);
-	Mat4One(workob.constinv);
-	workob.parent= ob->parent;
-	workob.track= ob->track;
-
-	workob.trackflag= ob->trackflag;
-	workob.upflag= ob->upflag;
+	clear_workob(workob);
 	
-	workob.partype= ob->partype;
-	workob.par1= ob->par1;
-	workob.par2= ob->par2;
-	workob.par3= ob->par3;
+	Mat4One(workob->obmat);
+	Mat4One(workob->parentinv);
+	Mat4One(workob->constinv);
+	workob->parent= ob->parent;
+	workob->track= ob->track;
 
-	workob.constraints.first = ob->constraints.first;
-	workob.constraints.last = ob->constraints.last;
+	workob->trackflag= ob->trackflag;
+	workob->upflag= ob->upflag;
+	
+	workob->partype= ob->partype;
+	workob->par1= ob->par1;
+	workob->par2= ob->par2;
+	workob->par3= ob->par3;
 
-	strcpy(workob.parsubstr, ob->parsubstr); 
+	workob->constraints.first = ob->constraints.first;
+	workob->constraints.last = ob->constraints.last;
 
-	where_is_object(&workob);
+	strcpy(workob->parsubstr, ob->parsubstr); 
+
+	where_is_object(workob);
 }
 
 BoundBox *unit_boundbox()

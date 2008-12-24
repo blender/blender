@@ -2046,8 +2046,9 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			free_pose(pose);
 		}
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
+			Object workob;
 			/* evaluate using workob */
-			what_does_obaction(cob->ob, data->act, t);
+			what_does_obaction(cob->ob, &workob, data->act, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {

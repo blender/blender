@@ -1225,35 +1225,35 @@ static Object *get_parent_path(Object *ob)
 /* For the calculation of the effects of an action at the given frame on an object 
  * This is currently only used for the action constraint 
  */
-void what_does_obaction (Object *ob, bAction *act, float cframe)
+void what_does_obaction (Object *ob, Object *workob, bAction *act, float cframe)
 {
 	ListBase tchanbase= {NULL, NULL};
 	
-	clear_workob();
-	Mat4CpyMat4(workob.obmat, ob->obmat);
-	Mat4CpyMat4(workob.parentinv, ob->parentinv);
-	Mat4CpyMat4(workob.constinv, ob->constinv);
-	workob.parent= ob->parent;
-	workob.track= ob->track;
+	clear_workob(workob);
+	Mat4CpyMat4(workob->obmat, ob->obmat);
+	Mat4CpyMat4(workob->parentinv, ob->parentinv);
+	Mat4CpyMat4(workob->constinv, ob->constinv);
+	workob->parent= ob->parent;
+	workob->track= ob->track;
 
-	workob.trackflag= ob->trackflag;
-	workob.upflag= ob->upflag;
+	workob->trackflag= ob->trackflag;
+	workob->upflag= ob->upflag;
 	
-	workob.partype= ob->partype;
-	workob.par1= ob->par1;
-	workob.par2= ob->par2;
-	workob.par3= ob->par3;
+	workob->partype= ob->partype;
+	workob->par1= ob->par1;
+	workob->par2= ob->par2;
+	workob->par3= ob->par3;
 
-	workob.constraints.first = ob->constraints.first;
-	workob.constraints.last = ob->constraints.last;
+	workob->constraints.first = ob->constraints.first;
+	workob->constraints.last = ob->constraints.last;
 
-	strcpy(workob.parsubstr, ob->parsubstr);
-	strcpy(workob.id.name, ob->id.name);
+	strcpy(workob->parsubstr, ob->parsubstr);
+	strcpy(workob->id.name, ob->id.name);
 	
 	/* extract_ipochannels_from_action needs id's! */
-	workob.action= act;
+	workob->action= act;
 	
-	extract_ipochannels_from_action(&tchanbase, &workob.id, act, "Object", bsystem_time(&workob, cframe, 0.0));
+	extract_ipochannels_from_action(&tchanbase, &workob->id, act, "Object", bsystem_time(workob, cframe, 0.0));
 	
 	if (tchanbase.first) {
 		execute_ipochannels(&tchanbase);

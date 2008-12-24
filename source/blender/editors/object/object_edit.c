@@ -792,13 +792,14 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
  * apply-size-rot or object center for eg */
 static void ignore_parent_tx( Object *ob ) 
 {
+	Object workob;
 	Object *ob_child;
 	
 	/* a change was made, adjust the children to compensate */
 	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
 		if (ob_child->parent == ob) {
 			apply_obmat(ob_child);
-			what_does_parent(ob_child);
+			what_does_parent(ob_child, &workob);
 			Mat4Invert(ob_child->parentinv, workob.obmat);
 		}
 	}
@@ -1221,6 +1222,8 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 					error("Loop in parents");
 				}
 				else {
+					Object workob;
+					
 					ob->parent= BASACT->object;
 					if(v3) {
 						ob->partype= PARVERT3;
@@ -1229,18 +1232,16 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 						ob->par3= v3-1;
 
 						/* inverse parent matrix */
-						what_does_parent(ob);
+						what_does_parent(ob, &workob);
 						Mat4Invert(ob->parentinv, workob.obmat);
-						clear_workob();
 					}
 					else {
 						ob->partype= PARVERT1;
 						ob->par1= v1-1;
 
 						/* inverse parent matrix */
-						what_does_parent(ob);
+						what_does_parent(ob, &workob);
 						Mat4Invert(ob->parentinv, workob.obmat);
-						clear_workob();
 					}
 				}
 			}
@@ -1384,7 +1385,7 @@ oldcode()
 							base->object->partype= mode;
 						}
 						else
-							what_does_parent(base->object);
+							what_does_parent(base->object, &workob);
 						Mat4Invert(base->object->parentinv, workob.obmat);
 					}
 				}
@@ -1471,6 +1472,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				error("Loop in parents");
 			}
 			else {
+				Object workob;
 				
 				/* apply transformation of previous parenting */
 				apply_obmat(ob);
@@ -1488,7 +1490,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				}
 				
 				/* calculate inverse parent matrix */
-				what_does_parent(ob);
+				what_does_parent(ob, &workob);
 				Mat4Invert(ob->parentinv, workob.obmat);
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
