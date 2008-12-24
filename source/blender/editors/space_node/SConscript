@@ -10,7 +10,6 @@ defs = []
 cf = []
 if env['OURPLATFORM'] == 'win32-vc':
 	#cf.append('/Wall')
-	#cf.append('/WX')
-	pass
-
+	cf.append('/WX')
+	
 env.BlenderLib ( 'bf_editors_space_node', sources, Split(incs), defs, libtype=['core'], priority=[55], compileflags=cf )
