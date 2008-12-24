@@ -6416,7 +6416,7 @@ void brush_buttons(uiBlock *block, short sima,
 		uiDefButF(block, NUMSLI, evt_nop, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
 		uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, evt_nop, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiDefButF(block, NUMSLI, evt_nop, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
-	uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, evt_nop, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 		uiBlockEndAlign(block);
 
 		yco -= 110;
@@ -6432,13 +6432,23 @@ void brush_buttons(uiBlock *block, short sima,
 			}
 		}
 		else {
-			MTex *mtex= brush->mtex[brush->texact];
-			
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			id= (mtex)? (ID*)mtex->tex: NULL;
-			xco= std_libbuttons(block, 0, yco, 0, NULL, evt_texbrowse, ID_TE, 0, id, NULL, menupoin, 0, 0, evt_texdel, 0, 0);
-			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, evt_change, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
-			uiBlockSetCol(block, TH_AUTO);
+			if (
+				(sima==NULL) && /* 3D View */
+				(settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE)==0 && /* Projection Painting */
+				(settings->imapaint.tool == PAINT_TOOL_CLONE)
+			) {
+				butw = 130;
+				uiDefButBitS(block, TOG|BIT, IMAGEPAINT_PROJECT_LAYER_CLONE, B_REDR, "Clone Layer",	0,yco,butw,20, &settings->imapaint.flag, 0, 0, 0, 0, "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
+			}
+			else {
+				MTex *mtex= brush->mtex[brush->texact];
+				
+				uiBlockSetCol(block, TH_BUT_SETTING2);
+				id= (mtex)? (ID*)mtex->tex: NULL;
+				xco= std_libbuttons(block, 0, yco, 0, NULL, evt_texbrowse, ID_TE, 0, id, NULL, menupoin, 0, 0, evt_texdel, 0, 0);
+				/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, evt_change, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
+				uiBlockSetCol(block, TH_AUTO);
+			}
 		}
 	}
 	
