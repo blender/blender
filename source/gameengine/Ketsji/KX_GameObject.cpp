@@ -2082,7 +2082,6 @@ bool ConvertPythonToGameObject(PyObject * value, KX_GameObject **object, bool py
 			PyErr_SetString(PyExc_TypeError, "Expected KX_GameObject or a string for a name of a KX_GameObject, None is invalid");
 			return false;
 		}
-		return (py_none_ok ? true : false);
 	}
 	
 	if (PyString_Check(value)) {
