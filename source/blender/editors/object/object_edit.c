@@ -913,47 +913,65 @@ void make_track(Scene *scene, View3D *v3d)
 	BIF_undo_push("Make Track");
 }
 
+/* ******************** clear parent operator ******************* */
 
-void clear_parent(Scene *scene, View3D *v3d)
+
+static EnumPropertyItem prop_clear_parent_types[] = {
+	{0, "CLEAR", "Clear Parent", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
+	{2, "CLEAR_INVERSE", "Clear Parent Inverse", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* note, poll should check for editable scene */
+static int clear_parent_exec(bContext *C, wmOperator *op)
 {
-	Object *par;
-	Base *base;
-	int mode;
 	
-	if(G.obedit) return;
-	if(scene->id.lib) return;
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 
-	mode= pupmenu("OK? %t|Clear Parent %x1|Clear and Keep Transformation (Clear Track) %x2|Clear Parent Inverse %x3");
-	
-	if(mode<1) return;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			par= NULL;
-			if(mode==1 || mode==2) {
-				par= base->object->parent;
-				base->object->parent= NULL;
-				base->object->recalc |= OB_RECALC;
-				
-				if(mode==2) {
-					base->object->track= NULL;
-					apply_obmat(base->object);
-				}
-			}
-			else if(mode==3) {
-				Mat4One(base->object->parentinv);
-				base->object->recalc |= OB_RECALC;
-			}
+		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
+			ob->parent= NULL;
+		}			
+		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+			ob->parent= NULL;
+			ob->track= NULL;
+			apply_obmat(ob);
 		}
+		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
+			Mat4One(ob->parentinv);
+		}
+		ob->recalc |= OB_RECALC;
 	}
-
-	DAG_scene_sort(scene);
-	ED_anim_dag_flush_update(C);	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
+	CTX_DATA_END;
+	
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);
 	
 	BIF_undo_push("Clear Parent");	
+	
+	return OPERATOR_FINISHED;
 }
+
+void ED_VIEW3D_OT_clear_parent(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Clear parent";
+	ot->idname= "ED_VIEW3D_OT_clear_parent";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= clear_parent_exec;
+	
+	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->flag= OPTYPE_REGISTER;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_clear_parent_types);
+}
+
+/* ***************************** */
 
 void clear_track(Scene *scene, View3D *v3d)
 {
@@ -1346,51 +1364,47 @@ void make_proxy(Scene *scene)
 oldcode()
 {
 	else if(mode==4) {
-			bConstraint *con;
-			bFollowPathConstraint *data;
-				
-			for(base= FIRSTBASE; base; base= base->next) {
-				if(TESTBASELIB(v3d, base)) {
-					if(base!=BASACT) {
-						float cmat[4][4], vec[3];
-						
+		bConstraint *con;
+		bFollowPathConstraint *data;
+			
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(v3d, base)) {
+				if(base!=BASACT) {
+					float cmat[4][4], vec[3];
+					
 // XXX						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
-						strcpy (con->name, "AutoPath");
-						
-						data = con->data;
-						data->tar = BASACT->object;
-						
+					strcpy (con->name, "AutoPath");
+					
+					data = con->data;
+					data->tar = BASACT->object;
+					
 // XXX						add_constraint_to_object(con, base->object);
-						
-						get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(base->object));
-						VecSubf(vec, base->object->obmat[3], cmat[3]);
-						
-						base->object->loc[0] = vec[0];
-						base->object->loc[1] = vec[1];
-						base->object->loc[2] = vec[2];
-					}
-				}
-			}
-
-			if(mode==PARSKEL && base->object->type==OB_MESH && par->type == OB_ARMATURE) {
-							/* Prompt the user as to whether he wants to
-								* add some vertex groups based on the bones
-								* in the parent armature.
-								*/
-// XXX							create_vgroups_from_armature(base->object, par);
-
-							base->object->partype= PAROBJECT;
-							what_does_parent(base->object);
-							Mat4One (base->object->parentinv);
-							base->object->partype= mode;
-						}
-						else
-							what_does_parent(base->object, &workob);
-						Mat4Invert(base->object->parentinv, workob.obmat);
-					}
+					
+					get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(base->object));
+					VecSubf(vec, base->object->obmat[3], cmat[3]);
+					
+					base->object->loc[0] = vec[0];
+					base->object->loc[1] = vec[1];
+					base->object->loc[2] = vec[2];
 				}
 			}
 		}
+
+		if(mode==PARSKEL && base->object->type==OB_MESH && par->type == OB_ARMATURE) {
+			/* Prompt the user as to whether he wants to
+				* add some vertex groups based on the bones
+				* in the parent armature.
+				*/
+// XXX							create_vgroups_from_armature(base->object, par);
+
+			base->object->partype= PAROBJECT;
+			what_does_parent(base->object);
+			Mat4One (base->object->parentinv);
+			base->object->partype= mode;
+		}
+		else
+			what_does_parent(base->object, &workob);
+		Mat4Invert(base->object->parentinv, workob.obmat);
 	}
 }
 #endif
@@ -1405,7 +1419,7 @@ oldcode()
 #define PAR_VERTEX		7
 #define PAR_TRIA		8
 
-static EnumPropertyItem prop_make_parent_items[] = {
+static EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_OBJECT, "OBJECT", "Object", ""},
 	{PAR_ARMATURE, "ARMATURE", "Armature Deform", ""},
 	{PAR_BONE, "BONE", "Bone", ""},
@@ -1433,7 +1447,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 {
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
-	int partype= RNA_enum_get(op->ptr, "partype");
+	int partype= RNA_enum_get(op->ptr, "type");
 	
 	par->recalc |= OB_RECALC_OB;
 	
@@ -1539,7 +1553,7 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else
 		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
 	
-	uiPupmenuOperator(C, 0, op, "partype", string);
+	uiPupmenuOperator(C, 0, op, "type", string);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1560,8 +1574,8 @@ void ED_VIEW3D_OT_make_parent(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;	// XXX solve
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "partype", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_make_parent_items);
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_make_parent_types);
 }
 
 /* *******************  ***************** */

@@ -33,7 +33,7 @@
 
 /* object_edit.c */
 void ED_VIEW3D_OT_make_parent(wmOperatorType *ot);
-
+void ED_VIEW3D_OT_clear_parent(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

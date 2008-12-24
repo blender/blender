@@ -104,16 +104,18 @@ struct wmTimer *WM_event_add_window_timer(wmWindow *win, double timestep);
 void		WM_event_remove_window_timer(wmWindow *win, struct wmTimer *timer);
 void		WM_event_window_timer_sleep(wmWindow *win, struct wmTimer *timer, int dosleep);
 
-			/* operator api, default callbacks */
-			/* confirm menu + exec */
+		/* operator api, default callbacks */
+			/* invoke callback, uses enum property named "type" */
+int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-			/* context checks */
+			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 	
 			/* default error box */
 void		WM_error(struct bContext *C, char *str);
 
-			/* operator api */
+		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
 wmOperatorType *WM_operatortype_find(const char *idname);
 wmOperatorType *WM_operatortype_first(void);

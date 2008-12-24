@@ -97,13 +97,33 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 
 /* ************ default op callbacks, exported *********** */
 
-static void operator_callback(bContext *C, void *arg, int retval)
+/* invoke callback, uses enum property named "type" */
+/* only weak thing is the fixed property name... */
+int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	wmOperator *op= arg;
+	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
+	const EnumPropertyItem *item;
+	int totitem, i, len= strlen(op->type->name) + 5;
+	char *menu, *p;
 	
-	if(op && retval > 0)
-		op->type->exec(C, op);
-	
+	if(prop) {
+		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
+		
+		for (i=0; i<totitem; i++)
+			len+= strlen(item[i].name) + 5;
+		
+		menu= MEM_callocN(len, "string");
+		
+		p= menu + sprintf(menu, "%s %%t", op->type->name);
+		for (i=0; i<totitem; i++)
+			p+= sprintf(p, "|%s %%x%d", item[i].name, item[i].value);
+		
+		uiPupmenuOperator(C, totitem/30, op, "type", menu);
+		MEM_freeN(menu);
+		
+		return OPERATOR_RUNNING_MODAL;
+	}
+	return OPERATOR_CANCELLED;
 }
 
 /* call anywhere */
@@ -113,7 +133,7 @@ void WM_error(bContext *C, char *str)
 	
 	BLI_strncpy(testbuf, str, 128);
 	sprintf(buf, "Error %%i%d%%t|%s", ICON_ERROR, testbuf);
-	uiPupmenu(C, 0, operator_callback, NULL, buf);
+	uiPupmenu(C, 0, NULL, NULL, buf);
 	
 }
 
