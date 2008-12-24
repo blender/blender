@@ -36,7 +36,6 @@ extern void wm_close_and_free_all(bContext *C, ListBase *);
 extern void wm_add_default(bContext *C);
 extern void wm_check(bContext *C);
 			
-void		wm_operator_free(wmOperator *op);
 			/* register to windowmanager for redo or macro */
 void		wm_operator_register(wmWindowManager *wm, wmOperator *op);
 

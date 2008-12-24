@@ -103,8 +103,10 @@ static void operator_callback(bContext *C, void *arg, int retval)
 	
 	if(op && retval > 0)
 		op->type->exec(C, op);
+	
 }
 
+/* call anywhere */
 void WM_error(bContext *C, char *str)
 {
 	char buf[148], testbuf[128];
@@ -115,16 +117,18 @@ void WM_error(bContext *C, char *str)
 	
 }
 
+/* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char buf[512];
 	
 	sprintf(buf, "OK? %%i%d%%t|%s", ICON_HELP, op->type->name);
-	uiPupmenu(C, 0, operator_callback, op, buf);
+	uiPupmenuOperator(C, 0, op, NULL, buf);
 	
-	return 1;
+	return OPERATOR_RUNNING_MODAL;
 }
 
+/* op->poll */
 int WM_operator_winactive(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
@@ -177,8 +181,9 @@ static void recent_filelist(char *pup)
 	}
 }
 
-static void recentfile_callback(bContext *C, void *arg, int event)
+static int recentfile_exec(bContext *C, wmOperator *op)
 {
+	int event= RNA_enum_get(op->ptr, "nr");
 	
 	if(event>0) {
 		if (G.sce[0] && (event==1))
@@ -190,6 +195,7 @@ static void recentfile_callback(bContext *C, void *arg, int event)
 			}
 		}
 	}
+	return 0;
 }
 
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -197,9 +203,9 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char pup[2048];
 	
 	recent_filelist(pup);
-	uiPupmenu(C, 0, recentfile_callback, op, pup);
+	uiPupmenuOperator(C, 0, op, "nr", pup);
 	
-	return 1;
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static void WM_OT_open_recentfile(wmOperatorType *ot)
@@ -208,9 +214,13 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->idname= "WM_OT_open_recentfile";
 	
 	ot->invoke= wm_recentfile_invoke;
+	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
+
 }
 
 /* *********************** */

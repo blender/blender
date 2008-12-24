@@ -35,6 +35,7 @@ struct ListBase;
 struct ARegion;
 struct wmWindow;
 struct wmWindowManager;
+struct wmOperator;
 struct AutoComplete;
 struct bContext;
 struct PointerRNA;
@@ -194,7 +195,10 @@ typedef struct uiMenuBlockHandle {
 	int popup;
 	void (*popup_func)(struct bContext *C, void *arg, int event);
 	void *popup_arg;
-
+	/* for operator menus */
+	struct wmOperator *op_arg;
+	const char *propname;
+	
 	/* return values */
 	int butretval;
 	int menuretval;
@@ -206,8 +210,9 @@ typedef uiBlock* (*uiBlockFuncFP)(struct bContext *C, struct uiMenuBlockHandle *
 typedef void (*uiPupmenuFunc)(struct bContext *C, void *arg, int event);
 
 void uiPupmenuSetActive(int val);
-void uiPupmenu(struct bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...);
 
+void uiPupmenuOperator(struct bContext *C, int maxrow, struct  wmOperator *op, const char *propname, char *str);
+void uiPupmenu(struct bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...);
 void uiPupmenuOkee(struct bContext *C, char *opname, char *str, ...);
 void uiPupmenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
 void uiPupmenuNotice(struct bContext *C, char *str, ...);

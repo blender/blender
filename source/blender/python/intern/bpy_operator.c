@@ -110,7 +110,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 		}
 	}
 	
-	WM_operator_call(self->C, self->name, WM_OP_DEFAULT, properties);
+	WM_operator_name_call(self->C, self->name, WM_OP_DEFAULT, properties);
 
 	if (properties) {
 		IDP_FreeProperty(properties);

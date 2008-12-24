@@ -51,7 +51,7 @@
 
 #define MAX_OP_REGISTERED	32
 
-void wm_operator_free(wmOperator *op)
+void WM_operator_free(wmOperator *op)
 {
 	if(op->properties) {
 		IDP_FreeProperty(op->properties);
@@ -80,7 +80,7 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 	while(tot>MAX_OP_REGISTERED) {
 		wmOperator *opt= wm->operators.first;
 		BLI_remlink(&wm->operators, opt);
-		wm_operator_free(opt);
+		WM_operator_free(opt);
 		tot--;
 	}
 }
@@ -144,7 +144,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	
 	while((op= wm->operators.first)) {
 		BLI_remlink(&wm->operators, op);
-		wm_operator_free(op);
+		WM_operator_free(op);
 	}
 
 	while((km= wm->keymaps.first)) {

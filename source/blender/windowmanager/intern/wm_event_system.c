@@ -277,6 +277,22 @@ void wm_draw_update(bContext *C)
 
 /* ********************* operators ******************* */
 
+/* for running operators with frozen context (modal handlers, menus) */
+int WM_operator_call(bContext *C, wmOperator *op)
+{
+	int retval= OPERATOR_CANCELLED;
+	
+	if(op->type->exec)
+		retval= op->type->exec(C, op);
+	
+	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
+		wm_operator_register(CTX_wm_manager(C), op);
+	}
+	else
+		WM_operator_free(op);	
+	
+	return retval;
+}
 
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, IDProperty *properties)
 {
@@ -284,7 +300,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 	int retval= OPERATOR_PASS_THROUGH;
 
 	if(ot->poll==NULL || ot->poll(C)) {
-		wmOperator *op= MEM_callocN(sizeof(wmOperator), "wmOperator");
+		wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 
 		if(properties)
 			op->properties= IDP_CopyProperty(properties);
@@ -305,7 +321,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 			wm_operator_register(wm, op);
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			wm_operator_free(op);
+			WM_operator_free(op);
 		}
 	}
 
@@ -313,7 +329,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 }
 
 /* invokes operator in context */
-int WM_operator_call(bContext *C, const char *opstring, int context, IDProperty *properties)
+int WM_operator_name_call(bContext *C, const char *opstring, int context, IDProperty *properties)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	wmWindow *window= CTX_wm_window(C);
@@ -404,7 +420,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				CTX_wm_region_set(C, region);
 			}
 
-			wm_operator_free(handler->op);
+			WM_operator_free(handler->op);
 		}
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
@@ -498,7 +514,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
-				wm_operator_free(op);
+				WM_operator_free(op);
 				handler->op= NULL;
 			}
 			

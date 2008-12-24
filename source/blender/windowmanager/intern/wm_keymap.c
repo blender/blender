@@ -167,7 +167,6 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		BLI_strncpy(km->nameid, nameid, KMAP_MAX_NAME);
 		km->spaceid= spaceid;
 		km->regionid= regionid;
-		printf("added keymap %s %d %d\n", nameid, spaceid, regionid);
 		BLI_addtail(&wm->keymaps, km);
 	}
 	

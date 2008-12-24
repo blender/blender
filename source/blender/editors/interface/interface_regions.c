@@ -1629,6 +1629,33 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	return block;
 }
 
+/* This one will set enum propname, call operator and register it, and free the operator itself, 
+   call it in op->invoke with returning OPERATOR_RUNNING_MODAL */
+/* Note: propname has to be static */
+void uiPupmenuOperator(bContext *C, int maxrow, wmOperator *op, const char *propname, char *str)
+{
+	wmWindow *window= CTX_wm_window(C);
+	uiPupMenuInfo info;
+	uiMenuBlockHandle *menu;
+	
+	memset(&info, 0, sizeof(info));
+	info.mx= window->eventstate->x;
+	info.my= window->eventstate->y;
+	info.maxrow= maxrow;
+	info.instr= str;
+	
+	menu= ui_menu_block_create(C, NULL, NULL, ui_block_func_PUPMENU, &info);
+	menu->popup= 1;
+	
+	UI_add_popup_handlers(&window->handlers, menu);
+	WM_event_add_mousemove(C);
+	
+	menu->op_arg= op;
+	menu->propname= propname;
+}
+
+
+/* this one only to be called with operatortype name option */
 void uiPupmenu(bContext *C, int maxrow, uiPupmenuFunc func, void *arg, char *str, ...)
 {
 	wmWindow *window= CTX_wm_window(C);
@@ -1658,7 +1685,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 	const char *opname= arg;
 
 	if(opname && retval > 0)
-		WM_operator_call(C, opname, WM_OP_DEFAULT, NULL);
+		WM_operator_name_call(C, opname, WM_OP_DEFAULT, NULL);
 }
 
 static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)

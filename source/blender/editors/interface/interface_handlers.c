@@ -53,6 +53,8 @@
 #include "UI_text.h"
 #include "interface.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -214,7 +216,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 
 		if(after->opname)
-			WM_operator_call(C, after->opname, after->opcontext, after->opproperties);
+			WM_operator_name_call(C, after->opname, after->opcontext, after->opproperties);
 		if(after->opproperties) {
 			IDP_FreeProperty(after->opproperties);
 			MEM_freeN(after->opproperties);
@@ -3647,28 +3649,35 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata)
 	return WM_UI_HANDLER_BREAK;
 }
 
+/* two types of popups, one with operator + enum, other with regular callbacks */
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 {
 	uiMenuBlockHandle *menu= userdata;
-	void (*popup_func)(struct bContext *C, void *arg, int event)= NULL;
-	void *popup_arg= NULL;
-	int retval= 0;
 
 	ui_handle_menus_recursive(C, event, menu);
 
 	/* free if done, does not free handle itself */
 	if(menu->menuretval) {
-		if(menu->menuretval == UI_RETURN_OK) {
-			popup_func= menu->popup_func;
-			popup_arg= menu->popup_arg;
-			retval= menu->retvalue;
-		}
-
+		/* copy values, we have to free first (closes region) */
+		uiMenuBlockHandle temp= *menu;
+		
 		ui_menu_block_free(C, menu);
 		WM_event_remove_ui_handler(&CTX_wm_window(C)->handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 
-		if(popup_func)
-			popup_func(C, popup_arg, retval);
+		if(temp.menuretval == UI_RETURN_OK) {
+			if(temp.popup_func) {
+				temp.popup_func(C, temp.op_arg, temp.retvalue);
+			}
+			else if(temp.op_arg) {
+				if(temp.propname)
+					RNA_enum_set(temp.op_arg->ptr, temp.propname, temp.retvalue);
+				WM_operator_call(C, temp.op_arg);
+			}
+		}
+		/* always free operator */
+		else if(temp.op_arg)
+			WM_operator_free(temp.op_arg);
+		
 	}
 	else {
 		/* re-enable tooltips */
@@ -3704,4 +3713,3 @@ void UI_add_popup_handlers(ListBase *handlers, uiMenuBlockHandle *menu)
 {
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_popup, ui_handler_remove_popup, menu);
 }
-

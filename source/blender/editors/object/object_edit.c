@@ -1512,16 +1512,6 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void makeparent_callback(bContext *C, void *arg, int event)
-{
-	wmOperator *op= (wmOperator *)arg;
-	
-	/* set the properties for the exec */
-	RNA_enum_set(op->ptr, "partype", event);
-	
-	make_parent_exec(C, op);
-}
-
 static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -1549,7 +1539,7 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else
 		str += sprintf(str, formatstr, "Object", PAR_OBJECT);
 	
-	uiPupmenu(C, 0, makeparent_callback, op, string);
+	uiPupmenuOperator(C, 0, op, "partype", string);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
