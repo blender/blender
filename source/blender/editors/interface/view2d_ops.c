@@ -33,6 +33,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
@@ -551,10 +552,7 @@ void ED_View2D_OT_view_zoomout(wmOperatorType *ot)
 /* ********************************************************* */
 /* DRAG-ZOOM OPERATOR					 				 */
 
-/* 	This group of operators come in several forms:
- *		1) MMB Drag - allows non-uniform scaling by dragging mouse
- *				   - method of scaling depends upon U.viewzoom setting (Continue, Dolly, Scale)
- *					XXX should we store this info as RNA prop?
+/* 	MMB Drag - allows non-uniform scaling by dragging mouse
  *
  *	In order to make sure this works, each operator must define the following RNA-Operator Props:
  *		deltax, deltay	- amounts to add to each side of the 'cur' rect
@@ -787,6 +785,106 @@ void ED_View2D_OT_view_zoom(wmOperatorType *ot)
 	/* rna - must keep these in sync with the other operators */
 	prop= RNA_def_property(ot->srna, "deltax", PROP_FLOAT, PROP_NONE);
 	prop= RNA_def_property(ot->srna, "deltay", PROP_FLOAT, PROP_NONE);
+}
+
+/* ********************************************************* */
+/* BORDER-ZOOM */
+
+/* The user defines a rect using standard borderselect tools, and we use this rect to 
+ * define the new zoom-level of the view in the following ways:
+ *	1) LEFTMOUSE - zoom in to view
+ *	2) RIGHTMOUSE - zoom out of view
+ *
+ * Currently, these key mappings are hardcoded, but it shouldn't be too important to
+ * have custom keymappings for this...
+ */
+ 
+static int view_borderzoom_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= &ar->v2d;
+	rctf rect;
+	int event_type;
+	
+	/* convert coordinates of rect to 'tot' rect coordinates */
+	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin"), &rect.xmin, &rect.ymin);
+	UI_view2d_region_to_view(v2d, RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax"), &rect.xmax, &rect.ymax);
+	
+	/* check if zooming in/out view */
+	// XXX hardcoded for now!
+	event_type= RNA_int_get(op->ptr, "event_type");
+	
+	if (event_type == LEFTMOUSE) {
+		/* zoom in: 
+		 *	- 'cur' rect will be defined by the coordinates of the border region 
+		 *	- just set the 'cur' rect to have the same coordinates as the border region
+		 *	  if zoom is allowed to be changed
+		 */
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
+			v2d->cur.xmin= rect.xmin;
+			v2d->cur.xmax= rect.xmax;
+		}
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
+			v2d->cur.ymin= rect.ymin;
+			v2d->cur.ymax= rect.ymax;
+		}
+	}
+	else {
+		/* zoom out:
+		 *	- the current 'cur' rect coordinates are going to end upwhere the 'rect' ones are, 
+		 *	  but the 'cur' rect coordinates will need to be adjusted to take in more of the view
+		 *	- calculate zoom factor, and adjust using center-point
+		 */
+		float zoom, center, size;
+		
+		// TODO: is this zoom factor calculation valid? It seems to produce same results everytime...
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
+			size= (v2d->cur.xmax - v2d->cur.xmin);
+			zoom= size / (rect.xmax - rect.xmin);
+			center= (v2d->cur.xmax + v2d->cur.xmin) * 0.5f;
+			
+			v2d->cur.xmin= center - (size * zoom);
+			v2d->cur.xmax= center + (size * zoom);
+		}
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
+			size= (v2d->cur.ymax - v2d->cur.ymin);
+			zoom= size / (rect.ymax - rect.ymin);
+			center= (v2d->cur.ymax + v2d->cur.ymin) * 0.5f;
+			
+			v2d->cur.ymin= center - (size * zoom);
+			v2d->cur.ymax= center + (size * zoom);
+		}
+	}
+	
+	/* validate that view is in valid configuration after this operation */
+	UI_view2d_curRect_validate(v2d);
+	
+	/* request updates to be done... */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	
+	return OPERATOR_FINISHED;
+} 
+
+void ED_View2D_OT_view_borderzoom(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Zoom to Border";
+	ot->idname= "ED_View2D_OT_view_borderzoom";
+	
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= view_borderzoom_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }
 
 /* ********************************************************* */
@@ -1135,6 +1233,7 @@ void ui_view2d_operatortypes(void)
 	WM_operatortype_append(ED_View2D_OT_view_zoomout);
 	
 	WM_operatortype_append(ED_View2D_OT_view_zoom);
+	WM_operatortype_append(ED_View2D_OT_view_borderzoom);
 	
 	WM_operatortype_append(ED_View2D_OT_scroller_activate);
 }
@@ -1160,6 +1259,9 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	
+	/* borderzoom - drag */
+	WM_keymap_add_item(keymap, "ED_View2D_OT_view_borderzoom", ZKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* scrollers */
 	WM_keymap_add_item(keymap, "ED_View2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
