@@ -24,8 +24,8 @@
  */
 
 #include "bpy_operator.h"
+#include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_compat.h"
-#include "bpy_idprop.h"
 
 //#include "blendef.h"
 #include "BLI_dynstr.h"
@@ -90,25 +90,73 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObject *kw)
 {
 	IDProperty *properties = NULL;
+	wmOperatorType *ot;
+
+	int error_val = 0;
+	const char *arg_name= NULL;
+	PyObject *item;
+	
+	PointerRNA ptr;
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+
+
+	if (ot == NULL) {
+		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
+		return NULL;
+	}
 
 	if (PyTuple_Size(args)) {
 		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
 		return NULL;
 	}
 
-	if (kw && PyDict_Size(kw) > 0) {
-		IDPropertyTemplate val;
-		val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
+	ot= WM_operatortype_find(self->name);
+	RNA_pointer_create(NULL, NULL, ot->srna, &properties, &ptr);
 
-		properties= IDP_New(IDP_GROUP, val, "property");
-		BPy_IDGroup_Update(properties, kw);
 
-		if (PyErr_Occurred()) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
-			return NULL;
+	iterprop= RNA_struct_iterator_property(&ptr);
+	RNA_property_collection_begin(&ptr, iterprop, &iter);
+
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+
+		arg_name= RNA_property_identifier(&iter.ptr, prop);
+
+		if (strcmp(arg_name, "rna_type")==0) continue;
+
+		if (kw==NULL) {
+			PyErr_Format( PyExc_AttributeError, "no args, expected \"%s\"", arg_name ? arg_name : "<UNKNOWN>");
+			error_val= 1;
+			break;
+		}
+		
+		item= PyDict_GetItemString(kw, arg_name);
+
+		if (item == NULL) {
+			PyErr_Format( PyExc_AttributeError, "argument \"%s\" missing", arg_name ? arg_name : "<UNKNOWN>");
+			error_val = 1; /* pyrna_py_to_prop sets the error */
+			break;
+		}
+
+		if (pyrna_py_to_prop(&ptr, prop, item)) {
+			error_val= 1;
+			break;
 		}
 	}
+
+	RNA_property_collection_end(&iter);
+
+	if (error_val) {
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
+
+		return NULL; 
+	}
+	
 	
 	WM_operator_name_call(self->C, self->name, WM_OP_DEFAULT, properties);
 

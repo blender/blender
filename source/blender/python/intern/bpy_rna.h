@@ -49,4 +49,7 @@ PyObject *BPY_rna_doc( void );
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
 
+/* operators also need this to set args */
+int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
+
 #endif

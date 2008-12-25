@@ -59,6 +59,27 @@ static long pyrna_struct_hash( BPy_StructRNA * self )
 	return (long)self->ptr.data;
 }
 
+static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const EnumPropertyItem *item;
+	int totitem, i;
+
+	DynStr *dynstr= BLI_dynstr_new();
+	char *cstring;
+
+	RNA_property_enum_items(ptr, prop, &item, &totitem);
+
+	for (i=0; i<totitem; i++) {
+		if (i<totitem-1)
+			BLI_dynstr_appendf(dynstr, "'%s', ", item[i].identifier);
+		else
+			BLI_dynstr_appendf(dynstr, "'%s'", item[i].identifier);
+	}
+	
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
 
 static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
@@ -130,7 +151,7 @@ static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 }
 
 
-static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
+int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 {
 	int type = RNA_property_type(ptr, prop);
 	int len = RNA_property_array_length(ptr, prop);
@@ -281,14 +302,18 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 			char *param = _PyUnicode_AsString(value);
 			
 			if (param==NULL) {
-				PyErr_SetString(PyExc_TypeError, "expected a string type");
+				char *enum_str= pyrna_enum_as_string(ptr, prop);
+				PyErr_Format(PyExc_TypeError, "expected a string enum type in (%s)", enum_str);
+				MEM_freeN(enum_str);
 				return -1;
 			} else {
 				int val;
 				if (RNA_property_enum_value(ptr, prop, param, &val)) {
 					RNA_property_enum_set(ptr, prop, val);
 				} else {
-					PyErr_Format(PyExc_AttributeError, "enum \"%s\" not found", param);
+					char *enum_str= pyrna_enum_as_string(ptr, prop);
+					PyErr_Format(PyExc_AttributeError, "enum \"%s\" not found in (%s)", param, enum_str);
+					MEM_freeN(enum_str);
 					return -1;
 				}
 			}
@@ -608,23 +633,10 @@ PyObject *pyrna_struct_to_docstring(BPy_StructRNA *self)
 			}
 			case PROP_ENUM:
 			{
-				const EnumPropertyItem *item;
-				int totitem;
-				
+				char *enum_str= pyrna_enum_as_string(&iter.ptr, prop);
 				BLI_dynstr_appendf(dynstr, "@ivar %s: %s%s\n", identifier, desc, readonly);
-				
-				BLI_dynstr_appendf(dynstr, "@type %s: enum in [", identifier);
-				
-				RNA_property_enum_items(&iter.ptr, prop, &item, &totitem);
-				
-				for (i=0; i<totitem; i++) {
-					BLI_dynstr_append(dynstr, item[i].identifier);
-					if (i<totitem-1) {
-						BLI_dynstr_append(dynstr, ", ");
-					}
-				}
-				
-				BLI_dynstr_append(dynstr, "]\n");
+				BLI_dynstr_appendf(dynstr, "@type %s: enum in [%s]\n", identifier, enum_str);
+				MEM_freeN(enum_str);
 				break;
 			}
 			case PROP_POINTER:
