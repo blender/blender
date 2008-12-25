@@ -160,7 +160,7 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ray_mirror_adapt_thresh", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "adapt_thresh_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
+	RNA_def_property_ui_text(prop, "Ray Mirror Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
 	
 	prop= RNA_def_property(srna, "ray_mirror_depth", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ray_depth");
@@ -176,6 +176,67 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "fadeto_mir");
 	RNA_def_property_enum_items(prop, prop_fadeto_mir_items);
 	RNA_def_property_ui_text(prop, "Ray Mirror End Fade-out", "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
+	
+	/* raytrace transparency */
+	
+	prop= RNA_def_property(srna, "mode_ray_transparency", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYTRANSP); /* use bitflags */
+	RNA_def_property_ui_text(prop, "Ray Transparency Mode", "Enables raytracing for transparent refraction rendering.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_ior", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ang");
+	RNA_def_property_range(prop, 1.0f, 3.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency IOR", "Sets angular index of refraction for raytraced refraction.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_fresnel", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fresnel_tra");
+	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Fresnel", "Power of Fresnel for transparency (Ray or ZTransp).");
+	
+	prop= RNA_def_property(srna, "ray_transparency_fresnel_fac", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fresnel_tra_i");
+	RNA_def_property_range(prop, 1.0f, 5.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Fresnel Factor", "Blending factor for Fresnel.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_gloss", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "gloss_tra");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Gloss", "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_gloss_samples", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "samp_gloss_tra");
+	RNA_def_property_range(prop, 0.0f, 1024.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Gloss Samples", "Number of cone samples averaged for blurry refractions.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_adapt_thresh", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "adapt_thresh_tra");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ray_depth_tra");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Depth", "Maximum allowed number of light inter-refractions.");
+	
+	prop= RNA_def_property(srna, "ray_transparency_filter", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "filter");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Filter", "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption).");
+	
+	prop= RNA_def_property(srna, "ray_transparency_limit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tx_limit");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Limit", "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled).");
+	
+	prop= RNA_def_property(srna, "ray_transparency_falloff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tx_falloff");
+	RNA_def_property_range(prop, 0.1f, 10.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Falloff", "Falloff power for transmissivity filter effect (1.0 is linear).");
+	
+	prop= RNA_def_property(srna, "ray_transparency_specular_opacity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "spectra");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Ray Transparency Specular Opacity", "Makes specular areas opaque on transparent materials.");
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
