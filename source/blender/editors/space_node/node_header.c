@@ -31,6 +31,8 @@
 
 #include "DNA_space_types.h"
 #include "DNA_node_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -59,6 +61,21 @@
 #include "UI_view2d.h"
 
 #include "node_intern.h"
+
+// XXX button events
+enum {
+	B_NOP = 0,
+	B_REDR 	= 1,
+	B_NODE_USEMAT,
+	B_NODE_USESCENE,
+	B_NODE_USETEX,
+	B_TEXBROWSE,
+	B_TEXALONE,
+	B_TEXLOCAL,
+	B_TEXDELETE,
+	B_AUTOTEXNAME,
+	B_KEEPDATA
+} eActHeader_ButEvents;
 
 
 /* ************************ header area region *********************** */
@@ -655,6 +672,8 @@ static void do_node_buttons(bContext *C, void *arg, int event)
 void node_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short xco, yco= 3;
 	
@@ -702,43 +721,41 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 	// remove sa->butspacetype= SPACE_NODE;
 
-#if 0
-	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* main type choosing */
 	uiBlockBeginAlign(block);
 	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,2,XIC,YIC-2,
-				  &(snode->treetype), 2, 0, 0, 0, "Material Nodes");
+				  &(snode->treetype), 2.0f, 0.0f, 0.0f, 0.0f, "Material Nodes");
 	xco+= XIC;
 	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,2,XIC,YIC-2,
-				  &(snode->treetype), 2, 1, 0, 0, "Composite Nodes");
+				  &(snode->treetype), 2.0f, 1.0f, 0.0f, 0.0f, "Composite Nodes");
 	xco+= XIC;
 	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,2,XIC,YIC-2,
-				  &(snode->treetype), 2, 2, 0, 0, "Texture Nodes");
+				  &(snode->treetype), 2.0f, 2.0f, 0.0f, 0.0f, "Texture Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);
-	
+
 	/* find and set the context */
-	snode_set_context(snode);
+	snode_set_context(snode, scene);
 	
 	if(snode->treetype==NTREE_SHADER) {
 		if(snode->from) {
 										/* 0, NULL -> pin */
-			xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, ID_MA, 1, snode->id, snode->from, &(snode->menunr), 
-					   B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
+			// XXX xco= std_libbuttons(block, xco, 0, 0, NULL, B_MATBROWSE, ID_MA, 1, snode->id, snode->from, &(snode->menunr), 
+			//   B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 			
 			if(snode->id) {
 				Material *ma= (Material *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,0,70,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,0,90,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
 				xco+=80;
 			}
 		}
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,70,19, &G.scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
+		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
 		xco+= 80;
-		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &G.scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
+		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 80;
 		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 80;
@@ -746,22 +763,20 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	else if(snode->treetype==NTREE_TEXTURE) {
 		if(snode->from) {
 			
-			xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
-					   B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
+			// XXX xco= std_libbuttons(block, xco, 0, 0, NULL, B_TEXBROWSE, ID_TE, 1, snode->id, snode->from, &(snode->menunr), 
+			//		   B_TEXALONE, B_TEXLOCAL, B_TEXDELETE, B_AUTOTEXNAME, B_KEEPDATA);
 			
 			if(snode->id) {
 				Tex *tx= (Tex *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,0,70,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,0,90,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
 				xco+=80;
 			}
 		}
 	}
 	
 	/* always as last  */
-	sa->headbutlen= xco+2*XIC;
+	// sa->headbutlen= xco+2*XIC;
 
-	uiDrawBlock(block);
-#endif
 // =================================
 
 	/* always as last  */
