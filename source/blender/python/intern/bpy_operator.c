@@ -93,6 +93,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	wmOperatorType *ot;
 
 	int error_val = 0;
+	int totkw;
 	const char *arg_name= NULL;
 	PyObject *item;
 	
@@ -118,6 +119,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	iterprop= RNA_struct_iterator_property(&ptr);
 	RNA_property_collection_begin(&ptr, iterprop, &iter);
 
+	totkw = kw ? PyDict_Size(kw):0;
 
 	for(; iter.valid; RNA_property_collection_next(&iter)) {
 		prop= iter.ptr.data;
@@ -144,26 +146,39 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 			error_val= 1;
 			break;
 		}
+
+		totkw--;
 	}
 
 	RNA_property_collection_end(&iter);
 
-	if (error_val) {
-		if (properties) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
+	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(kw, &pos, &key, &value)) {
+			arg_name= _PyUnicode_AsString(key);
+			if (RNA_struct_find_property(&ptr, arg_name) == NULL) break;
+			arg_name= NULL;
 		}
 
-		return NULL; 
+		PyErr_Format( PyExc_AttributeError, "argument \"%s\" unrecognized", arg_name ? arg_name : "<UNKNOWN>");
+		error_val = 1;
 	}
-	
-	
-	WM_operator_name_call(self->C, self->name, WM_OP_DEFAULT, properties);
+
+	if (error_val==0) {
+		WM_operator_name_call(self->C, self->name, WM_OP_DEFAULT, properties);
+	}
 
 	if (properties) {
 		IDP_FreeProperty(properties);
 		MEM_freeN(properties);
 	}
+
+	if (error_val) {
+		return NULL;
+	}
+
 	Py_RETURN_NONE;
 }
 

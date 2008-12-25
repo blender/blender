@@ -113,5 +113,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ED_VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 
+	/* TODO - this is just while we have no way to load a text datablock */
+	RNA_string_set(WM_keymap_add_item(keymap, "ED_SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+
 }
 

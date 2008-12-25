@@ -72,9 +72,9 @@ void BPY_run_python_script( bContext *C, const char *fn )
 	PyObject *py_dict, *py_result;
 	char pystring[512];
 	PyGILState_STATE gilstate;
-	
+
 	/* TODO - look into a better way to run a file */
-	sprintf(pystring, "exec(open(r'%s').read())", fn);
+	sprintf(pystring, "exec(open(r'%s').read())", fn);	
 	
 	BPY_start_python();
 	

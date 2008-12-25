@@ -159,16 +159,6 @@ static void script_main_area_draw(const bContext *C, ARegion *ar)
 	/* scrollers? */
 }
 
-void script_operatortypes(void)
-{
-	
-}
-
-void script_keymap(struct wmWindowManager *wm)
-{
-	
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void script_header_area_init(wmWindowManager *wm, ARegion *ar)
 {

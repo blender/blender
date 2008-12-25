@@ -796,6 +796,16 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 		IDP_AssignString(idprop, (char*)value);
 	else if(sprop->set)
 		sprop->set(ptr, value);
+	else if(!(prop->flag & PROP_NOT_EDITABLE)) {
+		IDPropertyTemplate val;
+		IDProperty *group;
+
+		val.str= value;
+
+		group= rna_idproperties_get(ptr->type, ptr->data, 1);
+		if(group)
+			IDP_AddToGroup(group, IDP_New(IDP_STRING, val, (char*)prop->identifier));
+	}
 }
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
