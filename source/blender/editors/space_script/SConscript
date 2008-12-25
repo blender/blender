@@ -8,5 +8,9 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../makesrna'
 incs += ' ../../python'
 
+defs = []
 
-env.BlenderLib ( 'bf_editors_space_script', sources, Split(incs), [], libtype=['core'], priority=[90] )
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_editors_space_script', sources, Split(incs), defs, libtype=['core'], priority=[90] )

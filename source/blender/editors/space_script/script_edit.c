@@ -61,14 +61,13 @@
 
 static int run_pyfile_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 
 	char filename[512];
 	RNA_string_get(op->ptr, "filename", filename);
-
+#ifndef DISABLE_PYTHON
 	BPY_run_python_script(C, filename);
-
+#endif
 	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
