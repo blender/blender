@@ -319,10 +319,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
 		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, &op->properties, op->ptr);
 
-		if(op->type->invoke)
+		if(op->type->invoke && event)
 			retval= (*op->type->invoke)(C, op, event);
 		else if(op->type->exec)
 			retval= op->type->exec(C, op);
+		else
+			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
 		/* only for testing, can remove any time */
 		WM_operator_print(op);
@@ -343,56 +345,72 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, IDProp
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	wmWindow *window= CTX_wm_window(C);
+	wmEvent *event= window->eventstate;
+	
 	int retval;
 
 	/* dummie test */
 	if(ot && C && window) {
-		if(context == WM_OP_REGION_WIN) {
-			/* forces event to go to the region window, for header menus */
-			ARegion *ar= CTX_wm_region(C);
-			ScrArea *area= CTX_wm_area(C);
+		switch(context) {
 			
-			if(area) {
-				ARegion *ar1= area->regionbase.first;
-				for(; ar1; ar1= ar1->next)
-					if(ar1->regiontype==RGN_TYPE_WINDOW)
-						break;
-				if(ar1)
-					CTX_wm_region_set(C, ar1);
+			case WM_OP_EXEC_REGION_WIN:
+				event= NULL;	/* pass on without break */
+			case WM_OP_INVOKE_REGION_WIN: 
+			{
+				/* forces operator to go to the region window, for header menus */
+				ARegion *ar= CTX_wm_region(C);
+				ScrArea *area= CTX_wm_area(C);
+				
+				if(area) {
+					ARegion *ar1= area->regionbase.first;
+					for(; ar1; ar1= ar1->next)
+						if(ar1->regiontype==RGN_TYPE_WINDOW)
+							break;
+					if(ar1)
+						CTX_wm_region_set(C, ar1);
+				}
+				
+				retval= wm_operator_invoke(C, ot, event, properties);
+				
+				/* set region back */
+				CTX_wm_region_set(C, ar);
+				
+				return retval;
 			}
-			
-			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
-			
-			/* set region back */
-			CTX_wm_region_set(C, ar);
-			
-			return retval;
+			case WM_OP_EXEC_AREA:
+				event= NULL;	/* pass on without break */
+			case WM_OP_INVOKE_AREA:
+			{
+					/* remove region from context */
+				ARegion *ar= CTX_wm_region(C);
+
+				CTX_wm_region_set(C, NULL);
+				retval= wm_operator_invoke(C, ot, event, properties);
+				CTX_wm_region_set(C, ar);
+
+				return retval;
+			}
+			case WM_OP_EXEC_SCREEN:
+				event= NULL;	/* pass on without break */
+			case WM_OP_INVOKE_SCREEN:
+			{
+				/* remove region + area from context */
+				ARegion *ar= CTX_wm_region(C);
+				ScrArea *area= CTX_wm_area(C);
+
+				CTX_wm_region_set(C, NULL);
+				CTX_wm_area_set(C, NULL);
+				retval= wm_operator_invoke(C, ot, window->eventstate, properties);
+				CTX_wm_region_set(C, ar);
+				CTX_wm_area_set(C, area);
+
+				return retval;
+			}
+			case WM_OP_EXEC_DEFAULT:
+				event= NULL;	/* pass on without break */
+			case WM_OP_INVOKE_DEFAULT:
+				return wm_operator_invoke(C, ot, event, properties);
 		}
-		else if(context == WM_OP_AREA) {
-			/* remove region from context */
-			ARegion *ar= CTX_wm_region(C);
-
-			CTX_wm_region_set(C, NULL);
-			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
-			CTX_wm_region_set(C, ar);
-
-			return retval;
-		}
-		else if(context == WM_OP_SCREEN) {
-			/* remove region + area from context */
-			ARegion *ar= CTX_wm_region(C);
-			ScrArea *area= CTX_wm_area(C);
-
-			CTX_wm_region_set(C, NULL);
-			CTX_wm_area_set(C, NULL);
-			retval= wm_operator_invoke(C, ot, window->eventstate, properties);
-			CTX_wm_region_set(C, ar);
-			CTX_wm_area_set(C, area);
-
-			return retval;
-		}
-		else
-			return wm_operator_invoke(C, ot, window->eventstate, properties);
 	}
 	
 	return 0;

@@ -167,7 +167,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	}
 
 	if (error_val==0) {
-		WM_operator_name_call(self->C, self->name, WM_OP_DEFAULT, properties);
+		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, properties);
 	}
 
 	if (properties) {

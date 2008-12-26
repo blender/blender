@@ -41,12 +41,16 @@ struct wmEvent;
 /* flag */
 #define OPTYPE_REGISTER		1
 
-/* context to call operator in for WM_operator_call */
+/* context to call operator in for WM_operator_name_call */
 enum {
-	WM_OP_DEFAULT,
-	WM_OP_REGION_WIN,
-	WM_OP_AREA,
-	WM_OP_SCREEN
+	WM_OP_INVOKE_DEFAULT,
+	WM_OP_INVOKE_REGION_WIN,
+	WM_OP_INVOKE_AREA,
+	WM_OP_INVOKE_SCREEN,
+	WM_OP_EXEC_DEFAULT,
+	WM_OP_EXEC_REGION_WIN,
+	WM_OP_EXEC_AREA,
+	WM_OP_EXEC_SCREEN
 };
 
 /* ************** wmEvent ************************ */

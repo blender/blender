@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
@@ -519,7 +520,7 @@ char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, cha
 	ListBase *handlers= NULL;
 
 	/* find right handler list based on specified context */
-	if(opcontext == WM_OP_REGION_WIN) {
+	if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
 		if(CTX_wm_area(C)) {
 			ARegion *ar= CTX_wm_area(C)->regionbase.first;
 			for(; ar; ar= ar->next)
@@ -530,11 +531,11 @@ char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, cha
 				handlers= &ar->handlers;
 		}
 	}
-	else if(opcontext == WM_OP_AREA) {
+	else if(ELEM(opcontext, WM_OP_EXEC_AREA, WM_OP_INVOKE_AREA)) {
 		if(CTX_wm_area(C))
 			handlers= &CTX_wm_area(C)->handlers;
 	}
-	else if(opcontext == WM_OP_SCREEN) {
+	else if(ELEM(opcontext, WM_OP_EXEC_SCREEN, WM_OP_INVOKE_SCREEN)) {
 		if(CTX_wm_window(C))
 			handlers= &CTX_wm_window(C)->handlers;
 	}
