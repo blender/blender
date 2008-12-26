@@ -47,6 +47,16 @@ struct Scene;
 
 /* --------- Tool Flags ------------ */
 
+/* bezt validation */
+typedef enum eEditKeyframes_Validate {
+	BEZT_OK_FRAME	= 1,
+	BEZT_OK_FRAMERANGE,
+	BEZT_OK_SELECTED,
+	BEZT_OK_VALUE,
+} eEditKeyframes_Validate;
+
+/* ------------ */
+
 /* select tools */
 typedef enum eEditKeyframes_Select {
 	SELECT_REPLACE	=	(1<<0),
@@ -71,32 +81,47 @@ typedef enum eEditKeyframes_Snap {
 /* ************************************************ */
 /* Editing API */
 
+/* --- Generic Properties for Bezier Edit Tools ----- */
+
+// XXX maybe a union would be more compact?
+typedef struct BeztEditData {
+	ListBase list;				/* temp list for storing custom list of data to check */
+	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
+	void *data;					/* pointer to custom data - not that useful? */
+	float f1, f2;				/* storage of times/values as 'decimals' */
+	int i1, i2;					/* storage of times/values as 'whole' numbers */
+} BeztEditData;
+
 /* ------- Function Pointer Typedefs --------------- */
 
 	/* callback function that refreshes the IPO curve after use */
 typedef void (*IcuEditFunc)(struct IpoCurve *icu);
-typedef short (*BeztEditFunc)(struct Scene *scene, struct BezTriple *bezt);
+	/* callback function that operates on the given BezTriple */
+typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
 
 /* ------------- Looping API ------------------- */
 
-short icu_keys_bezier_loop(struct Scene *scene, struct IpoCurve *icu, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
-short ipo_keys_bezier_loop(struct Scene *scene, struct Ipo *ipo, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
+short icu_keys_bezier_loop(BeztEditData *bed, struct IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
+short ipo_keys_bezier_loop(BeztEditData *bed, struct Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
 
 /* ------------ BezTriple Callback Getters --------------- */
 
+/* accessories */
+BeztEditFunc ANIM_editkeyframes_ok(short mode);
+
+/* edit */
 BeztEditFunc ANIM_editkeyframes_snap(short mode);
 BeztEditFunc ANIM_editkeyframes_mirror(short mode);
 BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
-/* ------------ Helper Funcs -------------- */
-// XXX will these be needed to set globals for some funcs?
-
 /* ************************************************ */
 
-void select_ipo_key(struct Scene *scene, struct Ipo *ipo, float selx, short selectmode);
-void select_icu_key(struct Scene *scene, struct IpoCurve *icu, float selx, short selectmode);
+// XXX all of these funcs will be depreceated!
+
+void select_ipo_key(BeztEditData *bed, struct Ipo *ipo, float selx, short selectmode);
+void select_icu_key(BeztEditData *bed, struct IpoCurve *icu, float selx, short selectmode);
 
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);

@@ -37,18 +37,39 @@ struct wmOperatorType;
 
 /* internal exports only */
 
+/* ***************************************** */
 /* action_draw.c */
 void draw_channel_names(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar); 
 void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
 
+/* ***************************************** */
 /* action_header.c */
 void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+/* ***************************************** */
 /* action_select.c */
 void ED_ACT_OT_keyframes_deselectall(struct wmOperatorType *ot);
 void ED_ACT_OT_keyframes_borderselect(struct wmOperatorType *ot);
+void ED_ACT_OT_keyframes_columnselect(struct wmOperatorType *ot);
 void ED_ACT_OT_keyframes_clickselect(struct wmOperatorType *ot);
 
+/* defines for left-right select tool */
+enum {
+	ACTKEYS_LRSEL_TEST	= -1,
+	ACTKEYS_LRSEL_NONE,
+	ACTKEYS_LRSEL_LEFT,
+	ACTKEYS_LRSEL_RIGHT,
+} eActKeys_LeftRightSelect_Mode;
+
+/* defines for column-select mode */
+enum {
+	ACTKEYS_COLUMNSEL_KEYS	= 0,
+	ACTKEYS_COLUMNSEL_CFRA,
+	ACTKEYS_COLUMNSEL_MARKERS_COLUMN,
+	ACTKEYS_COLUMNSEL_MARKERS_BETWEEN,
+} eActKeys_ColumnSelect_Mode;
+
+/* ***************************************** */
 /* action_ops.c */
 void action_operatortypes(void);
 void action_keymap(struct wmWindowManager *wm);

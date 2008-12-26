@@ -210,9 +210,10 @@ static short ipoedit_get_context (const bContext *C, bAnimContext *ac, SpaceIpo 
  */
 short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 {
-	ScrArea *sa= CTX_wm_area(C); // XXX it is assumed that this will always be valid
+	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
+	short ok= 0;
 	
 	/* clear old context info */
 	if (ac == NULL) return 0;
@@ -231,20 +232,23 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		case SPACE_ACTION:
 		{
 			SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
-			return actedit_get_context(C, ac, saction);
+			ok= actedit_get_context(C, ac, saction);
 		}
 			break;
 			
 		case SPACE_IPO:
 		{
 			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-			return ipoedit_get_context(C, ac, sipo);
+			ok= ipoedit_get_context(C, ac, sipo);
 		}
 			break;
 	}
 	
-	/* nothing appropriate */
-	return 0;
+	/* check if there's any valid data */
+	if (ok && ac->data)
+		return 1;
+	else
+		return 0;
 }
 
 /* ************************************************************ */

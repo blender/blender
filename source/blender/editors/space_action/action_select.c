@@ -83,6 +83,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "action_intern.h"
+
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
@@ -384,7 +386,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	bAnimContext ac;
 	
 	/* get editor data */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
@@ -414,23 +416,34 @@ void ED_ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 }
 
 /* ******************** Border Select Operator **************************** */
-/* This operator works in one of three ways:
- *	1) borderselect over keys (BKEY) - mouse over main area when initialised; will select keys in region
- *	2) borderselect over horizontal scroller - mouse over horizontal scroller when initialised; will select keys in frame range
- *	3) borderselect over vertical scroller - mouse over vertical scroller when initialised; will select keys in row range
+/* This operator currently works in one of three ways:
+ *	-> BKEY 	- 1) all keyframes within region are selected (ACTKEYS_BORDERSEL_ALLKEYS)
+ *	-> ALT-BKEY - depending on which axis of the region was larger...
+ *		-> 2) x-axis, so select all frames within frame range (ACTKEYS_BORDERSEL_FRAMERANGE)
+ *		-> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
  */
 
-static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller, short selectmode)
+/* defines for borderselect mode */
+enum {
+	ACTKEYS_BORDERSEL_ALLKEYS	= 0,
+	ACTKEYS_BORDERSEL_FRAMERANGE,
+	ACTKEYS_BORDERSEL_CHANNELS,
+} eActKeys_BorderSelect_Mode;
+
+
+static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 	
+	BeztEditData bed;
+	BeztEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
-	BeztEditFunc select_cb;
 	rctf rectf;
-	float ymin=0, ymax=ACHANNEL_HEIGHT;
+	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT);
 	
+	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax-2, &rectf.xmax, &rectf.ymax);
 	
@@ -438,29 +451,47 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	/* get selection editing func */
+	/* get beztriple editing/validation funcs  */
 	select_cb= ANIM_editkeyframes_select(selectmode);
+	
+	if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS))
+		ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	else
+		ok_cb= NULL;
+		
+	/* init editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
+		/* get new vertical minimum extent of channel */
 		ymin= ymax - ACHANNEL_STEP;
 		
-		/* if action is mapped in NLA, it returns a correction */
-		if (nob) {
-			rectf.xmin= get_action_frame(nob, rectf.xmin);
-			rectf.xmax= get_action_frame(nob, rectf.xmax);
+		/* set horizontal range (if applicable) */
+		if (ELEM(mode, ACTKEYS_BORDERSEL_FRAMERANGE, ACTKEYS_BORDERSEL_ALLKEYS)) {
+			/* if channel is mapped in NLA, apply correction */
+			if (nob) {
+				bed.f1= get_action_frame(nob, rectf.xmin);
+				bed.f2= get_action_frame(nob, rectf.xmax);
+			}
+			else {
+				bed.f1= rectf.xmin;
+				bed.f2= rectf.xmax;
+			}
 		}
 		
-		/* what gets selected depends on the mode (based on initial position of cursor) */
-		switch (in_scroller) {
-		case 'h': /* all in frame(s) (option 3) */
+		/* perform vertical suitability check (if applicable) */
+		if ( (mode == ACTKEYS_BORDERSEL_FRAMERANGE) || 
+			!((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
+		{
+			/* loop over data selecting */
 			if (ale->key_data) {
 				if (ale->datatype == ALE_IPO)
-					borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
+					ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 				else if (ale->datatype == ALE_ICU)
-					borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_cb);
+					icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			}
 			else if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= ale->data;
@@ -468,74 +499,18 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short in_scroller,
 				bConstraintChannel *conchan;
 				
 				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-					borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
+					ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 					
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+						ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 				}
 			}
 			//else if (ale->type == ANIMTYPE_GPLAYER) {
 			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			//}
-			break;
-		case 'v': /* all in channel(s) (option 2) */
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-				if (ale->key_data) {
-					if (ale->datatype == ALE_IPO)
-						ipo_keys_bezier_loop(ac->scene, ale->key_data, select_cb, NULL);
-					else if (ale->datatype == ALE_ICU)
-						icu_keys_bezier_loop(ac->scene, ale->key_data, select_cb, NULL);
-				}
-				else if (ale->type == ANIMTYPE_GROUP) {
-					bActionGroup *agrp= ale->data;
-					bActionChannel *achan;
-					bConstraintChannel *conchan;
-					
-					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-						ipo_keys_bezier_loop(ac->scene, achan->ipo, select_cb, NULL);
-						
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-							ipo_keys_bezier_loop(ac->scene, conchan->ipo, select_cb, NULL);
-					}
-				}
-				//else if (ale->type == ANIMTYPE_GPLAYER) {
-				//	select_gpencil_frames(ale->data, selectmode);
-				//}
-			}
-			break;
-		default: /* any keyframe inside region defined by region (option 1) */
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-				if (ale->key_data) {
-					if (ale->datatype == ALE_IPO)
-						borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
-					else if (ale->datatype == ALE_ICU)
-						borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_cb);
-				}
-				else if (ale->type == ANIMTYPE_GROUP) {
-					// fixme: need a nicer way of dealing with summaries!
-					bActionGroup *agrp= ale->data;
-					bActionChannel *achan;
-					bConstraintChannel *conchan;
-					
-					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-						borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
-						
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
-					}
-				}
-				//else if (ale->type == ANIMTYPE_GPLAYER) {
-				////	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
-				//}
-			}
 		}
 		
-		/* if action is mapped in NLA, unapply correction */
-		if (nob) {
-			rectf.xmin= get_action_frame_inv(nob, rectf.xmin);
-			rectf.xmax= get_action_frame_inv(nob, rectf.xmax);
-		}
-		
+		/* set minimum extent to be the maximum of the next channel */
 		ymax=ymin;
 	}
 	
@@ -549,11 +524,11 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	rcti rect;
-	short in_scroller, selectmode;
+	short mode=0, selectmode=0;
 	int event;
 	
 	/* get editor data */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
 	/* get settings from operator */
@@ -561,37 +536,33 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
-	
-	in_scroller= RNA_int_get(op->ptr, "in_scroller");
-	
+		
 	event= RNA_int_get(op->ptr, "event_type");
 	if (event == LEFTMOUSE) // FIXME... hardcoded
 		selectmode = SELECT_ADD;
 	else
 		selectmode = SELECT_SUBTRACT;
-		
-	borderselect_action(&ac, rect, in_scroller, selectmode);
+	
+	/* selection 'mode' depends on whether borderselect region only matters on one axis */
+	if (RNA_boolean_get(op->ptr, "axis_range")) {
+		/* mode depends on which axis of the range is larger to determine which axis to use 
+		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
+		 *	- the frame-range select option is favoured over the channel one (x over y), as frame-range one is often
+		 *	  used for tweaking timing when "blocking", while channels is not that useful...
+		 */
+		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
+			mode= ACTKEYS_BORDERSEL_FRAMERANGE;
+		else
+			mode= ACTKEYS_BORDERSEL_CHANNELS;
+	}
+	else 
+		mode= ACTKEYS_BORDERSEL_ALLKEYS;
+	
+	/* apply borderselect action */
+	borderselect_action(&ac, rect, mode, selectmode);
 	
 	return OPERATOR_FINISHED;
 } 
-
-static int actkeys_borderselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	bAnimContext ac;
-	ARegion *ar;
-	
-	/* get editor data */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
-		return OPERATOR_CANCELLED;
-	ar= ac.ar;
-		
-	/* check if mouse is in a scroller */
-	// XXX move this to keymap level thing (boundbox checking)?
-	RNA_enum_set(op->ptr, "in_scroller", UI_view2d_mouse_in_scrollers(C, &ar->v2d, event->x, event->y));
-	
-	/* now init borderselect operator to handle borderselect as per normal */
-	return WM_border_select_invoke(C, op, event);
-}
 
 void ED_ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 {
@@ -600,34 +571,270 @@ void ED_ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 	ot->idname= "ED_ACT_OT_keyframes_borderselect";
 	
 	/* api callbacks */
-	ot->invoke= actkeys_borderselect_invoke;//WM_border_select_invoke;
+	ot->invoke= WM_border_select_invoke;
 	ot->exec= actkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "in_scroller", PROP_INT, PROP_NONE); // as enum instead?
 	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	
+	RNA_def_property(ot->srna, "axis_range", PROP_BOOLEAN, PROP_NONE);
 }
 
 /* ******************** Column Select Operator **************************** */
-
-/* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of four ways:
- *	- main area
- *		-> 1) without alt-key - selects keyframe that was under mouse position
- *		-> 2) with alt-key - only those keyframes on same side of current frame
- *	- 3) horizontal scroller (*) - select all keyframes in frame (err... maybe integrate this with column select only)?
- *	- 4) vertical scroller (*) - select all keyframes in channel
- *
- *	(*) - these are not obviously presented in UI. We need to find a new way to showcase them.
+ *	- 1) select all keyframes in the same frame as a selected one  (KKEY)
+ *	- 2) select all keyframes in the same frame as the current frame marker (CTRL-KKEY)
+ *	- 3) select all keyframes in the same frame as a selected markers (SHIFT-KKEY)
+ *	- 4) select all keyframes that occur between selected markers (ALT-KKEY)
  */
 
+/* defines for column-select mode */
+EnumPropertyItem prop_column_select_types[] = {
+	{ACTKEYS_COLUMNSEL_KEYS, "KEYS", "On Selected Keyframes", ""},
+	{ACTKEYS_COLUMNSEL_CFRA, "CFRA", "On Current Frame", ""},
+	{ACTKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", "On Selected Markers", ""},
+	{ACTKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", "Between Min/Max Selected Markers", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* ------------------- */ 
+
+/* Selects all visible keyframes between the specified markers */
+static void markers_selectkeys_between (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditFunc select_cb;
+	BeztEditData bed;
+	float min, max;
+	
+	/* get extreme markers */
+	//get_minmax_markers(1, &min, &max); // FIXME... add back markers api!
+	min= ac->scene->r.sfra; // xxx temp code
+	max= ac->scene->r.efra; // xxx temp code
+	
+	if (min==max) return;
+	min -= 0.5f;
+	max += 0.5f;
+	
+	/* get editing funcs + data */
+	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
+	memset(&bed, 0, sizeof(BeztEditData));
+	bed.f1= min; 
+	bed.f2= max;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* select keys in-between */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		if (nob) {	
+			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1);
+			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+		}
+		else {
+			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+		}
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+
+/* helper callback for columnselect_action_keys() -> populate list CfraElems with frame numbers from selected beztriples */
+// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
+static short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		CfraElem *ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+		BLI_addtail(&bed->list, ce);
+		
+		ce->cfra= bezt->vec[1][0];
+	}
+	
+	return 0;
+}
+
+/* Selects all visible keyframes in the same frames as the specified elements */
+static void columnselect_action_keys (bAnimContext *ac, short mode)
+{
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene= ac->scene;
+	CfraElem *ce;
+	BeztEditFunc select_cb, ok_cb;
+	BeztEditData bed;
+	
+	/* initialise keyframe editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* build list of columns */
+	switch (mode) {
+		case ACTKEYS_COLUMNSEL_KEYS: /* list of selected keys */
+			if (ac->datatype == ANIMCONT_GPENCIL) {
+				filter= (ANIMFILTER_VISIBLE);
+				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+				
+				//for (ale= anim_data.first; ale; ale= ale->next)
+				//	gplayer_make_cfra_list(ale->data, &elems, 1);
+			}
+			else {
+				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+				
+				for (ale= anim_data.first; ale; ale= ale->next)
+					ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
+			}
+			BLI_freelistN(&anim_data);
+			break;
+			
+		case ACTKEYS_COLUMNSEL_CFRA: /* current frame */
+			/* make a single CfraElem for storing this */
+			ce= MEM_callocN(sizeof(CfraElem), "cfraElem");
+			BLI_addtail(&bed.list, ce);
+			
+			ce->cfra= (float)CFRA;
+			break;
+			
+		case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
+			// FIXME: markers api needs to be improved for this first!
+			//make_marker_cfra_list(&elems, 1);
+			return; // XXX currently, this does nothing!
+			break;
+			
+		default: /* invalid option */
+			return;
+	}
+	
+	/* set up BezTriple edit callbacks */
+	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
+	
+	/* loop through all of the keys and select additional keyframes
+	 * based on the keys found to be selected above
+	 */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		/* loop over cfraelems (stored in the BeztEditData->list)
+		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
+		 */
+		for (ce= bed.list.first; ce; ce= ce->next) {
+			/* set frame for validation callback to refer to */
+			if (nob)
+				bed.f1= get_action_frame(nob, ce->cfra);
+			else
+				bed.f1= ce->cfra;
+			
+			/* select elements with frame number matching cfraelem */
+			icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			
+#if 0 // XXX reenable when Grease Pencil stuff is back
+			if (ale->type == ANIMTYPE_GPLAYER) {
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				bGPDframe *gpf;
+				
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					if (ecfra == gpf->framenum) 
+						gpf->flag |= GP_FRAME_SELECT;
+				}
+			}
+			//else... 
+#endif // XXX reenable when Grease Pencil stuff is back
+		}
+	}
+	
+	/* free elements */
+	BLI_freelistN(&bed.list);
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* action to take depends on the mode */
+	mode= RNA_enum_get(op->ptr, "mode");
+	
+	if (mode == ACTKEYS_COLUMNSEL_MARKERS_BETWEEN)
+		markers_selectkeys_between(&ac);
+	else
+		columnselect_action_keys(&ac, mode);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ED_ACT_OT_keyframes_columnselect (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Select All";
+	ot->idname= "ED_ACT_OT_keyframes_columnselect";
+	
+	/* api callbacks */
+	ot->exec= actkeys_columnselect_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* props */
+	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_column_select_types);
+}
+
+/* ******************** Mouse-Click Select Operator *********************** */
+/* This operator works in one of three ways:
+ *	- 1) keyframe under mouse - no special modifiers
+ *	- 2) all keyframes on the same side of current frame indicator as mouse - ALT modifier
+ *	- 3) column select all keyframes in frame under mouse - CTRL modifier
+ *
+ * In addition to these basic options, the SHIFT modifier can be used to toggle the 
+ * selection mode between replacing the selection (without) and inverting the selection (with).
+ */
+
+/* defines for left-right select tool */
+EnumPropertyItem prop_leftright_select_types[] = {
+	{ACTKEYS_LRSEL_TEST, "CHECK", "Check if Select Left or Right", ""},
+	{ACTKEYS_LRSEL_NONE, "OFF", "Don't select", ""},
+	{ACTKEYS_LRSEL_LEFT, "LEFT", "Before current frame", ""},
+	{ACTKEYS_LRSEL_RIGHT, "RIGHT", "After current frame", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* ------------------- */
+ 
 /* option 1) select keyframe directly under mouse */
 static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 {
@@ -642,6 +849,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	bGPdata *gpd = NULL;
 	bGPDlayer *gpl = NULL;
 	
+	BeztEditData bed;
+	BeztEditFunc select_cb, ok_cb;
 	void *anim_channel;
 	short sel, chan_type = 0;
 	float selx = 0.0f, selxa;
@@ -653,127 +862,143 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		ads= (bDopeSheet *)ac->data;
 	else if (ac->datatype == ANIMCONT_GPENCIL) 
 		gpd= (bGPdata *)ac->data;
-
+	
+	/* get channel and selection info */
 	anim_channel= get_nearest_action_key(ac, mval, &selx, &sel, &chan_type, &achan);
-	if (anim_channel) {
-		/* must have been a channel */
-		switch (chan_type) {
-			case ANIMTYPE_ICU:
-				icu= (IpoCurve *)anim_channel;
-				break;
-			case ANIMTYPE_CONCHAN:
-				conchan= (bConstraintChannel *)anim_channel;
-				break;
-			case ANIMTYPE_ACHAN:
-				achan= (bActionChannel *)anim_channel;
-				break;
-			case ANIMTYPE_GROUP:
-				agrp= (bActionGroup *)anim_channel;
-				break;
-			case ANIMTYPE_DSMAT:
-				ipo= ((Material *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_DSLAM:
-				ipo= ((Lamp *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_DSCAM:
-				ipo= ((Camera *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_DSCUR:
-				ipo= ((Curve *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_DSSKEY:
-				ipo= ((Key *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_FILLACTD:
-				act= (bAction *)anim_channel;
-				break;
-			case ANIMTYPE_FILLIPOD:
-				ipo= ((Object *)anim_channel)->ipo;
-				break;
-			case ANIMTYPE_OBJECT:
-				ob= ((Base *)anim_channel)->object;
-				break;
-			case ANIMTYPE_GPLAYER:
-				gpl= (bGPDlayer *)anim_channel;
-				break;
-			default:
-				return;
+	if (anim_channel == NULL) 
+		return;
+	
+	switch (chan_type) {
+		case ANIMTYPE_ICU:
+			icu= (IpoCurve *)anim_channel;
+			break;
+		case ANIMTYPE_CONCHAN:
+			conchan= (bConstraintChannel *)anim_channel;
+			break;
+		case ANIMTYPE_ACHAN:
+			achan= (bActionChannel *)anim_channel;
+			break;
+		case ANIMTYPE_GROUP:
+			agrp= (bActionGroup *)anim_channel;
+			break;
+		case ANIMTYPE_DSMAT:
+			ipo= ((Material *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_DSLAM:
+			ipo= ((Lamp *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_DSCAM:
+			ipo= ((Camera *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_DSCUR:
+			ipo= ((Curve *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_DSSKEY:
+			ipo= ((Key *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_FILLACTD:
+			act= (bAction *)anim_channel;
+			break;
+		case ANIMTYPE_FILLIPOD:
+			ipo= ((Object *)anim_channel)->ipo;
+			break;
+		case ANIMTYPE_OBJECT:
+			ob= ((Base *)anim_channel)->object;
+			break;
+		case ANIMTYPE_GPLAYER:
+			gpl= (bGPDlayer *)anim_channel;
+			break;
+		default:
+			return;
+	}
+	
+	/* for replacing selection, firstly need to clear existing selection */
+	if (selectmode == SELECT_REPLACE) {
+		selectmode = SELECT_ADD;
+		
+		deselect_action_keys(ac, 0, 0);
+		
+		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
+			//deselect_action_channels(0);
+			
+			/* Highlight either an Action-Channel or Action-Group */
+			if (achan) {
+				achan->flag |= ACHAN_SELECTED;
+				//hilight_channel(act, achan, 1);
+				//select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
+			}
+			else if (agrp) {
+				agrp->flag |= AGRP_SELECTED;
+				//set_active_actiongroup(act, agrp, 1);
+			}
+		}
+		else if (ac->datatype == ANIMCONT_GPENCIL) {
+			//deselect_action_channels(0);
+			
+			/* Highlight gpencil layer */
+			gpl->flag |= GP_LAYER_SELECT;
+			//gpencil_layer_setactive(gpd, gpl);
+		}
+	}
+	
+	/* get functions for selecting keyframes */
+	select_cb= ANIM_editkeyframes_select(selectmode);
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
+	memset(&bed, 0, sizeof(BeztEditData)); 
+	bed.f1= selx;
+	
+	/* apply selection to keyframes */
+	if (icu)
+		icu_keys_bezier_loop(&bed, icu, ok_cb, select_cb, NULL);
+	else if (ipo)
+		ipo_keys_bezier_loop(&bed, ipo, ok_cb, select_cb, NULL);
+	else if (conchan)
+		ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+	else if (achan)
+		ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+	else if (agrp) {
+		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+			ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+			
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+		}
+	}
+	else if (act) {
+		for (achan= act->chanbase.first; achan; achan= achan->next) {
+			ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+			
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+		}
+	}
+	else if (ob) {
+		if (ob->ipo) {
+			bed.f1= selx;
+			ipo_keys_bezier_loop(&bed, ob->ipo, ok_cb, select_cb, NULL);
 		}
 		
-		if (selectmode == SELECT_REPLACE) {
-			selectmode = SELECT_ADD;
+		if (ob->action) {
+			selxa= get_action_frame(ob, selx);
+			bed.f1= selxa;
 			
-			deselect_action_keys(ac, 0, 0);
-			
-			if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
-				//deselect_action_channels(0);
+			for (achan= ob->action->chanbase.first; achan; achan= achan->next) {
+				ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 				
-				/* Highlight either an Action-Channel or Action-Group */
-				if (achan) {
-					achan->flag |= ACHAN_SELECTED;
-					//hilight_channel(act, achan, 1);
-					//select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
-				}
-				else if (agrp) {
-					agrp->flag |= AGRP_SELECTED;
-					//set_active_actiongroup(act, agrp, 1);
-				}
-			}
-			else if (ac->datatype == ANIMCONT_GPENCIL) {
-				//deselect_action_channels(0);
-				
-				/* Highlight gpencil layer */
-				gpl->flag |= GP_LAYER_SELECT;
-				//gpencil_layer_setactive(gpd, gpl);
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+					ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 			}
 		}
 		
-		if (icu)
-			select_icu_key(ac->scene, icu, selx, selectmode);
-		else if (ipo)
-			select_ipo_key(ac->scene, ipo, selx, selectmode);
-		else if (conchan)
-			select_ipo_key(ac->scene, conchan->ipo, selx, selectmode);
-		else if (achan)
-			select_ipo_key(ac->scene, achan->ipo, selx, selectmode);
-		else if (agrp) {
-			for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-				select_ipo_key(ac->scene, achan->ipo, selx, selectmode);
-				
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-					select_ipo_key(ac->scene, conchan->ipo, selx, selectmode);
-			}
-		}
-		else if (act) {
-			for (achan= act->chanbase.first; achan; achan= achan->next) {
-				select_ipo_key(ac->scene, achan->ipo, selx, selectmode);
-				
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-					select_ipo_key(ac->scene, conchan->ipo, selx, selectmode);
-			}
-		}
-		else if (ob) {
-			if (ob->ipo) 
-				select_ipo_key(ac->scene, ob->ipo, selx, selectmode);
-			
-			if (ob->action) {
-				selxa= get_action_frame(ob, selx);
-				
-				for (achan= ob->action->chanbase.first; achan; achan= achan->next) {
-					select_ipo_key(ac->scene, achan->ipo, selxa, selectmode);
-					
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-						select_ipo_key(ac->scene, conchan->ipo, selxa, selectmode);
-				}
-			}
+		if (ob->constraintChannels.first) {
+			bed.f1= selx;
 			
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
-				select_ipo_key(ac->scene, conchan->ipo, selx, selectmode);
+				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 		}
-		//else if (gpl)
-		//	select_gpencil_frame(gpl, (int)selx, selectmode);
 	}
+	//else if (gpl)
+	//	select_gpencil_frame(gpl, (int)selx, selectmode);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -790,7 +1015,7 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 		deselect_action_keys(ac, 0, 0);
 	}
 	
-	if (leftright == 1) {
+	if (leftright == ACTKEYS_LRSEL_LEFT) {
 		min = -MAXFRAMEF;
 		max = (float)(CFRA + 0.1f);
 	} 
@@ -824,50 +1049,116 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	/* Cleanup */
 	BLI_freelistN(&anim_data);
 }
+
+/* Option 3) Selects all visible keyframes in the same frame as the mouse click */
+static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
+{
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditFunc select_cb, ok_cb;
+	BeztEditData bed;
+	
+	/* initialise keyframe editing data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* set up BezTriple edit callbacks */
+	select_cb= ANIM_editkeyframes_select(SELECT_ADD);
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAME);
+	
+	/* loop through all of the keys and select additional keyframes
+	 * based on the keys found to be selected above
+	 */
+	if (ac->datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE);
+	else
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		/* set frame for validation callback to refer to */
+		if (nob)
+			bed.f1= get_action_frame(nob, selx);
+		else
+			bed.f1= selx;
+		
+		/* select elements with frame number matching cfraelem */
+		icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			
+#if 0 // XXX reenable when Grease Pencil stuff is back
+			if (ale->type == ANIMTYPE_GPLAYER) {
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				bGPDframe *gpf;
+				
+				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
+					if (ecfra == gpf->framenum) 
+						gpf->flag |= GP_FRAME_SELECT;
+				}
+			}
+			//else... 
+#endif // XXX reenable when Grease Pencil stuff is back
+	}
+	
+	/* free elements */
+	BLI_freelistN(&bed.list);
+	BLI_freelistN(&anim_data);
+}
  
 /* ------------------- */
 
+/* handle clicking */
 static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
 	Scene *scene;
 	ARegion *ar;
-	short in_scroller, selectmode;
+	View2D *v2d;
+	short selectmode;
 	int mval[2];
 	
 	/* get editor data */
-	if ((ANIM_animdata_get_context(C, &ac) == 0) || (ac.data == NULL))
+	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
 	scene= ac.scene;
 	ar= ac.ar;
+	v2d= &ar->v2d;
 	
 	/* get mouse coordinates (in region coordinates) */
 	mval[0]= (event->x - ar->winrct.xmin);
 	mval[1]= (event->y - ar->winrct.ymin);
 	
-	/* check where in view mouse is */
-	in_scroller = UI_view2d_mouse_in_scrollers(C, &ar->v2d, event->x, event->y);
-	
 	/* select mode is either replace (deselect all, then add) or add/extend */
+	// XXX this is currently only available for normal select only
 	if (RNA_boolean_get(op->ptr, "extend_select"))
-		selectmode= SELECT_ADD;
+		selectmode= SELECT_INVERT;
 	else
 		selectmode= SELECT_REPLACE;
 	
-	/* check which scroller mouse is in, and figure out how to handle this */
-	if (in_scroller == 'h') {
-		/* horizontal - column select in current frame */
-		// FIXME.... todo
-	}
-	else if (in_scroller == 'v') {
-		/* vertical - row select in current channel */
-		// FIXME... 
-	}
-	else if (RNA_boolean_get(op->ptr, "left_right")) {
+	/* figure out action to take */
+	if (RNA_enum_get(op->ptr, "left_right")) {
 		/* select all keys on same side of current frame as mouse */
-		selectkeys_leftright(&ac, (mval[0] < CFRA), selectmode);
+		float x;
+		
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		if (x < CFRA)
+			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_LEFT);
+		else 	
+			RNA_int_set(op->ptr, "left_right", ACTKEYS_LRSEL_RIGHT);
+		
+		selectkeys_leftright(&ac, RNA_enum_get(op->ptr, "left_right"), selectmode);
+	}
+	else if (RNA_boolean_get(op->ptr, "column_select")) {
+		/* select all the keyframes that occur on the same frame as where the mouse clicked */
+		float x;
+		
+		/* figure out where (the frame) the mouse clicked, and set all keyframes in that frame */
+		UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, NULL);
+		mouse_columnselect_action_keys(&ac, x);
 	}
 	else {
 		/* select keyframe under mouse */
@@ -883,17 +1174,21 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void ED_ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ED_ACT_OT_keyframes_clickselect";
 	
 	/* api callbacks */
 	ot->invoke= actkeys_clickselect_invoke;
-	//ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_areaactive;
 	
 	/* id-props */
-	RNA_def_property(ot->srna, "left_right", PROP_BOOLEAN, PROP_NONE); // ALTKEY
-	RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY
+	prop= RNA_def_property(ot->srna, "left_right", PROP_ENUM, PROP_NONE); // ALTKEY
+		//RNA_def_property_enum_items(prop, prop_actkeys_clickselect_items);
+	prop= RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY
+	prop= RNA_def_property(ot->srna, "column_select", PROP_BOOLEAN, PROP_NONE); // CTRLKEY
 }
 
 /* ************************************************************************** */

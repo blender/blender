@@ -188,7 +188,7 @@ static void action_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 	
 	/* data */
-	if ((ANIM_animdata_get_context(C, &ac)) && (ac.data)) {
+	if (ANIM_animdata_get_context(C, &ac)) {
 		draw_channel_strips(&ac, saction, ar);
 	}
 	
@@ -243,7 +243,7 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(C, v2d);
 	
 	/* data */
-	if ((ANIM_animdata_get_context(C, &ac)) && (ac.data)) {
+	if (ANIM_animdata_get_context(C, &ac)) {
 		draw_channel_names(&ac, saction, ar);
 	}
 	

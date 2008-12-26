@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -60,6 +61,10 @@
  * appropriate bezier-modify function to set. These functions (ANIM_editkeyframes_*) will need
  * to be called before getting any channels.
  * 
+ * A set of 'validation' callbacks are provided for checking if a BezTriple should be operated on.
+ * These should only be used when using a 'general' BezTriple editor (i.e. selection setters which 
+ * don't check existing selection status).
+ * 
  * - Joshua Leung, Dec 2008
  */
 
@@ -74,18 +79,34 @@
 /* This function is used to loop over BezTriples in the given IpoCurve, applying a given 
  * operation on them, and optionally applies an IPO-curve validate function afterwards.
  */
-short icu_keys_bezier_loop(Scene *scene, IpoCurve *icu, BeztEditFunc bezt_cb, IcuEditFunc icu_cb) 
+short icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb) 
 {
     BezTriple *bezt;
 	int b;
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
     if (bezt_cb) {
-		for (b=0, bezt=icu->bezt; b < icu->totvert; b++, bezt++) {
-			/* Exit with return-code '1' if function returns positive
-			 * This is useful if finding if some BezTriple satisfies a condition.
-			 */
-	        if (bezt_cb(scene, bezt)) return 1;
+		/* if there's a validation func, include that check in the loop 
+		 * (this is should be more efficient than checking for it in every loop)
+		 */
+		if (bezt_ok) {
+			for (b=0, bezt=icu->bezt; b < icu->totvert; b++, bezt++) {
+				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
+				if (bezt_ok(bed, bezt)) {
+					/* Exit with return-code '1' if function returns positive
+					 * This is useful if finding if some BezTriple satisfies a condition.
+					 */
+			        if (bezt_cb(bed, bezt)) return 1;
+				}
+			}
+		}
+		else {
+			for (b=0, bezt=icu->bezt; b < icu->totvert; b++, bezt++) {
+				/* Exit with return-code '1' if function returns positive
+				 * This is useful if finding if some BezTriple satisfies a condition.
+				 */
+		        if (bezt_cb(bed, bezt)) return 1;
+			}
 		}
     }
 
@@ -98,7 +119,7 @@ short icu_keys_bezier_loop(Scene *scene, IpoCurve *icu, BeztEditFunc bezt_cb, Ic
 }
 
 /* This function is used to loop over the IPO curves (and subsequently the keyframes in them) */
-short ipo_keys_bezier_loop(Scene *scene, Ipo *ipo, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+short ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
     IpoCurve *icu;
 	
@@ -108,54 +129,98 @@ short ipo_keys_bezier_loop(Scene *scene, Ipo *ipo, BeztEditFunc bezt_cb, IcuEdit
 	
     /* Loop through each curve in the Ipo */
     for (icu= ipo->curve.first; icu; icu=icu->next) {
-        if (icu_keys_bezier_loop(scene, icu, bezt_cb, icu_cb))
+        if (icu_keys_bezier_loop(bed, icu, bezt_ok, bezt_cb, icu_cb))
             return 1;
     }
 
     return 0;
 }
 
-/* This function is used to loop over the channels in an Action Group to modify the IPO blocks within them */
-short actgroup_keys_bezier_loop(Scene *scene, bActionGroup *agrp, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
-{
-	
-}
-
 /* -------------------------------- Further Abstracted ----------------------------- */
 
-/* this function is called to apply the same operation to all types of channels */
-short animchannel_keys_bezier_loop(Scene *scene, bAnimListElem *ale, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+/* This function is used to apply operation to all keyframes, regardless of the type */
+short animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
-
+	return 0;
 }
 
+/* ************************************************************************** */
+/* BezTriple Validation Callbacks */
+
+static short ok_bezier_frame(BeztEditData *bed, BezTriple *bezt)
+{
+	/* frame is stored in f1 property (this float accuracy check may need to be dropped?) */
+	return IS_EQ(bezt->vec[1][0], bed->f1);
+}
+
+static short ok_bezier_framerange(BeztEditData *bed, BezTriple *bezt)
+{
+	/* frame range is stored in float properties */
+	return ((bezt->vec[1][0] > bed->f1) && (bezt->vec[1][0] < bed->f2));
+}
+
+static short ok_bezier_selected(BeztEditData *bed, BezTriple *bezt)
+{
+	/* this macro checks all beztriple handles for selection... */
+	return BEZSELECTED(bezt);
+}
+
+static short ok_bezier_value(BeztEditData *bed, BezTriple *bezt)
+{
+	/* value is stored in f1 property 
+	 *	- this float accuracy check may need to be dropped?
+	 *	- should value be stored in f2 instead so that we won't have conflicts when using f1 for frames too?
+	 */
+	return IS_EQ(bezt->vec[1][1], bed->f1);
+}
+
+
+BeztEditFunc ANIM_editkeyframes_ok(short mode)
+{
+	/* eEditKeyframes_Validate */
+	switch (mode) {
+		case BEZT_OK_FRAME: /* only if bezt falls on the right frame (float) */
+			return ok_bezier_frame;
+		case BEZT_OK_FRAMERANGE: /* only if bezt falls within the specified frame range (floats) */
+			return ok_bezier_framerange;
+		case BEZT_OK_SELECTED:	/* only if bezt is selected */
+			return ok_bezier_selected;
+		case BEZT_OK_VALUE: /* only if bezt value matches (float) */
+			return ok_bezier_value;
+		default: /* nothing was ok */
+			return NULL;
+	}
+}
 
 /* ******************************************* */
 /* Transform */
 
-static short snap_bezier_nearest(Scene *scene, BezTriple *bezt)
+static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]+0.5));
 	return 0;
 }
 
-static short snap_bezier_nearestsec(Scene *scene, BezTriple *bezt)
+static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 {
-	float secf = FPS;
+	const Scene *scene= bed->scene;
+	const float secf = FPS;
+	
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]/secf + 0.5f) * secf);
 	return 0;
 }
 
-static short snap_bezier_cframe(Scene *scene, BezTriple *bezt)
+static short snap_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 {
+	const Scene *scene= bed->scene;
 	if (bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)CFRA;
 	return 0;
 }
 
-static short snap_bezier_nearmarker(Scene *scene, BezTriple *bezt)
+static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 {
 	//if (bezt->f2 & SELECT)
 	//	bezt->vec[1][0]= (float)find_nearest_marker_time(bezt->vec[1][0]);  // XXX missing function!
@@ -163,8 +228,9 @@ static short snap_bezier_nearmarker(Scene *scene, BezTriple *bezt)
 }
 
 // calchandles_ipocurve
-BeztEditFunc ANIM_editkeys_snap(short type)
+BeztEditFunc ANIM_editkeyframes_snap(short type)
 {
+	/* eEditKeyframes_Snap */
 	switch (type) {
 		case SNAP_KEYS_NEARFRAME: /* snap to nearest frame */
 			return snap_bezier_nearest;
@@ -181,8 +247,9 @@ BeztEditFunc ANIM_editkeys_snap(short type)
 
 /* --------- */
 
-static short mirror_bezier_cframe(Scene *scene, BezTriple *bezt)
+static short mirror_bezier_cframe(BeztEditData *bed, BezTriple *bezt)
 {
+	const Scene *scene= bed->scene;
 	float diff;
 	
 	if (bezt->f2 & SELECT) {
@@ -193,7 +260,7 @@ static short mirror_bezier_cframe(Scene *scene, BezTriple *bezt)
 	return 0;
 }
 
-static short mirror_bezier_yaxis(Scene *scene, BezTriple *bezt)
+static short mirror_bezier_yaxis(BeztEditData *bed, BezTriple *bezt)
 {
 	float diff;
 	
@@ -205,7 +272,7 @@ static short mirror_bezier_yaxis(Scene *scene, BezTriple *bezt)
 	return 0;
 }
 
-static short mirror_bezier_xaxis(Scene *scene, BezTriple *bezt)
+static short mirror_bezier_xaxis(BeztEditData *bed, BezTriple *bezt)
 {
 	float diff;
 	
@@ -217,10 +284,11 @@ static short mirror_bezier_xaxis(Scene *scene, BezTriple *bezt)
 	return 0;
 }
 
-static short mirror_bezier_marker(Scene *scene, BezTriple *bezt)
+static short mirror_bezier_marker(BeztEditData *bed, BezTriple *bezt)
 {
 	static TimeMarker *marker;
 	static short initialised = 0;
+	const Scene *scene= bed->scene;
 	
 	/* In order for this mirror function to work without
 	 * any extra arguments being added, we use the case
@@ -288,11 +356,13 @@ BeztEditFunc ANIM_editkeyframes_mirror(short type)
  *	for (ipo...) snap_cfra_ipo_keys(scene, ipo, 0); // sum up keyframe times
  *	snap_cfra_ipo_keys(scene, NULL, 1); // set current frame after taking average
  */
-void snap_cfra_ipo_keys(Scene *scene, Ipo *ipo, short mode)
+// XXX this thing needs to be refactored!
+void snap_cfra_ipo_keys(BeztEditData *bed, Ipo *ipo, short mode)
 {
 	static int cfra;
 	static int tot;
 	
+	Scene *scene= bed->scene;
 	IpoCurve *icu;
 	BezTriple *bezt;
 	int a;
@@ -330,7 +400,7 @@ void snap_cfra_ipo_keys(Scene *scene, Ipo *ipo, short mode)
 /* Settings */
 
 /* Sets the selected bezier handles to type 'auto' */
-static short set_bezier_auto(Scene *scene, BezTriple *bezt) 
+static short set_bezier_auto(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* is a handle selected? If so set it to type auto */
 	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
@@ -349,7 +419,7 @@ static short set_bezier_auto(Scene *scene, BezTriple *bezt)
 }
 
 /* Sets the selected bezier handles to type 'vector'  */
-static short set_bezier_vector(Scene *scene, BezTriple *bezt) 
+static short set_bezier_vector(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* is a handle selected? If so set it to type vector */
 	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
@@ -368,7 +438,7 @@ static short set_bezier_vector(Scene *scene, BezTriple *bezt)
 }
 
 #if 0 // xxx currently not used (only used by old code as a check)
-static short bezier_isfree(Scene *scene, BezTriple *bezt) 
+static short bezier_isfree(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* queries whether the handle should be set
 	 * to type 'free' or 'align'
@@ -378,7 +448,7 @@ static short bezier_isfree(Scene *scene, BezTriple *bezt)
 	return 0;
 }
 
-static short set_bezier_align(Scene *scene, BezTriple *bezt) 
+static short set_bezier_align(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* Sets selected bezier handles to type 'align' */
 	if (bezt->f1 & SELECT) bezt->h1= HD_ALIGN;
@@ -387,7 +457,7 @@ static short set_bezier_align(Scene *scene, BezTriple *bezt)
 }
 #endif // xxx currently not used (only used by old code as a check, but can't replicate that now)
 
-static short set_bezier_free(Scene *scene, BezTriple *bezt) 
+static short set_bezier_free(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* Sets selected bezier handles to type 'free'  */
 	if (bezt->f1 & SELECT) bezt->h1= HD_FREE;
@@ -452,21 +522,21 @@ void set_ipocurve_mixed(IpoCurve *icu)
 	calchandles_ipocurve(icu);
 }
 
-static short set_bezt_constant(Scene *scene, BezTriple *bezt) 
+static short set_bezt_constant(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= IPO_CONST;
 	return 0;
 }
 
-static short set_bezt_linear(Scene *scene, BezTriple *bezt) 
+static short set_bezt_linear(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= IPO_LIN;
 	return 0;
 }
 
-static short set_bezt_bezier(Scene *scene, BezTriple *bezt) 
+static short set_bezt_bezier(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
 		bezt->ipo= IPO_BEZ;
@@ -520,21 +590,21 @@ void setexprap_ipoloop(Ipo *ipo, int code)
 /* ******************************************* */
 /* Selection */
 
-static short select_bezier_add(Scene *scene, BezTriple *bezt) 
+static short select_bezier_add(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* Select the bezier triple */
 	BEZ_SEL(bezt);
 	return 0;
 }
 
-static short select_bezier_subtract(Scene *scene, BezTriple *bezt) 
+static short select_bezier_subtract(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* Deselect the bezier triple */
 	BEZ_DESEL(bezt);
 	return 0;
 }
 
-static short select_bezier_invert(Scene *scene, BezTriple *bezt) 
+static short select_bezier_invert(BeztEditData *bed, BezTriple *bezt) 
 {
 	/* Invert the selection for the bezier triple */
 	bezt->f2 ^= SELECT;
@@ -684,48 +754,7 @@ void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, short selectmode)
 	}
 }
 
-
-#if 0
-void select_ipo_bezier_keys(Ipo *ipo, int selectmode)
-{
-	/* Select all of the beziers in all
-	* of the Ipo curves belonging to the
-	* Ipo, using the selection mode.
-	*/
-	switch (selectmode) {
-		case SELECT_ADD:
-			ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
-			break;
-		case SELECT_SUBTRACT:
-			ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
-			break;
-		case SELECT_INVERT:
-			ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
-			break;
-	}
-}
-
-void select_icu_bezier_keys(IpoCurve *icu, int selectmode)
-{
-	/* Select all of the beziers in all
-	* of the Ipo curves belonging to the
-	* Ipo, using the selection mode.
-	*/
-	switch (selectmode) {
-		case SELECT_ADD:
-			icu_keys_bezier_loop(icu, select_bezier_add, NULL);
-			break;
-		case SELECT_SUBTRACT:
-			icu_keys_bezier_loop(icu, select_bezier_subtract, NULL);
-			break;
-		case SELECT_INVERT:
-			icu_keys_bezier_loop(icu, select_bezier_invert, NULL);
-			break;
-	}
-}
-#endif
-
-void select_icu_key(Scene *scene, IpoCurve *icu, float selx, short selectmode)
+void select_icu_key(BeztEditData *bed, IpoCurve *icu, float selx, short selectmode)
 {
     /* Selects all bezier triples in the Ipocurve
 	 * at time selx, using the selection mode.
@@ -762,12 +791,12 @@ void select_icu_key(Scene *scene, IpoCurve *icu, float selx, short selectmode)
 	 */
     for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
         if (bezt->vec[1][0] == selx) {
-            select_cb(scene, bezt);
+            select_cb(bed, bezt);
         }
     }
 }
 
-void select_ipo_key(Scene *scene, Ipo *ipo, float selx, short selectmode)
+void select_ipo_key(BeztEditData *bed, Ipo *ipo, float selx, short selectmode)
 {
 	/* Selects all bezier triples in each Ipocurve of the
 	 * Ipo at time selx, using the selection mode.
@@ -796,7 +825,7 @@ void select_ipo_key(Scene *scene, Ipo *ipo, float selx, short selectmode)
 	for (icu=ipo->curve.first; icu; icu=icu->next) {
 		for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
 			if (bezt->vec[1][0] == selx) {
-				select_cb(scene, bezt);
+				select_cb(bed, bezt);
 			}
 		}
 	}

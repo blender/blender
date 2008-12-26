@@ -88,8 +88,6 @@ static SpaceLink *ipo_new(const bContext *C)
 	
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	
-	/* XXX view2d init for channels */
-	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for ipo");
 	

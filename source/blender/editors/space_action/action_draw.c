@@ -404,10 +404,25 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	int filter;
 	View2D *v2d= &ar->v2d;
 	float x= 0.0f, y= 0.0f;
+	int items, height;
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+		/* don't use totrect set, as the width stays the same 
+		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+		 */
+		v2d->tot.ymin= -height;
+	}
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)(-ACHANNEL_HEIGHT);
@@ -728,6 +743,11 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						mute = ICON_MUTE_IPO_ON;
 					else	
 						mute = ICON_MUTE_IPO_OFF;
+						
+					if (icu->flag & IPO_PROTECT)
+						protect = ICON_UNLOCKED;
+					else
+						protect = ICON_LOCKED;
 					
 					sel = SEL_ICU(icu);
 					if (saction->pin)
@@ -1076,6 +1096,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	rcti scr_rct;
 	
 	int act_start, act_end, dummy;
+	int height, items;
 	float y, sta, end;
 	
 	char col1[3], col2[3];
@@ -1117,7 +1138,21 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	
 	/* build list of channels to draw */
 	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
+	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+		/* don't use totrect set, as the width stays the same 
+		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+		 */
+		v2d->tot.ymin= -height;
+	}
 	
 	/* first backdrop strips */
 	y= (float)(-ACHANNEL_HEIGHT);
