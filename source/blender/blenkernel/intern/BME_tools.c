@@ -205,6 +205,7 @@ static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Ver
 }
 
 
+#if 0
 static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, float fac)
 {
 	void *src[2];
@@ -217,6 +218,7 @@ static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2,
 		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->data);
 	}
 }
+#endif
 
 
 static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, BME_Edge *e1, float fac){

@@ -591,7 +591,9 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
 	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
 	MFace *face1=NULL, *face2 = NULL;
+#ifdef WITH_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;
+#endif
 	double distance = 0;
 	float epsilon1 = clmd->coll_parms->epsilon;
 	float epsilon2 = BLI_bvhtree_getepsilon ( collmd->bvhtree );

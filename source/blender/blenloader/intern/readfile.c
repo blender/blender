@@ -6238,52 +6238,55 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *) sl;
 
-//XXX						sbuts->v2d.maxzoom= 1.2f;
-//XXX						sbuts->align= 1;	/* horizontal default */
-//XXX						
-//XXX						if(sbuts->mainb==BUTS_LAMP) {
-//XXX							sbuts->mainb= CONTEXT_SHADING;
-//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_MAT) {
-//XXX							sbuts->mainb= CONTEXT_SHADING;
-//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_TEX) {
-//XXX							sbuts->mainb= CONTEXT_SHADING;
-//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_ANIM) {
-//XXX							sbuts->mainb= CONTEXT_OBJECT;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_WORLD) {
-//XXX							sbuts->mainb= CONTEXT_SCENE;
-//XXX							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_RENDER) {
-//XXX							sbuts->mainb= CONTEXT_SCENE;
-//XXX							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_GAME) {
-//XXX							sbuts->mainb= CONTEXT_LOGIC;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_FPAINT) {
-//XXX							sbuts->mainb= CONTEXT_EDITING;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_RADIO) {
-//XXX							sbuts->mainb= CONTEXT_SHADING;
-//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_CONSTRAINT) {
-//XXX							sbuts->mainb= CONTEXT_OBJECT;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_SCRIPT) {
-//XXX							sbuts->mainb= CONTEXT_OBJECT;
-//XXX						}
-//XXX						else if(sbuts->mainb==BUTS_EDIT) {
-//XXX							sbuts->mainb= CONTEXT_EDITING;
-//XXX						}
-//XXX						else sbuts->mainb= CONTEXT_SCENE;
+						sbuts->v2d.maxzoom= 1.2f;
+						sbuts->align= 1;	/* horizontal default */
+					
+						//XXX
+#if 0
+						if(sbuts->mainb==BUTS_LAMP) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+						}
+						else if(sbuts->mainb==BUTS_MAT) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+						}
+						else if(sbuts->mainb==BUTS_TEX) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+						}
+						else if(sbuts->mainb==BUTS_ANIM) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_WORLD) {
+							sbuts->mainb= CONTEXT_SCENE;
+							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+						}
+						else if(sbuts->mainb==BUTS_RENDER) {
+							sbuts->mainb= CONTEXT_SCENE;
+							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+						}
+						else if(sbuts->mainb==BUTS_GAME) {
+							sbuts->mainb= CONTEXT_LOGIC;
+						}
+						else if(sbuts->mainb==BUTS_FPAINT) {
+							sbuts->mainb= CONTEXT_EDITING;
+						}
+						else if(sbuts->mainb==BUTS_RADIO) {
+							sbuts->mainb= CONTEXT_SHADING;
+							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+						}
+						else if(sbuts->mainb==BUTS_CONSTRAINT) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_SCRIPT) {
+							sbuts->mainb= CONTEXT_OBJECT;
+						}
+						else if(sbuts->mainb==BUTS_EDIT) {
+							sbuts->mainb= CONTEXT_EDITING;
+						}
+						else sbuts->mainb= CONTEXT_SCENE;
+#endif
 					}
 				}
 			}
@@ -8412,7 +8415,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, ReportList *reports)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
-	FileGlobal *fg = (FileGlobal *)NULL;
 
 	bfd= MEM_callocN(sizeof(BlendFileData), "blendfiledata");
 	bfd->main= MEM_callocN(sizeof(Main), "main");
@@ -9343,9 +9345,9 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					else ob= (Object *)id;
 					
 					/* XXX use context to find view3d->lay */
-					if((flag & FILE_ACTIVELAY)) {
-						scene->lay;
-					}
+					//if((flag & FILE_ACTIVELAY)) {
+					//	scene->lay;
+					//}
 					base->lay= ob->lay;
 					base->object= ob;
 					ob->id.us++;

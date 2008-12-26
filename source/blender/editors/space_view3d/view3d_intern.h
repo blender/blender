@@ -42,6 +42,8 @@ struct EditFace;
 struct Nurb;
 struct BezTriple;
 struct BPoint;
+struct bContext;
+struct wmWindowManager;
 
 typedef struct ViewDepths {
 	unsigned short w, h;

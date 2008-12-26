@@ -188,7 +188,7 @@ bool yafrayPluginRender_t::initExport()
 			}
 		}
 		yafray::yafrayConstructor *constructor;
-		constructor = (yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle, YAFRAY_SYMBOL);
+		constructor = (yafray::yafrayConstructor *)PIL_dynlib_find_symbol(handle, (char*)YAFRAY_SYMBOL);
 		if (constructor==NULL)
 		{
 			cerr << "Error loading yafray plugin: " << PIL_dynlib_get_error_as_string(handle) << endl;

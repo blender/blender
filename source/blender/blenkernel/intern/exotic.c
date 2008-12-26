@@ -2668,10 +2668,10 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		}
 		for(a=0; a<me->totface; a++, mface++) {
 			if(mface->v4==0) {
-				fprintf(fp, "3 %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, kleur[mface->mat_nr]);
+				fprintf(fp, "3 %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, kleur[(int)mface->mat_nr]);
 			}
 			else {
-				fprintf(fp, "4 %d %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, mface->v4, kleur[mface->mat_nr]);
+				fprintf(fp, "4 %d %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, mface->v4, kleur[(int)mface->mat_nr]);
 			}
 		}
 
@@ -3255,7 +3255,7 @@ static void write_mesh_dxf(FILE *fp, Mesh *me)
 	
 		/* Write a face color */
 		if (me->totcol) {
-			ma= me->mat[mface->mat_nr];
+			ma= me->mat[(int)mface->mat_nr];
 			if(ma) {
 				sprintf(str,"%d",rgb_to_dxf_col(ma->r,ma->g,ma->b));
 				write_group(62, str); /* Color index */

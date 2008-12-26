@@ -463,7 +463,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand= ICON_TRIA_RIGHT;
 					
 					sel = SEL_OBJC(base);
-					sprintf(name, ob->id.name+2);
+					strcpy(name, ob->id.name+2);
 				}
 					break;
 				case ANIMTYPE_FILLACTD: /* action widget */
@@ -480,7 +480,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand= ICON_TRIA_RIGHT;
 					
 					sel = SEL_ACTC(act);
-					sprintf(name, "Action");
+					strcpy(name, "Action");
 				}
 					break;
 				case ANIMTYPE_FILLIPOD: /* ipo (dopesheet) expand widget */
@@ -497,7 +497,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 					
 					//sel = SEL_OBJC(base);
-					sprintf(name, "IPO Curves");
+					strcpy(name, "IPO Curves");
 				}
 					break;
 				case ANIMTYPE_FILLCOND: /* constraint channels (dopesheet) expand widget */
@@ -514,7 +514,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 						
 					//sel = SEL_OBJC(base);
-					sprintf(name, "Constraints");
+					strcpy(name, "Constraints");
 				}
 					break;
 				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
@@ -530,7 +530,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						expand = ICON_TRIA_RIGHT;
 						
-					sprintf(name, "Materials");
+					strcpy(name, "Materials");
 				}
 					break;
 				
@@ -549,7 +549,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						expand = ICON_TRIA_RIGHT;
 					
-					sprintf(name, ma->id.name+2);
+					strcpy(name, ma->id.name+2);
 				}
 					break;
 				case ANIMTYPE_DSLAM: /* lamp (dopesheet) expand widget */
@@ -565,7 +565,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						expand = ICON_TRIA_RIGHT;
 					
-					sprintf(name, la->id.name+2);
+					strcpy(name, la->id.name+2);
 				}
 					break;
 				case ANIMTYPE_DSCAM: /* camera (dopesheet) expand widget */
@@ -581,7 +581,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						expand = ICON_TRIA_RIGHT;
 					
-					sprintf(name, ca->id.name+2);
+					strcpy(name, ca->id.name+2);
 				}
 					break;
 				case ANIMTYPE_DSCUR: /* curve (dopesheet) expand widget */
@@ -597,7 +597,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						expand = ICON_TRIA_RIGHT;
 					
-					sprintf(name, cu->id.name+2);
+					strcpy(name, cu->id.name+2);
 				}
 					break;
 				case ANIMTYPE_DSSKEY: /* shapekeys (dopesheet) expand widget */
@@ -614,7 +614,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 						
 					//sel = SEL_OBJC(base);
-					sprintf(name, "Shape Keys");
+					strcpy(name, "Shape Keys");
 				}
 					break;
 					
@@ -643,7 +643,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						protect = ICON_LOCKED;
 						
 					sel = SEL_AGRP(agrp);
-					sprintf(name, agrp->name);
+					strcpy(name, agrp->name);
 				}
 					break;
 				case ANIMTYPE_ACHAN: /* action channel */
@@ -676,7 +676,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					}
 					
 					sel = SEL_ACHAN(achan);
-					sprintf(name, achan->name);
+					strcpy(name, achan->name);
 				}
 					break;
 				case ANIMTYPE_CONCHAN: /* constraint channel */
@@ -717,7 +717,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					}
 					
 					sel = SEL_CONCHAN(conchan);
-					sprintf(name, conchan->name);
+					strcpy(name, conchan->name);
 				}
 					break;
 				case ANIMTYPE_ICU: /* ipo-curve channel */
@@ -751,9 +751,9 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					sel = SEL_ICU(icu);
 					if (saction->pin)
-						sprintf(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
+						strcpy(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
 					else
-						sprintf(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
+						strcpy(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
 				}
 					break;
 				case ANIMTYPE_FILLIPO: /* ipo expand widget */
@@ -774,7 +774,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 					
 					sel = SEL_ACHAN(achan);
-					sprintf(name, "IPO Curves");
+					strcpy(name, "IPO Curves");
 				}
 					break;
 				case ANIMTYPE_FILLCON: /* constraint expand widget */
@@ -795,7 +795,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 						
 					sel = SEL_ACHAN(achan);
-					sprintf(name, "Constraint");
+					strcpy(name, "Constraint");
 				}
 					break;
 				
@@ -812,7 +812,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					if (kb->name[0] == '\0')
 						sprintf(name, "Key %d", ale->index);
 					else
-						sprintf(name, kb->name);
+						strcpy(name, kb->name);
 				}
 					break;
 				
@@ -837,7 +837,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						{
 							/* this shouldn't cause any overflow... */
 							//sprintf(name, "3DView:%s", view3d_get_name(sa->spacedata.first)); // XXX missing func..
-							sprintf(name, "3dView");
+							strcpy(name, "3dView");
 							special= ICON_VIEW3D;
 						}
 							break;
@@ -847,9 +847,9 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							char treetype[12];
 							
 							if (snode->treetype == 1)
-								sprintf(treetype, "Composite");
+								strcpy(treetype, "Composite");
 							else
-								sprintf(treetype, "Material");
+								strcpy(treetype, "Material");
 							sprintf(name, "Nodes:%s", treetype);
 							
 							special= ICON_NODE;
@@ -880,7 +880,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							if (sima->image)
 								sprintf(name, "Image:%s", sima->image->id.name+2);
 							else
-								sprintf(name, "Image:<None>");
+								strcpy(name, "Image:<None>");
 								
 							special= ICON_IMAGE_COL;
 						}

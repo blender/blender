@@ -157,7 +157,7 @@ static void stats_background(RenderStats *rs)
 		else 
 			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
 	}
-	printf(str); printf("\n");
+	printf("%s\n", str);
 }
 
 void RE_FreeRenderResult(RenderResult *res)

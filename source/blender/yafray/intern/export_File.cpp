@@ -332,7 +332,7 @@ void yafrayFileRender_t::displayImage()
 				char a = (byte_per_pix==4) ? fgetc(fp) : 255;
 				int bx = x-xs, by = y-ys;
 				if ((bx >= 0) && (bx < (int)re->rectx) && (by >= 0) && (by < re->recty)) {
-					float* bpt = (float*)rres.rectf + (bx + (((re->recty-1) - by)*re->rectx) << 2);
+					float* bpt = (float*)rres.rectf + ((bx + (((re->recty-1) - by)*re->rectx)) << 2);
 					bpt[2] = (float)r * btf;
 					bpt[1] = (float)g * btf;
 					bpt[0] = (float)b * btf;

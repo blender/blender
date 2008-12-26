@@ -3710,25 +3710,25 @@ static void tekenhandlesN(Nurb *nu, short sel)
 				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
-					cpack(col[bezt->h1]);
+					cpack(col[(int)bezt->h1]);
 					glVertex3fv(fp);
 					glVertex3fv(fp+3); 
 
-					cpack(col[bezt->h2]);
+					cpack(col[(int)bezt->h2]);
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
 				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
-					cpack(col[bezt->h1]);
+					cpack(col[(int)bezt->h1]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 					
-					cpack(col[bezt->h2]);
+					cpack(col[(int)bezt->h2]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}

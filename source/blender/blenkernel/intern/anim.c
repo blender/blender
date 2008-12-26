@@ -954,7 +954,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 	Object *ob;
 	int flen;
 	
-	if( obar[ch] ) return obar[ch];
+	if( obar[(int)ch] ) return obar[(int)ch];
 	
 	flen= strlen(family);
 	
@@ -966,7 +966,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 		ob= ob->id.next;
 	}
 	
-	obar[ch]= ob;
+	obar[(int)ch]= ob;
 	
 	return ob;
 }

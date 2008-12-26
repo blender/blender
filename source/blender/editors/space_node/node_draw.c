@@ -103,9 +103,9 @@ extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 // XXX butspace.h
 #define B_NODE_EXEC			3610
 
+#if 0 // XXX
 static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okwidth)
 {
-#if 0 // XXX
 	char drawstr[NODE_MAXSTR];
 	int width;
 	
@@ -126,8 +126,8 @@ static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okw
 		if(len==0) return;
 	}
 	UI_DrawString(curfont, drawstr, 0);
-#endif
 }
+#endif
 
 static void node_scaling_widget(int color_id, float aspect, float xmin, float ymin, float xmax, float ymax)
 {
@@ -503,6 +503,7 @@ static void node_sync_cb(bContext *C, void *snode_v, void *node_v)
 
 /* **************  Socket callbacks *********** */
 
+#if 0
 static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 {
 	if(node_v && ntree_v) {
@@ -510,6 +511,7 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr); XXX
 	}
 }
+#endif
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void *socket_v)

@@ -2444,6 +2444,7 @@ void outliner_show_hierarchy(Scene *scene, SpaceOops *soops)
 	BIF_undo_push("Outliner show hierarchy");
 }
 
+#if 0
 static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y2, short *selecting)
 {
 	TreeElement *te;
@@ -2468,6 +2469,7 @@ static void do_outliner_select(SpaceOops *soops, ListBase *lb, float y1, float y
 		if((tselem->flag & TSE_CLOSED)==0) do_outliner_select(soops, &te->subtree, y1, y2, selecting);
 	}
 }
+#endif
 
 /* its own redraw loop... urm */
 void outliner_select(ARegion *ar, SpaceOops *so)

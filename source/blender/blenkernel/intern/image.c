@@ -583,6 +583,7 @@ void tag_image_time(Image *ima)
 		ima->lastused = (int)PIL_check_seconds_timer();
 }
 
+#if 0
 static void tag_all_images_time() 
 {
 	Image *ima;
@@ -595,6 +596,7 @@ static void tag_all_images_time()
 		}
 	}
 }
+#endif
 
 void free_old_images()
 {
