@@ -2148,10 +2148,10 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_OUTLINER_OT_activate_click(wmOperatorType *ot)
+void OUTLINER_OT_activate_click(wmOperatorType *ot)
 {
 	ot->name= "Activate Click";
-	ot->idname= "ED_OUTLINER_OT_activate_click";
+	ot->idname= "OUTLINER_OT_activate_click";
 	
 	ot->invoke= outliner_activate_click;
 	

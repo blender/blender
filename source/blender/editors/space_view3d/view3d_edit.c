@@ -397,12 +397,12 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void ED_VIEW3D_OT_viewrotate(wmOperatorType *ot)
+void VIEW3D_OT_viewrotate(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Rotate view";
-	ot->idname= "ED_VIEW3D_OT_viewrotate";
+	ot->idname= "VIEW3D_OT_viewrotate";
 
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
@@ -472,12 +472,12 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void ED_VIEW3D_OT_viewmove(wmOperatorType *ot)
+void VIEW3D_OT_viewmove(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Rotate view";
-	ot->idname= "ED_VIEW3D_OT_viewmove";
+	ot->idname= "VIEW3D_OT_viewmove";
 
 	/* api callbacks */
 	ot->invoke= viewmove_invoke;
@@ -657,12 +657,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void ED_VIEW3D_OT_viewzoom(wmOperatorType *ot)
+void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Rotate view";
-	ot->idname= "ED_VIEW3D_OT_viewzoom";
+	ot->idname= "VIEW3D_OT_viewzoom";
 
 	/* api callbacks */
 	ot->invoke= viewzoom_invoke;
@@ -745,12 +745,12 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	return OPERATOR_FINISHED;
 }
 
-void ED_VIEW3D_OT_viewhome(wmOperatorType *ot)
+void VIEW3D_OT_viewhome(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View home";
-	ot->idname= "ED_VIEW3D_OT_viewhome";
+	ot->idname= "VIEW3D_OT_viewhome";
 
 	/* api callbacks */
 	ot->exec= viewhome_exec;
@@ -881,12 +881,12 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	return OPERATOR_FINISHED;
 }
-void ED_VIEW3D_OT_viewcenter(wmOperatorType *ot)
+void VIEW3D_OT_viewcenter(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View center";
-	ot->idname= "ED_VIEW3D_OT_viewcenter";
+	ot->idname= "VIEW3D_OT_viewcenter";
 
 	/* api callbacks */
 	ot->exec= viewcenter_exec;
@@ -1137,14 +1137,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 }
 
 
-void ED_VIEW3D_OT_viewnumpad(wmOperatorType *ot)
+void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name= "View numpad";
-	ot->idname= "ED_VIEW3D_OT_viewnumpad";
+	ot->idname= "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
@@ -1238,12 +1238,12 @@ static int view3d_clipping_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* toggles */
-void ED_VIEW3D_OT_clipping(wmOperatorType *ot)
+void VIEW3D_OT_clipping(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ED_VIEW3D_OT_clipping";
+	ot->idname= "VIEW3D_OT_clipping";
 
 	/* api callbacks */
 	ot->invoke= view3d_clipping_invoke;

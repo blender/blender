@@ -1294,12 +1294,12 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void ED_VIEW3D_OT_select(wmOperatorType *ot)
+void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Activate/Select";
-	ot->idname= "ED_VIEW3D_OT_select";
+	ot->idname= "VIEW3D_OT_select";
 	
 	/* api callbacks */
 	ot->invoke= view3d_select_invoke;
@@ -1659,12 +1659,12 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 } 
 
 
-void ED_VIEW3D_OT_borderselect(wmOperatorType *ot)
+void VIEW3D_OT_borderselect(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ED_VIEW3D_OT_borderselect";
+	ot->idname= "VIEW3D_OT_borderselect";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -1887,10 +1887,10 @@ static int view3d_circle_select(bContext *C, wmOperator *op)
 	return 0;
 }
 
-void ED_VIEW3D_OT_circle_select(wmOperatorType *ot)
+void VIEW3D_OT_circle_select(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
-	ot->idname= "ED_VIEW3D_OT_circle_select";
+	ot->idname= "VIEW3D_OT_circle_select";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;

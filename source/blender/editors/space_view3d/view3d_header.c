@@ -461,7 +461,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 // XXX		mainqenter(PADASTERKEY, 1);
 		break;
 	case 6: /* Center View and Cursor to Origin */
-		WM_operator_name_call(C, "ED_VIEW3D_OT_viewcenter", WM_OP_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_REGION_WIN, NULL);
 		curs= give_cursor(scene, v3d);
 		curs[0]=curs[1]=curs[2]= 0.0;
 		break;
@@ -545,10 +545,10 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		endlocalview(scene, sa);
 		break;
 	case 9: /* View All (Home) */
-		WM_operator_name_call(C, "ED_VIEW3D_OT_viewhome", WM_OP_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_REGION_WIN, NULL);
 		break;
 	case 11: /* View Selected */
-		WM_operator_name_call(C, "ED_VIEW3D_OT_viewcenter", WM_OP_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_REGION_WIN, NULL);
 		break;
 	case 13: /* Play Back Animation */
 		play_anim(0);
@@ -560,7 +560,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
-		WM_operator_name_call(C, "ED_VIEW3D_OT_clipping", WM_OP_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
 		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
@@ -5325,7 +5325,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 
 	switch(event) {
 	case B_HOME:
-		WM_operator_name_call(C, "ED_VIEW3D_OT_viewhome", WM_OP_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_REGION_WIN, NULL);
 		break;
 	case B_SCENELOCK:
 		if(v3d->scenelock) {

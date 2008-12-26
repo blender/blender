@@ -70,13 +70,13 @@ void view3d_operatortypes(void);
 void view3d_keymap(struct wmWindowManager *wm);
 
 /* view3d_edit.c */
-void ED_VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_viewmove(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_viewhome(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_clipping(struct wmOperatorType *ot);
+void VIEW3D_OT_viewzoom(struct wmOperatorType *ot);
+void VIEW3D_OT_viewmove(struct wmOperatorType *ot);
+void VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
+void VIEW3D_OT_viewhome(struct wmOperatorType *ot);
+void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
+void VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
+void VIEW3D_OT_clipping(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
@@ -111,9 +111,9 @@ void circ(float x, float y, float rad);
 void view3d_update_depths(ARegion *ar, View3D *v3d);
 
 /* view3d_select.c */
-void ED_VIEW3D_OT_select(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_borderselect(struct wmOperatorType *ot);
-void ED_VIEW3D_OT_circle_select(struct wmOperatorType *ot);
+void VIEW3D_OT_select(struct wmOperatorType *ot);
+void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
+void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void view3d_operator_needs_opengl(const struct bContext *C);

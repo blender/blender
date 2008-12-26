@@ -62,8 +62,8 @@
 
 void ED_operatortypes_object(void)
 {
-	WM_operatortype_append(ED_VIEW3D_OT_make_parent);
-	WM_operatortype_append(ED_VIEW3D_OT_clear_parent);
+	WM_operatortype_append(OBJECT_OT_make_parent);
+	WM_operatortype_append(OBJECT_OT_clear_parent);
 	
 }
 
@@ -72,9 +72,9 @@ void ED_keymap_object(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Object", SPACE_VIEW3D, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_VIEW3D_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "ED_VIEW3D_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	
-//	RNA_int_set(WM_keymap_add_item(keymap, "ED_VIEW3D_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+//	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }
 

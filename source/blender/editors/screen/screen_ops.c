@@ -223,11 +223,11 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_SCR_OT_actionzone(wmOperatorType *ot)
+void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Handle area action zones";
-	ot->idname= "ED_SCR_OT_actionzone";
+	ot->idname= "SCREEN_OT_actionzone";
 	
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
@@ -275,10 +275,10 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_area_rip(wmOperatorType *ot)
+void SCREEN_OT_area_rip(wmOperatorType *ot)
 {
 	ot->name= "Rip Area into New Window";
-	ot->idname= "ED_SCR_OT_area_rip";
+	ot->idname= "SCREEN_OT_area_rip";
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= screen_area_rip_op;
@@ -506,13 +506,13 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_SCR_OT_area_move(wmOperatorType *ot)
+void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name= "Move area edges";
-	ot->idname= "ED_SCR_OT_area_move";
+	ot->idname= "SCREEN_OT_area_move";
 
 	ot->exec= area_move_exec;
 	ot->invoke= area_move_invoke;
@@ -815,12 +815,12 @@ static EnumPropertyItem prop_direction_items[] = {
 	{'v', "VERTICAL", "Vertical", ""},
 	{0, NULL, NULL, NULL}};
 
-void ED_SCR_OT_area_split(wmOperatorType *ot)
+void SCREEN_OT_area_split(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	ot->name = "Split area";
-	ot->idname = "ED_SCR_OT_area_split";
+	ot->idname = "SCREEN_OT_area_split";
 	
 	ot->exec= area_split_exec;
 	ot->invoke= area_split_invoke;
@@ -856,10 +856,10 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_frame_offset(wmOperatorType *ot)
+void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
 	ot->name = "Frame Offset";
-	ot->idname = "ED_SCR_OT_frame_offset";
+	ot->idname = "SCREEN_OT_frame_offset";
 
 	ot->exec= frame_offset_exec;
 
@@ -902,10 +902,10 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void ED_SCR_OT_screen_set(wmOperatorType *ot)
+void SCREEN_OT_screen_set(wmOperatorType *ot)
 {
 	ot->name = "Set Screen";
-	ot->idname = "ED_SCR_OT_screen_set";
+	ot->idname = "SCREEN_OT_screen_set";
 	
 	ot->exec= screen_set_exec;
 	ot->poll= ED_operator_screenactive;
@@ -925,10 +925,10 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_screen_full_area(wmOperatorType *ot)
+void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
 	ot->name = "Toggle Full Area in Screen";
-	ot->idname = "ED_SCR_OT_screen_full_area";
+	ot->idname = "SCREEN_OT_screen_full_area";
 	
 	ot->exec= screen_full_area_exec;
 	ot->poll= ED_operator_screenactive;
@@ -1191,13 +1191,13 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Operator for joining two areas (space types) */
-void ED_SCR_OT_area_join(wmOperatorType *ot)
+void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name= "Join area";
-	ot->idname= "ED_SCR_OT_area_join";
+	ot->idname= "SCREEN_OT_area_join";
 	
 	/* api callbacks */
 	ot->exec= area_join_exec;
@@ -1231,11 +1231,11 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_repeat_last(wmOperatorType *ot)
+void SCREEN_OT_repeat_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat Last";
-	ot->idname= "ED_SCR_OT_repeat_last";
+	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;	
@@ -1269,13 +1269,13 @@ static int region_split_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_region_split(wmOperatorType *ot)
+void SCREEN_OT_region_split(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Split Region";
-	ot->idname= "ED_SCR_OT_region_split";
+	ot->idname= "SCREEN_OT_region_split";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1308,11 +1308,11 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCR_OT_region_flip(wmOperatorType *ot)
+void SCREEN_OT_region_flip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Flip Region";
-	ot->idname= "ED_SCR_OT_region_flip";
+	ot->idname= "SCREEN_OT_region_flip";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1348,11 +1348,11 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void ED_SCR_OT_animation_play(wmOperatorType *ot)
+void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Animation player";
-	ot->idname= "ED_SCR_OT_animation_play";
+	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
 	ot->invoke= screen_animation_play;
@@ -1396,11 +1396,11 @@ static int border_select_do(bContext *C, wmOperator *op)
 	return 1;
 }
 
-void ED_SCR_OT_border_select(wmOperatorType *ot)
+void SCREEN_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border select";
-	ot->idname= "ED_SCR_OT_border_select";
+	ot->idname= "SCREEN_OT_border_select";
 	
 	/* api callbacks */
 	ot->exec= border_select_do;
@@ -1425,22 +1425,22 @@ void ED_SCR_OT_border_select(wmOperatorType *ot)
 void ED_operatortypes_screen(void)
 {
 	/* generic UI stuff */
-	WM_operatortype_append(ED_SCR_OT_actionzone);
-	WM_operatortype_append(ED_SCR_OT_repeat_last);
+	WM_operatortype_append(SCREEN_OT_actionzone);
+	WM_operatortype_append(SCREEN_OT_repeat_last);
 	
 	/* screen tools */
-	WM_operatortype_append(ED_SCR_OT_area_move);
-	WM_operatortype_append(ED_SCR_OT_area_split);
-	WM_operatortype_append(ED_SCR_OT_area_join);
-	WM_operatortype_append(ED_SCR_OT_area_rip);
-	WM_operatortype_append(ED_SCR_OT_region_split);
-	WM_operatortype_append(ED_SCR_OT_region_flip);
-	WM_operatortype_append(ED_SCR_OT_screen_set);
-	WM_operatortype_append(ED_SCR_OT_screen_full_area);
+	WM_operatortype_append(SCREEN_OT_area_move);
+	WM_operatortype_append(SCREEN_OT_area_split);
+	WM_operatortype_append(SCREEN_OT_area_join);
+	WM_operatortype_append(SCREEN_OT_area_rip);
+	WM_operatortype_append(SCREEN_OT_region_split);
+	WM_operatortype_append(SCREEN_OT_region_flip);
+	WM_operatortype_append(SCREEN_OT_screen_set);
+	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	
 	/*frame changes*/
-	WM_operatortype_append(ED_SCR_OT_frame_offset);
-	WM_operatortype_append(ED_SCR_OT_animation_play);
+	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_animation_play);
 	
 	/* tools shared by more space types */
 	ED_marker_operatortypes();	
@@ -1452,31 +1452,31 @@ void ED_keymap_screen(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
-	WM_keymap_add_item(keymap, "ED_SCR_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ED_SCR_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ED_SCR_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 
 	 /* tests */
-	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
-	RNA_enum_set(WM_keymap_add_item(keymap, "ED_SCR_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 						  
 	/*frame offsets*/
-	WM_keymap_add_item(keymap, "ED_SCR_OT_animation_play", TIMER, KM_ANY, KM_ANY, 0);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
-	RNA_int_set(WM_keymap_add_item(keymap, "ED_SCR_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER, KM_ANY, KM_ANY, 0);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 
-	WM_keymap_add_item(keymap, "ED_SCR_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_SCR_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	
 	/* screen level global keymaps */
 	// err...

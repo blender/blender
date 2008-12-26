@@ -43,14 +43,14 @@
 
 void outliner_operatortypes(void)
 {
-	WM_operatortype_append(ED_OUTLINER_OT_activate_click);
+	WM_operatortype_append(OUTLINER_OT_activate_click);
 }
 
 void outliner_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_OUTLINER_OT_activate_click", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_activate_click", LEFTMOUSE, KM_PRESS, 0, 0);
 
 }
 

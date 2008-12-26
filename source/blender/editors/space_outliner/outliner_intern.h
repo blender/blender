@@ -106,7 +106,7 @@ void outliner_operation_menu(struct Scene *scene, struct ARegion *ar, struct Spa
 void outliner_select(struct ARegion *ar, struct SpaceOops *so);
 void draw_outliner(const struct bContext *C);
 
-void ED_OUTLINER_OT_activate_click(struct wmOperatorType *ot);
+void OUTLINER_OT_activate_click(struct wmOperatorType *ot);
 
 #if 0
 extern void outliner_free_tree(struct ListBase *lb);

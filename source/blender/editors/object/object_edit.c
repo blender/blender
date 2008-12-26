@@ -952,13 +952,13 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_VIEW3D_OT_clear_parent(wmOperatorType *ot)
+void OBJECT_OT_clear_parent(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Clear parent";
-	ot->idname= "ED_VIEW3D_OT_clear_parent";
+	ot->idname= "OBJECT_OT_clear_parent";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1559,13 +1559,13 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-void ED_VIEW3D_OT_make_parent(wmOperatorType *ot)
+void OBJECT_OT_make_parent(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Make parent";
-	ot->idname= "ED_VIEW3D_OT_make_parent";
+	ot->idname= "OBJECT_OT_make_parent";
 	
 	/* api callbacks */
 	ot->invoke= make_parent_invoke;
