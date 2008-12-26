@@ -1068,6 +1068,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0);
@@ -1086,7 +1087,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	//snode->aspect= (snode->v2d.cur.xmax - snode->v2d.cur.xmin)/((float)sa->winx);
+	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)sa->winx);
 	//snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	UI_view2d_constant_grid_draw(C, v2d);
