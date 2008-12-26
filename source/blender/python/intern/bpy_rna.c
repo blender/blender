@@ -70,10 +70,8 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	RNA_property_enum_items(ptr, prop, &item, &totitem);
 
 	for (i=0; i<totitem; i++) {
-		if (i<totitem-1)
-			BLI_dynstr_appendf(dynstr, "'%s', ", item[i].identifier);
-		else
-			BLI_dynstr_appendf(dynstr, "'%s'", item[i].identifier);
+		
+		BLI_dynstr_appendf(dynstr, i?", '%s'":"'%s'", item[i].identifier);
 	}
 	
 	cstring = BLI_dynstr_get_cstring(dynstr);

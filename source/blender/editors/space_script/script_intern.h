@@ -39,7 +39,7 @@ void script_operatortypes(void);
 void script_keymap(struct wmWindowManager *wm);
 
 /* script_edit.c */
-void ED_SCRIPT_OT_run_pyfile(struct wmOperatorType *ot);
+void SCRIPT_OT_run_pyfile(struct wmOperatorType *ot);
 
 #endif /* ED_SCRIPT_INTERN_H */
 

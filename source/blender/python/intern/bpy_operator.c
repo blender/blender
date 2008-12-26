@@ -77,10 +77,11 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 		ot = WM_operatortype_find(name);
 
 		if (ot) {
-			return pyop_func_CreatePyObject(self->C, name);
+			ret= pyop_func_CreatePyObject(self->C, name);
 		}
 		else {
 			PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
+			ret= NULL;
 		}
 	}
 	
@@ -101,18 +102,17 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	PropertyRNA *prop, *iterprop;
 	CollectionPropertyIterator iter;
 
-
-	if (ot == NULL) {
-		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
-		return NULL;
-	}
-
 	if (PyTuple_Size(args)) {
 		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
 		return NULL;
 	}
 
 	ot= WM_operatortype_find(self->name);
+	if (ot == NULL) {
+		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
+		return NULL;
+	}
+	
 	RNA_pointer_create(NULL, NULL, ot->srna, &properties, &ptr);
 
 

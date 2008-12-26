@@ -73,12 +73,12 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_SCRIPT_OT_run_pyfile(wmOperatorType *ot)
+void SCRIPT_OT_run_pyfile(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Run python file";
-	ot->idname= "ED_SCRIPT_OT_run_pyfile";
+	ot->idname= "SCRIPT_OT_run_pyfile";
 
 	/* api callbacks */
 	ot->exec= run_pyfile_exec;
