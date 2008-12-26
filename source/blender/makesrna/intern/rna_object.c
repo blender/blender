@@ -56,7 +56,7 @@ void RNA_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
 
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_ui_text(prop, "Location", "DOC_BROKEN");
 	
 	//prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_ROTATION);
 	//RNA_def_property_ui_text(prop, "Rotation", "");
@@ -64,27 +64,31 @@ void RNA_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation", "");
 	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_ui_text(prop, "Scale", "");
-	
+	RNA_def_property_ui_text(prop, "Scale", "DOC_BROKEN");
+
+	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Ipo");
+	RNA_def_property_ui_text(prop, "Ipo", "DOC_BROKEN");
+
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
-	RNA_def_property_ui_text(prop, "Constraints", "");
+	RNA_def_property_ui_text(prop, "Constraints", "DOC_BROKEN");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
-	RNA_def_property_ui_text(prop, "Modifiers", "");
+	RNA_def_property_ui_text(prop, "Modifiers", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "sensors", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sensor");
-	RNA_def_property_ui_text(prop, "Sensors", "");
+	RNA_def_property_ui_text(prop, "Sensors", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Controller");
-	RNA_def_property_ui_text(prop, "Controllers", "");
+	RNA_def_property_ui_text(prop, "Controllers", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Actuator");
-	RNA_def_property_ui_text(prop, "Actuators", "");
+	RNA_def_property_ui_text(prop, "Actuators", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "game_properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);

@@ -111,7 +111,7 @@ def rna2epy(target_path):
 
 	def base_id(rna_struct):
 		try:		return rna_struct.base.identifier
-		except:	return None
+		except:	return '' # invalid id
 
 	structs = [(base_id(rna_struct), rna_struct.identifier, rna_struct) for rna_struct in bpydoc.structs.values()]
 	structs.sort() # not needed but speeds up sort below, setting items without an inheritance first

@@ -151,6 +151,7 @@ extern StructRNA RNA_ShapeKey;
 extern StructRNA RNA_ShapeKeyBezierPoint;
 extern StructRNA RNA_ShapeKeyCurvePoint;
 extern StructRNA RNA_ShapeKeyPoint;
+extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_StringProperty;

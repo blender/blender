@@ -925,6 +925,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_screen.c", RNA_def_screen},
 	{"rna_sensor.c", RNA_def_sensor},
 	{"rna_sequence.c", RNA_def_sequence},
+	{"rna_sound.c", RNA_def_sound},
 	{"rna_vfont.c", RNA_def_vfont},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_world.c", RNA_def_world},	
