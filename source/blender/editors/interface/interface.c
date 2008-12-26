@@ -1391,8 +1391,8 @@ void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
 	
 		if(!block->handle) {
 			if(!block->active) {
-				uiFreeBlock(C, block);
 				BLI_remlink(lb, block);
+				uiFreeBlock(C, block);
 			}
 			else
 				block->active= 0;
