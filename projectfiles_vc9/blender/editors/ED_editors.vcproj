@@ -250,6 +250,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_view3d.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\UI_interface.h"
 				>
 			</File>
@@ -303,10 +307,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\interface\interface.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_draw.c"
 				>
 			</File>
@@ -316,6 +316,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\interface\interface_icons.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\interface\interface_panel.c"
 				>
 			</File>
 			<File
@@ -519,6 +527,18 @@
 			Name="space_node"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\drawnode.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_node\node_header.c"
 				>
 			</File>
@@ -540,6 +560,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_buttons\buttons_scene.c"
 				>
 			</File>
 			<File
@@ -647,11 +671,19 @@
 			Name="space_script"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_script\script_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_script\script_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_script\script_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_script\script_ops.c"
 				>
 			</File>
 			<File
@@ -711,6 +743,10 @@
 			Name="animation"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_deps.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_draw.c"
 				>
 			</File>
@@ -740,6 +776,22 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\keyframing.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="object"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_edit.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_ops.c"
 				>
 			</File>
 		</Filter>
