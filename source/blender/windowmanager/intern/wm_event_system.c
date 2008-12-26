@@ -481,6 +481,12 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 		else
 			kmitype= RIGHTMOUSE;
 	}
+	if(kmitype==ACTIONMOUSE) {
+		if(U.flag & USER_LMOUSESELECT)
+			kmitype= RIGHTMOUSE;
+		else
+			kmitype= LEFTMOUSE;
+	}
 	
 	/* the matching rules */
 	if(winevent->type!=kmitype) return 0;

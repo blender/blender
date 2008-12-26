@@ -72,11 +72,14 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_clipping);
 	WM_operatortype_append(VIEW3D_OT_circle_select);
 	WM_operatortype_append(VIEW3D_OT_smoothview);
+	WM_operatortype_append(VIEW3D_OT_cursor3d);
 }
 
 void view3d_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+	
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewrotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewmove", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);

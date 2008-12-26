@@ -75,6 +75,66 @@ int ED_operator_screen_mainwinactive(bContext *C)
 	return 1;
 }
 
+static int ed_spacetype_test(bContext *C, int type)
+{
+	if(ED_operator_areaactive(C)) {
+		SpaceLink *sl= (SpaceLink *)CTX_wm_space_data(C);
+		return sl && (sl->spacetype == type);
+	}
+	return 0;
+}
+
+int ED_operator_view3d_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_VIEW3D);
+}
+
+int ED_operator_timeline_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_TIME);
+}
+
+int ED_operator_outliner_active(bContext *C)
+{
+	if(ed_spacetype_test(C, SPACE_OOPS)) {
+		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+		return so->spacetype == SO_OUTLINER;
+	}
+	return 0;
+}
+
+int ED_operator_file_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_FILE);
+}
+
+int ED_operator_action_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_ACTION);
+}
+
+int ED_operator_buttons_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_BUTS);
+}
+
+int ED_operator_node_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_NODE);
+}
+
+int ED_operator_ipo_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_IPO);
+}
+
+int ED_operator_sequencer_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_SEQ);
+}
+
+
+
 /* *************************** action zone operator ************************** */
 
 /* operator state vars used:  

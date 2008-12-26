@@ -407,7 +407,7 @@ void VIEW3D_OT_viewrotate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewrotate_invoke;
 	ot->modal= viewrotate_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 }
 
 /* ************************ viewmove ******************************** */
@@ -482,7 +482,7 @@ void VIEW3D_OT_viewmove(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= viewmove_invoke;
 	ot->modal= viewmove_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 }
 
 /* ************************ viewzoom ******************************** */
@@ -668,7 +668,7 @@ void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 	ot->invoke= viewzoom_invoke;
 	ot->exec= viewzoom_exec;
 	ot->modal= viewzoom_modal;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 
 	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
 }
@@ -743,7 +743,7 @@ void VIEW3D_OT_viewhome(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewhome_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 
 	RNA_def_property(ot->srna, "center", PROP_BOOLEAN, PROP_NONE);
 }
@@ -871,7 +871,7 @@ void VIEW3D_OT_viewcenter(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewcenter_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 }
 
 /* ********************* Changing view operator ****************** */
@@ -1093,7 +1093,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= viewnumpad_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 	ot->flag= OPTYPE_REGISTER;
 
 	prop = RNA_def_property(ot->srna, "viewnum", PROP_ENUM, PROP_NONE);
@@ -1195,7 +1195,7 @@ void VIEW3D_OT_clipping(wmOperatorType *ot)
 	ot->exec= view3d_clipping_exec;
 	ot->modal= WM_border_select_modal;
 
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 
 	/* rna */
 	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
@@ -1364,6 +1364,75 @@ void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
 	smooth_view(NULL, NULL, NULL, new_ofs, NULL, &new_dist, NULL); // XXX
 }
 
+/* ***************** 3d cursor cursor op ******************* */
+
+/* mx my in region coords */
+static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
+	short mx, my, lr_click=0, mval[2];
+	short ctrl= 0; // XXX
+	
+	fp= give_cursor(scene, v3d);
+	
+	if(G.obedit && ctrl) lr_click= 1;
+	VECCOPY(oldcurs, fp);
+	
+	mx= event->x - ar->winrct.xmin;
+	my= event->y - ar->winrct.ymin;
+	project_short_noclip(ar, v3d, fp, mval);
+	
+	initgrabz(v3d, fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=IS_CLIPPED) {
+		
+		window_to_3d(ar, v3d, dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
+	}
+	else {
+		
+		dx= ((float)(mx-(ar->winx/2)))*v3d->zfac/(ar->winx/2);
+		dy= ((float)(my-(ar->winy/2)))*v3d->zfac/(ar->winy/2);
+		
+		fz= v3d->persmat[0][3]*fp[0]+ v3d->persmat[1][3]*fp[1]+ v3d->persmat[2][3]*fp[2]+ v3d->persmat[3][3];
+		fz= fz/v3d->zfac;
+		
+		fp[0]= (v3d->persinv[0][0]*dx + v3d->persinv[1][0]*dy+ v3d->persinv[2][0]*fz)-v3d->ofs[0];
+		fp[1]= (v3d->persinv[0][1]*dx + v3d->persinv[1][1]*dy+ v3d->persinv[2][1]*fz)-v3d->ofs[1];
+		fp[2]= (v3d->persinv[0][2]*dx + v3d->persinv[1][2]*dy+ v3d->persinv[2][2]*fz)-v3d->ofs[2];
+	}
+	
+	if(lr_click) {
+		// XXX		if(G.obedit->type==OB_MESH) add_click_mesh();
+		//		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
+		//		else if (G.obedit->type==OB_ARMATURE) addvert_armature();
+		VECCOPY(fp, oldcurs);
+	}
+	// XXX notifier for scene */
+	ED_region_tag_redraw(ar);
+	
+	/* prevent other mouse ops to fail */
+	return OPERATOR_PASS_THROUGH;
+}
+
+void VIEW3D_OT_cursor3d(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Set 3D Cursor";
+	ot->idname= "VIEW3D_OT_cursor3d";
+	
+	/* api callbacks */
+	ot->invoke= set_3dcursor_invoke;
+	
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna later */
+
+}
 
 
 /* ************************* below the line! *********************** */

@@ -298,7 +298,7 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= view3d_smoothview_invoke;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_view3d_active;
 }
 
 /* ********************************** */

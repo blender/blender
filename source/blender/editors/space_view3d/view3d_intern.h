@@ -79,6 +79,7 @@ void VIEW3D_OT_viewhome(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 void VIEW3D_OT_clipping(struct wmOperatorType *ot);
+void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 
 /* drawobject.c */
 void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);

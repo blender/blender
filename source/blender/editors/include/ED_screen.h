@@ -84,6 +84,17 @@ int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
 int		ED_operator_areaactive(struct bContext *C);
 
+int		ED_operator_view3d_active(struct bContext *C);
+int		ED_operator_timeline_active(struct bContext *C);
+int		ED_operator_outliner_active(struct bContext *C);
+int		ED_operator_file_active(struct bContext *C);
+int		ED_operator_action_active(struct bContext *C);
+int		ED_operator_buttons_active(struct bContext *C);
+int		ED_operator_node_active(struct bContext *C);
+int		ED_operator_ipo_active(struct bContext *C);
+int		ED_operator_sequencer_active(struct bContext *C);
+
+
 /* default keymaps, bitflags */
 #define ED_KEYMAP_UI		1
 #define ED_KEYMAP_VIEW2D	2

@@ -2155,7 +2155,7 @@ void OUTLINER_OT_activate_click(wmOperatorType *ot)
 	
 	ot->invoke= outliner_activate_click;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_outliner_active;
 }
 
 
