@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h" /*for WM_operator_pystring */
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -93,6 +94,48 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	RNA_def_struct_ui_text(ot->srna, ot->name, "DOC_BROKEN"); /* TODO - add a discription to wmOperatorType? */
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
+}
+
+/* print a string representation of the operator, with the args that it runs 
+ * so python can run it again */
+char *WM_operator_pystring(wmOperator *op)
+{
+	const char *arg_name= NULL;
+
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+
+	/* for building the string */
+	DynStr *dynstr= BLI_dynstr_new();
+	char *cstring, *buf;
+	int first_iter=1;
+
+	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
+
+	iterprop= RNA_struct_iterator_property(op->ptr);
+	RNA_property_collection_begin(op->ptr, iterprop, &iter);
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+		arg_name= RNA_property_identifier(&iter.ptr, prop);
+
+		if (strcmp(arg_name, "rna_type")==0) continue;
+
+		buf= RNA_property_as_string(op->ptr, prop);
+		
+		BLI_dynstr_appendf(dynstr, first_iter?"%s=%s":", %s=%s", arg_name, buf);
+
+		MEM_freeN(buf);
+		first_iter = 0;
+	}
+
+	RNA_property_collection_end(&iter);
+
+	BLI_dynstr_append(dynstr, ")");
+
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
 }
 
 /* ************ default op callbacks, exported *********** */

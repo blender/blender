@@ -331,6 +331,9 @@ void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 /* check if the idproperty exists, for operators */
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
+/* python compatible string representation of this property, (must be freed!) */
+char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
+
 #endif /* RNA_ACCESS */
 
 

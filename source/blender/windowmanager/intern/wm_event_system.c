@@ -277,6 +277,13 @@ void wm_draw_update(bContext *C)
 
 /* ********************* operators ******************* */
 
+static void WM_operator_print(wmOperator *op)
+{
+	char *buf = WM_operator_pystring(op);
+	printf("%s\n", buf);
+	MEM_freeN(buf);
+}
+
 /* for running operators with frozen context (modal handlers, menus) */
 int WM_operator_call(bContext *C, wmOperator *op)
 {
@@ -289,8 +296,8 @@ int WM_operator_call(bContext *C, wmOperator *op)
 		wm_operator_register(CTX_wm_manager(C), op);
 	}
 	else
-		WM_operator_free(op);	
-	
+		WM_operator_free(op);
+
 	return retval;
 }
 
@@ -316,6 +323,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 			retval= (*op->type->invoke)(C, op, event);
 		else if(op->type->exec)
 			retval= op->type->exec(C, op);
+
+		/* only for testing, can remove any time */
+		WM_operator_print(op);
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 			wm_operator_register(wm, op);

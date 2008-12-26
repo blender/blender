@@ -124,6 +124,9 @@ void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);
 
+/* operator as a python command (resultuing string must be free'd) */
+char *WM_operator_pystring(struct wmOperator *op);
+
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);
 int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent *event);

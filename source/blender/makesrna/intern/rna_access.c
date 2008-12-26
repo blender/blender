@@ -1679,3 +1679,93 @@ int RNA_property_is_set(PointerRNA *ptr, const char *name)
 	}
 }
 
+/* string representation of a property, python compatible but
+ * cant be used for display too*/
+char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
+{
+	int type = RNA_property_type(ptr, prop);
+	int len = RNA_property_array_length(ptr, prop);
+	int i;
+
+	DynStr *dynstr= BLI_dynstr_new();
+	char *cstring;
+	
+
+	/* see if we can coorce into a python type - PropertyType */
+	switch (type) {
+	case PROP_BOOLEAN:
+		if (len==0) {
+			BLI_dynstr_append(dynstr, RNA_property_boolean_get(ptr, prop) ? "True" : "False");
+		}
+		else {
+			BLI_dynstr_append(dynstr, "(");
+			for(i=0; i<len; i++) {
+				BLI_dynstr_appendf(dynstr, i?"%s, ":"%s", RNA_property_boolean_get_array(ptr, prop, i) ? "True" : "False");
+			}
+			BLI_dynstr_append(dynstr, ")");
+		}
+		break;
+	case PROP_INT:
+		if (len==0) {
+			BLI_dynstr_appendf(dynstr, "%d", RNA_property_int_get(ptr, prop));
+		}
+		else {
+			BLI_dynstr_append(dynstr, "(");
+			for(i=0; i<len; i++) {
+				BLI_dynstr_appendf(dynstr, i?"%d, ":"%d", RNA_property_int_get_array(ptr, prop, i));
+			}
+			BLI_dynstr_append(dynstr, ")");
+		}
+		break;
+	case PROP_FLOAT:
+		if (len==0) {
+			BLI_dynstr_appendf(dynstr, "%f", RNA_property_int_get(ptr, prop));
+		}
+		else {
+			BLI_dynstr_append(dynstr, "(");
+			for(i=0; i<len; i++) {
+				BLI_dynstr_appendf(dynstr, i?"%f, ":"%f", RNA_property_float_get_array(ptr, prop, i));
+			}
+			BLI_dynstr_append(dynstr, ")");
+		}
+		break;
+	case PROP_STRING:
+	{
+		/* string arrays dont exist */
+		char *buf;
+		buf = RNA_property_string_get_alloc(ptr, prop, NULL, -1);
+		BLI_dynstr_appendf(dynstr, "\"%s\"", buf);
+		MEM_freeN(buf);
+		break;
+	}
+	case PROP_ENUM:
+	{
+		/* string arrays dont exist */
+		const char *identifier;
+		int val = RNA_property_enum_get(ptr, prop);
+
+		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
+		}
+		else {
+			BLI_dynstr_appendf(dynstr, "'<UNKNOWN ENUM>'", identifier);
+		}
+		break;
+	}
+	case PROP_POINTER:
+	{
+		BLI_dynstr_append(dynstr, "'<POINTER>'"); /* TODO */
+		break;
+	}
+	case PROP_COLLECTION:
+		BLI_dynstr_append(dynstr, "'<COLLECTION>'"); /* TODO */
+		break;
+	default:
+		BLI_dynstr_append(dynstr, "'<UNKNOWN TYPE>'"); /* TODO */
+		break;
+	}
+
+	cstring = BLI_dynstr_get_cstring(dynstr);
+	BLI_dynstr_free(dynstr);
+	return cstring;
+}
