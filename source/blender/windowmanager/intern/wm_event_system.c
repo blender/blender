@@ -345,12 +345,13 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, IDProp
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	wmWindow *window= CTX_wm_window(C);
-	wmEvent *event= window->eventstate;
+	wmEvent *event;
 	
 	int retval;
 
 	/* dummie test */
 	if(ot && C && window) {
+		event= window->eventstate;
 		switch(context) {
 			
 			case WM_OP_EXEC_REGION_WIN:
