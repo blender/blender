@@ -50,7 +50,6 @@ extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionSensor;
 extern StructRNA RNA_ColorSequence;
 extern StructRNA RNA_Constraint;
-// ... constraint types...
 extern StructRNA RNA_Controller;
 extern StructRNA RNA_Curve;
 extern StructRNA RNA_CurveMap;
@@ -119,6 +118,7 @@ extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_Operator;
+extern StructRNA RNA_OperatorMousePath;
 extern StructRNA RNA_OperatorProperties;
 extern StructRNA RNA_OrController;
 extern StructRNA RNA_PackedFile;
@@ -266,6 +266,11 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
 
+/* to create ID property groups */
+void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
+void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
+
 /* Path
  *
  * Experimental method to refer to structs and properties with a string,
@@ -328,6 +333,25 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);
 int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
+
+void RNA_pointer_get(PointerRNA *ptr, const char *name, PointerRNA *r_value);
+void RNA_pointer_add(PointerRNA *ptr, const char *name);
+
+void RNA_collection_begin(PointerRNA *ptr, const char *name, CollectionPropertyIterator *iter);
+int RNA_collection_length(PointerRNA *ptr, const char *name);
+void RNA_collection_add(PointerRNA *ptr, const char *name, PointerRNA *r_value);
+void RNA_collection_clear(PointerRNA *ptr, const char *name);
+
+#define RNA_BEGIN(sptr, itemptr, propname) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_collection_begin(sptr, propname, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PointerRNA itemptr= rna_macro_iter.ptr;
+
+#define RNA_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
 
 /* check if the idproperty exists, for operators */
 int RNA_property_is_set(PointerRNA *ptr, const char *name);

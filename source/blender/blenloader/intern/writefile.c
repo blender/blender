@@ -390,6 +390,14 @@ static void IDP_WriteArray(IDProperty *prop, void *wd)
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
 		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+
+		if(prop->type == IDP_GROUP) {
+			IDProperty **array= prop->data.pointer;
+			int a;
+
+			for(a=0; a<prop->len; a++)
+				IDP_WriteProperty(array[a], wd);
+		}
 	}
 }
 

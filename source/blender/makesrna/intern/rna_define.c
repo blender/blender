@@ -804,6 +804,33 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	}
 }
 
+void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
+{
+	StructRNA *srna= DefRNA.laststruct;
+
+	if(DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_struct_runtime: only at runtime.\n");
+		return;
+	}
+
+	switch(prop->type) {
+		case PROP_POINTER: {
+			PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
+			pprop->structtype = type;
+			break;
+		}
+		case PROP_COLLECTION: {
+			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+			cprop->structtype = type;
+			break;
+		}
+		default:
+			fprintf(stderr, "RNA_def_property_struct_runtime: %s.%s, invalid type for struct type.\n", srna->identifier, prop->identifier);
+			DefRNA.error= 1;
+			break;
+	}
+}
+
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item)
 {
 	StructRNA *srna= DefRNA.laststruct;

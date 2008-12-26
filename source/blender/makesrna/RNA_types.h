@@ -110,6 +110,7 @@ typedef struct CollectionPropertyIterator {
 	PointerRNA parent;
 	struct PropertyRNA *prop;
 	void *internal;
+	int idprop;
 
 	int valid;
 	PointerRNA ptr;

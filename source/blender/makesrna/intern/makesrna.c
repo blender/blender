@@ -525,17 +525,19 @@ static void rna_def_property_funcs(FILE *f, PropertyDefRNA *dp)
 					cprop->length= (void*)rna_def_property_length_func(f, srna, prop, dp);
 			}
 
-			if(!cprop->begin) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a begin function.\n", srna->identifier, prop->identifier);
-				DefRNA.error= 1;
-			}
-			if(!cprop->next) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a next function.\n", srna->identifier, prop->identifier);
-				DefRNA.error= 1;
-			}
-			if(!cprop->get) {
-				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a get function.\n", srna->identifier, prop->identifier);
-				DefRNA.error= 1;
+			if(!(prop->flag & PROP_IDPROPERTY)) {
+				if(!cprop->begin) {
+					fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a begin function.\n", srna->identifier, prop->identifier);
+					DefRNA.error= 1;
+				}
+				if(!cprop->next) {
+					fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a next function.\n", srna->identifier, prop->identifier);
+					DefRNA.error= 1;
+				}
+				if(!cprop->get) {
+					fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have a get function.\n", srna->identifier, prop->identifier);
+					DefRNA.error= 1;
+				}
 			}
 			if(!cprop->structtype && !cprop->type) {
 				fprintf(stderr, "rna_def_property_funcs: %s.%s, collection must have either type function or fixed type.\n", srna->identifier, prop->identifier);

@@ -61,6 +61,34 @@ static char idp_size_table[] = {
 
 /* ----------- Array Type ----------- */
 
+static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
+{
+	if(prop->subtype != IDP_GROUP)
+		return;
+
+	if(newlen >= prop->len) {
+		/* bigger */
+		IDProperty **array= newarr;
+		IDPropertyTemplate val;
+		int a;
+
+		for(a=prop->len; a<newlen; a++) {
+			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
+			array[a]= IDP_New(IDP_GROUP, val, "IDP_ResizeArray group");
+		}
+	}
+	else {
+		/* smaller */
+		IDProperty **array= prop->data.pointer;
+		int a;
+
+		for(a=newlen; a<prop->len; a++) {
+			IDP_FreeProperty(array[a]);
+			MEM_freeN(array[a]);
+		}
+	}
+}
+
 /*this function works for strings too!*/
 void IDP_ResizeArray(IDProperty *prop, int newlen)
 {
@@ -70,6 +98,7 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	/*first check if the array buffer size has room*/
 	/*if newlen is 200 chars less then totallen, reallocate anyway*/
 	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
+		idp_resize_group_array(prop, newlen, newarr);
 		prop->len = newlen;
 		return;
 	}
@@ -84,11 +113,17 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	 */
 	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
 
-	newarr = MEM_callocN(idp_size_table[prop->type]*newsize, "idproperty array resized");
-	/*newlen is bigger*/
-	if (newlen >= prop->len) memcpy(newarr, prop->data.pointer, prop->len*idp_size_table[prop->type]);
-	/*newlen is smaller*/
-	else memcpy(newarr, prop->data.pointer, newlen*prop->len*idp_size_table[prop->type]);
+	newarr = MEM_callocN(idp_size_table[prop->subtype]*newsize, "idproperty array resized");
+	if (newlen >= prop->len) {
+		/* newlen is bigger*/
+		memcpy(newarr, prop->data.pointer, prop->len*idp_size_table[prop->subtype]);
+		idp_resize_group_array(prop, newlen, newarr);
+	}
+	else {
+		/* newlen is smaller*/
+		idp_resize_group_array(prop, newlen, newarr);
+		memcpy(newarr, prop->data.pointer, newlen*prop->len*idp_size_table[prop->subtype]);
+	}
 
 	MEM_freeN(prop->data.pointer);
 	prop->data.pointer = newarr;
@@ -96,10 +131,12 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	prop->totallen = newsize;
 }
 
- void IDP_FreeArray(IDProperty *prop)
+void IDP_FreeArray(IDProperty *prop)
 {
-	if (prop->data.pointer)
+	if (prop->data.pointer) {
+		idp_resize_group_array(prop, 0, NULL);
 		MEM_freeN(prop->data.pointer);
+	}
 }
 
 
@@ -120,7 +157,17 @@ IDProperty *IDP_CopyArray(IDProperty *prop)
 {
 	IDProperty *newp = idp_generic_copy(prop);
 
-	if (prop->data.pointer) newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+	if (prop->data.pointer) {
+		newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+
+		if(prop->type == IDP_GROUP) {
+			IDProperty **array= newp->data.pointer;
+			int a;
+
+			for(a=0; a<prop->len; a++)
+				array[a]= IDP_CopyProperty(array[a]);
+		}
+	}
 	newp->len = prop->len;
 	newp->subtype = prop->subtype;
 	newp->totallen = prop->totallen;
@@ -381,11 +428,12 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 		case IDP_ARRAY:
 		{
 			/*for now, we only support float and int and double arrays*/
-			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE) {
+			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE || val.array.type == IDP_GROUP) {
 				prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
-				prop->len = prop->totallen = val.array.len;
 				prop->subtype = val.array.type;
 				prop->data.pointer = MEM_callocN(idp_size_table[val.array.type]*val.array.len, "id property array");
+				idp_resize_group_array(prop, val.array.len, prop->data.pointer);
+				prop->len = prop->totallen = val.array.len;
 				break;
 			} else {
 				return NULL;

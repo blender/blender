@@ -1345,11 +1345,12 @@ static void test_pointer_array(FileData *fd, void **mat)
 
 /* ************ READ ID Properties *************** */
 
-void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd);
-void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
+void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
+void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
-static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
+	IDProperty **array;
 	int i;
 
 	/*since we didn't save the extra buffer, set totallen to len.*/
@@ -1357,26 +1358,33 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		if (prop->subtype != IDP_DOUBLE) {
+		if(prop->subtype == IDP_GROUP) {
+			test_pointer_array(fd, prop->data.pointer);
+			array= prop->data.pointer;
+
+			for(i=0; i<prop->len; i++)
+				IDP_DirectLinkProperty(array[i], switch_endian, fd);
+		}
+		else if(prop->subtype == IDP_DOUBLE) {
 			for (i=0; i<prop->len; i++) {
-				SWITCH_INT(((int*)prop->data.pointer)[i]);
+				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
 			}
 		} else {
 			for (i=0; i<prop->len; i++) {
-				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
 			}
 		}
 	}
 }
 
-static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkString(IDProperty *prop, int switch_endian, FileData *fd)
 {
 	/*since we didn't save the extra string buffer, set totallen to len.*/
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 }
 
-static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
+static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, FileData *fd)
 {
 	ListBase *lb = &prop->data.group;
 	IDProperty *loop;
@@ -1389,7 +1397,7 @@ static void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
 	}
 }
 
-void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
+void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 {
 	switch (prop->type) {
 		case IDP_GROUP:
@@ -1423,7 +1431,7 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 }
 
 /*stub function*/
-void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd)
+void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 {
 }
 

@@ -140,6 +140,7 @@ extern IntPropertyRNA rna_IDProperty_intarray;
 extern FloatPropertyRNA rna_IDProperty_float;
 extern FloatPropertyRNA rna_IDProperty_floatarray;
 extern PointerPropertyRNA rna_IDProperty_group;
+extern CollectionPropertyRNA rna_IDProperty_collection;
 extern FloatPropertyRNA rna_IDProperty_double;
 extern FloatPropertyRNA rna_IDProperty_doublearray;
 

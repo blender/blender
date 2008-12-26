@@ -110,7 +110,6 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "IDProperty", NULL);
 	RNA_def_struct_ui_text(srna, "ID Property", "stores arbitrary properties");
 	
-
 	/* IDP_STRING */
 	prop= RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
@@ -142,6 +141,10 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	/* IDP_GROUP */
 	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_NOT_EDITABLE|PROP_IDPROPERTY);
+	RNA_def_property_struct_type(prop, "IDPropertyGroup");
+
+	prop= RNA_def_property(srna, "collection", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_struct_type(prop, "IDPropertyGroup");
 
 	/* IDP_ID -- not implemented yet in id properties */

@@ -92,6 +92,26 @@ static void rna_def_operator(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "DOC_BROKEN");
 	RNA_def_struct_funcs(srna, NULL, "rna_OperatorProperties_refine");
+
+
+}
+
+static void rna_def_operator_utils(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "OperatorMousePath", "IDPropertyGroup");
+	RNA_def_struct_ui_text(srna, "Operator Mouse Path", "Mouse path values for operators.");
+
+	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Location", "Mouse location.");
+
+	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Time", "Time of mouse location.");
 }
 
 static void rna_def_windowmanager(BlenderRNA *brna)
@@ -111,6 +131,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 void RNA_def_wm(BlenderRNA *brna)
 {
 	rna_def_operator(brna);
+	rna_def_operator_utils(brna);
 	rna_def_windowmanager(brna);
 }
 
