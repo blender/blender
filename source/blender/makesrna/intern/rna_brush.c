@@ -81,7 +81,7 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
 	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3.0f);
+	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3);
 	
 	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
@@ -143,7 +143,7 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
-	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3.0f);
+	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
 }
 
 void RNA_def_brush(BlenderRNA *brna)

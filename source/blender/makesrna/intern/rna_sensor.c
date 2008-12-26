@@ -149,15 +149,15 @@ void rna_def_near_sensor(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Property", "Only look for objects with this property.");
 
-	prop= RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "dist");
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_ui_text(prop, "Distance", "Trigger distance.");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 
-	prop= RNA_def_property(srna, "reset_distance", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "resetdist");
+	prop= RNA_def_property(srna, "reset_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "resetdist");
 	RNA_def_property_ui_text(prop, "Reset Distance", "");
-	RNA_def_property_range(prop, 0, 10000);
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 }
 
 void rna_def_mouse_sensor(BlenderRNA *brna)

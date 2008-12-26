@@ -159,9 +159,9 @@ static void rna_def_material_raymirror(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Ray Mirror Gloss Aniso", "The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent.");
 		
-	prop= RNA_def_property(srna, "ray_mirror_gloss_samples", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "samp_gloss_mir");
-	RNA_def_property_range(prop, 0.0f, 1024.0f);
+	prop= RNA_def_property(srna, "ray_mirror_gloss_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "samp_gloss_mir");
+	RNA_def_property_range(prop, 0, 1024);
 	RNA_def_property_ui_text(prop, "Ray Mirror Gloss Samples", "Number of cone samples averaged for blurry reflections.");
 	
 	prop= RNA_def_property(srna, "ray_mirror_adapt_thresh", PROP_FLOAT, PROP_NONE);
@@ -211,9 +211,9 @@ static void rna_def_material_raytra(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Ray Transparency Gloss", "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions.");
 	
-	prop= RNA_def_property(srna, "ray_transparency_gloss_samples", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "samp_gloss_tra");
-	RNA_def_property_range(prop, 0.0f, 1024.0f);
+	prop= RNA_def_property(srna, "ray_transparency_gloss_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "samp_gloss_tra");
+	RNA_def_property_range(prop, 0, 1024);
 	RNA_def_property_ui_text(prop, "Ray Transparency Gloss Samples", "Number of cone samples averaged for blurry refractions.");
 	
 	prop= RNA_def_property(srna, "ray_transparency_adapt_thresh", PROP_FLOAT, PROP_NONE);

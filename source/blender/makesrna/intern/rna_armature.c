@@ -70,7 +70,7 @@ static void rna_Armature_ghost_start_frame_set(PointerRNA *ptr, int value)
 static void rna_Armature_ghost_end_frame_set(PointerRNA *ptr, int value)
 {
 	bArmature *data= (bArmature*)ptr->data;
-	CLAMP(value, data->ghostsf, MAXFRAMEF/2);
+	CLAMP(value, data->ghostsf, (int)(MAXFRAMEF/2));
 	data->ghostef= value;
 }
 
@@ -84,7 +84,7 @@ static void rna_Armature_path_start_frame_set(PointerRNA *ptr, int value)
 static void rna_Armature_path_end_frame_set(PointerRNA *ptr, int value)
 {
 	bArmature *data= (bArmature*)ptr->data;
-	CLAMP(value, data->pathsf, MAXFRAMEF/2);
+	CLAMP(value, data->pathsf, (int)(MAXFRAMEF/2));
 	data->pathef= value;
 }
 
@@ -186,23 +186,23 @@ static void rna_def_bone(BlenderRNA *brna)
 	
 	/* Number values */
 		/* envelope deform settings */
-	prop= RNA_def_property(srna, "envelope_distance", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0, 1000);
+	prop= RNA_def_property(srna, "envelope_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Envelope Deform Distance", "Bone deformation distance (for Envelope deform only).");
 	
-	prop= RNA_def_property(srna, "envelope_weight", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "dist");
-	RNA_def_property_range(prop, 0, 1000);
+	prop= RNA_def_property(srna, "envelope_weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Envelope Deform Weight", "Bone deformation weight (for Envelope deform only).");
 	
-	prop= RNA_def_property(srna, "radius_head", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "rad_head");
+	prop= RNA_def_property(srna, "radius_head", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rad_head");
 	//RNA_def_property_range(prop, 0, 1000);  // XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid);
 	RNA_def_property_ui_text(prop, "Envelope Radius Head", "Radius of head of bone (for Envelope deform only).");
 	
-	prop= RNA_def_property(srna, "radius_tail", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "rad_tail");
+	prop= RNA_def_property(srna, "radius_tail", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rad_tail");
 	//RNA_def_property_range(prop, 0, 1000);  // XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid);
 	RNA_def_property_ui_text(prop, "Envelope Radius Tail", "Radius of tail of bone (for Envelope deform only).");
 	
@@ -212,13 +212,13 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only).");
 	
-	prop= RNA_def_property(srna, "bbone_in", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ease1");
+	prop= RNA_def_property(srna, "bbone_in", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ease1");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "B-Bone Ease In", "Length of first Bezier Handle (for B-Bones only).");
 	
-	prop= RNA_def_property(srna, "bbone_out", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ease2");
+	prop= RNA_def_property(srna, "bbone_out", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ease2");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "B-Bone Ease Out", "Length of second Bezier Handle (for B-Bones only).");
 	
@@ -230,8 +230,8 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Bone Tail Location", "In Edit Mode, the location of the 'head' of the bone.");
 	
-	prop= RNA_def_property(srna, "roll", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 2);
+	prop= RNA_def_property(srna, "roll", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Bone Roll", "In Edit Mode, the 'roll' (i.e. rotation around the bone vector, equivilant to local Y-axis rotation).");
 }
 

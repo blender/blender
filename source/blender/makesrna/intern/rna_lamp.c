@@ -306,13 +306,13 @@ void RNA_def_lamp(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10.0f, 3.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10.0f, 3);
 
 	prop= RNA_def_property(srna, "shadow_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "shdwr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Shadow Color", "");
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10.0f, 3.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10.0f, 3);
 
 	/* Booleans */
 	prop= RNA_def_property(srna, "auto_clip_start", PROP_BOOLEAN, PROP_NONE);

@@ -814,7 +814,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 				rna_float_print(f, fprop->hardmin); fprintf(f, ", ");
 				rna_float_print(f, fprop->hardmax); fprintf(f, ", ");
 				rna_float_print(f, fprop->step); fprintf(f, ", ");
-				rna_float_print(f, fprop->precision); fprintf(f, ", ");
+				rna_int_print(f, (int)fprop->precision); fprintf(f, ", ");
 				rna_float_print(f, fprop->defaultvalue); fprintf(f, ", ");
 				if(prop->arraylength) fprintf(f, "rna_%s_%s_default\n", srna->identifier, prop->identifier);
 				else fprintf(f, "NULL\n");

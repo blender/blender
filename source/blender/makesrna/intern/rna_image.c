@@ -194,9 +194,9 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 128);
 	RNA_def_property_ui_text(prop, "Animation End", "End frame of an animated texture.");
 
-	prop= RNA_def_property(srna, "animation_speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "animspeed");
-	RNA_def_property_range(prop, 1.0f, 100.0f);
+	prop= RNA_def_property(srna, "animation_speed", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "animspeed");
+	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Animation Speed", "Speed of the animation in frames per second.");
 
 	prop= RNA_def_property(srna, "tiles", PROP_BOOLEAN, PROP_NONE);
