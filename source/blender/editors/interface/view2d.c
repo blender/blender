@@ -53,7 +53,7 @@
 #include "UI_view2d.h"
 
 #include "UI_interface.h"
-#include "interface.h"
+#include "interface_intern.h"
 
 /* *********************************************************************** */
 /* Refresh and Validation */

@@ -205,6 +205,8 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		
 		if(sa)
 			region_draw_emboss(ar);
+
+		uiFreeInactiveBlocks(C, &ar->uiblocks);
 		
 		/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
 		ED_region_pixelspace(ar);
@@ -524,7 +526,6 @@ void ED_region_init(bContext *C, ARegion *ar)
 /* area vertices were set */
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
-	Panel *pa1, *pa2, *patab;
 	ARegion *ar;
 	
 	sa1->headertype= sa2->headertype;
@@ -540,24 +541,6 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	else {
 		BKE_spacedata_freelist(&sa1->spacedata);
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
-	}
-	
-	BLI_freelistN(&sa1->panels);
-	BLI_duplicatelist(&sa1->panels, &sa2->panels);
-	
-	/* copy panel pointers */
-	for(pa1= sa1->panels.first; pa1; pa1= pa1->next) {
-		
-		patab= sa1->panels.first;
-		pa2= sa2->panels.first;
-		while(patab) {
-			if( pa1->paneltab == pa2) {
-				pa1->paneltab = patab;
-				break;
-			}
-			patab= patab->next;
-			pa2= pa2->next;
-		}
 	}
 	
 	/* regions... XXX */

@@ -144,7 +144,7 @@ void UI_table_draw(const bContext *C, uiTable *table)
 		fdrawline(rct->xmin+COLUMN_WIDTH*(col+1), rct->ymin, rct->xmin+COLUMN_WIDTH*(col+1), rct->ymax);
 
 	uiEndBlock(C, block);
-	uiDrawBlock(block);
+	uiDrawBlock(C, block);
 }
 
 

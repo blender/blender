@@ -39,6 +39,7 @@ struct View2D;
 struct gla2DDrawInfo;
 struct Object;
 struct bActionGroup;
+struct Ipo;
 struct IpoCurve;
 
 /* ************************************************ */

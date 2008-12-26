@@ -55,7 +55,7 @@
 #include "FTF_Api.h"
 #endif
 
-#include "interface.h"
+#include "interface_intern.h"
 
 #define UI_RB_ALPHA 16
 static int roundboxtype= 15;
@@ -94,43 +94,43 @@ void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, floa
 
 	/* start with corner right-bottom */
 	if(roundboxtype & 4) {
-		glVertex2f( maxx-rad, miny);
+		glVertex2f(maxx-rad, miny);
 		for(a=0; a<7; a++) {
-			glVertex2f( maxx-rad+vec[a][0], miny+vec[a][1]);
+			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
 		}
-		glVertex2f( maxx, miny+rad);
+		glVertex2f(maxx, miny+rad);
 	}
-	else glVertex2f( maxx, miny);
+	else glVertex2f(maxx, miny);
 	
 	/* corner right-top */
 	if(roundboxtype & 2) {
-		glVertex2f( maxx, maxy-rad);
+		glVertex2f(maxx, maxy-rad);
 		for(a=0; a<7; a++) {
-			glVertex2f( maxx-vec[a][1], maxy-rad+vec[a][0]);
+			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
 		}
-		glVertex2f( maxx-rad, maxy);
+		glVertex2f(maxx-rad, maxy);
 	}
-	else glVertex2f( maxx, maxy);
+	else glVertex2f(maxx, maxy);
 	
 	/* corner left-top */
 	if(roundboxtype & 1) {
-		glVertex2f( minx+rad, maxy);
+		glVertex2f(minx+rad, maxy);
 		for(a=0; a<7; a++) {
-			glVertex2f( minx+rad-vec[a][0], maxy-vec[a][1]);
+			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
 		}
-		glVertex2f( minx, maxy-rad);
+		glVertex2f(minx, maxy-rad);
 	}
-	else glVertex2f( minx, maxy);
+	else glVertex2f(minx, maxy);
 	
 	/* corner left-bottom */
 	if(roundboxtype & 8) {
-		glVertex2f( minx, miny+rad);
+		glVertex2f(minx, miny+rad);
 		for(a=0; a<7; a++) {
-			glVertex2f( minx+vec[a][1], miny+rad-vec[a][0]);
+			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
 		}
-		glVertex2f( minx+rad, miny);
+		glVertex2f(minx+rad, miny);
 	}
-	else glVertex2f( minx, miny);
+	else glVertex2f(minx, miny);
 	
 	glEnd();
 }
@@ -246,7 +246,7 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	if(roundboxtype & 2) {
 		
 		round_box_shade_col(coltop, coldown, (div-rad)/div);
-		glVertex2f( maxx, maxy-rad);
+		glVertex2f(maxx, maxy-rad);
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-rad+vec[a][1])/div);
@@ -264,11 +264,11 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	if(roundboxtype & 1) {
 		
 		round_box_shade_col(coltop, coldown, 1.0);
-		glVertex2f( minx+rad, maxy);
+		glVertex2f(minx+rad, maxy);
 		
 		for(a=0; a<7; a++) {
 			round_box_shade_col(coltop, coldown, (div-vec[a][1])/div);
-			glVertex2f( minx+rad-vec[a][0], maxy-vec[a][1]);
+			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
 		}
 		
 		round_box_shade_col(coltop, coldown, (div-rad)/div);
@@ -405,6 +405,30 @@ void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, f
 	
 	glEnd();
 	glShadeModel(GL_FLAT);
+}
+
+/* plain antialiased unfilled rectangle */
+void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
+{
+	float color[4];
+	
+	if(roundboxtype & UI_RB_ALPHA) {
+		glGetFloatv(GL_CURRENT_COLOR, color);
+		color[3]= 0.5;
+		glColor4fv(color);
+		glEnable( GL_BLEND );
+	}
+	
+	/* set antialias line */
+	if (UI_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
+
+	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
+   
+	glDisable( GL_BLEND );
+	glDisable( GL_LINE_SMOOTH );
 }
 
 /* plain fake antialiased unfilled round rectangle */

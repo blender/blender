@@ -101,6 +101,9 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
+		case B_CONTEXT_SWITCH:
+			ED_area_tag_redraw(CTX_wm_area(C));
+			break;
 	}
 }
 
@@ -195,7 +198,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
-	uiDrawBlock(block);
+	uiDrawBlock(C, block);
 }
 
 

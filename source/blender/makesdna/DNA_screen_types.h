@@ -36,6 +36,7 @@
 
 struct SpaceType;
 struct SpaceLink;
+struct ARegion;
 struct ARegionType;
 struct Scene;
 struct wmTimer;
@@ -88,9 +89,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	short flag, active;					/* active= used currently by a uiBlock */
 	short control;
 	short snap;
-	short old_ofsx, old_ofsy;		/* for stow */
-	int sortcounter;			/* when sorting panels, it uses this to put new ones in right place */
+	int sortcounter, pad;		/* when sorting panels, it uses this to put new ones in right place */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
+	void *activedata;			/* runtime for panel manipulation */
 } Panel;
 
 typedef struct ScrArea {
@@ -112,9 +113,7 @@ typedef struct ScrArea {
 	
 	struct SpaceType *type;		/* callbacks for this space type */
 	
-	ListBase spacedata;
-	ListBase uiblocks;		/* uiBlock */
-	ListBase panels;
+	ListBase spacedata;		/* SpaceLink */
 	ListBase regionbase;	/* ARegion */
 	ListBase handlers;		/* wmEventHandler */
 	
@@ -141,7 +140,8 @@ typedef struct ARegion {
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
-	ListBase uiblocks;
+	ListBase uiblocks;			/* uiBlock */
+	ListBase panels;			/* Panel */
 	ListBase handlers;			/* wmEventHandler */
 	
 	char *headerstr;			/* use this string to draw info */

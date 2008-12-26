@@ -3560,7 +3560,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->sculptdata.cumap)
 		direct_link_curvemapping(fd, sce->sculptdata.cumap);
 	else
-		; //XXX sculpt_reset_curve(&sce->sculptdata);
+		sculpt_reset_curve(&sce->sculptdata);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
@@ -4150,6 +4150,17 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 
 static void direct_link_region(FileData *fd, ARegion *ar)
 {
+	Panel *pa;
+
+	link_list(fd, &(ar->panels));
+
+	for(pa= ar->panels.first; pa; pa=pa->next) {
+		pa->paneltab= newdataadr(fd, pa->paneltab);
+		pa->active= 0;
+		pa->sortcounter= 0;
+		pa->activedata= NULL;
+	}
+
 	ar->handlers.first= ar->handlers.last= NULL;
 	ar->uiblocks.first= ar->uiblocks.last= NULL;
 	ar->headerstr= NULL;
@@ -4200,16 +4211,13 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 
 	/* areas */
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		Panel *pa;
 		SpaceLink *sl;
 		ARegion *ar;
 
 		link_list(fd, &(sa->spacedata));
-		link_list(fd, &(sa->panels));
 		link_list(fd, &(sa->regionbase));
 
 		sa->handlers.first= sa->handlers.last= NULL;
-		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		sa->type= NULL;	/* spacetype callbacks */
 		
 		/* accident can happen when read/save new file with older version */
@@ -4218,12 +4226,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			SpaceInfo *sinfo= MEM_callocN(sizeof(SpaceInfo), "spaceinfo");
 			sa->spacetype= SPACE_INFO;
 			BLI_addtail(&sa->spacedata, sinfo);
-		}
-		
-		for(pa= sa->panels.first; pa; pa=pa->next) {
-			pa->paneltab= newdataadr(fd, pa->paneltab);
-			pa->active= 0;
-			pa->sortcounter= 0;
 		}
 		
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
@@ -4705,19 +4707,19 @@ static void vcol_to_fcol(Mesh *me)
 static int map_223_keybd_code_to_224_keybd_code(int code)
 {
 	switch (code) {
-//XXX	case 312:	return F12KEY;
-//XXX		case 159:	return PADSLASHKEY;
-//XXX		case 161:	return PAD0;
-//XXX		case 154:	return PAD1;
-//XXX		case 150:	return PAD2;
-//XXX		case 155:	return PAD3;
-//XXX		case 151:	return PAD4;
-//XXX		case 156:	return PAD5;
-//XXX		case 152:	return PAD6;
-//XXX		case 157:	return PAD7;
-//XXX		case 153:	return PAD8;
-//XXX		case 158:	return PAD9;
-	default: return code;
+		case 312:	return 311; /* F12KEY */
+		case 159:	return 161; /* PADSLASHKEY */
+		case 161:	return 150; /* PAD0 */
+		case 154:	return 151; /* PAD1 */
+		case 150:	return 152; /* PAD2 */
+		case 155:	return 153; /* PAD3 */
+		case 151:	return 154; /* PAD4 */
+		case 156:	return 155; /* PAD5 */
+		case 152:	return 156; /* PAD6 */
+		case 157:	return 157; /* PAD7 */
+		case 153:	return 158; /* PAD8 */
+		case 158:	return 159; /* PAD9 */
+		default: return code;
 	}
 }
 

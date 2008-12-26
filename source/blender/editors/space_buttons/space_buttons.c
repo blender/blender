@@ -158,9 +158,10 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	float col[3], fac;
+	int align= 0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -174,8 +175,16 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	glColor3f(fac, fac, fac);
 	glRecti(20,  2,  30,  12);
 	
-	/* data... */
+	/* panels */
+	if(sbuts->mainb == CONTEXT_SCENE)
+		buttons_scene(C, ar);
 	
+	if(sbuts->align)
+		if(sbuts->re_align || sbuts->mainbo!=sbuts->mainb || sbuts->tabo!=sbuts->tab[sbuts->mainb])
+			align= 1;
+
+	uiDrawPanels(C, align);
+	uiMatchPanelsView2d(ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -247,7 +256,7 @@ void ED_spacetype_buttons(void)
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
 	art->listener= buttons_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 	

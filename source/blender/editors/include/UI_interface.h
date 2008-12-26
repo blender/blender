@@ -176,7 +176,6 @@ typedef struct uiBlock uiBlock;
 /* Common Drawing Functions */
 
 void uiEmboss(float x1, float y1, float x2, float y2, int sel);
-void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad, int active);
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad);
 void uiSetRoundBox(int type);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
@@ -222,12 +221,13 @@ void uiPupmenuError(struct bContext *C, char *str, ...);
 
 uiBlock *uiBeginBlock(const struct bContext *C, struct ARegion *region, char *name, short dt, short font);
 void uiEndBlock(const struct bContext *C, uiBlock *block);
+void uiDrawBlock(const struct bContext *C, struct uiBlock *block);
 uiBlock *uiGetBlock(char *name, struct ARegion *ar);
 void uiFreeBlock(const struct bContext *C, uiBlock *block);
 void uiFreeBlocks(const struct bContext *C, struct ListBase *lb);
+void uiFreeInactiveBlocks(const struct bContext *C, struct ListBase *lb);
 
 void uiBoundsBlock(struct uiBlock *block, int addval);
-void uiDrawBlock(struct uiBlock *block);
 void uiTextBoundsBlock(uiBlock *block, int addval);
 
 void uiBlockSetButLock(uiBlock *block, int val, char *lockstr);
@@ -357,18 +357,16 @@ void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(struct bContext *C, u
 
 extern void uiFreePanels(struct ListBase *lb);
 extern void uiNewPanelTabbed(char *, char *);
-extern int uiNewPanel(struct ScrArea *sa, struct uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+extern int uiNewPanel(const struct bContext *C, struct ARegion *ar, uiBlock *block, char *panelname, char *tabname, int ofsx, int ofsy, int sizex, int sizey);
+extern void uiDrawPanels(const struct bContext *C, int re_align);
 	
-extern void uiSetPanel_view2d(struct ScrArea *sa);
-extern void uiMatchPanel_view2d(struct ScrArea *sa);
+extern void uiSetPanelsView2d(struct ARegion *ar);
+extern void uiMatchPanelsView2d(struct ARegion *ar);
 
-extern void uiDrawBlocksPanels(struct ScrArea *sa, int re_align);
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
 extern void uiNewPanelTitle(struct uiBlock *block, char *str);
-extern void uiPanelPush(struct uiBlock *block);
-extern void uiPanelPop(struct uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
-extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
+extern int uiAlignPanelStep(struct ScrArea *sa, struct ARegion *ar, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
@@ -383,6 +381,7 @@ void autocomplete_end(AutoComplete *autocpl, char *autoname);
 /* Handlers for regions with UI blocks */
 
 void UI_add_region_handlers(struct ListBase *handlers);
+void UI_add_area_handlers(struct ListBase *handlers);
 void UI_add_popup_handlers(struct ListBase *handlers, uiMenuBlockHandle *menu);
 
 /* Module initialization and exit */

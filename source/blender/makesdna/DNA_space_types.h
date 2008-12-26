@@ -436,10 +436,9 @@ typedef struct SpaceImaSel {
 
 /* **************** SPACE DEFINES ********************* */
 
-
 /* button defines  */
 /* warning: the values of these defines are used in sbuts->tabs[7] */
-/* buts->mainb new */
+/* sbuts->mainb new */
 #define CONTEXT_SCENE	0
 #define CONTEXT_OBJECT	1
 #define CONTEXT_TYPES	2
@@ -448,7 +447,7 @@ typedef struct SpaceImaSel {
 #define CONTEXT_SCRIPT	5
 #define CONTEXT_LOGIC	6
 
-/* buts->tab new */
+/* sbuts->tab new */
 #define TAB_SHADING_MAT 	0
 #define TAB_SHADING_TEX 	1
 #define TAB_SHADING_RAD 	2
@@ -465,9 +464,12 @@ typedef struct SpaceImaSel {
 #define TAB_SCENE_SOUND		3
 #define TAB_SCENE_SEQUENCER	4
 
-
 /* sbuts->flag */
 #define SB_PRV_OSA			1
+
+/* sbuts->align */
+#define BUT_HORIZONTAL  1
+#define BUT_VERTICAL    2
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */

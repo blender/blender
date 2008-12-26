@@ -54,7 +54,7 @@
 
 #include "ED_screen.h"
 
-#include "interface.h"
+#include "interface_intern.h"
 
 #define MENU_BUTTON_HEIGHT	20
 #define B_NOP              	-1
@@ -306,7 +306,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
-	int x1, x2, y1, y2, winx, winy;
+	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
 
 	if(!but->tip || strlen(but->tip)==0)
 		return NULL;
@@ -329,9 +329,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ar->regiondata= data;
 
 	/* compute position */
-	x1= (but->x1+but->x2)/2;
+	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
+	ofsy= (but->block->panel)? but->block->panel->ofsy: 0;
+
+	x1= (but->x1+but->x2)/2 + ofsx;
 	x2= x1+but->aspect*((data->bbox.xmax-data->bbox.xmin) + 8);
-	y2= but->y1-10;
+	y2= but->y1-10 + ofsy;
 	y1= y2-but->aspect*((data->bbox.ymax+(data->bbox.ymax-data->bbox.ymin)));
 
 	y2 += 8;
@@ -612,7 +615,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 	uiBlock *block;
 
 	for(block=ar->uiblocks.first; block; block=block->next)
-		uiDrawBlock(block);
+		uiDrawBlock(C, block);
 }
 
 uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockFuncFP block_func, void *arg)

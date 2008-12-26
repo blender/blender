@@ -51,7 +51,7 @@
 
 #include "UI_interface.h"
 #include "UI_text.h"
-#include "interface.h"
+#include "interface_intern.h"
 
 #include "RNA_access.h"
 
@@ -1417,7 +1417,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	if(but->block->auto_open==0) but->block->auto_open= 1;
+	//if(but->block->auto_open==0) but->block->auto_open= 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -3568,10 +3568,15 @@ static int ui_handler_region(bContext *C, wmEvent *event, void *userdata)
 	/* either handle events for already activated button or try to activate */
 	but= ui_but_find_activated(ar);
 
-	if(but)
-		retval= ui_handle_button_event(C, event, but);
-	else
-		retval= ui_handle_button_over(C, event, ar);
+	if(!but || !button_modal_state(but->active->state))
+		retval= ui_handler_panel_region(C, event);
+
+	if(retval == WM_UI_HANDLER_CONTINUE) {
+		if(but)
+			retval= ui_handle_button_event(C, event, but);
+		else
+			retval= ui_handle_button_over(C, event, ar);
+	}
 
 	/* re-enable tooltips */
 	if(event->type == MOUSEMOVE && (event->x!=event->prevx || event->y!=event->prevy))

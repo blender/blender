@@ -37,6 +37,7 @@ struct ARegion;
 struct bContext;
 struct IDProperty;
 struct uiHandleButtonData;
+struct wmEvent;
 struct wmWindow;
 
 /* general defines */
@@ -80,12 +81,6 @@ typedef struct {
 	unsigned int *rect;
 	short xofs, yofs;
 } uiIconImage;
-
-typedef struct {
-	short mval[2];
-	short qual, val;
-	int event;
-} uiEvent;
 
 typedef struct {
 	void *xl, *large, *medium, *small;
@@ -226,6 +221,9 @@ struct uiBlock {
 
 	uiMenuBlockHandle *handle;	// handle
 	int tooltipdisabled;		// to avoid tooltip after click
+
+	int handler;				// for panels in other windows than buttonswin... just event code
+	int active;					// to keep blocks while drawing and free them afterwards
 };
 
 typedef struct uiSafetyRct {
@@ -276,12 +274,8 @@ void ui_menu_block_free(struct bContext *C, uiMenuBlockHandle *handle);
 void ui_set_name_menu(uiBut *but, int value);
 
 /* interface_panel.c */
-extern void ui_draw_panel(uiBlock *block);
-extern void ui_do_panel(uiBlock *block, uiEvent *uevent);
-extern void ui_scale_panel(uiBlock *block);
-extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
-extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
+extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
+extern void ui_draw_panel(struct ARegion *ar, uiBlock *block);
 
 /* interface_draw.c */
 extern void ui_set_embossfunc(uiBut *but, int drawtype);
@@ -290,6 +284,10 @@ extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 extern void ui_draw_anti_x(float x1, float y1, float x2, float y2);
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
+
+extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
+extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
+extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
 /* interface_handlers.c */
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);

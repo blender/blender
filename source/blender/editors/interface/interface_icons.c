@@ -61,7 +61,7 @@
 // XXX #include "BIF_screen.h"
 
 #include "UI_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
-#include "interface.h"
+#include "interface_intern.h"
 #include "ED_datafiles.h"
 
 #define ICON_IMAGE_W		512

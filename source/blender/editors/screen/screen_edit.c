@@ -458,8 +458,6 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->v4= sa->v4->newv;
 		
 		sa->spacedata.first= sa->spacedata.last= NULL;
-		sa->uiblocks.first= sa->uiblocks.last= NULL;
-		sa->panels.first= sa->panels.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
 		sa->actionzones.first= sa->actionzones.last= NULL;
 		sa->scriptlink.totscript= 0;

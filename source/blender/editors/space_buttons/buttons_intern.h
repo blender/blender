@@ -72,10 +72,9 @@
 
 /* internal exports only */
 
-
 /* image_header.c */
 void buttons_header_buttons(const bContext *C, ARegion *ar);
-
+void buttons_scene(const bContext *C, ARegion *ar);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

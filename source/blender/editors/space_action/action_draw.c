@@ -182,7 +182,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 			if (i >= 255) break;
 		}
 	}
-	uiDrawBlock(block);
+	uiDrawBlock(C, block);
 }
 
 static void icu_slider_func(void *voidicu, void *voidignore) 
@@ -387,7 +387,7 @@ static void action_icu_buts(SpaceAction *saction)
 		/* free tempolary channels */
 		BLI_freelistN(&act_data);
 	}
-	uiDrawBlock(block);
+	uiDrawBlock(C, block);
 }
 
 #endif // XXX all of this slider stuff will need a rethink 

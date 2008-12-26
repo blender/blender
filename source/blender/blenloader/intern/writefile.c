@@ -1655,11 +1655,12 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 			writestruct(wd, DATA, "ScrArea", 1, sa);
 
-			for(pa= sa->panels.first; pa; pa= pa->next)
-				writestruct(wd, DATA, "Panel", 1, pa);
-			
-			for(ar= sa->regionbase.first; ar; ar= ar->next)
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
 				writestruct(wd, DATA, "ARegion", 1, ar);
+
+				for(pa= ar->panels.first; pa; pa= pa->next)
+					writestruct(wd, DATA, "Panel", 1, pa);
+			}
 
 			/* space handler scriptlinks */
 			write_scriptlink(wd, &sa->scriptlink);

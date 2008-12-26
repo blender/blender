@@ -69,7 +69,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "interface.h"
+#include "interface_intern.h"
 
 /* 
  * a full doc with API notes can be found in bf-blender/blender/doc/interface_API.txt
@@ -86,7 +86,6 @@ static uiFont UIfont[UI_ARRAY];  // no init needed
 
 /* ************* translation ************** */
 
-/* XXX 2.50 missing from context */
 int ui_translate_buttons()
 {
 	return (U.transopts & USER_TR_BUTTONS);
@@ -116,6 +115,12 @@ void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 
 	gx= *x;
 	gy= *y;
+
+	if(block->panel) {
+		gx += block->panel->ofsx;
+		gy += block->panel->ofsy;
+	}
+
 	*x= ((float)sx) + ((float)getsizex)*(0.5+ 0.5*(gx*block->winmat[0][0]+ gy*block->winmat[1][0]+ block->winmat[3][0]));
 	*y= ((float)sy) + ((float)getsizey)*(0.5+ 0.5*(gx*block->winmat[0][1]+ gy*block->winmat[1][1]+ block->winmat[3][1]));
 }
@@ -170,6 +175,11 @@ void ui_window_to_block_fl(const ARegion *ar, uiBlock *block, float *x, float *y
 
 	*y=  (a*(py-f) + d*(c-px))/(a*e-d*b);
 	*x= (px- b*(*y)- c)/a;
+
+	if(block->panel) {
+		*x -= block->panel->ofsx;
+		*y -= block->panel->ofsy;
+	}
 }
 
 void ui_window_to_block(const ARegion *ar, uiBlock *block, int *x, int *y)
@@ -482,7 +492,6 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		block->auto_open_last= block->oldblock->auto_open_last;
 		block->tooltipdisabled= block->oldblock->tooltipdisabled;
 
-		uiFreeBlock(C, block->oldblock);
 		block->oldblock= NULL;
 	}
 	
@@ -494,34 +503,24 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 
 /* ************** BLOCK DRAWING FUNCTION ************* */
 
-void uiDrawBlock(uiBlock *block)
+void uiDrawBlock(const bContext *C, uiBlock *block)
 {
 	uiBut *but;
 
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	/* XXX 2.50 no panels yet */
-	//uiPanelPush(block); // panel matrix
 	
-	if(block->flag & UI_BLOCK_LOOP) {
+	if(block->flag & UI_BLOCK_LOOP)
 		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag);
-	}
-	else {
-		/* XXX 2.50 no panels yet */
-		//if(block->panel) ui_draw_panel(block);
-	}		
+	else if(block->panel)
+		ui_draw_panel(CTX_wm_region(C), block);
 
-	/* XXX 2.50 need context here? */
-	//if(block->drawextra) block->drawextra(curarea, block);
+	if(block->drawextra) block->drawextra(C, block);
 
 	for (but= block->buttons.first; but; but= but->next)
 		ui_draw_but(but);
 
 	ui_draw_links(block);
-
-	/* XXX 2.50 no panels yet */
-	//uiPanelPop(block); // matrix restored
 }
 
 /* ************* EVENTS ************* */
@@ -1365,9 +1364,10 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
-	if(block->panel) block->panel->active= 0;
+	if(block->panel) {
+		block->panel->active= 0;
+	}
 	BLI_freelistN(&block->saferct);
-
 	
 	MEM_freeN(block);
 }
@@ -1379,6 +1379,24 @@ void uiFreeBlocks(const bContext *C, ListBase *lb)
 	while( (block= lb->first) ) {
 		BLI_remlink(lb, block);
 		uiFreeBlock(C, block);
+	}
+}
+
+void uiFreeInactiveBlocks(const bContext *C, ListBase *lb)
+{
+	uiBlock *block, *nextblock;
+
+	for(block=lb->first; block; block=nextblock) {
+		nextblock= block->next;
+	
+		if(!block->handle) {
+			if(!block->active) {
+				uiFreeBlock(C, block);
+				BLI_remlink(lb, block);
+			}
+			else
+				block->active= 0;
+		}
 	}
 }
 
@@ -1399,12 +1417,15 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, char *name, short dt, 
 			if (BLI_streq(oldblock->name, name))
 				break;
 
-		if (oldblock)
-			BLI_remlink(lb, oldblock);
+		if (oldblock) {
+			oldblock->active= 0;
+			oldblock->panel= NULL;
+		}
 	}
 	
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->oldblock= oldblock;
+	block->active= 1;
 
 	/* at the beginning of the list! for dynamical menus/blocks */
 	if(lb)

@@ -98,7 +98,7 @@
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
-void ui_draw_tria_icon(float x, float y, float aspect, char dir) {}
+extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 
 // XXX butspace.h
 #define B_NODE_EXEC			3610
@@ -837,7 +837,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			if(node->typeinfo->butfunc) {
 				node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
 			}
-			uiDrawBlock(block);
+			uiDrawBlock(C, block);
 		}
 	}
 	
