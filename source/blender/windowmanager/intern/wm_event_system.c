@@ -568,8 +568,15 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
 	/* putting back screen context */
-	CTX_wm_area_set(C, area);
-	CTX_wm_region_set(C, region);
+	if((retval != WM_UI_HANDLER_BREAK) || wm_event_always_pass(event)) {
+		CTX_wm_area_set(C, area);
+		CTX_wm_region_set(C, region);
+	}
+	else {
+		/* this special cases is for areas and regions that get removed */
+		CTX_wm_area_set(C, NULL);
+		CTX_wm_region_set(C, NULL);
+	}
 
 	if(retval == WM_UI_HANDLER_BREAK)
 		return WM_HANDLER_BREAK;
