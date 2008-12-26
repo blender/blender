@@ -118,6 +118,8 @@ void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 
 /* view3d_view.c */
+void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
+
 void view3d_operator_needs_opengl(const struct bContext *C);
 void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
 void viewray(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
@@ -152,8 +154,7 @@ void centerview(ARegion *ar, View3D *v3d);
 
 void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3]);
 
-void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens);
-void smooth_view_to_camera(View3D *v3d);
+void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
 
 void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
 void setviewmatrixview3d(View3D *v3d);

@@ -64,6 +64,7 @@
 #include "BIF_gl.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "ED_screen.h"
 
@@ -76,6 +77,8 @@
 #include "view3d_intern.h"	// own include
 
 #define BL_NEAR_CLIP 0.001
+
+
 
 /* use this call when executing an operator,
    event system doesn't set for each event the
@@ -104,6 +107,201 @@ float *give_cursor(Scene *scene, View3D *v3d)
 	if(v3d && v3d->localview) return v3d->cursor;
 	else return scene->cursor;
 }
+
+/* ****************** smooth view operator ****************** */
+
+struct SmoothViewStore {
+	float orig_dist, new_dist;
+	float orig_lens, new_lens;
+	float orig_quat[4], new_quat[4];
+	float orig_ofs[3], new_ofs[3];
+	
+	int to_camera, orig_view;
+	
+	double time_allowed;
+};
+
+/* will start timer if appropriate */
+/* the arguments are the desired situation */
+void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, float *quat, float *dist, float *lens)
+{
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	struct SmoothViewStore sms;
+	
+	/* initialize sms */
+	VECCOPY(sms.new_ofs, v3d->ofs);
+	QUATCOPY(sms.new_quat, v3d->viewquat);
+	sms.new_dist= v3d->dist;
+	sms.new_lens= v3d->lens;
+	sms.to_camera= 0;
+	
+	/* store the options we want to end with */
+	if(ofs) VECCOPY(sms.new_ofs, ofs);
+	if(quat) QUATCOPY(sms.new_quat, quat);
+	if(dist) sms.new_dist= *dist;
+	if(lens) sms.new_lens= *lens;
+	
+	if (camera) {
+		view_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		sms.to_camera= 1; /* restore view3d values in end */
+	}
+	
+	if (C && U.smooth_viewtx) {
+		int changed = 0; /* zero means no difference */
+		
+		if (sms.new_dist != v3d->dist)
+			changed = 1;
+		if (sms.new_lens != v3d->lens)
+			changed = 1;
+		
+		if ((sms.new_ofs[0]!=v3d->ofs[0]) ||
+			(sms.new_ofs[1]!=v3d->ofs[1]) ||
+			(sms.new_ofs[2]!=v3d->ofs[2]) )
+			changed = 1;
+		
+		if ((sms.new_quat[0]!=v3d->viewquat[0]) ||
+			(sms.new_quat[1]!=v3d->viewquat[1]) ||
+			(sms.new_quat[2]!=v3d->viewquat[2]) ||
+			(sms.new_quat[3]!=v3d->viewquat[3]) )
+			changed = 1;
+		
+		/* The new view is different from the old one
+			* so animate the view */
+		if (changed) {
+			
+			sms.time_allowed= (double)U.smooth_viewtx / 1000.0;
+			
+			/* if this is view rotation only
+				* we can decrease the time allowed by
+				* the angle between quats 
+				* this means small rotations wont lag */
+			if (quat && !ofs && !dist) {
+			 	float vec1[3], vec2[3];
+				
+			 	VECCOPY(vec1, sms.new_quat);
+			 	VECCOPY(vec2, sms.orig_quat);
+			 	Normalize(vec1);
+			 	Normalize(vec2);
+			 	/* scale the time allowed by the rotation */
+			 	sms.time_allowed *= NormalizedVecAngle2(vec1, vec2)/(M_PI/2); 
+			}
+			
+			/* original values */
+			if (oldcamera) {
+				sms.orig_dist= v3d->dist; // below function does weird stuff with it...
+				view_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+			}
+			else {
+				VECCOPY(sms.orig_ofs, v3d->ofs);
+				QUATCOPY(sms.orig_quat, v3d->viewquat);
+				sms.orig_dist= v3d->dist;
+				sms.orig_lens= v3d->lens;
+			}
+			/* grid draw as floor */
+			sms.orig_view= v3d->view;
+			v3d->view= 0;
+			
+			/* ensure it shows correct */
+			if(sms.to_camera) v3d->persp= V3D_PERSP;
+			
+			/* keep track of running timer! */
+			if(v3d->sms==NULL)
+				v3d->sms= MEM_mallocN(sizeof(struct SmoothViewStore), "smoothview v3d");
+			*v3d->sms= sms;
+			if(v3d->smooth_timer)
+				WM_event_remove_window_timer(CTX_wm_window(C), v3d->smooth_timer);
+			/* TIMER1 is hardcoded in keymap */
+			v3d->smooth_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frs/sec */
+			
+			return;
+		}
+	}
+	
+	/* if we get here nothing happens */
+	if(sms.to_camera==0) {
+		VECCOPY(v3d->ofs, sms.new_ofs);
+		QUATCOPY(v3d->viewquat, sms.new_quat);
+		v3d->dist = sms.new_dist;
+		v3d->lens = sms.new_lens;
+	}
+	ED_region_tag_redraw(CTX_wm_region(C));
+}
+
+/* only meant for timer usage */
+static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	struct SmoothViewStore *sms= v3d->sms;
+	double step, step_inv;
+	
+	/* escape if not our timer */
+	if(v3d->smooth_timer==NULL || v3d->smooth_timer!=event->customdata)
+		return OPERATOR_PASS_THROUGH;
+	
+	step =  (v3d->smooth_timer->duration)/sms->time_allowed;
+	
+	/* end timer */
+	if(step >= 1.0f) {
+		
+		/* if we went to camera, store the original */
+		if(sms->to_camera) {
+			v3d->persp= V3D_CAMOB;
+			VECCOPY(v3d->ofs, sms->orig_ofs);
+			QUATCOPY(v3d->viewquat, sms->orig_quat);
+			v3d->dist = sms->orig_dist;
+			v3d->lens = sms->orig_lens;
+		}
+		else {
+			VECCOPY(v3d->ofs, sms->new_ofs);
+			QUATCOPY(v3d->viewquat, sms->new_quat);
+			v3d->dist = sms->new_dist;
+			v3d->lens = sms->new_lens;
+		}
+		v3d->view= sms->orig_view;
+		
+		MEM_freeN(v3d->sms);
+		v3d->sms= NULL;
+		
+		WM_event_remove_window_timer(CTX_wm_window(C), v3d->smooth_timer);
+		v3d->smooth_timer= NULL;
+	}
+	else {
+		int i;
+		
+		/* ease in/out */
+		if (step < 0.5)	step = (float)pow(step*2, 2)/2;
+		else			step = (float)1-(pow(2*(1-step),2)/2);
+
+		step_inv = 1.0-step;
+
+		for (i=0; i<3; i++)
+			v3d->ofs[i] = sms->new_ofs[i]*step + sms->orig_ofs[i]*step_inv;
+
+		QuatInterpol(v3d->viewquat, sms->orig_quat, sms->new_quat, step);
+		
+		v3d->dist = sms->new_dist*step + sms->orig_dist*step_inv;
+		v3d->lens = sms->new_lens*step + sms->orig_lens*step_inv;
+	}
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_smoothview(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Smooth View";
+	ot->idname= "VIEW3D_OT_smoothview";
+	
+	/* api callbacks */
+	ot->invoke= view3d_smoothview_invoke;
+	
+	ot->poll= ED_operator_areaactive;
+}
+
+/* ********************************** */
 
 /* create intersection coordinates in view Z direction at mouse coordinates */
 void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3])
@@ -599,7 +797,7 @@ void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect)		/* rect: f
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */
-static void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipend)
+static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
 {	
 	if (!ob) return;
 	
@@ -619,6 +817,9 @@ static void object_view_settings(Object *ob, float *lens, float *clipsta, float 
 		if (lens)		*lens= cam->lens;
 		if (clipsta)	*clipsta= cam->clipsta;
 		if (clipend)	*clipend= cam->clipend;
+	}
+	else {
+		if (lens)		*lens= 35.0f;
 	}
 }
 
@@ -664,7 +865,7 @@ void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, flo
 	
 	/* Lens */
 	if (lens)
-		object_view_settings(ob, lens, NULL, NULL);
+		object_lens_clip_settings(ob, lens, NULL, NULL);
 }
 
 
@@ -698,13 +899,13 @@ void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth)
 			v3d->dist= 0.0;
 			
 			view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
-			smooth_view(v3d, orig_ofs, new_quat, &orig_dist, &orig_lens);
+			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			v3d->persp=V3D_CAMOB; /* just to be polite, not needed */
 			
 		} else {
 			Mat3ToQuat(tmat, new_quat);
-			smooth_view(v3d, NULL, new_quat, NULL, NULL);
+			smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 		}
 	} else {
 		Mat3ToQuat(tmat, v3d->viewquat);
@@ -1096,163 +1297,10 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 		v3d->persp= V3D_PERSP;
 		v3d->dist= 0.0;
 		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
-		smooth_view(v3d, orig_ofs, new_quat, &orig_dist, &orig_lens);
+		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP; /* switch out of camera mode */
-		smooth_view(v3d, NULL, new_quat, NULL, NULL);
+		smooth_view(NULL, NULL, NULL, NULL, new_quat, NULL, NULL); // XXX
 	}
 }
-
-
-
-/* SMOOTHVIEW */
-void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens)
-{
-	/* View Animation enabled */
-	if (U.smooth_viewtx) {
-		int i;
-		char changed = 0;
-		float step = 0.0, step_inv;
-		float orig_dist;
-		float orig_lens;
-		float orig_quat[4];
-		float orig_ofs[3];
-		
-		double time_allowed, time_current, time_start;
-		
-		/* if there is no difference, return */
-		changed = 0; /* zero means no difference */
-		if (dist) {
-			if ((*dist) != v3d->dist)
-				changed = 1;
-		}
-		
-		if (lens) {
-			if ((*lens) != v3d->lens)
-				changed = 1;
-		}
-		
-		if (!changed && ofs) {
-			if ((ofs[0]!=v3d->ofs[0]) ||
-				(ofs[1]!=v3d->ofs[1]) ||
-				(ofs[2]!=v3d->ofs[2]) )
-				changed = 1;
-		}
-		
-		if (!changed && quat ) {
-			if ((quat[0]!=v3d->viewquat[0]) ||
-				(quat[1]!=v3d->viewquat[1]) ||
-				(quat[2]!=v3d->viewquat[2]) ||
-				(quat[3]!=v3d->viewquat[3]) )
-				changed = 1;
-		}
-		
-		/* The new view is different from the old one
-			* so animate the view */
-		if (changed) {
-			
-			/* store original values */
-			VECCOPY(orig_ofs,	v3d->ofs);
-			QUATCOPY(orig_quat,	v3d->viewquat);
-			orig_dist =			v3d->dist;
-			orig_lens =			v3d->lens;
-			
-			time_allowed= (float)U.smooth_viewtx / 1000.0;
-			time_current = time_start = PIL_check_seconds_timer();
-			
-			/* if this is view rotation only
-				* we can decrease the time allowed by
-				* the angle between quats 
-				* this means small rotations wont lag */
-			if (quat && !ofs && !dist) {
-			 	float vec1[3], vec2[3];
-			 	VECCOPY(vec1, quat);
-			 	VECCOPY(vec2, v3d->viewquat);
-			 	Normalize(vec1);
-			 	Normalize(vec2);
-			 	/* scale the time allowed by the rotation */
-			 	time_allowed *= NormalizedVecAngle2(vec1, vec2)/(M_PI/2); 
-			}
-			
-			while (time_start + time_allowed > time_current) {
-				
-				step =  (float)((time_current-time_start) / time_allowed);
-				
-				/* ease in/out */
-				if (step < 0.5)	step = (float)pow(step*2, 2)/2;
-				else			step = (float)1-(pow(2*(1-step),2)/2);
-				
-				step_inv = 1-step;
-				
-				if (ofs)
-					for (i=0; i<3; i++)
-						v3d->ofs[i] = ofs[i]*step + orig_ofs[i]*step_inv;
-				
-				
-				if (quat)
-					QuatInterpol(v3d->viewquat, orig_quat, quat, step);
-				
-				if (dist)
-					v3d->dist = ((*dist)*step) + (orig_dist*step_inv);
-				
-				if (lens)
-					v3d->lens = ((*lens)*step) + (orig_lens*step_inv);
-				
-				/*redraw the view*/
-				//				scrarea_do_windraw(ar);
-				//				screen_swapbuffers();
-				
-				time_current= PIL_check_seconds_timer();
-			}
-		}
-	}
-	
-	/* set these values even if animation is enabled because flaot
-	* error will make then not quite accurate */
-	if (ofs)
-		VECCOPY(v3d->ofs, ofs);
-	if (quat)
-		QUATCOPY(v3d->viewquat, quat);
-	if (dist)
-		v3d->dist = *dist;
-	if (lens)
-		v3d->lens = *lens;
-	
-}
-
-/* For use with smooth view
-* 
-* the current view is unchanged, blend between the current view and the
-* camera view
-* */
-void smooth_view_to_camera(View3D *v3d)
-{
-	if (!U.smooth_viewtx || !v3d->camera || v3d->persp != V3D_CAMOB) {
-		return;
-	} else {
-		Object *ob = v3d->camera;
-		
-		float orig_ofs[3];
-		float orig_dist=v3d->dist;
-		float orig_lens=v3d->lens;
-		float new_dist=0.0;
-		float new_lens=35.0;
-		float new_quat[4];
-		float new_ofs[3];
-		
-		VECCOPY(orig_ofs, v3d->ofs);
-		
-		view_settings_from_ob(ob, new_ofs, new_quat, NULL, &new_lens);
-		
-		v3d->persp= V3D_PERSP;
-		smooth_view(v3d, new_ofs, new_quat, &new_dist, &new_lens);
-		VECCOPY(v3d->ofs, orig_ofs);
-		v3d->lens= orig_lens;
-		v3d->dist = orig_dist; /* restore the dist */
-		
-		v3d->camera = ob;
-		v3d->persp= V3D_CAMOB;
-	}
-}
-
 

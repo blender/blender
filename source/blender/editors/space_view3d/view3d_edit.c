@@ -724,23 +724,12 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			new_dist*= size;
 		}
 
-		if (v3d->persp==V3D_CAMOB && v3d->camera) {
-			/* switch out of camera view */
-			float orig_lens= v3d->lens;
-
+		if (v3d->persp==V3D_CAMOB) {
 			v3d->persp= V3D_PERSP;
-			v3d->dist= 0.0;
-			view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
-			smooth_view(v3d, new_ofs, NULL, &new_dist, &orig_lens); /* TODO - this dosnt work yet */
-
-		} else {
-			if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
-			smooth_view(v3d, new_ofs, NULL, &new_dist, NULL); /* TODO - this dosnt work yet */
+			smooth_view(C, NULL, v3d->camera, new_ofs, NULL, &new_dist, NULL); 
 		}
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-
-	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -861,23 +850,15 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	v3d->cursor[1]= -new_ofs[1];
 	v3d->cursor[2]= -new_ofs[2];
 
-	if (v3d->persp==V3D_CAMOB && v3d->camera) {
-		float orig_lens= v3d->lens;
-
-		v3d->persp=V3D_PERSP;
-		v3d->dist= 0.0f;
-		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
-		smooth_view(v3d, new_ofs, NULL, &new_dist, &orig_lens);
-	} else {
-		if(v3d->persp==V3D_CAMOB)
-			v3d->persp= V3D_PERSP;
-
-		smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
+	if (v3d->persp==V3D_CAMOB) {
+		v3d->persp= V3D_PERSP;
+		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
+	} 
+	else {
+		smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-
-	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -914,35 +895,32 @@ static EnumPropertyItem prop_view_items[] = {
 	{V3D_VIEW_PANDOWN, "PANDOWN", "Pan Down", "Pan the view Down"},
 	{0, NULL, NULL, NULL}};
 
-static void axis_set_view(View3D *v3d, float q1, float q2, float q3, float q4, short view, int perspo)
+static void axis_set_view(bContext *C, View3D *v3d, float q1, float q2, float q3, float q4, short view, int perspo)
 {
 	float new_quat[4];
 	new_quat[0]= q1; new_quat[1]= q2;
 	new_quat[2]= q3; new_quat[3]= q4;
 	v3d->view=0;
 
-
-	if (v3d->persp==V3D_CAMOB && v3d->camera) {
-		/* Is this switching from a camera view ? */
-		float orig_ofs[3];
-		float orig_lens= v3d->lens;
-		VECCOPY(orig_ofs, v3d->ofs);
-		view_settings_from_ob(v3d->camera, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
-
-
-		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
-		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
-
-		smooth_view(v3d, orig_ofs, new_quat, NULL, &orig_lens);
-	} else {
-
-		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
-		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
-
-		smooth_view(v3d, NULL, new_quat, NULL, NULL);
-	}
 	v3d->view= view;
+	
+	if (v3d->persp==V3D_CAMOB && v3d->camera) {
+
+		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
+		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
+
+		smooth_view(C, v3d->camera, NULL, v3d->ofs, new_quat, NULL, NULL); 
+	} 
+	else {
+
+		if (U.uiflag & USER_AUTOPERSP) v3d->persp= V3D_ORTHO;
+		else if(v3d->persp==V3D_CAMOB) v3d->persp= perspo;
+
+		smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
+	}
+
 }
+
 
 static int viewnumpad_exec(bContext *C, wmOperator *op)
 {
@@ -950,19 +928,13 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
-	Object *act_cam_orig=NULL;
-
 	float phi, si, q1[4], vec[3];
 	static int perspo=V3D_PERSP;
-	float orig_ofs[3];
 	int viewnum;
 
 	viewnum = RNA_enum_get(op->ptr, "viewnum");
 
 	/* Use this to test if we started out with a camera */
-
-	if (v3d->persp == V3D_CAMOB)
-		act_cam_orig = v3d->camera;
 
 	/* Indicate that this view is inverted,
 	 * but only if it actually _was_ inverted (jobbe) */
@@ -973,50 +945,36 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	switch (viewnum) {
 		case V3D_VIEW_BOTTOM :
-			axis_set_view(v3d,0.0, -1.0, 0.0, 0.0, 7, perspo);
+			axis_set_view(C, v3d, 0.0, -1.0, 0.0, 0.0, 7, perspo);
 			break;
 
 		case V3D_VIEW_BACK:
-			axis_set_view(v3d,0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), 1, perspo);
+			axis_set_view(C, v3d, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), 1, perspo);
 			break;
 
 		case V3D_VIEW_LEFT:
-			axis_set_view(v3d,0.5, -0.5, 0.5, 0.5, 3, perspo);
+			axis_set_view(C, v3d, 0.5, -0.5, 0.5, 0.5, 3, perspo);
 			break;
 
 		case V3D_VIEW_TOP:
-			axis_set_view(v3d,1.0, 0.0, 0.0, 0.0, 7, perspo);
+			axis_set_view(C, v3d, 1.0, 0.0, 0.0, 0.0, 7, perspo);
 			break;
 
 		case V3D_VIEW_FRONT:
-			axis_set_view(v3d,(float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, 1, perspo);
+			axis_set_view(C, v3d, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, 1, perspo);
 			break;
 
 		case V3D_VIEW_RIGHT:
-			axis_set_view(v3d,0.5, -0.5, -0.5, -0.5, 3, perspo);
+			axis_set_view(C, v3d, 0.5, -0.5, -0.5, -0.5, 3, perspo);
 			break;
 
 		case V3D_VIEW_PERSPORTHO:
 
-			if (U.smooth_viewtx) {
-				if(v3d->persp==V3D_PERSP) { v3d->persp=V3D_ORTHO;
-				} else if (act_cam_orig) {
-					/* were from a camera view */
-					float orig_dist= v3d->dist;
-					float orig_lens= v3d->lens;
-					VECCOPY(orig_ofs, v3d->ofs);
-					v3d->persp=V3D_PERSP;
-					v3d->dist= 0.0;
+			if(v3d->persp!=V3D_ORTHO) 
+				v3d->persp=V3D_ORTHO;
+			else v3d->persp=V3D_PERSP;
 
-					view_settings_from_ob(act_cam_orig, v3d->ofs, NULL, NULL, &v3d->lens);
-					smooth_view(v3d, orig_ofs, NULL, &orig_dist, &orig_lens);
-				} else {
-					v3d->persp=V3D_PERSP;
-				}
-			} else {
-				if(v3d->persp==V3D_PERSP) v3d->persp=V3D_ORTHO;
-				else v3d->persp=V3D_PERSP;
-			}
+			ED_region_tag_redraw(ar);
 			break;
 
 		case V3D_VIEW_CAMERA:
@@ -1027,48 +985,36 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				QUATCOPY(v3d->lviewquat, v3d->viewquat);
 				v3d->lview= v3d->view;
 				v3d->lpersp= v3d->persp;
+				
+#if 0
+				if(G.qual==LR_ALTKEY) {
+					if(oldcamera && is_an_active_object(oldcamera)) {
+						v3d->camera= oldcamera;
+					}
+					handle_view3d_lock();
+				}
+#endif
+				
+				if(BASACT) {
+					/* check both G.vd as G.scene cameras */
+					if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
+						v3d->camera= OBACT;
+						/*handle_view3d_lock();*/
+					}
+				}
+				
+				if(v3d->camera==NULL) {
+					v3d->camera= scene_find_camera(scene);
+					/*handle_view3d_lock();*/
+				}
+				v3d->persp= V3D_CAMOB;
+				smooth_view(C, NULL, v3d->camera, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
+				
 			}
 			else{
 				/* return to settings of last view */
-
-				axis_set_view(v3d,v3d->lviewquat[0], v3d->lviewquat[1], v3d->lviewquat[2], v3d->lviewquat[3], v3d->lview, v3d->lpersp);
-			}
-#if 0
-			if(G.qual==LR_ALTKEY) {
-				if(oldcamera && is_an_active_object(oldcamera)) {
-					v3d->camera= oldcamera;
-				}
-				handle_view3d_lock();
-			}
-#endif
-
-			if(BASACT) {
-			/* check both G.vd as G.scene cameras */
-			if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
-				v3d->camera= OBACT;
-				/*handle_view3d_lock();*/
-				}
-			}
-
-			if(v3d->camera==0) {
-				v3d->camera= scene_find_camera(scene);
-				/*handle_view3d_lock();*/
-			}
-			if(v3d->camera && (v3d->camera != act_cam_orig)) {
-				v3d->persp= V3D_CAMOB;
-				v3d->view= 0;
-
-			} else if (U.smooth_viewtx) {
-				/* move 3d view to camera view */
-				float orig_lens = v3d->lens;
-				VECCOPY(orig_ofs, v3d->ofs);
-
-				if (act_cam_orig)
-					view_settings_from_ob(act_cam_orig, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
-
-				smooth_view_to_camera(v3d);
-				VECCOPY(v3d->ofs, orig_ofs);
-				v3d->lens = orig_lens;
+				/* does smooth_view too */
+				axis_set_view(C, v3d, v3d->lviewquat[0], v3d->lviewquat[1], v3d->lviewquat[2], v3d->lviewquat[3], v3d->lview, v3d->lpersp);
 			}
 			break;
 
@@ -1104,6 +1050,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 					QuatMul(v3d->viewquat, v3d->viewquat, q1);
 					v3d->view= 0;
 				}
+				ED_region_tag_redraw(ar);
 			}
 			break;
 
@@ -1122,6 +1069,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			v3d->ofs[1]+= vec[1];
 			v3d->ofs[2]+= vec[2];
 
+			ED_region_tag_redraw(ar);
 			break;
 
 		default :
@@ -1129,9 +1077,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	}
 
 	if(v3d->persp != V3D_CAMOB) perspo= v3d->persp;
-
-
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1416,7 +1361,7 @@ void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
 		new_dist = ((new_dist*scale) >= 0.001*v3d->grid)? new_dist*scale:0.001*v3d->grid;
 	}
 
-	smooth_view(v3d, new_ofs, NULL, &new_dist, NULL);
+	smooth_view(NULL, NULL, NULL, new_ofs, NULL, &new_dist, NULL); // XXX
 }
 
 

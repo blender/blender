@@ -71,6 +71,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_borderselect);
 	WM_operatortype_append(VIEW3D_OT_clipping);
 	WM_operatortype_append(VIEW3D_OT_circle_select);
+	WM_operatortype_append(VIEW3D_OT_smoothview);
 }
 
 void view3d_keymap(wmWindowManager *wm)
@@ -81,6 +82,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewmove", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewzoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_viewcenter", PADPERIOD, KM_PRESS, 0, 0);
+	
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", PADMINUS, KM_PRESS, 0, 0)->ptr, "delta", -1);

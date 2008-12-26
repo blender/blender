@@ -259,30 +259,12 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 					if (v3d->camera == base->object && v3d->persp==V3D_CAMOB)
 						return;
 					
-					if (U.smooth_viewtx) {	
-						/* move 3d view to camera view */
-						float orig_ofs[3], orig_lens = v3d->lens;
-						VECCOPY(orig_ofs, v3d->ofs);
-						
-						if (v3d->camera && v3d->persp==V3D_CAMOB)
-							view_settings_from_ob(v3d->camera, v3d->ofs, v3d->viewquat, &v3d->dist, &v3d->lens);
-						
-						v3d->camera = base->object;
-						handle_view3d_lock();
-						v3d->persp= V3D_CAMOB;
-						v3d->view= 0;
-						
-						smooth_view_to_camera(v3d);
-						
-						/* restore values */
-						VECCOPY(v3d->ofs, orig_ofs);
-						v3d->lens = orig_lens;
-					} else {
-						v3d->camera= base->object;
-						handle_view3d_lock();
-						v3d->persp= V3D_CAMOB;
-						v3d->view= 0;
-					}
+					/* XXX handle smooth view */
+					v3d->camera= base->object;
+					handle_view3d_lock();
+					v3d->persp= V3D_CAMOB;
+					v3d->view= 0;
+					
 					break;
 				}
 			}

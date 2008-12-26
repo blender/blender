@@ -41,6 +41,8 @@ struct BoundBox;
 struct RenderInfo;
 struct RetopoViewData;
 struct bGPdata;
+struct SmoothViewStore;
+struct wmTimer;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -143,6 +145,10 @@ typedef struct View3D {
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 
+	/* animated smooth view */
+	struct SmoothViewStore *sms;
+	struct wmTimer *smooth_timer;
+	
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;

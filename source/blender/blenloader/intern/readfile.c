@@ -4248,6 +4248,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->clipbb= newdataadr(fd, v3d->clipbb);
 				v3d->retopo_view_data= NULL;
 				v3d->properties_storage= NULL;
+				v3d->sms= NULL;
+				v3d->smooth_timer= NULL;
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
