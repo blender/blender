@@ -56,7 +56,4 @@ if env['WITH_BF_QUICKTIME']:
 if env['BF_NO_ELBEEM']:
     defs += ' DISABLE_ELBEEM'
 
-if env['WITH_BF_PLAYER']:
-    SConscript(['bad_level_call_stubs/SConscript'])
-
 env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core'], priority = [155] )
