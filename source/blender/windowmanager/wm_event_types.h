@@ -67,7 +67,11 @@
 #define WINCLOSE		0x0107	/* window close */
 #define WINQUIT			0x0108	/* signal from user that app is to go away */
 #define Q_FIRSTTIME		0x0109	/* on startup */
-#define TIMER			0x0110	/* timer event */
+
+#define TIMER			0x0110	/* timer event, passed on to all queues */
+#define TIMER0			0x0111	/* timer event, slot for internal use */
+#define TIMER1			0x0112	/* timer event, slot for internal use */
+#define TIMER2			0x0113	/* timer event, slot for internal use */
 
 /* standard keyboard */
 

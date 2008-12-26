@@ -1583,7 +1583,7 @@ static void panel_activate_state(bContext *C, Panel *pa, uiHandlePanelState stat
 		}
 
 		if(ELEM(state, PANEL_STATE_ANIMATION, PANEL_STATE_DRAG))
-			data->animtimer= WM_event_add_window_timer(win, ANIMATION_INTERVAL);
+			data->animtimer= WM_event_add_window_timer(win, TIMER, ANIMATION_INTERVAL);
 
 		data->state= state;
 		data->startx= win->eventstate->x;

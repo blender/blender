@@ -173,6 +173,7 @@ typedef struct wmTabletData {
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
 	double timestep;		/* set by timer user */
+	int event_type;			/* set by timer user */
 	
 	double duration;		/* total running time in seconds */
 	double delta;			/* time since previous step in seconds */

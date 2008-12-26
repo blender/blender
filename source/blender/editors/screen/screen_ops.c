@@ -1469,7 +1469,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
 						  
 	/*frame offsets*/
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER, KM_ANY, KM_ANY, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);

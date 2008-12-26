@@ -99,8 +99,8 @@ void		WM_event_add_notifier(struct bContext *C, int type, int value, void *data)
 
 void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
-			/* at maximum, every timestep seconds it triggers TIMER events */
-struct wmTimer *WM_event_add_window_timer(wmWindow *win, double timestep);
+			/* at maximum, every timestep seconds it triggers event_type events */
+struct wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timestep);
 void		WM_event_remove_window_timer(wmWindow *win, struct wmTimer *timer);
 void		WM_event_window_timer_sleep(wmWindow *win, struct wmTimer *timer, int dosleep);
 

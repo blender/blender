@@ -1303,6 +1303,6 @@ void ED_screen_animation_timer(bContext *C, int enable)
 	screen->animtimer= NULL;
 	
 	if(enable)
-		screen->animtimer= WM_event_add_window_timer(win, (1.0/FPS));
+		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 }
 

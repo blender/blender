@@ -2763,7 +2763,7 @@ static void button_tooltip_timer_reset(uiBut *but)
 
 	if(U.flag & USER_TOOLTIPS)
 		if(!but->block->tooltipdisabled)
-			data->tooltiptimer= WM_event_add_window_timer(data->window, BUTTON_TOOLTIP_DELAY);
+			data->tooltiptimer= WM_event_add_window_timer(data->window, TIMER, BUTTON_TOOLTIP_DELAY);
 }
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state)
@@ -2791,7 +2791,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				else time= -1;
 
 				if(time >= 0)
-					data->autoopentimer= WM_event_add_window_timer(data->window, 0.02*(double)time);
+					data->autoopentimer= WM_event_add_window_timer(data->window, TIMER, 0.02*(double)time);
 			}
 		}
 	}
@@ -2833,7 +2833,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	/* add a short delay before exiting, to ensure there is some feedback */
 	if(state == BUTTON_STATE_WAIT_FLASH) {
-		data->flashtimer= WM_event_add_window_timer(data->window, BUTTON_FLASH_DELAY);
+		data->flashtimer= WM_event_add_window_timer(data->window, TIMER, BUTTON_FLASH_DELAY);
 	}
 	else if(data->flashtimer) {
 		WM_event_remove_window_timer(data->window, data->flashtimer);

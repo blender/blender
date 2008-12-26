@@ -302,18 +302,18 @@ static uiBlock *time_framemenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	block= uiBeginBlock(C, handle->region, "time_framemenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_time_framemenu, NULL);
 
-	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_add", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Add Marker",
+	uiDefIconTextButO(C, block, BUTM, "MARKER_OT_add", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Add Marker",
 					  0, yco-=2, menuwidth, 19, "");
-	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_duplicate", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Duplicate Marker",
+	uiDefIconTextButO(C, block, BUTM, "MARKER_OT_duplicate", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Duplicate Marker",
 					  0, yco-=20, menuwidth, 19, "");
-	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_delete", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Delete Marker",
+	uiDefIconTextButO(C, block, BUTM, "MARKER_OT_delete", WM_OP_EXEC_REGION_WIN, ICON_BLANK1, "Delete Marker",
 					  0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M",
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextButO(C, block, BUTM, "ED_MARKER_OT_move", WM_OP_INVOKE_REGION_WIN, ICON_BLANK1, "Grab/Move Marker",
+	uiDefIconTextButO(C, block, BUTM, "MARKER_OT_move", WM_OP_INVOKE_REGION_WIN, ICON_BLANK1, "Grab/Move Marker",
 					  0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

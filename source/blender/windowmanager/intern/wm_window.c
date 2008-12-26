@@ -517,11 +517,17 @@ static int wm_window_timer(const bContext *C)
 		for(wt= win->timers.first; wt; wt= wt->next) {
 			if(wt->sleep==0) {
 				if(wt->timestep < time - wt->ltime) {
+					wmEvent event= *(win->eventstate);
+					
 					wt->delta= time - wt->ltime;
 					wt->duration += wt->delta;
 					wt->ltime= time;
 					
-					wm_event_add_ghostevent(win, GHOST_kEventTimer, wt);
+					event.type= wt->event_type;
+					event.custom= EVT_DATA_TIMER;
+					event.customdata= wt;
+					wm_event_add(win, &event);
+
 					retval= 1;
 				}
 			}
@@ -571,10 +577,11 @@ void WM_event_window_timer_sleep(wmWindow *win, wmTimer *timer, int dosleep)
 	}		
 }
 
-wmTimer *WM_event_add_window_timer(wmWindow *win, double timestep)
+wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timestep)
 {
 	wmTimer *wt= MEM_callocN(sizeof(wmTimer), "window timer");
 	
+	wt->event_type= event_type;
 	wt->ltime= PIL_check_seconds_timer();
 	wt->timestep= timestep;
 	
