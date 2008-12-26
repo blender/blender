@@ -44,6 +44,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
 void node_draw_link_bezier(View2D *v2d, float vec[][3], int th_col1, int th_col2, int do_shaded);
+void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
 void snode_set_context(SpaceNode *snode, Scene *scene);

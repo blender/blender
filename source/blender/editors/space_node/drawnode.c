@@ -98,8 +98,8 @@
 #include "UI_resources.h"
 
 /*
-#include "RE_pipeline.h"
-#include "IMB_imbuf_types.h"*/
+#include "RE_pipeline.h"*/
+#include "IMB_imbuf_types.h"
 
 /*#include "blendef.h"
 #include "butspace.h"*/
@@ -2503,11 +2503,10 @@ static void draw_nodespace_grid(SpaceNode *snode)
 	
 	glEnd();
 }
+#endif
 
-static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
+void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 {
-	
-	draw_nodespace_grid(snode);
 	
 	if((snode->flag & SNODE_BACKDRAW) && snode->treetype==NTREE_COMPOSIT) {
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
@@ -2516,9 +2515,9 @@ static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 			int x, y; 
 			/* somehow the offset has to be calculated inverse */
 			
-			glaDefine2DArea(&sa->winrct);
+			//glaDefine2DArea(&sa->winrct);
 			/* ortho at pixel level curarea */
-			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+			//myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 			
 			x = (sa->winx-ibuf->x)/2 + snode->xof;
 			y = (sa->winy-ibuf->y)/2 + snode->yof;
@@ -2529,13 +2528,14 @@ static void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
 			/* sort this out, this should not be needed */
-			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
-			bwin_clear_viewmat(sa->win);	/* clear buttons view */
+			//myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
+			//bwin_clear_viewmat(sa->win);	/* clear buttons view */
 			glLoadIdentity();
 		}
 	}
 }
 
+#if 0
 #if 0
 /* note: needs to be userpref or opengl profile option */
 static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)

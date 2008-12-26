@@ -503,7 +503,6 @@ static void node_sync_cb(bContext *C, void *snode_v, void *node_v)
 
 /* **************  Socket callbacks *********** */
 
-#if 0
 static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 {
 	if(node_v && ntree_v) {
@@ -511,13 +510,12 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 		// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+((bNode *)node_v)->nr); XXX
 	}
 }
-#endif
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void *socket_v)
 {
-#if 0 //XXX
-	SpaceNode *snode= curarea->spacedata.first;
+	SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+	ScrArea *curarea= CTX_wm_area(C);
 	bNode *node;
 	bNodeSocket *sock= socket_v;
 	bNodeStack *ns= &sock->ns;
@@ -534,7 +532,7 @@ static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void 
 			break;
 	}
 	
-	block= uiNewBlock(&curarea->uiblocks, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
+	block= uiBeginBlock(C, handle->region, "socket menu", UI_EMBOSS, UI_HELV);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
@@ -548,12 +546,11 @@ static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void 
 	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
 	
 	uiBlockSetDirection(block, UI_TOP);
+	uiEndBlock(C, block);
 	
-	// allqueue(REDRAWNODE, 0);
+	ED_area_tag_redraw(curarea);
 	
 	return block;
-#endif
-return NULL;
 }
 
 /* not a callback */
@@ -1070,6 +1067,10 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
+	int argus;
+	
+	argus= 1.1f+ 2.3f;
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
@@ -1088,12 +1089,12 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	//snode->aspect= (snode->v2d.cur.xmax - snode->v2d.cur.xmin)/((float)sa->winx);
+	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)sa->winx);
 	//snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */
-	// draw_nodespace_back_pix(sa, snode);
+	draw_nodespace_back_pix(CTX_wm_area(C), snode);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));
@@ -1147,8 +1148,6 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 		addafterqueue(sa->win, RENDERPREVIEW, 1);
 		snode->flag &= ~SNODE_DO_PREVIEW;
 	}*/
-	
-	
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

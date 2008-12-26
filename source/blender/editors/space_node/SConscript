@@ -9,7 +9,8 @@ incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
 defs = []
 cf = []
 if env['OURPLATFORM'] == 'win32-vc':
-	#cf.append('/Wall')
 	cf.append('/WX')
+if env['CC'] == 'gcc':
+	cf.append('-Werror')
 	
 env.BlenderLib ( 'bf_editors_space_node', sources, Split(incs), defs, libtype=['core'], priority=[55], compileflags=cf )
