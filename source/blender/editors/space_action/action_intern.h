@@ -48,10 +48,10 @@ void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* ***************************************** */
 /* action_select.c */
-void ED_ACT_OT_keyframes_deselectall(struct wmOperatorType *ot);
-void ED_ACT_OT_keyframes_borderselect(struct wmOperatorType *ot);
-void ED_ACT_OT_keyframes_columnselect(struct wmOperatorType *ot);
-void ED_ACT_OT_keyframes_clickselect(struct wmOperatorType *ot);
+void ACT_OT_keyframes_deselectall(struct wmOperatorType *ot);
+void ACT_OT_keyframes_borderselect(struct wmOperatorType *ot);
+void ACT_OT_keyframes_columnselect(struct wmOperatorType *ot);
+void ACT_OT_keyframes_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {

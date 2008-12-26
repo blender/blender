@@ -401,11 +401,11 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ED_ACT_OT_keyframes_deselectall (wmOperatorType *ot)
+void ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ED_ACT_OT_keyframes_deselectall";
+	ot->idname= "ACT_OT_keyframes_deselectall";
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -564,11 +564,11 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ED_ACT_OT_keyframes_borderselect(wmOperatorType *ot)
+void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "ED_ACT_OT_keyframes_borderselect";
+	ot->idname= "ACT_OT_keyframes_borderselect";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -797,13 +797,13 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ED_ACT_OT_keyframes_columnselect (wmOperatorType *ot)
+void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "ED_ACT_OT_keyframes_columnselect";
+	ot->idname= "ACT_OT_keyframes_columnselect";
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -1172,13 +1172,13 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED;
 }
  
-void ED_ACT_OT_keyframes_clickselect (wmOperatorType *ot)
+void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
-	ot->idname= "ED_ACT_OT_keyframes_clickselect";
+	ot->idname= "ACT_OT_keyframes_clickselect";
 	
 	/* api callbacks */
 	ot->invoke= actkeys_clickselect_invoke;

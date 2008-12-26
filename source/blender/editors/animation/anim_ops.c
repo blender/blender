@@ -201,13 +201,13 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_ANIM_OT_change_frame(wmOperatorType *ot)
+void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name= "Change frame";
-	ot->idname= "ED_ANIM_OT_change_frame";
+	ot->idname= "ANIM_OT_change_frame";
 	
 	/* api callbacks */
 	ot->exec= change_frame_exec;
@@ -252,11 +252,11 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ED_ANIM_OT_previewrange_define(wmOperatorType *ot)
+void ANIM_OT_previewrange_define(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Preview Range";
-	ot->idname= "ED_ANIM_OT_previewrange_define";
+	ot->idname= "ANIM_OT_previewrange_define";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -296,11 +296,11 @@ static int previewrange_clear_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ED_ANIM_OT_previewrange_clear(wmOperatorType *ot)
+void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Preview Range";
-	ot->idname= "ED_ANIM_OT_previewrange_clear";
+	ot->idname= "ANIM_OT_previewrange_clear";
 	
 	/* api callbacks */
 	ot->exec= previewrange_clear_exec;
@@ -358,11 +358,11 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_ANIM_OT_toggle_time(wmOperatorType *ot)
+void ANIM_OT_toggle_time(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Frames/Seconds";
-	ot->idname= "ED_ANIM_OT_toggle_time";
+	ot->idname= "ANIM_OT_toggle_time";
 	
 	/* api callbacks */
 	ot->exec= toggle_time_exec;
@@ -372,22 +372,22 @@ void ED_ANIM_OT_toggle_time(wmOperatorType *ot)
 
 void ED_operatortypes_anim(void)
 {
-	WM_operatortype_append(ED_ANIM_OT_change_frame);
-	WM_operatortype_append(ED_ANIM_OT_toggle_time);
+	WM_operatortype_append(ANIM_OT_change_frame);
+	WM_operatortype_append(ANIM_OT_toggle_time);
 	
-	WM_operatortype_append(ED_ANIM_OT_previewrange_define);
-	WM_operatortype_append(ED_ANIM_OT_previewrange_clear);
+	WM_operatortype_append(ANIM_OT_previewrange_define);
+	WM_operatortype_append(ANIM_OT_previewrange_clear);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_ANIM_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
 	
 		/* preview range */
-	WM_keymap_verify_item(keymap, "ED_ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "ED_ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }
 

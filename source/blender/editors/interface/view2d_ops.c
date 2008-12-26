@@ -234,13 +234,11 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_View2D_OT_view_pan(wmOperatorType *ot)
+void View2D_OT_view_pan(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Pan View";
-	ot->idname= "ED_View2D_OT_view_pan";
+	ot->idname= "View2D_OT_view_pan";
 	
 	/* api callbacks */
 	ot->exec= view_pan_exec;
@@ -251,8 +249,8 @@ void ED_View2D_OT_view_pan(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
@@ -275,13 +273,11 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_scrollright(wmOperatorType *ot)
+void View2D_OT_view_scrollright(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Scroll Right";
-	ot->idname= "ED_View2D_OT_view_rightscroll";
+	ot->idname= "View2D_OT_view_rightscroll";
 	
 	/* api callbacks */
 	ot->exec= view_scrollright_exec;
@@ -290,8 +286,8 @@ void ED_View2D_OT_view_scrollright(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
 
@@ -314,13 +310,11 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_scrollleft(wmOperatorType *ot)
+void View2D_OT_view_scrollleft(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Scroll Left";
-	ot->idname= "ED_View2D_OT_view_leftscroll";
+	ot->idname= "View2D_OT_view_leftscroll";
 	
 	/* api callbacks */
 	ot->exec= view_scrollleft_exec;
@@ -329,9 +323,10 @@ void ED_View2D_OT_view_scrollleft(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
+
 
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
@@ -351,13 +346,11 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_scrolldown(wmOperatorType *ot)
+void View2D_OT_view_scrolldown(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Scroll Down";
-	ot->idname= "ED_View2D_OT_view_downscroll";
+	ot->idname= "View2D_OT_view_downscroll";
 	
 	/* api callbacks */
 	ot->exec= view_scrolldown_exec;
@@ -366,8 +359,8 @@ void ED_View2D_OT_view_scrolldown(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
 
@@ -390,13 +383,11 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_scrollup(wmOperatorType *ot)
+void View2D_OT_view_scrollup(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Scroll Up";
-	ot->idname= "ED_View2D_OT_view_upscroll";
+	ot->idname= "View2D_OT_view_upscroll";
 	
 	/* api callbacks */
 	ot->exec= view_scrollup_exec;
@@ -405,8 +396,8 @@ void ED_View2D_OT_view_scrollup(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
 }
 
 /* ********************************************************* */
@@ -492,13 +483,11 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_zoomin(wmOperatorType *ot)
+void View2D_OT_view_zoomin(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Zoom In";
-	ot->idname= "ED_View2D_OT_view_zoomin";
+	ot->idname= "View2D_OT_view_zoomin";
 	
 	/* api callbacks */
 	ot->exec= view_zoomin_exec;
@@ -507,8 +496,8 @@ void ED_View2D_OT_view_zoomin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
 }
 
 
@@ -530,13 +519,11 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ED_View2D_OT_view_zoomout(wmOperatorType *ot)
+void View2D_OT_view_zoomout(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Zoom Out";
-	ot->idname= "ED_View2D_OT_view_zoomout";
+	ot->idname= "View2D_OT_view_zoomout";
 	
 	/* api callbacks */
 	ot->exec= view_zoomout_exec;
@@ -545,8 +532,8 @@ void ED_View2D_OT_view_zoomout(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
 }
 
 /* ********************************************************* */
@@ -766,13 +753,13 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_View2D_OT_view_zoom(wmOperatorType *ot)
+void View2D_OT_view_zoom(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Zoom View";
-	ot->idname= "ED_View2D_OT_view_zoom";
+	ot->idname= "View2D_OT_view_zoom";
 	
 	/* api callbacks */
 	ot->exec= view_zoomdrag_exec;
@@ -866,11 +853,11 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 } 
 
-void ED_View2D_OT_view_borderzoom(wmOperatorType *ot)
+void View2D_OT_view_borderzoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom to Border";
-	ot->idname= "ED_View2D_OT_view_borderzoom";
+	ot->idname= "View2D_OT_view_borderzoom";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -1206,11 +1193,11 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* LMB-Drag in Scrollers - not repeatable operator! */
-void ED_View2D_OT_scroller_activate(wmOperatorType *ot)
+void View2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroller Activate";
-	ot->idname= "ED_View2D_OT_scroller_activate";
+	ot->idname= "View2D_OT_scroller_activate";
 	
 	/* api callbacks */
 	ot->invoke= scroller_activate_invoke;
@@ -1222,20 +1209,20 @@ void ED_View2D_OT_scroller_activate(wmOperatorType *ot)
 
 void ui_view2d_operatortypes(void)
 {
-	WM_operatortype_append(ED_View2D_OT_view_pan);
+	WM_operatortype_append(View2D_OT_view_pan);
 	
-	WM_operatortype_append(ED_View2D_OT_view_scrollleft);
-	WM_operatortype_append(ED_View2D_OT_view_scrollright);
-	WM_operatortype_append(ED_View2D_OT_view_scrollup);
-	WM_operatortype_append(ED_View2D_OT_view_scrolldown);
+	WM_operatortype_append(View2D_OT_view_scrollleft);
+	WM_operatortype_append(View2D_OT_view_scrollright);
+	WM_operatortype_append(View2D_OT_view_scrollup);
+	WM_operatortype_append(View2D_OT_view_scrolldown);
 	
-	WM_operatortype_append(ED_View2D_OT_view_zoomin);
-	WM_operatortype_append(ED_View2D_OT_view_zoomout);
+	WM_operatortype_append(View2D_OT_view_zoomin);
+	WM_operatortype_append(View2D_OT_view_zoomout);
 	
-	WM_operatortype_append(ED_View2D_OT_view_zoom);
-	WM_operatortype_append(ED_View2D_OT_view_borderzoom);
+	WM_operatortype_append(View2D_OT_view_zoom);
+	WM_operatortype_append(View2D_OT_view_borderzoom);
 	
-	WM_operatortype_append(ED_View2D_OT_scroller_activate);
+	WM_operatortype_append(View2D_OT_scroller_activate);
 }
 
 void UI_view2d_keymap(wmWindowManager *wm)
@@ -1243,27 +1230,27 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "View2D", 0, 0);
 	
 	/* pan/scroll */
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_ANY, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_ANY, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_ANY, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_ANY, KM_CTRL, 0);
 	
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_ANY, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_upscroll", WHEELUPMOUSE, KM_ANY, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_ANY, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_upscroll", WHEELUPMOUSE, KM_ANY, KM_SHIFT, 0);
 	
 	/* zoom - single step */
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoomout", WHEELUPMOUSE, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_ANY, 0, 0);
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoomout", PADMINUS, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoomin", PADPLUSKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoomout", WHEELUPMOUSE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoomout", PADMINUS, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoomin", PADPLUSKEY, KM_PRESS, 0, 0);
 	
 	/* zoom - drag */
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 	/* borderzoom - drag */
-	WM_keymap_add_item(keymap, "ED_View2D_OT_view_borderzoom", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_borderzoom", ZKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* scrollers */
-	WM_keymap_add_item(keymap, "ED_View2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 }
 

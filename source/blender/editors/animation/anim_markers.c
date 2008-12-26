@@ -206,11 +206,11 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void ED_MARKER_OT_add(wmOperatorType *ot)
+static void MARKER_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Time Marker";
-	ot->idname= "ED_MARKER_OT_add";
+	ot->idname= "MARKER_OT_add";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_add;
@@ -471,14 +471,14 @@ static int ed_marker_move_exec(bContext *C, wmOperator *op)
 		ed_marker_move_exit(C, op);
 		return OPERATOR_FINISHED;
 	}
-	return OPERATOR_CANCELLED;
+	return OPERATOR_PASS_THROUGH;
 }
 
-static void ED_MARKER_OT_move(wmOperatorType *ot)
+static void MARKER_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Time Marker";
-	ot->idname= "ED_MARKER_OT_move";
+	ot->idname= "MARKER_OT_move";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_move_exec;
@@ -548,11 +548,11 @@ static int ed_marker_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	return ed_marker_move_invoke(C, op, evt);
 }
 
-static void ED_MARKER_OT_duplicate(wmOperatorType *ot)
+static void MARKER_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Time Marker";
-	ot->idname= "ED_MARKER_OT_duplicate";
+	ot->idname= "MARKER_OT_duplicate";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_duplicate_exec;
@@ -638,22 +638,22 @@ static int ed_marker_select_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	return ed_marker_select(C, evt, 0);
 }
 
-static void ED_MARKER_OT_mouseselect(wmOperatorType *ot)
+static void MARKER_OT_mouseselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Time Marker";
-	ot->idname= "ED_MARKER_OT_mouseselect";
+	ot->idname= "MARKER_OT_mouseselect";
 	
 	/* api callbacks */
 	ot->invoke= ed_marker_select_invoke;
 	ot->poll= ED_operator_areaactive;
 }
 
-static void ED_MARKER_OT_mouseselect_extend(wmOperatorType *ot)
+static void MARKER_OT_mouseselect_extend(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extend Select Time Marker";
-	ot->idname= "ED_MARKER_OT_mouseselect_extend";
+	ot->idname= "MARKER_OT_mouseselect_extend";
 	
 	/* api callbacks */
 	ot->invoke= ed_marker_select_extend_invoke;
@@ -721,11 +721,11 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static void ED_MARKER_OT_border_select(wmOperatorType *ot)
+static void MARKER_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Marker Border select";
-	ot->idname= "ED_MARKER_OT_border_select";
+	ot->idname= "MARKER_OT_border_select";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_border_select_exec;
@@ -781,11 +781,11 @@ static int ed_marker_select_all_invoke(bContext *C, wmOperator *op, wmEvent *evt
 	return ed_marker_select_all_exec(C, op);
 }
 
-static void ED_MARKER_OT_select_all(wmOperatorType *ot)
+static void MARKER_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)select all markers";
-	ot->idname= "ED_MARKER_OT_select_all";
+	ot->idname= "MARKER_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_select_all_exec;
@@ -822,11 +822,11 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 }
 
 
-static void ED_MARKER_OT_delete(wmOperatorType *ot)
+static void MARKER_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Markers";
-	ot->idname= "ED_MARKER_OT_delete";
+	ot->idname= "MARKER_OT_delete";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -840,14 +840,14 @@ static void ED_MARKER_OT_delete(wmOperatorType *ot)
 /* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void)
 {
-	WM_operatortype_append(ED_MARKER_OT_add);
-	WM_operatortype_append(ED_MARKER_OT_move);
-	WM_operatortype_append(ED_MARKER_OT_duplicate);
-	WM_operatortype_append(ED_MARKER_OT_mouseselect);
-	WM_operatortype_append(ED_MARKER_OT_mouseselect_extend);
-	WM_operatortype_append(ED_MARKER_OT_border_select);
-	WM_operatortype_append(ED_MARKER_OT_select_all);
-	WM_operatortype_append(ED_MARKER_OT_delete);
+	WM_operatortype_append(MARKER_OT_add);
+	WM_operatortype_append(MARKER_OT_move);
+	WM_operatortype_append(MARKER_OT_duplicate);
+	WM_operatortype_append(MARKER_OT_mouseselect);
+	WM_operatortype_append(MARKER_OT_mouseselect_extend);
+	WM_operatortype_append(MARKER_OT_border_select);
+	WM_operatortype_append(MARKER_OT_select_all);
+	WM_operatortype_append(MARKER_OT_delete);
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
@@ -855,16 +855,16 @@ void ED_marker_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Markers", 0, 0);
 	
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ED_MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_R, KM_ANY, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect", RIGHTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_mouseselect_extend", RIGHTMOUSE, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	
-	WM_keymap_add_item(keymap, "ED_MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
 	
 	/* generates event, in end to make select work */
 	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", RIGHTMOUSE, KM_PRESS, 0, 0);
