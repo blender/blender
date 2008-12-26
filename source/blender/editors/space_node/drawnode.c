@@ -2512,7 +2512,7 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode)
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
-			int x, y; 
+			float x, y; 
 			/* somehow the offset has to be calculated inverse */
 			
 			//glaDefine2DArea(&sa->winrct);

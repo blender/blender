@@ -103,9 +103,9 @@ extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
 // XXX butspace.h
 #define B_NODE_EXEC			3610
 
-#if 0 // XXX
 static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okwidth)
 {
+#if 0 // XXX
 	char drawstr[NODE_MAXSTR];
 	int width;
 	
@@ -126,8 +126,8 @@ static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okw
 		if(len==0) return;
 	}
 	UI_DrawString(curfont, drawstr, 0);
-}
 #endif
+}
 
 static void node_scaling_widget(int color_id, float aspect, float xmin, float ymin, float xmax, float ymax)
 {
@@ -514,8 +514,8 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void *socket_v)
 {
-	SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
-	ScrArea *curarea= CTX_wm_area(C);
+#if 0 //XXX
+	SpaceNode *snode= curarea->spacedata.first;
 	bNode *node;
 	bNodeSocket *sock= socket_v;
 	bNodeStack *ns= &sock->ns;
@@ -532,7 +532,7 @@ static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void 
 			break;
 	}
 	
-	block= uiBeginBlock(C, handle->region, "socket menu", UI_EMBOSS, UI_HELV);
+	block= uiNewBlock(&curarea->uiblocks, "socket menu", UI_EMBOSS, UI_HELV, curarea->win);
 
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-4, -4, 188, 68, NULL, 0, 0, 0, 0, "");
@@ -546,11 +546,12 @@ static uiBlock *socket_vector_menu(bContext *C, uiMenuBlockHandle *handle, void 
 	uiButSetFunc(bt, socket_vector_menu_cb, node, snode->nodetree);
 	
 	uiBlockSetDirection(block, UI_TOP);
-	uiEndBlock(C, block);
 	
-	ED_area_tag_redraw(curarea);
+	// allqueue(REDRAWNODE, 0);
 	
 	return block;
+#endif
+return NULL;
 }
 
 /* not a callback */
@@ -1067,13 +1068,9 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	float col[3];
 	View2DScrollers *scrollers;
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-	int argus;
-	
-	argus= 1.1f+ 2.3f;
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
+	glClearColor(col[0], col[1], col[2], 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	UI_view2d_view_ortho(C, v2d);
@@ -1089,12 +1086,12 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	snode->aspect= (v2d->cur.xmax - v2d->cur.xmin)/((float)sa->winx);
+	//snode->aspect= (snode->v2d.cur.xmax - snode->v2d.cur.xmin)/((float)sa->winx);
 	//snode->curfont= uiSetCurFont_ext(snode->aspect);
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */
-	draw_nodespace_back_pix(CTX_wm_area(C), snode);
+	// draw_nodespace_back_pix(sa, snode);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));
@@ -1148,6 +1145,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 		addafterqueue(sa->win, RENDERPREVIEW, 1);
 		snode->flag &= ~SNODE_DO_PREVIEW;
 	}*/
+	
+	
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
