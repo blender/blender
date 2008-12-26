@@ -390,7 +390,7 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 	}
 
 	*step= fprop->step;
-	*precision= fprop->precision;
+	*precision= (float)fprop->precision;
 }
 
 int RNA_property_string_maxlength(PointerRNA *ptr, PropertyRNA *prop)
@@ -800,7 +800,7 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 		IDPropertyTemplate val;
 		IDProperty *group;
 
-		val.str= value;
+		val.str= (char*)value;
 
 		group= rna_idproperties_get(ptr->type, ptr->data, 1);
 		if(group)
