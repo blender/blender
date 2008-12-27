@@ -63,7 +63,7 @@ static void pyop_kwargs_from_operator(PyObject *dict, wmOperator *op)
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
-		item = pyrna_prop_to_py(&iter.ptr, prop);
+		item = pyrna_prop_to_py(op->ptr, prop);
 		PyDict_SetItemString(dict, arg_name, item);
 		Py_DECREF(item);
 	}
@@ -80,7 +80,7 @@ static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 	pyop_kwargs_from_operator(kw, op);
 
 	ret = PyObject_Call(pyot->py_exec, args, kw);
-
+	
 	Py_DECREF(args);
 	Py_DECREF(kw);
 
@@ -176,10 +176,11 @@ static PyObject *pyop_add(PyObject *self, PyObject *args)
 	char *name= NULL;
 	PyObject *invoke= NULL;
 	PyObject *exec= NULL;
-	
-	if (!PyArg_ParseTuple(args, "ssOO", &idname, &name, &invoke, &exec))
+
+	if (!PyArg_ParseTuple(args, "ssOO", &idname, &name, &invoke, &exec)) {
 		PyErr_SetString( PyExc_AttributeError, "expected 2 strings and 2 function objects");
 		return NULL;
+	}
 
 	if (WM_operatortype_find(idname)) {
 		PyErr_Format( PyExc_AttributeError, "First argument \"%s\" operator alredy exists with this name", idname);
@@ -190,7 +191,7 @@ static PyObject *pyop_add(PyObject *self, PyObject *args)
 		PyErr_SetString( PyExc_AttributeError, "the 2nd arg must be a function or None, the secons must be a function");
 		return NULL;
 	}
-	
+
 	pyot= MEM_callocN(sizeof(PyOperatorType), "PyOperatorType");
 
 	strcpy(pyot->idname, idname);

@@ -331,8 +331,8 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
-		/* only for testing, can remove any time */
-		WM_operator_print(op);
+		if(G.f & G_DEBUG)
+			WM_operator_print(op);
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 			wm_operator_register(wm, op);

@@ -82,17 +82,16 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 
 	if( strcmp( name, "__members__" ) == 0 ) {
 		PyObject *item;
-
-		ret = PyList_New(0);
+		ret = PyList_New(2);
+		
+		PyList_SET_ITEM(ret, 0, PyUnicode_FromString("add"));
+		PyList_SET_ITEM(ret, 1, PyUnicode_FromString("remove"));
 
 		for(ot= WM_operatortype_first(); ot; ot= ot->next) {
 			item = PyUnicode_FromString( ot->idname );
 			PyList_Append(ret, item);
 			Py_DECREF(item);
 		}
-
-		item = PyUnicode_FromString("add");		PyList_Append(ret, item); Py_DECREF(item);
-		item = PyUnicode_FromString("remove");	PyList_Append(ret, item); Py_DECREF(item);
 	}
 	else if ( strcmp( name, "add" ) == 0 ) {
 		ret= PYOP_wrap_add_func();
@@ -168,7 +167,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 			error_val = 1; /* pyrna_py_to_prop sets the error */
 			break;
 		}
-
+		
 		if (pyrna_py_to_prop(&ptr, prop, item)) {
 			error_val= 1;
 			break;

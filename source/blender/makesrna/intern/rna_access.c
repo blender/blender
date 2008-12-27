@@ -1899,7 +1899,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	case PROP_FLOAT:
 		if (len==0) {
-			BLI_dynstr_appendf(dynstr, "%f", RNA_property_int_get(ptr, prop));
+			BLI_dynstr_appendf(dynstr, "%f", RNA_property_float_get(ptr, prop));
 		}
 		else {
 			BLI_dynstr_append(dynstr, "(");
