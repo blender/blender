@@ -39,10 +39,10 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
-static void BPY_start_python( void )
+void BPY_start_python( void )
 {
 	PyThreadState *py_tstate = NULL;
-	
+
 	Py_Initialize(  );
 	
 	//PySys_SetArgv( argc_copy, argv_copy );
@@ -57,7 +57,7 @@ static void BPY_start_python( void )
 	
 }
 
-static void BPY_end_python( void )
+void BPY_end_python( void )
 {
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
@@ -76,7 +76,7 @@ void BPY_run_python_script( bContext *C, const char *fn )
 	/* TODO - look into a better way to run a file */
 	sprintf(pystring, "exec(open(r'%s').read())", fn);	
 	
-	BPY_start_python();
+	//BPY_start_python();
 	
 	gilstate = PyGILState_Ensure();
 	
@@ -91,5 +91,5 @@ void BPY_run_python_script( bContext *C, const char *fn )
 	
 	PyGILState_Release(gilstate);
 	
-	BPY_end_python();
+	//BPY_end_python();
 }
