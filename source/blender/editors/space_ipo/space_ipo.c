@@ -275,10 +275,15 @@ static void ipo_header_area_draw(const bContext *C, ARegion *ar)
 static void ipo_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->type) {
+	switch(wmn->category) {
 		
-		case WM_NOTE_MARKERS_CHANGED:
-			ED_region_tag_redraw(ar);
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+				case ND_MARKERS:
+					ED_region_tag_redraw(ar);
+					break;
+				}
 			break;
 	}
 }

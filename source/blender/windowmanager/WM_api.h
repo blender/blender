@@ -95,7 +95,7 @@ void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
 void		WM_event_add_mousemove(struct bContext *C);
 
-void		WM_event_add_notifier(struct bContext *C, int type, int value, void *data);
+void		WM_event_add_notifier(struct bContext *C, unsigned int type, void *data);
 
 void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 

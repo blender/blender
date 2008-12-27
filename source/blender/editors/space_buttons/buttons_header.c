@@ -99,7 +99,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case B_NEWFRAME:
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, NULL);
 			break;
 		case B_CONTEXT_SWITCH:
 			ED_area_tag_redraw(CTX_wm_area(C));

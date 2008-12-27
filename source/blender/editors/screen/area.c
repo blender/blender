@@ -107,13 +107,12 @@ void ED_region_pixelspace(ARegion *ar)
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
-	switch(note->type) {
-		case WM_NOTE_WINDOW_REDRAW:
-		case WM_NOTE_SCREEN_CHANGED:
+	switch(note->category) {
+		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;
-		case WM_NOTE_GESTURE_REDRAW:
-			if(note->swinid==ar->swinid)
+		case NC_SCREEN:
+			if(note->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 		default:

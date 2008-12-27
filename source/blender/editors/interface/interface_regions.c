@@ -392,7 +392,7 @@ void ui_tooltip_free(bContext *C, ARegion *ar)
 {
 	ui_remove_temporary_region(C, CTX_wm_screen(C), ar);
 
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);	// XXX provide rect for window
 }
 
 /************************* Creating Menu Blocks **********************/
@@ -710,7 +710,7 @@ void ui_menu_block_free(bContext *C, uiMenuBlockHandle *handle)
 	ui_remove_temporary_region(C, CTX_wm_screen(C), handle->region);
 	MEM_freeN(handle);
 
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);	// XXX provide rect for window
 }
 
 /***************************** Menu Button ***************************/

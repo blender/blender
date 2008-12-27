@@ -387,7 +387,7 @@ int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
-	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	wm_gesture_tag_redraw(C);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -412,7 +412,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 				rect->ymax= event->y - sy;
 			}
 			
-			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			wm_gesture_tag_redraw(C);
 
 			break;
 			
@@ -422,7 +422,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(event->val==1) {
 				if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 					gesture->mode= 1;
-					WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+					wm_gesture_tag_redraw(C);
 				}
 			}
 			else {
@@ -448,7 +448,7 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
-	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	wm_gesture_tag_redraw(C);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -493,7 +493,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			rect->xmin= event->x - sx;
 			rect->ymin= event->y - sy;
 			
-			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			wm_gesture_tag_redraw(C);
 			
 			if(gesture->mode)
 				gesture_circle_apply(C, op, event->type);
@@ -501,12 +501,12 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case WHEELUPMOUSE:
 			rect->xmax += 2 + rect->xmax/10;
-			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			wm_gesture_tag_redraw(C);
 			break;
 		case WHEELDOWNMOUSE:
 			rect->xmax -= 2 + rect->xmax/10;
 			if(rect->xmax < 1) rect->xmax= 1;
-			WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+			wm_gesture_tag_redraw(C);
 			break;
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
@@ -554,7 +554,7 @@ static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
-	WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+	wm_gesture_tag_redraw(C);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -603,7 +603,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_FINISHED;
 			}
 			else
-				WM_event_add_notifier(C, WM_NOTE_GESTURE_REDRAW, 0, NULL);
+				wm_gesture_tag_redraw(C);
 			
 			break;
 			

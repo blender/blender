@@ -308,7 +308,7 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
 		case B_REDR:
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			ED_region_tag_redraw(CTX_wm_region(C));
 			break;
 	}
 }

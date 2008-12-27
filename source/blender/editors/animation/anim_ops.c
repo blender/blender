@@ -101,8 +101,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	if (cfra != scene->r.cfra)
 		scene->r.cfra= cfra;
 	
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
-	/* XXX: add WM_NOTE_TIME_CHANGED? */
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
 /* Clear any temp flags */

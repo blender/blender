@@ -46,6 +46,8 @@
 #include "wm_event_system.h"
 #include "wm_subwindow.h"
 
+#include "ED_screen.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -227,4 +229,13 @@ void wm_gesture_draw(wmWindow *win)
 	}
 }
 
-
+void wm_gesture_tag_redraw(bContext *C)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if(screen)
+		screen->do_gesture= 1;
+	if(ar)
+		ED_region_tag_redraw(ar);
+}

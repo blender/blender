@@ -117,21 +117,53 @@ typedef struct wmNotifier {
 	struct wmWindow *window;
 	
 	int swinid;
-	int type;
-	int value;
-	void *data;
+	unsigned int category, data, subtype, action;
+	
+	void *reference;
 	
 } wmNotifier;
 
 
-enum {
-	WM_NOTE_WINDOW_REDRAW,
-	WM_NOTE_SCREEN_CHANGED,
-	WM_NOTE_GESTURE_REDRAW,
-	WM_NOTE_MARKERS_CHANGED,
-	WM_NOTE_OBJECT_CHANGED,
-	WM_NOTE_LAST
-};
+/* 4 levels 
+
+0xFF000000; category
+0x00FF0000; data
+0x0000FF00; data subtype (unused?)
+0x000000FF; action
+*/
+
+/* category */
+#define NOTE_CATEGORY		0xFF000000
+#define	NC_WINDOW			(1<<24)
+#define	NC_SCREEN			(2<<24)
+#define	NC_SCENE			(3<<24)
+#define	NC_OBJECT			(4<<24)
+#define	NC_MATERIAL			(5<<24)
+#define	NC_TEXTURE			(6<<24)
+
+/* data type, 256 entries is enough, it can overlap */
+#define NOTE_DATA			0x00FF0000
+
+	/* Scene, node users level */
+#define	ND_MARKERS			(2<<16)
+#define	ND_FRAME			(3<<16)
+#define	ND_RENDER_OPTIONS	(4<<16)
+#define	ND_NODES			(5<<16)
+#define	ND_SEQUENCER		(6<<16)
+	/* Object */
+#define	ND_TRANSFORM		(16<<16)
+#define ND_SHADING			(17<<16)
+
+/* subtype, 256 entries too */
+#define NOTE_SUBTYPE		0x0000FF00
+
+/* action classification */
+#define NOTE_ACTION			(0x000000FF)
+#define NA_EDITED			1
+#define NA_EVALUATED		2
+#define NA_ADDED			3
+#define NA_REMOVED			4
+
 
 /* ************** Gesture Manager data ************** */
 

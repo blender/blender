@@ -275,7 +275,7 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 			}				
 			else
 				scene->r.sfra = scene->r.cfra;
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 			break;
 		case 2: /* Set as End */
 			if (scene->r.psfra) {
@@ -285,7 +285,7 @@ static void do_time_framemenu(bContext *C, void *arg, int event)
 			}				
 			else
 				scene->r.efra = scene->r.cfra;
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 			break;
 		case 3: /* Rename Marker */
 			//rename_marker();
@@ -362,8 +362,10 @@ void do_time_buttons(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case B_REDRAWALL:
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+			break;
 		case B_NEWFRAME:
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			break;
 		case B_TL_REW:
 			scene->r.cfra= PSFRA;
@@ -374,7 +376,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_TL_STOP:
 			ED_screen_animation_timer(C, 0);
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
 			break;
 		case B_TL_FF:
 			/* end frame */
@@ -402,7 +403,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 				scene->r.pefra= 0;
 			}
 			//BIF_undo_push("Set anim-preview range");
-			WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 			break;
 			
 		case B_TL_INSERTKEY:

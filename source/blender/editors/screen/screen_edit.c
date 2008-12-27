@@ -912,15 +912,13 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 {
 	
 	/* generic notes */
-	switch(note->type) {
-		case WM_NOTE_WINDOW_REDRAW:
+	switch(note->category) {
+		case NC_WINDOW:
 			win->screen->do_draw= 1;
 			break;
-		case WM_NOTE_SCREEN_CHANGED:
-			win->screen->do_draw= win->screen->do_refresh= 1;
-			break;
-		case WM_NOTE_GESTURE_REDRAW:
-			win->screen->do_gesture= 1;	/* XXX gestures are stored in window, draw per region... a bit weak? wait for proper composite? (ton) */
+		case NC_SCREEN:
+			if(note->action==NA_EDITED)
+				win->screen->do_draw= win->screen->do_refresh= 1;
 			break;
 	}
 }
@@ -1207,7 +1205,7 @@ void ed_screen_set(bContext *C, bScreen *sc)
 		CTX_wm_window(C)->screen= sc;
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
-		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
 	}
 }
 

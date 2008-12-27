@@ -330,7 +330,7 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	area_copy_data((ScrArea *)newsc->areabase.first, sa, 0);
 	
 	/* screen, areas init */
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -473,7 +473,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 		}
 	}
 
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 }
 
 static void area_move_apply(bContext *C, wmOperator *op)
@@ -727,7 +727,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
 		else sd->origval= sd->nedge->v1->vec.x;
 
-		WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 		
 		return 1;
 	}		
@@ -742,7 +742,7 @@ static void area_split_exit(bContext *C, wmOperator *op)
 		op->customdata = NULL;
 	}
 	
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 
 	/* this makes sure aligned edges will result in aligned grabbing */
 	removedouble_scrverts(CTX_wm_screen(C));
@@ -853,7 +853,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
 			RNA_float_set(op->ptr, "fac", fac / (float)sd->origsize);
 			
-			WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 			break;
 			
 		case LEFTMOUSE:
@@ -910,8 +910,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	delta = RNA_int_get(op->ptr, "delta");
 
 	CTX_data_scene(C)->r.cfra += delta;
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
-	/* XXX: add WM_NOTE_TIME_CHANGED? */
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -1156,7 +1155,7 @@ static int area_join_cancel(bContext *C, wmOperator *op)
 		jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 	}
 
-	WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
 	area_join_exit(C, op);
 
@@ -1204,7 +1203,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 								jd->sa2 = NULL;
 							}
 						}
-						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, NC_WINDOW, NULL);
 					} 
 					else {
 						/* we are back in the area previously selected for keeping 
@@ -1229,7 +1228,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 								jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
 							}
 						}
-						WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+						WM_event_add_notifier(C, NC_WINDOW, NULL);
 					}
 				}
 			}
@@ -1237,7 +1236,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 			if(event->val==0) {
 				area_join_apply(C, op);
-				WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				area_join_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
@@ -1324,7 +1323,7 @@ static int region_split_exec(bContext *C, wmOperator *op)
 	else
 		ar->alignment= RGN_ALIGN_VSPLIT;
 	
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1363,7 +1362,7 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 	else if(ar->alignment==RGN_ALIGN_RIGHT)
 		ar->alignment= RGN_ALIGN_LEFT;
 	
-	WM_event_add_notifier(C, WM_NOTE_SCREEN_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1401,7 +1400,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 				scene->r.cfra= scene->r.sfra;
 		}
 
-		WM_event_add_notifier(C, WM_NOTE_WINDOW_REDRAW, 0, NULL);
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 		
 		return OPERATOR_FINISHED;
 	}

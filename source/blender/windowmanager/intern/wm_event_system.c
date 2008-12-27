@@ -96,7 +96,7 @@ void wm_event_free_all(wmWindow *win)
 /* ********************* notifiers, listeners *************** */
 
 /* XXX: in future, which notifiers to send to other windows? */
-void WM_event_add_notifier(bContext *C, int type, int value, void *data)
+void WM_event_add_notifier(bContext *C, unsigned int type, void *reference)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
@@ -105,9 +105,13 @@ void WM_event_add_notifier(bContext *C, int type, int value, void *data)
 	note->window= CTX_wm_window(C);
 	if(CTX_wm_region(C))
 		note->swinid= CTX_wm_region(C)->swinid;
-	note->type= type;
-	note->value= value;
-	note->data= data;
+	
+	note->category= type & NOTE_CATEGORY;
+	note->data= type & NOTE_DATA;
+	note->subtype= type & NOTE_SUBTYPE;
+	note->action= type & NOTE_ACTION;
+	
+	note->reference= reference;
 }
 
 static wmNotifier *wm_notifier_next(wmWindowManager *wm)

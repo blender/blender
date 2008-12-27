@@ -200,7 +200,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	sprintf(marker->name, "Frame %d", frame); // XXX - temp code only
 	BLI_addtail(markers, marker);
 	
-	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	//BIF_undo_push("Add Marker");
 	
 	return OPERATOR_FINISHED;
@@ -336,7 +336,7 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);	
 	
-	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 }
 
 
@@ -379,7 +379,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case RIGHTMOUSE:
 			if(WM_modal_tweak_check(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
-				WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				return OPERATOR_FINISHED;
 			}
 			
@@ -456,7 +456,7 @@ XXX					else if (mm->slink->spacetype == SPACE_ACTION) {
 					}
 				}
 				
-				WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				// headerprint(str); XXX
 			}
 	}
@@ -623,7 +623,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	else
 		select_timeline_marker_frame(markers, cfra, 0);
 	
-	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 
 	return OPERATOR_PASS_THROUGH;
 }
@@ -716,7 +716,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 
 	return 1;
 }
@@ -769,7 +769,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 			marker->flag &= ~SELECT;
 	}
 	
-	WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -816,7 +816,7 @@ static int ed_marker_delete_exec(bContext *C, wmOperator *op)
 	}
 	
 	if(changed) {
-		WM_event_add_notifier(C, WM_NOTE_MARKERS_CHANGED, 0, NULL);
+		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	}
 	return OPERATOR_FINISHED;
 }

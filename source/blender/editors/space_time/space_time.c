@@ -164,9 +164,10 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->type) {
+	switch(wmn->category) {
 		
-		case WM_NOTE_MARKERS_CHANGED:
+		case NC_SCENE:
+			/* any scene change for now */
 			ED_region_tag_redraw(ar);
 			break;
 	}
