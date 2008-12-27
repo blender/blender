@@ -211,7 +211,9 @@ void WM_exit(bContext *C)
 	
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
+#ifndef DISABLE_PYTHON
 	BPY_end_python();
+#endif
 	
 //	fastshade_free_render();	/* shaded view */
 	free_blender();				/* blender.c, does entire library */

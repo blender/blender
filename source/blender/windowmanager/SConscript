@@ -13,4 +13,10 @@ incs += ' ../makesrna ../gpu'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost #/intern/bmfont'
 incs += ' #/intern/elbeem #/extern/glew/include'
-env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), [], libtype=['core'], priority=[5] )
+
+defs = []
+
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[5] )
