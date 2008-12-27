@@ -48,6 +48,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_anim_api.h"
 
 #include "RNA_access.h"
 
@@ -127,6 +128,25 @@ void wm_event_do_notifiers(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmNotifier *note;
+	wmWindow *win;
+	
+	/* cache & catch WM level notifiers, such as frame change */
+	/* XXX todo, multiwindow scenes */
+	for(win= wm->windows.first; win; win= win->next) {
+		int do_anim= 0;
+		
+		for(note= wm->queue.first; note; note= note->next) {
+			if(note->window==win)
+				if(note->category==NC_SCENE)
+					if(note->data==ND_FRAME)
+						do_anim= 1;
+		}
+		if(do_anim) {
+			/* depsgraph gets called, might send more notifiers */
+			CTX_wm_window_set(C, win);
+			ED_update_for_newframe(C, 1);
+		}
+	}
 	
 	while( (note=wm_notifier_next(wm)) ) {
 		wmWindow *win;
@@ -158,15 +178,11 @@ void wm_event_do_notifiers(bContext *C)
 	}	
 }
 
-/* mark regions to redraw if overlapped with rect */
-static void wm_flush_regions(bScreen *screen, rcti *dirty)
+/* mark area-regions to redraw if overlapped with rect */
+static void wm_flush_regions_down(bScreen *screen, rcti *dirty)
 {
 	ScrArea *sa;
 	ARegion *ar;
-	
-	for(ar= screen->regionbase.first; ar; ar= ar->next)
-		if(BLI_isect_rcti(dirty, &ar->winrct, NULL))
-			ar->do_draw= 1;
 
 	for(sa= screen->areabase.first; sa; sa= sa->next)
 		for(ar= sa->regionbase.first; ar; ar= ar->next)
@@ -174,18 +190,42 @@ static void wm_flush_regions(bScreen *screen, rcti *dirty)
 				ar->do_draw= 1;
 }
 
+/* mark menu-regions to redraw if overlapped with rect */
+static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
+{
+	ARegion *ar;
+	
+	for(ar= screen->regionbase.first; ar; ar= ar->next)
+		if(BLI_isect_rcti(dirty, &ar->winrct, NULL))
+			ar->do_draw= 1;
+}
+
+
 /* all the overlay management, menus, actionzones, region tabs, etc */
 static void wm_flush_draw_update(bContext *C)
 {
+	ScrArea *sa;
 	ARegion *ar;
 	bScreen *screen= CTX_wm_screen(C);
 	
-	/* flush redraws of screen regions (menus) down */
-	for(ar= screen->regionbase.last; ar; ar= ar->prev) {
-		if(ar->swinid && ar->do_draw) {
-			wm_flush_regions(screen, &ar->winrct);
-		}
-	}
+	if(screen->regionbase.first) {
+		/* flush redraws of area-regions up to menus */
+		for(sa= screen->areabase.first; sa; sa= sa->next)
+			for(ar= sa->regionbase.first; ar; ar= ar->next)
+				if(ar->swinid && ar->do_draw)
+					wm_flush_regions_up(screen, &ar->winrct);
+		
+		/* flush overlapping menus */
+		for(ar= screen->regionbase.last; ar; ar= ar->prev)
+			if(ar->swinid && ar->do_draw)
+				wm_flush_regions_up(screen, &ar->winrct);
+		
+		
+		/* flush redraws of menus down to areas */
+		for(ar= screen->regionbase.last; ar; ar= ar->prev)
+			if(ar->swinid && ar->do_draw)
+				wm_flush_regions_down(screen, &ar->winrct);
+	}	
 	
 	/* sets redraws for Azones, future region tabs, etc */
 	ED_area_overdraw_flush(C);

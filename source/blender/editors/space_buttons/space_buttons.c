@@ -230,9 +230,19 @@ static void buttons_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void buttons_main_area_listener(ARegion *ar, wmNotifier *wmn)
+/* reused! */
+static void buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
 }
 
 /* only called once, from space/spacetypes.c */
@@ -255,7 +265,7 @@ void ED_spacetype_buttons(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= buttons_main_area_init;
 	art->draw= buttons_main_area_draw;
-	art->listener= buttons_main_area_listener;
+	art->listener= buttons_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
@@ -268,7 +278,7 @@ void ED_spacetype_buttons(void)
 	
 	art->init= buttons_header_area_init;
 	art->draw= buttons_header_area_draw;
-	
+	art->listener= buttons_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */

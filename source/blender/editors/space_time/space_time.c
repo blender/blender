@@ -203,6 +203,17 @@ static void time_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
+static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		
+		case NC_SCENE:
+			if(wmn->data==ND_FRAME)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
 
 /* ******************** default callbacks for time space ***************** */
 
@@ -314,6 +325,7 @@ void ED_spacetype_time(void)
 	
 	art->init= time_header_area_init;
 	art->draw= time_header_area_draw;
+	art->listener= time_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 		
 	BKE_spacetype_register(st);

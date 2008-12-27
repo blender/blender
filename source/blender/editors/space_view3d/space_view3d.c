@@ -52,6 +52,7 @@
 #include "BIF_gl.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -203,6 +204,19 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 }
 
+static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -295,7 +309,7 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
-	
+	art->listener= view3d_main_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
