@@ -94,6 +94,11 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	/* regions now have v2d-data by default, so check for region */
 	if (ar == NULL)
 		return 0;
+		
+	/* check if panning is allowed at all */
+	v2d= &ar->v2d;
+	if ((v2d->keepofs & V2D_LOCKOFS_X) && (v2d->keepofs & V2D_LOCKOFS_Y))
+		return 0;
 	
 	/* set custom-data for operator */
 	vpd= MEM_callocN(sizeof(v2dViewPanData), "v2dViewPanData");
@@ -102,7 +107,7 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	/* set pointers to owners */
 	vpd->sc= CTX_wm_screen(C);
 	vpd->sa= CTX_wm_area(C);
-	vpd->v2d= v2d= &ar->v2d;
+	vpd->v2d= v2d;
 	
 	/* calculate translation factor - based on size of view */
 	winx= (float)(ar->winrct.xmax - ar->winrct.xmin);
@@ -173,7 +178,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* set up customdata */
 	if (!view_pan_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	
 	vpd= op->customdata;
 	v2d= vpd->v2d;
@@ -258,9 +263,18 @@ void View2D_OT_view_pan(wmOperatorType *ot)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
+	v2dViewPanData *vpd;
+	
 	/* initialise default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
+		
+	/* also, check if can pan in horizontal axis */
+	vpd= op->customdata;
+	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
+		view_pan_exit(C, op);
+		return OPERATOR_PASS_THROUGH;
+	}
 	
 	/* set RNA-Props - only movement in positive x-direction */
 	RNA_int_set(op->ptr, "deltax", 20);
@@ -295,9 +309,18 @@ void View2D_OT_view_scrollright(wmOperatorType *ot)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrollleft_exec(bContext *C, wmOperator *op)
 {
+	v2dViewPanData *vpd;
+	
 	/* initialise default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
+		
+	/* also, check if can pan in horizontal axis */
+	vpd= op->customdata;
+	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
+		view_pan_exit(C, op);
+		return OPERATOR_PASS_THROUGH;
+	}
 	
 	/* set RNA-Props - only movement in negative x-direction */
 	RNA_int_set(op->ptr, "deltax", -20);
@@ -331,9 +354,18 @@ void View2D_OT_view_scrollleft(wmOperatorType *ot)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
+	v2dViewPanData *vpd;
+	
 	/* initialise default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
+		
+	/* also, check if can pan in vertical axis */
+	vpd= op->customdata;
+	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
+		view_pan_exit(C, op);
+		return OPERATOR_PASS_THROUGH;
+	}
 	
 	/* set RNA-Props - only movement in positive x-direction */
 	RNA_int_set(op->ptr, "deltax", 0);
@@ -368,9 +400,18 @@ void View2D_OT_view_scrolldown(wmOperatorType *ot)
 /* this operator only needs this single callback, where it callsthe view_pan_*() methods */
 static int view_scrollup_exec(bContext *C, wmOperator *op)
 {
+	v2dViewPanData *vpd;
+	
 	/* initialise default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
+		
+	/* also, check if can pan in vertical axis */
+	vpd= op->customdata;
+	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
+		view_pan_exit(C, op);
+		return OPERATOR_PASS_THROUGH;
+	}
 	
 	/* set RNA-Props - only movement in negative x-direction */
 	RNA_int_set(op->ptr, "deltax", 0);
@@ -471,7 +512,7 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoomstep_ok(C))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	
 	/* set RNA-Props - zooming in by uniform factor */
 	RNA_float_set(op->ptr, "zoomfacx", 0.0375f);
@@ -507,7 +548,7 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoomstep_ok(C))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	
 	/* set RNA-Props - zooming in by uniform factor */
 	RNA_float_set(op->ptr, "zoomfacx", -0.0375f);
@@ -623,7 +664,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 {
 	if (!view_zoomdrag_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	
 	view_zoomdrag_apply(C, op);
 	view_zoomdrag_exit(C, op);
@@ -639,7 +680,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* set up customdata */
 	if (!view_zoomdrag_init(C, op))
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	
 	vzd= op->customdata;
 	v2d= vzd->v2d;
@@ -1243,6 +1284,14 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "View2D_OT_view_zoomin", WHEELDOWNMOUSE, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "View2D_OT_view_zoomout", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "View2D_OT_view_zoomin", PADPLUSKEY, KM_PRESS, 0, 0);
+	
+	/* scroll up/down - no modifiers, only when zoom fails */
+		/* these may fail if zoom is disallowed, in which case they should pass on event */
+	WM_keymap_add_item(keymap, "View2D_OT_view_downscroll", WHEELDOWNMOUSE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_upscroll", WHEELUPMOUSE, KM_ANY, 0, 0);
+		/* these may be necessary if vertical scroll is disallowed */
+	WM_keymap_add_item(keymap, "View2D_OT_view_rightscroll", WHEELDOWNMOUSE, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "View2D_OT_view_leftscroll", WHEELUPMOUSE, KM_ANY, 0, 0);
 	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "View2D_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
