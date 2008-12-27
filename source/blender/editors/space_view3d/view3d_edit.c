@@ -874,6 +874,85 @@ void VIEW3D_OT_viewcenter(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
+/* ********************* Set render border operator ****************** */
+
+static int render_border_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	
+	rcti rect;
+	rctf vb;
+	
+	/* get border select values using rna */
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	
+	/* calculate range */
+	calc_viewborder(scene, ar, v3d, &vb);
+
+	scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
+	scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
+	scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
+	scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
+	
+	/* actually set border */	
+	CLAMP(scene->r.border.xmin, 0.0, 1.0);
+	CLAMP(scene->r.border.ymin, 0.0, 1.0);
+	CLAMP(scene->r.border.xmax, 0.0, 1.0);
+	CLAMP(scene->r.border.ymax, 0.0, 1.0);
+		
+	/* drawing a border surrounding the entire camera view switches off border rendering
+	 * or the border covers no pixels */
+	if ((scene->r.border.xmin <= 0.0 && scene->r.border.xmax >= 1.0 &&
+		scene->r.border.ymin <= 0.0 && scene->r.border.ymax >= 1.0) ||
+	   (scene->r.border.xmin == scene->r.border.xmax ||
+		scene->r.border.ymin == scene->r.border.ymax ))
+	{
+		scene->r.mode &= ~R_BORDER;
+	} else {
+		scene->r.mode |= R_BORDER;
+	}
+	
+	return OPERATOR_FINISHED;
+
+}
+
+static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	
+	/* if not in camera view do not exec the operator*/
+	if (v3d->persp == V3D_CAMOB) return WM_border_select_invoke(C, op, event);	
+	else return OPERATOR_PASS_THROUGH;
+}
+
+void VIEW3D_OT_render_border(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Set Render Border";
+	ot->idname= "VIEW3D_OT_render_border";
+
+	/* api callbacks */
+	ot->invoke= view3d_render_border_invoke;
+	ot->exec= render_border_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+
+}
 /* ********************* Changing view operator ****************** */
 
 static EnumPropertyItem prop_view_items[] = {
