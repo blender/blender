@@ -1525,9 +1525,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 
 	 /* tests */
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, 0, 0)->ptr, "dir", 'h');
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "dir", 'v');
-						  
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0)->ptr, "dir", 'h');
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0)->ptr, "dir", 'v');
+	
 	/*frame offsets*/
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);

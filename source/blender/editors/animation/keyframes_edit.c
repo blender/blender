@@ -145,6 +145,34 @@ short animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEd
 }
 
 /* ************************************************************************** */
+/* Keyframe Integrity Tools */
+
+/* Rearrange keyframes if some are out of order */
+// used to be recalc_*_ipos() where * was object or action
+void ANIM_editkeyframes_refresh(bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter animation data */
+	filter= ANIMFILTER_ONLYICU;
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop over ipo-curves that are likely to have been edited, and check them */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= ale->key_data;
+		
+		/* make sure keyframes in IPO-curve are all in order, and handles are in valid positions */
+		sort_time_ipocurve(icu);
+		testhandles_ipocurve(icu);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+}
+
+/* ************************************************************************** */
 /* BezTriple Validation Callbacks */
 
 static short ok_bezier_frame(BeztEditData *bed, BezTriple *bezt)
@@ -286,44 +314,10 @@ static short mirror_bezier_xaxis(BeztEditData *bed, BezTriple *bezt)
 
 static short mirror_bezier_marker(BeztEditData *bed, BezTriple *bezt)
 {
-	static TimeMarker *marker;
-	static short initialised = 0;
-	const Scene *scene= bed->scene;
-	
-	/* In order for this mirror function to work without
-	 * any extra arguments being added, we use the case
-	 * of bezt==NULL to denote that we should find the 
-	 * marker to mirror over. The static pointer is safe
-	 * to use this way, as it will be set to null after 
-	 * each cycle in which this is called.
-	 */
-	
-	if (bezt) {
-		/* mirroring time */
-		if ((bezt->f2 & SELECT) && (marker)) {
-			const float diff= (marker->frame - bezt->vec[1][0]);
-			bezt->vec[1][0]= (marker->frame + diff);
-		}
-	}
-	else {
-		/* initialisation time */
-		if (initialised) {
-			/* reset everything for safety */
-			marker = NULL;
-			initialised = 0;
-		}
-		else {
-			/* try to find a marker */
-			for (marker= scene->markers.first; marker; marker=marker->next) {
-				if (marker->flag & SELECT) {
-					initialised = 1;
-					break;
-				}
-			}			
-			
-			if (initialised == 0) 
-				marker = NULL;
-		}
+	/* mirroring time stored in f1 */
+	if (bezt->f2 & SELECT) {
+		const float diff= (bed->f1 - bezt->vec[1][0]);
+		bezt->vec[1][0]= (bed->f1 + diff);
 	}
 	
 	return 0;
@@ -334,19 +328,21 @@ static short mirror_bezier_marker(BeztEditData *bed, BezTriple *bezt)
 BeztEditFunc ANIM_editkeyframes_mirror(short type)
 {
 	switch (type) {
-		case 1: /* mirror over current frame */
+		case MIRROR_KEYS_CURFRAME: /* mirror over current frame */
 			return mirror_bezier_cframe;
-		case 2: /* mirror over frame 0 */
+		case MIRROR_KEYS_YAXIS: /* mirror over frame 0 */
 			return mirror_bezier_yaxis;
-		case 3: /* mirror over value 0 */
+		case MIRROR_KEYS_XAXIS: /* mirror over value 0 */
 			return mirror_bezier_xaxis;
-		case 4: /* mirror over marker */
-			return mirror_bezier_marker; // XXX in past, this func was called before/after with NULL, probably will need globals instead
+		case MIRROR_KEYS_MARKER: /* mirror over marker */
+			return mirror_bezier_marker; 
 		default: /* just in case */
 			return mirror_bezier_yaxis;
 			break;
 	}
 }
+
+/* --------- */
 
 /* This function is called to calculate the average location of the
  * selected keyframes, and place the current frame at that location.
@@ -654,6 +650,7 @@ short is_ipo_key_selected(Ipo *ipo)
 	return 0;
 }
 
+// XXX although this is still needed, it should be removed!
 void set_ipo_key_selection(Ipo *ipo, short sel)
 {
 	IpoCurve *icu;
@@ -678,6 +675,7 @@ void set_ipo_key_selection(Ipo *ipo, short sel)
 	}
 }
 
+// XXX port this over to the new system!
 // err... this is this still used?
 int fullselect_ipo_keys(Ipo *ipo)
 {
@@ -700,135 +698,4 @@ int fullselect_ipo_keys(Ipo *ipo)
 	
 	return tvtot;
 }
-
-
-void borderselect_icu_key(IpoCurve *icu, float xmin, float xmax, BeztEditFunc select_cb)
-{
-	/* Selects all bezier triples in the Ipocurve 
-	 * between times xmin and xmax, using the selection
-	 * function.
-	 */
-	BezTriple *bezt;
-	int i;
-	
-	/* loop through all of the bezier triples in
-	 * the Ipocurve -- if the triple occurs between
-	 * times xmin and xmax then select it using the selection
-	 * function
-	 */
-	for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
-		if ((bezt->vec[1][0] > xmin) && (bezt->vec[1][0] < xmax)) {
-			/* scene is NULL (irrelevant here) */
-			select_cb(NULL, bezt); 
-		}
-	}
-}
-
-void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, short selectmode)
-{
-	/* Selects all bezier triples in each Ipocurve of the
-	 * Ipo between times xmin and xmax, using the selection mode.
-	 */
-	
-	IpoCurve *icu;
-	BeztEditFunc select_cb;
-	
-	/* If the ipo is no good then return */
-	if (ipo == NULL)
-		return;
-	
-	/* Set the selection function based on the
-	 * selection mode.
-	 */
-	select_cb= ANIM_editkeyframes_select(selectmode);
-	if (select_cb == NULL)
-		return;
-	
-	/* loop through all of the bezier triples in all
-		* of the Ipocurves -- if the triple occurs between
-		* times xmin and xmax then select it using the selection
-		* function
-		*/
-	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		borderselect_icu_key(icu, xmin, xmax, select_cb);
-	}
-}
-
-void select_icu_key(BeztEditData *bed, IpoCurve *icu, float selx, short selectmode)
-{
-    /* Selects all bezier triples in the Ipocurve
-	 * at time selx, using the selection mode.
-	 * This is kind of sloppy the obvious similarities
-	 * with the above function, forgive me ...
-	 */
-    BeztEditFunc select_cb;
-	BezTriple *bezt;
-	int i;
-	
-    /* If the icu is no good then return */
-    if (icu == NULL)
-        return;
-	
-    /* Set the selection function based on the selection mode. */
-    switch (selectmode) {
-		case SELECT_ADD:
-			select_cb = select_bezier_add;
-			break;
-		case SELECT_SUBTRACT:
-			select_cb = select_bezier_subtract;
-			break;
-		case SELECT_INVERT:
-			select_cb = select_bezier_invert;
-			break;
-		default:
-			return;
-    }
-	
-    /* loop through all of the bezier triples in
-	 * the Ipocurve -- if the triple occurs at
-	 * time selx then select it using the selection
-	 * function
-	 */
-    for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
-        if (bezt->vec[1][0] == selx) {
-            select_cb(bed, bezt);
-        }
-    }
-}
-
-void select_ipo_key(BeztEditData *bed, Ipo *ipo, float selx, short selectmode)
-{
-	/* Selects all bezier triples in each Ipocurve of the
-	 * Ipo at time selx, using the selection mode.
-	 */
-	IpoCurve *icu;
-	BezTriple *bezt;
-	BeztEditFunc select_cb;
-	int i;
-	
-	/* If the ipo is no good then return */
-	if (ipo == NULL)
-		return;
-	
-	/* Set the selection function based on the
-	 * selection mode.
-	 */
-	select_cb= ANIM_editkeyframes_select(selectmode);
-	if (select_cb == NULL)
-		return;
-	
-	/* loop through all of the bezier triples in all
-	 * of the Ipocurves -- if the triple occurs at
-	 * time selx then select it using the selection
-	 * function
-	 */
-	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
-			if (bezt->vec[1][0] == selx) {
-				select_cb(bed, bezt);
-			}
-		}
-	}
-}
-
 

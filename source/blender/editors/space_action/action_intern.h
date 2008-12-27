@@ -48,6 +48,7 @@ void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* ***************************************** */
 /* action_select.c */
+
 void ACT_OT_keyframes_deselectall(struct wmOperatorType *ot);
 void ACT_OT_keyframes_borderselect(struct wmOperatorType *ot);
 void ACT_OT_keyframes_columnselect(struct wmOperatorType *ot);
@@ -69,6 +70,32 @@ enum {
 	ACTKEYS_COLUMNSEL_MARKERS_BETWEEN,
 } eActKeys_ColumnSelect_Mode;
 
+/* ***************************************** */
+/* action_edit_keyframes.c */
+
+void ACT_OT_keyframes_snap(struct wmOperatorType *ot);
+void ACT_OT_keyframes_mirror(struct wmOperatorType *ot);
+
+/* defines for snap keyframes 
+ * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
+ */
+enum {
+	ACTKEYS_SNAP_CFRA = 1,
+	ACTKEYS_SNAP_NEAREST_FRAME,
+	ACTKEYS_SNAP_NEAREST_SECOND,
+	ACTKEYS_SNAP_NEAREST_MARKER,	
+} eActKeys_Snap_Mode;
+
+/* defines for mirror keyframes 
+ * NOTE: keep in sync with eEditKeyframes_Mirror (in ED_keyframes_edit.h)
+ */
+enum {
+	ACTKEYS_MIRROR_CFRA = 1,
+	ACTKEYS_MIRROR_YAXIS,
+	ACTKEYS_MIRROR_XAXIS,
+	ACTKEYS_MIRROR_MARKER,	
+} eActKeys_Mirror_Mode;
+	
 /* ***************************************** */
 /* action_ops.c */
 void action_operatortypes(void);

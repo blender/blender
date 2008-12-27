@@ -29,6 +29,7 @@
 #ifndef ED_KEYFRAMES_EDIT_H
 #define ED_KEYFRAMES_EDIT_H
 
+struct bAnimContext;
 struct Ipo;
 struct IpoCurve;
 struct BezTriple;
@@ -67,16 +68,19 @@ typedef enum eEditKeyframes_Select {
 
 /* snapping tools */
 typedef enum eEditKeyframes_Snap {
-	SNAP_KEYS_NEARFRAME	= 1,
-	SNAP_KEYS_CURFRAME,
-	SNAP_KEYS_NEARMARKER,
+	SNAP_KEYS_CURFRAME = 1,
+	SNAP_KEYS_NEARFRAME,
 	SNAP_KEYS_NEARSEC,
+	SNAP_KEYS_NEARMARKER,
 } eEditKeyframes_Snap;
 
 /* mirroring tools */
-//typedef enum eEditKeyframes_Mirror {
-	
-//} eEditKeyframes_Mirror;
+typedef enum eEditKeyframes_Mirror {
+	MIRROR_KEYS_CURFRAME = 1,
+	MIRROR_KEYS_YAXIS,
+	MIRROR_KEYS_XAXIS,
+	MIRROR_KEYS_MARKER,
+} eEditKeyframes_Mirror;
 
 /* ************************************************ */
 /* Editing API */
@@ -92,19 +96,23 @@ typedef struct BeztEditData {
 	int i1, i2;					/* storage of times/values as 'whole' numbers */
 } BeztEditData;
 
-/* ------- Function Pointer Typedefs --------------- */
+/* ------- Function Pointer Typedefs ---------------- */
 
 	/* callback function that refreshes the IPO curve after use */
 typedef void (*IcuEditFunc)(struct IpoCurve *icu);
 	/* callback function that operates on the given BezTriple */
 typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
 
-/* ------------- Looping API ------------------- */
+/* ---------------- Looping API --------------------- */
 
+/* functions for looping over keyframes */
 short icu_keys_bezier_loop(BeztEditData *bed, struct IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
 short ipo_keys_bezier_loop(BeztEditData *bed, struct Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
 
-/* ------------ BezTriple Callback Getters --------------- */
+/* functions for making sure all keyframes are in good order */
+void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
+
+/* ----------- BezTriple Callback Getters ---------- */
 
 /* accessories */
 BeztEditFunc ANIM_editkeyframes_ok(short mode);
@@ -120,14 +128,8 @@ BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
 // XXX all of these funcs will be depreceated!
 
-void select_ipo_key(BeztEditData *bed, struct Ipo *ipo, float selx, short selectmode);
-void select_icu_key(BeztEditData *bed, struct IpoCurve *icu, float selx, short selectmode);
-
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);
-
-void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, short selectmode);
-void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, BeztEditFunc select_cb);
 
 
 /* ************************************************ */

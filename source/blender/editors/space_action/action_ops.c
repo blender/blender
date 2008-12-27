@@ -62,10 +62,15 @@ void action_operatortypes(void)
 	/* channels */
 	
 	/* keyframes */
+		/* selection */
 	WM_operatortype_append(ACT_OT_keyframes_clickselect);
 	WM_operatortype_append(ACT_OT_keyframes_deselectall);
 	WM_operatortype_append(ACT_OT_keyframes_borderselect);
 	WM_operatortype_append(ACT_OT_keyframes_columnselect);
+	
+		/* editing */
+	WM_operatortype_append(ACT_OT_keyframes_snap);
+	WM_operatortype_append(ACT_OT_keyframes_mirror);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -78,7 +83,6 @@ static void action_keymap_keyframes (ListBase *keymap)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column_select", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "left_right", ACTKEYS_LRSEL_TEST);
-	
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_deselectall", AKEY, KM_PRESS, 0, 0);
@@ -93,6 +97,11 @@ static void action_keymap_keyframes (ListBase *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
+	
+	/* action_edit_keyframes.c */
+		/* menu+1-step transform */
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 /* --------------- */

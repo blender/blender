@@ -411,6 +411,9 @@ void ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 	ot->exec= actkeys_deselectall_exec;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
 	/* props */
 	RNA_def_property(ot->srna, "invert", PROP_BOOLEAN, PROP_NONE);
 }
@@ -576,6 +579,10 @@ void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 	ot->modal= WM_border_select_modal;
 	
 	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	// XXX er...
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
 	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
@@ -809,6 +816,9 @@ void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
 	ot->exec= actkeys_columnselect_exec;
 	ot->poll= ED_operator_areaactive;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
 	/* props */
 	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_column_select_types);
@@ -1007,21 +1017,29 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	Scene *scene= ac->scene;
-	float min, max;
 	
+	BeztEditFunc ok_cb, select_cb;
+	BeztEditData bed;
+	Scene *scene= ac->scene;
+	
+	/* if select mode is replace, deselect all keyframes first */
 	if (select_mode==SELECT_REPLACE) {
 		select_mode=SELECT_ADD;
 		deselect_action_keys(ac, 0, 0);
 	}
 	
+	/* set callbacks and editing data */
+	ok_cb= ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
+	select_cb= ANIM_editkeyframes_select(select_mode);
+	
+	memset(&bed, 0, sizeof(BeztEditFunc));
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
-		min = -MAXFRAMEF;
-		max = (float)(CFRA + 0.1f);
+		bed.f1 = -MAXFRAMEF;
+		bed.f2 = (float)(CFRA + 0.1f);
 	} 
 	else {
-		min = (float)(CFRA - 0.1f);
-		max = MAXFRAMEF;
+		bed.f1 = (float)(CFRA - 0.1f);
+		bed.f2 = MAXFRAMEF;
 	}
 	
 	/* filter data */
@@ -1037,13 +1055,13 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 		
 		if (nob) {
 			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1);
-			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+			ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
-			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+			ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* Cleanup */
