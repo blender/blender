@@ -1234,25 +1234,57 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 	
 }
 
+/* *****************Selection Operations Operator******************* */
+
+static EnumPropertyItem prop_select_items[] = {
+	{V3D_SELECT_MOUSE, "NORMAL", "Normal Select", "Select using the mouse"},
+	{0, NULL, NULL, NULL}};
+		
+static int view3d_select_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	int select_type;
+	short mval[2];
+
+	select_type = RNA_enum_get(op->ptr, "select_type");
+	
+	view3d_operator_needs_opengl(C);
+	printf("about to look at enum");
+	switch (select_type) {
+		case V3D_SELECT_MOUSE :
+			printf("caught event");
+			mval[0] = RNA_int_get(op->ptr, "mx");
+			mval[1] = RNA_int_get(op->ptr, "my");
+			mouse_select(scene, ar, v3d, mval);
+			printf("selected object");
+			break;
+	}
+	return OPERATOR_FINISHED;
+}
+
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= sa->spacedata.first;
-	short mval[2];
-	
-	/* note; otherwise opengl select won't work. do this for every glSelectBuffer() */
-	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
+	short mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
-	mouse_select(CTX_data_scene(C), ar, v3d, mval);
+	
+	RNA_int_set(op->ptr, "mx", mval[0]);
+	RNA_int_set(op->ptr, "my", mval[1]);
 
-	return OPERATOR_FINISHED;
+	return view3d_select_exec(C,op);
+
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Activate/Select";
@@ -1261,6 +1293,12 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= view3d_select_invoke;
 	ot->poll= ED_operator_view3d_active;
+	
+	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_items);
+	
+	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
 }
 
 /* ********************  border and circle ************************************** */

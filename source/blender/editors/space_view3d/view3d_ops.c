@@ -115,7 +115,7 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANRIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANUP);
 
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", V3D_SELECT_MOUSE);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
