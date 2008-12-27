@@ -247,8 +247,6 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	scene->r.psfra= (int)floor(sfra + 0.5f);
 	scene->r.pefra= (int)floor(efra + 0.5f);
 	
-	//BIF_undo_push("Set Preview Range");
-	
 	return OPERATOR_FINISHED;
 } 
 

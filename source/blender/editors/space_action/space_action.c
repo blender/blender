@@ -68,8 +68,9 @@
 
 static SpaceLink *action_new(const bContext *C)
 {
-	ARegion *ar;
+	ScrArea *sa= CTX_wm_area(C);
 	SpaceAction *saction;
+	ARegion *ar;
 	
 	saction= MEM_callocN(sizeof(SpaceAction), "initaction");
 	saction->spacetype= SPACE_ACTION;
@@ -100,12 +101,12 @@ static SpaceLink *action_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= -2.0f;
-	ar->v2d.tot.ymin= -2000.0f;
+	ar->v2d.tot.ymin= (float)(-sa->winy);
 	ar->v2d.tot.xmax= 100.0f;
 	ar->v2d.tot.ymax= 0.0f;
 	
 	ar->v2d.cur.xmin= -2.0f;
-	ar->v2d.cur.ymin= -2000.0f; /* ideally this would be the size of the region */
+	ar->v2d.cur.ymin= (float)(-sa->winy);
 	ar->v2d.cur.xmax= 100.0f;
 	ar->v2d.cur.ymax= 0.0f;
 	

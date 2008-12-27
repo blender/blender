@@ -153,6 +153,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 
 /* *************************************************** */
 /* PREVIEW RANGE 'CURTAINS' */
+/* Note: 'Preview Range' tools are defined in anim_ops.c */
 
 /* Draw preview range 'curtains' for highlighting where the animation data is */
 void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
