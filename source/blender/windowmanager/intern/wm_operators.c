@@ -96,6 +96,32 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	BLI_addtail(&global_ops, ot);
 }
 
+void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *userdata)
+{
+	wmOperatorType *ot;
+
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	opfunc(ot, userdata);
+	RNA_def_struct_ui_text(ot->srna, ot->name, "DOC_BROKEN"); /* TODO - add a discription to wmOperatorType? */
+	RNA_def_struct_identifier(ot->srna, ot->idname);
+	BLI_addtail(&global_ops, ot);
+}
+
+int WM_operatortype_remove(const char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find(idname);
+
+	if (ot==NULL)
+		return 0;
+	
+	BLI_remlink(&global_ops, ot);
+	RNA_struct_free(&BLENDER_RNA, ot->srna);
+	MEM_freeN(ot);
+
+	return 1;
+}
+
 /* print a string representation of the operator, with the args that it runs 
  * so python can run it again */
 char *WM_operator_pystring(wmOperator *op)

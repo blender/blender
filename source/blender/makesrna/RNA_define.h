@@ -47,7 +47,7 @@ void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refine);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
-
+void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 /* Property */
 
 PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype);

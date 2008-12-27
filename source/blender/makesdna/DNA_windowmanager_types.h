@@ -137,6 +137,10 @@ typedef struct wmOperatorType {
 	
 	short flag;
 
+	/* only used for operators defined with python
+	 * use to store pointers to python functions */
+	void *pyop_data;
+
 } wmOperatorType;
 
 #define OP_MAX_TYPENAME	64

@@ -549,6 +549,12 @@ void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *descr
 	srna->description= description;
 }
 
+void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
+{
+	rna_freelistN(&srna->properties);
+	rna_freelinkN(&brna->structs, srna);
+}
+
 /* Property Definition */
 
 PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype)

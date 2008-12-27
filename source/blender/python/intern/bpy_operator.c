@@ -24,11 +24,13 @@
  */
 
 #include "bpy_operator.h"
+#include "bpy_opwrapper.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_compat.h"
 
 //#include "blendef.h"
 #include "BLI_dynstr.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -39,6 +41,20 @@ extern ListBase global_ops; /* evil, temp use */
 
 /* floats bigger then this are displayed as inf in the docstrings */
 #define MAXFLOAT_DOC 10000000
+
+#if 0
+void PyObSpit(char *name, PyObject *var) {
+	fprintf(stderr, "<%s> : ", name);
+	if (var==NULL) {
+		fprintf(stderr, "<NIL>");
+	}
+	else {
+		PyObject_Print(var, stderr, 0);
+	}
+	fprintf(stderr, "\n");
+}
+#endif
+
 
 static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
 {
@@ -55,6 +71,7 @@ static PyObject *pyop_func_repr( BPy_OperatorFunc * self )
 {
 	return PyUnicode_FromFormat( "[BPy_OperatorFunc \"%s\"]", self->name);
 }
+
 
 //---------------getattr--------------------------------------------
 static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
@@ -73,7 +90,17 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 			PyList_Append(ret, item);
 			Py_DECREF(item);
 		}
-	} else {
+
+		item = PyUnicode_FromString("add");		PyList_Append(ret, item); Py_DECREF(item);
+		item = PyUnicode_FromString("remove");	PyList_Append(ret, item); Py_DECREF(item);
+	}
+	else if ( strcmp( name, "add" ) == 0 ) {
+		ret= PYOP_wrap_add_func();
+	}
+	else if ( strcmp( name, "remove" ) == 0 ) {
+		ret= PYOP_wrap_remove_func();
+	}
+	else {
 		ot = WM_operatortype_find(name);
 
 		if (ot) {

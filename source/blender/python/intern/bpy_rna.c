@@ -79,7 +79,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	return cstring;
 }
 
-static PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
+PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
 	int type = RNA_property_type(ptr, prop);

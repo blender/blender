@@ -120,6 +120,8 @@ void		WM_operator_free		(struct wmOperator *op);
 wmOperatorType *WM_operatortype_find(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
+void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
+int			WM_operatortype_remove(const char *idname);
 
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);

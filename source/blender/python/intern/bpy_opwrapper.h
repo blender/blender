@@ -1,3 +1,4 @@
+
 /**
  * $Id$
  *
@@ -21,35 +22,20 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BPY_RNA_H
-#define BPY_RNA_H
+#ifndef BPY_OPWRAPPER_H
+#define BPY_OPWRAPPER_H
 
 #include <Python.h>
 
-#include "RNA_access.h"
-#include "RNA_types.h"
+/* returns the python functions */
+PyObject *PYOP_wrap_add_func( void );
+PyObject *PYOP_wrap_remove_func( void );
 
-extern PyTypeObject pyrna_struct_Type;
-extern PyTypeObject pyrna_prop_Type;
-
-typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
-	PointerRNA ptr;
-} BPy_StructRNA;
-
-typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
-	PointerRNA ptr;
-	PropertyRNA *prop;
-} BPy_PropertyRNA;
-
-PyObject *BPY_rna_module( void );
-PyObject *BPY_rna_doc( void );
-
-PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
-PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
-
-/* operators also need this to set args */
-int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
-PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 #endif
+
+
+
+
+
+
+
