@@ -855,11 +855,12 @@ static void node_addgroup(SpaceNode *snode)
 	MEM_freeN(strp);
 }
 
+#endif /* 0 */
 
 /* ************************** Node generic ************** */
 
 /* allows to walk the list in order of visibility */
-static bNode *next_node(bNodeTree *ntree)
+bNode *next_node(bNodeTree *ntree)
 {
 	static bNode *current=NULL, *last= NULL;
 	
@@ -911,6 +912,8 @@ static bNode *next_node(bNodeTree *ntree)
 	
 	return NULL;
 }
+
+#if 0
 
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, rctf *rct)
