@@ -234,6 +234,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
 		//force_draw(0);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
+		ED_region_tag_redraw(ar);
 	}
 }
 
