@@ -64,14 +64,14 @@
 #include "interface_intern.h"
 #include "ED_datafiles.h"
 
-#define ICON_IMAGE_W		512
-#define ICON_IMAGE_H		256
+#define ICON_IMAGE_W		600
+#define ICON_IMAGE_H		512
 
 #define ICON_GRID_COLS		25
-#define ICON_GRID_ROWS		12
+#define ICON_GRID_ROWS		24
 
 #define ICON_GRID_MARGIN	5
-#define ICON_GRID_W		15
+#define ICON_GRID_W		16
 #define ICON_GRID_H		16
 
 typedef struct IconImage {
@@ -123,7 +123,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 
 	/* Here we store the rect in the icon - same as before */
 	for (y=0; y<ICON_DEFAULT_HEIGHT; y++) {
-		memcpy(&iimg->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*512+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
+		memcpy(&iimg->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*ICON_IMAGE_W+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
 	}
 
 	di->icon = iimg;
@@ -399,39 +399,6 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 	glDisable(GL_LINE_SMOOTH);
 }
 
-/***/
-
-static void clear_icon_grid_margins(unsigned char *rect, int w, int h)
-{
-	int x, y;
-	int xoffs=ICON_GRID_W+ICON_GRID_MARGIN;
-	int yoffs=ICON_GRID_H+ICON_GRID_MARGIN;
-
-	for (y=0; y<h; y++) {
-		unsigned char *row= &rect[y*w*4];
-
-		for (x=0; x<w; x++) {
-			unsigned char *pxl= &row[x*4];
-
-			if ((x % xoffs < ICON_GRID_MARGIN-2) || (x % xoffs > ICON_GRID_W+2))
-				pxl[3] = 0;	//alpha channel == x+3
-			else if ((y % yoffs < ICON_GRID_MARGIN-2) || (y % yoffs > ICON_GRID_H+2))
-				pxl[3] = 0;
-		}
-	}
-}
-
-static void prepare_internal_icons(ImBuf *bbuf)
-{
-
-	unsigned char *back= (unsigned char *)bbuf->rect;
-	
-	/* this sets the icon grid margin area outside of icon to zero alpha */
-	clear_icon_grid_margins(back, bbuf->x, bbuf->y);
-	
-}
-
-
 static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
@@ -458,14 +425,12 @@ static void init_internal_icons()
 	} else {
 		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 	}
-	
-	prepare_internal_icons(bbuf);
 
 	for (y=0; y<ICON_GRID_ROWS; y++) {
 		for (x=0; x<ICON_GRID_COLS; x++) {
 			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
-				x*(ICON_GRID_W+ICON_GRID_MARGIN)+3,
-				y*(ICON_GRID_H+ICON_GRID_MARGIN)+3);
+				x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
+				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN);
 		}
 	}
 

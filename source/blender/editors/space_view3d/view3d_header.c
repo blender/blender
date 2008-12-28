@@ -5864,7 +5864,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 			xco+= (a-2)*(XIC/2)+3;
 
 			/* LOCK */
-			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
+			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_LOCKVIEW_OFF, xco+=XIC,yco,XIC,YIC, &(v3d->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
 			xco+= XIC+10;
 
 		}
@@ -5946,29 +5946,18 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xco+= XIC/2;
 			uiBlockBeginAlign(block);
-			if(ar->alignment==RGN_ALIGN_TOP) {
-				uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Copies the current pose to the buffer");
-				uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Pastes the pose from the buffer");
-				uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Pastes the mirrored pose from the buffer");
-			}
-			else {
-				uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Copies the current pose to the buffer");
-				uiBlockSetButLock(block, object_data_is_libdata(ob), "Can't edit external libdata");
-				uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Pastes the pose from the buffer");
-				uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
-					     xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					     "Pastes the mirrored pose from the buffer");
-			}
+			
+			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
+					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 "Copies the current pose to the buffer");
+			uiBlockSetButLock(block, object_data_is_libdata(ob), "Can't edit external libdata");
+			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
+					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 "Pastes the pose from the buffer");
+			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
+					 xco+=XIC,yco,XIC,YIC, 0, 0, 0, 0, 0, 
+					 "Pastes the mirrored pose from the buffer");
+
 			uiBlockEndAlign(block);
 		}
 	}

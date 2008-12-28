@@ -2996,10 +2996,10 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
-				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
+				UI_icon_draw(x, y, ICON_VGROUP); break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				UI_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
+				UI_icon_draw(x, y, ICON_BONE_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
 				UI_icon_draw(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
@@ -3036,8 +3036,17 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 					case eModifierType_Boolean: 
 						UI_icon_draw(x, y, ICON_MOD_BOOLEAN); break;
 					case eModifierType_ParticleSystem: 
+						UI_icon_draw(x, y, ICON_MOD_PARTICLEINSTANCE); break;
 					case eModifierType_ParticleInstance:
-						UI_icon_draw(x, y, ICON_PARTICLES); break;
+						UI_icon_draw(x, y, ICON_MOD_PARTICLES); break;
+					case eModifierType_EdgeSplit:
+						UI_icon_draw(x, y, ICON_MOD_EDGESPLIT); break;
+					case eModifierType_Array:
+						UI_icon_draw(x, y, ICON_MOD_ARRAY); break;
+					case eModifierType_UVProject:
+						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
+					case eModifierType_Displace:
+						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
@@ -3046,9 +3055,9 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_SCRIPT_BASE:
 				UI_icon_draw(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
-				UI_icon_draw(x, y, ICON_ARMATURE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_ARMATURE); break;
 			case TSE_POSE_CHANNEL:
-				UI_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
+				UI_icon_draw(x, y, ICON_BONE_DEHLT); break;
 			case TSE_PROXY:
 				UI_icon_draw(x, y, ICON_GHOST); break;
 			case TSE_R_LAYER_BASE:
@@ -3085,22 +3094,44 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}
 	}
+	else if (GS(tselem->id->name) == ID_OB) {
+		Object *ob= (Object *)tselem->id;
+		switch (ob->type) {
+			case OB_LAMP: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_LAMP); break;
+			case OB_MESH: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_MESH); break;
+			case OB_CAMERA: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_CAMERA); break;
+			case OB_CURVE: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_CURVE); break;
+			case OB_MBALL: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_META); break;
+			case OB_LATTICE: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_LATTICE); break;
+			case OB_ARMATURE: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_ARMATURE); break;
+			case OB_EMPTY: 
+				UI_icon_draw(x, y, ICON_OUTLINER_OB_EMPTY); break;
+		
+		}
+	}
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
 				UI_icon_draw(x, y, ICON_SCENE_DEHLT); break;
-			case ID_OB:
-				UI_icon_draw(x, y, ICON_OBJECT); break;
+			//case ID_OB:
+			//	UI_icon_draw(x, y, ICON_OBJECT); break;
 			case ID_ME:
-				UI_icon_draw(x, y, ICON_MESH); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_MESH); break;
 			case ID_CU:
-				UI_icon_draw(x, y, ICON_CURVE); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CURVE); break;
 			case ID_MB:
 				UI_icon_draw(x, y, ICON_MBALL); break;
 			case ID_LT:
 				UI_icon_draw(x, y, ICON_LATTICE); break;
 			case ID_LA:
-				UI_icon_draw(x, y, ICON_LAMP_DEHLT); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
 			case ID_MA:
 				UI_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
 			case ID_TE:
@@ -3112,9 +3143,9 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_SO:
 				UI_icon_draw(x, y, ICON_SPEAKER); break;
 			case ID_AR:
-				UI_icon_draw(x, y, ICON_ARMATURE); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_ARMATURE); break;
 			case ID_CA:
-				UI_icon_draw(x, y, ICON_CAMERA_DEHLT); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CAMERA); break;
 			case ID_KE:
 				UI_icon_draw(x, y, ICON_EDIT_DEHLT); break;
 			case ID_WO:
@@ -3250,9 +3281,9 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 
 				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				UI_icon_draw((float)icon_x, (float)*starty+2, ICON_TRIA_RIGHT);
+				UI_icon_draw((float)icon_x, (float)*starty+2, ICON_DISCLOSURE_TRI_RIGHT);
 			else
-				UI_icon_draw((float)icon_x, (float)*starty+2, ICON_TRIA_DOWN);
+				UI_icon_draw((float)icon_x, (float)*starty+2, ICON_DISCLOSURE_TRI_DOWN);
 		}
 		offsx+= OL_X;
 		
@@ -3265,9 +3296,9 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		if(tselem->type==0 && tselem->id->lib) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
 			if(tselem->id->flag & LIB_INDIRECT)
-				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_DATALIB);
+				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_HLT);
 			else
-				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_PARLIB);
+				UI_icon_draw((float)startx+offsx, (float)*starty+2, ICON_LIBRARY_DEHLT);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx+= OL_X;
 		}		
