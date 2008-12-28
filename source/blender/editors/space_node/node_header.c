@@ -710,16 +710,6 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
-	
-// =================================
-	
-	// remove sprintf(name, "header %d", sa->headwin);
-	// remove block= uiNewBlock(&sa->uiblocks, name, UI_EMBOSS, UI_HELV, sa->headwin);
-
-	// remove if(area_is_active_area(sa)) uiBlockSetCol(block, TH_HEADER);
-	// remove else uiBlockSetCol(block, TH_HEADERDESEL);
-	
-	// remove sa->butspacetype= SPACE_NODE;
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
@@ -754,11 +744,11 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
-		xco+= 80;
-		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
-		xco+= 80;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
-		xco+= 80;
+		xco+= 90;
+		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
+		xco+= 100;
+		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
+		xco+= 90;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		if(snode->from) {
@@ -774,13 +764,7 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 		}
 	}
 	
-	/* always as last  */
-	// sa->headbutlen= xco+2*XIC;
-
-// =================================
-
-	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
+	UI_view2d_totRect_set(&ar->v2d, xco+XIC+100, (int)(ar->v2d.tot.ymax-ar->v2d.tot.ymin));
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
