@@ -233,11 +233,8 @@ createWindow(
 	);
 
 	if (window) {
-
-		// Install a new protocol for this window - so we can overide
-		// the default window closure mechanism.
-
-		XSetWMProtocols(m_display, window->getXWindow(), &m_delete_window_atom, 1);
+		// Both are now handle in GHOST_WindowX11.cpp
+		// Focus and Delete atoms.
 
 		if (window->getValid()) {
 			// Store the pointer to the window 

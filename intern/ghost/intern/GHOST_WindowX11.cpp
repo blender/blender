@@ -372,7 +372,8 @@ GHOST_WindowX11(
 	XDestroyImage( mask_image );
 	
 	xwmhints->initial_state = NormalState;
-	xwmhints->flags         = IconPixmapHint|IconMaskHint|StateHint;
+	xwmhints->input= True;
+	xwmhints->flags= InputHint|IconPixmapHint|IconMaskHint|StateHint;
 	XSetWMHints(display, m_window, xwmhints );
 	XFree(xwmhints);
 	// done setting the icon
