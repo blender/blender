@@ -5124,6 +5124,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
+				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
 		}
 	}
@@ -8299,14 +8300,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 2)) {
 		Scene *sce;
-		Ipo *ipo;
-		IpoCurve *icu;
-		
-		/* fix IPO-curves to work with new interpolation options */
-		for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
-			for (icu= ipo->curve.first; icu; icu= icu->next) 
-				set_interpolation_ipocurve(icu, icu->ipo);
-		}
 		
 		/* Note, these will need to be added for painting */
 		for (sce= main->scene.first; sce; sce= sce->id.next) {
@@ -8316,6 +8309,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
 		bScreen *sc;
+		Ipo *ipo;
+		IpoCurve *icu;
+		
+		/* fix IPO-curves to work with new interpolation options */
+		for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
+			for (icu= ipo->curve.first; icu; icu= icu->next) 
+				set_interpolation_ipocurve(icu, icu->ipo);
+		}
 		
 		/* adjust default settings for Animation Editors */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
