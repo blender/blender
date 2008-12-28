@@ -74,6 +74,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_keyframes_cfrasnap);
 	WM_operatortype_append(ACT_OT_keyframes_handletype);
 	WM_operatortype_append(ACT_OT_keyframes_ipotype);
+	WM_operatortype_append(ACT_OT_keyframes_expotype);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -112,6 +113,7 @@ static void action_keymap_keyframes (ListBase *keymap)
 		/* menu + set setting */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_handletype", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_ipotype", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_expotype", EKEY, KM_PRESS, KM_SHIFT, 0); // temp...
 }
 
 /* --------------- */

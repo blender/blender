@@ -130,10 +130,12 @@ void ANIM_editkeyframes_ipocurve_ipotype(struct IpoCurve *icu);
 
 /* ************************************************ */
 
-// XXX all of these funcs will be depreceated!
+// XXX all of these funcs should be depreceated or at least renamed!
 
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);
+
+void setexprap_ipoloop(struct Ipo *ipo, short code);
 
 
 /* ************************************************ */

@@ -75,6 +75,7 @@ enum {
 
 void ACT_OT_keyframes_handletype(struct wmOperatorType *ot);
 void ACT_OT_keyframes_ipotype(struct wmOperatorType *ot);
+void ACT_OT_keyframes_expotype(struct wmOperatorType *ot);
 
 void ACT_OT_keyframes_cfrasnap(struct wmOperatorType *ot);
 void ACT_OT_keyframes_snap(struct wmOperatorType *ot);

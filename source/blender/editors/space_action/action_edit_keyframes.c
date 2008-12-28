@@ -88,8 +88,97 @@
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
+// TODO:
+//	- clean
+//	- sample
+//	- delete
+//	- insert key
+// 	- copy/paste
+
 /* ************************************************************************** */
 /* SETTINGS STUFF */
+
+// TODO: 
+// 	- wkey stuff
+
+/* ******************** Set Extrapolation-Type Operator *********************** */
+
+/* defines for set ipo-type for selected keyframes tool */
+EnumPropertyItem prop_actkeys_expo_types[] = {
+	{IPO_HORIZ, "CONSTANT", "Constant", ""},
+	{IPO_DIR, "DIRECTIONAL", "Extrapolation", ""},
+	{IPO_CYCL, "CYCLIC", "Cyclic", ""},
+	{IPO_CYCLX, "CYCLIC_EXTRAPOLATION", "Cyclic Extrapolation", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* this function is responsible for setting extrapolation mode for keyframes */
+static void setexpo_action_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through setting mode per ipo-curve */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		setexprap_ipoloop(ale->key_data, mode);
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_expo_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL) 
+		return OPERATOR_PASS_THROUGH;
+		
+	/* get handle setting mode */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* set handle type */
+	setexpo_action_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_expotype (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Set Keyframe Extrapolation";
+	ot->idname= "ACT_OT_keyframes_expotype";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= actkeys_expo_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* id-props */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_actkeys_expo_types);
+}
 
 /* ******************** Set Interpolation-Type Operator *********************** */
 
@@ -113,7 +202,7 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop through setting flags for handles 
+	/* loop through setting BezTriple interpolation
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next)

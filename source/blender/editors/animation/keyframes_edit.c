@@ -50,7 +50,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 
-/* This file defines an API and set of callback-operators for editing keyframe data.
+/* This file defines an API and set of callback-operators for non-destructive editing of keyframe data.
  *
  * Two API functions are defined for actually performing the operations on the data:
  *			ipo_keys_bezier_loop() and icu_keys_bezier_loop()
@@ -70,9 +70,6 @@
 
 /* ************************************************************************** */
 /* IPO Editing Loops - Exposed API */
-
-// FIXME: it would be useful to be able to supply custom properties to the bezt function...
-// workaround for those callbacks that need this now, is to set globals...
 
 /* --------------------------- Base Functions ------------------------------------ */
 
@@ -524,28 +521,8 @@ BeztEditFunc ANIM_editkeyframes_ipo(short code)
 	}
 }
 
-#if 0
-void setipotype_ipo(Ipo *ipo, int code)
-{
-	/* Sets the type of the selected bezts in each ipo curve in the
-	 * Ipo to a value based on the code
-	 */
-	switch (code) {
-	case 1:
-		ipo_keys_bezier_loop(ipo, set_bezt_constant, set_ipocurve_mixed);
-		break;
-	case 2:
-		ipo_keys_bezier_loop(ipo, set_bezt_linear, set_ipocurve_mixed);
-		break;
-	case 3:
-		ipo_keys_bezier_loop(ipo, set_bezt_bezier, set_ipocurve_mixed);
-		break;
-	}
-}
-#endif
-
 // XXX will we keep this?
-void setexprap_ipoloop(Ipo *ipo, int code)
+void setexprap_ipoloop(Ipo *ipo, short code)
 {
 	IpoCurve *icu;
 	
