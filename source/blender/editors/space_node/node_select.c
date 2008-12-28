@@ -183,7 +183,7 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
-static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
+static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short modifier)
 {
 	bNode *node;
 	float mx, my;
@@ -210,28 +210,23 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
 			break;
 	}
 	if(node) {
-		// XXX if((G.qual & LR_SHIFTKEY)==0)
-		//	node_deselectall(snode, 0);
+		if((modifier & KM_SHIFT)==0)
+			node_deselectall(snode, 0);
 		
-		// XXX
-		/*
-		if(G.qual & LR_SHIFTKEY) {
+		if(modifier & KM_SHIFT) {
 			if(node->flag & SELECT)
 				node->flag &= ~SELECT;
 			else
 				node->flag |= SELECT;
 		}
-		else */
+		else
 			node->flag |= SELECT;
 		
 		node_set_active(snode, node);
 		
 		/* viewer linking */
-		//if(G.qual & LR_CTRLKEY)
-		//	node_link_viewer(snode, node);
-		
-		/* not so nice (no event), but function below delays redraw otherwise */
-		//force_draw(0);
+		if(modifier & KM_CTRL)
+			;//	node_link_viewer(snode, node);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
 		ED_region_tag_redraw(ar);
@@ -244,6 +239,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
 	short mval[2];
+	short modifier;
 
 	select_type = RNA_enum_get(op->ptr, "select_type");
 	
@@ -251,7 +247,8 @@ static int node_select_exec(bContext *C, wmOperator *op)
 		case NODE_SELECT_MOUSE:
 			mval[0] = RNA_int_get(op->ptr, "mx");
 			mval[1] = RNA_int_get(op->ptr, "my");
-			node_mouse_select(snode, ar, mval);
+			modifier = RNA_int_get(op->ptr, "modifier");
+			node_mouse_select(snode, ar, mval, modifier);
 			break;
 	}
 	return OPERATOR_FINISHED;
@@ -271,11 +268,38 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return node_select_exec(C,op);
 }
 
+static int node_extend_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	RNA_int_set(op->ptr, "modifier", KM_SHIFT);
+
+	return node_select_invoke(C, op, event);
+}
+
 /* operators */
 
 static EnumPropertyItem prop_select_items[] = {
 	{NODE_SELECT_MOUSE, "NORMAL", "Normal Select", "Select using the mouse"},
 	{0, NULL, NULL, NULL}};
+
+void NODE_OT_extend_select(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Activate/Select (Shift)";
+	ot->idname= "NODE_OT_extend_select";
+	
+	/* api callbacks */
+	ot->invoke= node_extend_select_invoke;
+	ot->poll= ED_operator_node_active;
+	
+	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_items);
+	
+	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "modifier", PROP_INT, PROP_NONE);
+}
 
 void NODE_OT_select(wmOperatorType *ot)
 {
@@ -294,4 +318,5 @@ void NODE_OT_select(wmOperatorType *ot)
 	
 	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
 	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "modifier", PROP_INT, PROP_NONE);
 }

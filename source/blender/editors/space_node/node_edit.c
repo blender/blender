@@ -1365,6 +1365,7 @@ bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
+#endif /* 0 */
 
 /* no undo here! */
 void node_deselectall(SpaceNode *snode, int swap)
@@ -1378,7 +1379,6 @@ void node_deselectall(SpaceNode *snode, int swap)
 		if(node==NULL) {
 			for(node= snode->edittree->nodes.first; node; node= node->next)
 				node->flag |= SELECT;
-			// allqueue(REDRAWNODE, 0);
 			return;
 		}
 		/* else pass on to deselect */
@@ -1386,9 +1386,9 @@ void node_deselectall(SpaceNode *snode, int swap)
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next)
 		node->flag &= ~SELECT;
-	
-	// allqueue(REDRAWNODE, 0);
 }
+
+#if 0
 
 int node_has_hidden_sockets(bNode *node)
 {
