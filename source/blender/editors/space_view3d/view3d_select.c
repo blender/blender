@@ -194,6 +194,7 @@ void select_base_v3d(Base *base, short mode)
 		else if (mode==BA_DESELECT) {
 			base->flag &= ~SELECT;
 		}
+		base->object->flag= base->flag;
 	}
 }
 
@@ -762,25 +763,6 @@ void selectrandom(Scene *scene, View3D *v3d, short randfac)
 	BIF_undo_push("Select Random");
 }
 
-/* selects all objects of a particular type, on currently visible layers */
-void selectall_type(Scene *scene, View3D *v3d, short obtype) 
-{
-	Base *base;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if((base->lay & v3d->lay) &&
-		  (base->object->type == obtype) &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
-		) {
-			select_base_v3d(base, BA_SELECT);
-			base->object->flag= base->flag;
-		}
-		base= base->next;
-	}
-
-	BIF_undo_push("Select all per type");
-}
 /* selects all objects on a particular layer */
 void selectall_layer(Scene *scene, unsigned int layernum) 
 {
@@ -792,7 +774,6 @@ void selectall_layer(Scene *scene, unsigned int layernum)
 		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
 		) {
 			select_base_v3d(base, BA_SELECT);
-			base->object->flag= base->flag;
 		}
 		base= base->next;
 	}
@@ -903,7 +884,6 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 		if (base->flag & SELECT) {
 			if(b!=base) {
 				select_base_v3d(base, BA_DESELECT);
-				base->object->flag= base->flag;
 			}
 		}
 	}
@@ -1207,9 +1187,6 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 				else select_base_v3d(basact, BA_SELECT);
 			}
 
-			/* copy */
-			basact->object->flag= basact->flag;
-			
 			if(oldbasact != basact) {
 				set_active_base(scene, basact);
 			}
@@ -1565,8 +1542,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 								select_base_v3d(base, BA_SELECT);
 							else
 								select_base_v3d(base, BA_DESELECT);
-
-							base->object->flag= base->flag;
 						}
 
 						col+=4;	/* next color */
@@ -1660,16 +1635,19 @@ static EnumPropertyItem prop_select_object_types[] = {
 
 static int view3d_select_by_type_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= sa->spacedata.first;
-	Scene *scene= CTX_data_scene(C);
 	short obtype;
 	
 	obtype = RNA_enum_get(op->ptr, "type");
 		
-	selectall_type(scene, v3d, obtype);
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if(base->object->type==obtype) {
+			select_base_v3d(base, BA_SELECT);
+		}
+	}
+	CTX_DATA_END;
 	
+	/* undo? */
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1980,9 +1958,7 @@ static int view3d_circle_select(bContext *C, wmOperator *op)
 				int dx= base->sx-x;
 				int dy= base->sy-y;
 				if( dx*dx + dy*dy < radius*radius)
-				
 					select_base_v3d(base, BA_SELECT);
-				base->object->flag= base->flag;
 			}
 		}
 	}

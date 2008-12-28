@@ -365,6 +365,16 @@ int CTX_data_selected_bases(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, CTX_data_selected_bases, list);
 }
 
+int CTX_data_visible_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_visible_objects, list);
+}
+
+int CTX_data_visible_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_visible_bases, list);
+}
+
 struct Object *CTX_data_active_object(const bContext *C)
 {
 	return ctx_data_pointer_get(C, CTX_data_active_object);

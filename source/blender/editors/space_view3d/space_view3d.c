@@ -266,6 +266,20 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 
 		return 1;
 	}
+	else if(ELEM(member, CTX_data_visible_objects, CTX_data_visible_bases)) {
+		for(base=scene->base.first; base; base=base->next) {
+			if(base->lay & v3d->lay) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if(member == CTX_data_selected_objects)
+						CTX_data_list_add(result, base->object);
+					else
+						CTX_data_list_add(result, base);
+				}
+			}
+		}
+		
+		return 1;
+	}
 	else if(member == CTX_data_active_base) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)

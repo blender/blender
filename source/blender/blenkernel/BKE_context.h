@@ -137,6 +137,9 @@ void CTX_data_scene_set(bContext *C, struct Scene *bmain);
 int CTX_data_selected_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_bases(const bContext *C, ListBase *list);
 
+int CTX_data_visible_objects(const bContext *C, ListBase *list);
+int CTX_data_visible_bases(const bContext *C, ListBase *list);
+
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);
 
