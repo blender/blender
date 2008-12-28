@@ -116,7 +116,7 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 				ED_region_tag_redraw(ar);
 			break;
 		default:
-			if(ar->type->listener)
+			if(ar->type && ar->type->listener)
 				ar->type->listener(ar, note);
 	}
 }
