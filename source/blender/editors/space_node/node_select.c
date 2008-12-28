@@ -183,7 +183,7 @@ static int do_header_hidden_node(SpaceNode *snode, bNode *node, float mx, float 
 	return 0;
 }
 
-static node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
+static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
 {
 	bNode *node;
 	float mx, my;
@@ -234,16 +234,12 @@ static node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval)
 		//force_draw(0);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
-		
-		return 1;
 	}
-	return 0;
 }
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
 	short mval[2];
@@ -262,7 +258,6 @@ static int node_select_exec(bContext *C, wmOperator *op)
 
 static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	short mval[2];	
 	
