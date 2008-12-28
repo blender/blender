@@ -398,7 +398,6 @@ void snap_cfra_ipo_keys(BeztEditData *bed, Ipo *ipo, short mode)
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(BeztEditData *bed, BezTriple *bezt) 
 {
-	/* is a handle selected? If so set it to type auto */
 	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
 		if (bezt->f1 & SELECT) bezt->h1= 1; /* the secret code for auto */
 		if (bezt->f3 & SELECT) bezt->h2= 1;
@@ -417,7 +416,6 @@ static short set_bezier_auto(BeztEditData *bed, BezTriple *bezt)
 /* Sets the selected bezier handles to type 'vector'  */
 static short set_bezier_vector(BeztEditData *bed, BezTriple *bezt) 
 {
-	/* is a handle selected? If so set it to type vector */
 	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
 		if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
 		if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
@@ -433,29 +431,25 @@ static short set_bezier_vector(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-#if 0 // xxx currently not used (only used by old code as a check)
+/* Queries if the handle should be set to 'free' or 'align' */
 static short bezier_isfree(BeztEditData *bed, BezTriple *bezt) 
 {
-	/* queries whether the handle should be set
-	 * to type 'free' or 'align'
-	 */
 	if ((bezt->f1 & SELECT) && (bezt->h1)) return 1;
 	if ((bezt->f3 & SELECT) && (bezt->h2)) return 1;
 	return 0;
 }
 
+/* Sets selected bezier handles to type 'align' */
 static short set_bezier_align(BeztEditData *bed, BezTriple *bezt) 
-{
-	/* Sets selected bezier handles to type 'align' */
+{	
 	if (bezt->f1 & SELECT) bezt->h1= HD_ALIGN;
 	if (bezt->f3 & SELECT) bezt->h2= HD_ALIGN;
 	return 0;
 }
-#endif // xxx currently not used (only used by old code as a check, but can't replicate that now)
 
+/* Sets selected bezier handles to type 'free'  */
 static short set_bezier_free(BeztEditData *bed, BezTriple *bezt) 
 {
-	/* Sets selected bezier handles to type 'free'  */
 	if (bezt->f1 & SELECT) bezt->h1= HD_FREE;
 	if (bezt->f3 & SELECT) bezt->h2= HD_FREE;
 	return 0;
@@ -463,54 +457,31 @@ static short set_bezier_free(BeztEditData *bed, BezTriple *bezt)
 
 /* Set all Bezier Handles to a single type */
 // calchandles_ipocurve
-BeztEditFunc ANIM_editkeyframes_sethandles(short code)
+BeztEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
-		case 1: /* auto */
+		case HD_AUTO: /* auto */
 			return set_bezier_auto;
-		case 2: /* vector */
+		case HD_VECT: /* vector */
 			return set_bezier_vector;
-			
+		case HD_FREE: /* free */
+			return set_bezier_free;
+		case HD_ALIGN: /* align */
+			return set_bezier_align;
+		
 		default: /* free or align? */
-			return set_bezier_free; // err.. to set align, we need 'align' to be set
+			return bezier_isfree;
 	}
 }
-
-#if 0
-void sethandles_ipo_keys(Ipo *ipo, int code)
-{
-	/* this function lets you set bezier handles all to
-	 * one type for some Ipo's (e.g. with hotkeys through
-	 * the action window).
-	 */ 
-
-	/* code==1: set autohandle */
-	/* code==2: set vectorhandle */
-	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
-	
-	switch (code) {
-	case 1: /* auto */
-		ipo_keys_bezier_loop(ipo, set_bezier_auto, calchandles_ipocurve);
-		break;
-	case 2: /* vector */
-		ipo_keys_bezier_loop(ipo, set_bezier_vector, calchandles_ipocurve);
-		break;
-	default: /* free or align? */
-		if (ipo_keys_bezier_loop(ipo, bezier_isfree, NULL)) /* free */ 
-			ipo_keys_bezier_loop(ipo, set_bezier_free, calchandles_ipocurve);
-		else /* align */
-			ipo_keys_bezier_loop(ipo, set_bezier_align, calchandles_ipocurve);
-		break;
-	}
-}
-#endif
 
 /* ------- */
 
-void set_ipocurve_mixed(IpoCurve *icu)
+/* IPO-curve sanity callback - the name of this is a bit unwieldy, by is best to keep this in style... */
+// was called set_ipocurve_mixed()
+void ANIM_editkeyframes_ipocurve_ipotype(IpoCurve *icu)
 {
 	/* Sets the type of the IPO curve to mixed, as some (selected)
-	 * keyframes were set to other interpolation modes
+	 * keyframes were set to other interpolation types
 	 */
 	icu->ipo= IPO_MIXED;
 	
@@ -540,13 +511,13 @@ static short set_bezt_bezier(BeztEditData *bed, BezTriple *bezt)
 }
 
 /* Set the interpolation type of the selected BezTriples in each IPO curve to the specified one */
-// set_ipocurve_mixed() !
+// ANIM_editkeyframes_ipocurve_ipotype() !
 BeztEditFunc ANIM_editkeyframes_ipo(short code)
 {
 	switch (code) {
-		case 1: /* constant */
+		case IPO_CONST: /* constant */
 			return set_bezt_constant;
-		case 2: /* linear */	
+		case IPO_LIN: /* linear */	
 			return set_bezt_linear;
 		default: /* bezier */
 			return set_bezt_bezier;

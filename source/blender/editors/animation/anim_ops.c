@@ -368,7 +368,7 @@ void ED_keymap_anim(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_toggle_time", TKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_toggle_time", TKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* preview range */
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);

@@ -91,6 +91,188 @@
 /* ************************************************************************** */
 /* SETTINGS STUFF */
 
+/* ******************** Set Interpolation-Type Operator *********************** */
+
+/* defines for set ipo-type for selected keyframes tool */
+EnumPropertyItem prop_actkeys_ipo_types[] = {
+	{IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
+	{IPO_LIN, "LINEAR", "Linear Interpolation", ""},
+	{IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* this function is responsible for setting interpolation mode for keyframes */
+static void setipo_action_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	BeztEditFunc set_cb= ANIM_editkeyframes_ipo(mode);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through setting flags for handles 
+	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, ANIM_editkeyframes_ipocurve_ipotype);
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_ipo_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL) 
+		return OPERATOR_PASS_THROUGH;
+		
+	/* get handle setting mode */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* set handle type */
+	setipo_action_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_ipotype (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Set Keyframe Interpolation";
+	ot->idname= "ACT_OT_keyframes_ipotype";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= actkeys_ipo_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* id-props */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_actkeys_ipo_types);
+}
+
+/* ******************** Set Handle-Type Operator *********************** */
+
+/* defines for set handle-type for selected keyframes tool */
+EnumPropertyItem prop_actkeys_handletype_types[] = {
+	{HD_AUTO, "AUTO", "Auto Handles", ""},
+	{HD_VECT, "VECTOR", "Vector Handles", ""},
+	{HD_FREE, "FREE", "Free Handles", ""},
+	{HD_ALIGN, "ALIGN", "Aligned Handles", ""},
+//	{-1, "TOGGLE", "Toggle between Free and Aligned Handles", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* this function is responsible for setting handle-type of selected keyframes */
+static void sethandles_action_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	BeztEditFunc set_cb= ANIM_editkeyframes_handles(mode);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through setting flags for handles 
+	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		if (mode == -1) {	
+			BeztEditFunc toggle_cb;
+			
+			/* check which type of handle to set (free or aligned) 
+			 *	- check here checks for handles with free alignment already
+			 */
+			if (ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
+				toggle_cb= ANIM_editkeyframes_handles(HD_FREE);
+			else
+				toggle_cb= ANIM_editkeyframes_handles(HD_ALIGN);
+				
+			/* set handle-type */
+			ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_ipocurve);
+		}
+		else {
+			/* directly set handle-type */
+			ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_ipocurve);
+		}
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_handletype_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL) 
+		return OPERATOR_PASS_THROUGH;
+		
+	/* get handle setting mode */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* set handle type */
+	sethandles_action_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_handletype (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Set Keyframe Handle Type";
+	ot->idname= "ACT_OT_keyframes_handletype";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= actkeys_handletype_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* id-props */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_actkeys_handletype_types);
+}
+
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
 
@@ -263,7 +445,7 @@ void ACT_OT_keyframes_snap (wmOperatorType *ot)
 
 /* ******************** Mirror Keyframes Operator *********************** */
 
-/* defines for snap keyframes tool */
+/* defines for mirror keyframes tool */
 EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{ACTKEYS_MIRROR_CFRA, "CFRA", "Current frame", ""},
 	{ACTKEYS_MIRROR_YAXIS, "YAXIS", "Vertical Axis", ""},
@@ -272,7 +454,7 @@ EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-/* this function is responsible for snapping keyframes to frame-times */
+/* this function is responsible for mirroring keyframes */
 static void mirror_action_keys(bAnimContext *ac, short mode) 
 {
 	ListBase anim_data = {NULL, NULL};
@@ -343,7 +525,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* get snapping mode */
+	/* get mirroring mode */
 	mode= RNA_enum_get(op->ptr, "type");
 	
 	/* mirror keyframes */

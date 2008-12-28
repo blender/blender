@@ -124,6 +124,10 @@ BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
+/* ---------- IpoCurve Callbacks ------------ */
+
+void ANIM_editkeyframes_ipocurve_ipotype(struct IpoCurve *icu);
+
 /* ************************************************ */
 
 // XXX all of these funcs will be depreceated!
