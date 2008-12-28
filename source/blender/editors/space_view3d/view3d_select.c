@@ -1644,6 +1644,55 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 
 }
 
+/* ****** Select by Type ****** */
+static EnumPropertyItem prop_select_object_types[] = {
+	{OB_EMPTY, "EMPTY", "Empty", ""},
+	{OB_MESH, "MESH", "Mesh", ""},
+	{OB_CURVE, "CURVE", "Curve", ""},
+	{OB_SURF, "SURFACE", "Surface", ""},
+	{OB_FONT, "TEXT", "Text", ""},
+	{OB_MBALL, "META", "Meta", ""},
+	{OB_LAMP, "LAMP", "Lamp", ""},
+	{OB_CAMERA, "CAMERA", "Camera", ""},
+	{OB_LATTICE, "LATTICE", "Lattice", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int view3d_select_by_type_exec(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	short obtype;
+	
+	obtype = RNA_enum_get(op->ptr, "type");
+		
+	selectall_type(scene, v3d, obtype);
+	
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_select_by_type(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Select By Type";
+	ot->idname= "VIEW3D_OT_select_by_type";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= view3d_select_by_type_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_object_types);
+
+}
+
 /* ****** invert selection *******/
 static int view3d_select_invert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1707,7 +1756,7 @@ static int view3d_select_random_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	Scene *scene= CTX_data_scene(C);
 	short randfac;
 	
-	/*uiPupmenuOperator(C, 0, op, "percent", "percent");*/
+	/* uiPupmenuOperator(C, 0, op, "percent", "percent"); XXX - need a number popup */
 	
 	randfac = RNA_int_get(op->ptr, "percent");
 	
