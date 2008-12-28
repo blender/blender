@@ -38,7 +38,6 @@
 #include "bpy_rna.h"
 #include "bpy_compat.h"
 #include "bpy_util.h"
-#include "bpy_operator.h" /* for PYOP_props_from_dict() */
 
 typedef struct PyOperatorType {
 	void *next, *prev;
@@ -177,6 +176,7 @@ static struct BPY_flag_def pyop_ret_flags[] = {
 	{NULL, 0}
 };
 
+/* exec only - no user input */
 static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 {
 	PyOperatorType *pyot = op->type->pyop_data;
@@ -200,19 +200,34 @@ static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 	Py_DECREF(args);
 	Py_DECREF(kw);
 
-	return OPERATOR_FINISHED;
+	return ret_flag;
 }
 
+/* This invoke function can take events and
+ *
+ * It is up to the pyot->py_invoke() python func to run pyot->py_exec()
+ * the invoke function gets the keyword props as a dict, but can parse them
+ * to py_exec like this...
+ *
+ * def op_exec(x=-1, y=-1, text=""):
+ *     ...
+ *
+ * def op_invoke(event, prop_defs):
+ *     prop_defs['x'] = event['x']
+ *     ...
+ *     op_exec(**prop_defs)
+ *
+ * when there is no invoke function, C calls exec and sets the props.
+ */
 static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PyOperatorType *pyot = op->type->pyop_data;
 	PyObject *args= PyTuple_New(2);
-	PyObject *kw= pyop_kwargs_from_operator(op);
 	PyObject *ret;
 	int ret_flag;
 
 	PyTuple_SET_ITEM(args, 0, pyop_dict_from_event(event));
-	PyTuple_SET_ITEM(args, 1, kw);
+	PyTuple_SET_ITEM(args, 1, pyop_kwargs_from_operator(op));
 
 	ret = PyObject_Call(pyot->py_invoke, args, NULL);
 
@@ -224,13 +239,13 @@ static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			 /* the returned value could not be converted into a flag */
 			PyErr_Print();
 		}
-		else {
-			/* copy the args back to the prop */
-			if (PYOP_props_from_dict(op->ptr, kw) == -1) {
-				/* one of the dict items didnt convert back to the prop */
-				PyErr_Print();
-			}
-		}
+		/* there is no need to copy the py keyword dict modified by
+		 * pyot->py_invoke(), back to the operator props since they are just
+		 * thrown away anyway
+		 *
+		 * If we ever want to do this and use the props again,
+		 * it can be done with - PYOP_props_from_dict(op->ptr, kw)
+		 */
 	}
 
 	

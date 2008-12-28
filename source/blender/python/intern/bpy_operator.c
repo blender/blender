@@ -188,10 +188,9 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	
 	RNA_pointer_create(NULL, NULL, ot->srna, &properties, &ptr);
 	
-	PYOP_props_from_dict(&ptr, kw);
+	error_val= PYOP_props_from_dict(&ptr, kw);
 	
 	if (error_val==0) {
-		//WM_operator_name_call(self->C, self->name, WM_OP_INVOKE_DEFAULT, properties);
 		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, properties);
 	}
 
@@ -200,7 +199,21 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 		MEM_freeN(properties);
 	}
 
-	if (error_val) {
+
+#if 0
+	/* if there is some way to know an operator takes args we should use this */
+	{
+		/* no props */
+		if (kw != NULL) {
+			PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", self->name);
+			return NULL;
+		}
+
+		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, NULL);
+	}
+#endif
+
+	if (error_val==-1) {
 		return NULL;
 	}
 
