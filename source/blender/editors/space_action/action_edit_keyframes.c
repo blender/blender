@@ -96,33 +96,63 @@
 
 /* ***************** Snap Current Frame Operator *********************** */
 
+/* helper callback for actkeys_cfrasnap_exec() -> used to help get the average time of all selected beztriples */
+// TODO: if some other code somewhere needs this, it'll be time to port this over to keyframes_edit.c!!!
+static short bezt_calc_average(BeztEditData *bed, BezTriple *bezt)
+{
+	/* only if selected */
+	if (bezt->f2 & SELECT) {
+		/* store average time in float (only do rounding at last step */
+		bed->f1 += bezt->vec[1][0];
+		
+		/* increment number of items */
+		bed->i1++;
+	}
+	
+	return 0;
+}
+
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	
-	//ListBase anim_data= {NULL, NULL};
-	//bAnimListElem *ale;
-	//int filter;
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	BeztEditData bed;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	// FIXME... to be coded
+	/* init edit data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	
+	/* loop over action data, averaging values */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next)
+		ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	
+	BLI_freelistN(&anim_data);
+	
+	/* set the new current frame value, based on the average time */
+	if (bed.i1) {
+		Scene *scene= ac.scene;
+		CFRA= (int)floor((bed.f1 / bed.i1) + 0.5f);
+	}
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, ac.scene);
 	
 	return OPERATOR_FINISHED;
 }
 
 void ACT_OT_keyframes_cfrasnap (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
-	ot->name= "Current Frame Snap to Keys";
+	ot->name= "Snap Current Frame to Keys";
 	ot->idname= "ACT_OT_keyframes_cfrasnap";
 	
 	/* api callbacks */

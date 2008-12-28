@@ -84,22 +84,9 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	
 	/* get frame, and clamp to MINFRAME */
 	cfra= RNA_int_get(op->ptr, "frame");
-	if (cfra < MINFRAME)
-		cfra= MINFRAME;
-
-#if 0
-	if( cfra!=CFRA || first )
-	{
-		first= 0;
-		CFRA= cfra;
-		update_for_newframe_nodraw(0);  // 1= nosound
-		timeline_force_draw(stime->redraws);
-	}
-#endif
 	
-	/* XXX why don't we directly set this? */
-	if (cfra != scene->r.cfra)
-		scene->r.cfra= cfra;
+	if (cfra < MINFRAME) cfra= MINFRAME;
+	CFRA= cfra;
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
