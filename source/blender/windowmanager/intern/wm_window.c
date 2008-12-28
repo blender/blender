@@ -447,47 +447,51 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			}
 			case GHOST_kEventWindowSize:
 			case GHOST_kEventWindowMove: {
-				GHOST_RectangleHandle client_rect;
-				int l, t, r, b, scr_w, scr_h;
-				
-				client_rect= GHOST_GetClientBounds(win->ghostwin);
-				GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
-				
-				GHOST_DisposeRectangle(client_rect);
-				
-				wm_get_screensize(&scr_w, &scr_h);
-				win->sizex= r-l;
-				win->sizey= b-t;
-				win->posx= l;
-				win->posy= scr_h - t - win->sizey;
+				GHOST_TWindowState state;
+				state = GHOST_GetWindowState(win->ghostwin);
 
-				/* debug prints */
-				if(0) {
-					GHOST_TWindowState state;
-					state = GHOST_GetWindowState(win->ghostwin);
+				 /* win32: gives undefined window size when minimized */
+				if(state!=GHOST_kWindowStateMinimized) {
+					GHOST_RectangleHandle client_rect;
+					int l, t, r, b, scr_w, scr_h;
+					
+					client_rect= GHOST_GetClientBounds(win->ghostwin);
+					GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
+					
+					GHOST_DisposeRectangle(client_rect);
+					
+					wm_get_screensize(&scr_w, &scr_h);
+					win->sizex= r-l;
+					win->sizey= b-t;
+					win->posx= l;
+					win->posy= scr_h - t - win->sizey;
 
-					if(state==GHOST_kWindowStateNormal) {
-						if(G.f & G_DEBUG) printf("window state: normal\n");
+					/* debug prints */
+					if(0) {
+						state = GHOST_GetWindowState(win->ghostwin);
+
+						if(state==GHOST_kWindowStateNormal) {
+							if(G.f & G_DEBUG) printf("window state: normal\n");
+						}
+						else if(state==GHOST_kWindowStateMinimized) {
+							if(G.f & G_DEBUG) printf("window state: minimized\n");
+						}
+						else if(state==GHOST_kWindowStateMaximized) {
+							if(G.f & G_DEBUG) printf("window state: maximized\n");
+						}
+						else if(state==GHOST_kWindowStateFullScreen) {
+							if(G.f & G_DEBUG) printf("window state: fullscreen\n");
+						}
+						
+						if(type!=GHOST_kEventWindowSize) {
+							if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+						}
+						
 					}
-					else if(state==GHOST_kWindowStateMinimized) {
-						if(G.f & G_DEBUG) printf("window state: minimized\n");
-					}
-					else if(state==GHOST_kWindowStateMaximized) {
-						if(G.f & G_DEBUG) printf("window state: maximized\n");
-					}
-					else if(state==GHOST_kWindowStateFullScreen) {
-						if(G.f & G_DEBUG) printf("window state: fullscreen\n");
-					}
-					
-					if(type!=GHOST_kEventWindowSize) {
-						if(G.f & G_DEBUG) printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
-					}
-					
+				
+					wm_window_make_drawable(C, win);
+					WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				}
-				
-				wm_window_make_drawable(C, win);
-				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-				
 				break;
 			}
 			default:
