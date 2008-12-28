@@ -547,6 +547,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_node\node_select.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_node\space_node.c"
 				>
 			</File>
@@ -628,6 +636,10 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_action\action_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_action\action_edit_keyframes.c"
 				>
 			</File>
 			<File
