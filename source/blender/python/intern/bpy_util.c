@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "bpy_compat.h"
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
