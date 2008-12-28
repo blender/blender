@@ -1658,7 +1658,7 @@ static EnumPropertyItem prop_select_object_types[] = {
 	{0, NULL, NULL, NULL}
 };
 
-static int view3d_select_by_type_exec(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_select_by_type_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
