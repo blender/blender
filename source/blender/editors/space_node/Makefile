@@ -45,6 +45,7 @@ CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../nodes
 CPPFLAGS += -I../../render/extern/include

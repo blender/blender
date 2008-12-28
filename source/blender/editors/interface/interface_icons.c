@@ -402,7 +402,7 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
-	ImBuf *bbuf;
+	ImBuf *bbuf= NULL;
 	int x, y;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
@@ -419,12 +419,15 @@ static void init_internal_icons()
 		
 		if (BLI_exists(iconfilestr)) {
 			bbuf = IMB_loadiffname(iconfilestr, IB_rect);
-		} else {
-			bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+			if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
+				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
+				IMB_freeImBuf(bbuf);
+				bbuf= NULL;
+			}
 		}
-	} else {
-		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 	}
+	if(bbuf==NULL)
+		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
 
 	for (y=0; y<ICON_GRID_ROWS; y++) {
 		for (x=0; x<ICON_GRID_COLS; x++) {
