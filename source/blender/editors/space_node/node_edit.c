@@ -99,6 +99,12 @@
 #include "mydevice.h"
 #include "winlay.h"
 */
+
+#include "WM_types.h"
+
+// XXX XXX XXX
+static void BIF_undo_push(char *s) {}
+
 #if 0
 /* currently called from BIF_preview_changed */
 void snode_tag_dirty(SpaceNode *snode)
@@ -634,13 +640,15 @@ static void node_active_image(Image *ima)
 		scrarea_queue_headredraw(sa);
 	}
 }
+#endif /* 0 */
 
-
-static void node_set_active(SpaceNode *snode, bNode *node)
+void node_set_active(SpaceNode *snode, bNode *node)
 {
 	
 	nodeSetActive(snode->edittree, node);
 	
+	#if 0
+	// XXX
 	if(node->type!=NODE_GROUP) {
 		
 		/* tree specific activate calls */
@@ -700,6 +708,7 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 			// allqueue(REDRAWIPO, 0);
 		}
 	}
+	#endif /* 0 */
 }
 
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
@@ -718,9 +727,9 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	
 	if(gnode && gnode->type==NODE_GROUP && gnode->id) {
 		if(gnode->id->lib) {
-			if(okee("Make Group Local"))
-				ntreeMakeLocal((bNodeTree *)gnode->id);
-			else
+			// XXX if(okee("Make Group Local"))
+			//	ntreeMakeLocal((bNodeTree *)gnode->id);
+			// else
 				return;
 		}
 		gnode->flag |= NODE_GROUP_EDIT;
@@ -746,6 +755,8 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	
 	// allqueue(REDRAWNODE, 0);
 }
+
+#if 0
 
 void node_ungroup(SpaceNode *snode)
 {
@@ -1209,14 +1220,22 @@ void node_transform_ext(int mode, int unused)
 	
 	transform_nodes(snode->edittree, 'g', "Move Node");
 }
-
+#endif /* 0 */
 
 /* releases on event, only 1 node */
-static void scale_node(SpaceNode *snode, bNode *node)
+void scale_node(SpaceNode *snode, bNode *node)
 {
 	float mxstart, mystart, mx, my, oldwidth;
 	int cont=1, cancel=0;
 	short mval[2], mvalo[2];
+	
+	// XXX
+	mval[0] = mvalo[0] = 0;
+	mval[1] = mvalo[1] = 1;
+	mxstart = 0.0f;
+	mystart = 0.0f;
+	mx= 0.0f;
+	my= 0.0f;
 	
 	/* store old */
 	if(node->flag & NODE_HIDDEN)
@@ -1224,15 +1243,15 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	else
 		oldwidth= node->width;
 		
-	getmouseco_areawin(mvalo);
-	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);
+/* XXX	getmouseco_areawin(mvalo);
+	areamouseco_to_ipoco(G.v2d, mvalo, &mxstart, &mystart);*/
 	
 	while(cont) {
 		
-		getmouseco_areawin(mval);
+		// XXX getmouseco_areawin(mval);
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
-			areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
+			// XXX areamouseco_to_ipoco(G.v2d, mval, &mx, &my);
 			mvalo[0]= mval[0];
 			mvalo[1]= mval[1];
 			
@@ -1245,12 +1264,12 @@ static void scale_node(SpaceNode *snode, bNode *node)
 				CLAMP(node->width, node->typeinfo->minwidth, node->typeinfo->maxwidth);
 			}
 			
-			force_draw(0);
+			// XXX force_draw(0);
 		}
 		else
-			PIL_sleep_ms(10);
+			; // XXX PIL_sleep_ms(10);
 		
-		while (qtest()) {
+		/* XXX while (qtest()) {
 			short val;
 			unsigned short event= extern_qread(&val);
 			
@@ -1268,7 +1287,7 @@ static void scale_node(SpaceNode *snode, bNode *node)
 					}
 					break;
 			}
-		}
+		}*/
 		
 	}
 	
@@ -1283,6 +1302,8 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	if(snode->nodetree->type == NTREE_TEXTURE)
 		ntreeTexUpdatePreviews(snode->nodetree);
 }
+
+#if 0
 
 /* ******************** rename ******************* */
 

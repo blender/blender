@@ -33,6 +33,11 @@
 struct ARegion;
 struct View2D;
 struct bContext;
+struct wmWindowManager;
+
+/* defines */
+
+#define NODE_SELECT_MOUSE		1
 
 
 /* node_header.c */
@@ -41,6 +46,13 @@ void node_header_buttons(const bContext *C, ARegion *ar);
 /* node_draw.c */
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
 
+/* node_ops.c */
+void node_operatortypes(void);
+void node_keymap(wmWindowManager *wm);
+
+/* node_select.c */
+void NODE_OT_select(struct wmOperatorType *ot);
+
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
 void node_draw_link_bezier(View2D *v2d, float vec[][3], int th_col1, int th_col2, int do_shaded);
@@ -48,6 +60,9 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
 void snode_set_context(SpaceNode *snode, Scene *scene);
+void scale_node(SpaceNode *snode, bNode *node);
+void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
+void node_set_active(SpaceNode *snode, bNode *node);
 
 #endif /* ED_NODE_INTERN_H */
 

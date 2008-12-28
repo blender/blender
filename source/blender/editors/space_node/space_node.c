@@ -158,16 +158,6 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 	
 }
 
-void node_operatortypes(void)
-{
-	
-}
-
-void node_keymap(struct wmWindowManager *wm)
-{
-	
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -199,6 +189,17 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 static void node_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			ED_region_tag_redraw(ar);
+			break;
+		case NC_MATERIAL:
+			ED_region_tag_redraw(ar);
+			break;
+		case ND_NODES:
+			ED_region_tag_redraw(ar);
+			break;
+	}
 }
 
 /* only called once, from space/spacetypes.c */
@@ -222,7 +223,7 @@ void ED_spacetype_node(void)
 	art->init= node_main_area_init;
 	art->draw= node_main_area_draw;
 	art->listener= node_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 	

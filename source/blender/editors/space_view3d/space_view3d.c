@@ -291,7 +291,7 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype time");
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype view3d");
 	ARegionType *art;
 	
 	st->spaceid= SPACE_VIEW3D;
@@ -305,7 +305,7 @@ void ED_spacetype_view3d(void)
 	st->context= view3d_context;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
@@ -313,7 +313,7 @@ void ED_spacetype_view3d(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
