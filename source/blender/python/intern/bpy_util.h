@@ -1,4 +1,3 @@
-
 /**
  * $Id$
  *
@@ -22,36 +21,18 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BPY_OPERATOR_H
-#define BPY_OPERATOR_H
 
 #include <Python.h>
 
-#include "RNA_access.h"
-#include "RNA_types.h"
-#include "DNA_windowmanager_types.h"
-#include "BKE_context.h"
+/* for internal use only, so python can interchange a sequence of strings with flags */
+typedef struct BPY_flag_def {
+    const char	*name;
+    int			flag;
+} BPY_flag_def;
 
-extern PyTypeObject pyop_base_Type;
-extern PyTypeObject pyop_func_Type;
 
-typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
-	bContext *C;
-} BPy_OperatorBase;
+PyObject *BPY_flag_to_list(BPY_flag_def *flagdef, int flag);
+int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag);
 
-typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
-	char name[OP_MAX_TYPENAME];
-	bContext *C;
-} BPy_OperatorFunc;
+void PyObSpit(char *name, PyObject *var);
 
-PyObject *BPY_operator_module(bContext *C );
-
-PyObject *pyop_base_CreatePyObject(bContext *C );
-PyObject *pyop_func_CreatePyObject(bContext *C, char *name );
-
-/* fill in properties from a python dict */
-int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw);
-
-#endif

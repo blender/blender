@@ -37,6 +37,8 @@
 
 #include "bpy_rna.h"
 #include "bpy_compat.h"
+#include "bpy_util.h"
+#include "bpy_operator.h" /* for PYOP_props_from_dict() */
 
 typedef struct PyOperatorType {
 	void *next, *prev;
@@ -46,8 +48,9 @@ typedef struct PyOperatorType {
 	PyObject *py_exec;
 } PyOperatorType;
 
-static void pyop_kwargs_from_operator(PyObject *dict, wmOperator *op)
+static PyObject *pyop_kwargs_from_operator(wmOperator *op)
 {
+	PyObject *dict = PyDict_New();
 	PyObject *item;
 	PropertyRNA *prop, *iterprop;
 	CollectionPropertyIterator iter;
@@ -70,17 +73,130 @@ static void pyop_kwargs_from_operator(PyObject *dict, wmOperator *op)
 
 	RNA_property_collection_end(&iter);
 
+	return dict;
 }
+
+
+static PyObject *pyop_dict_from_event(wmEvent *event)
+{
+	PyObject *dict= PyDict_New();
+	PyObject *item;
+	char *cstring, ascii[2];
+
+	/* type */
+	item= PyUnicode_FromString(WM_key_event_string(event->type));
+	PyDict_SetItemString(dict, "type", item);	Py_DECREF(item);
+
+	/* val */
+	switch(event->val) {
+	case KM_ANY:
+		cstring = "ANY";
+		break;
+	case KM_RELEASE:
+		cstring = "RELEASE";
+		break;
+	case KM_PRESS:
+		cstring = "PRESS";
+		break;
+	default:
+		cstring = "UNKNOWN";
+		break;
+	}
+
+	item= PyUnicode_FromString(cstring);
+	PyDict_SetItemString(dict, "val", item);	Py_DECREF(item);
+
+	/* x, y (mouse) */
+	item= PyLong_FromLong(event->x);
+	PyDict_SetItemString(dict, "x", item);		Py_DECREF(item);
+
+	item= PyLong_FromLong(event->y);
+	PyDict_SetItemString(dict, "y", item);		Py_DECREF(item);
+
+	item= PyLong_FromLong(event->prevx);
+	PyDict_SetItemString(dict, "prevx", item);	Py_DECREF(item);
+
+	item= PyLong_FromLong(event->prevy);
+	PyDict_SetItemString(dict, "prevy", item);	Py_DECREF(item);
+
+	/* ascii */
+	ascii[0]= event->ascii;
+	ascii[1]= '\0';
+	item= PyUnicode_FromString(ascii);
+	PyDict_SetItemString(dict, "ascii", item);	Py_DECREF(item);
+
+	/* modifier keys */
+	item= PyLong_FromLong(event->shift);
+	PyDict_SetItemString(dict, "shift", item);	Py_DECREF(item);
+
+	item= PyLong_FromLong(event->ctrl);
+	PyDict_SetItemString(dict, "ctrl", item);	Py_DECREF(item);
+
+	item= PyLong_FromLong(event->alt);
+	PyDict_SetItemString(dict, "alt", item);	Py_DECREF(item);
+
+	item= PyLong_FromLong(event->oskey);
+	PyDict_SetItemString(dict, "oskey", item);	Py_DECREF(item);
+
+
+
+	/* modifier */
+#if 0
+	item= PyTuple_New(0);
+	if(event->keymodifier & KM_SHIFT) {
+		_PyTuple_Resize(&item, size+1);
+		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("SHIFT"));
+		size++;
+	}
+	if(event->keymodifier & KM_CTRL) {
+		_PyTuple_Resize(&item, size+1);
+		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("CTRL"));
+		size++;
+	}
+	if(event->keymodifier & KM_ALT) {
+		_PyTuple_Resize(&item, size+1);
+		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("ALT"));
+		size++;
+	}
+	if(event->keymodifier & KM_OSKEY) {
+		_PyTuple_Resize(&item, size+1);
+		PyTuple_SET_ITEM(item, size, _PyUnicode_AsString("OSKEY"));
+		size++;
+	}
+	PyDict_SetItemString(dict, "keymodifier", item);	Py_DECREF(item);
+#endif
+
+	return dict;
+}
+
+static struct BPY_flag_def pyop_ret_flags[] = {
+	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
+	{"CANCELLED", OPERATOR_CANCELLED},
+	{"FINISHED", OPERATOR_FINISHED},
+	{"PASS_THROUGH", OPERATOR_PASS_THROUGH},
+	{NULL, 0}
+};
 
 static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 {
 	PyOperatorType *pyot = op->type->pyop_data;
-	PyObject *ret, *args= PyTuple_New(0), *kw= PyDict_New();
-
-	pyop_kwargs_from_operator(kw, op);
+	PyObject *args= PyTuple_New(0);
+	PyObject *kw= pyop_kwargs_from_operator(op);
+	PyObject *ret;
+	int ret_flag;
 
 	ret = PyObject_Call(pyot->py_exec, args, kw);
-	
+
+	if (ret == NULL) {
+		PyErr_Print();
+	}
+	else {
+		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
+			 /* the returned value could not be converted into a flag */
+			PyErr_Print();
+		}
+	}
+
 	Py_DECREF(args);
 	Py_DECREF(kw);
 
@@ -90,16 +206,38 @@ static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PyOperatorType *pyot = op->type->pyop_data;
-	PyObject *ret, *args= PyTuple_New(0), *kw= PyDict_New();
+	PyObject *args= PyTuple_New(2);
+	PyObject *kw= pyop_kwargs_from_operator(op);
+	PyObject *ret;
+	int ret_flag;
 
-	pyop_kwargs_from_operator(kw, op);
+	PyTuple_SET_ITEM(args, 0, pyop_dict_from_event(event));
+	PyTuple_SET_ITEM(args, 1, kw);
 
-	ret = PyObject_Call(pyot->py_invoke, args, kw);
+	ret = PyObject_Call(pyot->py_invoke, args, NULL);
 
-	Py_DECREF(args);
-	Py_DECREF(kw);
+	if (ret == NULL) {
+		PyErr_Print();
+	}
+	else {
+		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
+			 /* the returned value could not be converted into a flag */
+			PyErr_Print();
+		}
+		else {
+			/* copy the args back to the prop */
+			if (PYOP_props_from_dict(op->ptr, kw) == -1) {
+				/* one of the dict items didnt convert back to the prop */
+				PyErr_Print();
+			}
+		}
+	}
 
-	return OPERATOR_FINISHED;
+	
+
+	Py_DECREF(args); /* also decref's kw */
+
+	return ret_flag;
 }
 
 void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
@@ -117,7 +255,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	ot->exec= PYTHON_OT_exec;
 
 	ot->poll= ED_operator_screenactive; /* how should this work?? */
-
+	/* ot->flag= OPTYPE_REGISTER; */
+	
 	ot->pyop_data= userdata;
 	
 	/* inspect function keyword args to get properties */
@@ -216,7 +355,7 @@ static PyObject *pyop_remove(PyObject *self, PyObject *args)
 		return NULL;
 
 	if (!(ot= WM_operatortype_find(idname))) {
-		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" alredy exists", idname);
+		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" does not exists, cant remove", idname);
 		return NULL;
 	}
 	

@@ -39,22 +39,75 @@
 
 extern ListBase global_ops; /* evil, temp use */
 
+
+
+/* This function is only used by operators right now
+ * Its used for taking keyword args and filling in property values */
+int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
+{
+	int error_val = 0;
+	int totkw;
+	const char *arg_name= NULL;
+	PyObject *item;
+
+	PropertyRNA *prop, *iterprop;
+	CollectionPropertyIterator iter;
+
+	iterprop= RNA_struct_iterator_property(ptr);
+	RNA_property_collection_begin(ptr, iterprop, &iter);
+
+	totkw = kw ? PyDict_Size(kw):0;
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop= iter.ptr.data;
+
+		arg_name= RNA_property_identifier(&iter.ptr, prop);
+
+		if (strcmp(arg_name, "rna_type")==0) continue;
+
+		if (kw==NULL) {
+			PyErr_Format( PyExc_AttributeError, "no args, expected \"%s\"", arg_name ? arg_name : "<UNKNOWN>");
+			error_val= -1;
+			break;
+		}
+
+		item= PyDict_GetItemString(kw, arg_name);
+
+		if (item == NULL) {
+			PyErr_Format( PyExc_AttributeError, "argument \"%s\" missing", arg_name ? arg_name : "<UNKNOWN>");
+			error_val = -1; /* pyrna_py_to_prop sets the error */
+			break;
+		}
+
+		if (pyrna_py_to_prop(ptr, prop, item)) {
+			error_val= -1;
+			break;
+		}
+
+		totkw--;
+	}
+
+	RNA_property_collection_end(&iter);
+
+	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
+		PyObject *key, *value;
+		Py_ssize_t pos = 0;
+
+		while (PyDict_Next(kw, &pos, &key, &value)) {
+			arg_name= _PyUnicode_AsString(key);
+			if (RNA_struct_find_property(ptr, arg_name) == NULL) break;
+			arg_name= NULL;
+		}
+
+		PyErr_Format( PyExc_AttributeError, "argument \"%s\" unrecognized", arg_name ? arg_name : "<UNKNOWN>");
+		error_val = -1;
+	}
+
+	return error_val;
+}
+
 /* floats bigger then this are displayed as inf in the docstrings */
 #define MAXFLOAT_DOC 10000000
-
-#if 0
-void PyObSpit(char *name, PyObject *var) {
-	fprintf(stderr, "<%s> : ", name);
-	if (var==NULL) {
-		fprintf(stderr, "<NIL>");
-	}
-	else {
-		PyObject_Print(var, stderr, 0);
-	}
-	fprintf(stderr, "\n");
-}
-#endif
-
 
 static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
 {
@@ -120,14 +173,8 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	wmOperatorType *ot;
 
 	int error_val = 0;
-	int totkw;
-	const char *arg_name= NULL;
-	PyObject *item;
-	
 	PointerRNA ptr;
-	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
-
+	
 	if (PyTuple_Size(args)) {
 		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
 		return NULL;
@@ -140,59 +187,11 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	}
 	
 	RNA_pointer_create(NULL, NULL, ot->srna, &properties, &ptr);
-
-
-	iterprop= RNA_struct_iterator_property(&ptr);
-	RNA_property_collection_begin(&ptr, iterprop, &iter);
-
-	totkw = kw ? PyDict_Size(kw):0;
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
-
-		arg_name= RNA_property_identifier(&iter.ptr, prop);
-
-		if (strcmp(arg_name, "rna_type")==0) continue;
-
-		if (kw==NULL) {
-			PyErr_Format( PyExc_AttributeError, "no args, expected \"%s\"", arg_name ? arg_name : "<UNKNOWN>");
-			error_val= 1;
-			break;
-		}
-		
-		item= PyDict_GetItemString(kw, arg_name);
-
-		if (item == NULL) {
-			PyErr_Format( PyExc_AttributeError, "argument \"%s\" missing", arg_name ? arg_name : "<UNKNOWN>");
-			error_val = 1; /* pyrna_py_to_prop sets the error */
-			break;
-		}
-		
-		if (pyrna_py_to_prop(&ptr, prop, item)) {
-			error_val= 1;
-			break;
-		}
-
-		totkw--;
-	}
-
-	RNA_property_collection_end(&iter);
-
-	if (error_val==0 && totkw > 0) { /* some keywords were given that were not used :/ */
-		PyObject *key, *value;
-		Py_ssize_t pos = 0;
-
-		while (PyDict_Next(kw, &pos, &key, &value)) {
-			arg_name= _PyUnicode_AsString(key);
-			if (RNA_struct_find_property(&ptr, arg_name) == NULL) break;
-			arg_name= NULL;
-		}
-
-		PyErr_Format( PyExc_AttributeError, "argument \"%s\" unrecognized", arg_name ? arg_name : "<UNKNOWN>");
-		error_val = 1;
-	}
-
+	
+	PYOP_props_from_dict(&ptr, kw);
+	
 	if (error_val==0) {
+		//WM_operator_name_call(self->C, self->name, WM_OP_INVOKE_DEFAULT, properties);
 		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, properties);
 	}
 
