@@ -742,10 +742,10 @@ void selectswap(Scene *scene, View3D *v3d)
 }
 
 /* inverts object selection */
-void selectrandom(Scene *scene, View3D *v3d)
+void selectrandom(Scene *scene, View3D *v3d, short randfac)
 {
 	Base *base;
-	static short randfac = 50;
+	/*static short randfac = 50;*/
 // XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 	
 	for(base= FIRSTBASE; base; base= base->next) {
@@ -1231,74 +1231,7 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 
 	/* note; make it notifier! */
 	ED_region_tag_redraw(ar);
-	
-}
 
-/* *****************Selection Operations Operator******************* */
-
-static EnumPropertyItem prop_select_items[] = {
-	{V3D_SELECT_MOUSE, "NORMAL", "Normal Select", "Select using the mouse"},
-	{0, NULL, NULL, NULL}};
-		
-static int view3d_select_exec(bContext *C, wmOperator *op)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= sa->spacedata.first;
-	Scene *scene= CTX_data_scene(C);
-	int select_type;
-	short mval[2];
-
-	select_type = RNA_enum_get(op->ptr, "select_type");
-	
-	view3d_operator_needs_opengl(C);
-	printf("about to look at enum");
-	switch (select_type) {
-		case V3D_SELECT_MOUSE :
-			printf("caught event");
-			mval[0] = RNA_int_get(op->ptr, "mx");
-			mval[1] = RNA_int_get(op->ptr, "my");
-			mouse_select(scene, ar, v3d, mval);
-			printf("selected object");
-			break;
-	}
-	return OPERATOR_FINISHED;
-}
-
-static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= sa->spacedata.first;
-	short mval[2];	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	RNA_int_set(op->ptr, "mx", mval[0]);
-	RNA_int_set(op->ptr, "my", mval[1]);
-
-	return view3d_select_exec(C,op);
-
-}
-
-void VIEW3D_OT_select(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Activate/Select";
-	ot->idname= "VIEW3D_OT_select";
-	
-	/* api callbacks */
-	ot->invoke= view3d_select_invoke;
-	ot->poll= ED_operator_view3d_active;
-	
-	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_items);
-	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
 }
 
 /* ********************  border and circle ************************************** */
@@ -1654,6 +1587,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 } 
 
 
+/* *****************Selection Operators******************* */
+
+/* ****** Border Select ****** */
 void VIEW3D_OT_borderselect(wmOperatorType *ot)
 {
 	
@@ -1676,7 +1612,129 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }
 
+/* ****** Mouse Select ****** */
+static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	short mval[2];	
+	
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
 
+	view3d_operator_needs_opengl(C);
+	
+	mouse_select(scene, ar, v3d, mval);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_select(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Activate/Select";
+	ot->idname= "VIEW3D_OT_select";
+	
+	/* api callbacks */
+	ot->invoke= view3d_select_invoke;
+	ot->poll= ED_operator_view3d_active;
+
+}
+
+/* ****** invert selection *******/
+static int view3d_select_invert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	selectswap(scene, v3d);
+	
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_select_invert(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Invert selection";
+	ot->idname= "VIEW3D_OT_select_invert";
+	
+	/* api callbacks */
+	ot->invoke= view3d_select_invert_invoke;
+	ot->poll= ED_operator_view3d_active;
+
+}
+/* ****** (de)select All *******/
+static int view3d_de_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	deselectall(scene, v3d);
+	
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_de_select_all(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "deselect all";
+	ot->idname= "VIEW3D_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->invoke= view3d_de_select_all_invoke;
+	ot->poll= ED_operator_view3d_active;
+
+}
+/* ****** random selection *******/
+static int view3d_select_random_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+	short randfac;
+	
+	/*uiPupmenuOperator(C, 0, op, "percent", "percent");*/
+	
+	randfac = RNA_int_get(op->ptr, "percent");
+	
+	selectrandom(scene, v3d, randfac);
+	
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_select_random(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Random selection";
+	ot->idname= "VIEW3D_OT_select_random";
+	
+	/* api callbacks */
+	ot->invoke= view3d_select_random_invoke;
+	ot->poll= ED_operator_view3d_active;
+	
+	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_range(prop, 1, 100,1, 1);
+	RNA_def_property_ui_text(prop, "Percent", "Max persentage that will be selected");
+	RNA_def_property_int_default(prop, 50);
+}
 /* ------------------------------------------------------------------------- */
 
 /** The following functions are quick & dirty callback functions called
