@@ -11,6 +11,7 @@ cf = []
 if env['OURPLATFORM'] == 'win32-vc':
 	cf.append('/WX')
 if env['CC'] == 'gcc':
-	cf.append('-Werror')
+	#cf.append('-Werror')
+	pass
 	
 env.BlenderLib ( 'bf_editors_space_node', sources, Split(incs), defs, libtype=['core'], priority=[55], compileflags=cf )
