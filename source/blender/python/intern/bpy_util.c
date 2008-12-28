@@ -22,10 +22,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "bpy_compat.h"
+
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
+#include "bpy_compat.h"
 
 PyObject *BPY_flag_to_list(struct BPY_flag_def *flagdef, int flag)
 {
