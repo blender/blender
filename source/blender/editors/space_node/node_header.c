@@ -62,22 +62,6 @@
 
 #include "node_intern.h"
 
-// XXX button events
-enum {
-	B_NOP = 0,
-	B_REDR 	= 1,
-	B_NODE_USEMAT,
-	B_NODE_USESCENE,
-	B_NODE_USETEX,
-	B_TEXBROWSE,
-	B_TEXALONE,
-	B_TEXLOCAL,
-	B_TEXDELETE,
-	B_AUTOTEXNAME,
-	B_KEEPDATA
-} eActHeader_ButEvents;
-
-
 /* ************************ header area region *********************** */
 
 static void do_node_selectmenu(bContext *C, void *arg, int event)

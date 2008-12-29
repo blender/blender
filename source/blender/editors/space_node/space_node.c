@@ -134,9 +134,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	return (SpaceLink *)snoden;
 }
 
-
-
-/* add handlers, stuff you only do once or on area/region changes */
+/* Initialise main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
@@ -150,12 +148,9 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void node_main_area_draw(const bContext *C, ARegion *ar)
 {
-	/* draw entirely, view changes should be handled here */
-	//SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	View2D *v2d= &ar->v2d;
 	
 	drawnodespace(C, ar, v2d);
-	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

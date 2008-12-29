@@ -39,7 +39,6 @@ struct wmWindowManager;
 
 #define NODE_SELECT_MOUSE		1
 
-
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
 
@@ -68,5 +67,33 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode, int swap);
 
-#endif /* ED_NODE_INTERN_H */
+// XXXXXX
 
+// XXX from BSE_node.h
+#define HIDDEN_RAD		15.0f
+#define BASIS_RAD		8.0f
+#define NODE_DYS		10
+#define NODE_DY			20
+#define NODE_SOCKSIZE	5
+
+// XXX button events (butspace)
+enum {
+	B_NOP = 0,
+	B_REDR 	= 1,
+	B_NODE_USEMAT,
+	B_NODE_USESCENE,
+	B_NODE_USETEX,
+	B_TEXBROWSE,
+	B_TEXALONE,
+	B_TEXLOCAL,
+	B_TEXDELETE,
+	B_TEXPRV,
+	B_AUTOTEXNAME,
+	B_KEEPDATA,
+	B_NODE_EXEC,
+	B_MATPRV,
+	B_NODE_LOADIMAGE,
+	B_NODE_SETIMAGE,
+} eActHeader_ButEvents;
+
+#endif /* ED_NODE_INTERN_H */

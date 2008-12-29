@@ -9,7 +9,8 @@ incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
 defs = []
 cf = []
 if env['OURPLATFORM'] == 'win32-vc':
-	cf.append('/WX')
+	#cf.append('/WX')
+	pass
 if env['CC'] == 'gcc':
 	#cf.append('-Werror')
 	pass

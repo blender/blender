@@ -87,21 +87,11 @@
 
 #include "node_intern.h"
 
-// XXX from BSE_node.h
-#define HIDDEN_RAD		15.0f
-#define BASIS_RAD		8.0f
-#define NODE_DYS		10
-#define NODE_DY			20
-#define NODE_SOCKSIZE	5
-
 // XXX interface.h
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 extern void ui_draw_tria_icon(float x, float y, float aspect, char dir);
-
-// XXX butspace.h
-#define B_NODE_EXEC			3610
 
 #if 0 // XXX
 static void snode_drawstring(void *curfont, SpaceNode *snode, char *str, int okwidth)
@@ -1075,10 +1065,6 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	UI_view2d_view_ortho(C, v2d);
 	
-	//bwin_clear_viewmat(sa->win);	/* clear buttons view */
-	//glLoadIdentity();
-	
-	/* always free, blocks here have no unique identifier (1 block per node) */
 	//uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	/* only set once */
@@ -1091,7 +1077,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	UI_view2d_constant_grid_draw(C, v2d);
 	/* backdrop */
-	// draw_nodespace_back_pix(sa, snode);
+	draw_nodespace_back_pix(sa, snode);
 	
 	/* nodes */
 	snode_set_context(snode, CTX_data_scene(C));
@@ -1152,7 +1138,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, 10/*unit*/, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
