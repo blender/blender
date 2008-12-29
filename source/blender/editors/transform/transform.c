@@ -467,6 +467,16 @@ static void viewRedrawForce(TransInfo *t)
 		// need to redraw ALL 3d view
 		ED_area_tag_redraw(t->sa);
 	}
+	else if (t->spacetype == SPACE_ACTION) {
+		SpaceAction *saction= CTX_wm_space_data(t->context);
+		
+		// TRANSFORM_FIX_ME
+		if (saction->lock) {
+			// whole window...
+		}
+		else 
+			ED_area_tag_redraw(t->sa);
+	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {
 		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
@@ -961,14 +971,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 		switch(handleNDofInput(&(t->ndof), event))
 		{
 			case NDOF_CONFIRM:
-				if ((t->context & CTX_NDOF) == 0)
+				if ((t->options & CTX_NDOF) == 0)
 				{
 					/* Confirm on normal transform only */
 					t->state = TRANS_CONFIRM;
 				}
 				break;
 			case NDOF_CANCEL:
-				if (t->context & CTX_NDOF)
+				if (t->options & CTX_NDOF)
 				{
 					/* Cancel on pure NDOF transform */
 					t->state = TRANS_CANCEL; 
@@ -980,7 +990,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 			case NDOF_NOMOVE:
-				if (t->context & CTX_NDOF)
+				if (t->options & CTX_NDOF)
 				{
 					/* Confirm on pure NDOF transform */
 					t->state = TRANS_CONFIRM;
@@ -1010,7 +1020,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
-			if (t->context & CTX_TWEAK)
+			if (t->options & CTX_TWEAK)
 				t->state = TRANS_CONFIRM;
 			break;
 		case LEFTSHIFTKEY:
@@ -1033,7 +1043,7 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 
 	t->state = TRANS_RUNNING;
 
-	t->context = CTX_NONE;
+	t->options = CTX_NONE;
 	
 	t->mode = TFM_DUMMY;
 
@@ -1065,13 +1075,13 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	return success;
 }
 
-void initTransform(bContext *C, TransInfo *t, int mode, int context, wmEvent *event)
+void initTransform(bContext *C, TransInfo *t, int mode, int options, wmEvent *event)
 {
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
 	t->state = TRANS_RUNNING;
 
-	t->context = context;
+	t->options = options;
 	
 	t->mode = mode;
 
@@ -1207,7 +1217,7 @@ void transformApply(TransInfo *t)
 	}
 
 	/* If auto confirm is on, break after one pass */		
-	if (t->context & CTX_AUTOCONFIRM)
+	if (t->options & CTX_AUTOCONFIRM)
 	{
 		t->state = TRANS_CONFIRM;
 	}
@@ -1250,7 +1260,8 @@ int transformEnd(TransInfo *t)
 #endif
 		return 1;
 	}
-
+	
+	t->context= NULL;
 	t->event = NULL;
 	
 	return 0;
@@ -1263,7 +1274,7 @@ void initManipulator(int mode)
 #if 0 // TRANSFORM_FIX_ME
 	Trans.state = TRANS_RUNNING;
 
-	Trans.context = CTX_NONE;
+	Trans.options = CTX_NONE;
 	
 	Trans.mode = mode;
 	
@@ -4244,68 +4255,77 @@ int Align(TransInfo *t, short mval[2])
 /* This function returns the snapping 'mode' for Animation Editors only 
  * We cannot use the standard snapping due to NLA-strip scaling complexities.
  */
+// XXX these modifier checks should be keymappable
 static short getAnimEdit_SnapMode(TransInfo *t)
 {
 	short autosnap= SACTSNAP_OFF;
-#if 0 // TRANSFORM_FIX_ME	
+	
 	/* currently, some of these are only for the action editor */
-	if (t->spacetype == SPACE_ACTION && G.saction) {
-		switch (G.saction->autosnap) {
-		case SACTSNAP_OFF:
-			if (G.qual == LR_CTRLKEY) 
-				autosnap= SACTSNAP_STEP;
-			else if (G.qual == LR_SHIFTKEY)
-				autosnap= SACTSNAP_FRAME;
-			else if (G.qual == LR_ALTKEY)
-				autosnap= SACTSNAP_MARKER;
-			else
-				autosnap= SACTSNAP_OFF;
-			break;
-		case SACTSNAP_STEP:
-			autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
-			break;
-		case SACTSNAP_FRAME:
-			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
-			break;
-		case SACTSNAP_MARKER:
-			autosnap= (G.qual==LR_ALTKEY)? SACTSNAP_OFF: SACTSNAP_MARKER;
-			break;
+	if (t->spacetype == SPACE_ACTION) {
+		SpaceAction *saction= CTX_wm_space_data(t->context);
+		
+		if (saction) {
+			switch (saction->autosnap) {
+			case SACTSNAP_OFF:
+				if (t->event->ctrl) 
+					autosnap= SACTSNAP_STEP;
+				else if (t->event->shift)
+					autosnap= SACTSNAP_FRAME;
+				else if (t->event->alt)
+					autosnap= SACTSNAP_MARKER;
+				else
+					autosnap= SACTSNAP_OFF;
+				break;
+			case SACTSNAP_STEP:
+				autosnap= (t->event->ctrl)? SACTSNAP_OFF: SACTSNAP_STEP;
+				break;
+			case SACTSNAP_FRAME:
+				autosnap= (t->event->shift)? SACTSNAP_OFF: SACTSNAP_FRAME;
+				break;
+			case SACTSNAP_MARKER:
+				autosnap= (t->event->alt)? SACTSNAP_OFF: SACTSNAP_MARKER;
+				break;
+			}
 		}
 	}
-	else if (t->spacetype == SPACE_NLA && G.snla) {
-		switch (G.snla->autosnap) {
-		case SACTSNAP_OFF:
-			if (G.qual == LR_CTRLKEY) 
-				autosnap= SACTSNAP_STEP;
-			else if (G.qual == LR_SHIFTKEY)
-				autosnap= SACTSNAP_FRAME;
-			else if (G.qual == LR_ALTKEY)
-				autosnap= SACTSNAP_MARKER;
-			else
-				autosnap= SACTSNAP_OFF;
-			break;
-		case SACTSNAP_STEP:
-			autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
-			break;
-		case SACTSNAP_FRAME:
-			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
-			break;
-		case SACTSNAP_MARKER:
-			autosnap= (G.qual==LR_ALTKEY)? SACTSNAP_OFF: SACTSNAP_MARKER;
-			break;
+	else if (t->spacetype == SPACE_NLA) {
+		SpaceAction *snla= CTX_wm_space_data(t->context);
+		
+		if (snla) {
+			switch (snla->autosnap) {
+			case SACTSNAP_OFF:
+				if (t->event->ctrl) 
+					autosnap= SACTSNAP_STEP;
+				else if (t->event->shift)
+					autosnap= SACTSNAP_FRAME;
+				else if (t->event->alt)
+					autosnap= SACTSNAP_MARKER;
+				else
+					autosnap= SACTSNAP_OFF;
+				break;
+			case SACTSNAP_STEP:
+				autosnap= (t->event->ctrl)? SACTSNAP_OFF: SACTSNAP_STEP;
+				break;
+			case SACTSNAP_FRAME:
+				autosnap= (t->event->shift)? SACTSNAP_OFF: SACTSNAP_FRAME;
+				break;
+			case SACTSNAP_MARKER:
+				autosnap= (t->event->alt)? SACTSNAP_OFF: SACTSNAP_MARKER;
+				break;
+			}
 		}
 	}
 	else {
-		if (G.qual == LR_CTRLKEY) 
+		if (t->event->ctrl) 
 			autosnap= SACTSNAP_STEP;
-		else if (G.qual == LR_SHIFTKEY)
+		else if (t->event->shift)
 			autosnap= SACTSNAP_FRAME;
-		else if (G.qual == LR_ALTKEY)
+		else if (t->event->alt)
 			autosnap= SACTSNAP_MARKER;
 		else
 			autosnap= SACTSNAP_OFF;
 	}
-#endif	
+	
 	return autosnap;
 }
 
@@ -4315,23 +4335,24 @@ static short getAnimEdit_SnapMode(TransInfo *t)
  */
 static short getAnimEdit_DrawTime(TransInfo *t)
 {
-#if 0 // TRANSFORM_FIX_ME	
 	short drawtime;
 	
 	/* currently, some of these are only for the action editor */
-	if (t->spacetype == SPACE_ACTION && G.saction) {
-		drawtime = (G.saction->flag & SACTION_DRAWTIME)? 1 : 0;
+	if (t->spacetype == SPACE_ACTION) {
+		SpaceAction *saction= CTX_wm_space_data(t->context);
+		
+		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
-	else if (t->spacetype == SPACE_NLA && G.snla) {
-		drawtime = (G.snla->flag & SNLA_DRAWTIME)? 1 : 0;
+	else if (t->spacetype == SPACE_NLA) {
+		SpaceAction *snla= CTX_wm_space_data(t->context);
+		
+		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
 	else {
 		drawtime = 0;
 	}
 	
 	return drawtime;
-#endif
-return 0;
 }	
 
 
@@ -4340,11 +4361,11 @@ return 0;
  */
 static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short autosnap)
 {
-#if 0 // TRANSFORM_FIX_ME	
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
-		short doTime= getAnimEdit_DrawTime(t);
-		double secf= FPS;
+		const Scene *scene= t->scene;
+		const short doTime= getAnimEdit_DrawTime(t);
+		const double secf= FPS;
 		double val;
 		
 		/* convert frame to nla-action time (if needed) */
@@ -4376,15 +4397,15 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 			val= *(td->val);
 		
 		/* snap to nearest marker */
-		val= (float)find_nearest_marker_time(val);
-			
+		// XXX missing function!
+		//val= (float)find_nearest_marker_time(val);
+		
 		/* convert frame out of nla-action time */
 		if (ob)
 			*(td->val)= get_action_frame(ob, val);
 		else
 			*(td->val)= val;
 	}
-#endif
 }
 
 /* ----------------- Translation ----------------------- */
@@ -4413,10 +4434,10 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		Scene *scene = t->scene;
-		short autosnap= getAnimEdit_SnapMode(t);
-		short doTime = getAnimEdit_DrawTime(t);
-		double secf= FPS;
+		const Scene *scene = t->scene;
+		const short autosnap= getAnimEdit_SnapMode(t);
+		const short doTime = getAnimEdit_DrawTime(t);
+		const double secf= FPS;
 		float val= t->fac;
 		
 		/* apply snapping + frame->seconds conversions */
@@ -4443,10 +4464,10 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	Scene *scene = t->scene;
 	int i;
 	
-	short doTime= getAnimEdit_DrawTime(t);
-	double secf= FPS;
+	const short doTime= getAnimEdit_DrawTime(t);
+	const double secf= FPS;
 	
-	short autosnap= getAnimEdit_SnapMode(t);
+	const short autosnap= getAnimEdit_SnapMode(t);
 	
 	float deltax, val;
 	

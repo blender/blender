@@ -120,7 +120,12 @@
 //#include "BIF_toolbox.h"
 
 #include "ED_types.h"
+#include "ED_anim_api.h"
+#include "ED_keyframing.h"
+#include "ED_keyframes_edit.h"
 #include "ED_view3d.h"
+
+#include "UI_view2d.h"
 
 //#include "BSE_drawipo.h"
 //#include "BSE_edit.h"
@@ -2108,7 +2113,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 	
-	if ((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	if ((t->options & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 	{
 		mirror = 1;
 	}
@@ -2680,7 +2685,6 @@ static void posttrans_gpd_clean (bGPdata *gpd)
  */
 static void posttrans_ipo_clean (Ipo *ipo)
 {
-#if 0 // TRANSFORM_FIX_ME
 	IpoCurve *icu;
 	int i;
 	
@@ -2737,40 +2741,39 @@ static void posttrans_ipo_clean (Ipo *ipo)
 		/* free cache */
 		MEM_freeN(selcache);
 	}
-#endif
 }
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  * remake_action_ipos should have already been called 
  */
-static void posttrans_action_clean (bAction *act)
+static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 {
-#if 0 // TRANSFORM_FIX_ME
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
 	int filter;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
-	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
 	 *  	- all keyframes are converted in/out of global time 
 	 */
-	for (ale= act_data.first; ale; ale= ale->next) {
-		if (NLA_ACTION_SCALED) {
-			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		
+		if (nob) {
+			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1); 
 			posttrans_ipo_clean(ale->key_data);
-			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
 		}
 		else 
 			posttrans_ipo_clean(ale->key_data);
 	}
 	
 	/* free temp data */
-	BLI_freelistN(&act_data);
-#endif
+	BLI_freelistN(&anim_data);
 }
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
@@ -2948,7 +2951,6 @@ static void TimeToTransData(TransData *td, float *time, Object *ob)
  */
 static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob, char side, float cfra)
 {
-#if 0 // TRANSFORM_FIX_ME	
 	IpoCurve *icu;
 	BezTriple *bezt;
 	int i;
@@ -2977,8 +2979,6 @@ static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob, char side,
 	}
 	
 	return td;
-#endif
-return NULL;
 }
 
 /* helper struct for gp-frame transforms (only used here) */
@@ -3041,16 +3041,13 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 
 static void createTransActionData(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+	Scene *scene= CTX_data_scene(C);
 	TransData *td = NULL;
 	tGPFtransdata *tfd = NULL;
-	Object *ob= NULL;
 	
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
-	void *data;
-	short datatype;
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
 	int filter;
 	
 	int count=0;
@@ -3058,26 +3055,22 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	char side;
 	
 	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	if (data == NULL) return;
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return;
 	
 	/* filter data */
-	if (datatype == ACTCONT_GPENCIL)
-		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT);
+	if (ac.datatype == ANIMCONT_GPENCIL)
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
-	actdata_filter(&act_data, filter, data, datatype);
-	
-	/* is the action scaled? if so, the it should belong to the active object */
-	if (NLA_ACTION_SCALED)
-		ob= OBACT;
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
 		
-		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
+		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L';
 	}
 	else {
@@ -3085,26 +3078,28 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		side = 'B';
 	}
 	
-	/* convert current-frame to action-time (slightly less accurate, espcially under
-	 * higher scaling ratios, but is faster than converting all points) 
-	 */
-	if (ob) 
-		cfra = get_action_frame(ob, (float)CFRA);
-	else
-		cfra = (float)CFRA;
-	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
-	for (ale= act_data.first; ale; ale= ale->next) {
-		if (ale->type == ACTTYPE_GPLAYER)
-			count += count_gplayer_frames(ale->data, side, cfra);
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *nob= ANIM_nla_mapping_get(&ac, ale);
+		
+		/* convert current-frame to action-time (slightly less accurate, espcially under
+		 * higher scaling ratios, but is faster than converting all points) 
+		 */
+		if (nob) 
+			cfra = get_action_frame(nob, (float)CFRA);
 		else
+			cfra = (float)CFRA;
+		
+		//if (ale->type == ANIMTYPE_GPLAYER)
+		//	count += count_gplayer_frames(ale->data, side, cfra);
+		//else
 			count += count_ipo_keys(ale->key_data, side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
 		/* cleanup temp list */
-		BLI_freelistN(&act_data);
+		BLI_freelistN(&anim_data);
 		return;
 	}
 	
@@ -3114,7 +3109,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(Action Editor)");
 	td= t->data;
 	
-	if (datatype == ACTCONT_GPENCIL) {
+	if (ac.datatype == ANIMCONT_GPENCIL) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
 			tfd= (tGPFtransdata *)( (float *)(t->customData) + 2 );
@@ -3128,20 +3123,29 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		t->customData= MEM_callocN(sizeof(float)*2, "TimeSlide Min/Max");
 	
 	/* loop 2: build transdata array */
-	for (ale= act_data.first; ale; ale= ale->next) {
-		if (ale->type == ACTTYPE_GPLAYER) {
-			bGPDlayer *gpl= (bGPDlayer *)ale->data;
-			int i;
-			
-			i = GPLayerToTransData(td, tfd, gpl, side, cfra);
-			td += i;
-			tfd += i;
-		}
-		else {
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		//if (ale->type == ANIMTYPE_GPLAYER) {
+		//	bGPDlayer *gpl= (bGPDlayer *)ale->data;
+		//	int i;
+		//	
+		//	i = GPLayerToTransData(td, tfd, gpl, side, cfra);
+		//	td += i;
+		//	tfd += i;
+		//}
+		//else {
+			Object *nob= ANIM_nla_mapping_get(&ac, ale);
 			Ipo *ipo= (Ipo *)ale->key_data;
 			
-			td= IpoToTransData(td, ipo, ob, side, cfra);
-		}
+			/* convert current-frame to action-time (slightly less accurate, espcially under
+			 * higher scaling ratios, but is faster than converting all points) 
+			 */
+			if (nob) 
+				cfra = get_action_frame(nob, (float)CFRA);
+			else
+				cfra = (float)CFRA;
+			
+			td= IpoToTransData(td, ipo, nob, side, cfra);
+		//}
 	}
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
@@ -3164,8 +3168,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	}
 	
 	/* cleanup temp list */
-	BLI_freelistN(&act_data);
-#endif
+	BLI_freelistN(&anim_data);
 }
 
 static void createTransNlaData(bContext *C, TransInfo *t)
@@ -3968,67 +3971,99 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-#if 0 // TRANSFORM_FIX_ME
+	
 	if (t->spacetype == SPACE_ACTION) {
-		void *data;
-		short datatype;
+		SpaceAction *saction= (SpaceAction *)(t->sa->spacedata.first);
+		Scene *scene= NULL;
+		bAnimContext ac;
 		
 		/* determine what type of data we are operating on */
-		data = get_action_context(&datatype);
-		if (data == NULL) return;
-		ob = OBACT;
+		if (ANIM_animdata_get_context(t->context, &ac) == 0) {
+			printf("space action transform -> special aftertrans exit. no context \n"); // XXX
+			return;
+		}
 		
-		if (datatype == ACTCONT_ACTION) {
+		/* get pointers to useful data */
+		ob = OBACT;
+		scene= ac.scene;
+		
+		if (ac.datatype == ANIMCONT_DOPESHEET) {
+			ListBase anim_data = {NULL, NULL};
+			bAnimListElem *ale;
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+			
+			/* get channels to work on */
+			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
+			
+			/* these should all be ipo-blocks */
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				Object *nob= ANIM_nla_mapping_get(&ac, ale);
+				Ipo *ipo= ale->key_data;
+				IpoCurve *icu;
+				
+				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+				     ((cancelled == 0) || (duplicate)) )
+				{
+					if (nob) {
+						ANIM_nla_mapping_apply(nob, ipo, 0, 1); 
+						posttrans_ipo_clean(ipo);
+						ANIM_nla_mapping_apply(nob, ipo, 1, 1);
+					}
+					else
+						posttrans_ipo_clean(ipo);
+				}
+			}
+			
+			/* free temp memory */
+			BLI_freelistN(&anim_data);
+		}
+		else if (ac.datatype == ANIMCONT_ACTION) {
 			/* Depending on the lock status, draw necessary views */
+			// fixme... some of this stuff is not good
 			if (ob) {
 				ob->ctime= -1234567.0f;
 				
-				if(ob->pose || ob_get_key(ob))
-					DAG_object_flush_update(G.scene, ob, OB_RECALC);
+				if (ob->pose || ob_get_key(ob))
+					DAG_object_flush_update(scene, ob, OB_RECALC);
 				else
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+					DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 			}
 			
 			/* Do curve cleanups? */
-			if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 			     ((cancelled == 0) || (duplicate)) )
 			{
-				posttrans_action_clean((bAction *)data);
+				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
-			
-			/* Do curve updates */
-			remake_action_ipos((bAction *)data);
 		}
-		else if (datatype == ACTCONT_SHAPEKEY) {
+		else if (ac.datatype == ANIMCONT_SHAPEKEY) {
 			/* fix up the Ipocurves and redraw stuff */
-			Key *key= (Key *)data;
+			Key *key= (Key *)ac.data;
+			
 			if (key->ipo) {
 				IpoCurve *icu;
 				
-				if ( (G.saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
+				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					posttrans_ipo_clean(key->ipo);
 				}
-				
-				for (icu = key->ipo->curve.first; icu; icu=icu->next) {
-					sort_time_ipocurve(icu);
-					testhandles_ipocurve(icu);
-				}
 			}
 			
-			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 		}
-		else if (datatype == ACTCONT_GPENCIL) {
+#if 0 // XXX future of this is still not clear
+		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
 			if ((cancelled == 0) || (duplicate))
 			{
+				bScreen *sc= (bScreen *)ac.data;
 				ScrArea *sa;
 				
 				/* BAD... we need to loop over all screen areas for current screen...
 				 * 	- sync this with actdata_filter_gpencil() in editaction.c 
 				 */
-				for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+				for (sa= sc->areabase.first; sa; sa= sa->next) {
 					bGPdata *gpd= gpencil_data_getactive(sa);
 					
 					if (gpd) 
@@ -4036,9 +4071,15 @@ void special_aftertrans_update(TransInfo *t)
 				}
 			}
 		}
+#endif // XXX future of this is still not clear
 		
-		G.saction->flag &= ~SACTION_MOVING;
+		/* make sure all IPO-curves are set correctly */
+		ANIM_editkeyframes_refresh(&ac);
+		
+		/* clear flag that was set for time-slide drawing */
+		saction->flag &= ~SACTION_MOVING;
 	}
+#if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype == SPACE_NLA) {
 		recalc_all_ipos();	// bad
 		synchronize_action_strips();
@@ -4317,11 +4358,11 @@ void createTransData(bContext *C, TransInfo *t)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 	
-	if (t->context == CTX_TEXTURE) {
+	if (t->options == CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(C, t);
 	}
-	else if (t->context == CTX_EDGE) {
+	else if (t->options == CTX_EDGE) {
 		t->ext = NULL;
 		t->flag |= T_EDIT;
 		createTransEdge(C, t);
@@ -4331,7 +4372,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (t->context == CTX_BMESH) {
+	else if (t->options == CTX_BMESH) {
 		// TRANSFORM_FIX_ME
 		//createTransBMeshVerts(t, G.editBMesh->bm, G.editBMesh->td);
 	}

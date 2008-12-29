@@ -488,12 +488,12 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, action_viewmenu, CTX_wm_area(C), 
-					  "View", xco, yco, xmax-3, 24, "");
+					  "View", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		xmax= GetButStringLength("Select");
 		uiDefPulldownBut(block, action_selectmenu, CTX_wm_area(C), 
-					  "Select", xco, yco, xmax-3, 24, "");
+					  "Select", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		if ( (saction->mode == SACTCONT_DOPESHEET) ||
@@ -501,31 +501,31 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		{
 			xmax= GetButStringLength("Channel");
 			uiDefPulldownBut(block, action_channelmenu, CTX_wm_area(C), 
-						  "Channel", xco, yco, xmax-3, 24, "");
+						  "Channel", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 		else if (saction->mode==SACTCONT_GPENCIL) {
 			xmax= GetButStringLength("Channel");
 			uiDefPulldownBut(block, action_gplayermenu, CTX_wm_area(C), 
-						  "Channel", xco, yco, xmax-3, 24, "");
+						  "Channel", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 		
 		xmax= GetButStringLength("Marker");
 		uiDefPulldownBut(block, action_markermenu, CTX_wm_area(C), 
-					  "Marker", xco, yco, xmax-3, 24, "");
+					  "Marker", xco, yco-2, xmax-3, 24, "");
 		xco+= xmax;
 		
 		if (saction->mode == SACTCONT_GPENCIL) {
 			xmax= GetButStringLength("Frame");
 			uiDefPulldownBut(block, action_framemenu, CTX_wm_area(C), 
-						  "Frame", xco, yco, xmax-3, 24, "");
+						  "Frame", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 		else {
 			xmax= GetButStringLength("Key");
 			uiDefPulldownBut(block, action_keymenu, CTX_wm_area(C), 
-						  "Key", xco, yco, xmax-3, 24, "");
+						  "Key", xco, yco-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 	}

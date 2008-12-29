@@ -177,7 +177,7 @@ typedef struct TransInfo {
     int         mode;           /* current mode                         */
     int	        flag;           /* generic flags for special behaviors  */
 	short		state;			/* current state (running, canceled,...)*/
-    int         context;        /* current context                      */
+    int         options;        /* current context/options for transform                      */
     float       val;            /* init value for some transformations (and rotation angle)  */
     float       fac;            /* factor for distance based transform  */
     int       (*transform)(struct TransInfo *, short *);
@@ -224,6 +224,7 @@ typedef struct TransInfo {
 	/*************** NEW STUFF *********************/
 
 	float		values[4];
+	struct bContext *context;
 	void		*view;
 	struct ScrArea	*sa;
 	struct ARegion	*ar;

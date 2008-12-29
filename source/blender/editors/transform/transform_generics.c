@@ -444,7 +444,7 @@ void recalcData(TransInfo *t)
 					}
 					clipMirrorModifier(t, G.obedit);
 				}
-				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+				if((t->options & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
 				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
@@ -673,7 +673,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 //	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
 //	else if(G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
 //	else G.moving= G_TRANSFORM_OBJ;
-
+	
+	t->context= C;
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;
@@ -684,7 +685,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	t->flag = 0;
 
 	/* setting PET flag */
-	if ((t->context & CTX_NO_PET) == 0 && (sce->proportional)) {
+	if ((t->options & CTX_NO_PET) == 0 && (sce->proportional)) {
 		t->flag |= T_PROP_EDIT;
 		
 		if(sce->proportional == 2)

@@ -50,10 +50,10 @@ static void transformops_exit(bContext *C, wmOperator *op)
 static void transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int mode    = RNA_int_get(op->ptr, "mode");
-	int context = RNA_int_get(op->ptr, "context");
+	int options = RNA_int_get(op->ptr, "options");
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	
-	initTransform(C, t, mode, context, event);
+	initTransform(C, t, mode, options, event);
 
 	/* store data */
 	op->customdata = t;
@@ -133,7 +133,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 
 	RNA_def_property(ot->srna, "mode", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "context", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "options", PROP_INT, PROP_NONE);
 	
 	prop = RNA_def_property(ot->srna, "value", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 4);
@@ -170,6 +170,18 @@ void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *key
 			RNA_int_set(km->ptr, "mode", TFM_SHEAR);
 			
 			break;
+		case SPACE_ACTION:
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", GKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_TRANSLATE);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", EKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_EXTEND);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_SCALE);
+			
+			km= WM_keymap_add_item(keymap, "TFM_OT_transform", TKEY, KM_PRESS, 0, 0);
+			RNA_int_set(km->ptr, "mode", TFM_TIME_SLIDE);
 		default:
 			break;
 	}
