@@ -46,6 +46,8 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_transform.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -79,6 +81,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_smoothview);
 	WM_operatortype_append(VIEW3D_OT_render_border);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
+	
+	transform_operatortypes();
 }
 
 void view3d_keymap(wmWindowManager *wm)
@@ -135,6 +139,8 @@ void view3d_keymap(wmWindowManager *wm)
 
 	/* TODO - this is just while we have no way to load a text datablock */
 	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+
+	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
 }
 

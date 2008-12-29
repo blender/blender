@@ -123,6 +123,7 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
  * @section Quaternion arithmetic routines
  */
 
+int  QuatIsNul(float *q);
 void QuatToEul(float *quat, float *eul);
 void QuatOne(float *);
 void QuatMul(float *, float *, float *);

@@ -130,11 +130,7 @@ void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 
 void view3d_operator_needs_opengl(const struct bContext *C);
-void viewline(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
-void viewray(ARegion *ar, View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
 
-void initgrabz(View3D *v3d, float x, float y, float z);
-void window_to_3d(ARegion *ar, View3D *v3d, float *vec, short mx, short my);
 int boundbox_clip(View3D *v3d, float obmat[][4], struct BoundBox *bb);
 
 void view3d_project_short_clip(ARegion *ar, View3D *v3d, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
@@ -142,13 +138,6 @@ void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr, float mat[
 void view3d_project_float(ARegion *a, float *vec, float *adr, float mat[4][4]);
 void view3d_get_object_project_mat(View3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4]);
-
-void project_short(ARegion *ar, View3D *v3d, float *vec, short *adr);
-void project_int(ARegion *ar, View3D *v3d, float *vec, int *adr);
-void project_int_noclip(ARegion *ar, View3D *v3d, float *vec, int *adr);
-void project_short_noclip(ARegion *ar, View3D *v3d, float *vec, short *adr);
-void project_float(ARegion *ar, View3D *v3d, float *vec, float *adr);
-void project_float_noclip(ARegion *ar, View3D *v3d, float *vec, float *adr);
 
 int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens);

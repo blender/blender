@@ -1087,6 +1087,10 @@ void printmatrix3( char *str,  float m[][3])
 
 /* **************** QUATERNIONS ********** */
 
+int QuatIsNul(float *q)
+{
+	return (q[0] == 0 && q[1] == 0 && q[2] == 0 && q[3] == 0);
+}
 
 void QuatMul(float *q, float *q1, float *q2)
 {

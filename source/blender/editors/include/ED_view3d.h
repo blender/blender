@@ -29,8 +29,28 @@
 #define ED_VIEW3D_H
 
 /* ********* exports for space_view3d/ module ********** */
+struct ARegion;
+struct View3D;
+
 
 float *give_cursor(Scene *scene, View3D *v3d);
+
+void initgrabz(struct View3D *v3d, float x, float y, float z);
+void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
+
+/* Projection */
+
+void project_short(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
+void project_short_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
+
+void project_int(struct ARegion *ar, struct View3D *v3d, float *vec, int *adr);
+void project_int_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, int *adr);
+
+void project_float(struct ARegion *ar, struct View3D *v3d, float *vec, float *adr);
+void project_float_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, float *adr);
+
+void viewline(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
+void viewray(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
 
 #endif /* ED_VIEW3D_H */
 
