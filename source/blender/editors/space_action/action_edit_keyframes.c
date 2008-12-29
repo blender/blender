@@ -89,9 +89,354 @@
 /* GENERAL STUFF */
 
 // TODO:
-//	- delete
 //	- insert key
-// 	- copy/paste
+
+/* ******************** Copy/Paste Keyframes Operator ************************* */
+/* - The copy/paste buffer currently stores a set of Action Channels, with temporary
+ *	IPO-blocks, and also temporary IpoCurves which only contain the selected keyframes.
+ * - Only pastes between compatable data is possible (i.e. same achan->name, ipo-curve type, etc.)
+ *	Unless there is only one element in the buffer, names are also tested to check for compatability.
+ * - All pasted frames are offset by the same amount. This is calculated as the difference in the times of
+ *	the current frame and the 'first keyframe' (i.e. the earliest one in all channels).
+ * - The earliest frame is calculated per copy operation.
+ */
+
+/* globals for copy/paste data (like for other copy/paste buffers) */
+ListBase actcopybuf = {NULL, NULL};
+static float actcopy_firstframe= 999999999.0f;
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+// XXX find some header to put this in!
+void free_actcopybuf ()
+{
+	bActionChannel *achan, *anext;
+	bConstraintChannel *conchan, *cnext;
+	
+	for (achan= actcopybuf.first; achan; achan= anext) {
+		anext= achan->next;
+		
+		if (achan->ipo) {
+			free_ipo(achan->ipo);
+			MEM_freeN(achan->ipo);
+		}
+		
+		for (conchan=achan->constraintChannels.first; conchan; conchan=cnext) {
+			cnext= conchan->next;
+			
+			if (conchan->ipo) {
+				free_ipo(conchan->ipo);
+				MEM_freeN(conchan->ipo);
+			}
+			
+			BLI_freelinkN(&achan->constraintChannels, conchan);
+		}
+		
+		BLI_freelinkN(&actcopybuf, achan);
+	}
+	
+	actcopybuf.first= actcopybuf.last= NULL;
+	actcopy_firstframe= 999999999.0f;
+}
+
+/* ------------------- */
+
+/* This function adds data to the copy/paste buffer, freeing existing data first
+ * Only the selected action channels gets their selected keyframes copied.
+ */
+static short copy_action_keys (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* clear buffer first */
+	free_actcopybuf();
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* assume that each of these is an ipo-block */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		bActionChannel *achan;
+		Ipo *ipo= ale->key_data;
+		Ipo *ipn;
+		IpoCurve *icu, *icn;
+		BezTriple *bezt;
+		int i;
+		
+		/* coerce an action-channel out of owner */
+		if (ale->ownertype == ANIMTYPE_ACHAN) {
+			bActionChannel *achanO= ale->owner;
+			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
+			strcpy(achan->name, achanO->name);
+		}
+		else if (ale->ownertype == ANIMTYPE_SHAPEKEY) {
+			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
+			strcpy(achan->name, "#ACP_ShapeKey");
+		}
+		else
+			continue;
+		BLI_addtail(&actcopybuf, achan);
+		
+		/* add constraint channel if needed, then add new ipo-block */
+		if (ale->type == ANIMTYPE_CONCHAN) {
+			bConstraintChannel *conchanO= ale->data;
+			bConstraintChannel *conchan;
+			
+			conchan= MEM_callocN(sizeof(bConstraintChannel), "ActCopyPasteConchan");
+			strcpy(conchan->name, conchanO->name);
+			BLI_addtail(&achan->constraintChannels, conchan);
+			
+			conchan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
+		}
+		else {
+			achan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
+		}
+		ipn->blocktype = ipo->blocktype;
+		
+		/* now loop through curves, and only copy selected keyframes */
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			/* allocate a new curve */
+			icn= MEM_callocN(sizeof(IpoCurve), "ActCopyPasteIcu");
+			icn->blocktype = icu->blocktype;
+			icn->adrcode = icu->adrcode;
+			BLI_addtail(&ipn->curve, icn);
+			
+			/* find selected BezTriples to add to the buffer (and set first frame) */
+			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+				if (BEZSELECTED(bezt)) {
+					/* add to buffer ipo-curve */
+					insert_bezt_icu(icn, bezt);
+					
+					/* check if this is the earliest frame encountered so far */
+					if (bezt->vec[1][0] < actcopy_firstframe)
+						actcopy_firstframe= bezt->vec[1][0];
+				}
+			}
+		}
+	}
+	
+	/* check if anything ended up in the buffer */
+	if (ELEM(NULL, actcopybuf.first, actcopybuf.last))
+	//	error("Nothing copied to buffer");
+		return -1;
+	
+	/* free temp memory */
+	BLI_freelistN(&anim_data);
+	
+	/* everything went fine */
+	return 0;
+}
+
+static short paste_action_keys (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	const Scene *scene= (ac->scene);
+	const float offset = (float)(CFRA - actcopy_firstframe);
+	char *actname = NULL, *conname = NULL;
+	short no_name= 0;
+	
+	/* check if buffer is empty */
+	if (ELEM(NULL, actcopybuf.first, actcopybuf.last)) {
+		//error("No data in buffer to paste");
+		return -1;
+	}
+	/* check if single channel in buffer (disregard names if so)  */
+	if (actcopybuf.first == actcopybuf.last)
+		no_name= 1;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* from selected channels */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Ipo *ipo_src = NULL;
+		bActionChannel *achan;
+		IpoCurve *ico, *icu;
+		BezTriple *bezt;
+		int i;
+		
+		/* find suitable IPO-block from buffer to paste from */
+		for (achan= actcopybuf.first; achan; achan= achan->next) {
+			/* try to match data */
+			if (ale->ownertype == ANIMTYPE_ACHAN) {
+				bActionChannel *achant= ale->owner;
+				
+				/* check if we have a corresponding action channel */
+				if ((no_name) || (strcmp(achan->name, achant->name)==0)) {
+					actname= achant->name;
+					
+					/* check if this is a constraint channel */
+					if (ale->type == ANIMTYPE_CONCHAN) {
+						bConstraintChannel *conchant= ale->data;
+						bConstraintChannel *conchan;
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							if (strcmp(conchan->name, conchant->name)==0) {
+								conname= conchant->name;
+								ipo_src= conchan->ipo;
+								break;
+							}
+						}
+						if (ipo_src) break;
+					}
+					else {
+						ipo_src= achan->ipo;
+						break;
+					}
+				}
+			}
+			else if (ale->ownertype == ANIMTYPE_SHAPEKEY) {
+				/* check if this action channel is "#ACP_ShapeKey" */
+				if ((no_name) || (strcmp(achan->name, "#ACP_ShapeKey")==0)) {
+					actname= NULL;
+					ipo_src= achan->ipo;
+					break;
+				}
+			}	
+		}
+		
+		/* this shouldn't happen, but it might */
+		if (ipo_src == NULL)
+			continue;
+		
+		/* loop over curves, pasting keyframes */
+		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
+			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
+			icu= verify_ipocurve(ale->id, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			
+			if (icu) {
+				/* just start pasting, with the the first keyframe on the current frame, and so on */
+				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {						
+					/* temporarily apply offset to src beztriple while copying */
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
+					
+					/* insert the keyframe */
+					insert_bezt_icu(icu, bezt);
+					
+					/* un-apply offset from src beztriple after copying */
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
+				}
+				
+				/* recalculate channel's handles? */
+				calchandles_ipocurve(icu);
+			}
+		}
+	}
+	
+	/* free temp memory */
+	BLI_freelistN(&anim_data);
+	
+	/* do depsgraph updates (for 3d-view)? */
+#if 0
+	if ((ob) && (G.saction->pin==0)) {
+		if (ob->type == OB_ARMATURE)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+		else
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	}
+#endif
+
+	return 0;
+}
+
+/* ------------------- */
+
+static int actkeys_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* copy keyframes */
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		// FIXME...
+	}
+	else {
+		if (copy_action_keys(&ac)) {
+			printf("Action Copy: No keyframes copied to copy-paste buffer\n");
+			uiPupmenuError(C, "No keyframes copied to copy-paste buffer");
+		}
+	}
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_copy (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Copy Keyframes";
+	ot->idname= "ACT_OT_keyframes_copy";
+	
+	/* api callbacks */
+	ot->exec= actkeys_copy_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+
+
+static int actkeys_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* paste keyframes */
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		// FIXME...
+	}
+	else {
+		if (paste_action_keys(&ac)) {
+			printf("Action Paste: Nothing to paste, as Copy-Paste buffer was empty.\n");
+			uiPupmenuError(C, "Nothing to paste, as Copy-Paste buffer was empty.");
+		}
+	}
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframes_paste (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Paste Keyframes";
+	ot->idname= "ACT_OT_keyframes_paste";
+	
+	/* api callbacks */
+	ot->exec= actkeys_paste_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
 
 /* ******************** Delete Keyframes Operator ************************* */
 

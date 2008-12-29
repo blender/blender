@@ -80,6 +80,8 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_keyframes_sample);
 	WM_operatortype_append(ACT_OT_keyframes_clean);
 	WM_operatortype_append(ACT_OT_keyframes_delete);
+	WM_operatortype_append(ACT_OT_keyframes_copy);
+	WM_operatortype_append(ACT_OT_keyframes_paste);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -127,6 +129,11 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
 	
+		/* copy/paste */
+		// XXX - should we keep these?
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+		
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
 }
