@@ -333,7 +333,12 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if(mode!='u') G.save_over = 1;
 	
 	G.main= bfd->main;
+
 	CTX_data_main_set(C, G.main);
+	CTX_wm_screen_set(C, NULL);
+	CTX_wm_area_set(C, NULL);
+	CTX_wm_region_set(C, NULL);
+	CTX_wm_ui_block_set(C, NULL, NULL);
 	
 	if (bfd->user) {
 		
