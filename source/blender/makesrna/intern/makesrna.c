@@ -906,6 +906,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_constraint.c", RNA_def_constraint},
 	{"rna_controller.c", RNA_def_controller},
 	{"rna_curve.c", RNA_def_curve},
+	{"rna_fluidsim.c", RNA_def_fluidsim},
 	{"rna_group.c", RNA_def_group},
 	{"rna_image.c", RNA_def_image},
 	{"rna_ipo.c", RNA_def_ipo},

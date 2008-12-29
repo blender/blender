@@ -157,6 +157,7 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_DROP    (1<<2)
 #define OB_FSPART_NEWPART (1<<3)
 #define OB_FSPART_FLOAT   (1<<4)
+#define OB_FSPART_TRACER  (1<<5)
 
 // new fluid bit flags for fss->flags - dg
 #define OB_FLUIDSIM_REVERSE (1 << 0)
