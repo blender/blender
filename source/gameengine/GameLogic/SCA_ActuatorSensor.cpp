@@ -149,13 +149,35 @@ PyParentObject SCA_ActuatorSensor::Parents[] = {
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
+	//Deprecated functions ------>
 	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, (PY_METHODCHAR)GetActuator_doc},
 	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, (PY_METHODCHAR)SetActuator_doc},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* SCA_ActuatorSensor::_getattr(const STR_String& attr) {
+	if (attr == "actuator") {
+		return PyString_FromString(m_checkactname);
+	}
 	_getattr_up(SCA_ISensor); /* implicit return! */
+}
+
+int SCA_ActuatorSensor::_setattr(const STR_String& attr, PyObject *value) {
+	if (PyString_Check(value)) {
+		char* sval = PyString_AsString(value);
+		if (attr == "actuator") {
+			SCA_IActuator* act = GetParent()->FindActuator(STR_String(sval));
+			if (act) {
+				m_checkactname = sval;
+				m_actuator = act;
+				return 0;
+			}
+			PyErr_SetString(PyExc_AttributeError, "string does not correspond to an actuator");
+			return 1;
+		}
+	}
+	return SCA_ISensor::_setattr(attr, value);
 }
 
 /* 3. getActuator */
@@ -164,6 +186,7 @@ const char SCA_ActuatorSensor::GetActuator_doc[] =
 "\tReturn the Actuator with which the sensor operates.\n";
 PyObject* SCA_ActuatorSensor::PyGetActuator(PyObject* self) 
 {
+	ShowDeprecationWarning("getActuator()", "the actuator property");
 	return PyString_FromString(m_checkactname);
 }
 
@@ -175,6 +198,7 @@ const char SCA_ActuatorSensor::SetActuator_doc[] =
 "\tof this name, the call is ignored.\n";
 PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* self, PyObject* args, PyObject* kwds) 
 {
+	ShowDeprecationWarning("setActuator()", "the actuator property");
 	/* We should query whether the name exists. Or should we create a prop   */
 	/* on the fly?                                                           */
 	char *actNameArg = NULL;

@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): José I. Romero (cleanup and fixes)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -59,6 +59,29 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	m_mousemode   = mousemode;
 	m_triggermode = true;
 
+	UpdateHotkey();
+	Init();
+}
+
+void SCA_MouseSensor::Init()
+{
+	m_val = (m_invert)?1:0; /* stores the latest attribute */
+	m_reset = true;
+}
+
+SCA_MouseSensor::~SCA_MouseSensor() 
+{
+    /* Nothing to be done here. */
+}
+
+void SCA_MouseSensor::UpdateHotkey()
+{
+	// gosh, this function is so damn stupid
+	// its here because of a design mistake in the mouse sensor, it should only
+	// have 3 trigger modes (button, wheel, move), and let the user set the 
+	// hotkey separately, like the other sensors. but instead it has a mode for 
+	// each friggin key and i have to update the hotkey based on it... genius!
+	
 	switch (m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
 		m_hotkey = SCA_IInputDevice::KX_LEFTMOUSE;
@@ -78,21 +101,7 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	default:
 		; /* ignore, no hotkey */
 	}
-	Init();
 }
-
-void SCA_MouseSensor::Init()
-{
-	m_val = (m_invert)?1:0; /* stores the latest attribute */
-	m_reset = true;
-}
-
-SCA_MouseSensor::~SCA_MouseSensor() 
-{
-    /* Nothing to be done here. */
-}
-
-
 
 CValue* SCA_MouseSensor::GetReplica()
 {
@@ -137,15 +146,6 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 	bool reset = m_reset && m_level;
 	SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
 
-
-
-//	SCA_ILogicBrick::RegisterEvent(event);
-//  	if (m_mousemode == KX_MOUSESENSORMODE_MOVEMENT) cout << "\nChecking for movement...";
-//CValue* val = event->GetProperty("val");
-
-	/* both MOUSEX and MOUSEY. Treat all of these as key-presses.            */
-	/* So, treat KX_MOUSESENSORMODE_POSITION as                              */
-	/* KX_MOUSESENSORMODE_POSITIONX || KX_MOUSESENSORMODE_POSITIONY          */
 	m_reset = false;
 	switch (m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
@@ -155,42 +155,34 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 	case KX_MOUSESENSORMODE_WHEELDOWN:
 		{
 			const SCA_InputEvent& event = mousedev->GetEventValue(m_hotkey);
-			if (event.m_status == SCA_InputEvent::KX_JUSTACTIVATED)
-			{
+			switch (event.m_status){	
+			case SCA_InputEvent::KX_JUSTACTIVATED:
 				m_val = 1;
 				result = true;
-			} else
-			{
-				if (event.m_status == SCA_InputEvent::KX_JUSTRELEASED)
+				break;
+			case SCA_InputEvent::KX_JUSTRELEASED:
+				m_val = 0;
+				result = true;
+				break;
+			case SCA_InputEvent::KX_ACTIVE:
+				if (m_val == 0)
+				{
+					m_val = 1;
+					if (m_level)
+						result = true;
+				}
+				break;
+			default:
+				if (m_val == 1)
 				{
 					m_val = 0;
 					result = true;
-				} else
-				{
-					if (event.m_status == SCA_InputEvent::KX_ACTIVE)
-					{
-						if (m_val == 0)
-						{
-							m_val = 1;
-							if (m_level)
-							{
-								result = true;
-							}
-						}
-					} else
-					{
-						if (m_val == 1)
-						{
-							m_val = 0;
-							result = true;
-						}
-					}
 				}
+				break;
 			}
 			break;
 		}
 	case KX_MOUSESENSORMODE_MOVEMENT:
-		
 		{
 			const SCA_InputEvent& eventX = mousedev->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
 			const SCA_InputEvent& eventY = mousedev->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
@@ -198,27 +190,26 @@ bool SCA_MouseSensor::Evaluate(CValue* event)
 			if (eventX.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 				eventY.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
 				eventX.m_status == SCA_InputEvent::KX_ACTIVE ||
-				eventY.m_status == SCA_InputEvent::KX_ACTIVE)
-				
+				eventY.m_status == SCA_InputEvent::KX_ACTIVE)	
 			{
 				m_val = 1;
 				result = true;
-			} else
-			{
-				if (eventX.m_status == SCA_InputEvent::KX_JUSTRELEASED ||
+			} 
+			else if (eventX.m_status == SCA_InputEvent::KX_JUSTRELEASED ||
 					eventY.m_status == SCA_InputEvent::KX_JUSTRELEASED )
+			{
+				m_val = 0;
+				result = true;
+			} 
+			else //KX_NO_IMPUTSTATUS
+			{ 
+				if (m_val == 1)
 				{
 					m_val = 0;
 					result = true;
-				} else
-				{
-					if (m_val == 1)
-					{
-						m_val = 0;
-						result = true;
-					}
 				}
 			}
+			
 			break;
 		}
 	default:
@@ -243,18 +234,67 @@ void SCA_MouseSensor::setY(short y)
 
 bool SCA_MouseSensor::isValid(SCA_MouseSensor::KX_MOUSESENSORMODE m)
 {
-	bool res = false;
-
-	res = ((m > KX_MOUSESENSORMODE_NODEF) && (m < KX_MOUSESENSORMODE_MAX));
-	
-	return res;
+	return ((m > KX_MOUSESENSORMODE_NODEF) && (m < KX_MOUSESENSORMODE_MAX));
 }
 
 /* ------------------------------------------------------------------------- */
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-/* Integration hooks ------------------------------------------------------- */
+//Deprecated functions ------>
+/* get x position ---------------------------------------------------------- */
+const char SCA_MouseSensor::GetXPosition_doc[] = 
+"getXPosition\n"
+"\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
+"\tThe lower-left corner is the origin. The coordinate is given in\n"
+"\tpixels\n";
+PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self, 
+										 PyObject* args, 
+										 PyObject* kwds) {
+	ShowDeprecationWarning("getXPosition()", "the position property");
+	return PyInt_FromLong(m_x);
+}
+
+/* get y position ---------------------------------------------------------- */
+const char SCA_MouseSensor::GetYPosition_doc[] = 
+"getYPosition\n"
+"\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
+"\tThe lower-left corner is the origin. The coordinate is given in\n"
+"\tpixels\n";
+PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self, 
+										 PyObject* args, 
+										 PyObject* kwds) {
+	ShowDeprecationWarning("getYPosition()", "the position property");
+	return PyInt_FromLong(m_y);
+}
+//<----- Deprecated
+
+KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
+"getButtonStatus(button)\n"
+"\tGet the given button's status (KX_NO_INPUTSTATUS, KX_JUSTACTIVATED, KX_ACTIVE or KX_JUSTRELEASED).\n")
+{
+	if (PyInt_Check(value))
+	{
+		int button = PyInt_AsLong(value);
+		
+		if ((button < SCA_IInputDevice::KX_LEFTMOUSE)
+			|| (button > SCA_IInputDevice::KX_MIDDLEMOUSE)){
+			PyErr_SetString(PyExc_ValueError, "invalid button specified!");
+			return NULL;
+		}
+		
+		SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
+		const SCA_InputEvent& event = mousedev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) button);
+		return PyInt_FromLong(event.m_status);
+	}
+	
+	Py_Return;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Python Integration Hooks                                                  */
+/* ------------------------------------------------------------------------- */
+
 PyTypeObject SCA_MouseSensor::Type = {
 	PyObject_HEAD_INIT(&PyType_Type)
 	0,
@@ -283,37 +323,54 @@ PyParentObject SCA_MouseSensor::Parents[] = {
 };
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
+	//Deprecated functions ------>
 	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (PY_METHODCHAR)GetXPosition_doc},
 	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (PY_METHODCHAR)GetYPosition_doc},
+	//<----- Deprecated
+	KX_PYMETHODTABLE_O(SCA_MouseSensor, getButtonStatus),
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
+	if (attr == "position")
+		return Py_BuildValue("[ii]", m_x, m_y);
+	
+	if (attr == "mode")
+		return PyInt_FromLong(m_mousemode);
+	
 	_getattr_up(SCA_ISensor);
 }
 
-/* get x position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetXPosition_doc[] = 
-"getXPosition\n"
-"\tReturns the x-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetXPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
-	return PyInt_FromLong(m_x);
-}
+int SCA_MouseSensor::_setattr(const STR_String& attr, PyObject *value)
+{
+	if (PyInt_Check(value))
+	{
+		int val = PyInt_AsLong(value);
 
-/* get y position ---------------------------------------------------------- */
-const char SCA_MouseSensor::GetYPosition_doc[] = 
-"getYPosition\n"
-"\tReturns the y-coordinate of the mouse sensor, in frame coordinates.\n"
-"\tThe lower-left corner is the origin. The coordinate is given in\n"
-"\tpixels\n";
-PyObject* SCA_MouseSensor::PyGetYPosition(PyObject* self, 
-										 PyObject* args, 
-										 PyObject* kwds) {
-	return PyInt_FromLong(m_y);
+		if (attr == "mode")
+		{
+			if ((val < KX_MOUSESENSORMODE_NODEF) 
+				|| (val > KX_MOUSESENSORMODE_MAX)){	
+				
+				PyErr_SetString(PyExc_ValueError, "invalid mode specified!");
+				return NULL;
+			}
+			
+			m_mousemode = val;
+			UpdateHotkey();
+			return 0;
+		}
+	}
+	else 
+	{
+		if (attr == "position")
+		{
+			PyErr_SetString(PyExc_AttributeError, "read-only property!");
+			return NULL;		
+		}
+	}
+	
+	return SCA_ISensor::_setattr(attr, value);
 }
 
 /* eof */

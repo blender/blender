@@ -245,15 +245,46 @@ PyParentObject SCA_PropertyActuator::Parents[] = {
 };
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
+	//Deprecated functions ------>
 	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
 	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
+	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
+	if (attr == "property") {
+		return PyString_FromString(m_propname);
+	}
+	if (attr == "value") {
+		return PyString_FromString(m_exprtxt);
+	}
 	_getattr_up(SCA_IActuator);
+}
+
+int SCA_PropertyActuator::_setattr(const STR_String& attr, PyObject *value) {
+	if (PyString_Check(value)) {
+		char* sval = PyString_AsString(value);
+		if (attr == "property") {
+			CValue* prop = GetParent()->FindIdentifier(sval);
+			bool error = prop->IsError();
+			prop->Release();
+			if (!prop->IsError()) {
+				m_propname = sval;
+				return 0;
+			} else {
+				PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
+				return 1;
+			}
+		} 
+		if (attr == "value") {
+			m_exprtxt = sval;
+			return 0;
+		}
+	}
+	return SCA_IActuator::_setattr(attr, value);
 }
 
 /* 1. setProperty                                                        */
@@ -264,6 +295,7 @@ const char SCA_PropertyActuator::SetProperty_doc[] =
 "\tof this name, the call is ignored.\n";
 PyObject* SCA_PropertyActuator::PySetProperty(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	ShowDeprecationWarning("setProperty()", "the 'property' property");
 	/* Check whether the name exists first ! */
 	char *nameArg;
 	if (!PyArg_ParseTuple(args, "s", &nameArg)) {
@@ -288,6 +320,7 @@ const char SCA_PropertyActuator::GetProperty_doc[] =
 "\tReturn the property on which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetProperty(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	ShowDeprecationWarning("getProperty()", "the 'property' property");
 	return PyString_FromString(m_propname);
 }
 
@@ -300,6 +333,7 @@ const char SCA_PropertyActuator::SetValue_doc[] =
 "\t action is ignored.\n";
 PyObject* SCA_PropertyActuator::PySetValue(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	ShowDeprecationWarning("setValue()", "the value property");
 	char *valArg;
 	if(!PyArg_ParseTuple(args, "s", &valArg)) {
 		return NULL;		
@@ -316,6 +350,7 @@ const char SCA_PropertyActuator::GetValue_doc[] =
 "\tReturns the value with which the actuator operates.\n";
 PyObject* SCA_PropertyActuator::PyGetValue(PyObject* self, PyObject* args, PyObject* kwds)
 {
+	ShowDeprecationWarning("getValue()", "the value property");
 	return PyString_FromString(m_exprtxt);
 }
 

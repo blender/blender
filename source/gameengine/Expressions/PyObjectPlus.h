@@ -185,7 +185,10 @@ static inline void Py_Fatal(const char *M) {
 #define KX_PYMETHODTABLE(class_name, method_name) \
 	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (PY_METHODCHAR)class_name::method_name##_doc}
 
-#define KX_PYMETHODTABLE_NOARG(class_name, method_name) \
+#define KX_PYMETHODTABLE_O(class_name, method_name) \
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (PY_METHODCHAR)class_name::method_name##_doc}
+
+#define KX_PYMETHODTABLE_NOARGS(class_name, method_name) \
 	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (PY_METHODCHAR)class_name::method_name##_doc}
 
 /**
@@ -195,7 +198,15 @@ static inline void Py_Fatal(const char *M) {
 const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*, PyObject* args, PyObject*)
 
-#define KX_PYMETHODDEF_DOC_NOARG(class_name, method_name, doc_string) \
+#define KX_PYMETHODDEF_DOC_VARARGS(class_name, method_name, doc_string) \
+const char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject*, PyObject* args)
+
+#define KX_PYMETHODDEF_DOC_O(class_name, method_name, doc_string) \
+const char class_name::method_name##_doc[] = doc_string; \
+PyObject* class_name::Py##method_name(PyObject*, PyObject* value)
+
+#define KX_PYMETHODDEF_DOC_NOARGS(class_name, method_name, doc_string) \
 const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*)
 

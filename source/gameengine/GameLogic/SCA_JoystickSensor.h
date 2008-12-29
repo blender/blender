@@ -122,6 +122,7 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
 	/* Joystick Index */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetIndex);
@@ -136,6 +137,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButton);
 	KX_PYMETHOD_DOC_O(SCA_JoystickSensor,SetButton);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonValue);
+	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetButtonActiveList);
+	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,GetButtonStatus);
 	/* Hats */
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,GetHat);
 	KX_PYMETHOD_DOC_VARARGS(SCA_JoystickSensor,SetHat);

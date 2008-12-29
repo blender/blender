@@ -5,9 +5,35 @@ from SCA_IActuator import *
 class SCA_RandomActuator(SCA_IActuator):
 	"""
 	Random Actuator
+	
+	Properties:
+	
+	@ivar seed: Seed of the random number generator.
+	            Equal seeds produce equal series. If the seed is 0, 
+	            the generator will produce the same value on every call.
+	@type seed: integer
+	@ivar para1: the first parameter of the active distribution. 
+	             Refer to the documentation of the generator types for the meaning
+	             of this value.
+	@type para1: float, read-only
+	@ivar para2: the second parameter of the active distribution. 
+	             Refer to the documentation of the generator types for the meaning
+	             of this value.
+	@type para2: float, read-only
+	@ivar distribution: distribution type:
+	                    KX_RANDOMACT_BOOL_CONST, KX_RANDOMACT_BOOL_UNIFORM, KX_RANDOMACT_BOOL_BERNOUILLI,
+	                    KX_RANDOMACT_INT_CONST, KX_RANDOMACT_INT_UNIFORM, KX_RANDOMACT_INT_POISSON, 
+	                    KX_RANDOMACT_FLOAT_CONST, KX_RANDOMACT_FLOAT_UNIFORM, KX_RANDOMACT_FLOAT_NORMAL,
+	                    KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL
+	@type distribution: integer, read-only
+	@ivar property: the name of the property to set with the random value.
+	                If the generator and property types do not match, the assignment is ignored.
+	@type property: string
+
 	"""
 	def setSeed(seed):
 		"""
+		DEPRECATED: use the seed property
 		Sets the seed of the random number generator.
 		
 		Equal seeds produce equal series. If the seed is 0, 
@@ -17,12 +43,14 @@ class SCA_RandomActuator(SCA_IActuator):
 		"""
 	def getSeed():
 		"""
+		DEPRECATED: use the seed property
 		Returns the initial seed of the generator.
 		
 		@rtype: integer
 		"""
 	def getPara1():
 		"""
+		DEPRECATED: use the para1 property
 		Returns the first parameter of the active distribution. 
 		
 		Refer to the documentation of the generator types for the meaning
@@ -32,6 +60,7 @@ class SCA_RandomActuator(SCA_IActuator):
 		"""
 	def getPara2():
 		"""
+		DEPRECATED: use the para2 property
 		Returns the second parameter of the active distribution. 
 		
 		Refer to the documentation of the generator types for the meaning
@@ -41,6 +70,7 @@ class SCA_RandomActuator(SCA_IActuator):
 		"""
 	def getDistribution():
 		"""
+		DEPRECATED: use the distribution property
 		Returns the type of random distribution.
 		
 		@rtype: distribution type
@@ -51,6 +81,7 @@ class SCA_RandomActuator(SCA_IActuator):
 		"""
 	def setProperty(property):
 		"""
+		DEPRECATED: use the property property
 		Set the property to which the random value is assigned. 
 		
 		If the generator and property types do not match, the assignment is ignored.
@@ -60,6 +91,7 @@ class SCA_RandomActuator(SCA_IActuator):
 		"""
 	def getProperty():
 		"""
+		DEPRECATED: use the property property
 		Returns the name of the property to set.
 		
 		@rtype: string

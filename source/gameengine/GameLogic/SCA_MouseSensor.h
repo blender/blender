@@ -24,7 +24,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): José I. Romero (cleanup and fixes)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -87,6 +87,8 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	bool isValid(KX_MOUSESENSORMODE);
 	
+	void UpdateHotkey();
+	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,
 				   short int mousemode,
@@ -108,11 +110,17 @@ class SCA_MouseSensor : public SCA_ISensor
 	/* --------------------------------------------------------------------- */
 
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
+	//Deprecated functions ----->
 	/* read x-coordinate */
 	KX_PYMETHOD_DOC(SCA_MouseSensor,GetXPosition);
 	/* read y-coordinate */
 	KX_PYMETHOD_DOC(SCA_MouseSensor,GetYPosition);
+	//<----- deprecated
+	
+	// get button status
+	KX_PYMETHOD_DOC_O(SCA_MouseSensor,getButtonStatus);
 
 };
 
