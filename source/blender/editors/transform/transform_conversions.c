@@ -3973,7 +3973,7 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)(t->sa->spacedata.first);
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
 		Scene *scene= NULL;
 		bAnimContext ac;
 		

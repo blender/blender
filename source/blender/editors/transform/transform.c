@@ -94,6 +94,7 @@
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
+#include "UI_view2d.h"
 #include "WM_types.h"
 
 #include "BLI_arithb.h"
@@ -468,7 +469,7 @@ static void viewRedrawForce(TransInfo *t)
 		ED_area_tag_redraw(t->sa);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
 		
 		// TRANSFORM_FIX_ME
 		if (saction->lock) {
@@ -4262,7 +4263,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 	
 	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
 		
 		if (saction) {
 			switch (saction->autosnap) {
@@ -4289,7 +4290,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 		}
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		SpaceAction *snla= CTX_wm_space_data(t->context);
+		SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(t->context);
 		
 		if (snla) {
 			switch (snla->autosnap) {
@@ -4339,12 +4340,12 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 	
 	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
 		
 		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		SpaceAction *snla= CTX_wm_space_data(t->context);
+		SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(t->context);
 		
 		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
@@ -4513,14 +4514,13 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 
 int TimeTranslate(TransInfo *t, short mval[2]) 
 {
-	View2D *v2d = t->view;
+	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
 	char str[200];
-
-#if 0 // TRANSFORM_FIX_ME	
+	
 	/* calculate translation amount from mouse movement - in 'time-grid space' */
-	areamouseco_to_ipoco(v2d, mval, &cval[0], &cval[1]);
-	areamouseco_to_ipoco(v2d, t->imval, &sval[0], &sval[1]);
+	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 	
 	/* we only need to calculate effect for time (applyTimeTranslate only needs that) */
 	t->fac= cval[0] - sval[0];
@@ -4538,7 +4538,6 @@ int TimeTranslate(TransInfo *t, short mval[2])
 	ED_area_headerprint(t->sa, str);
 	
 	viewRedrawForce(t);
-#endif
 
 	return 1;
 }
@@ -4549,9 +4548,10 @@ void initTimeSlide(TransInfo *t)
 {
 	/* this tool is only really available in the Action Editor... */
 	if (t->spacetype == SPACE_ACTION) {
-		/* set flag for drawing stuff*/
-		// TRANSFORM_FIX_ME
-		//G.saction->flag |= SACTION_MOVING;
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		
+		/* set flag for drawing stuff */
+		saction->flag |= SACTION_MOVING;
 	}
 	
 	t->mode = TFM_TIME_SLIDE;
@@ -4576,12 +4576,12 @@ static void headerTimeSlide(TransInfo *t, float sval, char *str)
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		float minx= *((float *)(t->customData));
-		float maxx= *((float *)(t->customData) + 1);
-		float cval= t->fac;
+		const float minx= *((float *)(t->customData));
+		const float maxx= *((float *)(t->customData) + 1);
+		const float cval= t->fac;
 		float val;
 			
-		val= 2.0*(cval-sval) / (maxx-minx);
+		val= 2.0f*(cval-sval) / (maxx-minx);
 		CLAMP(val, -1.0f, 1.0f);
 		
 		sprintf(&tvec[0], "%.4f", val);
@@ -4601,14 +4601,15 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
+		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
 		float cvalf = t->fac;
 
 #if 0 // TRANSFORM_FIX_ME		
 		if (NLA_ACTION_SCALED)
 			cvalf= get_action_frame(OBACT, cvalf);
-			
-		G.saction->timeslide= cvalf;
 #endif
+			
+		saction->timeslide= cvalf;
 	}
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
@@ -4643,17 +4644,15 @@ static void applyTimeSlide(TransInfo *t, float sval)
 
 int TimeSlide(TransInfo *t, short mval[2]) 
 {
-	View2D *v2d = t->view;
+	View2D *v2d = (View2D *)t->view;
 	float cval[2], sval[2];
 	float minx= *((float *)(t->customData));
 	float maxx= *((float *)(t->customData) + 1);
 	char str[200];
 	
 	/* calculate mouse co-ordinates */
-#if 0 // TRANSFORM_FIX_ME	
-	areamouseco_to_ipoco(v2d, mval, &cval[0], &cval[1]);
-	areamouseco_to_ipoco(v2d, t->imval, &sval[0], &sval[1]);
-#endif
+	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 	
 	/* t->fac stores cval[0], which is the current mouse-pointer location (in frames) */
 	t->fac= cval[0];
@@ -4711,9 +4710,9 @@ static void applyTimeScale(TransInfo *t) {
 	TransData *td = t->data;
 	int i;
 	
-	short autosnap= getAnimEdit_SnapMode(t);
-	short doTime= getAnimEdit_DrawTime(t);
-	double secf= FPS;
+	const short autosnap= getAnimEdit_SnapMode(t);
+	const short doTime= getAnimEdit_DrawTime(t);
+	const double secf= FPS;
 	
 	
 	for (i = 0 ; i < t->total; i++, td++) {
@@ -4755,6 +4754,7 @@ int TimeScale(TransInfo *t, short mval[2])
 	sval= t->imval[0];
 	cval= mval[0];
 	
+	// XXX ewww... we need a better factor!
 #if 0 // TRANSFORM_FIX_ME		
 	switch (t->spacetype) {
 		case SPACE_ACTION:
