@@ -33,7 +33,170 @@
 
 #ifdef RNA_RUNTIME
 
+static float rna_BezTriple_handle1_get(PointerRNA *ptr, int index)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	return bt->vec[0][index];
+}
+
+static void rna_BezTriple_handle1_set(PointerRNA *ptr, int index, float value)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	bt->vec[0][index]= value;
+}
+
+static float rna_BezTriple_handle2_get(PointerRNA *ptr, int index)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	return bt->vec[2][index];
+}
+
+static void rna_BezTriple_handle2_set(PointerRNA *ptr, int index, float value)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	bt->vec[2][index]= value;
+}
+
+static float rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, int index)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	return bt->vec[1][index];
+}
+
+static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, int index, float value)
+{
+	BezTriple *bt= (BezTriple*)ptr->data;
+	bt->vec[1][index]= value;
+}
+
 #else
+
+void rna_def_bpoint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "BPoint", NULL);
+	RNA_def_struct_ui_text(srna, "BPoint", "DOC_BROKEN");
+
+	/* Boolean values */
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Selected", "Selection status");
+
+	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
+	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+
+	/* Vector value */
+	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_float_sdna(prop, NULL, "vec");
+	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
+
+	/* Number values */
+	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "alfa");
+	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
+	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3d View");
+
+	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01f, 100.0f);
+	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
+
+	prop= RNA_def_property(srna, "bevel_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "radius");
+	/*RNA_def_property_range(prop, 0.0f, 1.0f);*/
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
+}
+
+void rna_def_beztriple(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	static EnumPropertyItem prop_handle_type_items[] = {
+		{HD_FREE, "FREE", "Free", ""},
+		{HD_AUTO, "AUTO", "Auto", ""},
+		{HD_VECT, "VECTOR", "Vector", ""},
+		{HD_ALIGN, "ALIGNED", "Aligned", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", "Auto Clamped", ""},
+		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_mode_interpolation_items[] = {
+		{IPO_CONST, "CONSTANT", "Constant", ""},
+		{IPO_LIN, "LINEAR", "Linear", ""},
+		{IPO_BEZ, "BEZIER", "Bezier", ""},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "BezTriple", NULL);
+	RNA_def_struct_ui_text(srna, "Bezier Triple", "DOC_BROKEN");
+
+	/* Boolean values */
+	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
+
+	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
+	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
+
+	prop= RNA_def_property(srna, "selected_control_point", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
+	RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
+
+	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
+	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+
+	/* Enums */
+	prop= RNA_def_property(srna, "handle1_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h1");
+	RNA_def_property_enum_items(prop, prop_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
+
+	prop= RNA_def_property(srna, "handle2_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h2");
+	RNA_def_property_enum_items(prop, prop_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
+
+	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipo");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_enum_items(prop, prop_mode_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "");
+
+	/* Vector values */
+	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle1_get", "rna_BezTriple_handle1_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
+
+	prop= RNA_def_property(srna, "control_point", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_ctrlpoint_get", "rna_BezTriple_ctrlpoint_set", NULL);
+	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
+
+	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle2_get", "rna_BezTriple_handle2_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
+
+	/* Number values */
+	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "alfa");
+	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
+	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3d View");
+
+	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01f, 100.0f);
+	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
+
+	prop= RNA_def_property(srna, "bevel_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "radius");
+	/*RNA_def_property_range(prop, 0.0f, 1.0f);*/
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Bevel Radius", "Radius for bevelling");
+}
 
 void rna_def_ipodriver(BlenderRNA *brna)
 {
@@ -98,6 +261,17 @@ void rna_def_ipocurve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "driver");
 	RNA_def_property_ui_text(prop, "Ipo Driver", "");
+
+	/* Collections */
+	prop= RNA_def_property(srna, "bpoints", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "bp", "totvert");
+	RNA_def_property_struct_type(prop, "BPoint");
+	RNA_def_property_ui_text(prop, "BPoints", "");
+
+	prop= RNA_def_property(srna, "bezier_triples", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
+	RNA_def_property_struct_type(prop, "BezTriple");
+	RNA_def_property_ui_text(prop, "Bezier Triples", "");
 }
 
 void rna_def_ipo(BlenderRNA *brna)
@@ -151,6 +325,8 @@ void RNA_def_ipo(BlenderRNA *brna)
 {
 	rna_def_ipo(brna);
 	rna_def_ipocurve(brna);
+	rna_def_bpoint(brna);
+	rna_def_beztriple(brna);
 	rna_def_ipodriver(brna);
 }
 
