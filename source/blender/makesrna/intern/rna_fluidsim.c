@@ -293,7 +293,6 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 static void rna_def_fluidsim_outflow(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
    	srna= RNA_def_struct(brna, "OutflowFluidSettings", NULL);
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
