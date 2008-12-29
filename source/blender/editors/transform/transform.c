@@ -414,8 +414,8 @@ void convertVecToDisplayNum(float *vec, float *num)
 
 	VECCOPY(num, vec);
 
-	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 #if 0 // TRANSFORM_FIX_ME
+	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
 		if((G.sima->flag & SI_COORDFLOATS)==0) {
@@ -429,8 +429,8 @@ void convertVecToDisplayNum(float *vec, float *num)
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
 		num[0] /= aspx;
 		num[1] /= aspy;
-#endif
 	}
+#endif
 }
 
 void convertDisplayNumToVec(float *num, float *vec)
@@ -440,8 +440,8 @@ void convertDisplayNumToVec(float *num, float *vec)
 
 	VECCOPY(vec, num);
 
-	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 #if 0 // TRANSFORM_FIX_ME
+	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
 		if((G.sima->flag & SI_COORDFLOATS)==0) {
@@ -455,8 +455,8 @@ void convertDisplayNumToVec(float *num, float *vec)
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
 		vec[0] *= aspx;
 		vec[1] *= aspy;
-#endif
 	}
+#endif
 }
 
 static void viewRedrawForce(TransInfo *t)
