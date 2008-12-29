@@ -5225,7 +5225,9 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceNode *snode= (SpaceNode *)sl;
 				memcpy(&ar->v2d, &snode->v2d, sizeof(View2D));
-				ar->v2d.flag |= V2D_IS_INITIALISED;
+				
+				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
 				break;
 			}
 			case SPACE_BUTS:
