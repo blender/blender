@@ -253,6 +253,7 @@ PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_object/libed_object.a
 PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
+PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
 PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a

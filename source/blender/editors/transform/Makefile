@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 CPPFLAGS += -I$(NAN_BMFONT)/include
@@ -45,6 +46,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 
 # own include 
