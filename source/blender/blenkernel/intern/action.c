@@ -81,6 +81,17 @@
 
 /* ***************** Library data level operations on action ************** */
 
+bAction *add_empty_action(const char name[])
+{
+	bAction *act;
+	
+	act= alloc_libblock(&G.main->action, ID_AC, name);
+	act->id.flag |= LIB_FAKEUSER;
+	act->id.us++;
+	
+	return act;
+}	
+
 static void make_local_action_channels(bAction *act)
 {
 	bActionChannel *chan;

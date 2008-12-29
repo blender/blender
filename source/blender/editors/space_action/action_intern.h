@@ -73,6 +73,10 @@ enum {
 /* ***************************************** */
 /* action_edit_keyframes.c */
 
+void ACT_OT_keyframes_delete(struct wmOperatorType *ot);
+void ACT_OT_keyframes_clean(struct wmOperatorType *ot);
+void ACT_OT_keyframes_sample(struct wmOperatorType *ot);
+
 void ACT_OT_keyframes_handletype(struct wmOperatorType *ot);
 void ACT_OT_keyframes_ipotype(struct wmOperatorType *ot);
 void ACT_OT_keyframes_expotype(struct wmOperatorType *ot);

@@ -51,6 +51,7 @@ struct ID;
 extern "C" {
 #endif
 
+struct bAction *add_empty_action(const char name[]);
 	
 /**
  * Removes and deallocates all channels from a pose.

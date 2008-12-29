@@ -31,8 +31,15 @@
 struct ListBase;
 struct ID;
 
+struct Ipo;
 struct IpoCurve;
 struct BezTriple;
+
+/* ************ IPO/IPO-Curve Management ************** */
+// XXX these will need to be updated for RNA-IPO stuff
+
+struct Ipo *verify_ipo(struct ID *from, short blocktype, char actname[], char constname[], char bonename[], short add);
+struct IpoCurve *verify_ipocurve(struct ID *from, short blocktype, char actname[], char constname[], char bonename[], int adrcode, short add);
 
 /* ************ Keyframing Management **************** */
 
@@ -84,8 +91,8 @@ short deletekey(struct ID *id, int blocktype, char *actname, char *constname, in
  *	These handle keyframes management from various spaces. They will handle the menus 
  * 	required for each space.
  */
-void common_insertkey(void);
-void common_deletekey(void);
+void common_insertkey(const struct bContext *C);
+void common_deletekey(const struct bContext *C);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

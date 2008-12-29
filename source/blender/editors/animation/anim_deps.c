@@ -73,7 +73,7 @@ static unsigned int screen_view3d_layers(bScreen *screen)
 
 /* generic update flush, reads from context Screen (layers) and scene */
 /* this is for compliancy, later it can do all windows etc */
-void ED_anim_dag_flush_update(bContext *C)
+void ED_anim_dag_flush_update(const bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	bScreen *screen= CTX_wm_screen(C);

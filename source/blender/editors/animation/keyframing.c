@@ -55,9 +55,12 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
+#include "DNA_particle_types.h"
 #include "DNA_material_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
@@ -65,10 +68,9 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
-#include "BKE_main.h"  // XXX not needed old cruft?
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
@@ -77,31 +79,35 @@
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 
+#include "ED_anim_api.h"
 #include "ED_keyframing.h"
+#include "ED_keyframes_edit.h"
 
 #if 0 // XXX resolve these old dependencies!
-#include "BIF_butspace.h"
-#include "BIF_editaction.h"
-#include "BIF_editkey.h"
-#include "BIF_interface.h"
-#include "BIF_mywindow.h"
-#include "BIF_poseobject.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_toolbox.h"
-#include "BIF_toets.h"
+	#include "BIF_butspace.h"
+	#include "BIF_editaction.h"
+	#include "BIF_editkey.h"
+	#include "BIF_interface.h"
+	#include "BIF_mywindow.h"
+	#include "BIF_poseobject.h"
+	#include "BIF_screen.h"
+	#include "BIF_space.h"
+	#include "BIF_toolbox.h"
+	#include "BIF_toets.h"
 
-#include "BSE_editipo.h"
-#include "BSE_node.h"
-#include "BSE_time.h"
-#include "BSE_view.h"
+	#include "BSE_editipo.h"
+	#include "BSE_node.h"
+	#include "BSE_time.h"
+	#include "BSE_view.h"
 
-#include "blendef.h"
+	#include "blendef.h"
 
-#include "PIL_time.h"			/* sleep				*/
-#include "mydevice.h"
+	#include "PIL_time.h"			/* sleep				*/
+	#include "mydevice.h"
 #endif // XXX resolve these old dependencies!
 
 
@@ -168,6 +174,284 @@ typedef struct bKeyingContext {
 	bKeyingSet *lastused;		/* item that was chosen last time*/
 	int tot;					/* number of keyingsets in */
 } bKeyingContext;
+
+
+/* ************************************************** */
+/* IPO DATA VERIFICATION */
+// XXX these will need to be modified for use with RNA-IPO...
+
+/* depending type, it returns ipo, if needed it creates one */
+/* returns either action ipo or "real" ipo */
+/* arguments define full context;
+   - *from has to be set always, to Object in case of Actions
+   - blocktype defines available channels of Ipo struct (blocktype ID_OB can be in action too)
+   - if actname, use this to locate actionchannel, and optional constname 
+   - if bonename, the constname is the ipo to the constraint
+*/
+
+/* note: check header_ipo.c, spaceipo_assign_ipo() too */
+Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], char bonename[], short add)
+{
+	/* lib-linked data is not appropriate here */
+	if ((from==NULL) || (from->lib))
+		return NULL;
+	
+	/* first check action ipos */
+	if (actname && actname[0]) {
+		Object *ob= (Object *)from;
+		bActionChannel *achan;
+		
+		if (GS(from->name)!=ID_OB) {
+			printf("called ipo system for action with wrong base pointer\n");
+			return NULL;
+		}
+		
+		if ((ob->action==NULL) && (add))
+			ob->action= add_empty_action("Action");
+		
+		if (add)
+			achan= verify_action_channel(ob->action, actname);
+		else	
+			achan= get_action_channel(ob->action, actname);
+		
+		if (achan) {
+			/* automatically assign achan to act-group based on pchan's grouping */
+			//if ((blocktype == ID_PO) && (add))
+			//	verify_pchan2achan_grouping(ob->action, ob->pose, actname);
+			
+			/* constraint exception */
+			if (blocktype==ID_CO) {
+				bConstraintChannel *conchan;
+				
+				if (add)
+					conchan= verify_constraint_channel(&achan->constraintChannels, constname);
+				else
+					conchan= get_constraint_channel(&achan->constraintChannels, constname);
+					
+				if (conchan) {
+					if ((conchan->ipo==NULL) && (add))
+						conchan->ipo= add_ipo("CoIpo", ID_CO);	
+					return conchan->ipo;
+				}
+			}
+			else {
+				if ((achan->ipo==NULL) && (add))
+					achan->ipo= add_ipo("ActIpo", blocktype);
+				return achan->ipo;
+			}
+		}
+	}
+	else {
+		switch (GS(from->name)) {
+		case ID_OB:
+			{
+				Object *ob= (Object *)from;
+				
+				/* constraint exception */
+				if (blocktype==ID_CO) {
+					/* check the local constraint ipo */
+					if (bonename && bonename[0] && ob->pose) {
+						bPoseChannel *pchan= get_pose_channel(ob->pose, bonename);
+						bConstraint *con;
+						
+						for (con= pchan->constraints.first; con; con= con->next) {
+							if (strcmp(con->name, constname)==0)
+								break;
+						}
+						
+						if (con) {
+							if ((con->ipo==NULL) && (add))
+								con->ipo= add_ipo("CoIpo", ID_CO);
+							return con->ipo;
+						}
+					}
+					else { /* the actionchannel */
+						bConstraintChannel *conchan;
+						
+						if (add)
+							conchan= verify_constraint_channel(&ob->constraintChannels, constname);
+						else
+							conchan= get_constraint_channel(&ob->constraintChannels, constname);
+							
+						if (conchan) {
+							if ((conchan->ipo==NULL) && (add))
+								conchan->ipo= add_ipo("CoIpo", ID_CO);	
+							return conchan->ipo;
+						}
+					}
+				}
+				else if (blocktype==ID_OB) {
+					if ((ob->ipo==NULL) && (add))
+						ob->ipo= add_ipo("ObIpo", ID_OB);
+					return ob->ipo;
+				}
+				else if (blocktype==ID_KE) {
+					Key *key= ob_get_key((Object *)from);
+					
+					if (key) {
+						if ((key->ipo==NULL) && (add))
+							key->ipo= add_ipo("KeyIpo", ID_KE);
+						return key->ipo;
+					}
+					return NULL;
+				}
+				else if (blocktype== ID_FLUIDSIM) {
+					Object *ob= (Object *)from;
+
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
+					if(fluidmd) {
+						FluidsimSettings *fss= fluidmd->fss;
+						
+						if ((fss->ipo==NULL) && (add))
+							fss->ipo= add_ipo("FluidsimIpo", ID_FLUIDSIM);
+						return fss->ipo;
+					}
+				}
+				else if(blocktype== ID_PA) {
+					Object *ob= (Object *)from;
+					ParticleSystem *psys= psys_get_current(ob);
+					
+					if (psys) {
+						if ((psys->part->ipo==NULL) && (add))
+							psys->part->ipo= add_ipo("ParticleIpo", ID_PA);
+						return psys->part->ipo;
+					}
+					return NULL;
+				}
+			}
+			break;
+		case ID_MA:
+			{
+				Material *ma= (Material *)from;
+				
+				if ((ma->ipo==NULL) && (add))
+					ma->ipo= add_ipo("MatIpo", ID_MA);
+				return ma->ipo;
+			}
+			break;
+		case ID_TE:
+			{
+				Tex *tex= (Tex *)from;
+				
+				if ((tex->ipo==NULL) && (add))
+					tex->ipo= add_ipo("TexIpo", ID_TE);
+				return tex->ipo;
+			}
+			break;
+		case ID_SEQ:
+			{
+				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
+				
+				if ((seq->ipo==NULL) && (add))
+					seq->ipo= add_ipo("SeqIpo", ID_SEQ);
+				//update_seq_ipo_rect(seq); // XXX
+				return seq->ipo;
+			}
+			break;
+		case ID_CU:
+			{
+				Curve *cu= (Curve *)from;
+				
+				if ((cu->ipo==NULL) && (add))
+					cu->ipo= add_ipo("CuIpo", ID_CU);
+				return cu->ipo;
+			}
+			break;
+		case ID_WO:
+			{
+				World *wo= (World *)from;
+				
+				if ((wo->ipo==NULL) && (add))
+					wo->ipo= add_ipo("WoIpo", ID_WO);
+				return wo->ipo;
+			}
+			break;
+		case ID_LA:
+			{
+				Lamp *la= (Lamp *)from;
+				
+				if ((la->ipo==NULL) && (add))
+					la->ipo= add_ipo("LaIpo", ID_LA);
+				return la->ipo;
+			}
+			break;
+		case ID_CA:
+			{
+				Camera *ca= (Camera *)from;
+				
+				if ((ca->ipo==NULL) && (add))
+					ca->ipo= add_ipo("CaIpo", ID_CA);
+				return ca->ipo;
+			}
+			break;
+		case ID_SO:
+			{
+#if 0 // depreceated
+				bSound *snd= (bSound *)from;
+				
+				if ((snd->ipo==NULL) && (add))
+					snd->ipo= add_ipo("SndIpo", ID_SO);
+				return snd->ipo;
+#endif // depreceated
+			}	
+			break;
+		}
+	}
+	
+	return NULL;	
+}
+
+/* Returns and creates
+ * Make sure functions check for NULL or they will crash!
+ */
+IpoCurve *verify_ipocurve(ID *from, short blocktype, char actname[], char constname[], char bonename[], int adrcode, short add)
+{
+	Ipo *ipo;
+	IpoCurve *icu= NULL;
+	
+	/* return 0 if lib */
+	/* creates ipo too (if add) */
+	ipo= verify_ipo(from, blocktype, actname, constname, bonename, add);
+	
+	if ((ipo) && (ipo->id.lib==NULL) && (from->lib==NULL)) {
+		/* try to find matching curve */
+		icu= find_ipocurve(ipo, adrcode);
+		
+		/* make a new one if none found (and can add) */
+		if ((icu==NULL) && (add)) {
+			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
+			
+			/* set default settings */
+			icu->flag |= (IPO_VISIBLE|IPO_AUTO_HORIZ);
+			if (ipo->curve.first==NULL) 
+				icu->flag |= IPO_ACTIVE;	/* first one added active */
+			
+			icu->blocktype= blocktype;
+			icu->adrcode= adrcode;
+			
+			set_icu_vars(icu);
+			
+			/* default curve interpolation - from userpref */
+			icu->ipo= U.ipo_new;
+			
+			/* add curve to IPO-block */
+			BLI_addtail(&ipo->curve, icu);
+			
+			/* special type-dependent stuff */
+			switch (GS(from->name)) {
+				case ID_SEQ: {
+					//Sequence *seq= (Sequence *)from;
+					
+					//update_seq_icu_rects(seq); // XXX
+					break;
+				}
+			}
+		}
+	}
+	
+	/* return ipo-curve */
+	return icu;
+}
 
 /* ************************************************** */
 /* KEYFRAME INSERTION */
@@ -382,7 +666,6 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 	}
 }
 
-#if 0 // XXX code to clean up
 
 /* ------------------- Get Data ------------------------ */
 
@@ -787,11 +1070,11 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	IpoCurve *icu;
 	
 	/* get ipo-curve */
-	//icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 1); // XXX this call needs to be in blenkernel
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 1);
 	
 	/* only continue if we have an ipo-curve to add keyframe to */
 	if (icu) {
-		float cfra = frame_to_float(CFRA);
+		float cfra =1.0f;//= frame_to_float(CFRA);
 		float curval= 0.0f;
 		
 		/* apply special time tweaking */
@@ -803,10 +1086,10 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 				cfra= get_action_frame(ob, cfra);
 			
 			/* ancient time-offset cruft */
-			if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
-				/* actually frametofloat calc again! */
-				cfra-= give_timeoffset(ob)*G.scene->r.framelen;
-			}
+			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
+			//	/* actually frametofloat calc again! */
+			//	cfra-= give_timeoffset(ob)*G.scene->r.framelen;
+			//}
 		}
 		
 		/* obtain value to give keyframe */
@@ -894,13 +1177,12 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	 * Note: here is one of the places where we don't want new ipo + ipo-curve added!
 	 * 		so 'add' var must be 0
 	 */
-		// XXX funcs here need to be recoded in blenkernel...
-	//ipo= verify_ipo(id, blocktype, actname, constname, NULL, 0);
-	//icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 0);
+	ipo= verify_ipo(id, blocktype, actname, constname, NULL, 0);
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 0);
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
 	if (icu) {
-		float cfra = frame_to_float(CFRA);
+		float cfra = 1.0f;//frame_to_float(CFRA);
 		short found = -1;
 		int i;
 		
@@ -913,10 +1195,10 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 				cfra= get_action_frame(ob, cfra);
 			
 			/* ancient time-offset cruft */
-			if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
-				/* actually frametofloat calc again! */
-				cfra-= give_timeoffset(ob)*G.scene->r.framelen;
-			}
+			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
+			//	/* actually frametofloat calc again! */
+			//	cfra-= give_timeoffset(ob)*G.scene->r.framelen;
+			//}
 		}
 		
 		/* try to find index of beztriple to get rid of */
@@ -1101,7 +1383,8 @@ static short incl_non_del_keys (bKeyingSet *ks, const char mode[])
 /* check if include shapekey entry  */
 static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
 {
-	Object *ob= (G.obedit)? (G.obedit) : (OBACT);
+	//Object *ob= (G.obedit)? (G.obedit) : (OBACT); // XXX
+	Object *ob= NULL;
 	char *newname= NULL;
 	
 	if(ob==NULL)
@@ -1366,7 +1649,8 @@ bKeyingSet defks_buts_shading_tex[] =
 /* check if include particles entry  */
 static short incl_buts_ob (bKeyingSet *ks, const char mode[])
 {
-	Object *ob= OBACT;
+	//Object *ob= OBACT; // xxx
+	Object *ob= NULL;
 	/* only if object is mesh type */
 	
 	if(ob==NULL) return 0;
@@ -1396,15 +1680,17 @@ bKeyingSet defks_buts_object[] =
 /* check if include internal-renderer entry  */
 static short incl_buts_cam1 (bKeyingSet *ks, const char mode[])
 {
+	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
 	/* only if renderer is internal renderer */
-	return (G.scene->r.renderer==R_INTERN);
+	return (scene->r.renderer==R_INTERN);
 }
 
 /* check if include external-renderer entry  */
 static short incl_buts_cam2 (bKeyingSet *ks, const char mode[])
 {
+	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
 	/* only if renderer is internal renderer */
-	return (G.scene->r.renderer!=R_INTERN);
+	return (scene->r.renderer!=R_INTERN);
 }
 
 /* array for camera keyingset defines */
@@ -1464,8 +1750,9 @@ typedef enum eKS_Contexts {
 /* ---------------- KeyingSet Tools ------------------- */
 
 /* helper for commonkey_context_get() -  get keyingsets for 3d-view */
-static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_getv3d (const bContext *C, ListBase *sources, bKeyingContext **ksc)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	IpoCurve *icu;
 	
@@ -1475,7 +1762,8 @@ static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
 		/* pose-level */
 		ob= OBACT;
 		*ksc= &ks_contexts[KSC_V3D_PCHAN];
-		set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
+			// XXX
+		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
 		
 		/* loop through posechannels */
 		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -1497,62 +1785,60 @@ static void commonkey_context_getv3d (ListBase *sources, bKeyingContext **ksc)
 		}
 	}
 	else {
-		Base *base;
-		
 		/* object-level */
 		*ksc= &ks_contexts[KSC_V3D_OBJECT];
 		
 		/* loop through bases */
-		for (base= FIRSTBASE; base; base= base->next) {
-			if (TESTBASELIB(base)) {
-				bCommonKeySrc *cks;
-				
-				/* add new keyframing destination */
-				cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-				BLI_addtail(sources, cks);
-				
-				/* set id-block to key to */
-				ob= base->object;
-				cks->id= (ID *)ob;
-				
-				/* when ob's keyframes are in an action, default to using 'Object' as achan name */
-				if (ob->ipoflag & OB_ACTION_OB)
-					cks->actname= "Object";
-				
-				/* set ipo-flags */
-				// TODO: add checks for lib-linked data
-				if ((ob->ipo) || (ob->action)) {
-					if (ob->ipo) {
-						cks->ipo= ob->ipo;
-					}
-					else {
-						bActionChannel *achan;
-						
-						cks->act= ob->action;
-						achan= get_action_channel(ob->action, cks->actname);
-						
-						if (achan && achan->ipo)
-							cks->ipo= achan->ipo;
-					}
-					/* cks->ipo can be NULL while editing */
-					if(cks->ipo) {
-						/* deselect all ipo-curves */
-						for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
-							icu->flag &= ~IPO_SELECT;
-						}
+		// XXX but we're only supposed to do this on editable ones!
+		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
+			bCommonKeySrc *cks;
+			
+			/* add new keyframing destination */
+			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
+			BLI_addtail(sources, cks);
+			
+			/* set id-block to key to */
+			ob= base->object;
+			cks->id= (ID *)ob;
+			
+			/* when ob's keyframes are in an action, default to using 'Object' as achan name */
+			if (ob->ipoflag & OB_ACTION_OB)
+				cks->actname= "Object";
+			
+			/* set ipo-flags */
+			// TODO: add checks for lib-linked data
+			if ((ob->ipo) || (ob->action)) {
+				if (ob->ipo) {
+					cks->ipo= ob->ipo;
+				}
+				else {
+					bActionChannel *achan;
+					
+					cks->act= ob->action;
+					achan= get_action_channel(ob->action, cks->actname);
+					
+					if (achan && achan->ipo)
+						cks->ipo= achan->ipo;
+				}
+				/* cks->ipo can be NULL while editing */
+				if(cks->ipo) {
+					/* deselect all ipo-curves */
+					for (icu= cks->ipo->curve.first; icu; icu= icu->next) {
+						icu->flag &= ~IPO_SELECT;
 					}
 				}
 			}
 		}
+		CTX_DATA_END;
 	}
 }
 
 /* helper for commonkey_context_get() -  get keyingsets for buttons window */
-static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_getsbuts (const bContext *C, ListBase *sources, bKeyingContext **ksc)
 {
-	bCommonKeySrc *cks;
-
 #if 0 // XXX dunno what's the future of this stuff...	
+	bCommonKeySrc *cks;
+	
 	/* check on tab-type */
 	switch (G.buts->mainb) {
 	case CONTEXT_SHADING:	/* ------------- Shading buttons ---------------- */
@@ -1690,21 +1976,25 @@ static void commonkey_context_getsbuts (ListBase *sources, bKeyingContext **ksc)
 
 
 /* get keyingsets for appropriate context */
-static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, bKeyingContext **ksc)
+static void commonkey_context_get (const bContext *C, ScrArea *sa, short mode, ListBase *sources, bKeyingContext **ksc)
 {
+	/* get current view if no view is defined */
+	if (sa == NULL)
+		sa= CTX_wm_area(C);
+	
 	/* check view type */
 	switch (sa->spacetype) {
 		/* 3d view - first one tested as most often used */
 		case SPACE_VIEW3D:
 		{
-			commonkey_context_getv3d(sources, ksc);
+			commonkey_context_getv3d(C, sources, ksc);
 		}
 			break;
 			
 		/* buttons view */
 		case SPACE_BUTS:
 		{
-			commonkey_context_getsbuts(sources, ksc);
+			commonkey_context_getsbuts(C, sources, ksc);
 		}
 			break;
 			
@@ -1721,6 +2011,7 @@ static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, b
 		/* timeline view - keyframe buttons */
 		case SPACE_TIME:
 		{
+			bScreen *sc= CTX_wm_screen(C);
 			ScrArea *sab;
 			int bigarea= 0;
 			
@@ -1731,12 +2022,12 @@ static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, b
 			//sab= find_biggest_area_of_type(SPACE_VIEW3D);
 			sab= NULL; // XXX for now...
 			if (sab) {
-				commonkey_context_getv3d(sources, ksc);
+				commonkey_context_getv3d(C, sources, ksc);
 				return;
 			}
 			
 			/* if not found, sab is now NULL, so perform own biggest area test */
-			for (sa= G.curscreen->areabase.first; sa; sa= sa->next) { // XXX this has changed!
+			for (sa= sc->areabase.first; sa; sa= sa->next) { // XXX this has changed!
 				int area= sa->winx * sa->winy;
 				
 				if (sa->spacetype != SPACE_TIME) {
@@ -1749,15 +2040,18 @@ static void commonkey_context_get (ScrArea *sa, short mode, ListBase *sources, b
 			
 			/* use whichever largest area was found (it shouldn't be a time window) */
 			if (sab)
-				commonkey_context_get(sab, mode, sources, ksc);
+				commonkey_context_get(C, sab, mode, sources, ksc);
 		}
 			break;
 	}
 }
 
 /* flush updates after all operations */
-static void commonkey_context_finish (ListBase *sources)
+static void commonkey_context_finish (const bContext *C, ListBase *sources)
 {
+	ScrArea *curarea= CTX_wm_area(C);
+	Scene *scene= CTX_data_scene(C);
+	
 	/* check view type */
 	switch (curarea->spacetype) {
 		/* 3d view - first one tested as most often used */
@@ -1765,16 +2059,18 @@ static void commonkey_context_finish (ListBase *sources)
 		{
 			/* either pose or object level */
 			if (OBACT && (OBACT->pose)) {	
-				Object *ob= OBACT;
+				//Object *ob= OBACT;
 				
 				/* recalculate ipo handles, etc. */
-				if (ob->action)
-					remake_action_ipos(ob->action);
+				// XXX this method has been removed!
+				//if (ob->action)
+				//	remake_action_ipos(ob->action);
 				
 				/* recalculate bone-paths on adding new keyframe? */
+				// XXX missing function
 				// TODO: currently, there is no setting to turn this on/off globally
-				if (ob->pose->flag & POSE_RECALCPATHS)
-					pose_recalculate_paths(ob);
+				//if (ob->pose->flag & POSE_RECALCPATHS)
+				//	pose_recalculate_paths(ob);
 			}
 			else {
 				bCommonKeySrc *cks;
@@ -1793,19 +2089,17 @@ static void commonkey_context_finish (ListBase *sources)
 }
 
 /* flush refreshes after undo */
-static void commonkey_context_refresh (void)
+static void commonkey_context_refresh (const bContext *C)
 {
+	ScrArea *curarea= CTX_wm_area(C);
+	
 	/* check view type */
 	switch (curarea->spacetype) {
 		/* 3d view - first one tested as most often used */
 		case SPACE_VIEW3D:
 		{
 			/* do refreshes */
-			DAG_scene_flush_update(G.scene, screen_view3d_layers(), 0);
-			
-			//allspace(REMAKEIPO, 0);
-			//allqueue(REDRAWVIEW3D, 0);
-			//allqueue(REDRAWMARKER, 0);
+			ED_anim_dag_flush_update(C);
 		}
 			break;
 			
@@ -1889,8 +2183,7 @@ static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
 /* ---------------- Keyframe Management API -------------------- */
 
 /* Display a menu for handling the insertion of keyframes based on the active view */
-// TODO: add back an option for repeating last keytype
-void common_modifykey (short mode)
+void common_modifykey (const bContext *C, short mode)
 {
 	ListBase dsources = {NULL, NULL};
 	bKeyingContext *ksc= NULL;
@@ -1906,7 +2199,7 @@ void common_modifykey (short mode)
 	/* delegate to other functions or get keyingsets to use 
 	 *	- if the current area doesn't have its own handling, there will be data returned...
 	 */
-	commonkey_context_get(curarea, mode, &dsources, &ksc);
+	commonkey_context_get(C, NULL, mode, &dsources, &ksc);
 	
 	/* check that there is data to operate on */
 	if (ELEM(NULL, dsources.first, ksc)) {
@@ -1919,8 +2212,10 @@ void common_modifykey (short mode)
 		menustr= build_keyingsets_menu(ksc, "Delete");
 	else
 		menustr= build_keyingsets_menu(ksc, "Insert");
-	menu_nr= pupmenu(menustr);
-	if (menustr) MEM_freeN(menustr);
+	// XXX: this goes to the invoke!
+	//menu_nr= pupmenu(menustr);
+	//if (menustr) MEM_freeN(menustr);
+	menu_nr = -1; // XXX for now
 	
 	/* no item selected or shapekey entry? */
 	if (menu_nr < 1) {
@@ -1928,9 +2223,10 @@ void common_modifykey (short mode)
 		BLI_freelistN(&dsources);
 		
 		/* check if insert new shapekey */
-		if ((menu_nr == 0) && (mode == COMMONKEY_MODE_INSERT))
-			insert_shapekey(OBACT);
-		else 
+		// XXX missing function!
+		//if ((menu_nr == 0) && (mode == COMMONKEY_MODE_INSERT))
+		//	insert_shapekey(OBACT);
+		//else 
 			ksc->lastused= NULL;
 			
 		return;
@@ -2053,7 +2349,7 @@ void common_modifykey (short mode)
 	}
 	
 	/* apply post-keying flushes for this data sources */
-	commonkey_context_finish(&dsources);
+	commonkey_context_finish(C, &dsources);
 	ksc->lastused= ks;
 	
 	/* free temp data */
@@ -2064,27 +2360,26 @@ void common_modifykey (short mode)
 		BLI_snprintf(buf, 64, "Delete %s Key", ks->name);
 	else
 		BLI_snprintf(buf, 64, "Insert %s Key", ks->name);
-	BIF_undo_push(buf);
+	//BIF_undo_push(buf);
 	
 	/* queue updates for contexts */
-	commonkey_context_refresh();
+	commonkey_context_refresh(C);
 }
 
 /* ---- */
 
 /* used to insert keyframes from any view */
-void common_insertkey (void)
+void common_insertkey (const bContext *C)
 {
-	common_modifykey(COMMONKEY_MODE_INSERT);
+	common_modifykey(C, COMMONKEY_MODE_INSERT);
 }
 
 /* used to insert keyframes from any view */
-void common_deletekey (void)
+void common_deletekey (const bContext *C)
 {
-	common_modifykey(COMMONKEY_MODE_DELETE);
+	common_modifykey(C, COMMONKEY_MODE_DELETE);
 }
 
-#endif // XXX reenable this file again later...
 
 /* ************************************************** */
 /* KEYFRAME DETECTION */

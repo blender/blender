@@ -88,31 +88,23 @@
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
-#if 0
 /* this function finds the channel that mouse is floating over */
-void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
+void *get_nearest_act_channel (bAnimContext *ac, int mval[2], short *ret_type, void **owner)
 {
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
-	void *data;
-	short datatype;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
 	int filter;
 	
+	View2D *v2d= &ac->ar->v2d;
 	int clickmin, clickmax;
-	float x,y;
+	float x, y;
+	void *data= NULL;
 	
 	/* init 'owner' return val */
 	*owner= NULL;
 	
-	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	if (data == NULL) {
-		*ret_type= ACTTYPE_NONE;
-		return NULL;
-	}
-	
-    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-	clickmin = (int) (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
+	clickmin = (int) ((ACHANNEL_HEIGHT_HALF - y) / (ACHANNEL_STEP));
 	clickmax = clickmin;
 	
 	if (clickmax < 0) {
@@ -121,10 +113,10 @@ void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_FORDRAWING | ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
-	actdata_filter(&act_data, filter, data, datatype);
+	filter= (ANIMFILTER_FORDRAWING | ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	for (ale= act_data.first; ale; ale= ale->next) {
+	for (ale= anim_data.first; ale; ale= ale->next) {
 		if (clickmax < 0) 
 			break;
 		if (clickmin <= 0) {
@@ -133,7 +125,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 			data= ale->data;
 			
 			/* if an 'ID' has been set, this takes presidence as owner (for dopesheet) */
-			if (datatype == ACTCONT_DOPESHEET) {
+			if (ac->datatype == ANIMCONT_DOPESHEET) {
 				/* return pointer to ID as owner instead */
 				if (ale->id) 
 					*owner= ale->id;
@@ -145,7 +137,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 				*owner= ale->owner;
 			}
 			
-			BLI_freelistN(&act_data);
+			BLI_freelistN(&anim_data);
 			
 			return data;
 		}
@@ -154,12 +146,12 @@ void *get_nearest_act_channel (short mval[], short *ret_type, void **owner)
 	}
 	
 	/* cleanup */
-	BLI_freelistN(&act_data);
+	BLI_freelistN(&anim_data);
 	
-	*ret_type= ACTTYPE_NONE;
+	*ret_type= ANIMTYPE_NONE;
 	return NULL;
 }
-#endif
+
 
 /* used only by mouse_action. It is used to find the location of the nearest 
  * keyframe to where the mouse clicked, 

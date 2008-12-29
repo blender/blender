@@ -402,7 +402,6 @@ static void outliner_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Outliner", SPACE_OOPS, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-							   
 }
 
 static void outliner_rna_draw(const bContext *C, ARegion *ar)

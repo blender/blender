@@ -285,8 +285,8 @@ void ANIM_nla_mapping_apply(struct Object *ob, struct Ipo *ipo, short restore, s
 /* --------- anim_deps.c, animation updates -------- */
 
 /* generic update flush, reads from Context screen (layers) and scene */
-void ED_anim_dag_flush_update(struct bContext *C);
-void ED_update_for_newframe(struct bContext *C, int mute);
+void ED_anim_dag_flush_update(const struct bContext *C);
+void ED_update_for_newframe(const struct bContext *C, int mute);
 
 /* ************************************************* */
 /* OPERATORS */

@@ -83,7 +83,7 @@ typedef enum eEditKeyframes_Mirror {
 } eEditKeyframes_Mirror;
 
 /* ************************************************ */
-/* Editing API */
+/* Non-Destuctive Editing API (keyframes_edit.c) */
 
 /* --- Generic Properties for Bezier Edit Tools ----- */
 
@@ -129,9 +129,20 @@ BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 void ANIM_editkeyframes_ipocurve_ipotype(struct IpoCurve *icu);
 
 /* ************************************************ */
+/* Destructive Editing API (keyframes_general.c) */
+
+void delete_icu_key(struct IpoCurve *icu, int index, short do_recalc);
+void delete_ipo_keys(struct Ipo *ipo);
+void duplicate_ipo_keys(struct Ipo *ipo);
+
+void clean_ipo_curve(struct IpoCurve *icu, float thresh);
+void smooth_ipo_curve(struct IpoCurve *icu, short mode);
+
+/* ************************************************ */
 
 // XXX all of these funcs should be depreceated or at least renamed!
 
+/* in keyframes_edit.c */
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);
 

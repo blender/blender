@@ -17,8 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
+ * The Original Code is Copyright (C) 2008 Blender Foundation
  *
  * Contributor(s): Joshua Leung
  *
@@ -29,6 +28,8 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
