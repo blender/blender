@@ -106,8 +106,8 @@ int PYOP_props_from_dict(PointerRNA *ptr, PyObject *kw)
 	return error_val;
 }
 
-/* floats bigger then this are displayed as inf in the docstrings */
-#define MAXFLOAT_DOC 10000000
+
+
 
 static int pyop_func_compare( BPy_OperatorFunc * a, BPy_OperatorFunc * b )
 {
@@ -133,75 +133,44 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	PyObject *ret;
 	wmOperatorType *ot;
 
-	if( strcmp( name, "__members__" ) == 0 ) {
-		PyObject *item;
-		ret = PyList_New(2);
-		
-		PyList_SET_ITEM(ret, 0, PyUnicode_FromString("add"));
-		PyList_SET_ITEM(ret, 1, PyUnicode_FromString("remove"));
-
-		for(ot= WM_operatortype_first(); ot; ot= ot->next) {
-			item = PyUnicode_FromString( ot->idname );
-			PyList_Append(ret, item);
-			Py_DECREF(item);
-		}
+	if ((ot = WM_operatortype_find(name))) {
+		ret= pyop_func_CreatePyObject(self->C, name);
 	}
-	else if ( strcmp( name, "add" ) == 0 ) {
-		ret= PYOP_wrap_add_func();
-	}
-	else if ( strcmp( name, "remove" ) == 0 ) {
-		ret= PYOP_wrap_remove_func();
-	}
-	else {
-		ot = WM_operatortype_find(name);
-
-		if (ot) {
-			ret= pyop_func_CreatePyObject(self->C, name);
-		}
-		else {
-			PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
-			ret= NULL;
-		}
-	}
-	
-	return ret;
-}
-
-//---------------getattr--------------------------------------------
-static PyObject * pyop_func_getattro(BPy_OperatorFunc * self, PyObject *pyname)
-{
-	char *name = _PyUnicode_AsString(pyname);
-	PyObject *ret;
-
-	if( strcmp( name, "__members__" ) == 0 ) {
-		ret = PyList_New(1);
-		PyList_SET_ITEM(ret, 0, PyUnicode_FromString("rna"));
-	}
-	else if ( strcmp( name, "rna" ) == 0 ) {
-		BPy_StructRNA *pyrna;
-		PointerRNA ptr;
-		//IDProperty *properties = NULL;
-		wmOperatorType *ot;
-
-		ot= WM_operatortype_find(self->name);
-		if (ot == NULL) {
-			PyErr_SetString( PyExc_SystemError, "Operator could not be found");
-			return NULL;
-		}
-
-		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
-
-		/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
-		RNA_pointer_create(NULL, NULL, ot->srna, &pyrna->properties, &pyrna->ptr);
-		ret= (PyObject *)pyrna;
+	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
+		/* do nothing, this accounts for methoddef's add and remove */
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
 		ret= NULL;
 	}
-
+	
 	return ret;
 }
+
+/* getseter's */
+PyObject *pyop_func_get_rna(BPy_OperatorFunc *self)
+{
+	BPy_StructRNA *pyrna;
+	PointerRNA ptr;
+	wmOperatorType *ot;
+
+	ot= WM_operatortype_find(self->name);
+	if (ot == NULL) {
+		PyErr_SetString( PyExc_SystemError, "Operator could not be found");
+		return NULL;
+	}
+
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
+
+	/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
+	RNA_pointer_create(NULL, NULL, ot->srna, &pyrna->properties, &pyrna->ptr);
+	return (PyObject *)pyrna;
+}
+
+static PyGetSetDef pyop_func_getseters[] = {
+	{"rna", (getter)pyop_func_get_rna, (setter)NULL, "vertex's coordinate", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObject *kw)
 {
@@ -234,8 +203,6 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 		IDP_FreeProperty(properties);
 		MEM_freeN(properties);
 	}
-
-
 #if 0
 	/* if there is some way to know an operator takes args we should use this */
 	{
@@ -255,6 +222,37 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 
 	Py_RETURN_NONE;
 }
+
+static struct PyMethodDef pyop_base_methods[];
+
+PyObject *pyop_base_dir(PyObject *self)
+{
+	PyObject *ret = PyList_New(0);
+	PyObject *item;
+	wmOperatorType *ot;
+	PyMethodDef *meth;
+	
+	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
+		item = PyUnicode_FromString( ot->idname );
+		PyList_Append(ret, item);
+		Py_DECREF(item);
+	}
+
+	for(meth=pyop_base_methods; meth->ml_name; meth++) {
+		item = PyUnicode_FromString( meth->ml_name );
+		PyList_Append(ret, item);
+		Py_DECREF(item);
+	}
+
+	return ret;
+}
+
+static struct PyMethodDef pyop_base_methods[] = {
+	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
+	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
+	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
 
 /*-----------------------BPy_OperatorBase method def------------------------------*/
 PyTypeObject pyop_base_Type = {
@@ -318,9 +316,9 @@ PyTypeObject pyop_base_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,						/* struct PyMethodDef *tp_methods; */
+	pyop_base_methods,						/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,      					/* struct PyGetSetDef *tp_getset; */
+	NULL,		/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -374,7 +372,7 @@ PyTypeObject pyop_func_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	(ternaryfunc)pyop_func_call,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
-	( getattrofunc ) pyop_func_getattro,			/* getattrofunc tp_getattro; */
+	NULL,						/* getattrofunc tp_getattro; */
 	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
@@ -406,7 +404,7 @@ PyTypeObject pyop_func_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	NULL,						/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,      					/* struct PyGetSetDef *tp_getset; */
+	pyop_func_getseters,		/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */

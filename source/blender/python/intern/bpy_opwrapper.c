@@ -322,7 +322,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 }
 
 /* pyOperators - Operators defined IN Python */
-static PyObject *pyop_add(PyObject *self, PyObject *args)
+PyObject *PYOP_wrap_add(PyObject *self, PyObject *args)
 {
 	PyOperatorType *pyot;
 
@@ -360,7 +360,7 @@ static PyObject *pyop_add(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyObject *pyop_remove(PyObject *self, PyObject *args)
+PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args)
 {
 	char *idname= NULL;
 	wmOperatorType *ot;
@@ -386,22 +386,5 @@ static PyObject *pyop_remove(PyObject *self, PyObject *args)
 	WM_operatortype_remove(idname);
 
 	Py_RETURN_NONE;
-}
-
-static PyMethodDef pyop_add_methdef[] = {
-	{"add", pyop_add, METH_VARARGS, ""}
-};
-
-static PyMethodDef pyop_remove_methdef[] = {
-	{"remove", pyop_remove, METH_VARARGS, ""}
-};
-
-PyObject *PYOP_wrap_add_func( void )
-{
-	return PyCFunction_New( pyop_add_methdef, NULL );
-}
-PyObject *PYOP_wrap_remove_func( void )
-{
-	return PyCFunction_New( pyop_remove_methdef, NULL );
 }
 

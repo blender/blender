@@ -702,27 +702,7 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA * self, PyObject *pyname )
 	else		PyErr_Clear();
 	/* done with subtypes */
 	
-	if( strcmp( name, "__members__" ) == 0 ) {
-		PyObject *item;
-		
-		PropertyRNA *iterprop;
-		CollectionPropertyIterator iter;
-		
-		ret = PyList_New(0);
-	
-		iterprop= RNA_struct_iterator_property(&self->ptr);
-		RNA_property_collection_begin(&self->ptr, iterprop, &iter);
-		
-		
-		for(; iter.valid; RNA_property_collection_next(&iter)) {
-			prop = iter.ptr.data;
-			item = PyUnicode_FromString( RNA_property_identifier(&iter.ptr, prop) );
-			PyList_Append(ret, item);
-			Py_DECREF(item);
-		}
-
-		RNA_property_collection_end(&iter);
-	} else if ( strcmp( name, "__doc__" ) == 0 ) {
+	if ( strcmp( name, "__doc__" ) == 0 ) {
 		ret = pyrna_struct_to_docstring(self);
 	} else {
 		prop = RNA_struct_find_property(&self->ptr, name);
@@ -757,6 +737,32 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	/* pyrna_py_to_prop sets its own exceptions */
 	return pyrna_py_to_prop(&self->ptr, prop, value);
 }
+
+static PyObject *pyrna_struct_dir( BPy_StructRNA * self )
+{
+	PyObject *ret = PyList_New(0);
+	PyObject *item;
+	PropertyRNA *prop;
+	PropertyRNA *iterprop;
+	CollectionPropertyIterator iter;
+
+	iterprop= RNA_struct_iterator_property(&self->ptr);
+	RNA_property_collection_begin(&self->ptr, iterprop, &iter);
+
+
+	for(; iter.valid; RNA_property_collection_next(&iter)) {
+		prop = iter.ptr.data;
+		item = PyUnicode_FromString( RNA_property_identifier(&iter.ptr, prop) );
+		PyList_Append(ret, item);
+		Py_DECREF(item);
+	}
+
+	RNA_property_collection_end(&iter);
+
+	return ret;
+}
+
+
 
 PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)
 {
@@ -896,6 +902,10 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	return NULL;
 }
 
+static struct PyMethodDef pyrna_struct_methods[] = {
+	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
 
 static struct PyMethodDef pyrna_prop_methods[] = {
 	{"keys", (PyCFunction)pyrna_prop_keys, METH_NOARGS, ""},
@@ -1002,7 +1012,7 @@ PyTypeObject pyrna_struct_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,						/* struct PyMethodDef *tp_methods; */
+	pyrna_struct_methods,		/* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,      					/* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */

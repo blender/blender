@@ -35,6 +35,10 @@ def range_str(val):
 	else:
 		return str(val)	
 
+def get_array_str(length):
+	if length > 0:	return ' array of %d items' % length
+	else:		return ''
+
 def rna2epy(target_path):
 	
 
@@ -80,8 +84,7 @@ def rna2epy(target_path):
 			try:		length = rna_prop.array_length
 			except:	length = 0
 			
-			if length > 0:	array_str = ' array of %d items' % length
-			else:		array_str = ''
+			array_str = get_array_str(length)
 			
 			if rna_prop.readonly:	readonly_str = ' (readonly)'
 			else:				readonly_str = ''
@@ -158,9 +161,10 @@ def rna2epy(target_path):
 def op2epy(target_path):
 	out = open(target_path, 'w')
 	
-	operators = bpyoperator.__members__
+	operators = dir(bpyoperator)
 	operators.remove('add')
 	operators.remove('remove')
+	operators.remove('__dir__')
 	operators.sort()
 	
 	
@@ -173,7 +177,8 @@ def op2epy(target_path):
 		
 		rna = getattr(bpyoperator, op).rna
 		rna_struct = rna.rna_type
-		# print (op_rna.__members__)
+		# print (dir(rna))
+		# print (dir(rna_struct))
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 			if rna_prop_identifier=='rna_type':
 				continue
@@ -181,40 +186,59 @@ def op2epy(target_path):
 			#rna_prop=  op_rna.rna_type.properties[attr]
 			rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
 			
+			try:		length = rna_prop.array_length
+			except:	length = 0
+			
+			array_str = get_array_str(length)
+			
 			try:
 				val = getattr(rna, rna_prop_identifier)
 			except:
 				val = '<UNDEFINED>'
 			
-			kw_type_str= "@type %s: %s" % (rna_prop_identifier, rna_prop_type)
+			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
 			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
 			kw_param_set = False
 			
 			if rna_prop_type=='float':
-				val_str= '%g' % val
-				if '.' not in val_str:
-					val_str += '.0'
+				if length==0:
+					val_str= '%g' % val
+					if '.' not in val_str:
+						val_str += '.0'
+				else:
+					# array
+					val_str = str(tuple(val))
+				
 				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
 				kw_param_set= True
 				
 			elif rna_prop_type=='int':
-				val_str='%d' % val
-				# print (rna_prop.__members__)
+				if length==0:
+					val_str='%d' % val
+				else:
+					val_str = str(tuple(val))
+				
+				# print(dir(rna_prop))
 				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
 				# These strings dont have a max length???
 				#kw_param_str += ' (maximum length of %s)' %  (rna_prop.max_length)
 				kw_param_set= True
 				
 			elif rna_prop_type=='boolean':
-				if val:	val_str='True'
-				else:	val_str='False'
-					
+				if length==0:
+					if val:	val_str='True'
+					else:	val_str='False'
+				else:
+					val_str = str(tuple(val))
+			
 			elif rna_prop_type=='enum':
+				# no array here?
 				val_str="'%s'" % val
 				kw_param_str += (' in (%s)' % ', '.join(rna_prop.items.keys()))
 				kw_param_set= True
 				
 			elif rna_prop_type=='string':
+				# no array here?
 				val_str='"%s"' % val
 			
 			# todo - collection - array

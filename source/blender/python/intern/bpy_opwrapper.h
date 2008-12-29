@@ -27,9 +27,9 @@
 
 #include <Python.h>
 
-/* returns the python functions */
-PyObject *PYOP_wrap_add_func( void );
-PyObject *PYOP_wrap_remove_func( void );
+/* these are used for operator methods, used by bpy_operator.c */
+PyObject *PYOP_wrap_add(PyObject *self, PyObject *args);
+PyObject *PYOP_wrap_remove(PyObject *self, PyObject *args);
 
 #endif
 
