@@ -3973,7 +3973,7 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene= NULL;
 		bAnimContext ac;
 		
@@ -3984,8 +3984,8 @@ void special_aftertrans_update(TransInfo *t)
 		}
 		
 		/* get pointers to useful data */
-		ob = OBACT;
 		scene= ac.scene;
+		ob = OBACT;
 		
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};

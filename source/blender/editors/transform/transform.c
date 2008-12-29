@@ -469,7 +469,7 @@ static void viewRedrawForce(TransInfo *t)
 		ED_area_tag_redraw(t->sa);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		// TRANSFORM_FIX_ME
 		if (saction->lock) {
@@ -4263,7 +4263,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 	
 	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		if (saction) {
 			switch (saction->autosnap) {
@@ -4290,7 +4290,7 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 		}
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(t->context);
+		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
 		
 		if (snla) {
 			switch (snla->autosnap) {
@@ -4340,12 +4340,12 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 	
 	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(t->context);
+		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
 		
 		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
@@ -4548,7 +4548,7 @@ void initTimeSlide(TransInfo *t)
 {
 	/* this tool is only really available in the Action Editor... */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		/* set flag for drawing stuff */
 		saction->flag |= SACTION_MOVING;
@@ -4576,9 +4576,9 @@ static void headerTimeSlide(TransInfo *t, float sval, char *str)
 		outputNumInput(&(t->num), tvec);
 	}
 	else {
-		const float minx= *((float *)(t->customData));
-		const float maxx= *((float *)(t->customData) + 1);
-		const float cval= t->fac;
+		float minx= *((float *)(t->customData));
+		float maxx= *((float *)(t->customData) + 1);
+		float cval= t->fac;
 		float val;
 			
 		val= 2.0f*(cval-sval) / (maxx-minx);
@@ -4598,17 +4598,11 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	float minx= *((float *)(t->customData));
 	float maxx= *((float *)(t->customData) + 1);
 	
-	
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(t->context);
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		float cvalf = t->fac;
-
-#if 0 // TRANSFORM_FIX_ME		
-		if (NLA_ACTION_SCALED)
-			cvalf= get_action_frame(OBACT, cvalf);
-#endif
-			
+		
 		saction->timeslide= cvalf;
 	}
 	
@@ -4658,7 +4652,7 @@ int TimeSlide(TransInfo *t, short mval[2])
 	t->fac= cval[0];
 	
 	/* handle numeric-input stuff */
-	t->vec[0] = 2.0*(cval[0]-sval[0]) / (maxx-minx);
+	t->vec[0] = 2.0f*(cval[0]-sval[0]) / (maxx-minx);
 	applyNumInput(&t->num, &t->vec[0]);
 	t->fac = (maxx-minx) * t->vec[0] / 2.0 + sval[0];
 	

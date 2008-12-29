@@ -224,24 +224,26 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
 	ac->sa= sa;
 	ac->ar= ar;
-	ac->spacetype= sa->spacetype;
-	ac->regiontype= ar->regiontype;
+	ac->spacetype= (sa) ? sa->spacetype : 0;
+	ac->regiontype= (ar) ? ar->regiontype : 0;
 	
 	/* context depends on editor we are currently in */
-	switch (sa->spacetype) {
-		case SPACE_ACTION:
-		{
-			SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
-			ok= actedit_get_context(C, ac, saction);
+	if (sa) {
+		switch (sa->spacetype) {
+			case SPACE_ACTION:
+			{
+				SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
+				ok= actedit_get_context(C, ac, saction);
+			}
+				break;
+				
+			case SPACE_IPO:
+			{
+				SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+				ok= ipoedit_get_context(C, ac, sipo);
+			}
+				break;
 		}
-			break;
-			
-		case SPACE_IPO:
-		{
-			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-			ok= ipoedit_get_context(C, ac, sipo);
-		}
-			break;
 	}
 	
 	/* check if there's any valid data */

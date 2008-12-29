@@ -46,6 +46,8 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
+#include "BIF_transform.h"
+
 #include "action_intern.h"
 
 #include "RNA_access.h"
@@ -82,7 +84,7 @@ void action_operatortypes(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void action_keymap_keyframes (ListBase *keymap)
+static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
 	/* action_select.c - selection tools */
 		/* click-select */
@@ -124,6 +126,9 @@ static void action_keymap_keyframes (ListBase *keymap)
 	
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
+	
+	/* transform system */
+	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
 }
 
 /* --------------- */
@@ -137,6 +142,6 @@ void action_keymap(wmWindowManager *wm)
 	
 	/* keyframes */
 	keymap= WM_keymap_listbase(wm, "Action_Keys", SPACE_ACTION, 0);
-	action_keymap_keyframes(keymap);
+	action_keymap_keyframes(wm, keymap);
 }
 

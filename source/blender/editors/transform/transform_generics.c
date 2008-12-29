@@ -730,7 +730,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	}
 	else if(t->spacetype==SPACE_IMAGE)
 	{
-		View2D *v2d = sa->spacedata.first;
+		View2D *v2d = sa->spacedata.first; // XXX no!
 
 		t->view = v2d;
 
@@ -738,7 +738,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	}
 	else
 	{
-		t->view = NULL;
+		// XXX for now, get View2D  from the active region
+		t->view = &ar->v2d;
 		
 		t->around = V3D_CENTER;
 	}
