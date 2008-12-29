@@ -173,6 +173,16 @@ typedef struct TransData {
 /*#endif*/
 } TransData;
 
+typedef struct MouseInput {
+	void	(*apply)(struct TransInfo *, struct MouseInput *, short [2], float [3]);
+	
+    short   imval[2];       	/* initial mouse position                */
+	char	precision;	
+	short	precision_mval[2];	/* mouse position when precision key was pressed */
+	int		center[2];
+	float	factor;
+} MouseInput;
+
 typedef struct TransInfo {
     int         mode;           /* current mode                         */
     int	        flag;           /* generic flags for special behaviors  */
@@ -182,7 +192,7 @@ typedef struct TransInfo {
     float       fac;            /* factor for distance based transform  */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
-	int       (*handleEvent)(struct TransInfo *, struct wmEvent *event);
+	int       (*handleEvent)(struct TransInfo *, struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
     int         total;          /* total number of transformed data     */
     TransData  *data;           /* transformed data (array)             */
@@ -192,13 +202,13 @@ typedef struct TransInfo {
     TransSnap	tsnap;
     NumInput    num;            /* numerical input                      */
     NDofInput   ndof;           /* ndof input                           */
+    MouseInput	mouse;			/* mouse input                          */
     char        redraw;         /* redraw flag                          */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
     float       center[3];      /* center of transformation             */
     int         center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
-	short		shiftmval[2];	/* mouse position when shift was pressed */
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	
@@ -257,8 +267,6 @@ typedef struct TransInfo {
 #define T_POSE			(1 << 2)
 #define T_TEXTURE		(1 << 3)
 #define T_CAMERA		(1 << 4)
-		// when shift pressed, higher resolution transform. cannot rely on G.qual, need event!
-#define T_SHIFT_MOD		(1 << 5)
 	 	// trans on points, having no rotation/scale 
 #define T_POINTS		(1 << 6)
 		// for manipulator exceptions, like scaling using center point, drawing help lines
@@ -485,6 +493,26 @@ int  handleSnapping(TransInfo *t, struct wmEvent *event);
 void drawSnapping(TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
+
+/********************** Mouse Input ******************************/
+
+typedef enum {
+	INPUT_NONE,
+	INPUT_VECTOR,
+	INPUT_SPRING,
+	INPUT_SPRING_FLIP,
+	INPUT_ANGLE,
+	INPUT_TRACKBALL,
+	INPUT_HORIZONTAL_RATIO,
+	INPUT_HORIZONTAL_ABSOLUTE,
+	INPUT_VERTICAL_RATIO,
+	INPUT_VERTICAL_ABSOLUTE
+} MouseInputMode;
+
+void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2]);
+void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
+int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
+void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], float output[3]);
 
 /*********************** Generics ********************************/
 

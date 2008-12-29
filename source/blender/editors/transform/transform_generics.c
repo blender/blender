@@ -1107,7 +1107,20 @@ void calculateCenter(TransInfo *t)
 	}	
 
 	if(t->spacetype==SPACE_VIEW3D)
-		initgrabz(t->view, t->center[0], t->center[1], t->center[2]);
+	{
+		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
+		if(t->flag & (T_EDIT|T_POSE)) {
+			Object *ob= G.obedit?G.obedit:t->poseobj;
+			float vec[3];
+			
+			VECCOPY(vec, t->center);
+			Mat4MulVecfl(ob->obmat, vec);
+			initgrabz(t->view, vec[0], vec[1], vec[2]);
+		}
+		else {
+			initgrabz(t->view, t->center[0], t->center[1], t->center[2]);
+		} 
+	}
 }
 
 void calculatePropRatio(TransInfo *t)

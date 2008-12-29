@@ -160,151 +160,6 @@ static void helpline(TransInfo *t, float *vec)
 #endif
 }
 
-
-  
-/* ************************** INPUT FROM MOUSE *************************** */
-
-float InputScaleRatio(TransInfo *t, short mval[2]) {
-	float ratio, dx, dy;
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		dx = (float)(t->center2d[0] - t->shiftmval[0]);
-		dy = (float)(t->center2d[1] - t->shiftmval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-	}
-	else {
-		dx = (float)(t->center2d[0] - mval[0]);
-		dy = (float)(t->center2d[1] - mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
-	return ratio;
-}
-
-float InputHorizontalRatio(TransInfo *t, short mval[2]) {
-	float x, pad;
-
-	pad = t->ar->winx / 10;
-
-	if (t->flag & T_SHIFT_MOD) {
-		/* deal with Shift key by adding motion / 10 to motion before shift press */
-		x = t->shiftmval[0] + (float)(mval[0] - t->shiftmval[0]) / 10.0f;
-	}
-	else {
-		x = mval[0];
-	}
-	return (x - pad) / (t->ar->winx - 2 * pad);
-}
-
-float InputHorizontalAbsolute(TransInfo *t, short mval[2]) {
-	float vec[3];
-	if(t->flag & T_SHIFT_MOD) {
-		float dvec[3];
-		/* calculate the main translation and the precise one separate */
-		convertViewVec(t, dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
-		VecMulf(dvec, 0.1f);
-		convertViewVec(t, t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
-		VecAddf(t->vec, t->vec, dvec);
-	}
-	else {
-		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-	}
-	Projf(vec, t->vec, t->viewinv[0]);
-	return Inpf(t->viewinv[0], vec) * 2.0f;
-}
-
-float InputVerticalRatio(TransInfo *t, short mval[2]) {
-	float y, pad;
-
-	pad = t->ar->winy / 10;
-
-	if (t->flag & T_SHIFT_MOD) {
-		/* deal with Shift key by adding motion / 10 to motion before shift press */
-		y = t->shiftmval[1] + (float)(mval[1] - t->shiftmval[1]) / 10.0f;
-	}
-	else {
-		y = mval[0];
-	}
-	return (y - pad) / (t->ar->winy - 2 * pad);
-}
-
-float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
-	float vec[3];
-	if(t->flag & T_SHIFT_MOD) {
-		float dvec[3];
-		/* calculate the main translation and the precise one separate */
-		convertViewVec(t, dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
-		VecMulf(dvec, 0.1f);
-		convertViewVec(t, t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
-		VecAddf(t->vec, t->vec, dvec);
-	}
-	else {
-		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-	}
-	Projf(vec, t->vec, t->viewinv[1]);
-	return Inpf(t->viewinv[1], vec) * 2.0f;
-}
-
-float InputDeltaAngle(TransInfo *t, short mval[2])
-{
-	double dx2 = mval[0] - t->center2d[0];
-	double dy2 = mval[1] - t->center2d[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
-
-	double dx1 = t->imval[0] - t->center2d[0];
-	double dy1 = t->imval[1] - t->center2d[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
-
-	double dx3 = mval[0] - t->imval[0];
-	double dy3 = mval[1] - t->imval[1];
-
-	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2.0 * (A*B?A*B:1.0));
-	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
-
-	float dphi;
-	
-	dphi = saacos((float)deler);
-	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-
-	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
-	 * approximate the angle with the oposite side of the normalized triangle
-	 * This is a good approximation here since the smallest acos value seems to be around
-	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
-	 * */	
-	if (dphi == 0)
-	{
-		double dx, dy;
-		
-		dx2 /= A;
-		dy2 /= A;
-		
-		dx1 /= B;
-		dy1 /= B;
-		
-		dx = dx1 - dx2;
-		dy = dy1 - dy2;
-		
-		dphi = sqrt(dx*dx + dy*dy);
-		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
-	}
-	
-	if(t->flag & T_SHIFT_MOD) dphi = dphi/30.0f;
-	
-	/* if no delta angle, don't update initial position */
-	if (dphi != 0)
-	{
-		t->imval[0] = mval[0];
-		t->imval[1] = mval[1];
-	}
-	
-	return dphi;
-}
-
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -410,12 +265,11 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 
 void convertVecToDisplayNum(float *vec, float *num)
 {
-	// TRANSFORM_FIX_ME
-	TransInfo *t = NULL; //BIF_GetTransInfo();
-
 	VECCOPY(num, vec);
 
 #if 0 // TRANSFORM_FIX_ME
+	TransInfo *t = BIF_GetTransInfo();
+
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
@@ -436,12 +290,11 @@ void convertVecToDisplayNum(float *vec, float *num)
 
 void convertDisplayNumToVec(float *num, float *vec)
 {
-	// TRANSFORM_FIX_ME
-	TransInfo *t = NULL; //BIF_GetTransInfo();
-
 	VECCOPY(vec, num);
 
 #if 0 // TRANSFORM_FIX_ME
+	TransInfo *t = BIF_GetTransInfo();
+
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
@@ -702,25 +555,21 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	
 	t->event = event;
 	
+	t->redraw |= handleMouseInput(t, &t->mouse, event);
+
 	if (event->type == MOUSEMOVE)
 	{
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
+		
+		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
-
+	
 	if (event->val) {
 		switch (event->type){
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
-			t->redraw = 1;
-			break;
-		case LEFTSHIFTKEY:
-		case RIGHTSHIFTKEY:
-			/* shift is modifier for higher resolution transform, works nice to store this mouse position */
-			t->shiftmval[0] = event->x - t->ar->winrct.xmin;
-			t->shiftmval[1] = event->y - t->ar->winrct.ymin;
-			t->flag |= T_SHIFT_MOD;
 			t->redraw = 1;
 			break;
 			
@@ -1024,11 +873,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			if (t->options & CTX_TWEAK)
 				t->state = TRANS_CONFIRM;
 			break;
-		case LEFTSHIFTKEY:
-		case RIGHTSHIFTKEY:
-			/* shift is modifier for higher resolution transform */
-			t->flag &= ~T_SHIFT_MOD;
-			break;
 		}
 	}
 	
@@ -1114,6 +958,8 @@ void initTransform(bContext *C, TransInfo *t, int mode, int options, wmEvent *ev
 	
 	calculatePropRatio(t);
 	calculateCenter(t);
+	
+	initMouseInput(t, &t->mouse, t->center2d, t->imval);
 
 	switch (mode) {
 	case TFM_TRANSLATION:
@@ -1803,6 +1649,8 @@ void initWarp(TransInfo *t)
 	t->transform = Warp;
 	t->handleEvent = handleEventWarp;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
+
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -1811,10 +1659,6 @@ void initWarp(TransInfo *t)
 	
 	t->flag |= T_NO_CONSTRAINT;
 
-/* warp is done fully in view space */
-	calculateCenterCursor(t);
-	t->fac = (float)(t->center2d[0] - t->imval[0]);
-	
 	/* we need min/max in view space */
 	for(i = 0; i < t->total; i++) {
 		float center[3];
@@ -1885,7 +1729,7 @@ int Warp(TransInfo *t, short mval[2])
 	VecSubf(cursor, cursor, t->viewmat[3]);
 
 	/* amount of degrees for warp */
-	circumfac= 360.0f * InputHorizontalRatio(t, mval);
+	circumfac = 360.0f * t->values[0];
 	
 	if (t->customData) /* non-null value indicates reversed input */
 	{
@@ -1965,6 +1809,8 @@ void initShear(TransInfo *t)
 	t->transform = Shear;
 	t->handleEvent = handleEventShear;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -1982,9 +1828,15 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 	{
 		// Use customData pointer to signal Shear direction
 		if	(t->customData == 0)
+		{
+			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
+		}
 		else
+		{
+			initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
 			t->customData = 0;
+		}
 			
 		status = 1;
 	}
@@ -2005,11 +1857,7 @@ int Shear(TransInfo *t, short mval[2])
 	Mat3CpyMat4(persmat, t->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	// Custom data signals shear direction
-	if (t->customData == 0)
-		value = 0.05f * InputHorizontalAbsolute(t, mval);
-	else
-		value = 0.05f * InputVerticalAbsolute(t, mval);
+	value = 0.05f * t->values[0];
 
 	snapGrid(t, &value);
 
@@ -2084,6 +1932,8 @@ void initResize(TransInfo *t)
 	t->mode = TFM_RESIZE;
 	t->transform = Resize;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
+	
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
 	t->num.flag |= NUM_AFFECT_ALL;
@@ -2097,15 +1947,6 @@ void initResize(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-
-	t->fac = (float)sqrt(
-		(
-			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-		+
-			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-		) );
-
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 static void headerResize(TransInfo *t, float vec[3], char *str) {
@@ -2295,16 +2136,13 @@ int Resize(TransInfo *t, short mval[2])
 	char str[200];
 
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
+	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
+	{
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
-	else {
-		ratio = InputScaleRatio(t, mval);
-		
-		/* flip scale, but not for manipulator center handle */
-		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
-			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
-				ratio *= -1.0f;
+	else
+	{
+		ratio = t->values[0];
 	}
 	
 	size[0] = size[1] = size[2] = ratio;
@@ -2369,6 +2207,8 @@ void initToSphere(TransInfo *t)
 
 	t->mode = TFM_TOSPHERE;
 	t->transform = ToSphere;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -2395,7 +2235,7 @@ int ToSphere(TransInfo *t, short mval[2])
 	char str[64];
 	TransData *td = t->data;
 
-	ratio = InputHorizontalRatio(t, mval);
+	ratio = t->values[0];
 
 	snapGrid(t, &ratio);
 
@@ -2457,6 +2297,8 @@ void initRotation(TransInfo *t)
 	t->mode = TFM_ROTATION;
 	t->transform = Rotation;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
+	
 	t->ndof.axis = 16;
 	/* Scale down and flip input for rotation */
 	t->ndof.factor[0] = -0.2f;
@@ -2466,7 +2308,6 @@ void initRotation(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
-	t->fac = 0;
 	
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
@@ -2713,9 +2554,7 @@ int Rotation(TransInfo *t, short mval[2])
 	VecMulf(axis, -1.0f);
 	Normalize(axis);
 
-	t->fac += InputDeltaAngle(t, mval);
-
-	final = t->fac;
+	final = t->values[0];
 
 	applyNDofInput(&t->ndof, &final);
 	
@@ -2751,8 +2590,9 @@ int Rotation(TransInfo *t, short mval[2])
 
 	VecRotToMat3(axis, final, mat);
 
-	t->val = final;				// used in manipulator
-	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	// TRANSFORM_FIX_ME
+//	t->values[0] = final;		// used in manipulator
+//	Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
 	applyRotation(t, final, axis);
 	
@@ -2775,6 +2615,8 @@ void initTrackball(TransInfo *t)
 	t->mode = TFM_TRACKBALL;
 	t->transform = Trackball;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
+	
 	t->ndof.axis = 40;
 	/* Scale down input for rotation */
 	t->ndof.factor[0] = 0.2f;
@@ -2785,7 +2627,6 @@ void initTrackball(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
-	t->fac = 0;
 	
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -2831,9 +2672,8 @@ int Trackball(TransInfo *t, short mval[2])
 	Normalize(axis1);
 	Normalize(axis2);
 	
-	/* factore has to become setting or so */
-	phi[0]= 0.01f*(float)( t->imval[1] - mval[1] );
-	phi[1]= 0.01f*(float)( mval[0] - t->imval[0] );
+	phi[0] = t->values[0];
+	phi[1] = t->values[1];
 		
 	applyNDofInput(&t->ndof, phi);
 	
@@ -2853,11 +2693,6 @@ int Trackball(TransInfo *t, short mval[2])
 	}
 	else {
 		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
-	
-		if(t->flag & T_SHIFT_MOD) {
-			if(phi[0] != 0.0) phi[0]/= 5.0f;
-			if(phi[1] != 0.0) phi[1]/= 5.0f;
-		}
 	}
 
 	VecRotToMat3(axis1, phi[0], smat);
@@ -2865,7 +2700,8 @@ int Trackball(TransInfo *t, short mval[2])
 	
 	Mat3MulMat3(mat, smat, totmat);
 	
-	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	// TRANSFORM_FIX_ME
+	//Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
 	applyTrackball(t, axis1, axis2, phi);
 	
@@ -2886,28 +2722,17 @@ void initTranslation(TransInfo *t)
 {
 	t->mode = TFM_TRANSLATION;
 	t->transform = Translation;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
 
 	t->idx_max = (t->flag & T_2D_EDIT)? 1: 2;
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 	
-	t->ndof.axis = 7;
+	t->ndof.axis = 1|2|4;
 
 	if(t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
-		
-		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
-		if(t->flag & (T_EDIT|T_POSE)) {
-			Object *ob= G.obedit?G.obedit:t->poseobj;
-			float vec[3];
-			
-			VECCOPY(vec, t->center);
-			Mat4MulVecfl(ob->obmat, vec);
-			initgrabz(v3d, vec[0], vec[1], vec[2]);
-		}
-		else {
-			initgrabz(v3d, t->center[0], t->center[1], t->center[2]);
-		} 
 
 		t->snap[0] = 0.0f;
 		t->snap[1] = v3d->gridview * 1.0f;
@@ -3054,36 +2879,26 @@ int Translation(TransInfo *t, short mval[2])
 	float tvec[3];
 	char str[250];
 	
-	if(t->flag & T_SHIFT_MOD) {
-		float dvec[3];
-		/* calculate the main translation and the precise one separate */
-		convertViewVec(t, dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
-		VecMulf(dvec, 0.1f);
-		convertViewVec(t, t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
-		VecAddf(t->vec, t->vec, dvec);
-	}
-	else convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
-
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
-		applySnapping(t, t->vec);
-		t->con.applyVec(t, NULL, t->vec, tvec, pvec);
-		VECCOPY(t->vec, tvec);
+		applySnapping(t, t->values);
+		t->con.applyVec(t, NULL, t->values, tvec, pvec);
+		VECCOPY(t->values, tvec);
 		headerTranslation(t, pvec, str);
 	}
 	else {
-		applyNDofInput(&t->ndof, t->vec);
-		snapGrid(t, t->vec);
-		applyNumInput(&t->num, t->vec);
-		applySnapping(t, t->vec);
-		headerTranslation(t, t->vec, str);
+		applyNDofInput(&t->ndof, t->values);
+		snapGrid(t, t->values);
+		applyNumInput(&t->num, t->values);
+		applySnapping(t, t->values);
+		headerTranslation(t, t->values, str);
 	}
 	
-	applyTranslation(t, t->vec);
+	applyTranslation(t, t->values);
 
 	/* evil hack - redo translation if cliiping needeed */
-	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->vec, 0))
-		applyTranslation(t, t->vec);
+	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 0))
+		applyTranslation(t, t->values);
 
 	recalcData(t);
 
@@ -3107,6 +2922,8 @@ void initShrinkFatten(TransInfo *t)
 	else {
 		t->mode = TFM_SHRINKFATTEN;
 		t->transform = ShrinkFatten;
+		
+		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 	
 		t->idx_max = 0;
 		t->num.idx_max = 0;
@@ -3128,7 +2945,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	char str[64];
 	TransData *td = t->data;
 
-	distance = -InputVerticalAbsolute(t, mval);
+	distance = -t->values[0];
 
 	snapGrid(t, &distance);
 
@@ -3177,6 +2994,8 @@ void initTilt(TransInfo *t)
 {
 	t->mode = TFM_TILT;
 	t->transform = Tilt;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
 	t->ndof.axis = 16;
 	/* Scale down and flip input for rotation */
@@ -3187,7 +3006,6 @@ void initTilt(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
-	t->fac = 0;
 	
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -3202,9 +3020,7 @@ int Tilt(TransInfo *t, short mval[2])
 
 	float final;
 
-	t->fac += InputDeltaAngle(t, mval);
-
-	final = t->fac;
+	final = t->values[0];
 	
 	applyNDofInput(&t->ndof, &final);
 
@@ -3251,6 +3067,22 @@ int Tilt(TransInfo *t, short mval[2])
 
 /* ******************** Curve Shrink/Fatten *************** */
 
+void initCurveShrinkFatten(TransInfo *t)
+{
+	t->mode = TFM_CURVE_SHRINKFATTEN;
+	t->transform = CurveShrinkFatten;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+	
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	
+	t->flag |= T_NO_CONSTRAINT;
+}
+
 int CurveShrinkFatten(TransInfo *t, short mval[2]) 
 {
 	TransData *td = t->data;
@@ -3258,22 +3090,7 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 	
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-		
-	}
-	else {
-		float dx= (float)(t->center2d[0] - mval[0]);
-		float dy= (float)(t->center2d[1] - mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
+	ratio = t->values[0];
 	
 	snapGrid(t, &ratio);
 	
@@ -3315,32 +3132,14 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 	return 1;
 }
 
-void initCurveShrinkFatten(TransInfo *t)
-{
-	t->mode = TFM_CURVE_SHRINKFATTEN;
-	t->transform = CurveShrinkFatten;
-	
-	t->idx_max = 0;
-	t->num.idx_max = 0;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 0.1f;
-	t->snap[2] = t->snap[1] * 0.1f;
-	
-	t->flag |= T_NO_CONSTRAINT;
-
-	t->fac = (float)sqrt( (
-		   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-		   +
-		   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-		   ) );
-}
-
 /* ************************** PUSH/PULL *************************** */
 
 void initPushPull(TransInfo *t) 
 {
 	t->mode = TFM_PUSHPULL;
 	t->transform = PushPull;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 	
 	t->ndof.axis = 4;
 	/* Flip direction */
@@ -3362,7 +3161,7 @@ int PushPull(TransInfo *t, short mval[2])
 	char str[128];
 	TransData *td = t->data;
 
-	distance = InputVerticalAbsolute(t, mval);
+	distance = t->values[0];
 	
 	applyNDofInput(&t->ndof, &distance);
 
@@ -3426,11 +3225,14 @@ int PushPull(TransInfo *t, short mval[2])
 
 void initBevel(TransInfo *t) 
 {
+	t->transform = Bevel;
+	t->handleEvent = handleEventBevel;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+
 	t->mode = TFM_BEVEL;
 	t->flag |= T_NO_CONSTRAINT;
 	t->num.flag |= NUM_NO_NEGATIVE;
-	t->transform = Bevel;
-	t->handleEvent = handleEventBevel;
 
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -3493,7 +3295,7 @@ int Bevel(TransInfo *t, short mval[2])
 	TransData *td = t->data;
 
 	mode = (G.editBMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
-	distance = InputHorizontalAbsolute(t, mval)/4; /* 4 just seemed a nice value to me, nothing special */
+	distance = t->values[0] / 4; /* 4 just seemed a nice value to me, nothing special */
 	
 	distance = fabs(distance);
 
@@ -3541,6 +3343,8 @@ void initBevelWeight(TransInfo *t)
 	t->mode = TFM_BWEIGHT;
 	t->transform = BevelWeight;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3548,15 +3352,6 @@ void initBevelWeight(TransInfo *t)
 	t->snap[2] = t->snap[1] * 0.1f;
 	
 	t->flag |= T_NO_CONSTRAINT;
-
-	t->fac = (float)sqrt(
-		(
-			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-		+
-			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-		) );
-
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 int BevelWeight(TransInfo *t, short mval[2]) 
@@ -3566,23 +3361,7 @@ int BevelWeight(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 
-		
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-		weight = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		weight+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -weight);
-		
-	}
-	else {
-		float dx= (float)(t->center2d[0] - mval[0]);
-		float dy= (float)(t->center2d[1] - mval[1]);
-		weight = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
+	weight = t->values[0];
 
 	weight -= 1.0f;
 	if (weight > 1.0f) weight = 1.0f;
@@ -3639,6 +3418,8 @@ void initCrease(TransInfo *t)
 	t->mode = TFM_CREASE;
 	t->transform = Crease;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3646,15 +3427,6 @@ void initCrease(TransInfo *t)
 	t->snap[2] = t->snap[1] * 0.1f;
 	
 	t->flag |= T_NO_CONSTRAINT;
-
-	t->fac = (float)sqrt(
-		(
-			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-		+
-			((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-		) );
-
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 int Crease(TransInfo *t, short mval[2]) 
@@ -3664,23 +3436,7 @@ int Crease(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 
-		
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-		crease = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		crease+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -crease);
-		
-	}
-	else {
-		float dx= (float)(t->center2d[0] - mval[0]);
-		float dy= (float)(t->center2d[1] - mval[1]);
-		crease = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
+	crease = t->values[0];
 
 	crease -= 1.0f;
 	if (crease > 1.0f) crease = 1.0f;
@@ -3740,20 +3496,14 @@ void initBoneSize(TransInfo *t)
 	t->mode = TFM_BONESIZE;
 	t->transform = BoneSize;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
+	
 	t->idx_max = 2;
 	t->num.idx_max = 2;
 	t->num.flag |= NUM_NULL_ONE;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	
-	t->fac = (float)sqrt( (
-					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-					   +
-					   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-					   ) );
-	
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 static void headerBoneSize(TransInfo *t, float vec[3], char *str) {
@@ -3807,33 +3557,15 @@ int BoneSize(TransInfo *t, short mval[2])
 	int i;
 	char str[60];
 	
+	// TRANSFORM_FIX_ME MOVE TO MOUSE INPUT
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
+	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
+	{
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
-	else {
-		
-		if(t->flag & T_SHIFT_MOD) {
-			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-			
-			dx= (float)(t->center2d[0] - mval[0]);
-			dy= (float)(t->center2d[1] - mval[1]);
-			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-			
-		}
-		else {
-			float dx= (float)(t->center2d[0] - mval[0]);
-			float dy= (float)(t->center2d[1] - mval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		}
-		
-		/* flip scale, but not for manipulator center handle */
-		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
-			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
-			ratio *= -1.0f;
+	else
+	{
+		ratio = t->values[0];
 	}
 	
 	size[0] = size[1] = size[2] = ratio;
@@ -3884,6 +3616,8 @@ void initBoneEnvelope(TransInfo *t)
 	t->mode = TFM_BONE_ENVELOPE;
 	t->transform = BoneEnvelope;
 	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3891,14 +3625,6 @@ void initBoneEnvelope(TransInfo *t)
 	t->snap[2] = t->snap[1] * 0.1f;
 
 	t->flag |= T_NO_CONSTRAINT;
-
-	t->fac = (float)sqrt( (
-						   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-						   +
-						   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-						   ) );
-	
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 int BoneEnvelope(TransInfo *t, short mval[2]) 
@@ -3908,22 +3634,7 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 	int i;
 	char str[50];
 	
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-		
-	}
-	else {
-		float dx= (float)(t->center2d[0] - mval[0]);
-		float dy= (float)(t->center2d[1] - mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
+	ratio = t->values[0];
 	
 	snapGrid(t, &ratio);
 	
@@ -3974,14 +3685,14 @@ void initBoneRoll(TransInfo *t)
 {
 	t->mode = TFM_BONE_ROLL;
 	t->transform = BoneRoll;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
-	
-	t->fac = 0.0f;
 	
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -3994,9 +3705,7 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 	float final;
 
-	t->fac += InputDeltaAngle(t, mval);
-
-	final = t->fac;
+	final = t->values[0];
 
 	snapGrid(t, &final);
 
@@ -4041,13 +3750,14 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 void initBakeTime(TransInfo *t) 
 {
+	t->transform = BakeTime;
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = BakeTime;
-	t->fac = 0.1f;
 }
 
 int BakeTime(TransInfo *t, short mval[2]) 
@@ -4056,15 +3766,16 @@ int BakeTime(TransInfo *t, short mval[2])
 	float time;
 	int i;
 	char str[50];
-
+	
+	float fac = 0.1f;
 		
-	if(t->flag & T_SHIFT_MOD) {
+	if(t->mouse.precision) {
 		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		time= (float)(t->center2d[0] - t->shiftmval[0])*t->fac;
-		time+= 0.1f*((float)(t->center2d[0]*t->fac - mval[0]) -time);
+		time= (float)(t->center2d[0] - t->mouse.precision_mval[0]) * fac;
+		time+= 0.1f*((float)(t->center2d[0]*fac - mval[0]) -time);
 	}
 	else {
-		time = (float)(t->center2d[0] - mval[0])*t->fac;
+		time = (float)(t->center2d[0] - mval[0])*fac;
 	}
 
 	snapGrid(t, &time);
@@ -4119,12 +3830,13 @@ int BakeTime(TransInfo *t, short mval[2])
 
 void initMirror(TransInfo *t) 
 {
+	t->transform = Mirror;
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
+
 	t->flag |= T_NULL_ONE;
 	if (!G.obedit) {
 		t->flag |= T_NO_ZERO;
 	}
-	
-	t->transform = Mirror;
 }
 
 int Mirror(TransInfo *t, short mval[2]) 
@@ -4201,6 +3913,8 @@ void initAlign(TransInfo *t)
 	t->flag |= T_NO_CONSTRAINT;
 	
 	t->transform = Align;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 }
 
 int Align(TransInfo *t, short mval[2])
@@ -4415,6 +4129,8 @@ void initTimeTranslate(TransInfo *t)
 {
 	t->mode = TFM_TIME_TRANSLATE;
 	t->transform = TimeTranslate;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
 	/* num-input has max of (n-1) */
 	t->idx_max = 0;
@@ -4439,7 +4155,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		const short autosnap= getAnimEdit_SnapMode(t);
 		const short doTime = getAnimEdit_DrawTime(t);
 		const double secf= FPS;
-		float val= t->fac;
+		float val = t->values[0];
 		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
@@ -4481,7 +4197,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		
 		/* check if any need to apply nla-scaling */
 		if (ob) {
-			deltax = t->fac;
+			deltax = t->values[0];
 			
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime) 
@@ -4495,7 +4211,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 			*(td->val) = get_action_frame(ob, val);
 		}
 		else {
-			deltax = val = t->fac;
+			deltax = val = t->values[0];
 			
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime)
@@ -4523,12 +4239,12 @@ int TimeTranslate(TransInfo *t, short mval[2])
 	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 	
 	/* we only need to calculate effect for time (applyTimeTranslate only needs that) */
-	t->fac= cval[0] - sval[0];
+	t->values[0] = cval[0] - sval[0];
 	
 	/* handle numeric-input stuff */
-	t->vec[0] = t->fac;
+	t->vec[0] = t->values[0];
 	applyNumInput(&t->num, &t->vec[0]);
-	t->fac = t->vec[0];
+	t->values[0] = t->vec[0];
 	headerTimeTranslate(t, str);
 	
 	applyTimeTranslate(t, sval[0]);
@@ -4557,6 +4273,8 @@ void initTimeSlide(TransInfo *t)
 	t->mode = TFM_TIME_SLIDE;
 	t->transform = TimeSlide;
 	t->flag |= T_FREE_CUSTOMDATA;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
 	/* num-input has max of (n-1) */
 	t->idx_max = 0;
@@ -4578,7 +4296,7 @@ static void headerTimeSlide(TransInfo *t, float sval, char *str)
 	else {
 		float minx= *((float *)(t->customData));
 		float maxx= *((float *)(t->customData) + 1);
-		float cval= t->fac;
+		float cval= t->values[0];
 		float val;
 			
 		val= 2.0f*(cval-sval) / (maxx-minx);
@@ -4601,7 +4319,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		float cvalf = t->fac;
+		float cvalf = t->values[0];
 		
 		saction->timeslide= cvalf;
 	}
@@ -4612,7 +4330,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 		 * whose active action is where this keyframe comes from 
 		 */
 		Object *ob= td->ob;
-		float cval = t->fac;
+		float cval = t->values[0];
 		
 		/* apply scaling to necessary values */
 		if (ob)
@@ -4648,13 +4366,13 @@ int TimeSlide(TransInfo *t, short mval[2])
 	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
 	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 	
-	/* t->fac stores cval[0], which is the current mouse-pointer location (in frames) */
-	t->fac= cval[0];
+	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
+	t->values[0] = cval[0];
 	
 	/* handle numeric-input stuff */
 	t->vec[0] = 2.0f*(cval[0]-sval[0]) / (maxx-minx);
 	applyNumInput(&t->num, &t->vec[0]);
-	t->fac = (maxx-minx) * t->vec[0] / 2.0 + sval[0];
+	t->values[0] = (maxx-minx) * t->vec[0] / 2.0 + sval[0];
 	
 	headerTimeSlide(t, sval[0], str);
 	applyTimeSlide(t, sval[0]);
@@ -4674,6 +4392,8 @@ void initTimeScale(TransInfo *t)
 {
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
@@ -4694,7 +4414,7 @@ static void headerTimeScale(TransInfo *t, char *str) {
 	if (hasNumInput(&t->num))
 		outputNumInput(&(t->num), tvec);
 	else
-		sprintf(&tvec[0], "%.4f", t->fac);
+		sprintf(&tvec[0], "%.4f", t->values[0]);
 		
 	sprintf(str, "ScaleX: %s", &tvec[0]);
 }
@@ -4715,7 +4435,7 @@ static void applyTimeScale(TransInfo *t) {
 		 */
 		Object *ob= td->ob;
 		float startx= CFRA;
-		float fac= t->fac;
+		float fac= t->values[0];
 		
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
@@ -4763,12 +4483,12 @@ int TimeScale(TransInfo *t, short mval[2])
 	/* calculate scaling factor */
 	startx= sval-(width/2+(t->ar->winx)/2);
 	deltax= cval-(width/2+(t->ar->winx)/2);
-	t->fac = deltax / startx;
+	t->values[0] = deltax / startx;
 	
 	/* handle numeric-input stuff */
-	t->vec[0] = t->fac;
+	t->vec[0] = t->values[0];
 	applyNumInput(&t->num, &t->vec[0]);
-	t->fac = t->vec[0];
+	t->values[0] = t->vec[0];
 	headerTimeScale(t, str);
 	
 	applyTimeScale(t);
