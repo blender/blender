@@ -72,6 +72,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_select_random);
 	WM_operatortype_append(VIEW3D_OT_de_select_all);
 	WM_operatortype_append(VIEW3D_OT_select_by_type);
+	WM_operatortype_append(VIEW3D_OT_select_by_layer);
 	WM_operatortype_append(VIEW3D_OT_borderselect);
 	WM_operatortype_append(VIEW3D_OT_clipping);
 	WM_operatortype_append(VIEW3D_OT_circle_select);
@@ -125,6 +126,7 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_random",PADASTERKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_by_type",PADASTERKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_by_layer",PADASTERKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 	

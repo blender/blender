@@ -122,6 +122,7 @@ void VIEW3D_OT_de_select_all(struct wmOperatorType *ot);
 void VIEW3D_OT_select_invert(struct wmOperatorType *ot);
 void VIEW3D_OT_select_random(struct wmOperatorType *ot);
 void VIEW3D_OT_select_by_type(struct wmOperatorType *ot);
+void VIEW3D_OT_select_by_layer(struct wmOperatorType *ot);
 void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 

@@ -680,108 +680,6 @@ void view3d_lasso_select(Scene *scene, ARegion *ar, View3D *v3d, short mcords[][
 	
 }
 
-
-void deselectall(Scene *scene, View3D *v3d)	/* is toggle */
-{
-	Base *base;
-	int a=0, ok=0; 
-
-	base= FIRSTBASE;
-	while(base) {
-		/* is there a visible selected object */
-		if(base->lay & v3d->lay &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0 &&
-		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0
-		) {
-			if (base->flag & SELECT) {
-				ok= a= 1;
-				break;
-			} else {
-				ok=1;
-			}
-		}
-		base= base->next;
-	}
-	
-	if (!ok) return;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if(base->lay & v3d->lay &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0 &&
-		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0
-		) {
-			if(a) 
-				select_base_v3d(base, BA_DESELECT);
-			else 
-				select_base_v3d(base, BA_SELECT);
-			base->object->flag= base->flag;
-		}
-		base= base->next;
-	}
-
-	BIF_undo_push("(De)select all");
-}
-
-/* inverts object selection */
-void selectswap(Scene *scene, View3D *v3d)
-{
-	Base *base;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(base->lay & v3d->lay && (base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-			
-			if (TESTBASE(v3d, base))
-				select_base_v3d(base, BA_DESELECT);
-			else
-				select_base_v3d(base, BA_SELECT);
-			base->object->flag= base->flag;
-		}
-	}
-
-	BIF_undo_push("Select Inverse");
-}
-
-/* inverts object selection */
-void selectrandom(Scene *scene, View3D *v3d, short randfac)
-{
-	Base *base;
-	/*static short randfac = 50;*/
-// XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(base->lay & v3d->lay &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
-		) {
-			if (!TESTBASE(v3d, base) && ( (BLI_frand() * 100) < randfac)) {
-				select_base_v3d(base, BA_SELECT);
-				base->object->flag= base->flag;
-			}
-		}
-	}
-
-	BIF_undo_push("Select Random");
-}
-
-/* selects all objects on a particular layer */
-void selectall_layer(Scene *scene, unsigned int layernum) 
-{
-	Base *base;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if(base->lay == (1<< (layernum -1)) &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
-		) {
-			select_base_v3d(base, BA_SELECT);
-		}
-		base= base->next;
-	}
-
-	BIF_undo_push("Select all per layer");
-}
-
-
 #if 0
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
@@ -830,7 +728,6 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 	return retval;
 }
 #endif
-
 
 /* ************************** mouse select ************************* */
 
@@ -1588,6 +1485,7 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 }
 
 /* ****** Mouse Select ****** */
+
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -1671,16 +1569,63 @@ void VIEW3D_OT_select_by_type(wmOperatorType *ot)
 
 }
 
+/* ****** selection by layer *******/
+
+static int view3d_select_by_layer_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	unsigned int layernum;
+	
+	layernum = RNA_int_get(op->ptr, "layer");
+		
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if(base->lay == (1<< (layernum -1)))
+			select_base_v3d(base, BA_SELECT);
+	}
+	CTX_DATA_END;
+	
+	/* undo? */
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_select_by_layer(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Selection by layer";
+	ot->idname= "VIEW3D_OT_select_by_layer";
+	
+	/* api callbacks */
+	/*ot->invoke = XXX - need a int grid popup*/
+	ot->exec= view3d_select_by_layer_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	prop = RNA_def_property(ot->srna, "layer", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_range(prop, 1, 20,1, 1);
+	RNA_def_property_ui_text(prop, "layer", "The layer to select objects in");
+	RNA_def_property_int_default(prop, 2);
+
+}
+
 /* ****** invert selection *******/
-static int view3d_select_invert_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_select_invert_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
+		
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if (TESTBASE(v3d, base))
+			select_base_v3d(base, BA_DESELECT);
+		else
+			select_base_v3d(base, BA_SELECT);
+	}
+	CTX_DATA_END;
 	
-	selectswap(scene, v3d);
-	
+	/* undo? */
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1694,20 +1639,37 @@ void VIEW3D_OT_select_invert(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_select_invert";
 	
 	/* api callbacks */
-	ot->invoke= view3d_select_invert_invoke;
+	ot->exec= view3d_select_invert_exec;
 	ot->poll= ED_operator_view3d_active;
 
 }
 /* ****** (de)select All *******/
-static int view3d_de_select_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+
+static int view3d_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
+	int a=0, ok=0; 
 	
-	deselectall(scene, v3d);
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if (TESTBASE(v3d, base)) {
+			ok= a= 1;
+			break;
+		}
+		else ok=1;
+	}
+	CTX_DATA_END;
 	
+	if (!ok) return OPERATOR_PASS_THROUGH;
+	
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if (a) select_base_v3d(base, BA_DESELECT);
+		else select_base_v3d(base, BA_SELECT);
+	}
+	CTX_DATA_END;
+	
+	/* undo? */
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1721,25 +1683,29 @@ void VIEW3D_OT_de_select_all(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_de_select_all";
 	
 	/* api callbacks */
-	ot->invoke= view3d_de_select_all_invoke;
+	ot->exec= view3d_de_select_all_exec;
 	ot->poll= ED_operator_view3d_active;
 
 }
 /* ****** random selection *******/
-static int view3d_select_random_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
+
+static int view3d_select_random_exec(bContext *C, wmOperator *op)
+{	
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
-	short randfac;
+	int percent;
 	
-	/* uiPupmenuOperator(C, 0, op, "percent", "percent"); XXX - need a number popup */
+	percent = RNA_int_get(op->ptr, "percent");
+		
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if ((!TESTBASE(v3d, base) && (BLI_frand() * 100) < percent)) {
+				select_base_v3d(base, BA_SELECT);
+		}
+	}
+	CTX_DATA_END;
 	
-	randfac = RNA_int_get(op->ptr, "percent");
-	
-	selectrandom(scene, v3d, randfac);
-	
+	/* undo? */
 	ED_region_tag_redraw(ar);
 	
 	return OPERATOR_FINISHED;
@@ -1754,7 +1720,8 @@ void VIEW3D_OT_select_random(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_select_random";
 	
 	/* api callbacks */
-	ot->invoke= view3d_select_random_invoke;
+	/*ot->invoke= view3d_select_random_invoke XXX - need a number popup ;*/
+	ot->exec = view3d_select_random_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
