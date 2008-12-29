@@ -39,7 +39,7 @@ void ED_keymap_object(struct wmWindowManager *wm);
 	/* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);
 	/* includes notifier */
-void ED_base_object_activate(struct bContext *C, Base *base);
+void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);
