@@ -95,6 +95,8 @@
 #include "UI_view2d.h"
 #include "UI_text.h"
 
+#include "ED_object.h"
+
 #include "outliner_intern.h"
 
 #ifdef INTERNATIONAL
@@ -1440,7 +1442,7 @@ static int tree_element_active_renderlayer(TreeElement *te, TreeStoreElem *tsele
 	return 0;
 }
 
-static void tree_element_active_object(Scene *scene, SpaceOops *soops, TreeElement *te)
+static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te)
 {
 	TreeStoreElem *tselem= TREESTORE(te);
 	Scene *sce;
@@ -1468,9 +1470,10 @@ static void tree_element_active_object(Scene *scene, SpaceOops *soops, TreeEleme
 	if(base) {
 		if(shift) {
 			/* swap select */
-			if(base->flag & SELECT) base->flag &= ~SELECT;
-			else if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) base->flag |= SELECT;
-			base->object->flag= base->flag;
+			if(base->flag & SELECT)
+				ED_base_object_select(base, BA_DESELECT);
+			else 
+				ED_base_object_select(base, BA_SELECT);
 		}
 		else {
 			Base *b;
@@ -1479,16 +1482,10 @@ static void tree_element_active_object(Scene *scene, SpaceOops *soops, TreeEleme
 				b->flag &= ~SELECT;
 				b->object->flag= b->flag;
 			}
-			if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-				base->flag |= SELECT;
-				base->object->flag |= SELECT;
-			}
+			ED_base_object_select(base, BA_SELECT);
 		}
-// XXX		set_active_base(base);	/* editview.c */
-		
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWINFO, 1);
+		if(C)
+			ED_base_object_activate(C, base); /* adds notifier */
 	}
 	
 // XXX	if(ob!=G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
@@ -1981,7 +1978,8 @@ static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeS
 }
 
 /* generic call for non-id data to make/check active in UI */
-static int tree_element_type_active(Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
+/* Context can be NULL when set==0 */
+static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	
 	switch(tselem->type) {
@@ -1996,7 +1994,7 @@ static int tree_element_type_active(Scene *scene, SpaceOops *soops, TreeElement 
 		case TSE_MODIFIER:
 			return tree_element_active_modifier(te, tselem, set);
 		case TSE_LINKED_OB:
-			if(set) tree_element_active_object(scene, soops, te);
+			if(set) tree_element_set_active_object(C, scene, soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
 			break;
 		case TSE_LINKED_PSYS:
@@ -2023,7 +2021,7 @@ static int tree_element_type_active(Scene *scene, SpaceOops *soops, TreeElement 
 	return 0;
 }
 
-static int do_outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, short event, float *mval)
+static int do_outliner_mouse_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, short event, float *mval)
 {
 	int shift= 0, ctrl= 0; // XXX
 	
@@ -2073,7 +2071,7 @@ static int do_outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, 
 				} else {
 					/* always makes active object */
 					if(tselem->type!=TSE_SEQUENCE && tselem->type!=TSE_SEQ_STRIP && tselem->type!=TSE_SEQUENCE_DUP)
-						tree_element_active_object(scene, soops, te);
+						tree_element_set_active_object(C, scene, soops, te);
 					
 					if(tselem->type==0) { // the lib blocks
 						/* editmode? */
@@ -2094,7 +2092,7 @@ static int do_outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, 
 						}
 						
 					}
-					else tree_element_type_active(scene, soops, te, tselem, 1);
+					else tree_element_type_active(C, scene, soops, te, tselem, 1);
 				}
 			}
 			else if(event==RIGHTMOUSE) {
@@ -2117,7 +2115,7 @@ static int do_outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, 
 	}
 	
 	for(te= te->subtree.first; te; te= te->next) {
-		if(do_outliner_mouse_event(scene, ar, soops, te, event, mval)) return 1;
+		if(do_outliner_mouse_event(C, scene, ar, soops, te, event, mval)) return 1;
 	}
 	return 0;
 }
@@ -2134,7 +2132,7 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 	UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, fmval, fmval+1);
 	
 	for(te= soops->tree.first; te; te= te->next) {
-		if(do_outliner_mouse_event(scene, ar, soops, te, event->type, fmval)) break;
+		if(do_outliner_mouse_event(C, scene, ar, soops, te, event->type, fmval)) break;
 	}
 	
 	if(te) {
@@ -3183,7 +3181,7 @@ static void outliner_draw_iconrow(Scene *scene, SpaceOops *soops, ListBase *lb, 
 				else if(G.obedit && G.obedit->data==tselem->id) active= 1;
 				else active= tree_element_active(scene, soops, te, 0);
 			}
-			else active= tree_element_type_active(scene, soops, te, tselem, 0);
+			else active= tree_element_type_active(NULL, scene, soops, te, tselem, 0);
 			
 			if(active) {
 				uiSetRoundBox(15);
@@ -3258,7 +3256,7 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 			}
 		}
 		else {
-			if( tree_element_type_active(scene, soops, te, tselem, 0) ) active= 2;
+			if( tree_element_type_active(NULL, scene, soops, te, tselem, 0) ) active= 2;
 			glColor4ub(220, 220, 255, 100);
 		}
 		
@@ -3619,7 +3617,7 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					char newname[32];
 					
 					// always make current object active
-					tree_element_active_object(scene, soops, te);
+					tree_element_set_active_object(C, scene, soops, te);
 					ob= OBACT;
 					
 					/* restore bone name */
@@ -3638,7 +3636,7 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 					char newname[32];
 					
 					// always make current object active
-					tree_element_active_object(scene, soops, te);
+					tree_element_set_active_object(C, scene, soops, te);
 					ob= OBACT;
 					
 					/* restore bone name */

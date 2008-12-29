@@ -142,12 +142,66 @@ static void EM_select_flush() {}
 
 /* port over here */
 static bContext *C;
-static void set_active_base() {}
 static void error_libdata() {}
 
 /* ********************************** */
 
 /* --------------------------------- */
+
+/* simple API for object selection, rather than just using the flag
+ * this takes into account the 'restrict selection in 3d view' flag.
+ * deselect works always, the restriction just prevents selection */
+
+/* Note: send a NC_SCENE|ND_OB_SELECT notifier yourself! */
+
+void ED_base_object_select(Base *base, short mode)
+{
+	if (base) {
+		if (mode==BA_SELECT) {
+			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
+				if (mode==BA_SELECT) base->flag |= SELECT;
+		}
+		else if (mode==BA_DESELECT) {
+			base->flag &= ~SELECT;
+		}
+		base->object->flag= base->flag;
+	}
+}
+
+/* also to set active NULL */
+void ED_base_object_activate(bContext *C, Base *base)
+{
+	Scene *scene= CTX_data_scene(C);
+	Base *tbase;
+	
+	/* activating a non-mesh, should end a couple of modes... */
+	//	if(base && base->object->type!=OB_MESH)
+	// XXX		exit_paint_modes();
+	
+	/* sets scene->basact */
+	BASACT= base;
+	
+	if(base) {
+		
+		/* XXX old signals, remember to handle notifiers now! */
+		//		allqueue(REDRAWIPO, base->object->ipowin);
+		//		select_actionchannel_by_name(base->object->action, "Object", 1);
+		
+		/* disable temporal locks */
+		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
+			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
+				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+				DAG_object_flush_update(scene, tbase->object, OB_RECALC_DATA);
+			}
+		}
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, base->object);
+	}
+	else
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, NULL);
+}
+
+
+
 
 /*
  * Returns true if the Object is a from an external blend file (libdata)
@@ -197,7 +251,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 
 // XXX	if (G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 	ob= add_object(type);
-	set_active_base(BASACT);
+//	ED_base_object_activate(C, BASACT);
 	base_init_from_view3d(BASACT, v3d);
 	
 	/* only undo pushes on objects without editmode... */
@@ -2791,7 +2845,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 				
 				/* If the original object is active then make this object active */
 				if (ob == obact) {
-					set_active_base( basen );
+					// XXX ED_base_object_activate(C, basen);
 					basact = basen;
 				}
 			}
@@ -2886,7 +2940,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 						
 						/* If the original object is active then make this object active */
 						if (ob == obact) {
-							set_active_base( basen );
+							// XXX ED_base_object_activate(C, basen);
 							basact = basen;
 						}
 						
@@ -5113,7 +5167,7 @@ void adduplicate(Scene *scene, View3D *v3d, int mode, int dupflag)
 //		initTransform(TFM_TRANSLATION, CTX_NONE);
 //		Transform();
 	}
-	set_active_base(BASACT);
+	// XXX ED_base_object_activate(C, BASACT);
 	if(mode!=2) { /* mode of 2 is used by python to avoid unrequested redraws */
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);	/* also oops */

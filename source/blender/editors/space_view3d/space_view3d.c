@@ -211,10 +211,20 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_TRANSFORM:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 	}
 }
 

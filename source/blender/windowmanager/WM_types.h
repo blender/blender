@@ -144,15 +144,21 @@ typedef struct wmNotifier {
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
 
-	/* Scene, node users level */
+	/* Scene */
 #define	ND_MARKERS			(2<<16)
 #define	ND_FRAME			(3<<16)
 #define	ND_RENDER_OPTIONS	(4<<16)
 #define	ND_NODES			(5<<16)
 #define	ND_SEQUENCER		(6<<16)
+#define ND_OB_ACTIVE		(7<<16)
+#define ND_OB_SELECT		(8<<16)
+
 	/* Object */
 #define	ND_TRANSFORM		(16<<16)
 #define ND_SHADING			(17<<16)
+#define ND_POSE				(18<<16)
+#define ND_BONE_ACTIVE		(19<<16)
+#define ND_BONE_SELECT		(20<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

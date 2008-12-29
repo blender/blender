@@ -30,9 +30,16 @@
 
 struct wmWindowManager;
 struct Object;
+struct bContext;
+struct Base;
 
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);
+
+	/* send your own notifier for select! */
+void ED_base_object_select(struct Base *base, short mode);
+	/* includes notifier */
+void ED_base_object_activate(struct bContext *C, Base *base);
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);

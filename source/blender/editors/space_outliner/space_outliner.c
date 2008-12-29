@@ -539,6 +539,32 @@ static void outliner_main_area_free(ARegion *ar)
 {
 }
 
+
+static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+				case ND_TRANSFORM:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+	}
+	
+}
+
+
 /* ************************ header outliner area region *********************** */
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -688,6 +714,7 @@ void ED_spacetype_outliner(void)
 	art->init= outliner_main_area_init;
 	art->draw= outliner_main_area_draw;
 	art->free= outliner_main_area_free;
+	art->listener= outliner_main_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

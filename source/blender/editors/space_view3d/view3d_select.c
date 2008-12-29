@@ -75,6 +75,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -181,22 +182,6 @@ void arrows_move_cursor(unsigned short event)
 #endif
 }
 
-/* simple API for object selection, rather than just using the flag
- * this takes into account the 'restrict selection in 3d view' flag.
- * deselect works always, the restriction just prevents selection */
-void select_base_v3d(Base *base, short mode)
-{
-	if (base) {
-		if (mode==BA_SELECT) {
-			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
-				if (mode==BA_SELECT) base->flag |= SELECT;
-		}
-		else if (mode==BA_DESELECT) {
-			base->flag &= ~SELECT;
-		}
-		base->object->flag= base->flag;
-	}
-}
 
 /* *********************** GESTURE AND LASSO ******************* */
 
@@ -345,8 +330,8 @@ static void do_lasso_select_objects(Scene *scene, ARegion *ar, View3D *v3d, shor
 			project_short(ar, v3d, base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
-				if(select) select_base_v3d(base, BA_SELECT);
-				else select_base_v3d(base, BA_DESELECT);
+				if(select) ED_base_object_select(base, BA_SELECT);
+				else ED_base_object_select(base, BA_DESELECT);
 				base->object->flag= base->flag;
 			}
 			if(base->object->flag & OB_POSEMODE) {
@@ -736,42 +721,6 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 /* The max number of menu items in an object select menu */
 #define SEL_MENU_SIZE	22
 
-void set_active_base(Scene *scene, Base *base)
-{
-	Base *tbase;
-	
-	/* activating a non-mesh, should end a couple of modes... */
-//	if(base && base->object->type!=OB_MESH)
-// XXX		exit_paint_modes();
-	
-	/* sets scene->basact */
-	BASACT= base;
-	
-	if(base) {
-		
-		/* signals to buttons */
-//		redraw_test_buttons(base->object);
-		
-		/* signal to ipo */
-//		allqueue(REDRAWIPO, base->object->ipowin);
-		
-//		allqueue(REDRAWACTION, 0);
-//		allqueue(REDRAWNLA, 0);
-//		allqueue(REDRAWNODE, 0);
-		
-		/* signal to action */
-//		select_actionchannel_by_name(base->object->action, "Object", 1);
-		
-		/* disable temporal locks */
-		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
-			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
-				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-				DAG_object_flush_update(scene, tbase->object, OB_RECALC_DATA);
-			}
-		}
-	}
-}
-
 
 static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
 {
@@ -780,7 +729,7 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	for(base= FIRSTBASE; base; base= base->next) {
 		if (base->flag & SELECT) {
 			if(b!=base) {
-				select_base_v3d(base, BA_DESELECT);
+				ED_base_object_select(base, BA_DESELECT);
 			}
 		}
 	}
@@ -896,8 +845,11 @@ static short mixed_bones_object_selectbuffer(Scene *scene, ARegion *ar, View3D *
 }
 
 /* mval is region coords */
-static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
+static void mouse_select(bContext *C, short *mval)
 {
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
 	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
@@ -1047,6 +999,10 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 						/* prevent activating */
 						basact= NULL;
 					}
+					
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, basact->object);
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
+
 				}
 				/* prevent bone selecting to pass on to object selecting */
 				if(basact==BASACT)
@@ -1061,7 +1017,7 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 		if(G.obedit) {
 			/* only do select */
 			deselectall_except(scene, basact);
-			select_base_v3d(basact, BA_SELECT);
+			ED_base_object_select(basact, BA_SELECT);
 		}
 		/* also prevent making it active on mouse selection */
 		else if (BASE_SELECTABLE(v3d, basact)) {
@@ -1071,7 +1027,7 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 			
 			if(shift==0) {
 				deselectall_except(scene, basact);
-				select_base_v3d(basact, BA_SELECT);
+				ED_base_object_select(basact, BA_SELECT);
 			}
 			else if(shift && alt) {
 				// XXX select_all_from_groups(basact);
@@ -1079,32 +1035,19 @@ static void mouse_select(Scene *scene, ARegion *ar, View3D *v3d, short *mval)
 			else {
 				if(basact->flag & SELECT) {
 					if(basact==oldbasact)
-						select_base_v3d(basact, BA_DESELECT);
+						ED_base_object_select(basact, BA_DESELECT);
 				}
-				else select_base_v3d(basact, BA_SELECT);
+				else ED_base_object_select(basact, BA_SELECT);
 			}
 
 			if(oldbasact != basact) {
-				set_active_base(scene, basact);
+				ED_base_object_activate(C, basact); /* adds notifier */
 			}
 
-			/* for visual speed, only in wire mode */
-			if(v3d->drawtype==OB_WIRE) {
-				/* however, not for posemodes */
-// XXX				if(basact->object->flag & OB_POSEMODE);
-//				else if(oldbasact && (oldbasact->object->flag & OB_POSEMODE));
-//				else {
-//					if(oldbasact && oldbasact != basact && (oldbasact->lay & v3d->lay)) 
-//						draw_object_ext(oldbasact);
-//					draw_object_ext(basact);
-//				}
-			}
+			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 			
 		}
 	}
-
-	/* note; make it notifier! */
-	ED_region_tag_redraw(ar);
 
 }
 
@@ -1416,6 +1359,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		if (hits>0) { /* no need to loop if there's no hit */
 			base= FIRSTBASE;
 			col = vbuffer + 3;
+			
 			while(base && hits) {
 				Base *next = base->next;
 				if(base->lay & v3d->lay) {
@@ -1436,9 +1380,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 						}
 						else if(!bone_only) {
 							if (selecting)
-								select_base_v3d(base, BA_SELECT);
+								ED_base_object_select(base, BA_SELECT);
 							else
-								select_base_v3d(base, BA_DESELECT);
+								ED_base_object_select(base, BA_DESELECT);
 						}
 
 						col+=4;	/* next color */
@@ -1449,6 +1393,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				
 				base= next;
 			}
+
+			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+
 		}
 		MEM_freeN(vbuffer);
 	}
@@ -1488,10 +1435,7 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= sa->spacedata.first;
-	Scene *scene= CTX_data_scene(C);
 	short mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
@@ -1499,7 +1443,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 	
-	mouse_select(scene, ar, v3d, mval);
+	mouse_select(C, mval);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1533,20 +1477,19 @@ static EnumPropertyItem prop_select_object_types[] = {
 
 static int view3d_select_by_type_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	short obtype;
 	
 	obtype = RNA_enum_get(op->ptr, "type");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(base->object->type==obtype) {
-			select_base_v3d(base, BA_SELECT);
+			ED_base_object_select(base, BA_SELECT);
 		}
 	}
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1573,19 +1516,18 @@ void VIEW3D_OT_select_by_type(wmOperatorType *ot)
 
 static int view3d_select_by_layer_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	unsigned int layernum;
 	
 	layernum = RNA_int_get(op->ptr, "layer");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(base->lay == (1<< (layernum -1)))
-			select_base_v3d(base, BA_SELECT);
+			ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1615,18 +1557,17 @@ static int view3d_select_invert_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	ARegion *ar= CTX_wm_region(C);
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (TESTBASE(v3d, base))
-			select_base_v3d(base, BA_DESELECT);
+			ED_base_object_select(base, BA_DESELECT);
 		else
-			select_base_v3d(base, BA_SELECT);
+			ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1649,7 +1590,6 @@ static int view3d_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	ARegion *ar= CTX_wm_region(C);
 	int a=0, ok=0; 
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
@@ -1664,13 +1604,13 @@ static int view3d_de_select_all_exec(bContext *C, wmOperator *op)
 	if (!ok) return OPERATOR_PASS_THROUGH;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (a) select_base_v3d(base, BA_DESELECT);
-		else select_base_v3d(base, BA_SELECT);
+		if (a) ED_base_object_select(base, BA_DESELECT);
+		else ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1693,20 +1633,19 @@ static int view3d_select_random_exec(bContext *C, wmOperator *op)
 {	
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	ARegion *ar= CTX_wm_region(C);
 	int percent;
 	
 	percent = RNA_int_get(op->ptr, "percent");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if ((!TESTBASE(v3d, base) && (BLI_frand() * 100) < percent)) {
-				select_base_v3d(base, BA_SELECT);
+				ED_base_object_select(base, BA_SELECT);
 		}
 	}
 	CTX_DATA_END;
 	
 	/* undo? */
-	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1906,6 +1845,7 @@ void obedit_selectionCB(Scene *scene, ARegion *ar, View3D *v3d, short selecting,
 //	force_draw(0);
 }
 
+/* not a real operator, only for circle test */
 static int view3d_circle_select(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
@@ -1925,10 +1865,11 @@ static int view3d_circle_select(bContext *C, wmOperator *op)
 				int dx= base->sx-x;
 				int dy= base->sy-y;
 				if( dx*dx + dy*dy < radius*radius)
-					select_base_v3d(base, BA_SELECT);
+					ED_base_object_select(base, BA_SELECT);
 			}
 		}
 	}
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	return 0;
 }
 
