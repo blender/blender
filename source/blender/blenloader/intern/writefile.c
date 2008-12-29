@@ -2265,20 +2265,22 @@ cleanup:
 	if (runtime)
 		MEM_freeN(runtime);
 
-	return !(reports->flag & RPT_HAS_ERROR);
+	return !BKE_reports_have_error(reports);
 }
 
 int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports) 
 {
 	char gamename[FILE_MAXDIR+FILE_MAXFILE];
-	int outfd = -1;
+	int outfd = -1, error= 0;
 
 	// remove existing file / bundle
 	//printf("Delete file %s\n", file);
 	BLI_delete(file, 0, TRUE);
 
-	if (!recursive_copy_runtime(file, exename, reports))
+	if (!recursive_copy_runtime(file, exename, reports)) {
+		error= 1;
 		goto cleanup;
+	}
 
 	strcpy(gamename, file);
 	strcat(gamename, "/Contents/Resources/game.blend");
@@ -2290,18 +2292,20 @@ int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *repo
 
 		if (write(outfd, " ", 1) != 1) {
 			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
+			error= 1;
 			goto cleanup;
 		}
 	} else {
 		BKE_report(reports, RPT_ERROR, "Unable to open blenderfile.");
+		error= 1;
 	}
 
 cleanup:
 	if (outfd!=-1)
 		close(outfd);
 
-	//XXX error("Unable to make runtime: %s", cause);
-	return !(reports->flag & RPT_HAS_ERROR);
+	BKE_reports_prepend(reports, "Unable to make runtime: ");
+	return !error;
 }
 
 #else /* !__APPLE__ */
@@ -2310,22 +2314,25 @@ static int handle_append_runtime(int handle, char *exename, ReportList *reports)
 {
 	char *runtime= get_runtime_path(exename);
 	unsigned char buf[1024];
-	int count, progfd= -1;
+	int count, progfd= -1, error= 0;
 
 	if (!BLI_exists(runtime)) {
 		BKE_report(reports, RPT_ERROR, "Unable to find runtime.");
+		error= 1;
 		goto cleanup;
 	}
 
 	progfd= open(runtime, O_BINARY|O_RDONLY, 0);
 	if (progfd==-1) {
 		BKE_report(reports, RPT_ERROR, "Unable to find runtime.@");
+		error= 1;
 		goto cleanup;
 	}
 
 	while ((count= read(progfd, buf, sizeof(buf)))>0) {
 		if (write(handle, buf, count)!=count) {
 			BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
+			error= 1;
 			goto cleanup;
 		}
 	}
@@ -2336,7 +2343,7 @@ cleanup:
 	if (runtime)
 		MEM_freeN(runtime);
 
-	return !(reports->flag & RPT_HAS_ERROR);
+	return !error;
 }
 
 static int handle_write_msb_int(int handle, int i) 
@@ -2353,14 +2360,17 @@ static int handle_write_msb_int(int handle, int i)
 int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports)
 {
 	int outfd= open(file, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
-	int datastart;
+	int datastart, error= 0;
 
 	if (!outfd) {
 		BKE_report(reports, RPT_ERROR, "Unable to open output file.");
+		error= 1;
 		goto cleanup;
 	}
-	if (!handle_append_runtime(outfd, exename, reports))
+	if (!handle_append_runtime(outfd, exename, reports)) {
+		error= 1;
 		goto cleanup;
+	}
 
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
@@ -2368,6 +2378,7 @@ int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *repo
 
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		BKE_report(reports, RPT_ERROR, "Unable to write to output file.");
+		error= 1;
 		goto cleanup;
 	}
 
@@ -2375,8 +2386,8 @@ cleanup:
 	if (outfd!=-1)
 		close(outfd);
 
-	//XXX error("Unable to make runtime: %s", cause);
-	return !(reports->flag & RPT_HAS_ERROR);
+	BKE_reports_prepend(reports, "Unable to make runtime: ");
+	return !error;
 }
 
 #endif /* !__APPLE__ */

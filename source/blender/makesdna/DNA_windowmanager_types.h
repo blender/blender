@@ -50,6 +50,7 @@ struct wmSubWindow;
 struct wmTimer;
 struct StructRNA;
 struct PointerRNA;
+struct ReportList;
 
 /* windowmanager is saved, tag WMAN */
 typedef struct wmWindowManager {
@@ -188,6 +189,7 @@ typedef struct wmOperator {
 	wmOperatorType *type;		/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
 	struct PointerRNA *ptr;		/* rna pointer to access properties */
+	struct ReportList *reports;	/* errors and warnings storage */
 } wmOperator;
 
 /* operator type exec(), invoke() modal(), return values */

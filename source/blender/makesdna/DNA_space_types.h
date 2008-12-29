@@ -447,6 +447,23 @@ typedef struct SpaceImaSel {
 #define CONTEXT_SCRIPT	5
 #define CONTEXT_LOGIC	6
 
+/* sbuts->mainb old */
+#define BUTS_VIEW			0
+#define BUTS_LAMP			1
+#define BUTS_MAT			2
+#define BUTS_TEX			3
+#define BUTS_ANIM			4
+#define BUTS_WORLD			5
+#define BUTS_RENDER			6
+#define BUTS_EDIT			7
+#define BUTS_GAME			8
+#define BUTS_FPAINT			9
+#define BUTS_RADIO			10
+#define BUTS_SCRIPT			11
+#define BUTS_SOUND			12
+#define BUTS_CONSTRAINT		13
+#define BUTS_EFFECTS		14
+
 /* sbuts->tab new */
 #define TAB_SHADING_MAT 	0
 #define TAB_SHADING_TEX 	1
@@ -470,6 +487,19 @@ typedef struct SpaceImaSel {
 /* sbuts->align */
 #define BUT_HORIZONTAL  1
 #define BUT_VERTICAL    2
+
+/* sbuts->scaflag */		
+#define BUTS_SENS_SEL		1
+#define BUTS_SENS_ACT		2
+#define BUTS_SENS_LINK		4
+#define BUTS_CONT_SEL		8
+#define BUTS_CONT_ACT		16
+#define BUTS_CONT_LINK		32
+#define BUTS_ACT_SEL		64
+#define BUTS_ACT_ACT		128
+#define BUTS_ACT_LINK		256
+#define BUTS_SENS_STATE		512
+#define BUTS_ACT_STATE		1024
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */

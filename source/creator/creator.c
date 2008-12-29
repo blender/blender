@@ -61,6 +61,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
+#include "BKE_report.h"
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
@@ -71,9 +72,8 @@
 #include "RE_pipeline.h"
 
 //XXX #include "playanim_ext.h"
-#include "wm_event_types.h"
 #include "ED_datafiles.h"
-//XXX #include "datatoc.h"
+#include "UI_interface.h"
 
 #include "WM_api.h"
 
@@ -784,7 +784,7 @@ int main(int argc, char **argv)
 			BLI_convertstringcwd(filename);
 			
 			if (G.background) {
-				int retval = BKE_read_file(C, argv[a], NULL);
+				int retval = BKE_read_file(C, argv[a], NULL, NULL);
 // XXX			sound_initialize_sounds();
 				
 				/*we successfully loaded a blend file, get sure that
@@ -797,7 +797,7 @@ int main(int argc, char **argv)
 			} else {
 				/* we are not running in background mode here, but start blender in UI mode with 
 				   a file - this should do everything a 'load file' does */
-				WM_read_file(C, filename);
+				WM_read_file(C, filename, NULL);
 			}
 		}
 	}
@@ -827,7 +827,7 @@ static void error_cb(char *err)
 
 static void mem_error_cb(char *errorStr)
 {
-	fprintf(stderr, errorStr);
+	fprintf(stderr, "%s", errorStr);
 	fflush(stderr);
 }
 

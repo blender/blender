@@ -50,8 +50,8 @@ wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
 			/* files */
 int			WM_read_homefile	(struct bContext *C, int from_memory);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
-void		WM_read_file		(struct bContext *C, char *name);
-void		WM_write_file		(struct bContext *C, char *target);
+void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
+void		WM_write_file		(struct bContext *C, char *target, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_write_autosave	(struct bContext *C);
 
@@ -111,9 +111,6 @@ int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEven
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
-	
-			/* default error box */
-void		WM_error(struct bContext *C, char *str);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);

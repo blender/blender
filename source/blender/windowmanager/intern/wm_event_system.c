@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
@@ -51,6 +52,8 @@
 #include "ED_anim_api.h"
 
 #include "RNA_access.h"
+
+#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -336,6 +339,10 @@ int WM_operator_call(bContext *C, wmOperator *op)
 	
 	if(op->type->exec)
 		retval= op->type->exec(C, op);
+
+	if(!(retval & OPERATOR_RUNNING_MODAL))
+		if(op->reports->list.first)
+			uiPupmenuReports(C, op->reports);
 	
 	if((retval & OPERATOR_FINISHED) && (op->type->flag & OPTYPE_REGISTER)) {
 		wm_operator_register(CTX_wm_manager(C), op);
@@ -364,6 +371,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
 		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, &op->properties, op->ptr);
 
+		op->reports= MEM_callocN(sizeof(ReportList), "wmOperatorReportList");
+		BKE_reports_init(op->reports, RPT_STORE);
+
 		if(op->type->invoke && event)
 			retval= (*op->type->invoke)(C, op, event);
 		else if(op->type->exec)
@@ -373,6 +383,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 
 		if(G.f & G_DEBUG)
 			WM_operator_print(op);
+
+		if(!(retval & OPERATOR_RUNNING_MODAL))
+			if(op->reports->list.first)
+				uiPupmenuReports(C, op->reports);
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 			wm_operator_register(wm, op);
@@ -588,6 +602,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				CTX_wm_area_set(C, NULL);
 				CTX_wm_region_set(C, NULL);
 			}
+
+			if(!(retval & OPERATOR_RUNNING_MODAL))
+				if(op->reports->list.first)
+					uiPupmenuReports(C, op->reports);
 			
 			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 				wm_operator_register(CTX_wm_manager(C), op);

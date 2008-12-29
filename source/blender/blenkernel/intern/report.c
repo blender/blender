@@ -30,6 +30,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 
 #include "BKE_report.h"
 
@@ -59,6 +60,9 @@ static char *report_type_str(int type)
 
 void BKE_reports_init(ReportList *reports, int flag)
 {
+	if(!reports)
+		return;
+
 	memset(reports, 0, sizeof(ReportList));
 
 	reports->storelevel= RPT_WARNING;
@@ -69,6 +73,9 @@ void BKE_reports_init(ReportList *reports, int flag)
 void BKE_reports_clear(ReportList *reports)
 {
 	Report *report;
+
+	if(!reports)
+		return;
 
 	for(report=reports->list.first; report; report=report->next)
 		MEM_freeN(report->message);
@@ -81,18 +88,12 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 	Report *report;
 	int len;
 
-	if(!reports)
-		return;
-	
-	if(type >= RPT_ERROR)
-		reports->flag |= RPT_HAS_ERROR;
-
-	if((reports->flag & RPT_PRINT) && (type >= reports->printlevel)) {
+	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		printf("%s: %s\n", report_type_str(type), message);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if((reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
 		report= MEM_callocN(sizeof(Report), "Report");
 		report->type= type;
 		report->typestr= report_type_str(type);
@@ -107,83 +108,110 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 
 void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 {
+	DynStr *ds;
 	Report *report;
 	va_list args;
-	char *message;
-	int len= 256, maxlen= 65536, retval;
 
-	if(!reports)
-		return;
-
-	if(type >= RPT_ERROR)
-		reports->flag |= RPT_HAS_ERROR;
-
-	if((reports->flag & RPT_PRINT) && (type >= reports->printlevel)) {
+	if(!reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
 		va_start(args, format);
 		vprintf(format, args);
 		va_end(args);
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 
-	if((reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
-		while(1) {
-			message= MEM_callocN(sizeof(char)*len+1, "ReportMessage");
+	if(reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
+		report= MEM_callocN(sizeof(Report), "Report");
 
-			va_start(args, format);
-			retval= vsnprintf(message, len, format, args);
-			va_end(args);
+		ds= BLI_dynstr_new();
+		va_start(args, format);
+		BLI_dynstr_vappendf(ds, format, args);
+		va_end(args);
 
-			if(retval == -1) {
-				/* -1 means not enough space, but on windows it may also mean
-				 * there is a formatting error, so we impose a maximum length */
-				MEM_freeN(message);
-				message= NULL;
+		report->message= BLI_dynstr_get_cstring(ds);
 
-				len *= 2;
-				if(len > maxlen) {
-					fprintf(stderr, "BKE_reportf message too long or format error.\n");
-					break;
-				}
-			}
-			else if(retval > len) {
-				/* in C99 the actual length required is returned */
-				MEM_freeN(message);
-				message= NULL;
+		BLI_dynstr_free(ds);
 
-				len= retval;
-			}
-			else
-				break;
-		}
+		report->type= type;
+		report->typestr= report_type_str(type);
 
-		if(message) {
-			report= MEM_callocN(sizeof(Report), "Report");
-			report->type= type;
-			report->typestr= report_type_str(type);
-			report->message= message;
+		BLI_addtail(&reports->list, report);
+	}
+}
 
-			BLI_addtail(&reports->list, report);
-		}
+void BKE_reports_prepend(ReportList *reports, const char *prepend)
+{
+	Report *report;
+	DynStr *ds;
+
+	if(!reports)
+		return;
+
+	for(report=reports->list.first; report; report=report->next) {
+		ds= BLI_dynstr_new();
+
+		BLI_dynstr_append(ds, prepend);
+		BLI_dynstr_append(ds, report->message);
+		MEM_freeN(report->message);
+
+		report->message= BLI_dynstr_get_cstring(ds);
+
+		BLI_dynstr_free(ds);
+	}
+}
+
+void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
+{
+	Report *report;
+	DynStr *ds;
+	va_list args;
+
+	if(!reports)
+		return;
+
+	for(report=reports->list.first; report; report=report->next) {
+		ds= BLI_dynstr_new();
+		va_start(args, prepend);
+		BLI_dynstr_vappendf(ds, prepend, args);
+		va_end(args);
+
+		BLI_dynstr_append(ds, report->message);
+		MEM_freeN(report->message);
+
+		report->message= BLI_dynstr_get_cstring(ds);
+
+		BLI_dynstr_free(ds);
 	}
 }
 
 ReportType BKE_report_print_level(ReportList *reports)
 {
+	if(!reports)
+		return RPT_ERROR;
+
 	return reports->printlevel;
 }
 
 void BKE_report_print_level_set(ReportList *reports, ReportType level)
 {
+	if(!reports)
+		return;
+
 	reports->printlevel= level;
 }
 
 ReportType BKE_report_store_level(ReportList *reports)
 {
+	if(!reports)
+		return RPT_ERROR;
+
 	return reports->storelevel;
 }
 
 void BKE_report_store_level_set(ReportList *reports, ReportType level)
 {
+	if(!reports)
+		return;
+
 	reports->storelevel= level;
 }
 

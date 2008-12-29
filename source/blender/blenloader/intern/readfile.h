@@ -107,10 +107,10 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal( FileData *fd, struct ReportList *reports);
+BlendFileData *blo_read_file_internal(FileData *fd);
 
-FileData *blo_openblenderfile( char *name, struct ReportList *reports);
-FileData *blo_openblendermemory( void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_openblenderfile(char *name, struct ReportList *reports);
+FileData *blo_openblendermemory(void *buffer, int buffersize, struct ReportList *reports);
 FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
 void blo_clear_proxy_pointers_from_lib(FileData *fd, Main *oldmain);

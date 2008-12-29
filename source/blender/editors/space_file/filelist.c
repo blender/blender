@@ -907,7 +907,8 @@ void filelist_from_library(struct FileList* filelist)
 
 void filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode, struct Main *mainvar, struct Scene* scene)
 {
-	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, mainvar, scene);
+	// XXX todo: replace NULL with op->reports
+	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, mainvar, scene, NULL);
 }
 
 void filelist_from_main(struct FileList *filelist)

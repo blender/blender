@@ -150,8 +150,6 @@
 
 #include "readfile.h"
 
-//XXX #include "wm_event_types.h"
-
 #include <errno.h>
 
 /*
@@ -3111,7 +3109,7 @@ static void lib_link_object(FileData *fd, Main *main)
 		ob= ob->id.next;
 	}
 
-	if(warn) //XXX error("WARNING IN CONSOLE");
+	if(warn)
 		BKE_report(fd->reports, RPT_WARNING, "Warning in console");
 }
 
@@ -3808,7 +3806,7 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 	}
 }
 
-/* ************ READ SCREEN ***************** */
+/* ****************** READ GREASE PENCIL ***************** */
 
 /* relinks grease-pencil data for 3d-view(s) - used for direct_link */
 static void link_gpencil(FileData *fd, bGPdata *gpd)
@@ -3834,6 +3832,29 @@ static void link_gpencil(FileData *fd, bGPdata *gpd)
 			}
 		}
 	}
+}
+
+/* ****************** READ SCREEN ***************** */
+
+static void butspace_version_132(SpaceButs *buts)
+{
+	buts->v2d.tot.xmin= 0.0f;
+	buts->v2d.tot.ymin= 0.0f;
+	buts->v2d.tot.xmax= 1279.0f;
+	buts->v2d.tot.ymax= 228.0f;
+
+	buts->v2d.min[0]= 256.0f;
+	buts->v2d.min[1]= 42.0f;
+
+	buts->v2d.max[0]= 2048.0f;
+	buts->v2d.max[1]= 450.0f;
+
+	buts->v2d.minzoom= 0.5f;
+	buts->v2d.maxzoom= 1.21f;
+
+	buts->v2d.scroll= 0;
+	buts->v2d.keepzoom= 1;
+	buts->v2d.keeptot= 1;
 }
 
 /* note: file read without screens option G_FILE_NO_UI; 
@@ -3887,7 +3908,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceButs *sbuts= (SpaceButs *)sl;
 						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
-// XXX						if(main->versionfile<132) set_rects_butspace(sbuts);
+						if(main->versionfile<132)
+							butspace_version_132(sbuts);
 					}
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
@@ -4189,6 +4211,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
 	sc->regionbase.first= sc->regionbase.last= NULL;
+	sc->context= NULL;
 
 	sc->mainwin= sc->subwinactive= 0;	/* indices */
 	
@@ -4340,7 +4363,6 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
 				
-				//XXX error("Library had multiple instances, save and reload!");
 				BKE_report(fd->reports, RPT_WARNING, "Library had multiple instances, save and reload!");
 
 				return;
@@ -5602,8 +5624,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SpaceLink *sl= sa->spacedata.first;
 				while(sl) {
 					if(sl->spacetype==SPACE_BUTS) {
-						//SpaceButs *sbuts= (SpaceButs*) sl;
-						//XXX sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
+						SpaceButs *sbuts= (SpaceButs*) sl;
+						sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 					}
 					sl= sl->next;
 				}
@@ -6254,8 +6276,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						sbuts->v2d.maxzoom= 1.2f;
 						sbuts->align= 1;	/* horizontal default */
 					
-						//XXX
-#if 0
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
 							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
@@ -6299,7 +6319,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							sbuts->mainb= CONTEXT_EDITING;
 						}
 						else sbuts->mainb= CONTEXT_SCENE;
-#endif
 					}
 				}
 			}
@@ -8424,7 +8443,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	return bhead;
 }
 
-BlendFileData *blo_read_file_internal(FileData *fd, ReportList *reports)
+BlendFileData *blo_read_file_internal(FileData *fd)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
@@ -9480,26 +9499,33 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 /* this should probably be moved into the Python code anyway */
 
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, 
-		int idcode, short flag, Main *mainvar, Scene *scene)
+		int idcode, short flag, Main *mainvar, Scene *scene, ReportList *reports)
 {
+	FileData *fd= (FileData*)(*bh);
+
 	/* try to append the requested object */
-	library_append(mainvar, scene, name, dir, idcode, 0, (FileData **)bh, NULL, 0, flag );
+	fd->reports= reports;
+	library_append(mainvar, scene, name, dir, idcode, 0, &fd, NULL, 0, flag );
+	if(fd) fd->reports= NULL;
 
 	/* do we need to do this? */
 	DAG_scene_sort(scene);
+
+	*bh= (BlendHandle*)fd;
 }
 
 /* append to scene */
 /* dir is a full path */	
-void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Main *mainvar, Scene *scene)
+void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Main *mainvar, Scene *scene, ReportList *reports)
 {
 	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, 
-						dir, sfile->file, sfile->flag, idcode, mainvar, scene);
+						dir, sfile->file, sfile->flag, idcode, mainvar, scene, reports);
 }
 
-void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, 
-						 char *dir, char* file, short flag, int idcode, Main *mainvar, Scene *scene)
+void BLO_library_append_(BlendHandle** bh, struct direntry* filelist, int totfile, 
+						 char *dir, char* file, short flag, int idcode, Main *mainvar, Scene *scene, ReportList *reports)
 {
+	FileData *fd= (FileData*)(*bh);
 	Library *curlib;
 	Base *centerbase;
 	Object *ob;
@@ -9519,12 +9545,12 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 				if( strcmp(filelist[a].relname, file)==0) break;
 			}
 			if(a==totfile) {
-				//XXX error("Wrong indicated name");
+				BKE_report(reports, RPT_ERROR, "Wrong indicated name");
 				return;
 			}
 		}
 		else {
-			//XXX error("Nothing indicated");
+			BKE_report(reports, RPT_ERROR, "Nothing indicated");
 			return;
 		}
 	}
@@ -9532,7 +9558,11 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 	
 	if(flag & FILE_AUTOSELECT) scene_deselect_all(scene);
 
-	curlib = library_append(mainvar, scene, file, dir, idcode, totsel, (FileData**) libfiledata, filelist, totfile,flag );
+	fd->reports= reports;
+	curlib = library_append(mainvar, scene, file, dir, idcode, totsel, &fd, filelist, totfile,flag );
+	if(fd) fd->reports= NULL;
+
+	*bh= (BlendHandle*)fd;
 
 	/* when not linking (appending)... */
 	if((flag & FILE_LINK)==0) {
@@ -9614,9 +9644,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					ReportList reports;
 
 					printf("read library: lib %s\n", mainptr->curlib->name);
-					BKE_reports_init(&reports, 0);
 					fd= blo_openblenderfile(mainptr->curlib->filename, &reports);
-					BKE_reports_clear(&reports);
+					fd->reports= basefd->reports;
 
 					if (fd) {
 						if (fd->libmap)
@@ -9731,7 +9760,8 @@ BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, 
 	if (!fd)
 		return NULL;
 
-	bfd= blo_read_file_internal(fd, reports);
+	fd->reports= reports;
+	bfd= blo_read_file_internal(fd);
 	blo_freefiledata(fd);
 
 	return bfd;

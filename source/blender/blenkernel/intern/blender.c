@@ -424,15 +424,12 @@ static void handle_subversion_warning(Main *main)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(bContext *C, char *dir, void *unused) 
+int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports) 
 {
-	ReportList reports;
 	BlendFileData *bfd;
 	int retval= 1;
-	
-	BKE_reports_init(&reports, RPT_STORE);
 
-	bfd= BLO_read_from_file(dir, &reports);
+	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
 		if(bfd->user) retval= 2;
 		
@@ -440,50 +437,35 @@ int BKE_read_file(bContext *C, char *dir, void *unused)
 		
 		handle_subversion_warning(G.main);
 	} 
-	else {
-// XXX		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
-	}
-
-	BKE_reports_clear(&reports);
+	else
+		BKE_reports_prependf(reports, "Loading %s failed: ", dir);
 		
 	return (bfd?retval:0);
 }
 
-int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused)
+int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused, ReportList *reports)
 {
-	ReportList reports;
 	BlendFileData *bfd;
 
-	BKE_reports_init(&reports, RPT_STORE);
-
-	bfd= BLO_read_from_memory(filebuf, filelength, &reports);
-	if (bfd) {
+	bfd= BLO_read_from_memory(filebuf, filelength, reports);
+	if (bfd)
 		setup_app_data(C, bfd, "<memory2>");
-	} else {
-// XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
-	}
-		
-	BKE_reports_clear(&reports);
+	else
+		BKE_reports_prepend(reports, "Loading failed: ");
 
 	return (bfd?1:0);
 }
 
 /* memfile is the undo buffer */
-int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
+int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *reports)
 {
-	ReportList reports;
 	BlendFileData *bfd;
-	
-	BKE_reports_init(&reports, RPT_STORE);
 
-	bfd= BLO_read_from_memfile(CTX_data_main(C), G.sce, memfile, &reports);
-	if (bfd) {
+	bfd= BLO_read_from_memfile(CTX_data_main(C), G.sce, memfile, reports);
+	if (bfd)
 		setup_app_data(C, bfd, "<memory1>");
-	} else {
-// XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
-	}
-		
-	BKE_reports_clear(&reports);
+	else
+		BKE_reports_prepend(reports, "Loading failed: ");
 
 	return (bfd?1:0);
 }
@@ -516,10 +498,10 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	G.fileflags |= G_FILE_NO_UI;
 
 	if(UNDO_DISK) 
-		success= BKE_read_file(C, uel->str, NULL);
+		success= BKE_read_file(C, uel->str, NULL, NULL);
 	else
-		success= BKE_read_file_from_memfile(C, &uel->memfile);
-	
+		success= BKE_read_file_from_memfile(C, &uel->memfile, NULL);
+
 	/* restore */
 	strcpy(G.sce, scestr);
 	G.fileflags= fileflags;
@@ -571,7 +553,6 @@ void BKE_write_undo(bContext *C, char *name)
 
 	/* disk save version */
 	if(UNDO_DISK) {
-		ReportList reports;
 		static int counter= 0;
 		char tstr[FILE_MAXDIR+FILE_MAXFILE];
 		char numstr[32];
@@ -583,22 +564,17 @@ void BKE_write_undo(bContext *C, char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, btempdir, numstr);
 	
-		BKE_reports_init(&reports, 0);
-		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, &reports);
-		BKE_reports_clear(&reports);
+		success= BLO_write_file(CTX_data_main(C), tstr, G.fileflags, NULL);
 		
 		strcpy(curundo->str, tstr);
 	}
 	else {
-		ReportList reports;
 		MemFile *prevfile=NULL;
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
 		memused= MEM_get_memory_in_use();
-		BKE_reports_init(&reports, 0);
-		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags, &reports);
-		BKE_reports_clear(&reports);
+		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags, NULL);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}
 

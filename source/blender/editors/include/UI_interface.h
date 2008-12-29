@@ -40,6 +40,7 @@ struct AutoComplete;
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
+struct ReportList;
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use one of the themes for drawing */
@@ -216,6 +217,7 @@ void uiPupmenuOkee(struct bContext *C, char *opname, char *str, ...);
 void uiPupmenuSaveOver(struct bContext *C, char *opname, char *filename, ...);
 void uiPupmenuNotice(struct bContext *C, char *str, ...);
 void uiPupmenuError(struct bContext *C, char *str, ...);
+void uiPupmenuReports(struct bContext *C, struct ReportList *reports);
 
 /* Block */
 

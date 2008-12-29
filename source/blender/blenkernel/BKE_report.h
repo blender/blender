@@ -49,7 +49,6 @@ typedef enum ReportType {
 enum ReportListFlags {
 	RPT_PRINT = 1,
 	RPT_STORE = 2,
-	RPT_HAS_ERROR = 4
 };
 
 typedef struct Report {
@@ -71,6 +70,9 @@ void BKE_reports_clear(ReportList *reports);
 
 void BKE_report(ReportList *reports, ReportType type, const char *message);
 void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...);
+
+void BKE_reports_prepend(ReportList *reports, const char *prepend);
+void BKE_reports_prependf(ReportList *reports, const char *prepend, ...);
 
 ReportType BKE_report_print_level(ReportList *reports);
 void BKE_report_print_level_set(ReportList *reports, ReportType level);

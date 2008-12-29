@@ -36,8 +36,10 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -1763,5 +1765,32 @@ void uiPupmenuError(bContext *C, char *str, ...)
 	va_start(ap, str);
 	vconfirm(C, NULL, titlestr, nfmt, ap);
 	va_end(ap);
+}
+
+void uiPupmenuReports(bContext *C, ReportList *reports)
+{
+	Report *report;
+	DynStr *ds;
+	char *str;
+
+	if(!reports || !reports->list.first)
+		return;
+	if(!CTX_wm_window(C))
+		return;
+
+	ds= BLI_dynstr_new();
+
+	for(report=reports->list.first; report; report=report->next) {
+		if(report->type >= RPT_ERROR)
+			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
+		else if(report->type >= RPT_WARNING)
+			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
+	}
+
+	str= BLI_dynstr_get_cstring(ds);
+	uiPupmenu(C, 0, NULL, NULL, str);
+	MEM_freeN(str);
+
+	BLI_dynstr_free(ds);
 }
 

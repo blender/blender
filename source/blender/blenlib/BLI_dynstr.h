@@ -38,6 +38,8 @@
 #ifndef BLI_DYNSTR_H
 #define BLI_DYNSTR_H
 
+#include <stdarg.h>
+
 struct DynStr;
 
 	/** The abstract DynStr type */
@@ -65,6 +67,7 @@ void	BLI_dynstr_append				(DynStr *ds, const char *cstr);
 	 * @param format The printf format string to use.
 	 */
 void	BLI_dynstr_appendf				(DynStr *ds, const char *format, ...);
+void	BLI_dynstr_vappendf				(DynStr *ds, const char *format, va_list args);
 
 	/**
 	 * Find the length of a DynStr.

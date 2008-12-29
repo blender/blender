@@ -481,7 +481,7 @@ static void verse_unsub(void)
 }
 #endif
 
-void WM_read_file(bContext *C, char *name)
+void WM_read_file(bContext *C, char *name, ReportList *reports)
 {
 	int retval;
 
@@ -501,7 +501,7 @@ void WM_read_file(bContext *C, char *name)
 		/* put aside screens to match with persistant windows later */
 		wm_window_match_init(C, &wmbase); 
 		
-		retval= BKE_read_file(C, name, NULL);
+		retval= BKE_read_file(C, name, NULL, reports);
 
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase); 
@@ -524,8 +524,10 @@ void WM_read_file(bContext *C, char *name)
 	}
 //	else if(retval==1)
 // XXX		BIF_undo_push("Import file");
-	else if(retval == -1) 
-		WM_error(C, "Cannot read file");
+	else if(retval == -1) {
+		if(reports && reports->list.first == NULL)
+			BKE_report(reports, RPT_ERROR, "Cannot read file.");
+	}
 }
 
 static void outliner_242_patch(void)
@@ -573,9 +575,9 @@ int WM_read_homefile(bContext *C, int from_memory)
 	wm_window_match_init(C, &wmbase); 
 	
 	if (!from_memory && BLI_exists(tstr)) {
-		success = BKE_read_file(C, tstr, NULL);
+		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
+		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
 		/* outliner patch for 2.42 .b.blend */
 		outliner_242_patch();
 	}
@@ -643,7 +645,7 @@ void WM_read_autosavefile(bContext *C)
 	get_autosave_location(tstr);
 
 	save_over = G.save_over;
-	BKE_read_file(C, tstr, NULL);
+	BKE_read_file(C, tstr, NULL, NULL);
 	G.save_over = save_over;
 	BLI_strncpy(G.sce, scestr, FILE_MAX);
 }
@@ -781,7 +783,7 @@ static void writeBlog(void)
 	}
 }
 
-static void do_history(char *name)
+static void do_history(char *name, ReportList *reports)
 {
 	char tempname1[FILE_MAXDIR+FILE_MAXFILE], tempname2[FILE_MAXDIR+FILE_MAXFILE];
 	int hisnr= U.versions;
@@ -789,12 +791,12 @@ static void do_history(char *name)
 	if(U.versions==0) return;
 	if(strlen(name)<2) return;
 		
-	while(  hisnr > 1) {
+	while(hisnr > 1) {
 		sprintf(tempname1, "%s%d", name, hisnr-1);
 		sprintf(tempname2, "%s%d", name, hisnr);
 	
-//		if(BLI_rename(tempname1, tempname2))
-// XXX			error("Unable to make version backup");
+		if(BLI_rename(tempname1, tempname2))
+			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			
 		hisnr--;
 	}
@@ -802,22 +804,21 @@ static void do_history(char *name)
 	/* is needed when hisnr==1 */
 	sprintf(tempname1, "%s%d", name, hisnr);
 	
-//	if(BLI_rename(name, tempname1))
-// XXX		error("Unable to make version backup");
+	if(BLI_rename(name, tempname1))
+		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target)
+void WM_write_file(bContext *C, char *target, ReportList *reports)
 {
 	Library *li;
 	int writeflags, len;
 	char di[FILE_MAX];
-	ReportList reports;
 	
 	len = strlen(target);
 	
 	if (len == 0) return;
 	if (len >= FILE_MAX) {
-// XXX		error("Path too long, cannot save");
+		BKE_report(reports, RPT_ERROR, "Path too long, cannot save");
 		return;
 	}
  
@@ -826,7 +827,7 @@ void WM_write_file(bContext *C, char *target)
 
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
-// XXX			error("Cannot overwrite used library");
+			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
 			return;
 		}
 	}
@@ -851,16 +852,14 @@ void WM_write_file(bContext *C, char *target)
 	
 // XXX	waitcursor(1);	// exit_editmode sets cursor too
 
-	do_history(di);
+	do_history(di, reports);
 	
 	/* we use the UserDef to define compression flag */
 	writeflags= G.fileflags & ~G_FILE_COMPRESS;
 	if(U.flag & USER_FILECOMPRESS)
 		writeflags |= G_FILE_COMPRESS;
-
-	BKE_reports_init(&reports, RPT_STORE);
 	
-	if (BLO_write_file(CTX_data_main(C), di, writeflags, &reports)) {
+	if (BLO_write_file(CTX_data_main(C), di, writeflags, reports)) {
 		strcpy(G.sce, di);
 		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
@@ -870,11 +869,7 @@ void WM_write_file(bContext *C, char *target)
 		G.save_over = 1;
 
 		writeBlog();
-	} else {
-// XXX		error("%s", err);
 	}
-
-	BKE_reports_clear(&reports);
 
 // XXX	waitcursor(0);
 }
@@ -882,26 +877,21 @@ void WM_write_file(bContext *C, char *target)
 /* operator entry */
 int WM_write_homefile(bContext *C, wmOperator *op)
 {
-	ReportList reports;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
-	BLI_make_file_string("/", tstr, BLI_gethome(), ".B.blend");
+	BLI_make_file_string("/", tstr, "/", ".B.blend");
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 
-	// XXX error reporting to the user
-	BKE_reports_init(&reports, RPT_PRINT);
-	BLO_write_file(CTX_data_main(C), tstr, write_flags, &reports);
-	BKE_reports_clear(&reports);
+	BLO_write_file(CTX_data_main(C), tstr, write_flags, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
 
 void WM_write_autosave(bContext *C)
 {
-	ReportList reports;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
@@ -910,9 +900,8 @@ void WM_write_autosave(bContext *C)
 		/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 
-	BKE_reports_init(&reports, RPT_PRINT);
-	BLO_write_file(CTX_data_main(C), tstr, write_flags, &reports);
-	BKE_reports_clear(&reports);
+		/* error reporting to console */
+	BLO_write_file(CTX_data_main(C), tstr, write_flags, NULL);
 }
 
 /* if global undo; remove tempsave, otherwise rename */
@@ -932,8 +921,4 @@ void delete_autosave(void)
 }
 
 /***/
-
-
-
-
 

@@ -83,9 +83,8 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr) {
 	ds->curlen+= cstrlen;
 }
 
-void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
+void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 {
-	va_list args;
 	char *message, fixedmessage[256];
 	int len= 256, maxlen= 65536, retval;
 
@@ -95,9 +94,7 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 		else
 			message= MEM_callocN(sizeof(char)*len+1, "BLI_dynstr_appendf");
 
-		va_start(args, format);
 		retval= vsnprintf(message, len, format, args);
-		va_end(args);
 
 		if(retval == -1) {
 			/* -1 means not enough space, but on windows it may also mean
@@ -130,6 +127,15 @@ void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
 		if(message != fixedmessage)
 			MEM_freeN(message);
 	}
+}
+
+void BLI_dynstr_appendf(DynStr *ds, const char *format, ...)
+{
+	va_list args;
+
+	va_start(args, format);
+	BLI_dynstr_vappendf(ds, format, args);
+	va_end(args);
 }
 
 int BLI_dynstr_get_len(DynStr *ds) {

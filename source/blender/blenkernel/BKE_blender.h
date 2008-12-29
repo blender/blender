@@ -40,6 +40,7 @@ extern "C" {
 struct ListBase;
 struct MemFile;
 struct bContext;
+struct ReportList;
 
 #define BLENDER_VERSION			250
 #define BLENDER_SUBVERSION		0
@@ -47,9 +48,9 @@ struct bContext;
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
 
-int	BKE_read_file(struct bContext *C, char *dir, void *type_r);
-int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r);
-int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile);
+int BKE_read_file(struct bContext *C, char *dir, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 
 void free_blender(void);
 void initglobals(void);

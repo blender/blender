@@ -60,9 +60,6 @@ struct bContext {
 		struct ARegion *region;
 		struct uiBlock *block;
 
-		bContextDataCallback screen_cb;
-		bContextDataCallback area_cb;
-		bContextDataCallback region_cb;
 		bContextDataCallback block_cb;
 	} wm;
 	
@@ -191,26 +188,22 @@ void CTX_wm_window_set(bContext *C, wmWindow *win)
 	C->wm.window= win;
 	C->wm.screen= (win)? win->screen: NULL;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
-	C->wm.screen_cb= (C->wm.screen)? C->wm.screen->context: NULL;
 }
 
 void CTX_wm_screen_set(bContext *C, bScreen *screen)
 {
 	C->wm.screen= screen;
 	C->data.scene= (C->wm.screen)? C->wm.screen->scene: NULL;
-	C->wm.screen_cb= (C->wm.screen)? C->wm.screen->context: NULL;
 }
 
 void CTX_wm_area_set(bContext *C, ScrArea *area)
 {
 	C->wm.area= area;
-	C->wm.area_cb= (area && area->type)? area->type->context: NULL;
 }
 
 void CTX_wm_region_set(bContext *C, ARegion *region)
 {
 	C->wm.region= region;
-	C->wm.region_cb= (region && region->type)? region->type->context: NULL;
 }
 
 void CTX_wm_ui_block_set(bContext *C, struct uiBlock *block, bContextDataCallback cb)
@@ -240,21 +233,25 @@ static int ctx_data_get(bContext *C, const bContextDataMember *member, bContextD
 
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
-	if(!done && recursion < 1 && C->wm.block_cb) {
+	if(!done && recursion < 1 && C->wm.block) {
 		C->data.recursion= 1;
 		done= C->wm.block_cb(C, member, result);
 	}
-	if(!done && recursion < 2 && C->wm.region_cb) {
+	if(!done && recursion < 2 && C->wm.region) {
 		C->data.recursion= 2;
-		done= C->wm.region_cb(C, member, result);
+		if(C->wm.region->type->context)
+			done= C->wm.region->type->context(C, member, result);
 	}
-	if(!done && recursion < 3 && C->wm.area_cb) {
+	if(!done && recursion < 3 && C->wm.area) {
 		C->data.recursion= 3;
-		done= C->wm.area_cb(C, member, result);
+		if(C->wm.area->type->context)
+			done= C->wm.area->type->context(C, member, result);
 	}
-	if(!done && recursion < 4 && C->wm.screen_cb) {
+	if(!done && recursion < 4 && C->wm.screen) {
+		bContextDataCallback cb= C->wm.screen->context;
 		C->data.recursion= 4;
-		done= C->wm.screen_cb(C, member, result);
+		if(cb)
+			done= cb(C, member, result);
 	}
 
 	C->data.recursion= recursion;

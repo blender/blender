@@ -195,17 +195,6 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-/* call anywhere */
-void WM_error(bContext *C, char *str)
-{
-	char buf[148], testbuf[128];
-	
-	BLI_strncpy(testbuf, str, 128);
-	sprintf(buf, "Error %%i%d%%t|%s", ICON_ERROR, testbuf);
-	uiPupmenu(C, 0, NULL, NULL, buf);
-	
-}
-
 /* op->invoke */
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -276,11 +265,11 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 	
 	if(event>0) {
 		if (G.sce[0] && (event==1))
-			WM_read_file(C, G.sce);
+			WM_read_file(C, G.sce, op->reports);
 		else {
 			struct RecentFile *recent = BLI_findlink(&(G.recent_files), event-2);
 			if(recent) {
-				WM_read_file(C, recent->filename);
+				WM_read_file(C, recent->filename, op->reports);
 			}
 		}
 	}

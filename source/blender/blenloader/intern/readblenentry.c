@@ -166,12 +166,9 @@ int BLO_idcode_from_name(char *name)
 	 
 BlendHandle *BLO_blendhandle_from_file(char *file) 
 {
-	ReportList reports;
 	BlendHandle *bh;
 
-	BKE_reports_init(&reports, 0);
-	bh= (BlendHandle*)blo_openblenderfile(file, &reports);
-	BKE_reports_clear(&reports);
+	bh= (BlendHandle*)blo_openblenderfile(file, NULL);
 
 	return bh;
 }
@@ -330,7 +327,8 @@ BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
 		
 	fd = blo_openblenderfile(file, reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, reports);
+		fd->reports= reports;
+		bfd= blo_read_file_internal(fd);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
@@ -348,7 +346,8 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 		
 	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
-		bfd= blo_read_file_internal(fd, reports);
+		fd->reports= reports;
+		bfd= blo_read_file_internal(fd);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strcpy(bfd->main->name, "");
@@ -367,6 +366,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 	
 	fd = blo_openblendermemfile(memfile, reports);
 	if (fd) {
+		fd->reports= reports;
 		strcpy(fd->filename, filename);
 		
 		/* clear ob->proxy_from pointers in old main */
@@ -380,7 +380,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
 		
-		bfd= blo_read_file_internal(fd, reports);
+		bfd= blo_read_file_internal(fd);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
 			strcpy(bfd->main->name, "");

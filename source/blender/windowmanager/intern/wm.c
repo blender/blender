@@ -34,9 +34,10 @@
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_idprop.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -64,6 +65,11 @@ void WM_operator_free(wmOperator *op)
 
 	if(op->ptr)
 		MEM_freeN(op->ptr);
+
+	if(op->reports) {
+		BKE_reports_clear(op->reports);
+		MEM_freeN(op->reports);
+	}
 
 	MEM_freeN(op);
 }
