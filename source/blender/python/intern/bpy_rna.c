@@ -59,6 +59,20 @@ static long pyrna_struct_hash( BPy_StructRNA * self )
 	return (long)self->ptr.data;
 }
 
+/* use our own dealloc so we can free a property if we use one */
+static void pyrna_struct_dealloc( BPy_StructRNA * self )
+{
+	/* Note!! for some weired reason calling PyObject_DEL() directly crashes blender! */
+	if (self->properties) {
+		IDP_FreeProperty(self->properties);
+		MEM_freeN(self->properties);
+		self->properties= NULL;
+	}
+
+	((PyObject *)self)->ob_type->tp_free(self);
+	return;
+}
+
 static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	const EnumPropertyItem *item;
@@ -940,7 +954,7 @@ PyTypeObject pyrna_struct_Type = {
 	sizeof( BPy_StructRNA ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,						/* tp_dealloc */
+	( destructor ) pyrna_struct_dealloc,/* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,						/* getattrfunc tp_getattr; */
 	NULL,						/* setattrfunc tp_setattr; */
@@ -1110,7 +1124,8 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 		return NULL;
 	}
 	
-	pyrna->ptr = *ptr;
+	pyrna->ptr= *ptr;
+	pyrna->properties= NULL;
 	
 	return ( PyObject * ) pyrna;
 }

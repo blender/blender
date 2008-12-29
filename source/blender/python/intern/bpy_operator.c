@@ -167,6 +167,42 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	return ret;
 }
 
+//---------------getattr--------------------------------------------
+static PyObject * pyop_func_getattro(BPy_OperatorFunc * self, PyObject *pyname)
+{
+	char *name = _PyUnicode_AsString(pyname);
+	PyObject *ret;
+
+	if( strcmp( name, "__members__" ) == 0 ) {
+		ret = PyList_New(1);
+		PyList_SET_ITEM(ret, 0, PyUnicode_FromString("rna"));
+	}
+	else if ( strcmp( name, "rna" ) == 0 ) {
+		BPy_StructRNA *pyrna;
+		PointerRNA ptr;
+		//IDProperty *properties = NULL;
+		wmOperatorType *ot;
+
+		ot= WM_operatortype_find(self->name);
+		if (ot == NULL) {
+			PyErr_SetString( PyExc_SystemError, "Operator could not be found");
+			return NULL;
+		}
+
+		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
+
+		/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
+		RNA_pointer_create(NULL, NULL, ot->srna, &pyrna->properties, &pyrna->ptr);
+		ret= (PyObject *)pyrna;
+	}
+	else {
+		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
+		ret= NULL;
+	}
+
+	return ret;
+}
+
 static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObject *kw)
 {
 	IDProperty *properties = NULL;
@@ -338,7 +374,7 @@ PyTypeObject pyop_func_Type = {
 	NULL,						/* hashfunc tp_hash; */
 	(ternaryfunc)pyop_func_call,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
-	NULL, /*PyObject_GenericGetAttr - MINGW Complains, assign later */	/* getattrofunc tp_getattro; */
+	( getattrofunc ) pyop_func_getattro,			/* getattrofunc tp_getattro; */
 	NULL, /*PyObject_GenericSetAttr - MINGW Complains, assign later */	/* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */

@@ -27,17 +27,17 @@
 # 
 # if you dont have graphvis installed ommit the --graph arg.
 
-
+def range_str(val):
+	if val < -10000000:	return '-inf'
+	if val >  10000000:	return 'inf'
+	if type(val)==float:
+		return '%g'  % val
+	else:
+		return str(val)	
 
 def rna2epy(target_path):
 	
-	def range_str(val):
-		if val < -10000000:	return '-inf'
-		if val >  10000000:	return 'inf'
-		if type(val)==float:
-			return '%g'  % val
-		else:
-			return str(val)	
+
 	
 	def write_struct(rna_struct):
 		identifier = rna_struct.identifier
@@ -155,6 +155,93 @@ def rna2epy(target_path):
 	# # We could also just run....
 	# os.system('epydoc source/blender/python/doc/rna.py -o ./source/blender/python/doc/html -v')
 
+def op2epy(target_path):
+	out = open(target_path, 'w')
+	
+	operators = bpyoperator.__members__
+	operators.remove('add')
+	operators.remove('remove')
+	operators.sort()
+	
+	
+	for op in operators:
+		
+		
+		# Keyword attributes
+		kw_args = [] # "foo = 1", "bar=0.5", "spam='ENUM'"
+		kw_arg_attrs = [] # "@type mode: int"
+		
+		rna = getattr(bpyoperator, op).rna
+		rna_struct = rna.rna_type
+		# print (op_rna.__members__)
+		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
+			if rna_prop_identifier=='rna_type':
+				continue
+			# ['rna_type', 'name', 'array_length', 'description', 'hard_max', 'hard_min', 'identifier', 'precision', 'readonly', 'soft_max', 'soft_min', 'step', 'subtype', 'type']
+			#rna_prop=  op_rna.rna_type.properties[attr]
+			rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
+			
+			try:
+				val = getattr(rna, rna_prop_identifier)
+			except:
+				val = '<UNDEFINED>'
+			
+			kw_type_str= "@type %s: %s" % (rna_prop_identifier, rna_prop_type)
+			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
+			kw_param_set = False
+			
+			if rna_prop_type=='float':
+				val_str= '%g' % val
+				if '.' not in val_str:
+					val_str += '.0'
+				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
+				kw_param_set= True
+				
+			elif rna_prop_type=='int':
+				val_str='%d' % val
+				# print (rna_prop.__members__)
+				kw_param_str += (' in (%s, %s)' % (range_str(rna_prop.hard_min), range_str(rna_prop.hard_max)))
+				# These strings dont have a max length???
+				#kw_param_str += ' (maximum length of %s)' %  (rna_prop.max_length)
+				kw_param_set= True
+				
+			elif rna_prop_type=='boolean':
+				if val:	val_str='True'
+				else:	val_str='False'
+					
+			elif rna_prop_type=='enum':
+				val_str="'%s'" % val
+				kw_param_str += (' in (%s)' % ', '.join(rna_prop.items.keys()))
+				kw_param_set= True
+				
+			elif rna_prop_type=='string':
+				val_str='"%s"' % val
+			
+			# todo - collection - array
+			# print (rna_prop.type)
+			
+			kw_args.append('%s = %s' % (rna_prop_identifier, val_str))
+			
+			# stora 
+			
+			kw_arg_attrs.append(kw_type_str)
+			if kw_param_set:
+				kw_arg_attrs.append(kw_param_str)
+			
+		
+		
+		out.write('def %s(%s):\n' % (op, ', '.join(kw_args)))
+		out.write('\t"""\n')
+		for desc in kw_arg_attrs:
+			out.write('\t%s\n' % desc)
+		out.write('\t@rtype: None\n')
+		out.write('\t"""\n')
+	
+	
+	out.write('\n')
+	out.close()
+
 if __name__ == '__main__':
 	rna2epy('source/blender/python/doc/rna.py')
+	op2epy('source/blender/python/doc/bpyoperator.py')
 

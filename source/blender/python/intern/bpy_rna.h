@@ -28,6 +28,7 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
+#include "BKE_idprop.h"
 
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
@@ -35,6 +36,7 @@ extern PyTypeObject pyrna_prop_Type;
 typedef struct {
 	PyObject_VAR_HEAD /* required python macro   */
 	PointerRNA ptr;
+	IDProperty *properties; /* needed in some cases for RNA_pointer_create(), free when deallocing */
 } BPy_StructRNA;
 
 typedef struct {
