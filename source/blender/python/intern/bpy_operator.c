@@ -223,7 +223,14 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pyop_base_methods[];
+PyObject *pyop_base_dir(PyObject *self);
+
+static struct PyMethodDef pyop_base_methods[] = {
+	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
+	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
+	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
+	{NULL, NULL, 0, NULL}
+};
 
 PyObject *pyop_base_dir(PyObject *self)
 {
@@ -246,13 +253,6 @@ PyObject *pyop_base_dir(PyObject *self)
 
 	return ret;
 }
-
-static struct PyMethodDef pyop_base_methods[] = {
-	{"add", (PyCFunction)PYOP_wrap_add, METH_VARARGS, ""},
-	{"remove", (PyCFunction)PYOP_wrap_remove, METH_VARARGS, ""},
-	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
-	{NULL, NULL, 0, NULL}
-};
 
 /*-----------------------BPy_OperatorBase method def------------------------------*/
 PyTypeObject pyop_base_Type = {
