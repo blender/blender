@@ -619,7 +619,6 @@ typedef struct SpaceImaSel {
 #define SO_OOPS			0
 #define SO_OUTLINER		1
 #define SO_DEPSGRAPH    2
-#define SO_RNA			3
 
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1
@@ -656,6 +655,7 @@ typedef struct SpaceImaSel {
 #define SO_VERSE_SESSION	8
 #define SO_VERSE_MS		9
 #define SO_SEQUENCE		10
+#define SO_DATABLOCKS	11
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

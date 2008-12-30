@@ -29,6 +29,8 @@
 #ifndef ED_OUTLINER_INTERN_H
 #define ED_OUTLINER_INTERN_H
 
+#include "RNA_types.h"
+
 /* internal exports only */
 
 struct wmWindowManager;
@@ -48,11 +50,14 @@ typedef struct TreeElement {
 	short xend;			// width of item display, for select
 	char *name;
 	void *directdata;	// Armature Bones, Base, Sequence, Strip...
+	PointerRNA rnaptr;	// RNA Pointer
 }  TreeElement;
 
 /* TreeElement->flag */
-#define TE_ACTIVE	1
-#define TE_ICONROW	2
+#define TE_ACTIVE		1
+#define TE_ICONROW		2
+#define TE_LAZY_CLOSED	4
+#define TE_FREE_NAME	8
 
 /* TreeStoreElem types */
 #define TSE_NLA				1
@@ -83,6 +88,9 @@ typedef struct TreeElement {
 #define TSE_SEQ_STRIP		27
 #define TSE_SEQUENCE_DUP	28
 #define TSE_LINKED_PSYS     29
+#define TSE_RNA_STRUCT		30
+#define TSE_RNA_PROPERTY	31
+#define TSE_RNA_ARRAY_ELEM	32
 
 /* outliner search flags */
 #define OL_FIND					0
@@ -102,6 +110,7 @@ void outliner_keymap(struct wmWindowManager *wm);
 void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* outliner.c */
+void outliner_free_tree(struct ListBase *lb);
 void outliner_operation_menu(struct Scene *scene, struct ARegion *ar, struct SpaceOops *soops);
 void outliner_select(struct ARegion *ar, struct SpaceOops *so);
 void draw_outliner(const struct bContext *C);
@@ -109,7 +118,6 @@ void draw_outliner(const struct bContext *C);
 void OUTLINER_OT_activate_click(struct wmOperatorType *ot);
 
 #if 0
-extern void outliner_free_tree(struct ListBase *lb);
 extern void outliner_mouse_event(Scene *scene, ARegion *ar, SpaceOops *soops, short event);
 extern void outliner_toggle_visible(SpaceOops *soops);
 extern void outliner_show_active(ARegion *ar, SpaceOops *soops);

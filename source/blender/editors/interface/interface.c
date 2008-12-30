@@ -1021,20 +1021,35 @@ int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
 /* for buttons pointing to color for example */
 void ui_get_but_vectorf(uiBut *but, float *vec)
 {
-	void *poin;
-	int pointype;
+	PropertyRNA *prop;
+	int a, tot;
 
-	poin= (but->editvec)? (void*)but->editvec: but->poin;
-	pointype= (but->editvec)? FLO: but->pointype;
+	if(but->editvec) {
+		VECCOPY(vec, but->editvec);
+		return;
+	}
 
-	if(!but->editvec && pointype == CHA) {
-		char *cp= (char *)poin;
+	if(but->rnaprop) {
+		prop= but->rnaprop;
+
+		vec[0]= vec[1]= vec[2]= 0.0f;
+
+		if(RNA_property_type(&but->rnapoin, prop) == PROP_FLOAT) {
+			tot= RNA_property_array_length(&but->rnapoin, prop);
+			tot= MIN2(tot, 3);
+
+			for(a=0; a<tot; a++)
+				vec[a]= RNA_property_float_get_array(&but->rnapoin, prop, a);
+		}
+	}
+	else if(but->pointype == CHA) {
+		char *cp= (char *)but->poin;
 		vec[0]= ((float)cp[0])/255.0;
 		vec[1]= ((float)cp[1])/255.0;
 		vec[2]= ((float)cp[2])/255.0;
 	}
-	else if(pointype == FLO) {
-		float *fp= (float *)poin;
+	else if(but->pointype == FLO) {
+		float *fp= (float *)but->poin;
 		VECCOPY(vec, fp);
 	}
 }
@@ -1042,20 +1057,33 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 /* for buttons pointing to color for example */
 void ui_set_but_vectorf(uiBut *but, float *vec)
 {
-	void *poin;
-	int pointype;
+	PropertyRNA *prop;
+	int a, tot;
 
-	poin= (but->editvec)? (void*)but->editvec: but->poin;
-	pointype= (but->editvec)? FLO: but->pointype;
+	if(but->editvec) {
+		VECCOPY(but->editvec, vec);
+		return;
+	}
 
-	if(!but->editvec && but->pointype == CHA) {
-		char *cp= (char *)poin;
+	if(but->rnaprop) {
+		prop= but->rnaprop;
+
+		if(RNA_property_type(&but->rnapoin, prop) == PROP_FLOAT) {
+			tot= RNA_property_array_length(&but->rnapoin, prop);
+			tot= MIN2(tot, 3);
+
+			for(a=0; a<tot; a++)
+				RNA_property_float_set_array(&but->rnapoin, prop, a, vec[a]);
+		}
+	}
+	else if(but->pointype == CHA) {
+		char *cp= (char *)but->poin;
 		cp[0]= (char)(0.5 +vec[0]*255.0);
 		cp[1]= (char)(0.5 +vec[1]*255.0);
 		cp[2]= (char)(0.5 +vec[2]*255.0);
 	}
-	else if( but->pointype == FLO ) {
-		float *fp= (float *)poin;
+	else if(but->pointype == FLO) {
+		float *fp= (float *)but->poin;
 		VECCOPY(fp, vec);
 	}
 }

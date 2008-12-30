@@ -239,12 +239,12 @@ static int ctx_data_get(bContext *C, const bContextDataMember *member, bContextD
 	}
 	if(!done && recursion < 2 && C->wm.region) {
 		C->data.recursion= 2;
-		if(C->wm.region->type->context)
+		if(C->wm.region->type && C->wm.region->type->context)
 			done= C->wm.region->type->context(C, member, result);
 	}
 	if(!done && recursion < 3 && C->wm.area) {
 		C->data.recursion= 3;
-		if(C->wm.area->type->context)
+		if(C->wm.area->type && C->wm.area->type->context)
 			done= C->wm.area->type->context(C, member, result);
 	}
 	if(!done && recursion < 4 && C->wm.screen) {

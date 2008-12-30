@@ -95,6 +95,8 @@
 #include "UI_view2d.h"
 #include "UI_text.h"
 
+#include "RNA_access.h"
+
 #include "ED_object.h"
 
 #include "outliner_intern.h"
@@ -113,7 +115,11 @@
 #define OL_TOG_RESTRICT_SELECTX	36
 #define OL_TOG_RESTRICT_RENDERX	18
 
-#define OL_TOGW				OL_TOG_RESTRICT_VIEWX
+#define OL_TOGW OL_TOG_RESTRICT_VIEWX
+
+#define OL_RNA_COLX			300
+#define OL_RNA_COL_SIZEX	150
+#define OL_RNA_COL_SPACEX	50
 
 #define TS_CHUNK	128
 
@@ -150,7 +156,8 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 		/* each element used once, for ID blocks with more users to have each a treestore */
 		for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) tselem->used= 0;
 
-		/* cleanup only after reading file or undo step */
+		/* cleanup only after reading file or undo step, and always for
+		 * RNA datablocks view in order to save memory */
 		if(soops->storeflag & SO_TREESTORE_CLEANUP) {
 			
 			for(a=0, tselem= ts->data; a<ts->usedelem; a++, tselem++) {
@@ -243,6 +250,8 @@ void outliner_free_tree(ListBase *lb)
 		
 		outliner_free_tree(&te->subtree);
 		BLI_remlink(lb, te);
+
+		if(te->flag & TE_FREE_NAME) MEM_freeN(te->name);
 		MEM_freeN(te);
 	}
 }
@@ -269,6 +278,24 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 				*w = te->xend;
 		}
 		outliner_width(soops, &te->subtree, w);
+		te= te->next;
+	}
+}
+
+static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int startx)
+{
+	TreeElement *te= lb->first;
+	while(te) {
+		TreeStoreElem *tselem= TREESTORE(te);
+		/*if(te->xend) {
+			if(te->xend > *w)
+				*w = te->xend;
+		}*/
+		if(startx+100 > *w)
+			*w = startx+100;
+
+		if((tselem->flag & TSE_CLOSED)==0)
+			outliner_rna_width(soops, &te->subtree, w, startx+OL_X);
 		te= te->next;
 	}
 }
@@ -551,7 +578,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	
 	te->parent= parent;
 	te->index= index;	// for data arays
-	if((type!=TSE_SEQUENCE) && (type != TSE_SEQ_STRIP) && (type != TSE_SEQUENCE_DUP)) {
+	if(ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP));
+	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM));
+	else {
 		te->name= id->name+2; // default, can be overridden by Library or non-ID data
 		te->idcode= GS(id->name);
 	}
@@ -959,6 +988,118 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata= seq;
 		te->name= seq->strip->stripdata->name;
 	}
+	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
+		PropertyRNA *prop, *iterprop, *nameprop;
+		PropertyType proptype;
+		PropertySubType propsubtype;
+		int a, tot;
+
+		/* we do lazy build, for speed and to avoid infinite recusion */
+
+		if(ptr->data == NULL) {
+			te->name= "<null>";
+		}
+		else if(type == TSE_RNA_STRUCT) {
+			/* struct */
+			nameprop= RNA_struct_name_property(ptr);
+
+			if(nameprop) {
+				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
+				te->flag |= TE_FREE_NAME;
+			}
+			else
+				te->name= (char*)RNA_struct_ui_name(ptr);
+
+			iterprop= RNA_struct_iterator_property(ptr);
+			tot= RNA_property_collection_length(ptr, iterprop);
+
+			if(!parent)
+				tselem->flag &= ~TSE_CLOSED;
+
+			if(!(tselem->flag & TSE_CLOSED)) {
+				for(a=0; a<tot; a++)
+					outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_PROPERTY, a);
+			}
+			else if(tot)
+				te->flag |= TE_LAZY_CLOSED;
+
+			te->rnaptr= *ptr;
+		}
+		else if(type == TSE_RNA_PROPERTY) {
+			/* property */
+			iterprop= RNA_struct_iterator_property(ptr);
+			RNA_property_collection_lookup_int(ptr, iterprop, index, &propptr);
+
+			prop= propptr.data;
+			proptype= RNA_property_type(ptr, prop);
+
+			te->name= (char*)RNA_property_ui_name(ptr, prop);
+			te->directdata= prop;
+			te->rnaptr= *ptr;
+
+			if(proptype == PROP_POINTER) {
+				RNA_property_pointer_get(ptr, prop, &pptr);
+
+				if(pptr.data) {
+					if(!(tselem->flag & TSE_CLOSED))
+						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, -1);
+					else
+						te->flag |= TE_LAZY_CLOSED;
+				}
+			}
+			else if(proptype == PROP_COLLECTION) {
+				tot= RNA_property_collection_length(ptr, prop);
+
+				if(!(tselem->flag & TSE_CLOSED)) {
+					for(a=0; a<tot; a++) {
+						RNA_property_collection_lookup_int(ptr, prop, a, &pptr);
+						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, -1);
+					}
+				}
+				else if(tot)
+					te->flag |= TE_LAZY_CLOSED;
+			}
+			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
+				tot= RNA_property_array_length(ptr, prop);
+
+				if(!(tselem->flag & TSE_CLOSED)) {
+					for(a=0; a<tot; a++)
+						outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_ARRAY_ELEM, a);
+				}
+				else if(tot)
+					te->flag |= TE_LAZY_CLOSED;
+			}
+		}
+		else if(type == TSE_RNA_ARRAY_ELEM) {
+			/* array property element */
+			static char *vectoritem[4]= {"  x", "  y", "  z", "  w"};
+			static char *quatitem[4]= {"  w", "  x", "  y", "  z"};
+			static char *coloritem[4]= {"  r", "  g", "  b", "  a"};
+
+			prop= parent->directdata;
+			proptype= RNA_property_type(ptr, prop);
+			propsubtype= RNA_property_subtype(ptr, prop);
+			tot= RNA_property_array_length(ptr, prop);
+
+			te->directdata= prop;
+			te->rnaptr= *ptr;
+			te->index= index;
+
+			if(tot == 4 && propsubtype == PROP_ROTATION)
+				te->name= quatitem[index];
+			else if(tot <= 4 && (propsubtype == PROP_VECTOR || propsubtype == PROP_ROTATION))
+				te->name= vectoritem[index];
+			else if(tot <= 4 && propsubtype == PROP_COLOR)
+				te->name= coloritem[index];
+			else {
+				te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
+				sprintf(te->name, "    %d", index);
+				te->flag |= TE_FREE_NAME;
+			}
+		}
+	}
+
 	return te;
 }
 
@@ -1043,7 +1184,7 @@ void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 	}
 }
 
-static void outliner_build_tree(Scene *scene, SpaceOops *soops)
+static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
 	Object *ob;
@@ -1187,11 +1328,22 @@ static void outliner_build_tree(Scene *scene, SpaceOops *soops)
 			seq= seq->next;
 		}
 	}
+	else if(soops->outlinevis==SO_DATABLOCKS) {
+		PointerRNA mainptr;
+
+		RNA_main_pointer_create(mainvar, &mainptr);
+
+		ten= outliner_add_element(soops, &soops->tree, (void*)&mainptr, NULL, TSE_RNA_STRUCT, -1);
+
+		if(show_opened)  {
+			tselem= TREESTORE(te);
+			tselem->flag &= ~TSE_CLOSED;
+		}
+	}
 	else {
 		ten= outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 		if(ten) ten->directdata= BASACT;
 	}
-
 
 	outliner_sort(soops, &soops->tree);
 }
@@ -3270,7 +3422,7 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		}
 		
 		/* open/close icon, only when sublevels, except for scene */
-		if(te->subtree.first || (tselem->type==0 && te->idcode==ID_SCE)) {
+		if(te->subtree.first || (tselem->type==0 && te->idcode==ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
 			int icon_x;
 			if((tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE)) || ELEM4(te->idcode,ID_VN,ID_VS, ID_MS, ID_SS))
 				icon_x = startx;
@@ -3287,9 +3439,13 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		
 		/* datatype icon */
 		
-			// icons a bit higher
-		tselem_draw_icon((float)startx+offsx, (float)*starty+2, tselem, te);
-		offsx+= OL_X;
+		if(!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
+				// icons a bit higher
+			tselem_draw_icon((float)startx+offsx, (float)*starty+2, tselem, te);
+			offsx+= OL_X;
+		}
+		else
+			offsx+= 2;
 		
 		if(tselem->type==0 && tselem->id->lib) {
 			glPixelTransferf(GL_ALPHA_SCALE, 0.5f);
@@ -3303,7 +3459,8 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		glDisable(GL_BLEND);
 
 		/* name */
-		if(active==1) UI_ThemeColor(TH_TEXT_HI); 
+		if(active==1) UI_ThemeColor(TH_TEXT_HI);
+		else if(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.75f);
 		else UI_ThemeColor(TH_TEXT);
 		glRasterPos2i(startx+offsx, *starty+5);
 		UI_RasterPos((float)startx+offsx, (float)*starty+5);
@@ -3379,6 +3536,28 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 	}
 }
 
+static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *lb, int *starty) 
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		
+		/* selection status */
+		if((tselem->flag & TSE_CLOSED)==0)
+			if(tselem->type == TSE_RNA_STRUCT)
+				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax, *starty+OL_H-1);
+
+		*starty-= OL_H;
+		if((tselem->flag & TSE_CLOSED)==0) {
+			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
+			if(tselem->type == TSE_RNA_STRUCT)
+				fdrawline(0, *starty+OL_H-1, (int)ar->v2d.cur.xmax, *starty+OL_H-1);
+		}
+	}
+}
+
 static void outliner_draw_selection(ARegion *ar, SpaceOops *soops, ListBase *lb, int *starty) 
 {
 	TreeElement *te;
@@ -3410,11 +3589,20 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
-	// selection first
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
-	starty= (int)ar->v2d.tot.ymax-OL_H;
-	outliner_draw_selection(ar, soops, &soops->tree, &starty);
+	if(soops->outlinevis == SO_DATABLOCKS) {
+		// struct marks
+		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
+		//UI_ThemeColorShade(TH_BACK, -20);
+		starty= (int)ar->v2d.tot.ymax-OL_H;
+		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
+	}
+	else {
+		// selection first
+		UI_GetThemeColor3fv(TH_BACK, col);
+		glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
+		starty= (int)ar->v2d.tot.ymax-OL_H;
+		outliner_draw_selection(ar, soops, &soops->tree, &starty);
+	}
 	
 	// grey hierarchy lines
 	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
@@ -3765,6 +3953,101 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 	}
 }
 
+static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
+{
+	int xstart= MAX2(OL_RNA_COLX, sizex+OL_RNA_COL_SPACEX);
+	
+	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
+
+	/* view */
+	fdrawline(xstart,
+		ar->v2d.cur.ymax,
+		xstart,
+		ar->v2d.cur.ymin);
+
+	fdrawline(xstart+OL_RNA_COL_SIZEX,
+		ar->v2d.cur.ymax,
+		xstart+OL_RNA_COL_SIZEX,
+		ar->v2d.cur.ymin);
+}
+
+static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
+{
+	uiBut *but;
+	const char *propname= RNA_property_identifier(ptr, prop);
+	int arraylen= RNA_property_array_length(ptr, prop);
+
+	switch(RNA_property_type(ptr, prop)) {
+		case PROP_BOOLEAN: {
+			int value, length;
+
+			if(arraylen && index == -1)
+				return NULL;
+
+			length= RNA_property_array_length(ptr, prop);
+
+			if(length)
+				value= RNA_property_boolean_get_array(ptr, prop, index);
+			else
+				value= RNA_property_boolean_get(ptr, prop);
+
+			but= uiDefButR(block, TOG, 0, (value)? "True": "False", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		}
+		case PROP_INT:
+		case PROP_FLOAT:
+			if(arraylen && index == -1) {
+				if(RNA_property_subtype(ptr, prop) == PROP_COLOR)
+					but= uiDefButR(block, COL, 0, "", x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
+			}
+			else
+				but= uiDefButR(block, NUM, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		case PROP_ENUM:
+			but= uiDefButR(block, MENU, 0, NULL, x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		case PROP_STRING:
+			but= uiDefButR(block, TEX, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
+			break;
+		default:
+			but= NULL;
+			break;
+	}
+
+	return but;
+}
+
+static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, int sizex, ListBase *lb)
+{	
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	PointerRNA *ptr;
+	PropertyRNA *prop;
+	int xstart= MAX2(OL_RNA_COLX, sizex+OL_RNA_COL_SPACEX);
+	
+	uiBlockSetEmboss(block, UI_EMBOSST);
+
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {	
+			if(tselem->type == TSE_RNA_PROPERTY) {
+				ptr= &te->rnaptr;
+				prop= te->directdata;
+
+				outliner_draw_rnabut(block, ptr, prop, -1, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+			}
+			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
+				ptr= &te->rnaptr;
+				prop= te->directdata;
+
+				outliner_draw_rnabut(block, ptr, prop, te->index, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+			}
+		}
+		
+		if((tselem->flag & TSE_CLOSED)==0) outliner_draw_rnabuts(block, scene, ar, soops, sizex, &te->subtree);
+	}
+}
+
 static void outliner_buttons(uiBlock *block, ARegion *ar, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
@@ -3807,13 +4090,14 @@ static void outliner_buttons(uiBlock *block, ARegion *ar, SpaceOops *soops, List
 
 void draw_outliner(const bContext *C)
 {
+	Main *mainvar= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
 	uiBlock *block;
 	int sizey= 0, sizex= 0;
 	
-	outliner_build_tree(scene, soops); // always 
+	outliner_build_tree(mainvar, scene, soops); // always 
 
 	outliner_height(soops, &soops->tree, &sizey);
 	outliner_width(soops, &soops->tree, &sizex);
@@ -3852,8 +4136,14 @@ void draw_outliner(const bContext *C)
 	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS, UI_HELV);
 	outliner_buttons(block, ar, soops, &soops->tree);
 	
-	/* draw restriction columns */
-	if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+	if(soops->outlinevis==SO_DATABLOCKS) {
+		/* draw rna buttons */
+		outliner_rna_width(soops, &soops->tree, &sizex, 0);
+		outliner_draw_rnacols(ar, soops, sizex);
+		outliner_draw_rnabuts(block, scene, ar, soops, sizex, &soops->tree);
+	}
+	else if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+		/* draw restriction columns */
 		outliner_draw_restrictcols(ar, soops);
 		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
 	}
@@ -3863,6 +4153,5 @@ void draw_outliner(const bContext *C)
 	
 	/* clear flag that allows quick redraws */
 	soops->storeflag &= ~SO_TREESTORE_REDRAW;
-	
-
 }
+

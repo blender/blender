@@ -2370,21 +2370,14 @@ static void ui_draw_text_icon(uiBut *but)
 
 static void ui_draw_but_COL(uiBut *but)
 {
-	float *fp;
+	float col[3];
 	char colr, colg, colb;
 	
-	if( but->pointype==FLO ) {
-		fp= (float *)but->poin;
-		colr= floor(255.0*fp[0]+0.5);
-		colg= floor(255.0*fp[1]+0.5);
-		colb= floor(255.0*fp[2]+0.5);
-	}
-	else {
-		char *cp= (char *)but->poin;
-		colr= cp[0];
-		colg= cp[1];
-		colb= cp[2];
-	}
+	ui_get_but_vectorf(but, col);
+
+	colr= floor(255.0*col[0]+0.5);
+	colg= floor(255.0*col[1]+0.5);
+	colb= floor(255.0*col[2]+0.5);
 	
 	/* exception... hrms, but can't simply use the emboss callback for this now. */
 	/* this button type needs review, and nice integration with rest of API here */

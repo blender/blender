@@ -84,8 +84,6 @@ static void do_viewmenu(bContext *C, void *arg, int event)
 		case 4: /* Maximize Window */
 			/* using event B_FULL */
 			break;
-		case 5: /* show rna viewer */
-			soops->type= SO_RNA;
 			break;
 		case 14: /* show outliner viewer */
 			soops->type= SO_OUTLINER;
@@ -123,14 +121,7 @@ static uiBlock *outliner_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *
 	block= uiBeginBlock(C, handle->region, "outliner_viewmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_viewmenu, NULL);
 	
-	if(soops->type==SO_RNA) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Outliner", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	}
 	if(soops->type==SO_OUTLINER) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show RNA Viewer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
-		
 		if (soops->flag & SO_HIDE_RESTRICTCOLS)
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 		else
@@ -186,7 +177,6 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
 	uiBlock *block;
 	int xco, yco= 3, xmax;
-	char *path;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
 	uiBlockSetHandleFunc(block, do_outliner_buttons, NULL);
@@ -209,18 +199,11 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
-	if(soutliner->type==SO_RNA) {
-		path= (soutliner->rnapath)? soutliner->rnapath: "Main";
-		xmax= GetButStringLength(path);
-		uiDefBut(block, LABEL, 0, path, xco, yco-2, xmax-3, 24, 0, 0, 0, 0, 0, "Current RNA Path");
-		xco += xmax;
-	}		
-	
 	if(soutliner->type==SO_OUTLINER) {
 		if(G.main->library.first) 
-			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10",	 xco, yco, 100, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
+			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11",	 xco, yco, 100, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 		else
-			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10",	 xco, yco, 100, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
+			uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11",	 xco, yco, 100, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 	}
 	
 	

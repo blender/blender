@@ -898,7 +898,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
-	BLI_make_file_string("/", tstr, "/", ".B.blend");
+	BLI_make_file_string("/", tstr, BLI_gethome(), ".B.blend");
 		
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
