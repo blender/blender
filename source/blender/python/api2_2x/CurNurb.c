@@ -521,7 +521,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * value )
 		PyObject *args;
 		BPoint *tmp;
 		
-		if (PyTuple_Check(args)) {
+		if (PyTuple_Check(value)) {
 			args= value;
 		}
 		else {
