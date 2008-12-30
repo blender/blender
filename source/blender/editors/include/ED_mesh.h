@@ -73,6 +73,7 @@ EditEdge	*EM_get_edge_for_index(int index);
 EditFace	*EM_get_face_for_index(int index);
 int			EM_texFaceCheck(struct EditMesh *em);
 int			EM_vertColorCheck(struct EditMesh *em);
+void		undo_push_mesh(char *name);
 
 
 /* editmesh_lib.c */

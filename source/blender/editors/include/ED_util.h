@@ -28,6 +28,30 @@
 #ifndef ED_UTIL_H
 #define ED_UTIL_H
 
+struct Object;
+struct bContext;
+struct uiMenuBlockHandle;
+struct uiBlock;
+
+/* ************** Undo ************************ */
+
+/* undo.c */
+void	ED_redo					(struct bContext *C);
+void	ED_undo					(struct bContext *C);
+void	ED_undo_push			(struct bContext *C, char *str);
+void	ED_undo_menu			(struct bContext *C);
+
+/* undo_editmode.c */
+void	undo_editmode_push			(char *name, void (*freedata)(void *), 
+									 void (*to_editmode)(void *),  void *(*from_editmode)(void),
+									 int (*validate_undo)(void *));
+void	*undo_editmode_get_prev		(struct Object *ob);
+struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg_unused);
+void	undo_editmode_menu			(void);
+void	undo_editmode_clear			(void);
+void	undo_editmode_step			(int step);
+
+
 /* ************** XXX OLD CRUFT WARNING ************* */
 
 void apply_keyb_grid(int shift, int ctrl, float *val, float fac1, float fac2, float fac3, int invert);

@@ -121,7 +121,6 @@ static void toggle_blockhandler(void *x, int y, int z) {}
 static void countall(void) {}
 extern void borderselect();
 static int BIF_snappingSupported() {return 1;}
-static void BIF_undo_push() {}
 static int retopo_mesh_paint_check() {return 0;}
 
 /* view3d handler codes */
@@ -984,7 +983,7 @@ void do_view3d_select_meshmenu(bContext *C, void *arg, int event)
 
 		case 16: /* path select */
 			pathselect();
-			BIF_undo_push("Path Select");
+			ED_undo_push(C, "Path Select");
 			break;
 		case 17: /* edge loop select */
 			loop_multiselect(0);
@@ -1508,15 +1507,15 @@ void do_view3d_edit_snapmenu(bContext *C, void *arg, int event)
 	switch (event) {
 	case 1: /*Selection to grid*/
 	    snap_sel_to_grid();
-		BIF_undo_push("Snap selection to grid");
+		ED_undo_push(C, "Snap selection to grid");
 	    break;
 	case 2: /*Selection to cursor*/
 	    snap_sel_to_curs();
-		BIF_undo_push("Snap selection to cursor");
+		ED_undo_push(C, "Snap selection to cursor");
 	    break;
 	case 3: /*Selection to center of selection*/
 	    snap_to_center();
-		BIF_undo_push("Snap selection to center");
+		ED_undo_push(C, "Snap selection to center");
 	    break;
 	case 4: /*Cursor to selection*/
 	    snap_curs_to_sel();
@@ -1526,7 +1525,7 @@ void do_view3d_edit_snapmenu(bContext *C, void *arg, int event)
 	    break;
 	case 6: /*Cursor to Active*/
 	    snap_curs_to_active();
-		BIF_undo_push("Snap selection to center");
+		ED_undo_push(C, "Snap selection to center");
 	    break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2667,7 +2666,7 @@ void do_view3d_edit_mesh_verticesmenu(bContext *C, void *arg, int event)
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
-			BIF_undo_push("Rem Doubles");
+			ED_undo_push(C, "Rem Doubles");
 		}
 		break;
 	case 2: /* smooth */
@@ -2735,18 +2734,18 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 		 
 	case 0: /* subdivide smooth */
 		esubdivideflag(1, 0.0, scene->toolsettings->editbutflag | B_SMOOTH,1,0);
-		BIF_undo_push("Subdivide Smooth");
+		ED_undo_push(C, "Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
 		esubdivideflag(1, fac, scene->toolsettings->editbutflag,1,0);
-		BIF_undo_push("Subdivide Fractal");
+		ED_undo_push(C, "Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
 		esubdivideflag(1, 0.0, scene->toolsettings->editbutflag,1,0);
-		BIF_undo_push("Subdivide");
+		ED_undo_push(C, "Subdivide");
 		break;
 	case 3: /* knife subdivide */
 		KnifeSubdivide(KNIFE_PROMPT);
@@ -2784,22 +2783,22 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 	case 13: /* Edge Loop Delete */
 		if(EdgeLoopDelete()) {
 			countall();
-			BIF_undo_push("Erase Edge Loop");
+			ED_undo_push(C, "Erase Edge Loop");
 			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
 		}
 		break;
 	case 14: /*Collapse Edges*/
 		collapseEdges();
-		BIF_undo_push("Collapse");
+		ED_undo_push(C, "Collapse");
 		break;
 	case 15:
 		editmesh_mark_sharp(1);
-		BIF_undo_push("Mark Sharp");
+		ED_undo_push(C, "Mark Sharp");
 		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 16:
 		editmesh_mark_sharp(0);
-		BIF_undo_push("Clear Sharp");
+		ED_undo_push(C, "Clear Sharp");
 		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 17: /* Adjust Bevel Weight */
@@ -4151,7 +4150,7 @@ static void do_view3d_pose_armature_transformmenu(bContext *C, void *arg, int ev
 	case 4: /* clear user transform */
 		rest_pose(ob->pose);
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Pose, Clear User Transform");
+		ED_undo_push(C, "Pose, Clear User Transform");
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -4723,19 +4722,19 @@ void do_view3d_sculpt_inputmenu(bContext *C, void *arg, int event)
 	switch(event) {
 	case 0:
 		sd->flags ^= SCULPT_INPUT_SMOOTH;
-		BIF_undo_push("Smooth stroke");
+		ED_undo_push(C, "Smooth stroke");
 		break;
 	case 1:
 		val= sd->tablet_size;
 		if(button(&val,0,10,"Tablet Size:")==0) return;
 		sd->tablet_size= val;
-		BIF_undo_push("Tablet size");
+		ED_undo_push(C, "Tablet size");
 		break;
 	case 2:
 		val= sd->tablet_strength;
 		if(button(&val,0,10,"Tablet Strength:")==0) return;
 		sd->tablet_strength= val;
-		BIF_undo_push("Tablet strength");
+		ED_undo_push(C, "Tablet strength");
 		break;
 	}
 	
@@ -4762,23 +4761,23 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 	case 5:
 	case 6:
 		sd->brush_type= event+1;
-		BIF_undo_push("Brush type");
+		ED_undo_push(C, "Brush type");
 		break;
 	case 7:
 		br->flag ^= SCULPT_BRUSH_AIRBRUSH;
-		BIF_undo_push("Airbrush");
+		ED_undo_push(C, "Airbrush");
 		break;
 	case 8:
 		sd->symm ^= SYMM_X;
-		BIF_undo_push("X Symmetry");
+		ED_undo_push(C, "X Symmetry");
 		break;
 	case 9:
 		sd->symm ^= SYMM_Y;
-		BIF_undo_push("Y Symmetry");
+		ED_undo_push(C, "Y Symmetry");
 		break;
 	case 10:
 		sd->symm ^= SYMM_Z;
-		BIF_undo_push("Z Symmetry");
+		ED_undo_push(C, "Z Symmetry");
 		break;
 	case 11:
 	        if(v3d)
@@ -4786,11 +4785,11 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 		break;
 	case 12:
 		sd->flags ^= SCULPT_DRAW_FAST;
-		BIF_undo_push("Partial Redraw");
+		ED_undo_push(C, "Partial Redraw");
 		break;
 	case 13:
 		sd->flags ^= SCULPT_DRAW_BRUSH;
-		BIF_undo_push("Draw Brush");
+		ED_undo_push(C, "Draw Brush");
 		break;
 	case 14:
 		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -4806,7 +4805,7 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 		break;
 	case 18:
 		br->dir= br->dir==1 ? 2 : 1;
-		BIF_undo_push("Add/Sub");
+		ED_undo_push(C, "Add/Sub");
 		break;
 	}
 
@@ -5364,7 +5363,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
 // XXX				enter_editmode(EM_WAITCURSOR);
-				BIF_undo_push("Original");	/* here, because all over code enter_editmode is abused */
+				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
 			}
 		} 
 		else if (v3d->modeselect == V3D_SCULPTMODE_SEL) {
@@ -5434,7 +5433,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			scene->selectmode= SCE_SELECT_VERTEX;
 // XXX		EM_selectmode_set();
 		countall();
-		BIF_undo_push("Selectmode Set: Vertex");
+		ED_undo_push(C, "Selectmode Set: Vertex");
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;
@@ -5447,7 +5446,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		}
 // XXX		EM_selectmode_set();
 		countall();
-		BIF_undo_push("Selectmode Set: Edge");
+		ED_undo_push(C, "Selectmode Set: Edge");
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;
@@ -5460,24 +5459,24 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		}
 // XXX		EM_selectmode_set();
 		countall();
-		BIF_undo_push("Selectmode Set: Face");
+		ED_undo_push(C, "Selectmode Set: Face");
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;	
 
 	case B_SEL_PATH:
 		scene->selectmode= SCE_SELECT_PATH;
-		BIF_undo_push("Selectmode Set: Path");
+		ED_undo_push(C, "Selectmode Set: Path");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_POINT:
 		scene->selectmode = SCE_SELECT_POINT;
-		BIF_undo_push("Selectmode Set: Point");
+		ED_undo_push(C, "Selectmode Set: Point");
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_END:
 		scene->selectmode = SCE_SELECT_END;
-		BIF_undo_push("Selectmode Set: End point");
+		ED_undo_push(C, "Selectmode Set: End point");
 		allqueue(REDRAWVIEW3D, 1);
 		break;	
 	

@@ -78,6 +78,7 @@
 #include "BIF_retopo.h"
 
 #include "ED_mesh.h"
+#include "ED_util.h"
 
 /* own include */
 #include "editmesh.h"
@@ -95,11 +96,8 @@ static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
 static void key_to_mesh() {}
-static void undo_editmode_clear() {}
 static int multires_test() {return 0;}
 static void adduplicate() {}
-static void *undo_editmode_get_prev() {return NULL;}
-static void undo_editmode_push() {}
 
 
 /* ***************** HASH ********************* */
@@ -1863,8 +1861,10 @@ static void free_undoMesh(void *umv)
 	MEM_freeN(um);
 }
 
-static void *editMesh_to_undoMesh(Scene *scene, EditMesh *em)
+static void *editMesh_to_undoMesh(void)
 {
+	EditMesh *em= NULL; // XXX
+	Scene *scene= NULL;
 	UndoMesh *um;
 	EditVert *eve;
 	EditEdge *eed;
@@ -1980,8 +1980,9 @@ static void *editMesh_to_undoMesh(Scene *scene, EditMesh *em)
 	return um;
 }
 
-static void undoMesh_to_editMesh(void *umv, EditMesh *em)
+static void undoMesh_to_editMesh(void *umv)
 {
+	EditMesh *em= NULL; // XXX
 	UndoMesh *um= (UndoMesh*)umv;
 	EditVert *eve, **evar=NULL;
 	EditEdge *eed;
