@@ -4255,7 +4255,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 		if (!immediate && (mval[0] == mvalo[0] && mval[1] ==  mvalo[1])) {
 			PIL_sleep_ms(10);
 		} else {
-			char *p = str;;
+			char *p = str;
 			int ctrl= 0, shift= 0; // XXX
 			
 			mvalo[0] = mval[0];
