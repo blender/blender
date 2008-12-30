@@ -8,4 +8,4 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' #/intern/guardedalloc #intern/bmfont ../../gpu'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 
-env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), [], libtype=['core'], priority=[35] )
+env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), [], libtype=['core'], priority=[45] )
