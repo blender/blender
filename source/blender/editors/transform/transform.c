@@ -1107,8 +1107,6 @@ int transformEnd(TransInfo *t)
 #endif
 		return 1;
 	}
-	
-	t->context= NULL;
 	t->event = NULL;
 	
 	return 0;

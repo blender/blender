@@ -99,13 +99,13 @@
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
 /* Note: there's a similar function in key.c (ob_get_key) */
-Key *actedit_get_shapekeys (const bContext *C, SpaceAction *saction) 
+Key *actedit_get_shapekeys (bAnimContext *ac, SpaceAction *saction) 
 {
-    Scene *scene= CTX_data_scene(C);
+    Scene *scene= ac->scene;
     Object *ob;
     Key *key;
 	
-    ob = OBACT;  // XXX er...
+    ob = OBACT;
     if (ob == NULL) 
 		return NULL;
 	
@@ -140,7 +140,7 @@ Key *actedit_get_shapekeys (const bContext *C, SpaceAction *saction)
 }
 
 /* Get data being edited in Action Editor (depending on current 'mode') */
-static short actedit_get_context (const bContext *C, bAnimContext *ac, SpaceAction *saction)
+static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 {
 	/* sync settings with current view status, then return appropriate data */
 	switch (saction->mode) {
@@ -161,14 +161,15 @@ static short actedit_get_context (const bContext *C, bAnimContext *ac, SpaceActi
 			
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype= ANIMCONT_SHAPEKEY;
-			ac->data= actedit_get_shapekeys(C, saction);
+			ac->data= actedit_get_shapekeys(ac, saction);
 			
 			ac->mode= saction->mode;
 			return 1;
 			
 		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
 			ac->datatype=ANIMCONT_GPENCIL;
-			ac->data= CTX_wm_screen(C); // FIXME: add that dopesheet type thing here!
+			//ac->data= CTX_wm_screen(C); // FIXME: add that dopesheet type thing here!
+			ac->data= NULL; // !!!
 			
 			ac->mode= saction->mode;
 			return 1;
@@ -195,7 +196,7 @@ static short actedit_get_context (const bContext *C, bAnimContext *ac, SpaceActi
 /* ----------- Private Stuff - IPO Editor ------------- */
 
 /* Get data being edited in IPO Editor (depending on current 'mode') */
-static short ipoedit_get_context (const bContext *C, bAnimContext *ac, SpaceIpo *sipo)
+static short ipoedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 {
 	// XXX FIXME...
 	return 0;
@@ -203,44 +204,29 @@ static short ipoedit_get_context (const bContext *C, bAnimContext *ac, SpaceIpo 
 
 /* ----------- Public API --------------- */
 
-/* Obtain current anim-data context from Blender Context info 
+/* Obtain current anim-data context, given that context info from Blender context has already been set 
  *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
  *	  allocation/freeing costs (which are not that avoidable with channels).
- *	- 
  */
-short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
+short ANIM_animdata_context_getdata (bAnimContext *ac)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
-	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= ac->sa;
 	short ok= 0;
-	
-	/* clear old context info */
-	if (ac == NULL) return 0;
-	memset(ac, 0, sizeof(bAnimContext));
-	
-	/* set default context settings */
-	ac->scene= scene;
-	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
-	ac->sa= sa;
-	ac->ar= ar;
-	ac->spacetype= (sa) ? sa->spacetype : 0;
-	ac->regiontype= (ar) ? ar->regiontype : 0;
 	
 	/* context depends on editor we are currently in */
 	if (sa) {
 		switch (sa->spacetype) {
 			case SPACE_ACTION:
 			{
-				SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
-				ok= actedit_get_context(C, ac, saction);
+				SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
+				ok= actedit_get_context(ac, saction);
 			}
 				break;
 				
 			case SPACE_IPO:
 			{
-				SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-				ok= ipoedit_get_context(C, ac, sipo);
+				SpaceIpo *sipo= (SpaceIpo *)sa->spacedata.first;
+				ok= ipoedit_get_context(ac, sipo);
 			}
 				break;
 		}
@@ -251,6 +237,33 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		return 1;
 	else
 		return 0;
+}
+
+/* Obtain current anim-data context from Blender Context info 
+ *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
+ *	  allocation/freeing costs (which are not that avoidable with channels).
+ *	- Clears data and sets the information from Blender Context which is useful
+ */
+short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	/* clear old context info */
+	if (ac == NULL) return 0;
+	memset(ac, 0, sizeof(bAnimContext));
+	
+	/* get useful default context settings from context */
+	ac->scene= scene;
+	ac->obact= (scene && scene->basact)?  scene->basact->object : NULL;
+	ac->sa= sa;
+	ac->ar= ar;
+	ac->spacetype= (sa) ? sa->spacetype : 0;
+	ac->regiontype= (ar) ? ar->regiontype : 0;
+	
+	/* get data context info */
+	return ANIM_animdata_context_getdata(ac);
 }
 
 /* ************************************************************ */

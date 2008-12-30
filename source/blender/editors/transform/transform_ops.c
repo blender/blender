@@ -63,10 +63,6 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	TransInfo *t = op->customdata;
 	
-	/* need to set context here, otherwise we get crashes with things that use context */
-	// XXX this seems quite hackish - Aligorith
-	t->context= C;
-	
 	transformEvent(t, event);
 	
 	transformApply(t);

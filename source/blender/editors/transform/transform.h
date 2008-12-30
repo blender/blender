@@ -234,7 +234,6 @@ typedef struct TransInfo {
 	/*************** NEW STUFF *********************/
 
 	float		values[4];
-	struct bContext *context;
 	void		*view;
 	struct ScrArea	*sa;
 	struct ARegion	*ar;

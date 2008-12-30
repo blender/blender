@@ -2575,6 +2575,8 @@ void flushTransIpoData(TransInfo *t)
 	
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data2d; a<t->total; a++, td++) {
+		// FIXME: autosnap needs to be here...
+		
 		/* we need to unapply the nla-scaling from the time in some situations */
 		if (NLA_IPO_SCALED)
 			td->loc2d[0]= get_action_frame(OBACT, td->loc[0]);
@@ -3974,18 +3976,22 @@ void special_aftertrans_update(TransInfo *t)
 	
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		Scene *scene= NULL;
+		Scene *scene;
 		bAnimContext ac;
 		
-		/* determine what type of data we are operating on */
-		if (ANIM_animdata_get_context(t->context, &ac) == 0) {
-			printf("space action transform -> special aftertrans exit. no context \n"); // XXX
-			return;
-		}
+		/* initialise relevant anim-context 'context' data from TransInfo data */
+			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+		memset(&ac, 0, sizeof(bAnimContext));
 		
-		/* get pointers to useful data */
-		scene= ac.scene;
-		ob = OBACT;
+		scene= ac.scene= t->scene;
+		ob= ac.obact= OBACT;
+		ac.sa= t->sa;
+		ac.ar= t->ar;
+		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+		
+		if (ANIM_animdata_context_getdata(&ac) == 0)
+			return;
 		
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};

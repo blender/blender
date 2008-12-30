@@ -674,7 +674,6 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 //	else if(G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
 //	else G.moving= G_TRANSFORM_OBJ;
 	
-	t->context= C;
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;

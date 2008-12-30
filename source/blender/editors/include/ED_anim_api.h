@@ -229,6 +229,12 @@ int ANIM_animdata_filter(ListBase *anim_data, int filter_mode, void *data, short
  */
 short ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 
+/* Obtain current anim-data context (from Animation Editor) given 
+ * that Blender Context info has already been set. 
+ * Returns whether the operation was successful.
+ */
+short ANIM_animdata_context_getdata(bAnimContext *ac);
+
 /* ************************************************ */
 /* DRAWING API */
 // XXX should this get its own header file?
