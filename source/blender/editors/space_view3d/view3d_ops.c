@@ -70,11 +70,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
 	WM_operatortype_append(VIEW3D_OT_viewcenter);
 	WM_operatortype_append(VIEW3D_OT_select);
-	WM_operatortype_append(VIEW3D_OT_select_invert);
-	WM_operatortype_append(VIEW3D_OT_select_random);
-	WM_operatortype_append(VIEW3D_OT_de_select_all);
-	WM_operatortype_append(VIEW3D_OT_select_by_type);
-	WM_operatortype_append(VIEW3D_OT_select_by_layer);
+	WM_operatortype_append(VIEW3D_OT_select_extend);
 	WM_operatortype_append(VIEW3D_OT_borderselect);
 	WM_operatortype_append(VIEW3D_OT_clipping);
 	WM_operatortype_append(VIEW3D_OT_circle_select);
@@ -126,13 +122,13 @@ void view3d_keymap(wmWindowManager *wm)
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_de_select_all",AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_random",PADASTERKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_by_type",PADASTERKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_by_layer",PADASTERKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
+	
+	/* select extend*/	
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", KM_SHIFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "modifier", KM_CTRL);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", KM_ALT);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);

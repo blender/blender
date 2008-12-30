@@ -845,7 +845,7 @@ static short mixed_bones_object_selectbuffer(Scene *scene, ARegion *ar, View3D *
 }
 
 /* mval is region coords */
-static void mouse_select(bContext *C, short *mval)
+static void mouse_select(bContext *C, short *mval, short modifier)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= (View3D *)CTX_wm_space_data(C);
@@ -861,10 +861,10 @@ static void mouse_select(bContext *C, short *mval)
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather then its contents */
-	if(G.obedit==0 && ctrl) {
+	if(G.obedit==0 && modifier == KM_CTRL) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
-		if(alt && ctrl) 
+		if(modifier == KM_ALT && modifier == KM_CTRL) 
 			basact= mouse_select_menu(scene, ar, v3d, NULL, 0, mval);
 		else {
 			base= startbase;
@@ -898,7 +898,7 @@ static void mouse_select(bContext *C, short *mval)
 			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
 
 			/* note; shift+alt goes to group-flush-selecting */
-			if(has_bones==0 && (alt)) 
+			if(has_bones==0 && (modifier == KM_ALT)) 
 				basact= mouse_select_menu(scene, ar, v3d, buffer, hits, mval);
 			else {
 				static short lastmval[2]={-100, -100};
@@ -1025,11 +1025,11 @@ static void mouse_select(bContext *C, short *mval)
 			oldbasact= BASACT;
 			BASACT= basact;
 			
-			if(shift==0) {
+			if(modifier != KM_SHIFT) {
 				deselectall_except(scene, basact);
 				ED_base_object_select(basact, BA_SELECT);
 			}
-			else if(shift && alt) {
+			else if(modifier == KM_CTRL && modifier == KM_ALT) {
 				// XXX select_all_from_groups(basact);
 			}
 			else {
@@ -1443,7 +1443,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 	
-	mouse_select(C, mval);
+	mouse_select(C, mval, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1460,214 +1460,48 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 }
-
-/* ****** Select by Type ****** */
-static EnumPropertyItem prop_select_object_types[] = {
-	{OB_EMPTY, "EMPTY", "Empty", ""},
-	{OB_MESH, "MESH", "Mesh", ""},
-	{OB_CURVE, "CURVE", "Curve", ""},
-	{OB_SURF, "SURFACE", "Surface", ""},
-	{OB_FONT, "TEXT", "Text", ""},
-	{OB_MBALL, "META", "Meta", ""},
-	{OB_LAMP, "LAMP", "Lamp", ""},
-	{OB_CAMERA, "CAMERA", "Camera", ""},
-	{OB_LATTICE, "LATTICE", "Lattice", ""},
+static EnumPropertyItem prop_select_extend_types[] = {
+	{KM_SHIFT, "SHIFT", "Shift", ""},
+	{KM_CTRL, "CTRL", "Ctrl", ""},
+	{KM_ALT, "ALT", "Alt", ""},
 	{0, NULL, NULL, NULL}
 };
 
-static int view3d_select_by_type_exec(bContext *C, wmOperator *op)
+static int view3d_select_extend_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	short obtype;
+	ARegion *ar= CTX_wm_region(C);
+	short mval[2], modifier;	
 	
-	obtype = RNA_enum_get(op->ptr, "type");
-		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(base->object->type==obtype) {
-			ED_base_object_select(base, BA_SELECT);
-		}
-	}
-	CTX_DATA_END;
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
+
+	modifier = RNA_enum_get(op->ptr, "modifier");
 	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+	view3d_operator_needs_opengl(C);	
+	
+	mouse_select(C, mval, modifier);
 	
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_select_by_type(wmOperatorType *ot)
+void VIEW3D_OT_select_extend(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= "Select By Type";
-	ot->idname= "VIEW3D_OT_select_by_type";
+	ot->name= "Activate/Select Extend";
+	ot->idname= "VIEW3D_OT_select_extend";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= view3d_select_by_type_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->invoke= view3d_select_invoke;
+	ot->poll= ED_operator_view3d_active;	
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_object_types);
+	prop = RNA_def_property(ot->srna, "modifier", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_extend_types);
 
 }
 
-/* ****** selection by layer *******/
 
-static int view3d_select_by_layer_exec(bContext *C, wmOperator *op)
-{
-	unsigned int layernum;
-	
-	layernum = RNA_int_get(op->ptr, "layer");
-		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(base->lay == (1<< (layernum -1)))
-			ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_select_by_layer(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Selection by layer";
-	ot->idname= "VIEW3D_OT_select_by_layer";
-	
-	/* api callbacks */
-	/*ot->invoke = XXX - need a int grid popup*/
-	ot->exec= view3d_select_by_layer_exec;
-	ot->poll= ED_operator_view3d_active;
-	
-	prop = RNA_def_property(ot->srna, "layer", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_range(prop, 1, 20,1, 1);
-	RNA_def_property_ui_text(prop, "layer", "The layer to select objects in");
-	RNA_def_property_int_default(prop, 2);
-
-}
-
-/* ****** invert selection *******/
-static int view3d_select_invert_exec(bContext *C, wmOperator *op)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (TESTBASE(v3d, base))
-			ED_base_object_select(base, BA_DESELECT);
-		else
-			ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_select_invert(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "Invert selection";
-	ot->idname= "VIEW3D_OT_select_invert";
-	
-	/* api callbacks */
-	ot->exec= view3d_select_invert_exec;
-	ot->poll= ED_operator_view3d_active;
-
-}
-/* ****** (de)select All *******/
-
-static int view3d_de_select_all_exec(bContext *C, wmOperator *op)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	int a=0, ok=0; 
-	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (TESTBASE(v3d, base)) {
-			ok= a= 1;
-			break;
-		}
-		else ok=1;
-	}
-	CTX_DATA_END;
-	
-	if (!ok) return OPERATOR_PASS_THROUGH;
-	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (a) ED_base_object_select(base, BA_DESELECT);
-		else ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_de_select_all(wmOperatorType *ot)
-{
-	
-	/* identifiers */
-	ot->name= "deselect all";
-	ot->idname= "VIEW3D_OT_de_select_all";
-	
-	/* api callbacks */
-	ot->exec= view3d_de_select_all_exec;
-	ot->poll= ED_operator_view3d_active;
-
-}
-/* ****** random selection *******/
-
-static int view3d_select_random_exec(bContext *C, wmOperator *op)
-{	
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	int percent;
-	
-	percent = RNA_int_get(op->ptr, "percent");
-		
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if ((!TESTBASE(v3d, base) && (BLI_frand() * 100) < percent)) {
-				ED_base_object_select(base, BA_SELECT);
-		}
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_select_random(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Random selection";
-	ot->idname= "VIEW3D_OT_select_random";
-	
-	/* api callbacks */
-	/*ot->invoke= view3d_select_random_invoke XXX - need a number popup ;*/
-	ot->exec = view3d_select_random_exec;
-	ot->poll= ED_operator_view3d_active;
-	
-	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_range(prop, 1, 100,1, 1);
-	RNA_def_property_ui_text(prop, "Percent", "Max persentage that will be selected");
-	RNA_def_property_int_default(prop, 50);
-}
 /* ------------------------------------------------------------------------- */
 
 /** The following functions are quick & dirty callback functions called

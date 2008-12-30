@@ -118,13 +118,9 @@ void view3d_update_depths(ARegion *ar, View3D *v3d);
 
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
-void VIEW3D_OT_de_select_all(struct wmOperatorType *ot);
-void VIEW3D_OT_select_invert(struct wmOperatorType *ot);
-void VIEW3D_OT_select_random(struct wmOperatorType *ot);
-void VIEW3D_OT_select_by_type(struct wmOperatorType *ot);
-void VIEW3D_OT_select_by_layer(struct wmOperatorType *ot);
-void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
+void VIEW3D_OT_select_extend(struct wmOperatorType *ot);
 void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
+void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);

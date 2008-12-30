@@ -64,6 +64,11 @@ void ED_operatortypes_object(void)
 {
 	WM_operatortype_append(OBJECT_OT_make_parent);
 	WM_operatortype_append(OBJECT_OT_clear_parent);
+	WM_operatortype_append(OBJECT_OT_select_invert);
+	WM_operatortype_append(OBJECT_OT_select_random);
+	WM_operatortype_append(OBJECT_OT_de_select_all);
+	WM_operatortype_append(OBJECT_OT_select_by_type);
+	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	
 }
 
@@ -72,6 +77,11 @@ void ED_keymap_object(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Object", SPACE_VIEW3D, 0);
 	
+	WM_keymap_add_item(keymap, "OBJECT_OT_de_select_all",AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_random",PADASTERKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type",PADASTERKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer",PADASTERKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	

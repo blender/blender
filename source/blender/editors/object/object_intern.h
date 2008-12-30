@@ -34,6 +34,13 @@
 /* object_edit.c */
 void OBJECT_OT_make_parent(wmOperatorType *ot);
 void OBJECT_OT_clear_parent(wmOperatorType *ot);
+void OBJECT_OT_de_select_all(struct wmOperatorType *ot);
+void OBJECT_OT_select_invert(struct wmOperatorType *ot);
+void OBJECT_OT_select_random(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
+
+
 
 #endif /* ED_OBJECT_INTERN_H */
 
