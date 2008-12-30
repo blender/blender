@@ -5173,6 +5173,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT);
 				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
+				
+				soops->type= SO_OUTLINER;
 			}
 				break;
 			case SPACE_TIME:
