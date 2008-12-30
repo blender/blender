@@ -45,8 +45,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"
@@ -66,7 +67,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -974,8 +977,11 @@ void setcameratoview3d(View3D *v3d)
 *   This is an error, "Too many objects in select buffer"
 *   and no action should be taken (can crash blender) if this happens
 */
-short view3d_opengl_select(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input)
+short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input)
 {
+	Scene *scene= vc->scene;
+	View3D *v3d= vc->v3d;
+	ARegion *ar= vc->ar;
 	rctf rect;
 	short code, hits;
 	

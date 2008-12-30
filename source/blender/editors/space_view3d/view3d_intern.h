@@ -36,14 +36,10 @@ struct BoundBox;
 struct Object;
 struct DerivedMesh;
 struct wmOperatorType;
-struct EditVert;
-struct EditEdge;
-struct EditFace;
-struct Nurb;
-struct BezTriple;
-struct BPoint;
 struct bContext;
 struct wmWindowManager;
+struct EditMesh;
+struct ViewContext;
 
 typedef struct ViewDepths {
 	unsigned short w, h;
@@ -90,11 +86,6 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 void draw_object_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline);
 void drawaxes(float size, int flag, char drawtype);
-void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
-void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
-void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
-void nurbs_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
-void lattice_foreachScreenVert(void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
@@ -105,7 +96,6 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMes
 /* view3d_draw.c */
 void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d);
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *));
-int view3d_test_clipping(View3D *v3d, float *vec);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(View3D *v3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
@@ -139,14 +129,12 @@ int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, flo
 void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens);
 void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth);
 
-short view3d_opengl_select(Scene *scene, ARegion *ar, View3D *v3d, unsigned int *buffer, unsigned int bufsize, rcti *input);
+short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
 void initlocalview(Scene *scene, ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);
 
 void centerview(ARegion *ar, View3D *v3d);
-
-void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3]);
 
 void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
 

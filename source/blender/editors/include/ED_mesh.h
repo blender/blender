@@ -29,6 +29,8 @@
 #define ED_MESH_H
 
 struct View3D;
+struct ARegion;
+struct EditMesh;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -51,25 +53,36 @@ struct View3D;
 #define B_JOINTRIA_MAT		0X1000
 
 
+/* especially for derivedmesh drawing callbacks */
+typedef struct ViewContext {
+	Scene *scene;
+	Object *obact;
+	Object *obedit;
+	struct ARegion *ar;
+	struct View3D *v3d;
+	struct EditMesh *em;
+} ViewContext;
+
+
 /* editmesh.c */
 
-void		EM_init_index_arrays(EditMesh *em, int forVert, int forEdge, int forFace);
+void		EM_init_index_arrays(struct EditMesh *em, int forVert, int forEdge, int forFace);
 void		EM_free_index_arrays(void);
 EditVert	*EM_get_vert_for_index(int index);
 EditEdge	*EM_get_edge_for_index(int index);
 EditFace	*EM_get_face_for_index(int index);
-int			EM_texFaceCheck(EditMesh *em);
-int			EM_vertColorCheck(EditMesh *em);
+int			EM_texFaceCheck(struct EditMesh *em);
+int			EM_vertColorCheck(struct EditMesh *em);
 
 
 /* editmesh_lib.c */
 
-EditFace	*EM_get_actFace(EditMesh *em, int sloppy);
+EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
 
 void		EM_select_edge(EditEdge *eed, int sel);
-void		EM_select_face_fgon(EditMesh *em, EditFace *efa, int val);
-void		EM_selectmode_flush(EditMesh *em);
-void		EM_deselect_flush(EditMesh *em);
+void		EM_select_face_fgon(struct EditMesh *em, EditFace *efa, int val);
+void		EM_selectmode_flush(struct EditMesh *em);
+void		EM_deselect_flush(struct EditMesh *em);
 
 
 

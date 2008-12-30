@@ -195,7 +195,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 }
 void CutEdgeloop(EditMesh *em, int numcuts)
 {
-	View3D *v3d= NULL; // XXX
+	ViewContext vc; // XXX
 	EditEdge *nearest=NULL, *eed;
 	float fac;
 	int keys = 0, holdnum=0, selectmode, dist;
@@ -219,7 +219,7 @@ void CutEdgeloop(EditMesh *em, int numcuts)
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
 			dist= 50;
-			nearest = findnearestedge(v3d, em, &dist);	// returns actual distance in dist
+			nearest = findnearestedge(&vc, &dist);	// returns actual distance in dist
 //			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
 			
 			sprintf(msg,"Number of Cuts: %d",numcuts);

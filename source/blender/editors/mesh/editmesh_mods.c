@@ -57,6 +57,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
+#include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -74,6 +75,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "ED_multires.h"
 #include "ED_mesh.h"
+#include "ED_view3d.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -81,12 +83,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "editmesh.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
-
-/* XXX ONLY TO GET COMPILED! XXX
-   the backbuffer select code will move to view3d later */
-#include "../space_view3d/view3d_intern.h"
-
-/* XXX ********************** XXX */
 
 static void *read_backbuf() {return NULL;}
 static int sample_backbuf_rect() {return 0;}
@@ -383,13 +379,12 @@ static unsigned int findnearestvert__backbufIndextest(unsigned int index)
  * 		if 0, unselected vertice are given the bias
  * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
  */
-EditVert *findnearestvert(View3D *v3d, EditMesh *em, int *dist, short sel, short strict)
+EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 {
-	ARegion *ar= NULL;	// XXX
 	short mval[2];
 
 // XXX	getmouseco_areawin(mval);
-	if(v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)){
+	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)){
 		int distance;
 		unsigned int index;
 		EditVert *eve;
@@ -397,7 +392,7 @@ EditVert *findnearestvert(View3D *v3d, EditMesh *em, int *dist, short sel, short
 		if(strict) index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
 		else index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
 		
-		eve = BLI_findlink(&em->verts, index-1);
+		eve = BLI_findlink(&vc->em->verts, index-1);
 		
 		if(eve && distance < *dist) {
 			*dist = distance;
@@ -412,7 +407,7 @@ EditVert *findnearestvert(View3D *v3d, EditMesh *em, int *dist, short sel, short
 		static int lastSelectedIndex=0;
 		static EditVert *lastSelected=NULL;
 
-		if (lastSelected && BLI_findlink(&em->verts, lastSelectedIndex)!=lastSelected) {
+		if (lastSelected && BLI_findlink(&vc->em->verts, lastSelectedIndex)!=lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}
@@ -427,11 +422,11 @@ EditVert *findnearestvert(View3D *v3d, EditMesh *em, int *dist, short sel, short
 		data.closestIndex = 0;
 
 		data.pass = 0;
-		mesh_foreachScreenVert(ar, v3d, findnearestvert__doClosest, &data, 1);
+		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
 
 		if (data.dist>3) {
 			data.pass = 1;
-			mesh_foreachScreenVert(ar, v3d, findnearestvert__doClosest, &data, 1);
+			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, 1);
 		}
 
 		*dist = data.dist;
@@ -459,8 +454,7 @@ static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3)
 /* note; uses v3d, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
-	View3D *v3d; /* XXX */
-	struct { float mval[2]; int dist; EditEdge *closest; } *data = userData;
+	struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } *data = userData;
 	float v1[2], v2[2];
 	int distance;
 		
@@ -473,7 +467,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 		
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
-		if(v3d->flag & V3D_CLIPPING) {
+		if(data->vc.v3d->flag & V3D_CLIPPING) {
 			float labda= labda_PdistVL2Dfl(data->mval, v1, v2);
 			float vec[3];
 
@@ -482,7 +476,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
 			Mat4MulVecfl(G.obedit->obmat, vec);
 
-			if(view3d_test_clipping(v3d, vec)==0) {
+			if(view3d_test_clipping(data->vc.v3d, vec)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}
@@ -493,17 +487,16 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 		}
 	}
 }
-EditEdge *findnearestedge(View3D *v3d, EditMesh *em, int *dist)
+EditEdge *findnearestedge(ViewContext *vc, int *dist)
 {
-	ARegion *ar= NULL; // XXX
 	short mval[2];
 		
 // XXX	getmouseco_areawin(mval);
 
-	if(v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
+	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
 		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
-		EditEdge *eed = BLI_findlink(&em->edges, index-1);
+		EditEdge *eed = BLI_findlink(&vc->em->edges, index-1);
 
 		if (eed && distance<*dist) {
 			*dist = distance;
@@ -513,14 +506,15 @@ EditEdge *findnearestedge(View3D *v3d, EditMesh *em, int *dist)
 		}
 	}
 	else {
-		struct { float mval[2]; int dist; EditEdge *closest; } data;
+		struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } data;
 
+		data.vc= *vc;
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];
 		data.dist = *dist;
 		data.closest = NULL;
 
-		mesh_foreachScreenEdge(ar, v3d, findnearestedge__doClosest, &data, 2);
+		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, 2);
 
 		*dist = data.dist;
 		return data.closest;
@@ -560,16 +554,15 @@ static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int
 		}
 	}
 }
-static EditFace *findnearestface(View3D *v3d, EditMesh *em, int *dist)
+static EditFace *findnearestface(ViewContext *vc, int *dist)
 {
-	ARegion *ar= NULL; // XXX
 	short mval[2];
 
 // XXX	getmouseco_areawin(mval);
 
-	if(v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
+	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		unsigned int index = sample_backbuf(mval[0], mval[1]);
-		EditFace *efa = BLI_findlink(&em->faces, index-1);
+		EditFace *efa = BLI_findlink(&vc->em->faces, index-1);
 
 		if (efa) {
 			struct { short mval[2]; int dist; EditFace *toFace; } data;
@@ -579,9 +572,9 @@ static EditFace *findnearestface(View3D *v3d, EditMesh *em, int *dist)
 			data.dist = 0x7FFF;		/* largest short */
 			data.toFace = efa;
 
-			mesh_foreachScreenFace(ar, v3d, findnearestface__getDistance, &data);
+			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data);
 
-			if(em->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
+			if(vc->em->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
 				*dist= data.dist;
 				return efa;
 			}
@@ -594,7 +587,7 @@ static EditFace *findnearestface(View3D *v3d, EditMesh *em, int *dist)
 		static int lastSelectedIndex=0;
 		static EditFace *lastSelected=NULL;
 
-		if (lastSelected && BLI_findlink(&em->faces, lastSelectedIndex)!=lastSelected) {
+		if (lastSelected && BLI_findlink(&vc->em->faces, lastSelectedIndex)!=lastSelected) {
 			lastSelectedIndex = 0;
 			lastSelected = NULL;
 		}
@@ -607,11 +600,11 @@ static EditFace *findnearestface(View3D *v3d, EditMesh *em, int *dist)
 		data.closestIndex = 0;
 
 		data.pass = 0;
-		mesh_foreachScreenFace(ar, v3d, findnearestface__doClosest, &data);
+		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 
 		if (data.dist>3) {
 			data.pass = 1;
-			mesh_foreachScreenFace(ar, v3d, findnearestface__doClosest, &data);
+			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
 		}
 
 		*dist = data.dist;
@@ -768,8 +761,9 @@ static void unified_select_draw(EditMesh *em, EditVert *eve, EditEdge *eed, Edit
    selected vertices and edges get disadvantage
    return 1 if found one
 */
-static int unified_findnearest(View3D *v3d, EditMesh *em, EditVert **eve, EditEdge **eed, EditFace **efa) 
+static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, EditFace **efa) 
 {
+	EditMesh *em= vc->em;
 	int dist= 75;
 	
 	*eve= NULL;
@@ -777,13 +771,13 @@ static int unified_findnearest(View3D *v3d, EditMesh *em, EditVert **eve, EditEd
 	*efa= NULL;
 	
 	if(em->selectmode & SCE_SELECT_VERTEX)
-		*eve= findnearestvert(v3d, em, &dist, SELECT, 0);
+		*eve= findnearestvert(vc, &dist, SELECT, 0);
 	if(em->selectmode & SCE_SELECT_FACE)
-		*efa= findnearestface(v3d, em, &dist);
+		*efa= findnearestface(vc, &dist);
 
 	dist-= 20;	/* since edges select lines, we give dots advantage of 20 pix */
 	if(em->selectmode & SCE_SELECT_EDGE)
-		*eed= findnearestedge(v3d, em, &dist);
+		*eed= findnearestedge(vc, &dist);
 
 	/* return only one of 3 pointers, for frontbuffer redraws */
 	if(*eed) {
@@ -2081,14 +2075,15 @@ void loop_multiselect(EditMesh *em, int looptype)
 
 /* just to have the functions nice together */
 
-static void mouse_mesh_loop(Scene *scene, View3D *v3d, EditMesh *em)
+static void mouse_mesh_loop(ViewContext *vc)
 {
+	EditMesh *em= vc->em;
 	EditEdge *eed;
 	int select= 1;
 	int dist= 50;
 	int shift= 0, alt= 0, ctrl= 0; // XXX
 	
-	eed= findnearestedge(v3d, em, &dist);
+	eed= findnearestedge(vc, &dist);
 	if(eed) {
 		if (0) { // XXX G.scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
 			if(shift==0) EM_clear_flag_all(em, SELECT);
@@ -2118,7 +2113,7 @@ static void mouse_mesh_loop(Scene *scene, View3D *v3d, EditMesh *em)
 			EM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		} else { /*(G.scene->toolsettings->edge_mode == EDGE_MODE_TAG_*)*/
-			int act = (edgetag_context_check(scene, eed)==0);
+			int act = (edgetag_context_check(vc->scene, eed)==0);
 			int path = 0;
 			
 			if (alt && ctrl && em->selected.last) {
@@ -2129,7 +2124,7 @@ static void mouse_mesh_loop(Scene *scene, View3D *v3d, EditMesh *em)
 					eed_act = (EditEdge*)ese->data;
 					if (eed_act != eed) {
 						/* If shift is pressed we need to use the last active edge, (if it exists) */
-						if (edgetag_shortest_path(scene, em, eed_act, eed)) {
+						if (edgetag_shortest_path(vc->scene, em, eed_act, eed)) {
 							EM_remove_selection(em, eed_act, EDITEDGE);
 							EM_select_edge(eed_act, 0);
 							path = 1;
@@ -2138,7 +2133,7 @@ static void mouse_mesh_loop(Scene *scene, View3D *v3d, EditMesh *em)
 				}
 			}
 			if (path==0) {
-				edgetag_context_set(scene, eed, act); /* switch the edge option */
+				edgetag_context_set(vc->scene, eed, act); /* switch the edge option */
 			}
 			
 			if (act) {
@@ -2183,15 +2178,20 @@ static void mouse_mesh_loop(Scene *scene, View3D *v3d, EditMesh *em)
 
 
 /* here actual select happens */
-void mouse_mesh(Scene *scene, View3D *v3d, EditMesh *em)
+void mouse_mesh(bContext *C)
 {
+	ViewContext vc;
+	EditMesh *em= NULL; // XXX
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
 	int shift= 0, alt= 0; // XXX
 	
-	if(alt) mouse_mesh_loop(scene, v3d, em);
-	else if(unified_findnearest(v3d, em, &eve, &eed, &efa)) {
+	/* setup view context for argument to callbacks */
+	em_setup_viewcontext(C, &vc);
+	
+	if(alt) mouse_mesh_loop(&vc);
+	else if(unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
 		if((shift)==0) EM_clear_flag_all(em, SELECT);
 		
@@ -2290,17 +2290,21 @@ void selectconnected_mesh_all(EditMesh *em)
 	BIF_undo_push("Select Connected (All)");
 }
 
-void selectconnected_mesh(View3D *v3d, EditMesh *em)
+void selectconnected_mesh(bContext *C)
 {
+	ViewContext vc;
 	EditVert *eve, *v1, *v2;
 	EditEdge *eed;
 	EditFace *efa;
 	short done=1, sel, toggle=0;
 	int shift= 0; // XXX
 		
-	if(em->edges.first==0) return;
+	/* setup view context for argument to callbacks */
+	em_setup_viewcontext(C, &vc);
 	
-	if( unified_findnearest(v3d, em, &eve, &eed, &efa)==0 ) {
+	if(vc.em->edges.first==0) return;
+	
+	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
 		/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
 		return;
 	}
@@ -2309,7 +2313,7 @@ void selectconnected_mesh(View3D *v3d, EditMesh *em)
 	if(shift) sel=0;
 
 	/* clear test flags */
-	for(v1= em->verts.first; v1; v1= v1->next) v1->f1= 0;
+	for(v1= vc.em->verts.first; v1; v1= v1->next) v1->f1= 0;
 	
 	/* start vertex/face/edge */
 	if(eve) eve->f1= 1;
@@ -2321,8 +2325,8 @@ void selectconnected_mesh(View3D *v3d, EditMesh *em)
 		done= 0;
 		toggle++;
 		
-		if(toggle & 1) eed= em->edges.first;
-		else eed= em->edges.last;
+		if(toggle & 1) eed= vc.em->edges.first;
+		else eed= vc.em->edges.last;
 		
 		while(eed) {
 			v1= eed->v1;
@@ -2345,11 +2349,11 @@ void selectconnected_mesh(View3D *v3d, EditMesh *em)
 	}
 	
 	/* now use vertex f1 flag to select/deselect */
-	for(eed= em->edges.first; eed; eed= eed->next) {
+	for(eed= vc.em->edges.first; eed; eed= eed->next) {
 		if(eed->v1->f1 && eed->v2->f1) 
 			EM_select_edge(eed, sel);
 	}
-	for(efa= em->faces.first; efa; efa= efa->next) {
+	for(efa= vc.em->faces.first; efa; efa= efa->next) {
 		if(efa->v1->f1 && efa->v2->f1 && efa->v3->f1 && (efa->v4==NULL || efa->v4->f1)) 
 			EM_select_face(efa, sel);
 	}
@@ -2372,13 +2376,14 @@ void selectconnected_mesh(View3D *v3d, EditMesh *em)
 /* all - 1) use all faces for extending the selection  2) only use the mouse face
  * sel - 1) select  0) deselect 
  * */
-static void selectconnected_delimit_mesh__internal(EditMesh *em, short all, short sel)
+static void selectconnected_delimit_mesh__internal(ViewContext *vc, short all, short sel)
 {
-	View3D *v3d= NULL; // XXX
+	EditMesh *em= vc->em;
 	EditFace *efa;
+	EditEdge *eed;
 	short done=1, change=0;
 	int dist = 75;
-	EditEdge *eed;
+	
 	if(em->faces.first==0) return;
 	
 	/* flag all edges as off*/
@@ -2394,7 +2399,7 @@ static void selectconnected_delimit_mesh__internal(EditMesh *em, short all, shor
 			}
 		}
 	} else {
-		EditFace *efa_mouse = findnearestface(v3d, em, &dist);
+		EditFace *efa_mouse = findnearestface(vc, &dist);
 		
 		if( !efa_mouse ) {
 			/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
@@ -2461,9 +2466,9 @@ void selectconnected_delimit_mesh(EditMesh *em)
 	
 	// XXX selectconnected_delimit_mesh__internal(em, 0, ((G.qual & LR_SHIFTKEY)==0));
 }
-void selectconnected_delimit_mesh_all(EditMesh *em)
+void selectconnected_delimit_mesh_all(ViewContext *vc)
 {
-	selectconnected_delimit_mesh__internal(em, 1, 1);
+	selectconnected_delimit_mesh__internal(vc, 1, 1);
 }	
 	
 	

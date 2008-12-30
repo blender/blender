@@ -31,7 +31,13 @@
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
 struct View3D;
-
+struct ViewContext;
+struct BPoint;
+struct Nurb;
+struct BezTriple;
+struct EditVert;
+struct EditEdge;
+struct EditFace;
 
 float *give_cursor(Scene *scene, View3D *v3d);
 
@@ -51,6 +57,18 @@ void project_float_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, fl
 
 void viewline(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
+
+/* drawobject.c itterators */
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
+void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
+void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
+void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
+
+int view3d_test_clipping(struct View3D *v3d, float *vec);
+void view3d_align_axis_to_vector(struct View3D *v3d, int axisidx, float vec[3]);
+
+
 
 #endif /* ED_VIEW3D_H */
 

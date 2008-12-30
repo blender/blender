@@ -54,11 +54,11 @@
 #include "BLI_dynstr.h"
 #include "BLI_rand.h"
 
-#include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
-#include "BKE_customdata.h"
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -2186,5 +2186,17 @@ int EM_vertColorCheck(EditMesh *em)
 			(CustomData_has_layer(&em->fdata, CD_MCOL)))
 		return 1;
 	return 0;
+}
+
+
+void em_setup_viewcontext(bContext *C, ViewContext *vc)
+{
+	memset(vc, 0, sizeof(ViewContext));
+	vc->ar= CTX_wm_region(C);
+	vc->scene= CTX_data_scene(C);
+	vc->v3d= (View3D *)CTX_wm_space_data(C);
+	vc->obact= vc->scene->basact?vc->scene->basact->object:NULL;
+	vc->obedit= G.obedit; // XXX
+	vc->em= NULL; // XXX
 }
 

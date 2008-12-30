@@ -1029,9 +1029,7 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_clear_track_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_active_object(C);
-	
-	if(G.obedit) return;
+	if(G.obedit) return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		/*if(TESTBASELIB(v3d, base)) {*/
@@ -1891,12 +1889,10 @@ static int make_track_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
 	
-	if(scene->id.lib) return;
-
+	if(scene->id.lib) return OPERATOR_CANCELLED;
 
 	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
 		bConstraint *con;

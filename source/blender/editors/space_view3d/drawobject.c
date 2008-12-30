@@ -1081,10 +1081,8 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 	bglEnd();	
 }
 
-void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
+void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
 {
-	ARegion *ar= NULL;	// XXX
-	View3D *v3d= NULL; // XXX
 	BPoint *bp = editLatt->def;
 	DispList *dl = find_displist(&G.obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
@@ -1092,11 +1090,11 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	int i, N = editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	short s[2];
 
-	view3d_get_object_project_mat(v3d, G.obedit, pmat, vmat);
+	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);
 
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short_clip(ar, v3d, dl?co:bp->vec, s, pmat, vmat);
+			view3d_project_short_clip(vc->ar, vc->v3d, dl?co:bp->vec, s, pmat, vmat);
 			func(userData, bp, s[0], s[1]);
 		}
 	}
@@ -1191,36 +1189,34 @@ static void drawlattice(View3D *v3d, Object *ob)
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 	short s[2];
 
 	if (eve->h==0) {
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->ar, data->v3d, co, s, data->pmat, data->vmat);
+			view3d_project_short_clip(data->vc.ar, data->vc.v3d, co, s, data->pmat, data->vmat);
 		} else {
-			view3d_project_short_noclip(data->ar, co, s, data->pmat);
+			view3d_project_short_noclip(data->vc.ar, co, s, data->pmat);
 		}
 
 		data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
 
-void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
+void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-	EditMesh *em= NULL; // XXX
 	
+	data.vc= *vc;
 	data.func = func;
 	data.userData = userData;
-	data.ar= ar;
-	data.v3d= v3d;
 	data.clipVerts = clipVerts;
 
-	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
+	view3d_get_object_project_mat(vc->v3d, vc->obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(em, 1, 0, 0);
+	EM_init_index_arrays(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
 
@@ -1229,21 +1225,21 @@ void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->ar, data->v3d, v0co, s[0], data->pmat, data->vmat);
-			view3d_project_short_clip(data->ar, data->v3d, v1co, s[1], data->pmat, data->vmat);
+			view3d_project_short_clip(data->vc.ar, data->vc.v3d, v0co, s[0], data->pmat, data->vmat);
+			view3d_project_short_clip(data->vc.ar, data->vc.v3d, v1co, s[1], data->pmat, data->vmat);
 		} else {
-			view3d_project_short_noclip(data->ar, v0co, s[0], data->pmat);
-			view3d_project_short_noclip(data->ar, v1co, s[1], data->pmat);
+			view3d_project_short_noclip(data->vc.ar, v0co, s[0], data->pmat);
+			view3d_project_short_noclip(data->vc.ar, v1co, s[1], data->pmat);
 
 			if (data->clipVerts==2) {
-                if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->ar->winx && s[0][1]<data->ar->winy)) 
-					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<data->ar->winx && s[1][1]<data->ar->winy)) 
+                if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy)) 
+					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<data->vc.ar->winx && s[1][1]<data->vc.ar->winy)) 
 						return;
 			}
 		}
@@ -1252,21 +1248,19 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	}
 }
 
-void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
+void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-	EditMesh *em= NULL; // XXX
 
+	data.vc= *vc;
 	data.func = func;
-	data.ar= ar;
-	data.v3d= v3d;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
+	view3d_get_object_project_mat(vc->v3d, vc->obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(em, 0, 1, 0);
+	EM_init_index_arrays(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
 
@@ -1275,45 +1269,43 @@ void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; float pmat[4][4], vmat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short_clip(data->ar, data->v3d, cent, s, data->pmat, data->vmat);
+		view3d_project_short_clip(data->vc.ar, data->vc.v3d, cent, s, data->pmat, data->vmat);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
 }
 
-void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
+void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-	EditMesh *em= NULL; // XXX
 
+	data.vc= *vc;
 	data.func = func;
-	data.ar= ar;
-	data.v3d= v3d;
 	data.userData = userData;
 
-	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
+	view3d_get_object_project_mat(vc->v3d, vc->obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(em, 0, 0, 1);
+	EM_init_index_arrays(vc->em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EM_free_index_arrays();
 
 	dm->release(dm);
 }
 
-void nurbs_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
+void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
 	float pmat[4][4], vmat[4][4];
 	short s[2];
 	Nurb *nu;
 	int i;
 
-	view3d_get_object_project_mat(v3d, G.obedit, pmat, vmat);
+	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);
 
 	for (nu= editNurb.first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1322,17 +1314,17 @@ void nurbs_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userDa
 
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
-						view3d_project_short_clip(ar, v3d, bezt->vec[1], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, vc->v3d, bezt->vec[1], s, pmat, vmat);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
-						view3d_project_short_clip(ar, v3d, bezt->vec[0], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, vc->v3d, bezt->vec[0], s, pmat, vmat);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-						view3d_project_short_clip(ar, v3d, bezt->vec[1], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, vc->v3d, bezt->vec[1], s, pmat, vmat);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-						view3d_project_short_clip(ar, v3d, bezt->vec[2], s, pmat, vmat);
+						view3d_project_short_clip(vc->ar, vc->v3d, bezt->vec[2], s, pmat, vmat);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
@@ -1344,7 +1336,7 @@ void nurbs_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userDa
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short_clip(ar, v3d, bp->vec, s, pmat, vmat);
+					view3d_project_short_clip(vc->ar, vc->v3d, bp->vec, s, pmat, vmat);
 					func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
@@ -1963,8 +1955,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, Object *ob, EditMesh *em, D
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	
-	if (G.editMesh->selected.last) {
-		EditSelection *ese = G.editMesh->selected.last;
+	if (em->selected.last) {
+		EditSelection *ese = em->selected.last;
 		/* face is handeled above */
 		/*if (ese->type == EDITFACE ) {
 			efa_act = (EditFace *)ese->data;
@@ -2361,6 +2353,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
 static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 {
+	EditMesh *em= NULL;		// XXX
 	Object *ob= base->object;
 	Mesh *me= ob->data;
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
@@ -2385,7 +2378,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 			GPU_set_object_materials(v3d, scene, ob, glsl, NULL);
 		}
 
-		draw_em_fancy(scene, v3d, ob, G.editMesh, cageDM, finalDM, dt);
+		draw_em_fancy(scene, v3d, ob, em, cageDM, finalDM, dt);
 
 		if (G.obedit!=ob && finalDM)
 			finalDM->release(finalDM);
@@ -5370,7 +5363,7 @@ static void bbs_mesh_solid(Object *ob)
 	dm->release(dm);
 }
 
-void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
+void draw_object_backbufsel(Scene *scene, View3D *v3d, EditMesh *em, Object *ob)
 {
 
 	wmMultMatrix(ob->obmat);
@@ -5381,7 +5374,6 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
-			EditMesh *em= NULL; // XXX
 			DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(em, 1, 1, 1);

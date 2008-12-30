@@ -61,8 +61,9 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_linklist.h"
 #include "BLI_heap.h"
 
-#include "BKE_depsgraph.h"
+#include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -82,8 +83,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "ED_view3d.h"
 
 #include "editmesh.h"
-
-#include "../space_view3d/view3d_intern.h" // <---  mesh_foreachScreenVert XXX 
 
 /* XXX */
 static void BIF_undo_push() {}
@@ -491,22 +490,26 @@ static void xsortvert_flag__doSetX(void *userData, EditVert *eve, int x, int y, 
 	sortblock[index].x = x;
 }
 
-void xsortvert_flag(ARegion *ar, View3D *v3d, EditMesh *em, int flag)
+/* all verts with (flag & 'flag') are sorted */
+void xsortvert_flag(bContext *C, int flag)
 {
-	/* all verts with (flag & 'flag') are sorted */
+	ViewContext vc;
 	EditVert *eve;
 	xvertsort *sortblock;
 	ListBase tbase;
-	int i, amount = BLI_countlist(&em->verts);
+	int i, amount;
 	
 	if(multires_test()) return;
 	
+	em_setup_viewcontext(C, &vc);
+	
+	amount = BLI_countlist(&vc.em->verts);
 	sortblock = MEM_callocN(sizeof(xvertsort)*amount,"xsort");
-	for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
+	for (i=0,eve= vc.em->verts.first; eve; i++,eve=eve->next)
 		if(eve->f & flag)
 			sortblock[i].v1 = eve;
 	
-	mesh_foreachScreenVert(ar, v3d, xsortvert_flag__doSetX, sortblock, 0);
+	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, 0);
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 	
 		/* make temporal listbase */
@@ -515,12 +518,12 @@ void xsortvert_flag(ARegion *ar, View3D *v3d, EditMesh *em, int flag)
 		eve = sortblock[i].v1;
 
 		if (eve) {
-			BLI_remlink(&em->verts, eve);
+			BLI_remlink(&vc.em->verts, eve);
 			BLI_addtail(&tbase, eve);
 		}
 	}
 	
-	addlisttolist(&em->verts, &tbase);
+	addlisttolist(&vc.em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
 
