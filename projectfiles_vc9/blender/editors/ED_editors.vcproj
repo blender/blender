@@ -843,6 +843,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\transform\transform_input.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\transform\transform_manipulator.c"
 				>
 			</File>
@@ -864,6 +868,46 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\transform\transform_snap.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="mesh"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editface.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_add.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_lib.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_loop.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_mods.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_tools.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\meshtools.c"
 				>
 			</File>
 		</Filter>
