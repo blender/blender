@@ -846,49 +846,64 @@ SCA_KeyboardSensor::_getattr(const STR_String& attr)
 
 int SCA_KeyboardSensor::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (PyInt_Check(value))
+	if (attr == "key")
 	{
-		int val = PyInt_AsLong(value);
-
-		if (attr == "key")
-		{
-			m_hotkey = val;
-			return 0;
+		if (!PyInt_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;			
 		}
-
-		if (attr == "hold1")
-		{
-			m_qual = val;
-			return 0;
-		}
-		
-		if (attr == "hold2")
-		{
-			m_qual2 = val;
-			return 0;
-		}
-
-		if (attr == "useAllKeys")
-		{
-			m_bAllKeys = (val != 0);
-			return 0;
-		}
+		m_hotkey = PyInt_AsLong(value);
+		return 0;
 	}
 
-	if (PyString_Check(value))
+	if (attr == "hold1")
 	{
-		STR_String val = PyString_AsString(value);
-		if (attr == "logToggleProperty")
-		{
-			m_toggleprop = val;
-			return 0;
+		if (!PyInt_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;			
 		}
+		m_qual = PyInt_AsLong(value);
+		return 0;
+	}
+	
+	if (attr == "hold2")
+	{
+		if (!PyInt_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;			
+		}
+		m_qual2 = PyInt_AsLong(value);
+		return 0;
+	}
 
-		if (attr == "logTargetProperty")
-		{
-			m_targetprop = val;
-			return 0;
+	if (attr == "useAllKeys")
+	{
+		if (!PyInt_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;			
 		}
+		m_bAllKeys = (PyInt_AsLong(value) != 0);
+		return 0;
+	}
+	
+	if (attr == "logToggleProperty")
+	{
+		if (!PyString_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected a string");
+			return 1;			
+		}
+		m_toggleprop = PyString_AsString(value);
+		return 0;
+	}
+
+	if (attr == "logTargetProperty")
+	{
+		if (!PyString_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected a string");
+			return 1;			
+		}
+		m_targetprop = PyString_AsString(value);
+		return 0;
 	}
 
 	return SCA_ISensor::_setattr(attr, value);

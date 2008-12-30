@@ -343,31 +343,30 @@ PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
 
 int SCA_MouseSensor::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (PyInt_Check(value))
+	if (attr == "mode")
 	{
+		if (!PyInt_Check(value)){
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;			
+		}
+		
 		int val = PyInt_AsLong(value);
-
-		if (attr == "mode")
-		{
-			if ((val < KX_MOUSESENSORMODE_NODEF) 
-				|| (val > KX_MOUSESENSORMODE_MAX)){	
-				
-				PyErr_SetString(PyExc_ValueError, "invalid mode specified!");
-				return NULL;
-			}
-			
-			m_mousemode = val;
-			UpdateHotkey();
-			return 0;
+		
+		if ((val < KX_MOUSESENSORMODE_NODEF) 
+			|| (val > KX_MOUSESENSORMODE_MAX)){		
+			PyErr_SetString(PyExc_ValueError, "invalid mode specified!");
+			return 1;
 		}
+		
+		m_mousemode = val;
+		UpdateHotkey();
+		return 0;
 	}
-	else 
+	
+	if (attr == "position")
 	{
-		if (attr == "position")
-		{
-			PyErr_SetString(PyExc_AttributeError, "read-only property!");
-			return NULL;		
-		}
+		PyErr_SetString(PyExc_AttributeError, "'position' is a read-only property!");
+		return 1;		
 	}
 	
 	return SCA_ISensor::_setattr(attr, value);
