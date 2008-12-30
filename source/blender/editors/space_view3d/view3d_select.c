@@ -1492,7 +1492,7 @@ void VIEW3D_OT_select_extend(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_select_extend";
 	
 	/* api callbacks */
-	ot->invoke= view3d_select_invoke;
+	ot->invoke= view3d_select_extend_invoke;
 	ot->poll= ED_operator_view3d_active;	
 	
 	prop = RNA_def_property(ot->srna, "modifier", PROP_ENUM, PROP_NONE);

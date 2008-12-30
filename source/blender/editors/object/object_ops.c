@@ -64,6 +64,8 @@ void ED_operatortypes_object(void)
 {
 	WM_operatortype_append(OBJECT_OT_make_parent);
 	WM_operatortype_append(OBJECT_OT_clear_parent);
+	WM_operatortype_append(OBJECT_OT_make_track);
+	WM_operatortype_append(OBJECT_OT_clear_track);
 	WM_operatortype_append(OBJECT_OT_select_invert);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_de_select_all);
@@ -84,6 +86,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer",PADASTERKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_make_track", TKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_track", TKEY, KM_PRESS, KM_ALT, 0);
 	
 //	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }

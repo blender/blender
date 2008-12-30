@@ -882,10 +882,10 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 	BIF_undo_push("Add hook");
 }
 
-void make_track(Scene *scene, View3D *v3d)
+void make_track(Scene *scene, View3D *v3d, short mode)
 {
 	Base *base;
-	short mode=0;
+	/*short mode=0;*/
 	
 	if(scene->id.lib) return;
 	if(G.obedit) {
@@ -1024,6 +1024,62 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_clear_parent_types);
 }
+
+/* ******************** clear track operator ******************* */
+
+
+static EnumPropertyItem prop_clear_track_types[] = {
+	{0, "CLEAR", "Clear Track", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* note, poll should check for editable scene */
+static int object_clear_track_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	if(G.obedit) return;
+
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		/*if(TESTBASELIB(v3d, base)) {*/
+			ob->track= NULL;
+			ob->recalc |= OB_RECALC;
+			
+			if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+				apply_obmat(ob);
+			}			
+		/*}*/
+	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);
+
+	BIF_undo_push("Clear Track");	
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_clear_track(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Clear track";
+	ot->idname= "OBJECT_OT_clear_track";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_clear_track_exec;
+	
+	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->flag= OPTYPE_REGISTER;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_clear_track_types);
+}
+
 
 /* ***************************** */
 /* ****** Select by Type ****** */
@@ -1830,6 +1886,115 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_make_parent_types);
 }
+
+/* *** make track ***** */
+static EnumPropertyItem prop_make_track_types[] = {
+	{1, "TRACKTO", "TrackTo Constraint", ""},
+	{2, "LOCKTRACK", "LockTrack Constraint", ""},
+	{3, "OLDTRACK", "Old Track", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int make_track_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Base *base;
+	
+	if(scene->id.lib) return;
+
+
+	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
+		bConstraint *con;
+		bTrackToConstraint *data;
+
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(v3d, base)) {
+				if(base!=BASACT) {
+// XXX					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+					strcpy (con->name, "AutoTrack");
+
+					data = con->data;
+					data->tar = BASACT->object;
+					base->object->recalc |= OB_RECALC;
+					
+					/* Lamp and Camera track differently by default */
+					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+						data->reserved1 = TRACK_nZ;
+						data->reserved2 = UP_Y;
+					}
+
+// XXX					add_constraint_to_object(con, base->object);
+				}
+			}
+		}
+
+	}
+	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
+		bConstraint *con;
+		bLockTrackConstraint *data;
+
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(v3d, base)) {
+				if(base!=BASACT) {
+// XXX					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+					strcpy (con->name, "AutoTrack");
+
+					data = con->data;
+					data->tar = BASACT->object;
+					base->object->recalc |= OB_RECALC;
+					
+					/* Lamp and Camera track differently by default */
+					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+						data->trackflag = TRACK_nZ;
+						data->lockflag = LOCK_Y;
+					}
+
+// XXX					add_constraint_to_object(con, base->object);
+				}
+			}
+		}
+
+	}
+	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(v3d, base)) {
+				if(base!=BASACT) {
+					base->object->track= BASACT->object;
+					base->object->recalc |= OB_RECALC;
+				}
+			}
+		}
+	}
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);	
+	
+	BIF_undo_push("make track");
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_make_track(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Make Track";
+	ot->idname= "OBJECT_OT_make_track";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= make_track_exec;
+	
+	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->flag= OPTYPE_REGISTER;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_make_track_types);
+}
+
 
 /* *******************  ***************** */
 
