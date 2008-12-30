@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
+#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -320,6 +321,23 @@ static void init_userdef_themes(void)
 			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
+	}
+	if ((G.main->versionfile < 248) || (G.main->versionfile == 248 && G.main->subversionfile < 3)) {
+		bTheme *btheme;
+		
+		/* adjust themes */
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* DopeSheet - (Object) Channel color */
+			SETCOL(btheme->tact.ds_channel, 0x36, 0x13, 0xca, 255);
+			SETCOL(btheme->tact.ds_subchannel, 0x60, 0x43, 0xd2, 255);
+		}
+		
+		/* adjust grease-pencil distances */
+		U.gp_manhattendist= 1;
+		U.gp_euclideandist= 2;
+		
+		/* adjust default interpolation for new IPO-curves */
+		U.ipo_new= IPO_BEZ;
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */

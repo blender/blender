@@ -364,9 +364,9 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		// FIXME...
 	}
 	else {
-		if (copy_action_keys(&ac)) {
+		if (copy_action_keys(&ac)) {	
+			// XXX errors - need a way to inform the user 
 			printf("Action Copy: No keyframes copied to copy-paste buffer\n");
-			uiPupmenuError(C, "No keyframes copied to copy-paste buffer");
 		}
 	}
 	
@@ -408,8 +408,8 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (paste_action_keys(&ac)) {
+			// XXX errors - need a way to inform the user 
 			printf("Action Paste: Nothing to paste, as Copy-Paste buffer was empty.\n");
-			uiPupmenuError(C, "Nothing to paste, as Copy-Paste buffer was empty.");
 		}
 	}
 	
