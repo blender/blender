@@ -2108,6 +2108,8 @@ uiBut *ui_def_but_operator(bContext *C, uiBlock *block, int type, char *opname, 
 		str= (ot)? ot->name: "";
 	}
 
+	butstr= str;
+
 	if(type == BUTM) {
 		if(WM_key_event_operator_string(C, opname, opcontext, buf, sizeof(buf))) {
 			butstr= MEM_mallocN(strlen(str)+strlen(buf)+2, "ui_def_but_operator");
@@ -2115,8 +2117,6 @@ uiBut *ui_def_but_operator(bContext *C, uiBlock *block, int type, char *opname, 
 			strcat(butstr, "|");
 			strcat(butstr, buf);
 		}
-		else
-			butstr= str;
 	}
 
 	but= ui_def_but(block, type, -1, butstr, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);

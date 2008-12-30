@@ -1120,9 +1120,6 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 /* ****** invert selection *******/
 static int object_select_invert_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)
 			ED_base_object_select(base, BA_DESELECT);
@@ -1153,8 +1150,6 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 
 static int object_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
 	int a=0, ok=0; 
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
@@ -1196,8 +1191,6 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
 	int percent;
 	
 	percent = RNA_int_get(op->ptr, "percent");

@@ -2239,10 +2239,11 @@ static int recursive_copy_runtime(char *outname, char *exename, ReportList *repo
 {
 	char *runtime = get_runtime_path(exename);
 	char command[2 * (FILE_MAXDIR+FILE_MAXFILE) + 32];
-	int progfd = -1;
+	int progfd = -1, error= 0;
 
 	if (!runtime) {
 		BKE_report(reports, RPT_ERROR, "Unable to find runtime");
+		error= 1;
 		goto cleanup;
 	}
 	//printf("runtimepath %s\n", runtime);
@@ -2250,6 +2251,7 @@ static int recursive_copy_runtime(char *outname, char *exename, ReportList *repo
 	progfd= open(runtime, O_BINARY|O_RDONLY, 0);
 	if (progfd==-1) {
 		BKE_report(reports, RPT_ERROR, "Unable to find runtime");
+		error= 1;
 		goto cleanup;
 	}
 
@@ -2257,6 +2259,7 @@ static int recursive_copy_runtime(char *outname, char *exename, ReportList *repo
 	//printf("command %s\n", command);
 	if (system(command) == -1) {
 		BKE_report(reports, RPT_ERROR, "Couldn't copy runtime");
+		error= 1;
 	}
 
 cleanup:
@@ -2265,7 +2268,7 @@ cleanup:
 	if (runtime)
 		MEM_freeN(runtime);
 
-	return !BKE_reports_have_error(reports);
+	return !error;
 }
 
 int BLO_write_runtime(Main *mainvar, char *file, char *exename, ReportList *reports) 

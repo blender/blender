@@ -178,7 +178,7 @@ static void node_ID_title_cb(bContext *C, void *node_v, void *unused_v)
 
 static void node_but_title_cb(bContext *C, void *node_v, void *but_v)
 {
-	bNode *node= node_v;
+	// bNode *node= node_v;
 	// XXX uiBut *bt= but_v;
 	// XXX BLI_strncpy(node->name, bt->drawstr, NODE_MAXSTR);
 	
@@ -2199,6 +2199,8 @@ static int node_texture_buts_proc(uiBlock *block, bNodeTree *ntree, bNode *node,
 		w = butr->xmax - x;
 		h = butr->ymax - y;
 	}
+	else
+		return 0;
 	
 	switch( tex->type ) {
 		case TEX_BLEND:

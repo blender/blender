@@ -854,7 +854,6 @@ static void mouse_select(bContext *C, short *mval, short modifier)
 	unsigned int buffer[4*MAXPICKBUF];
 	int temp, a, dist=100;
 	short hits;
-	short ctrl=0, shift=0, alt=0;
 	
 	/* always start list from basact in wire mode */
 	startbase=  FIRSTBASE;
@@ -1443,7 +1442,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 	
-	mouse_select(C, mval, NULL);
+	mouse_select(C, mval, 0);
 	
 	return OPERATOR_FINISHED;
 }

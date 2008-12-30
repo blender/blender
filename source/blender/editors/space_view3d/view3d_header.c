@@ -231,7 +231,7 @@ void do_layer_buttons(bContext *C, short event)
 static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d;
+	View3D *v3d= (View3D*)CTX_wm_space_data(C);
 	Base *base;
 	int i=1;
 	
