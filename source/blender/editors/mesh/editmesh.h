@@ -1,0 +1,202 @@
+/**
+ * $Id: 
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/* Internal for editmesh_xxxx.c functions */
+
+#ifndef EDITMESH_H
+#define EDITMESH_H
+
+struct View3D;
+
+#define TEST_EDITMESH	if(G.obedit==0) return; /* layer test XXX */
+
+#define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
+
+/* ******************** editface.c */
+
+int edgetag_context_check(Scene *scene, EditEdge *eed);
+void edgetag_context_set(Scene *scene, EditEdge *eed, int val);
+int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge *target);
+
+/* ******************* meshtools.c */
+
+intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode);
+EditVert *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co);
+int mesh_get_x_mirror_vert(Object *ob, int index);
+
+/* XXX move to uv editor? */
+enum {
+	B_UVAUTO_REDRAW = 3301,
+	B_UVAUTO_SPHERE,
+	B_UVAUTO_CYLINDER,
+	B_UVAUTO_CYLRADIUS,
+	B_UVAUTO_WINDOW,
+	B_UVAUTO_CUBE,
+	B_UVAUTO_CUBESIZE,
+	B_UVAUTO_RESET,
+	B_UVAUTO_BOUNDS,
+	B_UVAUTO_TOP,
+	B_UVAUTO_FACE,
+	B_UVAUTO_OBJECT,
+	B_UVAUTO_ALIGNX,
+	B_UVAUTO_ALIGNY,
+	B_UVAUTO_UNWRAP,
+	B_UVAUTO_DRAWFACES
+};
+
+
+/* ******************* editmesh.c */
+void make_editMesh(Scene *scene, EditMesh *em);
+void load_editMesh(Scene *scene, EditMesh *em);
+void remake_editMesh(Scene *scene, EditMesh *em);
+
+extern void free_editvert(EditMesh *em, EditVert *eve);
+extern void free_editedge(EditMesh *em, EditEdge *eed);
+extern void free_editface(EditMesh *em, EditFace *efa);
+void free_editMesh(EditMesh *em);
+
+extern void free_vertlist(EditMesh *em, ListBase *edve);
+extern void free_edgelist(EditMesh *em, ListBase *lb);
+extern void free_facelist(EditMesh *em, ListBase *lb);
+
+extern void remedge(EditMesh *em, EditEdge *eed);
+
+extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example);
+extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
+extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
+extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
+
+EditVert *editedge_getOtherVert(EditEdge *eed, EditVert *eve);
+EditVert *editedge_getSharedVert(EditEdge *eed, EditEdge *eed2);
+int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
+int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
+int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
+
+/* ******************* editmesh_add.c */
+
+
+/* ******************* editmesh_lib.c */
+extern void EM_fgon_flags(EditMesh *em);
+extern void EM_hide_reset(EditMesh *em);
+
+extern int faceselectedOR(EditFace *efa, int flag);
+extern int faceselectedAND(EditFace *efa, int flag);
+
+void EM_remove_selection(EditMesh *em, void *data, int type);
+void EM_set_actFace(EditMesh *em, EditFace *efa);
+void EM_select_face(EditFace *efa, int sel);
+void EM_selectmode_set(EditMesh *em);
+void EM_clear_flag_all(EditMesh *em, int flag);
+void EM_select_flush(EditMesh *em);
+void EM_set_flag_all(EditMesh *em, int flag);
+void EM_convertsel(EditMesh *em, short oldmode, short selectmode);
+
+void EM_add_data_layer(EditMesh *em, CustomData *data, int type);
+
+void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
+void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
+
+int EM_nvertices_selected(EditMesh *em);
+int EM_nfaces_selected(EditMesh *em);
+float EM_face_area(EditFace *efa);
+float EM_face_perimeter(EditFace *efa);
+
+void EM_store_selection(EditMesh *em, void *data, int type);
+
+extern EditFace *exist_face(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4);
+extern void flipface(EditMesh *em, EditFace *efa); // flips for normal direction
+extern int compareface(EditFace *vl1, EditFace *vl2);
+
+void recalc_editnormals(EditMesh *em);
+
+/* flag for selection bits, *nor will be filled with normal for extrusion constraint */
+/* return value defines if such normal was set */
+extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
+extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
+extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
+extern short extrudeflag_vert(EditMesh *em, short flag, float *nor);
+extern short extrudeflag(EditMesh *em, short flag, float *nor);
+
+extern void adduplicateflag(EditMesh *em, int flag);
+extern void delfaceflag(EditMesh *em, int flag);
+
+extern void rotateflag(EditMesh *em, short flag, float *cent, float rotmat[][3]);
+extern void translateflag(EditMesh *em, short flag, float *vec);
+
+extern int convex(float *v1, float *v2, float *v3, float *v4);
+
+extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
+										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
+
+
+/* ******************* editmesh_loop.c */
+
+#define KNIFE_PROMPT 0
+#define KNIFE_EXACT 1
+#define KNIFE_MIDPOINT 2
+#define KNIFE_MULTICUT 3
+
+#define LOOP_SELECT	1
+#define LOOP_CUT	2
+
+
+/* ******************* editmesh_mods.c */
+extern EditEdge *findnearestedge(struct View3D *v3d, EditMesh *em, int *dist);
+extern void EM_automerge(int update);
+void editmesh_select_by_material(EditMesh *em, int index);
+void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
+void EM_select_more(EditMesh *em);
+
+/**
+ * findnearestvert
+ * 
+ * dist (in/out): minimal distance to the nearest and at the end, actual distance
+ * sel: selection bias
+ * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
+ * 		if 0, unselected vertice are given the bias
+ * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
+ */
+extern EditVert *findnearestvert(struct View3D *v3d, EditMesh *em, int *dist, short sel, short strict);
+
+
+/* ******************* editmesh_tools.c */
+
+#define SUBDIV_SELECT_ORIG      0
+#define SUBDIV_SELECT_INNER     1
+#define SUBDIV_SELECT_INNER_SEL 2
+#define SUBDIV_SELECT_LOOPCUT 3
+
+void join_triangles(EditMesh *em);
+int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
+void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
+int EdgeSlide(EditMesh *em, short immediate, float imperc);
+
+
+#endif
+

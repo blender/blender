@@ -121,7 +121,8 @@ void WM_init(bContext *C)
 	wm_operatortype_init();
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
-
+	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
+	
 	ED_spacetypes_init();	/* editors/area/spacetype.c */
 		
 	/* get the default database, plus a wm */

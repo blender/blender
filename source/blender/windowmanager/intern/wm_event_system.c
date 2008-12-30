@@ -1114,6 +1114,10 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.oskey= evt->oskey= event.val;
 			}
 			
+			/* if test_break set, it catches this. Keep global for now? */
+			if(event.type==ESCKEY)
+				G.afbreek= 1;
+			
 			wm_event_add(win, &event);
 			
 			break;

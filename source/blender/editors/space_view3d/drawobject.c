@@ -101,6 +101,7 @@
 #include "GPU_material.h"
 #include "GPU_extensions.h"
 
+#include "ED_mesh.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -125,16 +126,6 @@ static void drawcube_size(float size);
 static void drawcircle_size(float size);
 static void draw_empty_sphere(float size);
 static void draw_empty_cone(float size);
-
-EditVert *EM_get_vert_for_index(int x) {return 0;}	// XXX
-EditEdge *EM_get_edge_for_index(int x) {return 0;}	// XXX
-EditFace *EM_get_face_for_index(int x) {return 0;}	// XXX
-void EM_init_index_arrays(int x, int y, int z) {} // XXX
-void EM_free_index_arrays(void) {}		// XXX
-#define EM_FGON	0
-EditFace *EM_get_actFace(int x) {return NULL;} // XXX
-
-extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
 /* check for glsl drawing */
 
@@ -1219,7 +1210,8 @@ void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-
+	EditMesh *em= NULL; // XXX
+	
 	data.func = func;
 	data.userData = userData;
 	data.ar= ar;
@@ -1228,7 +1220,7 @@ void mesh_foreachScreenVert(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 
 	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(1, 0, 0);
+	EM_init_index_arrays(em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
 
@@ -1264,6 +1256,7 @@ void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ARegion *ar; View3D *v3d; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	EditMesh *em= NULL; // XXX
 
 	data.func = func;
 	data.ar= ar;
@@ -1273,7 +1266,7 @@ void mesh_foreachScreenEdge(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 
 	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(0, 1, 0);
+	EM_init_index_arrays(em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
 
@@ -1297,6 +1290,7 @@ void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ARegion *ar; View3D *v3d; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	EditMesh *em= NULL; // XXX
 
 	data.func = func;
 	data.ar= ar;
@@ -1305,7 +1299,7 @@ void mesh_foreachScreenFace(ARegion *ar, View3D *v3d, void (*func)(void *userDat
 
 	view3d_get_object_project_mat(v3d, G.obedit, data.pmat, data.vmat);
 
-	EM_init_index_arrays(0, 0, 1);
+	EM_init_index_arrays(em, 0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EM_free_index_arrays();
 
@@ -1965,7 +1959,7 @@ static int draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 static void draw_em_fancy(Scene *scene, View3D *v3d, Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	EditFace *efa_act = EM_get_actFace(0); /* annoying but active faces is stored differently */
+	EditFace *efa_act = EM_get_actFace(em, 0); /* annoying but active faces is stored differently */
 	EditEdge *eed_act = NULL;
 	EditVert *eve_act = NULL;
 	
@@ -1981,7 +1975,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, Object *ob, EditMesh *em, D
 		}
 	}
 	
-	EM_init_index_arrays(1, 1, 1);
+	EM_init_index_arrays(em, 1, 1, 1);
 
 	if(dt>OB_WIRE) {
 		if(CHECK_OB_DRAWTEXTURE(v3d, dt)) {
@@ -5387,9 +5381,10 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
+			EditMesh *em= NULL; // XXX
 			DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
-			EM_init_index_arrays(1, 1, 1);
+			EM_init_index_arrays(em, 1, 1, 1);
 
 			em_solidoffs= bbs_mesh_solid_EM(scene, v3d, dm, scene->selectmode & SCE_SELECT_FACE);
 			

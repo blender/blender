@@ -554,6 +554,25 @@ void wm_window_process_events(const bContext *C)
 		PIL_sleep_ms(5);
 }
 
+/* exported as handle callback to bke blender.c */
+void wm_window_testbreak(void)
+{
+	static double ltime= 0;
+	double curtime= PIL_check_seconds_timer();
+	
+	/* only check for breaks every 50 milliseconds
+		* if we get called more often.
+		*/
+	if ((curtime-ltime)>.05) {
+		int hasevent= GHOST_ProcessEvents(g_system, 0);	/* 0 is no wait */
+		
+		if(hasevent)
+			GHOST_DispatchEvents(g_system);
+		
+		ltime= curtime;
+	}
+}
+
 /* **************** init ********************** */
 
 void wm_ghost_init(bContext *C)

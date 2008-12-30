@@ -161,7 +161,6 @@ COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
-COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
@@ -252,6 +251,7 @@ PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_object/libed_object.a
+PULIB += $(OCGDIR)/blender/ed_mesh/libed_mesh.a
 PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
 PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
 PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
@@ -260,6 +260,8 @@ PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
+# note, no idea but it suddenly doesn't compile :(
+PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

@@ -29,6 +29,7 @@
 #define ED_OBJECT_H
 
 struct wmWindowManager;
+struct Scene;
 struct Object;
 struct bContext;
 struct Base;
@@ -40,6 +41,9 @@ void ED_keymap_object(struct wmWindowManager *wm);
 void ED_base_object_select(struct Base *base, short mode);
 	/* includes notifier */
 void ED_base_object_activate(struct bContext *C, struct Base *base);
+
+void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
+
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);

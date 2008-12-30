@@ -172,6 +172,9 @@ typedef struct EditMesh
 	 * never access this directly, use EM_set_actFace and EM_get_actFace */
 	EditFace *act_face; 
 	
+	/* copy from scene */
+	int selectmode;
+	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate
 	 * derivedCage and derivedFinal

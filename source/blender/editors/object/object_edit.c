@@ -293,19 +293,12 @@ void add_objectLamp(Scene *scene, View3D *v3d, short type)
 
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
-void free_and_unlink_base_from_scene(Scene *scene, Base *base)
+void ED_base_object_free_and_unlink(Scene *scene, Base *base)
 {
 	BLI_remlink(&scene->base, base);
 	free_libblock_us(&G.main->object, base->object);
+	if(scene->basact==base) scene->basact= NULL;
 	MEM_freeN(base);
-}
-
-/* remove base from the current scene */
-void free_and_unlink_base(Scene *scene, Base *base)
-{
-	if (base==BASACT)
-		BASACT= NULL;
-	free_and_unlink_base_from_scene(scene, base);
 }
 
 void delete_obj(Scene *scene, View3D *v3d, int ok)
@@ -344,15 +337,14 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 					if (scene != scene && !(scene->id.lib)) {
 						base_other= object_in_scene( base->object, scene );
 						if (base_other) {
-							if (base_other == scene->basact) scene->basact= NULL;	/* in case the object was active */
-							free_and_unlink_base_from_scene( scene, base_other );
+							ED_base_object_free_and_unlink( scene, base_other );
 						}
 					}
 				}
 			}
 			
 			/* remove from current scene only */
-			free_and_unlink_base(scene, base);
+			ED_base_object_free_and_unlink(scene, base);
 		}
 	}
 
@@ -3313,9 +3305,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 			}
 		}
 		if(basedel != NULL && nr == 2) {
-			if(basedel==basact)
-				basact= NULL;
-			free_and_unlink_base(scene, basedel);	
+			ED_base_object_free_and_unlink(scene, basedel);	
 		}
 		basedel = NULL;				
 	}

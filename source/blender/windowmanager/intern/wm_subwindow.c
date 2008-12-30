@@ -456,7 +456,7 @@ void WM_set_framebuffer_index_color(int index)
 	cpack(index_to_framebuffer(index));
 }
 
-int framebuffer_to_index(unsigned int col)
+int WM_framebuffer_to_index(unsigned int col)
 {
 	if (col==0) return 0;
 

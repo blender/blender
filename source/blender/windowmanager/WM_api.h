@@ -155,6 +155,7 @@ void		wmOrtho2			(float x1, float x2, float y1, float y2);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);
+int			WM_framebuffer_to_index(unsigned int col);
 
 #endif /* WM_API_H */
 

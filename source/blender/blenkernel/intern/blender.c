@@ -90,7 +90,6 @@
 
 #include "BKE_utildefines.h" // O_BINARY FALSE
 
-
 Global G;
 UserDef U;
 ListBase WMlist= {NULL, NULL};
@@ -473,6 +472,26 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 		BKE_reports_prepend(reports, "Loading failed: ");
 
 	return (bfd?1:0);
+}
+
+/* *****************  testing for break ************* */
+
+static void (*blender_test_break_cb)(void)= NULL;
+
+void set_blender_test_break_cb(void (*func)(void) )
+{
+	blender_test_break_cb= func;
+}
+
+
+int blender_test_break(void)
+{
+	if (!G.background) {
+		if (blender_test_break_cb)
+			blender_test_break_cb();
+	}
+	
+	return (G.afbreek==1);
 }
 
 

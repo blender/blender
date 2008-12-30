@@ -72,6 +72,8 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
+#include "ED_mesh.h"
+
 #include "view3d_intern.h"	// own include
 
 /***/
@@ -424,7 +426,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	EditMesh *em = userData;
-	EditFace *efa= NULL; // XXX = EM_get_face_for_index(index);
+	EditFace *efa= EM_get_face_for_index(index);
 	MTFace *tface;
 	MCol *mcol;
 	int matnr;

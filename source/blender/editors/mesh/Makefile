@@ -28,17 +28,19 @@
 #
 # Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_screen
+LIBNAME = ed_mesh
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_ELBEEM)/include
 
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../blenkernel
@@ -46,6 +48,8 @@ CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../gpu
+CPPFLAGS += -I../../render/extern/include
 
 # own include 
 

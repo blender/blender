@@ -52,6 +52,8 @@ void		wm_window_swap_buffers	(wmWindow *win);
 wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 wmWindow	*wm_window_rip			(bContext *C, wmWindow *winorig);
 
+void		wm_window_testbreak		(void);
+
 /* *************** window operators ************** */
 int			wm_window_duplicate_op	(bContext *C, wmOperator *op);
 int			wm_window_rip_op	(bContext *C, wmOperator *op, struct wmEvent *event);
