@@ -2479,9 +2479,10 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		if (cu->wordspace == 0.0) cu->wordspace = 1.0;
 	}
 
-	cu->bev.first=cu->bev.last= 0;
-	cu->disp.first=cu->disp.last= 0;
-	cu->path= 0;
+	cu->bev.first=cu->bev.last= NULL;
+	cu->disp.first=cu->disp.last= NULL;
+	cu->editlist.first=cu->editlist.last= NULL;
+	cu->path= NULL;
 
 	nu= cu->nurb.first;
 	while(nu) {
@@ -2849,7 +2850,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 	mesh->bb= NULL;
 	mesh->mselect = NULL;
-
+	mesh->edit_mesh= NULL;
+	
 	/* Multires data */
 	mesh->mr= newdataadr(fd, mesh->mr);
 	if(mesh->mr) {

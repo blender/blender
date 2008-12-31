@@ -46,6 +46,7 @@ struct Mesh;
 struct OcInfo;
 struct Multires;
 struct PartialVisibility;
+struct EditMesh;
 
 typedef struct Mesh {
 	ID id;
@@ -63,11 +64,13 @@ typedef struct Mesh {
 	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;	/* array of verts */
 	struct MEdge *medge;	/* array of edges */
-	struct MDeformVert *dvert;	/* __NLA */
+	struct MDeformVert *dvert;	/* deformgroup vertices */
 	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
+	
+	struct EditMesh *edit_mesh;	/* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 

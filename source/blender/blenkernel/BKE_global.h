@@ -60,7 +60,6 @@ struct ARegion;
 struct Object;
 struct bSoundListener;
 struct BMF_Font;
-struct EditMesh;
 struct BME_Glob;
 
 typedef struct Global {
@@ -97,9 +96,6 @@ typedef struct Global {
 	short rt;
 	int f;
 
-	/* Editmode lists */
-	struct EditMesh *editMesh;
-	
 	/* Used for BMesh transformations */
 	struct BME_Glob *editBMesh;
     

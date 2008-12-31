@@ -238,7 +238,8 @@ typedef struct TransInfo {
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
-	struct wmEvent	*event; /* last event, reset at the start of each transformApply and nulled at the transformEnd */
+	struct wmEvent	*event;		/* last event, reset at the start of each transformApply and nulled at the transformEnd */
+	struct EditMesh	*em;		/* get from context */
     short       mval[2];       /* current mouse position               */
 } TransInfo;
 
@@ -343,7 +344,7 @@ void TFM_OT_transform(struct wmOperatorType *ot);
 void initTransform(struct bContext *C, struct TransInfo *t, int mode, int context, struct wmEvent *event);
 void transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(TransInfo *t);
-int  transformEnd(TransInfo *t);
+int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy);

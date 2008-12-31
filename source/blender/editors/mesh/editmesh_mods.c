@@ -73,6 +73,9 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "RE_render_ext.h"  /* externtex */
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_multires.h"
 #include "ED_mesh.h"
 #include "ED_view3d.h"
@@ -381,16 +384,13 @@ static unsigned int findnearestvert__backbufIndextest(unsigned int index)
  */
 EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 {
-	short mval[2];
-
-// XXX	getmouseco_areawin(mval);
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)){
 		int distance;
 		unsigned int index;
 		EditVert *eve;
 		
-		if(strict) index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
-		else index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
+		if(strict) index = sample_backbuf_rect(vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
+		else index = sample_backbuf_rect(vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
 		
 		eve = BLI_findlink(&vc->em->verts, index-1);
 		
@@ -413,8 +413,8 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		}
 
 		data.lastIndex = lastSelectedIndex;
-		data.mval[0] = mval[0];
-		data.mval[1] = mval[1];
+		data.mval[0] = vc->mval[0];
+		data.mval[1] = vc->mval[1];
 		data.select = sel;
 		data.dist = *dist;
 		data.strict = strict;
@@ -489,13 +489,10 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 }
 EditEdge *findnearestedge(ViewContext *vc, int *dist)
 {
-	short mval[2];
-		
-// XXX	getmouseco_areawin(mval);
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
+		unsigned int index = sample_backbuf_rect(vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
 		EditEdge *eed = BLI_findlink(&vc->em->edges, index-1);
 
 		if (eed && distance<*dist) {
@@ -509,8 +506,8 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 		struct { ViewContext vc; float mval[2]; int dist; EditEdge *closest; } data;
 
 		data.vc= *vc;
-		data.mval[0] = mval[0];
-		data.mval[1] = mval[1];
+		data.mval[0] = vc->mval[0];
+		data.mval[1] = vc->mval[1];
 		data.dist = *dist;
 		data.closest = NULL;
 
@@ -556,19 +553,16 @@ static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int
 }
 static EditFace *findnearestface(ViewContext *vc, int *dist)
 {
-	short mval[2];
-
-// XXX	getmouseco_areawin(mval);
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
-		unsigned int index = sample_backbuf(mval[0], mval[1]);
+		unsigned int index = sample_backbuf(vc->mval[0], vc->mval[1]);
 		EditFace *efa = BLI_findlink(&vc->em->faces, index-1);
 
 		if (efa) {
 			struct { short mval[2]; int dist; EditFace *toFace; } data;
 
-			data.mval[0] = mval[0];
-			data.mval[1] = mval[1];
+			data.mval[0] = vc->mval[0];
+			data.mval[1] = vc->mval[1];
 			data.dist = 0x7FFF;		/* largest short */
 			data.toFace = efa;
 
@@ -593,8 +587,8 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 		}
 
 		data.lastIndex = lastSelectedIndex;
-		data.mval[0] = mval[0];
-		data.mval[1] = mval[1];
+		data.mval[0] = vc->mval[0];
+		data.mval[1] = vc->mval[1];
 		data.dist = *dist;
 		data.closest = NULL;
 		data.closestIndex = 0;
@@ -2085,7 +2079,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 	
 	eed= findnearestedge(vc, &dist);
 	if(eed) {
-		if (0) { // XXX G.scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
+		if (vc->scene->toolsettings->edge_mode == EDGE_MODE_SELECT) {
 			if(shift==0) EM_clear_flag_all(em, SELECT);
 		
 			if((eed->f & SELECT)==0) select=1;
@@ -2112,7 +2106,9 @@ static void mouse_mesh_loop(ViewContext *vc)
 		
 			EM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
-		} else { /*(G.scene->toolsettings->edge_mode == EDGE_MODE_TAG_*)*/
+			
+		} 
+		else {
 			int act = (edgetag_context_check(vc->scene, eed)==0);
 			int path = 0;
 			
@@ -2178,10 +2174,9 @@ static void mouse_mesh_loop(ViewContext *vc)
 
 
 /* here actual select happens */
-void mouse_mesh(bContext *C)
+void mouse_mesh(bContext *C, short mval[2])
 {
 	ViewContext vc;
-	EditMesh *em= NULL; // XXX
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
@@ -2189,50 +2184,52 @@ void mouse_mesh(bContext *C)
 	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
+	vc.mval[0]= mval[0];
+	vc.mval[1]= mval[1];
 	
 	if(alt) mouse_mesh_loop(&vc);
 	else if(unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
-		if((shift)==0) EM_clear_flag_all(em, SELECT);
+		if((shift)==0) EM_clear_flag_all(vc.em, SELECT);
 		
 		if(efa) {
 			/* set the last selected face */
-			EM_set_actFace(em, efa);
+			EM_set_actFace(vc.em, efa);
 			
 			if( (efa->f & SELECT)==0 ) {
-				EM_store_selection(em, efa, EDITFACE);
-				EM_select_face_fgon(em, efa, 1);
+				EM_store_selection(vc.em, efa, EDITFACE);
+				EM_select_face_fgon(vc.em, efa, 1);
 			}
 			else if(shift) {
-				EM_remove_selection(em, efa, EDITFACE);
-				EM_select_face_fgon(em, efa, 0);
+				EM_remove_selection(vc.em, efa, EDITFACE);
+				EM_select_face_fgon(vc.em, efa, 0);
 			}
 		}
 		else if(eed) {
 			if((eed->f & SELECT)==0) {
-				EM_store_selection(em, eed, EDITEDGE);
+				EM_store_selection(vc.em, eed, EDITEDGE);
 				EM_select_edge(eed, 1);
 			}
 			else if(shift) {
-				EM_remove_selection(em, eed, EDITEDGE);
+				EM_remove_selection(vc.em, eed, EDITEDGE);
 				EM_select_edge(eed, 0);
 			}
 		}
 		else if(eve) {
 			if((eve->f & SELECT)==0) {
 				eve->f |= SELECT;
-				EM_store_selection(em, eve, EDITVERT);
+				EM_store_selection(vc.em, eve, EDITVERT);
 			}
 			else if(shift){ 
-				EM_remove_selection(em, eve, EDITVERT);
+				EM_remove_selection(vc.em, eve, EDITVERT);
 				eve->f &= ~SELECT;
 			}
 		}
 		
 		/* frontbuffer draw of last selected only */
-		unified_select_draw(em, eve, eed, efa);
+		unified_select_draw(vc.em, eve, eed, efa);
 	
-		EM_selectmode_flush(em);
+		EM_selectmode_flush(vc.em);
 		  
 //		if (EM_texFaceCheck()) {
 
@@ -2242,6 +2239,8 @@ void mouse_mesh(bContext *C)
 		}
 	}
 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+	
 //	rightmouse_transform();
 }
 

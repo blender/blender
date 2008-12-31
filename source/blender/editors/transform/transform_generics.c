@@ -667,6 +667,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	Scene *sce = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
+	Object *obedit = CTX_data_edit_object(C);
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME	
@@ -677,6 +678,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;
+	if (obedit->type==OB_MESH)
+		t->em = ((Mesh *)obedit->data)->edit_mesh;
 
 	t->data = NULL;
 	t->ext = NULL;

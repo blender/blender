@@ -54,6 +54,8 @@
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
 
+#include "ED_mesh.h"
+
 #include "transform.h"
 
 #if 0 // TRANSFORM_FIX_ME
@@ -448,15 +450,16 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 
 		ob= G.obedit;
 
-		if(G.obedit->type==OB_MESH)
+		if(ob->type==OB_MESH)
 		{
-			EditMesh *em = G.editMesh;
+			Mesh *me= ob->data;
+			EditMesh *em = me->edit_mesh;
 			EditVert *eve;
 			EditSelection ese;
 			float vec[3]= {0,0,0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
-			if (activeOnly && EM_get_actSelection(&ese))
+			if (activeOnly && EM_get_actSelection(em, &ese))
 			{
 				EM_editselection_normal(normal, &ese);
 				EM_editselection_plane(plane, &ese);

@@ -802,13 +802,14 @@ static int editmesh_pointcache_edit(Scene *scene, Object *ob, int totvert, PTCac
 }
 
 /* turns Mesh into editmesh */
-void make_editMesh(Scene *scene, EditMesh *em)
+void make_editMesh(Scene *scene, Object *ob)
 {
-	Mesh *me= G.obedit->data;
+	Mesh *me= ob->data;
 	MFace *mface;
 	MVert *mvert;
 	MSelect *mselect;
 	KeyBlock *actkey;
+	EditMesh *em;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
 	EditFace *efa;
 	EditEdge *eed;
@@ -819,9 +820,15 @@ void make_editMesh(Scene *scene, EditMesh *em)
 	float cacheco[3], cachemat[4][4], *co;
 	int tot, a, cacheedit= 0, eekadoodle= 0;
 
-	/* because of reload */
-	free_editMesh(em);
+	if(me->edit_mesh==NULL)
+		me->edit_mesh= MEM_callocN(sizeof(EditMesh), "editmesh");
+	else 
+		/* because of reload */
+		free_editMesh(me->edit_mesh);
 	
+	em= me->edit_mesh;
+	
+	em->selectmode= scene->selectmode; // warning needs to be synced
 	em->act_face = NULL;
 	G.totvert= tot= me->totvert;
 	G.totedge= me->totedge;
@@ -834,9 +841,9 @@ void make_editMesh(Scene *scene, EditMesh *em)
 	/* initialize fastmalloc for editmesh */
 	init_editmesh_fastmalloc(em, me->totvert, me->totedge, me->totface);
 
-	actkey = ob_get_keyblock(G.obedit);
+	actkey = ob_get_keyblock(ob);
 	if(actkey) {
-		strcpy(G.editModeTitleExtra, "(Key) ");
+		// XXX strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
 		/* undo-ing in past for previous editmode sessions gives corrupt 'keyindex' values */
@@ -848,7 +855,7 @@ void make_editMesh(Scene *scene, EditMesh *em)
 	CustomData_copy(&me->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	mvert= me->mvert;
 
-	cacheedit= editmesh_pointcache_edit(scene, G.obedit, tot, &pid, cachemat, 0);
+	cacheedit= editmesh_pointcache_edit(scene, ob, tot, &pid, cachemat, 0);
 
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
 	for(a=0; a<tot; a++, mvert++) {
@@ -1000,13 +1007,14 @@ void make_editMesh(Scene *scene, EditMesh *em)
 }
 
 /* makes Mesh out of editmesh */
-void load_editMesh(Scene *scene, EditMesh *em)
+void load_editMesh(Scene *scene, Object *ob)
 {
-	Mesh *me= G.obedit->data;
+	Mesh *me= ob->data;
 	MVert *mvert, *oldverts;
 	MEdge *medge;
 	MFace *mface;
 	MSelect *mselect;
+	EditMesh *em= me->edit_mesh;
 	EditVert *eve;
 	EditFace *efa, *efa_act;
 	EditEdge *eed;
@@ -1075,7 +1083,7 @@ void load_editMesh(Scene *scene, EditMesh *em)
 	a= 0;
 
 	/* check for point cache editing */
-	cacheedit= editmesh_pointcache_edit(scene, G.obedit, G.totvert, &pid, cachemat, 1);
+	cacheedit= editmesh_pointcache_edit(scene, ob, G.totvert, &pid, cachemat, 1);
 
 	while(eve) {
 		if(cacheedit) {
@@ -1143,9 +1151,9 @@ void load_editMesh(Scene *scene, EditMesh *em)
 	/* write changes to cache */
 	if(cacheedit) {
 		if(pid.type == PTCACHE_TYPE_CLOTH)
-			cloth_write_cache(G.obedit, pid.data, pid.cache->editframe);
+			cloth_write_cache(ob, pid.data, pid.cache->editframe);
 		else if(pid.type == PTCACHE_TYPE_SOFTBODY)
-			sbWriteCache(G.obedit, pid.cache->editframe);
+			sbWriteCache(ob, pid.cache->editframe);
 	}
 
 	/* the edges */
@@ -1250,7 +1258,7 @@ void load_editMesh(Scene *scene, EditMesh *em)
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
-			if (ob->parent==G.obedit && ELEM(ob->partype, PARVERT1,PARVERT3)) {
+			if (ob->parent==ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
 				
 				/* duplicate code from below, make it function later...? */
 				if (!vertMap) {
@@ -1311,7 +1319,7 @@ void load_editMesh(Scene *scene, EditMesh *em)
 
 	/* are there keys? */
 	if(me->key) {
-		KeyBlock *currkey, *actkey = ob_get_keyblock(G.obedit);
+		KeyBlock *currkey, *actkey = ob_get_keyblock(ob);
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
@@ -1409,12 +1417,12 @@ void load_editMesh(Scene *scene, EditMesh *em)
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
-void remake_editMesh(Scene *scene, EditMesh *em)
+void remake_editMesh(Scene *scene, Object *ob)
 {
-	make_editMesh(scene, em);
+	make_editMesh(scene, ob);
 //	allqueue(REDRAWVIEW3D, 0);
 //	allqueue(REDRAWBUTSOBJECT, 0); /* needed to have nice cloth panels */
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1423,9 +1431,9 @@ void remake_editMesh(Scene *scene, EditMesh *em)
 
 
 
-void separate_mesh(Scene *scene, EditMesh *em)
+void separate_mesh(Scene *scene, Object *ob)
 {
-	EditMesh emcopy;
+	EditMesh *em, emcopy;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditFace *efa, *vl1;
@@ -1439,7 +1447,8 @@ void separate_mesh(Scene *scene, EditMesh *em)
 
 	waitcursor(1);
 	
-	me= get_mesh(G.obedit);
+	me= G.obedit->data;
+	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate with vertex keys");
 		return;
@@ -1524,7 +1533,7 @@ void separate_mesh(Scene *scene, EditMesh *em)
 	/* because new mesh is a copy: reduce user count */
 	men->id.us--;
 	
-	load_editMesh(scene, em);
+	load_editMesh(scene, G.obedit);
 	
 	BASACT->flag &= ~SELECT;
 	
@@ -1557,14 +1566,16 @@ void separate_mesh(Scene *scene, EditMesh *em)
 
 }
 
-void separate_material(Scene *scene, EditMesh *em)
+void separate_material(Scene *scene, Object *ob)
 {
-	unsigned char curr_mat;
 	Mesh *me;
+	EditMesh *em;
+	unsigned char curr_mat;
 	
 	if(multires_test()) return;
 	
-	me= get_mesh(G.obedit);
+	me= G.obedit->data;
+	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate with vertex keys");
 		return;
@@ -1578,7 +1589,7 @@ void separate_material(Scene *scene, EditMesh *em)
 				/* select the material */
 				editmesh_select_by_material(em, curr_mat);
 				/* and now separate */
-				separate_mesh(scene, em);
+				separate_mesh(scene, ob);
 			}
 		}
 	}
@@ -1589,9 +1600,9 @@ void separate_material(Scene *scene, EditMesh *em)
 }
 
 
-void separate_mesh_loose(Scene *scene, EditMesh *em)
+void separate_mesh_loose(Scene *scene, Object *ob)
 {
-	EditMesh emcopy;
+	EditMesh *em, emcopy;
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditFace *efa, *vl1;
@@ -1602,7 +1613,8 @@ void separate_mesh_loose(Scene *scene, EditMesh *em)
 	int vertsep=0;	
 	short done=0, check=1;
 			
-	me= get_mesh(G.obedit);
+	me= G.obedit->data;
+	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate a mesh with vertex keys");
 		return;
@@ -1718,7 +1730,7 @@ void separate_mesh_loose(Scene *scene, EditMesh *em)
 			/* because new mesh is a copy: reduce user count */
 			men->id.us--;
 			
-			load_editMesh(scene, em);
+			load_editMesh(scene, G.obedit);
 			
 			BASACT->flag &= ~SELECT;
 			
@@ -1754,11 +1766,12 @@ void separate_mesh_loose(Scene *scene, EditMesh *em)
 	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
 }
 
-void separatemenu(Scene *scene, EditMesh *em)
+void separatemenu(Scene *scene, Object *ob)
 {
+	Mesh *me= ob->data;
 	short event;
 	
-	if(em->verts.first==NULL) return;
+	if(me->edit_mesh->verts.first==NULL) return;
 	   
 	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2|By Material%x3");
 	
@@ -1767,13 +1780,13 @@ void separatemenu(Scene *scene, EditMesh *em)
 	
 	switch (event) {
 		case 1: 
-			separate_mesh(scene, em);		    
+			separate_mesh(scene, ob);
 			break;
 		case 2:	    	    	    
-			separate_mesh_loose(scene, em);	    	    
+			separate_mesh_loose(scene, ob);
 			break;
 		case 3:
-			separate_material(scene, em);
+			separate_material(scene, ob);
 			break;
 	}
 	waitcursor(0);
@@ -1875,10 +1888,10 @@ static void *editMesh_to_undoMesh(void)
 	EditFaceC *efac=NULL;
 	EditSelectionC *esec=NULL;
 	int a;
-	
+	return NULL;	// XXX
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
-	um->selectmode = scene->selectmode;
+	um->selectmode = em->selectmode;
 	
 	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
 	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
@@ -1993,7 +2006,7 @@ static void undoMesh_to_editMesh(void *umv)
 	EditFaceC *efac;
 	EditSelectionC *esec;
 	int a=0;
-
+	return; // XXX
 	em->selectmode = um->selectmode;
 	
 	free_editMesh(em);
@@ -2196,8 +2209,11 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	vc->ar= CTX_wm_region(C);
 	vc->scene= CTX_data_scene(C);
 	vc->v3d= (View3D *)CTX_wm_space_data(C);
-	vc->obact= vc->scene->basact?vc->scene->basact->object:NULL;
-	vc->obedit= G.obedit; // XXX
-	vc->em= NULL; // XXX
+	vc->obact= CTX_data_active_object(C);
+	vc->obedit= CTX_data_edit_object(C);
+	if(vc->obedit) {
+		Mesh *me= vc->obedit->data;
+		vc->em= me->edit_mesh;
+	}
 }
 

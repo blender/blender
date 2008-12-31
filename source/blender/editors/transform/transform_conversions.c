@@ -345,7 +345,6 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 static void createTransEdge(bContext *C, TransInfo *t) {
 #if 0	// TRANSFORM_FIX_ME
 	TransData *td = NULL;
-	EditMesh *em = G.editMesh;
 	EditEdge *eed;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
@@ -1761,9 +1760,8 @@ void flushTransParticles(TransInfo *t)
 #define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
 #define E_NEAR(a)	(nears[((a)->tmp.l)])
 #define THRESHOLD	0.0001f
-static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
+static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *vectors, EditVert **nears)
 {
-	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	int i= 0, done= 1;
@@ -1874,9 +1872,8 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
-static void get_face_center(float *cent, EditVert *eve)
+static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
 {
-	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
 	for(efa= em->faces.first; efa; efa= efa->next)
@@ -1890,7 +1887,7 @@ static void get_face_center(float *cent, EditVert *eve)
 
 //way to overwrite what data is edited with transform
 //static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
-static void VertsToTransData(TransData *td, EditVert *eve)
+static void VertsToTransData(TransData *td, EditMesh *em, EditVert *eve)
 {
 	td->flag = 0;
 	//if(key)
@@ -1900,8 +1897,8 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	
 	VECCOPY(td->center, td->loc);
 // TRANSFORM_FIX_ME	
-//	if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
-//		get_face_center(td->center, eve);
+//	if(G.vd->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
+		get_face_center(td->center, em, eve);
 	VECCOPY(td->iloc, td->loc);
 
 	// Setting normals
@@ -1960,17 +1957,18 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
 /* disable subsurf temporal, get mapped cos, and enable it */
 static float *get_crazy_mapped_editverts(void)
 {
+	Mesh *me= G.obedit->data;
 	DerivedMesh *dm;
 	float *vertexcos;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(G.obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(G.obedit, CD_MASK_BAREMESH);
+		makeDerivedMesh(G.obedit, me->edit_mesh, CD_MASK_BAREMESH);
 	}
 
 	/* now get the cage */
-	dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	dm= editmesh_get_derived_cage(me->edit_mesh, CD_MASK_BAREMESH);
 
 	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
@@ -2001,9 +1999,8 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 }
 #undef TAN_MAKE_VEC
 
-static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
+static void set_crazyspace_quats(EditMesh *em, float *origcos, float *mappedcos, float *quats)
 {
-	EditMesh *em = G.editMesh;
 	EditVert *eve, *prev;
 	EditFace *efa;
 	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
@@ -2103,7 +2100,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	// TRANSFORM_FIX_ME
 #if 0
 	TransData *tob = NULL;
-	EditMesh *em = G.editMesh;
+	EditMesh *em = t->em;
 	EditVert *eve;
 	EditVert **nears = NULL;
 	EditVert *eve_act = NULL;
@@ -2158,8 +2155,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if (countsel==0) return;
 	
 	/* check active */
-	if (G.editMesh->selected.last) {
-		EditSelection *ese = G.editMesh->selected.last;
+	if (em->selected.last) {
+		EditSelection *ese = em->selected.last;
 		if ( ese->type == EDITVERT ) {
 			eve_act = (EditVert *)ese->data;
 		}
@@ -2179,7 +2176,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
+	if(propmode) editmesh_set_connectivity_distance(t->em, t->total, vectors, nears);
 	
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
@@ -2195,7 +2192,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				if(totleft > 0) {
 					mappedcos= get_crazy_mapped_editverts();
 					quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-					set_crazyspace_quats((float*)defcos, mappedcos, quats);
+					set_crazyspace_quats(t->em, (float*)defcos, mappedcos, quats);
 					if(mappedcos)
 						MEM_freeN(mappedcos);
 				}
@@ -2220,7 +2217,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	for (a=0, eve=em->verts.first; eve; eve=eve->next, a++) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
-				VertsToTransData(tob, eve);
+				VertsToTransData(t, tob, t->em, eve);
 				
 				/* selected */
 				if(eve->f1) tob->flag |= TD_SELECTED;
@@ -2338,7 +2335,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int efa_s1,efa_s2,efa_s3,efa_s4;
 
-	EditMesh *em = G.editMesh;
+	EditMesh *em = t->em;
 	EditFace *efa;
 	
 	if(is_uv_tface_editing_allowed()==0) return;
@@ -2472,7 +2469,7 @@ void flushTransUVs(TransInfo *t)
 	TransData2D *td;
 	int a, width, height;
 	Object *ob= OBACT;
-	EditMesh *em = G.editMesh;
+	EditMesh *em = t->em;
 	float aspx, aspy, invx, invy;
 
 	transform_aspect_ratio_tface_uv(&aspx, &aspy);

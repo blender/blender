@@ -1069,6 +1069,8 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	CTX_wm_window_set(C, prevwin);
 }
 
+/* *********************************** */
+
 /* case when on area-edge or in azones, or outside window */
 static void screen_cursor_set(wmWindow *win, wmEvent *event)
 {

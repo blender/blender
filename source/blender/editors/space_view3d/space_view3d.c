@@ -212,6 +212,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
+				case ND_OB_EDIT:
 				case ND_OB_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
@@ -222,6 +223,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_GEOM_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -341,6 +343,7 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->listener= view3d_main_area_listener;
 	
 	art->init= view3d_header_area_init;
 	art->draw= view3d_header_area_draw;

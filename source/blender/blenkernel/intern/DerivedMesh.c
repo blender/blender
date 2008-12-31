@@ -629,7 +629,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(0); //XXX stipple_quarttone);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
@@ -666,7 +666,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if(draw) {
 				if (draw==2) { /* enabled with stipple */
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(0); //XXX stipple_quarttone);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
@@ -2396,12 +2396,11 @@ static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 	return 1;
 }
 
-static void editmesh_calc_modifiers(DerivedMesh **cage_r,
+static void editmesh_calc_modifiers(EditMesh *em, DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
 {
 	Object *ob = G.obedit;
-	EditMesh *em = G.editMesh;
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
@@ -2742,11 +2741,9 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 	}
 }
 
-static void editmesh_build_data(CustomDataMask dataMask)
+static void editmesh_build_data(EditMesh *em, CustomDataMask dataMask)
 {
 	float min[3], max[3];
-
-	EditMesh *em = G.editMesh;
 
 	clear_mesh_caches(G.obedit);
 
@@ -2763,7 +2760,7 @@ static void editmesh_build_data(CustomDataMask dataMask)
 		em->derivedCage = NULL;
 	}
 
-	editmesh_calc_modifiers(&em->derivedCage, &em->derivedFinal, dataMask);
+	editmesh_calc_modifiers(em, &em->derivedCage, &em->derivedFinal, dataMask);
 	em->lastDataMask = dataMask;
 
 	INIT_MINMAX(min, max);
@@ -2778,10 +2775,10 @@ static void editmesh_build_data(CustomDataMask dataMask)
 	em->derivedCage->needsFree = 0;
 }
 
-void makeDerivedMesh(Object *ob, CustomDataMask dataMask)
+void makeDerivedMesh(Object *ob, EditMesh *em, CustomDataMask dataMask)
 {
-	if (ob==G.obedit) {
-		editmesh_build_data(dataMask);
+	if (em) {
+		editmesh_build_data(em, dataMask);
 	} else {
 		mesh_build_data(ob, dataMask);
 	}
@@ -2953,35 +2950,35 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 
 /***/
 
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_cage_and_final(EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	if(!G.editMesh->derivedCage ||
-	   (G.editMesh->lastDataMask & dataMask) != dataMask)
-		editmesh_build_data(dataMask);
+	if(!em->derivedCage ||
+	   (em->lastDataMask & dataMask) != dataMask)
+		editmesh_build_data(em, dataMask);
 
-	*final_r = G.editMesh->derivedFinal;
-	return G.editMesh->derivedCage;
+	*final_r = em->derivedFinal;
+	return em->derivedCage;
 }
 
-DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask)
+DerivedMesh *editmesh_get_derived_cage(EditMesh *em, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	if(!G.editMesh->derivedCage ||
-	   (G.editMesh->lastDataMask & dataMask) != dataMask)
-		editmesh_build_data(dataMask);
+	if(!em->derivedCage ||
+	   (em->lastDataMask & dataMask) != dataMask)
+		editmesh_build_data(em, dataMask);
 
-	return G.editMesh->derivedCage;
+	return em->derivedCage;
 }
 
-DerivedMesh *editmesh_get_derived_base(void)
+DerivedMesh *editmesh_get_derived_base(EditMesh *em)
 {
-	return getEditMeshDerivedMesh(G.editMesh, G.obedit, NULL);
+	return getEditMeshDerivedMesh(em, G.obedit, NULL);
 }
 
 
@@ -3043,10 +3040,9 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editmesh_get_first_deform_matrices(float (**deformmats)[3][3], float (**deformcos)[3])
+int editmesh_get_first_deform_matrices(EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	Object *ob = G.obedit;
-	EditMesh *em = G.editMesh;
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;

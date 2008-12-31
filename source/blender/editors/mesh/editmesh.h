@@ -46,7 +46,6 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 /* ******************* meshtools.c */
 
-intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode);
 EditVert *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co);
 int mesh_get_x_mirror_vert(Object *ob, int index);
 
@@ -72,9 +71,6 @@ enum {
 
 
 /* ******************* editmesh.c */
-void make_editMesh(Scene *scene, EditMesh *em);
-void load_editMesh(Scene *scene, EditMesh *em);
-void remake_editMesh(Scene *scene, EditMesh *em);
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);

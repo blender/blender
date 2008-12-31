@@ -387,15 +387,6 @@ struct Object *CTX_data_edit_object(const bContext *C)
 	return ctx_data_pointer_get(C, CTX_data_edit_object);
 }
 
-struct EditMesh *CTX_data_edit_mesh(const bContext *C)
-{
-	return ctx_data_pointer_get(C, CTX_data_edit_mesh);
-}
-
-ListBase *CTX_data_edit_armature(const bContext *C)
-{
-	return ctx_data_pointer_get(C, CTX_data_edit_armature);
-}
 
 /* data evaluation */
 

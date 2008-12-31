@@ -83,6 +83,7 @@
 #include "wm_window.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -190,6 +191,10 @@ void WM_exit(bContext *C)
 	}
 	wm_operatortype_free();
 	
+	/* all non-screen and non-space stuff editors did, like editmode */
+	if(C)
+		ED_editors_exit(C);
+	
 	free_ttfont(); /* bke_font.h */
 	
 #ifdef WITH_VERSE
@@ -203,17 +208,6 @@ void WM_exit(bContext *C)
 //	if (G.background == 0)
 //		sound_end_all_sounds();
 	
-	if(G.obedit) {
-		if(G.obedit->type==OB_FONT) {
-//			free_editText();
-		}
-//		else if(G.obedit->type==OB_MBALL) BLI_freelistN(&editelems);
-//		free_editMesh(G.editMesh);
-	}
-	
-//	free_editLatt();
-//	free_editArmature();
-//	free_posebuf();
 	
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */

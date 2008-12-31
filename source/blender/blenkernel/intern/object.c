@@ -1665,8 +1665,10 @@ static void give_parvert(Object *par, int nr, float *vec)
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
-		if(G.obedit && (par->data==G.obedit->data)) {
-			EditMesh *em = G.editMesh;
+		Mesh *me= par->data;
+		
+		if(me->edit_mesh) {
+			EditMesh *em = me->edit_mesh;
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -2307,7 +2309,7 @@ void object_handle_update(Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(ob, get_viewedit_datamask());
+				makeDerivedMesh(ob, NULL, get_viewedit_datamask());
 			}
 			else if(ob->type==OB_MBALL) {
 				makeDispListMBall(ob);

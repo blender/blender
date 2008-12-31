@@ -1445,6 +1445,7 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
+	Object *obedit= CTX_data_edit_object(C);
 	short mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
@@ -1452,7 +1453,12 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 	
-	mouse_select(C, mval, 0);
+	if(obedit) {
+		if(obedit->type==OB_MESH)
+			mouse_mesh(C, mval);
+	}
+	else 
+		mouse_select(C, mval, 0);
 	
 	return OPERATOR_FINISHED;
 }

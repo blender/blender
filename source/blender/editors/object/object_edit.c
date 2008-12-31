@@ -112,6 +112,7 @@
 #include "BKE_modifier.h"
 
 #include "ED_anim_api.h"
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -194,7 +195,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 				DAG_object_flush_update(scene, tbase->object, OB_RECALC_DATA);
 			}
 		}
-		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, base->object);
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	}
 	else
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, NULL);
@@ -366,9 +367,8 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 	BIF_undo_push("Delete object(s)");
 }
 
-static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
+static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
 {
-	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int *index, nr, totvert=0;
 	
@@ -395,9 +395,8 @@ static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 	return totvert;
 }
 
-static int return_editmesh_vgroup(char *name, float *cent)
+static int return_editmesh_vgroup(EditMesh *em, char *name, float *cent)
 {
-	EditMesh *em = G.editMesh;
 	MDeformVert *dvert;
 	EditVert *eve;
 	int i, totvert=0;
@@ -430,9 +429,10 @@ static int return_editmesh_vgroup(char *name, float *cent)
 	return 0;
 }	
 
-static void select_editmesh_hook(HookModifierData *hmd)
+static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 {
-	EditMesh *em = G.editMesh;
+	Mesh *me= ob->data;
+	EditMesh *em= me->edit_mesh;
 	EditVert *eve;
 	int index=0, nr=0;
 	
@@ -612,9 +612,12 @@ int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 	
 	switch(G.obedit->type) {
 		case OB_MESH:
+		{
+			Mesh *me= G.obedit->data;
 			/* check selected vertices first */
-			if( return_editmesh_indexar(tot, indexar, cent_r)) return 1;
-			else return return_editmesh_vgroup(name, cent_r);
+			if( return_editmesh_indexar(me->edit_mesh, tot, indexar, cent_r)) return 1;
+			else return return_editmesh_vgroup(me->edit_mesh, name, cent_r);
+		}
 		case OB_CURVE:
 		case OB_SURF:
 			return return_editcurve_indexar(tot, indexar, cent_r);
@@ -672,12 +675,13 @@ static void select_editcurve_hook(HookModifierData *hmd)
 	}
 }
 
-void hook_select(HookModifierData *hmd) 
+void obedit_hook_select(Object *ob, HookModifierData *hmd) 
 {
-	if(G.obedit->type==OB_MESH) select_editmesh_hook(hmd);
-	else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hmd);
-	else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hmd);
-	else if(G.obedit->type==OB_SURF) select_editcurve_hook(hmd);
+	
+	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
+	else if(ob->type==OB_LATTICE) select_editlattice_hook(hmd);
+	else if(ob->type==OB_CURVE) select_editcurve_hook(hmd);
+	else if(ob->type==OB_SURF) select_editcurve_hook(hmd);
 }
 
 
@@ -819,7 +823,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
-		hook_select(hmd);
+		obedit_hook_select(G.obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(ob);	/* ob is hook->parent */
@@ -1435,9 +1439,9 @@ void set_slowparent(Scene *scene, View3D *v3d)
 
 // XXX
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
+/* only in edit mode */
 void make_vertex_parent(Scene *scene, View3D *v3d)
 {
-	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	Base *base;
 	Nurb *nu;
@@ -1449,7 +1453,9 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 	/* we need 1 to 3 selected vertices */
 	
 	if(G.obedit->type==OB_MESH) {
-		eve= em->verts.first;
+		Mesh *me= G.obedit->data;
+		
+		eve= me->edit_mesh->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
 				if(v1==0) v1= nr;
@@ -1984,48 +1990,119 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 }
 
 
-/* *******************  ***************** */
+/* ******************* toggle editmode operator  ***************** */
 
-void enter_editmode(Scene *scene, View3D *v3d, int wc)
+static void exit_editmode(bContext *C, wmOperator *op, int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
-	Base *base;
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	Mesh *me;
-	bArmature *arm;
+//	Object *obedit= CTX_data_edit_object(C);
+	int freedata = flag; // XXX & EM_FREEDATA;
+	
+	if(G.obedit==NULL) return;
+	
+//	if(flag & EM_WAITCURSOR) waitcursor(1);
+	if(G.obedit->type==OB_MESH) {
+		Mesh *me= G.obedit->data;
+		
+//		if(EM_texFaceCheck())
+//			allqueue(REDRAWIMAGE, 0);
+		
+//		if(retopo_mesh_paint_check())
+//			retopo_end_okee();
+		
+		if(G.totvert>MESH_MAX_VERTS) {
+			error("Too many vertices");
+			return;
+		}
+		load_editMesh(scene, G.obedit);
+		
+		if(freedata) free_editMesh(me->edit_mesh);
+		
+		if(G.f & G_WEIGHTPAINT)
+			mesh_octree_table(G.obedit, NULL, NULL, 'e');
+	}
+	else if (G.obedit->type==OB_ARMATURE){	
+//		load_editArmature();
+//		if (freedata) free_editArmature();
+	}
+	else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
+//		extern ListBase editNurb;
+//		load_editNurb();
+//		if(freedata) freeNurblist(&editNurb);
+	}
+	else if(G.obedit->type==OB_FONT && freedata) {
+//		load_editText();
+	}
+	else if(G.obedit->type==OB_LATTICE) {
+//		load_editLatt();
+//		if(freedata) free_editLatt();
+	}
+	else if(G.obedit->type==OB_MBALL) {
+//		extern ListBase editelems;
+//		load_editMball();
+//		if(freedata) BLI_freelistN(&editelems);
+	}
+	
+	ob= G.obedit;
+	
+	/* for example; displist make is different in editmode */
+	if(freedata) G.obedit= NULL;
+	scene->obedit= G.obedit; // XXX
+	
+	if(ob->type==OB_MESH && get_mesh(ob)->mr)
+		multires_edge_level_update(ob, get_mesh(ob));
+	
+	/* also flush ob recalc, doesn't take much overhead, but used for particles */
+	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+	
+	if(G.obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
+		ED_undo_push(C, "Editmode");
+	
+	//	if(flag & EM_WAITCURSOR) waitcursor(0);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_EDIT, scene);
+
+}
+
+
+static void enter_editmode(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Base *base= CTX_data_active_base(C);
+	Object *ob= base->object;
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
 	int ok= 0;
 	
 	if(scene->id.lib) return;
-	base= BASACT;
-	if(base==0) return;
+	if(base==NULL) return;
 	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
 	
-	strcpy(G.editModeTitleExtra, "");
-
-	ob= base->object;
-	if(ob->data==0) return;
+	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
 		error_libdata();
 		return;
 	}
 	
-	if(wc) waitcursor(1);
+	//if(wc) waitcursor(1);
 	
 	if(ob->type==OB_MESH) {
-		me= get_mesh(ob);
-		if( me==0 ) return;
+		Mesh *me= ob->data;
+		
 		if(me->pv) mesh_pmv_off(ob, me);
 		ok= 1;
-		G.obedit= ob;
-// XXX		make_editMesh();
-		allqueue(REDRAWBUTSLOGIC, 0);
-		/*if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);*/
-// XXX		if (EM_texFaceCheck())
-//			allqueue(REDRAWIMAGE, 0);
+		G.obedit= ob; // XXX
+		scene->obedit= ob;	// context sees this
+		
+		make_editMesh(scene, ob);
+
+		// XXX		if (EM_texFaceCheck())
+		//			allqueue(REDRAWIMAGE, 0);
 		
 	}
 	if (ob->type==OB_ARMATURE){
-		arm= base->object->data;
+		bArmature *arm= base->object->data;
 		if (!arm) return;
 		/*
 		 * The function object_data_is_libdata make a problem here, the
@@ -2078,85 +2155,38 @@ void enter_editmode(Scene *scene, View3D *v3d, int wc)
 	}
 	else G.obedit= NULL;
 	
-	if(wc) waitcursor(0);
+//	if(wc) waitcursor(0);
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_EDIT, scene);
 	
 }
 
-void exit_editmode(Scene *scene, int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
+static int toggle_editmode_exec(bContext *C, wmOperator *op)
 {
-#if 0
-	Object *ob;
-	int freedata = flag; // XXX & EM_FREEDATA;
 	
-	if(G.obedit==NULL) return;
-
-	if(flag & EM_WAITCURSOR) waitcursor(1);
-	if(G.obedit->type==OB_MESH) {
-
-		
-		if(EM_texFaceCheck())
-			allqueue(REDRAWIMAGE, 0);
-		
-		if(retopo_mesh_paint_check())
-			retopo_end_okee();
-
-		if(G.totvert>MESH_MAX_VERTS) {
-			error("Too many vertices");
-			return;
-		}
-		load_editMesh();
-
-		if(freedata) free_editMesh(G.editMesh);
-		
-		if(G.f & G_WEIGHTPAINT)
-			mesh_octree_table(G.obedit, NULL, 'e');
-	}
-	else if (G.obedit->type==OB_ARMATURE){	
-		load_editArmature();
-		if (freedata) free_editArmature();
-	}
-	else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
-		extern ListBase editNurb;
-		load_editNurb();
-		if(freedata) freeNurblist(&editNurb);
-	}
-	else if(G.obedit->type==OB_FONT && freedata) {
-		load_editText();
-	}
-	else if(G.obedit->type==OB_LATTICE) {
-		load_editLatt();
-		if(freedata) free_editLatt();
-	}
-	else if(G.obedit->type==OB_MBALL) {
-		extern ListBase editelems;
-		load_editMball();
-		if(freedata) BLI_freelistN(&editelems);
-	}
-
-	ob= G.obedit;
+	if(!CTX_data_edit_object(C))
+		enter_editmode(C, op);
+	else
+		exit_editmode(C, op, 1);
 	
-	/* for example; displist make is different in editmode */
-	if(freedata) G.obedit= NULL;
-
-	if(ob->type==OB_MESH && get_mesh(ob)->mr)
-		multires_edge_level_update(ob, get_mesh(ob));
-	
-	/* also flush ob recalc, doesn't take much overhead, but used for particles */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-
-	allqueue(REDRAWVIEW3D, 1);
-	allqueue(REDRAWBUTSALL, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWOOPS, 0);
-
-	if(G.obedit==NULL && (flag & EM_FREEUNDO)) 
-		BIF_undo_push("Editmode");
-	
-	if(flag & EM_WAITCURSOR) waitcursor(0);
-#endif
+	return OPERATOR_FINISHED;
 }
+
+void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Toggle Editmode";
+	ot->idname= "OBJECT_OT_toggle_editmode";
+	
+	/* api callbacks */
+	ot->exec= toggle_editmode_exec;
+	
+	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* *************************** */
+
 
 void check_editmode(int type)
 {
@@ -2170,7 +2200,6 @@ void check_editmode(int type)
 
 void docenter(Scene *scene, View3D *v3d, int centermode)
 {
-	EditMesh *em = G.editMesh;
 	Base *base;
 	Object *ob;
 	Mesh *me, *tme;
@@ -2195,7 +2224,9 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 		INIT_MINMAX(min, max);
 	
 		if(G.obedit->type==OB_MESH) {
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			Mesh *me= G.obedit->data;
+			
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
 					VECADD(cent, cent, eve->co);
@@ -2214,7 +2245,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 				cent[2]= (min[2]+max[2])/2.0f;
 			}
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
@@ -3313,7 +3344,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
-	enter_editmode(scene, v3d, EM_WAITCURSOR);
+// XXX	enter_editmode(scene, v3d, EM_WAITCURSOR);
 // XXX	exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 	BASACT= basact;
 
@@ -4311,7 +4342,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				/* texspace and normals */
 				BASACT= base;
-				enter_editmode(scene, v3d, EM_WAITCURSOR);
+// XXX				enter_editmode(scene, v3d, EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 // XXX				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
@@ -4387,7 +4418,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				/* texspace and normals */
 				BASACT= base;
-				enter_editmode(scene, v3d, EM_WAITCURSOR);
+// XXX				enter_editmode(scene, v3d, EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 // XXX				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;

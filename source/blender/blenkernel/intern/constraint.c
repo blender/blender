@@ -44,6 +44,7 @@
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
@@ -536,6 +537,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 {
 	DerivedMesh *dm;
+	Mesh *me= ob->data;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -549,9 +551,9 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
-	if ((G.obedit == ob) && (G.editMesh)) {
+	if (me->edit_mesh) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editmesh(G.editMesh, ob->data);
+		dm = CDDM_from_editmesh(me->edit_mesh, ob->data);
 	}
 	else {
 		/* when not in EditMode, this should exist */
@@ -621,7 +623,7 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	}
 	
 	/* free temporary DerivedMesh created (in EditMode case) */
-	if (G.editMesh) {
+	if (me->edit_mesh) {
 		if (dm) dm->release(dm);
 	}
 }

@@ -31,6 +31,7 @@
 struct View3D;
 struct ARegion;
 struct EditMesh;
+struct bContext;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -61,10 +62,19 @@ typedef struct ViewContext {
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct EditMesh *em;
+	short mval[2];
 } ViewContext;
 
+/* meshtools.c */
+
+intptr_t	mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode);
 
 /* editmesh.c */
+void		make_editMesh(Scene *scene, Object *ob);
+void		load_editMesh(Scene *scene, Object *ob);
+void		remake_editMesh(Scene *scene, Object *ob);
+void		free_editMesh(EditMesh *em);
+
 
 void		EM_init_index_arrays(struct EditMesh *em, int forVert, int forEdge, int forFace);
 void		EM_free_index_arrays(void);
@@ -84,12 +94,17 @@ void		EM_select_edge(EditEdge *eed, int sel);
 void		EM_select_face_fgon(struct EditMesh *em, EditFace *efa, int val);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
-
+			
+			/* exported to transform */
+int			EM_get_actSelection(EditMesh *em, EditSelection *ese);
+void		EM_editselection_normal(float *normal, EditSelection *ese);
+void		EM_editselection_plane(float *plane, EditSelection *ese);
 
 
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
+void		mouse_mesh(struct bContext *C, short mval[2]);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct View3D *v3d, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);

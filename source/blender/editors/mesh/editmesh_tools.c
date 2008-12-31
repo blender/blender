@@ -3757,7 +3757,7 @@ void bevel_menu(EditMesh *em)
 		BIF_undo_push("Pre-Bevel");
 		free_editMesh(em);
 		BME_bevel(bm,0.1f,res,options,0,0,&td);
-		BME_bmesh_to_editmesh(bm, td);
+		BME_bmesh_to_editmesh(bm, td, em);
 		EM_selectmode_flush(em);
 		G.editBMesh->bm = bm;
 		G.editBMesh->td = td;

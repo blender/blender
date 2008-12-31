@@ -1207,7 +1207,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
 	data.func = func;
@@ -1251,7 +1251,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
@@ -1283,7 +1283,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
@@ -2353,9 +2353,9 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
 static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 {
-	EditMesh *em= NULL;		// XXX
 	Object *ob= base->object;
 	Mesh *me= ob->data;
+	EditMesh *em= me->edit_mesh;
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha;
 	
 	if(G.obedit && ob!=G.obedit && ob->data==G.obedit->data) {
@@ -2367,9 +2367,9 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 		DerivedMesh *finalDM, *cageDM;
 		
 		if (G.obedit!=ob)
-			finalDM = cageDM = editmesh_get_derived_base();
+			finalDM = cageDM = editmesh_get_derived_base(em);
 		else
-			cageDM = editmesh_get_derived_cage_and_final(&finalDM,
+			cageDM = editmesh_get_derived_cage_and_final(em, &finalDM,
 			                                get_viewedit_datamask());
 
 		if(dt>OB_WIRE) {
@@ -5374,7 +5374,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, EditMesh *em, Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
-			DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+			DerivedMesh *dm = editmesh_get_derived_cage(em, CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(em, 1, 1, 1);
 
@@ -5414,11 +5414,12 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, EditMesh *em, Object *ob)
 /* helper function for drawing object instances - meshes */
 static void draw_object_mesh_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline)
 {
+	Mesh *me= ob->data;
 	DerivedMesh *dm=NULL, *edm=NULL;
 	int glsl;
 	
-	if(G.obedit && ob->data==G.obedit->data)
-		edm= editmesh_get_derived_base();
+	if(me->edit_mesh)
+		edm= editmesh_get_derived_base(me->edit_mesh);
 	else 
 		dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 

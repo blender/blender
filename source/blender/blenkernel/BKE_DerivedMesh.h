@@ -443,14 +443,14 @@ DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
 
-DerivedMesh *editmesh_get_derived_base(void);
-DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_base(struct EditMesh *em);
+DerivedMesh *editmesh_get_derived_cage(struct EditMesh *em, CustomDataMask dataMask);
+DerivedMesh *editmesh_get_derived_cage_and_final(struct EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
-int editmesh_get_first_deform_matrices(float (**deformmats)[3][3],
+int editmesh_get_first_deform_matrices(struct EditMesh *em, float (**deformmats)[3][3],
                                        float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);

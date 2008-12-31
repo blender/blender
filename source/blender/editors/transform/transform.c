@@ -79,6 +79,7 @@
 #include "BKE_action.h" /* get_action_frame */
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
+#include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_particle.h"
@@ -94,6 +95,7 @@
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "UI_view2d.h"
 #include "WM_types.h"
 
@@ -1077,7 +1079,7 @@ void transformApply(TransInfo *t)
 	}
 }
 
-int transformEnd(TransInfo *t)
+int transformEnd(bContext *C, TransInfo *t)
 {
 	if (t->state != TRANS_RUNNING)
 	{
@@ -1095,16 +1097,16 @@ int transformEnd(TransInfo *t)
 		viewRedrawPost(t);
 	
 		/*  Undo as last, certainly after special_trans_update! */
-#if 0 // TRANSFORM_FIX_ME		
+
 		if(t->state == TRANS_CANCEL) {
-			if(t->undostr) BIF_undo_push(t->undostr);
+			if(t->undostr) ED_undo_push(C, t->undostr);
 		}
 		else {
-			if(t->undostr) BIF_undo_push(t->undostr);
-			else BIF_undo_push(transform_to_undostr(t));
+			if(t->undostr) ED_undo_push(C, t->undostr);
+			else ED_undo_push(C, transform_to_undostr(t));
 		}
 		t->undostr= NULL;
-#endif
+
 		return 1;
 	}
 	t->event = NULL;

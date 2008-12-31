@@ -550,8 +550,8 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 	/* draw the textured mesh */
 	draw_textured_begin(scene, v3d, ob);
 
-	if(ob==G.obedit) {
-		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, G.editMesh);
+	if(me->edit_mesh) {
+		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {
 		if(G.f & G_WEIGHTPAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);

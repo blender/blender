@@ -236,7 +236,7 @@ int calc_manipulator_stats(ScrArea *sa)
 		if((ob->lay & G.vd->lay)==0) return 0;
 
 		if(G.obedit->type==OB_MESH) {
-			EditMesh *em = G.editMesh;
+			EditMesh *em = NULL; // TRANSFORM_FIX_ME
 			EditVert *eve;
 			EditSelection ese;
 			float vec[3]= {0,0,0};

@@ -31,18 +31,52 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 
+#include "ED_mesh.h"
 #include "ED_util.h"
 
 #include "UI_text.h"
 
 /* ********* general editor util funcs, not BKE stuff please! ********* */
+
+void ED_editors_exit(bContext *C)
+{
+	if(CTX_data_edit_object(C)) {
+		Object *ob= CTX_data_edit_object(C);
+		
+		if(ob->type==OB_MESH) {
+			Mesh *me= ob->data;
+			if(me->edit_mesh) {
+				free_editMesh(me->edit_mesh);
+				MEM_freeN(me->edit_mesh);
+				me->edit_mesh= NULL;
+			}
+		}
+		if(ob->type==OB_FONT) {
+			//			free_editText();
+		}
+		//		else if(ob->type==OB_MBALL) 
+		//			BLI_freelistN(&editelems);
+	}
+	
+	//	free_editLatt();
+	//	free_editArmature();
+	//	free_posebuf();
+	
+}
+
+
 /* ***** XXX: functions are using old blender names, cleanup later ***** */
 
 

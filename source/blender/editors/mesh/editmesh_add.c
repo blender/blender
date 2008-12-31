@@ -767,13 +767,9 @@ void adduplicate_mesh(EditMesh *em)
 
 /* check whether an object to add mesh to exists, if not, create one
 * returns 1 if new object created, else 0 */
-static int confirm_objectExists(EditMesh *em, Mesh **me, float mat[][3] )
+static int confirm_objectExists(Scene *scene, Mesh **me, float mat[][3] )
 {
-	Scene *scene= NULL; // XXX
 	int newob = 0;
-	
-	/* deselectall */
-	EM_clear_flag_all(em, SELECT);
 	
 	/* if no obedit: new object and enter editmode */
 	if(G.obedit==NULL) {
@@ -787,10 +783,13 @@ static int confirm_objectExists(EditMesh *em, Mesh **me, float mat[][3] )
 		
 		where_is_object(G.obedit);
 		
-		make_editMesh(NULL, em); // XXX
+		make_editMesh(scene, G.obedit); 
 		newob= 1;
 	}
 	*me = G.obedit->data;
+	
+	/* deselectall */
+	EM_clear_flag_all((*me)->edit_mesh, SELECT);
 	
 	/* imat and center and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
@@ -1273,7 +1272,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		tot= 4;
 		ext= 0;
 		fill= 1;
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Plane";
 		undostr="Add Plane";
 		break;
@@ -1281,7 +1280,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		tot= 4;
 		ext= 1;
 		fill= 1;
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Cube";
 		undostr="Add Cube";
 		break;
@@ -1292,7 +1291,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		if (!(do_clever_numbuts("Add Circle", 3, 0))) return;
 		ext= 0;
 		fill = fill_circle;
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Circle";
 		undostr="Add Circle";
 		break;
@@ -1306,7 +1305,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		ext= 1;
 		fill = fill_cylinder;
 		d/=2;
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) {
 			if (fill)	name = "Cylinder";
 			else		name = "Tube";
@@ -1323,7 +1322,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		d/=2;
 		ext= 0;
 		fill = fill_cone;
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Cone";
 		undostr="Add Cone";
 		break;
@@ -1331,7 +1330,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		add_numbut(0, NUM|INT, "X res:", 3, 1000, &tot, NULL);
 		add_numbut(1, NUM|INT, "Y res:", 3, 1000, &seg, NULL);
 		if (!(do_clever_numbuts("Add Grid", 2, 0))) return; 
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Grid";
 		undostr="Add Grid";
 		break;
@@ -1342,7 +1341,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		
 		if (!(do_clever_numbuts("Add UV Sphere", 3, 0))) return;
 		
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add UV Sphere";
 		break;
@@ -1351,17 +1350,17 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*v3d->grid, 100*v3d->grid, &dia, NULL);
 		if (!(do_clever_numbuts("Add Ico Sphere", 2, 0))) return;
 		
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add Ico Sphere";
 		break;
 	case 13:	/* Monkey */
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		if(newob) name = "Suzanne";
 		undostr="Add Monkey";
 		break;
 	default:
-		newob = confirm_objectExists(em, &me, mat );
+		newob = confirm_objectExists(scene, &me, mat );
 		break;
 	}
 
@@ -1403,7 +1402,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 	
 	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
 	if ( !(newob) || U.flag & USER_ADD_EDITMODE) {
-		if(newob) load_editMesh(scene, em);
+		if(newob) load_editMesh(scene, G.obedit);
 	} else {
 		exit_editmode(2);
 	}

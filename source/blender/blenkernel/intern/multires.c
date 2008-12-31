@@ -274,7 +274,7 @@ static void multires_col_avg2(MultiresCol *avg, MultiresCol *c1, MultiresCol *c2
 void multires_load_cols(Mesh *me)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *cur;
-	EditMesh *em= G.obedit ? G.editMesh : NULL;
+	EditMesh *em= me->edit_mesh;
 	CustomData *src= em ? &em->fdata : &me->fdata;
 	EditFace *efa= NULL;
 	unsigned i,j;
@@ -346,7 +346,7 @@ void multires_load_cols(Mesh *me)
 void multires_create(Object *ob, Mesh *me)
 {
 	MultiresLevel *lvl;
-	EditMesh *em= G.obedit ? G.editMesh : NULL;
+	EditMesh *em= me->edit_mesh;
 	EditVert *eve= NULL;
 	EditFace *efa= NULL;
 	EditEdge *eed= NULL;
@@ -954,7 +954,7 @@ static void multires_update_colors(Mesh *me, EditMesh *em)
 
 void multires_update_levels(Mesh *me, const int render)
 {
-	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
+	EditMesh *em= render ? NULL : me->edit_mesh;
 
 	multires_update_first_level(me, em);
 	multires_update_vertices(me, em);
@@ -964,7 +964,7 @@ void multires_update_levels(Mesh *me, const int render)
 
 static void check_colors(Mesh *me)
 {
-	CustomData *src= G.obedit ? &G.editMesh->fdata : &me->fdata;
+	CustomData *src= me->edit_mesh ? &me->edit_mesh->fdata : &me->fdata;
 	const char col= CustomData_has_layer(src, CD_MCOL);
 
 	/* Check if vertex colors have been deleted or added */
@@ -1014,8 +1014,8 @@ void multires_to_mcol(MultiresColFace *f, MCol mcol[4])
 void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
+	EditMesh *em= render ? NULL : me->edit_mesh;
 	int i;
-	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
 	
 	if(em)
 		return;

@@ -117,6 +117,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
+				case ND_OB_EDIT:
 				case ND_OB_SELECT:
 					ED_region_tag_redraw(ar);
 					break;

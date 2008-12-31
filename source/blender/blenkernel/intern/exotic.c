@@ -2577,8 +2577,8 @@ void write_stl(char *str)
 
 static void write_videoscape_mesh(Object *ob, char *str)
 {
-	EditMesh *em = G.editMesh;
 	Mesh *me;
+	EditMesh *em = me->edit_mesh;
 	Material *ma;
 	MFace *mface;
 	FILE *fp;

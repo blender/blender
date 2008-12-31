@@ -185,15 +185,10 @@ void free_blender(void)
 	free_nodesystem();	
 }
 
-static EditMesh theEditMesh;
-
 void initglobals(void)
 {
 	memset(&G, 0, sizeof(Global));
 	
-	memset(&theEditMesh, 0, sizeof(theEditMesh));
-	G.editMesh = &theEditMesh;
-
 	U.savetime= 1;
 
 	G.main= MEM_callocN(sizeof(Main), "initglobals");
@@ -228,10 +223,7 @@ static void clear_global(void)
 	free_main(G.main);			/* free all lib data */
 	
 	if (G.obedit) {
-//		freeNurblist(&editNurb);
-//		free_editMesh(G.editMesh);
 //		free_editText();
-//		free_editArmature();
 	}
 //	free_vertexpaint();
 

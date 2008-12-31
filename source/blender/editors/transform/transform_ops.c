@@ -67,7 +67,7 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	transformApply(t);
 	
-	if (transformEnd(t))
+	if (transformEnd(C, t))
 	{
 		transformops_exit(C, op);
 		return OPERATOR_FINISHED;
@@ -84,7 +84,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 	
 	transformApply(t);
 	
-	transformEnd(t);
+	transformEnd(C, t);
 
 	ED_region_tag_redraw(CTX_wm_region(C));
 

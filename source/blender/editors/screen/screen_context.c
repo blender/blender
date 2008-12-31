@@ -67,7 +67,14 @@ int ed_screen_context(const bContext *C, const bContextDataMember *member, bCont
 
 		return 1;
 	}
-
+	else if(member == CTX_data_edit_object) {
+		/* convenience for now, 1 object per scene in editmode */
+		if(scene->obedit)
+			CTX_data_pointer_set(result, scene->obedit);
+		
+		return 1;
+	}
+	
 	return 0;
 }
 

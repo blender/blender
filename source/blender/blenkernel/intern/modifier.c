@@ -7553,20 +7553,21 @@ static void meshdeformModifier_do(
       float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
-	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
-	int a, b, totvert, totcagevert, defgrp_index;
+	Mesh *me= ob->data;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;
 	MDeformWeight *dw;
 	MVert *cagemvert;
-
+	float imat[4][4], cagemat[4][4], iobmat[4][4], icagemat[3][3], cmat[4][4];
+	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
+	int a, b, totvert, totcagevert, defgrp_index;
+	
 	if(!mmd->object || (!mmd->bindcos && !mmd->needbind))
 		return;
 	
 	/* get cage derivedmesh */
-	if(mmd->object == G.obedit) {
-		tmpdm= editmesh_get_derived_cage_and_final(&cagedm, 0);
+	if(me->edit_mesh) {
+		tmpdm= editmesh_get_derived_cage_and_final(me->edit_mesh, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
 	}

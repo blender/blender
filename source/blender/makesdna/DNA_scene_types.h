@@ -517,6 +517,7 @@ typedef struct Scene {
 	
 	ListBase base;
 	struct Base *basact;
+	struct Object *obedit;		/* name replaces old G.obedit */
 	
 	float cursor[3];
 	float twcent[3];			/* center for transform widget */

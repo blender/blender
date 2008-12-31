@@ -434,28 +434,27 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float par_space_mat[][4], int level, int animated)
 {
 	Object *ob, *ob_iter;
-	Mesh *me;
+	Mesh *me= par->data;
 	Base *base = NULL;
-	float vec[3], no[3], pmat[4][4];
-	int lay, totvert, a, oblay;
 	DerivedMesh *dm;
 	struct vertexDupliData vdd;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
+	float vec[3], no[3], pmat[4][4];
+	int lay, totvert, a, oblay;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
 	/* simple preventing of too deep nested groups */
 	if(level>MAX_DUPLI_RECUR) return;
 
-	if(par==G.obedit)
-		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	if(me->edit_mesh)
+		dm= editmesh_get_derived_cage(me->edit_mesh, CD_MASK_BAREMESH);
 	else
 		dm= mesh_get_derived_deform(par, CD_MASK_BAREMESH);
 
 	if(G.rendering) {
-		me= par->data;
 		vdd.orco= (float(*)[3])get_mesh_orco_verts(par);
 		transform_mesh_orco_verts(me, vdd.orco, me->totvert, 0);
 	}
@@ -544,7 +543,7 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	Base *base = NULL;
 	DupliObject *dob;
 	DerivedMesh *dm;
-	Mesh *me;
+	Mesh *me= par->data;
 	MTFace *mtface;
 	MFace *mface;
 	MVert *mvert;
@@ -560,9 +559,10 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	
 	Mat4CpyMat4(pmat, par->obmat);
 
-	if(par==G.obedit) {
+	if(me->edit_mesh) {
 		int totvert;
-		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
+		
+		dm= editmesh_get_derived_cage(me->edit_mesh, CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -580,7 +580,6 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	}
 
 	if(G.rendering) {
-		me= (Mesh*)par->data;
 
 		orco= (float(*)[3])get_mesh_orco_verts(par);
 		transform_mesh_orco_verts(me, orco, me->totvert, 0);

@@ -138,8 +138,10 @@ typedef struct Curve {
 	
 	struct BoundBox *bb;
 	
-	ListBase nurb;
+	ListBase nurb;		/* actual data */
+	ListBase editlist;	/* edited data, not in file */
 	ListBase disp;
+	
 	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo;
 	Path *path;

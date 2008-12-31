@@ -343,26 +343,22 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	BME_model_end(bm);
 	return bm;
 }
-/* adds the geometry in the bmesh to G.editMesh (does not free G.editMesh)
+/* adds the geometry in the bmesh to editMesh (does not free editMesh)
  * if td != NULL, the transdata will be mapped to the EditVert's co */
-EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
+void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 	BME_Vert *v1;
 	BME_Edge *e;
 	BME_Poly *f;
 	
 	BME_TransData *vtd;
 
-	EditMesh *em;
 	EditVert *eve1, *eve2, *eve3, *eve4, **evlist;
 	EditEdge *eed;
 	EditFace *efa;
 
 	int totvert, len, i, numTex, numCol;
 
-	em = G.editMesh;
-
-	if (em == NULL) return NULL;
-
+	if (em == NULL) return;
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -438,9 +434,6 @@ EditMesh *BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td) {
 
 	MEM_freeN(evlist);
 
-	//XXX countall();
-
-	return em;
 }
 
 /* Adds the geometry found in dm to bm

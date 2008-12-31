@@ -33,6 +33,10 @@ struct bContext;
 struct uiMenuBlockHandle;
 struct uiBlock;
 
+/* ed_util.c */
+
+void	ED_editors_exit			(struct bContext *C);
+
 /* ************** Undo ************************ */
 
 /* undo.c */

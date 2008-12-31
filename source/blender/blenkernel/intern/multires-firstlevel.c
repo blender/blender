@@ -83,16 +83,16 @@ void multires_update_customdata(MultiresLevel *lvl1, EditMesh *em, CustomData *s
 		
 		if(CustomData_has_layer(src, type)) {
 			if(em) {
-				EditVert *eve= G.editMesh->verts.first;
-				EditFace *efa= G.editMesh->faces.first;
+				EditVert *eve= em->verts.first;
+				EditFace *efa= em->faces.first;
 				CustomData_copy(src, dst, cdmask(type), CD_CALLOC, tot);
 				for(i=0; i<tot; ++i) {
 					if(type == CD_MDEFORMVERT) {
-						CustomData_from_em_block(&G.editMesh->vdata, dst, eve->data, i);
+						CustomData_from_em_block(&em->vdata, dst, eve->data, i);
 						eve= eve->next;
 					}
 					else if(type == CD_MTFACE) {
-						CustomData_from_em_block(&G.editMesh->fdata, dst, efa->data, i);
+						CustomData_from_em_block(&em->fdata, dst, efa->data, i);
 						efa= efa->next;
 					}
 				}

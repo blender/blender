@@ -396,6 +396,8 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		}
 	}
 	
+	ED_editors_exit(C);
+	
 return;	
 	if(wm==NULL) return;
 	if(G.fileflags & G_FILE_NO_UI) return;
@@ -517,6 +519,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		ListBase wmbase;
 
 		/* put aside screens to match with persistant windows later */
+		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
 		
 		retval= BKE_read_file(C, name, NULL, reports);

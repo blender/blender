@@ -152,6 +152,7 @@ typedef struct wmNotifier {
 #define	ND_SEQUENCER		(6<<16)
 #define ND_OB_ACTIVE		(7<<16)
 #define ND_OB_SELECT		(8<<16)
+#define ND_OB_EDIT			(9<<16)
 
 	/* Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -159,6 +160,7 @@ typedef struct wmNotifier {
 #define ND_POSE				(18<<16)
 #define ND_BONE_ACTIVE		(19<<16)
 #define ND_BONE_SELECT		(20<<16)
+#define ND_GEOM_SELECT		(21<<16)
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00
