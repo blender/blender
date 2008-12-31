@@ -678,7 +678,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;
-	if (obedit->type==OB_MESH)
+	if (obedit && obedit->type==OB_MESH)
 		t->em = ((Mesh *)obedit->data)->edit_mesh;
 
 	t->data = NULL;
