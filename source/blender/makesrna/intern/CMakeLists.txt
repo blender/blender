@@ -59,6 +59,7 @@ SET(SRC
      rna_sensor.c
      rna_sequence.c
      rna_sound.c
+     rna_text.c
      rna_vfont.c
      rna_wm.c
      rna_world.c
