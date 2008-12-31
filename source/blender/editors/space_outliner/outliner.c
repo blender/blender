@@ -1188,7 +1188,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 {
 	Base *base;
 	Object *ob;
-	TreeElement *te, *ten;
+	TreeElement *te=NULL, *ten;
 	TreeStoreElem *tselem;
 	int show_opened= soops->treestore==NULL; /* on first view, we open scenes */
 
@@ -3239,7 +3239,80 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				break;
 			case TSE_SEQUENCE_DUP:
 				UI_icon_draw(x, y, ICON_OBJECT);
-				break;			
+				break;
+			case TSE_RNA_STRUCT:
+				{
+				PointerRNA *ptr= &te->rnaptr;		
+				const char *ident = RNA_struct_identifier(ptr);
+				
+				if (strcmp(ident, "Scene") == 0)
+					UI_icon_draw(x, y, ICON_SCENE_DEHLT);
+				else if (strcmp(ident, "World") == 0)
+					UI_icon_draw(x, y, ICON_WORLD);
+				else if (strcmp(ident, "Object") == 0)
+					UI_icon_draw(x, y, ICON_OBJECT);
+				else if (strcmp(ident, "Mesh") == 0)
+					UI_icon_draw(x, y, ICON_MESH);
+				else if (strcmp(ident, "MVert") == 0)
+					UI_icon_draw(x, y, ICON_VERTEXSEL);
+				else if (strcmp(ident, "MEdge") == 0)
+					UI_icon_draw(x, y, ICON_EDGESEL);
+				else if (strcmp(ident, "MFace") == 0)
+					UI_icon_draw(x, y, ICON_FACESEL);
+				else if (strcmp(ident, "MTFace") == 0)
+					UI_icon_draw(x, y, ICON_FACESEL_HLT);
+				else if (strcmp(ident, "MVertGroup") == 0)
+					UI_icon_draw(x, y, ICON_VGROUP);
+				else if (strcmp(ident, "Curve") == 0)
+					UI_icon_draw(x, y, ICON_CURVE);
+				else if (strcmp(ident, "MetaBall") == 0)
+					UI_icon_draw(x, y, ICON_MBALL);
+				else if (strcmp(ident, "MetaElement") == 0)
+					UI_icon_draw(x, y, ICON_OUTLINER_DATA_META);
+				else if (strcmp(ident, "Lattice") == 0)
+					UI_icon_draw(x, y, ICON_LATTICE);
+				else if (strcmp(ident, "Armature") == 0)
+					UI_icon_draw(x, y, ICON_ARMATURE);
+				else if (strcmp(ident, "Bone") == 0)
+					UI_icon_draw(x, y, ICON_BONE_DEHLT);
+				else if (strcmp(ident, "Camera") == 0)
+					UI_icon_draw(x, y, ICON_CAMERA);
+				else if (strcmp(ident, "Lamp") == 0)
+					UI_icon_draw(x, y, ICON_LAMP);
+				else if (strcmp(ident, "Group") == 0)
+					UI_icon_draw(x, y, ICON_GROUP);
+				else if (strcmp(ident, "Particle") == 0)
+					UI_icon_draw(x, y, ICON_PARTICLES);
+				else if (strcmp(ident, "Material") == 0)
+					UI_icon_draw(x, y, ICON_MATERIAL);
+				else if (strcmp(ident, "Texture") == 0)
+					UI_icon_draw(x, y, ICON_TEXTURE);
+				else if (strcmp(ident, "Image") == 0)
+					UI_icon_draw(x, y, ICON_TEXTURE);
+				else if (strcmp(ident, "Screen") == 0)
+					UI_icon_draw(x, y, ICON_SPLITSCREEN);
+				else if (strcmp(ident, "NodeTree") == 0)
+					UI_icon_draw(x, y, ICON_NODE);
+				else if (strcmp(ident, "Text") == 0)
+					UI_icon_draw(x, y, ICON_TEXT);
+				else if (strcmp(ident, "Sound") == 0)
+					UI_icon_draw(x, y, ICON_SOUND);
+				else if (strcmp(ident, "Brush") == 0)
+					UI_icon_draw(x, y, ICON_TPAINT_HLT);
+				else if (strcmp(ident, "Library") == 0)
+					UI_icon_draw(x, y, ICON_LIBRARY_DEHLT);
+				else if (strcmp(ident, "Action") == 0)
+					UI_icon_draw(x, y, ICON_ACTION);
+				else if (strcmp(ident, "Ipo") == 0)
+					UI_icon_draw(x, y, ICON_IPO_DEHLT);
+				else if (strcmp(ident, "Key") == 0)
+					UI_icon_draw(x, y, ICON_SHAPEKEY);
+				else if (strcmp(ident, "Main") == 0)
+					UI_icon_draw(x, y, ICON_BLENDER);
+				else
+					UI_icon_draw(x, y, ICON_RNA);
+				}
+				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
 		}
@@ -3270,16 +3343,14 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
 				UI_icon_draw(x, y, ICON_SCENE_DEHLT); break;
-			//case ID_OB:
-			//	UI_icon_draw(x, y, ICON_OBJECT); break;
 			case ID_ME:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_MESH); break;
 			case ID_CU:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CURVE); break;
 			case ID_MB:
-				UI_icon_draw(x, y, ICON_MBALL); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_META); break;
 			case ID_LT:
-				UI_icon_draw(x, y, ICON_LATTICE); break;
+				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LATTICE); break;
 			case ID_LA:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
 			case ID_MA:
@@ -3297,7 +3368,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_CA:
 				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CAMERA); break;
 			case ID_KE:
-				UI_icon_draw(x, y, ICON_EDIT_DEHLT); break;
+				UI_icon_draw(x, y, ICON_SHAPEKEY); break;
 			case ID_WO:
 				UI_icon_draw(x, y, ICON_WORLD_DEHLT); break;
 			case ID_AC:
@@ -3307,7 +3378,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_TXT:
 				UI_icon_draw(x, y, ICON_SCRIPT); break;
 			case ID_GR:
-				UI_icon_draw(x, y, ICON_CIRCLE_DEHLT); break;
+				UI_icon_draw(x, y, ICON_GROUP); break;
 			case ID_LI:
 				UI_icon_draw(x, y, ICON_LIBRARY_DEHLT); break;
 		}
@@ -3973,7 +4044,7 @@ static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 
 static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
 {
-	uiBut *but;
+	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(ptr, prop);
 	int arraylen= RNA_property_array_length(ptr, prop);
 
