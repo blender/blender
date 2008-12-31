@@ -29,6 +29,7 @@ SETUP_LIBDIRS()
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
   ../blender/blenkernel
+  ../blender/editors/include
   ../blender/nodes
   ../blender/include
   ../blender/blenloader
