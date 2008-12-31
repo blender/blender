@@ -41,6 +41,7 @@
 #include "WM_types.h"
 
 #include "ED_markers.h"
+#include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -1502,6 +1503,8 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_animation_play);
 	
 	/* tools shared by more space types */
+	WM_operatortype_append(ED_OT_undo);
+	WM_operatortype_append(ED_OT_redo);
 	ED_marker_operatortypes();	
 	
 }
@@ -1536,7 +1539,13 @@ void ED_keymap_screen(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
-	
+
+	/* undo */
+	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ED_OT_redo", ZKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+						  
 	/* screen level global keymaps */
 	// err...
 	ED_marker_keymap(wm);

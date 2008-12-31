@@ -4046,11 +4046,26 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 /* called from kernel/blender.c */
 /* used to link a file (without UI) to the current UI */
 /* note that it assumes the old pointers in UI are still valid, so old Main is not freed */
-void lib_link_screen_restore(Main *newmain, Scene *curscene)
+void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 {
+	wmWindow *win;
+	wmWindowManager *wm;
 	bScreen *sc;
 	ScrArea *sa;
 
+	/* first windowmanager */
+	for(wm= newmain->wm.first; wm; wm= wm->id.next) {
+		for(win= wm->windows.first; win; win= win->next) {
+			win->screen= restore_pointer_by_name(newmain, (ID *)win->screen, 1);
+			
+			if(win->screen==NULL)
+				win->screen= curscreen;
+
+			win->screen->winid= win->winid;
+		}
+	}
+	
+	
 	for(sc= newmain->screen.first; sc; sc= sc->id.next) {
 		
 		sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);

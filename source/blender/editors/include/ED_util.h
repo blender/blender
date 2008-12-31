@@ -32,6 +32,7 @@ struct Object;
 struct bContext;
 struct uiMenuBlockHandle;
 struct uiBlock;
+struct wmOperatorType;
 
 /* ed_util.c */
 
@@ -40,10 +41,9 @@ void	ED_editors_exit			(struct bContext *C);
 /* ************** Undo ************************ */
 
 /* undo.c */
-void	ED_redo					(struct bContext *C);
-void	ED_undo					(struct bContext *C);
 void	ED_undo_push			(struct bContext *C, char *str);
-void	ED_undo_menu			(struct bContext *C);
+void	ED_OT_undo				(struct wmOperatorType *ot);
+void	ED_OT_redo				(struct wmOperatorType *ot);
 
 /* undo_editmode.c */
 void	undo_editmode_push			(char *name, void (*freedata)(void *), 

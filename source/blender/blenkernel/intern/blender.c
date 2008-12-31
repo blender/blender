@@ -301,8 +301,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* no load screens? */
 	if(mode) {
 		/* comes from readfile.c */
-		extern void lib_link_screen_restore(Main *, Scene *);
+		extern void lib_link_screen_restore(Main *, bScreen *, Scene *);
 		
+		SWAP(ListBase, G.main->wm, bfd->main->wm);
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		SWAP(ListBase, G.main->script, bfd->main->script);
 		
@@ -315,7 +316,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		curscreen->scene= curscene;
 
 		/* clear_global will free G.main, here we can still restore pointers */
-		lib_link_screen_restore(bfd->main, curscene);
+		lib_link_screen_restore(bfd->main, curscreen, curscene);
 	}
 	
 	/* free G.main Main database */

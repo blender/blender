@@ -54,8 +54,12 @@
 
 #include "BKE_utildefines.h"
 
-#include "ED_util.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
+#include "ED_util.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -117,7 +121,7 @@ static void undo_do(bContext *C)
 	
 }
 
-void ED_undo(bContext *C)
+static int ed_undo_exec(bContext *C, wmOperator *op)
 {	
 	ScrArea *sa= CTX_wm_area(C);
 	
@@ -141,15 +145,19 @@ void ED_undo(bContext *C)
 			undo_do(C);
 		}
 	}
+	
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+	return OPERATOR_FINISHED;
 }
 
-void ED_redo(bContext *C)
+static int ed_redo_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	
 	if(G.obedit) {
-		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-			undo_editmode_step(-1);
+		//if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
+		//	undo_editmode_step(-1);
 	}
 	else {
 		if(G.f & G_TEXTUREPAINT)
@@ -173,13 +181,16 @@ void ED_redo(bContext *C)
 			}
 		}
 	}
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	return OPERATOR_FINISHED;
+
 }
 
 void ED_undo_menu(bContext *C)
 {
 	if(G.obedit) {
-		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-			undo_editmode_menu();
+		//if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
+		//	undo_editmode_menu();
 	}
 	else {
 		if(G.f & G_PARTICLEEDIT)
@@ -197,4 +208,29 @@ void ED_undo_menu(bContext *C)
 		}
 	}
 }
+
+/* ********************** */
+
+void ED_OT_undo(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Undo";
+	ot->idname= "ED_OT_undo";
+	
+	/* api callbacks */
+	ot->exec= ed_undo_exec;
+	ot->poll= ED_operator_screenactive;
+}
+
+void ED_OT_redo(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Redo";
+	ot->idname= "ED_OT_redo";
+	
+	/* api callbacks */
+	ot->exec= ed_redo_exec;
+	ot->poll= ED_operator_screenactive;
+}
+
 
