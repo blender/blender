@@ -104,7 +104,7 @@ void		EM_editselection_plane(float *plane, EditSelection *ese);
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
-void		mouse_mesh(struct bContext *C, short mval[2]);
+void		mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct View3D *v3d, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);

@@ -2174,13 +2174,13 @@ static void mouse_mesh_loop(ViewContext *vc)
 
 
 /* here actual select happens */
-void mouse_mesh(bContext *C, short mval[2])
+void mouse_mesh(bContext *C, short mval[2], short extend)
 {
 	ViewContext vc;
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	int shift= 0, alt= 0; // XXX
+	int  alt= 0; // XXX
 	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
@@ -2190,7 +2190,7 @@ void mouse_mesh(bContext *C, short mval[2])
 	if(alt) mouse_mesh_loop(&vc);
 	else if(unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
-		if((shift)==0) EM_clear_flag_all(vc.em, SELECT);
+		if(extend==0) EM_clear_flag_all(vc.em, SELECT);
 		
 		if(efa) {
 			/* set the last selected face */
@@ -2200,7 +2200,7 @@ void mouse_mesh(bContext *C, short mval[2])
 				EM_store_selection(vc.em, efa, EDITFACE);
 				EM_select_face_fgon(vc.em, efa, 1);
 			}
-			else if(shift) {
+			else if(extend) {
 				EM_remove_selection(vc.em, efa, EDITFACE);
 				EM_select_face_fgon(vc.em, efa, 0);
 			}
@@ -2210,7 +2210,7 @@ void mouse_mesh(bContext *C, short mval[2])
 				EM_store_selection(vc.em, eed, EDITEDGE);
 				EM_select_edge(eed, 1);
 			}
-			else if(shift) {
+			else if(extend) {
 				EM_remove_selection(vc.em, eed, EDITEDGE);
 				EM_select_edge(eed, 0);
 			}
@@ -2220,7 +2220,7 @@ void mouse_mesh(bContext *C, short mval[2])
 				eve->f |= SELECT;
 				EM_store_selection(vc.em, eve, EDITVERT);
 			}
-			else if(shift){ 
+			else if(extend){ 
 				EM_remove_selection(vc.em, eve, EDITVERT);
 				eve->f &= ~SELECT;
 			}

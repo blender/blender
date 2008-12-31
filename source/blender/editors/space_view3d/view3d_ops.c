@@ -70,7 +70,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_viewnumpad);
 	WM_operatortype_append(VIEW3D_OT_viewcenter);
 	WM_operatortype_append(VIEW3D_OT_select);
-	WM_operatortype_append(VIEW3D_OT_select_extend);
 	WM_operatortype_append(VIEW3D_OT_borderselect);
 	WM_operatortype_append(VIEW3D_OT_clipping);
 	WM_operatortype_append(VIEW3D_OT_circle_select);
@@ -122,13 +121,9 @@ void view3d_keymap(wmWindowManager *wm)
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
-	
-	/* select extend*/	
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", KM_SHIFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "modifier", KM_CTRL);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "modifier", KM_ALT);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);

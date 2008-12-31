@@ -835,8 +835,9 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	return 0;
 }
 
+
 /* mval is region coords */
-static void mouse_select(bContext *C, short *mval, short modifier)
+static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 {
 	ViewContext vc;
 	ARegion *ar= CTX_wm_region(C);
@@ -859,10 +860,12 @@ static void mouse_select(bContext *C, short *mval, short modifier)
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather then its contents */
-	if(G.obedit==0 && modifier == KM_CTRL) {
+	/* XXX later on, in editmode do not activate */
+	if(G.obedit==NULL && obcenter) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
-		if(modifier == KM_ALT && modifier == KM_CTRL) 
+		/* XXX solve */
+		if(0) 
 			basact= mouse_select_menu(&vc, NULL, 0, mval);
 		else {
 			base= startbase;
@@ -896,7 +899,7 @@ static void mouse_select(bContext *C, short *mval, short modifier)
 			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
 
 			/* note; shift+alt goes to group-flush-selecting */
-			if(has_bones==0 && (modifier == KM_ALT)) 
+			if(has_bones==0 && 0) 
 				basact= mouse_select_menu(&vc, buffer, hits, mval);
 			else {
 				static short lastmval[2]={-100, -100};
@@ -1023,11 +1026,11 @@ static void mouse_select(bContext *C, short *mval, short modifier)
 			oldbasact= BASACT;
 			BASACT= basact;
 			
-			if(modifier != KM_SHIFT) {
+			if(!extend) {
 				deselectall_except(scene, basact);
 				ED_base_object_select(basact, BA_SELECT);
 			}
-			else if(modifier == KM_CTRL && modifier == KM_ALT) {
+			else if(0) {
 				// XXX select_all_from_groups(basact);
 			}
 			else {
@@ -1442,10 +1445,17 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 
 /* ****** Mouse Select ****** */
 
+static EnumPropertyItem prop_select_types[] = {
+	{0, "EXCLUSIVE", "Exclusive", ""},
+	{1, "EXTEND", "Extend", ""},
+	{0, NULL, NULL, NULL}
+};
+
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	Object *obedit= CTX_data_edit_object(C);
+	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
 	short mval[2];	
 	
 	mval[0]= event->x - ar->winrct.xmin;
@@ -1455,16 +1465,17 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH)
-			mouse_mesh(C, mval);
+			mouse_mesh(C, mval, extend);
 	}
 	else 
-		mouse_select(C, mval, 0);
+		mouse_select(C, mval, extend, 0);
 	
 	return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name= "Activate/Select";
@@ -1474,46 +1485,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->invoke= view3d_select_invoke;
 	ot->poll= ED_operator_view3d_active;
 
-}
-static EnumPropertyItem prop_select_extend_types[] = {
-	{KM_SHIFT, "SHIFT", "Shift", ""},
-	{KM_CTRL, "CTRL", "Ctrl", ""},
-	{KM_ALT, "ALT", "Alt", ""},
-	{0, NULL, NULL, NULL}
-};
-
-static int view3d_select_extend_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ARegion *ar= CTX_wm_region(C);
-	short mval[2], modifier;	
-	
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-
-	modifier = RNA_enum_get(op->ptr, "modifier");
-	
-	view3d_operator_needs_opengl(C);	
-	
-	mouse_select(C, mval, modifier);
-	
-	return OPERATOR_FINISHED;
-}
-
-void VIEW3D_OT_select_extend(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	
-	/* identifiers */
-	ot->name= "Activate/Select Extend";
-	ot->idname= "VIEW3D_OT_select_extend";
-	
-	/* api callbacks */
-	ot->invoke= view3d_select_extend_invoke;
-	ot->poll= ED_operator_view3d_active;	
-	
-	prop = RNA_def_property(ot->srna, "modifier", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_extend_types);
-
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_types);
 }
 
 
