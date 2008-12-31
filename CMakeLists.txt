@@ -184,7 +184,7 @@ IF(UNIX)
 
   SET(ZLIB_LIB z)
 
-  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++")
+  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11 -ldl")
 
   IF(WITH_OPENMP)
     SET(LLIBS "${LLIBS} -lgomp")

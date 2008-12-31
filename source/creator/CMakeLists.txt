@@ -30,6 +30,8 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
   ../blender/blenkernel
   ../blender/editors/include
+  ../blender/makesrna
+  ../blender/makesrna/intern
   ../blender/nodes
   ../blender/include
   ../blender/blenloader
@@ -275,6 +277,8 @@ IF(UNIX)
     extern_binreloc
     extern_glew
     bf_videotex
+    bf_rna
+    bf_dna
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
