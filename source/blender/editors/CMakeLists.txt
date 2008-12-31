@@ -37,6 +37,7 @@ SET(INC ../windowmanager
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
+  ../gpu
   ${PYTHON_INC}
   ${SDL_INC}
 )

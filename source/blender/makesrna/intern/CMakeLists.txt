@@ -26,7 +26,7 @@
 
 FILE(GLOB SRC *.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib)
 
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})
