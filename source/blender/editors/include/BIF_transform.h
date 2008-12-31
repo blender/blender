@@ -36,6 +36,7 @@ struct wmWindowManager;
 struct ListBase;
 struct wmEvent;
 struct bContext;
+struct Object;
 
 void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -99,7 +100,7 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
 
-int BIF_snappingSupported(void);
+int BIF_snappingSupported(struct Object *obedit);
 
 struct TransformOrientation;
 

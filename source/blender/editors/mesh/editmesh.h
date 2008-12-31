@@ -46,7 +46,6 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 /* ******************* meshtools.c */
 
-EditVert *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co);
 int mesh_get_x_mirror_vert(Object *ob, int index);
 
 /* XXX move to uv editor? */

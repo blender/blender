@@ -239,8 +239,8 @@ typedef struct TransInfo {
 	struct ARegion	*ar;
 	struct Scene	*scene;
 	struct wmEvent	*event;		/* last event, reset at the start of each transformApply and nulled at the transformEnd */
-	struct EditMesh	*em;		/* get from context */
-    short       mval[2];       /* current mouse position               */
+    short       mval[2];        /* current mouse position               */
+    struct Object   *obedit;
 } TransInfo;
 
 

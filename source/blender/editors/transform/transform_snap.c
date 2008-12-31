@@ -107,11 +107,11 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode);
 
 /****************** IMPLEMENTATIONS *********************/
 
-int BIF_snappingSupported(void)
+int BIF_snappingSupported(Object *obedit)
 {
 	int status = 0;
 	
-	if (G.obedit == NULL || G.obedit->type==OB_MESH) /* only support object or mesh */
+	if (obedit == NULL || obedit->type==OB_MESH) /* only support object or mesh */
 	{
 		status = 1;
 	}
@@ -208,7 +208,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (BIF_snappingSupported() && event->type == TABKEY && event->shift)
+	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift)
 	{
 		/* toggle snap and reinit */
 		G.scene->snap_flag ^= SCE_SNAP;
@@ -418,9 +418,8 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	
 	VECCOPY(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
-		// TRANSFORM_FIX_ME
-//		Object *ob= G.obedit?G.obedit:t->poseobj;
-//		Mat4MulVecfl(ob->obmat, center);
+		Object *ob= t->obedit?t->obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, center);
 	}
 
 	VecSubf(start, p1, center);
@@ -475,9 +474,8 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 	
 	VECCOPY(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
-		// TRANSFORM_FIX_ME
-//		Object *ob= G.obedit?G.obedit:t->poseobj;
-//		Mat4MulVecfl(ob->obmat, center);
+		Object *ob= t->obedit?t->obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, center);
 	}
 
 	VecSubf(d1, p1, center);
@@ -500,10 +498,8 @@ void CalcSnapGrid(TransInfo *t, float *vec)
 
 void CalcSnapGeometry(TransInfo *t, float *vec)
 {
-	Object *obedit = NULL;
-	
 	/* Object mode */
-	if (obedit == NULL)
+	if (t->obedit == NULL)
 	{
 		if (t->spacetype == SPACE_VIEW3D)
 		{
@@ -537,7 +533,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		}
 	}
 	/* Mesh edit mode */
-	else if (obedit != NULL && obedit->type==OB_MESH)
+	else if (t->obedit->type==OB_MESH)
 	{
 		if (t->spacetype == SPACE_VIEW3D)
 		{
@@ -577,7 +573,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 				t->tsnap.snapPoint[0] *= aspx;
 				t->tsnap.snapPoint[1] *= aspy;
 
-				//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
+				Mat4MulVecfl(t->obedit->obmat, t->tsnap.snapPoint);
 				
 				t->tsnap.status |=  POINT_INIT;
 			}
@@ -598,7 +594,7 @@ void TargetSnapCenter(TransInfo *t)
 	{
 		VECCOPY(t->tsnap.snapTarget, t->center);	
 		if(t->flag & (T_EDIT|T_POSE)) {
-			Object *ob= G.obedit?G.obedit:t->poseobj;
+			Object *ob= t->obedit?t->obedit:t->poseobj;
 			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
 		}
 		
@@ -629,7 +625,7 @@ void TargetSnapActive(TransInfo *t)
 			VECCOPY(t->tsnap.snapTarget, active_td->center);
 				
 			if(t->flag & (T_EDIT|T_POSE)) {
-				Object *ob= G.obedit?G.obedit:t->poseobj;
+				Object *ob= t->obedit?t->obedit:t->poseobj;
 				Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
 			}
 			
@@ -665,7 +661,7 @@ void TargetSnapMedian(TransInfo *t)
 		VecMulf(t->tsnap.snapTarget, 1.0 / t->total);
 		
 		if(t->flag & (T_EDIT|T_POSE)) {
-			Object *ob= G.obedit?G.obedit:t->poseobj;
+			Object *ob= t->obedit?t->obedit:t->poseobj;
 			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
 		}
 		
@@ -740,7 +736,7 @@ void TargetSnapClosest(TransInfo *t)
 				VECCOPY(loc, td->center);
 				
 				if(t->flag & (T_EDIT|T_POSE)) {
-					Object *ob= G.obedit?G.obedit:t->poseobj;
+					Object *ob= t->obedit?t->obedit:t->poseobj;
 					Mat4MulVecfl(ob->obmat, loc);
 				}
 				
@@ -1184,15 +1180,15 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 
 	if (mode == NOT_ACTIVE)
 	{
-		// TRANSFORM_FIX_ME
-//		DerivedMesh *dm;
-//		Object *ob = G.obedit;
-//		
-//		dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
-//		
-//		retval = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth, 1);
-//		
-//		dm->release(dm);
+		DerivedMesh *dm;
+		Object *ob = t->obedit;
+		EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
+		
+		dm = editmesh_get_derived_cage(em, CD_MASK_BAREMESH);
+		
+		retval = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 1);
+		
+		dm->release(dm);
 	}
 	
 	for ( base = scene->base.first; base != NULL; base = base->next ) {

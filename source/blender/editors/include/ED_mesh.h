@@ -68,6 +68,7 @@ typedef struct ViewContext {
 /* meshtools.c */
 
 intptr_t	mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode);
+EditVert   *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co);
 
 /* editmesh.c */
 void		make_editMesh(Scene *scene, Object *ob);

@@ -106,8 +106,8 @@
 #define V3D_POSEMODE_SEL			ICON_POSE_HLT
 #define V3D_PARTICLEEDITMODE_SEL	ICON_ANIM
 
-#define TEST_EDITMESH	if(G.obedit==0) return; \
-						if( (v3d->lay & G.obedit->lay)==0 ) return;
+#define TEST_EDITMESH	if(obedit==0) return; \
+						if( (v3d->lay & obedit->lay)==0 ) return;
 
 /* XXX port over */
 static void handle_view3d_lock(void) {}
@@ -120,7 +120,6 @@ static void add_blockhandler(void *x, int y, int z) {}
 static void toggle_blockhandler(void *x, int y, int z) {}
 static void countall(void) {}
 extern void borderselect();
-static int BIF_snappingSupported() {return 1;}
 static int retopo_mesh_paint_check() {return 0;}
 
 /* view3d handler codes */
@@ -401,6 +400,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
+	Object *obedit = CTX_data_edit_object(C);
 	float *curs;
 	
 	switch(event) {
@@ -408,7 +408,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 	case 0: /* Align View to Selected (edit/faceselect mode) */
 	case 1:
 	case 2:
-		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
+		if ((obedit) && (obedit->type == OB_MESH)) {
 			editmesh_align_view_to_selected(v3d, event + 1);
 		} 
 		else if (FACESEL_PAINT_TEST) {
@@ -454,6 +454,7 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, uiMenuBlockHandle *handle
 {
 /*		static short tog=0; */
 	uiBlock *block;
+	Object *obedit = CTX_data_edit_object(C);
 	short yco= 0, menuwidth=120;
 	
 	block= uiBeginBlock(C, handle->region, "view3d_view_alignviewmenu", UI_EMBOSSP, UI_HELV);
@@ -463,7 +464,7 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, uiMenuBlockHandle *handle
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Ctrl Alt NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
 
-	if (((G.obedit) && (G.obedit->type == OB_MESH)) || (FACESEL_PAINT_TEST)) {
+	if (((obedit) && (obedit->type == OB_MESH)) || (FACESEL_PAINT_TEST)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Top)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Front)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Side)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -1797,8 +1798,8 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 		Transform();
 		break;
 	case 9:
-		if (G.obedit) {
-			if (G.obedit->type == OB_MESH)
+		if (obedit) {
+			if (obedit->type == OB_MESH)
 				initTransform(TFM_SHRINKFATTEN, CTX_NONE);
 				Transform();
 		} else error("Only meshes can be shrinked/fattened");
@@ -1849,6 +1850,7 @@ static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 static uiBlock *view3d_transformmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
@@ -1866,21 +1868,21 @@ static uiBlock *view3d_transformmenu(bContext *C, uiMenuBlockHandle *handle, voi
 
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (G.obedit) {
- 		if (G.obedit->type == OB_MESH)
+	if (obedit) {
+ 		if (obedit->type == OB_MESH)
  			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-		else if (G.obedit->type == OB_CURVE) {
+		else if (obedit->type == OB_CURVE) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tilt|T",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Radius|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 		}
  	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Sphere|Ctrl Shift S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	if (G.obedit) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	if (obedit) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl Shift Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Warp|Shift W",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Push/Pull|Shift P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	
-	if (!G.obedit) {
+	if (!obedit) {
 		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale to Image Aspect Ratio|Alt V",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
@@ -1889,13 +1891,13 @@ static uiBlock *view3d_transformmenu(bContext *C, uiMenuBlockHandle *handle, voi
 	uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "ObData to Center",               0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	if (!G.obedit) {
+	if (!obedit) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center New",             0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align to Transform Orientation|Ctrl Alt A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 	}
 	
-	if (BIF_snappingSupported())
+	if (BIF_snappingSupported(obedit))
 	{
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -2665,7 +2667,7 @@ void do_view3d_edit_mesh_verticesmenu(bContext *C, void *arg, int event)
 		count= removedoublesflag(1, 0, scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
-			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 			ED_undo_push(C, "Rem Doubles");
 		}
 		break;
@@ -2680,7 +2682,7 @@ void do_view3d_edit_mesh_verticesmenu(bContext *C, void *arg, int event)
 		break;
 	case 5: /*merge */
 		mergemenu();
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 6: /* add hook */
 		add_hook_menu();
@@ -2784,7 +2786,7 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 		if(EdgeLoopDelete()) {
 			countall();
 			ED_undo_push(C, "Erase Edge Loop");
-			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		}
 		break;
 	case 14: /*Collapse Edges*/
@@ -2794,12 +2796,12 @@ void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
 	case 15:
 		editmesh_mark_sharp(1);
 		ED_undo_push(C, "Mark Sharp");
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 16:
 		editmesh_mark_sharp(0);
 		ED_undo_push(C, "Clear Sharp");
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 17: /* Adjust Bevel Weight */
 		if(!multires_level1_test()) {
@@ -2880,7 +2882,7 @@ void do_view3d_edit_mesh_facesmenu(bContext *C, void *arg, int event)
 		convert_to_triface(0);
 		allqueue(REDRAWVIEW3D, 0);
 		countall();
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* Tris to Quads */
 		join_triangles();
@@ -3178,6 +3180,7 @@ static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 static uiBlock *view3d_edit_meshmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 		
@@ -3234,7 +3237,7 @@ static uiBlock *view3d_edit_meshmenu(bContext *C, uiMenuBlockHandle *handle, voi
 	/* PITA but we should let users know that automerge cant work with multires :/ */
 	uiDefIconTextBut(block, BUTM, 1,
 			scene->automerge ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT,
-			((Mesh*)G.obedit->data)->mr ? "AutoMerge Editing (disabled by multires)" : "AutoMerge Editing",
+			((Mesh*)obedit->data)->mr ? "AutoMerge Editing (disabled by multires)" : "AutoMerge Editing",
 			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -3273,15 +3276,15 @@ static void do_view3d_edit_curve_controlpointsmenu(bContext *C, void *arg, int e
 		break;
 	case 2: /* Free */
 		sethandlesNurb(3);
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* vector */
 		sethandlesNurb(2);
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 4: /* smooth */
 		sethandlesNurb(1);
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 5: /* make vertex parent */
 		make_parent();
@@ -3423,7 +3426,7 @@ static void do_view3d_edit_curvemenu(bContext *C, void *arg, int event)
 		break;
 	case 7: /* toggle cyclic */
 		makecyclicNurb();
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 8: /* delete */
 		delete_context_selected();
@@ -4056,7 +4059,8 @@ static uiBlock *view3d_armature_settingsmenu(bContext *C, uiMenuBlockHandle *han
 
 static uiBlock *view3d_edit_armaturemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	bArmature *arm= G.obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm= obedit->data;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -5235,8 +5239,9 @@ static char *drawtype_pup(void)
 	str += sprintf(str, "%s", "|Textured %x5");
 	return string;
 }
-static char *around_pup(void)
+static char *around_pup(const bContext *C)
 {
+	Object *obedit = CTX_data_edit_object(C);
 	static char string[512];
 	char *str = string;
 
@@ -5245,7 +5250,7 @@ static char *around_pup(void)
 	str += sprintf(str, "%s", "|Median Point %x3");
 	str += sprintf(str, "%s", "|3D Cursor %x1");
 	str += sprintf(str, "%s", "|Individual Centers %x2");
-	if ((G.obedit) && (G.obedit->type == OB_MESH))
+	if ((obedit) && (obedit->type == OB_MESH))
 		str += sprintf(str, "%s", "|Active Vert/Edge/Face %x4");
 	else
 		str += sprintf(str, "%s", "|Active Object %x4");
@@ -5300,6 +5305,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *ob= OBACT;
+	Object *obedit = CTX_data_edit_object(C);
 	int bit, shift=0; // XXX shift arg?
 
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
@@ -5356,10 +5362,10 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			v3d->flag &= ~V3D_MODE;
 // XXX			exit_paint_modes();
 // XXX			if(ob) exit_posemode();		/* exit posemode for active object */
-// XXX			if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX			if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 		} 
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
-			if(!G.obedit) {
+			if(!obedit) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
 // XXX				enter_editmode(EM_WAITCURSOR);
@@ -5370,7 +5376,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_SCULPTMODE)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 // XXX				set_sculptmode();
 			}
@@ -5379,7 +5385,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_VERTEXPAINT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				set_vpaint();
 			}
@@ -5388,7 +5394,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_TEXTUREPAINT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				set_texturepaint();
 			}
@@ -5397,7 +5403,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
 // XXX				set_wpaint();
 			}
@@ -5406,7 +5412,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			
 			if (ob) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				enter_posemode();
 			}
@@ -5415,7 +5421,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_PARTICLEEDIT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
 // XXX				PE_set_particle_edit();
 			}
@@ -5549,8 +5555,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-static void view3d_header_pulldowns(uiBlock *block, View3D *v3d, Object *ob, int *xcoord, int yco)
+static void view3d_header_pulldowns(const bContext *C, uiBlock *block, View3D *v3d, Object *ob, int *xcoord, int yco)
 {
+	Object *obedit = CTX_data_edit_object(C);
 	short xmax, xco= *xcoord;
 	
 	/* pull down menus */
@@ -5572,7 +5579,7 @@ static void view3d_header_pulldowns(uiBlock *block, View3D *v3d, Object *ob, int
 	xco+= xmax;
 	
 	xmax= GetButStringLength("Select");
-	if (G.obedit) {
+	if (obedit) {
 		if (ob && ob->type == OB_MESH) {
 			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco,yco-2, xmax-3, 24, "");
 		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
@@ -5603,7 +5610,7 @@ static void view3d_header_pulldowns(uiBlock *block, View3D *v3d, Object *ob, int
 	}
 	xco+= xmax;
 	
-	if (G.obedit) {
+	if (obedit) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Mesh");
 			uiDefPulldownBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,yco-2, xmax-3, 24, "");
@@ -5699,6 +5706,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
+	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
 	int a, xco, yco= 3;
 	
@@ -5708,7 +5716,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	xco= ED_area_header_standardbuttons(C, block, yco);
 
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
-		view3d_header_pulldowns(block, v3d, ob, &xco, yco);
+		view3d_header_pulldowns(C, block, v3d, ob, &xco, yco);
 
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -5716,7 +5724,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	/* mode */
 	v3d->modeselect = V3D_OBJECTMODE_SEL;
 	
-	if (G.obedit) v3d->modeselect = V3D_EDITMODE_SEL;
+	if (obedit) v3d->modeselect = V3D_EDITMODE_SEL;
 	else if(ob && (ob->flag & OB_POSEMODE)) v3d->modeselect = V3D_POSEMODE_SEL;
 	else if (G.f & G_SCULPTMODE)  v3d->modeselect = V3D_SCULPTMODE_SEL;
 	else if (G.f & G_WEIGHTPAINT) v3d->modeselect = V3D_WEIGHTPAINTMODE_SEL;
@@ -5728,7 +5736,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	v3d->flag &= ~V3D_MODE;
 	
 	/* not sure what the v3d->flag is useful for now... modeselect is confusing */
-	if(G.obedit) v3d->flag |= V3D_EDITMODE;
+	if(obedit) v3d->flag |= V3D_EDITMODE;
 	if(ob && (ob->flag & OB_POSEMODE)) v3d->flag |= V3D_POSEMODE;
 	if(G.f & G_VERTEXPAINT) v3d->flag |= V3D_VERTEXPAINT;
 	if(G.f & G_WEIGHTPAINT) v3d->flag |= V3D_WEIGHTPAINT;
@@ -5778,13 +5786,13 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
  			uiBlockEndAlign(block);
  		}
  	} else {
- 		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+ 		if (obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
  			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
 // XXX 			char *str_menu;
-			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
+			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
 		
@@ -5841,7 +5849,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
  		}
  		
 		/* LAYERS */
-		if(G.obedit==NULL && v3d->localview==0) {
+		if(obedit==NULL && v3d->localview==0) {
 			int ob_lay = ob ? ob->lay : 0;
 			uiBlockBeginAlign(block);
 			for(a=0; a<5; a++) {
@@ -5869,7 +5877,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		}
 	
 		/* proportional falloff */
-		if((G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) || G.f & G_PARTICLEEDIT) {
+		if((obedit && (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || G.f & G_PARTICLEEDIT) {
 		
 			uiBlockBeginAlign(block);
 			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
@@ -5884,7 +5892,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		}
 
 		/* Snap */
-		if (BIF_snappingSupported()) {
+		if (BIF_snappingSupported(obedit)) {
 			uiBlockBeginAlign(block);
 
 			if (scene->snap_flag & SCE_SNAP) {
@@ -5906,7 +5914,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 		}
 
 		/* selection modus */
-		if(G.obedit && (G.obedit->type == OB_MESH)) {
+		if(obedit && (obedit->type == OB_MESH)) {
 			uiBlockBeginAlign(block);
 			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
 			xco+= XIC;

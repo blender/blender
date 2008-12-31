@@ -124,6 +124,7 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 #include "ED_view3d.h"
+#include "ED_mesh.h"
 
 #include "UI_view2d.h"
 
@@ -369,7 +370,7 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 
 	td= t->data= MEM_callocN(t->total * sizeof(TransData), "TransCrease");
 
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
@@ -1027,7 +1028,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	// TRANSFORM_FIX_ME
 #if 0
 	EditBone *ebo;
-	bArmature *arm= G.obedit->data;
+	bArmature *arm= t->obedit->data;
 	TransData *td;
 	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
 
@@ -1053,7 +1054,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
     if (!t->total) return;
 	
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
@@ -1225,7 +1226,7 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 	td = t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(MBall EditMode)");
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
     
 	for(ml= editelems.first; ml; ml= ml->next) {
@@ -1376,7 +1377,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Curve EditMode)");
 
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 	
     td = t->data;
@@ -1564,7 +1565,7 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Lattice EditMode)");
 	
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
 	td = t->data;
@@ -1887,7 +1888,7 @@ static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
 
 //way to overwrite what data is edited with transform
 //static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
-static void VertsToTransData(TransData *td, EditMesh *em, EditVert *eve)
+static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert *eve)
 {
 	td->flag = 0;
 	//if(key)
@@ -1896,8 +1897,7 @@ static void VertsToTransData(TransData *td, EditMesh *em, EditVert *eve)
 	td->loc = eve->co;
 	
 	VECCOPY(td->center, td->loc);
-// TRANSFORM_FIX_ME	
-//	if(G.vd->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
+	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
 		get_face_center(td->center, em, eve);
 	VECCOPY(td->iloc, td->loc);
 
@@ -1914,7 +1914,7 @@ static void VertsToTransData(TransData *td, EditMesh *em, EditVert *eve)
 	td->tdi = NULL;
 	td->val = NULL;
 	td->extra = NULL;
-	if (BIF_GetTransInfo()->mode == TFM_BWEIGHT) {
+	if (t->mode == TFM_BWEIGHT) {
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
 	}
@@ -1955,16 +1955,16 @@ static int modifiers_disable_subsurf_temporary(Object *ob)
 }
 
 /* disable subsurf temporal, get mapped cos, and enable it */
-static float *get_crazy_mapped_editverts(void)
+static float *get_crazy_mapped_editverts(TransInfo *t)
 {
-	Mesh *me= G.obedit->data;
+	Mesh *me= t->obedit->data;
 	DerivedMesh *dm;
 	float *vertexcos;
 
 	/* disable subsurf temporal, get mapped cos, and enable it */
-	if(modifiers_disable_subsurf_temporary(G.obedit)) {
+	if(modifiers_disable_subsurf_temporary(t->obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(G.obedit, me->edit_mesh, CD_MASK_BAREMESH);
+		makeDerivedMesh(t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 	}
 
 	/* now get the cage */
@@ -1976,7 +1976,7 @@ static float *get_crazy_mapped_editverts(void)
 	dm->release(dm);
 	
 	/* set back the flag, no new cage needs to be built, transform does it */
-	modifiers_disable_subsurf_temporary(G.obedit);
+	modifiers_disable_subsurf_temporary(t->obedit);
 	
 	return vertexcos;
 }
@@ -2097,10 +2097,9 @@ void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head *td) {
 
 static void createTransEditVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+	Scene *scene = CTX_data_scene(C);
 	TransData *tob = NULL;
-	EditMesh *em = t->em;
+	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditVert *eve;
 	EditVert **nears = NULL;
 	EditVert *eve_act = NULL;
@@ -2110,13 +2109,13 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 	
-	if ((t->options & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	if ((t->options & CTX_NO_MIRROR) == 0 && (scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 	{
 		mirror = 1;
 	}
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+	if(scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT)) 
 				eve->f1= SELECT;
@@ -2124,7 +2123,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				eve->f1= 0;
 		}
 	}
-	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+	else if(scene->selectmode & SCE_SELECT_EDGE) {
 		EditEdge *eed;
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -2173,26 +2172,26 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	else t->total = countsel;
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
-	Mat3CpyMat4(mtx, G.obedit->obmat);
+	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(t->em, t->total, vectors, nears);
+	if(propmode) editmesh_set_connectivity_distance(em, t->total, vectors, nears);
 	
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
-		if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
-			if(modifiers_isDeformed(G.obedit)) {
+		if(modifiers_getCageIndex(t->obedit, NULL)>=0) {
+			if(modifiers_isDeformed(t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(&defmats, &defcos);
+				totleft= editmesh_get_first_deform_matrices(em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
 				   the modifiers that support deform matrices (defcos) */
 				if(totleft > 0) {
-					mappedcos= get_crazy_mapped_editverts();
+					mappedcos= get_crazy_mapped_editverts(t);
 					quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-					set_crazyspace_quats(t->em, (float*)defcos, mappedcos, quats);
+					set_crazyspace_quats(em, (float*)defcos, mappedcos, quats);
 					if(mappedcos)
 						MEM_freeN(mappedcos);
 				}
@@ -2217,7 +2216,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	for (a=0, eve=em->verts.first; eve; eve=eve->next, a++) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
-				VertsToTransData(t, tob, t->em, eve);
+				VertsToTransData(t, tob, em, eve);
 				
 				/* selected */
 				if(eve->f1) tob->flag |= TD_SELECTED;
@@ -2267,7 +2266,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				
 				/* Mirror? */
 				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
+					EditVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, tob->iloc);	/* initializes octree on first call */
 					if(vmir != eve) tob->extra = vmir;
 				}
 				tob++;
@@ -2283,7 +2282,6 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		MEM_freeN(quats);
 	if(defmats)
 		MEM_freeN(defmats);
-#endif
 }
 
 /* ********************* UV ****************** */
@@ -2335,7 +2333,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int efa_s1,efa_s2,efa_s3,efa_s4;
 
-	EditMesh *em = t->em;
+	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditFace *efa;
 	
 	if(is_uv_tface_editing_allowed()==0) return;
@@ -2469,7 +2467,7 @@ void flushTransUVs(TransInfo *t)
 	TransData2D *td;
 	int a, width, height;
 	Object *ob= OBACT;
-	EditMesh *em = t->em;
+	EditMesh *em = ((Mesh *)ob->data)->edit_mesh;
 	float aspx, aspy, invx, invy;
 
 	transform_aspect_ratio_tface_uv(&aspx, &aspy);
@@ -3958,7 +3956,7 @@ void special_aftertrans_update(TransInfo *t)
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
 	
 	if (t->spacetype==SPACE_VIEW3D) {
-		if (G.obedit) {
+		if (t->obedit) {
 			if (cancelled==0) {
 #if 0 // TRANSFORM_FIX_ME
 				EM_automerge(1);
@@ -4118,12 +4116,12 @@ void special_aftertrans_update(TransInfo *t)
 		if (G.sipo->blocktype==ID_SEQ)
 			resetslowpar= 0;
 	}
-	else if (G.obedit) {
+	else if (t->obedit) {
 		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
 		
 		/* table needs to be created for each edit command, since vertices can move etc */
-		mesh_octree_table(G.obedit, NULL, 'e');
+		mesh_octree_table(t->obedit, NULL, 'e');
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
@@ -4405,23 +4403,21 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (0) { // // TRANSFORM_FIX_ME (G.obedit) {
-		Object *obedit = NULL; // TRANSFORM_FIX_ME
-		
+	else if (t->obedit) {
 		t->ext = NULL;
-		if (obedit->type == OB_MESH) {
+		if (t->obedit->type == OB_MESH) {
 			createTransEditVerts(C, t);	
    		}
-		else if ELEM(obedit->type, OB_CURVE, OB_SURF) {
+		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			createTransCurveVerts(C, t);
 		}
-		else if (obedit->type==OB_LATTICE) {
+		else if (t->obedit->type==OB_LATTICE) {
 			createTransLatticeVerts(C, t);
 		}
-		else if (obedit->type==OB_MBALL) {
+		else if (t->obedit->type==OB_MBALL) {
 			createTransMBallVerts(C, t);
 		}
-		else if (obedit->type==OB_ARMATURE) {
+		else if (t->obedit->type==OB_ARMATURE) {
 			t->flag &= ~T_PROP_EDIT;
 			createTransArmatureVerts(C, t);
   		}					  		
@@ -4430,7 +4426,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 
 		if(t->data && t->flag & T_PROP_EDIT) {
-			if (ELEM(obedit->type, OB_CURVE, OB_MESH)) {
+			if (ELEM(t->obedit->type, OB_CURVE, OB_MESH)) {
 				sort_trans_data(t);	// makes selected become first in array
 				set_prop_dist(t, 0);
 				sort_trans_data_dist(t);

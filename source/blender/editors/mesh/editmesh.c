@@ -1855,6 +1855,9 @@ static void free_undoMesh(void *umv)
 {
 	UndoMesh *um= umv;
 	
+	if (um == NULL)
+		return; /* XXX FIX ME, THIS SHOULD NEVER BE TRUE YET IT HAPPENS DURING TRANSFORM */
+	
 	if(um->verts) MEM_freeN(um->verts);
 	if(um->edges) MEM_freeN(um->edges);
 	if(um->faces) MEM_freeN(um->faces);

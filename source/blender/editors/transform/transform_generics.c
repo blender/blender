@@ -678,13 +678,14 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	t->scene = sce;
 	t->sa = sa;
 	t->ar = ar;
-	if (obedit && obedit->type==OB_MESH)
-		t->em = ((Mesh *)obedit->data)->edit_mesh;
+	t->obedit = obedit;
 
 	t->data = NULL;
 	t->ext = NULL;
 
 	t->flag = 0;
+	
+	t->propsize = 1.0f; /* TRANSFORM_FIX_ME this needs to be saved in scene or something */
 
 	/* setting PET flag */
 	if ((t->options & CTX_NO_PET) == 0 && (sce->proportional)) {
