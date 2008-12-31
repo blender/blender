@@ -30,8 +30,9 @@ float vol_get_stepsize(struct ShadeInput *shi, int context);
 float vol_get_density(struct ShadeInput *shi, float *co);
 void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsize, float density);
 
-void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr);
-void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is);
+void shade_volume_outside(ShadeInput *shi, ShadeResult *shr);
+void shade_volume_inside(ShadeInput *shi, ShadeResult *shr);
+void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is);
 
 #define STEPSIZE_VIEW	0
 #define STEPSIZE_SHADE	1
@@ -41,3 +42,6 @@ void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 
 #define VOL_BOUNDS_DEPTH	0
 #define VOL_BOUNDS_SS		1
+
+#define VOL_SHADE_OUTSIDE	0
+#define VOL_SHADE_INSIDE	1

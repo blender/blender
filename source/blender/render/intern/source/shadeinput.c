@@ -121,7 +121,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* depth >= 1 when ray-shading */
-	if(shi->depth==0) {
+	if(shi->depth >= 0 && (shi->depth < MAX2(shi->mat->ray_depth_tra, shi->mat->ray_depth))) {
 		if(R.r.mode & R_RAYTRACE) {
 			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
@@ -132,15 +132,12 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		if(shi->mat->mode & MA_RAYTRANSP) 
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
-	}	
+	}
+	
+	if(R.r.mode & R_RAYTRACE) {
+		shade_volume_inside(shi, shr);
+	}
 }
-
-/* delivers a fully filled in ShadeResult, for all passes */
-void shade_volume_loop(ShadeInput *shi, ShadeResult *shr)
-{
-	if(R.r.mode & R_RAYTRACE) volume_trace(shi, shr);
-}
-
 
 /* do a shade, finish up some passes, apply mist */
 void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
@@ -157,8 +154,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
 		shi->har= shi->mat->har;
 		
-		if (shi->mat->material_type == MA_SOLID) shade_material_loop(shi, shr);
-		else if (shi->mat->material_type == MA_VOLUME) shade_volume_loop(shi, shr);
+		if (shi->mat->material_type == MA_SOLID) {
+			shade_material_loop(shi, shr);
+		} else if (shi->mat->material_type == MA_VOLUME) {
+			if(R.r.mode & R_RAYTRACE)
+				shade_volume_outside(shi, shr);
+		}
 	}
 	
 	/* copy additional passes */

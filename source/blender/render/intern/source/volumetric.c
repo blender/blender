@@ -548,7 +548,7 @@ static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
 	shi_new.mask= shi->mask;
 	shi_new.osatex= shi->osatex;
 	shi_new.thread= shi->thread;
-	shi_new.depth= 1;
+	shi_new.depth = shi->depth + 1;
 	shi_new.volume_depth= shi->volume_depth + 1;
 	shi_new.xs= shi->xs;
 	shi_new.ys= shi->ys;
@@ -601,18 +601,31 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *co
 }
 
 /* the main entry point for volume shading */
-void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
+static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int inside_volume)
 {
 	float hitco[3], col[4] = {0.f,0.f,0.f,0.f};
+	int trace_behind = 1;
 	Isect is;
 
-	memset(shr, 0, sizeof(ShadeResult));
+	/* check for shading an internal face a volume object directly */
+	if (inside_volume == VOL_SHADE_INSIDE) {
+		trace_behind = 0;
+	}
+	if (inside_volume == VOL_SHADE_OUTSIDE) {
+		if (shi->flippednor)
+			inside_volume = VOL_SHADE_INSIDE;
+	}
 
-	/* if 1st hit normal is facing away from the camera, 
-	 * then we're inside the volume already. */
-	if (shi->flippednor) {
-		/* trace behind the 1st hit point */
-		vol_trace_behind(shi, shi->vlr, shi->co, col);
+	if (inside_volume == VOL_SHADE_INSIDE) {
+		
+		if (trace_behind) {
+			/* trace behind the volume object */
+			vol_trace_behind(shi, shi->vlr, shi->co, col);
+		} else {
+			/* we're tracing through the volume between the camera 
+			 * and a solid surface, so use that pre-shaded radiance */
+			QUATCOPY(col, shr->combined);
+		}
 		
 		/* shade volume from 'camera' to 1st hit point */
 		volumeintegrate(shi, col, shi->camera_co, shi->co);
@@ -673,7 +686,7 @@ void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr)
 
 /* Traces a shadow through the object, 
  * pretty much gets the transmission over a ray path */
-void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is)
+void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct Isect *last_is)
 {
 	float hitco[3];
 	float tr[3] = {1.0,1.0,1.0};
@@ -724,3 +737,33 @@ void volume_trace_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	}
 }
 
+
+/* delivers a fully filled in ShadeResult, for all passes */
+void shade_volume_outside(ShadeInput *shi, ShadeResult *shr)
+{
+	memset(shr, 0, sizeof(ShadeResult));
+	
+	volume_trace(shi, shr, VOL_SHADE_OUTSIDE);
+}
+
+
+void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
+{
+	MatInside *m;
+	Material *mat_backup;
+	
+	if (BLI_countlist(&R.render_volumes_inside) == 0) return;
+	
+	mat_backup = shi->mat;
+	
+//	for (m=R.render_volumes_inside.first; m; m=m->next) {
+//		printf("matinside: ma: %s \n", m->ma->id.name+2);
+//	}
+
+	m = R.render_volumes_inside.first;
+	shi->mat = m->ma;
+	
+	volume_trace(shi, shr, VOL_SHADE_INSIDE);
+
+	shi->mat = mat_backup;
+}

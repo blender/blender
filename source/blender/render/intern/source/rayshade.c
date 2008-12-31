@@ -276,9 +276,9 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	
 	if (shi->mat->material_type == MA_VOLUME) {
 		if(ELEM(is->mode, RE_RAY_SHADOW, RE_RAY_SHADOW_TRA)) {
-			volume_trace_shadow(shi, shr, is);
+			shade_volume_shadow(shi, shr, is);
 		} else {
-			shade_volume_loop(shi, shr);
+			shade_volume_outside(shi, shr);
 		}
 	}
 	else if(is->mode==RE_RAY_SHADOW_TRA) 
@@ -295,7 +295,18 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
 		}
 		else {
-			shade_material_loop(shi, shr);
+			int tempdepth;
+			/* XXX dodgy business here, set ray depth to -1
+			 * to ignore raytrace in shade_material_loop()
+			 * this could really use a refactor --Matt */
+			if (shi->volume_depth == 0) {
+				tempdepth = shi->depth;
+				shi->depth = -1;
+				shade_material_loop(shi, shr);
+				shi->depth = tempdepth;
+			} else {
+				shade_material_loop(shi, shr);
+			}
 		}
 		/* raytrace likes to separate the spec color */
 		VECSUB(shr->diff, shr->combined, shr->spec);
@@ -467,7 +478,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		
 		shi.mask= origshi->mask;
 		shi.osatex= origshi->osatex;
-		shi.depth= 1;					/* only used to indicate tracing */
+		shi.depth = origshi->depth + 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
 		//shi.sample= 0; // memset above, so dont need this
 		shi.xs= origshi->xs;
@@ -482,6 +493,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		memset(&shr, 0, sizeof(ShadeResult));
 		
 		shade_ray(&isec, &shi, &shr);
+
 		if (traflag & RAY_TRA)
 			d= shade_by_transmission(&isec, &shi, &shr);
 		
