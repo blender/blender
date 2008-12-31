@@ -159,6 +159,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const struct bContext *C, struct View2
 void UI_view2d_scrollers_draw(const struct bContext *C, struct View2D *v2d, View2DScrollers *scrollers);
 void UI_view2d_scrollers_free(View2DScrollers *scrollers);
 
+/* list view tools */
+void UI_view2d_listview_get_cell(struct View2D *v2d, short columnwidth, short rowheight, float startx, float starty, float viewx, float viewy, int *column, int *row);
+void UI_view2d_listview_visible_cells(struct View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int *column_min, int *column_max, int *row_min, int *row_max);
+
 /* coordinate conversion */
 void UI_view2d_region_to_view(struct View2D *v2d, int x, int y, float *viewx, float *viewy);
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, short *regionx, short *regiony);

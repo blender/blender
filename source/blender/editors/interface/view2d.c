@@ -1086,7 +1086,7 @@ void UI_view2d_grid_free(View2DGrid *grid)
 }
 
 /* *********************************************************************** */
-/* Scrollbars */
+/* Scrollers */
 
 /* View2DScrollers is typedef'd in UI_view2d.h 
  * WARNING: the start of this struct must not change, as view2d_ops.c uses this too. 
@@ -1559,6 +1559,114 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 	/* need to free grid as well... */
 	if (scrollers->grid) MEM_freeN(scrollers->grid);
 	MEM_freeN(scrollers);
+}
+
+/* *********************************************************************** */
+/* List View Utilities */
+
+/* Get the 'cell' (row, column) that the given 2D-view coordinates (i.e. in 'tot' rect space) lie in.
+ *	- columnwidth, rowheight	= size of each 'cell'
+ *	- startx, starty			= coordinates (in 'tot' rect space) that the list starts from
+ *							  This should be (0,0) for most views. However, for those where the starting row was offsetted
+ *							  (like for Animation Editor channel lists, to make the first entry more visible), these will be 
+ *							  the min-coordinates of the first item.
+ *	- viewx, viewy			= 2D-coordinates (in 2D-view / 'tot' rect space) to get the cell for
+ *	- column, row				= the 'coordinates' of the relevant 'cell'
+ */
+void UI_view2d_listview_get_cell(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, 
+						float viewx, float viewy, int *column, int *row)
+{
+	const int x= (int)(floor(viewx + 0.5f) - startx); 
+	const int y= (int)(floor(viewy + 0.5f) - starty);
+	
+	/* sizes must not be negative */
+	if ( (v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0)) ) {
+		if (column) *column= 0;
+		if (row) *row= 0;
+		
+		return;
+	}
+	
+	/* get column */
+	if ((column) && (columnwidth > 0)) {
+		/* which way to get column depends on the alignment of the 'tot' rect 
+		 *	- we favour positive-x here, as that's the recommended configuration for listviews
+		 */
+		if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
+			/* contents are in positive-x half */
+			if (x > 0)
+				*column= x % columnwidth;
+			else
+				*column= 0;
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
+			/* contents are in negative-x half */
+			if (x < 0)
+				*column= (-x) % columnwidth;
+			else
+				*column= 0;
+		}
+		else {
+			/* contents are centered around x==0 */
+			// temp case for now...
+			*column= 0;
+		}
+	}
+	else if (column) {
+		/* we want the column, but column width is undefined */
+		*column= 0;
+	}
+	
+	/* get row */
+	if ((row) && (rowheight > 0)) {
+		/* which way to get column depends on the alignment of the 'tot' rect 
+		 *	- we favour negative-y here, as that's the recommended configuration for listviews
+		 */
+		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
+			/* contents are in negative-y half */
+			if (y < 0)
+				*row= (-y) % rowheight;
+			else
+				*row= 0;
+		}
+		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
+			/* contents are in positive-y half */
+			if (y > 0)
+				*row= y % rowheight;
+			else
+				*row= 0;
+		}
+		else {
+			/* contents are centered around y==0 */
+			// temp case for now...
+			*row= 0;
+			
+		}
+	}
+	else if (row) {
+		/* we want the row, but row height is undefined */
+		*row= 0;
+	}
+}
+
+/* Get the 'extreme' (min/max) column and row indices which are visible within the 'cur' rect 
+ *	- columnwidth, rowheight	= size of each 'cell'
+ *	- startx, starty			= coordinates that the list starts from, which should be (0,0) for most views
+ *	- column/row_min/max		= the starting and ending column/row indices
+ */
+void UI_view2d_listview_visible_cells(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, 
+						int *column_min, int *column_max, int *row_min, int *row_max)
+{
+	/* using 'cur' rect coordinates, call the cell-getting function to get the cells for this */
+	if (v2d) {
+		/* min */
+		UI_view2d_listview_get_cell(v2d, columnwidth, rowheight, startx, starty, 
+					v2d->cur.xmin, v2d->cur.ymin, column_min, row_min);
+					
+		/* max*/
+		UI_view2d_listview_get_cell(v2d, columnwidth, rowheight, startx, starty, 
+					v2d->cur.xmax, v2d->cur.ymax, column_max, row_max);
+	}
 }
 
 /* *********************************************************************** */
