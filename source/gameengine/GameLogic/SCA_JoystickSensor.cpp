@@ -327,6 +327,21 @@ PyMethodDef SCA_JoystickSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_JoystickSensor::Attributes[] = {
+	KX_PYATTRIBUTE_SHORT_RW("index",0,JOYINDEX_MAX-1,SCA_JoystickSensor,m_joyindex),
+	KX_PYATTRIBUTE_INT_RW("threshold",0,32768,SCA_JoystickSensor,m_precision),
+	KX_PYATTRIBUTE_INT_RW("button",0,100,SCA_JoystickSensor,m_button),
+	KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK("axis",0,3,SCA_JoystickSensor,m_axis,2,CheckAxis),
+	KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK("hat",0,12,SCA_JoystickSensor,m_hat,2,CheckHat),
+	// dummy attributes will just be read-only in _setattr
+	// you still need to defined them in _getattr
+	KX_PYATTRIBUTE_DUMMY("axisPosition"),
+	KX_PYATTRIBUTE_DUMMY("numAxis"),
+	KX_PYATTRIBUTE_DUMMY("numButtons"),
+	KX_PYATTRIBUTE_DUMMY("numHats"),
+	KX_PYATTRIBUTE_DUMMY("connected"),
+	{ NULL }	//Sentinel
+};
 
 PyObject* SCA_JoystickSensor::_getattr(const STR_String& attr) {
 	SCA_Joystick *joy = m_pJoystickMgr->GetJoystickDevice(m_joyindex);
@@ -348,100 +363,17 @@ PyObject* SCA_JoystickSensor::_getattr(const STR_String& attr) {
 	if (attr == "connected") {
 		return PyBool_FromLong( joy ? joy->Connected() : 0 );
 	}
-	if (attr == "index") {
-		return PyInt_FromLong(m_joyindex);
-	}
-	if (attr == "threshold") {
-		return PyInt_FromLong(m_precision);
-	}
-	if (attr == "button") {
-		return PyInt_FromLong(m_button);
-	}
-	if (attr == "axis") {
-		return Py_BuildValue("[ii]",m_axis, m_axisf);
-	}
-	if (attr == "hat") {
-		return Py_BuildValue("[ii]",m_hat, m_hatf);
-	}
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_ISensor);
 }
 
-int SCA_JoystickSensor::_setattr(const STR_String& attr, PyObject *value) {
-	if (attr == "axisPosition") {
-		PyErr_SetString(PyExc_AttributeError, "axisPosition is read only");
-		return 1;
-	}
-	if (attr == "numAxis") {
-		PyErr_SetString(PyExc_AttributeError, "numaxis is read only");
-		return 1;
-	}
-	if (attr == "numButtons") {
-		PyErr_SetString(PyExc_AttributeError, "numbuttons is read only");
-		return 1;
-	}
-	if (attr == "numHats") {
-		PyErr_SetString(PyExc_AttributeError, "numhats is read only");
-		return 1;
-	}
-	if (attr == "connected") {
-		PyErr_SetString(PyExc_AttributeError, "connected is read only");
-		return 1;
-	}
-	if (PyInt_Check(value))	{
-		int ival = PyInt_AsLong(value);
-		if (attr == "index") {
-			if (ival < 0 || ival >= JOYINDEX_MAX) {
-				PyErr_SetString(PyExc_ValueError, "joystick index out of range");
-				return 1;
-			}
-			m_joyindex = ival;
-		} else if (attr == "threshold") {
-			m_precision = ival;
-		} else if (attr == "button") {
-			if (ival < 0) {
-				PyErr_SetString(PyExc_ValueError, "button out of range");
-				return 1;
-			}
-			m_button = ival;
-		}
-		return 0;		
-	}
-	if (PySequence_Check(value)) {
-		if (attr == "axis" || attr == "hat") {
-			if (PySequence_Size(value) != 2) {
-				PyErr_SetString(PyExc_ValueError, "value must be sequence of 2 integers");
-				return 1;
-			}
-			int ival = -1;
-			int ivalf = -1;
-			PyObject *item = PySequence_GetItem(value, 0); /* new ref */
-			ival = PyInt_AsLong(item);
-			Py_DECREF(item);
-			item = PySequence_GetItem(value, 1); /* new ref */
-			ivalf = PyInt_AsLong(item);
-			Py_DECREF(item);
-			if (PyErr_Occurred()) {
-				PyErr_SetString(PyExc_ValueError, "one or more of the items in the sequence was not an integer");
-				return 1;
-			}
-			if (attr == "axis") {
-				if (ival < 1 || ival > 2 || ivalf < 0 || ivalf > 3) {
-					PyErr_SetString(PyExc_ValueError, "items in the sequence are out of range");
-					return 1;
-				}
-				m_axis = ival;
-				m_axisf = ivalf;
-			} else {
-				if (ival < 1 || ival > 2) {
-					PyErr_SetString(PyExc_ValueError, "items in the sequence are out of range");
-					return 1;
-				}
-				m_hat = ival;
-				m_hatf = ivalf;
-			}
-		}
-		return 0;
-	}
+int SCA_JoystickSensor::_setattr(const STR_String& attr, PyObject *value) 
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ISensor::_setattr(attr, value);
 }
 

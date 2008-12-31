@@ -86,6 +86,7 @@ static inline void Py_Fatal(const char *M) {
  public: \
   static PyTypeObject   Type; \
   static PyMethodDef    Methods[]; \
+  static PyAttributeDef Attributes[]; \
   static PyParentObject Parents[]; \
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyParentObject *GetParents(void) {return Parents;}
@@ -210,6 +211,104 @@ PyObject* class_name::Py##method_name(PyObject*, PyObject* value)
 const char class_name::method_name##_doc[] = doc_string; \
 PyObject* class_name::Py##method_name(PyObject*)
 
+/**
+ * Attribute management
+ */
+enum KX_PYATTRIBUTE_TYPE {
+	KX_PYATTRIBUTE_TYPE_BOOL,
+	KX_PYATTRIBUTE_TYPE_SHORT,
+	KX_PYATTRIBUTE_TYPE_INT,
+	KX_PYATTRIBUTE_TYPE_FLOAT,
+	KX_PYATTRIBUTE_TYPE_STRING,
+	KX_PYATTRIBUTE_TYPE_DUMMY,
+};
+
+enum KX_PYATTRIBUTE_ACCESS {
+	KX_PYATTRIBUTE_RW,
+	KX_PYATTRIBUTE_RO
+};
+
+typedef int (*KX_PYATTRIBUTE_FUNCTION)(void *self);
+
+typedef struct KX_PYATTRIBUTE_DEF {
+	const char *m_name;				// name of the python attribute
+	KX_PYATTRIBUTE_TYPE m_type;		// type of value
+	KX_PYATTRIBUTE_ACCESS m_access;	// read/write access or read-only
+	int m_imin;						// minimum value in case of integer attributes
+	int m_imax;						// maximum value in case of integer attributes
+	float m_fmin;					// minimum value in case of float attributes
+	float m_fmax;					// maximum value in case of float attributes
+	size_t m_offset;				// position of field in structure
+	size_t m_length;				// length of array, 1=simple attribute
+	KX_PYATTRIBUTE_FUNCTION m_function;	// static function to check the assignment, returns 0 if no error
+	// The following pointers are just used to have compile time check for attribute type.
+	// It would have been good to use a union but that would require C99 compatibility
+	// to initialize specific union fields through designated initializers.
+	struct {
+		bool *m_boolPtr;
+		short int *m_shortPtr;
+		int *m_intPtr;
+		float *m_floatPtr;
+		STR_String *m_stringPtr;
+	} m_typeCheck;
+} PyAttributeDef;
+
+#define KX_PYATTRIBUTE_DUMMY(name) \
+	{ name, KX_PYATTRIBUTE_TYPE_DUMMY, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, 0, 1, NULL, {NULL, NULL, NULL, NULL, NULL} }
+
+#define KX_PYATTRIBUTE_BOOL_RW(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_BOOL, KX_PYATTRIBUTE_RW, 0, 1, 0.f, 0.f, offsetof(object,field), 1, NULL, {&((object *)0)->field, NULL, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_BOOL_RW_CHECK(name,object,field,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_BOOL, KX_PYATTRIBUTE_RW, 0, 1, 0.f, 0.f, offsetof(object,field), 1, &object::function, {&((object *)0)->field, NULL, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_BOOL_RO(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_BOOL, KX_PYATTRIBUTE_RO, 0, 1, 0.f, 0.f, offsetof(object,field), 1, NULL, {&((object *)0)->field, NULL, NULL, NULL, NULL} }
+
+#define KX_PYATTRIBUTE_SHORT_RW(name,min,max,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_RW_CHECK(name,min,max,object,field,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, &object::function, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_RO(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_ARRAY_RW(name,min,max,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), length, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_ARRAY_RW_CHECK(name,min,max,object,field,length,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), length, &object::function, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+#define KX_PYATTRIBUTE_SHORT_ARRAY_RO(name,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_SHORT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), length, NULL, {NULL, &((object *)0)->field, NULL, NULL, NULL} }
+
+#define KX_PYATTRIBUTE_INT_RW(name,min,max,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_RW_CHECK(name,min,max,object,field,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, &object::function, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_RO(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_ARRAY_RW(name,min,max,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), length, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_ARRAY_RW_CHECK(name,min,max,object,field,length,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), length, &object::function, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+#define KX_PYATTRIBUTE_INT_ARRAY_RO(name,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_INT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), length, NULL, {NULL, NULL, &((object *)0)->field, NULL, NULL} }
+
+#define KX_PYATTRIBUTE_FLOAT_RW(name,min,max,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, offsetof(object,field), 1, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+#define KX_PYATTRIBUTE_FLOAT_RW_CHECK(name,min,max,object,field,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, offsetof(object,field), 1, &object::function, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+#define KX_PYATTRIBUTE_FLOAT_RO(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+#define KX_PYATTRIBUTE_FLOAT_ARRAY_RW(name,min,max,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, offsetof(object,field), length, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+#define KX_PYATTRIBUTE_FLOAT_ARRAY_RW_CHECK(name,min,max,object,field,length,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RW, 0, 0, min, max, offsetof(object,field), length, &object::function, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+#define KX_PYATTRIBUTE_FLOAT_ARRAY_RO(name,object,field,length) \
+	{ name, KX_PYATTRIBUTE_TYPE_FLOAT, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), length, NULL, {NULL, NULL, NULL, &((object *)0)->field, NULL} }
+
+#define KX_PYATTRIBUTE_STRING_RW(name,min,max,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
+#define KX_PYATTRIBUTE_STRING_RW_CHECK(name,min,max,object,field,function) \
+	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RW, min, max, 0.f, 0.f, offsetof(object,field), 1, &object::function, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
+#define KX_PYATTRIBUTE_STRING_RO(name,object,field) \
+	{ name, KX_PYATTRIBUTE_TYPE_STRING, KX_PYATTRIBUTE_RO, 0, 0, 0.f, 0.f, offsetof(object,field), 1 , NULL, {NULL, NULL, NULL, NULL, &((object *)0)->field} }
+
 /*------------------------------
  * PyObjectPlus
 ------------------------------*/
@@ -240,6 +339,8 @@ public:
 	{
 		return ((PyObjectPlus*) PyObj)->_getattr(STR_String(attr)); 
 	}
+	static PyObject *_getattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr);
+	static int _setattr_self(const PyAttributeDef attrlist[], void *self, const STR_String &attr, PyObject *value);
 	
 	virtual int _delattr(const STR_String& attr);
 	virtual int _setattr(const STR_String& attr, PyObject *value);		// _setattr method

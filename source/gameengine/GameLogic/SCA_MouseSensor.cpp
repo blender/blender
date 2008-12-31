@@ -59,7 +59,7 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	m_mousemode   = mousemode;
 	m_triggermode = true;
 
-	UpdateHotkey();
+	UpdateHotkey(this);
 	Init();
 }
 
@@ -74,33 +74,37 @@ SCA_MouseSensor::~SCA_MouseSensor()
     /* Nothing to be done here. */
 }
 
-void SCA_MouseSensor::UpdateHotkey()
+int SCA_MouseSensor::UpdateHotkey(void *self)
 {
 	// gosh, this function is so damn stupid
 	// its here because of a design mistake in the mouse sensor, it should only
 	// have 3 trigger modes (button, wheel, move), and let the user set the 
 	// hotkey separately, like the other sensors. but instead it has a mode for 
 	// each friggin key and i have to update the hotkey based on it... genius!
-	
-	switch (m_mousemode) {
+	SCA_MouseSensor* sensor = reinterpret_cast<SCA_MouseSensor*>(self);
+
+	switch (sensor->m_mousemode) {
 	case KX_MOUSESENSORMODE_LEFTBUTTON:
-		m_hotkey = SCA_IInputDevice::KX_LEFTMOUSE;
+		sensor->m_hotkey = SCA_IInputDevice::KX_LEFTMOUSE;
 		break;
 	case KX_MOUSESENSORMODE_MIDDLEBUTTON:
-		m_hotkey = SCA_IInputDevice::KX_MIDDLEMOUSE;
+		sensor->m_hotkey = SCA_IInputDevice::KX_MIDDLEMOUSE;
 		break;
 	case KX_MOUSESENSORMODE_RIGHTBUTTON:
-		m_hotkey = SCA_IInputDevice::KX_RIGHTMOUSE;
+		sensor->m_hotkey = SCA_IInputDevice::KX_RIGHTMOUSE;
 		break;
 	case KX_MOUSESENSORMODE_WHEELUP:
-		m_hotkey = SCA_IInputDevice::KX_WHEELUPMOUSE;
+		sensor->m_hotkey = SCA_IInputDevice::KX_WHEELUPMOUSE;
 		break;
 	case KX_MOUSESENSORMODE_WHEELDOWN:
-		m_hotkey = SCA_IInputDevice::KX_WHEELDOWNMOUSE;
+		sensor->m_hotkey = SCA_IInputDevice::KX_WHEELDOWNMOUSE;
 		break;
 	default:
 		; /* ignore, no hotkey */
 	}
+	// return value is used in _setattr(), 
+	// 0=attribute checked ok (see Attributes array definition)
+	return 0;
 }
 
 CValue* SCA_MouseSensor::GetReplica()
@@ -331,44 +335,25 @@ PyMethodDef SCA_MouseSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) {
-	if (attr == "position")
-		return Py_BuildValue("[ii]", m_x, m_y);
-	
-	if (attr == "mode")
-		return PyInt_FromLong(m_mousemode);
-	
+PyAttributeDef SCA_MouseSensor::Attributes[] = {
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,SCA_MouseSensor,m_mousemode,UpdateHotkey),
+	KX_PYATTRIBUTE_SHORT_ARRAY_RO("position",SCA_MouseSensor,m_x,2),
+	{ NULL }	//Sentinel
+};
+
+PyObject* SCA_MouseSensor::_getattr(const STR_String& attr) 
+{
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_ISensor);
 }
 
 int SCA_MouseSensor::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (attr == "mode")
-	{
-		if (!PyInt_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected an integer");
-			return 1;			
-		}
-		
-		int val = PyInt_AsLong(value);
-		
-		if ((val < KX_MOUSESENSORMODE_NODEF) 
-			|| (val > KX_MOUSESENSORMODE_MAX)){		
-			PyErr_SetString(PyExc_ValueError, "invalid mode specified!");
-			return 1;
-		}
-		
-		m_mousemode = val;
-		UpdateHotkey();
-		return 0;
-	}
-	
-	if (attr == "position")
-	{
-		PyErr_SetString(PyExc_AttributeError, "'position' is a read-only property!");
-		return 1;		
-	}
-	
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ISensor::_setattr(attr, value);
 }
 

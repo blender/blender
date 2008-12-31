@@ -820,91 +820,29 @@ PyMethodDef SCA_KeyboardSensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
+	KX_PYATTRIBUTE_BOOL_RW("useAllKeys",SCA_KeyboardSensor,m_bAllKeys),
+	KX_PYATTRIBUTE_INT_RW("key",0,1000,SCA_KeyboardSensor,m_hotkey),
+	KX_PYATTRIBUTE_SHORT_RW("hold1",0,1000,SCA_KeyboardSensor,m_qual),
+	KX_PYATTRIBUTE_SHORT_RW("hold2",0,1000,SCA_KeyboardSensor,m_qual2),
+	KX_PYATTRIBUTE_STRING_RW("toggleProperty",0,100,SCA_KeyboardSensor,m_toggleprop),
+	KX_PYATTRIBUTE_STRING_RW("targetProperty",0,100,SCA_KeyboardSensor,m_targetprop),
+	{ NULL }	//Sentinel
+};
+
 PyObject*
 SCA_KeyboardSensor::_getattr(const STR_String& attr)
 {
-	if (attr == "key")
-		return PyInt_FromLong(m_hotkey);
-	
-	if (attr == "hold1")
-		return PyInt_FromLong(m_qual);
-	
-	if (attr == "hold2")
-		return PyInt_FromLong(m_qual2);
-	
-	if (attr == "toggleProperty")
-		return PyString_FromString(m_toggleprop);
-	
-	if (attr == "targetProperty")
-		return PyString_FromString(m_targetprop);
-	
-	if (attr == "useAllKeys")
-		return PyInt_FromLong(m_bAllKeys);
-
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
   _getattr_up(SCA_ISensor);
 }
 
 int SCA_KeyboardSensor::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (attr == "key")
-	{
-		if (!PyInt_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected an integer");
-			return 1;			
-		}
-		m_hotkey = PyInt_AsLong(value);
-		return 0;
-	}
-
-	if (attr == "hold1")
-	{
-		if (!PyInt_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected an integer");
-			return 1;			
-		}
-		m_qual = PyInt_AsLong(value);
-		return 0;
-	}
-	
-	if (attr == "hold2")
-	{
-		if (!PyInt_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected an integer");
-			return 1;			
-		}
-		m_qual2 = PyInt_AsLong(value);
-		return 0;
-	}
-
-	if (attr == "useAllKeys")
-	{
-		if (!PyInt_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected an integer");
-			return 1;			
-		}
-		m_bAllKeys = (PyInt_AsLong(value) != 0);
-		return 0;
-	}
-	
-	if (attr == "logToggleProperty")
-	{
-		if (!PyString_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected a string");
-			return 1;			
-		}
-		m_toggleprop = PyString_AsString(value);
-		return 0;
-	}
-
-	if (attr == "logTargetProperty")
-	{
-		if (!PyString_Check(value)){
-			PyErr_SetString(PyExc_TypeError, "expected a string");
-			return 1;			
-		}
-		m_targetprop = PyString_AsString(value);
-		return 0;
-	}
-
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ISensor::_setattr(attr, value);
 }

@@ -58,7 +58,7 @@ class SCA_MouseSensor : public SCA_ISensor
 	SCA_IInputDevice::KX_EnumInputs m_hotkey;
 	
 	/**
-	 * valid x coordinate
+	 * valid x coordinate, MUST be followed by y coordinate
 	 */
 	short m_x;
 
@@ -87,7 +87,7 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	bool isValid(KX_MOUSESENSORMODE);
 	
-	void UpdateHotkey();
+	static int UpdateHotkey(void *self);
 	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,

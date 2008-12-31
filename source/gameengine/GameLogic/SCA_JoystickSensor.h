@@ -37,11 +37,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
-	 * Axis 1-or-2
+	 * Axis 1-or-2, MUST be followed by m_axisf
 	 */
 	int 	m_axis;
 	/**
-	 * Axis flag to find direction
+	 * Axis flag to find direction, MUST be an int
 	 */
 	int 	m_axisf;
 	/**
@@ -53,11 +53,11 @@ class SCA_JoystickSensor :public SCA_ISensor
 	 */
 	int 	m_buttonf;
 	/**
-	 * The actual hat
+	 * The actual hat. MUST be followed by m_hatf
 	 */
 	int 	m_hat;
 	/**
-	 * Flag to find direction 1-12
+	 * Flag to find direction 0-11, MUST be an int
 	 */
 	int 	m_hatf;
 	/**
@@ -147,6 +147,28 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfButtons);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,NumberOfHats);
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
+
+	/* attribute check */
+	static int CheckAxis(void *self)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_axis < 1 || sensor->m_axis > 2)
+		{
+			PyErr_SetString(PyExc_ValueError, "axis number must be 1 or 2");
+			return 1;
+		}
+		return 0;
+	}
+	static int CheckHat(void *self)
+	{
+		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
+		if (sensor->m_hat < 1 || sensor->m_hat > 2)
+		{
+			PyErr_SetString(PyExc_ValueError, "hat number must be 1 or 2");
+			return 1;
+		}
+		return 0;
+	}
 	
 };
 
