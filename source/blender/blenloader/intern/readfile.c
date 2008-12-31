@@ -1346,6 +1346,24 @@ static void test_pointer_array(FileData *fd, void **mat)
 void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
+static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
+{
+	IDProperty **array;
+	int i;
+
+	/*since we didn't save the extra buffer, set totallen to len.*/
+	prop->totallen = prop->len;
+	prop->data.pointer = newdataadr(fd, prop->data.pointer);
+
+	if (switch_endian) {
+		test_pointer_array(fd, prop->data.pointer);
+		array= (IDProperty**) prop->data.pointer;
+
+		for(i=0; i<prop->len; i++)
+			IDP_DirectLinkProperty(array[i], switch_endian, fd);
+	}
+}
+
 static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
 	IDProperty **array;
@@ -1406,6 +1424,9 @@ void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 			break;
 		case IDP_ARRAY:
 			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+		case IDP_IDPARRAY:
+			IDP_DirectLinkIDPArray(prop, switch_endian, fd);
 			break;
 		case IDP_DOUBLE:
 			/*erg, stupid doubles.  since I'm storing them

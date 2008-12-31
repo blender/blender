@@ -426,7 +426,7 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "base", "Struct definition this is derived from.");
+	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);

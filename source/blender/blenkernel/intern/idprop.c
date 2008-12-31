@@ -58,9 +58,126 @@ static char idp_size_table[] = {
 	sizeof(double)
 };
 
+/* ------------Property Array Type ----------- */
+#define GETPROP(prop, i) (((IDProperty*)(prop)->data.pointer)+(i))
 
-/* ----------- Array Type ----------- */
+/* --------- property array type -------------*/
 
+/*note: as a start to move away from the stupid IDP_New function, this type
+  has it's own allocation function.*/
+IDProperty *IDP_NewIDPArray(const char *name)
+{
+	IDProperty *prop = MEM_callocN(sizeof(IDProperty), "IDProperty prop array");
+	prop->type = IDP_IDPARRAY;
+	prop->len = 0;
+	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
+	
+	return prop;
+}
+
+IDProperty *IDP_CopyIDPArray(IDProperty *array)
+{
+	IDProperty *narray = MEM_dupallocN(array), *tmp;
+	int i;
+	
+	narray->data.pointer = MEM_dupallocN(array->data.pointer);
+	for (i=0; i<narray->len; i++) {
+		/*ok, the copy functions always allocate a new structure,
+		  which doesn't work here.  instead, simply copy the
+		  contents of the new structure into the array cell,
+		  then free it.  this makes for more maintainable
+		  code than simply reimplementing the copy functions
+		  in this loop.*/
+		tmp = IDP_CopyProperty(GETPROP(narray, i));
+		memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));
+		MEM_freeN(tmp);
+	}
+	
+	return narray;
+}
+
+void IDP_FreeIDPArray(IDProperty *prop)
+{
+	int i;
+	
+	for (i=0; i<prop->len; i++)
+		IDP_FreeProperty(GETPROP(prop, i));
+
+	if(prop->data.pointer)
+		MEM_freeN(prop->data.pointer);
+}
+
+/*shallow copies item*/
+void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item)
+{
+	IDProperty *old = GETPROP(prop, index);
+	if (index >= prop->len || index < 0) return;
+	if (item != old) IDP_FreeProperty(old);
+	
+	memcpy(GETPROP(prop, index), item, sizeof(IDProperty));
+}
+
+IDProperty *IDP_GetIndexArray(IDProperty *prop, int index)
+{
+	return GETPROP(prop, index);
+}
+
+IDProperty *IDP_AppendArray(IDProperty *prop, IDProperty *item)
+{
+	IDP_ResizeIDPArray(prop, prop->len+1);
+	IDP_SetIndexArray(prop, prop->len-1, item);
+	return item;
+}
+
+void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
+{
+	void *newarr;
+	int newsize=newlen;
+
+	/*first check if the array buffer size has room*/
+	/*if newlen is 200 chars less then totallen, reallocate anyway*/
+	if (newlen <= prop->totallen && prop->totallen - newlen < 200) {
+		int i;
+
+		for(i=newlen; i<prop->len; i++)
+			IDP_FreeProperty(GETPROP(prop, i));
+
+		prop->len = newlen;
+		return;
+	}
+
+	/* - Note: This code comes from python, here's the corrusponding comment. - */
+	/* This over-allocates proportional to the list size, making room
+	 * for additional growth.  The over-allocation is mild, but is
+	 * enough to give linear-time amortized behavior over a long
+	 * sequence of appends() in the presence of a poorly-performing
+	 * system realloc().
+	 * The growth pattern is:  0, 4, 8, 16, 25, 35, 46, 58, 72, 88, ...
+	 */
+	newsize = (newsize >> 3) + (newsize < 9 ? 3 : 6) + newsize;
+
+	newarr = MEM_callocN(sizeof(IDProperty)*newsize, "idproperty array resized");
+	if (newlen >= prop->len) {
+		/* newlen is bigger*/
+		memcpy(newarr, prop->data.pointer, prop->len*sizeof(IDProperty));
+	}
+	else {
+		int i;
+		/* newlen is smaller*/
+		for (i=newlen; i<prop->len; i++) {
+			IDP_FreeProperty(GETPROP(prop, i));
+		}
+		memcpy(newarr, prop->data.pointer, newlen*prop->len*sizeof(IDProperty));
+	}
+
+	if(prop->data.pointer)
+		MEM_freeN(prop->data.pointer);
+	prop->data.pointer = newarr;
+	prop->len = newlen;
+	prop->totallen = newsize;
+}
+
+/* ----------- Numerical Array Type ----------- */
 static void idp_resize_group_array(IDProperty *prop, int newlen, void *newarr)
 {
 	if(prop->subtype != IDP_GROUP)
@@ -144,7 +261,7 @@ void IDP_FreeArray(IDProperty *prop)
  {
 	IDProperty *newp = MEM_callocN(sizeof(IDProperty), "IDProperty array dup");
 
-	strncpy(newp->name, prop->name, MAX_IDPROP_NAME);
+	BLI_strncpy(newp->name, prop->name, MAX_IDPROP_NAME);
 	newp->type = prop->type;
 	newp->flag = prop->flag;
 	newp->data.val = prop->data.val;
@@ -234,7 +351,8 @@ void IDP_ConcatString(IDProperty *str1, IDProperty *append)
 
 void IDP_FreeString(IDProperty *prop)
 {
-	MEM_freeN(prop->data.pointer);
+	if(prop->data.pointer)
+		MEM_freeN(prop->data.pointer);
 }
 
 
@@ -388,6 +506,7 @@ IDProperty *IDP_CopyProperty(IDProperty *prop)
 		case IDP_GROUP: return IDP_CopyGroup(prop);
 		case IDP_STRING: return IDP_CopyString(prop);
 		case IDP_ARRAY: return IDP_CopyArray(prop);
+		case IDP_IDPARRAY: return IDP_CopyIDPArray(prop);
 		default: return idp_generic_copy(prop);
 	}
 }
@@ -408,7 +527,7 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 	}
 }
 
-IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
+IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name)
 {
 	IDProperty *prop=NULL;
 
@@ -431,8 +550,8 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 			if (val.array.type == IDP_FLOAT || val.array.type == IDP_INT || val.array.type == IDP_DOUBLE || val.array.type == IDP_GROUP) {
 				prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
 				prop->subtype = val.array.type;
-				prop->data.pointer = MEM_callocN(idp_size_table[val.array.type]*val.array.len, "id property array");
-				idp_resize_group_array(prop, val.array.len, prop->data.pointer);
+				if (val.array.len)
+					prop->data.pointer = MEM_callocN(idp_size_table[val.array.type]*val.array.len, "id property array");
 				prop->len = prop->totallen = val.array.len;
 				break;
 			} else {
@@ -471,7 +590,7 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 	}
 
 	prop->type = type;
-	strncpy(prop->name, name, MAX_IDPROP_NAME);
+	BLI_strncpy(prop->name, name, MAX_IDPROP_NAME);
 	
 	/*security null byte*/
 	prop->name[MAX_IDPROP_NAME-1] = 0;
@@ -493,6 +612,9 @@ void IDP_FreeProperty(IDProperty *prop)
 			break;
 		case IDP_GROUP:
 			IDP_FreeGroup(prop);
+			break;
+		case IDP_IDPARRAY:
+			IDP_FreeIDPArray(prop);
 			break;
 	}
 }

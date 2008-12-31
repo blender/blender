@@ -140,12 +140,12 @@ static int rna_idproperty_verify_valid(PropertyRNA *prop, IDProperty *idprop)
 	 * to have a certain array length you can count on that staying so */
 	
 	switch(idprop->type) {
+		case IDP_IDPARRAY:
+			if(prop->type != PROP_COLLECTION)
+				return 0;
+			break;
 		case IDP_ARRAY:
-			if(idprop->subtype == IDP_GROUP) {
-				if(prop->type != PROP_COLLECTION)
-					return 0;
-			}
-			else if(prop->arraylength != idprop->len)
+			if(prop->arraylength != idprop->len)
 				return 0;
 
 			if(idprop->subtype == IDP_FLOAT && prop->type != PROP_FLOAT)
@@ -285,6 +285,11 @@ PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier)
 	RNA_property_collection_end(&iter);
 
 	return prop;
+}
+
+const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
+{
+	return &srna->properties;
 }
 
 /* Property Information */
@@ -744,7 +749,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index,
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
 			memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
-			((float*)idprop->data.pointer)[index]= value;
+			((float*)IDP_Array(idprop))[index]= value;
 		}
 	}
 }
@@ -950,7 +955,7 @@ static void rna_property_collection_get_idp(CollectionPropertyIterator *iter)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)iter->prop;
 
-	iter->ptr.data= rna_iterator_array_dereference_get(iter);
+	iter->ptr.data= rna_iterator_array_get(iter);
 	iter->ptr.type= cprop->structtype;
 	rna_pointer_inherit_id(cprop->structtype, &iter->parent, &iter->ptr);
 }
@@ -964,9 +969,9 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 		iter->prop= prop;
 
 		if(idprop)
-			rna_iterator_array_begin(iter, IDP_Array(idprop), sizeof(void*), idprop->len, NULL);
+			rna_iterator_array_begin(iter, IDP_IDPArray(idprop), sizeof(IDProperty), idprop->len, NULL);
 		else
-			rna_iterator_array_begin(iter, NULL, sizeof(void*), 0, NULL);
+			rna_iterator_array_begin(iter, NULL, sizeof(IDProperty), 0, NULL);
 
 		if(iter->valid)
 			rna_property_collection_get_idp(iter);
@@ -1055,19 +1060,29 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	IDProperty *idprop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
-		IDP_ResizeArray(idprop, idprop->len+1);
+		IDPropertyTemplate val;
+		IDProperty *item;
+		val.i= 0;
+
+		item= IDP_New(IDP_GROUP, val, "");
+		IDP_AppendArray(idprop, item);
+		IDP_FreeProperty(item);
+		MEM_freeN(item);
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
+		IDProperty *group, *item;
 		IDPropertyTemplate val;
-		IDProperty *group;
-
-		val.array.len= 1;
-		val.array.type= IDP_GROUP;
+		val.i= 0;
 
 		group= rna_idproperties_get(ptr->type, ptr->data, 1);
 		if(group) {
-			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
+			idprop= IDP_NewIDPArray(prop->identifier);
 			IDP_AddToGroup(group, idprop);
+
+			item= IDP_New(IDP_GROUP, val, "");
+			IDP_AppendArray(idprop, item);
+			IDP_FreeProperty(item);
+			MEM_freeN(item);
 		}
 	}
 	else
@@ -1076,9 +1091,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	if(r_ptr) {
 		if(idprop) {
 			CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-			IDProperty **array= (IDProperty**)IDP_Array(idprop);
 
-			r_ptr->data= array[idprop->len-1];
+			r_ptr->data= IDP_GetIndexArray(idprop, idprop->len-1);
 			r_ptr->type= cprop->structtype;
 			rna_pointer_inherit_id(NULL, ptr, r_ptr);
 		}
@@ -1092,7 +1106,7 @@ void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 	IDProperty *idprop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
-		IDP_FreeArray(idprop);
+		IDP_ResizeIDPArray(idprop, 0);
 }
 
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr)
@@ -1949,3 +1963,4 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	BLI_dynstr_free(dynstr);
 	return cstring;
 }
+

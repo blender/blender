@@ -234,6 +234,7 @@ PropertyRNA *RNA_struct_iterator_property(PointerRNA *ptr);
 int RNA_struct_is_ID(PointerRNA *ptr);
 
 PropertyRNA *RNA_struct_find_property(PointerRNA *ptr, const char *identifier);
+const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 
 /* Properties
  *

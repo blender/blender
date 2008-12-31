@@ -56,9 +56,6 @@ void WM_operator_free(wmOperator *op)
 {
 	if(op->properties) {
 		IDP_FreeProperty(op->properties);
-		
-		/* This need change, when the idprop code only
-		 * need call IDP_FreeProperty. (check BKE_idprop.h) */
 		MEM_freeN(op->properties);
 		op->properties= NULL;
 	}

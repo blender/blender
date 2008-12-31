@@ -36,11 +36,12 @@
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm= ptr->id.data;
+	IDProperty *properties= *(IDProperty**)ptr->data;
 	wmOperator *op;
 
 	if(wm)
 		for(op=wm->operators.first; op; op=op->next)
-			if(op->properties == ptr->data)
+			if(op->properties == properties)
 				return op;
 	
 	return NULL;
@@ -68,6 +69,12 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 	return strlen(op->type->name);
 }
 
+static void *rna_Operator_properties_get(PointerRNA *ptr)
+{
+	wmOperator *op= (wmOperator*)ptr->data;
+	return &op->properties;
+}
+
 #else
 
 static void rna_def_operator(BlenderRNA *brna)
@@ -88,12 +95,11 @@ static void rna_def_operator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
+	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "DOC_BROKEN");
 	RNA_def_struct_funcs(srna, NULL, "rna_OperatorProperties_refine");
-
-
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)

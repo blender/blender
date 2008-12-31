@@ -78,7 +78,8 @@ typedef struct IDProperty {
    some cleanup of blenkernel, most likely.*/
 #define IDP_ID			7
 #define IDP_DOUBLE		8
-#define IDP_NUMTYPES	9
+#define IDP_IDPARRAY	9
+#define IDP_NUMTYPES	10
 
 /* add any future new id property types here.*/
 

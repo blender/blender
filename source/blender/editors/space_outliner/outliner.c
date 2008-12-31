@@ -1014,8 +1014,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			iterprop= RNA_struct_iterator_property(ptr);
 			tot= RNA_property_collection_length(ptr, iterprop);
 
-			if(!parent)
-				tselem->flag &= ~TSE_CLOSED;
+			/* auto open these cases */
+			if(!parent || (RNA_property_type(&parent->rnaptr, parent->directdata)) == PROP_POINTER)
+				if(!tselem->used)
+					tselem->flag &= ~TSE_CLOSED;
 
 			if(!(tselem->flag & TSE_CLOSED)) {
 				for(a=0; a<tot; a++)
@@ -3137,6 +3139,96 @@ void outliner_operation_menu(Scene *scene, ARegion *ar, SpaceOops *soops)
 
 /* ***************** DRAW *************** */
 
+static int tselem_rna_icon(PointerRNA *ptr)
+{
+	StructRNA *rnatype= ptr->type;
+
+	if(rnatype == &RNA_Scene)
+		return ICON_SCENE_DEHLT;
+	else if(rnatype == &RNA_World)
+		return ICON_WORLD;
+	else if(rnatype == &RNA_Object)
+		return ICON_OBJECT;
+	else if(rnatype == &RNA_Mesh)
+		return ICON_MESH;
+	else if(rnatype == &RNA_MVert)
+		return ICON_VERTEXSEL;
+	else if(rnatype == &RNA_MEdge)
+		return ICON_EDGESEL;
+	else if(rnatype == &RNA_MFace)
+		return ICON_FACESEL;
+	else if(rnatype == &RNA_MTFace)
+		return ICON_FACESEL_HLT;
+	else if(rnatype == &RNA_MVertGroup)
+		return ICON_VGROUP;
+	else if(rnatype == &RNA_Curve)
+		return ICON_CURVE;
+	else if(rnatype == &RNA_MetaBall)
+		return ICON_MBALL;
+	else if(rnatype == &RNA_MetaElement)
+		return ICON_OUTLINER_DATA_META;
+	else if(rnatype == &RNA_Lattice)
+		return ICON_LATTICE;
+	else if(rnatype == &RNA_Armature)
+		return ICON_ARMATURE;
+	else if(rnatype == &RNA_Bone)
+		return ICON_BONE_DEHLT;
+	else if(rnatype == &RNA_Camera)
+		return ICON_CAMERA;
+	else if(rnatype == &RNA_Lamp)
+		return ICON_LAMP;
+	else if(rnatype == &RNA_Group)
+		return ICON_GROUP;
+	/*else if(rnatype == &RNA_Particle)
+		return ICON_PARTICLES);*/
+	else if(rnatype == &RNA_Material)
+		return ICON_MATERIAL;
+	/*else if(rnatype == &RNA_Texture)
+		return ICON_TEXTURE);*/
+	else if(rnatype == &RNA_Image)
+		return ICON_TEXTURE;
+	else if(rnatype == &RNA_Screen)
+		return ICON_SPLITSCREEN;
+	else if(rnatype == &RNA_NodeTree)
+		return ICON_NODE;
+	/*else if(rnatype == &RNA_Text)
+		return ICON_TEXT);*/
+	else if(rnatype == &RNA_Sound)
+		return ICON_SOUND;
+	else if(rnatype == &RNA_Brush)
+		return ICON_TPAINT_HLT;
+	else if(rnatype == &RNA_Library)
+		return ICON_LIBRARY_DEHLT;
+	/*else if(rnatype == &RNA_Action)
+		return ICON_ACTION);*/
+	else if(rnatype == &RNA_Ipo)
+		return ICON_IPO_DEHLT;
+	else if(rnatype == &RNA_Key)
+		return ICON_SHAPEKEY;
+	else if(rnatype == &RNA_Main)
+		return ICON_BLENDER;
+	else if(rnatype == &RNA_Struct)
+		return ICON_RNA;
+	else if(rnatype == &RNA_Property)
+		return ICON_RNA;
+	else if(rnatype == &RNA_BooleanProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_IntProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_FloatProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_EnumProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_EnumPropertyItem)
+		return ICON_RNA;
+	else if(rnatype == &RNA_PointerProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_CollectionProperty)
+		return ICON_RNA;
+	else
+		return ICON_DOT;
+}
+
 static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElement *te)
 {
 	if(tselem->type) {
@@ -3241,77 +3333,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OBJECT);
 				break;
 			case TSE_RNA_STRUCT:
-				{
-				PointerRNA *ptr= &te->rnaptr;		
-				const char *ident = RNA_struct_identifier(ptr);
-				
-				if (strcmp(ident, "Scene") == 0)
-					UI_icon_draw(x, y, ICON_SCENE_DEHLT);
-				else if (strcmp(ident, "World") == 0)
-					UI_icon_draw(x, y, ICON_WORLD);
-				else if (strcmp(ident, "Object") == 0)
-					UI_icon_draw(x, y, ICON_OBJECT);
-				else if (strcmp(ident, "Mesh") == 0)
-					UI_icon_draw(x, y, ICON_MESH);
-				else if (strcmp(ident, "MVert") == 0)
-					UI_icon_draw(x, y, ICON_VERTEXSEL);
-				else if (strcmp(ident, "MEdge") == 0)
-					UI_icon_draw(x, y, ICON_EDGESEL);
-				else if (strcmp(ident, "MFace") == 0)
-					UI_icon_draw(x, y, ICON_FACESEL);
-				else if (strcmp(ident, "MTFace") == 0)
-					UI_icon_draw(x, y, ICON_FACESEL_HLT);
-				else if (strcmp(ident, "MVertGroup") == 0)
-					UI_icon_draw(x, y, ICON_VGROUP);
-				else if (strcmp(ident, "Curve") == 0)
-					UI_icon_draw(x, y, ICON_CURVE);
-				else if (strcmp(ident, "MetaBall") == 0)
-					UI_icon_draw(x, y, ICON_MBALL);
-				else if (strcmp(ident, "MetaElement") == 0)
-					UI_icon_draw(x, y, ICON_OUTLINER_DATA_META);
-				else if (strcmp(ident, "Lattice") == 0)
-					UI_icon_draw(x, y, ICON_LATTICE);
-				else if (strcmp(ident, "Armature") == 0)
-					UI_icon_draw(x, y, ICON_ARMATURE);
-				else if (strcmp(ident, "Bone") == 0)
-					UI_icon_draw(x, y, ICON_BONE_DEHLT);
-				else if (strcmp(ident, "Camera") == 0)
-					UI_icon_draw(x, y, ICON_CAMERA);
-				else if (strcmp(ident, "Lamp") == 0)
-					UI_icon_draw(x, y, ICON_LAMP);
-				else if (strcmp(ident, "Group") == 0)
-					UI_icon_draw(x, y, ICON_GROUP);
-				else if (strcmp(ident, "Particle") == 0)
-					UI_icon_draw(x, y, ICON_PARTICLES);
-				else if (strcmp(ident, "Material") == 0)
-					UI_icon_draw(x, y, ICON_MATERIAL);
-				else if (strcmp(ident, "Texture") == 0)
-					UI_icon_draw(x, y, ICON_TEXTURE);
-				else if (strcmp(ident, "Image") == 0)
-					UI_icon_draw(x, y, ICON_TEXTURE);
-				else if (strcmp(ident, "Screen") == 0)
-					UI_icon_draw(x, y, ICON_SPLITSCREEN);
-				else if (strcmp(ident, "NodeTree") == 0)
-					UI_icon_draw(x, y, ICON_NODE);
-				else if (strcmp(ident, "Text") == 0)
-					UI_icon_draw(x, y, ICON_TEXT);
-				else if (strcmp(ident, "Sound") == 0)
-					UI_icon_draw(x, y, ICON_SOUND);
-				else if (strcmp(ident, "Brush") == 0)
-					UI_icon_draw(x, y, ICON_TPAINT_HLT);
-				else if (strcmp(ident, "Library") == 0)
-					UI_icon_draw(x, y, ICON_LIBRARY_DEHLT);
-				else if (strcmp(ident, "Action") == 0)
-					UI_icon_draw(x, y, ICON_ACTION);
-				else if (strcmp(ident, "Ipo") == 0)
-					UI_icon_draw(x, y, ICON_IPO_DEHLT);
-				else if (strcmp(ident, "Key") == 0)
-					UI_icon_draw(x, y, ICON_SHAPEKEY);
-				else if (strcmp(ident, "Main") == 0)
-					UI_icon_draw(x, y, ICON_BLENDER);
-				else
-					UI_icon_draw(x, y, ICON_RNA);
-				}
+				UI_icon_draw(x, y, tselem_rna_icon(&te->rnaptr));
 				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
@@ -4080,6 +4102,32 @@ static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA 
 		case PROP_STRING:
 			but= uiDefButR(block, TEX, 0, "", x1, y1, x2, y2, ptr, propname, index, 0, 0, -1, -1, NULL);
 			break;
+		case PROP_POINTER: {
+			PointerRNA pptr;
+			PropertyRNA *nameprop;
+			char *text, *descr, textbuf[256];
+			int icon;
+
+			RNA_property_pointer_get(ptr, prop, &pptr);
+
+			if(!pptr.data)
+				return NULL;
+
+			icon= tselem_rna_icon(&pptr);
+			nameprop= RNA_struct_name_property(&pptr);
+
+			if(nameprop) {
+				text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
+				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
+				if(text != textbuf)
+					MEM_freeN(text);
+			}
+			else {
+				text= (char*)RNA_struct_ui_name(&pptr);
+				descr= (char*)RNA_property_ui_description(&pptr, prop);
+				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
+			}
+		}
 		default:
 			but= NULL;
 			break;
@@ -4105,7 +4153,8 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 
-				outliner_draw_rnabut(block, ptr, prop, -1, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
+					outliner_draw_rnabut(block, ptr, prop, -1, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
