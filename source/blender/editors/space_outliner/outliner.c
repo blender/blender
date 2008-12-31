@@ -3180,19 +3180,19 @@ static int tselem_rna_icon(PointerRNA *ptr)
 	else if(rnatype == &RNA_Group)
 		return ICON_GROUP;
 	/*else if(rnatype == &RNA_Particle)
-		return ICON_PARTICLES);*/
+		return ICON_PARTICLES;*/
 	else if(rnatype == &RNA_Material)
 		return ICON_MATERIAL;
 	/*else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE);*/
+		return ICON_TEXTURE;*/
 	else if(rnatype == &RNA_Image)
 		return ICON_TEXTURE;
 	else if(rnatype == &RNA_Screen)
 		return ICON_SPLITSCREEN;
 	else if(rnatype == &RNA_NodeTree)
 		return ICON_NODE;
-	/*else if(rnatype == &RNA_Text)
-		return ICON_TEXT);*/
+	else if(rnatype == &RNA_Text)
+		return ICON_TEXT;
 	else if(rnatype == &RNA_Sound)
 		return ICON_SOUND;
 	else if(rnatype == &RNA_Brush)
@@ -3200,7 +3200,7 @@ static int tselem_rna_icon(PointerRNA *ptr)
 	else if(rnatype == &RNA_Library)
 		return ICON_LIBRARY_DEHLT;
 	/*else if(rnatype == &RNA_Action)
-		return ICON_ACTION);*/
+		return ICON_ACTION;*/
 	else if(rnatype == &RNA_Ipo)
 		return ICON_IPO_DEHLT;
 	else if(rnatype == &RNA_Key)
@@ -3216,6 +3216,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 	else if(rnatype == &RNA_IntProperty)
 		return ICON_RNA;
 	else if(rnatype == &RNA_FloatProperty)
+		return ICON_RNA;
+	else if(rnatype == &RNA_StringProperty)
 		return ICON_RNA;
 	else if(rnatype == &RNA_EnumProperty)
 		return ICON_RNA;

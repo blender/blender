@@ -243,7 +243,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group datablocks."},
 		{"keys", "ID", "rna_Main_key_begin", "Keys", "Key datablocks."},
 		{"scripts", "ID", "rna_Main_script_begin", "Scripts", "Script datablocks."},
-		{"texts", "ID", "rna_Main_text_begin", "Texts", "Text datablocks."},
+		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks."},
 		{"sounds", "ID", "rna_Main_sound_begin", "Sounds", "Sound datablocks."},
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
 		{"actions", "ID", "rna_Main_action_begin", "Actions", "Action datablocks."},

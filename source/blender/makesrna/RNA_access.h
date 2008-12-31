@@ -192,6 +192,7 @@ extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_StringProperty;
 extern StructRNA RNA_Struct;
 extern StructRNA RNA_SubsurfModifier;
+extern StructRNA RNA_Text;
 extern StructRNA RNA_TextBox;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_TransformSequence;

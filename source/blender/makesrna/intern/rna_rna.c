@@ -242,10 +242,10 @@ static int rna_Property_subtype_get(PointerRNA *ptr)
 	return prop->subtype;
 }
 
-static int rna_Property_readonly_get(PointerRNA *ptr)
+static int rna_Property_editable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	return RNA_property_editable(ptr, prop) ? 0 : 1;
+	return RNA_property_editable(ptr, prop);
 }
 
 static int rna_Property_array_length_get(PointerRNA *ptr)
@@ -420,7 +420,7 @@ static void rna_def_struct(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Struct_description_get", "rna_Struct_description_length", NULL);
-	RNA_def_property_ui_text(prop, "description", "This field explains the Struct's purpose");
+	RNA_def_property_ui_text(prop, "Description", "Description of the Struct's purpose.");
 	
 	prop= RNA_def_property(srna, "base", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -497,10 +497,10 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
 	
-	prop= RNA_def_property(srna, "readonly", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Property_readonly_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Read Only", "Read Only setting for this property");
+	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
+	RNA_def_property_ui_text(prop, "Editable", "Property is editable through RNA.");
 }
 
 static void rna_def_number_property(StructRNA *srna, PropertyType type)
