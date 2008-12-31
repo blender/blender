@@ -38,7 +38,6 @@ SET(INC ../windowmanager
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
   ../gpu
-  ${PYTHON_INC}
   ${SDL_INC}
 )
 
@@ -61,6 +60,12 @@ IF(WITH_FFMPEG)
   SET(INC ${INC} ${FFMPEG_INC})
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_PYTHON)
+  SET(INC ${INC} ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 IF(WIN32)
   SET(INC ${INC} ${PTHREADS_INC})

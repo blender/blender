@@ -28,14 +28,13 @@ FILE(GLOB SRC intern/*.c)
 
 SET(INC 
   . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
-  ../python ../render/extern/include ../../../intern/decimation/extern
+  ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../../../intern/bmfont ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna
   ${SDL_INC}
   ${ZLIB_INC}
-  ${PYTHON_INC}
 )
 
 IF(WITH_VERSE)
@@ -65,7 +64,11 @@ IF(WITH_PLAYER)
   SUBDIRS(bad_level_call_stubs)
 ENDIF(WITH_PLAYER)
 
-ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
+IF(WITH_PYTHON)
+  SET(INC ${INC} ../python ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")
 

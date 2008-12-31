@@ -36,12 +36,11 @@ SET(INC ../../windowmanager
   ../../include ../../../../intern/bmfont ../../imbuf 
   ../../render/extern/include ../../../../intern/bsp/extern 
   ../../radiosity/extern/include
-  ../../../intern/decimation/extern ../../blenloader ../../python
+  ../../../intern/decimation/extern ../../blenloader
   ../../../kernel/gen_system ../../../../intern/SoundSystem ../../readstreamglue
   ../../quicktime ../../../../intern/elbeem/extern
   ../../../../intern/ghost ../../../../intern/opennl/extern
   ../../nodes
-  ${PYTHON_INC}
   ${SDL_INC}
 )
 
@@ -64,6 +63,12 @@ IF(WITH_FFMPEG)
   SET(INC ${INC} ${FFMPEG_INC})
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(WITH_PYTHON)
+  SET(INC ${INC} ../../python ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 IF(WIN32)
   SET(INC ${INC} ${PTHREADS_INC})

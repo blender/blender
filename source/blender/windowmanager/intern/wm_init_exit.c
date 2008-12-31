@@ -65,7 +65,9 @@
 
 #include "radio.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include "SYS_System.h"
 

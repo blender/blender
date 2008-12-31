@@ -38,7 +38,6 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/imbuf
   ../blender/renderconverter
   ../blender/render/extern/include
-  ../blender/python
   ../blender/makesdna
   ../blender/gpu
   ../blender/windowmanager
@@ -56,6 +55,12 @@ ENDIF(WITH_QUICKTIME)
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
+
+IF(WITH_PYTHON)
+  INCLUDE_DIRECTORIES(../blender/python)
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
 
 IF(LINUX)
   ADD_DEFINITIONS(-DWITH_BINRELOC)
