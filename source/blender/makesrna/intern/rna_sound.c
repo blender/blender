@@ -88,9 +88,40 @@ void RNA_def_sample(BlenderRNA *brna)
 
 }
 
+void RNA_def_soundlistener(BlenderRNA *brna)
+{
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "soundslistener", "ID");
+	RNA_def_struct_sdna(srna, "bSoundListener");
+	RNA_def_struct_ui_text(srna, "Sound Listener", "DOC_BROKEN");
+
+	prop= RNA_def_property(srna, "gain", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Gain", "Overall volume for Game Engine sound.");
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 4);
+
+	prop= RNA_def_property(srna, "dopplerfactor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Doppler Factor", "Amount of Doppler effect in Game Engine sound.");
+	RNA_def_property_ui_range(prop, 0.0, 10.0, 1, 4);
+
+	prop= RNA_def_property(srna, "dopplervelocity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Doppler Velocity", "The speed of sound in the Game Engine.");
+	RNA_def_property_ui_range(prop, 0.0, 10000.0, 0.1, 4);
+
+	prop= RNA_def_property(srna, "numsoundsblender", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Total Sounds in Blender", "The total number of sounds currently linked and available.");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+
+	prop= RNA_def_property(srna, "numsoundsgameengine", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Total Sounds in Game Engine", "The total number of sounds in the Game Engine.");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+
+}
+
 void RNA_def_sound(BlenderRNA *brna)
 {
-	/* TODO - bSoundListener */
 
 	StructRNA *srna;
 	PropertyRNA *prop;
