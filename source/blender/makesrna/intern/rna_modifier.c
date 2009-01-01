@@ -30,6 +30,7 @@
 #include "rna_internal.h"
 
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -168,10 +169,26 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 static void rna_def_modifier_build(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "BuildModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Build Modifier", "Build Modifier.");
 	RNA_def_struct_sdna(srna, "BuildModifierData");
+
+	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Start", "Specify the start frame of the effect.");
+
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Length", "Specify the total time the build effect requires");
+
+	prop= RNA_def_property(srna, "randomize", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Randomize", "Randomize the faces or edges during build.");
+
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Seed", "Specify the seed for random if used.");
 }
 
 static void rna_def_modifier_mirror(BlenderRNA *brna)
