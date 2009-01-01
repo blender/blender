@@ -91,11 +91,6 @@
 /* -------------------------- Exposed API ----------------------------------- */
 
 /* ************************************************************************** */
-/* Channel Drawing */
-// XXX should these get their own file or go in anim_draw instead???
-
-
-/* ************************************************************************** */
 /* Operators */
 
 
@@ -232,7 +227,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 					/* toggle expand */
 					agrp->flag ^= AGRP_EXPANDED;
 				}
-				else if (x >= (ACHANNEL_NAMEWIDTH-16)) {
+				else if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 					/* toggle protection/locking */
 					agrp->flag ^= AGRP_PROTECTED;
  				}
@@ -253,6 +248,9 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 						//deselect_actionchannels(act, ANIMCONT_ACTION, 0);
 						//select_action_group(act, agrp, SELECT_ADD);
 					}
+					
+					// XXX
+					agrp->flag ^= AGRP_SELECTED;
  				}
 			}
 			break;
@@ -261,11 +259,11 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				bActionChannel *achan= (bActionChannel *)ale->data;
 				short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
 				
-				if (x >= (ACHANNEL_NAMEWIDTH-16)) {
+				if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 					/* toggle protect */
 					achan->flag ^= ACHAN_PROTECTED;
 				}
-				else if ((x >= (ACHANNEL_NAMEWIDTH-32)) && (achan->ipo)) {
+				else if ((x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) && (achan->ipo)) {
 					/* toggle mute */
 					achan->ipo->muteipo = (achan->ipo->muteipo)? 0: 1;
 				}
@@ -333,11 +331,11 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			{
 				IpoCurve *icu= (IpoCurve *)ale->data;
 				
-				if (x >= (ACHANNEL_NAMEWIDTH-16)) {
+				if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
 					/* toggle protection */
 					icu->flag ^= IPO_PROTECT;
 				}
-				else if (x >= (ACHANNEL_NAMEWIDTH-16)) {
+				else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
 					/* toggle mute */
 					icu->flag ^= IPO_MUTE;
 				}

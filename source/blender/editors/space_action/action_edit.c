@@ -86,6 +86,151 @@
 #include "action_intern.h"
 
 /* ************************************************************************** */
+/* KEYFRAME-RANGE STUFF */
+
+/* *************************** Calculate Range ************************** */
+
+/* Get the min/max keyframes*/
+static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get data to filter, from Action or Dopesheet */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* set large values to try to override */
+	*min= 999999999.0f;
+	*max= -999999999.0f;
+	
+	/* check if any channels to set range with */
+	if (anim_data.first) {
+		/* go through channels, finding max extents*/
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			Object *nob= ANIM_nla_mapping_get(ac, ale);
+			Ipo *ipo= (Ipo *)ale->key_data; 
+			float tmin, tmax;
+			
+			/* get range and apply necessary scaling before */
+			calc_ipo_range(ipo, &tmin, &tmax);
+			
+			if (nob) {
+				tmin= get_action_frame_inv(nob, tmin);
+				tmax= get_action_frame_inv(nob, tmax);
+			}
+			
+			/* try to set cur using these values, if they're more extreme than previously set values */
+			*min= MIN2(*min, tmin);
+			*max= MAX2(*max, tmax);
+		}
+		
+		/* free memory */
+		BLI_freelistN(&anim_data);
+	}
+	else {
+		/* set default range */
+		if (ac->scene) {
+			*min= (float)ac->scene->r.sfra;
+			*max= (float)ac->scene->r.efra;
+		}
+		else {
+			*min= -5;
+			*max= 100;
+		}
+	}
+}
+
+/* ****************** Automatic Preview-Range Operator ****************** */
+
+static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	Scene *scene;
+	float min, max;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.scene == NULL)
+		return OPERATOR_CANCELLED;
+	else
+		scene= ac.scene;
+	
+	/* set the range directly */
+	get_keyframe_extents(&ac, &min, &max);
+	scene->r.psfra= (int)floor(min + 0.5f);
+	scene->r.pefra= (int)floor(max + 0.5f);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_set_previewrange (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Auto-Set Preview Range";
+	ot->idname= "ACT_OT_set_previewrange";
+	
+	/* api callbacks */
+	ot->exec= actkeys_previewrange_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+/* ****************** View-All Operator ****************** */
+
+static int actkeys_viewall_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	View2D *v2d;
+	float extra;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	v2d= &ac.ar->v2d;
+	
+	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
+	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax);
+	
+	extra= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
+	v2d->cur.xmin -= extra;
+	v2d->cur.xmax += extra;
+	
+	/* set vertical range */
+	v2d->cur.ymax= 0.0f;
+	v2d->cur.ymin= -(v2d->mask.ymax - v2d->mask.ymin);
+	
+	/* do View2D syncing */
+	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_view_all (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View All";
+	ot->idname= "ACT_OT_view_all";
+	
+	/* api callbacks */
+	ot->exec= actkeys_viewall_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+/* ************************************************************************** */
 /* GENERAL STUFF */
 
 // TODO:

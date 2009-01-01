@@ -73,6 +73,9 @@ enum {
 /* ***************************************** */
 /* action_edit.c */
 
+void ACT_OT_set_previewrange(struct wmOperatorType *ot);
+void ACT_OT_view_all(struct wmOperatorType *ot);
+
 void ACT_OT_keyframes_copy(struct wmOperatorType *ot);
 void ACT_OT_keyframes_paste(struct wmOperatorType *ot);
 

@@ -80,6 +80,9 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACT_OT_keyframes_delete);
 	WM_operatortype_append(ACT_OT_keyframes_copy);
 	WM_operatortype_append(ACT_OT_keyframes_paste);
+	
+	WM_operatortype_append(ACT_OT_set_previewrange);
+	WM_operatortype_append(ACT_OT_view_all);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -107,7 +110,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_columnselect", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
 	
-	/* action_edit_keyframes.c */
+	/* action_edit.c */
 		/* snap - current frame to selected keys */
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_cfrasnap", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		
@@ -131,6 +134,10 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 		// XXX - should we keep these?
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	
+		/* auto-set range */
+	WM_keymap_add_item(keymap, "ACT_OT_set_previewrange", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ACT_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 		
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
