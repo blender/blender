@@ -81,7 +81,7 @@
 #include "ED_util.h"
 
 /* own include */
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 /* 
 editmesh.c:
@@ -1877,10 +1877,10 @@ static void free_undoMesh(void *umv)
 	MEM_freeN(um);
 }
 
-static void *editMesh_to_undoMesh(void)
+static void *editMesh_to_undoMesh(void *emv)
 {
-	EditMesh *em= NULL; // XXX
-	Scene *scene= NULL;
+	EditMesh *em= (EditMesh *)emv;
+//	Scene *scene= NULL;
 	UndoMesh *um;
 	EditVert *eve;
 	EditEdge *eed;
@@ -1891,7 +1891,7 @@ static void *editMesh_to_undoMesh(void)
 	EditFaceC *efac=NULL;
 	EditSelectionC *esec=NULL;
 	int a;
-	return NULL;	// XXX
+
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
 	um->selectmode = em->selectmode;
@@ -1972,7 +1972,7 @@ static void *editMesh_to_undoMesh(void)
 	}
 
 // XXX	um->retopo_paint_data= retopo_paint_data_copy(em->retopo_paint_data);
-	um->retopo_mode= scene->toolsettings->retopo_mode;
+//	um->retopo_mode= scene->toolsettings->retopo_mode;
 	
 	{
 		Multires *mr= get_mesh(G.obedit)->mr;
@@ -1996,10 +1996,10 @@ static void *editMesh_to_undoMesh(void)
 	return um;
 }
 
-static void undoMesh_to_editMesh(void *umv)
+static void undoMesh_to_editMesh(void *umv, void *emv)
 {
-	EditMesh *em= NULL; // XXX
-	UndoMesh *um= (UndoMesh*)umv;
+	EditMesh *em= (EditMesh *)emv;
+	UndoMesh *um= (UndoMesh *)umv;
 	EditVert *eve, **evar=NULL;
 	EditEdge *eed;
 	EditFace *efa;
@@ -2009,7 +2009,7 @@ static void undoMesh_to_editMesh(void *umv)
 	EditFaceC *efac;
 	EditSelectionC *esec;
 	int a=0;
-	return; // XXX
+
 	em->selectmode = um->selectmode;
 	
 	free_editMesh(em);
@@ -2110,11 +2110,20 @@ static void undoMesh_to_editMesh(void *umv)
 	}
 }
 
+static void *getEditMesh(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit) {
+		Mesh *me= obedit->data;
+		return me->edit_mesh;
+	}
+	return NULL;
+}
 
 /* and this is all the undo system needs to know */
-void undo_push_mesh(char *name)
+void undo_push_mesh(bContext *C, char *name)
 {
-	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
+	undo_editmode_push(C, name, getEditMesh, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh, NULL);
 }
 
 

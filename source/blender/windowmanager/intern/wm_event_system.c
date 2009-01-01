@@ -104,9 +104,11 @@ void WM_event_add_notifier(bContext *C, unsigned int type, void *reference)
 {
 	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 	
-	BLI_addtail(&CTX_wm_manager(C)->queue, note);
+	note->wm= CTX_wm_manager(C);
+	BLI_addtail(&note->wm->queue, note);
 	
 	note->window= CTX_wm_window(C);
+	
 	if(CTX_wm_region(C))
 		note->swinid= CTX_wm_region(C)->swinid;
 	

@@ -29,10 +29,11 @@
 
 /* Internal for editmesh_xxxx.c functions */
 
-#ifndef EDITMESH_H
-#define EDITMESH_H
+#ifndef MESH_INTERN_H
+#define MESH_INTERN_H
 
 struct bContext;
+struct wmOperatorType;
 
 #define TEST_EDITMESH	if(G.obedit==0) return; /* layer test XXX */
 
@@ -164,6 +165,9 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 
 /* ******************* editmesh_mods.c */
+
+void MESH_OT_de_select_all(struct wmOperatorType *ot);
+
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
 void editmesh_select_by_material(EditMesh *em, int index);
@@ -195,5 +199,5 @@ void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, 
 int EdgeSlide(EditMesh *em, short immediate, float imperc);
 
 
-#endif
+#endif // MESH_INTERN_H
 

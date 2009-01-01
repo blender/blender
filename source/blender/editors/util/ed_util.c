@@ -52,6 +52,9 @@
 
 void ED_editors_exit(bContext *C)
 {
+	/* frees all editmode undos */
+	undo_editmode_clear();
+	
 	if(CTX_data_edit_object(C)) {
 		Object *ob= CTX_data_edit_object(C);
 		

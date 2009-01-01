@@ -86,7 +86,7 @@ void ED_undo_push(bContext *C, char *str)
 		if (U.undosteps == 0) return;
 		
 		if(G.obedit->type==OB_MESH)
-			undo_push_mesh(str);
+			undo_push_mesh(C, str);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 			undo_push_curve(str);
 		else if (G.obedit->type==OB_FONT)
@@ -109,40 +109,45 @@ void ED_undo_push(bContext *C, char *str)
 	}
 }
 
-static void undo_do(bContext *C)
-{
-	if(U.uiflag & USER_GLOBALUNDO) {
-#ifndef DISABLE_PYTHON
-// XXX		BPY_scripts_clear_pyobjects();
-#endif
-		BKE_undo_step(C, 1);
-		sound_initialize_sounds();
-	}
-	
-}
-
-static int ed_undo_exec(bContext *C, wmOperator *op)
+static int ed_undo_step(bContext *C, wmOperator *op, int step)
 {	
 	ScrArea *sa= CTX_wm_area(C);
 	
 	if(G.obedit) {
 		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-			undo_editmode_step(1);
+			undo_editmode_step(C, step);
 	}
 	else {
+		int do_glob_undo= 0;
+		
 		if(G.f & G_TEXTUREPAINT)
-			undo_imagepaint_step(1);
+			undo_imagepaint_step(step);
 		else if(sa->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 			if(sima->flag & SI_DRAWTOOL)
-				undo_imagepaint_step(1);
+				undo_imagepaint_step(step);
 			else
-				undo_do(C);
+				do_glob_undo= 1;
 		}
-		else if(G.f & G_PARTICLEEDIT)
-			PE_undo();
+		else if(G.f & G_PARTICLEEDIT) {
+			if(step==1)
+				PE_undo();
+			else
+				PE_redo();
+		}
 		else {
-			undo_do(C);
+			do_glob_undo= 1;
+		}
+		
+		if(do_glob_undo) {
+			if(U.uiflag & USER_GLOBALUNDO) {
+#ifndef DISABLE_PYTHON
+				// XXX		BPY_scripts_clear_pyobjects();
+#endif
+				BKE_undo_step(C, step);
+				sound_initialize_sounds();
+			}
+			
 		}
 	}
 	
@@ -151,39 +156,13 @@ static int ed_undo_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int ed_undo_exec(bContext *C, wmOperator *op)
+{
+	return ed_undo_step(C, op, 1);
+}
 static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	
-	if(G.obedit) {
-		//if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-		//	undo_editmode_step(-1);
-	}
-	else {
-		if(G.f & G_TEXTUREPAINT)
-			undo_imagepaint_step(-1);
-		else if(sa->spacetype==SPACE_IMAGE) {
-			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
-			if(sima->flag & SI_DRAWTOOL)
-				undo_imagepaint_step(-1);
-			else {
-				BKE_undo_step(C, -1);
-				sound_initialize_sounds();
-			}
-		}
-		else if(G.f & G_PARTICLEEDIT)
-			PE_redo();
-		else {
-			/* includes faceselect now */
-			if(U.uiflag & USER_GLOBALUNDO) {
-				BKE_undo_step(C, -1);
-				sound_initialize_sounds();
-			}
-		}
-	}
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-	return OPERATOR_FINISHED;
-
+	return ed_undo_step(C, op, -1);
 }
 
 void ED_undo_menu(bContext *C)

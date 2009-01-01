@@ -27,6 +27,8 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
@@ -39,6 +41,7 @@
 
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_space_api.h"
 #include "ED_anim_api.h"
 
@@ -85,6 +88,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_anim();
 	ED_operatortypes_animchannels(); // XXX have this as part of anim() ones instead?
 	ED_operatortypes_object();
+	ED_operatortypes_mesh();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
@@ -105,6 +109,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_anim(wm);
 	ED_keymap_animchannels(wm);
 	ED_keymap_object(wm);
+	ED_keymap_mesh(wm);
 	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();

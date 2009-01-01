@@ -76,14 +76,18 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "ED_multires.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -2174,6 +2178,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 
 
 /* here actual select happens */
+/* gets called via generic mouse select operator */
 void mouse_mesh(bContext *C, short mval[2], short extend)
 {
 	ViewContext vc;
@@ -3225,21 +3230,40 @@ void selectswap_mesh(EditMesh *em) /* UI level */
 	
 }
 
-void deselectall_mesh(EditMesh *em)	 /* this toggles!!!, UI level */
+/* ******************** (de)select all operator **************** */
+
+static int toggle_select_all_exec(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-		if( EM_nvertices_selected(em) ) {
-			EM_clear_flag_all(em, SELECT);
-			BIF_undo_push("Deselect All");
-		}
-		else  {
-			EM_set_flag_all(em, SELECT);
-			BIF_undo_push("Select All");
-		}
+	if( EM_nvertices_selected(em) ) {
+		EM_clear_flag_all(em, SELECT);
+		BIF_undo_push("Deselect All");
+	}
+	else  {
+		EM_set_flag_all(em, SELECT);
+		BIF_undo_push("Select All");
+	}
 		
 //		if (EM_texFaceCheck())
-
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+	return OPERATOR_FINISHED;
 }
+
+void MESH_OT_de_select_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select or Deselect All";
+	ot->idname= "MESH_OT_de_select_all";
+	
+	/* api callbacks */
+	ot->exec= toggle_select_all_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+/* ******************** **************** */
 
 void EM_select_more(EditMesh *em)
 {

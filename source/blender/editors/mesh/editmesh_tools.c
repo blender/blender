@@ -82,7 +82,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 /* XXX */
 static void BIF_undo_push() {}

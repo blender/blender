@@ -197,10 +197,34 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
-	/* object ops, modal later... */
-	keymap= WM_keymap_listbase(wm, "View3D Object", SPACE_VIEW3D, 0);
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	/* object ops. */
+	keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	/* object modal ops default */
+	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+}
+
+static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
+{
+	ListBase *keymap;
+	
+	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	if(stype==NS_MODE_OBJECT)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+	
+	
+	keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
+	if(stype==NS_EDITMODE_MESH)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 	
 }
 
@@ -212,8 +236,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_OB_ACTIVE:
-				case ND_OB_EDIT:
 				case ND_OB_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+				case ND_MODE:
+					view3d_modal_keymaps(wmn->wm, ar, wmn->subtype);
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -257,6 +284,24 @@ static void view3d_header_area_draw(const bContext *C, ARegion *ar)
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
 }
+
+static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
+				case ND_MODE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
+
 
 static int view3d_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
 {
@@ -343,7 +388,7 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	art->listener= view3d_main_area_listener;
+	art->listener= view3d_header_area_listener;
 	
 	art->init= view3d_header_area_init;
 	art->draw= view3d_header_area_draw;

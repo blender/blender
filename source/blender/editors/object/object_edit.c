@@ -2061,7 +2061,7 @@ static void exit_editmode(bContext *C, wmOperator *op, int flag)	/* freedata==0 
 	
 	//	if(flag & EM_WAITCURSOR) waitcursor(0);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_EDIT, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
 
 }
 
@@ -2097,9 +2097,7 @@ static void enter_editmode(bContext *C, wmOperator *op)
 		
 		make_editMesh(scene, ob);
 
-		// XXX		if (EM_texFaceCheck())
-		//			allqueue(REDRAWIMAGE, 0);
-		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, ob);
 	}
 	if (ob->type==OB_ARMATURE){
 		bArmature *arm= base->object->data;
@@ -2122,7 +2120,7 @@ static void enter_editmode(bContext *C, wmOperator *op)
 		/* to ensure all goes in restposition and without striding */
 		DAG_object_flush_update(scene, G.obedit, OB_RECALC);
 
-		allqueue (REDRAWVIEW3D,0);
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, ob);
 	}
 	else if(ob->type==OB_FONT) {
 		G.obedit= ob;
@@ -2144,19 +2142,16 @@ static void enter_editmode(bContext *C, wmOperator *op)
 		G.obedit= ob;
 // XXX		make_editNurb();
 	}
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWOOPS, 0);
 	
 	if(ok) {
 	
-		allqueue(REDRAWVIEW3D, 1);
 		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
 		
 	}
-	else G.obedit= NULL;
-	
-//	if(wc) waitcursor(0);
-	WM_event_add_notifier(C, NC_SCENE|ND_OB_EDIT, scene);
+	else {
+		G.obedit= NULL;
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
+	}
 	
 }
 

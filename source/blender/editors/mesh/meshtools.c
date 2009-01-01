@@ -84,7 +84,7 @@
 #include "ED_object.h"
 
 /* own include */
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 
 /* from rendercode.c */

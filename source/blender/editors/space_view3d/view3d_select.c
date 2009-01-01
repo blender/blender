@@ -1228,7 +1228,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	vc.scene= scene;
 	vc.v3d= v3d;
 	vc.obact= OBACT;
-	
+	vc.obedit= G.obedit;
 	
 	val= RNA_int_get(op->ptr, "event_type");
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
@@ -1247,10 +1247,11 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) {
+			Mesh *me= G.obedit->data;
+			vc.em= me->edit_mesh;
 			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
-//			allqueue(REDRAWVIEW3D, 0);
 //			if (EM_texFaceCheck())
-//				allqueue(REDRAWIMAGE, 0);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
 			
 		}
 		else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
@@ -1411,18 +1412,22 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		}
 		MEM_freeN(vbuffer);
 	}
-
-	BIF_undo_push("Border select");
 	
 	return OPERATOR_FINISHED;
 } 
 
 
 /* *****************Selection Operators******************* */
+static EnumPropertyItem prop_select_types[] = {
+	{0, "EXCLUSIVE", "Exclusive", ""},
+	{1, "EXTEND", "Extend", ""},
+	{0, NULL, NULL, NULL}
+};
 
 /* ****** Border Select ****** */
 void VIEW3D_OT_borderselect(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Border Select";
@@ -1441,15 +1446,13 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_types);
 }
 
 /* ****** Mouse Select ****** */
 
-static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
-};
 
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {

@@ -30,6 +30,7 @@
 
 struct bContext;
 struct wmEvent;
+struct wmWindowManager;
 
 /* exported types for WM */
 
@@ -114,6 +115,7 @@ typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 typedef struct wmNotifier {
 	struct wmNotifier *prev, *next;
 	
+	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	
 	int swinid;
@@ -152,7 +154,7 @@ typedef struct wmNotifier {
 #define	ND_SEQUENCER		(6<<16)
 #define ND_OB_ACTIVE		(7<<16)
 #define ND_OB_SELECT		(8<<16)
-#define ND_OB_EDIT			(9<<16)
+#define ND_MODE				(9<<16)
 
 	/* Object */
 #define	ND_TRANSFORM		(16<<16)
@@ -164,6 +166,18 @@ typedef struct wmNotifier {
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00
+
+/* subtype scene mode */
+#define NS_MODE_OBJECT		(1<<8)
+
+#define NS_EDITMODE_MESH	(2<<8)
+#define NS_EDITMODE_CURVE	(3<<8)
+#define NS_EDITMODE_SURFACE	(4<<8)
+#define NS_EDITMODE_TEXT	(5<<8)
+#define NS_EDITMODE_MBALL	(6<<8)
+#define NS_EDITMODE_LATTICE	(7<<8)
+#define NS_EDITMODE_ARMATURE	(8<<8)
+
 
 /* action classification */
 #define NOTE_ACTION			(0x000000FF)

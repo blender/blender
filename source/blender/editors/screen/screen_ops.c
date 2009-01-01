@@ -35,6 +35,9 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
+#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 
 #include "WM_api.h"
@@ -134,6 +137,26 @@ int ED_operator_sequencer_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_SEQ);
 }
 
+int ED_operator_object_active(bContext *C)
+{
+	return NULL != CTX_data_active_object(C);
+}
+
+int ED_operator_editmesh(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MESH)
+		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+	return 0;
+}
+
+int ED_operator_editcurve(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_CURVE)
+		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+	return 0;
+}
 
 
 /* *************************** action zone operator ************************** */

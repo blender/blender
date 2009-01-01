@@ -61,16 +61,17 @@
 
 Add this in your local code:
 
-void undo_editmode_push(char *name, 
+void undo_editmode_push(bContext *C, char *name, 
+		void * (*getdata)(bContext *C),     // use context to retrieve current editdata
 		void (*freedata)(void *), 			// pointer to function freeing data
-		void (*to_editmode)(void *),        // data to editmode conversion
-		void * (*from_editmode)(void))      // editmode to data conversion
-		int  (*validate_undo)(void *))      // check if undo data is still valid
+		void (*to_editmode)(void *, void *),        // data to editmode conversion
+		void * (*from_editmode)(void *))      // editmode to data conversion
+		int  (*validate_undo)(void *, void *))      // check if undo data is still valid
 
 
 Further exported for UI is:
 
-void undo_editmode_step(int step);			// undo and redo
+void undo_editmode_step(bContext *C, int step);	 // undo and redo
 void undo_editmode_clear(void)				// free & clear all data
 void undo_editmode_menu(void)				// history menu
 
@@ -92,10 +93,11 @@ typedef struct UndoElem {
 	void *undodata;
 	uintptr_t undosize;
 	char name[MAXUNDONAME];
+	void * (*getdata)(bContext *C);
 	void (*freedata)(void *);
-	void (*to_editmode)(void *);
-	void * (*from_editmode)(void);
-	int (*validate_undo)(void *);
+	void (*to_editmode)(void *, void *);
+	void * (*from_editmode)(void *);
+	int (*validate_undo)(void *, void *);
 } UndoElem;
 
 static ListBase undobase={NULL, NULL};
@@ -104,19 +106,23 @@ static UndoElem *curundo= NULL;
 
 /* ********************* xtern api calls ************* */
 
-static void undo_restore(UndoElem *undo)
+static void undo_restore(UndoElem *undo, void *editdata)
 {
 	if(undo) {
-		undo->to_editmode(undo->undodata);	
+		undo->to_editmode(undo->undodata, editdata);	
 	}
 }
 
 /* name can be a dynamic string */
-void undo_editmode_push(char *name, void (*freedata)(void *), 
-		void (*to_editmode)(void *),  void *(*from_editmode)(void),
-		int (*validate_undo)(void *))
+void undo_editmode_push(bContext *C, char *name, 
+						void * (*getdata)(bContext *C),
+						void (*freedata)(void *), 
+						void (*to_editmode)(void *, void *),  
+						void *(*from_editmode)(void *),
+						int (*validate_undo)(void *, void *))
 {
 	UndoElem *uel;
+	void *editdata;
 	int nr;
 	uintptr_t memused, totmem, maxmem;
 
@@ -131,10 +137,11 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 	}
 	
 	/* make new */
-	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
+	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo editmode");
 	strncpy(uel->name, name, MAXUNDONAME-1);
 	BLI_addtail(&undobase, uel);
 	
+	uel->getdata= getdata;
 	uel->freedata= freedata;
 	uel->to_editmode= to_editmode;
 	uel->from_editmode= from_editmode;
@@ -158,7 +165,8 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 
 	/* copy  */
 	memused= MEM_get_memory_in_use();
-	curundo->undodata= curundo->from_editmode();
+	editdata= getdata(C);
+	curundo->undodata= curundo->from_editmode(editdata);
 	curundo->undosize= MEM_get_memory_in_use() - memused;
 	curundo->ob= G.obedit;
 	curundo->id= G.obedit->id;
@@ -190,7 +198,7 @@ void undo_editmode_push(char *name, void (*freedata)(void *),
 }
 
 /* helper to remove clean other objects from undo stack */
-static void undo_clean_stack(void)
+static void undo_clean_stack(bContext *C)
 {
 	UndoElem *uel, *next;
 	int mixed= 0;
@@ -200,19 +208,27 @@ static void undo_clean_stack(void)
 	
 	uel= undobase.first; 
 	while(uel) {
+		void *editdata= uel->getdata(C);
+		int isvalid= 0;
 		next= uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
-		if(uel->type==G.obedit->type && strcmp(uel->id.name, G.obedit->id.name)==0 &&
-		   (!uel->validate_undo || uel->validate_undo(uel->undodata))) {
-			uel->ob= G.obedit;
+		if(uel->type==G.obedit->type) {
+			if(strcmp(uel->id.name, G.obedit->id.name)==0) {
+				if(uel->validate_undo==NULL)
+					isvalid= 1;
+				else if(uel->validate_undo(uel->undodata, editdata))
+					isvalid= 1;
+			}
 		}
+		if(isvalid) 
+			uel->ob= G.obedit;
 		else {
 			mixed= 1;
 			uel->freedata(uel->undodata);
 			BLI_freelinkN(&undobase, uel);
 		}
-
+		
 		uel= next;
 	}
 	
@@ -220,14 +236,14 @@ static void undo_clean_stack(void)
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
-void undo_editmode_step(int step)
+void undo_editmode_step(bContext *C, int step)
 {
 	
 	/* prevent undo to happen on wrong object, stack can be a mix */
-	undo_clean_stack();
+	undo_clean_stack(C);
 	
 	if(step==0) {
-		undo_restore(curundo);
+		undo_restore(curundo, curundo->getdata(C));
 	}
 	else if(step==1) {
 		
@@ -235,7 +251,7 @@ void undo_editmode_step(int step)
 		else {
 			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
-			undo_restore(curundo);
+			undo_restore(curundo, curundo->getdata(C));
 		}
 	}
 	else {
@@ -243,7 +259,7 @@ void undo_editmode_step(int step)
 		
 		if(curundo==NULL || curundo->next==NULL) error("No more steps to redo");
 		else {
-			undo_restore(curundo->next);
+			undo_restore(curundo->next, curundo->getdata(C));
 			curundo= curundo->next;
 			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
@@ -267,7 +283,7 @@ void undo_editmode_clear(void)
 }
 
 /* based on index nr it does a restore */
-static void undo_number(int nr)
+static void undo_number(bContext *C, int nr)
 {
 	UndoElem *uel;
 	int a=1;
@@ -276,19 +292,19 @@ static void undo_number(int nr)
 		if(a==nr) break;
 	}
 	curundo= uel;
-	undo_editmode_step(0);
+	undo_editmode_step(C, 0);
 }
 
 /* ************** for interaction with menu/pullown */
 
-void undo_editmode_menu(void)
+void undo_editmode_menu(bContext *C)
 {
 	UndoElem *uel;
 	DynStr *ds= BLI_dynstr_new();
 	short event;
 	char *menu;
 
-	undo_clean_stack();	// removes other objects from it
+	undo_clean_stack(C);	// removes other objects from it
 	
 	BLI_dynstr_append(ds, "Editmode Undo History %t");
 	
@@ -303,7 +319,7 @@ void undo_editmode_menu(void)
 // XXX	event= pupmenu_col(menu, 20);
 	MEM_freeN(menu);
 	
-	if(event>0) undo_number(event);
+	if(event>0) undo_number(C, event);
 }
 
 static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
@@ -311,7 +327,7 @@ static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
 	
 	if(G.obedit==NULL || event<1) return;
 
-	undo_number(event-1);
+	undo_number(C, event-1);
 	
 }
 
@@ -322,7 +338,7 @@ uiBlock *editmode_undohistorymenu(bContext *C, uiMenuBlockHandle *handle, void *
 	short yco = 20, menuwidth = 120;
 	short item= 1;
 	
-	undo_clean_stack();	// removes other objects from it
+	undo_clean_stack(C);	// removes other objects from it
 
 	block= uiBeginBlock(C, handle->region, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_editmode_undohistorymenu, NULL);

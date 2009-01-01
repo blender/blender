@@ -75,12 +75,16 @@ void ED_operatortypes_object(void)
 	
 }
 
-/* note object keymap also for other space? */
 void ED_keymap_object(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "View3D Object", SPACE_VIEW3D, 0);
+	ListBase *keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
 	
+	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_toggle_editmode", TABKEY, KM_PRESS, 0, 0);
+
+	/* Note: this keymap gets disabled in non-objectmode,  */
+	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
+	
 	WM_keymap_add_item(keymap, "OBJECT_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);

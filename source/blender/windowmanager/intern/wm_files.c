@@ -79,6 +79,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 

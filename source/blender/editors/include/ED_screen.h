@@ -94,6 +94,9 @@ int		ED_operator_node_active(struct bContext *C);
 int		ED_operator_ipo_active(struct bContext *C);
 int		ED_operator_sequencer_active(struct bContext *C);
 
+int		ED_operator_object_active(struct bContext *C);
+int		ED_operator_editmesh(struct bContext *C);
+int		ED_operator_editcurve(struct bContext *C);
 
 /* default keymaps, bitflags */
 #define ED_KEYMAP_UI		1

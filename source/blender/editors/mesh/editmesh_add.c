@@ -61,7 +61,7 @@
 #include "ED_multires.h"
 #include "ED_view3d.h"
 
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 /* bpymenu removed XXX */
 

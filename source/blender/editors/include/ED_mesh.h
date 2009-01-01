@@ -31,7 +31,12 @@
 struct View3D;
 struct ARegion;
 struct EditMesh;
+struct EditVert;
+struct EditEdge;
+struct EditFace;
 struct bContext;
+struct wmWindowManager;
+struct EditSelection;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -67,39 +72,48 @@ typedef struct ViewContext {
 
 /* meshtools.c */
 
-intptr_t	mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode);
-EditVert   *editmesh_get_x_mirror_vert(Object *ob, EditMesh *em, float *co);
+intptr_t	mesh_octree_table(Object *ob, struct EditMesh *em, float *co, char mode);
+struct EditVert   *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, float *co);
+
+/* mesh_ops.c */
+void		ED_operatortypes_mesh(void);
+void		ED_keymap_mesh(struct wmWindowManager *wm);
+
 
 /* editmesh.c */
+void		ED_spacetypes_init(void);
+void		ED_keymap_mesh(struct wmWindowManager *wm);
+
 void		make_editMesh(Scene *scene, Object *ob);
 void		load_editMesh(Scene *scene, Object *ob);
 void		remake_editMesh(Scene *scene, Object *ob);
-void		free_editMesh(EditMesh *em);
+void		free_editMesh(struct EditMesh *em);
 
 
 void		EM_init_index_arrays(struct EditMesh *em, int forVert, int forEdge, int forFace);
 void		EM_free_index_arrays(void);
-EditVert	*EM_get_vert_for_index(int index);
-EditEdge	*EM_get_edge_for_index(int index);
-EditFace	*EM_get_face_for_index(int index);
+struct EditVert	*EM_get_vert_for_index(int index);
+struct EditEdge	*EM_get_edge_for_index(int index);
+struct EditFace	*EM_get_face_for_index(int index);
 int			EM_texFaceCheck(struct EditMesh *em);
 int			EM_vertColorCheck(struct EditMesh *em);
-void		undo_push_mesh(char *name);
+
+void		undo_push_mesh(struct bContext *C, char *name);
 
 
 /* editmesh_lib.c */
 
-EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
+struct EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
 
-void		EM_select_edge(EditEdge *eed, int sel);
-void		EM_select_face_fgon(struct EditMesh *em, EditFace *efa, int val);
+void		EM_select_edge(struct EditEdge *eed, int sel);
+void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 			
 			/* exported to transform */
-int			EM_get_actSelection(EditMesh *em, EditSelection *ese);
-void		EM_editselection_normal(float *normal, EditSelection *ese);
-void		EM_editselection_plane(float *plane, EditSelection *ese);
+int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
+void		EM_editselection_normal(float *normal, struct EditSelection *ese);
+void		EM_editselection_plane(float *plane, struct EditSelection *ese);
 
 
 /* editmesh_mods.c */

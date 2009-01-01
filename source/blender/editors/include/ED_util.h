@@ -46,14 +46,19 @@ void	ED_OT_undo				(struct wmOperatorType *ot);
 void	ED_OT_redo				(struct wmOperatorType *ot);
 
 /* undo_editmode.c */
-void	undo_editmode_push			(char *name, void (*freedata)(void *), 
-									 void (*to_editmode)(void *),  void *(*from_editmode)(void),
-									 int (*validate_undo)(void *));
+void undo_editmode_push(struct bContext *C, char *name, 
+						void * (*getdata)(struct bContext *C),
+						void (*freedata)(void *), 
+						void (*to_editmode)(void *, void *),  
+						void *(*from_editmode)(void *),
+						int (*validate_undo)(void *, void *));
+
+						
 void	*undo_editmode_get_prev		(struct Object *ob);
 struct uiBlock *editmode_undohistorymenu(struct bContext *C, struct uiMenuBlockHandle *handle, void *arg_unused);
-void	undo_editmode_menu			(void);
+void	undo_editmode_menu			(struct bContext *C);
 void	undo_editmode_clear			(void);
-void	undo_editmode_step			(int step);
+void	undo_editmode_step			(struct bContext *C, int step);
 
 
 /* ************** XXX OLD CRUFT WARNING ************* */

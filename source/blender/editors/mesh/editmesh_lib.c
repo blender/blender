@@ -56,7 +56,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "ED_mesh.h"
 
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 /* this replaces the active flag used in uv/face mode */
 void EM_set_actFace(EditMesh *em, EditFace *efa)

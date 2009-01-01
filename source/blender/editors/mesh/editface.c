@@ -79,7 +79,7 @@
 #include "WM_types.h"
 
 /* own include */
-#include "editmesh.h"
+#include "mesh_intern.h"
 
 
 /* Pupmenu codes: */
