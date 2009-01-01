@@ -150,6 +150,7 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "lattice", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Lattice", "Lattice object to deform with.");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
@@ -194,10 +195,51 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 static void rna_def_modifier_mirror(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "MirrorModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Mirror Modifier", "Mirror Modifier.");
 	RNA_def_struct_sdna(srna, "MirrorModifierData");
+
+	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_X);
+	RNA_def_property_ui_text(prop, "X", "Enable X axis mirror.");
+
+	prop= RNA_def_property(srna, "y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_Y);
+	RNA_def_property_ui_text(prop, "Y", "Enable Y axis mirror.");
+
+	prop= RNA_def_property(srna, "z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_AXIS_Z);
+	RNA_def_property_ui_text(prop, "Z", "Enable Z axis mirror.");
+
+	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_CLIPPING);
+	RNA_def_property_ui_text(prop, "clip", "Prevents vertices from going through the mirror during transform.");
+
+	prop= RNA_def_property(srna, "mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_VGROUP);
+	RNA_def_property_ui_text(prop, "Mirror Vertex Groups", "Mirror vertex groups (e.g. .R->.L).");
+
+	prop= RNA_def_property(srna, "mirror_u", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_MIRROR_U);
+	RNA_def_property_ui_text(prop, "Mirror U", "Mirror the U texture coordinate around the 0.5 point.");
+
+	prop= RNA_def_property(srna, "mirror_v", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MIR_MIRROR_V);
+	RNA_def_property_ui_text(prop, "Mirror V", "Mirror the V texture coordinate around the 0.5 point.");
+
+	prop= RNA_def_property(srna, "merge_limit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tolerance");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Merge Limit", "Distance from axis within which mirrored vertices are merged.");
+
+	prop= RNA_def_property(srna, "mirror_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "mirror_ob");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Mirror Object", "Object to use as mirror.");
+
+	
 }
 
 static void rna_def_modifier_decimate(BlenderRNA *brna)
