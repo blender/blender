@@ -104,19 +104,56 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_subdivision_type_items[] = {
+		{0, "CATMULLCLARK", "Catmull-Clark", ""},
+		{1, "SIMPLE", "Simple", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SubsurfModifier", "Modifier");
-	RNA_def_struct_ui_text(srna , "Subsurf Modifier", "Subsurf Modifier.");
+	RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subsurf Modifier.");
 	RNA_def_struct_sdna(srna, "SubsurfModifierData");
+
+	prop= RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "subdivType");
+	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
+	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
+
+	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, 6);
+	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
+
+	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
+	RNA_def_property_range(prop, 1, 6);
+	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
+
+	prop= RNA_def_property(srna, "optimal_draw", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_ControlEdges);
+	RNA_def_property_ui_text(prop, "Optimal Draw", "Skip drawing/rendering of interior subdivided edges");
+	
+	prop= RNA_def_property(srna, "subsurf_uv", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
+	RNA_def_property_ui_text(prop, "Subsurf UV", "Use subsurf to subdivide UVs.");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "LatticeModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Lattice Modifier", "Lattice Modifier.");
 	RNA_def_struct_sdna(srna, "LatticeModifierData");
+
+	prop= RNA_def_property(srna, "lattice", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_ui_text(prop, "Lattice", "Lattice object to deform with.");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
 }
 
 static void rna_def_modifier_curve(BlenderRNA *brna)
