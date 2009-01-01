@@ -398,7 +398,7 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.done = 0;
 	data.pass = 0;
 
-	bbsel= EM_mask_init_backbuf_border(vc->v3d, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -589,7 +589,7 @@ static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short m
 	em_vertoffs= me->totface+1;	/* max index array */
 	
 	lasso_select_boundbox(&rect, mcords, moves);
-	EM_mask_init_backbuf_border(vc->v3d, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	EM_backbuf_checkAndSelectTFaces(me, select);
 	
@@ -1174,7 +1174,7 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 	data.pass = 0;
 	data.done = 0;
 
-	bbsel= EM_init_backbuf_border(vc->v3d, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -1222,6 +1222,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	int a, index;
 	short hits, val;
 
+	view3d_operator_needs_opengl(C);
+	
 	/* setup view context for argument to callbacks */
 	memset(&vc, 0, sizeof(ViewContext));
 	vc.ar= ar;
@@ -1547,7 +1549,7 @@ static void mesh_selectionCB(ViewContext *vc, int selecting, Object *editobj, sh
 		if (me) {
 			em_vertoffs= me->totface+1;	/* max index array */
 
-			bbsel= EM_init_backbuf_circle(vc->v3d, mval[0], mval[1], (short)(rad+1.0));
+			bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 			EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
 			EM_free_backbuf();
 
@@ -1557,7 +1559,7 @@ static void mesh_selectionCB(ViewContext *vc, int selecting, Object *editobj, sh
 		return;
 	}
 
-	bbsel= EM_init_backbuf_circle(vc->v3d, mval[0], mval[1], (short)(rad+1.0));
+	bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 	
 	data.select = (selecting==LEFTMOUSE);
 	data.mval[0] = mval[0];

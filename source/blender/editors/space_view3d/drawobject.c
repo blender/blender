@@ -5363,7 +5363,7 @@ static void bbs_mesh_solid(Object *ob)
 	dm->release(dm);
 }
 
-void draw_object_backbufsel(Scene *scene, View3D *v3d, EditMesh *em, Object *ob)
+void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 {
 
 	wmMultMatrix(ob->obmat);
@@ -5374,6 +5374,8 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, EditMesh *em, Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
+			Mesh *me= ob->data;
+			EditMesh *em= me->edit_mesh;
 			DerivedMesh *dm = editmesh_get_derived_cage(em, CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(em, 1, 1, 1);

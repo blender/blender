@@ -91,9 +91,6 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-static void *read_backbuf() {return NULL;}
-static int sample_backbuf_rect() {return 0;}
-static int sample_backbuf() {return 0;}
 static void BIF_undo_push() {}
 static void waitcursor() {}
 static void error() {}
@@ -191,17 +188,17 @@ static void draw_triangulated(short mcords[][2], short tot)
 
 /* reads rect, and builds selection array for quick lookup */
 /* returns if all is OK */
-int EM_init_backbuf_border(View3D *v3d, short xmin, short ymin, short xmax, short ymax)
+int EM_init_backbuf_border(ViewContext *vc, short xmin, short ymin, short xmax, short ymax)
 {
 	struct ImBuf *buf;
 	unsigned int *dr;
 	int a;
 	
-	if(G.obedit==NULL || v3d->drawtype<OB_SOLID || (v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
-	if(em_vertoffs==0) return 0;
+	if(G.obedit==NULL || vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
 	
-	buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
+	if(em_vertoffs==0) return 0;
 
 	dr = buf->rect;
 	
@@ -238,7 +235,7 @@ void EM_free_backbuf(void)
    - grab again and compare
    returns 'OK' 
 */
-int EM_mask_init_backbuf_border(View3D *v3d, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *drm;
 	struct ImBuf *buf, *bufmask;
@@ -249,11 +246,11 @@ int EM_mask_init_backbuf_border(View3D *v3d, short mcords[][2], short tot, short
 		if(FACESEL_PAINT_TEST);
 		else return 0;
 	}
-	else if(v3d->drawtype<OB_SOLID || (v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
+	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
 
 	if(em_vertoffs==0) return 0;
 	
-	buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
 
 	dr = buf->rect;
@@ -280,7 +277,7 @@ int EM_mask_init_backbuf_border(View3D *v3d, short mcords[][2], short tot, short
 	glDrawBuffer(GL_BACK);
 	
 	/* grab mask */
-	bufmask= read_backbuf(xmin, ymin, xmax, ymax);
+	bufmask= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
 	drm = bufmask->rect;
 	if(bufmask==NULL) return 0; /* only when mem alloc fails, go crash somewhere else! */
 	
@@ -299,7 +296,7 @@ int EM_mask_init_backbuf_border(View3D *v3d, short mcords[][2], short tot, short
 }
 
 /* circle shaped sample area */
-int EM_init_backbuf_circle(View3D *v3d, short xs, short ys, short rads)
+int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 {
 	struct ImBuf *buf;
 	unsigned int *dr;
@@ -311,12 +308,12 @@ int EM_init_backbuf_circle(View3D *v3d, short xs, short ys, short rads)
 		if(FACESEL_PAINT_TEST);
 		else return 0;
 	}
-	else if(v3d->drawtype<OB_SOLID || (v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
+	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
 	if(em_vertoffs==0) return 0;
 	
 	xmin= xs-rads; xmax= xs+rads;
 	ymin= ys-rads; ymax= ys+rads;
-	buf= read_backbuf(xmin, ymin, xmax, ymax);
+	buf= view3d_read_backbuf(vc, xmin, ymin, xmax, ymax);
 	if(buf==NULL) return 0;
 
 	dr = buf->rect;
@@ -393,8 +390,8 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		unsigned int index;
 		EditVert *eve;
 		
-		if(strict) index = sample_backbuf_rect(vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
-		else index = sample_backbuf_rect(vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
+		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
+		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
 		
 		eve = BLI_findlink(&vc->em->verts, index-1);
 		
@@ -496,7 +493,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = sample_backbuf_rect(vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
+		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
 		EditEdge *eed = BLI_findlink(&vc->em->edges, index-1);
 
 		if (eed && distance<*dist) {
@@ -559,7 +556,7 @@ static EditFace *findnearestface(ViewContext *vc, int *dist)
 {
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
-		unsigned int index = sample_backbuf(vc->mval[0], vc->mval[1]);
+		unsigned int index = view3d_sample_backbuf(vc, vc->mval[0], vc->mval[1]);
 		EditFace *efa = BLI_findlink(&vc->em->faces, index-1);
 
 		if (efa) {

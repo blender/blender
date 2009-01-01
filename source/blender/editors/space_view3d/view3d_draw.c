@@ -71,6 +71,7 @@
 #include "WM_api.h"
 
 #include "ED_keyframing.h"
+#include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_types.h"
@@ -1037,6 +1038,239 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	
 }
 
+/* *********************** backdraw for selection *************** */
+
+void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
+{
+	struct Base *base;
+
+/*for 2.43 release, don't use glext and just define the constant.
+  this to avoid possibly breaking platforms before release.*/
+#ifndef GL_MULTISAMPLE_ARB
+	#define GL_MULTISAMPLE_ARB	0x809D
+#endif
+
+#ifdef GL_MULTISAMPLE_ARB
+	int m;
+#endif
+
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT);
+	else if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
+	else {
+		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
+		return;
+	}
+
+	if( !(v3d->flag & V3D_NEEDBACKBUFDRAW) ) return;
+
+//	if(test) {
+//		if(qtest()) {
+//			addafterqueue(ar->win, BACKBUFDRAW, 1);
+//			return;
+//		}
+//	}
+
+	/* Disable FSAA for backbuffer selection.  
+	
+	Only works if GL_MULTISAMPLE_ARB is defined by the header
+	file, which is should be for every OS that supports FSAA.*/
+
+#ifdef GL_MULTISAMPLE_ARB
+	m = glIsEnabled(GL_MULTISAMPLE_ARB);
+	if (m) glDisable(GL_MULTISAMPLE_ARB);
+#endif
+
+	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
+//	ar->win_swap &= ~WIN_BACK_OK;
+	
+	glDisable(GL_DITHER);
+
+	glClearColor(0.0, 0.0, 0.0, 0.0); 
+	if(v3d->zbuf) {
+		glEnable(GL_DEPTH_TEST);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	else {
+		glClear(GL_COLOR_BUFFER_BIT);
+		glDisable(GL_DEPTH_TEST);
+	}
+	
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_set_clipping(v3d);
+	
+	G.f |= G_BACKBUFSEL;
+	
+	base= (G.scene->basact);
+	if(base && (base->lay & v3d->lay)) {
+		draw_object_backbufsel(scene, v3d, base->object);
+	}
+
+	v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
+
+	G.f &= ~G_BACKBUFSEL;
+	v3d->zbuf= FALSE; 
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DITHER);
+
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
+
+#ifdef GL_MULTISAMPLE_ARB
+	if (m) glEnable(GL_MULTISAMPLE_ARB);
+#endif
+
+	/* it is important to end a view in a transform compatible with buttons */
+//	persp(PERSP_WIN);  // set ortho
+
+}
+
+void check_backbuf(ViewContext *vc)
+{
+	if(vc->v3d->flag & V3D_NEEDBACKBUFDRAW)
+		backdrawview3d(vc->scene, vc->ar, vc->v3d);
+}
+
+/* samples a single pixel (copied from vpaint) */
+unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
+{
+	unsigned int col;
+	
+	if(x >= vc->ar->winx || y >= vc->ar->winy) return 0;
+	x+= vc->ar->winrct.xmin;
+	y+= vc->ar->winrct.ymin;
+	
+	check_backbuf(vc);
+
+	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
+	glReadBuffer(GL_BACK);	
+	
+	if(ENDIAN_ORDER==B_ENDIAN) SWITCH_INT(col);
+	
+	return WM_framebuffer_to_index(col);
+}
+
+/* reads full rect, converts indices */
+ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, short ymax)
+{
+	unsigned int *dr, *rd;
+	struct ImBuf *ibuf, *ibuf1;
+	int a;
+	short xminc, yminc, xmaxc, ymaxc, xs, ys;
+	
+	/* clip */
+	if(xmin<0) xminc= 0; else xminc= xmin;
+	if(xmax >= vc->ar->winx) xmaxc= vc->ar->winx-1; else xmaxc= xmax;
+	if(xminc > xmaxc) return NULL;
+
+	if(ymin<0) yminc= 0; else yminc= ymin;
+	if(ymax >= vc->ar->winy) ymaxc= vc->ar->winy-1; else ymaxc= ymax;
+	if(yminc > ymaxc) return NULL;
+	
+	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect,0);
+
+	check_backbuf(vc); 
+	
+	glReadPixels(vc->ar->winrct.xmin+xminc, vc->ar->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glReadBuffer(GL_BACK);	
+
+	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+
+	a= (xmaxc-xminc+1)*(ymaxc-yminc+1);
+	dr= ibuf->rect;
+	while(a--) {
+		if(*dr) *dr= WM_framebuffer_to_index(*dr);
+		dr++;
+	}
+	
+	/* put clipped result back, if needed */
+	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
+		return ibuf;
+	
+	ibuf1= IMB_allocImBuf( (xmax-xmin+1),(ymax-ymin+1),32,IB_rect,0);
+	rd= ibuf->rect;
+	dr= ibuf1->rect;
+		
+	for(ys= ymin; ys<=ymax; ys++) {
+		for(xs= xmin; xs<=xmax; xs++, dr++) {
+			if( xs>=xminc && xs<=xmaxc && ys>=yminc && ys<=ymaxc) {
+				*dr= *rd;
+				rd++;
+			}
+		}
+	}
+	IMB_freeImBuf(ibuf);
+	return ibuf1;
+}
+
+/* smart function to sample a rect spiralling outside, nice for backbuf selection */
+unsigned int view3d_sample_backbuf_rect(ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index))
+{
+	struct ImBuf *buf;
+	unsigned int *bufmin, *bufmax, *tbuf;
+	int minx, miny;
+	int a, b, rc, nr, amount, dirvec[4][2];
+	int distance=0;
+	unsigned int index = 0;
+	short indexok = 0;	
+
+	amount= (size-1)/2;
+
+	minx = mval[0]-(amount+1);
+	miny = mval[1]-(amount+1);
+	buf = view3d_read_backbuf(vc, minx, miny, minx+size-1, miny+size-1);
+	if (!buf) return 0;
+
+	rc= 0;
+	
+	dirvec[0][0]= 1; dirvec[0][1]= 0;
+	dirvec[1][0]= 0; dirvec[1][1]= -size;
+	dirvec[2][0]= -1; dirvec[2][1]= 0;
+	dirvec[3][0]= 0; dirvec[3][1]= size;
+	
+	bufmin = buf->rect;
+	tbuf = buf->rect;
+	bufmax = buf->rect + size*size;
+	tbuf+= amount*size+ amount;
+	
+	for(nr=1; nr<=size; nr++) {
+		
+		for(a=0; a<2; a++) {
+			for(b=0; b<nr; b++, distance++) {
+				if (*tbuf && *tbuf>=min && *tbuf<max) { //we got a hit
+					if(strict){
+						indexok =  indextest(*tbuf - min+1);
+						if(indexok){
+							*dist= (short) sqrt( (float)distance   );
+							index = *tbuf - min+1;
+							goto exit; 
+						}						
+					}
+					else{
+						*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - 
+						index = *tbuf - min+1; // messy yah, but indices start at 1
+						goto exit;
+					}			
+				}
+				
+				tbuf+= (dirvec[rc][0]+dirvec[rc][1]);
+				
+				if(tbuf<bufmin || tbuf>=bufmax) {
+					goto exit;
+				}
+			}
+			rc++;
+			rc &= 3;
+		}
+	}
+
+exit:
+	IMB_freeImBuf(buf);
+	return index;
+}
+
+
+/* ************************************************************* */
+
 static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	BGpic *bgpic;
@@ -1146,8 +1380,6 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	glDisable(GL_BLEND);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	
-	// XXX	areawinset(ar->win);	// restore viewport / scissor
 }
 
 /* ****************** View3d afterdraw *************** */
@@ -1785,8 +2017,6 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(scene, ob, v3d);
-	
-//	draw_area_emboss(ar);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

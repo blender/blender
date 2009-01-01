@@ -123,10 +123,10 @@ extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
 void		mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
-int			EM_mask_init_backbuf_border(struct View3D *v3d, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
+int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);
-int			EM_init_backbuf_border(struct View3D *v3d, short xmin, short ymin, short xmax, short ymax);
-int			EM_init_backbuf_circle(struct View3D *v3d, short xs, short ys, short rads);
+int			EM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
+int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
 
 
 #endif /* ED_MESH_H */
