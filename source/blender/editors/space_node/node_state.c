@@ -203,11 +203,6 @@ static int node_fit_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_fit_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	return node_fit_all_exec(C, op);
-}
-
 void NODE_OT_fit_all(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -215,6 +210,6 @@ void NODE_OT_fit_all(wmOperatorType *ot)
 	ot->idname= "NODE_OT_fit_all";
 	
 	/* api callbacks */
-	ot->invoke= node_fit_all_invoke;
+	ot->exec= node_fit_all_exec;
 	ot->poll= ED_operator_node_active;
 }
