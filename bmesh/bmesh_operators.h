@@ -69,7 +69,7 @@ void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 
 /*operator option flags*/
-#define NEEDFLAGS	1
+#define NEEDFLAGS	1 /*note: doesn't do anything*/
 
 /*--------------------begin operator defines------------------------*/
 /*split op*/

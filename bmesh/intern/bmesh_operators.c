@@ -48,7 +48,7 @@ void BMO_push(BMesh *bm, BMOperator *op)
 	bm->currentop = op;
 
 	/*add flag layer, if appropriate*/
-	if(bm->stackdepth > 1 && op->needflag)
+	if(bm->stackdepth > 1)
 		alloc_flag_layer(bm);
 }
 
@@ -64,7 +64,7 @@ void BMO_push(BMesh *bm, BMOperator *op)
 void BMO_pop(BMesh *bm)
 {
 	bm->stackdepth--;
-	if(bm->stackdepth > 1 && bm->currentop->needflag)
+	if(bm->stackdepth > 1)
 		free_flag_layer(bm);
 }
 
