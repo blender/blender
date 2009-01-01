@@ -179,7 +179,7 @@ static void rna_def_modifier_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_ui_text(prop, "Curve", "Curve object to deform with");
+	RNA_def_property_ui_text(prop, "Curve", "Curve object to deform with.");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
@@ -262,17 +262,26 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "mirror_ob");
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Mirror Object", "Object to use as mirror.");
-
-	
 }
 
 static void rna_def_modifier_decimate(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "DecimateModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Decimate Modifier", "Decimate Modifier.");
 	RNA_def_struct_sdna(srna, "DecimateModifierData");
+
+	prop= RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "percent");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Ratio", "Defines the ratio of triangles to reduce to.");
+
+	prop= RNA_def_property(srna, "face_count", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "faceCount");
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_ui_text(prop, "Face Count", "The current number of faces in the decimated mesh.");
 }
 
 static void rna_def_modifier_wave(BlenderRNA *brna)
