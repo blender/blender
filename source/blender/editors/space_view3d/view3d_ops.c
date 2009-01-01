@@ -95,8 +95,8 @@ void view3d_keymap(wmWindowManager *wm)
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", PADMINUS, KM_PRESS, 0, 0)->ptr, "delta", -1);
-	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", WHEELUPMOUSE, KM_ANY, 0, 0)->ptr, "delta", 1);
-	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", WHEELDOWNMOUSE, KM_ANY, 0, 0)->ptr, "delta", -1);
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewzoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
 
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewhome", HOMEKEY, KM_PRESS, 0, 0)->ptr, "center", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewhome", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "center", 1);

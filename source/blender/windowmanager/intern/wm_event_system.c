@@ -534,18 +534,30 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
 	int kmitype= kmi->type;
 	
-	/* first do default mappings */
+	/* first do userdef mappings */
 	if(kmitype==SELECTMOUSE) {
 		if(U.flag & USER_LMOUSESELECT)
 			kmitype= LEFTMOUSE;
 		else
 			kmitype= RIGHTMOUSE;
 	}
-	if(kmitype==ACTIONMOUSE) {
+	else if(kmitype==ACTIONMOUSE) {
 		if(U.flag & USER_LMOUSESELECT)
 			kmitype= RIGHTMOUSE;
 		else
 			kmitype= LEFTMOUSE;
+	}
+	else if(kmitype==WHEELOUTMOUSE) {
+		if(U.uiflag & USER_WHEELZOOMDIR)
+			kmitype= WHEELUPMOUSE;
+		else
+			kmitype= WHEELDOWNMOUSE;
+	}
+	else if(kmitype==WHEELINMOUSE) {
+		if(U.uiflag & USER_WHEELZOOMDIR)
+			kmitype= WHEELDOWNMOUSE;
+		else
+			kmitype= WHEELUPMOUSE;
 	}
 	
 	/* the matching rules */
@@ -1133,7 +1145,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			else
 				event.type= WHEELDOWNMOUSE;
 			
-			event.val= wheelData->z;	/* currently -1 or +1, see ghost for improvements here... */
+			event.val= KM_PRESS;
 			wm_event_add(win, &event);
 			
 			break;

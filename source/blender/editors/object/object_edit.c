@@ -1014,7 +1014,7 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= clear_parent_exec;
 	
-	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
@@ -1067,7 +1067,7 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_clear_track_exec;
 	
-	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
@@ -1120,7 +1120,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_by_type_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_scene_editable;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_select_object_types);
@@ -1158,7 +1158,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
 	ot->exec= object_select_by_layer_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_scene_editable;
 	
 	prop = RNA_def_property(ot->srna, "layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_range(prop, 1, 20,1, 1);
@@ -1193,7 +1193,7 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_invert_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_scene_editable;
 
 }
 /* ****** (de)select All *******/
@@ -1234,7 +1234,7 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_de_select_all_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_scene_editable;
 
 }
 /* ****** random selection *******/
@@ -1269,7 +1269,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
 	ot->exec = object_select_random_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= ED_operator_scene_editable;
 	
 	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_range(prop, 1, 100,1, 1);
@@ -1876,7 +1876,7 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 	ot->invoke= make_parent_invoke;
 	ot->exec= make_parent_exec;
 	
-	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
@@ -1982,7 +1982,7 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= make_track_exec;
 	
-	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
@@ -2176,7 +2176,7 @@ void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= toggle_editmode_exec;
 	
-	ot->poll= ED_operator_areaactive;	// XXX solve
+	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 }
 

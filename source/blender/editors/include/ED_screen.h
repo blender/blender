@@ -84,6 +84,8 @@ int		ED_operator_screenactive(struct bContext *C);
 int		ED_operator_screen_mainwinactive(struct bContext *C);
 int		ED_operator_areaactive(struct bContext *C);
 
+int		ED_operator_scene_editable(struct bContext *C);
+
 int		ED_operator_view3d_active(struct bContext *C);
 int		ED_operator_timeline_active(struct bContext *C);
 int		ED_operator_outliner_active(struct bContext *C);

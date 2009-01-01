@@ -51,9 +51,12 @@
 		/* only use if you want user option switch possible */
 #define ACTIONMOUSE		0x005
 #define SELECTMOUSE		0x006
-
+		/* defaults from ghost */
 #define WHEELUPMOUSE	0x00a	
-#define WHEELDOWNMOUSE	0x00b	
+#define WHEELDOWNMOUSE	0x00b
+		/* mapped with userdef */
+#define WHEELINMOUSE	0x00c
+#define WHEELOUTMOUSE	0x00d
 
 
 /* SYSTEM : 0x01x */
