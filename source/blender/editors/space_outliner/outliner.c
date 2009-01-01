@@ -1338,7 +1338,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		ten= outliner_add_element(soops, &soops->tree, (void*)&mainptr, NULL, TSE_RNA_STRUCT, -1);
 
 		if(show_opened)  {
-			tselem= TREESTORE(te);
+			tselem= TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
 		}
 	}

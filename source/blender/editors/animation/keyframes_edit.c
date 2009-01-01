@@ -139,6 +139,22 @@ short ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, Be
 /* This function is used to apply operation to all keyframes, regardless of the type */
 short animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
+	/* sanity checks */
+	if (ale == NULL)
+		return 0;
+	
+	/* method to use depends on the type of keyframe data */
+	switch (ale->datatype) {
+		case ALE_ICU: /* ipo-curve */
+			return icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
+		case ALE_IPO: /* ipo */
+			return ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
+		
+		case ALE_GROUP: /* action group */
+			//return group_keys_bezier_loop(bed, ale->data, bezt_ok, bezt_cb, icu_cb);
+			break;
+	}
+	
 	return 0;
 }
 

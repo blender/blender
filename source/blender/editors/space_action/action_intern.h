@@ -34,6 +34,8 @@ struct SpaceAction;
 struct ARegion;
 struct wmWindowManager;
 struct wmOperatorType;
+struct ActKeysInc;
+struct bAnimListElem;
 
 /* internal exports only */
 
@@ -41,6 +43,8 @@ struct wmOperatorType;
 /* action_draw.c */
 void draw_channel_names(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar); 
 void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
+
+struct ActKeysInc *init_aki_data(struct bAnimContext *ac, struct bAnimListElem *ale);
 
 /* ***************************************** */
 /* action_header.c */

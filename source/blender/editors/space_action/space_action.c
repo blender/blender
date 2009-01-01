@@ -100,21 +100,18 @@ static SpaceLink *action_new(const bContext *C)
 	BLI_addtail(&saction->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.tot.xmin= -2.0f;
+	ar->v2d.tot.xmin= -10.0f;
 	ar->v2d.tot.ymin= (float)(-sa->winy);
-	ar->v2d.tot.xmax= 100.0f;
+	ar->v2d.tot.xmax= (float)(sa->winx);
 	ar->v2d.tot.ymax= 0.0f;
 	
-	ar->v2d.cur.xmin= -2.0f;
-	ar->v2d.cur.ymin= (float)(-sa->winy);
-	ar->v2d.cur.xmax= 100.0f;
-	ar->v2d.cur.ymax= 0.0f;
+	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0]= 0.0f;
  	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 2000.0f;
+ 	ar->v2d.max[1]= 10000.0f;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;

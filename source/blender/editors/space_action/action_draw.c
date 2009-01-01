@@ -1062,7 +1062,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 /* ************************************************************************* */
 /* Keyframes */
 
-static ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
+ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
 {
 	static ActKeysInc aki;
 	

@@ -133,6 +133,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 		if (clickmin <= 0) {
 			/* found match - must return here... */
 			Object *nob= ANIM_nla_mapping_get(ac, ale);
+			ActKeysInc *aki= init_aki_data(ac, ale);
 			
 			/* apply NLA-scaling correction? */
 			if (nob) {
@@ -150,32 +151,32 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 					case ALE_OB:
 					{
 						Object *ob= (Object *)ale->key_data;
-						ob_to_keylist(ob, &anim_keys, NULL, NULL);
+						ob_to_keylist(ob, &anim_keys, NULL, aki);
 					}
 						break;
 					case ALE_ACT:
 					{
 						bAction *act= (bAction *)ale->key_data;
-						action_to_keylist(act, &anim_keys, NULL, NULL);
+						action_to_keylist(act, &anim_keys, NULL, aki);
 					}
 						break;
 					case ALE_IPO:
 					{
 						Ipo *ipo= (Ipo *)ale->key_data;
-						ipo_to_keylist(ipo, &anim_keys, NULL, NULL);
+						ipo_to_keylist(ipo, &anim_keys, NULL, aki);
 					}
 						break;
 					case ALE_ICU:
 					{
 						IpoCurve *icu= (IpoCurve *)ale->key_data;
-						icu_to_keylist(icu, &anim_keys, NULL, NULL);
+						icu_to_keylist(icu, &anim_keys, NULL, aki);
 					}
 						break;
 				}
 			}
 			else if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= (bActionGroup *)ale->data;
-				agroup_to_keylist(agrp, &anim_keys, NULL, NULL);
+				agroup_to_keylist(agrp, &anim_keys, NULL, aki);
 			}
 			else if (ale->type == ANIMTYPE_GPDATABLOCK) {
 				/* cleanup */
@@ -187,7 +188,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 			}
 			else if (ale->type == ANIMTYPE_GPLAYER) {
 				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				gpl_to_keylist(gpl, &anim_keys, NULL, NULL);
+				gpl_to_keylist(gpl, &anim_keys, NULL, aki);
 			}
 			
 			/* loop through keyframes, finding one that was clicked on */
@@ -934,6 +935,8 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
 				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 		}
+		
+		// FIXME: add data ipos too...
 	}
 	//else if (gpl)
 	//	select_gpencil_frame(gpl, (int)selx, selectmode);

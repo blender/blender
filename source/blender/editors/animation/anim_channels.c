@@ -84,14 +84,19 @@
 #include "WM_types.h"
 
 /* ************************************************************************** */
-/* Channels API */
+/* CHANNELS API */
 
 /* -------------------------- Internal Tools -------------------------------- */
+
+
 
 /* -------------------------- Exposed API ----------------------------------- */
 
 /* ************************************************************************** */
-/* Operators */
+/* OPERATORS */
+
+/* ********************** Select All Operator *********************** */
+
 
 
 /* ******************** Mouse-Click Operator *********************** */
@@ -117,6 +122,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	if (ale == NULL) {
 		/* channel not found */
 		printf("Error: animation channel not found in mouse_anim_channels() \n");
+			// XXX remove me..
 		printf("\t channel index = %d, channels = %d\n", channel_index, filter);
 		
 		BLI_freelistN(&anim_data);
@@ -139,7 +145,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				else {
 					/* set selection status */
 					// FIXME: this needs to use the new stuff...
-					if (selectmode) {
+					if (selectmode == SELECT_INVERT) {
 						/* swap select */
 						base->flag ^= SELECT;
 						ob->flag= base->flag;

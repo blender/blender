@@ -470,21 +470,21 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 			case OB_CAMERA: /* ------- Camera ------------ */
 			{
 				Camera *ca= (Camera *)ob->data;
-				if ((ca->ipo) && !(ads->filterflag & ADS_FILTER_NOCAM))
+				if ((ca->ipo) && !(filterflag & ADS_FILTER_NOCAM))
 					ipo_to_keylist(ca->ipo, keys, blocks, aki);
 			}
 				break;
 			case OB_LAMP: /* ---------- Lamp ----------- */
 			{
 				Lamp *la= (Lamp *)ob->data;
-				if ((la->ipo) && !(ads->filterflag & ADS_FILTER_NOLAM))
+				if ((la->ipo) && !(filterflag & ADS_FILTER_NOLAM))
 					ipo_to_keylist(la->ipo, keys, blocks, aki);
 			}
 				break;
 			case OB_CURVE: /* ------- Curve ---------- */
 			{
 				Curve *cu= (Curve *)ob->data;
-				if ((cu->ipo) && !(ads->filterflag & ADS_FILTER_NOCUR))
+				if ((cu->ipo) && !(filterflag & ADS_FILTER_NOCUR))
 					ipo_to_keylist(cu->ipo, keys, blocks, aki);
 			}
 				break;
@@ -666,9 +666,9 @@ void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListB
 			 */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo) {
-					//actstrip_map_ipo_keys(ob, conchan->ipo, 0, 1); // XXX
+					ANIM_nla_mapping_apply(ob, conchan->ipo, 0, 1);
 					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
-					//actstrip_map_ipo_keys(ob, conchan->ipo, 1, 1); // XXX
+					ANIM_nla_mapping_apply(ob, conchan->ipo, 1, 1);
 				}
 			}
 		}

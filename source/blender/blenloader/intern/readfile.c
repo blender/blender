@@ -5266,10 +5266,26 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceAction *saction= (SpaceAction *)sl;
 				memcpy(&ar->v2d, &saction->v2d, sizeof(View2D));
 				
-				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+				ar->v2d.tot.xmin= -10.0f;
+				ar->v2d.tot.ymin= (float)(-sa->winy);
+				ar->v2d.tot.xmax= (float)(sa->winx);
+				ar->v2d.tot.ymax= 0.0f;
+				
+				ar->v2d.cur= ar->v2d.tot;
+				
+				ar->v2d.min[0]= 0.0f;
+ 				ar->v2d.min[1]= 0.0f;
+				
+				ar->v2d.max[0]= MAXFRAMEF;
+ 				ar->v2d.max[1]= 10000.0f;
+			 	
+				ar->v2d.minzoom= 0.01f;
+				ar->v2d.maxzoom= 50;
+				ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
-				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
-				ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+				ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
+				ar->v2d.align= V2D_ALIGN_NO_POS_Y;
+				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
