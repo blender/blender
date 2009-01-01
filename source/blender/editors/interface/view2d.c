@@ -1576,8 +1576,9 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
 void UI_view2d_listview_get_cell(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, 
 						float viewx, float viewy, int *column, int *row)
 {
-	const int x= (int)(floor(viewx + 0.5f) - startx); 
-	const int y= (int)(floor(viewy + 0.5f) - starty);
+	/* adjust view coordinates to be all positive ints, corrected for the start offset */
+	const int x= (int)(floor(fabs(viewx) + 0.5f) - startx); 
+	const int y= (int)(floor(fabs(viewy) + 0.5f) - starty);
 	
 	/* sizes must not be negative */
 	if ( (v2d == NULL) || ((columnwidth <= 0) && (rowheight <= 0)) ) {
@@ -1589,28 +1590,10 @@ void UI_view2d_listview_get_cell(View2D *v2d, short columnwidth, short rowheight
 	
 	/* get column */
 	if ((column) && (columnwidth > 0)) {
-		/* which way to get column depends on the alignment of the 'tot' rect 
-		 *	- we favour positive-x here, as that's the recommended configuration for listviews
-		 */
-		if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
-			/* contents are in positive-x half */
-			if (x > 0)
-				*column= x % columnwidth;
-			else
-				*column= 0;
-		}
-		else if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
-			/* contents are in negative-x half */
-			if (x < 0)
-				*column= (-x) % columnwidth;
-			else
-				*column= 0;
-		}
-		else {
-			/* contents are centered around x==0 */
-			// temp case for now...
+		if (x > 0)
+			*column= x / columnwidth;
+		else
 			*column= 0;
-		}
 	}
 	else if (column) {
 		/* we want the column, but column width is undefined */
@@ -1619,29 +1602,10 @@ void UI_view2d_listview_get_cell(View2D *v2d, short columnwidth, short rowheight
 	
 	/* get row */
 	if ((row) && (rowheight > 0)) {
-		/* which way to get column depends on the alignment of the 'tot' rect 
-		 *	- we favour negative-y here, as that's the recommended configuration for listviews
-		 */
-		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
-			/* contents are in negative-y half */
-			if (y < 0)
-				*row= (-y) % rowheight;
-			else
-				*row= 0;
-		}
-		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
-			/* contents are in positive-y half */
-			if (y > 0)
-				*row= y % rowheight;
-			else
-				*row= 0;
-		}
-		else {
-			/* contents are centered around y==0 */
-			// temp case for now...
+		if (y > 0)
+			*row= y / rowheight;
+		else
 			*row= 0;
-			
-		}
 	}
 	else if (row) {
 		/* we want the row, but row height is undefined */

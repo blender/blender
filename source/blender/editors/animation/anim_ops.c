@@ -367,6 +367,7 @@ void ED_keymap_anim(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Animation", 0, 0);
 	
+		/* frame management */
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_toggle_time", TKEY, KM_PRESS, KM_CTRL, 0);
 	
@@ -374,4 +375,3 @@ void ED_keymap_anim(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_define", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_previewrange_clear", PKEY, KM_PRESS, KM_ALT, 0);
 }
-

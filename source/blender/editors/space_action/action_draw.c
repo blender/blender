@@ -402,6 +402,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	
 	View2D *v2d= &ar->v2d;
 	float x= 0.0f, y= 0.0f;
 	int items, height;
@@ -425,7 +426,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	}
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-ACHANNEL_HEIGHT);
+	y= (float)ACHANNEL_FIRST;
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);

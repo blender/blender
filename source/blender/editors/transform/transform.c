@@ -237,8 +237,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 	else if(t->spacetype==SPACE_IPO) {
 		short out[2] = {0.0f, 0.0f};
 		
-		// TRANSFORM_FIX_ME
-		//ipoco_to_areaco(G.v2d, vec, out);
+		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
 		adr[0]= out[0];
 		adr[1]= out[1];
 	}
@@ -3979,58 +3978,23 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
-		if (saction) {
-			switch (saction->autosnap) {
-			case SACTSNAP_OFF:
-				if (t->event->ctrl) 
-					autosnap= SACTSNAP_STEP;
-				else if (t->event->shift)
-					autosnap= SACTSNAP_FRAME;
-				else if (t->event->alt)
-					autosnap= SACTSNAP_MARKER;
-				else
-					autosnap= SACTSNAP_OFF;
-				break;
-			case SACTSNAP_STEP:
-				autosnap= (t->event->ctrl)? SACTSNAP_OFF: SACTSNAP_STEP;
-				break;
-			case SACTSNAP_FRAME:
-				autosnap= (t->event->shift)? SACTSNAP_OFF: SACTSNAP_FRAME;
-				break;
-			case SACTSNAP_MARKER:
-				autosnap= (t->event->alt)? SACTSNAP_OFF: SACTSNAP_MARKER;
-				break;
-			}
-		}
+		if (saction)
+			autosnap= saction->autosnap;
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		
+		if (sipo)
+			autosnap= sipo->autosnap;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
 		
-		if (snla) {
-			switch (snla->autosnap) {
-			case SACTSNAP_OFF:
-				if (t->event->ctrl) 
-					autosnap= SACTSNAP_STEP;
-				else if (t->event->shift)
-					autosnap= SACTSNAP_FRAME;
-				else if (t->event->alt)
-					autosnap= SACTSNAP_MARKER;
-				else
-					autosnap= SACTSNAP_OFF;
-				break;
-			case SACTSNAP_STEP:
-				autosnap= (t->event->ctrl)? SACTSNAP_OFF: SACTSNAP_STEP;
-				break;
-			case SACTSNAP_FRAME:
-				autosnap= (t->event->shift)? SACTSNAP_OFF: SACTSNAP_FRAME;
-				break;
-			case SACTSNAP_MARKER:
-				autosnap= (t->event->alt)? SACTSNAP_OFF: SACTSNAP_MARKER;
-				break;
-			}
-		}
+		if (snla)
+			autosnap= snla->autosnap;
 	}
 	else {
+		// FIXME: this still toggles the modes...
 		if (t->event->ctrl) 
 			autosnap= SACTSNAP_STEP;
 		else if (t->event->shift)

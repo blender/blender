@@ -61,8 +61,6 @@
 
 void action_operatortypes(void)
 {
-	/* channels */
-	
 	/* keyframes */
 		/* selection */
 	WM_operatortype_append(ACT_OT_keyframes_clickselect);
@@ -145,7 +143,10 @@ void action_keymap(wmWindowManager *wm)
 	ListBase *keymap;
 	
 	/* channels */
-	keymap= WM_keymap_listbase(wm, "Action_Channels", SPACE_ACTION, 0);
+	/* Channels are not directly handled by the Action Editor module, but are inherited from the Animation module. 
+	 * All the relevant operations, keymaps, drawing, etc. can therefore all be found in that module instead, as these
+	 * are all used for the IPO-Editor too.
+	 */
 	
 	/* keyframes */
 	keymap= WM_keymap_listbase(wm, "Action_Keys", SPACE_ACTION, 0);

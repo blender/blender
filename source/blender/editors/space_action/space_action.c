@@ -223,7 +223,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Action_Channels", SPACE_ACTION, 0);	/* XXX weak? */
+	keymap= WM_keymap_listbase(wm, "Animation_Channels", 0, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -255,6 +255,28 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+}
+
+static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
 }
 
 
@@ -354,6 +376,7 @@ void ED_spacetype_action(void)
 	
 	art->init= action_channel_area_init;
 	art->draw= action_channel_area_draw;
+	art->listener= action_main_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

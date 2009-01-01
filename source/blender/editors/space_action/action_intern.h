@@ -71,7 +71,7 @@ enum {
 } eActKeys_ColumnSelect_Mode;
 
 /* ***************************************** */
-/* action_edit_keyframes.c */
+/* action_edit.c */
 
 void ACT_OT_keyframes_copy(struct wmOperatorType *ot);
 void ACT_OT_keyframes_paste(struct wmOperatorType *ot);

@@ -211,6 +211,7 @@ typedef enum eAnimFilter_Flags {
 /* -------------- Channel Defines -------------- */
 
 /* channel heights */
+#define ACHANNEL_FIRST			-16
 #define	ACHANNEL_HEIGHT			16
 #define ACHANNEL_HEIGHT_HALF	8
 #define	ACHANNEL_SKIP			2
@@ -236,8 +237,12 @@ short ANIM_animdata_get_context(const struct bContext *C, bAnimContext *ac);
 short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ************************************************ */
+/* ANIMATION CHANNELS LIST */
+
+
+
+/* ************************************************ */
 /* DRAWING API */
-// XXX should this get its own header file?
 
 /* ---------- Current Frame Drawing ---------------- */
 
@@ -296,7 +301,12 @@ void ED_update_for_newframe(const struct bContext *C, int mute);
 
 /* ************************************************* */
 /* OPERATORS */
+	
+	/* generic animation channels */
+void ED_operatortypes_animchannels(void);
+void ED_keymap_animchannels(struct wmWindowManager *wm);
 
+	/* generic time editing */
 void ED_operatortypes_anim(void);
 void ED_keymap_anim(struct wmWindowManager *wm);
 

@@ -83,6 +83,7 @@ void ED_spacetypes_init(void)
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_screen();
 	ED_operatortypes_anim();
+	ED_operatortypes_animchannels(); // XXX have this as part of anim() ones instead?
 	ED_operatortypes_object();
 	ui_view2d_operatortypes();
 	
@@ -102,6 +103,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 
 	ED_keymap_screen(wm);
 	ED_keymap_anim(wm);
+	ED_keymap_animchannels(wm);
 	ED_keymap_object(wm);
 	UI_view2d_keymap(wm);
 

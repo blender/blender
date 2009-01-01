@@ -88,74 +88,10 @@
 /* ************************************************************************** */
 /* GENERAL STUFF */
 
-/* this function finds the channel that mouse is floating over */
-void *get_nearest_act_channel (bAnimContext *ac, int mval[2], short *ret_type, void **owner)
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	View2D *v2d= &ac->ar->v2d;
-	int clickmin, clickmax;
-	float x, y;
-	void *data= NULL;
-	
-	/* init 'owner' return val */
-	*owner= NULL;
-	
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-	clickmin = (int) ((ACHANNEL_HEIGHT_HALF - y) / (ACHANNEL_STEP));
-	clickmax = clickmin;
-	
-	if (clickmax < 0) {
-		*ret_type= ANIMTYPE_NONE;
-		return NULL;
-	}
-	
-	/* filter data */
-	filter= (ANIMFILTER_FORDRAWING | ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
-	
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		if (clickmax < 0) 
-			break;
-		if (clickmin <= 0) {
-			/* found match */
-			*ret_type= ale->type;
-			data= ale->data;
-			
-			/* if an 'ID' has been set, this takes presidence as owner (for dopesheet) */
-			if (ac->datatype == ANIMCONT_DOPESHEET) {
-				/* return pointer to ID as owner instead */
-				if (ale->id) 
-					*owner= ale->id;
-				else
-					*owner= ale->owner;
-			}
-			else {
-				/* just use own owner */
-				*owner= ale->owner;
-			}
-			
-			BLI_freelistN(&anim_data);
-			
-			return data;
-		}
-		--clickmin;
-		--clickmax;
-	}
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
-	
-	*ret_type= ANIMTYPE_NONE;
-	return NULL;
-}
-
-
 /* used only by mouse_action. It is used to find the location of the nearest 
  * keyframe to where the mouse clicked, 
  */
+// XXX port this to new listview code...
 static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx, short *sel, short *ret_type, bActionChannel **par)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -1195,6 +1131,7 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* id-props */
+	// XXX should we make this into separate operators?
 	prop= RNA_def_property(ot->srna, "left_right", PROP_ENUM, PROP_NONE); // ALTKEY
 		//RNA_def_property_enum_items(prop, prop_actkeys_clickselect_items);
 	prop= RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY

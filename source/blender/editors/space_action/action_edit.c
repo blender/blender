@@ -378,8 +378,6 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_copy (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Copy Keyframes";
 	ot->idname= "ACT_OT_keyframes_copy";
@@ -424,8 +422,6 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_paste (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Paste Keyframes";
 	ot->idname= "ACT_OT_keyframes_paste";
