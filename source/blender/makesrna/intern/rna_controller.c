@@ -81,7 +81,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Controller", NULL);
 	RNA_def_struct_ui_text(srna, "Controller", "logic brick to connect 'Sensors' to 'Actuators'");
 	RNA_def_struct_sdna(srna, "bController");
-	RNA_def_struct_funcs(srna, NULL, "rna_Controller_refine");
+	RNA_def_struct_refine_func(srna, "rna_Controller_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");

@@ -33,7 +33,17 @@
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
+
+#include "BKE_context.h"
+#include "BKE_depsgraph.h"
+
+static void rna_Object_update(bContext *C, PointerRNA *ptr)
+{
+	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
+}
 
 #else
 
@@ -57,14 +67,15 @@ void RNA_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "loc", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Location", "DOC_BROKEN");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
-	//prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_ROTATION);
-	//RNA_def_property_ui_text(prop, "Rotation", "");
-	prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "rot", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_ui_text(prop, "Rotation", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_ui_text(prop, "Scale", "DOC_BROKEN");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Ipo");

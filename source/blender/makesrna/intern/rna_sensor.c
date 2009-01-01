@@ -98,7 +98,7 @@ void rna_def_sensor(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "Sensor", NULL);
 	RNA_def_struct_ui_text(srna, "Sensor", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bSensor");
-	RNA_def_struct_funcs(srna, NULL, "rna_Sensor_refine");
+	RNA_def_struct_refine_func(srna, "rna_Sensor_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Sensor name.");

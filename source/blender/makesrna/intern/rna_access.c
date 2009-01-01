@@ -27,14 +27,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
+#include "DNA_windowmanager_types.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
 
-#include "DNA_ID.h"
-#include "DNA_windowmanager_types.h"
+#include "WM_api.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -507,12 +509,14 @@ int RNA_property_evaluated(PointerRNA *ptr, PropertyRNA *prop)
 	return (flag & PROP_EVALUATED);
 }
 
-void RNA_property_notify(PropertyRNA *prop, struct bContext *C, PointerRNA *ptr)
+void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	rna_idproperty_check(&prop, ptr);
 
-	if(prop->notify)
-		prop->notify(C, ptr);
+	if(prop->update)
+		prop->update(C, ptr);
+	if(prop->noteflag)
+		WM_event_add_notifier(C, prop->noteflag, ptr->id.data);
 }
 
 /* Property Data */

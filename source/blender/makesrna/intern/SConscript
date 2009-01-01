@@ -3,7 +3,7 @@ import sys
 import os
 
 Import ('env')
-cflags = ''
+cflags = '-Wall'
 defines = []
 root_build_dir=env['BF_BUILDDIR']
 
@@ -22,7 +22,8 @@ makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '../../blenlib',
                                  '../../blenkernel',
                                  '../../makesdna',
-                                 '../../makesrna'])
+                                 '../../makesrna',
+								 '../../windowmanager'])
 
 if env['OURPLATFORM'] == 'linuxcross':
     makesrna_tool.Replace(CC='gcc')

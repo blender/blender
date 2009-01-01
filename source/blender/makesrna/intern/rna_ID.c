@@ -166,7 +166,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ID", "Used as a basis for dealing with many types with unique names, garbage collection and linked libraries");
 	
 	RNA_def_struct_flag(srna, STRUCT_ID);
-	RNA_def_struct_funcs(srna, NULL, "rna_ID_refine");
+	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */

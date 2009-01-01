@@ -44,10 +44,11 @@ void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname);
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
-void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refine);
+void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
+
 /* Property */
 
 PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type, int subtype);
@@ -83,7 +84,9 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision);
 
-void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *editable);
+void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *updatefunc);
+void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable);
+
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set);
 void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range);
 void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range);

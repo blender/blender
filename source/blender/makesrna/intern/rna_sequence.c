@@ -277,7 +277,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "DOC_BROKEN");
-	RNA_def_struct_funcs(srna, NULL, "rna_Sequence_refine");
+	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Sequence_name_get", "rna_Sequence_name_length", "rna_Sequence_name_set");

@@ -87,7 +87,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "GameProperty", NULL);
 	RNA_def_struct_ui_text(srna , "Game Property", "DOC_BROKEN");
 	RNA_def_struct_sdna(srna, "bProperty");
-	RNA_def_struct_funcs(srna, NULL, "rna_GameProperty_refine");
+	RNA_def_struct_refine_func(srna, "rna_GameProperty_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* must be unique */

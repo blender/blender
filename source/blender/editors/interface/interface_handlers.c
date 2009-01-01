@@ -148,6 +148,9 @@ typedef struct uiAfterFunc {
 	const char *opname;
 	int opcontext;
 	IDProperty *opproperties;
+
+	PointerRNA rnapoin;
+	PropertyRNA *rnaprop;
 } uiAfterFunc;
 
 static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState state);
@@ -168,7 +171,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname) {
+	if(but->func || block->handle_func || (but->type == BUTM && block->butm_func) || but->opname || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
@@ -188,6 +191,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->opname= but->opname;
 		after->opcontext= but->opcontext;
 		after->opproperties= but->opproperties;
+
+		after->rnapoin= but->rnapoin;
+		after->rnaprop= but->rnaprop;
 
 		but->opname= NULL;
 		but->opcontext= 0;
@@ -221,6 +227,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 			IDP_FreeProperty(after->opproperties);
 			MEM_freeN(after->opproperties);
 		}
+
+		if(after->rnapoin.data)
+			RNA_property_update(C, &after->rnapoin, after->rnaprop);
 	}
 
 	BLI_freelistN(&funcs);

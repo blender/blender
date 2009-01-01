@@ -406,7 +406,7 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "FluidSettings", NULL);
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
-	RNA_def_struct_funcs(srna, NULL, "rna_FluidSettings_refine");
+	RNA_def_struct_refine_func(srna, "rna_FluidSettings_refine");
 	RNA_def_struct_ui_text(srna, "Fluid Simulation Settings", "");
 
 	/* enable and type */

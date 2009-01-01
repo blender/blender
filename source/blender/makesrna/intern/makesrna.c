@@ -785,7 +785,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 		rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 		rna_print_c_string(f, prop->description); fprintf(f, ",\n");
 		fprintf(f, "\t%s, %s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), prop->arraylength);
-		fprintf(f, "\t%s, %s},\n", rna_function_string(prop->notify), rna_function_string(prop->editable));
+		fprintf(f, "\t%s, %d, %s},\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable));
 
 		switch(prop->type) {
 			case PROP_BOOLEAN: {
@@ -876,7 +876,7 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	if(srna->from) fprintf(f, "\t&RNA_%s,\n", (char*)srna->from);
 	else fprintf(f, "\tNULL,\n");
 
-	fprintf(f, "\t%s, %s,\n", rna_function_string(srna->notify), rna_function_string(srna->refine));
+	fprintf(f, "\t%s,\n", rna_function_string(srna->refine));
 
 	prop= srna->properties.first;
 	if(prop) fprintf(f, "\t{(PropertyRNA*)&rna_%s_%s, ", srna->identifier, prop->identifier);

@@ -269,7 +269,7 @@ const char *RNA_property_ui_description(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_evaluated(PointerRNA *ptr, PropertyRNA *prop);
 
-void RNA_property_notify(PropertyRNA *prop, struct bContext *C, PointerRNA *ptr);
+void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 
 /* Property Data */
 

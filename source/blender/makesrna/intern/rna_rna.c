@@ -467,7 +467,7 @@ static void rna_def_property(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "Property", NULL);
 	RNA_def_struct_ui_text(srna, "Property Definition", "DOC_BROKEN2");
-	RNA_def_struct_funcs(srna, NULL, "rna_Property_refine");
+	RNA_def_struct_refine_func(srna, "rna_Property_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);

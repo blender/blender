@@ -521,17 +521,15 @@ void RNA_def_struct_flag(StructRNA *srna, int flag)
 	srna->flag= flag;
 }
 
-void RNA_def_struct_funcs(StructRNA *srna, const char *notify, const char *refine)
+void RNA_def_struct_refine_func(StructRNA *srna, const char *refine)
 {
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_struct_funcs: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_struct_refine_func: only during preprocessing.\n");
 		return;
 	}
 
-	if(notify) srna->notify= (NotifyFunc)notify;
 	if(refine) srna->refine= (StructRefineFunc)refine;
 }
-
 
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
 {
@@ -1298,15 +1296,25 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 
 /* Functions */
 
-void RNA_def_property_funcs(PropertyRNA *prop, const char *notify, const char *editable)
+void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable)
 {
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_property_funcs: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_property_editable_func: only during preprocessing.\n");
 		return;
 	}
 
-	if(notify) prop->notify= (NotifyFunc)notify;
 	if(editable) prop->editable= (EditableFunc)editable;
+}
+
+void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_struct_refine_func: only during preprocessing.\n");
+		return;
+	}
+
+	prop->noteflag= noteflag;
+	prop->update= (UpdateFunc)func;
 }
 
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set)

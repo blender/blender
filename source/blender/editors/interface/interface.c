@@ -1584,8 +1584,8 @@ void ui_check_but(uiBut *but)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-			if(value == FLT_MAX) sprintf(but->drawstr, "%sFLT_MAX", but->str);
-			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-FLT_MAX", but->str);
+			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
+			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
 			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
 				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);

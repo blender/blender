@@ -99,7 +99,7 @@ static void rna_def_operator(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "OperatorProperties", NULL);
 	RNA_def_struct_ui_text(srna, "Operator Properties", "DOC_BROKEN");
-	RNA_def_struct_funcs(srna, NULL, "rna_OperatorProperties_refine");
+	RNA_def_struct_refine_func(srna, "rna_OperatorProperties_refine");
 }
 
 static void rna_def_operator_utils(BlenderRNA *brna)

@@ -34,6 +34,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 

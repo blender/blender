@@ -36,7 +36,7 @@ struct bContext;
 
 /* Function Callbacks */
 
-typedef void (*NotifyFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 
@@ -94,8 +94,9 @@ struct PropertyRNA {
 	/* if an array this is > 0, specifying the length */
 	unsigned int arraylength;
 	
-	/* callback for notifys on change */
-	NotifyFunc notify;
+	/* callback for updates on change */
+	UpdateFunc update;
+	int noteflag;
 
 	/* callback for testing if editable/evaluated */
 	EditableFunc editable;
@@ -225,9 +226,6 @@ struct StructRNA {
 
 	/* struct this is derivedfrom */
 	struct StructRNA *from;
-
-	/* callback for notifys on change */
-	NotifyFunc notify;
 
 	/* function to give the more specific type */
 	StructRefineFunc refine; 

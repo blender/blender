@@ -864,18 +864,18 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
-	RNA_def_property_funcs(prop, NULL, texspace_editable);
+	RNA_def_property_editable_func(prop, texspace_editable);
 
 	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
-	RNA_def_property_funcs(prop, NULL, texspace_editable);
+	RNA_def_property_editable_func(prop, texspace_editable);
 
 	/* not supported yet
 	prop= RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
-	RNA_def_property_funcs(prop, NULL, texspace_editable);*/
+	RNA_def_property_editable_func(prop, texspace_editable);*/
 
 	/* materials */
 	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);

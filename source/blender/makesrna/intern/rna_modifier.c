@@ -398,7 +398,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	/* data */
 	srna= RNA_def_struct(brna, "Modifier", NULL);
 	RNA_def_struct_ui_text(srna , "Object Modifier", "DOC_BROKEN");
-	RNA_def_struct_funcs(srna, NULL, "rna_Modifier_refine");
+	RNA_def_struct_refine_func(srna, "rna_Modifier_refine");
 	RNA_def_struct_sdna(srna, "ModifierData");
 	
 	/* strings */
