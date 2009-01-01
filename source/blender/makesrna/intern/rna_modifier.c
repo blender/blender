@@ -161,10 +161,34 @@ static void rna_def_modifier_lattice(BlenderRNA *brna)
 static void rna_def_modifier_curve(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_deform_axis_items[] = {
+		{MOD_CURVE_POSX, "POSX", "X", ""},
+		{MOD_CURVE_POSY, "POSY", "Y", ""},
+		{MOD_CURVE_POSZ, "POSZ", "Z", ""},
+		{MOD_CURVE_NEGX, "NEGX", "-X", ""},
+		{MOD_CURVE_NEGY, "NEGY", "-Y", ""},
+		{MOD_CURVE_NEGZ, "NEGZ", "-Z", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "CurveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Curve Modifier", "Curve Modifier.");
 	RNA_def_struct_sdna(srna, "CurveModifierData");
+
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Curve", "Curve object to deform with");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
+
+	prop= RNA_def_property(srna, "deform_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "defaxis");
+	RNA_def_property_enum_items(prop, prop_deform_axis_items);
+	RNA_def_property_ui_text(prop, "Deform Axis", "The axis that the curve deforms along.");
 }
 
 static void rna_def_modifier_build(BlenderRNA *brna)
