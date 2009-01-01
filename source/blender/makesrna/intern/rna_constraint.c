@@ -63,12 +63,12 @@ void rna_def_constraint_basedata(BlenderRNA *brna)
 		{CONSTRAINT_TYPE_CLAMPTO, "CLAMPTO", "Clamp To", ""},
 		{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", "Transformation", ""},
 		{0, NULL, NULL, NULL}};
-	static EnumPropertyItem space_items[] ={
+	/*static EnumPropertyItem space_items[] ={
 		{CONSTRAINT_SPACE_WORLD, "WORLD", "World Space", "World/Global space."},
 		{CONSTRAINT_SPACE_LOCAL, "LOCAL", "Local", "For objects (relative to parent/without parent influence). | For bones (along normals of bone, without parent/restpositions)."},
 		{CONSTRAINT_SPACE_POSE, "POSE", "Pose", "Pose/Armature space (only for Pose Channels)."},
 		{CONSTRAINT_SPACE_PARLOCAL, "PARLOCAL", "Local With Parent", "'Local' space with Parent transform taken into account (only for Pose Channels)."},
-		{0, NULL, NULL, NULL}};
+		{0, NULL, NULL, NULL}};*/
 	
 	/* data */
 	srna= RNA_def_struct(brna, "Constraint", NULL );

@@ -147,7 +147,7 @@ typedef struct uiAfterFunc {
 
 	const char *opname;
 	int opcontext;
-	IDProperty *opproperties;
+	PointerRNA *opptr;
 
 	PointerRNA rnapoin;
 	PropertyRNA *rnaprop;
@@ -190,14 +190,14 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
 		after->opname= but->opname;
 		after->opcontext= but->opcontext;
-		after->opproperties= but->opproperties;
+		after->opptr= but->opptr;
 
 		after->rnapoin= but->rnapoin;
 		after->rnaprop= but->rnaprop;
 
 		but->opname= NULL;
 		but->opcontext= 0;
-		but->opproperties= NULL;
+		but->opptr= NULL;
 
 		BLI_addtail(&UIAfterFuncs, after);
 	}
@@ -222,10 +222,10 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 
 		if(after->opname)
-			WM_operator_name_call(C, after->opname, after->opcontext, after->opproperties);
-		if(after->opproperties) {
-			IDP_FreeProperty(after->opproperties);
-			MEM_freeN(after->opproperties);
+			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr);
+		if(after->opptr) {
+			WM_operator_properties_free(after->opptr);
+			MEM_freeN(after->opptr);
 		}
 
 		if(after->rnapoin.data)

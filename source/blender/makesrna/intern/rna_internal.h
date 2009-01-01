@@ -149,7 +149,7 @@ extern FloatPropertyRNA rna_IDProperty_doublearray;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 
-struct IDProperty *rna_idproperties_get(struct StructRNA *type, void *data, int create);
+struct IDProperty *rna_idproperties_get(struct PointerRNA *ptr, int create);
 struct IDProperty *rna_idproperty_check(struct PropertyRNA **prop, struct PointerRNA *ptr);
 
 /* Builtin Property Callbacks */

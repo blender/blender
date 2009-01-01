@@ -84,15 +84,9 @@ static void keymap_event_set(wmKeymapItem *kmi, short type, short val, int modif
 
 static void keymap_properties_set(wmKeymapItem *kmi)
 {
-	wmOperatorType *ot;
-	
 	if(!kmi->ptr) {
-		ot= WM_operatortype_find(kmi->idname);
-
-		if(ot) {
-			kmi->ptr= MEM_callocN(sizeof(PointerRNA), "wmKeymapItemPtr");
-			RNA_pointer_create(NULL, NULL, ot->srna, &kmi->properties, kmi->ptr);
-		}
+		kmi->ptr= MEM_callocN(sizeof(PointerRNA), "wmKeymapItemPtr");
+		WM_operator_properties_create(kmi->ptr, kmi->idname);
 	}
 }
 

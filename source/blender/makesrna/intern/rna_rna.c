@@ -105,7 +105,7 @@ static void rna_Struct_properties_next(CollectionPropertyIterator *iter)
 
 		/* try id properties */
 		if(!iter->valid) {
-			group= rna_idproperties_get(iter->parent.type, iter->parent.data, 0);
+			group= rna_idproperties_get(&iter->parent, 0);
 
 			if(group) {
 				rna_iterator_listbase_end(iter);

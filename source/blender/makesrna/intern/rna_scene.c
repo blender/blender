@@ -31,6 +31,8 @@
 
 #include "DNA_scene_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_global.h"
@@ -69,6 +71,12 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 	data->r.efra= value;
 }
 
+static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
+{
+	//Scene *scene= ptr->id.data;
+	//update_for_newframe();
+}
+
 #else
 
 void RNA_def_scene(BlenderRNA *brna)
@@ -95,7 +103,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");
 
-	prop= RNA_def_property(srna, "cursor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 
@@ -105,13 +114,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Objects", "");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0);
 
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 
-	prop= RNA_def_property(srna, "prop_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "proportional_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, prop_mode_items);
 	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional editing mode.");
 
@@ -120,22 +130,26 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "stamp_note", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "r.stamp_udata");
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "unwrapper", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "toolsettings->unwrapper");

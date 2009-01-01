@@ -143,6 +143,7 @@ extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
+extern StructRNA RNA_ObjectGameSettings;
 extern StructRNA RNA_ObstacleFluidSettings;
 extern StructRNA RNA_Operator;
 extern StructRNA RNA_OperatorMousePath;

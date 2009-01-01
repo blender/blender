@@ -48,20 +48,23 @@
 
 #include "ED_screen.h"
 
+#include "RNA_types.h"
+
 /* ****************************************************** */
 
 #define MAX_OP_REGISTERED	32
 
 void WM_operator_free(wmOperator *op)
 {
+	if(op->ptr) {
+		op->properties= op->ptr->data;
+		MEM_freeN(op->ptr);
+	}
+
 	if(op->properties) {
 		IDP_FreeProperty(op->properties);
 		MEM_freeN(op->properties);
-		op->properties= NULL;
 	}
-
-	if(op->ptr)
-		MEM_freeN(op->ptr);
 
 	if(op->reports) {
 		BKE_reports_clear(op->reports);
@@ -76,6 +79,12 @@ void WM_operator_free(wmOperator *op)
 void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
 	int tot;
+
+	if(op->ptr) {
+		op->properties= op->ptr->data;
+		MEM_freeN(op->ptr);
+		op->ptr= NULL;
+	}
 
 	BLI_addtail(&wm->operators, op);
 	tot= BLI_countlist(&wm->operators);
@@ -152,12 +161,9 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
 	while((km= wm->keymaps.first)) {
 		for(kmi=km->keymap.first; kmi; kmi=kmi->next) {
-			if(kmi->ptr)
+			if(kmi->ptr) {
+				WM_operator_properties_free(kmi->ptr);
 				MEM_freeN(kmi->ptr);
-
-			if(kmi->properties) {
-				IDP_FreeProperty(kmi->properties);
-				MEM_freeN(kmi->properties);
 			}
 		}
 

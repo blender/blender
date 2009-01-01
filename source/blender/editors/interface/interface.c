@@ -1371,11 +1371,10 @@ static void ui_free_link(uiLink *link)
 
 static void ui_free_but(const bContext *C, uiBut *but)
 {
-	if(but->opproperties) {
-		IDP_FreeProperty(but->opproperties);
-		MEM_freeN(but->opproperties);
+	if(but->opptr) {
+		WM_operator_properties_free(but->opptr);
+		MEM_freeN(but->opptr);
 	}
-	if(but->opptr) MEM_freeN(but->opptr);
 	if(but->active) ui_button_active_cancel(C, but);
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
@@ -2610,15 +2609,9 @@ int uiButGetRetVal(uiBut *but)
 
 PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 {
-	wmOperatorType *ot;
-	
 	if(but->opname && !but->opptr) {
-		ot= WM_operatortype_find(but->opname);
-
-		if(ot) {
-			but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
-			RNA_pointer_create(NULL, NULL, ot->srna, &but->opproperties, but->opptr);
-		}
+		but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
+		WM_operator_properties_create(but->opptr, but->opname);
 	}
 
 	return but->opptr;

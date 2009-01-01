@@ -37,6 +37,7 @@ struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
 struct rcti;
+struct PointerRNA;
 
 			/* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
@@ -122,7 +123,10 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void 
 int			WM_operatortype_remove(const char *idname);
 
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
-int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct IDProperty *properties);
+int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
+
+void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
+void		WM_operator_properties_free(struct PointerRNA *ptr);
 
 /* operator as a python command (resultuing string must be free'd) */
 char *WM_operator_pystring(struct wmOperator *op);

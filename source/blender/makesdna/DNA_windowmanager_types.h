@@ -151,7 +151,6 @@ typedef struct wmKeymapItem {
 	struct wmKeymapItem *next, *prev;
 	
 	char idname[64];				/* used to retrieve operator type pointer */
-	IDProperty *properties;			/* default operator properties */
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 	
 	short type;						/* event code itself */

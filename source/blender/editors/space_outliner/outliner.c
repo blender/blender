@@ -1096,7 +1096,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				te->name= coloritem[index];
 			else {
 				te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
-				sprintf(te->name, "    %d", index);
+				sprintf(te->name, "  %d", index+1);
 				te->flag |= TE_FREE_NAME;
 			}
 		}
@@ -3227,6 +3227,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_RNA;
 	else if(rnatype == &RNA_CollectionProperty)
 		return ICON_RNA;
+	else if(rnatype == &RNA_ObjectGameSettings)
+		return ICON_GAME;
 	else
 		return ICON_DOT;
 }

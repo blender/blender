@@ -355,7 +355,7 @@ int WM_operator_call(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, IDProperty *properties)
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
@@ -363,15 +363,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 	if(ot->poll==NULL || ot->poll(C)) {
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 
-		if(properties)
-			op->properties= IDP_CopyProperty(properties);
-
 		/* XXX adding new operator could be function, only happens here now */
 		op->type= ot;
 		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
 		
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, &op->properties, op->ptr);
+		if(properties && properties->data)
+			op->ptr->data= IDP_CopyProperty(properties->data);
+		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, op->ptr->data, op->ptr);
 
 		op->reports= MEM_callocN(sizeof(ReportList), "wmOperatorReportList");
 		BKE_reports_init(op->reports, RPT_STORE);
@@ -402,7 +401,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, I
 }
 
 /* invokes operator in context */
-int WM_operator_name_call(bContext *C, const char *opstring, int context, IDProperty *properties)
+int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	wmWindow *window= CTX_wm_window(C);
@@ -605,7 +604,7 @@ static int wm_event_always_pass(wmEvent *event)
 }
 
 /* Warning: this function removes a modal handler, when finished */
-static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, IDProperty *properties)
+static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, PointerRNA *properties)
 {
 	int retval= OPERATOR_PASS_THROUGH;
 	
@@ -746,7 +745,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 						
 						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 						
-						action= wm_handler_operator_call(C, handlers, handler, event, kmi->properties);
+						action= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 						if(action==WM_HANDLER_BREAK)  /* not wm_event_always_pass(event) here, it denotes removed handler */
 							break;
 					}

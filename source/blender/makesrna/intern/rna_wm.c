@@ -36,7 +36,7 @@
 static wmOperator *rna_OperatorProperties_find_operator(PointerRNA *ptr)
 {
 	wmWindowManager *wm= ptr->id.data;
-	IDProperty *properties= *(IDProperty**)ptr->data;
+	IDProperty *properties= (IDProperty*)ptr->data;
 	wmOperator *op;
 
 	if(wm)
@@ -72,7 +72,7 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 static void *rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
-	return &op->properties;
+	return op->properties;
 }
 
 #else
