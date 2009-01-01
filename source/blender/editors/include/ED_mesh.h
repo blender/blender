@@ -109,6 +109,8 @@ void		EM_select_edge(struct EditEdge *eed, int sel);
 void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
+void		EM_selectmode_set(struct EditMesh *em);
+void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
 			
 			/* exported to transform */
 int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);

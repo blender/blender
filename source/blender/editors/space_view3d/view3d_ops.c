@@ -133,5 +133,8 @@ void view3d_keymap(wmWindowManager *wm)
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
+	/* generates event, in end to make select work */
+	WM_keymap_verify_item(keymap, "WM_OT_tweak_gesture", SELECTMOUSE, KM_PRESS, 0, 0);
+
 }
 

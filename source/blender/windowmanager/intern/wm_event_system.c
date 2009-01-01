@@ -530,35 +530,53 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 	}
 }
 
+/* do userdef mappings */
+static int wm_userdef_event_map(int kmitype)
+{
+	switch(kmitype) {
+		case SELECTMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return LEFTMOUSE;
+			else
+				return RIGHTMOUSE;
+			
+		case ACTIONMOUSE:
+			if(U.flag & USER_LMOUSESELECT)
+				return RIGHTMOUSE;
+			else
+				return LEFTMOUSE;
+			
+		case WHEELOUTMOUSE:
+			if(U.uiflag & USER_WHEELZOOMDIR)
+				return WHEELUPMOUSE;
+			else
+				return WHEELDOWNMOUSE;
+			
+		case WHEELINMOUSE:
+			if(U.uiflag & USER_WHEELZOOMDIR)
+				return WHEELDOWNMOUSE;
+			else
+				return WHEELUPMOUSE;
+			
+		case EVT_TWEAK_A:
+			if(U.flag & USER_LMOUSESELECT)
+				return EVT_TWEAK_R;
+			else
+				return EVT_TWEAK_L;
+			
+		case EVT_TWEAK_S:
+			if(U.flag & USER_LMOUSESELECT)
+				return EVT_TWEAK_L;
+			else
+				return EVT_TWEAK_R;
+	}
+	
+	return kmitype;
+}
+
 static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
-	int kmitype= kmi->type;
-	
-	/* first do userdef mappings */
-	if(kmitype==SELECTMOUSE) {
-		if(U.flag & USER_LMOUSESELECT)
-			kmitype= LEFTMOUSE;
-		else
-			kmitype= RIGHTMOUSE;
-	}
-	else if(kmitype==ACTIONMOUSE) {
-		if(U.flag & USER_LMOUSESELECT)
-			kmitype= RIGHTMOUSE;
-		else
-			kmitype= LEFTMOUSE;
-	}
-	else if(kmitype==WHEELOUTMOUSE) {
-		if(U.uiflag & USER_WHEELZOOMDIR)
-			kmitype= WHEELUPMOUSE;
-		else
-			kmitype= WHEELDOWNMOUSE;
-	}
-	else if(kmitype==WHEELINMOUSE) {
-		if(U.uiflag & USER_WHEELZOOMDIR)
-			kmitype= WHEELDOWNMOUSE;
-		else
-			kmitype= WHEELUPMOUSE;
-	}
+	int kmitype= wm_userdef_event_map(kmi->type);
 	
 	/* the matching rules */
 	if(winevent->type!=kmitype) return 0;
@@ -960,6 +978,27 @@ void WM_event_add_mousemove(bContext *C)
 	event.prevy= event.y;
 	wm_event_add(window, &event);
 }
+
+/* for modal callbacks, check configuration for how to interpret exit with tweaks  */
+int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
+{
+	/* user preset?? dunno... */
+	int tweak_modal= 1;
+	
+	switch(tweak_event) {
+		case EVT_TWEAK_L:
+		case EVT_TWEAK_M:
+		case EVT_TWEAK_R:
+			if(evt->val==tweak_modal)
+				return 1;
+		default:
+			/* this case is when modal callcback didnt get started with a tweak */
+			if(evt->val)
+				return 1;
+	}
+	return 0;
+}
+
 
 /* ********************* ghost stuff *************** */
 

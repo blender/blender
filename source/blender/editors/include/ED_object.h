@@ -44,6 +44,12 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
 
+/* bitflags for enter/exit editmode */
+#define EM_FREEDATA		1
+#define EM_FREEUNDO		2
+#define EM_WAITCURSOR	4
+void ED_object_exit_editmode(struct bContext *C, int flag);
+void ED_object_enter_editmode(struct bContext *C, int flag);
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);

@@ -173,7 +173,7 @@ typedef struct EditMesh
 	EditFace *act_face; 
 	
 	/* copy from scene */
-	int selectmode;
+	short selectmode;
 	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate

@@ -109,11 +109,9 @@ extern int faceselectedAND(EditFace *efa, int flag);
 void EM_remove_selection(EditMesh *em, void *data, int type);
 void EM_set_actFace(EditMesh *em, EditFace *efa);
 void EM_select_face(EditFace *efa, int sel);
-void EM_selectmode_set(EditMesh *em);
 void EM_clear_flag_all(EditMesh *em, int flag);
 void EM_select_flush(EditMesh *em);
 void EM_set_flag_all(EditMesh *em, int flag);
-void EM_convertsel(EditMesh *em, short oldmode, short selectmode);
 
 void EM_add_data_layer(EditMesh *em, CustomData *data, int type);
 

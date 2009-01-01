@@ -340,25 +340,6 @@ static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 }
 
 
-/* for tweak handlers, check configuration for how to interpret events */
-int WM_modal_tweak_check(wmEvent *evt, int tweak_event)
-{
-	/* user preset?? dunno... */
-	int tweak_modal= 1;
-	
-	switch(tweak_event) {
-		case EVT_TWEAK_L:
-		case EVT_TWEAK_M:
-		case EVT_TWEAK_R:
-			if(evt->val==tweak_modal)
-				return 1;
-		default:
-			/* this case is when modal callcback didnt get started with a tweak */
-			if(evt->val)
-				return 1;
-	}
-	return 0;
-}
 
 static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 {
@@ -377,7 +358,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(WM_modal_tweak_check(evt, mm->event_type)) {
+			if(WM_modal_tweak_exit(evt, mm->event_type)) {
 				ed_marker_move_exit(C, op);
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				return OPERATOR_FINISHED;
@@ -625,6 +606,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 
+	/* allowing tweaks */
 	return OPERATOR_PASS_THROUGH;
 }
 

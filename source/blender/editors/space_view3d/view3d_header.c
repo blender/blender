@@ -64,6 +64,7 @@
 
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_types.h"
 
@@ -5306,8 +5307,12 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	View3D *v3d= sa->spacedata.first;
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
-	int bit, shift=0; // XXX shift arg?
-
+	EditMesh *em= NULL;
+	int bit, ctrl=0, shift=0; // XXX shift arg?
+	
+	if(obedit && obedit->type==OB_MESH) {
+		em= ((Mesh *)obedit->data)->edit_mesh;
+	}
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
 	switch(event) {
@@ -5362,13 +5367,13 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			v3d->flag &= ~V3D_MODE;
 // XXX			exit_paint_modes();
 // XXX			if(ob) exit_posemode();		/* exit posemode for active object */
-// XXX			if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+			if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 		} 
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
 			if(!obedit) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				enter_editmode(EM_WAITCURSOR);
+				ED_object_enter_editmode(C, EM_WAITCURSOR);
 				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
 			}
 		} 
@@ -5376,7 +5381,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_SCULPTMODE)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(obedit) exit_editmode(2);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO);	/* exit editmode and undo */
 					
 // XXX				set_sculptmode();
 			}
@@ -5385,7 +5390,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_VERTEXPAINT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				set_vpaint();
 			}
@@ -5394,7 +5399,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_TEXTUREPAINT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				set_texturepaint();
 			}
@@ -5403,7 +5408,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
 // XXX				set_wpaint();
 			}
@@ -5412,7 +5417,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			
 			if (ob) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				enter_posemode();
 			}
@@ -5421,7 +5426,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_PARTICLEEDIT)) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-// XXX				if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
 // XXX				PE_set_particle_edit();
 			}
@@ -5435,39 +5440,42 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		break;
 		
 	case B_SEL_VERT:
-		if(shift==0 || scene->selectmode==0)
-			scene->selectmode= SCE_SELECT_VERTEX;
-// XXX		EM_selectmode_set();
-		countall();
-		ED_undo_push(C, "Selectmode Set: Vertex");
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
+		if(em) {
+			if(shift==0 || em->selectmode==0)
+				em->selectmode= SCE_SELECT_VERTEX;
+			scene->selectmode= em->selectmode;
+			EM_selectmode_set(em);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			ED_undo_push(C, "Selectmode Set: Vertex");
+		}
 		break;
 	case B_SEL_EDGE:
-		if(shift==0 || scene->selectmode==0){
-			if( (scene->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
-// XXX				if(ctrl) EM_convertsel(SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
+		if(em) {
+			if(shift==0 || em->selectmode==0){
+				if( (em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
+					if(ctrl) EM_convertsel(em, SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
+				}
+				em->selectmode = SCE_SELECT_EDGE;
 			}
-			scene->selectmode = SCE_SELECT_EDGE;
+			scene->selectmode= em->selectmode;
+			EM_selectmode_set(em);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			ED_undo_push(C, "Selectmode Set: Edge");
 		}
-// XXX		EM_selectmode_set();
-		countall();
-		ED_undo_push(C, "Selectmode Set: Edge");
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;
 	case B_SEL_FACE:
-		if( shift==0 || scene->selectmode==0){
-			if( ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
-// XXX				if(ctrl) EM_convertsel((scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+		if(em) {
+			if( shift==0 || em->selectmode==0){
+				if( ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
+					if(ctrl) EM_convertsel(em, (scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+				}
+				em->selectmode = SCE_SELECT_FACE;
 			}
-			scene->selectmode = SCE_SELECT_FACE;
+			scene->selectmode= em->selectmode;
+			EM_selectmode_set(em);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			ED_undo_push(C, "Selectmode Set: Face");
 		}
-// XXX		EM_selectmode_set();
-		countall();
-		ED_undo_push(C, "Selectmode Set: Face");
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;	
 
 	case B_SEL_PATH:
@@ -5915,12 +5923,14 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 
 		/* selection modus */
 		if(obedit && (obedit->type == OB_MESH)) {
+			EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
 			xco+= XIC;
-			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,yco,XIC,YIC, &em->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			if(v3d->drawtype > OB_WIRE) {

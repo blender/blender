@@ -113,6 +113,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -131,7 +132,6 @@
 #include "object_intern.h"	// own include
 
 /* ************* XXX **************** */
-#define EM_WAITCURSOR 0
 static void allqueue() {}
 static void BIF_undo_push() {}
 static void error() {}
@@ -250,7 +250,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 	
 	exit_paint_modes();
 
-// XXX	if (G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+// XXX	if (G.obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 	ob= add_object(type);
 //	ED_base_object_activate(C, BASACT);
 	base_init_from_view3d(BASACT, v3d);
@@ -1992,21 +1992,20 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 
 /* ******************* toggle editmode operator  ***************** */
 
-static void exit_editmode(bContext *C, wmOperator *op, int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
+void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 //	Object *obedit= CTX_data_edit_object(C);
-	int freedata = flag; // XXX & EM_FREEDATA;
+	int freedata = flag & EM_FREEDATA;
 	
 	if(G.obedit==NULL) return;
 	
-//	if(flag & EM_WAITCURSOR) waitcursor(1);
+	if(flag & EM_WAITCURSOR) waitcursor(1);
 	if(G.obedit->type==OB_MESH) {
 		Mesh *me= G.obedit->data;
 		
 //		if(EM_texFaceCheck())
-//			allqueue(REDRAWIMAGE, 0);
 		
 //		if(retopo_mesh_paint_check())
 //			retopo_end_okee();
@@ -2059,14 +2058,14 @@ static void exit_editmode(bContext *C, wmOperator *op, int flag)	/* freedata==0 
 	if(G.obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
 		ED_undo_push(C, "Editmode");
 	
-	//	if(flag & EM_WAITCURSOR) waitcursor(0);
+	if(flag & EM_WAITCURSOR) waitcursor(0);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
 
 }
 
 
-static void enter_editmode(bContext *C, wmOperator *op)
+void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
@@ -2085,7 +2084,7 @@ static void enter_editmode(bContext *C, wmOperator *op)
 		return;
 	}
 	
-	//if(wc) waitcursor(1);
+	if(flag & EM_WAITCURSOR) waitcursor(1);
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
@@ -2144,24 +2143,23 @@ static void enter_editmode(bContext *C, wmOperator *op)
 	}
 	
 	if(ok) {
-	
 		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
-		
 	}
 	else {
 		G.obedit= NULL;
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
 	}
 	
+	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
 static int toggle_editmode_exec(bContext *C, wmOperator *op)
 {
 	
 	if(!CTX_data_edit_object(C))
-		enter_editmode(C, op);
+		ED_object_enter_editmode(C, EM_WAITCURSOR);
 	else
-		exit_editmode(C, op, 1);
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2188,7 +2186,7 @@ void check_editmode(int type)
 	
 	if (G.obedit==0 || G.obedit->type==type) return;
 
-// XXX	exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+// XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
 
 /* 0 == do center, 1 == center new, 2 == center cursor */
@@ -3339,8 +3337,8 @@ void convertmenu(Scene *scene, View3D *v3d)
 	/* texspace and normals */
 	if(!basen) BASACT= base;
 
-// XXX	enter_editmode(scene, v3d, EM_WAITCURSOR);
-// XXX	exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
+// XXX	ED_object_enter_editmode(C, 0);
+// XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 	BASACT= basact;
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -4337,9 +4335,9 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				/* texspace and normals */
 				BASACT= base;
-// XXX				enter_editmode(scene, v3d, EM_WAITCURSOR);
+// XXX				ED_object_enter_editmode(C, 0);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
-// XXX				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
+// XXX				ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
 				
 				change = 1;
@@ -4413,9 +4411,9 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				/* texspace and normals */
 				BASACT= base;
-// XXX				enter_editmode(scene, v3d, EM_WAITCURSOR);
+// XXX				ED_object_enter_editmode(C, 0);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
-// XXX				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
+// XXX				ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
 				
 				change = 1;

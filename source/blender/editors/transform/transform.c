@@ -625,6 +625,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case ESCKEY:
 		case RIGHTMOUSE:
+			printf("cancelled\n");
 			t->state = TRANS_CANCEL;
 			break;
 		case LEFTMOUSE:

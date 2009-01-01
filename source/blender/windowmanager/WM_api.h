@@ -94,6 +94,7 @@ struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, ListBase *
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
 void		WM_event_add_mousemove(struct bContext *C);
+int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
 void		WM_event_add_notifier(struct bContext *C, unsigned int type, void *data);
 

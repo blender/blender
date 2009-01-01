@@ -1473,7 +1473,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else 
 		mouse_select(C, mval, extend, 0);
 	
-	return OPERATOR_FINISHED;
+	/* allowing tweaks */
+	return OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_select(wmOperatorType *ot)
