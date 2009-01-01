@@ -701,13 +701,13 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 	
 	/* main type choosing */
 	uiBlockBeginAlign(block);
-	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,2,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_MATERIAL_DEHLT, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 0.0f, 0.0f, 0.0f, "Material Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,2,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_IMAGE_DEHLT, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 1.0f, 0.0f, 0.0f, "Composite Nodes");
 	xco+= XIC;
-	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,2,XIC,YIC-2,
+	uiDefIconButI(block, ROW, B_REDR, ICON_TEXTURE_DEHLT, xco,yco,XIC,YIC-2,
 				  &(snode->treetype), 2.0f, 2.0f, 0.0f, 0.0f, "Texture Nodes");
 	xco+= 2*XIC;
 	uiBlockEndAlign(block);
@@ -723,17 +723,17 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 			
 			if(snode->id) {
 				Material *ma= (Material *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,0,90,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				uiDefButC(block, TOG, B_NODE_USEMAT, "Use Nodes", xco+5,yco,90,19, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
 				xco+=80;
 			}
 		}
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,0,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
+		uiDefButS(block, TOG, B_NODE_USESCENE, "Use Nodes", xco+5,yco,90,19, &scene->use_nodes, 0.0f, 0.0f, 0, 0, "Indicate this Scene will use Nodes and execute them while editing");
 		xco+= 90;
-		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
+		uiDefButBitI(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,yco,100,19, &scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 100;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
+		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,yco,90,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 90;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
@@ -744,7 +744,7 @@ void node_header_buttons(const bContext *C, ARegion *ar)
 			
 			if(snode->id) {
 				Tex *tx= (Tex *)snode->id;
-				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,0,90,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
+				uiDefButC(block, TOG, B_NODE_USETEX, "Use Nodes", xco+5,yco,90,19, &tx->use_nodes, 0.0f, 0.0f, 0, 0, "");
 				xco+=80;
 			}
 		}
