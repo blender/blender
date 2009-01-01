@@ -319,7 +319,7 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int typ
 	if(totelement){
 		alloc_slot_buffer(op, slotcode, totelement);
 
-		if (type & BM_VERT) {
+		if (type & BMESH_VERT) {
 			for (e = BMIter_New(&elements, bm, BM_VERTS, bm); e; e = BMIter_Step(&elements)) {
 				if(BMO_TestFlag(bm, e, flag)){
 					((BMHeader**)output->data.p)[i] = e;
@@ -328,7 +328,7 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int typ
 			}
 		}
 
-		if (type & BM_EDGE) {
+		if (type & BMESH_EDGE) {
 			for (e = BMIter_New(&elements, bm, BM_EDGES, bm); e; e = BMIter_Step(&elements)) {
 				if(BMO_TestFlag(bm, e, flag)){
 					((BMHeader**)output->data.p)[i] = e;
@@ -337,7 +337,7 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int typ
 			}
 		}
 
-		if (type & BM_FACE) {
+		if (type & BMESH_FACE) {
 			for (e = BMIter_New(&elements, bm, BM_FACES, bm); e; e = BMIter_Step(&elements)) {
 				if(BMO_TestFlag(bm, e, flag)){
 					((BMHeader**)output->data.p)[i] = e;

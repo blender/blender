@@ -1,4 +1,10 @@
+#include "MEM_guardedalloc.h"
+
+#include "BKE_utildefines.h"
+
 #include "bmesh.h"
+
+#include <stdio.h>
 
 /*
 note: this is a pattern-based edge subdivider.
@@ -24,13 +30,13 @@ subdpattern pattern = {
 
 */
 typedef struct subdpattern {
-	int *seledges; //selected edges mask, for splitting
-	int *connectverts //verts to connect;
+	int seledges[20]; //selected edges mask, for splitting
+	int connectverts[20]; //verts to connect;
 
-	int *secondstage_splitedges;
+	int secondstage_splitedges[20];
 	//verts to connect afterwards.  size must be len + number 
 	//of edges split in secondstage_splitedges
-	int *secondstage_connect;
+	int secondstage_connect[20];
 
 	int len; /*total number of verts*/
 } subdpattern;
@@ -55,8 +61,8 @@ handle case of one edge selected.
 subdpattern t_1edge = {
 	{1, 1, 0, 0},
 	{-1, 3, -1, -1},
-	NULL,
-	NULL,
+	{0},
+	{0},
 	4
 };
 
@@ -73,8 +79,8 @@ handle case of two edges selected.
 subdpattern t_2edge = {
 	{1, 1, 1, 1, 0},
 	{0, 3, -1, -1, -1},
-	NULL,
-	NULL,
+	{0},
+	{0},
 	5
 };
 
@@ -100,9 +106,9 @@ subdpattern t_3edge = {
 };
 
 subdpattern *patterns[] = {
-	t_1edge,
-	t_2edge,
-	t_3edge,
+	&t_1edge,
+	&t_2edge,
+	&t_3edge,
 };
 
 #define PLEN	(sizeof(patterns) / sizeof(void*))
@@ -113,15 +119,15 @@ subdpattern *patterns[] = {
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
-	BMEdge *edge, *nedge, edges[MAX_FACE];
+	BMEdge *edge, *nedge, *edges[MAX_FACE];
 	BMFace *face;
 	BMLoop *nl;
-	BMVert *v1, verts[MAX_FACE], *lastv, *newv;
+	BMVert *v1, *verts[MAX_FACE], *lastv;
 	BMIter fiter, eiter;
 	subdpattern *pat;
 	int i, j, matched, a, b, newlen, newvlen;
 	
-	BMO_Flag_Buffer(bm, dupeop, BMOP_ESUBDIVIDE_EDGES, SUBD_SPLIT);
+	BMO_Flag_Buffer(bmesh, op, BMOP_ESUBDIVIDE_EDGES, SUBD_SPLIT);
 
 	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
 
@@ -129,7 +135,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	for (i=0; i<einput->len; i++) {
 		edge = ((BMEdge**)einput->data.p)[i];
 		v1 = BM_Split_Edge(bmesh, edge->v1, edge, &nedge, 0.5, 1);
-		BMO_SetFlag(bmesh, vert, SUBD_SPLIT);
+		BMO_SetFlag(bmesh, v1, SUBD_SPLIT);
 		BMO_SetFlag(bmesh, nedge, SUBD_SPLIT);
 	}
 
@@ -139,7 +145,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		if (face->len < MAX_FACE) {
 			/*try all possible pattern rotations*/
-			for (i=0, i<PLEN; i++) {
+			for (i=0; i<PLEN; i++) {
 				if (patterns[i]->len != face->len) continue;
 				lastv = NULL;
 				for (j=0; j<patterns[i]->len; j++) {
@@ -160,7 +166,6 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				}
 			}
 		}
-		struct BMFace *BM_Split_Face(struct BMesh *bm, struct BMFace *f, struct BMVert *v1, struct BMVert *v2, struct BMLoop **nl, struct BMEdge *example, int calcnorm);
 
 		if (matched) {
 			/*first stage*/
@@ -168,12 +173,12 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			for (i=0; i<pat->len; i++) {
 				if (pat->connectverts[i] != -1) {
 					BM_Split_Face(bmesh, face, verts[i], verts[pat->connectverts[i]], &nl, edges[i], 1);
-					edges[newlen] = nl->edge;
+					edges[newlen] = nl->e;
 					newlen++;
 				}
 			}
 
-			newvlen = pat->len;			
+			newvlen = pat->len;		
 			/*second stage*/
 			for (i=0; i<pat->len; i++) {
 				if (pat->secondstage_splitedges[i]) {
@@ -183,10 +188,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			}
 
 			for (i=0; i<newvlen; i++) {
-				if (pat->secondstage_connectverts[i] != -1) {
-					BM_Split_Face(bmesh, face, verts[i], verts[pat->secondstage_connectverts[i]], &nl, edges[i], 1);
-					edges[newlen] = nl->edge;
-					newlen++;
+				if (pat->secondstage_connect[i] != -1) {
+					BM_Split_Face(bmesh, face, verts[i], verts[pat->secondstage_connect[i]], &nl, edges[i], 1);
+					edges[newlen] = nl->e;
 				}
 			}
 		} else { /*no match in the pattern*/

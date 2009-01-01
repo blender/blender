@@ -205,7 +205,7 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm
  *  purposes.
  *
  *  Returns -
- *	Nothing
+ *	the new vert
  */
 
 BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent, int calcnorm) {

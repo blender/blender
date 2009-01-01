@@ -27,7 +27,7 @@
 */
 
 /*Forward declerations*/
-static int request_walkerMask(struct BMMesh *bm);
+static int request_walkerMask(struct BMesh *bm);
 static void *bmeshWalker_walk(struct BMWalker *walker);
 static void bmeshWalker_popState(struct BMWalker *walker);
 static void bmeshWalker_pushState(struct BMWalker *walker);
@@ -55,7 +55,7 @@ typedef struct walkerGeneric{
  *
 */
 
-static int request_walkerMask(BMMesh *bm)
+static int request_walkerMask(BMesh *bm)
 {
 	int i;
 	for(i=0; i < BMESH_MAXWALKERS; i++){
@@ -79,7 +79,7 @@ static int request_walkerMask(BMMesh *bm)
  *
 */
 
-void bmeshWalker_init(BMWalker *walker, BMMesh *bm, int type, int searchmask)
+void bmeshWalker_init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 {
 	int visitedmask = request_walkerMask(bm);
 	int size = 0;

@@ -21,6 +21,8 @@ sources.append('intern/bmesh_operators.c')
 
 
 sources = env.Glob('intern/*.c')
+sources = env.Glob('operators/*.c')
+
 #sources += env.Glob('tools/*.c')
 
 incs = ['#/intern/guardedalloc'] 
