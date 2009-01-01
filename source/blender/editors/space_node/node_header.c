@@ -596,8 +596,7 @@ static void do_node_viewmenu(bContext *C, void *arg, int event)
 		case 2: /* View all */
 			break;
 		case 3: /* View all */
-			printf("calling snode_home\n");
-			//snode_home(sa, ar, snode);
+			WM_operator_name_call(C, "NODE_OT_fit_all", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 4: /* Grease Pencil */
 			// XXX add_blockhandler(sa, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
