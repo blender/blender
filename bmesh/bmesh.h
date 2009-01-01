@@ -116,6 +116,7 @@ typedef struct BMFlagLayer{
 	short mask, pflag;
 }BMFlagLayer;
 
+struct BMOperator;
 typedef struct BMesh
 {
 	ListBase verts, edges, polys;
@@ -123,6 +124,7 @@ typedef struct BMesh
 	struct BLI_mempool *epool;
 	struct BLI_mempool *lpool;
 	struct BLI_mempool *ppool;
+	struct BMOperator *currentop;
 	struct BMVert **vtar;
 	struct BMEdge **edar;
 	struct BMLoop **lpar;
@@ -178,7 +180,7 @@ typedef struct BMFace
 	unsigned short mat_nr;									/*custom data again, and get rid of the unsigned short nonsense...*/
 }BMFace;
 
-/*stub*/
+/*stub */
 void bmesh_error(void);
 
 /*Mesh Level Ops */

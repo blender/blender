@@ -37,11 +37,19 @@ typedef struct BMOpSlot{
 
 typedef struct BMOperator{
 	int type;
-	int slottype;							
+	int slottype;
+	int needflag;
 	struct BMOpSlot slots[BMOP_MAX_SLOTS];
 	void (*exec)(struct BMesh *bm, struct BMOperator *op);
 	MemArena *arena;
 }BMOperator;
+
+/*need to refactor code to use this*/
+typedef struct BMOpDefine {
+	int slottypes[BMOP_MAX_SLOTS];
+	int totslots;
+	int flag;
+} BMOpDefine;
 
 /*API for operators*/
 void BMO_Init_Op(struct BMOperator *op, int opcode);
@@ -60,7 +68,10 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 
-/*defines for individual operators*/
+/*operator option flags*/
+#define NEEDFLAGS	1
+
+/*--------------------begin operator defines------------------------*/
 /*split op*/
 #define BMOP_SPLIT				0
 #define BMOP_SPLIT_VINPUT		1
@@ -81,7 +92,8 @@ const int BMOP_SPLIT_TYPEINFO[BMOP_SPLIT_TOTSLOT] = {
 	BMOP_OPSLOT_PNT_BUF,
 };
 
-/*--------------------begin operator defines------------------------*/
+#define SPLIT_OPTIONS	NEEDFLAGS
+
 /*dupe op*/
 #define BMOP_DUPE				1
 
@@ -107,6 +119,7 @@ const int BMOP_DUPE_TYPEINFO[BMOP_DUPE_TOTSLOT] = {
 	BMOP_OPSLOT_PNT_BUF,
 	BMOP_OPSLOT_PNT_BUF,
 };
+#define DUPE_OPTIONS		NEEDFLAGS
 
 /*delete op*/
 #define BMOP_DEL			2
@@ -130,6 +143,8 @@ const int BMOP_DEL_TYPEINFO[BMOP_DEL_TOTSLOT] = {
 	BMOP_OPSLOT_INT
 };
 
+#define DEL_OPTIONS		NEEDFLAGS
+
 /*editmesh->bmesh op*/
 #define BMOP_FROM_EDITMESH		3
 #define BMOP_FROM_EDITMESH_EM	0
@@ -138,6 +153,8 @@ const int BMOP_DEL_TYPEINFO[BMOP_DEL_TOTSLOT] = {
 const int BMOP_FROM_EDITMESH_TYPEINFO[BMOP_FROM_EDITMESH_TOTSLOT] = {
 	BMOP_OPSLOT_PNT
 };
+
+#define FROMEDIT_OPTIONS		NEEDFLAGS
 
 /*bmesh->editmesh op*/
 #define BMOP_TO_EDITMESH		4
@@ -148,6 +165,8 @@ const int BMOP_TO_EDITMESH_TYPEINFO[BMOP_TO_EDITMESH_TOTSLOT] = {
 	BMOP_OPSLOT_PNT
 };
 
+#define TOEDIT_OPTIONS			NEEDFLAGS
+
 #define BMOP_ESUBDIVIDE			5
 #define BMOP_ESUBDIVIDE_EDGES	0
 #define BMOP_ESUBDIVIDE_TOTSLOT	1
@@ -156,25 +175,38 @@ const int BMOP_ESUBDIVIDE_TYPEINFO[] = {
 	BMOP_OPSLOT_PNT_BUF
 };
 
+#define SUBD_OPTIONS		NEEDFLAGS
+
 /*keep this updated!*/
 #define BMOP_TOTAL_OPS				6
 /*-------------------------------end operator defines-------------------------------*/
 
 /*Following arrays are used by the init functions to init operator slot typecodes*/
-const int *BMOP_TYPEINFO[BMOP_TOTAL_OPS] = {
+static const int *BMOP_TYPEINFO[] = {
 	BMOP_SPLIT_TYPEINFO,
+	BMOP_DUPE_TYPEINFO,
 	BMOP_DEL_TYPEINFO,
 	BMOP_FROM_EDITMESH_TYPEINFO,
 	BMOP_TO_EDITMESH_TYPEINFO,
 	BMOP_ESUBDIVIDE_TYPEINFO
 };
 
-const int BMOP_TYPETOTALS[BMOP_TOTAL_OPS] = {
+static const int BMOP_TYPETOTALS[] = {
 	BMOP_SPLIT_TOTSLOT,
+	BMOP_DUPE_TOTSLOT,
 	BMOP_DEL_TOTSLOT,
 	BMOP_FROM_EDITMESH_TOTSLOT,
 	BMOP_TO_EDITMESH_TOTSLOT,
 	BMOP_ESUBDIVIDE_TOTSLOT
+};
+
+static const int BMOP_OPTIONS[] = {
+	SPLIT_OPTIONS,
+	DUPE_OPTIONS,
+	DEL_OPTIONS,
+	FROMEDIT_OPTIONS,
+	TOEDIT_OPTIONS,
+	SUBD_OPTIONS,	
 };
 
 #endif

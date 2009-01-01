@@ -45,8 +45,10 @@ const int BMOP_OPSLOT_TYPEINFO[BMOP_OPSLOT_TYPES] = {
 void BMO_push(BMesh *bm, BMOperator *op)
 {
 	bm->stackdepth++;
+	bm->currentop = op;
+
 	/*add flag layer, if appropriate*/
-	if(bm->stackdepth > 1)
+	if(bm->stackdepth > 1 && op->needflag)
 		alloc_flag_layer(bm);
 }
 
@@ -62,7 +64,7 @@ void BMO_push(BMesh *bm, BMOperator *op)
 void BMO_pop(BMesh *bm)
 {
 	bm->stackdepth--;
-	if(bm->stackdepth > 1)
+	if(bm->stackdepth > 1 && bm->currentop->needflag)
 		free_flag_layer(bm);
 }
 
@@ -80,6 +82,8 @@ void BMO_Init_Op(BMOperator *op, int opcode)
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
+
+	if (BMOP_OPTIONS[opcode] & NEEDFLAGS) op->needflag = 1;
 
 	/*initialize the operator slot types*/
 	for(i = 0; i < BMOP_TYPETOTALS[opcode]; i++) {
