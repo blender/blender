@@ -49,6 +49,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select);
 	WM_operatortype_append(NODE_OT_extend_select);
 	WM_operatortype_append(NODE_OT_toggle_visibility);
+	WM_operatortype_append(NODE_OT_fit_all);
 }
 
 void node_keymap(struct wmWindowManager *wm)
@@ -58,4 +59,5 @@ void node_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_extend_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	WM_keymap_add_item(keymap, "NODE_OT_toggle_visibility", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_fit_all", HOMEKEY, KM_PRESS, 0, 0);
 }

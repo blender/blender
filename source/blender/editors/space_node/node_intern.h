@@ -53,6 +53,7 @@ void node_keymap(wmWindowManager *wm);
 void NODE_OT_select(struct wmOperatorType *ot);
 void NODE_OT_extend_select(struct wmOperatorType *ot);
 void NODE_OT_toggle_visibility(struct wmOperatorType *ot);
+void NODE_OT_fit_all(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
@@ -64,6 +65,7 @@ bNode *next_node(bNodeTree *ntree);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void scale_node(SpaceNode *snode, bNode *node);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
+void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode, int swap);
 

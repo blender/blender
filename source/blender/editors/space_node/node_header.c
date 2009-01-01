@@ -586,17 +586,18 @@ static uiBlock *node_nodemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 
 static void do_node_viewmenu(bContext *C, void *arg, int event)
 {
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
 	switch(event) {
+		/* cases 1 and 2 are now handled automagically by View2D code */
 		case 1: /* Zoom in */
-			// XXX snode_zoom_in(sa);
-			break;
 		case 2: /* View all */
-			// XXX snode_zoom_out(sa);
 			break;
 		case 3: /* View all */
-			// XXX snode_home(sa, snode);
+			printf("calling snode_home\n");
+			//snode_home(sa, ar, snode);
 			break;
 		case 4: /* Grease Pencil */
 			// XXX add_blockhandler(sa, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);

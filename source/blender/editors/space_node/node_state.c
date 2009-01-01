@@ -192,3 +192,29 @@ void NODE_OT_toggle_visibility(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
 	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
 }
+
+static int node_fit_all_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+	snode_home(sa, ar, snode);
+	ED_region_tag_redraw(ar);
+	return OPERATOR_FINISHED;
+}
+
+static int node_fit_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return node_fit_all_exec(C, op);
+}
+
+void NODE_OT_fit_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Fit All";
+	ot->idname= "NODE_OT_fit_all";
+	
+	/* api callbacks */
+	ot->invoke= node_fit_all_invoke;
+	ot->poll= ED_operator_node_active;
+}

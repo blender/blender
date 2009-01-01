@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): David Millan Escriva, Juho Vepsäläinen
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen, Nathan Letwory
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -101,6 +101,8 @@
 */
 
 #include "WM_types.h"
+
+#include "UI_view2d.h"
 
 // XXX XXX XXX
 static void BIF_undo_push(char *s) {}
@@ -913,8 +915,6 @@ bNode *next_node(bNodeTree *ntree)
 	return NULL;
 }
 
-#if 0
-
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, rctf *rct)
 {
@@ -927,60 +927,57 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	return tnode;
 }
 
-void snode_home(ScrArea *sa, SpaceNode *snode)
+void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 {
 	bNode *node;
+	rctf *cur, *tot;
+	float oldwidth, oldheight, width, height;
 	int first= 1;
 	
-	snode->v2d.cur.xmin= snode->v2d.cur.ymin= 0.0f;
-	snode->v2d.cur.xmax= sa->winx;
-	snode->v2d.cur.xmax= sa->winy;
+	cur= &ar->v2d.cur;
+	tot= &ar->v2d.tot;
+	
+	oldwidth= cur->xmax - cur->xmin;
+	oldheight= cur->ymax - cur->ymin;
+	
+	cur->xmin= cur->ymin= 0.0f;
+	cur->xmax=ar->winx;
+	cur->xmax= ar->winy;
 	
 	if(snode->edittree) {
 		for(node= snode->edittree->nodes.first; node; node= node->next) {
 			if(first) {
 				first= 0;
-				snode->v2d.cur= node->totr;
+				ar->v2d.cur= node->totr;
 			}
 			else {
-				BLI_union_rctf(&snode->v2d.cur, &node->totr);
+				BLI_union_rctf(cur, &node->totr);
 			}
 		}
 	}
-	snode->v2d.tot= snode->v2d.cur;
 	
-	snode->xof = snode->yof = 0.0;
+	snode->xof= 0;
+	snode->yof= 0;
+	width= cur->xmax - cur->xmin;
+	height= cur->ymax- cur->ymin;
+	if(width > height) {
+		float newheight;
+		newheight= oldheight * width/oldwidth;
+		cur->ymin= cur->ymin - newheight/4;
+		cur->ymax= cur->ymin + newheight;
+	}
+	else {
+		float newwidth;
+		newwidth= oldwidth * height/oldheight;
+		cur->xmin= cur->xmin - newwidth/4;
+		cur->xmax= cur->xmin + newwidth;
+	}
 	
-	test_view2d(G.v2d, sa->winx, sa->winy);
-	
+	ar->v2d.tot= ar->v2d.cur;
+	UI_view2d_curRect_validate(&ar->v2d);
 }
 
-void snode_zoom_out(ScrArea *sa)
-{
-	float dx;
-	
-	dx= (float)(0.15*(G.v2d->cur.xmax-G.v2d->cur.xmin));
-	G.v2d->cur.xmin-= dx;
-	G.v2d->cur.xmax+= dx;
-	dx= (float)(0.15*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-	G.v2d->cur.ymin-= dx;
-	G.v2d->cur.ymax+= dx;
-	test_view2d(G.v2d, sa->winx, sa->winy);
-}
-
-void snode_zoom_in(ScrArea *sa)
-{
-	float dx;
-	
-	dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
-	G.v2d->cur.xmin+= dx;
-	G.v2d->cur.xmax-= dx;
-	dx= (float)(0.1154*(G.v2d->cur.ymax-G.v2d->cur.ymin));
-	G.v2d->cur.ymin+= dx;
-	G.v2d->cur.ymax-= dx;
-	test_view2d(G.v2d, sa->winx, sa->winy);
-}
-
+#if 0
 static void snode_bg_viewmove(SpaceNode *snode)
 {
 	ScrArea *sa;
