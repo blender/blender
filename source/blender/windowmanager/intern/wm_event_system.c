@@ -399,7 +399,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			if (reports)
-				op->reports= NULL; /* dont let the operator free reports given by the user */
+				op->reports= NULL; /* dont let the operator free reports passed to this function */
 			WM_operator_free(op);
 		}
 	}
