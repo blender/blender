@@ -1308,15 +1308,15 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
 				ob->loc[2]= ob->dloc[2]= 0.0f;
 		}
+		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-	
-	DAG_scene_sort(scene);
+
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	BIF_undo_push("Clear Location");
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1353,23 +1353,23 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else if((G.f & G_WEIGHTPAINT)==0) {
-				/* eulers can only get cleared if they are not protected */
-				if ((ob->protectflag & OB_LOCK_ROTX)==0)
-					ob->rot[0]= ob->drot[0]= 0.0f;
-				if ((ob->protectflag & OB_LOCK_ROTY)==0)
-					ob->rot[1]= ob->drot[1]= 0.0f;
-				if ((ob->protectflag & OB_LOCK_ROTZ)==0)
-					ob->rot[2]= ob->drot[2]= 0.0f;
+			/* eulers can only get cleared if they are not protected */
+			if ((ob->protectflag & OB_LOCK_ROTX)==0)
+				ob->rot[0]= ob->drot[0]= 0.0f;
+			if ((ob->protectflag & OB_LOCK_ROTY)==0)
+				ob->rot[1]= ob->drot[1]= 0.0f;
+			if ((ob->protectflag & OB_LOCK_ROTZ)==0)
+				ob->rot[2]= ob->drot[2]= 0.0f;
 		}
+		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-	
-	DAG_scene_sort(scene);
+
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	BIF_undo_push("Clear Rotation");
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1406,28 +1406,28 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else if((G.f & G_WEIGHTPAINT)==0) {
-				if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
-					ob->dsize[0]= 0.0f;
-					ob->size[0]= 1.0f;
-				}
-				if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
-					ob->dsize[1]= 0.0f;
-					ob->size[1]= 1.0f;
-				}
-				if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
-					ob->dsize[2]= 0.0f;
-					ob->size[2]= 1.0f;
-				}
+			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+				ob->dsize[0]= 0.0f;
+				ob->size[0]= 1.0f;
+			}
+			if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+				ob->dsize[1]= 0.0f;
+				ob->size[1]= 1.0f;
+			}
+			if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+				ob->dsize[2]= 0.0f;
+				ob->size[2]= 1.0f;
+			}
 		}
+		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(scene);
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	BIF_undo_push("Clear Scale");
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -1476,16 +1476,15 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 				Mat3MulVecfl(mat, v3);
 			}
 		}
+		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
-	
-	
-	DAG_scene_sort(scene);
+
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
 	BIF_undo_push("Clear origin");
 	
-	ED_region_tag_redraw(CTX_wm_region(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
