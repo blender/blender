@@ -222,72 +222,27 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 
 /*bmesh_make_face_from_face(BMesh *bm, BMFace *source, BMFace *target) */
 
-/*
- * BMESH DELETE XXX FUNCTIONS
- *
- * Functions for deleting the vertices, edges
- * and faces of a mesh. Note that these functions
- * only flag geometry for removal. The actual deletion
- * is done by the remove tagged XXX functions
- *
- * TO CONSIDER: This may be better to use the private flag
- * layers allocated for each operator rather than using the system flag.
- *
-*/
-
-void BM_Delete_Face(BMesh *bm, BMFace *f)
-{
-	bmesh_set_sysflag(&(f->head), BMESH_DELETE);
-}
-
-void BM_Delete_Edge(BMesh *bm, BMVert *e)
-{
-	BMFace *f = NULL;
-	BMIter edgefaces;
-	
-	for(f = BMIter_New(&edgefaces, bm, BM_FACES_OF_EDGE, e ); f; f = BMIter_Step(&edgefaces))
-		bmesh_set_sysflag((BMHeader*)f, BMESH_DELETE);
-	bmesh_set_sysflag((BMHeader*)e, BMESH_DELETE);
-}
-void BM_Delete_Vert(BMesh *bm, BMVert *v)
-{
-	BMFace *f = NULL;
-	BMEdge *e = NULL;
-	BMIter vertfaces;
-	BMIter vertedges;
-	
-	/*first delete the faces around the vertex*/
-	for(f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, v ); f; f = BMIter_Step(&vertfaces))
-		bmesh_set_sysflag((BMHeader*)f, BMESH_DELETE);	
-	
-
-	for(e = BMIter_New(&vertedges, bm, BM_EDGES_OF_VERT, v ); e; e = BMIter_Step(&vertedges))
-		bmesh_set_sysflag((BMHeader*)e, BMESH_DELETE);
-	
-	bmesh_set_sysflag((BMHeader*)v, BMESH_DELETE);
-}
 
 /*
  * REMOVE TAGGED XXX
  *
- * Called at the end of bmesh_end_edit. Removes
- * Elements that have been marked for removal in the modelling loop.
- * We bypass iterator API for this to ensure correct results.
+ * Called by operators to remove elements that they have marked for
+ * removal.
  *
 */
 
-static void remove_tagged_faces(BMesh *bm)
+void BM_remove_tagged_faces(BMesh *bm, int flag)
 {
 	BMHeader *current, *next;
 
 	current = bm->polys.first;
 	while(current){
 		next = current->next;
-		if( bmesh_test_sysflag(current, BMESH_DELETE) ) bmesh_kf(bm, (BMFace*)current);
+		if(BMO_TestFlag(bm, current, flag)) bmesh_kf(bm, (BMFace*)current);
 		current = next;
 	}
 }
-static void remove_tagged_edges(BMesh *bm)
+void BM_remove_tagged_edges(BMesh *bm, int flag)
 {
 	BMHeader *current, *next;
 	
@@ -295,12 +250,12 @@ static void remove_tagged_edges(BMesh *bm)
 	
 	while(current){
 		next = current->next;
-		if( bmesh_test_sysflag(current, BMESH_DELETE) ) bmesh_ke(bm, (BMEdge*)current);
+		if(BMO_TestFlag(bm, current, flag)) bmesh_ke(bm, (BMEdge*)current);
 		current = next;
 	}
 }
 
-static void remove_tagged_verts(BMesh *bm)
+void BM_remove_tagged_verts(BMesh *bm, int flag)
 {
 	BMHeader *current, *next;
 
@@ -308,7 +263,7 @@ static void remove_tagged_verts(BMesh *bm)
 
 	while(current){
 		next = current->next;
-		if( bmesh_test_sysflag(current, BMESH_DELETE) ) bmesh_kv(bm,(BMVert*)current);
+		if(BMO_TestFlag(bm, current, flag)) bmesh_kv(bm,(BMVert*)current);
 		current = next;
 	}
 }

@@ -193,9 +193,10 @@ struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
 struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble);
 void BM_Copy_Attributes(struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target);
-void BM_Delete_Face(struct BMesh *bm, struct BMFace *f);
-void BM_Delete_Edge(struct BMesh *bm, struct BMVert *v);
-void BM_Delete_Vert(struct BMesh *bm, struct BMVert *v);
+void BM_remove_tagged_faces(struct BMesh *bm, int flag);
+void BM_remove_tagged_edges(struct BMesh *bm, int flag);
+void BM_remove_tagged_verts(struct BMesh *bm, int flag);
+
 
 /*Modification*/
 struct BMFace *BM_Join_Faces(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e, int calcnorm, int weldUVs);
