@@ -3248,6 +3248,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_RNA;
 	else if(rnatype == &RNA_ObjectGameSettings)
 		return ICON_GAME;
+	else if(rnatype == &RNA_ScriptLink)
+		return ICON_PYTHON;
 	else
 		return ICON_DOT;
 }

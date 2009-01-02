@@ -178,6 +178,7 @@ extern StructRNA RNA_ScrArea;
 extern StructRNA RNA_ScrEdge;
 extern StructRNA RNA_ScrVert;
 extern StructRNA RNA_Screen;
+extern StructRNA RNA_ScriptLink;
 extern StructRNA RNA_Sensor;
 extern StructRNA RNA_Sequence;
 extern StructRNA RNA_SequenceColorBalance;

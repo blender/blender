@@ -50,16 +50,20 @@ SET(SRC
      rna_modifier.c
      rna_nodetree.c
      rna_object.c
+     rna_object_force.c
      rna_packedfile.c
+     rna_particle.c
      rna_property.c
      rna_radio.c
      rna_rna.c
      rna_scene.c
      rna_screen.c
+     rna_scriptlink.c
      rna_sensor.c
      rna_sequence.c
      rna_sound.c
      rna_text.c
+     rna_userdef.c
      rna_vfont.c
      rna_wm.c
      rna_world.c

@@ -283,7 +283,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 {
 	char *func;
 
-	if(prop->flag & PROP_IDPROPERTY)
+	if(prop->flag & (PROP_IDPROPERTY|PROP_NOT_EDITABLE))
 		return NULL;
 
 	if(!dp->dnastructname || !dp->dnaname) {
@@ -928,6 +928,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_rna.c", RNA_def_rna},
 	{"rna_scene.c", RNA_def_scene},
 	{"rna_screen.c", RNA_def_screen},
+	{"rna_scriptlink.c", RNA_def_scriptlink},
 	{"rna_sensor.c", RNA_def_sensor},
 	{"rna_sequence.c", RNA_def_sequence},
 	{"rna_text.c", RNA_def_text},
