@@ -69,66 +69,37 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 
-/*operator option flags*/
-#define NEEDFLAGS	1 /*note: doesn't do anything*/
-
 /*--------------------begin operator defines------------------------*/
 /*split op*/
 #define BMOP_SPLIT				0
-#define BMOP_SPLIT_VINPUT		1
-#define BMOP_SPLIT_EINPUT		2
-#define BMOP_SPLIT_FINPUT		3
-#define BMOP_SPLIT_VOUTPUT		4
-#define BMOP_SPLIT_EOUTPUT		5
-#define BMOP_SPLIT_FOUTPUT		6
-#define BMOP_SPLIT_TOTSLOT		7
+#define BMOP_SPLIT_MULTIN		0
+#define BMOP_SPLIT_MULTOUT		1
+#define BMOP_SPLIT_TOTSLOT		2
 
 static const int BMOP_SPLIT_TYPEINFO[BMOP_SPLIT_TOTSLOT] = {
 	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
+	BMOP_OPSLOT_PNT_BUF
 };
-
-#define SPLIT_OPTIONS	NEEDFLAGS
 
 /*dupe op*/
 #define BMOP_DUPE				1
 
-#define BMOP_DUPE_VINPUT		0
-#define BMOP_DUPE_EINPUT		1
-#define BMOP_DUPE_FINPUT		2
-#define BMOP_DUPE_VORIGINAL		3
-#define BMOP_DUPE_EORIGINAL		4
-#define BMOP_DUPE_FORIGINAL		5
-#define BMOP_DUPE_VNEW			6
-#define BMOP_DUPE_ENEW			7
-#define BMOP_DUPE_FNEW			8
-#define BMOP_DUPE_TOTSLOT		9
+#define BMOP_DUPE_MULTIN		0
+#define BMOP_DUPE_ORIG			1
+#define BMOP_DUPE_NEW			2
+#define BMOP_DUPE_TOTSLOT		3
 
 static const int BMOP_DUPE_TYPEINFO[BMOP_DUPE_TOTSLOT] = {
 	BMOP_OPSLOT_PNT_BUF,
 	BMOP_OPSLOT_PNT_BUF,
 	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
 };
-#define DUPE_OPTIONS		NEEDFLAGS
 
 /*delete op*/
 #define BMOP_DEL			2
-#define BMOP_DEL_VINPUT		0
-#define BMOP_DEL_EINPUT		1
-#define BMOP_DEL_FINPUT		2
-#define BMOP_DEL_CONTEXT	3
-#define BMOP_DEL_TOTSLOT	4
+#define BMOP_DEL_MULTIN		0
+#define BMOP_DEL_CONTEXT	1
+#define BMOP_DEL_TOTSLOT	2
 
 /*BMOP_DEL_CONTEXT*/
 #define BMOP_DEL_VERTS				1
@@ -139,12 +110,8 @@ static const int BMOP_DUPE_TYPEINFO[BMOP_DUPE_TOTSLOT] = {
 
 static const int BMOP_DEL_TYPEINFO[BMOP_DEL_TOTSLOT] = {
 	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
 	BMOP_OPSLOT_INT
 };
-
-#define DEL_OPTIONS		NEEDFLAGS
 
 /*editmesh->bmesh op*/
 #define BMOP_FROM_EDITMESH		3
@@ -166,7 +133,6 @@ static const int BMOP_TO_EDITMESH_TYPEINFO[BMOP_TO_EDITMESH_TOTSLOT] = {
 	BMOP_OPSLOT_PNT
 };
 
-#define TOEDIT_OPTIONS			NEEDFLAGS
 
 #define BMOP_ESUBDIVIDE			5
 #define BMOP_ESUBDIVIDE_EDGES	0
@@ -175,8 +141,6 @@ static const int BMOP_TO_EDITMESH_TYPEINFO[BMOP_TO_EDITMESH_TOTSLOT] = {
 static const int BMOP_ESUBDIVIDE_TYPEINFO[] = {
 	BMOP_OPSLOT_PNT_BUF
 };
-
-#define SUBD_OPTIONS		NEEDFLAGS
 
 /*keep this updated!*/
 #define BMOP_TOTAL_OPS				6
@@ -199,15 +163,6 @@ static const int BMOP_TYPETOTALS[] = {
 	BMOP_FROM_EDITMESH_TOTSLOT,
 	BMOP_TO_EDITMESH_TOTSLOT,
 	BMOP_ESUBDIVIDE_TOTSLOT
-};
-
-static const int BMOP_OPTIONS[] = {
-	SPLIT_OPTIONS,
-	DUPE_OPTIONS,
-	DEL_OPTIONS,
-	FROMEDIT_OPTIONS,
-	TOEDIT_OPTIONS,
-	SUBD_OPTIONS,	
 };
 
 #endif

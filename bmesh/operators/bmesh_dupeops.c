@@ -264,30 +264,18 @@ BMesh *bmesh_make_mesh_from_mesh(BMesh *bm, int allocsize[4])
 void dupeop_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *dupeop = op;
-	BMOpSlot *vinput, *einput, *finput;
 	
-	vinput = BMO_GetSlot(dupeop, BMOP_DUPE_VINPUT);
-	einput = BMO_GetSlot(dupeop, BMOP_DUPE_EINPUT);
-	finput = BMO_GetSlot(dupeop, BMOP_DUPE_FINPUT);
-
-	/*go through vinput, einput, and finput and flag elements with private flags*/
-	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_VINPUT, DUPE_INPUT);
-	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_EINPUT, DUPE_INPUT);
-	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_FINPUT, DUPE_INPUT);
-
+	/*flag input*/
+	BMO_Flag_Buffer(bm, dupeop, BMOP_DUPE_MULTIN, DUPE_INPUT);
 	/*use the internal copy function*/
 	copy_mesh(bm, bm);
 	
 	/*Output*/
 	/*First copy the input buffers to output buffers - original data*/
-	BMO_CopySlot(dupeop, dupeop, vinput->index, BMOP_DUPE_VORIGINAL);
-	BMO_CopySlot(dupeop, dupeop, einput->index, BMOP_DUPE_EORIGINAL);
-	BMO_CopySlot(dupeop, dupeop, finput->index, BMOP_DUPE_FORIGINAL);
+	BMO_CopySlot(dupeop, dupeop, BMOP_DUPE_MULTIN, BMOP_DUPE_ORIG);
 
 	/*Now alloc the new output buffers*/
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_VNEW, DUPE_NEW, BM_VERT);
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_ENEW, DUPE_NEW, BM_EDGE);
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_FNEW, DUPE_NEW, BM_FACE);
+	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_NEW, DUPE_NEW, BM_VERT|BM_EDGE|BM_FACE);
 }
 
 
@@ -320,23 +308,17 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_Init_Op(&dupeop, BMOP_DUPE);
 	BMO_Init_Op(&delop, BMOP_DEL);
 
-	BMO_CopySlot(&dupeop, &delop, BMOP_SPLIT_VINPUT, BMOP_DUPE_VINPUT);
-	BMO_CopySlot(&dupeop, &delop, BMOP_SPLIT_EINPUT, BMOP_DUPE_EINPUT);
-	BMO_CopySlot(&dupeop, &delop, BMOP_SPLIT_FINPUT, BMOP_DUPE_FINPUT);
+	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, BMOP_DEL_FACES);
 
+	BMO_CopySlot(&dupeop, &delop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
 	BMO_Exec_Op(bm, &dupeop);
 
 	/*connect outputs of dupe to delete*/
-	BMO_CopySlot(&dupeop, &delop, BMOP_DUPE_VORIGINAL, BMOP_DEL_VINPUT);
-	BMO_CopySlot(&dupeop, &delop, BMOP_DUPE_EORIGINAL, BMOP_DEL_EINPUT);
-	BMO_CopySlot(&dupeop, &delop, BMOP_DUPE_FORIGINAL, BMOP_DEL_FINPUT);
-
+	BMO_CopySlot(&dupeop, &delop, BMOP_DUPE_ORIG, BMOP_DEL_MULTIN);
 	BMO_Exec_Op(bm, &delop);
 
 	/*now we make our outputs by copying the dupe outputs*/
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_VNEW, BMOP_SPLIT_VOUTPUT);
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_ENEW, BMOP_SPLIT_EOUTPUT);
-	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_FNEW, BMOP_SPLIT_FOUTPUT);
+	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
 
 	/*cleanup*/
 	BMO_Finish_Op(bm, &dupeop);
