@@ -80,6 +80,7 @@ void BKE_report_print_level_set(ReportList *reports, ReportType level);
 ReportType BKE_report_store_level(ReportList *reports);
 void BKE_report_store_level_set(ReportList *reports, ReportType level);
 
+char *BKE_reports_string(ReportList *reports, ReportType level);
 void BKE_reports_print(ReportList *reports, ReportType level);
 
 #ifdef __cplusplus

@@ -215,17 +215,37 @@ void BKE_report_store_level_set(ReportList *reports, ReportType level)
 	reports->storelevel= level;
 }
 
-void BKE_reports_print(ReportList *reports, ReportType level)
+char *BKE_reports_string(ReportList *reports, ReportType level)
 {
 	Report *report;
+	DynStr *ds;
+	char *cstring;
 
 	if(!reports)
-		return;
-	
+		return NULL;
+
+	ds= BLI_dynstr_new();
 	for(report=reports->list.first; report; report=report->next)
 		if(report->type >= level)
-			printf("%s: %s\n", report->typestr, report->message);
+			BLI_dynstr_appendf(ds, "%s: %s\n", report->typestr, report->message);
 
+	if (BLI_dynstr_get_len(ds))
+		cstring= BLI_dynstr_get_cstring(ds);
+	else
+		cstring= NULL;
+
+	BLI_dynstr_free(ds);
+	return cstring;
+}
+
+void BKE_reports_print(ReportList *reports, ReportType level)
+{
+	char *cstring = BKE_reports_string(reports, level);
+	
+	if (cstring == NULL)
+		return;
+	
+	printf(cstring);
 	fflush(stdout);
 }
 

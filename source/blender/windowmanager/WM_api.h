@@ -123,7 +123,7 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void 
 int			WM_operatortype_remove(const char *idname);
 
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
-int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
+int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);

@@ -222,7 +222,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 
 		if(after->opname)
-			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr);
+			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr, NULL);
 		if(after->opptr) {
 			WM_operator_properties_free(after->opptr);
 			MEM_freeN(after->opptr);

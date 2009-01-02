@@ -27,6 +27,7 @@
 #include "bpy_opwrapper.h"
 #include "BLI_listbase.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "DNA_windowmanager_types.h"
 #include "MEM_guardedalloc.h"
 #include "WM_api.h"
@@ -168,6 +169,19 @@ static PyObject *pyop_dict_from_event(wmEvent *event)
 	return dict;
 }
 
+/* TODO - a whole traceback would be ideal */
+static void pyop_error_report(ReportList *reports)
+{
+	PyObject *exception, *v, *tb;
+	PyErr_Fetch(&exception, &v, &tb);
+	if (exception == NULL)
+		return;
+	/* Now we know v != NULL too */
+	BKE_report(reports, RPT_ERROR, _PyUnicode_AsString(v));
+	
+	PyErr_Print();
+}
+
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
 	{"CANCELLED", OPERATOR_CANCELLED},
@@ -188,12 +202,12 @@ static int PYTHON_OT_exec(bContext *C, wmOperator *op)
 	ret = PyObject_Call(pyot->py_exec, args, kw);
 
 	if (ret == NULL) {
-		PyErr_Print();
+		pyop_error_report(op->reports);
 	}
 	else {
 		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
-			PyErr_Print();
+			pyop_error_report(op->reports);
 		}
 	}
 
@@ -232,12 +246,12 @@ static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ret = PyObject_Call(pyot->py_invoke, args, NULL);
 
 	if (ret == NULL) {
-		PyErr_Print();
+		pyop_error_report(op->reports);
 	}
 	else {
 		if (BPY_flag_from_seq(pyop_ret_flags, ret, &ret_flag) == -1) {
 			 /* the returned value could not be converted into a flag */
-			PyErr_Print();
+			pyop_error_report(op->reports);
 		}
 		/* there is no need to copy the py keyword dict modified by
 		 * pyot->py_invoke(), back to the operator props since they are just

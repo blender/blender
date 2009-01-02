@@ -463,10 +463,10 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 			break;
 			
 		case B_ACTCOPYKEYS:
-			WM_operator_name_call(C, "ACT_OT_keyframes_copy", WM_OP_EXEC_REGION_WIN, NULL);
+			WM_operator_name_call(C, "ACT_OT_keyframes_copy", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 			break;
 		case B_ACTPASTEKEYS:
-			WM_operator_name_call(C, "ACT_OT_keyframes_paste", WM_OP_EXEC_REGION_WIN, NULL);
+			WM_operator_name_call(C, "ACT_OT_keyframes_paste", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 			break;
 	}
 }

@@ -86,8 +86,8 @@ def rna2epy(target_path):
 			
 			array_str = get_array_str(length)
 			
-			if rna_prop.readonly:	readonly_str = ' (readonly)'
-			else:				readonly_str = ''
+			if rna_prop.editable:	readonly_str = ''
+			else:				readonly_str = ' (readonly)'
 			
 			if rna_prop_ptr: # Use the pointer type
 				out.write('\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))

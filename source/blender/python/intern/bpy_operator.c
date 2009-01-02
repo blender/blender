@@ -35,7 +35,8 @@
 #include "WM_types.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_idprop.h"
+//#include "BKE_idprop.h"
+#include "BKE_report.h"
 
 extern ListBase global_ops; /* evil, temp use */
 
@@ -168,7 +169,7 @@ PyObject *pyop_func_get_rna(BPy_OperatorFunc *self)
 }
 
 static PyGetSetDef pyop_func_getseters[] = {
-	{"rna", (getter)pyop_func_get_rna, (setter)NULL, "vertex's coordinate", NULL},
+	{"rna", (getter)pyop_func_get_rna, (setter)NULL, "Operator RNA properties", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -178,7 +179,8 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 
 	int error_val = 0;
 	PointerRNA ptr;
-	
+	char *report_str= NULL;
+
 	if (PyTuple_Size(args)) {
 		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
 		return NULL;
@@ -195,7 +197,22 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 	error_val= PYOP_props_from_dict(&ptr, kw);
 	
 	if (error_val==0) {
-		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, &ptr);
+		ReportList reports;
+
+		BKE_reports_init(&reports, RPT_STORE);
+
+		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, &ptr, &reports);
+
+		report_str= BKE_reports_string(&reports, RPT_ERROR);
+
+		if (report_str) {
+			PyErr_SetString(PyExc_SystemError, report_str);
+			MEM_freeN(report_str);
+			error_val = -1;
+		}
+
+		if (reports.list.first)
+			BKE_reports_clear(&reports);
 	}
 
 	WM_operator_properties_free(&ptr);
