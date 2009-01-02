@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -123,12 +124,14 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
 
 	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 1, 6);
+	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 
 	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
-	RNA_def_property_range(prop, 1, 6);
+	RNA_def_property_range(prop, 1, 20);
+	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 
 	prop= RNA_def_property(srna, "optimal_draw", PROP_BOOLEAN, PROP_NONE);
@@ -256,7 +259,8 @@ static void rna_def_modifier_mirror(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "merge_limit", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tolerance");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3); 
 	RNA_def_property_ui_text(prop, "Merge Limit", "Distance from axis within which mirrored vertices are merged.");
 
 	prop= RNA_def_property(srna, "mirror_object", PROP_POINTER, PROP_NONE);
@@ -345,17 +349,20 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "falloff");
-	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Falloff Radius",  "");
 
 	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "startx");
-	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position X",  "");
 
 	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "starty");
-	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position Y",  "");
 
 	prop= RNA_def_property(srna, "start_position_object", PROP_POINTER, PROP_NONE);
@@ -384,20 +391,24 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Texture Coordinates Object", "");
 
 	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Speed", "");
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Height", "");
 
 	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 5);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 5, 10, 2);
 	RNA_def_property_ui_text(prop, "Width", "");
 
 	prop= RNA_def_property(srna, "narrowness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "narrow");
-	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 10, 10, 2);
 	RNA_def_property_ui_text(prop, "Narrowness", "");
 }
 
@@ -443,6 +454,7 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 static void rna_def_modifier_hook(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *property;
 
 	srna= RNA_def_struct(brna, "HookModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Hook Modifier", "Hook Modifier.");
