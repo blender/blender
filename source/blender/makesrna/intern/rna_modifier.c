@@ -684,10 +684,40 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 static void rna_def_modifier_uvproject(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "UVProjectModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "UVProject Modifier", "UVProject Modifier.");
 	RNA_def_struct_sdna(srna, "UVProjectModifierData");
+
+	/* XXX: not sure how to handle uvlayer_tmp */
+
+	/* XXX: and how to do UVProjectModifier.projectors, a statically-sized array of Object pointers?
+	        (this code crashes when it's expanded in the RNA viewer...) */
+	/*prop= RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "projectors", "num_projectors");
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Projectors", "");*/
+
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_ui_text(prop, "Image", "");
+
+	prop= RNA_def_property(srna, "horizontal_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "aspectx");
+	RNA_def_property_range(prop, 1, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_text(prop, "Horizontal Aspect Ratio", "");
+
+	prop= RNA_def_property(srna, "vertical_aspect_ratio", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "aspecty");
+	RNA_def_property_range(prop, 1, FLT_MAX);
+	RNA_def_property_ui_range(prop, 1, 1000, 100, 2);
+	RNA_def_property_ui_text(prop, "Vertical Aspect Ratio", "");
+
+	prop= RNA_def_property(srna, "override_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_UVPROJECT_OVERRIDEIMAGE);
+	RNA_def_property_ui_text(prop, "Override Image", "Override faces' current images with the given image.");
 }
 
 static void rna_def_modifier_smooth(BlenderRNA *brna)
