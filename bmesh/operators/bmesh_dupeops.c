@@ -15,10 +15,6 @@
 #define DUPE_NEW		2
 #define DUPE_DONE		4
 
-#ifndef SELECT
-#define SELECT		1
-#endif
-
 /*
  *  COPY VERTEX
  *
