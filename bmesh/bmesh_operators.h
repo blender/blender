@@ -59,6 +59,7 @@ BMOpSlot *BMO_GetSlot(struct BMOperator *op, int slotcode);
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, int src, int dst);
 void BMO_Set_Float(struct BMOperator *op, int slotcode, float f);
 void BMO_Set_Int(struct BMOperator *op, int slotcode, int i);
+void BMO_Set_PntBuf(struct BMOperator *op, int slotcode, void *p, int len);
 void BMO_Set_Pnt(struct BMOperator *op, int slotcode, void *p);
 void BMO_Set_Vec(struct BMOperator *op, int slotcode, float *vec);
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);

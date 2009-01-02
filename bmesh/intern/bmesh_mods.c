@@ -124,6 +124,30 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm
 	return bmesh_jfke(bm, f1, f2, jed);
 }
 
+BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
+	/*search radial disk for face that contains e1 and e2*/
+	BMIter iter, iter2;
+	BMVert *v;
+	BMLoop *nl;
+	BMFace *face;
+	
+	/*this isn't the best thing in the world.  it doesn't handle cases where there's
+	  multiple faces yet.  that might require a convexity test to figure out which
+	  face is "best," and who knows what for non-manifold conditions.*/
+	for (face = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v1); face; face=BMIter_Step(&iter)) {
+		for (v=BMIter_New(&iter2, bm, BM_VERTS_OF_FACE, face); v; v=BMIter_Step(&iter2)) {
+			if (v == v2) {
+				face = BM_Split_Face(bm, face, v1, v2, &nl, NULL, 1);
+
+				if (nf) *nf = face;
+				return nl->e;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 /**
  *			BM_split_face
  *
@@ -210,14 +234,12 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac, int calcnorm
 
 BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percent, int calcnorm) {
 	BMVert *nv, *v2;
-	float len;
 
 	v2 = bmesh_edge_getothervert(e,v);
 	nv = bmesh_semv(bm,v,e,ne);
 	if (nv == NULL) return NULL;
 	VECSUB(nv->co,v2->co,v->co);
-	len = VecLength(nv->co);
-	VECADDFAC(nv->co,v->co,nv->co,len*percent);
+	VECADDFAC(nv->co,v->co,nv->co,percent);
 	if (ne) {
 		if(bmesh_test_sysflag(&(e->head), BM_SELECT)) bmesh_set_sysflag(&((*ne)->head), BM_SELECT);
 		if(bmesh_test_sysflag(&(e->head), BM_HIDDEN)) bmesh_set_sysflag(&((*ne)->head), BM_HIDDEN);

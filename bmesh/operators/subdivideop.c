@@ -3,6 +3,7 @@
 #include "BKE_utildefines.h"
 
 #include "bmesh.h"
+#include "BLI_arithb.h"
 
 #include <stdio.h>
 
@@ -70,7 +71,7 @@ subdpattern t_1edge = {
 	{1, 1, 0, 0},
 	{-1, 3, -1, -1},
 	{0},
-	{0},
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1},
 	4
 };
 
@@ -80,15 +81,15 @@ subdpattern t_1edge = {
     /  \e2
 v1 e1   e3 v3
   /e0     \
-v0---e2----v4
+v0---e4----v4
 
 handle case of two edges selected.
 */
 subdpattern t_2edge = {
 	{1, 1, 1, 1, 0},
-	{0, 3, -1, -1, -1},
+	{-1, 3, -1, -1, -1},
 	{0},
-	{0},
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1},
 	5
 };
 
@@ -101,15 +102,14 @@ v0--e5--e4-v4
      v5
 
 handle case of one edge selected.
-make an edge between v1 and v3,
-than split that and make an edge between
-the new vert and v4
+make an edge between v1 and v5,
+v5 and v3, and v3 and v1
 */
 subdpattern t_3edge = {
 	{1, 1, 1, 1, 1, 1},
-	{-1, 3, -1, -1, -1}, //creates e5
-	{0, 0, 0, 0, 0, 1},
-	{-1, -1, -1, -1, -1, 6, -1},
+	{-1, 5, -1, 1, -1, 3}, //creates e6
+	{0},
+	{-1, -1, -1, -1, -1, -1, -1},
 	6
 };
 
@@ -128,8 +128,8 @@ connect v1 to v4 and v3
 subdpattern q_1edge = {
 	{1, 1, 0, 0, 0},
 	{-1, 3, -1, -1, 1},
-	NULL,
-	NULL,
+	{0},
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1},
 	5
 };
 
@@ -148,8 +148,8 @@ connect v1 to v3
 subdpattern q_2adjedge = {
 	{1, 1, 1, 1, 0, 0},
 	{-1, 3, -1, -1, -1, -1},
-	NULL,
-	NULL,
+	{0, 0, 0, 0, 0, 0, 1},
+	{-1, -1, -1, -1, -1, 6, -1, -1, -1},
 	6
 };
 
@@ -169,9 +169,50 @@ connect v1 to v4
 subdpattern q_2opedge = {
 	{1, 1, 0, 1, 1, 0},
 	{-1, 4, -1, -1, -1, -1},
-	NULL,
-	NULL,
+	{0},
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1},
 	6
+};
+
+/*
+   e5 v5 e4
+v6---------v4
+|          | 
+|e6        | e3
+|          | v3
+|  e0   e1 | e2
+v0---v1----v2
+
+connect v1 to v5, v1 to v3, and v3 to v5
+
+*/
+subdpattern q_3edge = {
+	{1, 1, 1, 1, 1, 1, 0},
+	{-1, 3, -1, 5, -1, 1, -1},
+	{0},
+	{-1, -1, -1, -1, -1, -1, -1, -1, -1},
+	7
+};
+
+/*
+   e5 v5 e4
+v6---------v4
+|          | 
+|e6        | e3
+|v7        | v3
+|e7 e0  e1 | e2
+v0---v1----v2
+
+connect v1 to v5, split edge, than connect
+v3 and v7 to v8 (new vert from split)
+
+*/
+subdpattern q_4edge = {
+	{1, 1, 1, 1, 1, 1, 1, 1},
+	{-1, 5, -1, -1, -1, -1, -1, -1},
+	{0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{-1, -1, -1, 8, -1, -1, -1, 8, -1},
+	8
 };
 
 subdpattern *patterns[] = {
@@ -181,18 +222,21 @@ subdpattern *patterns[] = {
 	&q_1edge,
 	&q_2adjedge,
 	&q_2opedge,
+	&q_3edge,
+	&q_4edge,
 };
 
 #define PLEN	(sizeof(patterns) / sizeof(void*))
 
 #define SUBD_SPLIT	1
+#define FACE_NEW	1
 #define MAX_FACE	10
 
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 {
 	BMOpSlot *einput;
 	BMEdge *edge, *nedge, *edges[MAX_FACE];
-	BMFace *face;
+	BMFace *face, *nf;
 	BMLoop *nl, *loop;
 	BMVert *v1, *verts[MAX_FACE], *lastv;
 	BMIter fiter, eiter;
@@ -214,6 +258,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	/*now go through all the faces and connect the new geometry*/
 	for (face = BMIter_New(&fiter, bmesh, BM_FACES, NULL); face; face=BMIter_Step(&fiter)) {
 		matched = 0;
+		if (BMO_TestFlag(bmesh, face, FACE_NEW)) continue;
 
 		if (face->len < MAX_FACE) {
 			/*try all possible pattern rotations*/
@@ -222,14 +267,14 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				lastv = NULL;
 				for (j=0; j<patterns[i]->len; j++) {
 					for (a=0, loop=BMIter_New(&eiter, bmesh, BM_LOOPS_OF_FACE,face); loop; a++, loop=BMIter_Step(&eiter)) {
-						edge = loop->e;
-						verts[a] = loop->v;
-						edges[a] = edge;
-
 						b = (j + a) % patterns[i]->len;
-						if (!(patterns[i]->seledges[b] && BMOP_TestFlag(bmesh, edge, SUBD_SPLIT))) break;
 
-						lastv = verts[a];
+						edge = loop->e;
+						verts[b] = loop->v;
+						edges[b] = edge;
+						if (!(patterns[i]->seledges[b] == BMO_TestFlag(bmesh, edge, SUBD_SPLIT))) break;
+
+						lastv = verts[b];
 					}
 
 					if (a == face->len) {
@@ -238,6 +283,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 						break;
 					}
 				}
+				if (matched) break;
 			}
 		}
 
@@ -246,15 +292,14 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			newlen = pat->len;
 			for (i=0; i<pat->len; i++) {
 				if (pat->connectverts[i] != -1) {
-					BM_Split_Face(bmesh, face, verts[i], verts[pat->connectverts[i]], &nl, edges[i], 1);
-					edges[newlen] = nl->e;
-					newlen++;
+					edges[newlen++] = BM_Connect_Verts(bmesh, verts[i], verts[pat->connectverts[i]], &nf);
+					BMO_SetFlag(bmesh, nf, FACE_NEW);
 				}
 			}
 
 			newvlen = pat->len;		
 			/*second stage*/
-			for (i=0; i<pat->len; i++) {
+			for (i; i<newlen; i++) {
 				if (pat->secondstage_splitedges[i]) {
 					v1 = BM_Split_Edge(bmesh, edges[i]->v1, edges[i], &nedge, 0.5, 1);
 					verts[newvlen++] = v1;
@@ -263,8 +308,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 			for (i=0; i<newvlen; i++) {
 				if (pat->secondstage_connect[i] != -1) {
-					BM_Split_Face(bmesh, face, verts[i], verts[pat->secondstage_connect[i]], &nl, edges[i], 1);
-					edges[newlen] = nl->e;
+					edges[newlen++] = BM_Connect_Verts(bmesh, verts[i], verts[pat->secondstage_connect[i]], &nf);
+					BMO_SetFlag(bmesh, nf, FACE_NEW);
 				}
 			}
 		} else { /*no match in the pattern*/

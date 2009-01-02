@@ -14,12 +14,17 @@
 static void alloc_flag_layer(BMesh *bm);
 static void free_flag_layer(BMesh *bm);
 
+void esubdivide_exec(BMesh *bmesh, BMOperator *op);
+
 /*function pointer table*/
 typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
 const opexec BMOP_OPEXEC[BMOP_TOTAL_OPS] = {
 	splitop_exec,
 	dupeop_exec,
-	delop_exec
+	delop_exec,
+	NULL,
+	NULL,
+	esubdivide_exec,
 };
 
 /*operator slot type information - size of one element of the type given.*/
@@ -47,7 +52,7 @@ void BMO_push(BMesh *bm, BMOperator *op)
 	bm->stackdepth++;
 
 	/*add flag layer, if appropriate*/
-	if(bm->stackdepth > 1)
+	if (bm->stackdepth > 1)
 		alloc_flag_layer(bm);
 }
 
@@ -203,6 +208,17 @@ void BMO_Set_Int(BMOperator *op, int slotcode, int i)
 	op->slots[slotcode].data.i = i;
 
 }
+
+
+void BMO_Set_PntBuf(BMOperator *op, int slotcode, void *p, int len)
+{
+	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_PNT_BUF) )
+		return;
+
+	op->slots[slotcode].data.p = p;
+	op->slots[slotcode].len = len;
+}
+
 void BMO_Set_Pnt(BMOperator *op, int slotcode, void *p)
 {
 	if( !(op->slots[slotcode].slottype == BMOP_OPSLOT_PNT) )
@@ -226,7 +242,7 @@ void BMO_Set_Vec(BMOperator *op, int slotcode, float *vec)
 void BMO_SetFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	head->flags[bm->stackdepth].mask |= flag;
+	head->flags[bm->stackdepth-1].mask |= flag;
 }
 
 /*
@@ -253,7 +269,7 @@ void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 int BMO_TestFlag(BMesh *bm, void *element, int flag)
 {
 	BMHeader *head = element;
-	if(head->flags[bm->stackdepth].mask & flag)
+	if(head->flags[bm->stackdepth-1].mask & flag)
 		return 1;
 	return 0;
 }

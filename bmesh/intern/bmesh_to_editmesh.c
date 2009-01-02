@@ -90,7 +90,7 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	eve = addvertlist(v->co,NULL);
 	eve->keyindex = index;
 	evlist[index]= eve;
-	if(BM_Is_Selected(&(v->head), BM_SELECT)) eve->f |= SELECT;
+	if(BM_Is_Selected(bm, v)) eve->f |= SELECT;
 	if(v->head.flag & BM_HIDDEN) eve->h = 1;
 	eve->bweight = v->bweight;
 	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->data, &eve->data);
@@ -136,41 +136,41 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	int len;
 	
 	len = f->len;
-	if (len==3 || len==4) {
-		eve1= evlist[f->loopbase->v->head.eflag1];
-		eve2= evlist[((BMLoop*)(f->loopbase->head.next))->v->head.eflag1];
-		eve3= evlist[((BMLoop*)(f->loopbase->head.next->next))->v->head.eflag1];
-		if (len == 4) {
-			eve4= evlist[ ((BMLoop*)(f->loopbase->head.prev))->v->head.eflag1];
-		}
-		else {
-			eve4= NULL;
-		}
 
-		efa = addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
-	
-		bmeshedge_to_editedge_internal(bm, em, f->loopbase->e, efa->e1);
-		bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next))->e, efa->e2);
-		bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next->next))->e, efa->e3);
-		if(eve4)
-			bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.prev))->e, efa->e4);
-
-		efa->mat_nr = (unsigned char)f->mat_nr;
-
-
-		/*Copy normal*/
-		efa->n[0] = f->no[0];
-		efa->n[1] = f->no[1];
-		efa->n[2] = f->no[2];
-		
-		//copy relavent original flags
-		efa->f = f->head.flag & 255;
-		if (f->head.flag & BM_HIDDEN) efa->h = 1;
-		if (f->head.flag * BM_SMOOTH) efa->flag |= ME_SMOOTH;
-
-		CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
+	eve1= evlist[f->loopbase->v->head.eflag1];
+	eve2= evlist[((BMLoop*)(f->loopbase->head.next))->v->head.eflag1];
+	eve3= evlist[((BMLoop*)(f->loopbase->head.next->next))->v->head.eflag1];
+	if (len >= 4) {
+		eve4= evlist[ ((BMLoop*)(f->loopbase->head.prev))->v->head.eflag1];
 	}
+	else {
+		eve4= NULL;
+	}
+
+	efa = addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
+
+	bmeshedge_to_editedge_internal(bm, em, f->loopbase->e, efa->e1);
+	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next))->e, efa->e2);
+	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next->next))->e, efa->e3);
+	if(eve4)
+		bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.prev))->e, efa->e4);
+
+	efa->mat_nr = (unsigned char)f->mat_nr;
+
+
+	/*Copy normal*/
+	efa->n[0] = f->no[0];
+	efa->n[1] = f->no[1];
+	efa->n[2] = f->no[2];
+	
+	//copy relavent original flags
+	efa->f = f->head.flag & 255;
+	if (f->head.flag & BM_HIDDEN) efa->h = 1;
+	if (f->head.flag & BM_SMOOTH) efa->flag |= ME_SMOOTH;
+
+	CustomData_em_copy_data(&bm->pdata, &em->fdata, f->data, &efa->data);
 	loops_to_editmesh_corners(bm, &em->fdata, efa->data, f, numCol,numTex);
+	
 	return efa;
 }
 
@@ -186,7 +186,6 @@ EditMesh *bmesh_to_editmesh(BMesh *bm)
 
 	EditMesh *em;
 	EditVert *eve, **evlist;
-	EditFace *efa;
 
 	int totvert, i, numTex, numCol;
 

@@ -214,11 +214,16 @@ struct BMFace *BM_Split_Face(struct BMesh *bm, struct BMFace *f, struct BMVert *
 void BM_Collapse_Vert(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv, float fac, int calcnorm);
 struct BMVert *BM_Split_Edge(struct BMesh *bm, struct BMVert *v, struct BMEdge *e, struct BMEdge **ne, float percent, int calcnorm);
 struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e, int numcuts);
+BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
 
 /*Interpolation*/
 void BM_Data_Interp_From_Verts(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac);
 void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac);
 //void bmesh_data_interp_from_face(struct BMesh *bm, struct BMFace *source, struct BMFace *target);
+
+struct EditMesh;
+BMesh *editmesh_to_bmesh(struct EditMesh *em);
+struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
 /*include the rest of the API*/
 #include "bmesh_filters.h"

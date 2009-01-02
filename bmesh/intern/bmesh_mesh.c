@@ -41,9 +41,12 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
 
+void BME_error(void);
+
 /*bmesh_error stub*/
 void bmesh_error(void)
 {
+	printf("BM modelling error!");
 }
 
 /*
@@ -243,10 +246,6 @@ void BM_Compute_Normals(BMesh *bm)
 	MEM_freeN(projectverts);
 }
 
-void BME_error(void){
-	printf("BM modelling error!");
-
-}
 /*	
  *	BMESH BEGIN/END EDIT
  *
