@@ -94,8 +94,8 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	int i;
 	
 	/*lookup the first and second verts*/
-	target_vert1 = BLI_ghash_lookup(vhash, source_face->loopbase->v);
-	target_vert2 = BLI_ghash_lookup(vhash, source_face->loopbase->head.next);
+	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(source_mesh, &iter, BM_VERTS_OF_FACE, source_face));
+	target_vert2 = BLI_ghash_lookup(vhash, BMIter_Step(&iter));
 	
 	/*lookup edges*/
 	for (i=0,source_loop=BMIter_New(source_mesh, &iter, BM_LOOPS_OF_FACE, source_face); 
