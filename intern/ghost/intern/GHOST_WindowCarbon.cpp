@@ -326,7 +326,7 @@ GHOST_TWindowState GHOST_WindowCarbon::getState() const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getState(): window invalid")
 	GHOST_TWindowState state;
-	if (::IsWindowVisible(m_windowRef)) {
+	if (::IsWindowVisible(m_windowRef) == false) {
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if (::IsWindowInStandardState(m_windowRef, nil, nil)) {
