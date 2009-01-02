@@ -613,13 +613,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
 				
 				if(ob->pose) {
+					bArmature *arm= ob->data;
 					bPoseChannel *pchan;
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
 					
 					tenla->name= "Pose";
 					
-					if(ob!=G.obedit && (ob->flag & OB_POSEMODE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
+					if(arm->edbo==NULL && (ob->flag & OB_POSEMODE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
 						int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
 						
 						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
@@ -895,7 +896,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				bArmature *arm= (bArmature *)id;
 				int a= 0;
 				
-				if(G.obedit && G.obedit->data==arm) {
+				if(arm->edbo) {
 					EditBone *ebone;
 					TreeElement *ten;
 					
@@ -1631,7 +1632,7 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 	
 	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 	if(sce && scene != sce) {
-// XXX		if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX		if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		set_scene(sce);
 	}
 	
@@ -1659,7 +1660,7 @@ static void tree_element_set_active_object(bContext *C, Scene *scene, SpaceOops 
 			ED_base_object_activate(C, base); /* adds notifier */
 	}
 	
-// XXX	if(ob!=G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX	if(ob!=obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 //	else countall(); /* exit_editmode calls f() */
 }
 
@@ -1811,7 +1812,7 @@ static int tree_element_active_world(Scene *scene, SpaceOops *soops, TreeElement
 	
 	if(set) {	// make new scene active
 		if(sce && scene != sce) {
-// XXX			if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX			if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 			set_scene(sce);
 		}
 	}
@@ -2094,7 +2095,7 @@ static int tree_element_active_pose(TreeElement *te, TreeStoreElem *tselem, int 
 	Object *ob= (Object *)tselem->id;
 	
 	if(set) {
-// XXX		if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX		if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 //		if(ob->flag & OB_POSEMODE) exit_posemode();
 //		else enter_posemode();
 	}
@@ -2248,12 +2249,12 @@ static int do_outliner_mouse_event(bContext *C, Scene *scene, ARegion *ar, Space
 						/* editmode? */
 						if(te->idcode==ID_SCE) {
 							if(scene!=(Scene *)tselem->id) {
-// XXX								if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX								if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 								set_scene((Scene *)tselem->id);
 							}
 						}
 						else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
-// XXX							if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX							if(obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 //							else {
 //								enter_editmode(EM_WAITCURSOR);
 //								extern_set_butspace(F9KEY, 0);
@@ -2857,7 +2858,7 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem
 	if(base==NULL) base= object_in_scene((Object *)tselem->id, scene);
 	if(base) {
 		// check also library later
-// XXX		if(G.obedit==base->object) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+// XXX		if(obedit==base->object) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
 		if(base==BASACT) {
 			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
@@ -3448,7 +3449,7 @@ static void outliner_draw_iconrow(Scene *scene, SpaceOops *soops, ListBase *lb, 
 			active= 0;
 			if(tselem->type==0) {
 				if(te->idcode==ID_OB) active= (OBACT==(Object *)tselem->id);
-				else if(G.obedit && G.obedit->data==tselem->id) active= 1;
+				else if(scene->obedit && scene->obedit->data==tselem->id) active= 1;	// XXX use context?
 				else active= tree_element_active(scene, soops, te, 0);
 			}
 			else active= tree_element_type_active(NULL, scene, soops, te, tselem, 0);
@@ -3514,10 +3515,10 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 				}
 
 			}
-			else if(G.obedit && G.obedit->data==tselem->id) {
-				glColor4ub(255, 255, 255, 100);
-				active= 2;
-			}
+// XXX context?			else if(obedit && obedit->data==tselem->id) {
+//				glColor4ub(255, 255, 255, 100);
+//				active= 2;
+//			}
 			else {
 				if(tree_element_active(scene, soops, te, 0)) {
 					glColor4ub(220, 220, 255, 100);
@@ -3902,18 +3903,21 @@ static void namebutton_cb(bContext *C, void *tep, void *oldnamep)
 				test_idbutton(tselem->id->name+2);
 				break;
 			case TSE_EBONE:
-				if(G.obedit && G.obedit->data==(ID *)tselem->id) {
+			{
+				bArmature *arm= (bArmature *)tselem->id;
+				if(arm->edbo) {
 					EditBone *ebone= te->directdata;
 					char newname[32];
 					
 					/* restore bone name */
 					BLI_strncpy(newname, ebone->name, 32);
 					BLI_strncpy(ebone->name, oldnamep, 32);
-// XXX					armature_bone_rename(G.obedit->data, oldnamep, newname);
+// XXX					armature_bone_rename(obedit->data, oldnamep, newname);
 				}
 				allqueue(REDRAWOOPS, 0);
 				allqueue(REDRAWVIEW3D, 1);
 				allqueue(REDRAWBUTSEDIT, 0);
+			}
 				break;
 
 			case TSE_BONE:

@@ -4334,8 +4334,8 @@ static void particles_fluid_step(Object *ob, ParticleSystem *psys, int cfra)
 			int readMask, activeParts = 0, fileParts = 0;
 			gzFile gzf;
 	
-			if(ob==G.obedit) // off...
-				return;
+// XXX			if(ob==G.obedit) // off...
+//				return;
 	
 			// ok, start loading
 			strcpy(filename, fss->surfdataPath);

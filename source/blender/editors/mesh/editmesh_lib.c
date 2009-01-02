@@ -917,7 +917,7 @@ short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor)
 	EditEdge *eed;
 	EditFace *efa, *nextfa;
 	
-	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+	if(em==NULL) return 0;
 	
 	/* selected edges with 1 or more selected face become faces */
 	/* selected faces each makes new faces */
@@ -1091,7 +1091,7 @@ short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor)
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(EditMesh *em, short flag, float *nor)
+static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */
@@ -1101,9 +1101,9 @@ static short extrudeflag_edge(EditMesh *em, short flag, float *nor)
 	short del_old= 0;
 	ModifierData *md;
 	
-	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+	if(em==NULL) return 0;
 
-	md = G.obedit->modifiers.first;
+	md = obedit->modifiers.first;
 	
 	/* selected edges with 0 or 1 selected face become faces */
 	/* selected faces generate new faces */
@@ -1166,7 +1166,7 @@ static short extrudeflag_edge(EditMesh *em, short flag, float *nor)
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
 					Mat4Invert(imtx, mmd->mirror_ob->obmat);
-					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+					Mat4MulMat4(mtx, obedit->obmat, imtx);
 				}
 
 				for (eed= em->edges.first; eed; eed= eed->next) {
@@ -1346,7 +1346,7 @@ static short extrudeflag_edge(EditMesh *em, short flag, float *nor)
 	return 'n'; // normal constraint 
 }
 
-short extrudeflag_vert(EditMesh *em, short flag, float *nor)
+short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 {
 	/* all verts/edges/faces with (f & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
@@ -1356,9 +1356,9 @@ short extrudeflag_vert(EditMesh *em, short flag, float *nor)
 	short sel=0, del_old= 0, is_face_sel=0;
 	ModifierData *md;
 
-	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
+	if(em) return 0;
 
-	md = G.obedit->modifiers.first;
+	md = obedit->modifiers.first;
 
 	/* clear vert flag f1, we use this to detect a loose selected vertice */
 	eve= em->verts.first;
@@ -1453,7 +1453,7 @@ short extrudeflag_vert(EditMesh *em, short flag, float *nor)
 				if (mmd->mirror_ob) {
 					float imtx[4][4];
 					Mat4Invert(imtx, mmd->mirror_ob->obmat);
-					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+					Mat4MulMat4(mtx, obedit->obmat, imtx);
 				}
 
 				for (eed= em->edges.first; eed; eed= eed->next) {
@@ -1633,12 +1633,12 @@ short extrudeflag_vert(EditMesh *em, short flag, float *nor)
 }
 
 /* generic extrude */
-short extrudeflag(EditMesh *em, short flag, float *nor)
+short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor)
 {
 	if(em->selectmode & SCE_SELECT_VERTEX)
-		return extrudeflag_vert(em, flag, nor);
+		return extrudeflag_vert(obedit, em, flag, nor);
 	else 
-		return extrudeflag_edge(em, flag, nor);
+		return extrudeflag_edge(obedit, em, flag, nor);
 		
 }
 

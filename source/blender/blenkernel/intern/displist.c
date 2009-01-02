@@ -662,7 +662,7 @@ void shadeDispList(Base *base)
 
 		init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 		
-		if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+		if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		
 			/* now we need the normals */
 			cu= ob->data;
@@ -985,7 +985,7 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 			dl= dl->next;
 		}
 		
-		if(totvert && BLI_edgefill(0, (G.obedit && G.obedit->actcol)?(G.obedit->actcol-1):0)) {
+		if(totvert && BLI_edgefill(0, 0)) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
 
 			/* count faces  */
 			tot= 0;
@@ -1217,12 +1217,14 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 	return preTesselatePoint;
 }
 
-void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (**originalVerts_r)[3], float (**deformedVerts_r)[3], int *numVerts_r)
+static void curve_calc_modifiers_pre(Object *ob, int forRender, float (**originalVerts_r)[3], float (**deformedVerts_r)[3], int *numVerts_r)
 {
-	int editmode = (!forRender && ob==G.obedit);
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
-	ModifierData *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	ModifierData *preTesselatePoint;
+	Curve *cu= ob->data;
+	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
 	int numVerts = 0;
+	int editmode = (!forRender && cu->editnurb);
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
 	int required_mode;
@@ -1230,9 +1232,11 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
+	preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	
 	if(editmode) required_mode |= eModifierMode_Editmode;
 
-	if(ob!=G.obedit && do_ob_key(ob)) {
+	if(cu->editnurb==NULL && do_ob_key(ob)) {
 		deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
 		originalVerts = MEM_dupallocN(deformedVerts);
 	}
@@ -1266,17 +1270,21 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	*numVerts_r = numVerts;
 }
 
-static void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+static void curve_calc_modifiers_post(Object *ob, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
-	int editmode = (!forRender && ob==G.obedit);
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
-	ModifierData *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	ModifierData *preTesselatePoint;
+	Curve *cu= ob->data;
+	ListBase *nurb= cu->editnurb?cu->editnurb:&cu->nurb;
 	DispList *dl;
 	int required_mode;
+	int editmode = (!forRender && cu->editnurb);
 
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
+	preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	
 	if(editmode) required_mode |= eModifierMode_Editmode;
 
 	if (preTesselatePoint) {
@@ -1371,14 +1379,12 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	float (*originalVerts)[3];
 	float (*deformedVerts)[3];
 		
-	if(!forRender && ob==G.obedit) {
-		//XXX nubase= &editNurb;
-	}
-	else {
+	if(!forRender && cu->editnurb)
+		nubase= cu->editnurb;
+	else
 		nubase= &cu->nurb;
-	}
 
-	curve_calc_modifiers_pre(ob, nubase, forRender, &originalVerts, &deformedVerts, &numVerts);
+	curve_calc_modifiers_pre(ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
@@ -1432,7 +1438,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 		tex_space_curve(cu);
 	}
 
-	curve_calc_modifiers_post(ob, nubase, dispbase, forRender, originalVerts, deformedVerts);
+	curve_calc_modifiers_post(ob, dispbase, forRender, originalVerts, deformedVerts);
 }
 
 void makeDispListCurveTypes(Object *ob, int forOrco)
@@ -1450,14 +1456,18 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 	if(ob->type==OB_SURF) {
 		makeDispListSurf(ob, dispbase, 0);
 	}
-	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
+	else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 		ListBase dlbev;
+		ListBase *nubase;
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
-		//XXX int obedit= (G.obedit && G.obedit->data==ob->data && G.obedit->type==OB_CURVE);
-		ListBase *nubase= &cu->nurb; //XXX ListBase *nubase = obedit?&editNurb:&cu->nurb;
 		int numVerts;
 
+		if(cu->editnurb)
+			nubase= cu->editnurb;
+		else
+			nubase= &cu->nurb;
+		
 		BLI_freelistN(&(cu->bev));
 		
 		if(cu->path) free_path(cu->path);
@@ -1465,7 +1475,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		
 		if(ob->type==OB_FONT) text_to_curve(ob, 0);
 		
-		if(!forOrco) curve_calc_modifiers_pre(ob, nubase, 0, &originalVerts, &deformedVerts, &numVerts);
+		if(!forOrco) curve_calc_modifiers_pre(ob, 0, &originalVerts, &deformedVerts, &numVerts);
 
 		makeBevelList(ob);
 
@@ -1593,7 +1603,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
-		if(!forOrco) curve_calc_modifiers_post(ob, nubase, &cu->disp, 0, originalVerts, deformedVerts);
+		if(!forOrco) curve_calc_modifiers_post(ob, &cu->disp, 0, originalVerts, deformedVerts);
 		tex_space_curve(cu);
 	}
 	

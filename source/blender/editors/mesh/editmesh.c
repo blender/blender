@@ -389,8 +389,7 @@ EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Ed
 		CustomData_em_copy_data(&em->fdata, &em->fdata, example->data, &efa->data);
 	}
 	else {
-		if (G.obedit && G.obedit->actcol)
-			efa->mat_nr= G.obedit->actcol-1;
+		efa->mat_nr= em->mat_nr;
 
 		CustomData_em_set_default(&em->fdata, &efa->data);
 	}
@@ -1431,7 +1430,7 @@ void remake_editMesh(Scene *scene, Object *ob)
 
 
 
-void separate_mesh(Scene *scene, Object *ob)
+void separate_mesh(Scene *scene, Object *obedit)
 {
 	EditMesh *em, emcopy;
 	EditVert *eve, *v1;
@@ -1442,12 +1441,12 @@ void separate_mesh(Scene *scene, Object *ob)
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
 	
-	TEST_EDITMESH
+	if(obedit==NULL) return;
 	if(multires_test()) return;
 
 	waitcursor(1);
 	
-	me= G.obedit->data;
+	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate with vertex keys");
@@ -1470,7 +1469,7 @@ void separate_mesh(Scene *scene, Object *ob)
 	base= FIRSTBASE;
 	while(base) {
 //	XXX	if(base->lay & G.vd->lay) {
-			if(base->object==G.obedit) base->flag |= SELECT;
+			if(base->object==obedit) base->flag |= SELECT;
 			else base->flag &= ~SELECT;
 //		}
 		base= base->next;
@@ -1521,19 +1520,19 @@ void separate_mesh(Scene *scene, Object *ob)
 		efa= vl1;
 	}
 	
-	oldob= G.obedit;
+	oldob= obedit;
 	oldbase= BASACT;
 	
 	adduplicate(1, 0); /* notrans and a linked duplicate */
 	
-	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
+	obedit= BASACT->object;	/* basact was set in adduplicate()  */
 	
 	men= copy_mesh(me);
-	set_mesh(G.obedit, men);
+	set_mesh(obedit, men);
 	/* because new mesh is a copy: reduce user count */
 	men->id.us--;
 	
-	load_editMesh(scene, G.obedit);
+	load_editMesh(scene, obedit);
 	
 	BASACT->flag &= ~SELECT;
 	
@@ -1554,19 +1553,19 @@ void separate_mesh(Scene *scene, Object *ob)
 	/* hashedges are freed now, make new! */
 	editMesh_set_hash(em);
 
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
-	G.obedit= oldob;
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+	obedit= oldob;
 	BASACT= oldbase;
 	BASACT->flag |= SELECT;
 	
 	waitcursor(0);
 
 //	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 
 }
 
-void separate_material(Scene *scene, Object *ob)
+void separate_material(Scene *scene, Object *obedit)
 {
 	Mesh *me;
 	EditMesh *em;
@@ -1574,33 +1573,33 @@ void separate_material(Scene *scene, Object *ob)
 	
 	if(multires_test()) return;
 	
-	me= G.obedit->data;
+	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate with vertex keys");
 		return;
 	}
 	
-	if(G.obedit && em) {
-		if(G.obedit->type == OB_MESH) {
-			for (curr_mat = 1; curr_mat < G.obedit->totcol; ++curr_mat) {
+	if(obedit && em) {
+		if(obedit->type == OB_MESH) {
+			for (curr_mat = 1; curr_mat < obedit->totcol; ++curr_mat) {
 				/* clear selection, we're going to use that to select material group */
 				EM_clear_flag_all(em, SELECT);
 				/* select the material */
 				editmesh_select_by_material(em, curr_mat);
 				/* and now separate */
-				separate_mesh(scene, ob);
+				separate_mesh(scene, obedit);
 			}
 		}
 	}
 	
 	//	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	
 }
 
 
-void separate_mesh_loose(Scene *scene, Object *ob)
+void separate_mesh_loose(Scene *scene, Object *obedit)
 {
 	EditMesh *em, emcopy;
 	EditVert *eve, *v1;
@@ -1613,14 +1612,13 @@ void separate_mesh_loose(Scene *scene, Object *ob)
 	int vertsep=0;	
 	short done=0, check=1;
 			
-	me= G.obedit->data;
+	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
 		error("Can't separate a mesh with vertex keys");
 		return;
 	}
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	waitcursor(1);	
 	
@@ -1639,7 +1637,7 @@ void separate_mesh_loose(Scene *scene, Object *ob)
 		base= FIRSTBASE;
 		while(base) {
 // XXX			if(base->lay & G.vd->lay) {
-				if(base->object==G.obedit) base->flag |= SELECT;
+				if(base->object==obedit) base->flag |= SELECT;
 				else base->flag &= ~SELECT;
 //			}
 			base= base->next;
@@ -1718,19 +1716,19 @@ void separate_mesh_loose(Scene *scene, Object *ob)
 				efa= vl1;
 			}
 			
-			oldob= G.obedit;
+			oldob= obedit;
 			oldbase= BASACT;
 			
 			adduplicate(1, 0); /* notrans and a linked duplicate*/
 			
-			G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
+			obedit= BASACT->object;	/* basact was set in adduplicate()  */
 
 			men= copy_mesh(me);
-			set_mesh(G.obedit, men);
+			set_mesh(obedit, men);
 			/* because new mesh is a copy: reduce user count */
 			men->id.us--;
 			
-			load_editMesh(scene, G.obedit);
+			load_editMesh(scene, obedit);
 			
 			BASACT->flag &= ~SELECT;
 			
@@ -1751,7 +1749,7 @@ void separate_mesh_loose(Scene *scene, Object *ob)
 			/* hashedges are freed now, make new! */
 			editMesh_set_hash(em);
 			
-			G.obedit= oldob;
+			obedit= oldob;
 			BASACT= oldbase;
 			BASACT->flag |= SELECT;	
 					
@@ -1763,12 +1761,12 @@ void separate_mesh_loose(Scene *scene, Object *ob)
 		
 	waitcursor(0);
 //	allqueue(REDRAWVIEW3D, 0);
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 }
 
-void separatemenu(Scene *scene, Object *ob)
+void separatemenu(Scene *scene, Object *obedit)
 {
-	Mesh *me= ob->data;
+	Mesh *me= obedit->data;
 	short event;
 	
 	if(me->edit_mesh->verts.first==NULL) return;
@@ -1780,13 +1778,13 @@ void separatemenu(Scene *scene, Object *ob)
 	
 	switch (event) {
 		case 1: 
-			separate_mesh(scene, ob);
+			separate_mesh(scene, obedit);
 			break;
 		case 2:	    	    	    
-			separate_mesh_loose(scene, ob);
+			separate_mesh_loose(scene, obedit);
 			break;
 		case 3:
-			separate_material(scene, ob);
+			separate_material(scene, obedit);
 			break;
 	}
 	waitcursor(0);
@@ -1975,8 +1973,9 @@ static void *editMesh_to_undoMesh(void *emv)
 //	um->retopo_mode= scene->toolsettings->retopo_mode;
 	
 	{
-		Multires *mr= get_mesh(G.obedit)->mr;
-		UndoMesh *prev= undo_editmode_get_prev(G.obedit);
+		Mesh *me= NULL; // XXX
+		Multires *mr= me->mr;
+		UndoMesh *prev= NULL; // XXX undo_editmode_get_prev(obedit);
 		
 		um->mru= NULL;
 		
@@ -2103,7 +2102,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 //	}
 	
 	{
-		Mesh *me= get_mesh(G.obedit);
+		Mesh *me= NULL; // XXX;
 		multires_free(me->mr);
 		me->mr= NULL;
 		if(um->mru && um->mru->mr) me->mr= multires_copy(um->mru->mr);
@@ -2192,9 +2191,7 @@ EditFace *EM_get_face_for_index(int index)
 int EM_texFaceCheck(EditMesh *em)
 {
 	/* some of these checks could be a touch overkill */
-	if (	(G.obedit) &&
-			(G.obedit->type == OB_MESH) &&
-			(em) &&
+	if (	(em) &&
 			(em->faces.first) &&
 			(CustomData_has_layer(&em->fdata, CD_MTFACE)))
 		return 1;
@@ -2205,9 +2202,7 @@ int EM_texFaceCheck(EditMesh *em)
 int EM_vertColorCheck(EditMesh *em)
 {
 	/* some of these checks could be a touch overkill */
-	if (	(G.obedit) &&
-			(G.obedit->type == OB_MESH) &&
-			(em) &&
+	if (	(em) &&
 			(em->faces.first) &&
 			(CustomData_has_layer(&em->fdata, CD_MCOL)))
 		return 1;

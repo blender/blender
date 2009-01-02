@@ -594,12 +594,11 @@ void hashvert_flag(EditMesh *em, int flag)
 }
 
 /* generic extern called extruder */
-void extrude_mesh(EditMesh *em)
+void extrude_mesh(Object *obedit, EditMesh *em)
 {
 	float nor[3]= {0.0, 0.0, 0.0};
 	short nr, transmode= 0;
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	if(em->selectmode & SCE_SELECT_VERTEX) {
@@ -631,7 +630,7 @@ void extrude_mesh(EditMesh *em)
 		
 	if(nr<1) return;
 
-	if(nr==1)  transmode= extrudeflag(em, SELECT, nor);
+	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor);
 	else if(nr==4) transmode= extrudeflag_verts_indiv(em, SELECT, nor);
 	else if(nr==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
@@ -648,8 +647,8 @@ void extrude_mesh(EditMesh *em)
 			* This shouldn't be necessary, derived queries should be
 			* automatically building this data if invalid. Or something.
 			*/
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
-		object_handle_update(G.obedit);
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+		object_handle_update(obedit);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
@@ -660,8 +659,8 @@ void extrude_mesh(EditMesh *em)
 		else {
 //			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
-				Mat4MulVecfl(G.obedit->obmat, nor);
-				VecSubf(nor, nor, G.obedit->obmat[3]);
+				Mat4MulVecfl(obedit->obmat, nor);
+				VecSubf(nor, nor, obedit->obmat[3]);
 //				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 //			Transform();
@@ -673,7 +672,6 @@ void extrude_mesh(EditMesh *em)
 void split_mesh(EditMesh *em)
 {
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 
 	if(okee(" Split ")==0) return;
@@ -688,18 +686,17 @@ void split_mesh(EditMesh *em)
 
 	waitcursor(0);
 
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Split");
 
 }
 
-void extrude_repeat_mesh(View3D *v3d, EditMesh *em, int steps, float offs)
+void extrude_repeat_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float offs)
 {
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a;
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	/* dvec */
@@ -712,12 +709,12 @@ void extrude_repeat_mesh(View3D *v3d, EditMesh *em, int steps, float offs)
 	dvec[2]*= offs;
 
 	/* base correction */
-	Mat3CpyMat4(bmat, G.obedit->obmat);
+	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(tmat, bmat);
 	Mat3MulVecfl(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
-		extrudeflag(em, SELECT, nor);
+		extrudeflag(obedit, em, SELECT, nor);
 		translateflag(em, SELECT, dvec);
 	}
 	
@@ -725,12 +722,12 @@ void extrude_repeat_mesh(View3D *v3d, EditMesh *em, int steps, float offs)
 	
 	EM_fgon_flags(em);
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Extrude Repeat");
 }
 
-void spin_mesh(View3D *v3d, EditMesh *em, int steps, float degr, float *dvec, int mode)
+void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
 {
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0, 0.0, 0.0};
@@ -739,18 +736,17 @@ void spin_mesh(View3D *v3d, EditMesh *em, int steps, float degr, float *dvec, in
 	float phi;
 	short a,ok;
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	/* imat and center and size */
-	Mat3CpyMat4(bmat, G.obedit->obmat);
+	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat,bmat);
 
 	curs= give_cursor(NULL, v3d);
 	VECCOPY(cent, curs);
-	cent[0]-= G.obedit->obmat[3][0];
-	cent[1]-= G.obedit->obmat[3][1];
-	cent[2]-= G.obedit->obmat[3][2];
+	cent[0]-= obedit->obmat[3][0];
+	cent[1]-= obedit->obmat[3][1];
+	cent[2]-= obedit->obmat[3][2];
 	Mat3MulVecfl(imat, cent);
 
 	phi= degr*M_PI/360.0;
@@ -782,7 +778,7 @@ void spin_mesh(View3D *v3d, EditMesh *em, int steps, float degr, float *dvec, in
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
-		if(mode==0) ok= extrudeflag(em, SELECT, nor);
+		if(mode==0) ok= extrudeflag(obedit, em, SELECT, nor);
 		else adduplicateflag(em, SELECT);
 		if(ok==0) {
 			error("No valid vertices are selected");
@@ -811,20 +807,19 @@ void spin_mesh(View3D *v3d, EditMesh *em, int steps, float degr, float *dvec, in
 
 	EM_fgon_flags(em);
 
-	//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	
 	if(dvec==NULL) BIF_undo_push("Spin");
 }
 
-void screw_mesh(EditMesh *em, int steps, int turns)
+void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
 {
 	View3D *v3d= NULL; // XXX
 	EditVert *eve,*v1=0,*v2=0;
 	EditEdge *eed;
 	float dvec[3], nor[3];
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	/* clear flags */
@@ -868,7 +863,7 @@ void screw_mesh(EditMesh *em, int steps, int turns)
 	dvec[1]= ( (v1->co[1]- v2->co[1]) )/(steps);
 	dvec[2]= ( (v1->co[2]- v2->co[2]) )/(steps);
 
-	VECCOPY(nor, G.obedit->obmat[2]);
+	VECCOPY(nor, obedit->obmat[2]);
 
 	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.000) {
 		dvec[0]= -dvec[0];
@@ -876,7 +871,7 @@ void screw_mesh(EditMesh *em, int steps, int turns)
 		dvec[2]= -dvec[2];
 	}
 
-	spin_mesh(v3d, em, turns*steps, turns*360, dvec, 0);
+	spin_mesh(v3d, obedit, em, turns*steps, turns*360, dvec, 0);
 
 	BIF_undo_push("Spin");
 }
@@ -928,7 +923,7 @@ static void erase_vertices(EditMesh *em, ListBase *l)
 	}
 }
 
-void delete_mesh(EditMesh *em)
+void delete_mesh(Object *obedit, EditMesh *em)
 {
 	EditFace *efa, *nextvl;
 	EditVert *eve,*nextve;
@@ -937,7 +932,6 @@ void delete_mesh(EditMesh *em)
 	int count;
 	char *str="Erase";
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
@@ -1068,7 +1062,7 @@ void delete_mesh(EditMesh *em)
 
 	EM_fgon_flags(em);	// redo flags and indices for fgons
 
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	BIF_undo_push(str);
 }
 
@@ -1082,7 +1076,7 @@ void fill_mesh(EditMesh *em)
 	EditFace *efa,*nextvl, *efan;
 	short ok;
 
-	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
+	if(em==NULL) return;
 	if(multires_test()) return;
 
 	waitcursor(1);
@@ -1136,7 +1130,7 @@ void fill_mesh(EditMesh *em)
 		}
 	}
 
-	if(BLI_edgefill(0, (G.obedit && G.obedit->actcol)?(G.obedit->actcol-1):0)) {
+	if(BLI_edgefill(0, em->mat_nr)) {
 		efa= fillfacebase.first;
 		while(efa) {
 			/* normals default pointing up */
@@ -1151,7 +1145,7 @@ void fill_mesh(EditMesh *em)
 
 	waitcursor(0);
 	EM_select_flush(em);
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Fill");
 }
@@ -2366,7 +2360,7 @@ static EditVert *subdivideedgenum(EditMesh *em, EditEdge *edge, int curpoint, in
 	return ev;
 }
 
-void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype)
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype)
 {
 	EditFace *ef;
 	EditEdge *eed, *cedge, *sort[4];
@@ -2374,7 +2368,7 @@ void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, 
 	struct GHash *gh;
 	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
 	int i, j, edgecount, touchcount, facetype,hold;
-	ModifierData *md= G.obedit->modifiers.first;
+	ModifierData *md= obedit->modifiers.first;
 	int ctrl= 0; // XXX
 	
 	if(multires_test()) return;
@@ -2438,10 +2432,10 @@ void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, 
 				VECCOPY(v2mat, ef->v2->co);
 				VECCOPY(v3mat, ef->v3->co);
 				VECCOPY(v4mat, ef->v4->co);						
-				Mat4Mul3Vecfl(G.obedit->obmat, v1mat);
-				Mat4Mul3Vecfl(G.obedit->obmat, v2mat);											
-				Mat4Mul3Vecfl(G.obedit->obmat, v3mat);
-				Mat4Mul3Vecfl(G.obedit->obmat, v4mat);
+				Mat4Mul3Vecfl(obedit->obmat, v1mat);
+				Mat4Mul3Vecfl(obedit->obmat, v2mat);											
+				Mat4Mul3Vecfl(obedit->obmat, v3mat);
+				Mat4Mul3Vecfl(obedit->obmat, v4mat);
 				
 				length[0] = VecLenf(v1mat, v2mat);
 				length[1] = VecLenf(v2mat, v3mat);
@@ -2532,7 +2526,7 @@ void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, 
 		}								  
 	}
 
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
 	for(ef = em->faces.first;ef;ef = ef->next) {
@@ -2735,7 +2729,7 @@ void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, 
 	}
 	
 	recalc_editnormals(em);
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 }
 
 static int count_selected_edges(EditEdge *ed)
@@ -3085,7 +3079,7 @@ void beauty_fill(EditMesh *em)
 
 	EM_select_flush(em);
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Beauty Fill");
 }
@@ -3390,7 +3384,7 @@ void join_triangles(EditMesh *em)
 	if(edsortblock) MEM_freeN(edsortblock);
 		
 	EM_selectmode_flush(em);
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Convert Triangles to Quads");
 }
@@ -3488,7 +3482,7 @@ void edge_flip(EditMesh *em)
 	
 	MEM_freeN(efaar);
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Flip Triangle Edges");
 	
@@ -3725,7 +3719,7 @@ void edge_rotate_selected(EditMesh *em, int dir)
 	/* flush selected vertices (again) to edges/faces */
 	EM_select_flush(em);
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Rotate Edge");	
 }
@@ -3849,7 +3843,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	
 //	initNumInput(&num);
 		
-//	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
+//	view3d_get_object_project_mat(curarea, obedit, projectMat, viewMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
 	numsel =0;  
@@ -4417,7 +4411,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 //			scrarea_do_windraw(curarea);   
 //			persp(PERSP_VIEW);   
 //			glPushMatrix();   
-//			mymultmatrix(G.obedit->obmat);
+//			mymultmatrix(obedit->obmat);
 
 			glColor3ub(0, 255, 0);   
 			glBegin(GL_LINES);
@@ -4549,7 +4543,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 		} else {
 			draw = 0;
 		}
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	 
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	 
 	}
 	
 	
@@ -4569,7 +4563,7 @@ int EdgeSlide(EditMesh *em, short immediate, float imperc)
 	
 	if(!immediate)
 		EM_automerge(0);
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 //	scrarea_queue_winredraw(curarea);		 
 	
 	//BLI_ghash_free(edgesgh, freeGHash, NULL); 
@@ -4618,7 +4612,7 @@ int EdgeLoopDelete(EditMesh *em)
 	EM_select_more(em);
 	removedoublesflag(em, 1,0, 0.001);
 	EM_select_flush(em);
-	//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	return 1;
 }
 
@@ -4700,9 +4694,7 @@ void mesh_set_smooth_faces(EditMesh *em, short event)
 {
 	EditFace *efa;
 
-	if(G.obedit==0) return;
-	
-	if(G.obedit->type != OB_MESH) return;
+	if(em==NULL) return;
 	
 	efa= em->faces.first;
 	while(efa) {
@@ -4713,7 +4705,7 @@ void mesh_set_smooth_faces(EditMesh *em, short event)
 		efa= efa->next;
 	}
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	
 	if(event==1) BIF_undo_push("Set Smooth");
 	else if(event==0) BIF_undo_push("Set Solid");
@@ -4771,7 +4763,7 @@ void mesh_rip(EditMesh *em)
 	EM_selectmode_set(em);
 	
 // XXX	getmouseco_areawin(mval);
-//	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
+//	view3d_get_object_project_mat(curarea, obedit, projectMat, viewMat);
 
 	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
 	mindist= 1000000.0f;
@@ -4957,10 +4949,10 @@ void mesh_rip(EditMesh *em)
 // XXX	G.scene->proportional = prop;
 }
 
-void shape_propagate(Scene *scene, EditMesh *em)
+void shape_propagate(Scene *scene, Object *obedit, EditMesh *em)
 {
 	EditVert *ev = NULL;
-	Mesh* me = (Mesh*)G.obedit->data;
+	Mesh* me = (Mesh*)obedit->data;
 	Key*  ky = NULL;
 	KeyBlock* kb = NULL;
 	Base* base=NULL;
@@ -4996,7 +4988,7 @@ void shape_propagate(Scene *scene, EditMesh *em)
 	}		
 
 	BIF_undo_push("Propagate Blendshape Verts");
-	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return;	
 }
 
@@ -5041,7 +5033,7 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 				}		
 			}	
 			sprintf(str,"Blending at %d%c  MMB to Copy at 100%c",(int)(perc*100),'%','%');
-//			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//			DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 //			headerprint(str);
 //			force_draw(0);			
 
@@ -5083,11 +5075,11 @@ void shape_copy_from_lerp(EditMesh *em, KeyBlock* thisBlock, KeyBlock* fromBlock
 
 
 
-void shape_copy_select_from(EditMesh *em)
+void shape_copy_select_from(Object *obedit, EditMesh *em)
 {
-	Mesh* me = (Mesh*)G.obedit->data;
+	Mesh* me = (Mesh*)obedit->data;
 	EditVert *ev = NULL;
-	int totverts = 0,curshape = G.obedit->shapenr;
+	int totverts = 0,curshape = obedit->shapenr;
 	
 	Key*  ky = NULL;
 	KeyBlock *kb = NULL,*thisBlock = NULL;
@@ -5641,7 +5633,7 @@ int collapseEdges(EditMesh *em)
 	freecollections(&allcollections);
 	removedoublesflag(em, 1, 0, MERGELIMIT);
 	/*get rid of this!*/
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 //	if (EM_texFaceCheck())
 
@@ -5701,7 +5693,7 @@ int merge_target(EditMesh *em, int target, int uvmerge)
 		collapseuvs(em, NULL);
 	}
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 	return removedoublesflag(em, 1, 0, MERGELIMIT);
 	
@@ -5866,7 +5858,7 @@ void pathselect(EditMesh *em)
 			MEM_freeN(previous);
 			BLI_heap_free(heap, NULL);
 			EM_select_flush(em);
-		//			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		//			DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 //			if (EM_texFaceCheck())
 		}
@@ -5903,7 +5895,7 @@ void region_to_loop(EditMesh *em)
 		
 		em->selectmode = SCE_SELECT_EDGE;
 		EM_selectmode_set(em);
-	//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 //		if (EM_texFaceCheck())
 
@@ -6062,7 +6054,7 @@ void loop_to_region(EditMesh *em)
 	}
 	
 	freecollections(&allcollections);
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 //	if (EM_texFaceCheck())
 
@@ -6134,7 +6126,7 @@ void mesh_rotate_uvs(EditMesh *em)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 		BIF_undo_push("Rotate UV face");
 	}
@@ -6217,7 +6209,7 @@ void mesh_mirror_uvs(EditMesh *em)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 		BIF_undo_push("Mirror UV face");
 	}
@@ -6267,7 +6259,7 @@ void mesh_rotate_colors(EditMesh *em)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 
 		BIF_undo_push("Rotate Color face");
 	}	
@@ -6316,7 +6308,7 @@ void mesh_mirror_colors(EditMesh *em)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 		BIF_undo_push("Mirror Color face");
 	}
 }

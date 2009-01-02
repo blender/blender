@@ -19,12 +19,13 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
  *
  * Contributor(s): 
  * - Martin DeMello
  *   Added dxf_read_arc, dxf_read_ellipse and dxf_read_lwpolyline
  *   Copyright (C) 2004 by Etheract Software Labs
+ *
+ * - Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  *  
@@ -686,190 +687,6 @@ static void read_videoscape_mesh(char *str)
 
 	//XXX waitcursor(1);
 }
-
-static void read_radiogour(char *str)
-{
-	Object *ob;
-	Mesh *me;
-	MVert *mvert;
-	MFace *mface;
-	FILE *fp;
-	float *vertdata, *vd, min[3], max[3], cent[3], ftemp;
-	unsigned int *colv, *colf, *colvertdata;
-	int  itemp, a, b, verts, tottria=0, totquad=0, totedge=0, poly, nr0, nr, first;
-	int end;
-	char s[50];
-	
-	fp= fopen(str, "rb");
-	if(fp==NULL) {
-		//XXX error("Can't read file");
-		return;
-	}
-	
-	fscanf(fp, "%40s", s);
-	
-	fscanf(fp, "%d\n", &verts);
-	if(verts<=0) {
-		fclose(fp);
-		//XXX error("Read error");
-		return;
-	}
-	
-	if(verts>MESH_MAX_VERTS) {
-		//XXX error("too many vertices");
-		fclose(fp);
-		return;
-	}
-	
-	INIT_MINMAX(min, max);
-	vd= vertdata= MEM_mallocN(sizeof(float)*3*verts, "videoscapelezer");
-	colv= colvertdata= MEM_mallocN(verts*sizeof(float), "coldata");
-	
-	for(a=0; a<verts; a++) {
-		fscanf(fp, "%f %f %f %i", vd, vd+1, vd+2, colv);
-		DO_MINMAX(vd, min, max);
-		vd+=3;
-		colv++;
-	}
-	
-	/* count faces */
-	end= 1;
-	while(end>0) {
-		end= fscanf(fp,"%d", &poly);
-		if(end<=0) break;
-	
-		if(poly==3) tottria++;
-		else if(poly==4) totquad++;
-		else totedge+= poly;
-	
-		for(a=0;a<poly;a++) {
-			end= fscanf(fp,"%d", &nr);
-			if(end<=0) break;
-		}
-		if(end<=0) break;
-		
-	}
-	
-	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
-		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
-		//XXX error("too many faces");
-		MEM_freeN(vertdata);
-		MEM_freeN(colvertdata);
-		fclose(fp);
-		return;
-	}
-	
-	/* new object */
-	ob= add_object(OB_MESH);
-	me= ob->data;
-	me->totvert= verts;
-	me->totface= totedge+tottria+totquad;
-	me->flag= 0;
-
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
-	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
-	                                NULL, me->totface);
-	
-	/* verts */
-	
-	cent[0]= (min[0]+max[0])/2.0f;
-	cent[1]= (min[1]+max[1])/2.0f;
-	cent[2]= (min[2]+max[2])/2.0f;
-	VECCOPY(ob->loc, cent);
-	
-	a= me->totvert;
-	vd= vertdata;
-	mvert= me->mvert;
-	while(a--) {
-		VecSubf(mvert->co, vd, cent);
-		mvert++;
-		vd+= 3;
-	}
-	
-	/* faces */
-	if(me->totface) {
-		rewind(fp);
-	
-		fscanf(fp, "%40s", s);
-		fscanf(fp, "%d\n", &verts);
-		for(a=0;a<verts;a++) {
-			fscanf(fp, "%f %f %f %i", &ftemp, &ftemp, &ftemp, &itemp);
-		}
-		
-		a= me->totface;
-		mface= me->mface;
-		while(a--) {
-			end= fscanf(fp,"%d", &poly);
-			if(end<=0) break;
-	
-			if(poly==3 || poly==4) {
-				fscanf(fp,"%d", &nr);
-				mface->v1= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v2= MIN2(nr, me->totvert-1);
-				fscanf(fp,"%d", &nr);
-				mface->v3= MIN2(nr, me->totvert-1);
-				if(poly==4) {
-					if( fscanf(fp,"%d", &nr) <=0 ) break;
-					mface->v4= MIN2(nr, me->totvert-1);
-				}
-				
-				test_index_face(mface, NULL, 0, poly);
-				
-				mface++;
-			}
-			else {
-				if( fscanf(fp,"%d", &nr0) <=0) break;
-				first= nr0;
-				for(b=1; b<poly; b++) {
-					end= fscanf(fp,"%d", &nr);
-					if(end<=0) break;
-					nr= MIN2(nr, me->totvert-1);
-					mface->v1= nr;
-					mface->v2= nr0;
-					nr0= nr;
-					mface++;
-					a--;
-				}
-				mface->v1= first;
-				mface->v2= nr;
-				mface->flag= ME_SMOOTH;
-				
-				mface++;
-				if(end<=0) break;
-			}
-		}
-		
-		/* mcol is 4 colors per face */
-		me->mcol= MEM_mallocN(4*sizeof(int)*me->totface, "mcol");
-		colf= (unsigned int *)me->mcol;
-
-		a= me->totface;
-		mface= me->mface;
-		while(a--) {
-			
-			colf[0]= colvertdata[mface->v1];
-			colf[1]= colvertdata[mface->v2];
-			colf[2]= colvertdata[mface->v3];
-			colf[3]= colvertdata[mface->v4];
-			
-			colf+= 4;
-			mface++;
-		}
-		
-		MEM_freeN(colvertdata);
-	}
-	
-	fclose(fp);
-	MEM_freeN(vertdata);
-	
-	mesh_add_normals_flags(me);
-	make_edges(me, 0);
-
-	//XXX waitcursor(1);
-}
-
 
 static void read_videoscape_lamp(char *str)
 {
@@ -2387,16 +2204,8 @@ int BKE_read_exotic(char *name)
 
 				//XXX waitcursor(1);
 				
-				if(*s0==GOUR) {
-					if(G.obedit) {
-						//XXX error("Unable to perform function in EditMode");
-					} else {
-						read_radiogour(name);
-						retval = 1;
-					}
-				}
-				else if ELEM4(*s0, DDG1, DDG2, DDG3, DDG4) {
-					if(G.obedit) {
+				if(ELEM4(*s0, DDG1, DDG2, DDG3, DDG4)) {
+					if(0) { // XXX obedit) {
 						//XXX error("Unable to perform function in EditMode");
 					} else {
 						read_videoscape(name);
@@ -2618,7 +2427,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 
 	fprintf(fp,"3DG1\n");
 
-	if(G.obedit) {
+	if(em) {
 
 		fprintf(fp, "%d\n", G.totvert);
 	

@@ -1706,7 +1706,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 			}
 		}
 	}
-	else if ELEM(par->type, OB_CURVE, OB_SURF) {
+	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;
 		Curve *cu;
 		BPoint *bp;
@@ -1714,8 +1714,10 @@ static void give_parvert(Object *par, int nr, float *vec)
 		int found= 0;
 		
 		cu= par->data;
-		nu= cu->nurb.first;
-		//XXX if(par==G.obedit) nu= editNurb.first;
+		if(cu->editnurb)
+			nu= cu->editnurb->first;
+		else
+			nu= cu->nurb.first;
 		
 		count= 0;
 		while(nu && !found) {
@@ -1755,7 +1757,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		DispList *dl = find_displist(&par->disp, DL_VERTS);
 		float *co = dl?dl->verts:NULL;
 		
-		if(par==G.obedit) latt= editLatt;
+		if(latt->editlatt) latt= latt->editlatt;
 		
 		a= latt->pntsu*latt->pntsv*latt->pntsw;
 		count= 0;
@@ -1782,7 +1784,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	/* in local ob space */
 	Mat4One(mat);
 	
-	if ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE) {
+	if (ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE)) {
 		
 		give_parvert(par, ob->par1, v1);
 		give_parvert(par, ob->par2, v2);
@@ -2163,7 +2165,7 @@ BoundBox *object_get_boundbox(Object *ob)
 	if(ob->type==OB_MESH) {
 		bb = mesh_get_bb(ob);
 	}
-	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
+	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb= ( (Curve *)ob->data )->bb;
 	}
 	else if(ob->type==OB_MBALL) {

@@ -1184,7 +1184,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 		Object *ob = t->obedit;
 		EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 		
-		dm = editmesh_get_derived_cage(em, CD_MASK_BAREMESH);
+		dm = editmesh_get_derived_cage(t->obedit, em, CD_MASK_BAREMESH);
 		
 		retval = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 1);
 		

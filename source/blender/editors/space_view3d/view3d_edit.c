@@ -755,6 +755,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT;
+	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
 	int ok=0;
 
@@ -780,7 +781,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	}
 
 
-	if(G.obedit) {
+	if(obedit) {
 // XXX		ok = minmax_verts(min, max);	/* only selected */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
@@ -1452,12 +1453,12 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d= (View3D *)CTX_wm_space_data(C);
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
-	short mx, my, lr_click=0, mval[2];
-	short ctrl= 0; // XXX
+	short mx, my, mval[2];
+//	short ctrl= 0; // XXX
 	
 	fp= give_cursor(scene, v3d);
 	
-	if(G.obedit && ctrl) lr_click= 1;
+//	if(obedit && ctrl) lr_click= 1;
 	VECCOPY(oldcurs, fp);
 	
 	mx= event->x - ar->winrct.xmin;
@@ -1484,12 +1485,12 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		fp[2]= (v3d->persinv[0][2]*dx + v3d->persinv[1][2]*dy+ v3d->persinv[2][2]*fz)-v3d->ofs[2];
 	}
 	
-	if(lr_click) {
-		// XXX		if(G.obedit->type==OB_MESH) add_click_mesh();
-		//		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
-		//		else if (G.obedit->type==OB_ARMATURE) addvert_armature();
-		VECCOPY(fp, oldcurs);
-	}
+//	if(lr_click) {
+		// XXX		if(obedit->type==OB_MESH) add_click_mesh();
+		//		else if ELEM(obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
+		//		else if (obedit->type==OB_ARMATURE) addvert_armature();
+//		VECCOPY(fp, oldcurs);
+//	}
 	// XXX notifier for scene */
 	ED_region_tag_redraw(ar);
 	
@@ -1812,7 +1813,7 @@ void viewmoveNDOF(Scene *scene, View3D *v3d, int mode)
 	v3d->view = 0;
 //printf("passing here \n");
 //
-	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
+	if (scene->obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
 		use_sel = 1;
 	}
 

@@ -71,6 +71,8 @@ typedef struct bArmature {
 	ID			id;
 	ListBase	bonebase;
 	ListBase	chainbase;
+	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
+	
 	int			flag;
 	int			drawtype;			
 	short		deformflag; 

@@ -52,6 +52,8 @@ typedef struct Lattice {
 	struct Key *key;
 	
 	struct MDeformVert *dvert;
+	
+	struct Lattice *editlatt;
 } Lattice;
 
 /* ***************** LATTICE ********************* */

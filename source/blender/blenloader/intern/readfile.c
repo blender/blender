@@ -809,7 +809,7 @@ static int read_file_dna(FileData *fd)
 	return 0;
 }
 
-static int fd_read_from_file(FileData *filedata, void *buffer, int size)
+static int fd_read_from_file(FileData *filedata, void *buffer, unsigned int size)
 {
 	int readsize = read(filedata->filedes, buffer, size);
 
@@ -822,7 +822,7 @@ static int fd_read_from_file(FileData *filedata, void *buffer, int size)
 	return (readsize);
 }
 
-static int fd_read_gzip_from_file(FileData *filedata, void *buffer, int size)
+static int fd_read_gzip_from_file(FileData *filedata, void *buffer, unsigned int size)
 {
 	int readsize = gzread(filedata->gzfiledes, buffer, size);
 
@@ -835,7 +835,7 @@ static int fd_read_gzip_from_file(FileData *filedata, void *buffer, int size)
 	return (readsize);
 }
 
-static int fd_read_from_memory(FileData *filedata, void *buffer, int size)
+static int fd_read_from_memory(FileData *filedata, void *buffer, unsigned int size)
 {
 		// don't read more bytes then there are available in the buffer
 	int readsize = MIN2(size, filedata->buffersize - filedata->seek);
@@ -1998,7 +1998,8 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	Bone	*bone;
 
 	link_list(fd, &arm->bonebase);
-
+	arm->edbo= NULL;
+	
 	bone=arm->bonebase.first;
 	while (bone) {
 		direct_link_bones(fd, bone);
@@ -2182,9 +2183,9 @@ static void direct_link_mball(FileData *fd, MetaBall *mb)
 
 	link_list(fd, &(mb->elems));
 
-	mb->disp.first= mb->disp.last= 0;
-
-	mb->bb= 0;
+	mb->disp.first= mb->disp.last= NULL;
+	mb->editelems= NULL;
+	mb->bb= NULL;
 }
 
 /* ************ READ WORLD ***************** */
@@ -2481,9 +2482,10 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 
 	cu->bev.first=cu->bev.last= NULL;
 	cu->disp.first=cu->disp.last= NULL;
-	cu->editlist.first=cu->editlist.last= NULL;
+	cu->editnurb= NULL;
 	cu->path= NULL;
-
+	cu->editstr= NULL;
+	
 	nu= cu->nurb.first;
 	while(nu) {
 		nu->bezt= newdataadr(fd, nu->bezt);
@@ -2925,6 +2927,8 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 	
 	lt->dvert= newdataadr(fd, lt->dvert);
 	direct_link_dverts(fd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
+	
+	lt->editlatt= NULL;
 }
 
 

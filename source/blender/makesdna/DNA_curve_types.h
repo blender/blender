@@ -139,8 +139,9 @@ typedef struct Curve {
 	struct BoundBox *bb;
 	
 	ListBase nurb;		/* actual data */
-	ListBase editlist;	/* edited data, not in file */
 	ListBase disp;
+	
+	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
 	struct Ipo *ipo;
@@ -173,6 +174,7 @@ typedef struct Curve {
 	float linewidth;
 
 	char *str;
+	char *editstr;
 	char family[24];
 	struct VFont *vfont;
 	struct VFont *vfontb;

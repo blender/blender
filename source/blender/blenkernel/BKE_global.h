@@ -68,7 +68,6 @@ typedef struct Global {
 	struct Main *main;
 	struct Scene *scene;			/* denk aan file.c */
 	struct bScreen *curscreen;
-	struct Object *obedit;
 	char editModeTitleExtra[64];
 	
 	/* fonts, allocated global data */

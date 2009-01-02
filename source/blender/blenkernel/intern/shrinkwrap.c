@@ -98,7 +98,7 @@ DerivedMesh *object_get_derived_final(Object *ob, CustomDataMask dataMask)
 	if (me->edit_mesh)
 	{
 		DerivedMesh *final = NULL;
-		editmesh_get_derived_cage_and_final(me->edit_mesh, &final, dataMask);
+		editmesh_get_derived_cage_and_final(ob, me->edit_mesh, &final, dataMask);
 		return final;
 	}
 	else
@@ -237,8 +237,9 @@ void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	//Setup nearest
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
-
+#ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(treeData,calc) schedule(static)
+#endif
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -443,7 +444,9 @@ do
 
 
 	//Now, everything is ready to project the vertexs!
+#ifndef __APPLE__
 #pragma omp parallel for private(i,hit) schedule(static)
+#endif
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];
@@ -547,7 +550,9 @@ void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 
 	//Find the nearest vertex
+#ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
+#endif
 	for(i = 0; i<calc->numVerts; ++i)
 	{
 		float *co = calc->vertexCos[i];

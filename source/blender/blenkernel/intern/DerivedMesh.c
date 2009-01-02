@@ -2396,11 +2396,10 @@ static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 	return 1;
 }
 
-static void editmesh_calc_modifiers(EditMesh *em, DerivedMesh **cage_r,
+static void editmesh_calc_modifiers(Object *ob, EditMesh *em, DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
 {
-	Object *ob = G.obedit;
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
@@ -2694,58 +2693,59 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me = ob->data;
 	float min[3], max[3];
-
+	int needMapping= 0; //
+	
 	clear_mesh_caches(ob);
 
-	if(ob!=G.obedit) {
-		Object *obact = G.scene->basact?G.scene->basact->object:NULL;
-		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
-		int needMapping = editing && (ob==obact);
+// XXX		Object *obact = scene->basact?scene->basact->object:NULL;
+//		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
+//		int needMapping = editing && (ob==obact);
+//		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
+	if(dataMask & CD_MASK_WEIGHTPAINT) {
+		MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
+		int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
+		int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);
+		int prevrender = CustomData_get_render_layer(&me->fdata, CD_MCOL);
 
-		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
-			MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
-			int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
-			int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);
-			int prevrender = CustomData_get_render_layer(&me->fdata, CD_MCOL);
+		/* ugly hack here, we temporarily add a new active mcol layer with
+		   weightpaint colors in it, that is then duplicated in CDDM_from_mesh */
+		CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, wpcol, me->totface);
+		CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
+		CustomData_set_layer_render(&me->fdata, CD_MCOL, layernum);
 
-			/* ugly hack here, we temporarily add a new active mcol layer with
-			   weightpaint colors in it, that is then duplicated in CDDM_from_mesh */
-			CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, wpcol, me->totface);
-			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
-			CustomData_set_layer_render(&me->fdata, CD_MCOL, layernum);
+		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
+							&ob->derivedFinal, 0, 1,
+							needMapping, dataMask, -1);
 
-			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
-			                    &ob->derivedFinal, 0, 1,
-			                    needMapping, dataMask, -1);
-
-			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
-			CustomData_set_layer_active(&me->fdata, CD_MCOL, prevactive);
-			CustomData_set_layer_render(&me->fdata, CD_MCOL, prevrender);
-		} else {
-			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
-			                    &ob->derivedFinal, G.rendering, 1,
-			                    needMapping, dataMask, -1);
-		}
-
-		INIT_MINMAX(min, max);
-
-		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
-
-		if(!ob->bb)
-			ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
-		boundbox_set_from_min_max(ob->bb, min, max);
-
-		ob->derivedFinal->needsFree = 0;
-		ob->derivedDeform->needsFree = 0;
-		ob->lastDataMask = dataMask;
+		CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
+		CustomData_set_layer_active(&me->fdata, CD_MCOL, prevactive);
+		CustomData_set_layer_render(&me->fdata, CD_MCOL, prevrender);
+	} 
+	else {
+		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
+							&ob->derivedFinal, G.rendering, 1,
+							needMapping, dataMask, -1);
 	}
+
+	INIT_MINMAX(min, max);
+
+	ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
+
+	if(!ob->bb)
+		ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
+	boundbox_set_from_min_max(ob->bb, min, max);
+
+	ob->derivedFinal->needsFree = 0;
+	ob->derivedDeform->needsFree = 0;
+	ob->lastDataMask = dataMask;
+
 }
 
-static void editmesh_build_data(EditMesh *em, CustomDataMask dataMask)
+static void editmesh_build_data(Object *obedit, EditMesh *em, CustomDataMask dataMask)
 {
 	float min[3], max[3];
 
-	clear_mesh_caches(G.obedit);
+	clear_mesh_caches(obedit);
 
 	if (em->derivedFinal) {
 		if (em->derivedFinal!=em->derivedCage) {
@@ -2760,16 +2760,16 @@ static void editmesh_build_data(EditMesh *em, CustomDataMask dataMask)
 		em->derivedCage = NULL;
 	}
 
-	editmesh_calc_modifiers(em, &em->derivedCage, &em->derivedFinal, dataMask);
+	editmesh_calc_modifiers(obedit, em, &em->derivedCage, &em->derivedFinal, dataMask);
 	em->lastDataMask = dataMask;
 
 	INIT_MINMAX(min, max);
 
 	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
 
-	if(!G.obedit->bb)
-		G.obedit->bb= MEM_callocN(sizeof(BoundBox), "bb");
-	boundbox_set_from_min_max(G.obedit->bb, min, max);
+	if(!obedit->bb)
+		obedit->bb= MEM_callocN(sizeof(BoundBox), "bb");
+	boundbox_set_from_min_max(obedit->bb, min, max);
 
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;
@@ -2778,7 +2778,7 @@ static void editmesh_build_data(EditMesh *em, CustomDataMask dataMask)
 void makeDerivedMesh(Object *ob, EditMesh *em, CustomDataMask dataMask)
 {
 	if (em) {
-		editmesh_build_data(em, dataMask);
+		editmesh_build_data(ob, em, dataMask);
 	} else {
 		mesh_build_data(ob, dataMask);
 	}
@@ -2950,7 +2950,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 
 /***/
 
-DerivedMesh *editmesh_get_derived_cage_and_final(EditMesh *em, DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_cage_and_final(Object *obedit, EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
@@ -2958,27 +2958,27 @@ DerivedMesh *editmesh_get_derived_cage_and_final(EditMesh *em, DerivedMesh **fin
 	 */
 	if(!em->derivedCage ||
 	   (em->lastDataMask & dataMask) != dataMask)
-		editmesh_build_data(em, dataMask);
+		editmesh_build_data(obedit, em, dataMask);
 
 	*final_r = em->derivedFinal;
 	return em->derivedCage;
 }
 
-DerivedMesh *editmesh_get_derived_cage(EditMesh *em, CustomDataMask dataMask)
+DerivedMesh *editmesh_get_derived_cage(Object *obedit, EditMesh *em, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
 	if(!em->derivedCage ||
 	   (em->lastDataMask & dataMask) != dataMask)
-		editmesh_build_data(em, dataMask);
+		editmesh_build_data(obedit, em, dataMask);
 
 	return em->derivedCage;
 }
 
-DerivedMesh *editmesh_get_derived_base(EditMesh *em)
+DerivedMesh *editmesh_get_derived_base(Object *obedit, EditMesh *em)
 {
-	return getEditMeshDerivedMesh(em, G.obedit, NULL);
+	return getEditMeshDerivedMesh(em, obedit, NULL);
 }
 
 
@@ -3040,9 +3040,8 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editmesh_get_first_deform_matrices(EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
+int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
-	Object *ob = G.obedit;
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;

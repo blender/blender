@@ -340,7 +340,8 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, Object *ob)
 	unsigned char obcol[4];
 	int istex, solidtex= 0;
 
-	if(v3d->drawtype==OB_SOLID || (ob==G.obedit && v3d->drawtype!=OB_TEXTURE)) {
+	// XXX scene->obedit warning
+	if(v3d->drawtype==OB_SOLID || (ob==scene->obedit && v3d->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
 		solidtex= 1;
 		Gtexdraw.islit= -1;
@@ -470,7 +471,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		return;
 
 	/* don't draw when editing */
-	if(ob==G.obedit)
+	if(me->edit_mesh)
 		return;
 	else if(ob==OBACT)
 		if(FACESEL_PAINT_TEST)
@@ -568,7 +569,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 	draw_textured_end();
 	
 	/* draw edges and selected faces over textured mesh */
-	if(!G.obedit && faceselect)
+	if(!me->edit_mesh && faceselect)
 		draw_tfaces3D(v3d, ob, me, dm);
 
 	/* reset from negative scale correction */

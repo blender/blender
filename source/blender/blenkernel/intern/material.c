@@ -858,12 +858,13 @@ void delete_material_index()
 	short *totcolp;
 	int a, actcol;
 	
-	if(G.obedit) {
+	//	if(obedit) {
 		//XXX error("Unable to perform function in EditMode");
-		return;
-	}
+		//		return;
+	//	}
+	
 	ob= ((G.scene->basact)? (G.scene->basact->object) : 0) ;
-	if(ob==0 || ob->totcol==0) return;
+	if(ob==NULL || ob->totcol==0) return;
 	
 	/* take a mesh/curve/mball as starting point, remove 1 index,
 	 * AND with all objects that share the ob->data

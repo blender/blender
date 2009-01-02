@@ -351,10 +351,6 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 
 		return 1;
 	}
-	else if(member == CTX_data_edit_object) {
-		CTX_data_pointer_set(result, G.obedit);
-		return 1;
-	}
 
 	return 0;
 }

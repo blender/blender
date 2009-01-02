@@ -73,6 +73,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -5445,7 +5446,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				em->selectmode= SCE_SELECT_VERTEX;
 			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
 		break;
@@ -5459,7 +5460,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			}
 			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
 		break;
@@ -5473,7 +5474,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			}
 			scene->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
 		break;	

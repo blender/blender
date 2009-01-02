@@ -297,14 +297,17 @@ void make_local_lattice(Lattice *lt)
 void init_latt_deform(Object *oblatt, Object *ob)
 {
 		/* we make an array with all differences */
-	Lattice *lt = deformLatt = (oblatt==G.obedit)?editLatt:oblatt->data;
-	BPoint *bp = lt->def;
+	Lattice *lt= oblatt->data;
+	BPoint *bp;
 	DispList *dl = find_displist(&oblatt->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
 	float *fp, imat[4][4];
 	float fu, fv, fw;
 	int u, v, w;
 
+	if(lt->editlatt) lt= lt->editlatt;
+	bp = lt->def;
+	
 	fp= latticedata= MEM_mallocN(sizeof(float)*3*deformLatt->pntsu*deformLatt->pntsv*deformLatt->pntsw, "latticedata");
 	
 		/* for example with a particle system: ob==0 */
@@ -868,10 +871,13 @@ void outside_lattice(Lattice *lt)
 
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 {
-	Lattice *lt = (G.obedit==ob)?editLatt:ob->data;
-	int i, numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
+	Lattice *lt = ob->data;
+	int i, numVerts;
 	float (*vertexCos)[3] = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
 
+	if(lt->editlatt) lt= lt->editlatt;
+	numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
+	
 	for (i=0; i<numVerts; i++) {
 		VECCOPY(vertexCos[i], lt->def[i].vec);
 	}
@@ -891,9 +897,10 @@ void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
 
 void lattice_calc_modifiers(Object *ob)
 {
-	float (*vertexCos)[3] = NULL;
+	Lattice *lt= ob->data;
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
-	int numVerts, editmode = G.obedit==ob;
+	float (*vertexCos)[3] = NULL;
+	int numVerts, editmode = (lt->editlatt!=NULL);
 
 	freedisplist(&ob->disp);
 
@@ -931,7 +938,8 @@ struct MDeformVert* lattice_get_deform_verts(struct Object *oblatt)
 {
 	if(oblatt->type == OB_LATTICE)
 	{
-		Lattice *lt = (oblatt==G.obedit)?editLatt:(Lattice*)oblatt->data;
+		Lattice *lt = (Lattice*)oblatt->data;
+		if(lt->editlatt) lt= lt->editlatt;
 		return lt->dvert;
 	}
 

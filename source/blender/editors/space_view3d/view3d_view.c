@@ -1018,10 +1018,10 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	glPushName(-1);
 	code= 1;
 	
-	if(G.obedit && G.obedit->type==OB_MBALL) {
+	if(vc->obedit && vc->obedit->type==OB_MBALL) {
 		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
-	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
+	else if ((vc->obedit && vc->obedit->type==OB_ARMATURE)) {
 		draw_object(scene, ar, v3d, BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else {
@@ -1139,13 +1139,13 @@ void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
 		ok= 0;
 	}
 	else {
-		if(G.obedit) {
-			minmax_object(G.obedit, min, max);
+		if(scene->obedit) {
+			minmax_object(scene->obedit, min, max);
 			
 			ok= 1;
 		
 			BASACT->lay |= locallay;
-			G.obedit->lay= BASACT->lay;
+			scene->obedit->lay= BASACT->lay;
 		}
 		else {
 			base= FIRSTBASE;
@@ -1203,7 +1203,7 @@ void initlocalview(Scene *scene, ARegion *ar, View3D *v3d)
 			if( base->lay & locallay ) {
 				base->lay-= locallay;
 				if(base->lay==0) base->lay= v3d->layact;
-				if(base->object != G.obedit) base->flag |= SELECT;
+				if(base->object != scene->obedit) base->flag |= SELECT;
 				base->object->lay= base->lay;
 			}
 			base= base->next;
@@ -1260,7 +1260,7 @@ void endlocalview(Scene *scene, ScrArea *sa)
 			if( base->lay & locallay ) {
 				base->lay-= locallay;
 				if(base->lay==0) base->lay= v3d->layact;
-				if(base->object != G.obedit) {
+				if(base->object != scene->obedit) {
 					base->flag |= SELECT;
 					base->object->flag |= SELECT;
 				}

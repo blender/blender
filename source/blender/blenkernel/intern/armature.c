@@ -906,6 +906,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 						   int numVerts, int deformflag, 
 						   float (*prevCos)[3], const char *defgrp_name)
 {
+	bArmature *arm= armOb->data;
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts = NULL;
 	bDeformGroup *dg;
@@ -921,7 +922,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	int armature_def_nr = -1;
 	int totchan;
 
-	if(armOb == G.obedit) return;
+	if(arm->edbo) return;
 	
 	Mat4Invert(obinv, target->obmat);
 	Mat4CpyMat4(premat, target->obmat);
@@ -2280,8 +2281,8 @@ void where_is_pose (Object *ob)
 	if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC)) 
 	   armature_rebuild_pose(ob, arm);
 	
-	/* In restposition we read the data from the bones */
-	if(ob==G.obedit || (arm->flag & ARM_RESTPOS)) {
+	/* In editmode or restposition we read the data from the bones */
+	if(arm->edbo || (arm->flag & ARM_RESTPOS)) {
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;

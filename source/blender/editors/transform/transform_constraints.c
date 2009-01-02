@@ -489,7 +489,7 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
-		Mat3CpyMat4(obmat, G.obedit->obmat);
+		Mat3CpyMat4(obmat, t->scene->obedit->obmat);
 		setConstraint(t, obmat, mode|CON_LOCAL, text);
 	}
 	else {
@@ -748,8 +748,8 @@ void BIF_drawPropCircle()
 		BIF_ThemeColor(TH_GRID);
 		
 		/* if editmode we need to go into object space */
-		if(G.obedit && t->spacetype == SPACE_VIEW3D)
-			mymultmatrix(G.obedit->obmat);
+		if(t->scene->obedit && t->spacetype == SPACE_VIEW3D)
+			mymultmatrix(t->scene->obedit->obmat);
 		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
@@ -759,7 +759,7 @@ void BIF_drawPropCircle()
 		set_inverted_drawing(0);
 		
 		/* if editmode we restore */
-		if(G.obedit && t->spacetype == SPACE_VIEW3D)
+		if(t->scene->obedit && t->spacetype == SPACE_VIEW3D)
 			myloadmatrix(G.vd->viewmat);
 #endif
 	}

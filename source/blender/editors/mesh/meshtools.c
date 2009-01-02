@@ -118,7 +118,7 @@ int join_mesh(Scene *scene, View3D *v3d)
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata;
 
-	if(G.obedit) return 0;
+	if(scene->obedit) return 0;
 	
 	ob= OBACT;
 	if(!ob || ob->type!=OB_MESH) return 0;
@@ -445,7 +445,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 	int ctrl= 0;	// XXX
 	
 	if(!ob) return;
-	if(G.obedit) return;
+	if(scene->obedit) return;
 	if(ob->type!=OB_MESH) return;
 	if (!v3d) return;
 	
@@ -709,7 +709,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		if(MeshOctree.table) {
 			Mesh *me= ob->data;
 			bt= MeshOctree.table + mesh_octree_get_base_offs(co, MeshOctree.offs, MeshOctree.div);
-			if(ob==G.obedit)
+			if(me->edit_mesh)
 				return mesh_octree_find_index(bt, NULL, NULL, co);
 			else
 				return mesh_octree_find_index(bt, MeshOctree.orco, me->mvert, co);
@@ -724,7 +724,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		 * we are using the undeformed coordinates*/
 		INIT_MINMAX(min, max);
 
-		if(ob==G.obedit) {
+		if(me->edit_mesh==em) {
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next)
@@ -765,7 +765,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		
 		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		if(ob==G.obedit) {
+		if(me->edit_mesh==em) {
 			EditVert *eve;
 
 			for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1106,7 +1106,7 @@ void objects_bake_render(Scene *scene, short event, char **error_msg)
 static void objects_bake_render_ui(Scene *scene, short event)
 {
 	char *error_msg = NULL;
-//	int is_editmode = (G.obedit!=NULL);
+//	int is_editmode = (obedit!=NULL);
 	
 	/* Deal with editmode, this is a bit clunky but since UV's are in editmode, users are likely to bake from their */
 // XXX	if (is_editmode) exit_editmode(0);

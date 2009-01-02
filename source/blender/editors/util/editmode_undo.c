@@ -122,6 +122,7 @@ void undo_editmode_push(bContext *C, char *name,
 						int (*validate_undo)(void *, void *))
 {
 	UndoElem *uel;
+	Object *obedit= CTX_data_edit_object(C);
 	void *editdata;
 	int nr;
 	uintptr_t memused, totmem, maxmem;
@@ -168,9 +169,9 @@ void undo_editmode_push(bContext *C, char *name,
 	editdata= getdata(C);
 	curundo->undodata= curundo->from_editmode(editdata);
 	curundo->undosize= MEM_get_memory_in_use() - memused;
-	curundo->ob= G.obedit;
-	curundo->id= G.obedit->id;
-	curundo->type= G.obedit->type;
+	curundo->ob= obedit;
+	curundo->id= obedit->id;
+	curundo->type= obedit->type;
 
 	if(U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
@@ -201,6 +202,7 @@ void undo_editmode_push(bContext *C, char *name,
 static void undo_clean_stack(bContext *C)
 {
 	UndoElem *uel, *next;
+	Object *obedit= CTX_data_edit_object(C);
 	int mixed= 0;
 	
 	/* global undo changes pointers, so we also allow identical names */
@@ -213,8 +215,8 @@ static void undo_clean_stack(bContext *C)
 		next= uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
-		if(uel->type==G.obedit->type) {
-			if(strcmp(uel->id.name, G.obedit->id.name)==0) {
+		if(uel->type==obedit->type) {
+			if(strcmp(uel->id.name, obedit->id.name)==0) {
 				if(uel->validate_undo==NULL)
 					isvalid= 1;
 				else if(uel->validate_undo(uel->undodata, editdata))
@@ -222,7 +224,7 @@ static void undo_clean_stack(bContext *C)
 			}
 		}
 		if(isvalid) 
-			uel->ob= G.obedit;
+			uel->ob= obedit;
 		else {
 			mixed= 1;
 			uel->freedata(uel->undodata);
@@ -265,7 +267,7 @@ void undo_editmode_step(bContext *C, int step)
 		}
 	}
 
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	/* XXX notifiers */
 }
 
@@ -324,8 +326,9 @@ void undo_editmode_menu(bContext *C)
 
 static void do_editmode_undohistorymenu(bContext *C, void *arg, int event)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	
-	if(G.obedit==NULL || event<1) return;
+	if(obedit==NULL || event<1) return;
 
 	undo_number(C, event-1);
 	

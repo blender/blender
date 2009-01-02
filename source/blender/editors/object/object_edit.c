@@ -254,7 +254,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 	
 	exit_paint_modes();
 
-// XXX	if (G.obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+// XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 	ob= add_object(type);
 //	ED_base_object_activate(C, BASACT);
 	base_init_from_view3d(BASACT, v3d);
@@ -285,7 +285,7 @@ void add_objectLamp(Scene *scene, View3D *v3d, short type)
 {
 	Lamp *la;
 
-	if(G.obedit==0) {
+	if(scene->obedit==NULL) { // XXX get from context
 		add_object_draw(scene, v3d, OB_LAMP);
 		base_init_from_view3d(BASACT, v3d);
 	}
@@ -311,7 +311,7 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 	Base *base, *nbase;
 	int islamp= 0;
 	
-	if(G.obedit) return;
+	if(scene->obedit) return; // XXX get from context
 	if(scene->id.lib) return;
 
 	for(base= FIRSTBASE; base; base= nbase) {
@@ -399,7 +399,7 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	return totvert;
 }
 
-static int return_editmesh_vgroup(EditMesh *em, char *name, float *cent)
+static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, float *cent)
 {
 	MDeformVert *dvert;
 	EditVert *eve;
@@ -407,7 +407,7 @@ static int return_editmesh_vgroup(EditMesh *em, char *name, float *cent)
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	if(G.obedit->actdef) {
+	if(obedit->actdef) {
 		
 		/* find the vertices */
 		for(eve= em->verts.first; eve; eve= eve->next) {
@@ -415,7 +415,7 @@ static int return_editmesh_vgroup(EditMesh *em, char *name, float *cent)
 
 			if(dvert) {
 				for(i=0; i<dvert->totweight; i++){
-					if(dvert->dw[i].def_nr == (G.obedit->actdef-1)) {
+					if(dvert->dw[i].def_nr == (obedit->actdef-1)) {
 						totvert++;
 						VecAddf(cent, cent, eve->co);
 					}
@@ -423,7 +423,7 @@ static int return_editmesh_vgroup(EditMesh *em, char *name, float *cent)
 			}
 		}
 		if(totvert) {
-			bDeformGroup *defGroup = BLI_findlink(&G.obedit->defbase, G.obedit->actdef-1);
+			bDeformGroup *defGroup = BLI_findlink(&obedit->defbase, obedit->actdef-1);
 			strcpy(name, defGroup->name);
 			VecMulf(cent, 1.0f/(float)totvert);
 			return 1;
@@ -608,19 +608,19 @@ static void apply_obmat(Object *ob)
 	
 }
 
-int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
+int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
 	name[0]= 0;
 	
-	switch(G.obedit->type) {
+	switch(obedit->type) {
 		case OB_MESH:
 		{
-			Mesh *me= G.obedit->data;
+			Mesh *me= obedit->data;
 			/* check selected vertices first */
 			if( return_editmesh_indexar(me->edit_mesh, tot, indexar, cent_r)) return 1;
-			else return return_editmesh_vgroup(me->edit_mesh, name, cent_r);
+			else return return_editmesh_vgroup(obedit, me->edit_mesh, name, cent_r);
 		}
 		case OB_CURVE:
 		case OB_SURF:
@@ -694,8 +694,9 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
 	Object *ob=NULL;
+	Object *obedit= scene->obedit;  // XXX get from context
 	
-	if(G.obedit==NULL) return;
+	if(obedit==NULL) return;
 	
 	/* preconditions */
 	if(mode==2) { /* selected object */
@@ -718,7 +719,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		char *cp;
 		
 		/* make pupmenu with hooks */
-		for(md=G.obedit->modifiers.first; md; md= md->next) {
+		for(md=obedit->modifiers.first; md; md= md->next) {
 			if (md->type==eModifierType_Hook) 
 				maxlen+=32;
 		}
@@ -734,7 +735,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		else if(mode==5) strcpy(cp, "Select %t|");
 		else if(mode==6) strcpy(cp, "Clear Offset %t|");
 		
-		for(md=G.obedit->modifiers.first; md; md= md->next) {
+		for(md=obedit->modifiers.first; md; md= md->next) {
 			if (md->type==eModifierType_Hook) {
 				strcat(cp, md->name);
 				strcat(cp, " |");
@@ -747,7 +748,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		if(nr<1) return;
 		
 		a= 1;
-		for(md=G.obedit->modifiers.first; md; md=md->next) {
+		for(md=obedit->modifiers.first; md; md=md->next) {
 			if (md->type==eModifierType_Hook) {
 				if(a==nr) break;
 				a++;
@@ -764,7 +765,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		int tot, ok, *indexar;
 		char name[32];
 		
-		ok = hook_getIndexArray(&tot, &indexar, name, cent);
+		ok = hook_getIndexArray(obedit, &tot, &indexar, name, cent);
 		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
@@ -781,7 +782,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				ob->lay= newbase->lay;
 				
 				/* transform cent to global coords for loc */
-				VecMat4MulVecfl(ob->loc, G.obedit->obmat, cent);
+				VecMat4MulVecfl(ob->loc, obedit->obmat, cent);
 				
 				/* restore, add_object sets active */
 				BASACT= base;
@@ -790,14 +791,14 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 			
 			/* new hook */
 			if(mode==1 || mode==2) {
-				ModifierData *md = G.obedit->modifiers.first;
+				ModifierData *md = obedit->modifiers.first;
 				
 				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
 					md = md->next;
 				}
 				
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
-				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
+				BLI_insertlinkbefore(&obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
 			}
 			else if (hmd->indexar) MEM_freeN(hmd->indexar); /* reassign, hook was set */
@@ -817,24 +818,24 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
-				Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
+				Mat4MulSerie(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
 							 NULL, NULL, NULL, NULL, NULL);
 			}
 		}
 	}
 	else if(mode==3) { /* remove */
-		BLI_remlink(&G.obedit->modifiers, md);
+		BLI_remlink(&obedit->modifiers, md);
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
-		obedit_hook_select(G.obedit, hmd);
+		obedit_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
-		Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
+		Mat4MulSerie(hmd->parentinv, ob->imat, obedit->obmat, NULL, 
 					 NULL, NULL, NULL, NULL, NULL);
 	}
 
@@ -862,11 +863,12 @@ static void ignore_parent_tx( Object *ob )
 
 void add_hook_menu(Scene *scene, View3D *v3d)
 {
+	Object *obedit= scene->obedit;  // XXX get from context
 	int mode;
 	
-	if(G.obedit==NULL) return;
+	if(obedit==NULL) return;
 	
-	if(modifiers_findByType(G.obedit, eModifierType_Hook))
+	if(modifiers_findByType(obedit, eModifierType_Hook))
 		mode= pupmenu("Hooks %t|Add, To New Empty %x1|Add, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
 	else
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
@@ -888,9 +890,9 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 	/*short mode=0;*/
 	
 	if(scene->id.lib) return;
-	if(G.obedit) {
-		return;
-	}
+// XXX	if(obedit) {
+//		return; 
+//	}
 	if(BASACT==0) return;
 
 	mode= pupmenu("Make Track %t|TrackTo Constraint %x1|LockTrack Constraint %x2|Old Track %x3");
@@ -1037,7 +1039,7 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_clear_track_exec(bContext *C, wmOperator *op)
 {
-	if(G.obedit) return OPERATOR_CANCELLED;
+	if(CTX_data_edit_object(C)) return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
 		/*if(TESTBASELIB(v3d, base)) {*/
@@ -1324,7 +1326,6 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_location(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Clear Object Location";
@@ -1377,7 +1378,6 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_rotation(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Clear Object Rotation";
@@ -1434,7 +1434,6 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_scale(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Clear Object Scale";
@@ -1535,7 +1534,7 @@ void set_slowparent(Scene *scene, View3D *v3d)
 // XXX
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 /* only in edit mode */
-void make_vertex_parent(Scene *scene, View3D *v3d)
+void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 {
 	EditVert *eve;
 	Base *base;
@@ -1547,8 +1546,8 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 	
 	/* we need 1 to 3 selected vertices */
 	
-	if(G.obedit->type==OB_MESH) {
-		Mesh *me= G.obedit->data;
+	if(obedit->type==OB_MESH) {
+		Mesh *me= obedit->data;
 		
 		eve= me->edit_mesh->verts.first;
 		while(eve) {
@@ -1563,7 +1562,7 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 			eve= eve->next;
 		}
 	}
-	else if(ELEM(G.obedit->type, OB_SURF, OB_CURVE)) {
+	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		extern ListBase editNurb;
 		nu= editNurb.first;
 		while(nu) {
@@ -1600,7 +1599,7 @@ void make_vertex_parent(Scene *scene, View3D *v3d)
 			nu= nu->next;
 		}
 	}
-	else if(G.obedit->type==OB_LATTICE) {
+	else if(obedit->type==OB_LATTICE) {
 		
 		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 		bp= editLatt->def;
@@ -2091,14 +2090,14 @@ void ED_object_exit_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-//	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit= CTX_data_edit_object(C);
 	int freedata = flag & EM_FREEDATA;
 	
-	if(G.obedit==NULL) return;
+	if(obedit==NULL) return;
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
-	if(G.obedit->type==OB_MESH) {
-		Mesh *me= G.obedit->data;
+	if(obedit->type==OB_MESH) {
+		Mesh *me= obedit->data;
 		
 //		if(EM_texFaceCheck())
 		
@@ -2109,40 +2108,40 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			error("Too many vertices");
 			return;
 		}
-		load_editMesh(scene, G.obedit);
+		load_editMesh(scene, obedit);
 		
 		if(freedata) free_editMesh(me->edit_mesh);
 		
 		if(G.f & G_WEIGHTPAINT)
-			mesh_octree_table(G.obedit, NULL, NULL, 'e');
+			mesh_octree_table(obedit, NULL, NULL, 'e');
 	}
-	else if (G.obedit->type==OB_ARMATURE){	
+	else if (obedit->type==OB_ARMATURE){	
 //		load_editArmature();
 //		if (freedata) free_editArmature();
 	}
-	else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
+	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 //		extern ListBase editNurb;
 //		load_editNurb();
 //		if(freedata) freeNurblist(&editNurb);
 	}
-	else if(G.obedit->type==OB_FONT && freedata) {
+	else if(obedit->type==OB_FONT && freedata) {
 //		load_editText();
 	}
-	else if(G.obedit->type==OB_LATTICE) {
+	else if(obedit->type==OB_LATTICE) {
 //		load_editLatt();
 //		if(freedata) free_editLatt();
 	}
-	else if(G.obedit->type==OB_MBALL) {
+	else if(obedit->type==OB_MBALL) {
 //		extern ListBase editelems;
 //		load_editMball();
 //		if(freedata) BLI_freelistN(&editelems);
 	}
 	
-	ob= G.obedit;
+	ob= obedit;
 	
 	/* for example; displist make is different in editmode */
-	if(freedata) G.obedit= NULL;
-	scene->obedit= G.obedit; // XXX
+	if(freedata) obedit= NULL;
+	scene->obedit= obedit; // XXX for context
 	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
 		multires_edge_level_update(ob, get_mesh(ob));
@@ -2150,7 +2149,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	/* also flush ob recalc, doesn't take much overhead, but used for particles */
 	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 	
-	if(G.obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
+	if(obedit==NULL) // XXX && (flag & EM_FREEUNDO)) 
 		ED_undo_push(C, "Editmode");
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);
@@ -2186,7 +2185,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		
 		if(me->pv) mesh_pmv_off(ob, me);
 		ok= 1;
-		G.obedit= ob; // XXX
 		scene->obedit= ob;	// context sees this
 		
 		make_editMesh(scene, ob);
@@ -2208,40 +2206,40 @@ void ED_object_enter_editmode(bContext *C, int flag)
 			error_libdata();
 			return;
 		}
-		ok=1;
-		G.obedit=ob;
+//		ok=1;
+		scene->obedit= ob;
 // XXX		make_editArmature();
 		/* to ensure all goes in restposition and without striding */
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC);
+		DAG_object_flush_update(scene, ob, OB_RECALC);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, ob);
 	}
 	else if(ob->type==OB_FONT) {
-		G.obedit= ob;
-		ok= 1;
+		scene->obedit= ob; // XXX for context
+//		ok= 1;
 // XXX		make_editText();
 	}
 	else if(ob->type==OB_MBALL) {
-		G.obedit= ob;
-		ok= 1;
+		scene->obedit= ob; // XXX for context
+//		ok= 1;
 // XXX		make_editMball();
 	}
 	else if(ob->type==OB_LATTICE) {
-		G.obedit= ob;
-		ok= 1;
+		scene->obedit= ob; // XXX for context
+//		ok= 1;
 // XXX		make_editLatt();
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
-		ok= 1;
-		G.obedit= ob;
+//		ok= 1;
+		scene->obedit= ob; // XXX for context
 // XXX		make_editNurb();
 	}
 	
 	if(ok) {
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
 	else {
-		G.obedit= NULL;
+		scene->obedit= NULL; // XXX for context
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, ob);
 	}
 	
@@ -2278,8 +2276,9 @@ void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
 
 void check_editmode(int type)
 {
+	Object *obedit= NULL; // XXX
 	
-	if (G.obedit==0 || G.obedit->type==type) return;
+	if (obedit==NULL || obedit->type==type) return;
 
 // XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
@@ -2294,6 +2293,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 	Curve *cu;
 /*	BezTriple *bezt;
 	BPoint *bp; */
+	Object *obedit= NULL; // XXX
 	Nurb *nu, *nu1;
 	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
@@ -2307,12 +2307,12 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	if(G.obedit) {
+	if(obedit) {
 
 		INIT_MINMAX(min, max);
 	
-		if(G.obedit->type==OB_MESH) {
-			Mesh *me= G.obedit->data;
+		if(obedit->type==OB_MESH) {
+			Mesh *me= obedit->data;
 			
 			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
 				if(v3d->around==V3D_CENTROID) {
@@ -2339,7 +2339,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 			
 // XXX			recalc_editnormals();
 			tot_change++;
-			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		}
 	}
 	
@@ -2361,7 +2361,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 				if(base->object->id.lib) {
 					tot_lib_error++;
 				}
-				else if(G.obedit==0 && (me=get_mesh(base->object)) ) {
+				else if(obedit==0 && (me=get_mesh(base->object)) ) {
 					if (me->id.lib) {
 						tot_lib_error++;
 					} else {
@@ -2463,10 +2463,10 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 				else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
 					
 					/* totally weak code here... (ton) */
-					if(G.obedit==base->object) {
+					if(obedit==base->object) {
 						extern ListBase editNurb;
 						nu1= editNurb.first;
-						cu= G.obedit->data;
+						cu= obedit->data;
 					}
 					else {
 						cu= base->object->data;
@@ -2517,7 +2517,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 							nu= nu->next;
 						}
 				
-						if(centermode && G.obedit==0) {
+						if(centermode && obedit==0) {
 							Mat3CpyMat4(omat, base->object->obmat);
 							
 							Mat3MulVecfl(omat, cent);
@@ -2530,9 +2530,9 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 						}
 						
 						tot_change++;
-						if(G.obedit) {
+						if(obedit) {
 							if (centermode==0) {
-								DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+								DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 							}
 							break;
 						}
@@ -2578,7 +2578,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 						where_is_object(base->object);
 						ignore_parent_tx(base->object);
 						
-						if(G.obedit) 
+						if(obedit) 
 							break;
 					}
 				}
@@ -2610,7 +2610,7 @@ void docenter_new(Scene *scene, View3D *v3d)
 {
 	if(scene->id.lib) return;
 
-	if(G.obedit) {
+	if(scene->obedit) { // XXX get from context
 		error("Unable to center new in Edit Mode");
 	}
 	else {
@@ -2622,7 +2622,7 @@ void docenter_cursor(Scene *scene, View3D *v3d)
 {
 	if(scene->id.lib) return;
 
-	if(G.obedit) {
+	if(scene->obedit) { // XXX get from context
 		error("Unable to center cursor in Edit Mode");
 	}
 	else {
@@ -2819,13 +2819,14 @@ void special_editmenu(Scene *scene, View3D *v3d)
 {
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
+	Object *obedit= NULL; // XXX
 	float fac;
 	int nr,ret;
 	short randfac;
 	
 	if(ob==NULL) return;
 	
-	if(G.obedit==NULL) {
+	if(obedit==NULL) {
 		
 		if(ob->flag & OB_POSEMODE) {
 // XXX			pose_special_editmenu();
@@ -2938,7 +2939,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				break;
 			}
 			
-			DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 			
 			if(nr>0) waitcursor(0);
 #endif
@@ -3017,7 +3018,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			}			
 		}
 	}
-	else if(G.obedit->type==OB_MESH) {
+	else if(obedit->type==OB_MESH) {
 		/* This is all that is needed, since all other functionality is in Ctrl+ V/E/F but some users didnt like, so for now have the old/big menu */
 		/*
 		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
@@ -3137,12 +3138,12 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 		
 		
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
 		if(nr>0) waitcursor(0);
 		
 	}
-	else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
+	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 
 		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
 		
@@ -3166,9 +3167,9 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX			smoothradiusNurb();
 			break;
 		}
-		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	}
-	else if(G.obedit->type==OB_ARMATURE) {
+	else if(obedit->type==OB_ARMATURE) {
 		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
 //		if(nr==1)
 // XXX			subdivide_armature(1);
@@ -3185,7 +3186,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 //		else if(nr == 7)
 // XXX			switch_direction_armature();
 	}
-	else if(G.obedit->type==OB_LATTICE) {
+	else if(obedit->type==OB_LATTICE) {
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
@@ -3227,6 +3228,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 {
 	Base *base, *basen=NULL, *basact, *basedel=NULL;
 	Object *obact, *ob, *ob1;
+	Object *obedit= NULL; // XXX
 	Curve *cu;
 	Nurb *nu;
 	MetaBall *mb;
@@ -3238,7 +3240,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 	obact= OBACT;
 	if (obact == NULL) return;
 	if(!obact->flag & SELECT) return;
-	if(G.obedit) return;
+	if(obedit) return;
 	
 	basact= BASACT;	/* will be restored */
 		
@@ -3546,8 +3548,8 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	if(level == -1) {
-		if (G.obedit) {
-			object_has_subdivision_particles(G.obedit, &havesubdiv, &havepart, 0);			
+		if (scene->obedit) { // XXX get from context
+			object_has_subdivision_particles(scene->obedit, &havesubdiv, &havepart, 0);			
 		} else {
 			for(base= scene->base.first; base; base= base->next) {
 				if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
@@ -3569,8 +3571,8 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 	else if(havepart)
 		particles= 1;
 
-	if (G.obedit) {	
-		object_flip_subdivison_particles(scene, G.obedit, &set, level, mode, particles, 0);
+	if (scene->obedit) {	 // XXX get from context
+		object_flip_subdivison_particles(scene, scene->obedit, &set, level, mode, particles, 0);
 	} else {
 		for(base= scene->base.first; base; base= base->next) {
 			if(((level==-1) && (TESTBASE(v3d, base))) || (TESTBASELIB(v3d, base))) {
@@ -3847,7 +3849,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 
 	if(!(ob=OBACT)) return;
 	
-	if(G.obedit) {
+	if(scene->obedit) { // XXX get from context
 		/* obedit_copymenu(); */
 		return;
 	}
@@ -4099,7 +4101,7 @@ void copy_attr_menu(Scene *scene, View3D *v3d)
 	
 	if(!(ob=OBACT)) return;
 	
-	if (G.obedit) {
+	if (scene->obedit) { // XXX get from context
 //		if (ob->type == OB_MESH)
 // XXX			mesh_copy_menu();
 		return;
@@ -4761,7 +4763,7 @@ void apply_object(Scene *scene, View3D *v3d)
 	int shift= 0;
 	
 	if(scene->id.lib) return;
-	if(G.obedit) return;
+	if(scene->obedit) return; // XXX get from context
 	
 	if(shift) {
 		ob= OBACT;
@@ -5791,7 +5793,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 	float x, y, space;
 	int a, b, done;
 	
-	if(G.obedit) return;
+	if(scene->obedit) return; // XXX get from context
 	if(scene->id.lib) return;
 	
 	for(base= FIRSTBASE; base; base= base->next) {
@@ -6044,7 +6046,7 @@ void texspace_edit(Scene *scene, View3D *v3d)
 	 * texspacedraw is set:
 	 */
 	
-	if(G.obedit) return;
+	if(scene->obedit) return; // XXX get from context
 	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {

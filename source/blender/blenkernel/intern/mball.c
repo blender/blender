@@ -287,7 +287,6 @@ int is_basis_mball(Object *ob)
  */
 Object *find_basis_mball(Object *basis)
 {
-	extern ListBase editelems; /* editmball.c */
 	Base *base;
 	Object *ob,*bob= basis;
 	MetaElem *ml=NULL;
@@ -302,13 +301,13 @@ Object *find_basis_mball(Object *basis)
 		
 		if (ob->type==OB_MBALL) {
 			if(ob==bob){
+				MetaBall *mb= ob->data;
+				
 				/* if bob object is in edit mode, then dynamic list of all MetaElems
 				 * is stored in editelems */
-				if(ob==G.obedit) ml= editelems.first;
-				/* keep track of linked data too! */
-				else if(G.obedit && G.obedit->data==ob->data) ml= editelems.first;
+				if(mb->editelems) ml= mb->editelems->first;
 				/* if bob object is in object mode */
-				else ml= ((MetaBall*)ob->data)->elems.first;
+				else ml= mb->elems.first;
 			}
 			else{
 				splitIDname(ob->id.name+2, obname, &obnr);
@@ -316,13 +315,13 @@ Object *find_basis_mball(Object *basis)
 				/* object ob has to be in same "group" ... it means, that it has to have
 				 * same base of its name */
 				if(strcmp(obname, basisname)==0){
+					MetaBall *mb= ob->data;
+					
 					/* if object is in edit mode, then dynamic list of all MetaElems
 					 * is stored in editelems */
-					if(ob==G.obedit) ml= editelems.first;
-					/* keep track of linked data too! */
-					else if(bob==G.obedit && bob->data==ob->data) ml= editelems.first;
-					/* object is in object mode */
-					else ml= ((MetaBall*)ob->data)->elems.first;
+					if(mb->editelems) ml= mb->editelems->first;
+					/* if bob object is in object mode */
+					else ml= mb->elems.first;
 					
 					if(obnr<basisnr){
 						if(!(ob->flag & OB_FROMDUPLI)){
@@ -1454,7 +1453,6 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 
 float init_meta(Object *ob)	/* return totsize */
 {
-	extern ListBase editelems; /* editmball.c */
 	Base *base;
 	Object *bob;
 	MetaBall *mb;
@@ -1483,8 +1481,7 @@ float init_meta(Object *ob)	/* return totsize */
 				mat= imat= 0;
 				mb= ob->data;
 	
-				if(ob==G.obedit) ml= editelems.first;
-				else if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) ml= editelems.first;
+				if(mb->editelems) ml= mb->editelems->first;
 				else ml= mb->elems.first;
 			}
 			else {
@@ -1494,8 +1491,8 @@ float init_meta(Object *ob)	/* return totsize */
 				splitIDname(bob->id.name+2, name, &nr);
 				if( strcmp(obname, name)==0 ) {
 					mb= bob->data;
-					if(G.obedit && G.obedit->type==OB_MBALL && G.obedit->data==mb) 
-						ml= editelems.first;
+					
+					if(mb->editelems) ml= mb->editelems->first;
 					else ml= mb->elems.first;
 				}
 			}

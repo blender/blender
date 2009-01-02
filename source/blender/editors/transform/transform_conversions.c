@@ -1968,7 +1968,7 @@ static float *get_crazy_mapped_editverts(TransInfo *t)
 	}
 
 	/* now get the cage */
-	dm= editmesh_get_derived_cage(me->edit_mesh, CD_MASK_BAREMESH);
+	dm= editmesh_get_derived_cage(t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
 	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
@@ -2183,7 +2183,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 			if(modifiers_isDeformed(t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(em, &defmats, &defcos);
+				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
@@ -3950,8 +3950,7 @@ static void recalc_all_ipos(void)
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
-	Base *base;
-	short redrawipo=0, resetslowpar=1;
+//	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
 	
@@ -4000,7 +3999,6 @@ void special_aftertrans_update(TransInfo *t)
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				Object *nob= ANIM_nla_mapping_get(&ac, ale);
 				Ipo *ipo= ale->key_data;
-				IpoCurve *icu;
 				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )

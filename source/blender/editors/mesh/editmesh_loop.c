@@ -146,7 +146,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 	if(previewlines > 0 && select == 0){
 // XXX			persp(PERSP_VIEW);
 // XXX			glPushMatrix();
-// XXX			mymultmatrix(G.obedit->obmat);
+// XXX			mymultmatrix(obedit->obmat);
 
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->v4 == NULL) {  continue; }
@@ -193,7 +193,7 @@ static void edgering_sel(EditMesh *em, EditEdge *startedge, int select, int prev
 		}
 	}
 }
-void CutEdgeloop(EditMesh *em, int numcuts)
+void CutEdgeloop(Object *obedit, EditMesh *em, int numcuts)
 {
 	ViewContext vc; // XXX
 	EditEdge *nearest=NULL, *eed;
@@ -363,9 +363,9 @@ void CutEdgeloop(EditMesh *em, int numcuts)
 		fac= 1.0f;
 // XXX		if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
 		fac= 0.292f*fac;			
-		esubdivideflag(em, SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
 	} else {
-		esubdivideflag(em, SELECT,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
 	}
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1 && hasHidden == 0){
@@ -383,7 +383,7 @@ void CutEdgeloop(EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	return;
 }
 
@@ -449,7 +449,7 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 /* prototype */
 static float seg_intersect(struct EditEdge * e, CutCurve *c, int len, char mode, struct GHash *gh);
 
-void KnifeSubdivide(EditMesh *em, char mode)
+void KnifeSubdivide(Object *obedit, EditMesh *em, char mode)
 {
 	EditEdge *eed;
 	EditVert *eve;
@@ -461,7 +461,7 @@ void KnifeSubdivide(EditMesh *em, char mode)
 	short numcuts=1;
 	float  *scr, co[4];
 	
-	if (G.obedit==0) return;
+	if (em==NULL) return;
 
 	if (EM_nvertices_selected(em) < 2) {
 		error("No edges are selected to operate on");
@@ -488,7 +488,7 @@ void KnifeSubdivide(EditMesh *em, char mode)
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
 		VECCOPY(co, eve->co);
 		co[3]= 1.0;
-		Mat4MulVec4fl(G.obedit->obmat, co);
+//		Mat4MulVec4fl(obedit->obmat, co);
 // XXX		project_float(co,scr);
 		BLI_ghash_insert(gh, eve, scr);
 		eve->f1 = 0; /*store vertex intersection flag here*/
@@ -514,9 +514,9 @@ void KnifeSubdivide(EditMesh *em, char mode)
 			eed= eed->next;
 		}
 		
-		if(mode==KNIFE_EXACT) esubdivideflag(em, SELECT, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MIDPOINT) esubdivideflag(em, SELECT, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
-		else if (mode==KNIFE_MULTICUT) esubdivideflag(em, SELECT, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
+		if(mode==KNIFE_EXACT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
 
 		eed=em->edges.first;
 		while(eed){
@@ -687,7 +687,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	return(perc);
 } 
 
-void LoopMenu(EditMesh *em) /* Called by KKey */
+void LoopMenu(Object *obedit, EditMesh *em) /* Called by KKey */
 {
 	short ret;
 	
@@ -696,16 +696,16 @@ void LoopMenu(EditMesh *em) /* Called by KKey */
 				
 	switch (ret){
 		case 2:
-			CutEdgeloop(em, 1);
+			CutEdgeloop(obedit, em, 1);
 			break;
 		case 3: 
-			KnifeSubdivide(em, KNIFE_EXACT);
+			KnifeSubdivide(obedit, em, KNIFE_EXACT);
 			break;
 		case 4:
-			KnifeSubdivide(em, KNIFE_MIDPOINT);
+			KnifeSubdivide(obedit, em, KNIFE_MIDPOINT);
 			break;
 		case 5:
-			KnifeSubdivide(em, KNIFE_MULTICUT);
+			KnifeSubdivide(obedit, em, KNIFE_MULTICUT);
 			break;
 	}
 

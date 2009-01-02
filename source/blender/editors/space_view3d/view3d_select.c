@@ -569,10 +569,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 	for (ebone=G.edbo.first; ebone; ebone=ebone->next) {
 
 		VECCOPY(vec, ebone->head);
-		Mat4MulVecfl(G.obedit->obmat, vec);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
 		project_short(vc->ar, vc->v3d, vec, sco1);
 		VECCOPY(vec, ebone->tail);
-		Mat4MulVecfl(G.obedit->obmat, vec);
+		Mat4MulVecfl(vc->obedit->obmat, vec);
 		project_short(vc->ar, vc->v3d, vec, sco2);
 		
 		didpoint= 0;
@@ -649,7 +649,7 @@ static void do_lasso_select_node(short mcords[][2], short moves, short select)
 
 void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short select)
 {
-	if(G.obedit==NULL) {
+	if(vc->obedit==NULL) {
 		if(FACESEL_PAINT_TEST)
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
@@ -659,13 +659,13 @@ void view3d_lasso_select(ViewContext *vc, short mcords[][2], short moves, short 
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
 	}
-	else if(G.obedit->type==OB_MESH) {
+	else if(vc->obedit->type==OB_MESH) {
 		do_lasso_select_mesh(vc, mcords, moves, select);
-	} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+	} else if(vc->obedit->type==OB_CURVE || vc->obedit->type==OB_SURF) 
 		do_lasso_select_curve(vc, mcords, moves, select);
-	else if(G.obedit->type==OB_LATTICE) 
+	else if(vc->obedit->type==OB_LATTICE) 
 		do_lasso_select_lattice(vc, mcords, moves, select);
-	else if(G.obedit->type==OB_ARMATURE)
+	else if(vc->obedit->type==OB_ARMATURE)
 		do_lasso_select_armature(vc, mcords, moves, select);
 
 	BIF_undo_push("Lasso select");
@@ -934,7 +934,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 	
 	/* This block uses the control key to make the object selected by its center point rather then its contents */
 	/* XXX later on, in editmode do not activate */
-	if(G.obedit==NULL && obcenter) {
+	if(vc.obedit==NULL && obcenter) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
 		/* XXX solve */
@@ -1088,7 +1088,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 	/* so, do we have something selected? */
 	if(basact) {
 		
-		if(G.obedit) {
+		if(vc.obedit) {
 			/* only do select */
 			deselectall_except(scene, basact);
 			ED_base_object_select(basact, BA_SELECT);
@@ -1287,6 +1287,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
+	Object *obedit= CTX_data_edit_object(C);
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
@@ -1305,29 +1306,29 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
-	if(G.obedit==NULL && (FACESEL_PAINT_TEST)) {
+	if(obedit==NULL && (FACESEL_PAINT_TEST)) {
 // XXX		face_borderselect();
 		return OPERATOR_FINISHED;
 	}
-	else if(G.obedit==NULL && (G.f & G_PARTICLEEDIT)) {
+	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
 // XXX		PE_borderselect();
 		return OPERATOR_FINISHED;
 	}
 	
-	if(G.obedit) {
-		if(G.obedit->type==OB_MESH) {
-			Mesh *me= G.obedit->data;
+	if(obedit) {
+		if(obedit->type==OB_MESH) {
+			Mesh *me= obedit->data;
 			vc.em= me->edit_mesh;
 			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
 //			if (EM_texFaceCheck())
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, G.obedit);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 			
 		}
-		else if(ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
+		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
 //			allqueue(REDRAWVIEW3D, 0);
 		}
-		else if(G.obedit->type==OB_MBALL) {
+		else if(obedit->type==OB_MBALL) {
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 			
 			ml= NULL; // XXX editelems.first;
@@ -1350,7 +1351,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				ml= ml->next;
 			}
 		}
-		else if(G.obedit->type==OB_ARMATURE) {
+		else if(obedit->type==OB_ARMATURE) {
 			EditBone *ebone;
 			
 			/* clear flag we use to detect point was affected */
@@ -1403,7 +1404,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			}
 			
 		}
-		else if(G.obedit->type==OB_LATTICE) {
+		else if(obedit->type==OB_LATTICE) {
 			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);
 		}
 	}

@@ -35,8 +35,6 @@
 struct bContext;
 struct wmOperatorType;
 
-#define TEST_EDITMESH	if(G.obedit==0) return; /* layer test XXX */
-
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
 /* ******************** editface.c */
@@ -136,8 +134,8 @@ void recalc_editnormals(EditMesh *em);
 extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor);
 extern short extrudeflag_edges_indiv(EditMesh *em, short flag, float *nor);
-extern short extrudeflag_vert(EditMesh *em, short flag, float *nor);
-extern short extrudeflag(EditMesh *em, short flag, float *nor);
+extern short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor);
+extern short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor);
 
 extern void adduplicateflag(EditMesh *em, int flag);
 extern void delfaceflag(EditMesh *em, int flag);
@@ -193,7 +191,7 @@ extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short st
 
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, short immediate, float imperc);
 
 

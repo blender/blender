@@ -1285,7 +1285,7 @@ void multires_set_level(Object *ob, Mesh *me, const int render)
 /* Update the edge visibility flags to only show edges on or below the edgelvl */
 void multires_edge_level_update(Object *ob, Mesh *me)
 {
-	if(!G.obedit) {
+	if(!me->edit_mesh) {
 		MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 		MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
 		const int threshold= edge_lvl->totedge * pow(2, me->mr->current - me->mr->edgelvl);

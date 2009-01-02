@@ -131,14 +131,13 @@ static void get_view_aligned_coordinate(float *fp, short mval[2])
 //	}
 }
 
-void add_click_mesh(Scene *scene, EditMesh *em)
+void add_click_mesh(Scene *scene, Object *obedit, EditMesh *em)
 {
 	View3D *v3d= NULL; // XXX
 	EditVert *eve, *v1;
 	float min[3], max[3];
 	int done= 0;
 	
-	TEST_EDITMESH
 	if(multires_test()) return;
 	
 	INIT_MINMAX(min, max);
@@ -174,10 +173,10 @@ void add_click_mesh(Scene *scene, EditMesh *em)
 		VecMulf(cent, 0.5f);
 		VECCOPY(min, cent);
 		
-		Mat4MulVecfl(G.obedit->obmat, min);	// view space
+		Mat4MulVecfl(obedit->obmat, min);	// view space
 		get_view_aligned_coordinate(min, mval);
-		Mat4Invert(G.obedit->imat, G.obedit->obmat); 
-		Mat4MulVecfl(G.obedit->imat, min); // back in object space
+		Mat4Invert(obedit->imat, obedit->obmat); 
+		Mat4MulVecfl(obedit->imat, min); // back in object space
 		
 		VecSubf(min, min, cent);
 		
@@ -206,7 +205,7 @@ void add_click_mesh(Scene *scene, EditMesh *em)
 			}
 		}
 		
-		extrudeflag(em, SELECT, nor);
+		extrudeflag(obedit, em, SELECT, nor);
 		rotateflag(em, SELECT, cent, mat);
 		translateflag(em, SELECT, min);
 		
@@ -218,11 +217,11 @@ void add_click_mesh(Scene *scene, EditMesh *em)
 		
 		eve= addvertlist(em, 0, NULL);
 
-		Mat3CpyMat4(mat, G.obedit->obmat);
+		Mat3CpyMat4(mat, obedit->obmat);
 		Mat3Inv(imat, mat);
 		
 		VECCOPY(eve->co, curs);
-		VecSubf(eve->co, eve->co, G.obedit->obmat[3]);
+		VecSubf(eve->co, eve->co, obedit->obmat[3]);
 
 		Mat3MulVecfl(imat, eve->co);
 		
@@ -232,7 +231,7 @@ void add_click_mesh(Scene *scene, EditMesh *em)
 	retopo_do_all();
 	
 	BIF_undo_push("Add vertex/edge/face");
-// XXX	DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
+// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	
 	while(0); // XXX get_mbut()&R_MOUSE);
 
@@ -258,7 +257,7 @@ static void make_fgon(EditMesh *em, int make)
 			}
 		}
 		EM_fgon_flags(em);	// redo flags and indices for fgons
-// XXX		DAG_object_flush_update(scene, G.obedit, OB_RECALC_DATA);	
+// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		BIF_undo_push("Clear FGon");
 		return;
 	}
@@ -335,7 +334,7 @@ static void make_fgon(EditMesh *em, int make)
 	else {
 		EM_fgon_flags(em);	// redo flags and indices for fgons
 
-// XXX		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+// XXX		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
 		BIF_undo_push("Make FGon");
 	}
 }
@@ -601,7 +600,7 @@ void addfaces_from_edgenet(EditMesh *em)
 	EM_select_flush(em);
 	
 	BIF_undo_push("Add faces");
-// XXX	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 }
 
 void addedgeface_mesh(EditMesh *em)
@@ -633,7 +632,7 @@ void addedgeface_mesh(EditMesh *em)
 		EM_select_edge(eed, 1);
 		BIF_undo_push("Add edge");
 
-		// XXX		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+		// XXX		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
@@ -735,14 +734,13 @@ void addedgeface_mesh(EditMesh *em)
 		BIF_undo_push("Add face");
 	}
 	
-// XXX	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
 }
 
 
-void adduplicate_mesh(EditMesh *em)
+void adduplicate_mesh(Object *obedit, EditMesh *em)
 {
 
-	TEST_EDITMESH
 	if(multires_test()) return;
 
 	waitcursor(1);
@@ -757,8 +755,8 @@ void adduplicate_mesh(EditMesh *em)
 		* This shouldn't be necessary, derived queries should be
 		* automatically building this data if invalid. Or something.
 		*/
-// XXX	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
-	object_handle_update(G.obedit);
+// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+	object_handle_update(obedit);
 
 // XXX	BIF_TransformSetUndo("Add Duplicate");
 //	initTransform(TFM_TRANSLATION, CTX_NO_PET);
@@ -767,32 +765,32 @@ void adduplicate_mesh(EditMesh *em)
 
 /* check whether an object to add mesh to exists, if not, create one
 * returns 1 if new object created, else 0 */
-static int confirm_objectExists(Scene *scene, Mesh **me, float mat[][3] )
+static int confirm_objectExists(Scene *scene, Object *obedit, Mesh **me, float mat[][3] )
 {
 	int newob = 0;
 	
 	/* if no obedit: new object and enter editmode */
-	if(G.obedit==NULL) {
+	if(obedit==NULL) {
 		/* add_object actually returns an object ! :-)
 		But it also stores the added object struct in
 		G.scene->basact->object (BASACT->object) */
 
 // XXX		add_object_draw(OB_MESH);
 
-		G.obedit= BASACT->object;
+		obedit= BASACT->object;
 		
-		where_is_object(G.obedit);
+		where_is_object(obedit);
 		
-		make_editMesh(scene, G.obedit); 
+		make_editMesh(scene, obedit); 
 		newob= 1;
 	}
-	*me = G.obedit->data;
+	*me = obedit->data;
 	
 	/* deselectall */
 	EM_clear_flag_all((*me)->edit_mesh, SELECT);
 	
 	/* imat and center and size */
-	Mat3CpyMat4(mat, G.obedit->obmat);
+	Mat3CpyMat4(mat, obedit->obmat);
 	
 	return newob;
 }
@@ -943,7 +941,7 @@ signed char monkeyf[250][4]= {
 	// ------------------------------- end copied code
 
 
-void make_prim(EditMesh *em, int type, float imat[3][3], int tot, int seg,
+void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot, int seg,
 		int subdiv, float dia, float d, int ext, int fill,
         float cent[3])
 {
@@ -992,7 +990,7 @@ void make_prim(EditMesh *em, int type, float imat[3][3], int tot, int seg,
 		vec[1]= dia*phid;
 		Mat3MulVecfl(imat, vec);
 		for(a=0;a<seg-1;a++) {
-			extrudeflag_vert(em, 2, nor);	// nor unused
+			extrudeflag_vert(obedit, em, 2, nor);	// nor unused
 			translateflag(em, 2, vec);
 		}
 		break;
@@ -1027,7 +1025,7 @@ void make_prim(EditMesh *em, int type, float imat[3][3], int tot, int seg,
 		QuatToMat3(q, cmat);
 		
 		for(a=0; a<seg; a++) {
-			extrudeflag_vert(em, 2, nor); // nor unused
+			extrudeflag_vert(obedit, em, 2, nor); // nor unused
 			rotateflag(em, 2, v1->co, cmat);
 		}
 
@@ -1074,7 +1072,7 @@ void make_prim(EditMesh *em, int type, float imat[3][3], int tot, int seg,
 			}
 
 			dia*=200;
-			for(a=1; a<subdiv; a++) esubdivideflag(em, 2, dia, 0,1,0);
+			for(a=1; a<subdiv; a++) esubdivideflag(obedit, em, 2, dia, 0,1,0);
 			/* and now do imat */
 			eve= em->verts.first;
 			while(eve) {
@@ -1234,7 +1232,7 @@ void make_prim(EditMesh *em, int type, float imat[3][3], int tot, int seg,
 		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
 }
 
-void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
+void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, int type)
 {
 	Mesh *me;
 	float *curs, d, dia, phi, phid, cent[3], imat[3][3], mat[3][3];
@@ -1252,7 +1250,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 	/* this function also comes from an info window */
 // XXX	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 
-	if (G.obedit && G.obedit->type==OB_MESH && multires_test()) return;
+	if (obedit && obedit->type==OB_MESH && multires_test()) return;
 	
 	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
@@ -1272,7 +1270,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		tot= 4;
 		ext= 0;
 		fill= 1;
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Plane";
 		undostr="Add Plane";
 		break;
@@ -1280,7 +1278,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		tot= 4;
 		ext= 1;
 		fill= 1;
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Cube";
 		undostr="Add Cube";
 		break;
@@ -1291,7 +1289,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		if (!(do_clever_numbuts("Add Circle", 3, 0))) return;
 		ext= 0;
 		fill = fill_circle;
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Circle";
 		undostr="Add Circle";
 		break;
@@ -1305,7 +1303,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		ext= 1;
 		fill = fill_cylinder;
 		d/=2;
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) {
 			if (fill)	name = "Cylinder";
 			else		name = "Tube";
@@ -1322,7 +1320,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		d/=2;
 		ext= 0;
 		fill = fill_cone;
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Cone";
 		undostr="Add Cone";
 		break;
@@ -1330,7 +1328,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		add_numbut(0, NUM|INT, "X res:", 3, 1000, &tot, NULL);
 		add_numbut(1, NUM|INT, "Y res:", 3, 1000, &seg, NULL);
 		if (!(do_clever_numbuts("Add Grid", 2, 0))) return; 
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Grid";
 		undostr="Add Grid";
 		break;
@@ -1341,7 +1339,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		
 		if (!(do_clever_numbuts("Add UV Sphere", 3, 0))) return;
 		
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add UV Sphere";
 		break;
@@ -1350,31 +1348,31 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*v3d->grid, 100*v3d->grid, &dia, NULL);
 		if (!(do_clever_numbuts("Add Ico Sphere", 2, 0))) return;
 		
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add Ico Sphere";
 		break;
 	case 13:	/* Monkey */
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		if(newob) name = "Suzanne";
 		undostr="Add Monkey";
 		break;
 	default:
-		newob = confirm_objectExists(scene, &me, mat );
+		newob = confirm_objectExists(scene, obedit, &me, mat );
 		break;
 	}
 
 	if( name!=NULL ) {
-		rename_id((ID *)G.obedit, name );
+		rename_id((ID *)obedit, name );
 		rename_id((ID *)me, name );
 	}
 	
 	d = -d;
 	curs= give_cursor(scene, v3d);
 	VECCOPY(cent, curs);
-	cent[0]-= G.obedit->obmat[3][0];
-	cent[1]-= G.obedit->obmat[3][1];
-	cent[2]-= G.obedit->obmat[3][2];
+	cent[0]-= obedit->obmat[3][0];
+	cent[1]-= obedit->obmat[3][1];
+	cent[2]-= obedit->obmat[3][2];
 
 	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(imat, v3d->viewmat);
 	else Mat3One(imat);
@@ -1389,7 +1387,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	make_prim(em, type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
+	make_prim(obedit, em, type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
 
 	if(type<2) tot = totoud;
 
@@ -1398,11 +1396,11 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, EditMesh *em, int type)
 	
 	if(type!=0 && type!=13) righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction... */
 
-// XXX	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
 	
 	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
 	if ( !(newob) || U.flag & USER_ADD_EDITMODE) {
-		if(newob) load_editMesh(scene, G.obedit);
+		if(newob) load_editMesh(scene, obedit);
 	} else {
 		exit_editmode(2);
 	}

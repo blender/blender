@@ -1136,7 +1136,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 	disp->first = disp->last = NULL;
 
 	/* if a font object is being edited, then do nothing */
-	if( ob == G.obedit && ob->type == OB_FONT ) return;
+// XXX	if( ob == obedit && ob->type == OB_FONT ) return;
 
 	if(cu->bevobj && cu->bevobj!=ob) {
 		if(cu->bevobj->type==OB_CURVE) {
@@ -1529,7 +1529,7 @@ void makeBevelList(Object *ob)
 	/* STEP 1: MAKE POLYS  */
 
 	BLI_freelistN(&(cu->bev));
-	if(ob==G.obedit && ob->type!=OB_FONT) nu= editNurb.first;
+	if(cu->editnurb && ob->type!=OB_FONT) nu= cu->editnurb->first;
 	else nu= cu->nurb.first;
 	
 	while(nu) {

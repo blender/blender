@@ -231,11 +231,11 @@ int calc_manipulator_stats(ScrArea *sa)
 	G.scene->twcent[0]= G.scene->twcent[1]= G.scene->twcent[2]= 0.0f;
 	INIT_MINMAX(G.scene->twmin, G.scene->twmax);
 	
-	if(G.obedit) {
-		ob= G.obedit;
+	if(t->obedit) {
+		ob= t->obedit;
 		if((ob->lay & G.vd->lay)==0) return 0;
 
-		if(G.obedit->type==OB_MESH) {
+		if(t->obedit->type==OB_MESH) {
 			EditMesh *em = NULL; // TRANSFORM_FIX_ME
 			EditVert *eve;
 			EditSelection ese;
@@ -256,8 +256,8 @@ int calc_manipulator_stats(ScrArea *sa)
 				}
 			}
 		} /* end editmesh */
-		else if (G.obedit->type==OB_ARMATURE){
-			bArmature *arm= G.obedit->data;
+		else if (t->obedit->type==OB_ARMATURE){
+			bArmature *arm= t->obedit->data;
 			EditBone *ebo;
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				if(ebo->layer & arm->layer) {
@@ -275,7 +275,7 @@ int calc_manipulator_stats(ScrArea *sa)
 				}
 			}
 		}
-		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
+		else if ELEM3(t->obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
@@ -331,7 +331,7 @@ int calc_manipulator_stats(ScrArea *sa)
 				nu= nu->next;
 			}
 		}
-		else if(G.obedit->type==OB_MBALL) {
+		else if(t->obedit->type==OB_MBALL) {
 			/* editmball.c */
 			extern ListBase editelems;  /* go away ! */
 			MetaElem *ml, *ml_sel=NULL;
@@ -346,7 +346,7 @@ int calc_manipulator_stats(ScrArea *sa)
 				ml= ml->next;
 			}
 		}
-		else if(G.obedit->type==OB_LATTICE) {
+		else if(t->obedit->type==OB_LATTICE) {
 			BPoint *bp;
 			bp= editLatt->def;
 			
@@ -363,9 +363,9 @@ int calc_manipulator_stats(ScrArea *sa)
 		/* selection center */
 		if(totsel) {
 			VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
-			Mat4MulVecfl(G.obedit->obmat, G.scene->twcent);
-			Mat4MulVecfl(G.obedit->obmat, G.scene->twmin);
-			Mat4MulVecfl(G.obedit->obmat, G.scene->twmax);
+			Mat4MulVecfl(t->obedit->obmat, G.scene->twcent);
+			Mat4MulVecfl(t->obedit->obmat, G.scene->twmin);
+			Mat4MulVecfl(t->obedit->obmat, G.scene->twmax);
 		}
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
@@ -451,7 +451,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			break;
 			
 		case V3D_MANIP_NORMAL:
-			if(G.obedit || ob->flag & OB_POSEMODE) {
+			if(t->obedit || ob->flag & OB_POSEMODE) {
 				float mat[3][3];
 				int type;
 				
@@ -1435,7 +1435,7 @@ void BIF_draw_manipulator(ScrArea *sa)
 			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0f;
 			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0f;
 			v3d->twmat[3][2]= (G.scene->twmin[2] + G.scene->twmax[2])/2.0f;
-			if(v3d->around==V3D_ACTIVE && G.obedit==NULL) {
+			if(v3d->around==V3D_ACTIVE && t->obedit==NULL) {
 				Object *ob= OBACT;
 				if(ob && !(ob->flag & OB_POSEMODE)) 
 					VECCOPY(v3d->twmat[3], ob->obmat[3]);

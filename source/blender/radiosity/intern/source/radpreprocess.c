@@ -314,11 +314,6 @@ void rad_collect_meshes(View3D *v3d)
 		return;
 	}
 	
-	if(G.obedit) {
-		if (!during_script()); //XXX  error("Unable to perform function in EditMode");
-		return;
-	}
-
 	set_radglobal();
 
 	freeAllRad();

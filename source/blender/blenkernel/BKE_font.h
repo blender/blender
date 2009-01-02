@@ -67,7 +67,7 @@ struct chartrans *text_to_curve(struct Object *ob, int mode);
 int style_to_sel(int style, int toggle);
 int mat_to_sel(void);
 
-int getselection(int *start, int *end);
+int getselection(struct Object *ob, int *start, int *end);
 
 void chtoutf8(unsigned long c, char *o);
 void wcs2utf8s(char *dst, wchar_t *src);

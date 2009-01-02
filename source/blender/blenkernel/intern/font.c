@@ -622,13 +622,11 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	}
 }
 
-int getselection(int *start, int *end)
+int getselection(Object *ob, int *start, int *end)
 {
-	Curve *cu;
+	Curve *cu= ob->data;
 	
-	if (G.obedit==NULL || G.obedit->type != OB_FONT) return 0;
-	
-	cu= G.obedit->data;
+	if (cu->editstr==NULL || ob->type != OB_FONT) return 0;
 
 	if (cu->selstart == 0) return 0;
 	if (cu->selstart <= cu->selend) {
@@ -677,8 +675,8 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	cu= (Curve *) ob->data;
 	vfont= cu->vfont;
 
-	if(cu->str == 0) return 0;
-	if(vfont == 0) return 0;
+	if(cu->str == NULL) return 0;
+	if(vfont == NULL) return 0;
 
 	// Create unicode string
 	utf8len = utf8slen(cu->str);
@@ -731,7 +729,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	if (selboxes) MEM_freeN(selboxes);
 	selboxes = NULL;
-	if (getselection(&selstart, &selend))
+	if (getselection(ob, &selstart, &selend))
 		selboxes = MEM_callocN((selend-selstart+1)*sizeof(SelBox), "font selboxes");
 
 	tb = &(cu->tb[0]);
@@ -1113,7 +1111,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	}
 	
 	/* cursor first */
-	if(ob==G.obedit) {
+	if(cu->editstr) {
 		ct= chartransdata+cu->pos;
 		si= (float)sin(ct->rot);
 		co= (float)cos(ct->rot);

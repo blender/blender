@@ -77,10 +77,10 @@ void BIF_manageTransformOrientation(int confirm, int set) {
 	Object *ob = OBACT;
 	int index = -1; 
 	
-	if (G.obedit) {
-		if (G.obedit->type == OB_MESH)
+	if (t->obedit) {
+		if (t->obedit->type == OB_MESH)
 			index = manageMeshSpace(confirm, set);
-		else if (G.obedit->type == OB_ARMATURE)
+		else if (t->obedit->type == OB_ARMATURE)
 			index = manageBoneSpace(confirm, set);
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {
@@ -431,6 +431,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
+	Object *obedit= CTX_data_edit_object(C);
 	Base *base;
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
@@ -438,7 +439,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 	normal[0] = normal[1] = normal[2] = 0;
 	plane[0] = plane[1] = plane[2] = 0;
 
-	if(G.obedit)
+	if(obedit)
 	{
 		float imat[3][3], mat[3][3];
 		
@@ -448,7 +449,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 		Mat3Inv(mat, imat);
 		Mat3Transp(mat);
 
-		ob= G.obedit;
+		ob= obedit;
 
 		if(ob->type==OB_MESH)
 		{
@@ -598,7 +599,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 				}
 			}
 		} /* end editmesh */
-		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT)
+		else if ELEM3(obedit->type, OB_CURVE, OB_SURF, OB_FONT)
 		{
 			extern ListBase editNurb; /* BOOO! go away stupid extern */
 			Nurb *nu;
@@ -644,7 +645,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 				result = ORIENTATION_NORMAL;
 			}
 		}
-		else if(G.obedit->type==OB_MBALL)
+		else if(obedit->type==OB_MBALL)
 		{
 			/* editmball.c */
 			extern ListBase editelems;  /* go away ! */
@@ -681,9 +682,9 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 				result = ORIENTATION_NORMAL;
 			}
 		}
-		else if (G.obedit->type == OB_ARMATURE)
+		else if (obedit->type == OB_ARMATURE)
 		{
-			bArmature *arm = G.obedit->data;
+			bArmature *arm = obedit->data;
 			EditBone *ebone;
 			
 			for (ebone = G.edbo.first; ebone; ebone=ebone->next) {

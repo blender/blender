@@ -132,7 +132,7 @@ static void helpline(TransInfo *t, float *vec)
 	
 	VECCOPY(vecrot, vec);
 	if(t->flag & T_EDIT) {
-		Object *ob=G.obedit;
+		Object *ob= t->obedit;
 		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
 	}
 	else if(t->flag & T_POSE) {
@@ -1126,8 +1126,8 @@ void initManipulator(int mode)
 	Trans.mode = mode;
 	
 	/* automatic switch to scaling bone envelopes */
-	if(mode==TFM_RESIZE && G.obedit && G.obedit->type==OB_ARMATURE) {
-		bArmature *arm= G.obedit->data;
+	if(mode==TFM_RESIZE && t->obedit && t->obedit->type==OB_ARMATURE) {
+		bArmature *arm= t->obedit->data;
 		if(arm->drawtype==ARM_ENVELOPE)
 			mode= TFM_BONE_ENVELOPE;
 	}
@@ -1721,8 +1721,8 @@ int Warp(TransInfo *t, short mval[2])
 	VECCOPY(cursor, curs);
 	VECCOPY(gcursor, cursor);	
 	if (t->flag & T_EDIT) {
-		VecSubf(cursor, cursor, G.obedit->obmat[3]);
-		VecSubf(gcursor, gcursor, G.obedit->obmat[3]);
+		VecSubf(cursor, cursor, t->obedit->obmat[3]);
+		VecSubf(gcursor, gcursor, t->obedit->obmat[3]);
 		Mat3MulVecfl(t->data->smtx, gcursor);
 	}
 	Mat4MulVecfl(t->viewmat, cursor);
@@ -1894,7 +1894,7 @@ int Shear(TransInfo *t, short mval[2])
 		if (td->flag & TD_SKIP)
 			continue;
 
-		if (G.obedit) {
+		if (t->obedit) {
 			float mat3[3][3];
 			Mat3MulMat3(mat3, totmat, td->mtx);
 			Mat3MulMat3(tmat, td->smtx, mat3);
@@ -1937,7 +1937,7 @@ void initResize(TransInfo *t)
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
 	t->num.flag |= NUM_AFFECT_ALL;
-	if (!G.obedit) {
+	if (!t->obedit) {
 		t->flag |= T_NO_ZERO;
 		t->num.flag |= NUM_NO_ZERO;
 	}
@@ -2916,7 +2916,7 @@ int Translation(TransInfo *t, short mval[2])
 void initShrinkFatten(TransInfo *t) 
 {
 	// If not in mesh edit mode, fallback to Resize
-	if (G.obedit==NULL || G.obedit->type != OB_MESH) {
+	if (t->obedit==NULL || t->obedit->type != OB_MESH) {
 		initResize(t);
 	}
 	else {
@@ -3834,7 +3834,7 @@ void initMirror(TransInfo *t)
 	initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
 	t->flag |= T_NULL_ONE;
-	if (!G.obedit) {
+	if (!t->obedit) {
 		t->flag |= T_NO_ZERO;
 	}
 }

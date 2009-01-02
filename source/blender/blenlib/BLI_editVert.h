@@ -174,6 +174,8 @@ typedef struct EditMesh
 	
 	/* copy from scene */
 	short selectmode;
+	/* copy from object actcol */
+	short mat_nr;
 	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate

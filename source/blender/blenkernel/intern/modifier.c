@@ -7567,7 +7567,7 @@ static void meshdeformModifier_do(
 	
 	/* get cage derivedmesh */
 	if(me->edit_mesh) {
-		tmpdm= editmesh_get_derived_cage_and_final(me->edit_mesh, &cagedm, 0);
+		tmpdm= editmesh_get_derived_cage_and_final(ob, me->edit_mesh, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
 	}
@@ -8718,8 +8718,9 @@ int modifiers_isDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if(ob==G.obedit && (md->mode & eModifierMode_Editmode)==0);
-		else if(modifier_isDeformer(md))
+			// XXX if(ob==obedit && (md->mode & eModifierMode_Editmode)==0);
+			// else 
+			if(modifier_isDeformer(md))
 			return 1;
 	}
 	return 0;

@@ -222,16 +222,11 @@ static void clear_global(void)
 	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
 	
-	if (G.obedit) {
-//		free_editText();
-	}
 //	free_vertexpaint();
 
 	G.curscreen= NULL;
 	G.scene= NULL;
 	G.main= NULL;
-	
-	G.obedit= NULL;
 	
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
 }

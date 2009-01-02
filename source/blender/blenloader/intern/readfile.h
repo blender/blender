@@ -44,7 +44,7 @@ typedef struct FileData {
 	int eof;
 	int buffersize;
 	int seek;
-	int (*read)(struct FileData *filedata, void *buffer, int size);
+	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
 
 	// variables needed for reading from memory / stream
 	char *buffer;

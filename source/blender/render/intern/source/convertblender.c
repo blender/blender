@@ -5532,7 +5532,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 		printf("Need camera to make sticky\n");
 		return;
 	}
-	if(G.obedit) {
+	if(scene->obedit) {
 		printf("Unable to make sticky in Edit Mode\n");
 		return;
 	}

@@ -82,20 +82,22 @@ static void sound_initialize_sounds() {}
 
 void ED_undo_push(bContext *C, char *str)
 {
-	if(G.obedit) {
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit) {
 		if (U.undosteps == 0) return;
 		
-		if(G.obedit->type==OB_MESH)
+		if(obedit->type==OB_MESH)
 			undo_push_mesh(C, str);
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
+		else if ELEM(obedit->type, OB_CURVE, OB_SURF)
 			undo_push_curve(str);
-		else if (G.obedit->type==OB_FONT)
+		else if (obedit->type==OB_FONT)
 			undo_push_font(str);
-		else if (G.obedit->type==OB_MBALL)
+		else if (obedit->type==OB_MBALL)
 			undo_push_mball(str);
-		else if (G.obedit->type==OB_LATTICE)
+		else if (obedit->type==OB_LATTICE)
 			undo_push_lattice(str);
-		else if (G.obedit->type==OB_ARMATURE)
+		else if (obedit->type==OB_ARMATURE)
 			undo_push_armature(str);
 	}
 	else if(G.f & G_PARTICLEEDIT) {
@@ -111,10 +113,11 @@ void ED_undo_push(bContext *C, char *str)
 
 static int ed_undo_step(bContext *C, wmOperator *op, int step)
 {	
+	Object *obedit= CTX_data_edit_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
-	if(G.obedit) {
-		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
+	if(obedit) {
+		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 			undo_editmode_step(C, step);
 	}
 	else {
@@ -167,8 +170,10 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
 
 void ED_undo_menu(bContext *C)
 {
-	if(G.obedit) {
-		//if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
+	Object *obedit= CTX_data_edit_object(C);
+	
+	if(obedit) {
+		//if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 		//	undo_editmode_menu();
 	}
 	else {

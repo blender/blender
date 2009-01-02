@@ -865,9 +865,6 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 // XXX			return; 
 	}
 	
-	if(G.obedit) {
-// XXX		exit_editmode(0);	/* 0 = no free data */
-	}
 	if (G.fileflags & G_AUTOPACK) {
 		packAll();
 	}

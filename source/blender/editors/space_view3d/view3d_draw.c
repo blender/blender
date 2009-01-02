@@ -370,7 +370,7 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 }
 
 
-static void drawfloor(View3D *v3d)
+static void drawfloor(Scene *scene, View3D *v3d)
 {
 	float vert[3], grid;
 	int a, gridlines, emphasise;
@@ -381,7 +381,7 @@ static void drawfloor(View3D *v3d)
 	
 	if(v3d->gridlines<3) return;
 	
-	if(v3d->zbuf && G.obedit) glDepthMask(0);	// for zbuffer-select
+	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 	
 	gridlines= v3d->gridlines/2;
 	grid= gridlines*v3d->grid;
@@ -489,7 +489,7 @@ static void drawfloor(View3D *v3d)
 		glEnd();
 	}
 	
-	if(v3d->zbuf && G.obedit) glDepthMask(1);	
+	if(v3d->zbuf && scene->obedit) glDepthMask(1);	
 	
 }
 
@@ -740,7 +740,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 			char *name= NULL;
 			
 			/* show name of active bone too (if possible) */
-			if(ob==G.obedit) {
+			if(arm->edbo) {
 //	XXX			EditBone *ebo;
 //				for (ebo=G.edbo.first; ebo; ebo=ebo->next){
 //					if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
@@ -1055,7 +1055,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 #endif
 
 	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT);
-	else if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
+	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
 		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
 		return;
@@ -1081,7 +1081,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 #endif
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
-//	ar->win_swap &= ~WIN_BACK_OK;
 	
 	glDisable(GL_DITHER);
 
@@ -1872,7 +1871,7 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->gridview= v3d->grid;
 	
 	if(v3d->view==0 || v3d->persp!=0) {
-		drawfloor(v3d);
+		drawfloor(scene, v3d);
 		if(v3d->persp==2) {
 			if(scene->world) {
 				if(scene->world->mode & WO_STARS) {
@@ -1927,21 +1926,21 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 				draw_dupli_objects(scene, ar, v3d, base);
 			}
 			if((base->flag & SELECT)==0) {
-				if(base->object!=G.obedit) 
+				if(base->object!=scene->obedit) 
 					draw_object(scene, ar, v3d, base, 0);
 			}
 		}
 	}
 	
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-//	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !G.obedit;
+//	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
 	/* draw selected and editmode */
 	for(base= scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
-			if (base->object==G.obedit || ( base->flag & SELECT) ) 
+			if (base->object==scene->obedit || ( base->flag & SELECT) ) 
 				draw_object(scene, ar, v3d, base, 0);
 		}
 	}
@@ -1954,7 +1953,7 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	if(G.moving) {
 //		BIF_drawConstraint();
-//		if(G.obedit || (G.f & G_PARTICLEEDIT))
+//		if(obedit || (G.f & G_PARTICLEEDIT))
 //			BIF_drawPropCircle(); // only editmode and particles have proportional edit
 //		BIF_drawSnap();
 	}
@@ -2025,7 +2024,7 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}
 	// test for backbuf select
-	if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
+	if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX if(afterqtest(ar->win, BACKBUFDRAW)==0) {

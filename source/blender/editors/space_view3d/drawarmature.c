@@ -2516,8 +2516,8 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 	
 	/* arm->flag is being used to detect mode... */
 	/* editmode? */
-	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-		if(ob==G.obedit) arm->flag |= ARM_EDITMODE;
+	if(arm->edbo) {
+		arm->flag |= ARM_EDITMODE;
 		draw_ebones(v3d, ob, dt);
 		arm->flag &= ~ARM_EDITMODE;
 	}

@@ -241,7 +241,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 	}
 }
 
-/* assumes G.obedit set to mesh object */
+/* assumes obedit set to mesh object */
 static void editmesh_apply_to_mirror(TransInfo *t)
 {
 	TransData *td = t->data;
@@ -429,8 +429,8 @@ void recalcData(TransInfo *t)
 			}
 		}
 	}
-	else if (G.obedit) {
-		if (G.obedit->type == OB_MESH) {
+	else if (t->obedit) {
+		if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
 				flushTransUVs(t);
 				if (G.sima->flag & SI_LIVE_UNWRAP)
@@ -442,19 +442,19 @@ void recalcData(TransInfo *t)
 						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
 						retopo_do_all();
 					}
-					clipMirrorModifier(t, G.obedit);
+					clipMirrorModifier(t, t->obedit);
 				}
 				if((t->options & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
-				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 				
 				recalc_editnormals();
 			}
 		}
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			Nurb *nu= editNurb.first;
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
 			if (t->state == TRANS_CANCEL) {
 				while(nu) {
@@ -471,8 +471,8 @@ void recalcData(TransInfo *t)
 				retopo_do_all();
 			}
 		}
-		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
-			bArmature *arm= G.obedit->data;
+		else if(t->obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
+			bArmature *arm= t->obedit->data;
 			EditBone *ebo;
 			TransData *td = t->data;
 			int i;
@@ -548,13 +548,13 @@ void recalcData(TransInfo *t)
 				transform_armature_mirror_update();
 			
 		}
-		else if(G.obedit->type==OB_LATTICE) {
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+		else if(t->obedit->type==OB_LATTICE) {
+			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
 			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
 		}
 		else {
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
@@ -630,7 +630,7 @@ void drawLine(float *center, float *dir, char axis, short options)
 	float v1[3], v2[3], v3[3];
 	char col[3], col2[3];
 	
-	//if(G.obedit) mymultmatrix(G.obedit->obmat);	// sets opengl viewing
+	//if(t->obedit) mymultmatrix(t->obedit->obmat);	// sets opengl viewing
 
 	VecCopyf(v3, dir);
 	VecMulf(v3, G.vd->far);
@@ -671,7 +671,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME	
-//	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
+//	if(obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
 //	else if(G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
 //	else G.moving= G_TRANSFORM_OBJ;
 	
@@ -914,7 +914,7 @@ void restoreTransObjects(TransInfo *t)
 void calculateCenter2D(TransInfo *t)
 {
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Object *ob= t->obedit?t->obedit:t->poseobj;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
@@ -935,7 +935,7 @@ void calculateCenterCursor(TransInfo *t)
 
 	/* If edit or pose mode, move cursor in local space */
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob = G.obedit?G.obedit:t->poseobj;
+		Object *ob = t->obedit?t->obedit:t->poseobj;
 		float mat[3][3], imat[3][3];
 		
 		VecSubf(t->center, t->center, ob->obmat[3]);
@@ -1047,7 +1047,7 @@ void calculateCenter(TransInfo *t)
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
 #if 0 // TRANSFORM_FIX_ME
-		if (G.obedit && G.obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
+		if (t->obedit && t->obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
 			EM_editselection_center(t->center, &ese);
 			calculateCenter2D(t);
 			break;
@@ -1073,7 +1073,7 @@ void calculateCenter(TransInfo *t)
 	VECCOPY(t->con.center, t->center);
 	if(t->flag & (T_EDIT|T_POSE))
 	{
-		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Object *ob= t->obedit?t->obedit:t->poseobj;
 		Mat4MulVecfl(ob->obmat, t->con.center);
 	}
 
@@ -1113,7 +1113,7 @@ void calculateCenter(TransInfo *t)
 	{
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
 		if(t->flag & (T_EDIT|T_POSE)) {
-			Object *ob= G.obedit?G.obedit:t->poseobj;
+			Object *ob= t->obedit?t->obedit:t->poseobj;
 			float vec[3];
 			
 			VECCOPY(vec, t->center);
