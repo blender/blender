@@ -23,6 +23,7 @@
  */
 
 #include <float.h>
+#include <limits.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -514,10 +515,88 @@ static void rna_def_modifier_boolean(BlenderRNA *brna)
 static void rna_def_modifier_array(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_fit_type_items[] = {
+		{MOD_ARR_FIXEDCOUNT, "FIXEDCOUNT", "Fixed Count", ""},
+		{MOD_ARR_FITLENGTH, "FITLENGTH", "Fit Length", ""},
+		{MOD_ARR_FITCURVE, "FITCURVE", "Fit Curve", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ArrayModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Array Modifier", "Array Modifier.");
 	RNA_def_struct_sdna(srna, "ArrayModifierData");
+
+	/* Length parameters */
+	prop= RNA_def_property(srna, "fit_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_fit_type_items);
+	RNA_def_property_ui_text(prop, "Fit Type", "Array length calculation method.");
+
+	prop= RNA_def_property(srna, "count", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 1000, 1, 0);
+	RNA_def_property_ui_text(prop, "Count",  "Number of duplicates to make.");
+
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
+	RNA_def_property_ui_text(prop, "Length", "Length to fit array within.");
+
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "curve_ob");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Curve", "Curve object to fit array length to.");
+
+	/* Offset parameters */
+	prop= RNA_def_property(srna, "constant_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
+	RNA_def_property_ui_text(prop, "Constant Offset", "");
+	
+	prop= RNA_def_property(srna, "constant_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "");
+
+	prop= RNA_def_property(srna, "relative_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_RELATIVE);
+	RNA_def_property_ui_text(prop, "Relative Offset", "");
+
+	prop= RNA_def_property(srna, "relative_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_ui_text(prop, "Relative Offset Displacement", "");
+
+	/* Vertex merging parameters */
+	prop= RNA_def_property(srna, "merge_adjacent_vertices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_ARR_MERGE);
+	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge vertices in adjacent duplicates.");
+
+	prop= RNA_def_property(srna, "merge_end_vertices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_ARR_MERGEFINAL);
+	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge vertices in first and last duplicates.");
+
+	prop= RNA_def_property(srna, "merge_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "merge_dist");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
+	RNA_def_property_ui_text(prop, "Merge Distance", "Limit below which to merge vertices.");
+
+	/* Offset object */
+	prop= RNA_def_property(srna, "add_offset_object", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_OBJ);
+	RNA_def_property_ui_text(prop, "Add Offset Object", "Add an object transformation to the total offset.");
+
+	prop= RNA_def_property(srna, "offset_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "offset_ob");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Offset Object", "");
+	
+	/* Caps */
+	prop= RNA_def_property(srna, "start_cap", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Start Cap", "Mesh object to use as a start cap.");
+
+	prop= RNA_def_property(srna, "end_cap", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "End Cap", "Mesh object to use as an end cap.");
 }
 
 static void rna_def_modifier_edgesplit(BlenderRNA *brna)
