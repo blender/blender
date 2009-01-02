@@ -85,7 +85,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 		sprintf(str, "   %.2f", FRA2TIME(CFRA));
 	else 
 		sprintf(str, "   %d", CFRA);
-	slen= UI_GetStringWidth(G.font, str, 0) - 1;
+	slen= (short)UI_GetStringWidth(G.font, str, 0) - 1;
 	
 	/* get starting coordinates for drawing */
 	x= cfra * xscale;

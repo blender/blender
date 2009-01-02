@@ -422,7 +422,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */
-		v2d->tot.ymin= -height;
+		v2d->tot.ymin= (float)(-height);
 	}
 	
 	/* loop through channels, and set up drawing depending on their type  */	
@@ -1152,7 +1152,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */
-		v2d->tot.ymin= -height;
+		v2d->tot.ymin= (float)(-height);
 	}
 	
 	/* first backdrop strips */

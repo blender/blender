@@ -846,7 +846,7 @@ static int fd_read_from_memory(FileData *filedata, void *buffer, int size)
 	return (readsize);
 }
 
-static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
+static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int size)
 {
 	static unsigned int seek= 1<<30;	/* the current position */
 	static unsigned int offset= 0;		/* size of previous chunks */
@@ -2889,7 +2889,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
-		int i;
+		unsigned int i;
 
 		for (i=0; i< (mesh->pv ? mesh->pv->totface : mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
@@ -7372,7 +7372,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma;
 		
 		for(; cam; cam= cam->id.next) {
-			cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
+			cam->angle= 360.0f * (float)atan(16.0f/cam->lens) / (float)M_PI;
 		}
 
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
@@ -7497,7 +7497,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				else
 					la->ray_samp_method = LA_SAMP_HALTON;
 				
-				la->adapt_thresh = 0.001;
+				la->adapt_thresh = 0.001f;
 			}
 		}
 	}
@@ -7604,14 +7604,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					for (sl= sa->spacedata.first; sl; sl= sl->next) {
 						if(sl->spacetype==SPACE_IMASEL) {
 							SpaceImaSel *simasel= (SpaceImaSel*) sl;
-							simasel->blockscale= 0.7;
+							simasel->blockscale= 0.7f;
 							/* view 2D */
-							simasel->v2d.tot.xmin=  -10.0;
-							simasel->v2d.tot.ymin=  -10.0;
+							simasel->v2d.tot.xmin=  -10.0f;
+							simasel->v2d.tot.ymin=  -10.0f;
 							simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
 							simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
-							simasel->v2d.cur.xmin=  0.0;
-							simasel->v2d.cur.ymin=  0.0;
+							simasel->v2d.cur.xmin=  0.0f;
+							simasel->v2d.cur.ymin=  0.0f;
 							simasel->v2d.cur.xmax= (float)sa->winx;
 							simasel->v2d.cur.ymax= (float)sa->winy;						
 							simasel->v2d.min[0]= 1.0;
@@ -7690,11 +7690,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
 			if(ma->samp_gloss_mir == 0) {
-				ma->gloss_mir = ma->gloss_tra= 1.0;
-				ma->aniso_gloss_mir = 1.0;
+				ma->gloss_mir = ma->gloss_tra= 1.0f;
+				ma->aniso_gloss_mir = 1.0f;
 				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
-				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
-				ma->dist_mir = 0.0;
+				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005f;
+				ma->dist_mir = 0.0f;
 				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
 			}
 
@@ -7833,9 +7833,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* foreground color needs to be somthing other then black */
 		Scene *sce;
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
-			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8;
-			sce->r.fg_stamp[3] = 1.0; /* dont use text alpha yet */
-			sce->r.bg_stamp[3] = 0.25; /* make sure the background has full alpha */
+			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
+			sce->r.fg_stamp[3] = 1.0f; /* dont use text alpha yet */
+			sce->r.bg_stamp[3] = 0.25f; /* make sure the background has full alpha */
 		}
 	}
 
@@ -8150,7 +8150,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce=main->scene.first; sce; sce=sce->id.next) {
 			SEQ_BEGIN(sce->ed, seq) {
 				if (seq->blend_mode == 0)
-					seq->blend_opacity = 100.0;
+					seq->blend_opacity = 100.0f;
 			}
 			SEQ_END
 		}
@@ -8240,7 +8240,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			if(ob->pd && (ob->pd->forcefield == PFIELD_WIND))
-				ob->pd->f_noise = 0.0;
+				ob->pd->f_noise = 0.0f;
 		}
 	}
 
@@ -8248,7 +8248,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ob->gameflag |= OB_COLLISION;
-			ob->margin = 0.06;
+			ob->margin = 0.06f;
 		}
 	}
 
@@ -8361,16 +8361,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(la=main->lamp.first; la; la= la->id.next) {
 			if(la->atm_turbidity == 0.0) {
 				la->sun_effect_type = 0;
-				la->horizon_brightness = 1.0;
-				la->spread = 1.0;
-				la->sun_brightness = 1.0;
-				la->sun_size = 1.0;
-				la->backscattered_light = 1.0;
-				la->atm_turbidity = 2.0;
-				la->atm_inscattering_factor = 1.0;
-				la->atm_extinction_factor = 1.0;
-				la->atm_distance_factor = 1.0;
-				la->sun_intensity = 1.0;
+				la->horizon_brightness = 1.0f;
+				la->spread = 1.0f;
+				la->sun_brightness = 1.0f;
+				la->sun_size = 1.0f;
+				la->backscattered_light = 1.0f;
+				la->atm_turbidity = 2.0f;
+				la->atm_inscattering_factor = 1.0f;
+				la->atm_extinction_factor = 1.0f;
+				la->atm_distance_factor = 1.0f;
+				la->sun_intensity = 1.0f;
 			}
 		}
 	}

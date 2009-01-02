@@ -96,7 +96,7 @@ static SpaceLink *ipo_new(const bContext *C)
 	
 	ar->v2d.tot.xmin= 0.0f;
 	ar->v2d.tot.ymin= -10.0f;
-	ar->v2d.tot.xmax= scene->r.efra;
+	ar->v2d.tot.xmax= (float)scene->r.efra;
 	ar->v2d.tot.ymax= 10.0f;
 	
 	ar->v2d.cur= ar->v2d.tot;

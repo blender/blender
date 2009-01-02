@@ -247,10 +247,10 @@ static short snap_bezier_nearest(BeztEditData *bed, BezTriple *bezt)
 static short snap_bezier_nearestsec(BeztEditData *bed, BezTriple *bezt)
 {
 	const Scene *scene= bed->scene;
-	const float secf = FPS;
+	const float secf = (float)FPS;
 	
 	if (bezt->f2 & SELECT)
-		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]/secf + 0.5f) * secf);
+		bezt->vec[1][0]= ((float)floor(bezt->vec[1][0]/secf + 0.5f) * secf);
 	return 0;
 }
 
@@ -398,7 +398,7 @@ void snap_cfra_ipo_keys(BeztEditData *bed, Ipo *ipo, short mode)
 		for (icu= ipo->curve.first; icu; icu= icu->next) {
 			for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
 				if (BEZSELECTED(bezt)) {
-					cfra += bezt->vec[1][0];
+					cfra += (int)floor(bezt->vec[1][0] + 0.5f);
 					tot++;
 				}
 			}

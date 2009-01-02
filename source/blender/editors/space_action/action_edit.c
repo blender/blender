@@ -205,7 +205,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	
 	/* set vertical range */
 	v2d->cur.ymax= 0.0f;
-	v2d->cur.ymin= -(v2d->mask.ymax - v2d->mask.ymin);
+	v2d->cur.ymin= (float)-(v2d->mask.ymax - v2d->mask.ymin);
 	
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -1307,7 +1307,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		
 		/* store marker's time (if available) */
 		if (marker)
-			bed.f1= marker->frame;
+			bed.f1= (float)marker->frame;
 		else
 			return;
 	}

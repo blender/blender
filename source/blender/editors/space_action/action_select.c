@@ -549,8 +549,8 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	
 	/* get extreme markers */
 	//get_minmax_markers(1, &min, &max); // FIXME... add back markers api!
-	min= ac->scene->r.sfra; // xxx temp code
-	max= ac->scene->r.efra; // xxx temp code
+	min= (float)ac->scene->r.sfra; // xxx temp code
+	max= (float)ac->scene->r.efra; // xxx temp code
 	
 	if (min==max) return;
 	min -= 0.5f;
