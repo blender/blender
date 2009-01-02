@@ -7,6 +7,9 @@ void BM_Select_Edge(struct BMesh *bm, struct BMEdge *e, int select);
 void BM_Select_Face(struct BMesh *bm, struct BMFace *f, int select);
 void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 
+void BM_Select(struct BMesh *bm, void *element, int select);
+
+
 /* NOTE: unused, bad: 
 
   simple system to manipulate flags, coded here

@@ -29,19 +29,16 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
 {
 	BMVert *target_vertex = NULL;
 
-	/*create a new vertex*/
+	/*Create a new vertex*/
 	target_vertex = BM_Make_Vert(target_mesh, source_vertex->co,  NULL);
-
-	/*insert new vertex into the vert hash*/
+	
+	/*Insert new vertex into the vert hash*/
 	BLI_ghash_insert(vhash, source_vertex, target_vertex);	
 	
-	/*copy custom data in this function since we cannot be assured that byte layout is same between meshes*/
-	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->data, &target_vertex->data);	
-
-	/*Copy Flags*/
-	if(source_vertex->head.flag & SELECT) BM_Select_Vert(target_mesh, target_vertex, 1);
-	target_vertex->head.flag |= source_vertex->head.flag;
-
+	/*Copy attributes*/
+	BM_Copy_Attributes(source_mesh, target_mesh, source_vertex, target_vertex);
+	
+	/*Set internal op flags*/
 	BMO_SetFlag(target_mesh, (BMHeader*)target_vertex, DUPE_NEW);
 	
 	return target_vertex;
@@ -58,22 +55,20 @@ static BMEdge *copy_edge(BMesh *source_mesh, BMEdge *source_edge, BMesh *target_
 	BMEdge *target_edge = NULL;
 	BMVert *target_vert1, *target_vert2;
 	
-	/*lookup v1 and v2*/
+	/*Lookup v1 and v2*/
 	target_vert1 = BLI_ghash_lookup(vhash, source_edge->v1);
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
-	/*create a new edge*/
+	/*Create a new edge*/
 	target_edge = BM_Make_Edge(target_mesh, target_vert1, target_vert2, NULL, 0);
 
-	/*insert new edge into the edge hash*/
+	/*Insert new edge into the edge hash*/
 	BLI_ghash_insert(ehash, source_edge, target_edge);	
 	
-	/*copy custom data in this function since we cannot be assured that byte layout is same between meshes*/	
-	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->data, &target_edge->data);
+	/*Copy attributes*/
+	BM_Copy_Attributes(source_mesh, target_mesh, source_edge, target_edge);
 	
-	/*copy flags*/
-	target_edge->head.flag = source_edge->head.flag;
-
+	/*Set internal op flags*/
 	BMO_SetFlag(target_mesh, (BMHeader*)target_edge, DUPE_NEW);
 	
 	return target_edge;
@@ -106,12 +101,7 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	/*create new face*/
 	target_face = BM_Make_Ngon(target_mesh, target_vert1, target_vert2, edar, source_face->len, 0);	
 	
-	/*we copy custom data by hand, we cannot assume that customdata byte layout will be exactly the same....*/
-	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->data, &target_face->data);	
-
-	/*copy flags*/
-	target_face->head.flags = source_face->head.flags;
-	if(source_face->head.flag & SELECT) BM_Select_Face(target_mesh, target_face, 1);
+	BM_Copy_Attributes(source_mesh, target_mesh, source_face, target_face);
 
 	/*mark the face for output*/
 	BMO_SetFlag(target_mesh, (BMHeader*)target_face, DUPE_NEW);
@@ -121,8 +111,10 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	  target_loop=BMIter_New(target_mesh, &iter2, BM_LOOPS_OF_FACE, target_face);
 	  source_loop && target_loop; source_loop=BMIter_Step(&iter), target_loop=BMIter_Step(&iter2),
 	  i++) {
-		CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->data, &target_loop->data);		
-	}	
+		BM_Copy_Attributes(source_mesh, target_mesh, source_loop, target_loop);		
+	}
+
+
 	return target_face;
 }
 	/*

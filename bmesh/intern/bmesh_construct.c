@@ -312,3 +312,53 @@ static void remove_tagged_verts(BMesh *bm)
 		current = next;
 	}
 }
+
+static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, BMVert *source_vertex, BMVert *target_vertex)
+{
+	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->data, &target_vertex->data);	
+	target_vertex->bweight = source_vertex->bweight;
+}
+
+static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, BMEdge *source_edge, BMEdge *target_edge)
+{
+	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->data, &target_edge->data);
+	target_edge->crease = source_edge->crease;
+	target_edge->bweight = source_edge->bweight;
+}
+
+static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, BMLoop *source_loop, BMLoop *target_loop)
+{
+	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->data, &target_loop->data);
+}
+
+static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFace *source_face, BMFace *target_face)
+{
+	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->data, &target_face->data);	
+	target_face->mat_nr = source_face->mat_nr;
+}
+
+/*Todo: Special handling for hide flags?*/
+
+void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, void *target)
+{
+	BMHeader *sheader = source, *theader = target;
+	
+	if(sheader->type != theader->type)
+		return;
+
+	/*First we copy select*/
+	if(BM_Is_Selected(source_mesh, source)) BM_Select(target_mesh, target, 1);
+	
+	/*Now we copy flags*/
+	theader->flag = sheader->flag;
+	
+	/*Copy specific attributes*/
+	if(theader->type == BMESH_VERT)
+		bm_copy_vert_attributes(source_mesh, target_mesh, (BMVert*)source, (BMVert*)target);
+	else if(theader->type == BMESH_EDGE)
+		bm_copy_edge_attributes(source_mesh, target_mesh, (BMEdge*)source, (BMEdge*)target);
+	else if(theader->type == BMESH_LOOP)
+		bm_copy_loop_attributes(source_mesh, target_mesh, (BMLoop*)source, (BMLoop*)target);
+	else if(theader->type == BMESH_FACE)
+		bm_copy_face_attributes(source_mesh, target_mesh, (BMFace*)source, (BMFace*)target);
+}

@@ -199,7 +199,18 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 	}
 }
 
-int BM_Is_Selected(BMesh *bm, BMHeader *h)
+
+void BM_Select(struct BMesh *bm, void *element, int select)
 {
-	return bmesh_test_sysflag(h, BMESH_SELECT);
+	BMHeader *head = element;
+
+	if(head->type == BMESH_VERT) BM_Select_Vert(bm, (BMVert*)element, select);
+	else if(head->type == BMESH_EDGE) BM_Select_Edge(bm, (BMEdge*)element, select);
+	else if(head->type == BMESH_FACE) BM_Select_Face(bm, (BMFace*)element, select);
+}
+
+int BM_Is_Selected(BMesh *bm, void *element)
+{
+	BMHeader *head = element;
+	return bmesh_test_sysflag(head, BMESH_SELECT);
 }

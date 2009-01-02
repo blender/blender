@@ -124,7 +124,6 @@ typedef struct BMesh
 	struct BLI_mempool *epool;
 	struct BLI_mempool *lpool;
 	struct BLI_mempool *ppool;
-	struct BMOperator *currentop;
 	struct BMVert **vtar;
 	struct BMEdge **edar;
 	struct BMLoop **lpar;
@@ -193,6 +192,7 @@ struct BMVert *BM_Make_Vert(struct BMesh *bm, float co[3], struct BMVert *exampl
 struct BMEdge *BM_Make_Edge(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble);
 struct BMFace *BM_Make_Quadtriangle(struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble);
 struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble);
+void BM_Copy_Attributes(struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target);
 void BM_Delete_Face(struct BMesh *bm, struct BMFace *f);
 void BM_Delete_Edge(struct BMesh *bm, struct BMVert *v);
 void BM_Delete_Vert(struct BMesh *bm, struct BMVert *v);
