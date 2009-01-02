@@ -490,10 +490,25 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 static void rna_def_modifier_boolean(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_operation_items[] = {
+		{eBooleanModifierOp_Intersect, "OPERATIONINTERSECT", "Intersect", ""},
+		{eBooleanModifierOp_Union, "OPERATIONUNION", "Union", ""},
+		{eBooleanModifierOp_Difference, "OPERATIONDIFFERENCE", "Difference", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BooleanModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Boolean Modifier", "Boolean Modifier.");
 	RNA_def_struct_sdna(srna, "BooleanModifierData");
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Object", "Mesh object to use for boolean operation.");
+
+	prop= RNA_def_property(srna, "operation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_operation_items);
+	RNA_def_property_ui_text(prop, "Operation", "");
 }
 
 static void rna_def_modifier_array(BlenderRNA *brna)
@@ -508,10 +523,24 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "EdgeSplitModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "EdgeSplit Modifier", "EdgeSplit Modifier.");
 	RNA_def_struct_sdna(srna, "EdgeSplitModifierData");
+
+	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 180);
+	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+	RNA_def_property_ui_text(prop, "Split Angle", "Angle above which to split edges.");
+
+	prop= RNA_def_property(srna, "use_edge_angle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_EDGESPLIT_FROMANGLE);
+	RNA_def_property_ui_text(prop, "Use Edge Angle", "Split edges with high angle between faces.");
+
+	prop= RNA_def_property(srna, "use_sharp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_EDGESPLIT_FROMFLAG);
+	RNA_def_property_ui_text(prop, "Use Sharp Edges", "Split edges that are marked as sharp.");
 }
 
 static void rna_def_modifier_displace(BlenderRNA *brna)
