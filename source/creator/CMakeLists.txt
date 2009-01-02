@@ -69,19 +69,10 @@ endif(LINUX)
 
 MESSAGE(STATUS "Configuring blender")
 
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
-  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/rna.c
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/rna.c ${CMAKE_SOURCE_DIR}/source/blender/makesrna/
-  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna
-)
-
 IF(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_CURRENT_BINARY_DIR}/rna.c ../icons/winblender.rc)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../icons/winblender.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_CURRENT_BINARY_DIR}/rna.c)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c)
 ENDIF(WIN32)
 
 
