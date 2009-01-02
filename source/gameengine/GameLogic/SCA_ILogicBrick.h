@@ -79,6 +79,7 @@ public:
 	virtual	bool		LessComparedTo(SCA_ILogicBrick* other);
 	
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject *value);
 
 	static class SCA_LogicManager*	m_sCurrentLogicManager;
 

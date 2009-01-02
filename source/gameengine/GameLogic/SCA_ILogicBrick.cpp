@@ -247,9 +247,16 @@ PyParentObject SCA_ILogicBrick::Parents[] = {
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
   {"getOwner", (PyCFunction) SCA_ILogicBrick::sPyGetOwner, METH_NOARGS},
+  // --> Deprecated
   {"getExecutePriority", (PyCFunction) SCA_ILogicBrick::sPyGetExecutePriority, METH_NOARGS},
   {"setExecutePriority", (PyCFunction) SCA_ILogicBrick::sPySetExecutePriority, METH_VARARGS},
+  // <-- Deprecated
   {NULL,NULL} //Sentinel
+};
+
+PyAttributeDef SCA_ILogicBrick::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("executePriority",0,100000,false,SCA_ILogicBrick,m_Execute_Ueber_Priority),
+	{NULL} //Sentinel
 };
 
 int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
@@ -273,9 +280,19 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 PyObject*
 SCA_ILogicBrick::_getattr(const STR_String& attr)
 {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
   _getattr_up(CValue);
 }
 
+int SCA_ILogicBrick::_setattr(const STR_String& attr, PyObject *value)
+{
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	return CValue::_setattr(attr, value);
+}
 
 
 PyObject* SCA_ILogicBrick::PyGetOwner(PyObject* self)
@@ -297,6 +314,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 			       PyObject* args, 
 			       PyObject* kwds)
 {
+	ShowDeprecationWarning("setExecutePriority()", "the executePriority property");
 
 	int priority=0;
 
@@ -313,6 +331,7 @@ PyObject* SCA_ILogicBrick::PySetExecutePriority(PyObject* self,
 
 PyObject* SCA_ILogicBrick::PyGetExecutePriority(PyObject* self)
 {
+	ShowDeprecationWarning("getExecutePriority()", "the executePriority property");
 	return PyInt_FromLong(m_Execute_Ueber_Priority);
 }
 
