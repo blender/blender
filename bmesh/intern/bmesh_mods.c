@@ -140,7 +140,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	
 	/*
 	nf->flag = f->flag;
-	if (example->flag & SELECT) f->flag |= BMESH_SELECT;
+	if (example->flag & SELECT) f->flag |= BM_SELECT;
 	nf->h = f->h;
 	nf->mat_nr = f->mat_nr;
 	if (nl && example) {
@@ -219,8 +219,8 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	len = VecLength(nv->co);
 	VECADDFAC(nv->co,v->co,nv->co,len*percent);
 	if (ne) {
-		if(bmesh_test_sysflag(&(e->head), BMESH_SELECT)) bmesh_set_sysflag(&((*ne)->head), BMESH_SELECT);
-		if(bmesh_test_sysflag(&(e->head), BMESH_HIDDEN)) bmesh_set_sysflag(&((*ne)->head), BMESH_HIDDEN);
+		if(bmesh_test_sysflag(&(e->head), BM_SELECT)) bmesh_set_sysflag(&((*ne)->head), BM_SELECT);
+		if(bmesh_test_sysflag(&(e->head), BM_HIDDEN)) bmesh_set_sysflag(&((*ne)->head), BM_HIDDEN);
 	}
 	/*v->nv->v2*/
 	BM_Data_Facevert_Edgeinterp(bm,v2, v, nv, e, percent);	

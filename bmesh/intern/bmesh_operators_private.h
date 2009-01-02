@@ -1,5 +1,5 @@
-#ifndef BMESH_OPERATORS_PRIVATE_H
-#define BMESH_OPERATORS_PRIVATE_H
+#ifndef BM_OPERATORS_PRIVATE_H
+#define BM_OPERATORS_PRIVATE_H
 
 struct BMesh;
 struct BMOperator;

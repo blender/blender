@@ -90,8 +90,8 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	eve = addvertlist(v->co,NULL);
 	eve->keyindex = index;
 	evlist[index]= eve;
-	if(BM_Is_Selected(&(v->head), BMESH_SELECT)) eve->f |= SELECT;
-	if(v->head.flag & BMESH_HIDDEN) eve->h = 1;
+	if(BM_Is_Selected(&(v->head), BM_SELECT)) eve->f |= SELECT;
+	if(v->head.flag & BM_HIDDEN) eve->h = 1;
 	eve->bweight = v->bweight;
 	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->data, &eve->data);
 	/*copy normal*/
@@ -202,7 +202,7 @@ EditMesh *bmesh_to_editmesh(BMesh *bm)
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
-	totvert = BM_Count_Element(bm, BMESH_VERT);
+	totvert = BM_Count_Element(bm, BM_VERT);
 	evlist= MEM_mallocN(totvert*sizeof(EditVert *),"evlist");
 
 	/* make vertices */

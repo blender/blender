@@ -88,8 +88,8 @@ BMVert *bmesh_addvertlist(BMesh *bm, BMVert *example){
 	v = BLI_mempool_alloc(bm->vpool);
 	v->head.next = v->head.prev = NULL;
 	v->head.EID = bm->nextv;
-	v->head.type = BMESH_VERT;
-	v->head.flag = BMESH_NEW;
+	v->head.type = BM_VERT;
+	v->head.flag = BM_NEW;
 	v->co[0] = v->co[1] = v->co[2] = 0.0f;
 	v->no[0] = v->no[1] = v->no[2] = 0.0f;
 	v->edge = NULL;
@@ -116,8 +116,8 @@ BMEdge *bmesh_addedgelist(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example){
 	e = BLI_mempool_alloc(bm->epool);
 	e->head.next = e->head.prev = NULL;
 	e->head.EID = bm->nexte;
-	e->head.flag = BMESH_NEW;
-	e->head.type = BMESH_EDGE;
+	e->head.flag = BM_NEW;
+	e->head.type = BM_EDGE;
 	e->v1 = v1;
 	e->v2 = v2;
 	e->d1.next = e->d1.prev = e->d2.next = e->d2.prev = NULL;
@@ -144,9 +144,9 @@ BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BMLoop *ex
 	BMLoop *l=NULL;
 	l = BLI_mempool_alloc(bm->lpool);
 	l->head.next = l->head.prev = NULL;
-	l->head.flag = BMESH_NEW;
+	l->head.flag = BM_NEW;
 	l->head.EID = bm->nextl;
-	l->head.type = BMESH_LOOP;
+	l->head.type = BM_LOOP;
 	l->radial.next = l->radial.prev = NULL;
 	l->radial.data = l;
 	l->v = v;
@@ -168,9 +168,9 @@ BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example){
 	BMFace *f = NULL;
 	f = BLI_mempool_alloc(bm->ppool);
 	f->head.next = f->head.prev = NULL;
-	f->head.flag = BMESH_NEW;
+	f->head.flag = BM_NEW;
 	f->head.EID = bm->nextp;
-	f->head.type = BMESH_FACE;
+	f->head.type = BM_FACE;
 	f->loopbase = NULL;
 	f->len = 0;
 	f->data = NULL;

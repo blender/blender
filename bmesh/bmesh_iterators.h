@@ -10,8 +10,8 @@
  *
 */
 
-#ifndef BMESH_ITERATORS_H
-#define BMESH_ITERATORS_H
+#ifndef BM_ITERATORS_H
+#define BM_ITERATORS_H
 
 /*Defines for passing to BMIter_New*/
 #define BM_VERTS 			1

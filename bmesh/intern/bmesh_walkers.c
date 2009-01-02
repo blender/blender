@@ -24,7 +24,7 @@ typedef struct shellWalker{
  *  the surface of a mesh. An example of usage:
  *
  *	     BMEdge *edge;
- *	     BMWalker *walker = BMWalker_create(BMESH_SHELLWALKER, BMESH_SELECT);
+ *	     BMWalker *walker = BMWalker_create(BM_SHELLWALKER, BM_SELECT);
  *       walker->begin(walker, vert);
  *       for(edge = BMWalker_walk(walker); edge; edge = bmeshWwalker_walk(walker)){
  *            bmesh_select_edge(edge);
@@ -35,7 +35,7 @@ typedef struct shellWalker{
  *  a vertex and traveling across its edges to other vertices, and repeating the process
  *  over and over again until it has visited each vertex in the shell. An additional restriction
  *  is passed into the BMWalker_create function stating that we are only interested
- *  in walking over edges that have been flagged with the bitmask 'BMESH_SELECT'.
+ *  in walking over edges that have been flagged with the bitmask 'BM_SELECT'.
  *
  *
 */
@@ -65,14 +65,14 @@ typedef struct bmesh_walkerGeneric{
  *  bitmask. If none are free, it returns 0. The maximum number
  *  of walkers that can be used for a single bmesh between calls to
  *  bmesh_edit_begin() and bmesh_edit_end() is defined by the constant
- *  BMESH_MAXWALKERS.
+ *  BM_MAXWALKERS.
  *
 */
 
 static int request_walkerMask(BMesh *bm)
 {
 	int i;
-	for(i=0; i < BMESH_MAXWALKERS; i++){
+	for(i=0; i < BM_MAXWALKERS; i++){
 		if(!(bm->walkers & (1 << i))){
 			bm->walkers |= (1 << i);
 			return (1 << i);
@@ -104,19 +104,19 @@ void BMWalker_init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 		walker->visitedmask = visitedmask;
 		walker->restrictflag = searchmask;
 		switch(type){
-			case BMESH_SHELLWALKER:
+			case BM_SHELLWALKER:
 				walker->begin = shellWalker_begin;
 				walker->step = shellWalker_step;
 				walker->yield = shellWalker_yield;
 				size = sizeof(shellWalker);		
 				break;
-			//case BMESH_LOOPWALKER:
+			//case BM_LOOPWALKER:
 			//	walker->begin = loopwalker_begin;
 			//	walker->step = loopwalker_step;
 			//	walker->yield = loopwalker_yield;
 			//	size = sizeof(loopWalker);
 			//	break;
-			//case BMESH_RINGWALKER:
+			//case BM_RINGWALKER:
 			//	walker->begin = ringwalker_begin;
 			//	walker->step = ringwalker_step;
 			//	walker->yield = ringwalker_yield;

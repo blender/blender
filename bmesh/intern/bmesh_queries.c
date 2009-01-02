@@ -7,7 +7,7 @@
 #include "MTC_vectorops.h"
 
 /*
- * BMESH_QUERIES.C
+ * BM_QUERIES.C
  *
  * This file contains functions for answering common
  * Topological and geometric queries about a mesh, such
@@ -29,9 +29,9 @@
 
 int BM_Count_Element(BMesh *bm, int type)
 {
-	if(type == BMESH_VERT) return bm->totvert;
-	else if(type == BMESH_EDGE) return bm->totedge;
-	else if(type == BMESH_FACE) return bm->totface;
+	if(type == BM_VERT) return bm->totvert;
+	else if(type == BM_EDGE) return bm->totedge;
+	else if(type == BM_FACE) return bm->totface;
 
 	return 0;
 }
@@ -82,15 +82,15 @@ int BM_Verts_In_Face(BMFace *f, BMVert **varr, int len)
 	BMLoop *curloop = NULL;
 	int i, count = 0;
 	
-	for(i=0; i < len; i++) bmesh_set_sysflag(&(varr[i]->head), BMESH_OVERLAP);
+	for(i=0; i < len; i++) bmesh_set_sysflag(&(varr[i]->head), BM_OVERLAP);
 
 	curloop = f->loopbase;
 	do{
-		if(bmesh_test_sysflag(&(curloop->v->head), BMESH_OVERLAP)) count++;
+		if(bmesh_test_sysflag(&(curloop->v->head), BM_OVERLAP)) count++;
 		curloop = ((BMLoop*)(curloop->head.next));
 	} while(curloop = ((BMLoop*)(curloop->head.next)));
 
-	for(i=0; i < len; i++) bmesh_clear_sysflag(&(varr[i]->head), BMESH_OVERLAP);
+	for(i=0; i < len; i++) bmesh_clear_sysflag(&(varr[i]->head), BM_OVERLAP);
 
 	return count;
 }

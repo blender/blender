@@ -359,9 +359,9 @@ BMesh *editmesh_to_bmesh(EditMesh *em) {
 
 	/*copy over selection mode*/
 	bm->selectmode = 0;
-	if(G.scene->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BMESH_VERT;
-	if(G.scene->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BMESH_EDGE;
-	if(G.scene->selectmode & SCE_SELECT_FACE) bm->selectmode |= BMESH_FACE;
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
+	if(G.scene->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
+	if(G.scene->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
 
 
 	/*begin editloop*/

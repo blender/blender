@@ -1,5 +1,5 @@
-#ifndef BMESH_WALKERS_H
-#define BMESH_WALKERS_H
+#ifndef BM_WALKERS_H
+#define BM_WALKERS_H
 
 /*Walkers*/
 typedef struct BMWalker{
@@ -17,10 +17,10 @@ void BMWalker_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask)
 void *BMWalker_Step(struct BMWalker *walker);
 void BMWalker_End(struct BMWalker *walker);
 
-#define BMESH_SHELLWALKER	0
-#define BMESH_LOOPWALKER	1
-#define BMESH_RINGWALKER	2
-#define BMESH_UVISLANDS		3
-#define BMESH_MAXWALKERS	4
+#define BM_SHELLWALKER	0
+#define BM_LOOPWALKER	1
+#define BM_RINGWALKER	2
+#define BM_UVISLANDS		3
+#define BM_MAXWALKERS	4
 
 #endif

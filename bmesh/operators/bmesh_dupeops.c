@@ -285,9 +285,9 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	BMO_CopySlot(dupeop, dupeop, finput->index, BMOP_DUPE_FORIGINAL);
 
 	/*Now alloc the new output buffers*/
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_VNEW, DUPE_NEW, BMESH_VERT);
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_ENEW, DUPE_NEW, BMESH_EDGE);
-	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_FNEW, DUPE_NEW, BMESH_FACE);
+	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_VNEW, DUPE_NEW, BM_VERT);
+	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_ENEW, DUPE_NEW, BM_EDGE);
+	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_FNEW, DUPE_NEW, BM_FACE);
 }
 
 

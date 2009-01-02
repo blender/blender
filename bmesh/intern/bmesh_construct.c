@@ -37,7 +37,7 @@
 #include "bmesh_private.h"
 
 /*
- * BMESH_CONSTRUCT.C
+ * BM_CONSTRUCT.C
  *
  * This file contains functions for making and destroying
  * individual elements like verts, edges and faces.
@@ -192,11 +192,11 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		if(len > VERT_BUF_SIZE)
 			verts = MEM_callocN(sizeof(BMVert *) * len, "bmesh make ngon vertex array");
 		for(i = 0; i < len; i++){
-			if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v1), BMESH_EDGEVERT)){
-				bmesh_set_sysflag((BMHeader*)(edges[i]->v1), BMESH_EDGEVERT);
+			if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT)){
+				bmesh_set_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT);
 				verts[i] = edges[i]->v1;
-			} else if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v2), BMESH_EDGEVERT)) {
-				bmesh_set_sysflag((BMHeader*)(edges[i]->v2), BMESH_EDGEVERT);
+			} else if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT)) {
+				bmesh_set_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT);
 				verts[i] = 	edges[i]->v2;
 			}
 		}
@@ -205,8 +205,8 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		
 		/*clear flags*/
 		for(i = 0; i < len; i++){
-			bmesh_clear_sysflag((BMHeader*)(edges[i]->v1), BMESH_EDGEVERT);
-			bmesh_clear_sysflag((BMHeader*)(edges[i]->v2), BMESH_EDGEVERT);
+			bmesh_clear_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT);
+			bmesh_clear_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT);
 		}
 		
 		if(len > VERT_BUF_SIZE)
@@ -308,12 +308,12 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, vo
 	theader->flag = sheader->flag;
 	
 	/*Copy specific attributes*/
-	if(theader->type == BMESH_VERT)
+	if(theader->type == BM_VERT)
 		bm_copy_vert_attributes(source_mesh, target_mesh, (BMVert*)source, (BMVert*)target);
-	else if(theader->type == BMESH_EDGE)
+	else if(theader->type == BM_EDGE)
 		bm_copy_edge_attributes(source_mesh, target_mesh, (BMEdge*)source, (BMEdge*)target);
-	else if(theader->type == BMESH_LOOP)
+	else if(theader->type == BM_LOOP)
 		bm_copy_loop_attributes(source_mesh, target_mesh, (BMLoop*)source, (BMLoop*)target);
-	else if(theader->type == BMESH_FACE)
+	else if(theader->type == BM_FACE)
 		bm_copy_face_attributes(source_mesh, target_mesh, (BMFace*)source, (BMFace*)target);
 }

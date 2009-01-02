@@ -1,5 +1,5 @@
-#ifndef BMESH_MARKING_H
-#define BMESH_MARKING_H
+#ifndef BM_MARKING_H
+#define BM_MARKING_H
 
 /*Selection code*/
 void BM_Select_Vert(struct BMesh *bm, struct BMVert *v, int select);

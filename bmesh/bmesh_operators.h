@@ -1,5 +1,5 @@
-#ifndef BMESH_OPERATORS_H
-#define BMESH_OPERATORS_H
+#ifndef BM_OPERATORS_H
+#define BM_OPERATORS_H
 
 #include "BLI_memarena.h"
 

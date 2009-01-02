@@ -33,8 +33,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BMESH_STRUCTURE_H
-#define BMESH_STRUCTURE_H
+#ifndef BM_STRUCTURE_H
+#define BM_STRUCTURE_H
 
 /*ALLOCATION/DEALLOCATION*/
 struct BMVert *bmesh_addvertlist(struct BMesh *bm, struct BMVert *example);
