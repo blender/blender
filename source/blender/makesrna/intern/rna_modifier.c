@@ -625,10 +625,60 @@ static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 static void rna_def_modifier_displace(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_direction_items[] = {
+		{MOD_DISP_DIR_X, "DIRX", "X", ""},
+		{MOD_DISP_DIR_Y, "DIRY", "Y", ""},
+		{MOD_DISP_DIR_Z, "DIRZ", "Z", ""},
+		{MOD_DISP_DIR_NOR, "DIRNORMAL", "Normal", ""},
+		{MOD_DISP_DIR_RGB_XYZ, "DIRRGBTOXYZ", "RGB To XYZ", ""},
+		{0, NULL, NULL, NULL}};
+
+	static EnumPropertyItem prop_texture_coordinates_items[] = {
+		{MOD_DISP_MAP_LOCAL, "MAPLOCAL", "Map", ""},
+		{MOD_DISP_MAP_GLOBAL, "MAPGLOBAL", "Global", ""},
+		{MOD_DISP_MAP_OBJECT, "MAPOBJECT", "Object", ""},
+		{MOD_DISP_MAP_UV, "MAPUV", "UV", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "DisplaceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Displace Modifier", "Displace Modifier.");
 	RNA_def_struct_sdna(srna, "DisplaceModifierData");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
+
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Texture", "");
+
+	prop= RNA_def_property(srna, "midlevel", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Midlevel", "Material value that gives no displacement.");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, FLT_MIN, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
+	RNA_def_property_ui_text(prop, "Strength", "");
+
+	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_direction_items);
+	RNA_def_property_ui_text(prop, "Direction", "");
+
+	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texmapping");
+	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
+	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
+
+	/* XXX: not sure how to handle uvlayer_tmp (for setting the UV layer if UV mapping is used.) */
+
+	prop= RNA_def_property(srna, "texture_coordinate_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Texture Coordinate Object", "");
 }
 
 static void rna_def_modifier_uvproject(BlenderRNA *brna)
