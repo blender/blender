@@ -35,6 +35,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_bmesh.h" /* For BevelModifierData */
+
 #ifdef RNA_RUNTIME
 
 static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
@@ -855,19 +857,77 @@ static void rna_def_modifier_particlesystem(BlenderRNA *brna)
 static void rna_def_modifier_particleinstance(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ParticleInstanceModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "ParticleInstance Modifier", "ParticleInstance Modifier.");
 	RNA_def_struct_sdna(srna, "ParticleInstanceModifierData");
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob");
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Object", "Object that has the particle system.");
+
+	prop= RNA_def_property(srna, "particle_system_number", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "psys");
+	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_ui_text(prop, "Particle System Number", "");
+	
+	prop= RNA_def_property(srna, "normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Parents);
+	RNA_def_property_ui_text(prop, "Normal", "Create instances from normal particles.");
+
+	prop= RNA_def_property(srna, "children", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Children);
+	RNA_def_property_ui_text(prop, "Children", "Create instances from child particles.");
+
+	prop= RNA_def_property(srna, "path", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Path);
+	RNA_def_property_ui_text(prop, "Path", "Create instances along particle paths.");
+
+	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Unborn);
+	RNA_def_property_ui_text(prop, "Unborn", "Show instances when particles are unborn.");
+
+	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Alive);
+	RNA_def_property_ui_text(prop, "Alive", "Show instances when particles are alive.");
+
+	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eParticleInstanceFlag_Dead);
+	RNA_def_property_ui_text(prop, "Dead", "Show instances when particles are dead.");
 }
 
 static void rna_def_modifier_explode(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ExplodeModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Explode Modifier", "Explode Modifier.");
 	RNA_def_struct_sdna(srna, "ExplodeModifierData");
+
+	/* XXX: vgroup */
+
+	prop= RNA_def_property(srna, "protect", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Protect", "Clean vertex group edges");
+
+	prop= RNA_def_property(srna, "split_edges", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_EdgeSplit);
+	RNA_def_property_ui_text(prop, "Split Edges", "Split face edges for nicer shrapnel.");
+
+	prop= RNA_def_property(srna, "unborn", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Unborn);
+	RNA_def_property_ui_text(prop, "Unborn", "Show mesh when particles are unborn.");
+
+	prop= RNA_def_property(srna, "alive", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Alive);
+	RNA_def_property_ui_text(prop, "alive", "Show mesh when particles are alive.");
+
+	prop= RNA_def_property(srna, "dead", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", eExplodeFlag_Dead);
+	RNA_def_property_ui_text(prop, "dead", "Show mesh when particles are dead.");
 }
 
 static void rna_def_modifier_cloth(BlenderRNA *brna)
@@ -891,10 +951,48 @@ static void rna_def_modifier_collision(BlenderRNA *brna)
 static void rna_def_modifier_bevel(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_limit_method_items[] = {
+		{0, "NONE", "None", "Bevel the entire mesh by a constant amount."},
+		{BME_BEVEL_ANGLE, "ANGLE", "Angle", "Only bevel edges with sharp enough angles between faces."},
+		{BME_BEVEL_WEIGHT, "WEIGHT", "Weight", "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode."},
+		{0, NULL, NULL, NULL}};
+
+	static EnumPropertyItem prop_edge_weight_method_items[] = {
+		{0, "AVERAGE", "Average", ""},
+		{BME_BEVEL_EMIN, "SHARPEST", "Sharpest", ""},
+		{BME_BEVEL_EMAX, "LARGEST", "Largest", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "BevelModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Bevel Modifier", "Bevel Modifier.");
 	RNA_def_struct_sdna(srna, "BevelModifierData");
+
+	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "value");
+	RNA_def_property_range(prop, 0, 0.5);
+	RNA_def_property_ui_text(prop, "Width", "Bevel value/amount.");
+
+	prop= RNA_def_property(srna, "only_vertices", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_VERT);
+	RNA_def_property_ui_text(prop, "Only Vertices", "Bevel verts/corners, not edges.");
+
+	prop= RNA_def_property(srna, "limit_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "lim_flags");
+	RNA_def_property_enum_items(prop, prop_limit_method_items);
+	RNA_def_property_ui_text(prop, "Limit Method", "");
+
+	prop= RNA_def_property(srna, "edge_weight_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "e_flags");
+	RNA_def_property_enum_items(prop, prop_edge_weight_method_items);
+	RNA_def_property_ui_text(prop, "Edge Weight Method", "What edge weight to use for weighting a vertex.");
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bevel_angle");
+	RNA_def_property_range(prop, 0, 180);
+	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+	RNA_def_property_ui_text(prop, "Angle", "Angle above which to bevel edges.");
 }
 
 static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
