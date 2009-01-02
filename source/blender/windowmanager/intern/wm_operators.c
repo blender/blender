@@ -378,7 +378,7 @@ static void border_apply(bContext *C, wmOperator *op, int event_type)
 	op->type->exec(C, op);
 }
 
-static void border_end(bContext *C, wmOperator *op)
+static void wm_gesture_end(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture= op->customdata;
 	
@@ -436,12 +436,12 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				border_apply(C, op, event->type);
-				border_end(C, op);
+				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			break;
 		case ESCKEY:
-			border_end(C, op);
+			wm_gesture_end(C, op);
 			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
@@ -460,16 +460,6 @@ int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	wm_gesture_tag_redraw(C);
 	
 	return OPERATOR_RUNNING_MODAL;
-}
-
-static void gesture_circle_end(bContext *C, wmOperator *op)
-{
-	wmGesture *gesture= op->customdata;
-	
-	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
-	op->customdata= NULL;
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
 static void gesture_circle_apply(bContext *C, wmOperator *op, int event_type)
@@ -521,7 +511,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
 			if(event->val==0) {	/* key release */
-				gesture_circle_end(C, op);
+				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			else
@@ -529,7 +519,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			break;
 		case ESCKEY:
-			gesture_circle_end(C, op);
+			wm_gesture_end(C, op);
 			return OPERATOR_CANCELLED;
 	}
 	return OPERATOR_RUNNING_MODAL;
@@ -568,17 +558,6 @@ static int tweak_gesture_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void tweak_gesture_end(bContext *C, wmOperator *op)
-{
-	wmGesture *gesture= op->customdata;
-	
-	WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
-	op->customdata= NULL;
-
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-}
-
 static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	wmWindow *window= CTX_wm_window(C);
@@ -608,7 +587,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* mouse coords! */
 				wm_event_add(window, &event);
 				
-				tweak_gesture_end(C, op);
+				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			else
@@ -621,7 +600,7 @@ static int tweak_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
 				wm_gesture_evaluate(C, gesture);
-				tweak_gesture_end(C, op);
+				wm_gesture_end(C, op);
 				return OPERATOR_FINISHED;
 			}
 			break;
@@ -640,6 +619,117 @@ void WM_OT_tweak_gesture(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
+/* *********************** lasso gesture ****************** */
+
+int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= WM_gesture_new(C, event, WM_GESTURE_LASSO);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	wm_gesture_tag_redraw(C);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+
+static void gesture_lasso_apply(bContext *C, wmOperator *op, int event_type)
+{
+	wmGesture *gesture= op->customdata;
+	PointerRNA itemptr;
+	float loc[2];
+	int i;
+	short *lasso= gesture->customdata;
+	
+	/* operator storage as path. */
+
+	for(i=0; i<gesture->points; i++, lasso+=2) {
+		loc[0]= lasso[0];
+		loc[1]= lasso[1];
+		RNA_collection_add(op->ptr, "path", &itemptr);
+		RNA_float_set_array(&itemptr, "loc", loc);
+	}
+	
+	wm_gesture_end(C, op);
+		
+	if(op->type->exec)
+		op->type->exec(C, op);
+	
+}
+
+int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmGesture *gesture= op->customdata;
+	int sx, sy;
+	
+	switch(event->type) {
+		case MOUSEMOVE:
+			
+			wm_gesture_tag_redraw(C);
+			
+			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
+			if(gesture->points < WM_LASSO_MAX_POINTS) {
+				short *lasso= gesture->customdata;
+				lasso += 2 * gesture->points;
+				lasso[0] = event->x - sx;
+				lasso[1] = event->y - sy;
+				gesture->points++;
+			}
+			else {
+				gesture_lasso_apply(C, op, event->type);
+				return OPERATOR_FINISHED;
+			}
+			break;
+			
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			if(event->val==0) {	/* key release */
+				gesture_lasso_apply(C, op, event->type);
+				return OPERATOR_FINISHED;
+			}
+			break;
+		case ESCKEY:
+			wm_gesture_end(C, op);
+			return OPERATOR_CANCELLED;
+	}
+	return OPERATOR_RUNNING_MODAL;
+}
+
+#if 0
+/* template to copy from */
+
+static int gesture_lasso_exec(bContext *C, wmOperator *op)
+{
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		float loc[2];
+		
+		RNA_float_get_array(&itemptr, "loc", loc);
+		printf("Location: %f %f\n", loc[0], loc[1]);
+	}
+	RNA_END;
+	
+	return OPERATOR_FINISHED;
+}
+
+void WM_OT_lasso_gesture(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Lasso Gesture";
+	ot->idname= "WM_OT_lasso_gesture";
+	
+	ot->invoke= WM_gesture_lasso_invoke;
+	ot->modal= WM_gesture_lasso_modal;
+	ot->exec= gesture_lasso_exec;
+	
+	ot->poll= WM_operator_winactive;
+	
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+}
+#endif
 
 /* ******************************************************* */
  
@@ -671,6 +761,5 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
-
 }
 

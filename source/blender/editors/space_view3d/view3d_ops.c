@@ -76,6 +76,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_smoothview);
 	WM_operatortype_append(VIEW3D_OT_render_border);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
+	WM_operatortype_append(VIEW3D_OT_lasso_select);
 	
 	transform_operatortypes();
 }
@@ -123,6 +124,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_borderselect", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_lasso_select", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", 1);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);

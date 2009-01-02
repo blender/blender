@@ -43,6 +43,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "wm.h"
 #include "wm_event_system.h"
 #include "wm_subwindow.h"
 
@@ -81,6 +82,13 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 			rect->ymax= event->y - sy;
 		}
 	}
+	else if (type==WM_GESTURE_LASSO) {
+		short *lasso;
+		gesture->customdata= lasso= MEM_callocN(2*sizeof(short)*WM_LASSO_MAX_POINTS, "lasso points");
+		lasso[0] = event->x - sx;
+		lasso[1] = event->y - sy;
+		gesture->points= 1;
+	}
 	
 	return gesture;
 }
@@ -90,12 +98,6 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 	BLI_remlink(&CTX_wm_window(C)->gesture, gesture);
 	MEM_freeN(gesture->customdata);
 	MEM_freeN(gesture);
-}
-
-/* for line, lasso, ... */
-void wm_gesture_point_add(bContext *C, wmGesture *gesture)
-{
-	
 }
 
 /* tweak and line gestures */
@@ -187,6 +189,30 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 	
 }
 
+static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
+{
+	short *lasso= (short *)gt->customdata;
+	int i;
+	
+	glEnable(GL_LINE_STIPPLE);
+	glColor3ub(0, 0, 0);
+	glLineStipple(1, 0xAAAA);
+	glBegin(GL_LINE_STRIP);
+	for(i=0; i<gt->points; i++, lasso+=2)
+		glVertex2sv(lasso);
+	glEnd();
+	
+	glColor3ub(255, 255, 255);
+	glLineStipple(1, 0x5555);
+	glBegin(GL_LINE_STRIP);
+	lasso= (short *)gt->customdata;
+	for(i=0; i<gt->points; i++, lasso+=2)
+		glVertex2sv(lasso);
+	glEnd();
+	
+	glDisable(GL_LINE_STIPPLE);
+	
+}
 
 static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 {
@@ -226,6 +252,8 @@ void wm_gesture_draw(wmWindow *win)
 			else
 				wm_gesture_draw_cross(win, gt);
 		}
+		else if(gt->type==WM_GESTURE_LASSO) 
+			wm_gesture_draw_lasso(win, gt);
 	}
 }
 

@@ -205,11 +205,12 @@ typedef struct wmGesture {
 	int mode;		/* for modal callback */
 	int type;		/* gesture type define */
 	int swinid;		/* initial subwindow id where it started */
+	int points;		/* optional, amount of points stored */
 	
 	void *customdata;
 	/* customdata for border is a recti */
 	/* customdata for circle is recti, (xmin, ymin) is center, xmax radius */
-	
+	/* customdata for lasso is short array */
 } wmGesture;
 
 

@@ -39,14 +39,14 @@ struct wmGesture;
 struct rcti;
 struct PointerRNA;
 
-			/* general API */
+/* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 
 void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
-wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
+struct wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
 
 			/* files */
 int			WM_read_homefile	(struct bContext *C, int from_memory);
@@ -70,7 +70,7 @@ wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_add_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
-ListBase	*WM_keymap_listbase	(wmWindowManager *wm, const char *nameid, 
+ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
@@ -91,7 +91,7 @@ void		WM_event_remove_ui_handler(ListBase *handlers,
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 
-struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, ListBase *handlers, wmOperator *op);
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, ListBase *handlers, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
 void		WM_event_add_mousemove(struct bContext *C);
@@ -99,12 +99,12 @@ int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
 void		WM_event_add_notifier(struct bContext *C, unsigned int type, void *data);
 
-void		wm_event_add		(wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
+void		wm_event_add		(struct wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
 
 			/* at maximum, every timestep seconds it triggers event_type events */
-struct wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timestep);
-void		WM_event_remove_window_timer(wmWindow *win, struct wmTimer *timer);
-void		WM_event_window_timer_sleep(wmWindow *win, struct wmTimer *timer, int dosleep);
+struct wmTimer *WM_event_add_window_timer(struct wmWindow *win, int event_type, double timestep);
+void		WM_event_remove_window_timer(struct wmWindow *win, struct wmTimer *timer);
+void		WM_event_window_timer_sleep(struct wmWindow *win, struct wmTimer *timer, int dosleep);
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
@@ -128,24 +128,26 @@ int         WM_operator_name_call	(struct bContext *C, const char *opstring, int
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 
-/* operator as a python command (resultuing string must be free'd) */
-char *WM_operator_pystring(struct wmOperator *op);
+		/* operator as a python command (resultuing string must be free'd) */
+char		*WM_operator_pystring(struct wmOperator *op);
 
 			/* default operator callbacks for border/circle/lasso */
-int			WM_border_select_invoke	(struct bContext *C, wmOperator *op, struct wmEvent *event);
-int			WM_border_select_modal	(struct bContext *C, wmOperator *op, struct wmEvent *event);
-int			WM_gesture_circle_invoke(struct bContext *C, wmOperator *op, struct wmEvent *event);
-int			WM_gesture_circle_modal(struct bContext *C, wmOperator *op, struct wmEvent *event);
+int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_border_select_modal	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_circle_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 
 			/* default operator for arearegions, generates event */
-void		WM_OT_tweak_gesture(wmOperatorType *ot);
+void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
-void		wmSubWindowSet		(wmWindow *win, int swinid);
+void		wmSubWindowSet		(struct wmWindow *win, int swinid);
 
 void		wmLoadMatrix		(float mat[][4]);
 void		wmGetMatrix			(float mat[][4]);
