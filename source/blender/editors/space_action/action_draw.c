@@ -745,7 +745,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else	
 						mute = ICON_MUTE_IPO_OFF;
 						
-					if (icu->flag & IPO_PROTECT)
+					if (EDITABLE_ICU(icu))
 						protect = ICON_UNLOCKED;
 					else
 						protect = ICON_LOCKED;

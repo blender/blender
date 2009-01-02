@@ -836,7 +836,7 @@ void ACT_OT_keyframes_sample (wmOperatorType *ot)
 
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
-/* defines for set ipo-type for selected keyframes tool */
+/* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_actkeys_expo_types[] = {
 	{IPO_HORIZ, "CONSTANT", "Constant", ""},
 	{IPO_DIR, "DIRECTIONAL", "Extrapolation", ""},

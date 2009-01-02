@@ -217,6 +217,240 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 /* ************************************************************************** */
 /* OPERATORS */
 
+/* ********************** Set Flags Operator *********************** */
+
+enum {
+// 	ACHANNEL_SETTING_SELECT = 0,
+	ACHANNEL_SETTING_PROTECT = 1,
+	ACHANNEL_SETTING_MUTE,
+} eAnimChannel_Settings;
+
+/* defines for setting animation-channel flags */
+EnumPropertyItem prop_animchannel_setflag_types[] = {
+	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", "Disable", ""},
+	{ACHANNEL_SETFLAG_ADD, "ENABLE", "Enable", ""},
+	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", "Toggle", ""},
+	{0, NULL, NULL, NULL}
+};
+
+/* defines for set animation-channel settings */
+EnumPropertyItem prop_animchannel_settings_types[] = {
+	{ACHANNEL_SETTING_PROTECT, "PROTECT", "Protect", ""},
+	{ACHANNEL_SETTING_MUTE, "MUTE", "Mute", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
+/* ------------------- */
+
+/* Set/clear a particular flag (setting) for all selected + visible channels 
+ *	setting: the setting to modify
+ *	mode: eAnimChannels_SetFlag
+ */
+static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_SEL);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* affect selected channels */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ANIMTYPE_GROUP:
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				
+				/* only 'protect' is available */
+				if (setting == ACHANNEL_SETTING_PROTECT) {
+					ACHANNEL_SET_FLAG(agrp, mode, AGRP_PROTECTED);
+				}
+			}
+				break;
+			case ANIMTYPE_ACHAN:
+			{
+				bActionChannel *achan= (bActionChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((setting == ACHANNEL_SETTING_MUTE) && (achan->ipo)) {
+					Ipo *ipo= achan->ipo;
+					
+					/* mute */
+					if (mode == 0)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else if (mode == 2) 
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (setting == ACHANNEL_SETTING_PROTECT) {
+					/* protected */
+					ACHANNEL_SET_FLAG(achan, mode, ACHAN_PROTECTED);
+				}
+			}
+				break;
+			case ANIMTYPE_CONCHAN:
+			{
+				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if ((setting == ACHANNEL_SETTING_MUTE) && (conchan->ipo)) {
+					Ipo *ipo= conchan->ipo;
+					
+					/* mute */
+					if (mode == 0)
+						ipo->muteipo= 0;
+					else if (mode == 1)
+						ipo->muteipo= 1;
+					else if (mode == 2) 
+						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
+				}
+				else if (setting == ACHANNEL_SETTING_PROTECT) {
+					/* protect */
+					ACHANNEL_SET_FLAG(conchan, mode, CONSTRAINT_CHANNEL_PROTECTED);
+				}
+			}
+				break;
+			case ANIMTYPE_ICU:
+			{
+				IpoCurve *icu= (IpoCurve *)ale->data;
+				
+				/* mute */
+				if (setting == ACHANNEL_SETTING_MUTE) {
+					ACHANNEL_SET_FLAG(icu, mode, IPO_MUTE);
+				}
+				else if (setting == ACHANNEL_SETTING_PROTECT) {
+					ACHANNEL_SET_FLAG(icu, mode, IPO_PROTECT);
+				}
+			}
+				break;
+			case ANIMTYPE_GPLAYER:
+			{
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				
+				/* 'protect' and 'mute' */
+				if (setting == ACHANNEL_SETTING_MUTE) {
+					/* mute */
+					ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_HIDE);
+				}
+				else if (setting == ACHANNEL_SETTING_PROTECT) {
+					/* protected */
+					ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_LOCKED);
+				}
+			}
+				break;
+		}
+	}
+	
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int animchannels_setflag_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode, setting;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* mode (eAnimChannels_SetFlag), setting (eAnimChannel_Settings) */
+	mode= RNA_enum_get(op->ptr, "mode");
+	setting= RNA_enum_get(op->ptr, "type");
+	
+	/* modify setting */
+	setflag_anim_channels(&ac, setting, mode);
+	
+	/* set notifier tha things have changed */
+	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Enable Channel Setting";
+	ot->idname= "ANIM_OT_channels_enable_setting";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= animchannels_setflag_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+		/* flag-setting mode */
+	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
+	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_ADD);
+		/* setting to set */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+}
+
+void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Disable Channel Setting";
+	ot->idname= "ANIM_OT_channels_disable_setting";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= animchannels_setflag_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+		/* flag-setting mode */
+	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
+	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_CLEAR);
+		/* setting to set */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+}
+
+void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Toggle Channel Setting";
+	ot->idname= "ANIM_OT_channels_toggle_setting";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= animchannels_setflag_exec;
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+		/* flag-setting mode */
+	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
+	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_TOGGLE);
+		/* setting to set */
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+}
+
 /* ********************** Select All Operator *********************** */
 
 static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
@@ -803,6 +1037,10 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_deselectall);
 	WM_operatortype_append(ANIM_OT_channels_borderselect);
 	WM_operatortype_append(ANIM_OT_channels_mouseclick);
+	
+	WM_operatortype_append(ANIM_OT_channels_enable_setting);
+	WM_operatortype_append(ANIM_OT_channels_disable_setting);
+	WM_operatortype_append(ANIM_OT_channels_toggle_setting);
 }
 
 void ED_keymap_animchannels(wmWindowManager *wm)
@@ -821,6 +1059,11 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	
 		/* borderselect */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_borderselect", BKEY, KM_PRESS, 0, 0);
+	
+	/* settings */
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_toggle_setting", WKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACHANNEL_SETFLAG_TOGGLE);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_enable_setting", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "mode", ACHANNEL_SETFLAG_ADD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_disable_setting", WKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACHANNEL_SETFLAG_CLEAR);
 }
 
 /* ************************************************************************** */

@@ -619,10 +619,11 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 		}
 		
 		/* draw LOCK */
-		uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, yco, XIC, YIC, 
-					  &(saction->lock), 0, 0, 0, 0, 
-					  "Updates other affected window spaces automatically "
-					  "to reflect changes in real time");
+			// XXX this feature is probably not relevant anymore!
+		//uiDefIconButS(block, ICONTOG, B_LOCK, ICON_UNLOCKED,	xco, yco, XIC, YIC, 
+		//			  &(saction->lock), 0, 0, 0, 0, 
+		//			  "Updates other affected window spaces automatically "
+		//			  "to reflect changes in real time");
 	}
 
 	/* always as last  */
