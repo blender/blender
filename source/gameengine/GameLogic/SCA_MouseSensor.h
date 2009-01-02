@@ -87,7 +87,7 @@ class SCA_MouseSensor : public SCA_ISensor
 
 	bool isValid(KX_MOUSESENSORMODE);
 	
-	static int UpdateHotkey(void *self);
+	static int UpdateHotkey(void *self, const PyAttributeDef*);
 	
 	SCA_MouseSensor(class SCA_MouseManager* keybdmgr,
 					int startx,int starty,

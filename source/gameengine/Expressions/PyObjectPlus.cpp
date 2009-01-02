@@ -164,6 +164,14 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 							PyList_SetItem(resultlist,i,PyInt_FromLong(*val));
 							break;
 						}
+					case KX_PYATTRIBUTE_TYPE_ENUM:
+						// enum are like int, just make sure the field size is the same
+						if (sizeof(int) != attrdef->m_size)
+						{
+							Py_DECREF(resultlist);
+							return NULL;
+						}
+						// walkthrough
 					case KX_PYATTRIBUTE_TYPE_INT:
 						{
 							int *val = reinterpret_cast<int*>(ptr);
@@ -180,6 +188,7 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 						}
 					default:
 						// no support for array of complex data
+						Py_DECREF(resultlist);
 						return NULL;
 					}
 				}
@@ -198,6 +207,13 @@ PyObject *PyObjectPlus::_getattr_self(const PyAttributeDef attrlist[], void *sel
 						short int *val = reinterpret_cast<short int*>(ptr);
 						return PyInt_FromLong(*val);
 					}
+				case KX_PYATTRIBUTE_TYPE_ENUM:
+					// enum are like int, just make sure the field size is the same
+					if (sizeof(int) != attrdef->m_size)
+					{
+						return NULL;
+					}
+					// walkthrough
 				case KX_PYATTRIBUTE_TYPE_INT:
 					{
 						int *val = reinterpret_cast<int*>(ptr);
@@ -260,6 +276,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 				case KX_PYATTRIBUTE_TYPE_SHORT:
 					bufferSize = sizeof(short int);
 					break;
+				case KX_PYATTRIBUTE_TYPE_ENUM:
 				case KX_PYATTRIBUTE_TYPE_INT:
 					bufferSize = sizeof(int);
 					break;
@@ -313,7 +330,14 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 							if (PyInt_Check(item)) 
 							{
 								long val = PyInt_AsLong(item);
-								if (val < attrdef->m_imin || val > attrdef->m_imax)
+								if (attrdef->m_clamp)
+								{
+									if (val < attrdef->m_imin)
+										val = attrdef->m_imin;
+									else if (val > attrdef->m_imax)
+										val = attrdef->m_imax;
+								}
+								else if (val < attrdef->m_imin || val > attrdef->m_imax)
 								{
 									PyErr_SetString(PyExc_ValueError, "item value out of range");
 									goto UNDO_AND_ERROR;
@@ -327,6 +351,14 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 							}
 							break;
 						}
+					case KX_PYATTRIBUTE_TYPE_ENUM:
+						// enum are equivalent to int, just make sure that the field size matches:
+						if (sizeof(int) != attrdef->m_size)
+						{
+							PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+							goto UNDO_AND_ERROR;
+						}
+						// walkthrough
 					case KX_PYATTRIBUTE_TYPE_INT:
 						{
 							int *var = reinterpret_cast<int*>(ptr);
@@ -334,7 +366,14 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 							if (PyInt_Check(item)) 
 							{
 								long val = PyInt_AsLong(item);
-								if (val < attrdef->m_imin || val > attrdef->m_imax)
+								if (attrdef->m_clamp)
+								{
+									if (val < attrdef->m_imin)
+										val = attrdef->m_imin;
+									else if (val > attrdef->m_imax)
+										val = attrdef->m_imax;
+								}
+								else if (val < attrdef->m_imin || val > attrdef->m_imax)
 								{
 									PyErr_SetString(PyExc_ValueError, "item value out of range");
 									goto UNDO_AND_ERROR;
@@ -352,21 +391,25 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 						{
 							float *var = reinterpret_cast<float*>(ptr);
 							ptr += sizeof(float);
-							if (PyFloat_Check(item)) 
-							{
-								double val = PyFloat_AsDouble(item);
-								if (val < attrdef->m_fmin || val > attrdef->m_fmax)
-								{
-									PyErr_SetString(PyExc_ValueError, "item value out of range");
-									goto UNDO_AND_ERROR;
-								}
-								*var = (float)val;
-							}
-							else
+							double val = PyFloat_AsDouble(item);
+							if (val == -1.0 && PyErr_Occurred())
 							{
 								PyErr_SetString(PyExc_TypeError, "expected a float");
 								goto UNDO_AND_ERROR;
 							}
+							else if (attrdef->m_clamp) 
+							{
+								if (val < attrdef->m_fmin)
+									val = attrdef->m_fmin;
+								else if (val > attrdef->m_fmax)
+									val = attrdef->m_fmax;
+							}
+							else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+							{
+								PyErr_SetString(PyExc_ValueError, "item value out of range");
+								goto UNDO_AND_ERROR;
+							}
+							*var = (float)val;
 							break;
 						}
 					default:
@@ -378,7 +421,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 				// no error, call check function if any
 				if (attrdef->m_function != NULL)
 				{
-					if ((*attrdef->m_function)(self) != 0)
+					if ((*attrdef->m_function)(self, attrdef) != 0)
 					{
 						// post check returned an error, restore values
 					UNDO_AND_ERROR:
@@ -409,6 +452,7 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 					case KX_PYATTRIBUTE_TYPE_SHORT:
 						bufferSize = sizeof(short);
 						break;
+					case KX_PYATTRIBUTE_TYPE_ENUM:
 					case KX_PYATTRIBUTE_TYPE_INT:
 						bufferSize = sizeof(int);
 						break;
@@ -460,7 +504,14 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 						if (PyInt_Check(value)) 
 						{
 							long val = PyInt_AsLong(value);
-							if (val < attrdef->m_imin || val > attrdef->m_imax)
+							if (attrdef->m_clamp)
+							{
+								if (val < attrdef->m_imin)
+									val = attrdef->m_imin;
+								else if (val > attrdef->m_imax)
+									val = attrdef->m_imax;
+							}
+							else if (val < attrdef->m_imin || val > attrdef->m_imax)
 							{
 								PyErr_SetString(PyExc_ValueError, "value out of range");
 								goto FREE_AND_ERROR;
@@ -474,13 +525,28 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 						}
 						break;
 					}
+				case KX_PYATTRIBUTE_TYPE_ENUM:
+					// enum are equivalent to int, just make sure that the field size matches:
+					if (sizeof(int) != attrdef->m_size)
+					{
+						PyErr_SetString(PyExc_AttributeError, "attribute size check error, report to blender.org");
+						goto FREE_AND_ERROR;
+					}
+					// walkthrough
 				case KX_PYATTRIBUTE_TYPE_INT:
 					{
 						int *var = reinterpret_cast<int*>(ptr);
 						if (PyInt_Check(value)) 
 						{
 							long val = PyInt_AsLong(value);
-							if (val < attrdef->m_imin || val > attrdef->m_imax)
+							if (attrdef->m_clamp)
+							{
+								if (val < attrdef->m_imin)
+									val = attrdef->m_imin;
+								else if (val > attrdef->m_imax)
+									val = attrdef->m_imax;
+							}
+							else if (val < attrdef->m_imin || val > attrdef->m_imax)
 							{
 								PyErr_SetString(PyExc_ValueError, "value out of range");
 								goto FREE_AND_ERROR;
@@ -497,21 +563,25 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 				case KX_PYATTRIBUTE_TYPE_FLOAT:
 					{
 						float *var = reinterpret_cast<float*>(ptr);
-						if (PyFloat_Check(value)) 
-						{
-							double val = PyFloat_AsDouble(value);
-							if (val < attrdef->m_fmin || val > attrdef->m_fmax)
-							{
-								PyErr_SetString(PyExc_ValueError, "value out of range");
-								goto FREE_AND_ERROR;
-							}
-							*var = (float)val;
-						}
-						else
+						double val = PyFloat_AsDouble(value);
+						if (val == -1.0 && PyErr_Occurred())
 						{
 							PyErr_SetString(PyExc_TypeError, "expected a float");
 							goto FREE_AND_ERROR;
 						}
+						else if (attrdef->m_clamp)
+						{
+							if (val < attrdef->m_fmin)
+								val = attrdef->m_fmin;
+							else if (val > attrdef->m_fmax)
+								val = attrdef->m_fmax;
+						}
+						else if (val < attrdef->m_fmin || val > attrdef->m_fmax)
+						{
+							PyErr_SetString(PyExc_ValueError, "value out of range");
+							goto FREE_AND_ERROR;
+						}
+						*var = (float)val;
 						break;
 					}
 				case KX_PYATTRIBUTE_TYPE_STRING:
@@ -520,7 +590,24 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 						if (PyString_Check(value)) 
 						{
 							char *val = PyString_AsString(value);
-							if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
+							if (attrdef->m_clamp)
+							{
+								if (strlen(val) < attrdef->m_imin)
+								{
+									// can't increase the length of the string
+									PyErr_SetString(PyExc_ValueError, "string length too short");
+									goto FREE_AND_ERROR;
+								}
+								else if (strlen(val) > attrdef->m_imax)
+								{
+									// trim the string
+									char c = val[attrdef->m_imax];
+									val[attrdef->m_imax] = 0;
+									*var = val;
+									val[attrdef->m_imax] = c;
+									break;
+								}
+							} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
 							{
 								PyErr_SetString(PyExc_ValueError, "string length out of range");
 								goto FREE_AND_ERROR;
@@ -543,9 +630,10 @@ int PyObjectPlus::_setattr_self(const PyAttributeDef attrlist[], void *self, con
 			// check if post processing is needed
 			if (attrdef->m_function != NULL)
 			{
-				if ((*attrdef->m_function)(self) != 0)
+				if ((*attrdef->m_function)(self, attrdef) != 0)
 				{
 					// restore value
+				RESTORE_AND_ERROR:
 					if (undoBuffer)
 					{
 						if (attrdef->m_type == KX_PYATTRIBUTE_TYPE_STRING)

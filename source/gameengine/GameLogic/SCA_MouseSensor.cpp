@@ -59,7 +59,7 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 	m_mousemode   = mousemode;
 	m_triggermode = true;
 
-	UpdateHotkey(this);
+	UpdateHotkey(this, NULL);
 	Init();
 }
 
@@ -74,7 +74,7 @@ SCA_MouseSensor::~SCA_MouseSensor()
     /* Nothing to be done here. */
 }
 
-int SCA_MouseSensor::UpdateHotkey(void *self)
+int SCA_MouseSensor::UpdateHotkey(void *self, const PyAttributeDef*)
 {
 	// gosh, this function is so damn stupid
 	// its here because of a design mistake in the mouse sensor, it should only
@@ -336,7 +336,7 @@ PyMethodDef SCA_MouseSensor::Methods[] = {
 };
 
 PyAttributeDef SCA_MouseSensor::Attributes[] = {
-	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,SCA_MouseSensor,m_mousemode,UpdateHotkey),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",KX_MOUSESENSORMODE_NODEF,KX_MOUSESENSORMODE_MAX-1,true,SCA_MouseSensor,m_mousemode,UpdateHotkey),
 	KX_PYATTRIBUTE_SHORT_ARRAY_RO("position",SCA_MouseSensor,m_x,2),
 	{ NULL }	//Sentinel
 };

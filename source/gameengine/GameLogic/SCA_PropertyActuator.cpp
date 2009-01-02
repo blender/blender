@@ -254,36 +254,23 @@ PyMethodDef SCA_PropertyActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_PropertyActuator::Attributes[] = {
+	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_PropertyActuator,m_propname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW("value",0,100,false,SCA_PropertyActuator,m_exprtxt),
+	{ NULL }	//Sentinel
+};
+
 PyObject* SCA_PropertyActuator::_getattr(const STR_String& attr) {
-	if (attr == "property") {
-		return PyString_FromString(m_propname);
-	}
-	if (attr == "value") {
-		return PyString_FromString(m_exprtxt);
-	}
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_IActuator);
 }
 
 int SCA_PropertyActuator::_setattr(const STR_String& attr, PyObject *value) {
-	if (PyString_Check(value)) {
-		char* sval = PyString_AsString(value);
-		if (attr == "property") {
-			CValue* prop = GetParent()->FindIdentifier(sval);
-			bool error = prop->IsError();
-			prop->Release();
-			if (!prop->IsError()) {
-				m_propname = sval;
-				return 0;
-			} else {
-				PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
-				return 1;
-			}
-		} 
-		if (attr == "value") {
-			m_exprtxt = sval;
-			return 0;
-		}
-	}
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_IActuator::_setattr(attr, value);
 }
 

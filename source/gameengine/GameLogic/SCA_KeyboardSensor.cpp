@@ -822,11 +822,11 @@ PyMethodDef SCA_KeyboardSensor::Methods[] = {
 
 PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("useAllKeys",SCA_KeyboardSensor,m_bAllKeys),
-	KX_PYATTRIBUTE_INT_RW("key",0,1000,SCA_KeyboardSensor,m_hotkey),
-	KX_PYATTRIBUTE_SHORT_RW("hold1",0,1000,SCA_KeyboardSensor,m_qual),
-	KX_PYATTRIBUTE_SHORT_RW("hold2",0,1000,SCA_KeyboardSensor,m_qual2),
-	KX_PYATTRIBUTE_STRING_RW("toggleProperty",0,100,SCA_KeyboardSensor,m_toggleprop),
-	KX_PYATTRIBUTE_STRING_RW("targetProperty",0,100,SCA_KeyboardSensor,m_targetprop),
+	KX_PYATTRIBUTE_INT_RW("key",0,SCA_IInputDevice::KX_ENDKEY,true,SCA_KeyboardSensor,m_hotkey),
+	KX_PYATTRIBUTE_SHORT_RW("hold1",0,SCA_IInputDevice::KX_ENDKEY,true,SCA_KeyboardSensor,m_qual),
+	KX_PYATTRIBUTE_SHORT_RW("hold2",0,SCA_IInputDevice::KX_ENDKEY,true,SCA_KeyboardSensor,m_qual2),
+	KX_PYATTRIBUTE_STRING_RW("toggleProperty",0,100,false,SCA_KeyboardSensor,m_toggleprop),
+	KX_PYATTRIBUTE_STRING_RW("targetProperty",0,100,false,SCA_KeyboardSensor,m_targetprop),
 	{ NULL }	//Sentinel
 };
 

@@ -89,6 +89,9 @@ public:
 	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
 	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
+	// check that attribute is a property
+	static int CheckProperty(void *self, const PyAttributeDef *attrdef);
+
 	enum KX_BOOL_TYPE {
 		KX_BOOL_NODEF = 0,
 		KX_TRUE,

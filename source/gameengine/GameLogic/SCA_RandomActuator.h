@@ -136,7 +136,6 @@ class SCA_RandomActuator : public SCA_IActuator
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNormal);
 	/* 20. setFloatNegativeExponential, */
 	KX_PYMETHOD_DOC(SCA_RandomActuator,SetFloatNegativeExponential);
-	
 }; /* end of class KX_EditObjectActuator : public SCA_PropertyActuator */
 
 #endif

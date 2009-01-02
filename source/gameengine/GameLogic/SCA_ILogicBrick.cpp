@@ -252,7 +252,23 @@ PyMethodDef SCA_ILogicBrick::Methods[] = {
   {NULL,NULL} //Sentinel
 };
 
-
+int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
+{
+	if (attrdef->m_type != KX_PYATTRIBUTE_TYPE_STRING || attrdef->m_length != 1) {
+		PyErr_SetString(PyExc_AttributeError, "inconsistent check function for attribute type, report to blender.org");
+		return 1;
+	}
+	SCA_ILogicBrick* brick = reinterpret_cast<SCA_ILogicBrick*>(self);
+	STR_String* var = reinterpret_cast<STR_String*>((char*)self+attrdef->m_offset);
+	CValue* prop = brick->GetParent()->FindIdentifier(*var);
+	bool error = prop->IsError();
+	prop->Release();
+	if (error) {
+		PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
+		return 1;
+	}
+	return 0;
+}
 
 PyObject*
 SCA_ILogicBrick::_getattr(const STR_String& attr)

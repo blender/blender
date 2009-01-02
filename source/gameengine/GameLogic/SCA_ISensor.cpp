@@ -448,19 +448,24 @@ PyMethodDef SCA_ISensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_ISensor::Attributes[] = {
+	KX_PYATTRIBUTE_BOOL_RW("usePosPulseMode",SCA_ISensor,m_pos_pulsemode),
+	KX_PYATTRIBUTE_BOOL_RW("useNegPulseMode",SCA_ISensor,m_neg_pulsemode),
+	KX_PYATTRIBUTE_INT_RW("frequency",0,100000,true,SCA_ISensor,m_pulse_frequency),
+	KX_PYATTRIBUTE_BOOL_RW("invert",SCA_ISensor,m_invert),
+	KX_PYATTRIBUTE_BOOL_RW("level",SCA_ISensor,m_level),
+	// make these properties read-only in _setaddr, must still implement them in _getattr
+	KX_PYATTRIBUTE_DUMMY("triggered"),
+	KX_PYATTRIBUTE_DUMMY("positive"),
+	{ NULL }	//Sentinel
+};
+
 PyObject*
 SCA_ISensor::_getattr(const STR_String& attr)
 {
-	if (attr == "usePosPulseMode")
-		return PyInt_FromLong(m_pos_pulsemode);
-	if (attr == "useNegPulseMode")
-		return PyInt_FromLong(m_neg_pulsemode);
-	if (attr == "frequency")
-		return PyInt_FromLong(m_pulse_frequency);
-	if (attr == "invert")
-		return PyInt_FromLong(m_invert);
-	if (attr == "level")
-		return PyInt_FromLong(m_level);
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	if (attr == "triggered")
 	{
 		int retval = 0;
@@ -473,54 +478,14 @@ SCA_ISensor::_getattr(const STR_String& attr)
 		int retval = IsPositiveTrigger();
 		return PyInt_FromLong(retval);
 	}
-
-  _getattr_up(SCA_ILogicBrick);
+	_getattr_up(SCA_ILogicBrick);
 }
 
 int SCA_ISensor::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (attr == "triggered")
-		PyErr_SetString(PyExc_AttributeError, "attribute \"triggered\" is read only");
-	if (attr == "positive")
-		PyErr_SetString(PyExc_AttributeError, "attribute \"positive\" is read only");
-
-	if (PyInt_Check(value))
-	{
-		int val = PyInt_AsLong(value);
-
-		if (attr == "usePosPulseMode")
-		{
-			m_pos_pulsemode = (val != 0);
-			return 0;
-		}
-
-		if (attr == "useNegPulseMode")
-		{
-			m_neg_pulsemode = (val != 0);
-			return 0;
-		}
-
-		if (attr == "invert")
-		{
-			m_invert = (val != 0);
-			return 0;
-		}
-
-		if (attr == "level")
-		{
-			m_level = (val != 0);
-			return 0;
-		}
-
-		if (attr == "frequency")
-		{
-			if (val < 0)
-				val = 0;
-			m_pulse_frequency = val;
-			return 0;
-		}
-	}
-
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ILogicBrick::_setattr(attr, value);
 }
 /* eof */

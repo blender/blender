@@ -149,24 +149,22 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(SCA_JoystickSensor,Connected);
 
 	/* attribute check */
-	static int CheckAxis(void *self)
+	static int CheckAxis(void *self, const PyAttributeDef*)
 	{
 		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
-		if (sensor->m_axis < 1 || sensor->m_axis > 2)
-		{
-			PyErr_SetString(PyExc_ValueError, "axis number must be 1 or 2");
-			return 1;
-		}
+		if (sensor->m_axis < 1)
+			sensor->m_axis = 1;
+		else if (sensor->m_axis > 2)
+			sensor->m_axis = 2;
 		return 0;
 	}
-	static int CheckHat(void *self)
+	static int CheckHat(void *self, const PyAttributeDef*)
 	{
 		SCA_JoystickSensor* sensor = reinterpret_cast<SCA_JoystickSensor*>(self);
-		if (sensor->m_hat < 1 || sensor->m_hat > 2)
-		{
-			PyErr_SetString(PyExc_ValueError, "hat number must be 1 or 2");
-			return 1;
-		}
+		if (sensor->m_hat < 1)
+			sensor->m_hat = 1;
+		else if (sensor->m_hat > 2)
+			sensor->m_hat = 2;
 		return 0;
 	}
 	

@@ -361,57 +361,38 @@ PyMethodDef SCA_RandomActuator::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_RandomActuator::Attributes[] = {
+	KX_PYATTRIBUTE_FLOAT_RO("para1",SCA_RandomActuator,m_parameter1),
+	KX_PYATTRIBUTE_FLOAT_RO("para2",SCA_RandomActuator,m_parameter2),
+	KX_PYATTRIBUTE_ENUM_RO("distribution",SCA_RandomActuator,m_distribution),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_RandomActuator,m_propname,CheckProperty),
+	{ NULL }	//Sentinel
+};	
+
 PyObject* SCA_RandomActuator::_getattr(const STR_String& attr) {
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	if (attr == "seed") {
 		return PyInt_FromLong(m_base->GetSeed());
-	}
-	if (attr == "para1") {
-		return PyFloat_FromDouble(m_parameter1);
-	}
-	if (attr == "para2") {
-		return PyFloat_FromDouble(m_parameter2);
-	}
-	if (attr == "distribution") {
-		return PyInt_FromLong(m_distribution);
-	}
-	if (attr == "property") {
-		return PyString_FromString(m_propname);
 	}
 	_getattr_up(SCA_IActuator);
 }
 
 int SCA_RandomActuator::_setattr(const STR_String& attr, PyObject *value)
 {
-	if (attr == "para1") {
-		PyErr_SetString(PyExc_AttributeError, "para1 is read only");
-	}
-	if (attr == "para2") {
-		PyErr_SetString(PyExc_AttributeError, "para2 is read only");
-	}
-	if (attr == "distribution") {
-		PyErr_SetString(PyExc_AttributeError, "distribution is read only");
-	}
-	if (PyInt_Check(value))	{
-		int ival = PyInt_AsLong(value);
-		if (attr == "seed") {
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
+	if (attr == "seed") {
+		if (PyInt_Check(value))	{
+			int ival = PyInt_AsLong(value);
 			m_base->SetSeed(ival);
+			return 0;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "expected an integer");
+			return 1;
 		}
-		return 0;
-	}
-	if (PyString_Check(value)) {
-		char* sval = PyString_AsString(value);
-		if (attr == "property") {
-			CValue* prop = GetParent()->FindIdentifier(sval);
-			bool error = prop->IsError();
-			prop->Release();
-			if (!prop->IsError()) {
-				m_propname = sval;
-				return 0;
-			} else {
-				PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
-				return 1;
-			}
-		} 
 	}
 	return SCA_IActuator::_setattr(attr, value);
 }

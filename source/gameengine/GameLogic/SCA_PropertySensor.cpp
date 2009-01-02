@@ -293,7 +293,7 @@ CValue* SCA_PropertySensor::FindIdentifier(const STR_String& identifiername)
 	return  GetParent()->FindIdentifier(identifiername);
 }
 
-bool SCA_PropertySensor::validValueForProperty(char *val, STR_String &prop)
+int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 {
 	bool result = true;
 	/*  There is no type checking at this moment, unfortunately...           */
@@ -344,51 +344,25 @@ PyMethodDef SCA_PropertySensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_PropertySensor::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("type",KX_PROPSENSOR_NODEF,KX_PROPSENSOR_MAX-1,false,SCA_PropertySensor,m_checktype),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("property",0,100,false,SCA_PropertySensor,m_checkpropname,CheckProperty),
+	KX_PYATTRIBUTE_STRING_RW_CHECK("value",0,100,false,SCA_PropertySensor,m_checkpropval,validValueForProperty),
+	{ NULL }	//Sentinel
+};
+
+
 PyObject* SCA_PropertySensor::_getattr(const STR_String& attr) {
-	if (attr == "type") {
-		return PyInt_FromLong(m_checktype);
-	}
-	if (attr == "property") {
-		return PyString_FromString(m_checkpropname);
-	}
-	if (attr == "value") {
-		return PyString_FromString(m_checkpropval);
-	}
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_ISensor); /* implicit return! */
 }
 
 int SCA_PropertySensor::_setattr(const STR_String& attr, PyObject *value) {
-	if (PyInt_Check(value))	{
-		int ival = PyInt_AsLong(value);
-		if (attr == "type") {
-			if ((ival <= KX_PROPSENSOR_NODEF) || (ival >= KX_PROPSENSOR_MAX)) {
-				PyErr_SetString(PyExc_ValueError, "type out of range");
-				return 1;
-			}
-			m_checktype =  ival;
-		}
-		return 0;
-	}
-	if (PyString_Check(value)) {
-		char* sval = PyString_AsString(value);
-		if (attr == "property") {
-			CValue *prop = FindIdentifier(STR_String(sval));
-			bool error = prop->IsError();
-			prop->Release();
-			if (error) {
-				PyErr_SetString(PyExc_ValueError, "string does not correspond to a property");
-				return 1;
-			}
-			m_checkpropname = sval;
-		} else if (attr == "value") {
-			if (!validValueForProperty(sval, m_checkpropname)) {
-				PyErr_SetString(PyExc_ValueError, "string does not represent a suitable value for the property");
-				return 1;
-			}
-			m_checkpropval = sval;
-		}	
-		return 0;
-	}
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ISensor::_setattr(attr, value);
 }
 
@@ -490,11 +464,12 @@ PyObject* SCA_PropertySensor::PySetValue(PyObject* self, PyObject* args, PyObjec
 	if(!PyArg_ParseTuple(args, "s", &propValArg)) {
 		return NULL;
 	}
-
-	if (validValueForProperty(propValArg, m_checkpropname)) {
-		m_checkpropval = propValArg;
+	STR_String oldval = m_checkpropval;
+	m_checkpropval = propValArg;
+	if (validValueForProperty(self, NULL)) {
+		m_checkpropval = oldval;
+		return NULL;
 	}	
-
 	Py_Return;
 }
 

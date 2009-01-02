@@ -171,43 +171,24 @@ PyMethodDef SCA_DelaySensor::Methods[] = {
 	{NULL,NULL} //Sentinel
 };
 
+PyAttributeDef SCA_DelaySensor::Attributes[] = {
+	KX_PYATTRIBUTE_INT_RW("delay",0,100000,true,SCA_DelaySensor,m_delay),
+	KX_PYATTRIBUTE_INT_RW("duration",0,100000,true,SCA_DelaySensor,m_duration),
+	KX_PYATTRIBUTE_BOOL_RW("repeat",SCA_DelaySensor,m_repeat),
+	{ NULL }	//Sentinel
+};
+
 PyObject* SCA_DelaySensor::_getattr(const STR_String& attr) {
-	if (attr == "delay") {
-		return PyInt_FromLong(m_delay);
-	}
-	if (attr == "duration") {
-		return PyInt_FromLong(m_duration);
-	}
-	if (attr == "repeat") {
-		return PyInt_FromLong(m_repeat);
-	}
+	PyObject* object = _getattr_self(Attributes, this, attr);
+	if (object != NULL)
+		return object;
 	_getattr_up(SCA_ISensor);
 }
 
 int SCA_DelaySensor::_setattr(const STR_String& attr, PyObject *value) {
-	if (PyInt_Check(value))	{
-		int ival = PyInt_AsLong(value);
-		if (attr == "delay") {
-			if (ival < 0) {
-				PyErr_SetString(PyExc_ValueError, "Delay cannot be negative");
-				return 1;
-			}
-			m_delay = ival;
-			return 0;
-		}
-		if (attr == "duration") {
-			if (ival < 0) {
-				PyErr_SetString(PyExc_ValueError, "Duration cannot be negative");
-				return 1;
-			}
-			m_duration = ival;
-			return 0;
-		}
-		if (attr == "repeat") {
-			m_repeat = (ival != 0);
-			return 0;
-		}
-	}
+	int ret = _setattr_self(Attributes, this, attr, value);
+	if (ret >= 0)
+		return ret;
 	return SCA_ISensor::_setattr(attr, value);
 }
 
