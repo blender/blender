@@ -29,6 +29,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
@@ -403,10 +404,40 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 static void rna_def_modifier_armature(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ArmatureModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Armature Modifier", "Armature Modifier.");
 	RNA_def_struct_sdna(srna, "ArmatureModifierData");
+
+	prop= RNA_def_property(srna, "armature", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Armature", "Armature object to deform with.");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
+
+	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_INVERT_VGROUP);
+	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence.");
+
+	prop= RNA_def_property(srna, "use_vertex_groups", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_VGROUP);
+	RNA_def_property_ui_text(prop, "Use Vertex Groups", "");
+
+	prop= RNA_def_property(srna, "use_bone_envelopes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_ENVELOPE);
+	RNA_def_property_ui_text(prop, "Use Bone Envelopes", "");
+
+	prop= RNA_def_property(srna, "quaternion", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_QUATERNION);
+	RNA_def_property_ui_text(prop, "Quaternion", "Deform rotation interpolation with quaternions.");
+
+	prop= RNA_def_property(srna, "b_bone_rest", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "deformflag", ARM_DEF_B_BONE_REST);
+	RNA_def_property_ui_text(prop, "Quaternion",  "Make B-Bones deform already in rest position");
 }
 
 static void rna_def_modifier_hook(BlenderRNA *brna)
