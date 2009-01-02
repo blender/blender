@@ -287,10 +287,117 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 static void rna_def_modifier_wave(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_texture_coordinates_items[] = {
+		{MOD_WAV_MAP_LOCAL, "MAPLOCAL", "Local", ""},
+		{MOD_WAV_MAP_GLOBAL, "MAPGLOBAL", "Global", ""},
+		{MOD_WAV_MAP_OBJECT, "MAPOBJECT", "Object", ""},
+		{MOD_WAV_MAP_UV, "MAPUV", "UV", ""},
+		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WaveModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Wave Modifier", "Wave Modifier.");
 	RNA_def_struct_sdna(srna, "WaveModifierData");
+
+	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_X);
+	RNA_def_property_ui_text(prop, "X", "X axis motion.");
+
+	prop= RNA_def_property(srna, "y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_Y);
+	RNA_def_property_ui_text(prop, "Y", "Y axis motion.");
+
+	prop= RNA_def_property(srna, "cyclic", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_CYCL);
+	RNA_def_property_ui_text(prop, "Cyclic", "Cyclic wave effect.");
+
+	prop= RNA_def_property(srna, "normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_NORM);
+	RNA_def_property_ui_text(prop, "Normals", "Dispace along normals.");
+
+	prop= RNA_def_property(srna, "x_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_NORM_X);
+	RNA_def_property_ui_text(prop, "X Normal", "Enable displacement along the X normal");
+
+	prop= RNA_def_property(srna, "y_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_NORM_Y);
+	RNA_def_property_ui_text(prop, "Y Normal", "Enable displacement along the Y normal");
+
+	prop= RNA_def_property(srna, "z_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WAVE_NORM_Z);
+	RNA_def_property_ui_text(prop, "Z Normal", "Enable displacement along the Z normal");
+
+	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "timeoffs");
+	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Time Offset", "Either the starting frame (for positive speed) or ending frame (for negative speed.)");
+
+	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Lifetime",  "");
+
+	prop= RNA_def_property(srna, "damping_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "damp");
+	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_ui_text(prop, "Damping Time",  "");
+
+	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "falloff");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Falloff Radius",  "");
+
+	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "startx");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Start Position X",  "");
+
+	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "starty");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Start Position Y",  "");
+
+	prop= RNA_def_property(srna, "start_position_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "objectcenter");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Start Position Object", "");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for modulating the wave.");
+
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Texture", "Texture for modulating the wave.");
+
+	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texmapping");
+	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
+	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used for modulating input.");
+
+	/* XXX: Not sure how to handle WaveModifierData.uvlayer_tmp. It should be a menu of this object's UV customdata layers. */
+
+	prop= RNA_def_property(srna, "texture_coordinates_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "map_object");
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Texture Coordinates Object", "");
+
+	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Speed", "");
+
+	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Height", "");
+
+	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 5);
+	RNA_def_property_ui_text(prop, "Width", "");
+
+	prop= RNA_def_property(srna, "narrowness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "narrow");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Narrowness", "");
 }
 
 static void rna_def_modifier_armature(BlenderRNA *brna)
