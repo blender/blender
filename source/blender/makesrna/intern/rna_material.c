@@ -64,25 +64,21 @@ static void rna_def_material_colors(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Diffuse Color", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3);
 	
 	prop= RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "specr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Specular Color", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3);
 	
 	prop= RNA_def_property(srna, "mirror_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "mirr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Mirror Color", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3);
 		
 	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Ambient Color", "");
-	RNA_def_property_ui_range(prop, 0.0f , 1.0f, 10.0f, 3);
 	
 	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);

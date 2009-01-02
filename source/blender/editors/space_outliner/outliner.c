@@ -567,6 +567,11 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	ID *id= idv;
 	int a;
 	
+	if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+		id= ((PointerRNA*)idv)->id.data;
+		if(!id) id= ((PointerRNA*)idv)->data;
+	}
+
 	if(id==NULL) return NULL;
 
 	te= MEM_callocN(sizeof(TreeElement), "tree elem");
@@ -998,7 +1003,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		/* we do lazy build, for speed and to avoid infinite recusion */
 
 		if(ptr->data == NULL) {
-			te->name= "<null>";
+			te->name= "(empty)";
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
@@ -1336,6 +1341,18 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		RNA_main_pointer_create(mainvar, &mainptr);
 
 		ten= outliner_add_element(soops, &soops->tree, (void*)&mainptr, NULL, TSE_RNA_STRUCT, -1);
+
+		if(show_opened)  {
+			tselem= TREESTORE(ten);
+			tselem->flag &= ~TSE_CLOSED;
+		}
+	}
+	else if(soops->outlinevis==SO_USERDEF) {
+		PointerRNA userdefptr;
+
+		RNA_pointer_create(NULL, NULL, &RNA_UserPreferences, &U, &userdefptr);
+
+		ten= outliner_add_element(soops, &soops->tree, (void*)&userdefptr, NULL, TSE_RNA_STRUCT, -1);
 
 		if(show_opened)  {
 			tselem= TREESTORE(ten);
@@ -3179,8 +3196,10 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_LAMP;
 	else if(rnatype == &RNA_Group)
 		return ICON_GROUP;
-	/*else if(rnatype == &RNA_Particle)
-		return ICON_PARTICLES;*/
+	else if(rnatype == &RNA_ParticleSystem)
+		return ICON_PARTICLES;
+	else if(rnatype == &RNA_ParticleSettings)
+		return ICON_PARTICLES;
 	else if(rnatype == &RNA_Material)
 		return ICON_MATERIAL;
 	/*else if(rnatype == &RNA_Texture)
@@ -3686,7 +3705,7 @@ static void outliner_draw_tree(Scene *scene, ARegion *ar, SpaceOops *soops)
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
-	if(soops->outlinevis == SO_DATABLOCKS) {
+	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		// struct marks
 		UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 		//UI_ThemeColorShade(TH_BACK, -20);
@@ -4260,7 +4279,7 @@ void draw_outliner(const bContext *C)
 	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS, UI_HELV);
 	outliner_buttons(block, ar, soops, &soops->tree);
 	
-	if(soops->outlinevis==SO_DATABLOCKS) {
+	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
 		outliner_rna_width(soops, &soops->tree, &sizex, 0);
 		outliner_draw_rnacols(ar, soops, sizex);

@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -68,19 +67,16 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "horr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon.");
 
 	prop= RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "zenr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Zenith Color", "Color at the zenith.");
 
 	prop= RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Ambient Color", "");
 
 	/* exp, range */

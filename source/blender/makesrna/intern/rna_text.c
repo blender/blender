@@ -163,7 +163,6 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit All", "Edit all markers of the same group as one.");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_float_funcs(prop, "rna_TextMarker_color_get", "rna_TextMarker_color_set", NULL);
 	RNA_def_property_ui_text(prop, "Color", "Color to display the marker with.");
 }

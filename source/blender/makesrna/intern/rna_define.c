@@ -597,8 +597,14 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 			fprop->hardmin= (subtype == PROP_UNSIGNED)? 0.0f: -FLT_MAX;
 			fprop->hardmax= FLT_MAX;
 
-			fprop->softmin= (subtype == PROP_UNSIGNED)? 0.0f: -10000.0f; /* rather arbitrary .. */
-			fprop->softmax= 10000.0f;
+			if(subtype == PROP_COLOR) {
+				fprop->softmin= 0.0f;
+				fprop->softmax= 1.0f;
+			}
+			else {
+				fprop->softmin= (subtype == PROP_UNSIGNED)? 0.0f: -10000.0f; /* rather arbitrary .. */
+				fprop->softmax= 10000.0f;
+			}
 			fprop->step= 10;
 			fprop->precision= 3;
 			break;
@@ -851,7 +857,7 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 			break;
 		}
 		default:
-			fprintf(stderr, "RNA_def_property_struct_type: %s.%s, invalid type for struct type.\n", srna->identifier, prop->identifier);
+			fprintf(stderr, "RNA_def_property_enum_items: %s.%s, invalid type for struct type.\n", srna->identifier, prop->identifier);
 			DefRNA.error= 1;
 			break;
 	}

@@ -24,7 +24,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -37,31 +36,33 @@
 
 #else
 
-void RNA_def_sample(BlenderRNA *brna)
+#if 0
+static void rna_def_sample(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
 	/* sound types */
 	static EnumPropertyItem prop_sample_type_items[] = {
-		{SAMPLE_INVALID, "SAMPLE_INVALID", "Invalid", ""},
-		{SAMPLE_UNKNOWN, "SAMPLE_UNKNOWN", "Unknown", ""},
-		{SAMPLE_RAW, "SAMPLE_RAW", "Raw", ""},
-		{SAMPLE_WAV, "SAMPLE_WAV", "WAV", "Uncompressed"},
-		{SAMPLE_MP2, "SAMPLE_MP2", "MP2", "MPEG-1 Audio Layer 2"},
-		{SAMPLE_MP3, "SAMPLE_MP3", "MP3", "MPEG-1 Audio Layer 3"},
-		{SAMPLE_OGG_VORBIS, "SAMPLE_OGG_VORBIS", "Ogg Vorbis", ""},
-		{SAMPLE_WMA, "SAMPLE_WMA", "WMA", "Windows Media Audio"},
-		{SAMPLE_ASF, "SAMPLE_ASF", "ASF", "Windows Advanced Systems Format"},
-		{SAMPLE_AIFF, "SAMPLE_AIFF", "AIFF", "Audio Interchange File Format"},
+		{SAMPLE_INVALID, "INVALID", "Invalid", ""},
+		{SAMPLE_UNKNOWN, "UNKNOWN", "Unknown", ""},
+		{SAMPLE_RAW, "RAW", "Raw", ""},
+		{SAMPLE_WAV, "WAV", "WAV", "Uncompressed"},
+		{SAMPLE_MP2, "MP2", "MP2", "MPEG-1 Audio Layer 2"},
+		{SAMPLE_MP3, "MP3", "MP3", "MPEG-1 Audio Layer 3"},
+		{SAMPLE_OGG_VORBIS, "OGG_VORBIS", "Ogg Vorbis", ""},
+		{SAMPLE_WMA, "WMA", "WMA", "Windows Media Audio"},
+		{SAMPLE_ASF, "ASF", "ASF", "Windows Advanced Systems Format"},
+		{SAMPLE_AIFF, "AIFF", "AIFF", "Audio Interchange File Format"},
 		{0, NULL, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "Sample", "ID");
+	srna= RNA_def_struct(brna, "SoundSample", "ID");
 	RNA_def_struct_sdna(srna, "bSample");
 	RNA_def_struct_ui_text(srna, "SoundSample", "Sound Sample");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_sample_type_items);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Types", "");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
@@ -85,10 +86,10 @@ void RNA_def_sample(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(prop, "Channels", "Number of channels (mono=1; stereo=2)");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); 
-
 }
+#endif
 
-void RNA_def_soundlistener(BlenderRNA *brna)
+static void rna_def_soundlistener(BlenderRNA *brna)
 {
 
 	StructRNA *srna;
@@ -121,10 +122,9 @@ void RNA_def_soundlistener(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "numsoundsgameengine");
 	RNA_def_property_ui_text(prop, "Total Sounds in Game Engine", "The total number of sounds in the Game Engine.");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-
 }
 
-void RNA_def_sound(BlenderRNA *brna)
+static void rna_def_sound(BlenderRNA *brna)
 {
 
 	StructRNA *srna;
@@ -213,7 +213,13 @@ void RNA_def_sound(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SOUND_FLAGS_SEQUENCE); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Priority", "DOC_BROKEN");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	
+}
+
+void RNA_def_sound(BlenderRNA *brna)
+{
+	//rna_def_sample(brna);
+	rna_def_soundlistener(brna);
+	rna_def_sound(brna);
 }
 
 #endif
