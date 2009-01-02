@@ -29,13 +29,87 @@
 
 #include "rna_internal.h"
 
-#include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
 
 #ifdef RNA_RUNTIME
+
+static float rna_LatticePoint_co_get(PointerRNA *ptr, int index)
+{
+	Lattice *lt= (Lattice*)ptr->id.data;
+	BPoint *bp= (BPoint*)ptr->data;
+	int a= bp - lt->def;
+
+	if(index == 0) {
+		int x= a % lt->pntsu;
+		return lt->fu + x*lt->du;
+	}
+	else if(index == 1) {
+		int y= (a/lt->pntsu) % lt->pntsv;
+		return lt->fv + y*lt->dv;
+	}
+	else {
+		int z= (a/(lt->pntsu*lt->pntsv));
+		return lt->fw + z*lt->dw;
+	}
+}
+
+static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Lattice *lt= (Lattice*)ptr->id.data;
+
+	if(lt->dvert) {
+		BPoint *bp= (BPoint*)ptr->data;
+		MDeformVert *dvert= lt->dvert + (bp-lt->def);
+
+		rna_iterator_array_begin(iter, (void*)dvert->dw, sizeof(MDeformWeight), dvert->totweight, NULL);
+	}
+	else
+		rna_iterator_array_begin(iter, NULL, 0, 0, NULL);
+}
+
+static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Lattice *lt= (Lattice*)ptr->data;
+
+	if(lt->def) {
+		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		rna_iterator_array_begin(iter, (void*)lt->def, sizeof(BPoint), tot, NULL);
+	}
+	else
+		rna_iterator_array_begin(iter, NULL, 0, 0, NULL);
+}
+
 #else
 
-void RNA_def_lattice(BlenderRNA *brna)
+static void rna_def_latticepoint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "LatticePoint", NULL);
+	RNA_def_struct_sdna(srna, "BPoint");
+	RNA_def_struct_ui_text(srna, "LatticePoint", "Point in the lattice grid.");
+
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_LatticePoint_co_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "deformed_co", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "vec");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Deformed Location", "");
+
+	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
+	RNA_def_property_struct_type(prop, "MeshVertexGroup");
+	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this point is member of.");
+}
+
+static void rna_def_lattice(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -87,6 +161,17 @@ void RNA_def_lattice(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
+
+	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "LatticePoint");
+	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Points", "Points of the lattice.");
+}
+
+void RNA_def_lattice(BlenderRNA *brna)
+{
+	rna_def_lattice(brna);
+	rna_def_latticepoint(brna);
 }
 
 #endif

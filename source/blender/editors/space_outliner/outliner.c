@@ -3168,15 +3168,15 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_OBJECT;
 	else if(rnatype == &RNA_Mesh)
 		return ICON_MESH;
-	else if(rnatype == &RNA_MVert)
+	else if(rnatype == &RNA_MeshVertex)
 		return ICON_VERTEXSEL;
-	else if(rnatype == &RNA_MEdge)
+	else if(rnatype == &RNA_MeshEdge)
 		return ICON_EDGESEL;
-	else if(rnatype == &RNA_MFace)
+	else if(rnatype == &RNA_MeshFace)
 		return ICON_FACESEL;
-	else if(rnatype == &RNA_MTFace)
+	else if(rnatype == &RNA_MeshTextureFace)
 		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_MVertGroup)
+	else if(rnatype == &RNA_MeshVertexGroup)
 		return ICON_VGROUP;
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE;
