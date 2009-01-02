@@ -207,6 +207,7 @@ extern StructRNA RNA_Text;
 extern StructRNA RNA_TextBox;
 extern StructRNA RNA_TextLine;
 extern StructRNA RNA_TextMarker;
+extern StructRNA RNA_Texture;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UVProjectModifier;

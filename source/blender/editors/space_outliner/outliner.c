@@ -3203,8 +3203,8 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_PARTICLES;
 	else if(rnatype == &RNA_Material)
 		return ICON_MATERIAL;
-	/*else if(rnatype == &RNA_Texture)
-		return ICON_TEXTURE;*/
+	else if(rnatype == &RNA_Texture)
+		return ICON_TEXTURE;
 	else if(rnatype == &RNA_Image)
 		return ICON_TEXTURE;
 	else if(rnatype == &RNA_Screen)

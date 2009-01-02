@@ -63,6 +63,7 @@ SET(SRC
      rna_sequence.c
      rna_sound.c
      rna_text.c
+     rna_texture.c
      rna_userdef.c
      rna_vfont.c
      rna_wm.c

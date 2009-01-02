@@ -236,7 +236,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks."}, 
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks."},
 		{"vfonts", "VectorFont", "rna_Main_vfont_begin", "Vector Fonts", "Vector font datablocks."},
-		{"textures", "ID", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
+		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks."},
 		{"ipos", "Ipo", "rna_Main_ipo_begin", "Ipos", "Ipo datablocks."},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush datablocks."},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World datablocks."},
