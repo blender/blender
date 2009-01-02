@@ -45,7 +45,6 @@ const int BMOP_OPSLOT_TYPEINFO[BMOP_OPSLOT_TYPES] = {
 void BMO_push(BMesh *bm, BMOperator *op)
 {
 	bm->stackdepth++;
-	bm->currentop = op;
 
 	/*add flag layer, if appropriate*/
 	if(bm->stackdepth > 1)

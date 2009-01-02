@@ -9,35 +9,4 @@ void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 
 void BM_Select(struct BMesh *bm, void *element, int select);
 
-
-/* NOTE: unused, bad: 
-
-  simple system to manipulate flags, coded here
-  to avoid having to spend excess time refactoring
-  customdata.*/
-enum {
-	BM_SELECT,
-	BM_SMOOTH,
-} BM_CommonMarks;
-
-enum {
-	BM_VNUMMARKS
-} BM_VertMarks;
-
-enum {
-	BM_FGON,
-	BM_SHARP,
-	BM_SEAM,
-	BM_ENUMMARKS
-} BM_EdgeMarks;
-
-enum {
-	BM_MATERIAL,
-	BM_FNUMMARKS
-} BM_FaceMarks;
-
-/*returns if the specifid flag is equal in both elements
-  (which much be BMHeader-derived structs of the same type).*/
-int BM_FlagEqual(void *element1, void *element2, int type);
-
 #endif

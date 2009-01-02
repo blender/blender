@@ -58,7 +58,16 @@ struct BMLoop;
 	struct BMFlagLayer *flags;
 */
 
-/*Defines for BMHeader->type*/
+/*auxillery bmesh flags.  note, these should
+  become internal to the api eventually.*/
+//start at 17th flag
+#define BM_SEAM		(1<<16)
+#define BM_FGON		(1<<17)
+#define BM_HIDDEN	(1<<18)
+#define BM_SHARP	(1<<19)
+#define BM_SMOOTH	(1<<20)
+
+/* Defines for BMHeader->type*/
 #define BMESH_VERT 					1
 #define BMESH_EDGE 					2
 #define BMESH_FACE 					4
@@ -133,9 +142,9 @@ typedef struct BMesh
 	int nextv, nexte, nextp, nextl;
 	struct CustomData vdata, edata, pdata, ldata;
 	int selectmode;
-	struct BLI_mempool *flagpool;								/*memory pool for dynamically allocated flag layers*/
-	int stackdepth;												/*current depth of operator stack*/
-	int totflags;												/*total number of tool flag layers*/
+	struct BLI_mempool *flagpool;     /*memory pool for dynamically allocated flag layers*/
+	int stackdepth;                   /*current depth of operator stack*/
+	int totflags, walkers;            /*total number of tool flag layers*/
 }BMesh;
 
 typedef struct BMVert

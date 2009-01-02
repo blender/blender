@@ -10,15 +10,17 @@ typedef struct BMWalker{
 	void *(*yield)(struct BMWalker *walker);
 	void   (*step) (struct BMWalker *walker);
 	int visitedmask;
+	int restrictflag;
 }BMWalker;
 
 void BMWalker_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask);
 void *BMWalker_Step(struct BMWalker *walker);
 void BMWalker_End(struct BMWalker *walker);
 
-#define BMESH_SHELLWALKER	1
-#define BMESH_LOOPWALKER	2
-#define BMESH_RINGWALKER	3
-#define BMESH_UVISLANDS		4
+#define BMESH_SHELLWALKER	0
+#define BMESH_LOOPWALKER	1
+#define BMESH_RINGWALKER	2
+#define BMESH_UVISLANDS		3
+#define BMESH_MAXWALKERS	4
 
 #endif

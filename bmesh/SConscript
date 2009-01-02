@@ -21,7 +21,7 @@ sources.append('intern/bmesh_operators.c')
 
 
 sources = env.Glob('intern/*.c')
-sources = env.Glob('operators/*.c')
+sources += env.Glob('operators/*.c')
 
 #sources += env.Glob('tools/*.c')
 
@@ -29,6 +29,7 @@ incs = ['#/intern/guardedalloc']
 incs.append('../blenlib') 
 incs.append('../makesdna')
 incs.append('../blenkernel')
+incs.append('../include')
 incs.append('./')
 incs.append('./intern')
 
