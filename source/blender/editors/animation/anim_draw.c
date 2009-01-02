@@ -79,7 +79,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_getscale(v2d, &xscale, &yscale);
-	glScalef(1.0/xscale, 1.0, 1.0);
+	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
 	if (time) 
 		sprintf(str, "   %.2f", FRA2TIME(CFRA));
@@ -97,7 +97,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	ui_rasterpos_safe(x-5, y+3, 1.0);
+	ui_rasterpos_safe(x-5, y+3, 1.0f);
 	UI_DrawString(G.fonts, str, 0); // XXX may need to be updated for font stuff
 	
 	/* restore view transform */
@@ -168,8 +168,8 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 		
 		/* only draw two separate 'curtains' if there's no overlap between them */
 		if (PSFRA < PEFRA) {
-			glRectf(v2d->cur.xmin, v2d->cur.ymin, PSFRA, v2d->cur.ymax);
-			glRectf(PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);	
+			glRectf(v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
+			glRectf((float)PEFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);	
 		} 
 		else {
 			glRectf(v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);

@@ -131,7 +131,6 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_delete", DELKEY, KM_PRESS, 0, 0);
 	
 		/* copy/paste */
-		// XXX - should we keep these?
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	

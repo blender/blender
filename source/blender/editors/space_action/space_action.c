@@ -373,7 +373,7 @@ void ED_spacetype_action(void)
 	
 	art->init= action_channel_area_init;
 	art->draw= action_channel_area_draw;
-	art->listener= action_main_area_listener;
+	art->listener= action_channel_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -17,10 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
+ * The Original Code is Copyright (C) 2008 Blender Foundation
  *
  * Contributor(s): Joshua Leung
  *
@@ -240,9 +237,6 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 	*ret_type= ANIMTYPE_NONE;
 	return NULL;
 }
-
-/* ************************************************************************** */
-/* CHANNEL STUFF */
 
 /* ************************************************************************** */
 /* KEYFRAMES STUFF */

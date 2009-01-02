@@ -44,6 +44,7 @@ struct IpoCurve;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
+/* anim_filter.c */
 
 /* --------------- Context --------------------- */
 
@@ -243,11 +244,25 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */
+/* anim_channels.c */
 
+/* ------------------------ API -------------------------- */
 
+/* Deselect all animation channels */
+void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
+
+/* --------------- Settings and/or Defines -------------- */
+
+/* flag-setting behaviour */
+enum {
+	ACHANNEL_SETFLAG_CLEAR = 0,
+	ACHANNEL_SETFLAG_ADD,
+	ACHANNEL_SETFLAG_TOGGLE
+} eAnimChannels_SetFlag;
 
 /* ************************************************ */
 /* DRAWING API */
+/* anim_draw.c */
 
 /* ---------- Current Frame Drawing ---------------- */
 
@@ -275,7 +290,7 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ASSORTED TOOLS */
 
 /* ------------ IPO Adrcode <-> Icons/Names Mapping ------------ */
-
+/* anim_ipo_utils.c */
 
 int geticon_ipo_blocktype(short blocktype);
 char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob);
@@ -284,6 +299,7 @@ unsigned int ipo_rainbow(int cur, int tot);
 
 
 /* ------------- NLA-Mapping ----------------------- */
+/* anim_draw.c */
 
 /* Obtain the Object providing NLA-scaling for the given channel if applicable */
 struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
@@ -295,6 +311,7 @@ void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short re
 void ANIM_nla_mapping_apply(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 /* ------------- xxx macros ----------------------- */
+
 #define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
 
 
