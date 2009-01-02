@@ -852,7 +852,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		deselect_action_keys(ac, 0, 0);
 		
 		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
-			//deselect_action_channels(0);
+			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight either an Action-Channel or Action-Group */
 			if (achan) {
@@ -866,7 +866,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
-			//deselect_action_channels(0);
+			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight gpencil layer */
 			gpl->flag |= GP_LAYER_SELECT;

@@ -104,8 +104,6 @@
 
 /* -------------------------- Exposed API ----------------------------------- */
 
-
-
 /* Deselect all animation channels 
  *	- data: pointer to datatype, as contained in bAnimContext
  *	- datatype: the type of data that 'data' represents (eAnim_ChannelType)
@@ -256,6 +254,159 @@ void ANIM_OT_channels_deselectall (wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_property(ot->srna, "invert", PROP_BOOLEAN, PROP_NONE);
+}
+
+/* ******************** Borderselect Operator *********************** */
+
+// XXX do we need to set some extra thingsfor each channel selected?
+static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short selectmode)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ac->ar->v2d;
+	rctf rectf;
+	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT);
+	
+	/* convert border-region to view coordinates */
+	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin+2, &rectf.xmin, &rectf.ymin);
+	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax-2, &rectf.xmax, &rectf.ymax);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop over data, doing border select */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		ymin= ymax - ACHANNEL_STEP;
+		
+		/* if channel is within border-select region, alter it */
+		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+			/* only the following types can be selected */
+			switch (ale->type) {
+				case ANIMTYPE_OBJECT: /* object */
+				{
+					Base *base= (Base *)ale->data;
+					Object *ob= base->object;
+					
+					ACHANNEL_SET_FLAG(base, selectmode, SELECT);
+					ACHANNEL_SET_FLAG(ob, selectmode, SELECT);
+				}
+					break;
+				case ANIMTYPE_GROUP: /* action group */
+				{
+					bActionGroup *agrp= (bActionGroup *)ale->data;
+					
+					ACHANNEL_SET_FLAG(agrp, selectmode, AGRP_SELECTED);
+				}
+					break;
+				case ANIMTYPE_ACHAN: /* action channel */
+				case ANIMTYPE_FILLIPO: /* expand ipo curves = action channel */
+				case ANIMTYPE_FILLCON: /* expand constraint channels = action channel */
+				{
+					bActionChannel *achan= (bActionChannel *)ale->data;
+					
+					ACHANNEL_SET_FLAG(achan, selectmode, ACHAN_SELECTED);
+					
+					/* messy... set active bone */
+					//select_poseelement_by_name(achan->name, selectmode);
+				}
+					break;
+				case ANIMTYPE_CONCHAN: /* constraint channel */
+				{
+					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+					
+					ACHANNEL_SET_FLAG(conchan, selectmode, CONSTRAINT_CHANNEL_SELECT);
+				}
+					break;
+				case ANIMTYPE_ICU: /* ipo-curve channel */
+				{
+					IpoCurve *icu = (IpoCurve *)ale->data;
+					
+					ACHANNEL_SET_FLAG(icu, selectmode, IPO_SELECT);
+				}
+					break;
+				case ANIMTYPE_GPLAYER: /* grease-pencil layer */
+				{
+					bGPDlayer *gpl = (bGPDlayer *)ale->data;
+					
+					ACHANNEL_SET_FLAG(gpl, selectmode, GP_LAYER_SELECT);
+				}
+					break;
+			}
+			
+			/* select action-channel 'owner' */
+			if ((ale->owner) && (ale->ownertype == ANIMTYPE_ACHAN)) {
+				//bActionChannel *achano= (bActionChannel *)ale->owner;
+				
+				/* messy... set active bone */
+				//select_poseelement_by_name(achano->name, selectmode);
+			}
+		}
+		
+		/* set minimum extent to be the maximum of the next channel */
+		ymax= ymin;
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	rcti rect;
+	short selectmode=0;
+	int event;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get settings from operator */
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+		
+	event= RNA_int_get(op->ptr, "event_type");
+	if (event == LEFTMOUSE) // FIXME... hardcoded
+		selectmode = ACHANNEL_SETFLAG_ADD;
+	else
+		selectmode = ACHANNEL_SETFLAG_CLEAR;
+	
+	/* apply borderselect animation channels */
+	borderselect_anim_channels(&ac, &rect, selectmode);
+	
+	return OPERATOR_FINISHED;
+} 
+
+void ANIM_OT_channels_borderselect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Border Select";
+	ot->idname= "ANIM_OT_channels_borderselect";
+	
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= animchannels_borderselect_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_areaactive;
+	
+	/* flags */
+	// XXX er...
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }
 
 /* ******************** Mouse-Click Operator *********************** */
@@ -650,6 +801,7 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 void ED_operatortypes_animchannels(void)
 {
 	WM_operatortype_append(ANIM_OT_channels_deselectall);
+	WM_operatortype_append(ANIM_OT_channels_borderselect);
 	WM_operatortype_append(ANIM_OT_channels_mouseclick);
 }
 
@@ -657,14 +809,18 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 {
 	ListBase *keymap = WM_keymap_listbase(wm, "Animation_Channels", 0, 0);
 	
-	/* click-select */
+	/* selection */
+		/* click-select */
 		// XXX for now, only leftmouse.... 
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
 	
-	/* deselect all */
+		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_deselectall", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_deselectall", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
+	
+		/* borderselect */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_borderselect", BKEY, KM_PRESS, 0, 0);
 }
 
 /* ************************************************************************** */
