@@ -126,6 +126,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+/* for menu/popup icons etc etc*/
+#include "UI_interface.h"
+#include "UI_resources.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -1200,6 +1204,7 @@ void OBJECT_OT_select_invert(wmOperatorType *ot)
 
 static int object_de_select_all_exec(bContext *C, wmOperator *op)
 {
+	
 	int a=0, ok=0; 
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
@@ -1276,136 +1281,228 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	RNA_def_property_ui_text(prop, "Percent", "Max persentage that will be selected");
 	RNA_def_property_int_default(prop, 50);
 }
-void clear_track(Scene *scene, View3D *v3d)
+
+/* ******** Clear object Translation *********** */
+
+static int object_clear_location_exec(bContext *C, wmOperator *op)
 {
-	Base *base;
-	int mode;
-	
-	if(G.obedit) return;
-	if(scene->id.lib) return;
-
-	mode= pupmenu("OK? %t|Clear Track %x1| Clear Track and Keep Transform %x2");
-
-	if(mode<1) return;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			base->object->track= NULL;
-			base->object->recalc |= OB_RECALC;
-			
-			if(mode==2) {
-				apply_obmat(base->object);
-			}			
-		}
-	}
-
-	DAG_scene_sort(scene);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Clear Track");	
-}
-
-void clear_object(Scene *scene, View3D *v3d, char mode)
-{
-	Base *base;
-	Object *ob;
-	float *v1, *v3, mat[3][3];
+	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
-	char *str=NULL;
-	
-	if(G.obedit) return;
-	if(scene->id.lib) return;
-	
-	if(mode=='r') str= "Clear rotation";
-	else if(mode=='g') str= "Clear location";
-	else if(mode=='s') str= "Clear scale";
-	else if(mode=='o') str= "Clear origin";
-	else return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			ob= base->object;
-			
-			if ((ob->flag & OB_POSEMODE)) {
-				/* only clear pose transforms if:
-				 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-				 *	- with clearing transform of object being edited at the time
-				 */
-				if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX					clear_armature(ob, mode);
-					armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-				}
-			}
-			else if((G.f & G_WEIGHTPAINT)==0) {
-				/* only clear transforms of 'normal' (not armature) object if:
-				 *	- not in weightpaint mode or editmode
-				 *	- if that object's transform locks are not enabled (this is done on a per-channel basis)
-				 */
-				if (mode=='r') {
-					/* eulers can only get cleared if they are not protected */
-					if ((ob->protectflag & OB_LOCK_ROTX)==0)
-						ob->rot[0]= ob->drot[0]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_ROTY)==0)
-						ob->rot[1]= ob->drot[1]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_ROTZ)==0)
-						ob->rot[2]= ob->drot[2]= 0.0f;
-					
-					/* quats here are not really used anymore anywhere, so it probably doesn't 
-					 * matter to not clear them whether the euler-based rotation is used
-					 */
-					/*QuatOne(ob->quat);
-					QuatOne(ob->dquat);*/
-					
 
-				}
-				else if (mode=='g') {
-					if ((ob->protectflag & OB_LOCK_LOCX)==0)
-						ob->loc[0]= ob->dloc[0]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_LOCY)==0)
-						ob->loc[1]= ob->dloc[1]= 0.0f;
-					if ((ob->protectflag & OB_LOCK_LOCZ)==0)
-						ob->loc[2]= ob->dloc[2]= 0.0f;
-					
-				}
-				else if (mode=='s') {
-					if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
-						ob->dsize[0]= 0.0f;
-						ob->size[0]= 1.0f;
-					}
-					if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
-						ob->dsize[1]= 0.0f;
-						ob->size[1]= 1.0f;
-					}
-					if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
-						ob->dsize[2]= 0.0f;
-						ob->size[2]= 1.0f;
-					}
-				}
-				else if(mode=='o') {
-					if(ob->parent) {
-						v1= ob->loc;
-						v3= ob->parentinv[3];
-						
-						Mat3CpyMat4(mat, ob->parentinv);
-						VECCOPY(v3, v1);
-						v3[0]= -v3[0];
-						v3[1]= -v3[1];
-						v3[2]= -v3[2];
-						Mat3MulVecfl(mat, v3);
-					}
-				}
-				
-				ob->recalc |= OB_RECALC_OB;
-			}			
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		if ((ob->flag & OB_POSEMODE)) {
+			/* only clear pose transforms if:
+			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
+			 *	- with clearing transform of object being edited at the time
+			 */
+			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
+// XXX				clear_armature(ob, mode);
+				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+			}
+		}
+		else if((G.f & G_WEIGHTPAINT)==0) {
+			if ((ob->protectflag & OB_LOCK_LOCX)==0)
+				ob->loc[0]= ob->dloc[0]= 0.0f;
+			if ((ob->protectflag & OB_LOCK_LOCY)==0)
+				ob->loc[1]= ob->dloc[1]= 0.0f;
+			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
+				ob->loc[2]= ob->dloc[2]= 0.0f;
 		}
 	}
+	CTX_DATA_END;
 	
-	allqueue(REDRAWVIEW3D, 0);
+	DAG_scene_sort(scene);
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	BIF_undo_push(str);
+	BIF_undo_push("Clear Location");
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
 }
+
+
+void OBJECT_OT_clear_location(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Clear Object Location";
+	ot->idname= "OBJECT_OT_clear_location";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_location_exec;
+	ot->poll= ED_operator_object_active;
+}
+
+static int object_clear_rotation_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int armature_clear= 0;
+
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		if ((ob->flag & OB_POSEMODE)) {
+			/* only clear pose transforms if:
+			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
+			 *	- with clearing transform of object being edited at the time
+			 */
+			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
+// XXX				clear_armature(ob, mode);
+				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+			}
+		}
+		else if((G.f & G_WEIGHTPAINT)==0) {
+				/* eulers can only get cleared if they are not protected */
+				if ((ob->protectflag & OB_LOCK_ROTX)==0)
+					ob->rot[0]= ob->drot[0]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTY)==0)
+					ob->rot[1]= ob->drot[1]= 0.0f;
+				if ((ob->protectflag & OB_LOCK_ROTZ)==0)
+					ob->rot[2]= ob->drot[2]= 0.0f;
+		}
+	}
+	CTX_DATA_END;
+	
+	DAG_scene_sort(scene);
+	if(armature_clear==0) /* in this case flush was done */
+		ED_anim_dag_flush_update(C);	
+	BIF_undo_push("Clear Rotation");
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_clear_rotation(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Clear Object Rotation";
+	ot->idname= "OBJECT_OT_clear_rotation";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_rotation_exec;
+	ot->poll= ED_operator_object_active;
+}
+
+static int object_clear_scale_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int armature_clear= 0;
+
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		if ((ob->flag & OB_POSEMODE)) {
+			/* only clear pose transforms if:
+			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
+			 *	- with clearing transform of object being edited at the time
+			 */
+			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
+// XXX				clear_armature(ob, mode);
+				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+			}
+		}
+		else if((G.f & G_WEIGHTPAINT)==0) {
+				if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
+					ob->dsize[0]= 0.0f;
+					ob->size[0]= 1.0f;
+				}
+				if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
+					ob->dsize[1]= 0.0f;
+					ob->size[1]= 1.0f;
+				}
+				if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+					ob->dsize[2]= 0.0f;
+					ob->size[2]= 1.0f;
+				}
+		}
+	}
+	CTX_DATA_END;
+	
+	DAG_scene_sort(scene);
+	if(armature_clear==0) /* in this case flush was done */
+		ED_anim_dag_flush_update(C);	
+	BIF_undo_push("Clear Scale");
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_clear_scale(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Clear Object Scale";
+	ot->idname= "OBJECT_OT_clear_scale";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_scale_exec;
+	ot->poll= ED_operator_object_active;
+}
+
+static int object_clear_origin_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	float *v1, *v3, mat[3][3];
+	int armature_clear= 0;
+
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+		if ((ob->flag & OB_POSEMODE)) {
+			/* only clear pose transforms if:
+			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
+			 *	- with clearing transform of object being edited at the time
+			 */
+			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
+// XXX				clear_armature(ob, mode);
+				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
+			}
+		}
+		else if((G.f & G_WEIGHTPAINT)==0) {
+			if(ob->parent) {
+				v1= ob->loc;
+				v3= ob->parentinv[3];
+				
+				Mat3CpyMat4(mat, ob->parentinv);
+				VECCOPY(v3, v1);
+				v3[0]= -v3[0];
+				v3[1]= -v3[1];
+				v3[2]= -v3[2];
+				Mat3MulVecfl(mat, v3);
+			}
+		}
+	}
+	CTX_DATA_END;
+	
+	
+	DAG_scene_sort(scene);
+	if(armature_clear==0) /* in this case flush was done */
+		ED_anim_dag_flush_update(C);	
+	BIF_undo_push("Clear origin");
+	
+	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_clear_origin(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Clear Object Origin";
+	ot->idname= "OBJECT_OT_clear_origin";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_origin_exec;
+	ot->poll= ED_operator_object_active;
+}
+/* ******************** **************** */
 
 void reset_slowparents(Scene *scene, View3D *v3d)
 {
@@ -1422,7 +1519,6 @@ void reset_slowparents(Scene *scene, View3D *v3d)
 		}
 	}
 }
-
 void set_slowparent(Scene *scene, View3D *v3d)
 {
 	Base *base;

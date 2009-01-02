@@ -29,7 +29,10 @@
 #define ED_OBJECT_INTERN_H
 
 /* internal exports only */
-
+#define CLEAR_OBJ_ROTATION 0
+#define CLEAR_OBJ_LOCATION 1
+#define CLEAR_OBJ_SCALE 2
+#define CLEAR_OBJ_ORIGIN 3
 
 /* object_edit.c */
 void OBJECT_OT_toggle_editmode(wmOperatorType *ot);
@@ -42,8 +45,10 @@ void OBJECT_OT_select_invert(wmOperatorType *ot);
 void OBJECT_OT_select_random(wmOperatorType *ot);
 void OBJECT_OT_select_by_type(wmOperatorType *ot);
 void OBJECT_OT_select_by_layer(wmOperatorType *ot);
-
-
+void OBJECT_OT_clear_location(wmOperatorType *ot);
+void OBJECT_OT_clear_rotation(wmOperatorType *ot);
+void OBJECT_OT_clear_scale(wmOperatorType *ot);
+void OBJECT_OT_clear_origin(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

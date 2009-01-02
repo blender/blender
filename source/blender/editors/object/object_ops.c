@@ -60,6 +60,7 @@
 
 /* ************************** registration **********************************/
 
+
 void ED_operatortypes_object(void)
 {
 	WM_operatortype_append(OBJECT_OT_toggle_editmode);
@@ -72,7 +73,10 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_de_select_all);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
-	
+	WM_operatortype_append(OBJECT_OT_clear_location);
+	WM_operatortype_append(OBJECT_OT_clear_rotation);
+	WM_operatortype_append(OBJECT_OT_clear_scale);
+	WM_operatortype_append(OBJECT_OT_clear_origin);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -94,6 +98,11 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_make_track", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_track", TKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_location", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_rotation", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_origin", OKEY, KM_PRESS, KM_ALT, 0);
 	
 //	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }

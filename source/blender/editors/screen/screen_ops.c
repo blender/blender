@@ -1550,7 +1550,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
