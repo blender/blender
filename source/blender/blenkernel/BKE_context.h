@@ -125,6 +125,11 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list); \
 	}
 
+#define CTX_DATA_COUNT(C, member, i) \
+	CTX_DATA_BEGIN(C, void*, unused, member) \
+		i++; \
+	CTX_DATA_END
+
 /* Data Context Members */
 
 struct Main *CTX_data_main(const bContext *C);
@@ -143,6 +148,8 @@ int CTX_data_visible_bases(const bContext *C, ListBase *list);
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);
 struct Object *CTX_data_edit_object(const bContext *C);
+
+int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 
 /* Data Evaluation Context */
 

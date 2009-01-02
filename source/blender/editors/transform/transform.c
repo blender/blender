@@ -332,6 +332,9 @@ static void viewRedrawForce(TransInfo *t)
 		else 
 			ED_area_tag_redraw(t->sa);
 	}
+	else if(t->spacetype == SPACE_NODE) {
+		ED_area_tag_redraw(t->sa);
+	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {
 		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
@@ -543,6 +546,8 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Key Time";
 		case TFM_MIRROR:
 			return "Mirror";
+		case TFM_NODE_TRANSLATE:
+			return "Node Translate";
 	}
 	return "Transform";
 }
@@ -1043,6 +1048,9 @@ void initTransform(bContext *C, TransInfo *t, int mode, int options, wmEvent *ev
 	case TFM_ALIGN:
 		initAlign(t);
 		break;
+	case TFM_NODE_TRANSLATE:
+		initNodeTranslate(t);
+		break;
 	}
 }
 
@@ -1085,7 +1093,10 @@ int transformEnd(bContext *C, TransInfo *t)
 	{
 		/* handle restoring objects */
 		if(t->state == TRANS_CANCEL)
-			restoreTransObjects(t);	// calls recalcData()
+			if(t->spacetype == SPACE_NODE)
+				restoreTransNodes(t);
+			else
+				restoreTransObjects(t);	// calls recalcData()
 		
 		/* free data */
 		postTrans(t);
@@ -4524,4 +4535,56 @@ void NDofTransform()
 		Transform();
 	}
 #endif
+}
+
+/* *** Node translation *** */
+
+void initNodeTranslate(TransInfo *t) 
+{
+	t->mode = TFM_NODE_TRANSLATE;
+	t->transform = NodeTranslate;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_NONE);
+
+	/* num-input has max of (n-1) */
+	t->idx_max = 0;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+	
+	/* initialise snap like for everything else */
+	t->snap[0] = 0.0f; 
+	t->snap[1] = t->snap[2] = 1.0f;
+}
+
+static void applyNodeTranslate(TransInfo *t) 
+{
+	TransData2D *td = t->data2d;
+	int i;
+
+	for (i = 0 ; i < t->total; i++, td++) {
+		td->loc2d[0]= td->loc[0]+t->values[0];
+		td->loc2d[1]= td->loc[1]+t->values[1];
+	}
+}
+
+int NodeTranslate(TransInfo *t, short mval[2]) 
+{
+	View2D *v2d = &t->ar->v2d;
+	float cval[2], sval[2];
+	char str[200];
+	
+	/* calculate translation amount from mouse movement - in 'node-grid space' */
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &sval[0], &sval[1]);
+
+	t->values[0] = cval[0] - sval[0];
+	t->values[1] = cval[1] - sval[1];
+		
+	applyNodeTranslate(t);
+
+	recalcData(t);
+	
+	viewRedrawForce(t);
+
+	return 1;
 }

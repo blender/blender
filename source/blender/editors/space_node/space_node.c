@@ -197,6 +197,24 @@ static void node_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+static int node_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	
+	if(member == CTX_data_selected_nodes) {
+		bNode *node;
+		
+		for(next_node(snode->edittree); (node=next_node(NULL));) {
+			if(node->flag & SELECT) {
+				CTX_data_list_add(result, node);
+			}
+		}
+		return 1;
+	}
+	
+	return 0;
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_node(void)
 {
@@ -211,6 +229,7 @@ void ED_spacetype_node(void)
 	st->duplicate= node_duplicate;
 	st->operatortypes= node_operatortypes;
 	st->keymap= node_keymap;
+	st->context= node_context;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");

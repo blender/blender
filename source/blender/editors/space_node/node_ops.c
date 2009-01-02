@@ -36,6 +36,8 @@
 #include "ED_space_api.h"
 #include "ED_screen.h"
 
+#include "BIF_transform.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -60,4 +62,6 @@ void node_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_extend_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	WM_keymap_add_item(keymap, "NODE_OT_toggle_visibility", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_fit_all", HOMEKEY, KM_PRESS, 0, 0);
+	
+	transform_keymap_for_space(wm, keymap, SPACE_NODE);
 }

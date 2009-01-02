@@ -27,10 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -56,6 +52,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -4352,6 +4349,32 @@ static void createTransObject(bContext *C, TransInfo *t)
 	}
 }
 
+/* transcribe given node into TransData2D for Transforming */
+static void NodeToTransData(bContext *C, TransInfo *t, TransData2D *td, bNode *node) 
+{
+	/* Note: since locx and locy come after each other in bNode struct, this works */
+	td->loc2d = &node->locx;
+	
+	/* initial location */
+	td->loc[0]= node->locx;
+	td->loc[1]= node->locy;
+}
+
+void createTransNodeData(bContext *C, TransInfo *t)
+{
+	TransData2D *td;
+	int i= 0;
+	
+	CTX_DATA_COUNT(C, selected_nodes, t->total)
+	
+	td = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode");
+	
+	CTX_DATA_BEGIN(C, bNode *, selnode, selected_nodes)
+		NodeToTransData(C, t, td, selnode);
+		td++;
+	CTX_DATA_END
+}
+
 void createTransData(bContext *C, TransInfo *t) 
 {
 	Scene *scene = CTX_data_scene(C);
@@ -4400,6 +4423,10 @@ void createTransData(bContext *C, TransInfo *t)
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+	}
+	else if(t->spacetype == SPACE_NODE) {
+		t->flag |= T_2D_EDIT|T_POINTS;
+		createTransNodeData(C, t);
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

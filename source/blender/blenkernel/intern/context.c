@@ -352,6 +352,11 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
 		return NULL;
 }
 
+int CTX_data_selected_nodes(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_nodes, list);
+}
+
 int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, CTX_data_selected_objects, list);
@@ -386,7 +391,6 @@ struct Object *CTX_data_edit_object(const bContext *C)
 {
 	return ctx_data_pointer_get(C, CTX_data_edit_object);
 }
-
 
 /* data evaluation */
 

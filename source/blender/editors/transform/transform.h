@@ -426,6 +426,9 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
+void initNodeTranslate(TransInfo *t);
+int NodeTranslate(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransGPactionData(TransInfo *t);
@@ -531,6 +534,7 @@ TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTri
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
+void restoreTransNodes(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter(TransInfo *t);

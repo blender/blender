@@ -42,6 +42,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -731,7 +732,7 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
 	}
-	else if(t->spacetype==SPACE_IMAGE)
+	else if(t->spacetype==SPACE_IMAGE || t->spacetype==SPACE_NODE)
 	{
 		View2D *v2d = sa->spacedata.first; // XXX no!
 
@@ -876,6 +877,20 @@ static void restoreElement(TransData *td) {
 		restore_ipokey(tdi->sizex, tdi->oldsize);
 		restore_ipokey(tdi->sizey, tdi->oldsize+1);
 		restore_ipokey(tdi->sizez, tdi->oldsize+2);
+	}
+}
+
+static void restoreNode(TransData2D *td)
+{
+	td->loc2d[0]= td->loc[0];
+	td->loc2d[1]= td->loc[1];
+}
+
+void restoreTransNodes(TransInfo *t)
+{
+	TransData2D *td;
+	for (td = t->data2d; td < t->data2d + t->total; td++) {
+		restoreNode(td);
 	}
 }
 
@@ -1133,6 +1148,8 @@ void calculatePropRatio(TransInfo *t)
 	float dist;
 	short connected = t->flag & T_PROP_CONNECTED;
 
+	if (t->spacetype == SPACE_NODE) return;
+	
 	if (t->flag & T_PROP_EDIT) {
 		for(i = 0 ; i < t->total; i++, td++) {
 			if (td->flag & TD_SELECTED) {

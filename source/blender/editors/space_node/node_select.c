@@ -53,7 +53,7 @@
  
 #include "node_intern.h"
  
-static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short modifier)
+static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
 {
 	bNode *node;
 	float mx, my;
@@ -80,10 +80,10 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 			break;
 	}
 	if(node) {
-		if((modifier & KM_SHIFT)==0)
+		if((extend & KM_SHIFT)==0)
 			node_deselectall(snode, 0);
 		
-		if(modifier & KM_SHIFT) {
+		if(extend & KM_SHIFT) {
 			if(node->flag & SELECT)
 				node->flag &= ~SELECT;
 			else
@@ -95,7 +95,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 		node_set_active(snode, node);
 		
 		/* viewer linking */
-		if(modifier & KM_CTRL)
+		if(extend & KM_CTRL)
 			;//	node_link_viewer(snode, node);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
@@ -109,7 +109,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
 	short mval[2];
-	short modifier;
+	short extend;
 
 	select_type = RNA_enum_get(op->ptr, "select_type");
 	
@@ -117,8 +117,8 @@ static int node_select_exec(bContext *C, wmOperator *op)
 		case NODE_SELECT_MOUSE:
 			mval[0] = RNA_int_get(op->ptr, "mx");
 			mval[1] = RNA_int_get(op->ptr, "my");
-			modifier = RNA_int_get(op->ptr, "modifier");
-			node_mouse_select(snode, ar, mval, modifier);
+			extend = RNA_int_get(op->ptr, "extend");
+			node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
 	return OPERATOR_FINISHED;
@@ -140,7 +140,7 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int node_extend_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_int_set(op->ptr, "modifier", KM_SHIFT);
+	RNA_int_set(op->ptr, "extend", KM_SHIFT);
 
 	return node_select_invoke(C, op, event);
 }
@@ -168,7 +168,7 @@ void NODE_OT_extend_select(wmOperatorType *ot)
 	
 	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
 	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "modifier", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
 }
 
 void NODE_OT_select(wmOperatorType *ot)
@@ -188,5 +188,5 @@ void NODE_OT_select(wmOperatorType *ot)
 	
 	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
 	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "modifier", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
 }
