@@ -2435,7 +2435,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		if (BM_Is_Selected(bm, bed)) tot++;
 	}
 	
-	list = MEM_callocN(sizeof(void*)*tot, "eed ptr list");
+	list = MEM_callocN(sizeof(void*)*tot, "vert ptr list");
 
 	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
 		if (BM_Is_Selected(bm, bed)) list[tot++] = bed;
@@ -2446,7 +2446,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	
 	free_editMesh(G.editMesh);
 	bmesh_to_editmesh(bm);
-	
+	BM_Free_Mesh(bm);
+
 	if (list) MEM_freeN(list);
 }
 #else
