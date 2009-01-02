@@ -454,11 +454,28 @@ static void rna_def_modifier_armature(BlenderRNA *brna)
 static void rna_def_modifier_hook(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *property;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "HookModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Hook Modifier", "Hook Modifier.");
 	RNA_def_struct_sdna(srna, "HookModifierData");
+
+	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
+	RNA_def_property_ui_text(prop, "Falloff",  "If not zero, the distance from the hook where influence ends.");
+
+	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Force",  "Relative force of the hook.");
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Object", "Parent Object for hook, also recalculates and clears offset");
+
+	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
 }
 
 static void rna_def_modifier_softbody(BlenderRNA *brna)
