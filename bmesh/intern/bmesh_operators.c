@@ -224,8 +224,9 @@ void BMO_Set_Vec(BMOperator *op, int slotcode, float *vec)
  * Sets a flag for a certain element
  *
 */
-void BMO_SetFlag(BMesh *bm, BMHeader *head, int flag)
+void BMO_SetFlag(BMesh *bm, void *element, int flag)
 {
+	BMHeader *head = element;
 	head->flags[bm->stackdepth].mask |= flag;
 }
 
@@ -236,8 +237,9 @@ void BMO_SetFlag(BMesh *bm, BMHeader *head, int flag)
  *
 */
 
-void BMO_ClearFlag(BMesh *bm, BMHeader *head, int flag)
+void BMO_ClearFlag(BMesh *bm, void *element, int flag)
 {
+	BMHeader *head = element;
 	head->flags[bm->stackdepth].mask &= ~flag;
 }
 
@@ -249,8 +251,9 @@ void BMO_ClearFlag(BMesh *bm, BMHeader *head, int flag)
  *
 */
 
-int BMO_TestFlag(BMesh *bm, BMHeader *head, int flag)
+int BMO_TestFlag(BMesh *bm, void *element, int flag)
 {
+	BMHeader *head = element;
 	if(head->flags[bm->stackdepth].mask & flag)
 		return 1;
 	return 0;
