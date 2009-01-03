@@ -157,7 +157,7 @@ typedef struct bActionChannel {
 	
 	int		flag;			/* settings accessed via bitmapping */
 	char	name[32];		/* channel name */
-	int		reserved1;
+	int		temp;			/* temporary setting - may be used to indicate group that channel belongs to during syncing  */
 } bActionChannel;
 
 /* Action. A recyclable block that contains a series of Action Channels (ipo), which define 

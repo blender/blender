@@ -322,6 +322,10 @@ void ANIM_nla_mapping_apply_ipo(struct Object *ob, struct Ipo *ipo, short restor
 void ED_anim_dag_flush_update(const struct bContext *C);
 void ED_update_for_newframe(const struct bContext *C, int mute);
 
+/* pose <-> action syncing */
+void ANIM_action_to_pose_sync(struct Object *ob);
+void ANIM_pose_to_action_sync(struct Object *ob);
+
 /* ************************************************* */
 /* OPERATORS */
 	

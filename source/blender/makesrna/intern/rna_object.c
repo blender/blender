@@ -741,12 +741,12 @@ static void rna_def_object(BlenderRNA *brna)
 	/* action / pose / nla */
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "UnknownType");
+	RNA_def_property_struct_type(prop, "UnknownType"); //action
 	RNA_def_property_ui_text(prop, "Action", "Action used by object to define Ipo curves.");
 
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "poselib");
-	RNA_def_property_struct_type(prop, "UnknownType");
+	RNA_def_property_struct_type(prop, "UnknownType"); // action
 	RNA_def_property_ui_text(prop, "Pose Library", "Action used as a pose library for armatures.");
 
 	prop= RNA_def_property(srna, "pose", PROP_POINTER, PROP_NONE);
