@@ -8436,9 +8436,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250) {
 		bScreen *screen;
+		Material *ma;
+		Scene *sce;
+		Tex *tx;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next)
 			do_versions_windowmanager_2_50(screen);
+		
+		/* shader, composit and texture node trees have id.name empty, put something in
+		 * to have them show in RNA viewer and accessible otherwise.
+		 */
+		for(ma= main->mat.first; ma; ma= ma->id.next) {
+			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
+				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
+		}
+		/* and composit trees */
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
+				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+		}
+		/* and texture trees */
+		for(tx= main->tex.first; tx; tx= tx->id.next) {
+			if(tx->nodetree && strlen(tx->nodetree->id.name)==0)
+				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+		}
 	}
 	
 	
