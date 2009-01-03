@@ -166,6 +166,7 @@ typedef struct wmNotifier {
 #define ND_BONE_SELECT		(20<<16)
 #define ND_GEOM_SELECT		(21<<16)
 #define ND_DRAW				(22<<16)
+#define ND_MODIFIER			(23<<16)
 
 	/* Material */
 #define	ND_SHADING			(30<<16)
