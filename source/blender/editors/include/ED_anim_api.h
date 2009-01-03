@@ -308,7 +308,8 @@ struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
-void ANIM_nla_mapping_apply(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
+void ANIM_nla_mapping_apply_ipocurve(struct Object *ob, struct IpoCurve *icu, short restore, short only_keys);
+void ANIM_nla_mapping_apply_ipo(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 /* ------------- xxx macros ----------------------- */
 

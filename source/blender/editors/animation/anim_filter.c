@@ -465,6 +465,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				IpoCurve *icu= (IpoCurve *)data;
 				
 				ale->flag= icu->flag;
+				
 				ale->key_data= icu;
 				ale->datatype= ALE_ICU;
 			}
@@ -486,6 +487,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 			case ANIMTYPE_IPO:
 			{
 				ale->flag= 0;
+				
 				ale->key_data= data;
 				ale->datatype= ALE_IPO;
 			}
@@ -509,6 +511,36 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 }
  
 /* ----------------------------------------- */
+
+// FIXME: use this...
+static int animdata_filter_ipocurves (ListBase *anim_data, Ipo *ipo, int filter_mode, void *owner, short ownertype, ID *owner_id)
+{
+	bAnimListElem *ale = NULL;
+	IpoCurve *icu;
+	int items = 0;
+	
+	/* loop over ipo curves - assume that the caller of this has already checked that these should be included */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		/* only work with this channel and its subchannels if it is editable */
+		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_ICU(icu)) {
+			/* only include this curve if selected or we are including all IPO-curves */
+			if (!(filter_mode & ANIMFILTER_SEL) || (filter_mode & ANIMFILTER_ONLYICU) || (SEL_ICU(icu))) {
+				/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
+				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, owner, ownertype);
+				
+				if (ale) {
+					/* ID will only be Object if data to write to directly belongs there, otherwise, another pointer will be used */
+					ale->id= owner_id;
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
 
 static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *achan, int filter_mode, void *owner, short ownertype)
 {
@@ -563,15 +595,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 				/* add ipo-curve channels? */
 				if (FILTER_IPO_ACHAN(achan) || (filter_mode & ANIMFILTER_ONLYICU)) {
 					/* loop through ipo-curve channels, adding them */
-					for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
-						ale= make_new_animlistelem(icu, ANIMTYPE_ICU, achan, ANIMTYPE_ACHAN);
-						
-						if (ale) {
-							if (owned) ale->id= owner;
-							BLI_addtail(anim_data, ale); 
-							items++;
-						}
-					}
+					items += animdata_filter_ipocurves(anim_data, achan->ipo, filter_mode, achan, ANIMTYPE_ACHAN, (owned)?(owner):(NULL));
 				}
 			}
 			
@@ -755,14 +779,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 				}
 			}
 			else {
-				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-					ale= make_new_animlistelem(icu, ANIMTYPE_ICU, key, ANIMTYPE_SHAPEKEY);
-					if (ale) {
-						if (owned) ale->id= owner;
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
+				items += animdata_filter_ipocurves(anim_data, key->ipo, filter_mode, key, ANIMTYPE_SHAPEKEY, (owned)?(owner):(NULL));
 			}
 		}
 	}
@@ -877,21 +894,10 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			if ( (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_ONLYICU)) && 
 				  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 			{
-				/* loop through ipo-curve channels, adding them */
-				for (icu= ma->ipo->curve.first; icu; icu=icu->next) {
-					/* only if selected (if checking for selection) */
-					if ( !(filter_mode & ANIMFILTER_SEL) || (SEL_ICU(icu)) ) {
-						ale= make_new_animlistelem(icu, ANIMTYPE_ICU, base, ANIMTYPE_OBJECT);
-						if (ale) {
-							/* make owner the material not object, so that indent is not just object level */
-							ale->id= (ID *)ma;
-							BLI_addtail(anim_data, ale);
-							items++;
-						}
-					}
-				}
+				items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
 			}
 		}
+
 	}
 	
 	/* return the number of items added to the list */
@@ -903,7 +909,6 @@ static int animdata_filter_dopesheet_cam (ListBase *anim_data, bDopeSheet *ads, 
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
 	Camera *ca= (Camera *)ob->data;
-	IpoCurve *icu;
 	int items = 0;
 	
 	/* include camera-expand widget? */
@@ -919,19 +924,7 @@ static int animdata_filter_dopesheet_cam (ListBase *anim_data, bDopeSheet *ads, 
 	if ( (FILTER_CAM_OBJD(ca) || (filter_mode & ANIMFILTER_ONLYICU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
-		/* loop through ipo-curve channels, adding them */
-		for (icu= ca->ipo->curve.first; icu; icu=icu->next) {
-			/* only if selected (if checking for selection) */
-			if ( !(filter_mode & ANIMFILTER_SEL) || (SEL_ICU(icu)) ) {
-				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, base, ANIMTYPE_OBJECT);
-				if (ale) {
-					/* make owner the material not object, so that indent is not just object level */
-					ale->id= (ID *)ca;
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-		}
+		items += animdata_filter_ipocurves(anim_data, ca->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ca);
 	}
 	
 	/* return the number of items added to the list */
@@ -943,7 +936,6 @@ static int animdata_filter_dopesheet_lamp (ListBase *anim_data, bDopeSheet *ads,
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
 	Lamp *la= (Lamp *)ob->data;
-	IpoCurve *icu;
 	int items = 0;
 	
 	/* include lamp-expand widget? */
@@ -959,19 +951,7 @@ static int animdata_filter_dopesheet_lamp (ListBase *anim_data, bDopeSheet *ads,
 	if ( (FILTER_LAM_OBJD(la) || (filter_mode & ANIMFILTER_ONLYICU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
-		/* loop through ipo-curve channels, adding them */
-		for (icu= la->ipo->curve.first; icu; icu=icu->next) {
-			/* only if selected (if checking for selection) */
-			if ( !(filter_mode & ANIMFILTER_SEL) || (SEL_ICU(icu)) ) {
-				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, base, ANIMTYPE_OBJECT);
-				if (ale) {
-					/* make owner the material not object, so that indent is not just object level */
-					ale->id= (ID *)la;
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-		}
+		items += animdata_filter_ipocurves(anim_data, la->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)la);
 	}
 	
 	/* return the number of items added to the list */
@@ -983,7 +963,6 @@ static int animdata_filter_dopesheet_curve (ListBase *anim_data, bDopeSheet *ads
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
 	Curve *cu= (Curve *)ob->data;
-	IpoCurve *icu;
 	int items = 0;
 	
 	/* include curve-expand widget? */
@@ -999,19 +978,7 @@ static int animdata_filter_dopesheet_curve (ListBase *anim_data, bDopeSheet *ads
 	if ( (FILTER_CUR_OBJD(cu) || (filter_mode & ANIMFILTER_ONLYICU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
-		/* loop through ipo-curve channels, adding them */
-		for (icu= cu->ipo->curve.first; icu; icu=icu->next) {
-			/* only if selected (if checking for selection) */
-			if ( !(filter_mode & ANIMFILTER_SEL) || (SEL_ICU(icu)) ) {
-				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, base, ANIMTYPE_OBJECT);
-				if (ale) {
-					/* make owner the material not object, so that indent is not just object level */
-					ale->id= (ID *)cu;
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-		}
+		items += animdata_filter_ipocurves(anim_data, cu->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)cu);
 	}
 	
 	/* return the number of items added to the list */
@@ -1024,7 +991,6 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	Scene *sce= (Scene *)ads->source;
 	Object *ob= base->object;
 	Key *key= ob_get_key(ob);
-	IpoCurve *icu;
 	int items = 0;
 	
 	/* add this object as a channel first */
@@ -1058,17 +1024,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		if ( (FILTER_IPO_OBJC(ob) || (filter_mode & ANIMFILTER_ONLYICU)) && 
 			  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 		{
-			/* loop through ipo-curve channels, adding them */
-			for (icu= ob->ipo->curve.first; icu; icu=icu->next) {
-				/* only if selected (if checking for selection) */
-				if ( !(filter_mode & ANIMFILTER_SEL) || (SEL_ICU(icu)) ) {
-					ale= make_new_animlistelem(icu, ANIMTYPE_ICU, base, ANIMTYPE_OBJECT);
-					if (ale) {
-						BLI_addtail(anim_data, ale); 
-						items++;
-					}
-				}
-			}
+			items += animdata_filter_ipocurves(anim_data, ob->ipo, filter_mode, base, ANIMTYPE_OBJECT, NULL); // err... why not set ob?
 		}
 	}
 	
@@ -1104,7 +1060,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		
 		/* add channels */
 		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) {
-			items += animdata_filter_shapekey (anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT);
+			items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT);
 		}
 	}
 	

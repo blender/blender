@@ -160,8 +160,6 @@ void transform_aspect_ratio_tface_uv(float *a1, float *a2) {}
 
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
-/* local function prototype - for finding number of keyframes that are selected for editing */
-static int count_ipo_keys(Ipo *ipo, char side, float cfra);
 
 /* ************************** Functions *************************** */
 
@@ -2674,66 +2672,79 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 	}
 }
 
+/* Called during special_aftertrans_update to make sure selected keyframes replace
+ * any other keyframes which may reside on that frame (that is not selected).
+ */
+static void posttrans_icu_clean (IpoCurve *icu)
+{
+	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
+	int len, index, i;	/* number of frames in cache, item index */
+	
+	/* allocate memory for the cache */
+	// TODO: investigate using GHash for this instead?
+	if (icu->totvert == 0) 
+		return;
+	selcache= MEM_callocN(sizeof(float)*icu->totvert, "IcuSelFrameNums");
+	len= 0;
+	index= 0;
+	
+	/* We do 2 loops, 1 for marking keyframes for deletion, one for deleting 
+	 * as there is no guarantee what order the keyframes are exactly, even though 
+	 * they have been sorted by time.
+	 */
+	 
+	/*	Loop 1: find selected keyframes   */
+	for (i = 0; i < icu->totvert; i++) {
+		BezTriple *bezt= &icu->bezt[i];
+		
+		if (BEZSELECTED(bezt)) {
+			selcache[index]= bezt->vec[1][0];
+			index++;
+			len++;
+		}
+	}
+	
+	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
+	if (len) {
+		for (i = 0; i < icu->totvert; i++) {
+			BezTriple *bezt= &icu->bezt[i];
+			
+			if (BEZSELECTED(bezt) == 0) {
+				/* check beztriple should be removed according to cache */
+				for (index= 0; index < len; index++) {
+					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
+						delete_icu_key(icu, i, 0);
+						break;
+					}
+					else if (bezt->vec[1][0] > selcache[index])
+						break;
+				}
+			}
+		}
+		
+		testhandles_ipocurve(icu);
+	}
+	
+	/* free cache */
+	MEM_freeN(selcache);
+}
+
 /* Called by special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
+ * remake_action_ipos should have already been called 
  */
 static void posttrans_ipo_clean (Ipo *ipo)
 {
 	IpoCurve *icu;
-	int i;
 	
-	/* delete any keyframes that occur on same frame as selected keyframe, but is not selected */
+	if (ipo == NULL)
+		return;
+	
+	/* loop through relevant data, removing keyframes from the ipocurves
+	 *  	- all keyframes are converted in/out of global time 
+	 */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
-		int len, index;		/* number of frames in cache, item index */
-		
-		/* allocate memory for the cache */
-		// TODO: investigate using GHash for this instead?
-		if (icu->totvert == 0) 
-			continue;
-		selcache= MEM_callocN(sizeof(float)*icu->totvert, "IcuSelFrameNums");
-		len= 0;
-		index= 0;
-		
-		/* We do 2 loops, 1 for marking keyframes for deletion, one for deleting 
-		 * as there is no guarantee what order the keyframes are exactly, even though 
-		 * they have been sorted by time.
-		 */
-		 
-		/*	Loop 1: find selected keyframes   */
-		for (i = 0; i < icu->totvert; i++) {
-			BezTriple *bezt= &icu->bezt[i];
-			
-			if (BEZSELECTED(bezt)) {
-				selcache[index]= bezt->vec[1][0];
-				index++;
-				len++;
-			}
-		}
-		
-		/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
-		if (len) {
-			for (i = 0; i < icu->totvert; i++) {
-				BezTriple *bezt= &icu->bezt[i];
-				
-				if (BEZSELECTED(bezt) == 0) {
-					/* check beztriple should be removed according to cache */
-					for (index= 0; index < len; index++) {
-						if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-							delete_icu_key(icu, i, 0);
-							break;
-						}
-						else if (bezt->vec[1][0] > selcache[index])
-							break;
-					}
-				}
-			}
-			
-			testhandles_ipocurve(icu);
-		}
-		
-		/* free cache */
-		MEM_freeN(selcache);
+		posttrans_icu_clean(icu);
 	}
 }
 
@@ -2748,7 +2759,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
 	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
@@ -2758,105 +2769,16 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1); 
-			posttrans_ipo_clean(ale->key_data);
-			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
+			posttrans_icu_clean(ale->key_data);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		else 
-			posttrans_ipo_clean(ale->key_data);
+			posttrans_icu_clean(ale->key_data);
 	}
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
-}
-
-/* Called by special_aftertrans_update to make sure selected keyframes replace
- * any other keyframes which may reside on that frame (that is not selected).
- * remake_all_ipos should have already been called 
- */
-static void posttrans_nla_clean (TransInfo *t)
-{
-#if 0 // TRANSFORM_FIX_ME
-	Base *base;
-	Object *ob;
-	bActionStrip *strip;
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
-	float cfra;
-	char side;
-	int i;
-	
-	/* which side of the current frame should be allowed */
-	if (t->mode == TFM_TIME_EXTEND) {
-		/* only side on which mouse is gets transformed */
-		float xmouse, ymouse;
-		
-		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L';
-	}
-	else {
-		/* normal transform - both sides of current frame are considered */
-		side = 'B';
-	}
-	
-	/* only affect keyframes */
-	for (base=G.scene->base.first; base; base=base->next) {
-		ob= base->object;
-		
-		/* Check object ipos */
-		i= count_ipo_keys(ob->ipo, side, (float)CFRA);
-		if (i) posttrans_ipo_clean(ob->ipo);
-		
-		/* Check object constraint ipos */
-		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-			i= count_ipo_keys(conchan->ipo, side, (float)CFRA);	
-			if (i) posttrans_ipo_clean(conchan->ipo);
-		}
-		
-		/* skip actions and nlastrips if object is collapsed */
-		if (ob->nlaflag & OB_NLA_COLLAPSED)
-			continue;
-		
-		/* Check action ipos */
-		if (ob->action) {
-			/* exclude if strip is selected too */
-			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT) {
-					if (strip->act == ob->action)
-						break;
-				}
-			}
-			if (strip==NULL) {
-				cfra = get_action_frame(ob, (float)CFRA);
-				
-				for (achan=ob->action->chanbase.first; achan; achan=achan->next) {
-					if (EDITABLE_ACHAN(achan)) {
-						i= count_ipo_keys(achan->ipo, side, cfra);
-						if (i) {
-							actstrip_map_ipo_keys(ob, achan->ipo, 0, 1); 
-							posttrans_ipo_clean(achan->ipo);
-							actstrip_map_ipo_keys(ob, achan->ipo, 1, 1);
-						}
-						
-						/* Check action constraint ipos */
-						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
-							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if (EDITABLE_CONCHAN(conchan)) {
-									i = count_ipo_keys(conchan->ipo, side, cfra);
-									if (i) {
-										actstrip_map_ipo_keys(ob, conchan->ipo, 0, 1); 
-										posttrans_ipo_clean(conchan->ipo);
-										actstrip_map_ipo_keys(ob, conchan->ipo, 1, 1);
-									}
-								}
-							}
-						}
-					}
-				}
-			}		
-		}
-	}
-#endif
 }
 
 /* ----------------------------- */
@@ -2875,27 +2797,24 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
-static int count_ipo_keys(Ipo *ipo, char side, float cfra)
+static int count_icu_keys(IpoCurve *icu, char side, float cfra)
 {
-	IpoCurve *icu;
 	BezTriple *bezt;
 	int i, count = 0;
 	
-	if (ipo == NULL)
+	if (icu == NULL)
 		return count;
 	
 	/* only include points that occur on the right side of cfra */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-			if (bezt->f2 & SELECT) {
-				/* fully select the other two keys */
-				bezt->f1 |= SELECT;
-				bezt->f3 |= SELECT;
-				
-				/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
-				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
-					count += 3;
-			}
+	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+		if (bezt->f2 & SELECT) {
+			/* fully select the other two keys */
+			bezt->f1 |= SELECT;
+			bezt->f3 |= SELECT;
+			
+			/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
+				count += 3;
 		}
 	}
 	
@@ -2938,38 +2857,35 @@ static void TimeToTransData(TransData *td, float *time, Object *ob)
 
 /* This function advances the address to which td points to, so it must return
  * the new address so that the next time new transform data is added, it doesn't
- * overwrite the existing ones...  i.e.   td = IpoToTransData(td, ipo, ob, side, cfra);
+ * overwrite the existing ones...  i.e.   td = IcuToTransData(td, icu, ob, side, cfra);
  *
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
-static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob, char side, float cfra)
+static TransData *IcuToTransData(TransData *td, IpoCurve *icu, Object *ob, char side, float cfra)
 {
-	IpoCurve *icu;
 	BezTriple *bezt;
 	int i;
 	
-	if (ipo == NULL)
+	if (icu == NULL)
 		return td;
-	
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-			/* only add selected keyframes (for now, proportional edit is not enabled) */
-			if (BEZSELECTED(bezt)) {
-				/* only add if on the right 'side' of the current frame */
-				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
-					/* each control point needs to be added separetely */
-					TimeToTransData(td, bezt->vec[0], ob);
-					td++;
-					
-					TimeToTransData(td, bezt->vec[1], ob);
-					td++;
-					
-					TimeToTransData(td, bezt->vec[2], ob);
-					td++;
-				}
-			}	
-		}
+		
+	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+		/* only add selected keyframes (for now, proportional edit is not enabled) */
+		if (BEZSELECTED(bezt)) {
+			/* only add if on the right 'side' of the current frame */
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+				/* each control point needs to be added separetely */
+				TimeToTransData(td, bezt->vec[0], ob);
+				td++;
+				
+				TimeToTransData(td, bezt->vec[1], ob);
+				td++;
+				
+				TimeToTransData(td, bezt->vec[2], ob);
+				td++;
+			}
+		}	
 	}
 	
 	return td;
@@ -3056,7 +2972,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
@@ -3087,7 +3003,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	count += count_gplayer_frames(ale->data, side, cfra);
 		//else
-			count += count_ipo_keys(ale->key_data, side, cfra);
+			count += count_icu_keys(ale->key_data, side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3128,7 +3044,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//}
 		//else {
 			Object *nob= ANIM_nla_mapping_get(&ac, ale);
-			Ipo *ipo= (Ipo *)ale->key_data;
+			IpoCurve *icu= (IpoCurve *)ale->key_data;
 			
 			/* convert current-frame to action-time (slightly less accurate, espcially under
 			 * higher scaling ratios, but is faster than converting all points) 
@@ -3138,7 +3054,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			else
 				cfra = (float)CFRA;
 			
-			td= IpoToTransData(td, ipo, nob, side, cfra);
+			td= IcuToTransData(td, icu, nob, side, cfra);
 		//}
 	}
 	
@@ -3165,162 +3081,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	BLI_freelistN(&anim_data);
 }
 
-static void createTransNlaData(bContext *C, TransInfo *t)
-{
-	// TRANSFORM_FIX_ME
-#if 0
-	Base *base;
-	bActionStrip *strip;
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
-	
-	TransData *td = NULL;
-	int count=0, i;
-	float cfra;
-	char side;
-	
-	/* which side of the current frame should be allowed */
-	if (t->mode == TFM_TIME_EXTEND) {
-		/* only side on which mouse is gets transformed */
-		float xmouse, ymouse;
-		
-		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L';
-	}
-	else {
-		/* normal transform - both sides of current frame are considered */
-		side = 'B';
-	}
-	
-	/* Ensure that partial selections result in beztriple selections */
-	for (base=G.scene->base.first; base; base=base->next) {
-		/* Check object ipos */
-		i= count_ipo_keys(base->object->ipo, side, (float)CFRA);
-		if (i) base->flag |= BA_HAS_RECALC_OB;
-		count += i;
-		
-		/* Check object constraint ipos */
-		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			count += count_ipo_keys(conchan->ipo, side, (float)CFRA);			
-		
-		/* skip actions and nlastrips if object is collapsed */
-		if (base->object->nlaflag & OB_NLA_COLLAPSED)
-			continue;
-		
-		/* Check action ipos */
-		if (base->object->action) {
-			/* exclude if strip is selected too */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT) {
-					if (strip->act == base->object->action)
-						break;
-				}
-			}
-			if (strip==NULL) {
-				cfra = get_action_frame(base->object, (float)CFRA);
-				
-				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
-					if (EDITABLE_ACHAN(achan)) {
-						i= count_ipo_keys(achan->ipo, side, cfra);
-						if (i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-						count += i;
-						
-						/* Check action constraint ipos */
-						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
-							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if (EDITABLE_CONCHAN(conchan))
-									count += count_ipo_keys(conchan->ipo, side, cfra);
-							}
-						}
-					}
-				}
-			}		
-		}
-		
-		/* Check nlastrips */
-		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-			if (strip->flag & ACTSTRIP_SELECT) {
-				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-				
-				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
-				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
-			}
-		}
-	}
-	
-	/* If nothing is selected, bail out */
-	if (count == 0)
-		return;
-	
-	/* allocate memory for data */
-	t->total= count;
-	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData (NLA Editor)");
-	
-	/* build the transdata structure */
-	td= t->data;
-	for (base=G.scene->base.first; base; base=base->next) {
-		/* Manipulate object ipos */
-		/* 	- no scaling of keyframe times is allowed here  */
-		td= IpoToTransData(td, base->object->ipo, NULL, side, (float)CFRA);
-		
-		/* Manipulate object constraint ipos */
-		/* 	- no scaling of keyframe times is allowed here  */
-		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			td= IpoToTransData(td, conchan->ipo, NULL, side, (float)CFRA);
-		
-		/* skip actions and nlastrips if object collapsed */
-		if (base->object->nlaflag & OB_NLA_COLLAPSED)
-			continue;
-			
-		/* Manipulate action ipos */
-		if (base->object->action) {
-			/* exclude if strip that active action belongs to is selected too */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-				if (strip->flag & ACTSTRIP_SELECT) {
-					if (strip->act == base->object->action)
-						break;
-				}
-			}
-			
-			/* can include if no strip found */
-			if (strip==NULL) {
-				cfra = get_action_frame(base->object, (float)CFRA);
-				
-				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
-					if (EDITABLE_ACHAN(achan)) {
-						td= IpoToTransData(td, achan->ipo, base->object, side, cfra);
-						
-						/* Manipulate action constraint ipos */
-						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
-							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-								if (EDITABLE_CONCHAN(conchan))
-									td= IpoToTransData(td, conchan->ipo, base->object, side, cfra);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		/* Manipulate nlastrips */
-		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
-			if (strip->flag & ACTSTRIP_SELECT) {
-				/* first TransData is the start, second is the end */
-				if (FrameOnMouseSide(side, strip->start, (float)CFRA)) {
-					td->val = &strip->start;
-					td->ival = strip->start;
-					td++;
-				}
-				if (FrameOnMouseSide(side, strip->end, (float)CFRA)) {
-					td->val = &strip->end;
-					td->ival = strip->end;
-					td++;
-				}
-			}
-		}
-	}
-#endif
-}
 
 /* **************** IpoKey stuff, for Object TransData ********** */
 
@@ -3987,7 +3747,7 @@ void special_aftertrans_update(TransInfo *t)
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
@@ -3995,18 +3755,18 @@ void special_aftertrans_update(TransInfo *t)
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				Object *nob= ANIM_nla_mapping_get(&ac, ale);
-				Ipo *ipo= ale->key_data;
+				IpoCurve *icu= (IpoCurve *)ale->key_data;
 				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (nob) {
-						ANIM_nla_mapping_apply(nob, ipo, 0, 1); 
-						posttrans_ipo_clean(ipo);
-						ANIM_nla_mapping_apply(nob, ipo, 1, 1);
+						ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
+						posttrans_icu_clean(icu);
+						ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
 					}
 					else
-						posttrans_ipo_clean(ipo);
+						posttrans_icu_clean(icu);
 				}
 			}
 			
@@ -4037,8 +3797,6 @@ void special_aftertrans_update(TransInfo *t)
 			Key *key= (Key *)ac.data;
 			
 			if (key->ipo) {
-				IpoCurve *icu;
-				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
 				{
@@ -4413,7 +4171,8 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransNlaData(C, t);
+		// TRANSFORM_FIX_ME
+		//createTransNlaData(C, t);
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;

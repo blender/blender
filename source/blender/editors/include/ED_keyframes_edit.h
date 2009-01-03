@@ -87,13 +87,12 @@ typedef enum eEditKeyframes_Mirror {
 
 /* --- Generic Properties for Bezier Edit Tools ----- */
 
-// XXX maybe a union would be more compact?
 typedef struct BeztEditData {
 	ListBase list;				/* temp list for storing custom list of data to check */
 	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
-	void *data;					/* pointer to custom data - not that useful? */
+	void *data;					/* pointer to custom data - usually 'Object', but could be other types too */
 	float f1, f2;				/* storage of times/values as 'decimals' */
-	int i1, i2;					/* storage of times/values as 'whole' numbers */
+	int i1, i2;					/* storage of times/values/flags as 'whole' numbers */
 } BeztEditData;
 
 /* ------- Function Pointer Typedefs ---------------- */
@@ -106,8 +105,8 @@ typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
 /* ---------------- Looping API --------------------- */
 
 /* functions for looping over keyframes */
-short icu_keys_bezier_loop(BeztEditData *bed, struct IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
-short ipo_keys_bezier_loop(BeztEditData *bed, struct Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
+short ANIM_icu_keys_bezier_loop(BeztEditData *bed, struct IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
+short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, struct Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);

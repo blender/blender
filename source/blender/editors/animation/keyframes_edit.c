@@ -77,7 +77,7 @@
 /* This function is used to loop over BezTriples in the given IpoCurve, applying a given 
  * operation on them, and optionally applies an IPO-curve validate function afterwards.
  */
-short icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb) 
+short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb) 
 {
     BezTriple *bezt;
 	int b;
@@ -117,7 +117,7 @@ short icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc bezt_o
 }
 
 /* This function is used to loop over the IPO curves (and subsequently the keyframes in them) */
-short ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
     IpoCurve *icu;
 	
@@ -127,7 +127,7 @@ short ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, Be
 	
     /* Loop through each curve in the Ipo */
     for (icu= ipo->curve.first; icu; icu=icu->next) {
-        if (icu_keys_bezier_loop(bed, icu, bezt_ok, bezt_cb, icu_cb))
+        if (ANIM_icu_keys_bezier_loop(bed, icu, bezt_ok, bezt_cb, icu_cb))
             return 1;
     }
 
@@ -137,7 +137,7 @@ short ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, Be
 /* -------------------------------- Further Abstracted ----------------------------- */
 
 /* This function is used to apply operation to all keyframes, regardless of the type */
-short animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
 	/* sanity checks */
 	if (ale == NULL)
@@ -146,9 +146,9 @@ short animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEd
 	/* method to use depends on the type of keyframe data */
 	switch (ale->datatype) {
 		case ALE_ICU: /* ipo-curve */
-			return icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
+			return ANIM_icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		case ALE_IPO: /* ipo */
-			return ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
+			return ANIM_ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		
 		case ALE_GROUP: /* action group */
 			//return group_keys_bezier_loop(bed, ale->data, bezt_ok, bezt_cb, icu_cb);

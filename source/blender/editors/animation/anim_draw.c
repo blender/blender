@@ -51,6 +51,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframes_edit.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -180,7 +181,7 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 }
 
 /* *************************************************** */
-/* KEYFRAME DRAWING UTILITIES */
+/* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
 /* Obtain the Object providing NLA-scaling for the given channel (if applicable) */
 Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
@@ -255,38 +256,81 @@ void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
 	}
 }
 
+/* ------------------- */
+
+/* helper function for ANIM_nla_mapping_apply_ipocurve() -> "restore", i.e. mapping points back to IPO-time */
+static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
+{
+	/* object providing scaling is stored in 'data', only_keys option is stored in i1 */
+	Object *ob= (Object *)bed->data;
+	short only_keys= (short)bed->i1;
+	
+	/* adjust BezTriple handles only if allowed to */
+	if (only_keys == 0) {
+		bezt->vec[0][0]= get_action_frame(ob, bezt->vec[0][0]);
+		bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
+	}					
+	bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
+}
+
+/* helper function for ANIM_nla_mapping_apply_ipocurve() -> "apply", i.e. mapping points to NLA-mapped global time */
+static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
+{
+	/* object providing scaling is stored in 'data', only_keys option is stored in i1 */
+	Object *ob= (Object *)bed->data;
+	short only_keys= (short)bed->i1;
+	
+	/* adjust BezTriple handles only if allowed to */
+	if (only_keys == 0) {
+		bezt->vec[0][0]= get_action_frame_inv(ob, bezt->vec[0][0]);
+		bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
+	}
+	bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+}
+
+
+
+/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO-Curve 
+ *	- restore = whether to map points back to ipo-time 
+ * 	- only_keys = whether to only adjust the location of the center point of beztriples
+ */
+void ANIM_nla_mapping_apply_ipocurve(Object *ob, IpoCurve *icu, short restore, short only_keys)
+{
+	BeztEditData bed;
+	BeztEditFunc map_cb;
+	
+	/* init edit data 
+	 *	- ob is stored in 'data'
+	 *	- only_keys is stored in 'i1'
+	 */
+	memset(&bed, 0, sizeof(BeztEditData));
+	bed.data= (void *)ob;
+	bed.i1= (int)only_keys;
+	
+	/* get editing callback */
+	if (restore)
+		map_cb= bezt_nlamapping_restore;
+	else
+		map_cb= bezt_nlamapping_apply;
+	
+	/* apply to IPO curve */
+	ANIM_icu_keys_bezier_loop(&bed, icu, NULL, map_cb, NULL);
+} 
+
 /* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block
  * 	- restore = whether to map points back to ipo-time 
  * 	- only_keys = whether to only adjust the location of the center point of beztriples
  */
 // was called actstrip_map_ipo_keys()
-void ANIM_nla_mapping_apply(Object *ob, Ipo *ipo, short restore, short only_keys)
+void ANIM_nla_mapping_apply_ipo(Object *ob, Ipo *ipo, short restore, short only_keys)
 {
 	IpoCurve *icu;
-	BezTriple *bezt;
-	int a;
 	
-	if (ipo==NULL) return;
+	if (ipo == NULL) return;
 	
 	/* loop through all ipo curves, adjusting the times of the selected keys */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++) {
-			/* are the times being adjusted for editing, or has editing finished */
-			if (restore) {
-				if (only_keys == 0) {
-					bezt->vec[0][0]= get_action_frame(ob, bezt->vec[0][0]);
-					bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
-				}					
-				bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
-			}
-			else {
-				if (only_keys == 0) {
-					bezt->vec[0][0]= get_action_frame_inv(ob, bezt->vec[0][0]);
-					bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
-				}
-				bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
-			}
-		}
+		ANIM_nla_mapping_apply_ipocurve(ob, icu, restore, only_keys);
 	}
 }
 

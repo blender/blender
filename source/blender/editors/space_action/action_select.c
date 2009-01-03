@@ -415,9 +415,9 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 			/* loop over data selecting */
 			if (ale->key_data) {
 				if (ale->datatype == ALE_IPO)
-					ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+					ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 				else if (ale->datatype == ALE_ICU)
-					icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+					ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			}
 			else if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= ale->data;
@@ -425,10 +425,10 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 				bConstraintChannel *conchan;
 				
 				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-					ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+					ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 					
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-						ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+						ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 				}
 			}
 			//else if (ale->type == ANIMTYPE_GPLAYER) {
@@ -504,7 +504,6 @@ void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	// XXX er...
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
@@ -571,12 +570,12 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {	
-			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1);
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
-			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 0, 1);
+			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 1, 1);
 		}
 		else {
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
 		}
 	}
 	
@@ -630,7 +629,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
-					ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
+					ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
 			}
 			BLI_freelistN(&anim_data);
 			break;
@@ -680,7 +679,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				bed.f1= ce->cfra;
 			
 			/* select elements with frame number matching cfraelem */
-			icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {
@@ -882,33 +881,33 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	
 	/* apply selection to keyframes */
 	if (icu)
-		icu_keys_bezier_loop(&bed, icu, ok_cb, select_cb, NULL);
+		ANIM_icu_keys_bezier_loop(&bed, icu, ok_cb, select_cb, NULL);
 	else if (ipo)
-		ipo_keys_bezier_loop(&bed, ipo, ok_cb, select_cb, NULL);
+		ANIM_ipo_keys_bezier_loop(&bed, ipo, ok_cb, select_cb, NULL);
 	else if (conchan)
-		ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+		ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 	else if (achan)
-		ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+		ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 	else if (agrp) {
 		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-			ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+			ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 			
 			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 		}
 	}
 	else if (act) {
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
-			ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+			ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 			
 			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 		}
 	}
 	else if (ob) {
 		if (ob->ipo) {
 			bed.f1= selx;
-			ipo_keys_bezier_loop(&bed, ob->ipo, ok_cb, select_cb, NULL);
+			ANIM_ipo_keys_bezier_loop(&bed, ob->ipo, ok_cb, select_cb, NULL);
 		}
 		
 		if (ob->action) {
@@ -916,10 +915,10 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			bed.f1= selxa;
 			
 			for (achan= ob->action->chanbase.first; achan; achan= achan->next) {
-				ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+				ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
 				
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-					ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+					ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 			}
 		}
 		
@@ -927,7 +926,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			bed.f1= selx;
 			
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
-				ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
+				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
 		}
 		
 		// FIXME: add data ipos too...
@@ -979,14 +978,14 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1);
-			ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 0, 1);
+			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
-			ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* Cleanup */
@@ -1029,7 +1028,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 			bed.f1= selx;
 		
 		/* select elements with frame number matching cfraelem */
-		icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+		ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {

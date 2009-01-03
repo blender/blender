@@ -107,7 +107,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	
 	/* check if any channels to set range with */
 	if (anim_data.first) {
-		/* go through channels, finding max extents*/
+		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= ANIM_nla_mapping_get(ac, ale);
 			Ipo *ipo= (Ipo *)ale->key_data; 
@@ -856,7 +856,9 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop through setting mode per ipo-curve */
+	/* loop through setting mode per ipo-curve 
+	 * Note: setting is on IPO-curve level not keyframe, so no need for Keyframe-Editing API
+	 */
 	for (ale= anim_data.first; ale; ale= ale->next)
 		setexprap_ipoloop(ale->key_data, mode);
 	
@@ -939,7 +941,7 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, ANIM_editkeyframes_ipocurve_ipotype);
+		ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, ANIM_editkeyframes_ipocurve_ipotype);
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
@@ -1028,17 +1030,17 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 			/* check which type of handle to set (free or aligned) 
 			 *	- check here checks for handles with free alignment already
 			 */
-			if (ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
+			if (ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
 				toggle_cb= ANIM_editkeyframes_handles(HD_FREE);
 			else
 				toggle_cb= ANIM_editkeyframes_handles(HD_ALIGN);
 				
 			/* set handle-type */
-			ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_ipocurve);
+			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_ipocurve);
 		}
 		else {
 			/* directly set handle-type */
-			ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_ipocurve);
+			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_ipocurve);
 		}
 	}
 	
@@ -1137,7 +1139,7 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+		ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
 	
 	BLI_freelistN(&anim_data);
 	
@@ -1192,7 +1194,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1206,14 +1208,14 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1); 
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
-			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
 	}
 	BLI_freelistN(&anim_data);
 }
@@ -1316,7 +1318,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* mirror keyframes */
@@ -1324,14 +1326,14 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply(nob, ale->key_data, 0, 1); 
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
-			ANIM_nla_mapping_apply(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ipo_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
 	}
 	BLI_freelistN(&anim_data);
 }
