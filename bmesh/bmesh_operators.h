@@ -28,10 +28,6 @@ typedef struct BMOpSlot{
 	} data;
 }BMOpSlot;
 
-/*not sure if this is correct, which is why it's a macro, nicely
-  visible here in the header.*/
-#define BMO_Connect(s1, s2) (s2->data = s1->data)
-
 /*operators represent logical, executable mesh modules.*/
 #define BMOP_MAX_SLOTS			16		/*way more than probably needed*/
 
