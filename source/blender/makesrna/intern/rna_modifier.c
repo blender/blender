@@ -875,7 +875,6 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "CastModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Cast Modifier", "Cast Modifier.");
 	RNA_def_struct_sdna(srna, "CastModifierData");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "cast_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");

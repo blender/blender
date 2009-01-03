@@ -367,11 +367,18 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		op->type= ot;
 		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
 		
+		/* initialize properties, either copy or create */
 		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		if(properties && properties->data)
-			op->ptr->data= IDP_CopyProperty(properties->data);
-		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, op->ptr->data, op->ptr);
+		if(properties && properties->data) {
+			op->properties= IDP_CopyProperty(properties->data);
+		}
+		else {
+			IDPropertyTemplate val = {0};
+			op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+		}
+		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, op->properties, op->ptr);
 
+		/* initialize error reports */
 		if (reports) {
 			op->reports= reports; /* must be initialized alredy */
 		}

@@ -4184,6 +4184,7 @@ static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA 
 
 			if(nameprop) {
 				text= RNA_property_string_get_alloc(&pptr, nameprop, textbuf, sizeof(textbuf));
+				descr= (char*)RNA_property_ui_description(&pptr, prop);
 				but= uiDefIconTextBut(block, LABEL, 0, icon, text, x1, y1, x2, y2, NULL, 0, 0, 0, 0, descr);
 				if(text != textbuf)
 					MEM_freeN(text);
