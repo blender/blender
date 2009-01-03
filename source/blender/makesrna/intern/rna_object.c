@@ -213,6 +213,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01, 10.0);
 	RNA_def_property_ui_text(prop, "Radius", "Radius for Bounding sphere and Fh/Fh Rot.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_COLLISION_RESPONSE);
@@ -561,6 +562,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "restrict_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
 	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
@@ -580,6 +582,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "draw_keys_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_DRAWKEYSEL);
 	RNA_def_property_ui_text(prop, "Draw Keys Selected", "Limit the drawing of object keys to selected.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "track_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_POWERTRACK);
@@ -616,6 +619,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dupli_verts_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
 	RNA_def_property_ui_text(prop, "Dupli Verts Rotation", "Rotate dupli according to vertex normal.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "dupli_faces_inherit_scale", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
@@ -625,6 +629,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "dupfacesca");
 	RNA_def_property_range(prop, 0.001, 10000.0);
 	RNA_def_property_ui_text(prop, "Dupli Faces Scale", "Scale the DupliFace objects.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "dupli_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "dup_group");
@@ -656,6 +661,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "sf");
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for ipo's and dupligroup instances.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "time_offset_edit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_OB);
@@ -664,14 +670,17 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "time_offset_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_PARENT);
 	RNA_def_property_ui_text(prop, "Time Offset Parent", "Apply the time offset to this objects parent relationship.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "time_offset_particle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_PARTICLE);
 	RNA_def_property_ui_text(prop, "Time Offset Particle", "Let the time offset work on the particle effect.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "time_offset_add_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_OFFS_PARENTADD);
 	RNA_def_property_ui_text(prop, "Time Offset Add Parent", "Add the parents time offset value");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
 	/* script link */
 
@@ -686,40 +695,49 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "dt");
 	RNA_def_property_enum_items(prop, drawtype_items);
 	RNA_def_property_ui_text(prop, "Maximum Draw Type",  "Maximum draw type to display object with in viewport.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "draw_bounds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_BOUNDBOX);
 	RNA_def_property_ui_text(prop, "Draw Bounds", "Displays the object's bounds.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "draw_bounds_types", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "boundtype");
 	RNA_def_property_enum_items(prop, boundtype_items);
 	RNA_def_property_ui_text(prop, "Draw Bounds Type", "Object boundary display type.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "draw_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWNAME);
 	RNA_def_property_ui_text(prop, "Draw Name", "Displays the object's name.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "draw_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_AXIS);
 	RNA_def_property_ui_text(prop, "Draw Axis", "Displays the object's center and axis");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "draw_texture_space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_TEXSPACE);
 	RNA_def_property_ui_text(prop, "Draw Texture Space", "Displays the object's texture space.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "draw_wire", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWWIRE);
 	RNA_def_property_ui_text(prop, "Draw Wire", "Adds the object's wireframe over solid drawing.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "draw_transparent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWTRANSP);
 	RNA_def_property_ui_text(prop, "Draw Transparent", "Enables transparent materials for the object (Mesh only).");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	prop= RNA_def_property(srna, "x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWXRAY);
 	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others.");
-
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	
 	/* action / pose / nla */
 
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);

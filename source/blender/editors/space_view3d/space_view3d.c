@@ -251,6 +251,19 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
 				case ND_GEOM_SELECT:
+				case ND_DRAW:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+		case NC_MATERIAL:
+			switch(wmn->data) {
+				case ND_SHADING_DRAW:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+		case NC_LAMP:
+			switch(wmn->data) {
+				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
 					break;
 			}
