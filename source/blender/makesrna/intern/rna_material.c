@@ -36,6 +36,21 @@
 
 #ifdef RNA_RUNTIME
 
+static void *rna_Material_raytrace_mirror_get(PointerRNA *ptr)
+{
+	return ptr->id.data;
+}
+
+static void *rna_Material_raytrace_transparency_get(PointerRNA *ptr)
+{
+	return ptr->id.data;
+}
+
+static void *rna_Material_halo_get(PointerRNA *ptr)
+{
+	return ptr->id.data;
+}
+
 static void rna_Material_mode_halo_set(PointerRNA *ptr, int value)
 {
 	Material *mat= (Material*)ptr->data;
@@ -139,12 +154,24 @@ static void rna_def_material_diffuse(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-static void rna_def_material_raymirror(StructRNA *srna, PropertyRNA *prop)
+static void rna_def_material_raymirror(BlenderRNA *brna, StructRNA *parent)
 {
+	StructRNA *srna;
+	PropertyRNA *prop;
+
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
 		{MA_RAYMIR_FADETOSKY, "RAYMIR_FADETOSKY", "Fade to sky color", ""},
 		{MA_RAYMIR_FADETOMAT, "RAYMIR_FADETOMAT", "Fade to material color", ""},
 		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_ui_text(srna, "Raytrace Mirror", "");
+
+	prop= RNA_def_property(parent, "raytrace_mirror", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaterialRaytraceMirror");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_raytrace_mirror_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Raytrace Mirror", "");
 	
 	prop= RNA_def_property(srna, "mode_ray_mirror", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYMIRROR); /* use bitflags */
@@ -211,8 +238,20 @@ static void rna_def_material_raymirror(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-static void rna_def_material_raytra(StructRNA *srna, PropertyRNA *prop)
+static void rna_def_material_raytra(BlenderRNA *brna, StructRNA *parent)
 {
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MaterialRaytraceTransparency", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_ui_text(srna, "Raytrace Transparency", "");
+
+	prop= RNA_def_property(parent, "raytrace_transparency", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaterialRaytraceTransparency");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_raytrace_transparency_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Raytrace Transparency", "");
+
 	prop= RNA_def_property(srna, "mode_ray_transparency", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYTRANSP); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Ray Transparency Mode", "Enables raytracing for transparent refraction rendering.");
@@ -285,8 +324,20 @@ static void rna_def_material_raytra(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
-static void rna_def_material_halo(StructRNA *srna, PropertyRNA *prop)
+static void rna_def_material_halo(BlenderRNA *brna, StructRNA *parent)
 {
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MaterialHalo", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_ui_text(srna, "Halo", "");
+
+	prop= RNA_def_property(parent, "halo", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaterialHalo");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_halo_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Halo", "");
+
 	prop= RNA_def_property(srna, "mode_halo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Halo Mode", "Enables halo rendering of material.");
@@ -430,11 +481,11 @@ void RNA_def_material(BlenderRNA *brna)
 	/* diffuse shaders */
 	rna_def_material_diffuse(srna, prop);
 	/* raytrace mirror */
-	rna_def_material_raymirror(srna, prop);
+	rna_def_material_raymirror(brna, srna);
 	/* raytrace transparency */
-	rna_def_material_raytra(srna, prop);
+	rna_def_material_raytra(brna, srna);
 	/* Halo settings */
-	rna_def_material_halo(srna, prop);
+	rna_def_material_halo(brna, srna);
 	
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
