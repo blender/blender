@@ -44,6 +44,12 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 
+static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	UVProjectModifierData *uvp= (UVProjectModifierData*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, NULL);
+}
+
 static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 {
 	ModifierData *md= (ModifierData*)ptr->data;
@@ -787,12 +793,10 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 
 	/* XXX: not sure how to handle uvlayer_tmp */
 
-	/* XXX: and how to do UVProjectModifier.projectors, a statically-sized array of Object pointers?
-	        (this code crashes when it's expanded in the RNA viewer...) */
-	/*prop= RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "projectors", "num_projectors");
+	prop= RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Projectors", "");*/
+	RNA_def_property_collection_funcs(prop, "rna_UVProject_projectors_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Projectors", "");
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Image");
@@ -1172,7 +1176,20 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Distance to keep from the target.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	/* XXX: need to do projaxis */
+	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS);
+	RNA_def_property_ui_text(prop, "X", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS);
+	RNA_def_property_ui_text(prop, "Y", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS);
+	RNA_def_property_ui_text(prop, "Z", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "subsurf_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "subsurfLevels");
