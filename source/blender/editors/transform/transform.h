@@ -77,6 +77,7 @@ typedef struct NumInput {
 typedef struct TransSnap {
 	short	modePoint;
 	short	modeTarget;
+	int		mode;
 	int  	status;
 	float	snapPoint[3];
 	float	snapTarget[3];

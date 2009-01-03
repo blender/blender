@@ -100,8 +100,9 @@ float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
 float ResizeBetween(TransInfo *t, float p1[3], float p2[3]);
 
 /* Modes */
-#define NOT_SELECTED 0
-#define NOT_ACTIVE 1
+#define SNAP_ALL			0
+#define SNAP_NOT_SELECTED	1
+#define SNAP_NOT_OBEDIT		2
 int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode);
 
 
@@ -283,7 +284,7 @@ int validSnappingNormal(TransInfo *t)
 void initSnapping(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	Object *obedit = NULL;
+	Object *obedit = t->obedit;
 	resetSnapping(t);
 	
 	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
@@ -293,11 +294,19 @@ void initSnapping(TransInfo *t)
 		/* Edit mode */
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
-			(obedit != NULL && obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
-			((t->flag & T_PROP_EDIT) == 0) ) // No PET, obviously
+			(obedit != NULL && obedit->type==OB_MESH) ) // Temporary limited to edit mode meshes
 		{
 			t->tsnap.status |= SNAP_ON;
 			t->tsnap.modePoint = SNAP_GEO;
+			
+			if (t->flag & T_PROP_EDIT)
+			{
+				t->tsnap.mode = SNAP_NOT_OBEDIT;
+			}
+			else
+			{
+				t->tsnap.mode = SNAP_ALL;
+			}
 		}
 		/* Object mode */
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
@@ -306,6 +315,7 @@ void initSnapping(TransInfo *t)
 		{
 			t->tsnap.status |= SNAP_ON;
 			t->tsnap.modePoint = SNAP_GEO;
+			t->tsnap.mode = SNAP_NOT_SELECTED;
 		}
 		else
 		{	
@@ -508,7 +518,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			int found = 0;
 			int dist = 40; // Use a user defined value here
 			
-			found = snapObjects(t, &dist, vec, no, NOT_SELECTED);
+			found = snapObjects(t, &dist, vec, no, t->mode);
 			if (found == 1)
 			{
 				float tangent[3];
@@ -542,7 +552,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			int found = 0;
 			int dist = 40; // Use a user defined value here
 
-			found = snapObjects(t, &dist, vec, no, NOT_ACTIVE);
+			found = snapObjects(t, &dist, vec, no, t->mode);
 			if (found == 1)
 			{
 				VECCOPY(t->tsnap.snapPoint, vec);
@@ -658,7 +668,7 @@ void TargetSnapMedian(TransInfo *t)
 			VecAddf(t->tsnap.snapTarget, t->tsnap.snapTarget, td->center);
 		}
 		
-		VecMulf(t->tsnap.snapTarget, 1.0 / t->total);
+		VecMulf(t->tsnap.snapTarget, 1.0 / i);
 		
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -1178,7 +1188,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 	
 	viewray(t->ar, v3d, t->mval, ray_start, ray_normal);
 
-	if (mode == NOT_ACTIVE)
+	if (mode == SNAP_ALL && t->obedit)
 	{
 		DerivedMesh *dm;
 		Object *ob = t->obedit;
@@ -1192,7 +1202,11 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 	}
 	
 	for ( base = scene->base.first; base != NULL; base = base->next ) {
-		if ( BASE_SELECTABLE(v3d, base) && (base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && ((mode == NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || (mode == NOT_ACTIVE && base != BASACT)) ) {
+		if ( BASE_SELECTABLE(v3d, base) && /* SELECTABLE */
+			(base->flag & (BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA)) == 0 && /* IS NOT AFFECTED BY TRANSFORM */
+			(	(mode == SNAP_NOT_SELECTED && (base->flag & (SELECT|BA_WAS_SEL)) == 0) || /* NOT_SELECTED */
+				((mode == SNAP_NOT_OBEDIT || mode == SNAP_ALL) && base->object != t->obedit)) /* OR NOT OBEDIT */
+			) {
 			Object *ob = base->object;
 			
 			if (ob->transflag & OB_DUPLI)
