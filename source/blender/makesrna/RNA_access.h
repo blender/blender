@@ -76,7 +76,7 @@ extern StructRNA RNA_EdgeSplitModifier;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
-extern StructRNA RNA_EnvironmentalMap;
+extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_FieldSettings;

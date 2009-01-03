@@ -36,7 +36,7 @@
 
 #else
 
-void rna_def_environmental_map(BlenderRNA *brna)
+void rna_def_environment_map(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -52,9 +52,9 @@ void rna_def_environmental_map(BlenderRNA *brna)
 		{ENV_PLANE, "PLANE", "Plane", "Only one side is rendered, with Z axis pointing in direction of image."},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "EnvironmentalMap", NULL);
+	srna= RNA_def_struct(brna, "EnvironmentMap", NULL);
 	RNA_def_struct_sdna(srna, "EnvMap");
-	RNA_def_struct_ui_text(srna, "EnvironmentalMap", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "EnvironmentMap", "DOC_BROKEN");
 	
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
@@ -116,7 +116,7 @@ void RNA_def_texture(BlenderRNA *brna)
 		{TEX_NOISE, "NOISE", "Noise", ""},
 		{TEX_IMAGE, "IMAGE", "Image", ""},
 		{TEX_PLUGIN, "PLUGIN", "Plugin", ""},
-		{TEX_ENVMAP, "ENVIRONMENTAL_MAP", "Environmental Map", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", "Environment Map", ""},
 		{TEX_MUSGRAVE, "MUSGRAVE", "Musgrave", ""},
 		{TEX_VORONOI, "VORONOI", "Voronoi", ""},
 		{TEX_DISTNOISE, "DISTORTED_NOISE", "Distorted Noise", ""},
@@ -153,7 +153,7 @@ void RNA_def_texture(BlenderRNA *brna)
 		{TEX_CELLNOISE, "CELL_NOISE", "Cell Noise", ""},
 		{0, NULL, NULL, NULL}};
 
-	rna_def_environmental_map(brna);
+	rna_def_environment_map(brna);
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
@@ -302,10 +302,10 @@ void RNA_def_texture(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ColorBand");
 	RNA_def_property_ui_text(prop, "Color Band", "");*/
 
-	prop= RNA_def_property(srna, "environmental_map", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");
-	RNA_def_property_struct_type(prop, "EnvironmentalMap");
-	RNA_def_property_ui_text(prop, "Environmental Map", "");
+	RNA_def_property_struct_type(prop, "EnvironmentMap");
+	RNA_def_property_ui_text(prop, "Environment Map", "");
 
 	/* XXX: preview */
 
