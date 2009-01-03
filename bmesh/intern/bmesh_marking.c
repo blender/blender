@@ -200,6 +200,31 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 }
 
 
+int BM_CountFlag(struct BMesh *bm, int type, int flag)
+{
+	BMHeader *head;
+	BMIter iter;
+	int tot = 0;
+
+	if (type & BM_VERT) {
+		for (head = BMIter_New(&iter, bm, BM_VERTS, NULL); head; head=BMIter_Step(&iter)) {
+			if (head->flag & flag) tot++;
+		}
+	}
+	if (type & BM_EDGE) {
+		for (head = BMIter_New(&iter, bm, BM_EDGES, NULL); head; head=BMIter_Step(&iter)) {
+			if (head->flag & flag) tot++;
+		}
+	}
+	if (type & BM_FACE) {
+		for (head = BMIter_New(&iter, bm, BM_FACES, NULL); head; head=BMIter_Step(&iter)) {
+			if (head->flag & flag) tot++;
+		}
+	}
+
+	return tot;
+}
+
 void BM_Select(struct BMesh *bm, void *element, int select)
 {
 	BMHeader *head = element;

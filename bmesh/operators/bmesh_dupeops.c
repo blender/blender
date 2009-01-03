@@ -85,11 +85,11 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	int i;
 	
 	/*lookup the first and second verts*/
-	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(source_mesh, &iter, BM_VERTS_OF_FACE, source_face));
+	target_vert1 = BLI_ghash_lookup(vhash, BMIter_New(&iter, source_mesh, BM_VERTS_OF_FACE, source_face));
 	target_vert2 = BLI_ghash_lookup(vhash, BMIter_Step(&iter));
 	
 	/*lookup edges*/
-	for (i=0,source_loop=BMIter_New(source_mesh, &iter, BM_LOOPS_OF_FACE, source_face); 
+	for (i=0,source_loop=BMIter_New(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face); 
 		     source_loop; source_loop=BMIter_Step(&iter), i++) {
 		edar[i] = BLI_ghash_lookup(ehash, source_loop->e);
 	}
@@ -103,8 +103,8 @@ static BMFace *copy_face(BMesh *source_mesh, BMFace *source_face, BMesh *target_
 	BMO_SetFlag(target_mesh, (BMHeader*)target_face, DUPE_NEW);
 	
 	/*copy per-loop custom data*/
-	for (i=0,source_loop=BMIter_New(source_mesh, &iter, BM_LOOPS_OF_FACE, source_face),
-	  target_loop=BMIter_New(target_mesh, &iter2, BM_LOOPS_OF_FACE, target_face);
+	for (i=0,source_loop=BMIter_New(&iter, source_mesh, BM_LOOPS_OF_FACE, source_face),
+	  target_loop=BMIter_New(&iter2, target_mesh, BM_LOOPS_OF_FACE, target_face);
 	  source_loop && target_loop; source_loop=BMIter_Step(&iter), target_loop=BMIter_Step(&iter2),
 	  i++) {
 		BM_Copy_Attributes(source_mesh, target_mesh, source_loop, target_loop);		
@@ -329,11 +329,9 @@ void delop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/*Mark Buffers*/
-	BMO_Flag_Buffer(bm, delop, BMOP_DEL_VINPUT, DEL_INPUT);
-	BMO_Flag_Buffer(bm, delop, BMOP_DEL_EINPUT, DEL_INPUT);
-	BMO_Flag_Buffer(bm, delop, BMOP_DEL_FINPUT, DEL_INPUT);
-
+	BMO_Flag_Buffer(bm, delop, BMOP_DEL_MULTIN, DEL_INPUT);
 }
+
 static void delete_verts(BMesh *bm)
 {
 	BMVert *v;

@@ -10,5 +10,6 @@ void BMO_pop(struct BMesh *bm);
 void splitop_exec(struct BMesh *bm, struct BMOperator *op);
 void dupeop_exec(struct BMesh *bm, struct BMOperator *op);
 void delop_exec(struct BMesh *bm, struct BMOperator *op);
+void esubdivide_exec(BMesh *bmesh, BMOperator *op);
 
 #endif

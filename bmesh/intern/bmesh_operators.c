@@ -14,18 +14,8 @@
 static void alloc_flag_layer(BMesh *bm);
 static void free_flag_layer(BMesh *bm);
 
-void esubdivide_exec(BMesh *bmesh, BMOperator *op);
-
 /*function pointer table*/
 typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
-const opexec BMOP_OPEXEC[BMOP_TOTAL_OPS] = {
-	splitop_exec,
-	dupeop_exec,
-	delop_exec,
-	NULL,
-	NULL,
-	esubdivide_exec,
-};
 
 /*operator slot type information - size of one element of the type given.*/
 const int BMOP_OPSLOT_TYPEINFO[BMOP_OPSLOT_TYPES] = {
@@ -86,17 +76,18 @@ void BMO_Init_Op(BMOperator *op, int opcode)
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
-
-	if (BMOP_OPTIONS[opcode] & NEEDFLAGS) op->needflag = 1;
+	
+	//currently not used, flags are always allocated
+	op->needflag = !(opdefines[opcode]->flag & BMO_NOFLAGS);
 
 	/*initialize the operator slot types*/
-	for(i = 0; i < BMOP_TYPETOTALS[opcode]; i++) {
-		op->slots[i].slottype = BMOP_TYPEINFO[opcode][i];
+	for(i = 0; i < opdefines[opcode]->totslot; i++) {
+		op->slots[i].slottype = opdefines[opcode]->slottypes[i];
 		op->slots[i].index = i;
 	}
 
 	/*callback*/
-	op->exec = BMOP_OPEXEC[opcode];
+	op->exec = opdefines[opcode]->exec;
 
 	/*memarena, used for operator's slot buffers*/
 	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
@@ -178,8 +169,8 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, int src, int dst)
 		dest_slot->data.buf = NULL;
 		dest_slot->len = source_slot->len;
 		if(dest_slot->len){
-			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, BMOP_TYPETOTALS[dest_slot->slottype] * dest_slot->len);
-			memcpy(dest_slot->data.buf, source_slot->data.buf, BMOP_TYPETOTALS[dest_slot->slottype] * dest_slot->len);
+			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, opdefines[dest_slot->slottype]->totslot * dest_slot->len);
+			memcpy(dest_slot->data.buf, source_slot->data.buf, opdefines[dest_slot->slottype]->totslot * dest_slot->len);
 		}
 	} else {
 		dest_slot->data = source_slot->data;
@@ -318,7 +309,7 @@ static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){
 	
 	op->slots[slotcode].len = len;
 	if(len)
-		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, BMOP_TYPEINFO[op->type][slotcode] * len);
+		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, opdefines[op->type]->slottypes[slotcode] * len);
 	return op->slots[slotcode].data.buf;
 }
 
@@ -330,6 +321,47 @@ static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){
  * into an output slot for an operator.
  *
 */
+
+void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int type)
+{
+	BMIter elements;
+	BMHeader *e;
+	BMOpSlot *output = BMO_GetSlot(op, slotcode);
+	int totelement=0, i=0;
+	
+	totelement = BM_CountFlag(bm, type, BM_SELECT);
+
+	if(totelement){
+		alloc_slot_buffer(op, slotcode, totelement);
+
+		if (type & BM_VERT) {
+			for (e = BMIter_New(&elements, bm, BM_VERTS, bm); e; e = BMIter_Step(&elements)) {
+				if(e->flag & flag) {
+					((BMHeader**)output->data.p)[i] = e;
+					i++;
+				}
+			}
+		}
+
+		if (type & BM_EDGE) {
+			for (e = BMIter_New(&elements, bm, BM_EDGES, bm); e; e = BMIter_Step(&elements)) {
+				if(e->flag & flag){
+					((BMHeader**)output->data.p)[i] = e;
+					i++;
+				}
+			}
+		}
+
+		if (type & BM_FACE) {
+			for (e = BMIter_New(&elements, bm, BM_FACES, bm); e; e = BMIter_Step(&elements)) {
+				if(e->flag & flag){
+					((BMHeader**)output->data.p)[i] = e;
+					i++;
+				}
+			}
+		}
+	}
+}
 
 void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int type)
 {

@@ -124,13 +124,22 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm
 	return bmesh_jfke(bm, f1, f2, jed);
 }
 
+/*connects two verts together, automatically (if very naively) finding the
+  face they both share (if there is one) and splittling it.  use this at your 
+  own risk, as it doesn't handle the many complex cases it should (like zero-area faces,
+  multiple faces, etc).
+
+  this is really only meant for cases where you don't know before hand the face
+  the two verts belong to for splitting (e.g. the subdivision operator).
+*/
+
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
 	/*search radial disk for face that contains e1 and e2*/
 	BMIter iter, iter2;
 	BMVert *v;
 	BMLoop *nl;
 	BMFace *face;
-	
+
 	/*this isn't the best thing in the world.  it doesn't handle cases where there's
 	  multiple faces yet.  that might require a convexity test to figure out which
 	  face is "best," and who knows what for non-manifold conditions.*/

@@ -47,9 +47,14 @@ typedef struct BMOperator{
 /*need to refactor code to use this*/
 typedef struct BMOpDefine {
 	int slottypes[BMOP_MAX_SLOTS];
-	int totslots;
+	void (*exec)(BMesh *bm, BMOperator *op);
+	int totslot;
 	int flag;
 } BMOpDefine;
+
+/*BMOpDefine->flag*/
+//doesn't do anything at the moment.
+#define BMO_NOFLAGS		1
 
 /*API for operators*/
 void BMO_Init_Op(struct BMOperator *op, int opcode);
@@ -72,45 +77,39 @@ void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int 
 /*--------------------begin operator defines------------------------*/
 /*split op*/
 #define BMOP_SPLIT				0
-#define BMOP_SPLIT_MULTIN		0
-#define BMOP_SPLIT_MULTOUT		1
-#define BMOP_SPLIT_TOTSLOT		2
 
-static const int BMOP_SPLIT_TYPEINFO[BMOP_SPLIT_TOTSLOT] = {
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF
+enum {
+	BMOP_SPLIT_MULTIN,
+	BMOP_SPLIT_MULTOUT,
+	BMOP_SPLIT_TOTSLOT,
 };
 
 /*dupe op*/
-#define BMOP_DUPE				1
+#define BMOP_DUPE	1
 
-#define BMOP_DUPE_MULTIN		0
-#define BMOP_DUPE_ORIG			1
-#define BMOP_DUPE_NEW			2
-#define BMOP_DUPE_TOTSLOT		3
-
-static const int BMOP_DUPE_TYPEINFO[BMOP_DUPE_TOTSLOT] = {
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_PNT_BUF,
+enum {
+	BMOP_DUPE_MULTIN,
+	BMOP_DUPE_ORIG,
+	BMOP_DUPE_NEW,
+	BMOP_DUPE_TOTSLOT
 };
 
 /*delete op*/
-#define BMOP_DEL			2
-#define BMOP_DEL_MULTIN		0
-#define BMOP_DEL_CONTEXT	1
-#define BMOP_DEL_TOTSLOT	2
+#define BMOP_DEL	2
+
+enum {
+	BMOP_DEL_MULTIN,
+	BMOP_DEL_CONTEXT,
+	BMOP_DEL_TOTSLOT,
+};
 
 /*BMOP_DEL_CONTEXT*/
-#define BMOP_DEL_VERTS				1
-#define BMOP_DEL_EDGESFACES			2
-#define BMOP_DEL_ONLYFACES			3
-#define BMOP_DEL_FACES				4
-#define BMOP_DEL_ALL				5
-
-static const int BMOP_DEL_TYPEINFO[BMOP_DEL_TOTSLOT] = {
-	BMOP_OPSLOT_PNT_BUF,
-	BMOP_OPSLOT_INT
+enum {
+	BMOP_DEL_VERTS = 1,
+	BMOP_DEL_EDGESFACES,
+	BMOP_DEL_ONLYFACES,
+	BMOP_DEL_FACES,
+	BMOP_DEL_ALL,
 };
 
 /*editmesh->bmesh op*/
@@ -118,51 +117,21 @@ static const int BMOP_DEL_TYPEINFO[BMOP_DEL_TOTSLOT] = {
 #define BMOP_FROM_EDITMESH_EM	0
 #define BMOP_FROM_EDITMESH_TOTSLOT 1
 
-static const int BMOP_FROM_EDITMESH_TYPEINFO[BMOP_FROM_EDITMESH_TOTSLOT] = {
-	BMOP_OPSLOT_PNT
-};
-
-#define FROMEDIT_OPTIONS		NEEDFLAGS
-
 /*bmesh->editmesh op*/
 #define BMOP_TO_EDITMESH		4
 #define BMOP_TO_EDITMESH_EM		0
 #define BMOP_TO_EDITMESH_TOTSLOT 1
 
-static const int BMOP_TO_EDITMESH_TYPEINFO[BMOP_TO_EDITMESH_TOTSLOT] = {
-	BMOP_OPSLOT_PNT
-};
-
-
+/*edge subdivide op*/
 #define BMOP_ESUBDIVIDE			5
 #define BMOP_ESUBDIVIDE_EDGES	0
 #define BMOP_ESUBDIVIDE_TOTSLOT	1
-
-static const int BMOP_ESUBDIVIDE_TYPEINFO[] = {
-	BMOP_OPSLOT_PNT_BUF
-};
 
 /*keep this updated!*/
 #define BMOP_TOTAL_OPS				6
 /*-------------------------------end operator defines-------------------------------*/
 
-/*Following arrays are used by the init functions to init operator slot typecodes*/
-static const int *BMOP_TYPEINFO[] = {
-	BMOP_SPLIT_TYPEINFO,
-	BMOP_DUPE_TYPEINFO,
-	BMOP_DEL_TYPEINFO,
-	BMOP_FROM_EDITMESH_TYPEINFO,
-	BMOP_TO_EDITMESH_TYPEINFO,
-	BMOP_ESUBDIVIDE_TYPEINFO
-};
-
-static const int BMOP_TYPETOTALS[] = {
-	BMOP_SPLIT_TOTSLOT,
-	BMOP_DUPE_TOTSLOT,
-	BMOP_DEL_TOTSLOT,
-	BMOP_FROM_EDITMESH_TOTSLOT,
-	BMOP_TO_EDITMESH_TOTSLOT,
-	BMOP_ESUBDIVIDE_TOTSLOT
-};
+extern BMOpDefine *opdefines[];
+extern int bmesh_total_ops;
 
 #endif
