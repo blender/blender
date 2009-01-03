@@ -271,6 +271,8 @@ static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 		bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
 	}					
 	bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
+	
+	return 0;
 }
 
 /* helper function for ANIM_nla_mapping_apply_ipocurve() -> "apply", i.e. mapping points to NLA-mapped global time */
@@ -286,6 +288,8 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 		bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
 	}
 	bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+	
+	return 0;
 }
 
 

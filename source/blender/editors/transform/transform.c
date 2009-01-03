@@ -197,6 +197,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		
 		// TRANSFORM_FIX_ME
 		//transform_aspect_ratio_tface_uv(&aspx, &aspy);
+		aspx= aspy= 1.0f;
 		
 		divx= v2d->mask.xmax-v2d->mask.xmin;
 		divy= v2d->mask.ymax-v2d->mask.ymin;
@@ -1092,11 +1093,12 @@ int transformEnd(bContext *C, TransInfo *t)
 	if (t->state != TRANS_RUNNING)
 	{
 		/* handle restoring objects */
-		if(t->state == TRANS_CANCEL)
+		if(t->state == TRANS_CANCEL) {
 			if(t->spacetype == SPACE_NODE)
 				restoreTransNodes(t);
 			else
 				restoreTransObjects(t);	// calls recalcData()
+		}
 		
 		/* free data */
 		postTrans(t);
@@ -4571,7 +4573,6 @@ int NodeTranslate(TransInfo *t, short mval[2])
 {
 	View2D *v2d = &t->ar->v2d;
 	float cval[2], sval[2];
-	char str[200];
 	
 	/* calculate translation amount from mouse movement - in 'node-grid space' */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
@@ -4579,7 +4580,7 @@ int NodeTranslate(TransInfo *t, short mval[2])
 
 	t->values[0] = cval[0] - sval[0];
 	t->values[1] = cval[1] - sval[1];
-		
+	
 	applyNodeTranslate(t);
 
 	recalcData(t);

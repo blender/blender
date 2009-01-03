@@ -35,6 +35,7 @@
 #include "BLI_arithb.h"
 
 #include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -116,7 +117,7 @@ short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc b
     return 0;
 }
 
-/* This function is used to loop over the IPO curves (and subsequently the keyframes in them) */
+/* This function is used to loop over the IPO curves in the given IPO (and subsequently the keyframes in them) */
 short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
     IpoCurve *icu;
@@ -136,6 +137,48 @@ short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_o
 
 /* -------------------------------- Further Abstracted ----------------------------- */
 
+/* This function is used to loop over the keyframe data in an Action Group */
+static short agrp_keys_bezier_loop(BeztEditData *bed, bActionGroup *agrp, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+{
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	
+	/* only iterate over the action-channels and their sub-channels that are in this group */
+	for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
+		if (ANIM_ipo_keys_bezier_loop(bed, achan->ipo, bezt_ok, bezt_cb, icu_cb))
+			return 1;
+		
+		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+			if (ANIM_ipo_keys_bezier_loop(bed, conchan->ipo, bezt_ok, bezt_cb, icu_cb))
+				return 1;
+		}
+	}
+	
+	return 0;
+}
+
+/* This function is used to loop over the keyframe data in an Action Group */
+static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+{
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		if (ANIM_ipo_keys_bezier_loop(bed, achan->ipo, bezt_ok, bezt_cb, icu_cb))
+			return 1;
+		
+		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+			if (ANIM_ipo_keys_bezier_loop(bed, conchan->ipo, bezt_ok, bezt_cb, icu_cb))
+				return 1;
+		}
+	}
+	
+	return 0;
+}
+
+/* --- */
+
+
 /* This function is used to apply operation to all keyframes, regardless of the type */
 short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
 {
@@ -145,14 +188,17 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 	
 	/* method to use depends on the type of keyframe data */
 	switch (ale->datatype) {
+			/* direct keyframe data (these loops are exposed) */
 		case ALE_ICU: /* ipo-curve */
 			return ANIM_icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		case ALE_IPO: /* ipo */
 			return ANIM_ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		
+			/* indirect 'summaries' (these are not exposed) */
 		case ALE_GROUP: /* action group */
-			//return group_keys_bezier_loop(bed, ale->data, bezt_ok, bezt_cb, icu_cb);
-			break;
+			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, icu_cb);
+		case ALE_ACT: /* action */
+			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, icu_cb);
 	}
 	
 	return 0;

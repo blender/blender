@@ -546,7 +546,6 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 {
 	bAnimListElem *ale = NULL;
 	bConstraintChannel *conchan;
-	IpoCurve *icu;
 	short owned= (owner && ownertype)? 1 : 0;
 	int items = 0;
 	
@@ -857,7 +856,6 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 {
 	bAnimListElem *ale=NULL;
 	Object *ob= base->object;
-	IpoCurve *icu;
 	int items = 0;
 	
 	/* include materials-expand widget? */
