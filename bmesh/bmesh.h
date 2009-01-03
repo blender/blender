@@ -47,86 +47,68 @@ struct BMVert;
 struct BMEdge;
 struct BMFace;
 struct BMLoop;
+
 /*
-	all mesh elements should share this beginning layout
-	we can pack this a little tighter now... 
-	
-	BMHeader *next, *prev;
-	int EID;
-	int eflag1, eflag2;
-	short systemflag, type;
-	struct BMFlagLayer *flags;
+ * BMHeader
+ *
+ * All mesh elements begin with a BMHeader. This structure 
+ * hold several types of data
+ *
+ * 1: The type of the element (vert, edge, loop or face)
+ * 2: Persistant flags/markings (sharp, seam, select, hidden, ect)
+ * 3: Unique ID in the bmesh.
+ * 4: some elements for internal record keeping.
+ *
 */
 
-/* Defines for BMHeader->type*/
+/*BMHeader->type*/
 #define BM_VERT 					1
 #define BM_EDGE 					2
 #define BM_FACE 					4
 #define BM_LOOP 					8
 #define BM_ALL					BM_VERT | BM_EDGE | BM_FACE | BM_LOOP
 
-/*Masks for BMHeader->flag
-	Note: Its entirely possible that any temporal flags should be moved
-	into the dynamically allocated flag layers and only reserve BMHeader->flag
-	for things like select, hide, ect.
+/*BMHeader->flag*/
+#define BM_SELECT	(1<<0)
+#define BM_SEAM		(1<<1)
+#define BM_FGON		(1<<2)
+#define BM_HIDDEN	(1<<3)
+#define BM_SHARP	(1<<4)
+#define BM_SMOOTH	(1<<5)
 
-	The first 16 bits are reserved for the original element flags.
-	The next 5 (till BM_SMOOTH) are bmesh-added ones that replace
-	single variable flags.  The rest after that are temporary flags.
-*/	
-
-#define BM_SELECT	1 //redefinition of SELECT
-
-/*auxillery bmesh flags.  note, these should
-  become internal to the api eventually.
-  
-  start at the 17th flag.
- */
-#define BM_SEAM		(1<<16)
-#define BM_FGON		(1<<17)
-#define BM_HIDDEN	(1<<18)
-#define BM_SHARP	(1<<19)
-#define BM_SMOOTH	(1<<20) /* for faces */
-
-#define BM_DIRTY		(1<<21)			/*Not used yet*/
-#define BM_NEW			(1<<22)			
-#define BM_OVERLAP		(1<<23)			/*used by bmesh_verts_in_face*/
-#define BM_EDGEVERT 	(1<<24) 			/*used by bmesh_make_ngon*/
-#define BM_DELETE		(1<<25)
-#define BM_AUX1			(1<<26) 			/*different for edges/verts/faces/ect*/
-#define BM_AUX2			(1<<27) 			/*different for edges/verts/faces/ect*/
-#define BM_AUX3			(1<<28) 			/*different for edges/verts/faces/ect*/
-#define BM_TEMP_FLAGS	BM_DIRTY|BM_NEW|BM_OVERLAP|BM_EDGEVERT|BM_DELETE
-
-/*All Mesh elements start with this structure*/
 typedef struct BMHeader
 {
 	struct BMHeader *next, *prev;
-	int 		EID;
-	int 		flag;								/*mesh flags, never to be (ab)used by the api itself!*/
+	int 		EID;								/*Consider removing this/making it ifdeffed for debugging*/
+	short 		flag, type;								
 	int			eflag1, eflag2;						/*Flags used by eulers. Try and get rid of/minimize some of these*/
-	short		type, pad1, pad2, pad3;				/*Type of element this is head to*/
-	struct BMFlagLayer *flags;					/*Dynamically allocated block of flag layers for operators to use*/
+	struct BMFlagLayer *flags;						/*Dynamically allocated block of flag layers for operators to use*/
 } BMHeader;
-
-
-/*Used for circular linked list functions*/
-typedef struct BMNode{
-	struct BMNode *next, *prev;
-	void *data;
-}BMNode;
-
-/*Used by operator API to give each operator private flag space
-	-Perhaps want to change this to have a union for storing float/long/pointer/ect
-	-pflag should be used for system/API stuff
-*/
 
 typedef struct BMFlagLayer{
 	int f1;
 	short mask, pflag;
 }BMFlagLayer;
 
-struct BMOperator;
+#define BM_OVERLAP		(1<<0)			/*used by bmesh_verts_in_face*/
+#define BM_EDGEVERT 	(1<<1) 			/*used by bmesh_make_ngon*/
+
+
+/*
+ * BMNode
+ *
+ * Used for circular/linked list functions that form basis of
+ * adjacency system in BMesh. This should probably be hidden 
+ * somewhere since tool authors never need to know about it.
+ *
+*/
+
+typedef struct BMNode{
+	struct BMNode *next, *prev;
+	void *data;
+}BMNode;
+
+
 typedef struct BMesh
 {
 	ListBase verts, edges, polys;
@@ -143,9 +125,9 @@ typedef struct BMesh
 	int nextv, nexte, nextp, nextl;
 	struct CustomData vdata, edata, pdata, ldata;
 	int selectmode;
-	struct BLI_mempool *flagpool;     /*memory pool for dynamically allocated flag layers*/
-	int stackdepth;                   /*current depth of operator stack*/
-	int totflags, walkers;            /*total number of tool flag layers*/
+	struct BLI_mempool *flagpool;					/*memory pool for dynamically allocated flag layers*/
+	int stackdepth;									/*current depth of operator stack*/
+	int totflags, walkers;							/*total number of tool flag layers*/
 }BMesh;
 
 typedef struct BMVert

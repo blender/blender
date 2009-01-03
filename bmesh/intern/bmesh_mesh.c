@@ -88,33 +88,6 @@ int bmesh_test_sysflag(BMHeader *head, int flag)
 	return 0;
 }
 
-/*
- * CLEAR TEMP FLAGS
- *
- * Clears all temporary flags at end of the modelling loop.
- * May need to move this to operator finishing function?
- *
-*/
-static void clear_temp_flags(BMesh *bm)
-{
-	BMIter verts;
-	BMIter edges;
-	BMIter loops;
-	BMIter faces;
-
-	BMVert *v;
-	BMEdge *e;
-	BMLoop *l;
-	BMFace *f;
-
-	for(v = BMIter_New(&verts, bm, BM_VERTS, bm ); v; v = BMIter_Step(&verts)) bmesh_clear_sysflag(&(v->head), BM_TEMP_FLAGS);
-	for(e = BMIter_New(&edges, bm, BM_EDGES, bm ); e; e = BMIter_Step(&edges)) bmesh_clear_sysflag(&(e->head), BM_TEMP_FLAGS);
-	for(f = BMIter_New(&faces, bm, BM_FACES, bm ); f; f = BMIter_Step(&faces)){
-		bmesh_clear_sysflag(&(f->head), BM_TEMP_FLAGS);
-		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) bmesh_clear_sysflag(&(l->head), BM_TEMP_FLAGS);
-	}
-}
-
 /*	
  *	BMESH MAKE MESH
  *
@@ -293,6 +266,5 @@ void bmesh_end_edit(BMesh *bm, int flag){
 
 	/*compute normals, clear temp flags and flush selections*/
 	BM_Compute_Normals(bm);
-	clear_temp_flags(bm);
 	bmesh_selectmode_flush(bm);
 }

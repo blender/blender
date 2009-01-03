@@ -187,16 +187,15 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	BMFace *f = NULL;
 	int overlap = 0, i;
 
-
 	if(nodouble){
 		if(len > VERT_BUF_SIZE)
 			verts = MEM_callocN(sizeof(BMVert *) * len, "bmesh make ngon vertex array");
 		for(i = 0; i < len; i++){
-			if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT)){
-				bmesh_set_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT);
+			if(!BMO_TestFlag(bm, edges[i]->v1, BM_EDGEVERT)){
+				BMO_SetFlag(bm, edges[i]->v1, BM_EDGEVERT);
 				verts[i] = edges[i]->v1;
-			} else if(!bmesh_test_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT)) {
-				bmesh_set_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT);
+			} else if(!BMO_TestFlag(bm, edges[i]->v2, BM_EDGEVERT)) {
+				BMO_SetFlag(bm, edges[i]->v2, BM_EDGEVERT);
 				verts[i] = 	edges[i]->v2;
 			}
 		}
@@ -205,8 +204,8 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		
 		/*clear flags*/
 		for(i = 0; i < len; i++){
-			bmesh_clear_sysflag((BMHeader*)(edges[i]->v1), BM_EDGEVERT);
-			bmesh_clear_sysflag((BMHeader*)(edges[i]->v2), BM_EDGEVERT);
+			BMO_ClearFlag(bm, edges[i]->v1, BM_EDGEVERT);
+			BMO_ClearFlag(bm, edges[i]->v2, BM_EDGEVERT);
 		}
 		
 		if(len > VERT_BUF_SIZE)

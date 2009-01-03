@@ -76,21 +76,20 @@ int BM_Vert_In_Face(BMFace *f, BMVert *v)
  * that appear in a given face
  *
 */
-
-int BM_Verts_In_Face(BMFace *f, BMVert **varr, int len)
+int BM_Verts_In_Face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 {
 	BMLoop *curloop = NULL;
 	int i, count = 0;
 	
-	for(i=0; i < len; i++) bmesh_set_sysflag(&(varr[i]->head), BM_OVERLAP);
+	for(i=0; i < len; i++) BMO_SetFlag(bm, varr[i], BM_OVERLAP);
 
 	curloop = f->loopbase;
 	do{
-		if(bmesh_test_sysflag(&(curloop->v->head), BM_OVERLAP)) count++;
+		if(BMO_TestFlag(bm, curloop->v, BM_OVERLAP)) count++;
 		curloop = ((BMLoop*)(curloop->head.next));
 	} while(curloop = ((BMLoop*)(curloop->head.next)));
 
-	for(i=0; i < len; i++) bmesh_clear_sysflag(&(varr[i]->head), BM_OVERLAP);
+	for(i=0; i < len; i++) BMO_ClearFlag(bm, varr[i], BM_OVERLAP);
 
 	return count;
 }
@@ -490,7 +489,7 @@ int BM_Exist_Face_Overlaps(BMesh *bm, BMVert **varr, int len, BMFace **existface
 	for(i=0; i < len; i++){
 		f = BMIter_New(&vertfaces, bm, BM_FACES_OF_VERT, varr[i] );
 		while(f){
-			amount = BM_Verts_In_Face(f, varr, len);
+			amount = BM_Verts_In_Face(bm, f, varr, len);
 			if(amount >= len){
 				if((len == f->len) && existface)
 					*existface = f;
