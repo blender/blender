@@ -3251,6 +3251,43 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_GAME;
 	else if(rnatype == &RNA_ScriptLink)
 		return ICON_PYTHON;
+	
+	/* modifiers */
+	else if(rnatype == &RNA_SubsurfModifier)
+		return ICON_MOD_SUBSURF;
+	else if(rnatype == &RNA_ArmatureModifier)
+		return ICON_ARMATURE;
+	else if(rnatype == &RNA_LatticeModifier)
+		return ICON_LATTICE;
+	else if(rnatype == &RNA_CurveModifier)
+		return ICON_CURVE;
+	else if(rnatype == &RNA_BuildModifier)
+		return ICON_MOD_BUILD;
+	else if(rnatype == &RNA_MirrorModifier)
+		return ICON_MOD_MIRROR;
+	else if(rnatype == &RNA_DecimateModifier)
+		return ICON_MOD_DECIM;
+	else if(rnatype == &RNA_WaveModifier)
+		return ICON_MOD_WAVE;
+	else if(rnatype == &RNA_HookModifier)
+		return ICON_HOOK;
+	else if(rnatype == &RNA_SoftbodyModifier)
+		return ICON_MOD_SOFT;
+	else if(rnatype == &RNA_BooleanModifier)
+		return ICON_MOD_BOOLEAN;
+	else if(rnatype == &RNA_ParticleInstanceModifier)
+		return ICON_MOD_PARTICLEINSTANCE;
+	else if(rnatype == &RNA_ParticleSystemModifier)
+		return ICON_MOD_PARTICLES;
+	else if(rnatype == &RNA_EdgeSplitModifier)
+		return ICON_MOD_EDGESPLIT;
+	else if(rnatype == &RNA_ArrayModifier)
+		return ICON_MOD_ARRAY;
+	else if(rnatype == &RNA_UVProjectModifier)
+		return ICON_MOD_UVPROJECT;
+	else if(rnatype == &RNA_DisplaceModifier)
+		return ICON_MOD_DISPLACE;
+	
 	else
 		return ICON_DOT;
 }
