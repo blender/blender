@@ -378,7 +378,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for modulating the wave.");
 
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_ui_text(prop, "Texture", "Texture for modulating the wave.");
 
 	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
@@ -653,9 +653,8 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
 
-	/* XXX: no texture type in RNA yet */
 	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_ui_text(prop, "Texture", "");
 
 	prop= RNA_def_property(srna, "midlevel", PROP_FLOAT, PROP_NONE);
