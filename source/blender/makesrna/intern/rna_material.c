@@ -30,6 +30,7 @@
 #include "rna_internal.h"
 
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 
 #include "WM_types.h"
 
@@ -43,6 +44,12 @@ static void rna_Material_mode_halo_set(PointerRNA *ptr, int value)
 		mat->mode |= MA_HALO;
 	else
 		mat->mode &= ~(MA_HALO|MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+}
+
+static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Material *mat= (Material*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)mat->mtex, sizeof(MTex*), MAX_MTEX, NULL);
 }
 
 #else
@@ -402,16 +409,21 @@ static void rna_def_material_halo(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_HALO_SOFT); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Halo Mode Soft", "Softens the halo.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
 }
 
 void RNA_def_material(BlenderRNA *brna)
 {
 	StructRNA *srna= NULL;
 	PropertyRNA *prop= NULL;
-	
+
 	srna= RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material", "DOC_BROKEN");
+
+	/* mtex */
+	prop= RNA_def_property(srna, "textures", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MappingTexture");
+	RNA_def_property_collection_funcs(prop, "rna_Material_mtex_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Textures", "");
 	
 	/* colors */
 	rna_def_material_colors(srna, prop);

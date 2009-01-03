@@ -71,6 +71,13 @@ void rna_def_mapping_texture(BlenderRNA *brna)
 		{MTEX_BLEND_COLOR, "COLOR", "Color", ""},
 		{0, NULL, NULL, NULL}};
 
+	static EnumPropertyItem prop_mapping_items[] = {
+		{MTEX_FLAT, "FLAT", "Flat", "Maps X and Y coordinates directly."},
+		{MTEX_CUBE, "CUBE", "Cube", "Maps using the normal vector."},
+		{MTEX_TUBE, "TUBE", "Tube", "Maps with Z as central axis."},
+		{MTEX_SPHERE, "SPHERE", "Sphere", "Maps with Z as central axis."},
+		{0, NULL, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "MappingTexture", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "MappingTexture", "DOC_BROKEN");
@@ -96,6 +103,21 @@ void rna_def_mapping_texture(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tex");
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_ui_text(prop, "Texture", "");
+
+	/* XXX: MTex.uvname, MTex.proj[xyz] */
+
+	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_mapping_items);
+	RNA_def_property_ui_text(prop, "Mapping", "");
+
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "ofs");
+	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
+	RNA_def_property_ui_text(prop, "Offset", "");
+
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
+	RNA_def_property_ui_text(prop, "Size", "");
 }
 
 void rna_def_environment_map(BlenderRNA *brna)
