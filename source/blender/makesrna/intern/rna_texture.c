@@ -30,11 +30,73 @@
 
 #include "rna_internal.h"
 
+#include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
 
 #else
+
+void rna_def_mapping_texture(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_texture_coordinates_items[] = {
+		{TEXCO_ORCO, "ORIGINAL_COORDINATES", "Original Coordinates", ""},
+		{TEXCO_REFL, "REFLECTION_VECTOR", "Reflection Vector", ""},
+		{TEXCO_NORM, "NORMAL_VECTOR", "Normal Vector", ""},
+		{TEXCO_GLOB, "GLOBAL", "Global", ""},
+		{TEXCO_UV, "UV", "UV", ""},
+		{TEXCO_OBJECT, "LINKED_OBJECT", "Linked Object", ""},
+		{TEXCO_STRAND, "STRAND", "Strand", ""},
+		{TEXCO_STRESS, "STRESS", "Stress", ""},
+		{TEXCO_SPEED, "TANGENT", "Tangent", ""},
+		{0, NULL, NULL, NULL}};
+
+	static EnumPropertyItem prop_blend_type_items[] = {
+		{MTEX_BLEND, "MIX", "Mix", ""},
+		{MTEX_ADD, "ADD", "Add", ""},
+		{MTEX_SUB, "SUBTRACT", "Subtract", ""},
+		{MTEX_MUL, "MULTIPLY", "Multiply", ""},
+		{MTEX_SCREEN, "SCREEN", "Screen", ""},
+		{MTEX_OVERLAY, "OVERLAY", "Overlay", ""},
+		{MTEX_DIFF, "DIFFERENCE", "Difference", ""},
+		{MTEX_DIV, "DIVIDE", "Divide", ""},
+		{MTEX_DARK, "DARKEN", "Darken", ""},
+		{MTEX_LIGHT, "LIGHTEN", "Lighten", ""},
+		{MTEX_BLEND_HUE, "HUE", "Hue", ""},
+		{MTEX_BLEND_SAT, "SATURATION", "Saturation", ""},
+		{MTEX_BLEND_VAL, "VALUE", "Value", ""},
+		{MTEX_BLEND_COLOR, "COLOR", "Color", ""},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "MappingTexture", NULL);
+	RNA_def_struct_sdna(srna, "MTex");
+	RNA_def_struct_ui_text(srna, "MappingTexture", "DOC_BROKEN");
+
+	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texco");
+	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
+	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
+
+	/* XXX: MTex.mapto and MTex.maptoneg */
+
+	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "blendtype");
+	RNA_def_property_enum_items(prop, prop_blend_type_items);
+	RNA_def_property_ui_text(prop, "Blend Type", "");
+
+	prop= RNA_def_property(srna, "mapping_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_ui_text(prop, "Mapping Object", "");
+
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tex");
+	RNA_def_property_struct_type(prop, "Texture");
+	RNA_def_property_ui_text(prop, "Texture", "");
+}
 
 void rna_def_environment_map(BlenderRNA *brna)
 {
@@ -153,6 +215,7 @@ void RNA_def_texture(BlenderRNA *brna)
 		{TEX_CELLNOISE, "CELL_NOISE", "Cell Noise", ""},
 		{0, NULL, NULL, NULL}};
 
+	rna_def_mapping_texture(brna);
 	rna_def_environment_map(brna);
 
 	srna= RNA_def_struct(brna, "Texture", "ID");

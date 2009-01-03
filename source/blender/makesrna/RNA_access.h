@@ -113,6 +113,7 @@ extern StructRNA RNA_Lattice;
 extern StructRNA RNA_LatticeModifier;
 extern StructRNA RNA_LatticePoint;
 extern StructRNA RNA_Library;
+extern StructRNA RNA_MappingTexture;
 extern StructRNA RNA_MCol;
 extern StructRNA RNA_MColLayer;
 extern StructRNA RNA_MFloatProperty;
