@@ -59,6 +59,9 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_access.h"
 
 //#include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_gl.h"
@@ -560,14 +563,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(t);
 	
-	t->event = event;
-	
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
 	if (event->type == MOUSEMOVE)
 	{
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
+		
+		t->redraw = 1;
 		
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
@@ -577,9 +580,16 @@ void transformEvent(TransInfo *t, wmEvent *event)
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
+			t->modifiers |= MOD_SNAP_GEARS;
 			t->redraw = 1;
 			break;
 			
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			t->modifiers |= MOD_CONSTRAINT_PLANE;
+			t->redraw = 1;
+			break;
+
 		case SPACEKEY:
 			if ((t->spacetype==SPACE_VIEW3D) && event->alt) {
 #if 0 // TRANSFORM_FIX_ME
@@ -597,7 +607,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			}
 			break;
 			
-			
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				/* exception for switching to dolly, or trackball, in camera view */
@@ -610,7 +619,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 					}
 				}
 				else {
-					t->flag |= T_MMB_PRESSED;
+					t->modifiers |= MOD_CONSTRAINT_SELECT;
 					if (t->con.mode & CON_APPLY) {
 						stopConstraint(t);
 					}
@@ -867,11 +876,22 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	}
 	else {
 		switch (event->type){
-		/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
-		   after releasing modifer key */
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
+			t->redraw = 1;
+			break;
+
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+			t->modifiers &= ~MOD_SNAP_GEARS;
+			/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
+			   after releasing modifer key */
+			//t->redraw = 1;
+			break;
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				t->flag &= ~T_MMB_PRESSED;
+				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
 				postSelectConstraint(t);
 				t->redraw = 1;
 			}
@@ -928,8 +948,19 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	return success;
 }
 
-void initTransform(bContext *C, TransInfo *t, int mode, int options, wmEvent *event)
+void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
+	RNA_int_set(op->ptr, "mode", t->mode);
+	RNA_int_set(op->ptr, "options", t->options);
+	RNA_float_set_array(op->ptr, "values", t->values);
+}
+
+void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
+{
+	int mode    = RNA_int_get(op->ptr, "mode");
+	int options = RNA_int_get(op->ptr, "options");
+	float values[4];
+
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 
 	t->state = TRANS_RUNNING;
@@ -1053,19 +1084,25 @@ void initTransform(bContext *C, TransInfo *t, int mode, int options, wmEvent *ev
 		initNodeTranslate(t);
 		break;
 	}
+
+
+
+	RNA_float_get_array(op->ptr, "values", values);
+	
+	/* overwrite initial values if operator supplied a non-null vector */
+	if (!QuatIsNul(values))
+	{
+		QUATCOPY(t->values, values); /* vec-4 */
+	}
+
 }
 
 void transformApply(TransInfo *t)
 {
-	if (1) // MOUSE MOVE
-	{
-		if (t->flag & T_MMB_PRESSED)
-			t->con.mode |= CON_SELECT;
-		t->redraw = 1;
-	}
 	if (t->redraw)
 	{
-		// RESET MOUSE MOVE
+		if (t->modifiers & MOD_CONSTRAINT_SELECT)
+			t->con.mode |= CON_SELECT;
 
 		selectConstraint(t);
 		if (t->transform) {
@@ -1090,14 +1127,24 @@ void transformApply(TransInfo *t)
 
 int transformEnd(bContext *C, TransInfo *t)
 {
+	int exit_code = OPERATOR_RUNNING_MODAL;
+	
 	if (t->state != TRANS_RUNNING)
 	{
 		/* handle restoring objects */
-		if(t->state == TRANS_CANCEL) {
+		if(t->state == TRANS_CANCEL)
+		{
+			exit_code = OPERATOR_CANCELLED;
+			
+			/* TRANSFORM_FIX_ME fix jesty's node stuff, shouldn't be exceptional at this level */	
 			if(t->spacetype == SPACE_NODE)
 				restoreTransNodes(t);
 			else
 				restoreTransObjects(t);	// calls recalcData()
+		}
+		else
+		{
+			exit_code = OPERATOR_FINISHED;
 		}
 		
 		/* free data */
@@ -1119,12 +1166,9 @@ int transformEnd(bContext *C, TransInfo *t)
 			else ED_undo_push(C, transform_to_undostr(t));
 		}
 		t->undostr= NULL;
-
-		return 1;
 	}
-	t->event = NULL;
 	
-	return 0;
+	return exit_code;
 }
 
 /* ************************** Manipulator init and main **************************** */
@@ -3980,6 +4024,7 @@ int Align(TransInfo *t, short mval[2])
 
 /* ---------------- Special Helpers for Various Settings ------------- */
 
+
 /* This function returns the snapping 'mode' for Animation Editors only 
  * We cannot use the standard snapping due to NLA-strip scaling complexities.
  */
@@ -4008,14 +4053,15 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 			autosnap= snla->autosnap;
 	}
 	else {
-		// FIXME: this still toggles the modes...
-		if (t->event->ctrl) 
-			autosnap= SACTSNAP_STEP;
-		else if (t->event->shift)
-			autosnap= SACTSNAP_FRAME;
-		else if (t->event->alt)
-			autosnap= SACTSNAP_MARKER;
-		else
+		// TRANSFORM_FIX_ME This needs to use proper defines for t->modifiers
+//		// FIXME: this still toggles the modes...
+//		if (ctrl) 
+//			autosnap= SACTSNAP_STEP;
+//		else if (shift)
+//			autosnap= SACTSNAP_FRAME;
+//		else if (alt)
+//			autosnap= SACTSNAP_MARKER;
+//		else
 			autosnap= SACTSNAP_OFF;
 	}
 	

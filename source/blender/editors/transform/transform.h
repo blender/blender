@@ -46,6 +46,7 @@ struct bPose;
 struct bConstraint;
 struct BezTriple;
 struct wmOperatorType;
+struct wmOperator;
 struct bContext;
 struct wmEvent;
 struct ARegion;
@@ -187,6 +188,7 @@ typedef struct MouseInput {
 typedef struct TransInfo {
     int         mode;           /* current mode                         */
     int	        flag;           /* generic flags for special behaviors  */
+    int			modifiers;		/* special modifiers, by function, not key */
 	short		state;			/* current state (running, canceled,...)*/
     int         options;        /* current context/options for transform                      */
     float       val;            /* init value for some transformations (and rotation angle)  */
@@ -239,7 +241,6 @@ typedef struct TransInfo {
 	struct ScrArea	*sa;
 	struct ARegion	*ar;
 	struct Scene	*scene;
-	struct wmEvent	*event;		/* last event, reset at the start of each transformApply and nulled at the transformEnd */
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;
 } TransInfo;
@@ -282,9 +283,6 @@ typedef struct TransInfo {
 #define T_PROP_EDIT			(1 << 11)
 #define T_PROP_CONNECTED	(1 << 12)
 
-	/* if MMB is pressed or not */
-#define	T_MMB_PRESSED		(1 << 13)
-
 #define T_V3D_ALIGN			(1 << 14)
 	/* for 2d views like uv or ipo */
 #define T_2D_EDIT			(1 << 15) 
@@ -293,6 +291,13 @@ typedef struct TransInfo {
 #define T_FREE_CUSTOMDATA	(1 << 17)
 	/* auto-ik is on */
 #define T_AUTOIK			(1 << 18)
+
+/* TransInfo->modifiers */
+#define	MOD_CONSTRAINT_SELECT	0x01
+#define	MOD_PRECISION			0x02
+#define	MOD_SNAP_GEARS			0x04
+#define	MOD_CONSTRAINT_PLANE	0x08
+
 
 /* ******************************************************************************** */
 
@@ -342,7 +347,8 @@ typedef struct TransInfo {
 
 void TFM_OT_transform(struct wmOperatorType *ot);
 
-void initTransform(struct bContext *C, struct TransInfo *t, int mode, int context, struct wmEvent *event);
+void initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event);
+void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 void transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);

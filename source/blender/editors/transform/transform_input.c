@@ -309,6 +309,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 	case RIGHTSHIFTKEY:
 		if (event->val)
 		{
+			t->modifiers |= MOD_PRECISION;
 			/* shift is modifier for higher precision transform
 			 * store the mouse position where the normal movement ended */
 			mi->precision_mval[0] = event->x - t->ar->winrct.xmin;
@@ -317,6 +318,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 		}
 		else
 		{
+			t->modifiers &= ~MOD_PRECISION;
 			mi->precision = 0;
 		}
 		redraw = 1;

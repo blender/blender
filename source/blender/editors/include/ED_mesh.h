@@ -89,6 +89,7 @@ void		load_editMesh(Scene *scene, Object *ob);
 void		remake_editMesh(Scene *scene, Object *ob);
 void		free_editMesh(struct EditMesh *em);
 
+void		recalc_editnormals(struct EditMesh *em);
 
 void		EM_init_index_arrays(struct EditMesh *em, int forVert, int forEdge, int forFace);
 void		EM_free_index_arrays(void);

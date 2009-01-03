@@ -127,8 +127,6 @@ extern EditFace *exist_face(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *
 extern void flipface(EditMesh *em, EditFace *efa); // flips for normal direction
 extern int compareface(EditFace *vl1, EditFace *vl2);
 
-void recalc_editnormals(EditMesh *em);
-
 /* flag for selection bits, *nor will be filled with normal for extrusion constraint */
 /* return value defines if such normal was set */
 extern short extrudeflag_face_indiv(EditMesh *em, short flag, float *nor);

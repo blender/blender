@@ -96,6 +96,7 @@
 #endif
 
 #include "ED_view3d.h"
+#include "ED_mesh.h"
 
 //#include "BSE_editaction_types.h"
 //#include "BDR_unwrapper.h"
@@ -437,6 +438,7 @@ void recalcData(TransInfo *t)
 				if (G.sima->flag & SI_LIVE_UNWRAP)
 					unwrap_lscm_live_re_solve();
 			} else {
+				EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh
 				/* mirror modifier clipping? */
 				if(t->state != TRANS_CANCEL) {
 					if ((G.qual & LR_CTRLKEY)==0) {
@@ -450,7 +452,7 @@ void recalcData(TransInfo *t)
 				
 				DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 				
-				recalc_editnormals();
+				recalc_editnormals(em);
 			}
 		}
 		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
@@ -573,8 +575,34 @@ void recalcData(TransInfo *t)
 		flushTransParticles(t);
 	}
 #endif
-	if (1) {
-	//else {
+	if (t->obedit) {
+		if (t->obedit->type == OB_MESH) {
+			if(t->spacetype==SPACE_IMAGE) {
+				flushTransUVs(t);
+				/* TRANSFORM_FIX_ME */
+//				if (G.sima->flag & SI_LIVE_UNWRAP)
+//					unwrap_lscm_live_re_solve();
+			} else {
+				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL) {
+					/* TRANSFORM_FIX_ME */
+//					if ((G.qual & LR_CTRLKEY)==0) {
+//						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+//						retopo_do_all();
+//					}
+					clipMirrorModifier(t, t->obedit);
+				}
+				if((t->options & CTX_NO_MIRROR) == 0 && (t->scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+					editmesh_apply_to_mirror(t);
+				
+				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals(em);
+			}
+		}
+	}
+	else {
 		for(base= FIRSTBASE; base; base= base->next) {
 			Object *ob= base->object;
 			
@@ -686,6 +714,8 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 
 	t->flag = 0;
 	
+	t->redraw = 1; /* redraw first time */
+	
 	t->propsize = 1.0f; /* TRANSFORM_FIX_ME this needs to be saved in scene or something */
 
 	/* setting PET flag */
@@ -696,8 +726,16 @@ void initTransInfo (bContext *C, TransInfo *t, wmEvent *event)
 			t->flag |= T_PROP_CONNECTED;	// yes i know, has to become define
 	}
 
-	t->imval[0] = event->x - t->ar->winrct.xmin;
-	t->imval[1] = event->y - t->ar->winrct.ymin;
+	if (event)
+	{
+		t->imval[0] = event->x - t->ar->winrct.xmin;
+		t->imval[1] = event->y - t->ar->winrct.ymin;
+	}
+	else
+	{
+		t->imval[0] = 0;
+		t->imval[1] = 0;
+	}
 	
 	t->con.imval[0] = t->imval[0];
 	t->con.imval[1] = t->imval[1];

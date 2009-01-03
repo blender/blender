@@ -25,6 +25,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -43,50 +44,71 @@
 
 static void transformops_exit(bContext *C, wmOperator *op)
 {
+	saveTransform(C, op->customdata, op);
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
 }
 
 static void transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int mode    = RNA_int_get(op->ptr, "mode");
-	int options = RNA_int_get(op->ptr, "options");
-	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
+	if (op->customdata == NULL)
+	{
+		TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
+		
+		initTransform(C, t, op, event);
 	
-	initTransform(C, t, mode, options, event);
-
-	/* store data */
-	op->customdata = t;
+		/* store data */
+		op->customdata = t;
+	}
 }
 
 static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	int exit_code;
+	
 	TransInfo *t = op->customdata;
 	
 	transformEvent(t, event);
 	
 	transformApply(t);
 	
-	if (transformEnd(C, t))
+	
+	exit_code = transformEnd(C, t);
+	
+	if (exit_code != OPERATOR_RUNNING_MODAL)
 	{
 		transformops_exit(C, op);
-		return OPERATOR_FINISHED;
 	}
-	else
-	{
-		return OPERATOR_RUNNING_MODAL;
-	}
+
+	return exit_code;
+}
+
+static int transform_cancel(bContext *C, wmOperator *op)
+{
+	TransInfo *t = op->customdata;
+	
+	t->state = TRANS_CANCEL;
+	transformEnd(C, t);
+	transformops_exit(C, op);
+	
+	return OPERATOR_FINISHED;
 }
 
 static int transform_exec(bContext *C, wmOperator *op)
 {
-	TransInfo *t = op->customdata;
-	
+	TransInfo *t;
+
+	transformops_data(C, op, NULL);
+
+	t = op->customdata;
+
+	t->options |= CTX_AUTOCONFIRM;
+
 	transformApply(t);
 	
 	transformEnd(C, t);
 
-	ED_region_tag_redraw(CTX_wm_region(C));
+	//ED_region_tag_redraw(CTX_wm_region(C));
 
 	transformops_exit(C, op);
 	
@@ -95,18 +117,13 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	float value[4];
+	float values[4];
 	
-	RNA_float_get_array(op->ptr, "value", value);
+	RNA_float_get_array(op->ptr, "values", values);
 
-	/* makes op->customdata */
 	transformops_data(C, op, event);
 
-	if(!QuatIsNul(value)) {
-		TransInfo *t = op->customdata;
-		
-		VECCOPY(t->values, value); /* SHOULD BE VEC-4 */
-		
+	if(!QuatIsNul(values)) {
 		return transform_exec(C, op);
 	}
 	else {
@@ -125,17 +142,19 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Transform";
 	ot->idname = "TFM_OT_transform";
+	ot->flag= OPTYPE_REGISTER;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
 	ot->exec   = transform_exec;
 	ot->modal  = transform_modal;
+	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
 	RNA_def_property(ot->srna, "mode", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "options", PROP_INT, PROP_NONE);
 	
-	prop = RNA_def_property(ot->srna, "value", PROP_FLOAT, PROP_VECTOR);
+	prop = RNA_def_property(ot->srna, "values", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_array_default(prop, value);
 }

@@ -906,7 +906,6 @@ static void setNearestAxis2d(TransInfo *t)
 
 static void setNearestAxis3d(TransInfo *t)
 {
-	wmEvent *event = t->event;
 	float zfac;
 	float mvec[3], axis[3], proj[3];
 	float len[3];
@@ -950,7 +949,7 @@ static void setNearestAxis3d(TransInfo *t)
 	}
 
 	if (len[0] <= len[1] && len[0] <= len[2]) {
-		if (event->shift) {
+		if (t->modifiers & MOD_CONSTRAINT_PLANE) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
 			sprintf(t->con.text, " locking %s X axis", t->spacename);
 		}
@@ -960,7 +959,7 @@ static void setNearestAxis3d(TransInfo *t)
 		}
 	}
 	else if (len[1] <= len[0] && len[1] <= len[2]) {
-		if (event->shift) {
+		if (t->modifiers & MOD_CONSTRAINT_PLANE) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
 			sprintf(t->con.text, " locking %s Y axis", t->spacename);
 		}
@@ -970,7 +969,7 @@ static void setNearestAxis3d(TransInfo *t)
 		}
 	}
 	else if (len[2] <= len[1] && len[2] <= len[0]) {
-		if (event->shift) {
+		if (t->modifiers & MOD_CONSTRAINT_PLANE) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
 			sprintf(t->con.text, " locking %s Z axis", t->spacename);
 		}

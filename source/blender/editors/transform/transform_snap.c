@@ -123,7 +123,7 @@ int BIF_snappingSupported(Object *obedit)
 void drawSnapping(TransInfo *t)
 {
 	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
-		(t->event->ctrl))
+		(t->modifiers & MOD_SNAP_GEARS))
 		{
 		
 		char col[4] = {1, 0, 1};
@@ -223,7 +223,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 void applySnapping(TransInfo *t, float *vec)
 {
 	if ((t->tsnap.status & SNAP_ON) && 
-		(t->event->ctrl))
+		(t->modifiers & MOD_SNAP_GEARS))
 	{
 		double current = PIL_check_seconds_timer();
 		
@@ -1281,13 +1281,13 @@ void snapGrid(TransInfo *t, float *val) {
 		invert = U.flag & USER_AUTOGRABGRID;
 
 	if(invert) {
-		action = (t->event->ctrl) ? NO_GEARS: BIG_GEARS;
+		action = (t->modifiers & MOD_SNAP_GEARS) ? NO_GEARS: BIG_GEARS;
 	}
 	else {
-		action = (t->event->ctrl) ? BIG_GEARS : NO_GEARS;
+		action = (t->modifiers & MOD_SNAP_GEARS) ? BIG_GEARS : NO_GEARS;
 	}
 
-	if (action == BIG_GEARS && (t->event->shift)) {
+	if (action == BIG_GEARS && (t->modifiers & MOD_PRECISION)) {
 		action = SMALL_GEARS;
 	}
 
