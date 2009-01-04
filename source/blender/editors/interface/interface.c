@@ -2035,6 +2035,12 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	if(block->flag & UI_BLOCK_NO_HILITE)
 		but->flag |= UI_NO_HILITE;
 
+	if (but->lock) {
+		if (but->lockstr) {
+			but->flag |= UI_BUT_DISABLED;
+		}
+	}
+
 	return but;
 }
 

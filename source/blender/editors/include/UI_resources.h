@@ -904,6 +904,7 @@ void	UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
 void 	UI_ThemeColorBlend(int colorid1, int colorid2, float fac);
 // same, with shade offset
 void    UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset);
+void	UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int offset, int alphaoffset);
 
 // returns one value, not scaled
 float 	UI_GetThemeValuef(int colorid);

@@ -838,12 +838,36 @@ void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
 	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
 	
-	r= r<0?0:(r>255?255:r);
-	g= g<0?0:(g>255?255:g);
-	b= b<0?0:(b>255?255:b);
+	CLAMP(r, 0, 255);
+	CLAMP(g, 0, 255);
+	CLAMP(b, 0, 255);
 	
 	glColor3ub(r, g, b);
 }
+
+// blend between to theme colors, shade it, and set it
+void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int offset, int alphaoffset)
+{
+	int r, g, b, a;
+	char *cp1, *cp2;
+	
+	cp1= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid1);
+	cp2= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid2);
+
+	if(fac<0.0) fac=0.0; else if(fac>1.0) fac= 1.0;
+	r= offset+floor((1.0-fac)*cp1[0] + fac*cp2[0]);
+	g= offset+floor((1.0-fac)*cp1[1] + fac*cp2[1]);
+	b= offset+floor((1.0-fac)*cp1[2] + fac*cp2[2]);
+	a= alphaoffset+floor((1.0-fac)*cp1[3] + fac*cp2[3]);
+	
+	CLAMP(r, 0, 255);
+	CLAMP(g, 0, 255);
+	CLAMP(b, 0, 255);
+	CLAMP(a, 0, 255);
+
+	glColor4ub(r, g, b, a);
+}
+
 
 // get individual values, not scaled
 float UI_GetThemeValuef(int colorid)

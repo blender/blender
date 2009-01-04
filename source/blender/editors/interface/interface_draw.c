@@ -436,13 +436,14 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 /* plain fake antialiased unfilled round rectangle */
 void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad, float asp)
 {
-	float color[4];
+	float color[4], alpha;
 	float raddiff;
 	int i, passes=4;
 	
 	/* get the colour and divide up the alpha */
 	glGetFloatv(GL_CURRENT_COLOR, color);
-	color[3]= 1/(float)passes;
+	alpha = color[3];
+	color[3]= alpha/(float)passes;
 	glColor4fv(color);
 	
 	/* set the 'jitter amount' */
@@ -456,6 +457,9 @@ void uiRoundRectFakeAA(float minx, float miny, float maxx, float maxy, float rad
 	}
 	
 	glDisable( GL_BLEND );
+	
+	color[3] = alpha;
+	glColor4fv(color);
 }
 
 /* (old, used in outliner) plain antialiased filled box */
@@ -706,6 +710,8 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
+	if (but->flag & UI_BUT_DISABLED) blend = -100;
+	
 	UI_icon_draw_aspect_blended(xs, ys, icon, aspect, blend);
 	
 	glDisable(GL_BLEND);
@@ -909,6 +915,7 @@ static void flat_button(float x1, float y1, float x2, float y2, float asp, int c
 /* shaded round button */
 static void round_button_shaded(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag, int rad)
 {
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	float shadefac;
 	
 	/* colour shading */
@@ -928,7 +935,7 @@ static void round_button_shaded(int type, int colorid, float asp, float x1, floa
 	gl_round_box_shade(GL_POLYGON, x1, y1, x2, y2, rad, shadefac, -shadefac);
 	
 	/* outline */
-	UI_ThemeColorBlendShade(TH_BUT_OUTLINE, TH_BACK, 0.1, -40);
+	UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -40, alpha_offs);
 	
 	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
 	/* end outline */	
@@ -937,6 +944,8 @@ static void round_button_shaded(int type, int colorid, float asp, float x1, floa
 /* base round flat button */
 static void round_button_flat(int colorid, float asp, float x1, float y1, float x2, float y2, int flag, float rad)
 {	
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
+	
 	/* colour shading */
 	if(flag & UI_SELECT) {
 		if (flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -20);
@@ -952,7 +961,7 @@ static void round_button_flat(int colorid, float asp, float x1, float y1, float 
 	gl_round_box(GL_POLYGON, x1, y1, x2, y2, rad);
 	
 	/* outline */
-	UI_ThemeColorBlendShade(TH_BUT_OUTLINE, TH_BACK, 0.1, -30);
+	UI_ThemeColorBlendShadeAlpha(TH_BUT_OUTLINE, TH_BACK, 0.1, -30, alpha_offs);
 	
 	uiRoundRectFakeAA(x1, y1, x2, y2, rad, asp);
 	/* end outline */
