@@ -170,9 +170,6 @@ typedef struct TransData {
 	void  *extra;		 /* extra data (mirrored element pointer, in editmode mesh to EditVert) (editbone for roll fixing) (...) */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
-/*#ifdef WITH_VERSE*/
-	void *verse;			/* pointer at verse data struct (VerseVert, etc.) */
-/*#endif*/
 } TransData;
 
 typedef struct MouseInput {
@@ -318,10 +315,6 @@ typedef struct TransInfo {
 #define	TD_USEQUAT			(1 << 3)
 #define TD_NOTCONNECTED		(1 << 4)
 #define TD_SINGLESIZE		(1 << 5)	/* used for scaling of MetaElem->rad */
-#ifdef WITH_VERSE
-	#define TD_VERSE_OBJECT		(1 << 6)
-	#define TD_VERSE_VERT		(1 << 7)
-#endif
 #define TD_TIMEONLY			(1 << 8)
 #define TD_NOCENTER			(1 << 9)
 #define TD_NO_EXT			(1 << 10)	/* ext abused for particle key timing */

@@ -1,9 +1,6 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.5'
 WITH_BF_STATICPYTHON = False

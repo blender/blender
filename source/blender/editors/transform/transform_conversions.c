@@ -1914,15 +1914,6 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 		td->val = &(eve->bweight);
 		td->ival = eve->bweight;
 	}
-
-#ifdef WITH_VERSE
-	if(eve->vvert) {
-		td->verse = (void*)eve->vvert;
-		td->flag |= TD_VERSE_VERT;
-	}
-	else
-		td->flag &= ~TD_VERSE_VERT;
-#endif
 }
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
@@ -3320,15 +3311,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 	{
 		td->flag |= TD_ACTIVE;
 	}
-	
-#ifdef WITH_VERSE
-	if(ob->vnode) {
-		td->verse = (void*)ob;
-		td->flag |= TD_VERSE_OBJECT;
-	}
-	else
-		td->flag &= ~TD_VERSE_OBJECT;
-#endif
 }
 
 
@@ -4215,6 +4197,11 @@ void createTransData(bContext *C, TransInfo *t)
 	else if(t->spacetype == SPACE_NODE) {
 		t->flag |= T_2D_EDIT|T_POINTS;
 		createTransNodeData(C, t);
+		if (t->data && (t->flag & T_PROP_EDIT)) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

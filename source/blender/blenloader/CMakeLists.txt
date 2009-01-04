@@ -34,10 +34,4 @@ SET(INC
   ${ZLIB_INC}
 )
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
-
 BLENDERLIB(bf_blenloader "${SRC}" "${INC}")
-#env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [70, 30] )

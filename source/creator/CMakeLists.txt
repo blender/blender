@@ -240,7 +240,6 @@ IF(UNIX)
     blender_CTR 
     bf_moto 
     bf_bmfont 
-    verse 
     bf_windowmanager
 	bf_editors
     bf_ftfont 

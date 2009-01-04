@@ -1253,10 +1253,6 @@ Object *copy_object(Object *ob)
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
-#ifdef WITH_VERSE
-	obn->vnode = NULL;
-#endif
-
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
 
 	return obn;

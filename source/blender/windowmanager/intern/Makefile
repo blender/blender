@@ -71,15 +71,6 @@ ifeq ($(INTERNATIONAL), true)
     CPPFLAGS += -DINTERNATIONAL
 endif
 
-ifeq ($(WITH_VERSE), true)
-   CPPFLAGS += -DWITH_VERSE
-   CPPFLAGS += -I$(NAN_VERSE)/include
-   # print some other debug information
-   ifeq ($(VERSE_DEBUG_PRINT), true)
-       CPPFLAGS += -DVERSE_DEBUG_PRINT
-   endif
-endif
-
 ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -I../quicktime
 	CPPFLAGS += -DWITH_QUICKTIME

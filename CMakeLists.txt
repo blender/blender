@@ -57,7 +57,6 @@ OPTION(WITH_PLAYER		"Build Player"						OFF)
 OPTION(WITH_GAMEENGINE		"Enable Game Engine"					ON)
 OPTION(WITH_BULLET		"Enable Bullet (Physics Engine)"			ON)
 OPTION(WITH_INTERNATIONAL	"Enable I18N   (International fonts and text)"		ON)
-OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
 OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
 OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
 OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
@@ -425,7 +424,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 #-----------------------------------------------------------------------------
 # Common.
-SET(VERSE_INC ${CMAKE_SOURCE_DIR}/extern/verse/dist)
 
 SET(FTGL ${CMAKE_SOURCE_DIR}/extern/bFTGL)
 SET(FTGL_INC ${FTGL}/include)

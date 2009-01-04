@@ -1,9 +1,6 @@
 LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 WITH_BF_YAFRAY = True
 
 BF_PYTHON = LIBDIR + '/python'

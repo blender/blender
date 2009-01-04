@@ -44,11 +44,6 @@ ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
 endif
 
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
-endif
-
 # streaming write function
 CPPFLAGS += -I../../writestreamglue
 CPPFLAGS += -I../../readstreamglue

@@ -68,10 +68,6 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#ifdef WITH_VERSE
-#include "BKE_verse.h"
-#endif
-
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
@@ -193,10 +189,6 @@ Mesh *add_mesh(char *name)
 	me->flag= ME_TWOSIDED;
 	me->bb= unit_boundbox();
 
-#ifdef WITH_VERSE
-	me->vnode = NULL;
-#endif
-
 	return me;
 }
 
@@ -239,10 +231,6 @@ Mesh *copy_mesh(Mesh *me)
 	
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;
-
-#ifdef WITH_VERSE
-	men->vnode = NULL;
-#endif	
 
 	return men;
 }
@@ -1025,38 +1013,14 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 
 float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 {
-#ifdef WITH_VERSE
-	if(me->vnode) {
-		struct VLayer *vlayer;
-		struct VerseVert *vvert;
-		unsigned int i, numVerts;
-		float (*cos)[3];
-
-		vlayer = find_verse_layer_type((VGeomData*)((VNode*)me->vnode)->data, VERTEX_LAYER);
-
-		vvert = vlayer->dl.lb.first;
-		numVerts = vlayer->dl.da.count;
-		cos = MEM_mallocN(sizeof(*cos)*numVerts, "verse_vertexcos");
-
-		for(i=0; i<numVerts && vvert; vvert = vvert->next, i++) {
-			VECCOPY(cos[i], vvert->co);
-		}
-
-		return cos;
-	}
-	else {
-#endif
-		int i, numVerts = me->totvert;
-		float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
-        
-		if (numVerts_r) *numVerts_r = numVerts;
-		for (i=0; i<numVerts; i++)
-			VECCOPY(cos[i], me->mvert[i].co);
-        
-		return cos;
-#ifdef WITH_VERSE
-	}
-#endif
+	int i, numVerts = me->totvert;
+	float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
+	
+	if (numVerts_r) *numVerts_r = numVerts;
+	for (i=0; i<numVerts; i++)
+		VECCOPY(cos[i], me->mvert[i].co);
+	
+	return cos;
 }
 
 float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]

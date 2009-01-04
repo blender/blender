@@ -1939,17 +1939,12 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			}
 			else if(ima->source == IMA_SRC_GENERATED) {
 				/* generated is: ibuf is allocated dynamically */
-				if(ima->type==IMA_TYPE_VERSE) {
-					/* todo */
-				}
-				else { /* always fall back to IMA_TYPE_UV_TEST */
-					/* UV testgrid or black or solid etc */
-					if(ima->gen_x==0) ima->gen_x= 256;
-					if(ima->gen_y==0) ima->gen_y= 256;
-					ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
-					image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-					ima->ok= IMA_OK_LOADED;
-				}
+				/* UV testgrid or black or solid etc */
+				if(ima->gen_x==0) ima->gen_x= 256;
+				if(ima->gen_y==0) ima->gen_y= 256;
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
+				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+				ima->ok= IMA_OK_LOADED;
 			}
 			else if(ima->source == IMA_SRC_VIEWER) {
 				if(ima->type==IMA_TYPE_R_RESULT) {

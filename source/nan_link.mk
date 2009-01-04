@@ -134,9 +134,6 @@ ifeq ($(OS),windows)
 		LDFLAGS += -mwindows -mno-cygwin -mconsole
 		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
 		DADD += -L/usr/lib/w32api -lwinmm -lwsock32
-		ifeq ($(WITH_VERSE),true)
-			DADD += -lws2_32
-		endif
     else
 	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
 		DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib

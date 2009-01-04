@@ -1,9 +1,6 @@
 LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'

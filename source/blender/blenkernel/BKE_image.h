@@ -82,7 +82,6 @@ struct RenderResult;
 #define IMA_TYPE_MULTILAYER	1
 		/* generated */
 #define IMA_TYPE_UV_TEST	2
-#define IMA_TYPE_VERSE		3
 		/* viewers */
 #define IMA_TYPE_R_RESULT   4
 #define IMA_TYPE_COMPOSITE	5

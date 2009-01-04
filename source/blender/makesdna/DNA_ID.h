@@ -200,15 +200,6 @@ typedef struct PreviewImage {
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 
-
-/*#ifdef WITH_VERSE*/
-#define ID_VS		MAKE_ID2('V', 'S')	/* fake id for VerseSession, needed for outliner */
-#define ID_VN		MAKE_ID2('V', 'N')	/* fake id for VerseNode, needed for outliner */
-#define ID_MS		MAKE_ID2('M', 'S')  /* fake id for VerseServer root entry, needed for outliner */
-#define ID_SS		MAKE_ID2('S', 'S')  /* fake id for VerseServer entry, needed for ountliner */
-/*#endif*/
-
-
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1

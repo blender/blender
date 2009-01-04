@@ -91,11 +91,6 @@ ifeq ($(WITH_FREETYPE2), true)
     CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 endif
 
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
-endif
-
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
     CPPFLAGS += $(NAN_FFMPEGCFLAGS)

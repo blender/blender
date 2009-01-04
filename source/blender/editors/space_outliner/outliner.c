@@ -3588,7 +3588,7 @@ static void outliner_draw_tree_element(Scene *scene, ARegion *ar, SpaceOops *soo
 		/* open/close icon, only when sublevels, except for scene */
 		if(te->subtree.first || (tselem->type==0 && te->idcode==ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
 			int icon_x;
-			if((tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE)) || ELEM4(te->idcode,ID_VN,ID_VS, ID_MS, ID_SS))
+			if(tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE))
 				icon_x = startx;
 			else
 				icon_x = startx+5;
@@ -3680,7 +3680,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 		tselem= TREESTORE(te);
 		
 		/* horizontal line? */
-		if((tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) || ELEM4(te->idcode,ID_VS,ID_VN,ID_MS,ID_SS))
+		if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE))
 			glRecti(startx, *starty, startx+OL_X, *starty-1);
 			
 		*starty-= OL_H;
@@ -3693,7 +3693,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 	te= lb->last;
 	if(te->parent || lb->first!=lb->last) {
 		tselem= TREESTORE(te);
-		if((tselem->type==0 && te->idcode==ID_OB) || ELEM4(te->idcode,ID_VS,ID_VN,ID_MS,ID_SS)) {
+		if(tselem->type==0 && te->idcode==ID_OB) {
 			
 			glRecti(startx, y1+OL_H, startx+1, y2);
 		}

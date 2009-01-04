@@ -92,7 +92,6 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_TYPE_IMAGE, "IMAGE", "Image", ""},
 		{IMA_TYPE_MULTILAYER, "MULTILAYER", "Multilayer", ""},
 		{IMA_TYPE_UV_TEST, "UVTEST", "UV Test", ""},
-		//{IMA_TYPE_VERSE, "VERSE", "Verse", ""},
 		{IMA_TYPE_R_RESULT, "RENDERRESULT", "Render Result", ""},
 		{IMA_TYPE_COMPOSITE, "COMPOSITING", "Compositing", ""},
 		{0, NULL, NULL, NULL}};

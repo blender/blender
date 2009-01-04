@@ -161,10 +161,6 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
 #include "BKE_idprop.h"
-#ifdef WITH_VERSE
-#include "BKE_verse.h"
-//XXX #include "BIF_verse.h"
-#endif
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
@@ -918,15 +914,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 	while(ob) {
 		if(ob->id.us>0 || wd->current) {
 			/* write LibData */
-#ifdef WITH_VERSE
-			/* pointer at vnode stored in file have to be NULL */
-			struct VNode *vnode = (VNode*)ob->vnode;
-			if(vnode) ob->vnode = NULL;
-#endif
 			writestruct(wd, ID_OB, "Object", 1, ob);
-#ifdef WITH_VERSE
-			if(vnode) ob->vnode = (void*)vnode;
-#endif
 
 			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
 			  of library blocks that implement this.*/
@@ -1204,20 +1192,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 	while(mesh) {
 		if(mesh->id.us>0 || wd->current) {
 			/* write LibData */
-#ifdef WITH_VERSE
-			struct VNode *vnode = (VNode*)mesh->vnode;
-			if(vnode) {
-				/* mesh has to be created from verse geometry node*/
-				//XXX create_meshdata_from_geom_node(mesh, vnode);
-				/* pointer at verse node can't be stored in file */
-				mesh->vnode = NULL;
-			}
-#endif
-
 			writestruct(wd, ID_ME, "Mesh", 1, mesh);
-#ifdef WITH_VERSE
-			if(vnode) mesh->vnode = (void*)vnode;
-#endif
 
 			/* direct data */
 			if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);

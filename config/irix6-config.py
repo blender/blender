@@ -2,10 +2,6 @@ import os
 
 LCGDIR = os.getcwd()+"/../lib/irix-6.5-mips"
 LIBDIR = LCGDIR
-print LCGDIR
-
-WITH_BF_VERSE = 'false'
-BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = LCGDIR+'/python'
 BF_PYTHON_VERSION = '2.5'

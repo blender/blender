@@ -70,9 +70,6 @@ typedef struct EditVert
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
 	int hash;
 	int keyindex; /* original index #, for restoring  key information */
-/*#ifdef WITH_VERSE*/
-	void *vvert;
-/*#endif*/
 
 	void *data;		/* custom vertex data */
 } EditVert;
@@ -132,9 +129,6 @@ typedef struct EditFace
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
-/*#ifdef WITH_VERSE*/
-	void *vface;
-/*#endif*/
 	void *data;		/* custom face data */
 } EditFace;
 
@@ -187,9 +181,6 @@ typedef struct EditMesh
 
 	CustomData vdata, edata, fdata;
 
-#ifdef WITH_VERSE
-	void *vnode;
-#endif
 } EditMesh;
 
 #endif

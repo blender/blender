@@ -152,10 +152,7 @@ typedef struct Global {
 #define G_DRAW_EDGEANG  (1 << 24)
 
 /* #define G_RECORDKEYS	(1 << 25)   also removed */
-/*#ifdef WITH_VERSE*/
-#define G_VERSE_CONNECTED  (1 << 26)
-#define G_DRAW_VERSE_DEBUG (1 << 27)
-/*#endif*/
+
 #define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
 #define G_PARTICLEEDIT	(1 << 30)

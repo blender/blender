@@ -83,7 +83,7 @@ struct DerivedMesh {
 	/* copy a single vert/edge/face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
-	 * elements (editmesh, verse mesh)
+	 * elements (editmesh)
 	 */
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);

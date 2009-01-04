@@ -99,10 +99,6 @@ typedef struct Mesh {
 
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
-/*ifdef WITH_VERSE*/
-	/* not written in file, pointer at geometry VerseNode */
-	void *vnode;
-/*#endif*/
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */

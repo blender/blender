@@ -1,9 +1,6 @@
 LCGDIR = '#../lib/windows'
 LIBDIR = "${LCGDIR}"
 
-WITH_BF_VERSE = False
-BF_VERSE_INCLUDE = "#extern/verse/dist"
-
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'

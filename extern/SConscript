@@ -14,9 +14,6 @@ if env['WITH_BF_BULLET']:
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])
 
-if env['WITH_BF_VERSE']:
-    SConscript(['verse/dist/SConstruct'])
-
 if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
     SConscript(['x264/SConscript'])
     SConscript(['libmp3lame/SConscript'])

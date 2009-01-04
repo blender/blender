@@ -13,10 +13,6 @@ incs += ' ' + env['BF_ZLIB_INC']
 
 defs = []
 
-if env['WITH_BF_VERSE']:
-	defs.append('WITH_VERSE')
-	incs += ' ' + env['BF_VERSE_INCLUDE']
-	
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
 

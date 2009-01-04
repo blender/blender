@@ -15,10 +15,6 @@ if env['WITH_BF_SDL']:
 if env['WITH_BF_INTERNATIONAL']:
     defs = 'WITH_FREETYPE2'
 
-if env['WITH_BF_VERSE']:
-	defs += ' WITH_VERSE'
-	incs += ' ' + env['BF_VERSE_INCLUDE']
-
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'

@@ -56,8 +56,6 @@ def validate_arguments(args, bc):
 			'WITH_BF_BINRELOC',
 			'LCGDIR',
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
-			'WITH_BF_VERSE', 'BF_VERSE_INCLUDE',
-			'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
 			'WITHOUT_BF_INSTALL',
 			'WITH_BF_OPENMP',
@@ -146,17 +144,7 @@ def SetupSpawn( env ):
 def read_opts(cfg, args):
 	localopts = Variables.Variables(cfg, args)
 	localopts.AddVariables(
-		('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
-		('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
-		('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
-		(BoolVariable('WITH_BF_VERSE', 'Use VERSE if true', False)),
-		('BF_VERSE_INCLUDE', 'verse include dir', '/usr/include'),
 		('LCGDIR', 'location of cvs lib dir'),
-		('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
-		('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
-		('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
-		('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
-
 		(BoolVariable('WITH_BF_PYTHON', 'Compile with python', True)),
 		('BF_PYTHON', 'base path for python', ''),
 		('BF_PYTHON_VERSION', 'Python version to use', ''),

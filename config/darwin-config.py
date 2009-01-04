@@ -46,12 +46,6 @@ if USE_SDK==True:
 #BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 #BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
 
-WITH_BF_VERSE = False
-BF_VERSE = "#extern/verse/dist"
-BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
-BF_VERSE_INCLUDE = BF_VERSE
-BF_VERSE_LIBS = "libverse"
-
 # python.org libs install in /library we want to use that for 2.5 
 #
 # if you want py2.5 on leopard without installing

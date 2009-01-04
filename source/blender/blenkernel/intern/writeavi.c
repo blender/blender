@@ -171,7 +171,7 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	printf("Created avi: %s\n", name);
 }
 
-void append_avi(int frame, int *pixels, int rectx, int recty)
+void append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty)
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;

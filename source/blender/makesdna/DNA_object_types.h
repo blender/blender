@@ -225,10 +225,6 @@ typedef struct Object {
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
 	int pad2;
 
-/*#ifdef WITH_VERSE*/
-	void *vnode;			/* pointer at object VerseNode */
-/*#endif*/
-
 	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
 

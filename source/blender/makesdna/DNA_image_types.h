@@ -95,10 +95,6 @@ typedef struct Image {
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
-	
-/*#ifdef WITH_VERSE*/
-	void *vnode;		/* pointer at verse bitmap node */
-/*#endif*/
 } Image;
 
 

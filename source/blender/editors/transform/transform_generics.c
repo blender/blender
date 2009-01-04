@@ -68,10 +68,6 @@
 //#include "BSE_editipo.h"
 //#include "BSE_editipo_types.h"
 
-#ifdef WITH_VERSE
-#include "BIF_verse.h"
-#endif
-
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -90,10 +86,6 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
-
-#ifdef WITH_VERSE
-#include "BKE_verse.h"
-#endif
 
 #include "ED_view3d.h"
 #include "ED_mesh.h"
@@ -272,9 +264,6 @@ void recalcData(TransInfo *t)
 {
 	Scene *scene = t->scene;
 	Base *base;
-#ifdef WITH_VERSE
-	struct TransData *td;
-#endif
 	
 #if 0 // TRANSFORM_FIX_ME
 	if (t->spacetype == SPACE_ACTION) {
@@ -639,17 +628,6 @@ void recalcData(TransInfo *t)
 		} 
 	}
 
-#ifdef WITH_VERSE
-	for (td = t->data; td < t->data + t->total; td++) {
-		if(td->flag & TD_VERSE_VERT) {
-			if(td->verse)
-				send_versevert_pos((VerseVert*)td->verse);
-		}
-		else if(td->flag & TD_VERSE_OBJECT)
-			if(td->verse) b_verse_send_transformation((Object*)td->verse);
-	}
-#endif
-	
 	/* update shaded drawmode while transform */
 	if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
 		reshadeall_displist(t->scene);
@@ -800,24 +778,6 @@ void postTrans (TransInfo *t)
 	TransData *td;
 
 	G.moving = 0; // Set moving flag off (display as usual)
-#ifdef WITH_VERSE
-
-	for (td = t->data; td < t->data + t->total; td++) {
-		if(td->flag & TD_VERSE_VERT) {
-			if(td->verse) send_versevert_pos((VerseVert*)td->verse);
-		}
-		else if(td->flag & TD_VERSE_OBJECT) {
-			if(td->verse) {
-				struct VNode *vnode;
-				vnode = (VNode*)((Object*)td->verse)->vnode;
-				((VObjectData*)vnode->data)->flag |= POS_SEND_READY;
-				((VObjectData*)vnode->data)->flag |= ROT_SEND_READY;
-				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
-				b_verse_send_transformation((Object*)td->verse);
-			}
-		}
-	}
-#endif
 
 	stopConstraint(t);
 	
@@ -927,25 +887,6 @@ void restoreTransObjects(TransInfo *t)
 	
 	for (td = t->data; td < t->data + t->total; td++) {
 		restoreElement(td);
-#ifdef WITH_VERSE
-		/* position of vertexes and object transformation matrix is sent
-		 * extra, becuase blender uses synchronous sending of vertexes
-		 * position as well object trans. matrix and it isn't possible to
-		 * send it in recalcData sometimes */
-		if(td->flag & TD_VERSE_VERT) {
-			if(td->verse) {
-				((VerseVert*)td->verse)->flag |= VERT_POS_OBSOLETE;
-			}
-		}
-		else if(td->flag & TD_VERSE_OBJECT)
-			if(td->verse) {
-				struct VNode *vnode;
-				vnode = (VNode*)((Object*)td->verse)->vnode;
-				((VObjectData*)vnode->data)->flag |= POS_SEND_READY;
-				((VObjectData*)vnode->data)->flag |= ROT_SEND_READY;
-				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
-			}
-#endif
 	}
 	
 	Mat3One(t->mat);

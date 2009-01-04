@@ -200,9 +200,6 @@ void WM_exit(bContext *C)
 	
 	free_ttfont(); /* bke_font.h */
 	
-#ifdef WITH_VERSE
-	end_all_verse_sessions();
-#endif
 	free_openrecent();
 	
 	BKE_freecubetable();

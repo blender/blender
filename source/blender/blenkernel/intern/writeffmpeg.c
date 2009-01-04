@@ -558,7 +558,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
-	set_ffmpeg_properties(c, "audio");
+	set_ffmpeg_properties(rd, c, "audio");
 
 	if (avcodec_open(c, codec) < 0) {
 		//XXX error("Couldn't initialize audio codec");
