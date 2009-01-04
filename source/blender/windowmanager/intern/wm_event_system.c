@@ -153,6 +153,7 @@ void wm_event_do_notifiers(bContext *C)
 		}
 	}
 	
+	/* the notifiers are sent without context, to keep it clean */
 	while( (note=wm_notifier_next(wm)) ) {
 		wmWindow *win;
 		
@@ -171,6 +172,7 @@ void wm_event_do_notifiers(bContext *C)
 			}
 			
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				ED_area_do_listen(sa, note);
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
 					ED_region_do_listen(ar, note);
 				}
@@ -180,7 +182,16 @@ void wm_event_do_notifiers(bContext *C)
 		}
 		
 		MEM_freeN(note);
-	}	
+	}
+	
+	/* cached: editor refresh callbacks now, they get context */
+	for(win= wm->windows.first; win; win= win->next) {
+		ScrArea *sa;
+		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+			if(sa->do_refresh)
+				ED_area_do_refresh(C, sa);
+		}
+	}
 }
 
 /* mark area-regions to redraw if overlapped with rect */

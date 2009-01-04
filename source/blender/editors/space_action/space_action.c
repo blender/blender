@@ -329,6 +329,25 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/* editor level listener */
+static void action_listener(ScrArea *sa, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+	}
+}
+
+static void action_refresh(const bContext *C, ScrArea *sa)
+{
+	printf("Heya, Action refresh needed!\n");
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_action(void)
 {
@@ -343,6 +362,8 @@ void ED_spacetype_action(void)
 	st->duplicate= action_duplicate;
 	st->operatortypes= action_operatortypes;
 	st->keymap= action_keymap;
+	st->listener= action_listener;
+	st->refresh= action_refresh;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");

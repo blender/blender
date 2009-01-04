@@ -106,7 +106,8 @@ typedef struct ScrArea {
 	short winx, winy;				/* size */
 	
 	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
-	int pad;
+	short pad;
+	short do_refresh;				/* private, for spacetype refresh callback */
 	short cursor, flag;
 
 	ScriptLink scriptlink;
@@ -134,7 +135,7 @@ typedef struct ARegion {
 	
 	float fsize;				/* current split size in float */
 	
-	short do_draw;				/* cached notifier events */
+	short do_draw;				/* private, cached notifier events */
 	short pad;
 	int pad1;
 	

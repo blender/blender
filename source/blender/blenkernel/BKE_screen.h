@@ -63,7 +63,10 @@ typedef struct SpaceType {
 	/* init is to cope with file load, screen (size) changes, check handlers */
 	void		(*init)(struct wmWindowManager *, struct ScrArea *);
 	/* Listeners can react to bContext changes */
-	void		(*listener)(struct ARegion *, struct wmNotifier *);
+	void		(*listener)(struct ScrArea *, struct wmNotifier *);
+	
+	/* refresh context, called after filereads, ED_area_tag_refresh() */
+	void		(*refresh)(const struct bContext *, struct ScrArea *);
 	
 	/* after a spacedata copy, an init should result in exact same situation */
 	struct SpaceLink	*(*duplicate)(struct SpaceLink *);

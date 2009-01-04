@@ -104,6 +104,7 @@ void ED_region_pixelspace(ARegion *ar)
 	wmLoadIdentity();
 }
 
+/* only exported for WM */
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
@@ -121,7 +122,27 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 	}
 }
 
+/* only exported for WM */
+void ED_area_do_listen(ScrArea *sa, wmNotifier *note)
+{
+	/* no generic notes? */
+	if(sa->type && sa->type->listener) {
+		sa->type->listener(sa, note);
+	}
+}
+
+/* only exported for WM */
+void ED_area_do_refresh(bContext *C, ScrArea *sa)
+{
+	/* no generic notes? */
+	if(sa->type && sa->type->refresh) {
+		sa->type->refresh(C, sa);
+	}
+	sa->do_refresh= 0;
+}
+
 /* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
+/* only exported for WM */
 void ED_area_overdraw_flush(bContext *C)
 {
 	ScrArea *sa;
@@ -146,6 +167,7 @@ void ED_area_overdraw_flush(bContext *C)
 	}	
 }
 
+/* only exported for WM */
 void ED_area_overdraw(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
@@ -174,6 +196,7 @@ void ED_area_overdraw(bContext *C)
 	
 }
 
+/* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
 	wmWindow *win= CTX_wm_window(C);
@@ -216,7 +239,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 /* **********************************
    maybe silly, but let's try for now
-   to keep do_draw tags protected
+   to keep these tags protected
    ********************************** */
 
 void ED_region_tag_redraw(ARegion *ar)
@@ -234,6 +257,11 @@ void ED_area_tag_redraw(ScrArea *sa)
 			ar->do_draw= 1;
 }
 
+void ED_area_tag_refresh(ScrArea *sa)
+{
+	if(sa)
+		sa->do_refresh= 1;
+}
 
 /* *************************************************************** */
 
