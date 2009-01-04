@@ -169,8 +169,8 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, int src, int dst)
 		dest_slot->data.buf = NULL;
 		dest_slot->len = source_slot->len;
 		if(dest_slot->len){
-			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, opdefines[dest_slot->slottype]->totslot * dest_slot->len);
-			memcpy(dest_slot->data.buf, source_slot->data.buf, opdefines[dest_slot->slottype]->totslot * dest_slot->len);
+			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
+			memcpy(dest_slot->data.buf, source_slot->data.buf, BMOP_OPSLOT_TYPEINFO[dest_slot->slottype] * dest_slot->len);
 		}
 	} else {
 		dest_slot->data = source_slot->data;
@@ -309,7 +309,7 @@ static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){
 	
 	op->slots[slotcode].len = len;
 	if(len)
-		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, opdefines[op->type]->slottypes[slotcode] * len);
+		op->slots[slotcode].data.buf = BLI_memarena_alloc(op->arena, BMOP_OPSLOT_TYPEINFO[opdefines[op->type]->slottypes[slotcode]] * len);
 	return op->slots[slotcode].data.buf;
 }
 

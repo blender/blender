@@ -71,11 +71,11 @@ struct BMLoop;
 /*BMHeader->flag*/
 #define BM_SELECT	(1<<0)
 
-#define BM_SEAM		(1<<16)
-#define BM_FGON		(1<<17)
-#define BM_HIDDEN	(1<<18)
-#define BM_SHARP	(1<<19)
-#define BM_SMOOTH	(1<<20)
+#define BM_SEAM		(1<<1)
+#define BM_FGON		(1<<2)
+#define BM_HIDDEN	(1<<3)
+#define BM_SHARP	(1<<4)
+#define BM_SMOOTH	(1<<5)
 
 typedef struct BMHeader {
 	struct BMHeader *next, *prev;

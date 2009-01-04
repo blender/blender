@@ -57,20 +57,21 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 
 		j = 0;
 		l = f->loopbase;
-		do{
+		do {
 			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
 			texface->uv[j][0] = mloopuv->uv[0];
 			texface->uv[j][1] = mloopuv->uv[1];
 			j++;
 			l = ((BMLoop*)(l->head.next));
-		}while(l!=f->loopbase);
+		} while(l!=f->loopbase);
 
 	}
+
 	for(i=0; i < numCol; i++){
 		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
 		j = 0;
 		l = f->loopbase;
-		do{
+		do {
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
@@ -78,7 +79,7 @@ static void loops_to_editmesh_corners(BMesh *bm, CustomData *facedata, void *fac
 			mcol[j].a = mloopcol->a;
 			j++;
 			l = ((BMLoop*)(l->head.next));
-		}while(l!=f->loopbase);
+		} while(l!=f->loopbase);
 	}
 }
 
@@ -87,13 +88,13 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	EditVert *eve = NULL;
 
 	v->head.eflag1 = index; /*abuse!*/
-	eve = addvertlist(v->co,NULL);
+	eve = addvertlist(v->co, NULL);
 	eve->keyindex = index;
 	evlist[index]= eve;
 	
 	/*copy flags*/
-	eve->f = v->head.flag & 255;
 	if(v->head.flag & BM_HIDDEN) eve->h = 1;
+	if (v->head.flag & BM_SELECT) eve->f |= SELECT;
 
 	eve->bweight = v->bweight;
 	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->data, &eve->data);
@@ -111,12 +112,12 @@ static void bmeshedge_to_editedge_internal(BMesh *bm, EditMesh *em, BMEdge *e, E
 	eed->bweight = e->bweight;
 	
 	//copy relavent flags
-	eed->f = e->head.flag & 65535;
+	if (e->head.flag & BM_SELECT) eed->f |= SELECT;
 	if (e->head.flag & BM_SEAM) eed->seam = 1;
 	if (e->head.flag & BM_SHARP) eed->sharp = 1;
 	if (e->head.flag & BM_HIDDEN) eed->h = 1;
 	if (e->head.flag & BM_FGON) eed->h |= EM_FGON;
-	
+
 	CustomData_em_copy_data(&bm->edata, &em->edata, e->data, &eed->data);
 }
 
@@ -143,7 +144,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	eve1= evlist[f->loopbase->v->head.eflag1];
 	eve2= evlist[((BMLoop*)(f->loopbase->head.next))->v->head.eflag1];
 	eve3= evlist[((BMLoop*)(f->loopbase->head.next->next))->v->head.eflag1];
-	if (len >= 4) {
+	if (len == 4) {
 		eve4= evlist[ ((BMLoop*)(f->loopbase->head.prev))->v->head.eflag1];
 	}
 	else {
@@ -167,7 +168,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	efa->n[2] = f->no[2];
 	
 	//copy relavent original flags
-	efa->f = f->head.flag & 255;
+	if (f->head.flag & BM_SELECT) efa->f |= SELECT;
 	if (f->head.flag & BM_HIDDEN) efa->h = 1;
 	if (f->head.flag & BM_SMOOTH) efa->flag |= ME_SMOOTH;
 

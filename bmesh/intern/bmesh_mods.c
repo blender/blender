@@ -134,7 +134,6 @@ BMFace *BM_Join_Faces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, int calcnorm
 */
 
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf) {
-	/*search radial disk for face that contains e1 and e2*/
 	BMIter iter, iter2;
 	BMVert *v;
 	BMLoop *nl;

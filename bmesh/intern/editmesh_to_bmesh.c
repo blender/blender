@@ -91,8 +91,7 @@ static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
 		v = BM_Make_Vert(bm, eve->co, NULL);
 		
 		/*transfer flags*/
-		v->head.flag = eve->f;
-		v->head.flag |= eve->h ? BM_HIDDEN : 0;
+		v->head.flag = eve->h ? BM_HIDDEN : 0;
 		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);
 		v->bweight = eve->bweight;
 
@@ -115,10 +114,10 @@ static void editedge_to_BMEdge_internal(BMesh *bm, EditMesh *em, BMEdge *e, Edit
 	e->crease = eed->crease;
 	e->bweight = eed->bweight;
 	
-	e->head.flag = eed->f;
+	e->head.flag = eed->f & SELECT ? BM_SELECT : 0;
 	e->head.flag |= eed->seam ? BM_SEAM : 0;
-	e->head.flag |= eed->h & EM_FGON ? BM_FGON : 0;
 	e->head.flag |= eed->h & 1 ? BM_HIDDEN : 0;
+	e->head.flag |= eed->h & EM_FGON ? BM_FGON : 0;
 	e->head.flag |= eed->sharp ? BM_SHARP : 0;
 
 	CustomData_bmesh_copy_data(&em->edata, &bm->edata, eed->data, &e->data);
@@ -183,8 +182,8 @@ static BMFace *editface_to_BMFace(BMesh *bm, EditMesh *em, EditFace *efa, int nu
 		v2 = efa->v2->tmp.p;
 
 		f = BM_Make_Ngon(bm, v1, v2, edar, len, 0);
+		f->head.flag = 0;
 		f->mat_nr = efa->mat_nr;
-		f->head.flag = efa->f;
 		if(efa->f & SELECT) BM_Select_Face(bm, f, 1);
 		if(efa->h) f->head.flag |= BM_HIDDEN;
 		
