@@ -519,7 +519,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 }
 
 
-void append_qt(int frame, int *pixels, int rectx, int recty) {
+void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty) {
 	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty);
 }
 
