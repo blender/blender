@@ -58,6 +58,8 @@
 #include "interface_intern.h"
 
 #define UI_RB_ALPHA 16
+#define UI_DISABLED_ALPHA_OFFS	-160
+
 static int roundboxtype= 15;
 
 void uiSetRoundBox(int type)
@@ -485,13 +487,14 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 
 void uiTriangleFakeAA(float x1, float y1, float x2, float y2, float x3, float y3, float asp)
 {
-	float color[4];
+	float color[4], alpha;
 	float jitter;
 	int i, passes=4;
 	
 	/* get the colour and divide up the alpha */
 	glGetFloatv(GL_CURRENT_COLOR, color);
-	color[3]= 1.0/(float)passes;
+	alpha = color[3];
+	color[3]= alpha/(float)passes;
 	glColor4fv(color);
 	
 	/* set the 'jitter amount' */
@@ -511,6 +514,9 @@ void uiTriangleFakeAA(float x1, float y1, float x2, float y2, float x3, float y3
 	}
 	
 	glDisable( GL_BLEND );
+	
+	color[3] = alpha;
+	glColor4fv(color);
 }
 
 /* for headers and floating panels */
@@ -1116,6 +1122,7 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 {
 	float rad, maxrad;
 	int align= (flag & UI_BUT_ALIGN);
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* rounded corners */
 	if (ELEM4(type, MENU, ROW, ICONROW, ICONTEXTROW)) maxrad = 5.0;
@@ -1176,9 +1183,9 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 		case ICONTEXTROW:			
 			/* iconrow double arrow  */
 			if(flag & UI_SELECT) {
-				UI_ThemeColorShade(colorid, -80);
+				UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
 			} else {
-				UI_ThemeColorShade(colorid, -45);
+				UI_ThemeColorShadeAlpha(colorid, -45, alpha_offs);
 			}
 				ui_iconrow_arrows(x1, y1, x2, y2);
 			/* end iconrow double arrow */
@@ -1186,9 +1193,9 @@ static void ui_roundshaded_button(int type, int colorid, float asp, float x1, fl
 		case MENU:
 			/* menu double arrow  */
 			if(flag & UI_SELECT) {
-				UI_ThemeColorShade(colorid, -110);
+				UI_ThemeColorShadeAlpha(colorid, -110, alpha_offs);
 			} else {
-				UI_ThemeColorShade(colorid, -80);
+				UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
 			}
 			ui_menu_arrows(x1, y1, x2, y2, asp);
 			/* end menu double arrow */
@@ -1200,6 +1207,7 @@ static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, floa
 {
 	float rad, maxrad=10.0;
 	int align= (flag & UI_BUT_ALIGN);
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* rounded corners */
 	rad= (y2-y1)/2.0;
@@ -1261,11 +1269,11 @@ static void ui_roundshaded_flat(int type, int colorid, float asp, float x1, floa
 		case NUM:
 			/* side arrows */
 			if(flag & UI_SELECT) {
-				if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -70);
-				else UI_ThemeColorShade(colorid, -70);
+				if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, -70, alpha_offs);
+				else UI_ThemeColorShadeAlpha(colorid, -70, alpha_offs);
 			} else {
-				if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -40);
-				else UI_ThemeColorShade(colorid, -20);
+				if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, -40, alpha_offs);
+				else UI_ThemeColorShadeAlpha(colorid, -20, alpha_offs);
 			}
 			
 			ui_num_arrows(x1, y1, x2, y2, asp);
@@ -1303,6 +1311,7 @@ static void ui_draw_roundshaded(int type, int colorid, float aspect, float x1, f
 static void ui_default_button(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	int align= (flag & UI_BUT_ALIGN);
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 
 	if(align) {
 	
@@ -1455,7 +1464,7 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		/* END DARKENED AREA */
 	
 		/* ICONROW DOUBLE-ARROW  */
-		M_DARK;
+		UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
 		ui_iconrow_arrows(x1, y1, x2, y2);
 		/* END ICONROW DOUBLE-ARROW */
 		break;
@@ -1470,7 +1479,7 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 		/* END DARKENED AREA */
 	
 		/* MENU DOUBLE-ARROW  */
-		M_DARK;
+		UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
 		ui_menu_arrows(x1, y1, x2, y2, asp);
 		/* MENU DOUBLE-ARROW */
 		break;
@@ -1481,6 +1490,7 @@ static void ui_default_button(int type, int colorid, float asp, float x1, float 
 static void ui_default_flat(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	int align= (flag & UI_BUT_ALIGN);
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 
 	if(align) {
 	
@@ -1627,11 +1637,11 @@ static void ui_default_flat(int type, int colorid, float asp, float x1, float y1
 		/* SIDE ARROWS */
 		/* left */
 		if(flag & UI_SELECT) {
-			if(flag & UI_ACTIVE) M_DARK;
-			else M_DARK;
+			if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
+			else UI_ThemeColorShadeAlpha(colorid, -80, alpha_offs);
 		} else {
-			if(flag & UI_ACTIVE) M_GREY;
-			else M_LGREY;
+			if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, -45, alpha_offs);
+			else UI_ThemeColorShadeAlpha(colorid, -20, alpha_offs);
 		}
 		
 		ui_num_arrows(x1, y1, x2, y2, asp);
@@ -1767,6 +1777,7 @@ static void ui_draw_outlineX(float x1, float y1, float x2, float y2, float asp1)
 
 static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
  	/* paper */
 	if(flag & UI_SELECT) {
 		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, -40);
@@ -1809,27 +1820,27 @@ static void ui_draw_oldskool(int type, int colorid, float asp, float x1, float y
 	switch(type) {
 	case NUM:
 	case NUMABS:
-		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -60);
-		else UI_ThemeColorShade(colorid, -30);
+		if(flag & UI_SELECT) UI_ThemeColorShadeAlpha(colorid, -60, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -30, alpha_offs);
 		ui_num_arrows(x1, y1, x2, y2, asp);
 		break;
 
 	case ICONROW: 
 	case ICONTEXTROW: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
+		if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, 0, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -10, alpha_offs);
 		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
 
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -50, alpha_offs);
 		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
+		if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, 0, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -10, alpha_offs);
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
 
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -50, alpha_offs);
 		ui_menu_arrows(x1, y1, x2, y2, asp);
 		break;
 	}
@@ -1840,6 +1851,7 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 {
 	float rad, maxrad=7.0;
 	int align= (flag & UI_BUT_ALIGN), curshade;
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* rounded corners */
 	rad= (y2-y1)/2.0;
@@ -1912,19 +1924,19 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 		break;
 	case NUM:
 	case NUMABS:
-		UI_ThemeColorShade(colorid, curshade-60);
+		UI_ThemeColorShadeAlpha(colorid, curshade-60, alpha_offs);
 		ui_num_arrows(x1, y1, x2, y2, asp);
 		break;
 
 	case ICONROW: 
 	case ICONTEXTROW: 
-		UI_ThemeColorShade(colorid, curshade-60);
+		UI_ThemeColorShadeAlpha(colorid, curshade-60, alpha_offs);
 		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
 	case BLOCK: 
-		UI_ThemeColorShade(colorid, curshade-60);
+		UI_ThemeColorShadeAlpha(colorid, curshade-60, alpha_offs);
 		ui_menu_arrows(x1, y1, x2, y2, asp);
 		break;
 	}
@@ -1939,6 +1951,8 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 /* super minimal button as used in logic menu */
 static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
+	
 	/* too much space between buttons */
 	
 	if (type==TEX || type==IDPOIN) {
@@ -2022,28 +2036,28 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 	switch(type) {
 	case NUM:
 	case NUMABS:
-		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -60);
-		else UI_ThemeColorShade(colorid, -30);
+		if(flag & UI_SELECT) UI_ThemeColorShadeAlpha(colorid, -60, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -30, alpha_offs);
 		ui_num_arrows(x1, y1, x2, y2, asp);
 		break;
 
 	case ICONROW: 
 	case ICONTEXTROW: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
+		if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, 0, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -10, alpha_offs);
 		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
 
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -50, alpha_offs);
 		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
 	case BLOCK: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
+		if(flag & UI_ACTIVE) UI_ThemeColorShadeAlpha(colorid, 0, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -10, alpha_offs);
 		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
 
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -50, alpha_offs);
 		ui_menu_arrows(x1, y1, x2, y2, asp);
 		break;
 	}
@@ -2228,6 +2242,7 @@ static void ui_draw_text_icon(uiBut *but)
 	char *cpoin;
 	short t, pos, ch;
 	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
+	int alpha_offs= (but->flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
@@ -2339,16 +2354,16 @@ static void ui_draw_text_icon(uiBut *but)
 			if(tog3);	// color already set
 			else if(but->dt==UI_EMBOSSP) {
 				if((but->flag & (UI_SELECT|UI_ACTIVE)) && but->type!=LABEL) {	// LABEL = title in pulldowns
-					UI_ThemeColor(TH_MENU_TEXT_HI);
+					UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, 0, alpha_offs);
 				} else {
-					UI_ThemeColor(TH_MENU_TEXT);
+					UI_ThemeColorShadeAlpha(TH_MENU_TEXT, 0, alpha_offs);
 				}
 			}
 			else {
 				if(but->flag & UI_SELECT) {		
-					UI_ThemeColor(TH_BUT_TEXT_HI);
+					UI_ThemeColorShadeAlpha(TH_BUT_TEXT_HI, 0, alpha_offs);
 				} else {
-					UI_ThemeColor(TH_BUT_TEXT);
+					UI_ThemeColorShadeAlpha(TH_BUT_TEXT, 0, alpha_offs);
 				}
 			}
 
@@ -3127,6 +3142,7 @@ static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1
 static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	int background= 1;
+	int alpha_offs= (flag & UI_BUT_DISABLED)?UI_DISABLED_ALPHA_OFFS:0;
 
 	/* paper */
 	if(flag & UI_SELECT) {
@@ -3148,8 +3164,8 @@ static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, 
 	switch(type) {
 	case NUM:
 	case NUMABS:
-		if(flag & UI_SELECT) UI_ThemeColorShade(colorid, -120);
-		else UI_ThemeColorShade(colorid, -90);
+		if(flag & UI_SELECT) UI_ThemeColorShadeAlpha(colorid, -120, alpha_offs);
+		else UI_ThemeColorShadeAlpha(colorid, -90, alpha_offs);
 		ui_num_arrows(x1, y1, x2, y2, asp);
 		break;
 
@@ -3157,28 +3173,20 @@ static void ui_draw_table(int type, int colorid, float asp, float x1, float y1, 
 		ui_checkmark_box(colorid, x1, y1, x2, y2);
 		
 		if(flag & UI_SELECT) {
-			UI_ThemeColorShade(colorid, -140);
+			UI_ThemeColorShadeAlpha(colorid, -140, alpha_offs);
 			ui_checkmark(x1, y1, x2, y2);
 		}
 		break;
 		
 	case ICONROW: 
 	case ICONTEXTROW: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
-		glRectf(x2-9, y1+asp, x2-asp, y2-asp);
-
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -120, alpha_offs);
 		ui_iconrow_arrows(x1, y1, x2, y2);
 		break;
 		
 	case MENU: 
 	case BLOCK: 
-		if(flag & UI_ACTIVE) UI_ThemeColorShade(colorid, 0);
-		else UI_ThemeColorShade(colorid, -10);
-		glRectf(x2-17, y1+asp, x2-asp, y2-asp);
-
-		UI_ThemeColorShade(colorid, -50);
+		UI_ThemeColorShadeAlpha(colorid, -120, alpha_offs);
 		ui_menu_arrows(x1, y1, x2, y2, asp);
 		break;
 	}

@@ -115,7 +115,7 @@ struct ReportList;
 #define UI_BUT_ALIGN_LEFT	(1<<13)
 #define UI_BUT_ALIGN_RIGHT	(1<<14)
 #define UI_BUT_ALIGN_DOWN	(1<<15)
-
+#define UI_BUT_DISABLED		(1<<16)
 
 /* Button types, bits stored in 1 value... and a short even!
 - bits 0-4:  bitnr (0-31)

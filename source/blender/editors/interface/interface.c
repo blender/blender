@@ -2118,6 +2118,12 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 	but->rnapoin= *ptr;
 	but->rnaprop= prop;
 	but->rnaindex= index;
+	
+	if (!RNA_property_editable(&but->rnapoin, prop)) {
+		but->flag |= UI_BUT_DISABLED;
+		but->lock = 1;
+		but->lockstr = "";
+	}
 
 	if(freestr)
 		MEM_freeN(str);
