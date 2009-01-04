@@ -49,6 +49,8 @@ void OBJECT_OT_clear_location(wmOperatorType *ot);
 void OBJECT_OT_clear_rotation(wmOperatorType *ot);
 void OBJECT_OT_clear_scale(wmOperatorType *ot);
 void OBJECT_OT_clear_origin(wmOperatorType *ot);
+void OBJECT_OT_clear_restrictview(wmOperatorType *ot);
+void OBJECT_OT_set_restrictview(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

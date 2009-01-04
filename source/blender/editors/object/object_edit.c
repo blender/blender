@@ -1003,7 +1003,7 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
 	
-	BIF_undo_push("Clear Parent");	
+	ED_undo_push(C,"Clear Parent");	
 	
 	return OPERATOR_FINISHED;
 }
@@ -1056,7 +1056,7 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
 
-	BIF_undo_push("Clear Track");	
+	ED_undo_push(C,"Clear Track");	
 	
 	return OPERATOR_FINISHED;
 }
@@ -1316,7 +1316,7 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	BIF_undo_push("Clear Location");
+	ED_undo_push(C,"Clear Location");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1368,7 +1368,7 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	BIF_undo_push("Clear Rotation");
+	ED_undo_push(C,"Clear Rotation");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
@@ -1425,7 +1425,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	BIF_undo_push("Clear Scale");
+	ED_undo_push(C,"Clear Scale");
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
 	
@@ -1481,7 +1481,7 @@ static int object_clear_origin_exec(bContext *C, wmOperator *op)
 
 	if(armature_clear==0) /* in this case flush was done */
 		ED_anim_dag_flush_update(C);	
-	BIF_undo_push("Clear origin");
+	ED_undo_push(C,"Clear origin");
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, CTX_data_scene(C));
 	
@@ -1496,9 +1496,115 @@ void OBJECT_OT_clear_origin(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_clear_origin";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_origin_exec;
 	ot->poll= ED_operator_object_active;
+}
+
+/* ********* clear/set restrict view *********/
+static int object_clear_restrictview_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	Base *base;
+	int changed = 0;
+	
+	/* XXX need a context loop to handle such cases */
+	for(base = FIRSTBASE; base; base=base->next){
+		if((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_VIEW) {
+			base->flag |= SELECT;
+			base->object->flag = base->flag;
+			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
+			changed = 1;
+		}
+	}
+	if (changed) {
+		ED_undo_push(C,"Unhide Objects");
+		DAG_scene_sort(scene);
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_clear_restrictview(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Clear restrict view";
+	ot->idname= "OBJECT_OT_clear_restrictview";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_restrictview_exec;
+	ot->poll= ED_operator_view3d_active;
+}
+
+static EnumPropertyItem prop_set_restrictview_types[] = {
+	{0, "SELECTED", "Selected", ""},
+	{1, "UNSELECTED", "Unselected ", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_set_restrictview_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	short changed = 0, changed_act = 0;
+	
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
+			if (base->flag & SELECT){
+				base->flag &= ~SELECT;
+				base->object->flag = base->flag;
+				base->object->restrictflag |= OB_RESTRICT_VIEW;
+				changed = 1;
+				if (base==BASACT) {
+					BASACT= NULL;
+					changed_act = 1;
+				}
+			}
+		}
+		else if (RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")){
+			if (!(base->flag & SELECT)){
+				base->object->restrictflag |= OB_RESTRICT_VIEW;
+				changed = 1;
+			}
+		}	
+	}
+	CTX_DATA_END;
+
+	if (changed) {
+		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")) ED_undo_push(C,"Hide Selected Objects");
+		else if(RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")) ED_undo_push(C,"Hide Unselected Objects");
+		DAG_scene_sort(scene);
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		
+		if (changed_act) { /* these spaces depend on the active object */
+			WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_set_restrictview(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Set restrict view";
+	ot->idname= "OBJECT_OT_set_restrictview";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_set_restrictview_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_set_restrictview_types);
+	
 }
 /* ******************** **************** */
 

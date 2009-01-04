@@ -77,6 +77,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_clear_rotation);
 	WM_operatortype_append(OBJECT_OT_clear_scale);
 	WM_operatortype_append(OBJECT_OT_clear_origin);
+	WM_operatortype_append(OBJECT_OT_clear_restrictview);
+	WM_operatortype_append(OBJECT_OT_set_restrictview);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -104,6 +106,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_origin", OKEY, KM_PRESS, KM_ALT, 0);
 	
+	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_restrictview", HKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
 //	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }
 
