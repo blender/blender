@@ -12,14 +12,14 @@ BMOpDefine def_subdop = {
 
 BMOpDefine def_edit2bmesh = {
 	{BMOP_OPSLOT_PNT},
-	NULL,
+	edit2bmesh_exec,
 	BMOP_TO_EDITMESH_TOTSLOT,
 	0
 };
 
 BMOpDefine def_bmesh2edit = {
 	{BMOP_OPSLOT_PNT},
-	NULL,
+	bmesh2edit_exec,
 	BMOP_FROM_EDITMESH_TOTSLOT,
 	0
 };

@@ -62,37 +62,36 @@ struct BMLoop;
 */
 
 /*BMHeader->type*/
-#define BM_VERT 					1
-#define BM_EDGE 					2
-#define BM_FACE 					4
-#define BM_LOOP 					8
-#define BM_ALL					BM_VERT | BM_EDGE | BM_FACE | BM_LOOP
+#define BM_VERT 	1
+#define BM_EDGE 	2
+#define BM_FACE 	4
+#define BM_LOOP 	8
+#define BM_ALL		BM_VERT | BM_EDGE | BM_FACE | BM_LOOP
 
 /*BMHeader->flag*/
 #define BM_SELECT	(1<<0)
-#define BM_SEAM		(1<<1)
-#define BM_FGON		(1<<2)
-#define BM_HIDDEN	(1<<3)
-#define BM_SHARP	(1<<4)
-#define BM_SMOOTH	(1<<5)
 
-typedef struct BMHeader
-{
+#define BM_SEAM		(1<<16)
+#define BM_FGON		(1<<17)
+#define BM_HIDDEN	(1<<18)
+#define BM_SHARP	(1<<19)
+#define BM_SMOOTH	(1<<20)
+
+typedef struct BMHeader {
 	struct BMHeader *next, *prev;
 	int 		EID;								/*Consider removing this/making it ifdeffed for debugging*/
-	short 		flag, type;								
+	int 		flag, type;
 	int			eflag1, eflag2;						/*Flags used by eulers. Try and get rid of/minimize some of these*/
 	struct BMFlagLayer *flags;						/*Dynamically allocated block of flag layers for operators to use*/
 } BMHeader;
 
-typedef struct BMFlagLayer{
+typedef struct BMFlagLayer {
 	int f1;
 	short mask, pflag;
-}BMFlagLayer;
+} BMFlagLayer;
 
-#define BM_OVERLAP		(1<<0)			/*used by bmesh_verts_in_face*/
-#define BM_EDGEVERT 	(1<<1) 			/*used by bmesh_make_ngon*/
-
+#define BM_OVERLAP		(1<<14)			/*used by bmesh_verts_in_face*/
+#define BM_EDGEVERT 	(1<<15) 		/*used by bmesh_make_ngon*/
 
 /*
  * BMNode
@@ -103,14 +102,13 @@ typedef struct BMFlagLayer{
  *
 */
 
-typedef struct BMNode{
+typedef struct BMNode {
 	struct BMNode *next, *prev;
 	void *data;
-}BMNode;
+} BMNode;
 
 
-typedef struct BMesh
-{
+typedef struct BMesh {
 	ListBase verts, edges, polys;
 	struct BLI_mempool *vpool;
 	struct BLI_mempool *epool;
@@ -128,10 +126,9 @@ typedef struct BMesh
 	struct BLI_mempool *flagpool;					/*memory pool for dynamically allocated flag layers*/
 	int stackdepth;									/*current depth of operator stack*/
 	int totflags, walkers;							/*total number of tool flag layers*/
-}BMesh;
+} BMesh;
 
-typedef struct BMVert
-{	
+typedef struct BMVert {	
 	struct BMHeader head;
 	float co[3];									
 	float no[3];									
@@ -141,35 +138,32 @@ typedef struct BMVert
 	float bweight;												/*please, someone just get rid of me...*/
 } BMVert;
 
-typedef struct BMEdge
-{
+typedef struct BMEdge {
 	struct BMHeader head;
 	struct BMVert *v1, *v2;
 	struct BMNode d1, d2;
 	struct BMLoop *loop;
 	void *data;
 	float crease, bweight;										/*make these custom data.... no really, please....*/
-}BMEdge;
+} BMEdge;
 
-typedef struct BMLoop 
-{	
+typedef struct BMLoop  {
 	struct BMHeader head;
 	struct BMNode radial;
 	struct BMVert *v;
 	struct BMEdge *e;
 	struct BMFace *f;	
 	void *data;
-}BMLoop;
+} BMLoop;
 
-typedef struct BMFace
-{
+typedef struct BMFace {
 	struct BMHeader head;
 	struct BMLoop *loopbase;
 	unsigned int len;
 	void *data;
 	float no[3];
 	unsigned short mat_nr;									/*custom data again, and get rid of the unsigned short nonsense...*/
-}BMFace;
+} BMFace;
 
 /*stub */
 void bmesh_error(void);

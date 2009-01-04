@@ -89,7 +89,6 @@ BMVert *bmesh_addvertlist(BMesh *bm, BMVert *example){
 	v->head.next = v->head.prev = NULL;
 	v->head.EID = bm->nextv;
 	v->head.type = BM_VERT;
-	v->head.flag = BM_NEW;
 	v->co[0] = v->co[1] = v->co[2] = 0.0f;
 	v->no[0] = v->no[1] = v->no[2] = 0.0f;
 	v->edge = NULL;
@@ -116,7 +115,6 @@ BMEdge *bmesh_addedgelist(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example){
 	e = BLI_mempool_alloc(bm->epool);
 	e->head.next = e->head.prev = NULL;
 	e->head.EID = bm->nexte;
-	e->head.flag = BM_NEW;
 	e->head.type = BM_EDGE;
 	e->v1 = v1;
 	e->v2 = v2;
@@ -144,7 +142,6 @@ BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BMLoop *ex
 	BMLoop *l=NULL;
 	l = BLI_mempool_alloc(bm->lpool);
 	l->head.next = l->head.prev = NULL;
-	l->head.flag = BM_NEW;
 	l->head.EID = bm->nextl;
 	l->head.type = BM_LOOP;
 	l->radial.next = l->radial.prev = NULL;
@@ -168,7 +165,6 @@ BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example){
 	BMFace *f = NULL;
 	f = BLI_mempool_alloc(bm->ppool);
 	f->head.next = f->head.prev = NULL;
-	f->head.flag = BM_NEW;
 	f->head.EID = bm->nextp;
 	f->head.type = BM_FACE;
 	f->loopbase = NULL;

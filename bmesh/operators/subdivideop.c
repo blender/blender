@@ -10,6 +10,8 @@
 /*
 note: this is a pattern-based edge subdivider.
 it tries to match a pattern to edge selections on faces.
+it was a fairly easy exercise to test the bmesh api; it
+doesn't support multicuts, so it won't actually be used.
 
 the patterns are defined as followed:
 

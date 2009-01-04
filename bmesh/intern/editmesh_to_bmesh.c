@@ -91,6 +91,8 @@ static BMVert *editvert_to_BMVert(BMesh *bm, EditMesh *em, EditVert *eve)
 		v = BM_Make_Vert(bm, eve->co, NULL);
 		
 		/*transfer flags*/
+		v->head.flag = eve->f;
+		v->head.flag |= eve->h ? BM_HIDDEN : 0;
 		if(eve->f & SELECT) BM_Select_Vert(bm, v, 1);
 		v->bweight = eve->bweight;
 
@@ -327,8 +329,7 @@ static void tag_wire_edges(EditMesh *em){
  *
 */
 
-BMesh *editmesh_to_bmesh(EditMesh *em) {
-	BMesh *bm;
+BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 	BMVert *v;
 	EditVert *eve;
 	EditEdge *eed;
@@ -337,9 +338,6 @@ BMesh *editmesh_to_bmesh(EditMesh *em) {
 
 	/*make sure to update FGon flags*/
 	EM_fgon_flags();
-
-	/*allocate a bmesh*/
-	bm = BM_Make_Mesh(allocsize);
 
 	/*copy custom data layout*/
 	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -388,5 +386,27 @@ BMesh *editmesh_to_bmesh(EditMesh *em) {
 		if(eed->f1) editedge_to_BMEdge(bm, em, eed);
 	}
 	//BM_end_edit(bm, BM_CALC_NORM);
+	return bm;
+}
+
+void edit2bmesh_exec(BMesh *bmesh, BMOperator *op)
+{
+	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh);
+}
+
+BMesh *editmesh_to_bmesh(EditMesh *em)
+{
+	BMOperator conv;
+	BMesh *bm;
+	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
+
+	/*allocate a bmesh*/
+	bm = BM_Make_Mesh(allocsize);
+
+	BMO_Init_Op(&conv, BMOP_FROM_EDITMESH);
+	BMO_Set_Pnt(&conv, BMOP_FROM_EDITMESH_EM, em);
+	BMO_Exec_Op(bm, &conv);
+	BMO_Finish_Op(bm, &conv);
+
 	return bm;
 }

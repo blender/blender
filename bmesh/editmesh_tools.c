@@ -2423,13 +2423,16 @@ static EditVert *subdivideedgenum(EditEdge *edge, int curpoint, int totpoint, fl
 
 void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 {
-	BMesh *bm = editmesh_to_bmesh(G.editMesh);
-	BMOperator subdop;
+	BMesh *bm;
+	BMOperator subdop, conv;
 	EditMesh *em = G.editMesh;
 	BMEdge **list, *bed;
 	BMIter iter;
 	int tot;
 	
+	/*convert from editmesh*/
+	bm = editmesh_to_bmesh(G.editMesh);
+
 	BMO_Init_Op(&subdop, BMOP_ESUBDIVIDE);
 	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
 		if (BM_Is_Selected(bm, bed)) tot++;

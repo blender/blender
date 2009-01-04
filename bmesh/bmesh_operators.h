@@ -110,13 +110,17 @@ enum {
 
 /*editmesh->bmesh op*/
 #define BMOP_FROM_EDITMESH		3
-#define BMOP_FROM_EDITMESH_EM	0
-#define BMOP_FROM_EDITMESH_TOTSLOT 1
+enum {
+	BMOP_FROM_EDITMESH_EM,
+	BMOP_FROM_EDITMESH_TOTSLOT,
+};
 
-/*bmesh->editmesh op*/
 #define BMOP_TO_EDITMESH		4
-#define BMOP_TO_EDITMESH_EM		0
-#define BMOP_TO_EDITMESH_TOTSLOT 1
+/*bmesh->editmesh op*/
+enum {
+	BMOP_TO_EDITMESH_EMOUT,
+	BMOP_TO_EDITMESH_TOTSLOT,
+};
 
 /*edge subdivide op*/
 #define BMOP_ESUBDIVIDE			5

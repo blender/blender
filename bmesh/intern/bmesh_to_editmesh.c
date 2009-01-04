@@ -90,8 +90,11 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	eve = addvertlist(v->co,NULL);
 	eve->keyindex = index;
 	evlist[index]= eve;
-	if(BM_Is_Selected(bm, v)) eve->f |= SELECT;
+	
+	/*copy flags*/
+	eve->f = v->head.flag & 255;
 	if(v->head.flag & BM_HIDDEN) eve->h = 1;
+
 	eve->bweight = v->bweight;
 	CustomData_em_copy_data(&bm->vdata, &em->vdata, v->data, &eve->data);
 	/*copy normal*/
@@ -174,7 +177,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 	return efa;
 }
 
-EditMesh *bmesh_to_editmesh(BMesh *bm) 
+EditMesh *bmesh_to_editmesh_intern(BMesh *bm) 
 {
 	BMVert *v;
 	BMEdge *e;
@@ -192,7 +195,7 @@ EditMesh *bmesh_to_editmesh(BMesh *bm)
 	em = G.editMesh;
 
 	if (em == NULL) return NULL; //what?
-	em->act_face = NULL ;
+	em->act_face = NULL;
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -218,5 +221,23 @@ EditMesh *bmesh_to_editmesh(BMesh *bm)
 			
 	MEM_freeN(evlist);
 	countall();
+	return em;
+}
+
+void bmesh2edit_exec(BMesh *bmesh, BMOperator *op)
+{
+	BMO_Set_Pnt(op, BMOP_TO_EDITMESH_EMOUT, bmesh_to_editmesh_intern(bmesh));
+}
+
+EditMesh *bmesh_to_editmesh(BMesh *bmesh)
+{
+	BMOperator conv;
+	EditMesh *em;
+
+	BMO_Init_Op(&conv, BMOP_TO_EDITMESH);
+	BMO_Exec_Op(bmesh, &conv);
+	em = conv.slots[BMOP_TO_EDITMESH_EMOUT].data.p;
+	BMO_Finish_Op(bmesh, &conv);
+
 	return em;
 }
