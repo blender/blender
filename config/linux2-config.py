@@ -163,7 +163,8 @@ BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'
 BF_REDCODE_LIB = ''
-BF_REDCODE_INC = '${BF_REDCODE}/include'
+# BF_REDCODE_INC = '${BF_REDCODE}/include'
+BF_REDCODE_INC = '${BF_REDCODE}/../' #C files request "libredcode/format.h" which is in "#extern/libredcode/format.h", stupid but compiles for now.
 BF_REDCODE_LIBPATH='${BF_REDCODE}/lib'
 
 # Mesa Libs should go here if your using them as well....
