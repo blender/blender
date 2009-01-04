@@ -671,8 +671,13 @@ void UI_view2d_curRect_reset (View2D *v2d)
 void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 {
 	/* don't do anything if either value is 0 */
-	if (ELEM3(0, v2d, width, height))
+	width= abs(width);
+	height= abs(height);
+	
+	if (ELEM3(0, v2d, width, height)) {
+		printf("Error: View2D totRect set exiting: %p %d %d \n", v2d, width, height); // XXX temp debug string
 		return;
+	}
 	
 	/* handle width - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {

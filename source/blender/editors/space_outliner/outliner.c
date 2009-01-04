@@ -263,7 +263,7 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 		TreeStoreElem *tselem= TREESTORE(te);
 		if((tselem->flag & TSE_CLOSED)==0) 
 			outliner_height(soops, &te->subtree, h);
-		(*h)++;
+		(*h) += OL_H;
 		te= te->next;
 	}
 }
@@ -273,13 +273,20 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 	TreeElement *te= lb->first;
 	while(te) {
 		TreeStoreElem *tselem= TREESTORE(te);
+		
+		// XXX fixme... te->xend is not set yet
+/*
 		if(tselem->flag & TSE_CLOSED) {
 			if (te->xend > *w)
 				*w = te->xend;
 		}
+*/
 		outliner_width(soops, &te->subtree, w);
 		te= te->next;
 	}
+	
+	// XXX for now, use constant width for this level (until te->xend is set)
+	*w += 100;
 }
 
 static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int startx)
@@ -287,6 +294,7 @@ static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int start
 	TreeElement *te= lb->first;
 	while(te) {
 		TreeStoreElem *tselem= TREESTORE(te);
+			// XXX fixme... (currently, we're using a fixed length of 100)!
 		/*if(te->xend) {
 			if(te->xend > *w)
 				*w = te->xend;
@@ -1198,7 +1206,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	Object *ob;
 	TreeElement *te=NULL, *ten;
 	TreeStoreElem *tselem;
-	int show_opened= soops->treestore==NULL; /* on first view, we open scenes */
+	int show_opened= (soops->treestore==NULL); /* on first view, we open scenes */
 
 	if(soops->tree.first && (soops->storeflag & SO_TREESTORE_REDRAW))
 	   return;
@@ -1207,13 +1215,13 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	outliner_storage_cleanup(soops);
 	
 	/* clear ob id.new flags */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) ob->id.newid= NULL;
+	for(ob= mainvar->object.first; ob; ob= ob->id.next) ob->id.newid= NULL;
 	
 	/* options */
 	if(soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
 		
-		for(lib= G.main->library.first; lib; lib= lib->id.next) {
+		for(lib= mainvar->library.first; lib; lib= lib->id.next) {
 			ten= outliner_add_element(soops, &soops->tree, lib, NULL, 0, 0);
 			lib->id.newid= (ID *)ten;
 		}
@@ -1238,7 +1246,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	}
 	else if(soops->outlinevis == SO_ALL_SCENES) {
 		Scene *sce;
-		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+		for(sce= mainvar->scene.first; sce; sce= sce->id.next) {
 			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem= TREESTORE(te);
 			if(sce==scene && show_opened) 
@@ -4114,20 +4122,20 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 
 static void outliner_draw_rnacols(ARegion *ar, SpaceOops *soops, int sizex)
 {
-	int xstart= MAX2(OL_RNA_COLX, sizex+OL_RNA_COL_SPACEX);
+	View2D *v2d= &ar->v2d;
 	
 	UI_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
-	/* view */
-	fdrawline(xstart,
-		ar->v2d.cur.ymax,
-		xstart,
-		ar->v2d.cur.ymin);
+	/* draw column separator lines */
+	fdrawline(sizex,
+		v2d->cur.ymax,
+		sizex,
+		v2d->cur.ymin);
 
-	fdrawline(xstart+OL_RNA_COL_SIZEX,
-		ar->v2d.cur.ymax,
-		xstart+OL_RNA_COL_SIZEX,
-		ar->v2d.cur.ymin);
+	fdrawline(sizex+OL_RNA_COL_SIZEX,
+		v2d->cur.ymax,
+		sizex+OL_RNA_COL_SIZEX,
+		v2d->cur.ymin);
 }
 
 static uiBut *outliner_draw_rnabut(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int index, int x1, int y1, int x2, int y2)
@@ -4209,7 +4217,6 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 	TreeStoreElem *tselem;
 	PointerRNA *ptr;
 	PropertyRNA *prop;
-	int xstart= MAX2(OL_RNA_COLX, sizex+OL_RNA_COL_SPACEX);
 	
 	uiBlockSetEmboss(block, UI_EMBOSST);
 
@@ -4221,13 +4228,13 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				prop= te->directdata;
 
 				if(!(RNA_property_type(ptr, prop) == PROP_POINTER && (tselem->flag & TSE_CLOSED)==0))
-					outliner_draw_rnabut(block, ptr, prop, -1, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+					outliner_draw_rnabut(block, ptr, prop, -1, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 			else if(tselem->type == TSE_RNA_ARRAY_ELEM) {
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 
-				outliner_draw_rnabut(block, ptr, prop, te->index, xstart, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
+				outliner_draw_rnabut(block, ptr, prop, te->index, sizex, te->ys, OL_RNA_COL_SIZEX, OL_H-1);
 			}
 		}
 		
@@ -4280,40 +4287,40 @@ void draw_outliner(const bContext *C)
 	Main *mainvar= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= &ar->v2d;
 	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
 	uiBlock *block;
-	int sizey= 0, sizex= 0;
+	int sizey= 0, sizex= 0, sizex_rna= 0;
 	
 	outliner_build_tree(mainvar, scene, soops); // always 
-
-	outliner_height(soops, &soops->tree, &sizey);
-	outliner_width(soops, &soops->tree, &sizex);
 	
-	/* we init all tot rect vars, only really needed on window size change though */
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.xmax= (float)(ar->v2d.mask.xmax-ar->v2d.mask.xmin);
-	if(soops->flag & SO_HIDE_RESTRICTCOLS) {
-		if(ar->v2d.tot.xmax <= sizex)
-			ar->v2d.tot.xmax= (float)2*sizex;
+	/* get extents of data */
+	outliner_height(soops, &soops->tree, &sizey);
+
+	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
+		/* RNA has two columns:
+		 * 	- column 1 is (max_width + OL_RNA_COL_SPACEX) or
+		 *				 (OL_RNA_COL_X), whichever is wider...
+		 *	- column 2 is fixed at OL_RNA_COL_SIZEX
+		 *
+		 *  (*) XXX max width for now is a fixed factor of OL_X*(max_indention+100)
+		 */
+		 
+		/* get actual width of column 1 */
+		outliner_rna_width(soops, &soops->tree, &sizex_rna, 0);
+		sizex_rna= MAX2(OL_RNA_COLX, sizex_rna+OL_RNA_COL_SPACEX);
+		
+		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
+		sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
-	else {
-		if(ar->v2d.tot.xmax-OL_TOGW <= sizex)
-			ar->v2d.tot.xmax= (float)2*sizex;
-	}
-	ar->v2d.tot.ymax= 0.0f;
-	ar->v2d.tot.ymin= (float)-sizey*OL_H;
+	else
+		outliner_width(soops, &soops->tree, &sizex);
 	
 	/* update size of tot-rect (extents of data/viewable area) */
-	UI_view2d_totRect_set(&ar->v2d, sizex, sizey);
-
-	// align on top window if cur bigger than tot
-	if(ar->v2d.cur.ymax-ar->v2d.cur.ymin > sizey*OL_H) {
-		ar->v2d.cur.ymax= 0.0f;
-		ar->v2d.cur.ymin= (float)-(ar->v2d.mask.ymax-ar->v2d.mask.ymin);
-	}
+	UI_view2d_totRect_set(v2d, sizex, sizey);
 
 	/* set matrix for 2d-view controls */
-	UI_view2d_view_ortho(C, &ar->v2d);
+	UI_view2d_view_ortho(C, v2d);
 
 	/* draw outliner stuff (background and hierachy lines) */
 	outliner_back(ar, soops);
@@ -4325,9 +4332,8 @@ void draw_outliner(const bContext *C)
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
 		/* draw rna buttons */
-		outliner_rna_width(soops, &soops->tree, &sizex, 0);
-		outliner_draw_rnacols(ar, soops, sizex);
-		outliner_draw_rnabuts(block, scene, ar, soops, sizex, &soops->tree);
+		outliner_draw_rnacols(ar, soops, sizex_rna);
+		outliner_draw_rnabuts(block, scene, ar, soops, sizex_rna, &soops->tree);
 	}
 	else if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
 		/* draw restriction columns */
