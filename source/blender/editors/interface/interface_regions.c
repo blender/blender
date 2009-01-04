@@ -59,11 +59,13 @@
 #include "interface_intern.h"
 
 #define MENU_BUTTON_HEIGHT	20
+#define MENU_SEPR_HEIGHT	6
 #define B_NOP              	-1
 #define MENU_SHADOW_LEFT	-1
 #define MENU_SHADOW_BOTTOM	-10
 #define MENU_SHADOW_RIGHT	10
 #define MENU_SHADOW_TOP		1
+#define MENU_ROUNDED_TOP	5
 
 /*********************** Menu Data Parsing ********************* */
 
@@ -670,15 +672,16 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
+		block->direction= UI_TOP;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
-	 * additionally we add some padding for the menu shadow */
+	 * additionally we add some padding for the menu shadow or rounded menus */
 	ar->winrct.xmin= block->minx + MENU_SHADOW_LEFT;
 	ar->winrct.xmax= block->maxx + MENU_SHADOW_RIGHT;
 	ar->winrct.ymin= block->miny + MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax= block->maxy + MENU_SHADOW_TOP;
+	ar->winrct.ymax= block->maxy + MENU_SHADOW_TOP + MENU_ROUNDED_TOP;
 
 	block->minx -= ar->winrct.xmin;
 	block->maxx -= ar->winrct.xmin;
@@ -1429,10 +1432,12 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiMenuBlockHandle *handle, void *arg
 			bt->flag= UI_TEXT_LEFT;
 		}
 		uiSetCurFont(block, UI_HELV);
+		
+		//uiDefBut(block, SEPR, 0, "", startx, (short)(starty+height)-MENU_SEPR_HEIGHT, width, MENU_SEPR_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 	}
 
 	x1= startx + width*((int)a/rows);
-	y1= starty + height - MENU_BUTTON_HEIGHT;
+	y1= starty + height - MENU_BUTTON_HEIGHT; // - MENU_SEPR_HEIGHT;
 		
 	for(a=0; a<md->nitems; a++) {
 		char *name= md->items[a].str;

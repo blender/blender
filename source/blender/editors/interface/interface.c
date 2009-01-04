@@ -511,7 +511,7 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	if(block->flag & UI_BLOCK_LOOP)
-		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag);
+		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag, block->direction);
 	else if(block->panel)
 		ui_draw_panel(CTX_wm_region(C), block);
 

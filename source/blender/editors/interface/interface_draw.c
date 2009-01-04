@@ -2090,9 +2090,9 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
 	glVertex2f(maxx, miny);
-	glVertex2f(maxx, maxy-shadsize);
+	glVertex2f(maxx, maxy-0.3*shadsize);
 	glColor4ub(0, 0, 0, 0);
-	glVertex2f(maxx+shadsize, maxy-shadsize-shadsize);
+	glVertex2f(maxx+shadsize, maxy-0.75*shadsize);
 	glVertex2f(maxx+shadsize, miny);
 	glEnd();
 	
@@ -2109,11 +2109,11 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 	/* bottom quad */		
 	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
-	glVertex2f(minx+shadsize, miny);
+	glVertex2f(minx+0.3*shadsize, miny);
 	glVertex2f(maxx, miny);
 	glColor4ub(0, 0, 0, 0);
 	glVertex2f(maxx, miny-shadsize);
-	glVertex2f(minx+shadsize+shadsize, miny-shadsize);
+	glVertex2f(minx+0.5*shadsize, miny-shadsize);
 	glEnd();
 	
 	glDisable(GL_BLEND);
@@ -2123,33 +2123,48 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy)
 {
 	/* accumulated outline boxes to make shade not linear, is more pleasant */
-	ui_shadowbox(minx, miny, maxx, maxy, 6.0, (30*alpha)>>8);
-	ui_shadowbox(minx, miny, maxx, maxy, 4.0, (70*alpha)>>8);
-	ui_shadowbox(minx, miny, maxx, maxy, 2.0, (100*alpha)>>8);
+	ui_shadowbox(minx, miny, maxx, maxy, 11.0, (20*alpha)>>8);
+	ui_shadowbox(minx, miny, maxx, maxy, 7.0, (40*alpha)>>8);
+	ui_shadowbox(minx, miny, maxx, maxy, 5.0, (80*alpha)>>8);
 	
 }
 
 // background for pulldowns, pullups, and other drawing temporal menus....
 // has to be made themable still (now only color)
 
-void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
+void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction)
 {
 	char col[4];
+	int rounded = ELEM(UI_GetThemeValue(TH_BUT_DRAWTYPE), TH_ROUNDED, TH_ROUNDSHADED);
+	
 	UI_GetThemeColor4ubv(TH_MENU_BACK, col);
 	
+	if (rounded) {
+		if (direction == UI_DOWN) {
+			uiSetRoundBox(12);
+			miny -= 4.0;
+		} else if (direction == UI_TOP) {
+			uiSetRoundBox(3);
+			maxy += 4.0;
+		} else {
+			uiSetRoundBox(0);
+		}
+	}
+		
 	if( (flag & UI_BLOCK_NOSHADOW)==0) {
 		/* accumulated outline boxes to make shade not linear, is more pleasant */
-		ui_shadowbox(minx, miny, maxx, maxy, 6.0, (30*col[3])>>8);
-		ui_shadowbox(minx, miny, maxx, maxy, 4.0, (70*col[3])>>8);
-		ui_shadowbox(minx, miny, maxx, maxy, 2.0, (100*col[3])>>8);
-		
-		glEnable(GL_BLEND);
-		glColor4ubv((GLubyte *)col);
-		glRectf(minx-1, miny, minx, maxy);	// 1 pixel on left, to distinguish sublevel menus
+		ui_shadowbox(minx, miny, maxx, maxy, 11.0, (20*col[3])>>8);
+		ui_shadowbox(minx, miny, maxx, maxy, 7.0, (40*col[3])>>8);
+		ui_shadowbox(minx, miny, maxx, maxy, 5.0, (80*col[3])>>8);
 	}
 	glEnable(GL_BLEND);
 	glColor4ubv((GLubyte *)col);
-	glRectf(minx, miny, maxx, maxy);
+	
+	if (rounded) {
+		gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, 4.0);
+	} else {
+		glRectf(minx, miny, maxx, maxy);
+	}
 	glDisable(GL_BLEND);
 }
 
@@ -3082,6 +3097,14 @@ static void ui_draw_but_CURVE(uiBut *but)
 	fdrawbox(but->x1, but->y1, but->x2, but->y2);
 }
 
+static void ui_draw_sepr(uiBut *but)
+{
+	float y = but->y1 + (but->y2 - but->y1)*0.5;
+	
+	UI_ThemeColorBlend(TH_MENU_TEXT, TH_MENU_BACK, 0.85);
+	fdrawline(but->x1, y, but->x2, y);
+}
+
 static void ui_draw_roundbox(uiBut *but)
 {
 	glEnable(GL_BLEND);
@@ -3242,7 +3265,7 @@ void ui_draw_but(uiBut *but)
 		break;
 		
 	case SEPR:
-		//  only background
+		ui_draw_sepr(but);
 		break;
 		
 	case COL:
