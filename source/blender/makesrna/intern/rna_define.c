@@ -567,7 +567,6 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 		if (rna_validate_identifier(identifier, error) == 0) {
 			fprintf(stderr, "RNA_def_property: property identifier \"%s\" - %s\n", identifier, error);
 			DefRNA.error= 1;
-			return NULL;
 		}
 		
 		ds= DefRNA.structs.last;

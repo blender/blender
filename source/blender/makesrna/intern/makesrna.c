@@ -902,6 +902,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_armature.c", RNA_def_armature},
 	{"rna_brush.c", RNA_def_brush},
 	{"rna_camera.c", RNA_def_camera},
+	{"rna_cloth.c", RNA_def_cloth},
 	{"rna_color.c", RNA_def_color},
 	{"rna_constraint.c", RNA_def_constraint},
 	{"rna_controller.c", RNA_def_controller},

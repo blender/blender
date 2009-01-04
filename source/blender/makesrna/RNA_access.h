@@ -55,6 +55,8 @@ extern StructRNA RNA_Camera;
 extern StructRNA RNA_CastModifier;
 extern StructRNA RNA_CharInfo;
 extern StructRNA RNA_ClothModifier;
+extern StructRNA RNA_ClothCollisionSettings;
+extern StructRNA RNA_ClothSettings;
 extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionModifier;
 extern StructRNA RNA_CollisionSensor;

@@ -30,6 +30,7 @@ SET(SRC
      rna_armature.c
      rna_brush.c
      rna_camera.c
+     rna_cloth.c
      rna_color.c
      rna_constraint.c
      rna_controller.c

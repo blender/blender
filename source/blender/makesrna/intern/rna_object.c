@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_material.h"
 
 static void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
@@ -47,23 +48,136 @@ static void rna_Object_update(bContext *C, PointerRNA *ptr)
 
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
-	Object *ob= ptr->id.data;
+	Object *ob= (Object*)ptr->id.data;
 
 	return BLI_findindex(&ob->defbase, ptr->data);
 }
 
 static void *rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
-	Object *ob= ptr->id.data;
+	Object *ob= (Object*)ptr->id.data;
 	return BLI_findlink(&ob->defbase, ob->actdef);
 }
 
-static void rna_Object_active_material_range(PointerRNA *ptr, int *min, int *max)
+void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bDeformGroup *dg;
+
+	dg= BLI_findlink(&ob->defbase, index-1);
+
+	if(dg) BLI_strncpy(value, dg->name, sizeof(dg->name));
+	else BLI_strncpy(value, "", sizeof(dg->name));
+}
+
+int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bDeformGroup *dg;
+
+	dg= BLI_findlink(&ob->defbase, index-1);
+	return (dg)? strlen(dg->name): 0;
+}
+
+void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short *index)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bDeformGroup *dg;
+	int a;
+
+	for(a=1, dg=ob->defbase.first; dg; dg=dg->next, a++) {
+		if(strcmp(dg->name, value) == 0) {
+			*index= a;
+			return;
+		}
+	}
+
+	*index= 0;
+}
+
+void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bDeformGroup *dg;
+
+	for(dg=ob->defbase.first; dg; dg=dg->next) {
+		if(strcmp(dg->name, value) == 0) {
+			BLI_strncpy(result, value, maxlen);
+			return;
+		}
+	}
+
+	BLI_strncpy(result, "", maxlen);
+}
+
+void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Mesh *me;
+	CustomDataLayer *layer;
+	int a;
+
+	if(ob->type == OB_MESH && ob->data) {
+		me= (Mesh*)ob->data;
+
+		for(a=0; a<me->fdata.totlayer; a++) {
+			layer= &me->fdata.layers[a];
+
+			if(layer->type == CD_MTFACE && strcmp(layer->name, value) == 0) {
+				BLI_strncpy(result, value, maxlen);
+				return;
+			}
+		}
+	}
+
+	BLI_strncpy(result, "", maxlen);
+}
+
+void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Mesh *me;
+	CustomDataLayer *layer;
+	int a;
+
+	if(ob->type == OB_MESH && ob->data) {
+		me= (Mesh*)ob->data;
+
+		for(a=0; a<me->fdata.totlayer; a++) {
+			layer= &me->fdata.layers[a];
+
+			if(layer->type == CD_MCOL && strcmp(layer->name, value) == 0) {
+				BLI_strncpy(result, value, maxlen);
+				return;
+			}
+		}
+	}
+
+	BLI_strncpy(result, "", maxlen);
+}
+
+static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Object *ob= (Object*)ptr->id.data;
 	*min= 0;
 	*max= ob->totcol-1;
 }
+
+static void *rna_Object_active_material_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	return give_current_material(ob, ob->actcol);
+}
+
+#if 0
+static void rna_Object_active_material_set(PointerRNA *ptr, void *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	assign_material(ob, value, ob->actcol);
+}
+#endif
 
 static int rna_Object_active_material_link_get(PointerRNA *ptr)
 {
@@ -419,10 +533,16 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_ui_text(prop, "Materials", "");
 
-	prop= RNA_def_property(srna, "active_material", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
+
+	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Object_active_material_range");
-	RNA_def_property_ui_text(prop, "Active Material", "Index of active material.");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Object_active_material_index_range");
+	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material.");
 
 	prop= RNA_def_property(srna, "active_material_link", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, material_link_items);

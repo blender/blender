@@ -99,6 +99,7 @@ void RNA_def_actuator(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
 void RNA_def_brushclone(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
+void RNA_def_cloth(struct BlenderRNA *brna);
 void RNA_def_color(struct BlenderRNA *brna);
 void RNA_def_constraint(struct BlenderRNA *brna);
 void RNA_def_controller(struct BlenderRNA *brna);
@@ -138,6 +139,13 @@ void RNA_def_world(struct BlenderRNA *brna);
 
 void rna_def_ipo_common(struct StructRNA *srna);
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
+
+void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
+int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
+void rna_object_vgroup_name_index_set(struct PointerRNA *ptr, const char *value, short *index);
+void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
+void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 
 /* ID Properties */
 

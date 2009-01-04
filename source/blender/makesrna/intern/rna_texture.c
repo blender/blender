@@ -85,9 +85,9 @@ void rna_def_mapping_texture(BlenderRNA *brna)
 		{MTEX_NSPACE_TANGENT, "TANGENT", "Tangent", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "MappingTexture", NULL);
+	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
-	RNA_def_struct_ui_text(srna, "MappingTexture", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "TextureSlot", "DOC_BROKEN");
 
 	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
@@ -310,11 +310,11 @@ void RNA_def_texture(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0001, 2, 10, 2);
 	RNA_def_property_ui_text(prop, "Noise Size", "");
 
-	prop= RNA_def_property(srna, "turbulance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "turbulence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "turbul");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 200, 10, 2);
-	RNA_def_property_ui_text(prop, "Turbulance", "");
+	RNA_def_property_ui_text(prop, "Turbulence", "");
 
 	prop= RNA_def_property(srna, "brightness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bright");

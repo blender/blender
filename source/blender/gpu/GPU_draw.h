@@ -41,7 +41,7 @@ struct Image;
 struct MTFace;
 struct Object;
 struct Scene;
-struct View3d;
+struct View3D;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously
