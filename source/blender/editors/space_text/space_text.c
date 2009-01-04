@@ -157,12 +157,9 @@ static void text_operatortypes(void)
 	
 }
 
-static void text_cursor(wmWindow *win, ARegion *ar)
+static void text_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
-	if(ar->regiontype==RGN_TYPE_WINDOW)
-		WM_cursor_set(win, BC_TEXTEDITCURSOR);
-	else
-		WM_cursor_set(win, CURSOR_STD);
+	WM_cursor_set(win, BC_TEXTEDITCURSOR);
 }
 
 static void text_keymap(struct wmWindowManager *wm)
@@ -216,7 +213,6 @@ void ED_spacetype_text(void)
 	st->init= text_init;
 	st->duplicate= text_duplicate;
 	st->operatortypes= text_operatortypes;
-	st->cursor= text_cursor;
 	st->keymap= text_keymap;
 	
 	/* regions: main window */
@@ -226,6 +222,7 @@ void ED_spacetype_text(void)
 	art->draw= text_main_area_draw;
 	art->listener= text_main_area_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->cursor= text_cursor;
 
 	BLI_addhead(&st->regiontypes, art);
 	

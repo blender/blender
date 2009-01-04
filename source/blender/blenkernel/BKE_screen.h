@@ -75,8 +75,6 @@ typedef struct SpaceType {
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
 	void		(*keymap)(struct wmWindowManager *);
-	/* sets default cursor per region */
-	void		(*cursor)(struct wmWindow *win, struct ARegion *ar);
 
 	/* return context data */
 	int			(*context)(const struct bContext *, const void *, struct bContextDataResult *);
@@ -111,7 +109,9 @@ typedef struct ARegionType {
 	void		(*operatortypes)(void);
 	/* add own items to keymap */
 	void		(*keymap)(struct wmWindowManager *);
-	
+	/* allows default cursor per region */
+	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
+
 	/* return context data */
 	int			(*context)(const struct bContext *, const void *, struct bContextDataResult *);
 

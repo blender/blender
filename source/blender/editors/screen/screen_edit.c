@@ -907,6 +907,24 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	return newsc;
 }
 
+/* screen sets cursor based on swinid */
+static void region_cursor_set(wmWindow *win, int swinid)
+{
+	ScrArea *sa= win->screen->areabase.first;
+	
+	for(;sa; sa= sa->next) {
+		ARegion *ar= sa->regionbase.first;
+		for(;ar; ar= ar->next) {
+			if(ar->swinid == swinid) {
+				if(ar->type && ar->type->cursor)
+					ar->type->cursor(win, sa, ar);
+				else
+					WM_cursor_set(win, CURSOR_STD);
+				return;
+			}
+		}
+	}
+}
 
 void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 {
@@ -919,6 +937,9 @@ void ED_screen_do_listen(wmWindow *win, wmNotifier *note)
 		case NC_SCREEN:
 			if(note->action==NA_EDITED)
 				win->screen->do_draw= win->screen->do_refresh= 1;
+		case NC_SCENE:
+			if(note->data==ND_MODE)
+				region_cursor_set(win, note->swinid);				
 			break;
 	}
 }
@@ -1145,18 +1166,7 @@ void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 			screen_cursor_set(win, event);
 		}
 		else if(oldswin!=scr->subwinactive) {
-			/* cursor space type switching */
-			for(sa= scr->areabase.first; sa; sa= sa->next) {
-				for(ar= sa->regionbase.first; ar; ar= ar->next) {
-					if(ar->swinid==scr->subwinactive) {
-						if(sa->type->cursor)
-							sa->type->cursor(win, ar);
-						else 
-							WM_cursor_set(win, CURSOR_STD);
-					}
-				}
-					
-			}
+			region_cursor_set(win, scr->subwinactive);
 		}
 	}
 }

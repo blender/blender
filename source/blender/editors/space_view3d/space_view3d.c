@@ -271,6 +271,19 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/* concept is to retrieve cursor type context-less */
+static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+{
+	Scene *scene= win->screen->scene;
+
+	if(scene->obedit) {
+		WM_cursor_set(win, CURSOR_EDIT);
+	}
+	else {
+		WM_cursor_set(win, CURSOR_STD);
+	}
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -391,6 +404,7 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->listener= view3d_main_area_listener;
+	art->cursor= view3d_main_area_cursor;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */

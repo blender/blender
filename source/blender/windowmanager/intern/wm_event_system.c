@@ -867,7 +867,7 @@ void wm_event_do_handlers(bContext *C)
 				
 				/* XXX to solve, here screen handlers? */
 				if(!wm_event_always_pass(event))
-					ED_screen_set_subwinactive(win, event);	/* state variables in screen */
+					ED_screen_set_subwinactive(win, event);	/* state variables in screen, cursors */
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_always_pass(event) || wm_event_prev_inside_i(event, &sa->totrct)) {
