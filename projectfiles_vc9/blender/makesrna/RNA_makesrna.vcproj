@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -138,8 +138,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE,WITH_VERSE"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -231,7 +231,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -324,8 +324,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna"
-				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_VERSE"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="true"
@@ -420,7 +420,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -516,7 +516,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -609,6 +609,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_cloth.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_color.c"
 				>
 			</File>
@@ -689,7 +693,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object_force.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_packedfile.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_particle.c"
 				>
 			</File>
 			<File
@@ -713,6 +725,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scriptlink.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sensor.c"
 				>
 			</File>
@@ -722,6 +738,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sound.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_text.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_texture.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_userdef.c"
 				>
 			</File>
 			<File

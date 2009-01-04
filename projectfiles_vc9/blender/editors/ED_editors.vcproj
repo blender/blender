@@ -482,6 +482,18 @@
 				RelativePath="..\..\..\source\blender\editors\util\ed_util.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\editmode_undo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\undo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\util_intern.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="space_api"
@@ -647,7 +659,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_action\action_edit_keyframes.c"
+				RelativePath="..\..\..\source\blender\editors\space_action\action_edit.c"
 				>
 			</File>
 			<File
@@ -762,6 +774,10 @@
 		<Filter
 			Name="animation"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\anim_channels.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\anim_deps.c"
 				>
@@ -883,10 +899,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_add.c"
 				>
 			</File>
@@ -904,6 +916,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_tools.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\mesh_ops.c"
 				>
 			</File>
 			<File
