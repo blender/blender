@@ -575,7 +575,10 @@ void recalcData(TransInfo *t)
 		flushTransParticles(t);
 	}
 #endif
-	if (t->obedit) {
+	if (t->spacetype==SPACE_NODE) {
+		flushTransNodes(t);
+	}
+	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
 				flushTransUVs(t);
@@ -918,20 +921,6 @@ static void restoreElement(TransData *td) {
 	}
 }
 
-static void restoreNode(TransData2D *td)
-{
-	td->loc2d[0]= td->loc[0];
-	td->loc2d[1]= td->loc[1];
-}
-
-void restoreTransNodes(TransInfo *t)
-{
-	TransData2D *td;
-	for (td = t->data2d; td < t->data2d + t->total; td++) {
-		restoreNode(td);
-	}
-}
-
 void restoreTransObjects(TransInfo *t)
 {
 	TransData *td;
@@ -1185,8 +1174,6 @@ void calculatePropRatio(TransInfo *t)
 	int i;
 	float dist;
 	short connected = t->flag & T_PROP_CONNECTED;
-
-	if (t->spacetype == SPACE_NODE) return;
 	
 	if (t->flag & T_PROP_EDIT) {
 		for(i = 0 ; i < t->total; i++, td++) {

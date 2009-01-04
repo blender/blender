@@ -220,6 +220,17 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy) / (divy);
 		vec[2]= 0.0f;
 	}
+	else if(t->spacetype==SPACE_NODE) {
+		View2D *v2d = &t->ar->v2d;
+		float divx, divy;
+		
+		divx= v2d->mask.xmax-v2d->mask.xmin;
+		divy= v2d->mask.ymax-v2d->mask.ymin;
+		
+		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
+		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
 }
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
@@ -550,8 +561,6 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Key Time";
 		case TFM_MIRROR:
 			return "Mirror";
-		case TFM_NODE_TRANSLATE:
-			return "Node Translate";
 	}
 	return "Transform";
 }
@@ -1080,13 +1089,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	case TFM_ALIGN:
 		initAlign(t);
 		break;
-	case TFM_NODE_TRANSLATE:
-		initNodeTranslate(t);
-		break;
 	}
-
-
-
+	
 	RNA_float_get_array(op->ptr, "values", values);
 	
 	/* overwrite initial values if operator supplied a non-null vector */
@@ -1135,12 +1139,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		if(t->state == TRANS_CANCEL)
 		{
 			exit_code = OPERATOR_CANCELLED;
-			
-			/* TRANSFORM_FIX_ME fix jesty's node stuff, shouldn't be exceptional at this level */	
-			if(t->spacetype == SPACE_NODE)
-				restoreTransNodes(t);
-			else
-				restoreTransObjects(t);	// calls recalcData()
+			restoreTransObjects(t);	// calls recalcData()
 		}
 		else
 		{
@@ -2953,7 +2952,7 @@ int Translation(TransInfo *t, short mval[2])
 	
 	applyTranslation(t, t->values);
 
-	/* evil hack - redo translation if cliiping needeed */
+	/* evil hack - redo translation if clipping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values, 0))
 		applyTranslation(t, t->values);
 
@@ -4583,55 +4582,4 @@ void NDofTransform()
 		Transform();
 	}
 #endif
-}
-
-/* *** Node translation *** */
-
-void initNodeTranslate(TransInfo *t) 
-{
-	t->mode = TFM_NODE_TRANSLATE;
-	t->transform = NodeTranslate;
-	
-	initMouseInputMode(t, &t->mouse, INPUT_NONE);
-
-	/* num-input has max of (n-1) */
-	t->idx_max = 0;
-	t->num.flag = 0;
-	t->num.idx_max = t->idx_max;
-	
-	/* initialise snap like for everything else */
-	t->snap[0] = 0.0f; 
-	t->snap[1] = t->snap[2] = 1.0f;
-}
-
-static void applyNodeTranslate(TransInfo *t) 
-{
-	TransData2D *td = t->data2d;
-	int i;
-
-	for (i = 0 ; i < t->total; i++, td++) {
-		td->loc2d[0]= td->loc[0]+t->values[0];
-		td->loc2d[1]= td->loc[1]+t->values[1];
-	}
-}
-
-int NodeTranslate(TransInfo *t, short mval[2]) 
-{
-	View2D *v2d = &t->ar->v2d;
-	float cval[2], sval[2];
-	
-	/* calculate translation amount from mouse movement - in 'node-grid space' */
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
-	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &sval[0], &sval[1]);
-
-	t->values[0] = cval[0] - sval[0];
-	t->values[1] = cval[1] - sval[1];
-	
-	applyNodeTranslate(t);
-
-	recalcData(t);
-	
-	viewRedrawForce(t);
-
-	return 1;
 }

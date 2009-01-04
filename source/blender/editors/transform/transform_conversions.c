@@ -2279,6 +2279,19 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		MEM_freeN(defmats);
 }
 
+/* *** NODE EDITOR *** */
+void flushTransNodes(TransInfo *t)
+{
+	int a;
+	TransData2D *td;
+	
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0, td= t->data2d; a<t->total; a++, td++) {
+		td->loc2d[0]= td->loc[0];
+		td->loc2d[1]= td->loc[1];
+	}
+}
+
 /* ********************* UV ****************** */
 
 static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
@@ -4108,28 +4121,43 @@ static void createTransObject(bContext *C, TransInfo *t)
 }
 
 /* transcribe given node into TransData2D for Transforming */
-static void NodeToTransData(bContext *C, TransInfo *t, TransData2D *td, bNode *node) 
+static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
+// static void NodeToTransData(bContext *C, TransInfo *t, TransData2D *td, bNode *node) 
 {
-	/* Note: since locx and locy come after each other in bNode struct, this works */
-	td->loc2d = &node->locx;
-	
-	/* initial location */
-	td->loc[0]= node->locx;
-	td->loc[1]= node->locy;
+	td2d->loc[0] = node->locx; /* hold original location */
+	td2d->loc[1] = node->locy;
+	td2d->loc[2] = 0.0f;
+	td2d->loc2d = &node->locx; /* current location */
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	td->flag |= TD_SELECTED;
+	td->dist= 0.0;
+
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
 }
 
 void createTransNodeData(bContext *C, TransInfo *t)
 {
-	TransData2D *td;
-	int i= 0;
+	TransData *td;
+	TransData2D *td2d;
 	
 	CTX_DATA_COUNT(C, selected_nodes, t->total)
 	
-	td = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode");
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransNode TransData");
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode TransData2D");
 	
 	CTX_DATA_BEGIN(C, bNode *, selnode, selected_nodes)
-		NodeToTransData(C, t, td, selnode);
-		td++;
+		NodeToTransData(td++, td2d++, selnode);
 	CTX_DATA_END
 }
 

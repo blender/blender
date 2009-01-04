@@ -433,9 +433,6 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
-void initNodeTranslate(TransInfo *t);
-int NodeTranslate(TransInfo *t, short mval[2]);
-
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransGPactionData(TransInfo *t);
@@ -443,6 +440,7 @@ void flushTransIpoData(TransInfo *t);
 void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
+void flushTransNodes(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
