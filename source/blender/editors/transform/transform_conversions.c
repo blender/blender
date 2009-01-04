@@ -3829,6 +3829,18 @@ void special_aftertrans_update(TransInfo *t)
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
 	}
+	else if (t->obedit) {
+		// TRANSFORM_FIX_ME
+//		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+//			allqueue(REDRAWBUTSEDIT, 0);
+		
+		if (t->obedit->type == OB_MESH)
+		{
+			EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
+			/* table needs to be created for each edit command, since vertices can move etc */
+			mesh_octree_table(t->obedit, em, NULL, 'e');
+		}
+	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype == SPACE_NLA) {
 		recalc_all_ipos();	// bad
@@ -3864,13 +3876,6 @@ void special_aftertrans_update(TransInfo *t)
 		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
 		if (G.sipo->blocktype==ID_SEQ)
 			resetslowpar= 0;
-	}
-	else if (t->obedit) {
-		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
-			allqueue(REDRAWBUTSEDIT, 0);
-		
-		/* table needs to be created for each edit command, since vertices can move etc */
-		mesh_octree_table(t->obedit, NULL, 'e');
 	}
 	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
