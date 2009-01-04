@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 
 struct PackedFile;
+struct Scene;
 struct anim;
 struct ImBuf;
 struct RenderResult;
@@ -51,6 +52,8 @@ typedef struct ImageUser {
 	
 	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
 	short menunr;					/* localized menu entry, for handling browse event */
+	
+	struct Scene *scene;		/* to retrieve render result */
 } ImageUser;
 
 /* iuser->flag */

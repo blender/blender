@@ -20,8 +20,6 @@
 * The Original Code is Copyright (C) 2005 by the Blender Foundation.
 * All rights reserved.
 *
-* The Original Code is: all of this file.
-*
 * Contributor(s): Daniel Dunbar
 *                 Ton Roosendaal,
 *                 Ben Batt,
@@ -170,7 +168,7 @@ static void curveModifier_foreachObjectLink(
 }
 
 static void curveModifier_updateDepgraph(
-					 ModifierData *md, DagForest *forest,
+					 ModifierData *md, DagForest *forest, Scene *scene,
       Object *ob, DagNode *obNode)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -189,7 +187,7 @@ static void curveModifier_deformVerts(
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
-	curve_deform_verts(cmd->object, ob, derivedData, vertexCos, numVerts,
+	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
 			   cmd->name, cmd->defaxis);
 }
 
@@ -245,7 +243,7 @@ static void latticeModifier_foreachObjectLink(
 	walk(userData, ob, &lmd->object);
 }
 
-static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest,  Scene *scene,
 					   Object *ob, DagNode *obNode)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
@@ -421,10 +419,10 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
 	if (ob) {
-		frac = bsystem_time(ob, (float)G.scene->r.cfra,
+		frac = bsystem_time(md->scene, ob, md->scene->r.cfra,
 				    bmd->start - 1.0f) / bmd->length;
 	} else {
-		frac = G.scene->r.cfra - bmd->start / bmd->length;
+		frac = md->scene->r.cfra - bmd->start / bmd->length;
 	}
 	CLAMP(frac, 0.0, 1.0);
 
@@ -614,7 +612,7 @@ static void maskModifier_foreachObjectLink(
 	walk(userData, ob, &mmd->ob_arm);
 }
 
-static void maskModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+static void maskModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
 					   Object *ob, DagNode *obNode)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
@@ -1000,7 +998,7 @@ static void arrayModifier_foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob);
 }
 
-static void arrayModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+static void arrayModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
 					 Object *ob, DagNode *obNode)
 {
 	ArrayModifierData *amd = (ArrayModifierData*) md;
@@ -1089,7 +1087,7 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
 }
 
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
-					  Object *ob, DerivedMesh *dm,
+					  Scene *scene, Object *ob, DerivedMesh *dm,
        int initFlags)
 {
 	int i, j;
@@ -1113,9 +1111,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	/* need to avoid infinite recursion here */
 	if(amd->start_cap && amd->start_cap != ob)
-		start_cap = mesh_get_derived_final(amd->start_cap, CD_MASK_MESH);
+		start_cap = mesh_get_derived_final(scene, amd->start_cap, CD_MASK_MESH);
 	if(amd->end_cap && amd->end_cap != ob)
-		end_cap = mesh_get_derived_final(amd->end_cap, CD_MASK_MESH);
+		end_cap = mesh_get_derived_final(scene, amd->end_cap, CD_MASK_MESH);
 
 	MTC_Mat4One(offset);
 
@@ -1160,7 +1158,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				
 			if(!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
-				makeDispListCurveTypes(amd->curve_ob, 0);
+				makeDispListCurveTypes(scene, amd->curve_ob, 0);
 			}
 			if(cu->path)
 				length = scale*cu->path->totdist;
@@ -1636,7 +1634,7 @@ static DerivedMesh *arrayModifier_applyModifier(
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData*) md;
 
-	result = arrayModifier_doArray(amd, ob, derivedData, 0);
+	result = arrayModifier_doArray(amd, md->scene, ob, derivedData, 0);
 
 	if(result != derivedData)
 		CDDM_calc_normals(result);
@@ -1683,7 +1681,7 @@ static void mirrorModifier_foreachObjectLink(
 	walk(userData, ob, &mmd->mirror_ob);
 }
 
-static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
 					  Object *ob, DagNode *obNode)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -3462,7 +3460,7 @@ static int displaceModifier_isDisabled(ModifierData *md)
 }
 
 static void displaceModifier_updateDepgraph(
-					    ModifierData *md, DagForest *forest,
+					    ModifierData *md, DagForest *forest, Scene *scene,
 	 Object *ob, DagNode *obNode)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
@@ -3783,7 +3781,7 @@ static void uvprojectModifier_foreachIDLink(ModifierData *md, Object *ob,
 }
 
 static void uvprojectModifier_updateDepgraph(ModifierData *md,
-					     DagForest *forest, Object *ob, DagNode *obNode)
+					     DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData*) md;
 	int i;
@@ -4465,7 +4463,7 @@ static void castModifier_foreachObjectLink(
 }
 
 static void castModifier_updateDepgraph(
-					ModifierData *md, DagForest *forest, Object *ob,
+					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
      DagNode *obNode)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
@@ -5054,7 +5052,7 @@ static void waveModifier_foreachIDLink(ModifierData *md, Object *ob,
 }
 
 static void waveModifier_updateDepgraph(
-					ModifierData *md, DagForest *forest, Object *ob,
+					ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
      DagNode *obNode)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
@@ -5179,15 +5177,15 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 	}
 }
 
-static void waveModifier_do(
-			    WaveModifierData *md, Object *ob, DerivedMesh *dm,
+static void waveModifier_do(WaveModifierData *md, 
+		Scene *scene, Object *ob, DerivedMesh *dm,
        float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 	MVert *mvert = NULL;
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
-	float ctime = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
+	float ctime = bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);
 	float minfac =
 			(float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
@@ -5365,7 +5363,7 @@ static void waveModifier_deformVerts(
 		CDDM_calc_normals(dm);
 	}
 
-	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
 	if(dm != derivedData) dm->release(dm);
 }
@@ -5387,7 +5385,7 @@ static void waveModifier_deformVertsEM(
 		CDDM_calc_normals(dm);
 	}
 
-	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
 	if(dm != derivedData) dm->release(dm);
 }
@@ -5439,7 +5437,7 @@ static void armatureModifier_foreachObjectLink(
 }
 
 static void armatureModifier_updateDepgraph(
-					    ModifierData *md, DagForest *forest, Object *ob,
+					    ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
 	 DagNode *obNode)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -5560,7 +5558,7 @@ static void hookModifier_foreachObjectLink(
 	walk(userData, ob, &hmd->object);
 }
 
-static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene,
 					Object *ob, DagNode *obNode)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
@@ -5707,7 +5705,7 @@ static void softbodyModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
       float (*vertexCos)[3], int numVerts)
 {
-	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
 static int softbodyModifier_dependsOnTime(ModifierData *md)
@@ -5748,7 +5746,7 @@ static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
 			return derivedData;
 	}
 
-	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
+	result = clothModifier_do(clmd, md->scene, ob, derivedData, useRenderParams, isFinalCalc);
 
 	if(result)
 	{
@@ -5759,7 +5757,7 @@ static DerivedMesh *clothModifier_applyModifier(ModifierData *md, Object *ob,
 }
 
 static void clothModifier_updateDepgraph(
-					 ModifierData *md, DagForest *forest, Object *ob,
+					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
       DagNode *obNode)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
@@ -5768,7 +5766,7 @@ static void clothModifier_updateDepgraph(
 	
 	if(clmd)
 	{
-		for(base = G.scene->base.first; base; base= base->next) 
+		for(base = scene->base.first; base; base= base->next) 
 		{
 			Object *ob1= base->object;
 			if(ob1 != ob)
@@ -5916,7 +5914,7 @@ static void collisionModifier_deformVerts(
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 		
-		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
+		current_time = bsystem_time (md->scene,  ob, ( float ) md->scene->r.cfra, 0.0 );
 		
 		if(G.rt > 0)
 			printf("current_time %f, collmd->time %f\n", current_time, collmd->time);
@@ -6049,7 +6047,7 @@ static void booleanModifier_foreachObjectLink(
 }
 
 static void booleanModifier_updateDepgraph(
-					   ModifierData *md, DagForest *forest, Object *ob,
+					   ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
 	DagNode *obNode)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
@@ -6215,7 +6213,7 @@ static void particleSystemModifier_deformVerts(
 				/* copies the data */
 				tmpobj->data = copy_curve( (Curve *) ob->data );
 
-				makeDispListCurveTypes( tmpobj, 1 );
+				makeDispListCurveTypes(md->scene, tmpobj, 1 );
 				nurbs_to_mesh( tmpobj );
 
 				dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
@@ -6265,7 +6263,7 @@ static void particleSystemModifier_deformVerts(
 		  }
 
 		  if(psys){
-			  particle_system_update(ob,psys);
+			  particle_system_update(md->scene, ob, psys);
 			  psmd->flag |= eParticleSystemFlag_psys_updated;
 			  psmd->flag &= ~eParticleSystemFlag_DM_changed;
 		  }
@@ -6313,7 +6311,7 @@ static int particleInstanceModifier_dependsOnTime(ModifierData *md)
 	return 0;
 }
 static void particleInstanceModifier_updateDepgraph(ModifierData *md, DagForest *forest,
-		Object *ob, DagNode *obNode)
+		 Scene *scene,Object *ob, DagNode *obNode)
 {
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
 
@@ -6381,7 +6379,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	maxvert=totvert*totpart;
 	maxface=totface*totpart;
 
-	psys->lattice=psys_get_lattice(ob, psys);
+	psys->lattice=psys_get_lattice(md->scene, ob, psys);
 
 	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
 		float co[3];
@@ -6424,7 +6422,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 			state.time=(mv->co[0]-min_co)/(max_co-min_co);
 			if(trackneg)
 				state.time=1.0f-state.time;
-			psys_get_particle_on_path(pimd->ob,psys,first_particle + i/totvert,&state,1);
+			psys_get_particle_on_path(md->scene, pimd->ob, psys,first_particle + i/totvert, &state,1);
 
 			mv->co[0] = 0.0;
 
@@ -6446,7 +6444,7 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		}
 		else{
 			state.time=-1.0;
-			psys_get_particle_state(pimd->ob,psys,i/totvert,&state,1);
+			psys_get_particle_state(md->scene, pimd->ob, psys, i/totvert, &state,1);
 		}	
 
 		QuatMulVecf(state.rot,mv->co);
@@ -7117,7 +7115,7 @@ static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, Derive
 
 }
 static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd, 
-		ParticleSystemModifierData *psmd, Object *ob, 
+		ParticleSystemModifierData *psmd, Scene *scene, Object *ob, 
   DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm=to_explode;
@@ -7141,9 +7139,9 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	timestep= psys_get_timestep(part);
 
 	if(part->flag & PART_GLOB_TIME)
-		cfra=bsystem_time(0,(float)G.scene->r.cfra,0.0);
+		cfra=bsystem_time(scene, 0,(float)scene->r.cfra,0.0);
 	else
-		cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
+		cfra=bsystem_time(scene, ob,(float)scene->r.cfra,0.0);
 
 	/* hash table for vertice <-> particle relations */
 	vertpahash= BLI_edgehash_new();
@@ -7181,7 +7179,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/* getting back to object space */
 	Mat4Invert(imat,ob->obmat);
 
-	psmd->psys->lattice = psys_get_lattice(ob, psmd->psys);
+	psmd->psys->lattice = psys_get_lattice(scene, ob, psmd->psys);
 
 	/* duplicate & displace vertices */
 	ehi= BLI_edgehashIterator_new(vertpahash);
@@ -7209,7 +7207,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
-			psys_get_particle_state(ob,psmd->psys,i,&state,1);
+			psys_get_particle_state(scene, ob, psmd->psys, i, &state,1);
 
 			vertco=CDDM_get_vert(explode,v)->co;
 			
@@ -7325,7 +7323,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 				 if(emd->flag & eExplodeFlag_EdgeSplit){
 					 int *facepa = emd->facepa;
 					 DerivedMesh *splitdm=explodeModifier_splitEdges(emd,dm);
-					 DerivedMesh *explode=explodeModifier_explodeMesh(emd,psmd,ob,splitdm);
+					 DerivedMesh *explode=explodeModifier_explodeMesh(emd, psmd, scene, ob, splitdm);
 
 					 MEM_freeN(emd->facepa);
 					 emd->facepa=facepa;
@@ -7333,7 +7331,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 					 return explode;
 				 }
 				 else
-					 return explodeModifier_explodeMesh(emd,psmd,ob,derivedData);
+					 return explodeModifier_explodeMesh(emd, psmd, scene, ob, derivedData);
 	}
 	return derivedData;
 }
@@ -7379,7 +7377,7 @@ static DerivedMesh * fluidsimModifier_applyModifier(
 			return derivedData;
 	}
 
-	result = fluidsimModifier_do(fluidmd, ob, derivedData, useRenderParams, isFinalCalc);
+	result = fluidsimModifier_do(fluidmd, md->scene, ob, derivedData, useRenderParams, isFinalCalc);
 
 	if(result) 
 	{ 
@@ -7390,7 +7388,7 @@ static DerivedMesh * fluidsimModifier_applyModifier(
 }
 
 static void fluidsimModifier_updateDepgraph(
-		ModifierData *md, DagForest *forest,
+		ModifierData *md, DagForest *forest, Scene *scene,
       Object *ob, DagNode *obNode)
 {
 	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
@@ -7400,7 +7398,7 @@ static void fluidsimModifier_updateDepgraph(
 	{
 		if(fluidmd->fss->type == OB_FLUIDSIM_DOMAIN)
 		{
-			for(base = G.scene->base.first; base; base= base->next) 
+			for(base = scene->base.first; base; base= base->next) 
 			{
 				Object *ob1= base->object;
 				if(ob1 != ob)
@@ -7482,7 +7480,7 @@ static void meshdeformModifier_foreachObjectLink(
 }
 
 static void meshdeformModifier_updateDepgraph(
-					      ModifierData *md, DagForest *forest, Object *ob,
+					      ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
 	   DagNode *obNode)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
@@ -7567,7 +7565,7 @@ static void meshdeformModifier_do(
 	
 	/* get cage derivedmesh */
 	if(me->edit_mesh) {
-		tmpdm= editmesh_get_derived_cage_and_final(ob, me->edit_mesh, &cagedm, 0);
+		tmpdm= editmesh_get_derived_cage_and_final(md->scene, ob, me->edit_mesh, &cagedm, 0);
 		if(tmpdm)
 			tmpdm->release(tmpdm);
 	}
@@ -7819,7 +7817,7 @@ static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, Derived
 		}
 	}
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
 	if(dm)
 		dm->release(dm);
@@ -7844,13 +7842,13 @@ static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditM
 		}
 	}
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, ob, dm, vertexCos, numVerts);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
 	if(dm)
 		dm->release(dm);
 }
 
-static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+static void shrinkwrapModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 
@@ -7905,7 +7903,7 @@ static void simpledeformModifier_foreachObjectLink(ModifierData *md, Object *ob,
 	walk(userData, ob, &smd->origin);
 }
 
-static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
 	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
 

@@ -285,7 +285,7 @@ int is_basis_mball(Object *ob)
  * blended. MetaBalls with different basic name can't be
  * blended.
  */
-Object *find_basis_mball(Object *basis)
+Object *find_basis_mball(Scene *scene, Object *basis)
 {
 	Base *base;
 	Object *ob,*bob= basis;
@@ -296,8 +296,8 @@ Object *find_basis_mball(Object *basis)
 	splitIDname(basis->id.name+2, basisname, &basisnr);
 	totelem= 0;
 
-	next_object(0, 0, 0);
-	while(next_object(1, &base, &ob)) {
+	next_object(scene, 0, 0, 0);
+	while(next_object(scene, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if(ob==bob){
@@ -1451,7 +1451,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 	}
 }
 
-float init_meta(Object *ob)	/* return totsize */
+float init_meta(Scene *scene, Object *ob)	/* return totsize */
 {
 	Base *base;
 	Object *bob;
@@ -1470,8 +1470,8 @@ float init_meta(Object *ob)	/* return totsize */
 	
 	/* make main array */
 	
-	next_object(0, 0, 0);
-	while(next_object(1, &base, &bob)) {
+	next_object(scene, 0, 0, 0);
+	while(next_object(scene, 1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
 			zero_size= 0;
@@ -2034,7 +2034,7 @@ void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void metaball_polygonize(Object *ob)
+void metaball_polygonize(Scene *scene, Object *ob)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
@@ -2057,7 +2057,7 @@ void metaball_polygonize(Object *ob)
 	mainb= MEM_mallocN(sizeof(void *)*totelem, "mainb");
 	
 	/* initialize all mainb (MetaElems) */
-	totsize= init_meta(ob);
+	totsize= init_meta(scene, ob);
 
 	if(metaball_tree){
 		free_metaball_octal_node(metaball_tree->first);

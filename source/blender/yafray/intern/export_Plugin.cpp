@@ -241,7 +241,7 @@ bool yafrayPluginRender_t::writeRender()
 		params["border_ymax"] = yafray::parameter_t(2.f*re->r.border.ymax - 1.f);
 	}
 	if (hasworld) {
-		World *world = G.scene->world;
+		World *world = re->scene->world;
 		if (world->mode & WO_MIST) {
 			// basic fog
 			float fd = world->mistdist;
@@ -1740,7 +1740,7 @@ void yafrayPluginRender_t::writeCamera()
 void yafrayPluginRender_t::writeHemilight()
 {
 	yafray::paramMap_t params;
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	bool fromAO = false;
 	if (re->r.GIquality==6){
 		// use Blender AO params is possible
@@ -1864,7 +1864,7 @@ void yafrayPluginRender_t::writePathlight()
 
 bool yafrayPluginRender_t::writeWorld()
 {
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	if (re->r.GIquality!=0) {
 		if (re->r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";

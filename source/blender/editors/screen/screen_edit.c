@@ -400,13 +400,13 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *screen_add(wmWindow *win, char *name)
+bScreen *screen_add(wmWindow *win, Scene *scene, char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
 	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
-	sc->scene= G.scene;
+	sc->scene= scene;
 	sc->do_refresh= 1;
 	
 	sv1= screen_addvert(sc, 0, 0);
@@ -898,7 +898,7 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
 	
 	/* make new empty screen: */
-	newsc= screen_add(win, sc->id.name+2);
+	newsc= screen_add(win, sc->scene, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
 	/* set in window */
@@ -1264,7 +1264,7 @@ void ed_screen_fullarea(bContext *C)
 		
 		oldscreen->full = SCREENFULL;
 		
-		sc= screen_add(CTX_wm_window(C), "temp");
+		sc= screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
 		
 		/* timer */
 		sc->animtimer= oldscreen->animtimer;

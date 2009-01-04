@@ -556,7 +556,7 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if(id->us==0) {
-		if( GS(id->name)==ID_OB ) unlink_object((Object *)id);
+		if( GS(id->name)==ID_OB ) unlink_object(NULL, (Object *)id);
 		
 		free_libblock(lb, id);
 	}

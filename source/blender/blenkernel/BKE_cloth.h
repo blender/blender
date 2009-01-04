@@ -50,7 +50,7 @@
 #include "BKE_collision.h"
 
 struct Object;
-
+struct Scene;
 struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
@@ -208,7 +208,7 @@ typedef enum
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt );
+int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 
@@ -236,7 +236,7 @@ void clmdSetInterruptCallBack ( int ( *f ) ( void ) );
 void cloth_free_modifier_extern ( ClothModifierData *clmd );
 void cloth_free_modifier ( Object *ob, ClothModifierData *clmd );
 void cloth_init ( ClothModifierData *clmd );
-DerivedMesh *clothModifier_do ( ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
+DerivedMesh *clothModifier_do ( ClothModifierData *clmd, struct Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc );
 
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 

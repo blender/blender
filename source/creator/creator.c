@@ -608,15 +608,17 @@ int main(int argc, char **argv)
 				}
 			case 'f':
 				a++;
-				if (G.scene) {
+				if (CTX_data_scene(C)) {
+					Scene *scene= CTX_data_scene(C);
+					
 					if (a < argc) {
 						int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-						Render *re= RE_NewRender(G.scene->id.name);
+						Render *re= RE_NewRender(scene->id.name);
 #ifndef DISABLE_PYTHON
 						if (G.f & G_DOSCRIPTLINKS)
 							BPY_do_all_scripts(SCRIPT_RENDER, 0);
 #endif
-						RE_BlenderAnim(re, G.scene, frame, frame, G.scene->frame_step);
+						RE_BlenderAnim(re, scene, frame, frame, scene->frame_step);
 #ifndef DISABLE_PYTHON
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
 #endif
@@ -626,13 +628,14 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'a':
-				if (G.scene) {
-					Render *re= RE_NewRender(G.scene->id.name);
+				if (CTX_data_scene(C)) {
+					Scene *scene= CTX_data_scene(C);
+					Render *re= RE_NewRender(scene->id.name);
 #ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_RENDER, 1);
 #endif
-					RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra, G.scene->frame_step);
+					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
 #ifndef DISABLE_PYTHON
 					if (G.f & G_DOSCRIPTLINKS)
 						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
@@ -648,27 +651,30 @@ int main(int argc, char **argv)
 				break;
 			case 's':
 				a++;
-				if(G.scene) {
+				if (CTX_data_scene(C)) {
+					Scene *scene= CTX_data_scene(C);
 					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->r.sfra) = frame;
+					if (a < argc) (scene->r.sfra) = frame;
 				} else {
 					printf("\nError: no blend loaded. cannot use '-s'.\n");
 				}
 				break;
 			case 'e':
 				a++;
-				if(G.scene) {
+				if (CTX_data_scene(C)) {
+					Scene *scene= CTX_data_scene(C);
 					int frame= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->r.efra) = frame;
+					if (a < argc) (scene->r.efra) = frame;
 				} else {
 					printf("\nError: no blend loaded. cannot use '-e'.\n");
 				}
 				break;
 			case 'j':
 				a++;
-				if(G.scene) {
+				if (CTX_data_scene(C)) {
+					Scene *scene= CTX_data_scene(C);
 					int fstep= MIN2(MAXFRAME, MAX2(1, atoi(argv[a])));
-					if (a < argc) (G.scene->frame_step) = fstep;
+					if (a < argc) (scene->frame_step) = fstep;
 				} else {
 					printf("\nError: no blend loaded. cannot use '-j'.\n");
 				}
@@ -699,8 +705,9 @@ int main(int argc, char **argv)
 			case 'o':
 				a++;
 				if (a < argc){
-					if(G.scene) {
-						BLI_strncpy(G.scene->r.pic, argv[a], FILE_MAXDIR);
+					if (CTX_data_scene(C)) {
+						Scene *scene= CTX_data_scene(C);
+						BLI_strncpy(scene->r.pic, argv[a], FILE_MAXDIR);
 					} else {
 						printf("\nError: no blend loaded. cannot use '-o'.\n");
 					}
@@ -711,35 +718,36 @@ int main(int argc, char **argv)
 			case 'F':
 				a++;
 				if (a < argc){
-					if(!G.scene) {
+					if (CTX_data_scene(C)==NULL) {
 						printf("\nError: no blend loaded. order the arguments so '-F ' is after the blend is loaded.\n");
 					} else {
-						if      (!strcmp(argv[a],"TGA")) G.scene->r.imtype = R_TARGA;
-						else if (!strcmp(argv[a],"IRIS")) G.scene->r.imtype = R_IRIS;
-						else if (!strcmp(argv[a],"HAMX")) G.scene->r.imtype = R_HAMX;
+						Scene *scene= CTX_data_scene(C);
+						if      (!strcmp(argv[a],"TGA")) scene->r.imtype = R_TARGA;
+						else if (!strcmp(argv[a],"IRIS")) scene->r.imtype = R_IRIS;
+						else if (!strcmp(argv[a],"HAMX")) scene->r.imtype = R_HAMX;
 #ifdef WITH_DDS
-						else if (!strcmp(argv[a],"DDS")) G.scene->r.imtype = R_DDS;
+						else if (!strcmp(argv[a],"DDS")) scene->r.imtype = R_DDS;
 #endif
-						else if (!strcmp(argv[a],"JPEG")) G.scene->r.imtype = R_JPEG90;
-						else if (!strcmp(argv[a],"MOVIE")) G.scene->r.imtype = R_MOVIE;
-						else if (!strcmp(argv[a],"IRIZ")) G.scene->r.imtype = R_IRIZ;
-						else if (!strcmp(argv[a],"RAWTGA")) G.scene->r.imtype = R_RAWTGA;
-						else if (!strcmp(argv[a],"AVIRAW")) G.scene->r.imtype = R_AVIRAW;
-						else if (!strcmp(argv[a],"AVIJPEG")) G.scene->r.imtype = R_AVIJPEG;
-						else if (!strcmp(argv[a],"PNG")) G.scene->r.imtype = R_PNG;
-						else if (!strcmp(argv[a],"AVICODEC")) G.scene->r.imtype = R_AVICODEC;
-						else if (!strcmp(argv[a],"QUICKTIME")) G.scene->r.imtype = R_QUICKTIME;
-						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
-						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
-						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_TIFF;
+						else if (!strcmp(argv[a],"JPEG")) scene->r.imtype = R_JPEG90;
+						else if (!strcmp(argv[a],"MOVIE")) scene->r.imtype = R_MOVIE;
+						else if (!strcmp(argv[a],"IRIZ")) scene->r.imtype = R_IRIZ;
+						else if (!strcmp(argv[a],"RAWTGA")) scene->r.imtype = R_RAWTGA;
+						else if (!strcmp(argv[a],"AVIRAW")) scene->r.imtype = R_AVIRAW;
+						else if (!strcmp(argv[a],"AVIJPEG")) scene->r.imtype = R_AVIJPEG;
+						else if (!strcmp(argv[a],"PNG")) scene->r.imtype = R_PNG;
+						else if (!strcmp(argv[a],"AVICODEC")) scene->r.imtype = R_AVICODEC;
+						else if (!strcmp(argv[a],"QUICKTIME")) scene->r.imtype = R_QUICKTIME;
+						else if (!strcmp(argv[a],"BMP")) scene->r.imtype = R_BMP;
+						else if (!strcmp(argv[a],"HDR")) scene->r.imtype = R_RADHDR;
+						else if (!strcmp(argv[a],"TIFF")) scene->r.imtype = R_TIFF;
 #ifdef WITH_OPENEXR
-						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
-						else if (!strcmp(argv[a],"MULTILAYER")) G.scene->r.imtype = R_MULTILAYER;
+						else if (!strcmp(argv[a],"EXR")) scene->r.imtype = R_OPENEXR;
+						else if (!strcmp(argv[a],"MULTILAYER")) scene->r.imtype = R_MULTILAYER;
 #endif
-						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
-						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
-						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
-						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
+						else if (!strcmp(argv[a],"MPEG")) scene->r.imtype = R_FFMPEG;
+						else if (!strcmp(argv[a],"FRAMESERVER")) scene->r.imtype = R_FRAMESERVER;
+						else if (!strcmp(argv[a],"CINEON")) scene->r.imtype = R_CINEON;
+						else if (!strcmp(argv[a],"DPX")) scene->r.imtype = R_DPX;
 						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {
@@ -758,11 +766,12 @@ int main(int argc, char **argv)
 			case 'x': /* extension */
 				a++;
 				if (a < argc) {
-					if(G.scene) {
+					if (CTX_data_scene(C)) {
+						Scene *scene= CTX_data_scene(C);
 						if (argv[a][0] == '0') {
-							G.scene->r.scemode &= ~R_EXTENSION;
+							scene->r.scemode &= ~R_EXTENSION;
 						} else if (argv[a][0] == '1') {
-							G.scene->r.scemode |= R_EXTENSION;
+							scene->r.scemode |= R_EXTENSION;
 						} else {
 							printf("\nError: Use '-x 1' or '-x 0' To set the extension option.\n");
 						}

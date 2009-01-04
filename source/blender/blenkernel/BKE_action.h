@@ -44,6 +44,7 @@ struct bActionChannel;
 struct bPose;
 struct bPoseChannel;
 struct Object;
+struct Scene;
 struct ID;
 
 /* Kernel prototypes */
@@ -80,11 +81,9 @@ void free_action(struct bAction * id);
 void make_local_action(struct bAction *act);
 
 /* only for armatures, doing pose actions only too */
-void do_all_pose_actions(struct Object *);
+void do_all_pose_actions(struct Scene *scene, struct Object *);
 /* only for objects, doing only 1 channel */
-void do_all_object_actions(struct Object *);
-/* only for Mesh, Curve, Surface, Lattice, doing only Shape channel */
-void do_all_shape_actions(struct Object *);
+void do_all_object_actions(struct Scene *scene, struct Object *);
 
 
 /**
@@ -134,7 +133,7 @@ void extract_pose_from_action(struct bPose *pose, struct bAction *act, float cti
 /**
  * Get the effects of the given action using a workob 
  */
-void what_does_obaction(struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
+void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
 
 /**
  * Iterate through the action channels of the action

@@ -817,7 +817,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 			if(TESTBASE(v3d, base))  {
 				minmax_object(base->object, min, max);
 				/* account for duplis */
-				minmax_object_duplis(base->object, min, max);
+				minmax_object_duplis(scene, base->object, min, max);
 
 				ok= 1;
 			}

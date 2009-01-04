@@ -50,8 +50,8 @@ struct Multires *multires_copy(struct Multires *orig);
 void multires_create(struct Object *ob, struct Mesh *me);
 
 /* CustomData */
-void multires_delete_layer(struct Mesh *me, struct CustomData *cd, const int type, int n);
-void multires_add_layer(struct Mesh *me, struct CustomData *cd, const int type, const int n);
+void multires_delete_layer(struct Object *ob, struct CustomData *cd, const int type, int n);
+void multires_add_layer(struct Object *ob, struct CustomData *cd, const int type, const int n);
 void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
 void multires_to_mcol(struct MultiresColFace *f, MCol mcol[4]);
 /* After adding or removing vcolor layers, run this */

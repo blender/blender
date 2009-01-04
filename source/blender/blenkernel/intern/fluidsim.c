@@ -167,14 +167,14 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 	return;
 }
 
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 #ifndef DISABLE_ELBEEM
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;
 
-	framenr= (int)G.scene->r.cfra;
+	framenr= (int)scene->r.cfra;
 	
 	// only handle fluidsim domains
 	if(fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))
@@ -396,7 +396,7 @@ static DerivedMesh *fluidsim_read_obj(char *filename)
 DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int displaymode = 0;
-	int curFrame = framenr - 1 /*G.scene->r.sfra*/; /* start with 0 at start frame */
+	int curFrame = framenr - 1 /*scene->r.sfra*/; /* start with 0 at start frame */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	FluidsimSettings *fss = fluidmd->fss;
 	DerivedMesh *dm = NULL;
@@ -598,7 +598,7 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 // file handling
 //-------------------------------------------------------------------------------
 
-void initElbeemMesh(struct Object *ob, 
+void initElbeemMesh(struct Scene *scene, struct Object *ob, 
 		    int *numVertices, float **vertices, 
       int *numTriangles, int **triangles,
       int useGlobalCoords, int modifierIndex) 
@@ -610,7 +610,7 @@ void initElbeemMesh(struct Object *ob,
 	float *verts;
 	int *tris;
 
-	dm = mesh_create_derived_index_render(ob, CD_MASK_BAREMESH, modifierIndex);
+	dm = mesh_create_derived_index_render(scene, ob, CD_MASK_BAREMESH, modifierIndex);
 	//dm = mesh_create_derived_no_deform(ob,NULL);
 
 	mvert = dm->getVertArray(dm);

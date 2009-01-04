@@ -31,6 +31,7 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
+struct Scene;
 struct Tex;
 struct MTex;
 struct PluginTex;
@@ -63,7 +64,7 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
-struct Tex *give_current_world_texture(void);
+struct Tex *give_current_world_texture(struct Scene *scene);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);

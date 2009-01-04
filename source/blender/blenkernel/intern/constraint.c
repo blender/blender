@@ -250,12 +250,15 @@ void unique_constraint_name (bConstraint *con, ListBase *list)
 
 /* package an object/bone for use in constraint evaluation */
 /* This function MEM_calloc's a bConstraintOb struct, that will need to be freed after evaluation */
-bConstraintOb *constraints_make_evalob (Object *ob, void *subdata, short datatype)
+bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata, short datatype)
 {
 	bConstraintOb *cob;
 	
 	/* create regardless of whether we have any data! */
 	cob= MEM_callocN(sizeof(bConstraintOb), "bConstraintOb");
+	
+	/* for system time, part of deglobalization, code nicer later with local time (ton) */
+	cob->scene= scene;
 	
 	/* based on type of available data */
 	switch (datatype) {
@@ -1295,10 +1298,10 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (cu->path==NULL || cu->path->data==NULL) 
-			makeDispListCurveTypes(ct->tar, 0);
+			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
-			curvetime= bsystem_time(ct->tar, (float)ctime, 0.0) - data->offset;
+			curvetime= bsystem_time(cob->scene, ct->tar, (float)ctime, 0.0) - data->offset;
 			
 			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 				curvetime /= cu->pathlen;
@@ -1883,7 +1886,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 			
 			/* this check is to make sure curve objects get updated on file load correctly.*/
 			if (cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-				makeDispListCurveTypes(ct->tar, 0);				
+				makeDispListCurveTypes(cob->scene, ct->tar, 0);				
 		}
 		
 		/* firstly calculate the matrix the normal way, then let the py-function override
@@ -2050,7 +2053,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			Object workob;
 			/* evaluate using workob */
-			what_does_obaction(cob->ob, &workob, data->act, t);
+			what_does_obaction(cob->scene, cob->ob, &workob, data->act, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
@@ -2965,7 +2968,7 @@ static void clampto_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (cu->path==NULL || cu->path->data==NULL) 
-			makeDispListCurveTypes(ct->tar, 0);
+			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 	}
 	
 	/* technically, this isn't really needed for evaluation, but we don't know what else

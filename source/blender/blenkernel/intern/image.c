@@ -21,9 +21,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Blender Foundation, 2006
+ * Contributor(s): Blender Foundation, 2006, full recode
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -337,7 +335,8 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 /* checks if image was already loaded, then returns same image */
 /* otherwise creates new. */
 /* does not load ibuf itself */
-Image *BKE_add_image_file(const char *name)
+/* pass on optional frame for #name images */
+Image *BKE_add_image_file(const char *name, int frame)
 {
 	Image *ima;
 	int file, len;
@@ -353,7 +352,7 @@ Image *BKE_add_image_file(const char *name)
 	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_convertstringcode(str, G.sce);
-	BLI_convertstringframe(str, G.scene->r.cfra); /* TODO - should this realy be here? */
+	BLI_convertstringframe(str, frame);
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -365,7 +364,7 @@ Image *BKE_add_image_file(const char *name)
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
 			BLI_convertstringcode(strtest, G.sce);
-			BLI_convertstringframe(strtest, G.scene->r.cfra); /* TODO - should this be here? */
+			BLI_convertstringframe(strtest, frame);
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -821,11 +820,11 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(char *string, int imtype)
+void BKE_add_image_extension(Scene *scene, char *string, int imtype)
 {
 	char *extension="";
 	
-	if(G.scene->r.imtype== R_IRIS) {
+	if(scene->r.imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
@@ -898,7 +897,7 @@ typedef struct StampData {
 	char 	strip[64];
 } StampData;
 
-static void stampdata(StampData *stamp_data, int do_prefix)
+static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 {
 	char text[256];
 	
@@ -909,7 +908,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	char sdate[9];
 #endif /* WIN32 */
 	
-	if (G.scene->r.stamp & R_STAMP_FILENAME) {
+	if (scene->r.stamp & R_STAMP_FILENAME) {
 		if (G.relbase_valid) {
 			if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
 			else				sprintf(stamp_data->file, "%s", G.sce);
@@ -922,14 +921,14 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 		stamp_data->file[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_NOTE) {
+	if (scene->r.stamp & R_STAMP_NOTE) {
 		/* Never do prefix for Note */
-		sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
+		sprintf(stamp_data->note, "%s", scene->r.stamp_udata);
 	} else {
 		stamp_data->note[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_DATE) {
+	if (scene->r.stamp & R_STAMP_DATE) {
 #ifdef WIN32
 		_strdate (sdate);
 		sprintf (text, "%s", sdate);
@@ -944,8 +943,8 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 		stamp_data->date[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_MARKER) {
-		TimeMarker *marker = NULL; // XXX get_frame_marker(G.scene->r.cfra);
+	if (scene->r.stamp & R_STAMP_MARKER) {
+		TimeMarker *marker = NULL; // XXX get_frame_marker(scene->r.cfra);
 	
 		if (marker) strcpy(text, marker->name);
 		else 		strcpy(text, "<none>");
@@ -956,11 +955,11 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 		stamp_data->marker[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_TIME) {
+	if (scene->r.stamp & R_STAMP_TIME) {
 		int h, m, s, f;
 		h= m= s= f= 0;
-		f = (int)(G.scene->r.cfra % G.scene->r.frs_sec);
-		s = (int)(G.scene->r.cfra / G.scene->r.frs_sec);
+		f = (int)(scene->r.cfra % scene->r.frs_sec);
+		s = (int)(scene->r.cfra / scene->r.frs_sec);
 
 		if (s) {
 			m = (int)(s / 60);
@@ -972,7 +971,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 			}
 		}
 
-		if (G.scene->r.frs_sec < 100)
+		if (scene->r.frs_sec < 100)
 			sprintf (text, "%02d:%02d:%02d.%02d", h, m, s, f);
 		else
 			sprintf (text, "%02d:%02d:%02d.%03d", h, m, s, f);
@@ -983,17 +982,17 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 		stamp_data->time[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_FRAME) {
+	if (scene->r.stamp & R_STAMP_FRAME) {
 		char format[32];
-		if (do_prefix)		sprintf(format, "Frame %%0%di\n", 1 + (int) log10(G.scene->r.efra));
-		else				sprintf(format, "%%0%di\n", 1 + (int) log10(G.scene->r.efra));
-		sprintf (stamp_data->frame, format, G.scene->r.cfra);
+		if (do_prefix)		sprintf(format, "Frame %%0%di\n", 1 + (int) log10(scene->r.efra));
+		else				sprintf(format, "%%0%di\n", 1 + (int) log10(scene->r.efra));
+		sprintf (stamp_data->frame, format, scene->r.cfra);
 	} else {
 		stamp_data->frame[0] = '\0';
 	}
 
-	if (G.scene->r.stamp & R_STAMP_CAMERA) {
-		if (G.scene->camera) strcpy(text, ((Camera *) G.scene->camera)->id.name+2);
+	if (scene->r.stamp & R_STAMP_CAMERA) {
+		if (scene->camera) strcpy(text, ((Camera *) scene->camera)->id.name+2);
 		else 		strcpy(text, "<none>");
 		
 		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", text);
@@ -1002,15 +1001,15 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 		stamp_data->camera[0] = '\0';
 	}
 
-	if (G.scene->r.stamp & R_STAMP_SCENE) {
-		if (do_prefix)		sprintf(stamp_data->scene, "Scene %s", G.scene->id.name+2);
-		else				sprintf(stamp_data->scene, "%s", G.scene->id.name+2);
+	if (scene->r.stamp & R_STAMP_SCENE) {
+		if (do_prefix)		sprintf(stamp_data->scene, "Scene %s", scene->id.name+2);
+		else				sprintf(stamp_data->scene, "%s", scene->id.name+2);
 	} else {
 		stamp_data->scene[0] = '\0';
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq; //XXX = get_forground_frame_seq(G.scene->r.cfra);
+	if (scene->r.stamp & R_STAMP_SEQSTRIP) {
+		Sequence *seq; //XXX = get_forground_frame_seq(scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");
@@ -1022,7 +1021,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 }
 
-void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int channels)
+void BKE_stamp_buf(Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels)
 {
 	struct StampData stamp_data;
 	
@@ -1035,9 +1034,9 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 	if (!rect && !rectf)
 		return;
 	
-	stampdata(&stamp_data, 1);
+	stampdata(scene, &stamp_data, 1);
 	
-	switch (G.scene->r.stamp_font_id) {
+	switch (scene->r.stamp_font_id) {
 	case 1: /* tiny */
 		font = BMF_GetFont(BMF_kHelveticaBold8);
 		break;
@@ -1069,24 +1068,24 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 	if (stamp_data.file[0]) {
 		/* Top left corner */
 		text_width = BMF_GetStringWidth(font, stamp_data.file);
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 
 	/* Top left corner, below File */
 	if (stamp_data.note[0]) {
 		text_width = BMF_GetStringWidth(font, stamp_data.note);
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 	
 	/* Top left corner, below File (or Note) */
 	if (stamp_data.date[0]) {
 		text_width = BMF_GetStringWidth(font, stamp_data.date);
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 
 	/* Bottom left corner, leaving space for timing */
@@ -1094,8 +1093,8 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		x = 1;
 		y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
 		text_width = BMF_GetStringWidth(font, stamp_data.marker);
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	/* Left bottom corner */
@@ -1103,8 +1102,8 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		x = 1;
 		y = 1;
 		text_width = BMF_GetStringWidth(font, stamp_data.time);
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 		x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
 	}
 	
@@ -1113,8 +1112,8 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		/* Left bottom corner (after SMPTE if exists) */
 		if (!stamp_data.time[0])	x = 1;
 		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 
 	if (stamp_data.camera[0]) {
@@ -1122,8 +1121,8 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		/* Center of bottom edge */
 		x = (width/2) - (BMF_GetStringWidth(font, stamp_data.camera)/2);
 		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	if (stamp_data.scene[0]) {
@@ -1131,8 +1130,8 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		/* Bottom right corner */
 		x = width - (text_width+1+text_pad);
 		y = 1;
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 	if (stamp_data.strip[0]) {
@@ -1140,20 +1139,20 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height, int
 		/* Top right corner */
 		x = width - (text_width+1+text_pad);
 		y = height - font_height - 1;
-		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height, channels);
+		buf_rectfill_area(rect, rectf, width, height, scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, scene->r.fg_stamp, rect, rectf, width, height, channels);
 	}
 	
 }
 
-void BKE_stamp_info(struct ImBuf *ibuf)
+void BKE_stamp_info(Scene *scene, struct ImBuf *ibuf)
 {
 	struct StampData stamp_data;
 
 	if (!ibuf)	return;
 	
 	/* fill all the data values, no prefix */
-	stampdata(&stamp_data, 0);
+	stampdata(scene, &stamp_data, 0);
 	
 	if (stamp_data.file[0])		IMB_imginfo_change_field (ibuf, "File",		stamp_data.file);
 	if (stamp_data.note[0])		IMB_imginfo_change_field (ibuf, "Note",		stamp_data.note);
@@ -1166,7 +1165,7 @@ void BKE_stamp_info(struct ImBuf *ibuf)
 	if (stamp_data.strip[0])	IMB_imginfo_change_field (ibuf, "Strip",	stamp_data.strip);
 }
 
-int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
+int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
 {
 	int ok;
 	
@@ -1229,8 +1228,8 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	
 	BLI_make_existing_file(name);
 
-	if(G.scene->r.scemode & R_STAMP_INFO)
-		BKE_stamp_info(ibuf);
+	if(scene->r.scemode & R_STAMP_INFO)
+		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
 	if (ok == 0) {
@@ -1241,7 +1240,7 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 }
 
 
-void BKE_makepicstring(char *string, char *base, int frame, int imtype)
+void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype)
 {
 	if (string==NULL) return;
 
@@ -1254,8 +1253,8 @@ void BKE_makepicstring(char *string, char *base, int frame, int imtype)
 	BLI_convertstringcode(string, G.sce);
 	BLI_convertstringframe(string, frame);
 
-	if(G.scene->r.scemode & R_EXTENSION) 
-		BKE_add_image_extension(string, imtype);
+	if(scene->r.scemode & R_EXTENSION) 
+		BKE_add_image_extension(scene, string, imtype);
 		
 }
 
@@ -1426,12 +1425,12 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 	return rpass;
 }
 
-RenderResult *BKE_image_get_renderresult(Image *ima)
+RenderResult *BKE_image_get_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr)
 		return ima->rr;
 	if(ima->type==IMA_TYPE_R_RESULT)
-		return RE_GetResult(RE_GetRender(G.scene->id.name));
+		return RE_GetResult(RE_GetRender(scene->id.name));
 	return NULL;
 }
 
@@ -1736,7 +1735,10 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
    like exr, using layers etc */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 {
-	RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
+	RenderResult *rr= NULL;
+	
+	if(iuser->scene)
+		 rr= RE_GetResult(RE_GetRender(iuser->scene->id.name));
 	
 	if(rr) {
 		RenderResult rres;
@@ -1750,10 +1752,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
-		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+		RE_GetResultImage(RE_GetRender(iuser->scene->id.name), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
-		dither= G.scene->r.dither_intensity;
+		dither= iuser->scene->r.dither_intensity;
 
 		/* get compo/seq result by default */
 		if(rr->rectf && layer==0);
@@ -1928,7 +1930,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 			else if(ima->source==IMA_SRC_FILE) {
 				
 				if(ima->type==IMA_TYPE_IMAGE)
-					ibuf= image_load_image_file(ima, iuser, G.scene->r.cfra);	/* cfra only for '#', this global is OK */
+					ibuf= image_load_image_file(ima, iuser, frame);	/* cfra only for '#', this global is OK */
 				/* no else; on load the ima type can change */
 				if(ima->type==IMA_TYPE_MULTILAYER)
 					/* keeps render result, stores ibufs in listbase, allows saving */

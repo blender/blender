@@ -42,21 +42,7 @@ extern "C" {
 #endif
 
 /* forwards */
-struct View3D;
-struct View2D;
-struct SpaceIpo;
-struct SpaceButs;
-struct SpaceImage;
-struct SpaceOops;
-struct SpaceText;
-struct SpaceSound;
-struct SpaceAction;
-struct SpaceNla;
 struct Main;
-struct Scene;
-struct bScreen;
-struct ScrArea;
-struct ARegion;
 struct Object;
 struct bSoundListener;
 struct BMF_Font;
@@ -66,8 +52,6 @@ typedef struct Global {
 
 	/* active pointers */
 	struct Main *main;
-	struct Scene *scene;			/* denk aan file.c */
-	struct bScreen *curscreen;
 	char editModeTitleExtra[64];
 	
 	/* fonts, allocated global data */
@@ -103,9 +87,6 @@ typedef struct Global {
 	/* Frank's variables */
 	int	save_over;
 
-	/* Reevan's __NLA variables */
-	struct	ListBase edbo;			/* Armature Editmode bones */
- 
 	/* Rob's variables (keep here for WM recode) */
 	int have_quicktime;
 	int ui_international;

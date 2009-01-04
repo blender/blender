@@ -188,7 +188,7 @@ static int safe_puts(char * s)
 	return safe_write(s, strlen(s));
 }
 
-static int handle_request(char * req)
+static int handle_request(RenderData *rd, char * req)
 {
 	char * p;
 	char * path;
@@ -230,11 +230,11 @@ static int handle_request(char * req)
 			"height %d\n" 
 			"rate %d\n"
 			"ratescale %d\n",
-			G.scene->r.sfra,
-			G.scene->r.efra,
+			rd->sfra,
+			rd->efra,
 			render_width,
 			render_height,
-			G.scene->r.frs_sec,
+			rd->frs_sec,
 			1
 			);
 
@@ -249,7 +249,7 @@ static int handle_request(char * req)
 	return -1;
 }
 
-int frameserver_loop(void)
+int frameserver_loop(RenderData *rd)
 {
 	fd_set readfds;
 	struct timeval tv;
@@ -312,7 +312,7 @@ int frameserver_loop(void)
 
 	buf[len] = 0;
 
-	return handle_request(buf);
+	return handle_request(rd, buf);
 }
 
 static void serve_ppm(int *pixels, int rectx, int recty)

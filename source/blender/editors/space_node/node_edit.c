@@ -590,13 +590,13 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		snode->from= NULL;
-		snode->id= &G.scene->id;
+		snode->id= &scene->id;
 		
 		/* bit clumsy but reliable way to see if we draw first time */
 		if(snode->nodetree==NULL)
-			ntreeCompositForceHidden(G.scene->nodetree);
+			ntreeCompositForceHidden(scene->nodetree, scene);
 		
-		snode->nodetree= G.scene->nodetree;
+		snode->nodetree= scene->nodetree;
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		if(ob) {
@@ -915,6 +915,7 @@ bNode *next_node(bNodeTree *ntree)
 	return NULL;
 }
 
+#if 0
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, rctf *rct)
 {
@@ -926,6 +927,7 @@ static bNode *visible_node(SpaceNode *snode, rctf *rct)
 	}
 	return tnode;
 }
+#endif
 
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode* snode)
 {
@@ -1813,7 +1815,7 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 			id_us_plus(node->id);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT)
-			ntreeCompositForceHidden(snode->edittree);
+			ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
 		
 		NodeTagChanged(snode->edittree, node);
 	}

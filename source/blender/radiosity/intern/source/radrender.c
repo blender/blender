@@ -318,7 +318,7 @@ static void progressiverad_rr(Render *re)
 	}
 	printf(" Unshot energy:%f\n", 1000.0*maxenergy);
 	
-	re->timecursor((G.scene->r.cfra));
+	re->timecursor((re->scene->r.cfra));
 }
 
 static RadFace *radfaces=NULL;
@@ -500,10 +500,10 @@ static void make_vertex_rad_values(Render *re)
 /* main call, extern */
 void do_radio_render(Render *re)
 {
-	if(G.scene->radio==NULL) add_radio();
-	freeAllRad();	/* just in case radio-tool is still used */
+	if(re->scene->radio==NULL) add_radio(re->scene);
+	freeAllRad(re->scene);	/* just in case radio-tool is still used */
 	
-	set_radglobal(); /* init the RG struct */
+	set_radglobal(re->scene); /* init the RG struct */
 	RG.re= re;		/* only used by hemizbuf(), prevents polluting radio code all over */
 	
 	initradfaces(re);	 /* add radface structs to render faces */
@@ -518,7 +518,7 @@ void do_radio_render(Render *re)
 
 	}
 	
-	freeAllRad();	/* luts, hemis, sets vars at zero */
+	freeAllRad(re->scene);	/* luts, hemis, sets vars at zero */
 }
 
 /* free call, after rendering, extern */

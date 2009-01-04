@@ -244,7 +244,7 @@ bool yafrayFileRender_t::writeRender()
 				 << "\" clamp_rgb=\"" << ((re->r.YF_clamprgb==0) ? "on" : "off") << "\"\n";
 	}
 
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	if (world) ostr << "\tbackground_name=\"world_background\"\n";
  
 	// alpha channel render when RGBA button enabled
@@ -1855,7 +1855,7 @@ void yafrayFileRender_t::writeCamera()
 
 void yafrayFileRender_t::writeHemilight()
 {
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	bool fromAO = false;
 	if (re->r.GIquality==6){
 		// use Blender AO params is possible
@@ -1961,7 +1961,7 @@ void yafrayFileRender_t::writePathlight()
 
 bool yafrayFileRender_t::writeWorld()
 {
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	if (re->r.GIquality!=0) {
 		if (re->r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";

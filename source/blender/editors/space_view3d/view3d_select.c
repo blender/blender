@@ -560,13 +560,14 @@ static void do_lasso_select_lattice(ViewContext *vc, short mcords[][2], short mo
 
 static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short moves, short select)
 {
+	bArmature *arm= vc->obedit->data;
 	EditBone *ebone;
 	float vec[3];
 	short sco1[2], sco2[2], didpoint;
 	
 	/* set editdata in vc */
 	
-	for (ebone=G.edbo.first; ebone; ebone=ebone->next) {
+	for (ebone= arm->edbo->first; ebone; ebone=ebone->next) {
 
 		VECCOPY(vec, ebone->head);
 		Mat4MulVecfl(vc->obedit->obmat, vec);
@@ -1352,10 +1353,11 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else if(obedit->type==OB_ARMATURE) {
+			bArmature *arm= obedit->data;
 			EditBone *ebone;
 			
 			/* clear flag we use to detect point was affected */
-			for(ebone= G.edbo.first; ebone; ebone= ebone->next)
+			for(ebone= arm->edbo->first; ebone; ebone= ebone->next)
 				ebone->flag &= ~BONE_DONE;
 			
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
@@ -1364,7 +1366,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			for (a=0; a<hits; a++){
 				index = buffer[(4*a)+3];
 				if (index!=-1) {
-					ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_TIP) {
 						ebone->flag |= BONE_DONE;
 						if (val==LEFTMOUSE) ebone->flag |= BONE_TIPSEL;
@@ -1380,7 +1382,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			}
 			
 			/* now we have to flush tag from parents... */
-			for(ebone= G.edbo.first; ebone; ebone= ebone->next) {
+			for(ebone= arm->edbo->first; ebone; ebone= ebone->next) {
 				if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 					if(ebone->parent->flag & BONE_DONE)
 						ebone->flag |= BONE_DONE;
@@ -1391,7 +1393,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			for (a=0; a<hits; a++){
 				index = buffer[(4*a)+3];
 				if (index!=-1) {
-					ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+					ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 					if (index & BONESEL_BONE) {
 						if(!(ebone->flag & BONE_DONE)) {
 							if (val==LEFTMOUSE)

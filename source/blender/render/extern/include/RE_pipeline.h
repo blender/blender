@@ -124,10 +124,11 @@ typedef struct RenderResult {
 
 
 typedef struct RenderStats {
+	int cfra;
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
-	char *infostr;
+	char *infostr, scenename[32];
 	
 } RenderStats;
 
@@ -195,7 +196,7 @@ struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
 void RE_MergeFullSample(struct Render *re, struct Scene *sce, struct bNodeTree *ntree);
 
 /* ancient stars function... go away! */
-void RE_make_stars(struct Render *re, void (*initfunc)(void),
+void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
 				   void (*vertexfunc)(float*),  void (*termfunc)(void));
 
 /* display and event callbacks */
@@ -226,6 +227,7 @@ void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
+struct Scene *RE_GetScene(struct Render *re);
 
 #endif /* RE_PIPELINE_H */
 

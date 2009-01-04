@@ -157,7 +157,7 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene)
 
 	if (maggie != NULL && scene != NULL)
 	{
-		G.scene = scene;
+// XXX		G.scene = scene;
 		m_maggie = maggie;
 		m_startSceneName = scene->id.name+2;
 		m_startScene = scene;
@@ -643,7 +643,7 @@ bool GPG_Application::startEngine(void)
 	/*
 	m_canvas->SetBannerDisplayEnabled(true);	
 	Camera* cam;
-	cam = (Camera*)G.scene->camera->data;
+	cam = (Camera*)scene->camera->data;
 	if (cam) {
 	if (((cam->flag) & 48)==48) {
 	m_canvas->SetBannerDisplayEnabled(false);
@@ -712,7 +712,7 @@ bool GPG_Application::startEngine(void)
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
-		m_ketsjiengine->SetAnimFrameRate( (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base) );
+// XXX		m_ketsjiengine->SetAnimFrameRate( (((double) scene->r.frs_sec) / scene->r.frs_sec_base) );
 		
 	}
 	

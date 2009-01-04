@@ -849,21 +849,15 @@ void automatname(Material *ma)
 }
 
 
-void delete_material_index()
+void delete_material_index(Object *ob)
 {
 	Material *mao, ***matarar;
-	Object *ob, *obt;
+	Object *obt;
 	Curve *cu;
 	Nurb *nu;
 	short *totcolp;
 	int a, actcol;
 	
-	//	if(obedit) {
-		//XXX error("Unable to perform function in EditMode");
-		//		return;
-	//	}
-	
-	ob= ((G.scene->basact)? (G.scene->basact->object) : 0) ;
 	if(ob==NULL || ob->totcol==0) return;
 	
 	/* take a mesh/curve/mball as starting point, remove 1 index,

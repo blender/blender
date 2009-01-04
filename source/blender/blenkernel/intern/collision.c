@@ -1296,7 +1296,7 @@ int cloth_collision_moving ( ClothModifierData *clmd, CollisionModifierData *col
 
 // return all collision objects in scene
 // collision object will exclude self 
-CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
+CollisionModifierData **get_collisionobjects(Scene *scene, Object *self, int *numcollobj)
 {
 	Base *base=NULL;
 	CollisionModifierData **objs = NULL;
@@ -1306,7 +1306,7 @@ CollisionModifierData **get_collisionobjects(Object *self, int *numcollobj)
 	
 	objs = MEM_callocN(sizeof(CollisionModifierData *)*maxobj, "CollisionObjectsArray");
 	// check all collision objects
-	for ( base = G.scene->base.first; base; base = base->next )
+	for ( base = scene->base.first; base; base = base->next )
 	{
 		/*Only proceed for mesh object in same layer */
 		if(!(base->object->type==OB_MESH && (base->lay & self->lay))) 
@@ -1451,7 +1451,7 @@ int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, CollisionModifie
 }
 
 // cloth - object collisions
-int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, float dt )
+int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, float dt )
 {
 	Cloth *cloth=NULL;
 	BVHTree *cloth_bvh=NULL;
@@ -1481,7 +1481,7 @@ int cloth_bvh_objcollision ( Object *ob, ClothModifierData * clmd, float step, f
 	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
-	collobjs = get_collisionobjects(ob, &numcollobj);
+	collobjs = get_collisionobjects(clmd->scene, ob, &numcollobj);
 	
 	if(!collobjs)
 		return 0;

@@ -34,6 +34,7 @@ struct bConstraint;
 struct bConstraintTarget;
 struct ListBase;
 struct Object;
+struct Scene;
 struct bConstraintChannel;
 struct bPoseChannel;
 
@@ -41,6 +42,7 @@ struct bPoseChannel;
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
+	struct Scene *scene;		/* for system time, part of deglobalization, code nicer later with local time (ton) */
 	struct Object *ob;			/* if pchan, then armature that it comes from, otherwise constraint owner */
 	struct bPoseChannel *pchan;	/* pose channel that owns the constraints being evaluated */
 	
@@ -128,7 +130,7 @@ void free_constraint_channels(struct ListBase *chanbase);
 
 
 /* Constraint Evaluation function prototypes */
-struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);
+struct bConstraintOb *constraints_make_evalob(struct Scene *scene, struct Object *ob, void *subdata, short datatype);
 void constraints_clear_evalob(struct bConstraintOb *cob);
 
 void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, float mat[][4], short from, short to);

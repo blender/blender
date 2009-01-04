@@ -2628,7 +2628,7 @@ static void force_hidden_passes(bNode *node, int passflag)
 }
 
 /* based on rules, force sockets hidden always */
-void ntreeCompositForceHidden(bNodeTree *ntree)
+void ntreeCompositForceHidden(bNodeTree *ntree, Scene *curscene)
 {
 	bNode *node;
 	
@@ -2636,7 +2636,7 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if( node->type==CMP_NODE_R_LAYERS) {
-			Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+			Scene *sce= node->id?(Scene *)node->id:curscene;
 			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
 			if(srl)
 				force_hidden_passes(node, srl->passflag);

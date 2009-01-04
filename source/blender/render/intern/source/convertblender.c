@@ -163,7 +163,7 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
 *        differ in clarity/color
 */
 
-void RE_make_stars(Render *re, void (*initfunc)(void),
+void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 				   void (*vertexfunc)(float*),  void (*termfunc)(void))
 {
 	extern unsigned char hash[512];
@@ -179,8 +179,8 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
 	
 	if(initfunc) {
-		scene= G.scene;
-		wrld= G.scene->world;
+		scene= scenev3d;
+		wrld= scene->world;
 	}
 	else {
 		scene= re->scene;
@@ -870,7 +870,7 @@ static float *get_object_orco(Render *re, Object *ob)
 	
 	if (!orco) {
 		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = make_orco_curve(ob);
+			orco = make_orco_curve(re->scene, ob);
 		} else if (ob->type==OB_SURF) {
 			orco = make_orco_surf(ob);
 		} else if (ob->type==OB_MBALL) {
@@ -1473,7 +1473,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	MCol *mcol= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
-	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)re->scene->r.cfra,0.0);
+	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(re->scene, ob, (float)re->scene->r.cfra, 0.0);
 	float adapt_angle=0.0, adapt_pix=0.0, random, simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, totcol=0, override_uv=-1, dosimplify = 0, dosurfacecache = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=0;
@@ -1570,7 +1570,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if(part->flag&PART_GLOB_TIME)
-		cfra=bsystem_time(0,(float)re->scene->r.cfra,0.0);
+		cfra=bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
 
 	if(part->type==PART_REACTOR){
 		psys_get_reactor_target(ob, psys, &tob, &tpsys);
@@ -1674,7 +1674,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	}
 
 	if(path_nbr==0)
-		psys->lattice=psys_get_lattice(ob,psys);
+		psys->lattice= psys_get_lattice(re->scene, ob, psys);
 
 /* 3. start creating renderable things */
 	for(a=0,pa=pars; a<totpart+totchild; a++, pa++, seed++) {
@@ -1958,7 +1958,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			else{
 				time=0.0f;
 				state.time=cfra;
-				if(psys_get_particle_state(ob,psys,a,&state,0)==0)
+				if(psys_get_particle_state(re->scene, ob, psys, a, &state, 0)==0)
 					continue;
 			}
 
@@ -2022,7 +2022,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
-	if(ma) do_mat_ipo(ma);
+	if(ma) do_mat_ipo(re->scene, ma);
 
 	if(orco1)
 		MEM_freeN(orco);
@@ -2348,7 +2348,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	float *data, *nors, *orco, mat[4][4], imat[3][3], xn, yn, zn;
 	int a, need_orco, vlakindex, *index;
 
-	if (ob!=find_basis_mball(ob))
+	if (ob!=find_basis_mball(re->scene, ob))
 		return;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
@@ -2362,7 +2362,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		need_orco= 1;
 	}
 	
-	makeDispListMBall(ob);
+	makeDispListMBall(re->scene, ob);
 	dl= ob->disp.first;
 	if(dl==0) return;
 
@@ -2634,7 +2634,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	if(need_orco) orcobase= orco= get_object_orco(re, ob);
 
 	displist.first= displist.last= 0;
-	makeDispListSurf(ob, &displist, 1);
+	makeDispListSurf(re->scene, ob, &displist, 1);
 
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
@@ -2674,7 +2674,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	
 	/* test displist */
 	if(cu->disp.first==NULL) 
-		makeDispListCurveTypes(ob, 0);
+		makeDispListCurveTypes(re->scene, ob, 0);
 	dl= cu->disp.first;
 	if(cu->disp.first==NULL) return;
 	
@@ -3084,7 +3084,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			me->mr->flag &= ~MULTIRES_NO_RENDER;
 	}
 
-	dm= mesh_create_derived_render(ob, mask);
+	dm= mesh_create_derived_render(re->scene, ob, mask);
 	if(dm==NULL) return;	/* in case duplicated object fails? */
 
 	if(mask & CD_MASK_ORCO) {
@@ -4233,7 +4233,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 			/* the emitter mesh wasn't rendered so the modifier stack wasn't
 			 * evaluated with render settings */
 			DerivedMesh *dm;
-			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm = mesh_create_derived_render(re->scene, ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 		}
 
@@ -4529,7 +4529,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 			/* this is to make sure we get render level duplis in groups:
 			* the derivedmesh must be created before init_render_mesh,
 			* since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm = mesh_create_derived_render(re->scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 			dm->release(dm);
 
 			for(psys=ob->particlesystem.first; psys; psys=psys->next)
@@ -4769,7 +4769,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
-
+	re->i.cfra= scene->r.cfra;
+	strncpy(re->i.scenename, scene->id.name+2, 20);
+	
 	/* XXX add test if dbase was filled already? */
 	
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
@@ -4834,7 +4836,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		tothalo= re->tothalo;
 		if(!re->test_break())
 			if(re->wrld.mode & WO_STARS)
-				RE_make_stars(re, NULL, NULL, NULL);
+				RE_make_stars(re, NULL, NULL, NULL, NULL);
 		sort_halos(re, tothalo);
 		
 		re->i.infostr= "Creating Shadowbuffers";
@@ -4922,8 +4924,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
 	else lay= re->scene->lay;
 	
-	/* applies changes fully, still using G.scene for timing... */
-	G.scene->r.cfra+=timeoffset;
+	/* applies changes fully */
+	scene->r.cfra += timeoffset;
 	scene_update_for_newframe(re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
@@ -4940,7 +4942,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
 
 	/* do this in end, particles for example need cfra */
-	G.scene->r.cfra-=timeoffset;
+	scene->r.cfra -= timeoffset;
 }
 
 /* choose to use static, to prevent giving too many args to this call */
@@ -5528,7 +5530,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 		return;
 	}
 	
-	if(G.scene->camera==NULL) {
+	if(scene->camera==NULL) {
 		printf("Need camera to make sticky\n");
 		return;
 	}
@@ -5538,14 +5540,14 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	}
 	
 	re= RE_NewRender("_make sticky_");
-	RE_InitState(re, NULL, &G.scene->r, G.scene->r.xsch, G.scene->r.ysch, NULL);
+	RE_InitState(re, NULL, &scene->r, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */
-	RE_SetCamera(re, G.scene->camera);
+	RE_SetCamera(re, scene->camera);
 
 	/* and set view matrix */
-	Mat4Ortho(G.scene->camera->obmat);
-	Mat4Invert(mat, G.scene->camera->obmat);
+	Mat4Ortho(scene->camera->obmat);
+	Mat4Invert(mat, scene->camera->obmat);
 	RE_SetView(re, mat);
 	
 	for(base= FIRSTBASE; base; base= base->next) {
@@ -5560,7 +5562,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
 					CD_CALLOC, NULL, me->totvert);
 				
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				Mat4MulMat4(mat, ob->obmat, re->viewmat);
 				
 				ms= me->msticky;

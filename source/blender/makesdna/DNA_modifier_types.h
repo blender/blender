@@ -57,7 +57,10 @@ typedef struct ModifierData {
 
 	int type, mode;
 	char name[32];
-
+	
+	/* XXX for timing info set by caller... solve later? (ton) */
+	struct Scene *scene;
+	
 	char *error;
 } ModifierData;
 
@@ -390,12 +393,13 @@ typedef struct SoftbodyModifierData {
 } SoftbodyModifierData;
 
 typedef struct ClothModifierData {
-   ModifierData		modifier;
+	ModifierData		modifier;
 
-   struct Cloth *clothObject; /* The internal data structure for cloth. */
-   struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
-   struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
-   struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct Scene *scene;			/* the context, time etc is here */
+	struct Cloth *clothObject;		/* The internal data structure for cloth. */
+	struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } ClothModifierData;
 
 typedef struct CollisionModifierData {

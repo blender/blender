@@ -517,7 +517,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 	/* co: local coord, result local too */
 	/* returns quaternion for rotation, using cd->no_rot_axis */
 	/* axis is using another define!!! */
-static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
+static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, CurveDeform *cd, float *quatp)
 {
 	Curve *cu= par->data;
 	float fac, loc[4], dir[3], cent[3];
@@ -546,7 +546,7 @@ static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd
 	}
 	/* to be sure, mostly after file load */
 	if(cu->path==NULL) {
-		makeDispListCurveTypes(par, 0);
+		makeDispListCurveTypes(scene, par, 0);
 		if(cu->path==NULL) return 0;	// happens on append...
 	}
 	
@@ -607,7 +607,7 @@ static int calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd
 	return 0;
 }
 
-void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
+void curve_deform_verts(Scene *scene, Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
 {
 	Curve *cu;
 	int a, flag;
@@ -673,7 +673,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
 						VECCOPY(vec, vertexCos[a]);
-						calc_curve_deform(cuOb, vec, defaxis, &cd, NULL);
+						calc_curve_deform(scene, cuOb, vec, defaxis, &cd, NULL);
 						VecLerpf(vertexCos[a], vertexCos[a], vec,
 						         dvert->dw[j].weight);
 						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
@@ -691,7 +691,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 		}
 
 		for(a = 0; a < numVerts; a++) {
-			calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd, NULL);
+			calc_curve_deform(scene, cuOb, vertexCos[a], defaxis, &cd, NULL);
 			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
 		}
 	}
@@ -701,7 +701,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 /* input vec and orco = local coord in armature space */
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
-void curve_deform_vector(Object *cuOb, Object *target, float *orco, float *vec, float mat[][3], int no_rot_axis)
+void curve_deform_vector(Scene *scene, Object *cuOb, Object *target, float *orco, float *vec, float mat[][3], int no_rot_axis)
 {
 	CurveDeform cd;
 	float quat[4];
@@ -719,7 +719,7 @@ void curve_deform_vector(Object *cuOb, Object *target, float *orco, float *vec, 
 
 	Mat4MulVecfl(cd.curvespace, vec);
 	
-	if(calc_curve_deform(cuOb, vec, target->trackflag+1, &cd, quat)) {
+	if(calc_curve_deform(scene, cuOb, vec, target->trackflag+1, &cd, quat)) {
 		float qmat[3][3];
 		
 		QuatToMat3(quat, qmat);
@@ -895,7 +895,7 @@ void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
 	}
 }
 
-void lattice_calc_modifiers(Object *ob)
+void lattice_calc_modifiers(Scene *scene, Object *ob)
 {
 	Lattice *lt= ob->data;
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
@@ -905,12 +905,14 @@ void lattice_calc_modifiers(Object *ob)
 	freedisplist(&ob->disp);
 
 	if (!editmode) {
-		do_ob_key(ob);
+		do_ob_key(scene, ob);
 	}
 
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
+		md->scene= scene;
+		
 		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;

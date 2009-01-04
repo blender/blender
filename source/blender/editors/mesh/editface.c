@@ -623,11 +623,13 @@ MTFace *get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int slo
 	return NULL;
 }
 
-void make_tfaces(Mesh *me) 
+static void make_tfaces(Object *ob) 
 {
+	Mesh *me= ob->data;
+	
 	if(!me->mtface) {
 		if(me->mr) {
-			multires_add_layer(me, &me->mr->fdata, CD_MTFACE,
+			multires_add_layer(ob, &me->mr->fdata, CD_MTFACE,
 			                   CustomData_number_of_layers(&me->fdata, CD_MTFACE));
 		}
 		else {
@@ -1312,7 +1314,7 @@ void set_texturepaint(Scene *scene) /* toggle */
 		G.f |= G_TEXTUREPAINT;
 
 		if(me->mtface==NULL)
-			make_tfaces(me);
+			make_tfaces(ob);
 
 		brush_check_exists(&scene->toolsettings->imapaint.brush);
 		GPU_paint_set_mipmap(0);
@@ -1373,9 +1375,9 @@ static void texpaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, fl
 }
 
 /* compute uv coordinates of mouse in face */
-void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *uv)
+void texpaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *uv)
 {
-	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumFaces(dm), a;

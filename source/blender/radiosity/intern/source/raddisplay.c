@@ -199,11 +199,13 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 	View3D *v3d;
 	glDrawBuffer(GL_FRONT);
 
+	return; // XXX
+	
 	cpack(col);
 
 	oldsa= NULL; // XXX curarea;
 
-	sa= G.curscreen->areabase.first;
+//	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
 			v3d= sa->spacedata.first;
@@ -455,9 +457,11 @@ void rad_forcedraw()
 {
  	ScrArea *sa, *oldsa;
 	
+	return; // XXX
+	
 	oldsa= NULL; // XXX curarea;
 
-	sa= G.curscreen->areabase.first;
+///	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
 		 	/* use mywinget() here: othwerwise it draws in header */

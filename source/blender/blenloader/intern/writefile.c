@@ -522,11 +522,11 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	Scene *sce;
 	int data[8];
 
+	/* XXX in future, handle multiple windows with multiple screnes? */
 	current_screen_compat(mainvar, &curscreen);
 
-	sce= mainvar->scene.first;
-	while(sce) {
-		if(sce->id.lib==0  && ( sce==G.scene || (sce->r.scemode & R_BG_RENDER)) ) {
+	for(sce= mainvar->scene.first; sce; sce= sce->id.next) {
+		if(sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
@@ -535,7 +535,6 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 
 			writedata(wd, REND, 32, data);
 		}
-		sce= sce->id.next;
 	}
 }
 
@@ -2068,7 +2067,7 @@ static void write_global(WriteData *wd, Main *mainvar)
 
 	/* XXX still remap G */
 	fg.curscreen= screen;
-	fg.curscene= G.scene;
+	fg.curscene= screen->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...

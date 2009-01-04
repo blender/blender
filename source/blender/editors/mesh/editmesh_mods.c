@@ -119,15 +119,15 @@ void EM_automerge(int update)
 {
 // XXX	int len;
 	
-//	if ((G.scene->automerge) &&
+//	if ((scene->automerge) &&
 //		(obedit && obedit->type==OB_MESH) &&
 //		(((Mesh*)obedit->data)->mr==NULL)
 //	  ) {
-//		len = removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
+//		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
 //		if (len) {
 //			G.totvert -= len; /* saves doing a countall */
 //			if (update) {
-//				DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//				DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 //			}
 //		}
 //	}
@@ -670,7 +670,7 @@ int facegroup_select(EditMesh *em, short mode)
 	unsigned int deselcount=0; 
 	
 	short ok=0;
-	float thresh=0; // XXX G.scene->toolsettings->select_thresh;
+	float thresh=0; // XXX scene->toolsettings->select_thresh;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if (!efa->h) {
@@ -814,7 +814,7 @@ static int edgegroup_select__internal(EditMesh *em, short mode)
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=0; // XXX G.scene->toolsettings->select_thresh;
+	float thresh=0; // XXX scene->toolsettings->select_thresh;
 	
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if (!eed->h) {
@@ -1043,7 +1043,7 @@ int vertgroup_select(EditMesh *em, short mode)
 	unsigned int deselcount=0;
 	
 	short ok=0;
-	float thresh=0; // XXX G.scene->toolsettings->select_thresh;
+	float thresh=0; // XXX scene->toolsettings->select_thresh;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if (!eve->h) {
@@ -1343,7 +1343,7 @@ void EM_mesh_copy_edge(EditMesh *em, short type)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
 		BIF_undo_push("Copy Edge Attribute");
 	}
@@ -1472,7 +1472,7 @@ void EM_mesh_copy_face(EditMesh *em, short type)
 	}
 	
 	if (change) {
-//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		if (type==3) {
 // XXX			allqueue(REDRAWIMAGE, 0);			
 		}
@@ -1606,7 +1606,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, short type)
 	}
 
 	if (change) {
-//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		
 		BIF_undo_push("Copy Face Layer");
 	}
@@ -2006,7 +2006,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 				}
 			}
 			
-			switch (0) { // XXX G.scene->toolsettings->edge_mode) {
+			switch (0) { // XXX scene->toolsettings->edge_mode) {
 			case EDGE_MODE_TAG_SEAM:
 				G.f |= G_DRAWSEAMS;
 				break;
@@ -2021,7 +2021,7 @@ static void mouse_mesh_loop(ViewContext *vc)
 				break;
 			}
 			
-//			DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		}
 				
 	}
@@ -2425,7 +2425,7 @@ void hide_mesh(EditMesh *em, int swap)
 	G.totedgesel= G.totfacesel= G.totvertsel= 0;
 //	if(EM_texFaceCheck())
 
-	//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Hide");
 }
 
@@ -2463,7 +2463,7 @@ void reveal_mesh(EditMesh *em)
 	EM_selectmode_flush(em);
 
 //	if (EM_texFaceCheck())
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Reveal");
 }
 
@@ -3431,7 +3431,7 @@ void Vertex_Menu(EditMesh *em)
 	switch(ret)
 	{
 		case 1:
-// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, G.scene->toolsettings->doublimit));
+// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 2:	
@@ -3452,7 +3452,7 @@ void Vertex_Menu(EditMesh *em)
 			break;
 	}
 	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 
@@ -3499,16 +3499,16 @@ void Edge_Menu(EditMesh *em)
 	case 11:
 //		editmesh_mark_sharp(em, 1);
 		BIF_undo_push("Mark Sharp");
-//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 12: 
 //		editmesh_mark_sharp(em, 0);
 		BIF_undo_push("Clear Sharp");
-//		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	}
 	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 void Face_Menu(EditMesh *em) 
@@ -3525,7 +3525,7 @@ void Face_Menu(EditMesh *em)
 	{
 		case 1:
 //			flip_editnormals(em);
-//			DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 			BIF_undo_push("Flip Normals");
 			break;
 		case 2:
@@ -3540,7 +3540,7 @@ void Face_Menu(EditMesh *em)
 			
 		case 5: /* Quads to Tris */
 //			convert_to_triface(em, 0);
-//			DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 			break;
 		case 6: /* Tris to Quads */
 //			join_triangles(em);
@@ -3570,7 +3570,7 @@ void Face_Menu(EditMesh *em)
 			break;
 	}
 	/* some items crashed because this is in the original W menu but not here. should really manage this better */
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 
@@ -3781,7 +3781,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 
 	recalc_editnormals(em);
 	
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	waitcursor(0);
 }
@@ -3856,7 +3856,7 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 	if (totselected == 0)
 		error("No faces selected.");
 	else
-		view3d_align_axis_to_vector(v3d, axis, norm);
+		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
 }
 
 /* helper for below, to survive non-uniform scaled objects */
@@ -3901,7 +3901,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 
-		view3d_align_axis_to_vector(v3d, axis, norm);
+		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
 	} 
 	else if (nselverts>2) {
 		float cent[3];
@@ -3926,7 +3926,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 		}
 
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(v3d, axis, norm);
+		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
 	} 
 	else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
 		EditVert *eve, *leve= NULL;
@@ -3943,7 +3943,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(v3d, axis, norm);
+		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
 	} 
 	else if (nselverts==1) { /* Align view to vert normal */ 
 		EditVert *eve;
@@ -3957,7 +3957,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(v3d, axis, norm);
+		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
 	}
 } 
 
@@ -4049,7 +4049,7 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
-// XXX				if (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR) {
+// XXX				if (scene->toolsettings->editbutflag & B_MESH_X_MIRROR) {
 //					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
 //				}
 				
@@ -4089,7 +4089,7 @@ void vertexsmooth(Object *obedit, EditMesh *em)
 
 	recalc_editnormals(em);
 
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Vertex Smooth");
 }
@@ -4135,7 +4135,7 @@ void vertexnoise(Object *obedit, EditMesh *em)
 	}
 
 	recalc_editnormals(em);
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("Vertex Noise");
 }
@@ -4194,7 +4194,7 @@ void vertices_to_sphere(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em)
 	}
 	
 	recalc_editnormals(em);
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 
 	BIF_undo_push("To Sphere");
 }

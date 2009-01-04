@@ -233,27 +233,27 @@ void free_ipo (Ipo *ipo)
 /* ---------------------- Init --------------------------- */
 
 /* on adding new ipos, or for empty views */
-void ipo_default_v2d_cur (int blocktype, rctf *cur)
+void ipo_default_v2d_cur (Scene *scene, int blocktype, rctf *cur)
 {
 	switch (blocktype) {
 	case ID_CA:
-		cur->xmin= (float)G.scene->r.sfra;
-		cur->xmax= (float)G.scene->r.efra;
+		cur->xmin= (float)scene->r.sfra;
+		cur->xmax= (float)scene->r.efra;
 		cur->ymin= 0.0f;
 		cur->ymax= 100.0f;
 		break;
 		
 	case ID_MA: case ID_WO: case ID_LA: 
 	case ID_CU: case ID_CO:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
+		cur->xmin= (float)(scene->r.sfra - 0.1f);
+		cur->xmax= (float)scene->r.efra;
 		cur->ymin= (float)-0.1f;
 		cur->ymax= (float)+1.1f;
 		break;
 		
 	case ID_TE:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
+		cur->xmin= (float)(scene->r.sfra - 0.1f);
+		cur->xmax= (float)scene->r.efra;
 		cur->ymin= (float)-0.1f;
 		cur->ymax= (float)+1.1f;
 		break;
@@ -266,15 +266,15 @@ void ipo_default_v2d_cur (int blocktype, rctf *cur)
 		break;
 		
 	case ID_KE:
-		cur->xmin= (float)(G.scene->r.sfra - 0.1f);
-		cur->xmax= (float)G.scene->r.efra;
+		cur->xmin= (float)(scene->r.sfra - 0.1f);
+		cur->xmax= (float)scene->r.efra;
 		cur->ymin= (float)-0.1f;
 		cur->ymax= (float)+2.1f;
 		break;
 		
 	default:	/* ID_OB and everything else */
-		cur->xmin= (float)G.scene->r.sfra;
-		cur->xmax= (float)G.scene->r.efra;
+		cur->xmin= (float)scene->r.sfra;
+		cur->xmax= (float)scene->r.efra;
 		cur->ymin= -5.0f;
 		cur->ymax= +5.0f;
 		break;
@@ -282,13 +282,13 @@ void ipo_default_v2d_cur (int blocktype, rctf *cur)
 }
 
 /* create a new IPO block (allocates the block) */
-Ipo *add_ipo (char name[], int blocktype)
+Ipo *add_ipo (Scene *scene, char name[], int blocktype)
 {
 	Ipo *ipo;
 	
 	ipo= alloc_libblock(&G.main->ipo, ID_IP, name);
 	ipo->blocktype= blocktype;
-	ipo_default_v2d_cur(blocktype, &ipo->cur);
+	if(scene) ipo_default_v2d_cur(scene, blocktype, &ipo->cur);
 
 	return ipo;
 }
@@ -572,7 +572,7 @@ void make_cfra_list (Ipo *ipo, ListBase *elems)
  * rendering. Thus, the use of ugly globals from object.c
  */
 // BAD... EVIL... JUJU...!!!!
-float frame_to_float (int cfra)		/* see also bsystem_time in object.c */
+float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in object.c */
 {
 	extern float bluroffs;	/* bad stuff borrowed from object.c */
 	extern float fieldoffs;
@@ -580,7 +580,7 @@ float frame_to_float (int cfra)		/* see also bsystem_time in object.c */
 	
 	ctime= (float)cfra;
 	ctime+= bluroffs+fieldoffs;
-	ctime*= G.scene->r.framelen;
+	ctime*= scene->r.framelen;
 	
 	return ctime;
 }
@@ -1513,26 +1513,26 @@ void execute_action_ipo (bActionChannel *achan, bPoseChannel *pchan)
 /* Calculate values for given IPO block, then flush to all of block's users
  *	 - for general usage 
  */
-void do_ipo (Ipo *ipo)
+void do_ipo (Scene *scene, Ipo *ipo)
 {
 	if (ipo) {
-		float ctime= frame_to_float(G.scene->r.cfra);
+		float ctime= frame_to_float(scene, scene->r.cfra);
 		
 		/* calculate values, then flush to all users of this IPO block */
 		calc_ipo(ipo, ctime);
-		do_ipo_nocalc(ipo);
+		do_ipo_nocalc(scene, ipo);
 	}
 }
 
 /* Calculate values for given Material's IPO block, then flush to given Material only */
-void do_mat_ipo (Material *ma)
+void do_mat_ipo (Scene *scene, Material *ma)
 {
 	float ctime;
 	
 	if (ELEM(NULL, ma, ma->ipo)) 
 		return;
 	
-	ctime= frame_to_float(G.scene->r.cfra);
+	ctime= frame_to_float(scene, scene->r.cfra);
 	/* if(ob->ipoflag & OB_OFFS_OB) ctime-= ob->sf; */
 	
 	/* calculate values for current time, then flush values to given material only */
@@ -1543,7 +1543,7 @@ void do_mat_ipo (Material *ma)
 /* Calculate values for given Object's IPO block, then flush to given Object only
  *	- there's also some funky stuff that looks like it's for scene layers
  */
-void do_ob_ipo (Object *ob)
+void do_ob_ipo (Scene *scene, Object *ob)
 {
 	float ctime;
 	unsigned int lay;
@@ -1552,7 +1552,7 @@ void do_ob_ipo (Object *ob)
 		return;
 	
 	/* do not set ob->ctime here: for example when parent in invisible layer */
-	ctime= bsystem_time(ob, (float) G.scene->r.cfra, 0.0);
+	ctime= bsystem_time(scene, ob, (float) scene->r.cfra, 0.0);
 	
 	/* calculate values of */
 	calc_ipo(ob->ipo, ctime);
@@ -1566,8 +1566,8 @@ void do_ob_ipo (Object *ob)
 	/* hack: for layer animation??? - is this what this is? (Aligorith, 28Sep2008) */
 	ob->lay |= lay;
 	if ((ob->id.name[2]=='S') && (ob->id.name[3]=='C') && (ob->id.name[4]=='E')) {
-		if (strcmp(G.scene->id.name+2, ob->id.name+6)==0) {
-			G.scene->lay= ob->lay;
+		if (strcmp(scene->id.name+2, ob->id.name+6)==0) {
+			scene->lay= ob->lay;
 			//XXX copy_view3d_lock(0);
 			/* no redraw here! creates too many calls */
 		}
@@ -1594,18 +1594,18 @@ void do_ob_ipodrivers (Object *ob, Ipo *ipo, float ctime)
 }
 
 /* Special variation to calculate IPO values for Sequence + perform other stuff */
-void do_seq_ipo (Sequence *seq, int cfra)
+void do_seq_ipo (Scene *scene, Sequence *seq, int cfra)
 {
 	float ctime, div;
 	
 	/* seq_ipo has an exception: calc both fields immediately */
 	if (seq->ipo) {
 		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-			ctime = frame_to_float(cfra);
+			ctime = frame_to_float(scene, cfra);
 			div = 1.0;
 		} 
 		else {
-			ctime= frame_to_float(cfra - seq->startdisp);
+			ctime= frame_to_float(scene, cfra - seq->startdisp);
 			div= (seq->enddisp - seq->startdisp) / 100.0f;
 			if (div == 0.0) return;
 		}
@@ -1629,7 +1629,7 @@ void do_seq_ipo (Sequence *seq, int cfra)
 /* exception: it does calc for objects...
  * now find out why this routine was used anyway!
  */
-void do_ipo_nocalc (Ipo *ipo)
+void do_ipo_nocalc (struct Scene *scene, Ipo *ipo)
 {
 	Object *ob;
 	Material *ma;
@@ -1648,7 +1648,7 @@ void do_ipo_nocalc (Ipo *ipo)
 	switch (ipo->blocktype) {
 	case ID_OB:
 		for (ob= G.main->object.first; ob; ob= ob->id.next) {
-			if (ob->ipo == ipo) do_ob_ipo(ob);
+			if (ob->ipo == ipo) do_ob_ipo(scene, ob);
 		}
 		break;
 	case ID_MA:
@@ -1688,7 +1688,7 @@ void do_ipo_nocalc (Ipo *ipo)
  * with datablocks being calculated in alphabetical order
  * 	- called on scene_update_for_newframe() only 
  */
-void do_all_data_ipos ()
+void do_all_data_ipos (Scene *scene)
 {
 	Material *ma;
 	Tex *tex;
@@ -1703,26 +1703,26 @@ void do_all_data_ipos ()
 	Base *base;
 	float ctime;
 
-	ctime= frame_to_float(G.scene->r.cfra);
+	ctime= frame_to_float(scene, scene->r.cfra);
 	
 	/* this exception cannot be depgraphed yet... what todo with objects in other layers?... */
-	for (base= G.scene->base.first; base; base= base->next) {
+	for (base= scene->base.first; base; base= base->next) {
 		Object *ob= base->object;
 		
 		/* only update layer when an ipo */
 		if (has_ipo_code(ob->ipo, OB_LAY)) {
-			do_ob_ipo(ob);
+			do_ob_ipo(scene, ob);
 			base->lay= ob->lay;
 		}
 	}
 	
 	/* layers for the set...*/
-	if (G.scene->set) {
-		for (base= G.scene->set->base.first; base; base= base->next) {
+	if (scene->set) {
+		for (base= scene->set->base.first; base; base= base->next) {
 			Object *ob= base->object;
 			
 			if (has_ipo_code(ob->ipo, OB_LAY)) {
-				do_ob_ipo(ob);
+				do_ob_ipo(scene, ob);
 				base->lay= ob->lay;
 			}
 		}
@@ -1771,15 +1771,15 @@ void do_all_data_ipos ()
 	}
 
 	/* Sequencer: process FAC Ipos used as volume envelopes */
-	ed= G.scene->ed;
+	ed= scene->ed;
 	if (ed) {
 		for (seq= ed->seqbasep->first; seq; seq= seq->next) {
 			if ( ((seq->type == SEQ_RAM_SOUND) || (seq->type == SEQ_HD_SOUND)) &&
-				 (seq->startdisp <= G.scene->r.cfra+2) && 
-			     (seq->enddisp>G.scene->r.cfra) &&
+				 (seq->startdisp <= scene->r.cfra+2) && 
+			     (seq->enddisp>scene->r.cfra) &&
 				 (seq->ipo) ) 
 			{
-					do_seq_ipo(seq, G.scene->r.cfra);
+					do_seq_ipo(scene, seq, scene->r.cfra);
 			}
 		}
 	}

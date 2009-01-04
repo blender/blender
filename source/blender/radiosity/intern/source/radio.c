@@ -99,14 +99,14 @@
 
 RadGlobal RG= {0, 0};
 
-void freeAllRad()
+void freeAllRad(Scene *scene)
 {
 	Base *base;
 	extern int Ntotvert, Ntotnode, Ntotpatch;
 	
 	/* clear flag that disables drawing the meshes */
-	if(G.scene) {
-		base= (G.scene->base.first);
+	if(scene) {
+		base= (scene->base.first);
 		while(base) {		
 			if(base->object->type==OB_MESH) {
 				base->flag &= ~OB_RADIO;
@@ -190,9 +190,9 @@ void rad_printstatus()
 //	}
 }
 
-void rad_setlimits()
+void rad_setlimits(Scene *scene)
 {
-	Radio *rad= G.scene->radio;
+	Radio *rad= scene->radio;
 	float fac;
 	
 	fac= 0.0005*rad->pama;
@@ -210,10 +210,10 @@ void rad_setlimits()
 	RG.elemmin*= RG.elemmin;
 }
 
-void set_radglobal()
+void set_radglobal(Scene *scene)
 {
 	/* always call before any action is performed */
-	Radio *rad= G.scene->radio;
+	Radio *rad= scene->radio;
 
 	if(RG.radio==0) {
 		/* firsttime and to be sure */
@@ -223,7 +223,7 @@ void set_radglobal()
 	if(rad==0) return;
 
 	if(rad != RG.radio) {
-		if(RG.radio) freeAllRad();
+		if(RG.radio) freeAllRad(scene);
 		memset(&RG, 0, sizeof(RadGlobal));
 		RG.radio= rad;
 	}
@@ -243,16 +243,16 @@ void set_radglobal()
 	
 	RG.re= NULL;	/* struct render, for when call it from render engine */
 	
-	rad_setlimits();
+	rad_setlimits(scene);
 }
 
 /* called from buttons.c */
-void add_radio()
+void add_radio(Scene *scene)
 {
 	Radio *rad;
 	
-	if(G.scene->radio) MEM_freeN(G.scene->radio);
-	rad= G.scene->radio= MEM_callocN(sizeof(Radio), "radio");
+	if(scene->radio) MEM_freeN(scene->radio);
+	rad= scene->radio= MEM_callocN(sizeof(Radio), "radio");
 
 	rad->hemires= 300;
 	rad->convergence= 0.1;
@@ -271,19 +271,19 @@ void add_radio()
 	rad->maxnode= 10000;
 	rad->maxiter= 120;	// arbitrary
 	rad->flag= 2;
-	set_radglobal();
+	set_radglobal(scene);
 }
 
-void delete_radio()
+void delete_radio(Scene *scene)
 {
-	freeAllRad();
-	if(G.scene->radio) MEM_freeN(G.scene->radio);
-	G.scene->radio= 0;
+	freeAllRad(scene);
+	if(scene->radio) MEM_freeN(scene->radio);
+	scene->radio= 0;
 
 	RG.radio= 0;
 }
 
-int rad_go(void)	/* return 0 when user escapes */
+int rad_go(Scene *scene)	/* return 0 when user escapes */
 {
 	double stime= PIL_check_seconds_timer();
 	int retval;
@@ -292,7 +292,7 @@ int rad_go(void)	/* return 0 when user escapes */
 
 	G.afbreek= 0;
 	
-	set_radglobal();
+	set_radglobal(scene);
 	initradiosity();	/* LUT's */
 	inithemiwindows();	/* views */
 	
@@ -334,14 +334,14 @@ int rad_go(void)	/* return 0 when user escapes */
 	return retval;
 }
 
-void rad_subdivshootpatch()
+void rad_subdivshootpatch(Scene *scene)
 {
 	
 	if(RG.totface) return;
 
 	G.afbreek= 0;
 
-	set_radglobal();
+	set_radglobal(scene);
 	initradiosity();	/* LUT's */
 	inithemiwindows();	/* views */
 	
@@ -353,14 +353,14 @@ void rad_subdivshootpatch()
 // XXX	allqueue(REDRAWVIEW3D, 1);
 }
 
-void rad_subdivshootelem(void)
+void rad_subdivshootelem(Scene *scene)
 {
 	
 	if(RG.totface) return;
 
 	G.afbreek= 0;
 
-	set_radglobal();
+	set_radglobal(scene);
 	initradiosity();	/* LUT's */
 	inithemiwindows();	/* views */
 	
@@ -372,12 +372,12 @@ void rad_subdivshootelem(void)
 // XXX	allqueue(REDRAWVIEW3D, 1);
 }
 
-void rad_limit_subdivide()
+void rad_limit_subdivide(Scene *scene)
 {
 
-	if(G.scene->radio==0) return;
+	if(scene->radio==0) return;
 
-	set_radglobal();
+	set_radglobal(scene);
 
 	if(RG.totpatch==0) {
 		/* printf("exit: no relevant data\n"); */

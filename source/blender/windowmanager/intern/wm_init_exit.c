@@ -195,6 +195,9 @@ void WM_exit(bContext *C)
 	if(C)
 		ED_editors_exit(C);
 	
+	/* Context should still working here. but radio tool needs cleaning... */
+	freeAllRad(CTX_data_scene(C));
+	
 	free_ttfont(); /* bke_font.h */
 	
 #ifdef WITH_VERSE
@@ -202,7 +205,6 @@ void WM_exit(bContext *C)
 #endif
 	free_openrecent();
 	
-	freeAllRad();
 	BKE_freecubetable();
 	
 //	if (G.background == 0)

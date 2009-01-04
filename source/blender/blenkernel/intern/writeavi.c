@@ -64,7 +64,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	mh.start_movie= start_avi;
 	mh.append_movie= append_avi;
 	mh.end_movie= end_avi;
-	mh.get_next_frame = 0;
+	mh.get_next_frame = NULL;
 	
 	/* do the platform specific handles */
 #ifdef __sgi

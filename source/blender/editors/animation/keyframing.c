@@ -110,7 +110,10 @@
 	#include "mydevice.h"
 #endif // XXX resolve these old dependencies!
 
+/* ****************************************** */
 
+/* note for Joshua: add_ipo() wants scene pointer to init the view2d 'cur' for
+   the ipo data, which restores views. Needs to be resolved nicer? */
 
 /* ************************************************** */
 /* LOCAL TYPES AND DEFINES */
@@ -230,13 +233,13 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 					
 				if (conchan) {
 					if ((conchan->ipo==NULL) && (add))
-						conchan->ipo= add_ipo("CoIpo", ID_CO);	
+						conchan->ipo= add_ipo(NULL, "CoIpo", ID_CO);	
 					return conchan->ipo;
 				}
 			}
 			else {
 				if ((achan->ipo==NULL) && (add))
-					achan->ipo= add_ipo("ActIpo", blocktype);
+					achan->ipo= add_ipo(NULL, "ActIpo", blocktype);
 				return achan->ipo;
 			}
 		}
@@ -261,7 +264,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 						
 						if (con) {
 							if ((con->ipo==NULL) && (add))
-								con->ipo= add_ipo("CoIpo", ID_CO);
+								con->ipo= add_ipo(NULL, "CoIpo", ID_CO);
 							return con->ipo;
 						}
 					}
@@ -275,14 +278,14 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 							
 						if (conchan) {
 							if ((conchan->ipo==NULL) && (add))
-								conchan->ipo= add_ipo("CoIpo", ID_CO);	
+								conchan->ipo= add_ipo(NULL, "CoIpo", ID_CO);	
 							return conchan->ipo;
 						}
 					}
 				}
 				else if (blocktype==ID_OB) {
 					if ((ob->ipo==NULL) && (add))
-						ob->ipo= add_ipo("ObIpo", ID_OB);
+						ob->ipo= add_ipo(NULL, "ObIpo", ID_OB);
 					return ob->ipo;
 				}
 				else if (blocktype==ID_KE) {
@@ -290,7 +293,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 					
 					if (key) {
 						if ((key->ipo==NULL) && (add))
-							key->ipo= add_ipo("KeyIpo", ID_KE);
+							key->ipo= add_ipo(NULL, "KeyIpo", ID_KE);
 						return key->ipo;
 					}
 					return NULL;
@@ -303,7 +306,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 						FluidsimSettings *fss= fluidmd->fss;
 						
 						if ((fss->ipo==NULL) && (add))
-							fss->ipo= add_ipo("FluidsimIpo", ID_FLUIDSIM);
+							fss->ipo= add_ipo(NULL, "FluidsimIpo", ID_FLUIDSIM);
 						return fss->ipo;
 					}
 				}
@@ -313,7 +316,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 					
 					if (psys) {
 						if ((psys->part->ipo==NULL) && (add))
-							psys->part->ipo= add_ipo("ParticleIpo", ID_PA);
+							psys->part->ipo= add_ipo(NULL, "ParticleIpo", ID_PA);
 						return psys->part->ipo;
 					}
 					return NULL;
@@ -325,7 +328,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Material *ma= (Material *)from;
 				
 				if ((ma->ipo==NULL) && (add))
-					ma->ipo= add_ipo("MatIpo", ID_MA);
+					ma->ipo= add_ipo(NULL, "MatIpo", ID_MA);
 				return ma->ipo;
 			}
 			break;
@@ -334,7 +337,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Tex *tex= (Tex *)from;
 				
 				if ((tex->ipo==NULL) && (add))
-					tex->ipo= add_ipo("TexIpo", ID_TE);
+					tex->ipo= add_ipo(NULL, "TexIpo", ID_TE);
 				return tex->ipo;
 			}
 			break;
@@ -343,7 +346,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
 				
 				if ((seq->ipo==NULL) && (add))
-					seq->ipo= add_ipo("SeqIpo", ID_SEQ);
+					seq->ipo= add_ipo(NULL, "SeqIpo", ID_SEQ);
 				//update_seq_ipo_rect(seq); // XXX
 				return seq->ipo;
 			}
@@ -353,7 +356,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Curve *cu= (Curve *)from;
 				
 				if ((cu->ipo==NULL) && (add))
-					cu->ipo= add_ipo("CuIpo", ID_CU);
+					cu->ipo= add_ipo(NULL, "CuIpo", ID_CU);
 				return cu->ipo;
 			}
 			break;
@@ -362,7 +365,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				World *wo= (World *)from;
 				
 				if ((wo->ipo==NULL) && (add))
-					wo->ipo= add_ipo("WoIpo", ID_WO);
+					wo->ipo= add_ipo(NULL, "WoIpo", ID_WO);
 				return wo->ipo;
 			}
 			break;
@@ -371,7 +374,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Lamp *la= (Lamp *)from;
 				
 				if ((la->ipo==NULL) && (add))
-					la->ipo= add_ipo("LaIpo", ID_LA);
+					la->ipo= add_ipo(NULL, "LaIpo", ID_LA);
 				return la->ipo;
 			}
 			break;
@@ -380,7 +383,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				Camera *ca= (Camera *)from;
 				
 				if ((ca->ipo==NULL) && (add))
-					ca->ipo= add_ipo("CaIpo", ID_CA);
+					ca->ipo= add_ipo(NULL, "CaIpo", ID_CA);
 				return ca->ipo;
 			}
 			break;
@@ -390,7 +393,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], cha
 				bSound *snd= (bSound *)from;
 				
 				if ((snd->ipo==NULL) && (add))
-					snd->ipo= add_ipo("SndIpo", ID_SO);
+					snd->ipo= add_ipo(NULL, "SndIpo", ID_SO);
 				return snd->ipo;
 #endif // depreceated
 			}	
@@ -1088,7 +1091,7 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			/* ancient time-offset cruft */
 			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
 			//	/* actually frametofloat calc again! */
-			//	cfra-= give_timeoffset(ob)*G.scene->r.framelen;
+			//	cfra-= give_timeoffset(ob)*scene->r.framelen;
 			//}
 		}
 		
@@ -1197,7 +1200,7 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			/* ancient time-offset cruft */
 			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
 			//	/* actually frametofloat calc again! */
-			//	cfra-= give_timeoffset(ob)*G.scene->r.framelen;
+			//	cfra-= give_timeoffset(ob)*scene->r.framelen;
 			//}
 		}
 		

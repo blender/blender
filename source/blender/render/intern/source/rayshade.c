@@ -1536,8 +1536,8 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	
 	float maxdist = R.wrld.aodist;
 	float fac=0.0f, prev=0.0f;
-	float adapt_thresh = G.scene->world->ao_adapt_thresh;
-	float adapt_speed_fac = G.scene->world->ao_adapt_speed_fac;
+	float adapt_thresh = R.wrld.ao_adapt_thresh;
+	float adapt_speed_fac = R.wrld.ao_adapt_speed_fac;
 	
 	int samples=0;
 	int max_samples = R.wrld.aosamp*R.wrld.aosamp;
@@ -1684,7 +1684,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 
 	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
-		bias= G.scene->world->aobias;
+		bias= R.wrld.aobias;
 		nrm= shi->vn;
 	}
 	else {

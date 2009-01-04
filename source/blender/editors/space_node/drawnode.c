@@ -899,8 +899,9 @@ static char *layer_menu(RenderResult *rr)
 
 static void image_layer_cb(bContext *C, void *ima_v, void *iuser_v)
 {
+	Scene *scene= CTX_data_scene(C);
 	
-	ntreeCompositForceHidden(G.scene->nodetree);
+	ntreeCompositForceHidden(scene->nodetree, scene);
 	BKE_image_multilayer_index(ima_v, iuser_v);
 	// allqueue(REDRAWNODE, 0);
 }
@@ -1030,7 +1031,7 @@ static void set_render_layers_title(bContext *C, void *node_v, void *unused)
 	}
 	else {
 		str[0]= 0;
-		sce= G.scene;
+		sce= CTX_data_scene(C);
 	}
 	srl= BLI_findlink(&sce->r.layers, node->custom1);
 	if(srl==NULL) {
@@ -1071,7 +1072,7 @@ static void node_browse_scene_cb(bContext *C, void *ntree_v, void *node_v)
 		node->id= NULL;
 	}
 	sce= BLI_findlink(&G.main->scene, node->menunr-1);
-	if(sce!=G.scene) {
+	if(sce!=CTX_data_scene(C)) {
 		node->id= &sce->id;
 		id_us_plus(node->id);
 	}
@@ -1090,6 +1091,7 @@ static void node_browse_scene_cb(bContext *C, void *ntree_v, void *node_v)
 static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		Scene *scene= NULL; // XXX CTX_data_scene(C) can't work here. node->id has to be set default (ton) 
 		uiBut *bt;
 		char *strp;
 		
@@ -1104,7 +1106,7 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 		if(strp) MEM_freeN(strp);
 		
 		/* browse button layer */
-		strp= scene_layer_menu(node->id?(Scene *)node->id:G.scene);
+		strp= scene_layer_menu(node->id?(Scene *)node->id:scene);
 		if(node->id)
 			bt= uiDefIconTextButS(block, MENU, B_NODE_EXEC+node->nr, ICON_SCENE_DEHLT, strp, 
 				  butr->xmin+20, butr->ymin, (butr->xmax-butr->xmin)-40, 19, 
@@ -1958,9 +1960,9 @@ static void node_scale_cb(bContext *C, void *node_v, void *unused_v)
 			nsock->ns.vec[0]= 1.0;
 		else {
 			if(nsock->next==NULL)
-				nsock->ns.vec[0]= (float)G.scene->r.ysch;
+				nsock->ns.vec[0]= (float)CTX_data_scene(C)->r.ysch;
 			else
-				nsock->ns.vec[0]= (float)G.scene->r.xsch;
+				nsock->ns.vec[0]= (float)CTX_data_scene(C)->r.xsch;
 		}
 	}	
 }

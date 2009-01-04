@@ -48,21 +48,22 @@
 
 /* for dereferencing pointers */
 #include "DNA_ID.h"  
-#include "DNA_vfont_types.h"  
 #include "DNA_key_types.h"  
 #include "DNA_ipo_types.h"  
+#include "DNA_scene_types.h"  
+#include "DNA_vfont_types.h"  
 
-#include "BKE_global.h" 
-#include "BKE_main.h"  
-#include "BKE_utildefines.h"  // VECCOPY
-#include "BKE_object.h"  
-#include "BKE_mesh.h" 
+#include "BKE_anim.h"  
 #include "BKE_curve.h"  
 #include "BKE_displist.h"  
+#include "BKE_global.h" 
 #include "BKE_ipo.h"  
-#include "BKE_anim.h"  
-#include "BKE_library.h"  
 #include "BKE_key.h"  
+#include "BKE_library.h"  
+#include "BKE_main.h"  
+#include "BKE_mesh.h" 
+#include "BKE_object.h"  
+#include "BKE_utildefines.h"  // VECCOPY
 
 
 /* globals */
@@ -1033,7 +1034,7 @@ float *make_orco_surf(Object *ob)
 	/* NOTE: This routine is tied to the order of vertex
 	 * built by displist and as passed to the renderer.
 	 */
-float *make_orco_curve(Object *ob)
+float *make_orco_curve(Scene *scene, Object *ob)
 {
 	Curve *cu = ob->data;
 	DispList *dl;
@@ -1043,7 +1044,7 @@ float *make_orco_curve(Object *ob)
 
 	if (!(cu->flag&CU_UV_ORCO) && cu->key && cu->key->refkey) {
 		cp_cu_key(cu, cu->key->refkey, 0, count_curveverts(&cu->nurb));
-		makeDispListCurveTypes(ob, 1);
+		makeDispListCurveTypes(scene, ob, 1);
 		remakeDisp = 1;
 	}
 
@@ -1116,7 +1117,7 @@ float *make_orco_curve(Object *ob)
 	}
 
 	if (remakeDisp) {
-		makeDispListCurveTypes(ob, 0);
+		makeDispListCurveTypes(scene, ob, 0);
 	}
 
 	return coord_array;
@@ -1125,7 +1126,7 @@ float *make_orco_curve(Object *ob)
 
 /* ***************** BEVEL ****************** */
 
-void makebevelcurve(Object *ob, ListBase *disp)
+void makebevelcurve(Scene *scene, Object *ob, ListBase *disp)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
@@ -1147,7 +1148,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 				dl= bevcu->disp.first;
 				if(dl==0) {
-					makeDispListCurveTypes(cu->bevobj, 0);
+					makeDispListCurveTypes(scene, cu->bevobj, 0);
 					dl= bevcu->disp.first;
 				}
 				while(dl) {

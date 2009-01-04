@@ -330,11 +330,12 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-   Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+   Scene *sce= (Scene *)node->id;
    RenderData *rd= data;
-   RenderResult *rr;
+   RenderResult *rr= NULL;
 
-   rr= RE_GetResult(RE_GetRender(sce->id.name));
+   if(sce)
+	   rr= RE_GetResult(RE_GetRender(sce->id.name));
 
    if(rr) {
       SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);

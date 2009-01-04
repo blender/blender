@@ -166,7 +166,8 @@ typedef struct RenderData {
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
 	struct FFMpegCodecData ffcodecdata;
-
+	struct AudioData audio;	/* new in 2.5 */
+	
 	int cfra, sfra, efra;	/* frames as in 'images' */
 	int psfra, pefra;		/* start+end frames of preview range */
 
@@ -546,7 +547,7 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
-	struct AudioData audio;	
+	struct AudioData audio;		/* DEPRICATED 2.5 */
 	
 	ScriptLink scriptlink;
 	
@@ -725,7 +726,7 @@ typedef struct Scene {
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define TESTBASELIB_BGMODE(base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : G.scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define TESTBASELIB_BGMODE(base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last

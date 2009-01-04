@@ -641,7 +641,7 @@ int getselection(Object *ob, int *start, int *end)
 	}
 }
 
-struct chartrans *text_to_curve(Object *ob, int mode) 
+struct chartrans *text_to_curve(Scene *scene, Object *ob, int mode) 
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
@@ -973,7 +973,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		oldflag= cucu->flag;
 		cucu->flag |= (CU_PATH+CU_FOLLOW);
 		
-		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve, 0);
+		if(cucu->path==NULL) makeDispListCurveTypes(scene, cu->textoncurve, 0);
 		if(cucu->path) {
 			float imat[4][4], imat3[3][3];
 			Mat4Invert(imat, ob->obmat);

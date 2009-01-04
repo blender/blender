@@ -117,7 +117,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
-	
+	Scene *scene= NULL; // XXX give as arg
 	Main* blenderdata = maggie1;
 
 	char* startscenename = scenename;
@@ -207,12 +207,12 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 
 		//lock frame and camera enabled - storing global values
-		int tmp_lay= G.scene->lay;
-		Object *tmp_camera = G.scene->camera;
+		int tmp_lay= scene->lay;
+		Object *tmp_camera = scene->camera;
 
 		if (v3d->scenelock==0){
-			G.scene->lay= v3d->lay;
-			G.scene->camera= v3d->camera;
+			scene->lay= v3d->lay;
+			scene->camera= v3d->camera;
 		}
 
 	
@@ -478,8 +478,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 		//lock frame and camera enabled - restoring global values
 		if (v3d->scenelock==0){
-			G.scene->lay= tmp_lay;
-			G.scene->camera= tmp_camera;
+			scene->lay= tmp_lay;
+			scene->camera= tmp_camera;
 		}
 
 		// set the cursor back to normal

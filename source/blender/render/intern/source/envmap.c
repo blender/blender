@@ -369,7 +369,7 @@ static void env_set_imats(Render *re)
 	Base *base;
 	float mat[4][4];
 	
-	base= G.scene->base.first;
+	base= re->scene->base.first;
 	while(base) {
 		MTC_Mat4MulMat4(mat, base->object->obmat, re->viewmat);
 		MTC_Mat4Invert(base->object->imat, mat);
@@ -463,7 +463,7 @@ static void render_envmap(Render *re, EnvMap *env)
 	else {
 		if(envre->r.mode & R_OSA) env->ok= ENV_OSA;
 		else env->ok= ENV_NORMAL;
-		env->lastframe= G.scene->r.cfra;	/* hurmf */
+		env->lastframe= re->scene->r.cfra;
 	}
 	
 	/* restore */
@@ -496,7 +496,7 @@ void make_envmaps(Render *re)
 				if(tex->env && tex->env->object) {
 					EnvMap *env= tex->env;
 					
-					if(env->object->lay & G.scene->lay) {
+					if(env->object->lay & re->scene->lay) {
 						if(env->stype==ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							

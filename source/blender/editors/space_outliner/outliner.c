@@ -272,7 +272,7 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 {
 	TreeElement *te= lb->first;
 	while(te) {
-		TreeStoreElem *tselem= TREESTORE(te);
+//		TreeStoreElem *tselem= TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
 /*
@@ -908,7 +908,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					EditBone *ebone;
 					TreeElement *ten;
 					
-					for (ebone = G.edbo.first; ebone; ebone=ebone->next, a++) {
+					for (ebone = arm->edbo->first; ebone; ebone=ebone->next, a++) {
 						ten= outliner_add_element(soops, &te->subtree, id, te, TSE_EBONE, a);
 						ten->directdata= ebone;
 						ten->name= ebone->name;
@@ -3900,7 +3900,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	Object *ob = (Object *)poin2;
 	
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	object_handle_update(ob);
+	object_handle_update(scene, ob);
 
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWVIEW3D, 0);

@@ -687,7 +687,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 			bArmature *arm = obedit->data;
 			EditBone *ebone;
 			
-			for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+			for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
 				if (arm->layer & ebone->layer)
 				{
 					if (ebone->flag & BONE_SELECTED)
@@ -767,7 +767,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 		ob = OBACT;
 		if(ob && !(ob->flag & SELECT)) ob = NULL;
 		
-		for(base= G.scene->base.first; base; base= base->next) {
+		for(base= scene->base.first; base; base= base->next) {
 			if TESTBASELIB(v3d, base) {
 				if(ob == NULL) { 
 					ob= base->object;

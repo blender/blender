@@ -98,7 +98,7 @@ void BL_ArmatureObject::ApplyPose()
 	m_objArma->pose = m_pose;
 
 	if(m_lastapplyframe != m_lastframe) {
-		where_is_pose(m_objArma);
+		where_is_pose(NULL, m_objArma); // XXX
 		m_lastapplyframe = m_lastframe;
 	}
 }

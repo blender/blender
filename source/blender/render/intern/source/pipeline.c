@@ -141,7 +141,7 @@ static void stats_background(RenderStats *rs)
 	float megs_used_memory= mem_in_use/(1024.0*1024.0);
 	char str[400], *spos= str;
 	
-	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", G.scene->r.cfra, megs_used_memory);
+	spos+= sprintf(spos, "Fra:%d Mem:%.2fM ", rs->cfra, megs_used_memory);
 	
 	if(rs->curfield)
 		spos+= sprintf(spos, "Field %d ", rs->curfield);
@@ -153,9 +153,9 @@ static void stats_background(RenderStats *rs)
 	}
 	else {
 		if(rs->tothalo)
-			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d Ha:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->tothalo, rs->totlamp);
 		else 
-			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", G.scene->id.name+2, rs->totvert, rs->totface, rs->totlamp);
+			spos+= sprintf(spos, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
 	printf("%s\n", str);
 }
@@ -922,6 +922,14 @@ RenderResult *RE_GetResult(Render *re)
 	return NULL;
 }
 
+/* displist.c util.... */
+Scene *RE_GetScene(Render *re)
+{
+	if(re)
+		return re->scene;
+	return NULL;
+}
+
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 {
 	RenderLayer *rl= BLI_findlink(&rr->layers, re->r.actlay);
@@ -991,7 +999,6 @@ RenderStats *RE_GetStats(Render *re)
 	return &re->i;
 }
 
-/* Note, when rendering from a scene, ALWAYS use G.scene->id.name, else compositing wont work */
 Render *RE_NewRender(const char *name)
 {
 	Render *re;
@@ -1839,7 +1846,7 @@ static void load_backbuffer(Render *re)
 				BKE_image_signal(re->backbuf, NULL, IMA_SIGNAL_RELOAD);
 		}
 		
-		re->backbuf= BKE_add_image_file(name);
+		re->backbuf= BKE_add_image_file(name, re->r.cfra);
 		ibuf= BKE_image_get_ibuf(re->backbuf, NULL);
 		if(ibuf==NULL) {
 			// error() doesnt work with render window open
@@ -1933,7 +1940,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	/* still unsure entity this... */
 	resc->scene= sce;
 	
-	/* ensure scene has depsgraph, base flags etc OK. Warning... also sets G.scene */
+	/* ensure scene has depsgraph, base flags etc OK */
 	set_scene_bg(sce);
 
 	/* copy callbacks */
@@ -1989,11 +1996,6 @@ static void ntree_render_scenes(Render *re)
 			}
 		}
 	}
-	
-	/* still the global... */
-	if(G.scene!=re->scene)
-		set_scene_bg(re->scene);
-	
 }
 
 /* helper call to detect if theres a composite with render-result node */
@@ -2121,8 +2123,8 @@ void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
 	}
 	
 	/* own render result should be read/allocated */
-	if(G.scene->id.flag & LIB_DOIT)
-		RE_ReadRenderResult(G.scene, G.scene);
+	if(re->scene->id.flag & LIB_DOIT)
+		RE_ReadRenderResult(re->scene, re->scene);
 	
 	/* and now we can draw (result is there) */
 	re->display_init(re->result);
@@ -2251,12 +2253,12 @@ static void yafrayRender(Render *re)
 
 #endif /* disable yafray */
 
-static void renderresult_stampinfo()
+static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
 	/* this is the basic trick to get the displayed float or char rect from render result */
-	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
+	RE_GetResultImage(RE_GetRender(scene->id.name), &rres);
+	BKE_stamp_buf(scene, (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2297,8 +2299,8 @@ static void do_render_all_options(Render *re)
 	re->stats_draw(&re->i);
 	
 	/* stamp image info here */
-	if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
-		renderresult_stampinfo();
+	if((re->r.scemode & R_STAMP_INFO) && (re->r.stamp & R_STAMP_DRAW)) {
+		renderresult_stampinfo(re->scene);
 		re->display_draw(re->result, NULL);
 	}
 }
@@ -2508,7 +2510,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
-		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+		BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
@@ -2528,7 +2530,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
 
-			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
 			if(ok==0) {
 				printf("Render error: cannot save %s\n", name);
@@ -2540,9 +2542,9 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
 				if(BLI_testextensie(name, ".exr")) 
 					name[strlen(name)-4]= 0;
-				BKE_add_image_extension(name, R_JPEG90);
+				BKE_add_image_extension(scene, name, R_JPEG90);
 				ibuf->depth= 24; 
-				BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
+				BKE_write_ibuf(scene, ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
 				printf("\nSaved: %s", name);
 			}
 			
@@ -2577,7 +2579,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
-			int nf = mh->get_next_frame();
+			int nf = mh->get_next_frame(&re->r);
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
 				
@@ -2615,7 +2617,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 				nfra+= tfra;
 
 			if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH) ) {
-				BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+				BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 			}
 			
 			if (scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {

@@ -224,7 +224,7 @@ void do_layer_buttons(bContext *C, short event)
 	ED_area_tag_redraw(sa);
 	
 	if(sa->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1); /* 1==also do headwin */
-	if(v3d->drawtype == OB_SHADED) reshadeall_displist();
+	if(v3d->drawtype == OB_SHADED) reshadeall_displist(scene);
 	allqueue(REDRAWNLA, 0);	
 }
 

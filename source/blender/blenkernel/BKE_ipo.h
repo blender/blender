@@ -45,6 +45,7 @@ struct Ipo;
 struct IpoCurve;
 struct MTex;
 struct Material;
+struct Scene;
 struct Object;
 struct Sequence;
 struct ListBase;
@@ -56,16 +57,16 @@ struct rctf;
 
 /* ------------ Time Management ------------ */
 
-float frame_to_float(int cfra);
+float frame_to_float(struct Scene *scene, int cfra);
 
 /* ------------ IPO Management ---------- */
 
 void free_ipo_curve(struct IpoCurve *icu);
 void free_ipo(struct Ipo *ipo);
 
-void ipo_default_v2d_cur(int blocktype, struct rctf *cur);
+void ipo_default_v2d_cur(struct Scene *scene, int blocktype, struct rctf *cur);
 
-struct Ipo *add_ipo(char *name, int idcode);
+struct Ipo *add_ipo(struct Scene *scene, char *name, int idcode);
 struct Ipo *copy_ipo(struct Ipo *ipo);
 
 void ipo_idnew(struct Ipo *ipo);
@@ -126,14 +127,14 @@ void set_icu_vars(struct IpoCurve *icu);
 void execute_ipo(struct ID *id, struct Ipo *ipo);
 void execute_action_ipo(struct bActionChannel *achan, struct bPoseChannel *pchan);
 
-void do_ipo_nocalc(struct Ipo *ipo);
-void do_ipo(struct Ipo *ipo);
-void do_mat_ipo(struct Material *ma);
-void do_ob_ipo(struct Object *ob);
-void do_seq_ipo(struct Sequence *seq, int cfra);
+void do_ipo_nocalc(struct Scene *scene, struct Ipo *ipo);
+void do_ipo(struct Scene *scene, struct Ipo *ipo);
+void do_mat_ipo(struct Scene *scene, struct Material *ma);
+void do_ob_ipo(struct Scene *scene, struct Object *ob);
+void do_seq_ipo(struct Scene *scene, struct Sequence *seq, int cfra);
 void do_ob_ipodrivers(struct Object *ob, struct Ipo *ipo, float ctime);
 
-void do_all_data_ipos(void);
+void do_all_data_ipos(struct Scene *scene);
 short calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);
 void clear_delta_obipo(struct Ipo *ipo);
 

@@ -38,6 +38,7 @@ extern "C" {
 #include <wchar.h>
 
 struct VFont;
+struct Scene;
 struct Object;
 struct Curve;
 struct objfnt;
@@ -63,7 +64,7 @@ void free_ttfont(void);
 struct VFont *load_vfont(char *name);
 struct TmpFont *vfont_find_tmpfont(struct VFont *vfont);
 
-struct chartrans *text_to_curve(struct Object *ob, int mode);
+struct chartrans *text_to_curve(struct Scene *scene, struct Object *ob, int mode);
 int style_to_sel(int style, int toggle);
 int mat_to_sel(void);
 

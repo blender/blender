@@ -30,12 +30,11 @@
 #define BKE_SHRINKWRAP_H
 
 /* mesh util */
+
 //TODO: move this somewhere else
 #include "BKE_customdata.h"
 struct DerivedMesh;
 struct Object;
-struct DerivedMesh *object_get_derived_final(struct Object *ob, CustomDataMask dataMask);
-
 
 /* SpaceTransform stuff */
 /*
@@ -60,7 +59,7 @@ struct DerivedMesh *object_get_derived_final(struct Object *ob, CustomDataMask d
  *   space_transform_invert_normal(&data, &no);
  *
  */
-struct Object;
+
 
 typedef struct SpaceTransform
 {
@@ -69,14 +68,11 @@ typedef struct SpaceTransform
 
 } SpaceTransform;
 
-void space_transform_from_matrixs(SpaceTransform *data, float local[][4], float target[][4]);
+void space_transform_from_matrixs(struct SpaceTransform *data, float local[4][4], float target[4][4]);
+void space_transform_apply(const struct SpaceTransform *data, float *co);
+void space_transform_invert(const struct SpaceTransform *data, float *co);
+
 #define space_transform_setup(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
-
-void space_transform_apply (const SpaceTransform *data, float *co);
-void space_transform_invert(const SpaceTransform *data, float *co);
-
-void space_transform_apply_normal (const SpaceTransform *data, float *no);
-void space_transform_invert_normal(const SpaceTransform *data, float *no);
 
 /* Shrinkwrap stuff */
 #include "BKE_bvhutils.h"
@@ -94,6 +90,7 @@ void space_transform_invert_normal(const SpaceTransform *data, float *no);
  */
 
 struct Object;
+struct Scene;
 struct DerivedMesh;
 struct ShrinkwrapModifierData;
 struct MDeformVert;
@@ -120,22 +117,7 @@ typedef struct ShrinkwrapCalcData
 
 } ShrinkwrapCalcData;
 
-void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *data);
-void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *data);
-void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *data);
-
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
-
-/*
- * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:
- *
- * if transf was configured with "space_transform_setup( &transf,  ob1, ob2 )"
- * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
- * and the BVHTree must be built in ob2 coordinate space.
- *
- * Thus it provides an easy way to cast the same ray across several trees (where each tree was built on its own coords space)
- */
-int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
 
 /*
  * NULL initializers to local data

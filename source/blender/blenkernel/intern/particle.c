@@ -240,11 +240,11 @@ void psys_change_act(void *ob_v, void *act_v)
 			npsys->flag |= PSYS_CURRENT;
 	}
 }
-Object *psys_get_lattice(Object *ob, ParticleSystem *psys)
+Object *psys_get_lattice(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	Object *lattice=0;
 	
-	if(psys_in_edit_mode(psys)==0){
+	if(psys_in_edit_mode(scene, psys)==0){
 
 		ModifierData *md = (ModifierData*)psys_get_modifier(ob,psys);
 
@@ -285,9 +285,9 @@ int psys_ob_has_hair(Object *ob)
 
 	return 0;
 }
-int psys_in_edit_mode(ParticleSystem *psys)
+int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
-	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current((G.scene->basact)->object) && psys->edit);
+	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current((scene->basact)->object) && psys->edit);
 }
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
@@ -1642,7 +1642,7 @@ int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
 
 					/* curve taper */
 					if(cu->taperobj)
-						VecMulf(pa_loc,calc_taper(cu->taperobj,(int)(f_force*guidetime*100.0),100));
+						VecMulf(pa_loc, calc_taper(scene, cu->taperobj, (int)(f_force*guidetime*100.0), 100));
 					/* TODO */
 					//else{
 					///* curve size*/
@@ -1851,20 +1851,20 @@ static void get_strand_normal(Material *ma, float *surfnor, float surfdist, floa
 	VECCOPY(nor, vnor);
 }
 
-int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate)
+int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, int editupdate)
 {
 	ParticleThreadContext *ctx= threads[0].ctx;
 	Object *ob= ctx->ob;
 	ParticleSystem *psys= ctx->psys;
 	ParticleSettings *part = psys->part;
-	ParticleEditSettings *pset = &G.scene->toolsettings->particle;
+	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	int totparent=0, between=0;
 	int steps = (int)pow(2.0,(double)part->draw_step);
 	int totchild = psys->totchild;
 	int i, seed, totthread= threads[0].tot;
 
 	/*---start figuring out what is actually wanted---*/
-	if(psys_in_edit_mode(psys))
+	if(psys_in_edit_mode(scene, psys))
 		if(psys->renderdata==0 && (psys->edit==NULL || pset->flag & PE_SHOW_CHILD)==0)
 			totchild=0;
 
@@ -1904,7 +1904,7 @@ int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate)
 	ctx->totparent= totparent;
 	ctx->cfra= cfra;
 
-	psys->lattice = psys_get_lattice(ob, psys);
+	psys->lattice = psys_get_lattice(scene, ob, psys);
 
 	/* cache all relevant vertex groups if they exist */
 	if(part->from!=PART_FROM_PARTICLE){
@@ -2256,7 +2256,7 @@ static void *exec_child_path_cache(void *data)
 	return 0;
 }
 
-void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int editupdate)
+void psys_cache_child_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra, int editupdate)
 {
 	ParticleSettings *part = psys->part;
 	ParticleThread *pthreads;
@@ -2265,9 +2265,9 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	ListBase threads;
 	int i, totchild, totparent, totthread;
 
-	pthreads= psys_threads_create(ob, psys);
+	pthreads= psys_threads_create(scene, ob, psys);
 
-	if(!psys_threads_init_path(pthreads, cfra, editupdate)) {
+	if(!psys_threads_init_path(pthreads, scene, cfra, editupdate)) {
 		psys_threads_free(pthreads);
 		return;
 	}
@@ -2306,11 +2306,11 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 /* -Usefull for making use of opengl vertex arrays for super fast strand drawing.	*/
 /* -Makes child strands possible and creates them too into the cache.				*/
 /* -Cached path data is also used to determine cut position for the editmode tool.	*/
-void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupdate)
+void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra, int editupdate)
 {
 	ParticleCacheKey *ca, **cache=psys->pathcache;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-	ParticleEditSettings *pset = &G.scene->toolsettings->particle;
+	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	ParticleSettings *part = psys->part;
 	
 	ParticleData *pa;
@@ -2326,7 +2326,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	Material *ma;
 	
 	float birthtime = 0.0, dietime = 0.0;
-	float t, time = 0.0, keytime = 0.0, dfra = 1.0, frs_sec = G.scene->r.frs_sec;
+	float t, time = 0.0, keytime = 0.0, dfra = 1.0, frs_sec = scene->r.frs_sec;
 	float col[3] = {0.5f, 0.5f, 0.5f};
 	float prev_tangent[3], hairmat[4][4];
 	int k,i;
@@ -2346,7 +2346,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 	if(psys->renderdata)
 		steps = (int)pow(2.0, (double)psys->part->ren_step);
-	else if(psys_in_edit_mode(psys)){
+	else if(psys_in_edit_mode(scene, psys)){
 		edit=psys->edit;
 		
 		//timed = edit->draw_timed;
@@ -2382,7 +2382,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 			soft= NULL;
 	}
 	
-	psys->lattice = psys_get_lattice(ob, psys);
+	psys->lattice = psys_get_lattice(scene, ob, psys);
 	ma= give_current_material(ob, psys->part->omat);
 	if(ma && (psys->part->draw & PART_DRAW_MAT_COL))
 		VECCOPY(col, &ma->r)
@@ -3009,7 +3009,7 @@ void make_local_particlesettings(ParticleSettings *part)
 }
 
 /* should be integrated to depgraph signals */
-void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
+void psys_flush_settings(struct Scene *scene, ParticleSettings *part, int event, int hair_recalc)
 {
 	Base *base;
 	Object *ob, *tob;
@@ -3017,7 +3017,7 @@ void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
 	int flush;
 
 	/* update all that have same particle settings */
-	for(base = G.scene->base.first; base; base= base->next) {
+	for(base = scene->base.first; base; base= base->next) {
 		if(base->object->particlesystem.first) {
 			ob=base->object;
 			flush=0;
@@ -3042,12 +3042,12 @@ void psys_flush_settings(ParticleSettings *part, int event, int hair_recalc)
 				}
 			}
 			if(flush)
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
 	}
 }
 
-LinkNode *psys_using_settings(ParticleSettings *part, int flush_update)
+LinkNode *psys_using_settings(struct Scene *scene, ParticleSettings *part, int flush_update)
 {
 	Object *ob, *tob;
 	ParticleSystem *psys, *tpsys;
@@ -3075,7 +3075,7 @@ LinkNode *psys_using_settings(ParticleSettings *part, int flush_update)
 		}
 
 		if(flush_update && found)
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
 
 	return node;
@@ -3323,7 +3323,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 	return size;
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
-void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, ParticleKey *state, int vel)
+void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, int p, ParticleKey *state, int vel)
 {
 	ParticleSettings *part = psys->part;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
@@ -3335,7 +3335,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 	HairKey *hkey[2] = {NULL, NULL};
 	ParticleKey *par=0, keys[4];
 
-	float t, real_t, dfra, keytime, frs_sec = G.scene->r.frs_sec;
+	float t, real_t, dfra, keytime, frs_sec = scene->r.frs_sec;
 	float co[3], orco[3];
 	float hairmat[4][4];
 	float pa_clump = 0.0, pa_kink = 0.0;
@@ -3346,7 +3346,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 
 	float *cpa_fuv; int cpa_num; short cpa_from;
 
-	//if(psys_in_edit_mode(psys)){
+	//if(psys_in_edit_mode(scene, psys)){
 	//	if((psys->edit_path->flag & PSYS_EP_SHOW_CHILD)==0)
 	//		totchild=0;
 	//	edit=1;
@@ -3430,7 +3430,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 		}
 		//}
 
-		//psys_get_particle_on_path(bsys,p,t,bkey,ckey[0]);
+		//psys_get_particle_on_path(scene, bsys,p,t,bkey,ckey[0]);
 
 		//if(part->rotfrom==PART_ROT_KEYS)
 		//	QuatInterpol(state->rot,k2.rot,k3.rot,keytime);
@@ -3494,7 +3494,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			/* get parent states */
 			while(w<4 && cpa->pa[w]>=0){
 				keys[w].time = t;
-				psys_get_particle_on_path(ob, psys, cpa->pa[w], keys+w, 1);
+				psys_get_particle_on_path(scene, ob, psys, cpa->pa[w], keys+w, 1);
 				w++;
 			}
 
@@ -3520,7 +3520,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			/* get the parent state */
 
 			keys->time = t;
-			psys_get_particle_on_path(ob,psys,cpa->parent,keys,1);
+			psys_get_particle_on_path(scene, ob, psys, cpa->parent, keys,1);
 
 			/* get the original coordinates (orco) for texture usage */
 			pa=psys->particles+cpa->parent;
@@ -3606,19 +3606,19 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 		//if(vel){
 		//	if(t>=0.001f){
 		//		tstate.time=t-0.001f;
-		//		psys_get_particle_on_path(ob,psys,p,&tstate,0);
+		//		psys_get_particle_on_path(scene,ob,psys,p,&tstate,0);
 		//		VECSUB(state->vel,state->co,tstate.co);
 		//	}
 		//	else{
 		//		tstate.time=t+0.001f;
-		//		psys_get_particle_on_path(ob,psys,p,&tstate,0);
+		//		psys_get_particle_on_path(scene, ob,psys,p,&tstate,0);
 		//		VECSUB(state->vel,tstate.co,state->co);
 		//	}
 		//}
 	}
 }
 /* gets particle's state at a time, returns 1 if particle exists and can be seen and 0 if not */
-int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey *state, int always){
+int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psys, int p, ParticleKey *state, int always){
 	ParticleSettings *part=psys->part;
 	ParticleData *pa=0;
 	float cfra;
@@ -3628,7 +3628,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 	if(state->time>0)
 		cfra=state->time;
 	else
-		cfra=bsystem_time(0,(float)G.scene->r.cfra,0.0);
+		cfra= bsystem_time(scene, 0, (float)scene->r.cfra,0.0);
 
 	if(psys->totchild && p>=totpart){
 		if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
@@ -3664,7 +3664,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 		else
 			state->time= (cfra-pa->time)/(pa->dietime-pa->time);
 
-		psys_get_particle_on_path(ob,psys,p,state,1);
+		psys_get_particle_on_path(scene, ob, psys, p, state,1);
 		return 1;
 	}
 	else{
@@ -3708,7 +3708,7 @@ int psys_get_particle_state(Object *ob, ParticleSystem *psys, int p, ParticleKey
 					/* let's interpolate to try to be as accurate as possible */
 					if(pa->state.time + 1.0f > state->time && pa->prev_state.time - 1.0f < state->time) {
 						ParticleKey keys[4];
-						float dfra, keytime, frs_sec = G.scene->r.frs_sec;
+						float dfra, keytime, frs_sec = scene->r.frs_sec;
 
 						if(pa->prev_state.time >= pa->state.time) {
 							/* prev_state is wrong so let's not use it, this can happen at frame 1 or particle birth */

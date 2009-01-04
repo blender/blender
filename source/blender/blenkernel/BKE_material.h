@@ -65,7 +65,7 @@ void end_render_materials(void);
 int material_in_material(struct Material *parmat, struct Material *mat);
 
 void automatname(struct Material *);
-void delete_material_index(void);            
+void delete_material_index(struct Object *ob);            
 
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
 

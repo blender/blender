@@ -37,6 +37,7 @@ struct bArmature;
 struct bPose;
 struct bPoseChannel;
 struct bConstraint;
+struct Scene;
 struct Object;
 struct MDeformVert;
 struct Mesh;
@@ -87,7 +88,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 void where_is_armature (struct bArmature *arm);
 void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);
 void armature_rebuild_pose(struct Object *ob, struct bArmature *arm);
-void where_is_pose (struct Object *ob);
+void where_is_pose (struct Scene *scene, struct Object *ob);
 
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);

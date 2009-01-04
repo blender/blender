@@ -2032,11 +2032,11 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 }
 
 /* NLA strip modifiers */
-static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
+static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseChannel *pchan)
 {
 	bActionModifier *amod;
 	bActionStrip *strip, *strip2;
-	float scene_cfra= G.scene->r.cfra;
+	float scene_cfra= scene->r.cfra;
 	int do_modif;
 
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
@@ -2085,7 +2085,7 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 						if( strcmp(pchan->name, amod->channel)==0 ) {
 							float mat4[4][4], mat3[3][3];
 							
-							curve_deform_vector(amod->ob, armob, bone->arm_mat[3], pchan->pose_mat[3], mat3, amod->no_rot_axis);
+							curve_deform_vector(scene, amod->ob, armob, bone->arm_mat[3], pchan->pose_mat[3], mat3, amod->no_rot_axis);
 							Mat4CpyMat4(mat4, pchan->pose_mat);
 							Mat4MulMat34(pchan->pose_mat, mat3, mat4);
 							
@@ -2156,7 +2156,7 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 
 /* The main armature solver, does all constraints excluding IK */
 /* pchan is validated, as having bone and parent pointer */
-static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
+static void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
@@ -2226,7 +2226,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	}
 	
 	/* do NLA strip modifiers - i.e. curve follow */
-	do_strip_modifiers(ob, bone, pchan);
+	do_strip_modifiers(scene, ob, bone, pchan);
 	
 	/* Do constraints */
 	if (pchan->constraints.first) {
@@ -2241,7 +2241,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 		/* prepare PoseChannel for Constraint solving 
 		 * - makes a copy of matrix, and creates temporary struct to use 
 		 */
-		cob= constraints_make_evalob(ob, pchan, CONSTRAINT_OBTYPE_BONE);
+		cob= constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 		
 		/* Solve PoseChannel's Constraints */
 		solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects
@@ -2267,13 +2267,13 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void where_is_pose (Object *ob)
+void where_is_pose (Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;
 	bPoseChannel *pchan;
 	float imat[4][4];
-	float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
+	float ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
 	
 	arm = get_armature(ob);
 	
@@ -2315,7 +2315,7 @@ void where_is_pose (Object *ob)
 					/* 4. walk over the tree for regular solving */
 					for(a=0; a<tree->totchannel; a++) {
 						if(!(tree->pchan[a]->flag & POSE_DONE))	// successive trees can set the flag
-							where_is_pose_bone(ob, tree->pchan[a], ctime);
+							where_is_pose_bone(scene, ob, tree->pchan[a], ctime);
 					}
 					/* 5. execute the IK solver */
 					execute_posetree(ob, tree);
@@ -2335,7 +2335,7 @@ void where_is_pose (Object *ob)
 				}
 			}
 			else if(!(pchan->flag & POSE_DONE)) {
-				where_is_pose_bone(ob, pchan, ctime);
+				where_is_pose_bone(scene, ob, pchan, ctime);
 			}
 		}
 	}

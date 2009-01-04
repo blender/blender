@@ -376,8 +376,10 @@ MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl)
 	return NULL;
 }
 
-void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
+void multires_delete_layer(Object *ob, CustomData *cd, const int type, int n)
 {
+	Mesh *me= ob->data;
+	
 	if(me && me->mr && cd) {
 		MultiresLevel *lvl1= me->mr->levels.first;
 		
@@ -386,12 +388,14 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 		CustomData_set_layer_active(cd, type, n);
 		CustomData_free_layer_active(cd, type, lvl1->totface);
 		
-		multires_level_to_mesh((G.scene->basact)->object, me, 0);
+		multires_level_to_mesh(ob, me, 0);
 	}
 }
 
-void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
+void multires_add_layer(Object *ob, CustomData *cd, const int type, const int n)
 {
+	Mesh *me= ob->data;
+	
 	if(me && me->mr && cd) {
 		multires_update_levels(me, 0);
 	
@@ -402,6 +406,6 @@ void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 			CustomData_add_layer(cd, type, CD_DEFAULT, NULL, current_level(me->mr)->totface);
 
 		CustomData_set_layer_active(cd, type, n);
-		multires_level_to_mesh((G.scene->basact)->object, me, 0);
+		multires_level_to_mesh(ob, me, 0);
 	}
 }

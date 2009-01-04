@@ -70,7 +70,7 @@
 #endif
 
 extern void do_init_ffmpeg();
-void makeffmpegstring(char* string);
+static void makeffmpegstring(RenderData* rd, char* string);
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
@@ -95,8 +95,6 @@ static uint8_t* audio_input_buffer = 0;
 static int audio_input_frame_size = 0;
 static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
-
-static RenderData *ffmpeg_renderdata = 0;
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
@@ -236,13 +234,13 @@ static const char** get_file_extensions(int format)
 }
 
 /* Write a frame to the output file */
-static void write_video_frame(AVFrame* frame) 
+static void write_video_frame(RenderData *rd, AVFrame* frame) 
 {
 	int outsize = 0;
 	int ret;
 	AVCodecContext* c = get_codec_from_stream(video_stream);
 #ifdef FFMPEG_CODEC_TIME_BASE
-	frame->pts = G.scene->r.cfra - G.scene->r.sfra;
+	frame->pts = rd->cfra - rd->sfra;
 #endif
 
 	outsize = avcodec_encode_video(c, video_buffer, video_buffersize, 
@@ -393,18 +391,18 @@ static void set_ffmpeg_property_option(AVCodecContext* c, IDProperty * prop)
 	}
 }
 
-static void set_ffmpeg_properties(AVCodecContext* c, const char * prop_name)
+static void set_ffmpeg_properties(RenderData *rd, AVCodecContext *c, const char * prop_name)
 {
 	IDProperty * prop;
 	void * iter;
 	IDProperty * curr;
 
-	if (!G.scene->r.ffcodecdata.properties) {
+	if (!rd->ffcodecdata.properties) {
 		return;
 	}
 	
 	prop = IDP_GetPropertyFromGroup(
-		G.scene->r.ffcodecdata.properties, (char*) prop_name);
+		rd->ffcodecdata.properties, (char*) prop_name);
 	if (!prop) {
 		return;
 	}
@@ -418,7 +416,7 @@ static void set_ffmpeg_properties(AVCodecContext* c, const char * prop_name)
 
 /* prepare a video stream for the output file */
 
-static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
+static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContext* of,
 				    int rectx, int recty) 
 {
 	AVStream* st;
@@ -441,39 +439,39 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 #ifdef FFMPEG_CODEC_TIME_BASE
 	/* FIXME: Really bad hack (tm) for NTSC support */
-	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
+	if (ffmpeg_type == FFMPEG_DV && rd->frs_sec != 25) {
 		c->time_base.den = 2997;
 		c->time_base.num = 100;
-	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
-		   G.scene->r.frs_sec_base) {
-		c->time_base.den = G.scene->r.frs_sec;
-		c->time_base.num = (int) G.scene->r.frs_sec_base;
+	} else if ((double) ((int) rd->frs_sec_base) == 
+		   rd->frs_sec_base) {
+		c->time_base.den = rd->frs_sec;
+		c->time_base.num = (int) rd->frs_sec_base;
 	} else {
-		c->time_base.den = G.scene->r.frs_sec * 100000;
-		c->time_base.num = ((double) G.scene->r.frs_sec_base) * 100000;
+		c->time_base.den = rd->frs_sec * 100000;
+		c->time_base.num = ((double) rd->frs_sec_base) * 100000;
 	}
 #else
 	/* FIXME: Really bad hack (tm) for NTSC support */
-	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
+	if (ffmpeg_type == FFMPEG_DV && rd->frs_sec != 25) {
 		c->frame_rate = 2997;
 		c->frame_rate_base = 100;
-	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
-		   G.scene->r.frs_sec_base) {
-		c->frame_rate = G.scene->r.frs_sec;
-		c->frame_rate_base = G.scene->r.frs_sec_base;
+	} else if ((double) ((int) rd->frs_sec_base) == 
+		   rd->frs_sec_base) {
+		c->frame_rate = rd->frs_sec;
+		c->frame_rate_base = rd->frs_sec_base;
 	} else {
-		c->frame_rate = G.scene->r.frs_sec * 100000;
-		c->frame_rate_base = ((double) G.scene->r.frs_sec_base)*100000;
+		c->frame_rate = rd->frs_sec * 100000;
+		c->frame_rate_base = ((double) rd->frs_sec_base)*100000;
 	}
 #endif
 	
 	c->gop_size = ffmpeg_gop_size;
 	c->bit_rate = ffmpeg_video_bitrate*1000;
-	c->rc_max_rate = G.scene->r.ffcodecdata.rc_max_rate*1000;
-	c->rc_min_rate = G.scene->r.ffcodecdata.rc_min_rate*1000;
-	c->rc_buffer_size = G.scene->r.ffcodecdata.rc_buffer_size * 1024;
+	c->rc_max_rate = rd->ffcodecdata.rc_max_rate*1000;
+	c->rc_min_rate = rd->ffcodecdata.rc_min_rate*1000;
+	c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
 	c->rc_initial_buffer_occupancy 
-		= G.scene->r.ffcodecdata.rc_buffer_size*3/4;
+		= rd->ffcodecdata.rc_buffer_size*3/4;
 	c->rc_buffer_aggressivity = 1.0;
 	c->me_method = ME_EPZS;
 	
@@ -502,7 +500,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	}
 	
 	/* Determine whether we are encoding interlaced material or not */
-	if (G.scene->r.mode & R_FIELDS) {
+	if (rd->mode & R_FIELDS) {
 		fprintf(stderr, "Encoding interlaced video\n");
 		c->flags |= CODEC_FLAG_INTERLACED_DCT;
 		c->flags |= CODEC_FLAG_INTERLACED_ME;
@@ -511,9 +509,9 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	/* xasp & yasp got float lately... */
 
 	c->sample_aspect_ratio = av_d2q(
-		((double) G.scene->r.xasp / (double) G.scene->r.yasp), 255);
+		((double) rd->xasp / (double) rd->yasp), 255);
 
-	set_ffmpeg_properties(c, "video");
+	set_ffmpeg_properties(rd, c, "video");
 	
 	if (avcodec_open(c, codec) < 0) {
 		//
@@ -538,7 +536,7 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 
 /* Prepare an audio stream for the output file */
 
-static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of) 
+static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContext* of) 
 {
 	AVStream* st;
 	AVCodecContext* c;
@@ -551,7 +549,7 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 	c->codec_id = codec_id;
 	c->codec_type = CODEC_TYPE_AUDIO;
 
-	c->sample_rate = G.scene->audio.mixrate;
+	c->sample_rate = rd->audio.mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate*1000;
 	c->channels = 2;
 	codec = avcodec_find_encoder(c->codec_id);
@@ -627,7 +625,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	do_init_ffmpeg();
 
 	/* Determine the correct filename */
-	makeffmpegstring(name);
+	makeffmpegstring(rd, name);
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
 		"  Using type=%d, codec=%d, audio_codec=%d,\n"
 		"  video_bitrate=%d, audio_bitrate=%d,\n"
@@ -659,9 +657,9 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	}
 	
 	of->oformat = fmt;
-	of->packet_size= G.scene->r.ffcodecdata.mux_packet_size;
+	of->packet_size= rd->ffcodecdata.mux_packet_size;
 	if (ffmpeg_multiplex_audio) {
-		of->mux_rate = G.scene->r.ffcodecdata.mux_rate;
+		of->mux_rate = rd->ffcodecdata.mux_rate;
 	} else {
 		of->mux_rate = 0;
 	}
@@ -707,14 +705,14 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 			//XXX error("Render width has to be 720 pixels for DV!");
 			return;
 		}
-		if (G.scene->r.frs_sec != 25 && recty != 480) {
+		if (rd->frs_sec != 25 && recty != 480) {
 			G.afbreek = 1;
 			//XXX error("Render height has to be 480 pixels "
 			//      "for DV-NTSC!");
 			return;
 			
 		}
-		if (G.scene->r.frs_sec == 25 && recty != 576) {
+		if (rd->frs_sec == 25 && recty != 576) {
 			G.afbreek = 1;
 			//XXX error("Render height has to be 576 pixels "
 			//      "for DV-PAL!");
@@ -726,8 +724,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-		if (ffmpeg_multiplex_audio 
-		    && G.scene->audio.mixrate != 48000) {
+		if (ffmpeg_multiplex_audio && rd->audio.mixrate != 48000) {
 			G.afbreek = 1;
 			//XXX error("FFMPEG only supports 48khz / stereo "
 			//      "audio for DV!");
@@ -735,7 +732,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 		}
 	}
 	
-	video_stream = alloc_video_stream(fmt->video_codec, of, rectx, recty);
+	video_stream = alloc_video_stream(rd, fmt->video_codec, of, rectx, recty);
 	if (!video_stream) {
 		G.afbreek = 1;
 		//XXX error("Error initializing video stream");
@@ -743,7 +740,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	}
 	
 	if (ffmpeg_multiplex_audio) {
-		audio_stream = alloc_audio_stream(fmt->audio_codec, of);
+		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of);
 		if (!audio_stream) {
 			G.afbreek = 1;
 			//XXX error("Error initializing audio stream");
@@ -775,7 +772,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
    ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-void makeffmpegstring(char* string) {
+static void makeffmpegstring(RenderData* rd, char* string) {
 
 	// XXX quick define, solve!
 #define FILE_MAXDIR 256
@@ -787,20 +784,20 @@ void makeffmpegstring(char* string) {
 #undef FILE_MAXFILE
 	char autosplit[20];
 
-	const char ** exts = get_file_extensions(G.scene->r.ffcodecdata.type);
+	const char ** exts = get_file_extensions(rd->ffcodecdata.type);
 	const char ** fe = exts;
 
 	if (!string || !exts) return;
 
-	strcpy(string, G.scene->r.pic);
+	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, G.scene->r.cfra);
+	BLI_convertstringframe(string, rd->cfra);
 
 	BLI_make_existing_file(string);
 
 	autosplit[0] = 0;
 
-	if ((G.scene->r.ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0) {
+	if ((rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0) {
 		sprintf(autosplit, "_%03d", ffmpeg_autosplit_count);
 	}
 
@@ -814,8 +811,8 @@ void makeffmpegstring(char* string) {
 
 	if (!*fe) {
 		strcat(string, autosplit);
-		sprintf(txt, "%04d_%04d%s", (G.scene->r.sfra), 
-			(G.scene->r.efra), *exts);
+		sprintf(txt, "%04d_%04d%s", (rd->sfra), 
+			(rd->efra), *exts);
 		strcat(string, txt);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;
@@ -828,8 +825,6 @@ void makeffmpegstring(char* string) {
 void start_ffmpeg(RenderData *rd, int rectx, int recty)
 {
 	ffmpeg_autosplit_count = 0;
-
-	ffmpeg_renderdata = rd;
 
 	start_ffmpeg_impl(rd, rectx, recty);
 }
@@ -856,21 +851,20 @@ static void write_audio_frames()
 	}
 }
 
-void append_ffmpeg(int frame, int *pixels, int rectx, int recty) 
+void append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty) 
 {
 	fprintf(stderr, "Writing frame %i, "
 		"render width=%d, render height=%d\n", frame,
 		rectx, recty);
 
 	write_audio_frames();
-	write_video_frame(generate_video_frame((unsigned char*) pixels));
+	write_video_frame(rd, generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
 		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
 			end_ffmpeg();
 			ffmpeg_autosplit_count++;
-			start_ffmpeg_impl(ffmpeg_renderdata,
-					  rectx, recty);
+			start_ffmpeg_impl(rd, rectx, recty);
 		}
 	}
 }

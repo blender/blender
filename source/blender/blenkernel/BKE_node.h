@@ -376,7 +376,7 @@ struct CompBuf;
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
-void ntreeCompositForceHidden(struct bNodeTree *ntree);
+void ntreeCompositForceHidden(struct bNodeTree *ntree, struct Scene *scene);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 
@@ -413,7 +413,7 @@ extern struct ListBase node_all_textures;
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
 void ntreeTexUpdatePreviews( struct bNodeTree* nodetree );
-void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, char do_preview, short thread, struct Tex *tex, short which_output);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);

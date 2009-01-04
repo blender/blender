@@ -1070,7 +1070,7 @@ int execute_ipochannels(ListBase *lb)
 
 /* this now only used for repeating cycles, to enable fields and blur. */
 /* the whole time control in blender needs serious thinking... */
-static float nla_time(float cfra, float unit)
+static float nla_time(Scene *scene, float cfra, float unit)
 {
 	extern float bluroffs;	// bad construct, borrowed from object.c for now
 	extern float fieldoffs;
@@ -1079,7 +1079,7 @@ static float nla_time(float cfra, float unit)
 	cfra+= unit*(bluroffs+fieldoffs);
 	
 	/* global time */
-	cfra*= G.scene->r.framelen;	
+	cfra*= scene->r.framelen;	
 	
 	return cfra;
 }
@@ -1236,7 +1236,7 @@ static Object *get_parent_path(Object *ob)
 /* For the calculation of the effects of an action at the given frame on an object 
  * This is currently only used for the action constraint 
  */
-void what_does_obaction (Object *ob, Object *workob, bAction *act, float cframe)
+void what_does_obaction (Scene *scene, Object *ob, Object *workob, bAction *act, float cframe)
 {
 	ListBase tchanbase= {NULL, NULL};
 	
@@ -1264,7 +1264,7 @@ void what_does_obaction (Object *ob, Object *workob, bAction *act, float cframe)
 	/* extract_ipochannels_from_action needs id's! */
 	workob->action= act;
 	
-	extract_ipochannels_from_action(&tchanbase, &workob->id, act, "Object", bsystem_time(workob, cframe, 0.0));
+	extract_ipochannels_from_action(&tchanbase, &workob->id, act, "Object", bsystem_time(scene, workob, cframe, 0.0));
 	
 	if (tchanbase.first) {
 		execute_ipochannels(&tchanbase);
@@ -1274,7 +1274,7 @@ void what_does_obaction (Object *ob, Object *workob, bAction *act, float cframe)
 
 /* ----- nla, etc. --------- */
 
-static void do_nla(Object *ob, int blocktype)
+static void do_nla(Scene *scene, Object *ob, int blocktype)
 {
 	bPose *tpose= NULL;
 	Key *key= NULL;
@@ -1282,7 +1282,7 @@ static void do_nla(Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= frame_to_float(G.scene->r.cfra); 
+	float scene_cfra= frame_to_float(scene, scene->r.cfra); 
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
@@ -1348,11 +1348,11 @@ static void do_nla(Object *ob, int blocktype)
 							
 							if (cu->flag & CU_PATH){
 								/* Ensure we have a valid path */
-								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(parent, 0);
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
 								if(cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(ob, scene_cfra, 0.0);
+									ctime= bsystem_time(scene, ob, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										/* correct for actions not starting on zero */
@@ -1374,7 +1374,7 @@ static void do_nla(Object *ob, int blocktype)
 									}
 									
 									frametime = (striptime * actlength) + strip->actstart;
-									frametime= bsystem_time(ob, frametime, 0.0);
+									frametime= bsystem_time(scene, ob, frametime, 0.0);
 									
 									if(blocktype==ID_AR) {
 										extract_pose_from_action (tpose, strip->act, frametime);
@@ -1404,7 +1404,7 @@ static void do_nla(Object *ob, int blocktype)
 						}
 
 						frametime = (striptime * actlength) + strip->actstart;
-						frametime= nla_time(frametime, (float)strip->repeat);
+						frametime= nla_time(scene, frametime, (float)strip->repeat);
 							
 						if(blocktype==ID_AR) {
 							extract_pose_from_action (tpose, strip->act, frametime);
@@ -1425,7 +1425,7 @@ static void do_nla(Object *ob, int blocktype)
 						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
 						if(frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
-						frametime= bsystem_time(ob, frametime+strip->actstart, 0.0);
+						frametime= bsystem_time(scene, ob, frametime+strip->actstart, 0.0);
 						
 						if(blocktype==ID_AR)
 							extract_pose_from_action (tpose, strip->act, frametime);
@@ -1490,7 +1490,7 @@ static void do_nla(Object *ob, int blocktype)
 		BLI_freelistN(&chanbase);
 }
 
-void do_all_pose_actions(Object *ob)
+void do_all_pose_actions(Scene *scene, Object *ob)
 {
 	/* only to have safe calls from editor */
 	if(ob==NULL) return;
@@ -1501,14 +1501,14 @@ void do_all_pose_actions(Object *ob)
 			ob->pose->flag &= ~(POSE_LOCKED|POSE_DO_UNLOCK);
 	}
 	else if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
-		float cframe= (float) G.scene->r.cfra;
+		float cframe= (float) scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, cframe, 0.0));
+		extract_pose_from_action (ob->pose, ob->action, bsystem_time(scene, ob, cframe, 0.0));
 	}
 	else if(ob->nlastrips.first) {
-		do_nla(ob, ID_AR);
+		do_nla(scene, ob, ID_AR);
 	}
 	
 	/* clear POSE_DO_UNLOCK flags that might have slipped through (just in case) */
@@ -1516,7 +1516,7 @@ void do_all_pose_actions(Object *ob)
 }
 
 /* called from where_is_object */
-void do_all_object_actions(Object *ob)
+void do_all_object_actions(Scene *scene, Object *ob)
 {
 	if(ob==NULL) return;
 	if(ob->dup_group) return;	/* prevent conflicts, might add smarter check later */
@@ -1525,13 +1525,13 @@ void do_all_object_actions(Object *ob)
 	if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
 		ListBase tchanbase= {NULL, NULL};
 		Key *key= ob_get_key(ob);
-		float cframe= (float) G.scene->r.cfra;
+		float cframe= (float) scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(ob, cframe, 0.0));
+		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(scene, ob, cframe, 0.0));
 		if(key)
-			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(ob, cframe, 0.0));
+			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(scene, ob, cframe, 0.0));
 		
 		if(tchanbase.first) {
 			execute_ipochannels(&tchanbase);
@@ -1539,6 +1539,6 @@ void do_all_object_actions(Object *ob)
 		}
 	}
 	else if(ob->nlastrips.first) {
-		do_nla(ob, ID_OB);
+		do_nla(scene, ob, ID_OB);
 	}
 }

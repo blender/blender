@@ -185,7 +185,7 @@ bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 
 bool GPC_Engine::StartKetsji(void)
 {
-	STR_String startSceneName = G.scene->id.name + 2;
+	STR_String startSceneName = ""; // XXX scene->id.name + 2;
 /*
 	KX_KetsjiEngine* ketsjieng = new KX_KetsjiEngine(m_system);
 	m_portal = new KetsjiPortal(ketsjieng);

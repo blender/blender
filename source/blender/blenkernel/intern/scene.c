@@ -317,21 +317,17 @@ Base *object_in_scene(Object *ob, Scene *sce)
 	return NULL;
 }
 
-void set_scene_bg(Scene *sce)
+void set_scene_bg(Scene *scene)
 {
+	Scene *sce;
 	Base *base;
 	Object *ob;
 	Group *group;
 	GroupObject *go;
 	int flag;
 	
-	// Note: this here is defined in editseq.c (BIF_editseq.h), NOT in blenkernel! 
-	//XXX clear_last_seq();
-	
-	G.scene= sce;
-	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
-	scene_check_setscene(G.scene);
+	scene_check_setscene(scene);
 	
 	/* deselect objects (for dataselect) */
 	for(ob= G.main->object.first; ob; ob= ob->id.next)
@@ -347,15 +343,15 @@ void set_scene_bg(Scene *sce)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(sce);
+	DAG_scene_sort(scene);
 	
 	/* ensure dags are built for sets */
-	for(sce= sce->set; sce; sce= sce->set)
+	for(sce= scene->set; sce; sce= sce->set)
 		if(sce->theDag==NULL)
 			DAG_scene_sort(sce);
 
 	/* copy layers and flags from bases to objects */
-	for(base= G.scene->base.first; base; base= base->next) {
+	for(base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		ob->lay= base->lay;
 		
@@ -394,7 +390,7 @@ void set_scene_name(char *name)
 /* used by metaballs
  * doesnt return the original duplicated object, only dupli's
  */
-int next_object(int val, Base **base, Object **ob)
+int next_object(Scene *scene, int val, Base **base, Object **ob)
 {
 	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
@@ -414,15 +410,15 @@ int next_object(int val, Base **base, Object **ob)
 
 			/* the first base */
 			if(fase==F_START) {
-				*base= G.scene->base.first;
+				*base= scene->base.first;
 				if(*base) {
 					*ob= (*base)->object;
 					fase= F_SCENE;
 				}
 				else {
 				    /* exception: empty scene */
-					if(G.scene->set && G.scene->set->base.first) {
-						*base= G.scene->set->base.first;
+					if(scene->set && scene->set->base.first) {
+						*base= scene->set->base.first;
 						*ob= (*base)->object;
 						fase= F_SET;
 					}
@@ -435,8 +431,8 @@ int next_object(int val, Base **base, Object **ob)
 					else {
 						if(fase==F_SCENE) {
 							/* scene is finished, now do the set */
-							if(G.scene->set && G.scene->set->base.first) {
-								*base= G.scene->set->base.first;
+							if(scene->set && scene->set->base.first) {
+								*base= scene->set->base.first;
 								*ob= (*base)->object;
 								fase= F_SET;
 							}
@@ -453,7 +449,7 @@ int next_object(int val, Base **base, Object **ob)
 						this enters eternal loop because of 
 						makeDispListMBall getting called inside of group_duplilist */
 						if((*base)->object->dup_group == NULL) {
-							duplilist= object_duplilist(G.scene, (*base)->object);
+							duplilist= object_duplilist(scene, (*base)->object);
 							
 							dupob= duplilist->first;
 
@@ -573,7 +569,7 @@ static void scene_update(Scene *sce, unsigned int lay)
 	for(base= sce->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		object_handle_update(ob);   // bke_object.h
+		object_handle_update(sce, ob);   // bke_object.h
 		
 		/* only update layer when an ipo */
 		if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
@@ -591,7 +587,7 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	framechange_poses_clear_unkeyed();
 	
 	/* object ipos are calculated in where_is_object */
-	do_all_data_ipos();
+	do_all_data_ipos(sce);
 #ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 #endif

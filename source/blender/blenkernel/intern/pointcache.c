@@ -375,7 +375,7 @@ int BKE_ptcache_id_exist(PTCacheID *pid, int cfra)
 	return BLI_exists(filename);
 }
 
-void BKE_ptcache_id_time(PTCacheID *pid, float cfra, int *startframe, int *endframe, float *timescale)
+void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startframe, int *endframe, float *timescale)
 {
 	Object *ob;
 	PointCache *cache;
@@ -394,8 +394,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, float cfra, int *startframe, int *endfr
 	cache= pid->cache;
 
 	if(timescale) {
-		time= bsystem_time(ob, cfra, 0.0f);
-		nexttime= bsystem_time(ob, cfra+1.0f, 0.0f);
+		time= bsystem_time(scene, ob, cfra, 0.0f);
+		nexttime= bsystem_time(scene, ob, cfra+1.0f, 0.0f);
 
 		*timescale= MAX2(nexttime - time, 0.0f);
 	}
@@ -552,7 +552,7 @@ void BKE_ptcache_remove(void)
 
 static int CONTINUE_PHYSICS = 0;
 
-void BKE_ptcache_set_continue_physics(int enable)
+void BKE_ptcache_set_continue_physics(Scene *scene, int enable)
 {
 	Object *ob;
 
@@ -562,7 +562,7 @@ void BKE_ptcache_set_continue_physics(int enable)
 		if(CONTINUE_PHYSICS == 0) {
 			for(ob=G.main->object.first; ob; ob=ob->id.next)
 				if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_OUTDATED))
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+					DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
 	}
 }

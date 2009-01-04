@@ -54,7 +54,7 @@ struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);
 
-int next_object(int val, struct Base **base, struct Object **ob);
+int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);

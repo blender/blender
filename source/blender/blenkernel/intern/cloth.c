@@ -479,7 +479,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
-DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *result;
 	PointCache *cache;
@@ -487,12 +487,13 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *
 	float timescale;
 	int framedelta, framenr, startframe, endframe;
 
-	framenr= (int)G.scene->r.cfra;
+	clmd->scene= scene;	/* nice to pass on later :) */
+	framenr= (int)scene->r.cfra;
 	cache= clmd->point_cache;
 	result = CDDM_copy(dm);
 
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
+	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 	clmd->sim_parms->timescale= timescale;
 
 	if(!result) {

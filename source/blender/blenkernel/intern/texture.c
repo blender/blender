@@ -812,14 +812,14 @@ Tex *give_current_texture(Object *ob, int act)
 	return tex;
 }
 
-Tex *give_current_world_texture(void)
+Tex *give_current_world_texture(Scene *scene)
 {
 	MTex *mtex = 0;
 	Tex *tex = 0;
 	
-	if(!(G.scene->world)) return 0;
+	if(!(scene->world)) return 0;
 	
-	mtex= G.scene->world->mtex[(int)(G.scene->world->texact)];
+	mtex= scene->world->mtex[(int)(scene->world->texact)];
 	if(mtex) tex= mtex->tex;
 	
 	return tex;

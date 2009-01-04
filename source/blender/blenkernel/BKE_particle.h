@@ -44,6 +44,7 @@ struct HairKey;
 struct Main;
 struct Group;
 struct Object;
+struct Scene;
 struct DerivedMesh;
 struct ModifierData;
 struct MTFace;
@@ -201,11 +202,11 @@ short psys_get_current_num(struct Object *ob);
 struct ParticleData *psys_get_selected_particle(struct ParticleSystem *psys, int *index);
 struct ParticleKey *psys_get_selected_key(struct ParticleSystem *psys, int pa_index, int *key_index);
 void psys_change_act(void *ob_v, void *act_v);
-struct Object *psys_get_lattice(struct Object *ob, struct ParticleSystem *psys);
+struct Object *psys_get_lattice(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 void psys_disable_all(struct Object *ob);
 void psys_enable_all(struct Object *ob);
 int psys_ob_has_hair(struct Object *ob);
-int psys_in_edit_mode(struct ParticleSystem *psys);
+int psys_in_edit_mode(struct Scene *scene, struct ParticleSystem *psys);
 int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_free_settings(struct ParticleSettings *part);
@@ -231,30 +232,30 @@ struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct P
 
 struct ParticleSettings *psys_new_settings(char *name, struct Main *main);
 struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
-void psys_flush_settings(struct ParticleSettings *part, int event, int hair_recalc);
+void psys_flush_settings(struct Scene *scene, struct ParticleSettings *part, int event, int hair_recalc);
 void make_local_particlesettings(struct ParticleSettings *part);
 
-struct LinkNode *psys_using_settings(struct ParticleSettings *part, int flush_update);
+struct LinkNode *psys_using_settings(struct Scene *scene, struct ParticleSettings *part, int flush_update);
 void psys_changed_type(struct ParticleSystem *psys);
 void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct Object *ob, struct ParticleSystemModifierData *psmd, struct ParticleSystem *psys);
 
-void psys_cache_paths(struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
-void psys_cache_child_paths(struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
+void psys_cache_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
+void psys_cache_child_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
 int do_guide(struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);
 float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra);
 float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
-void psys_get_particle_on_path(struct Object *ob, struct ParticleSystem *psys, int pa_num, struct ParticleKey *state, int vel);
-int psys_get_particle_state(struct Object *ob, struct ParticleSystem *psys, int p, struct ParticleKey *state, int always);
+void psys_get_particle_on_path(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, int pa_num, struct ParticleKey *state, int vel);
+int psys_get_particle_state(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, int p, struct ParticleKey *state, int always);
 void psys_get_dupli_texture(struct Object *ob, struct ParticleSettings *part, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, float *uv, float *orco);
 void psys_get_dupli_path_transform(struct Object *ob, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa, struct ParticleCacheKey *cache, float mat[][4], float *scale);
 
-ParticleThread *psys_threads_create(struct Object *ob, struct ParticleSystem *psys);
-int psys_threads_init_distribution(ParticleThread *threads, struct DerivedMesh *dm, int from);
-int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate);
+ParticleThread *psys_threads_create(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
+int psys_threads_init_distribution(ParticleThread *threads, struct Scene *scene, struct DerivedMesh *dm, int from);
+int psys_threads_init_path(ParticleThread *threads, struct Scene *scene, float cfra, int editupdate);
 void psys_threads_free(ParticleThread *threads);
 
 void psys_thread_distribute_particle(ParticleThread *thread, struct ParticleData *pa, struct ChildParticle *cpa, int p);
@@ -264,10 +265,10 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 int psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_reactor_target(struct Object *ob, struct ParticleSystem *psys, struct Object **target_ob, struct ParticleSystem **target_psys);
 
-void psys_init_effectors(struct Object *obsrc, struct Group *group, struct ParticleSystem *psys);
+void psys_init_effectors(struct Scene *scene, struct Object *obsrc, struct Group *group, struct ParticleSystem *psys);
 void psys_end_effectors(struct ParticleSystem *psys);
 
-void particle_system_update(struct Object *ob, struct ParticleSystem *psys);
+void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
 /* ----------- functions needed only inside particlesystem ------------ */
 /* particle.c */
@@ -288,7 +289,7 @@ float psys_particle_value_from_verts(struct DerivedMesh *dm, short from, struct 
 float psys_interpolate_value_from_verts(struct DerivedMesh *dm, short from, int index, float *fw, float *values);
 void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *rot, float *time);
 
-int psys_intersect_dm(struct Object *ob, struct DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_uv, float *face_minmax, float *pa_minmax, float radius, float *ipoint);
+int psys_intersect_dm(struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_uv, float *face_minmax, float *pa_minmax, float radius, float *ipoint);
 void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 
 /* particle_system.c */

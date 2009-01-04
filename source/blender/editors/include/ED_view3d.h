@@ -39,8 +39,9 @@ struct EditVert;
 struct EditEdge;
 struct EditFace;
 struct ImBuf;
+struct Scene;
 
-float *give_cursor(Scene *scene, View3D *v3d);
+float *give_cursor(struct Scene *scene, View3D *v3d);
 
 void initgrabz(struct View3D *v3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
@@ -67,7 +68,7 @@ void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
 int view3d_test_clipping(struct View3D *v3d, float *vec);
-void view3d_align_axis_to_vector(struct View3D *v3d, int axisidx, float vec[3]);
+void view3d_align_axis_to_vector(struct Scene *scene, struct View3D *v3d, int axisidx, float vec[3]);
 
 /* backbuffer select and draw support */
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);

@@ -334,7 +334,7 @@ static void make_fgon(EditMesh *em, int make)
 	else {
 		EM_fgon_flags(em);	// redo flags and indices for fgons
 
-// XXX		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		BIF_undo_push("Make FGon");
 	}
 }
@@ -600,7 +600,7 @@ void addfaces_from_edgenet(EditMesh *em)
 	EM_select_flush(em);
 	
 	BIF_undo_push("Add faces");
-// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 }
 
 void addedgeface_mesh(EditMesh *em)
@@ -632,7 +632,7 @@ void addedgeface_mesh(EditMesh *em)
 		EM_select_edge(eed, 1);
 		BIF_undo_push("Add edge");
 
-		// XXX		DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+		// XXX		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
@@ -734,11 +734,11 @@ void addedgeface_mesh(EditMesh *em)
 		BIF_undo_push("Add face");
 	}
 	
-// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
+// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 }
 
 
-void adduplicate_mesh(Object *obedit, EditMesh *em)
+void adduplicate_mesh(Scene *scene, Object *obedit, EditMesh *em)
 {
 
 	if(multires_test()) return;
@@ -755,8 +755,8 @@ void adduplicate_mesh(Object *obedit, EditMesh *em)
 		* This shouldn't be necessary, derived queries should be
 		* automatically building this data if invalid. Or something.
 		*/
-// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);	
-	object_handle_update(obedit);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+	object_handle_update(scene, obedit);
 
 // XXX	BIF_TransformSetUndo("Add Duplicate");
 //	initTransform(TFM_TRANSLATION, CTX_NO_PET);
@@ -773,13 +773,13 @@ static int confirm_objectExists(Scene *scene, Object *obedit, Mesh **me, float m
 	if(obedit==NULL) {
 		/* add_object actually returns an object ! :-)
 		But it also stores the added object struct in
-		G.scene->basact->object (BASACT->object) */
+		scene->basact->object (BASACT->object) */
 
 // XXX		add_object_draw(OB_MESH);
 
 		obedit= BASACT->object;
 		
-		where_is_object(obedit);
+		where_is_object(scene, obedit);
 		
 		make_editMesh(scene, obedit); 
 		newob= 1;
@@ -1245,7 +1245,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, 
 	char *undostr="Add Primitive";
 	char *name=NULL;
 	
-//	if(G.scene->id.lib) return;
+//	if(scene->id.lib) return;
 	
 	/* this function also comes from an info window */
 // XXX	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
@@ -1396,7 +1396,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, 
 	
 	if(type!=0 && type!=13) righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction... */
 
-// XXX	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+// XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	
 	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
 	if ( !(newob) || U.flag & USER_ADD_EDITMODE) {

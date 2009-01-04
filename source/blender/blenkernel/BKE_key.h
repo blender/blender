@@ -37,6 +37,7 @@ struct ID;
 struct ListBase;
 struct Curve;
 struct Object;
+struct Scene;
 struct Lattice;
 struct Mesh;
 
@@ -57,7 +58,7 @@ void set_afgeleide_four_ipo(float d, float *data, int type);
 /* only exported to curve.c! */
 void cp_cu_key(struct Curve *cu, struct KeyBlock *kb, int start, int end);
 
-int do_ob_key(struct Object *ob);
+int do_ob_key(struct Scene *scene, struct Object *ob);
 
 struct Key *ob_get_key(struct Object *ob);
 struct KeyBlock *ob_get_keyblock(struct Object *ob);

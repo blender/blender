@@ -792,7 +792,7 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->keymodifier == KM_SHIFT) {
-				G.scene->prop_mode = (G.scene->prop_mode+1)%6;
+				t->scene->prop_mode = (t->scene->prop_mode+1)%6;
 				calculatePropRatio(t);
 				t->redraw= 1;
 			}
@@ -2081,7 +2081,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		}
 		else if (t->flag & T_EDIT) {
 			
-			if(t->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+			if(t->around==V3D_LOCAL && (t->scene->selectmode & SCE_SELECT_FACE)) {
 				VECCOPY(center, td->center);
 			}
 			else {
@@ -2381,7 +2381,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 		else {
 			/* !TODO! Make this if not rely on G */
-			if(around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+			if(around==V3D_LOCAL && (t->scene->selectmode & SCE_SELECT_FACE)) {
 				center = td->center;
 			}
 		}
@@ -2831,7 +2831,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(distvec, "%.4f", dist);
 		
 	if(t->flag & T_AUTOIK) {
-		short chainlen= G.scene->toolsettings->autoik_chainlen;
+		short chainlen= t->scene->toolsettings->autoik_chainlen;
 		
 		if(chainlen)
 			sprintf(autoik, "AutoIK-Len: %d", chainlen);
@@ -3997,7 +3997,7 @@ int Align(TransInfo *t, short mval[2])
 			VECCOPY(t->center, td->center);
 		}
 		else {
-			if(G.scene->selectmode & SCE_SELECT_FACE) {
+			if(t->scene->selectmode & SCE_SELECT_FACE) {
 				VECCOPY(t->center, td->center);
 			}
 		}

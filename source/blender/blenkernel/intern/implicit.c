@@ -1393,7 +1393,7 @@ float calculateVertexWindForce(float wind[3], float vertexnormal[3])
 	return (INPR(wind, vertexnormal));
 }
 
-void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
+static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
@@ -1442,7 +1442,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		{
 			float speed[3] = {0.0f, 0.0f,0.0f};
 			
-			pdDoEffectors(effectors, lX[i], winvec[i], speed, (float)G.scene->r.cfra, 0.0f, 0);
+			pdDoEffectors(clmd->scene, effectors, lX[i], winvec[i], speed, frame, 0.0f, 0);
 		}
 		
 		for(i = 0; i < cloth->numfaces; i++)
@@ -1570,8 +1570,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	while(step < tf)
 	{	
 		// calculate forces
-		effectors= pdInitEffectors(ob,NULL);
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
+		effectors= pdInitEffectors(clmd->scene, ob, NULL);
+		cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, id->M);
 		if(effectors) pdEndEffectors(effectors);
 		
 		// calculate new velocity
@@ -1648,8 +1648,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
-				effectors= pdInitEffectors(ob,NULL);
-				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
+				effectors= pdInitEffectors(clmd->scene, ob, NULL);
+				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
 				if(effectors) pdEndEffectors(effectors);
 				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);

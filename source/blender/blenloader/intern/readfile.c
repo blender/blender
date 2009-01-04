@@ -3169,6 +3169,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 	for (md=lb->first; md; md=md->next) {
 		md->error = NULL;
+		md->scene = NULL;
 		
 		/* if modifiers disappear, or for upward compatibility */
 		if(NULL==modifierType_getInfo(md->type))
@@ -8436,12 +8437,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250) {
 		bScreen *screen;
+		Scene *scene;
 		Material *ma;
 		Scene *sce;
 		Tex *tx;
 		
 		for(screen= main->screen.first; screen; screen= screen->id.next)
 			do_versions_windowmanager_2_50(screen);
+		
+		/* struct audio data moved to renderdata */
+		for(scene= main->scene.first; scene; scene= scene->id.next)
+			scene->r.audio = scene->audio;
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.

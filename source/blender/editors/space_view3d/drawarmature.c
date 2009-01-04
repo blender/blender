@@ -1872,7 +1872,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 		
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 
-		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++) {
+		for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & (BONE_HIDDEN_A|BONE_NO_DEFORM))==0) {
 					if (eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
@@ -1889,7 +1889,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 	/* if solid we draw it first */
 	if ((dt > OB_WIRE) && (arm->drawtype!=ARM_LINE)) {
 		index= 0;
-		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++) {
+		for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
 			if (eBone->layer & arm->layer) {
 				if ((eBone->flag & BONE_HIDDEN_A)==0) {
 					glPushMatrix();
@@ -1926,7 +1926,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 	else if (arm->flag & ARM_EDITMODE) 
 		index= 0;	/* do selection codes */
 	
-	for (eBone=G.edbo.first; eBone; eBone=eBone->next) {
+	for (eBone=arm->edbo->first; eBone; eBone=eBone->next) {
 		if (eBone->layer & arm->layer) {
 			if ((eBone->flag & BONE_HIDDEN_A)==0) {
 				
@@ -1983,7 +1983,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
-			for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++) {
+			for (eBone=arm->edbo->first, index=0; eBone; eBone=eBone->next, index++) {
 				if(eBone->layer & arm->layer) {
 					if ((eBone->flag & BONE_HIDDEN_A)==0) {
 						
@@ -2295,8 +2295,8 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 		colfac = (end-CFRA)/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
-		do_all_pose_actions(ob);
-		where_is_pose(ob);
+		do_all_pose_actions(scene, ob);
+		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
@@ -2372,8 +2372,8 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 		
 		CFRA= (int)ak->cfra;
 		
-		do_all_pose_actions(ob);
-		where_is_pose(ob);
+		do_all_pose_actions(scene, ob);
+		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
@@ -2454,8 +2454,8 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			else CFRA= (int)floor(actframe+ctime);
 			
 			if (CFRA!=cfrao) {
-				do_all_pose_actions(ob);
-				where_is_pose(ob);
+				do_all_pose_actions(scene, ob);
+				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, base, OB_WIRE);
 			}
 		}
@@ -2470,8 +2470,8 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			else CFRA= (int)floor(actframe-ctime);
 			
 			if (CFRA != cfrao) {
-				do_all_pose_actions(ob);
-				where_is_pose(ob);
+				do_all_pose_actions(scene, ob);
+				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, base, OB_WIRE);
 			}
 		}

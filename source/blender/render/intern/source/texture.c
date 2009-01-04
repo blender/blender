@@ -79,11 +79,9 @@ extern struct Render R;
 
 
 
-/* note; this is called WITH RENDER IS NULL in src/drawview.c for animated 
-   background image, option should move to kernel */
 void init_render_texture(Render *re, Tex *tex)
 {
-	int cfra= G.scene->r.cfra;
+	int cfra= re->scene->r.cfra;
 	
 	if(re) cfra= re->r.cfra;
 	
@@ -95,7 +93,7 @@ void init_render_texture(Render *re, Tex *tex)
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
 			if(tex->plugin->cfra) {
-				*(tex->plugin->cfra)= frame_to_float(cfra); 
+				*(tex->plugin->cfra)= frame_to_float(re->scene, cfra); 
 			}
 		}
 	}
@@ -718,7 +716,7 @@ static int evalnodes(Tex *tex, float *texvec, TexResult *texres, short thread, s
 	short rv = TEX_INT;
 	bNodeTree *nodes = tex->nodetree;
 	
-	ntreeTexExecTree(nodes, texres, texvec, 0, thread, tex, which_output);
+	ntreeTexExecTree(nodes, texres, texvec, 0, thread, tex, which_output, R.r.cfra);
 	
 	if(texres->nor) rv |= TEX_NOR;
 	rv |= TEX_RGB;

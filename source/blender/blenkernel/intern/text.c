@@ -322,7 +322,7 @@ int reopen_text(Text *text)
 	return 1;
 }
 
-Text *add_text(char *file) 
+Text *add_text(char *file, const char *relpath) 
 {
 	FILE *fp;
 	int i, llen, len, res;
@@ -334,8 +334,8 @@ Text *add_text(char *file)
 	struct stat st;
 
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
-	if (G.scene) /* can be NULL (bg mode) */
-		BLI_convertstringcode(str, G.sce);
+	if (relpath) /* can be NULL (bg mode) */
+		BLI_convertstringcode(str, relpath);
 	BLI_split_dirfile_basic(str, NULL, sfile);
 	
 	fp= fopen(str, "r");

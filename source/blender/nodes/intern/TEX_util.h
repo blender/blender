@@ -74,6 +74,7 @@ typedef struct TexCallData {
 	char do_preview;
 	short thread;
 	short which_output;
+	int cfra;
 } TexCallData;
 
 typedef void(*TexFn) (float *out, float *coord, bNode *node, bNodeStack **in, short thread);
@@ -95,6 +96,6 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn);
 void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata);
 
 void ntreeTexUpdatePreviews( bNodeTree* nodetree );
-void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, struct Tex *tex, short which_output);
+void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
  
 #endif

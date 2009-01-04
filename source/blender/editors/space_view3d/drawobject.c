@@ -120,7 +120,7 @@ extern ListBase editNurb;
 /* editmball.c */
 extern ListBase editelems;
 
-static void draw_bounding_volume(Object *ob);
+static void draw_bounding_volume(Scene *scene, Object *ob);
 
 static void drawcube_size(float size);
 static void drawcircle_size(float size);
@@ -1123,7 +1123,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 }
 
 /* lattice color is hardcoded, now also shows weightgroup values in edit mode */
-static void drawlattice(View3D *v3d, Object *ob)
+static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 {
 	Lattice *lt= ob->data;
 	DispList *dl;
@@ -1132,7 +1132,7 @@ static void drawlattice(View3D *v3d, Object *ob)
 
 	/* now we default make displist, this will modifiers work for non animated case */
 	if(ob->disp.first==NULL)
-		lattice_calc_modifiers(ob);
+		lattice_calc_modifiers(scene, ob);
 	dl= find_displist(&ob->disp, DL_VERTS);
 	
 	if(lt->editlatt) {
@@ -1207,7 +1207,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(vc->obedit, vc->em, CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 	
 	data.vc= *vc;
 	data.func = func;
@@ -1251,7 +1251,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(vc->obedit, vc->em, CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
@@ -1283,7 +1283,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage(vc->obedit, vc->em, CD_MASK_BAREMESH);
+	DerivedMesh *dm = editmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	data.vc= *vc;
 	data.func = func;
@@ -2151,7 +2151,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
-	DerivedMesh *dm= mesh_get_derived_final(ob, get_viewedit_datamask());
+	DerivedMesh *dm= mesh_get_derived_final(scene, ob, get_viewedit_datamask());
 
 	if(!dm)
 		return;
@@ -2172,7 +2172,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 	if (ob==OBACT && FACESEL_PAINT_TEST) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
-		draw_bounding_volume(ob);
+		draw_bounding_volume(scene, ob);
 	}
 	else if(hasHaloMat || (totface==0 && totedge==0)) {
 		glPointSize(1.5);
@@ -2276,9 +2276,9 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 				/* release and reload derivedmesh because it might be freed in
 				   shadeDispList due to a different datamask */
 				dm->release(dm);
-				shadeDispList(base);
+				shadeDispList(scene, base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
-				dm= mesh_get_derived_final(ob, get_viewedit_datamask());
+				dm= mesh_get_derived_final(scene, ob, get_viewedit_datamask());
 			}
 
 			if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
@@ -2370,7 +2370,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 		if (obedit!=ob)
 			finalDM = cageDM = editmesh_get_derived_base(ob, em);
 		else
-			cageDM = editmesh_get_derived_cage_and_final(ob, em, &finalDM,
+			cageDM = editmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
 			                                get_viewedit_datamask());
 
 		if(dt>OB_WIRE) {
@@ -2714,7 +2714,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 					drawDispListsolid(lb, ob, 1);
 				}
 				else if(dt == OB_SHADED) {
-					if(ob->disp.first==0) shadeDispList(base);
+					if(ob->disp.first==0) shadeDispList(scene, base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
@@ -2752,7 +2752,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 				drawDispListsolid(lb, ob, 1);
 			}
 			else if(dt==OB_SHADED) {
-				if(ob->disp.first==NULL) shadeDispList(base);
+				if(ob->disp.first==NULL) shadeDispList(scene, base);
 				drawDispListshaded(lb, ob);
 			}
 			else {
@@ -2770,7 +2770,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 		
 		if( is_basis_mball(ob)) {
 			lb= &ob->disp;
-			if(lb->first==NULL) makeDispListMBall(ob);
+			if(lb->first==NULL) makeDispListMBall(scene, ob);
 			if(lb->first==NULL) return 1;
 			
 			if(solid) {
@@ -2781,7 +2781,7 @@ static int drawDispList(Scene *scene, View3D *v3d, Base *base, int dt)
 				}
 				else if(dt == OB_SHADED) {
 					dl= lb->first;
-					if(dl && dl->col1==0) shadeDispList(base);
+					if(dl && dl->col1==0) shadeDispList(scene, base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
@@ -2824,7 +2824,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 	Object *bb_ob=0;
 	float vel[3], vec[3], vec2[3], imat[4][4], onevec[3]={0.0f,0.0f,0.0f}, bb_center[3];
 	float timestep, pixsize=1.0, pa_size, pa_time, r_tilt;
-	float cfra=bsystem_time(ob,(float)CFRA,0.0);
+	float cfra= bsystem_time(scene, ob,(float)CFRA,0.0);
 	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, k, k_max=0, totpart, totpoint=0, draw_as, path_nbr=0;
@@ -2846,7 +2846,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 	if(pars==0) return;
 
 	// XXX what logic is this?
-	if(!scene->obedit && psys_in_edit_mode(psys)
+	if(!scene->obedit && psys_in_edit_mode(scene, psys)
 		&& psys->flag & PSYS_HAIR_DONE && part->draw_as==PART_DRAW_PATH)
 		return;
 		
@@ -2913,7 +2913,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 	draw_as=part->draw_as;
 
 	if(part->flag&PART_GLOB_TIME)
-		cfra=bsystem_time(0,(float)CFRA,0.0);
+		cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
 
 	if(psys->pathcache){
 		path_possible=1;
@@ -3027,7 +3027,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 		cd=cdata;
 		nd=ndata;
 
-		psys->lattice=psys_get_lattice(ob,psys);
+		psys->lattice= psys_get_lattice(scene, ob, psys);
 	}
 
 	if(draw_as){
@@ -3113,7 +3113,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 				for(k=0; k<=path_nbr; k++){
 					if(draw_keys){
 						state.time=(float)k/(float)path_nbr;
-						psys_get_particle_on_path(ob,psys,a,&state,1);
+						psys_get_particle_on_path(scene, ob, psys, a, &state,1);
 					}
 					else if(path_nbr){
 						if(k<=k_max){
@@ -3126,7 +3126,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 					}
 					else{
 						state.time=cfra;
-						if(psys_get_particle_state(ob,psys,a,&state,0)==0){
+						if(psys_get_particle_state(scene, ob, psys, a, &state,0)==0){
 							next_pa=1;
 							break;
 						}
@@ -3504,14 +3504,14 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, Object *ob, ParticleSy
 	/* create path and child path cache if it doesn't exist already */
 	if(psys->pathcache==0){
 // XXX		PE_hide_keys_time(psys,CFRA);
-		psys_cache_paths(ob,psys,CFRA,0);
+		psys_cache_paths(scene, ob, psys, CFRA,0);
 	}
 	if(psys->pathcache==0)
 		return;
 
 	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
 		if(psys->childcache==0)
-			psys_cache_child_paths(ob, psys, CFRA, 0);
+			psys_cache_child_paths(scene, ob, psys, CFRA, 0);
 	}
 	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
 		free_child_path_cache(psys);
@@ -4484,7 +4484,7 @@ static void draw_bb_quadric(BoundBox *bb, short type)
 	gluDeleteQuadric(qobj); 
 }
 
-static void draw_bounding_volume(Object *ob)
+static void draw_bounding_volume(Scene *scene, Object *ob)
 {
 	BoundBox *bb=0;
 	
@@ -4497,7 +4497,7 @@ static void draw_bounding_volume(Object *ob)
 	else if(ob->type==OB_MBALL) {
 		bb= ob->bb;
 		if(bb==0) {
-			makeDispListMBall(ob);
+			makeDispListMBall(scene, ob);
 			bb= ob->bb;
 		}
 	}
@@ -4761,7 +4761,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 							base->flag= 0;
 
-							where_is_object_time(ob, (scene->r.cfra));
+							where_is_object_time(scene, ob, (scene->r.cfra));
 							draw_object(scene, ar, v3d, base, 0);
 						}
 						ce= ce->next;
@@ -4775,7 +4775,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 						base->flag= SELECT;
 
-						where_is_object_time(ob, (scene->r.cfra));
+						where_is_object_time(scene, ob, (scene->r.cfra));
 						draw_object(scene, ar, v3d, base, 0);
 					}
 					ce= ce->next;
@@ -4791,7 +4791,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				(scene->r.cfra)= cfraont;
 
 				memcpy(&ob->loc, temp, 7*3*sizeof(float));
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				v3d->drawtype= drawtype;
 
 				BLI_freelistN(&elems);
@@ -4802,7 +4802,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
-	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(ob); */
+	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 
 	wmMultMatrix(ob->obmat);
 
@@ -4912,7 +4912,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_FONT:
 			cu= ob->data;
-			if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
+			if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 			if(cu->editstr) {
 				tekentextcurs();
 
@@ -4996,7 +4996,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				}
 			}
 			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(ob);
+				draw_bounding_volume(scene, ob);
 			else if(boundbox_clip(v3d, ob->obmat, cu->bb)) 
 				empty_object= drawDispList(scene, v3d, base, dt);
 
@@ -5005,13 +5005,13 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		case OB_SURF:
 			cu= ob->data;
 			/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-			if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
+			if (cu->disp.first==NULL) makeDispListCurveTypes(scene, ob, 0);
 
 			if(cu->editnurb) {
 				drawnurb(scene, v3d, base, cu->editnurb->first, dt);
 			}
 			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(ob);
+				draw_bounding_volume(scene, ob);
 			else if(boundbox_clip(v3d, ob->obmat, cu->bb)) {
 				empty_object= drawDispList(scene, v3d, base, dt);
 				
@@ -5026,7 +5026,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			if(mb->editelems) 
 				drawmball(scene, v3d, base, dt);
 			else if(dt==OB_BOUNDBOX) 
-				draw_bounding_volume(ob);
+				draw_bounding_volume(scene, ob);
 			else 
 				empty_object= drawmball(scene, v3d, base, dt);
 			break;
@@ -5042,7 +5042,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			drawcamera(scene, v3d, ob, flag);
 			break;
 		case OB_LATTICE:
-			drawlattice(v3d, ob);
+			drawlattice(scene, v3d, ob);
 			break;
 		case OB_ARMATURE:
 			if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
@@ -5069,7 +5069,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		
 		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
 			psys= NULL; // XXX PE_get_current(ob);
-			if(psys && !scene->obedit && psys_in_edit_mode(psys))
+			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, ob, psys, dt);
 		}
 		glDepthMask(GL_TRUE); 
@@ -5094,7 +5094,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(dtx & OB_AXIS) {
 			drawaxes(1.0f, flag, OB_ARROWS);
 		}
-		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
+		if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
 		if(dtx & OB_DRAWNAME) {
 			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
@@ -5188,7 +5188,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			make_axis_color(col, col2, 'z');
 			glColor3ubv((GLubyte *)col2);
 			
-			cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+			cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 			
 			for (curcon = list->first; curcon; curcon=curcon->next) {
 				bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
@@ -5201,7 +5201,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct= targets.first; ct; ct= ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix) 
-							cti->get_target_matrix(curcon, cob, ct, bsystem_time(ob, (float)(scene->r.cfra), give_timeoffset(ob)));
+							cti->get_target_matrix(curcon, cob, ct, bsystem_time(scene, ob, (float)(scene->r.cfra), give_timeoffset(ob)));
 						else
 							Mat4One(ct->matrix);
 						
@@ -5361,9 +5361,9 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 }
 
 /* TODO remove this - since face select mode now only works with painting */
-static void bbs_mesh_solid(Object *ob)
+static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(ob, get_viewedit_datamask());
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, get_viewedit_datamask());
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -5386,7 +5386,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 		Mesh *me= ob->data;
 		EditMesh *em= me->edit_mesh;
 		if(em) {
-			DerivedMesh *dm = editmesh_get_derived_cage(ob, em, CD_MASK_BAREMESH);
+			DerivedMesh *dm = editmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(em, 1, 1, 1);
 
@@ -5408,7 +5408,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(ob);
+		else bbs_mesh_solid(scene, ob);
 	}
 		break;
 	case OB_CURVE:
@@ -5433,7 +5433,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, Object *ob, int
 	if(me->edit_mesh)
 		edm= editmesh_get_derived_base(ob, me->edit_mesh);
 	else 
-		dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	if(dt<=OB_WIRE) {
 		if(dm)

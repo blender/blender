@@ -120,7 +120,8 @@ typedef struct SBScratch {
 	float aabbmin[3],aabbmax[3];
 }SBScratch;
 
-typedef struct  SB_thread_context{
+typedef struct  SB_thread_context {
+		Scene *scene;
         Object *ob;
 		float forcetime;
 		float timenow;
@@ -196,7 +197,7 @@ static float sb_time_scale(Object *ob)
 	/* 
 	this would be frames/sec independant timing assuming 25 fps is default
 	but does not work very well with NLA
-		return (25.0f/G.scene->r.frs_sec)
+		return (25.0f/scene->r.frs_sec)
 	*/
 }
 /*--- frame based timing ---*/
@@ -484,12 +485,11 @@ static void ccd_mesh_free(ccd_Mesh *ccdm)
 	}
 }
 
-static void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
+static void ccd_build_deflector_hash(Scene *scene, Object *vertexowner, GHash *hash)
 {
-	Base *base;
+	Base *base= scene->base.first;
 	Object *ob;
-	base= G.scene->base.first;
-	base= G.scene->base.first;
+
 	if (!hash) return;
 	while (base) {
 		/*Only proceed for mesh object in same layer */
@@ -516,9 +516,9 @@ static void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 				}
 				else {
 					if(ob->softflag & OB_SB_COLLFINAL) /* so maybe someone wants overkill to collide with subsurfed */
-						dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+						dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 					else
-						dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
+						dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 				}
 
 				if(dm){
@@ -536,12 +536,11 @@ static void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 	} /* while (base) */
 }
 
-static void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
+static void ccd_update_deflector_hash(Scene *scene, Object *vertexowner, GHash *hash)
 {
-	Base *base;
+	Base *base= scene->base.first;
 	Object *ob;
-	base= G.scene->base.first;
-	base= G.scene->base.first;
+
 	if ((!hash) || (!vertexowner)) return;
 	while (base) {
 		/*Only proceed for mesh object in same layer */
@@ -558,9 +557,9 @@ static void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
 				DerivedMesh *dm= NULL;
 				
 				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+					dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 				} else {
-					dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
+					dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 				}
 				if(dm){
 					ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash,ob);
@@ -830,12 +829,12 @@ static void calculate_collision_balls(Object *ob)
 
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
-static void renew_softbody(Object *ob, int totpoint, int totspring)  
+static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring)  
 {
 	SoftBody *sb;
 	int i;
 	short softflag;
-	if(ob->soft==NULL) ob->soft= sbNew();
+	if(ob->soft==NULL) ob->soft= sbNew(scene);
 	else free_softbody_intern(ob->soft);
 	sb= ob->soft;
 	softflag=ob->softflag;
@@ -970,11 +969,11 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 
 /* +++ dependancy information functions*/
 
-static int are_there_deflectors(unsigned int layer)
+static int are_there_deflectors(Scene *scene, unsigned int layer)
 {
 	Base *base;
 	
-	for(base = G.scene->base.first; base; base= base->next) {
+	for(base = scene->base.first; base; base= base->next) {
 		if( (base->lay & layer) && base->object->pd) {
 			if(base->object->pd->deflect) 
 				return 1;
@@ -983,9 +982,9 @@ static int are_there_deflectors(unsigned int layer)
 	return 0;
 }
 
-static int query_external_colliders(Object *me)
+static int query_external_colliders(Scene *scene, Object *me)
 {
-	return(are_there_deflectors(me->lay));
+	return(are_there_deflectors(scene, me->lay));
 }
 /* --- dependancy information functions*/
 
@@ -1528,9 +1527,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],floa
 	return deflected;	
 }
 
-
-
-static void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int ilast, struct ListBase *do_effector)
+static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow, int ifirst, int ilast, struct ListBase *do_effector)
 {
 	SoftBody *sb = ob->soft;
 	int a;
@@ -1569,7 +1566,7 @@ static void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int 
 						float pos[3];
 						VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 						VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
-						pdDoEffectors(do_effector, pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+						pdDoEffectors(scene, do_effector, pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 						VecMulf(speed,windfactor); 
 						VecAddf(vel,vel,speed);
 					}
@@ -1601,26 +1598,27 @@ static void _scan_for_ext_spring_forces(Object *ob,float timenow,int ifirst,int 
 }
 
 
-static void scan_for_ext_spring_forces(Object *ob,float timenow)
+static void scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow)
 {
   SoftBody *sb = ob->soft;
   ListBase *do_effector= NULL; 
-  do_effector= pdInitEffectors(ob,NULL);
+  
+  do_effector= pdInitEffectors(scene, ob,NULL);
   if (sb){
-  _scan_for_ext_spring_forces(ob,timenow,0,sb->totspring,do_effector);
+	  _scan_for_ext_spring_forces(scene, ob, timenow, 0, sb->totspring, do_effector);
   }
   if(do_effector)
-  pdEndEffectors(do_effector);
+	  pdEndEffectors(do_effector);
 }
 
 static void *exec_scan_for_ext_spring_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
-	_scan_for_ext_spring_forces(pctx->ob,pctx->timenow,pctx->ifirst,pctx->ilast,pctx->do_effector);
+	_scan_for_ext_spring_forces(pctx->scene, pctx->ob, pctx->timenow, pctx->ifirst, pctx->ilast, pctx->do_effector);
 	return 0;
 } 
 
-static void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
+static void sb_sfesf_threads_run(Scene *scene, struct Object *ob, float timenow,int totsprings,int *ptr_to_break_func())
 {
 	ListBase *do_effector = NULL; 
 	ListBase threads;
@@ -1628,11 +1626,11 @@ static void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings
 	int i, totthread,left,dec;
 	int lowsprings =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
-	do_effector= pdInitEffectors(ob,NULL);
+	do_effector= pdInitEffectors(scene, ob,NULL);
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if(G.scene->r.mode & R_FIXED_THREADS)
-		totthread= G.scene->r.threads;
+	if(scene->r.mode & R_FIXED_THREADS)
+		totthread= scene->r.threads;
 	else
 		totthread= BLI_system_thread_count();
 	/* what if we got zillions of CPUs running but less to spread*/
@@ -1645,6 +1643,7 @@ static void sb_sfesf_threads_run(struct Object *ob, float timenow,int totsprings
 	left = totsprings;
 	dec = totsprings/totthread +1;
 	for(i=0; i<totthread; i++) {
+		sb_threads[i].scene = scene;
 		sb_threads[i].ob = ob; 
 		sb_threads[i].forcetime = 0.0; // not used here 
 		sb_threads[i].timenow = timenow; 
@@ -2119,13 +2118,14 @@ static void sb_spring_force(Object *ob,int bpi,BodySpring *bs,float iks,float fo
 /* since this is definitely the most CPU consuming task here .. try to spread it */
 /* core function _softbody_calc_forces_slice_in_a_thread */
 /* result is int to be able to flag user break */
-static int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, float forcetime, float timenow,int ifirst,int ilast,int *ptr_to_break_func(),ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	float iks;
 	int bb,do_selfcollision,do_springcollision,do_aero;
 	int number_of_points_here = ilast - ifirst;
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint  *bp;
+	
 	/* intitialize */
 	if (sb) {
 	/* check conditions for various options */
@@ -2247,7 +2247,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Object *ob, float forcetime, 
 				float speed[3]= {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 				
-				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				
 				/* apply forcefield*/
 				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -2322,11 +2322,11 @@ return 0; /*done fine*/
 static void *exec_softbody_calc_forces(void *data)
 {
 	SB_thread_context *pctx = (SB_thread_context*)data;
-    _softbody_calc_forces_slice_in_a_thread(pctx->ob,pctx->forcetime,pctx->timenow,pctx->ifirst,pctx->ilast,NULL,pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
+    _softbody_calc_forces_slice_in_a_thread(pctx->scene, pctx->ob, pctx->forcetime, pctx->timenow, pctx->ifirst, pctx->ilast, NULL, pctx->do_effector,pctx->do_deflector,pctx->fieldfactor,pctx->windfactor);
 	return 0;
 } 
 
-static void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
+static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float timenow,int totpoint,int *ptr_to_break_func(),struct ListBase *do_effector,int do_deflector,float fieldfactor, float windfactor)
 {
 	ListBase threads;
 	SB_thread_context *sb_threads;
@@ -2334,8 +2334,8 @@ static void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,
 	int lowpoints =100; /* wild guess .. may increase with better thread management 'above' or even be UI option sb->spawn_cf_threads_nopts */
 
 	/* figure the number of threads while preventing pretty pointless threading overhead */
-	if(G.scene->r.mode & R_FIXED_THREADS)
-		totthread= G.scene->r.threads;
+	if(scene->r.mode & R_FIXED_THREADS)
+		totthread= scene->r.threads;
 	else
 		totthread= BLI_system_thread_count();
 	/* what if we got zillions of CPUs running but less to spread*/
@@ -2383,7 +2383,7 @@ static void sb_cf_threads_run(struct Object *ob, float forcetime, float timenow,
 	MEM_freeN(sb_threads);
 }
 
-static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, int nl_flags)
+static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
 {
 /* rule we never alter free variables :bp->vec bp->pos in here ! 
  * this will ruin adaptive stepsize AKA heun! (BM) 
@@ -2398,7 +2398,7 @@ static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, i
 	gravity = sb->grav * sb_grav_force_scale(ob);	
 	
 	/* check conditions for various options */
-	do_deflector= query_external_colliders(ob);
+	do_deflector= query_external_colliders(scene, ob);
 	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
@@ -2407,17 +2407,17 @@ static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, i
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
 	if (do_springcollision || do_aero)  
-	sb_sfesf_threads_run(ob,timenow,sb->totspring,NULL);	
+	sb_sfesf_threads_run(scene, ob, timenow,sb->totspring,NULL);	
 	
 	/* after spring scan because it uses Effoctors too */
-	do_effector= pdInitEffectors(ob,NULL);
+	do_effector= pdInitEffectors(scene, ob,NULL);
 
 	if (do_deflector) {
 		float defforce[3];
 		do_deflector = sb_detect_aabb_collisionCached(defforce,ob->lay,ob,timenow);
 	}
 
-	sb_cf_threads_run(ob,forcetime,timenow,sb->totpoint,NULL,do_effector,do_deflector,fieldfactor,windfactor);
+	sb_cf_threads_run(scene, ob, forcetime, timenow, sb->totpoint, NULL, do_effector, do_deflector, fieldfactor, windfactor);
 
 	/* finally add forces caused by face collision */
 	if (ob->softflag & OB_SB_FACECOLL) scan_for_ext_face_forces(ob,timenow);
@@ -2429,11 +2429,11 @@ static void softbody_calc_forcesEx(Object *ob, float forcetime, float timenow, i
 
 
 
-static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int nl_flags)
+static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
 {
 	/* redirection to the new threaded Version */
 	if (!(G.rt & 0x10)){ // 16
-		softbody_calc_forcesEx(ob, forcetime, timenow, nl_flags);
+		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
 		return;
 	}
 	else{
@@ -2472,7 +2472,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		gravity = sb->grav * sb_grav_force_scale(ob);	
 
 		/* check conditions for various options */
-		do_deflector= query_external_colliders(ob);
+		do_deflector= query_external_colliders(scene, ob);
 		do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
 		do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 		do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
@@ -2480,9 +2480,9 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 		iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 		bproot= sb->bpoint; /* need this for proper spring addressing */
 
-		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(ob,timenow);
+		if (do_springcollision || do_aero)  scan_for_ext_spring_forces(scene, ob, timenow);
 		/* after spring scan because it uses Effoctors too */
-		do_effector= pdInitEffectors(ob,NULL);
+		do_effector= pdInitEffectors(scene, ob,NULL);
 
 		if (do_deflector) {
 			float defforce[3];
@@ -2650,7 +2650,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow, int
 					float speed[3]= {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 
-					pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+					pdDoEffectors(scene, do_effector, bp->pos, force, speed, (float)scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 
 					/* apply forcefield*/
 					VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
@@ -3191,7 +3191,7 @@ static void springs_from_mesh(Object *ob)
 
 
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Object *ob)
+static void mesh_to_softbody(Scene *scene, Object *ob)
 {
 	SoftBody *sb;
 	Mesh *me= ob->data;
@@ -3204,7 +3204,7 @@ static void mesh_to_softbody(Object *ob)
 	else totedge= 0;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, me->totvert, totedge);
+	renew_softbody(scene, ob, me->totvert, totedge);
 		
 	/* we always make body points */
 	sb= ob->soft;	
@@ -3391,7 +3391,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *
 
 
 /* makes totally fresh start situation */
-static void lattice_to_softbody(Object *ob)
+static void lattice_to_softbody(Scene *scene, Object *ob)
 {
 	Lattice *lt= ob->data;
 	SoftBody *sb;
@@ -3410,7 +3410,7 @@ static void lattice_to_softbody(Object *ob)
 	
 
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring);
+	renew_softbody(scene, ob, totvert, totspring);
 	sb= ob->soft;	/* can be created in renew_softbody() */
 	
 	/* weights from bpoints, same code used as for mesh vertices */
@@ -3435,7 +3435,7 @@ static void lattice_to_softbody(Object *ob)
 }
 
 /* makes totally fresh start situation */
-static void curve_surf_to_softbody(Object *ob)
+static void curve_surf_to_softbody(Scene *scene, Object *ob)
 {
 	Curve *cu= ob->data;
 	SoftBody *sb;
@@ -3457,7 +3457,7 @@ static void curve_surf_to_softbody(Object *ob)
 	}
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring);
+	renew_softbody(scene, ob, totvert, totspring);
 	sb= ob->soft;	/* can be created in renew_softbody() */
 		
 	/* set vars now */
@@ -3581,7 +3581,7 @@ static void particles_to_softbody(Object *ob)
 	int totedge= totpoint-psys->totpart;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totpoint, totedge);
+	renew_softbody(scene, ob, totpoint, totedge);
 
 	/* find first BodyPoint index for each particle */
 	if(psys->totpart > 0) {
@@ -3727,7 +3727,7 @@ static void sb_new_scratch(SoftBody *sb)
 /* ************ Object level, exported functions *************** */
 
 /* allocates and initializes general main data */
-SoftBody *sbNew(void)
+SoftBody *sbNew(Scene *scene)
 {
 	SoftBody *sb;
 	
@@ -3751,8 +3751,8 @@ SoftBody *sbNew(void)
 	sb->inpush = 0.5f; 
 	
 	sb->interval= 10;
-	sb->sfra= G.scene->r.sfra;
-	sb->efra= G.scene->r.efra;
+	sb->sfra= scene->r.sfra;
+	sb->efra= scene->r.efra;
 
 	sb->colball  = 0.49f;
 	sb->balldamp = 0.50f;
@@ -3938,16 +3938,17 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	}
 }
 
-static void softbody_step(Object *ob, SoftBody *sb, float dtime)
+static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 {
 	/* the simulator */
 	float forcetime;
 	double sct,sst=PIL_check_seconds_timer();
-	ccd_update_deflector_hache(ob,sb->scratch->colliderhash);
+	
+	ccd_update_deflector_hash(scene, ob, sb->scratch->colliderhash);
 
 	if(sb->scratch->needstobuildcollider){
-		if (query_external_colliders(ob)){
-			ccd_build_deflector_hache(ob,sb->scratch->colliderhash);
+		if (query_external_colliders(scene, ob)){
+			ccd_build_deflector_hash(scene, ob, sb->scratch->colliderhash);
 		}
 		sb->scratch->needstobuildcollider=0;
 	}
@@ -3980,12 +3981,12 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 			
 			sb->scratch->flag &= ~SBF_DOFUZZY;
 			/* do predictive euler step */
-			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_calc_forces(scene, ob, forcetime,timedone/dtime,0);
 
 			softbody_apply_forces(ob, forcetime, 1, NULL,mid_flags);
 
 			/* crop new slope values to do averaged slope step */
-			softbody_calc_forces(ob, forcetime,timedone/dtime,0);
+			softbody_calc_forces(scene, ob, forcetime,timedone/dtime,0);
 
 			softbody_apply_forces(ob, forcetime, 2, &err,mid_flags);
 			softbody_apply_goalsnap(ob);
@@ -4067,7 +4068,7 @@ static void softbody_step(Object *ob, SoftBody *sb, float dtime)
 }
 
 /* simulates one step. framenr is in frames */
-void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
+void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 {
 	ParticleSystemModifierData *psmd=0;
 	ParticleData *pa=0;
@@ -4083,7 +4084,7 @@ void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 	framedelta= framenr - cache->simframe;
 
 	BKE_ptcache_id_from_softbody(&pid, ob, sb);
-	BKE_ptcache_id_time(&pid, framenr, &startframe, &endframe, &timescale);
+	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 
 	/* check for changes in mesh, should only happen in case the mesh
 	 * structure changes during an animation */
@@ -4115,17 +4116,17 @@ void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 		else {
 			switch(ob->type) {
 				case OB_MESH:
-					mesh_to_softbody(ob);
+					mesh_to_softbody(scene, ob);
 					break;
 				case OB_LATTICE:
-					lattice_to_softbody(ob);
+					lattice_to_softbody(scene, ob);
 					break;
 				case OB_CURVE:
 				case OB_SURF:
-					curve_surf_to_softbody(ob);
+					curve_surf_to_softbody(scene, ob);
 					break;
 				default:
-					renew_softbody(ob, numVerts, 0);
+					renew_softbody(scene, ob, numVerts, 0);
 					break;
 			}
 		}
@@ -4143,7 +4144,7 @@ void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 		dtime = timescale;
 
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
-		softbody_step(ob, sb, dtime);
+		softbody_step(scene, ob, sb, dtime);
 
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, 0);
@@ -4203,7 +4204,7 @@ void sbObjectStep(Object *ob, float cfra, float (*vertexCos)[3], int numVerts)
 		/* checking time: */
 		dtime = framedelta*timescale;
 
-		softbody_step(ob, sb, dtime);
+		softbody_step(scene, ob, sb, dtime);
 
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, 0);

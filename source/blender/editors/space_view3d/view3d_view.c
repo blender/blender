@@ -111,6 +111,82 @@ float *give_cursor(Scene *scene, View3D *v3d)
 	else return scene->cursor;
 }
 
+
+/* Gets the lens and clipping values from a camera of lamp type object */
+static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
+{	
+	if (!ob) return;
+	
+	if(ob->type==OB_LAMP ) {
+		Lamp *la = ob->data;
+		if (lens) {
+			float x1, fac;
+			fac= cos( M_PI*la->spotsize/360.0);
+			x1= saacos(fac);
+			*lens= 16.0*fac/sin(x1);
+		}
+		if (clipsta)	*clipsta= la->clipsta;
+		if (clipend)	*clipend= la->clipend;
+	}
+	else if(ob->type==OB_CAMERA) {
+		Camera *cam= ob->data;
+		if (lens)		*lens= cam->lens;
+		if (clipsta)	*clipsta= cam->clipsta;
+		if (clipend)	*clipend= cam->clipend;
+	}
+	else {
+		if (lens)		*lens= 35.0f;
+	}
+}
+
+
+/* Gets the view trasnformation from a camera
+* currently dosnt take camzoom into account
+* 
+* The dist is not modified for this function, if NULL its assimed zero
+* */
+/* Scene can be NULL */
+static void view_settings_from_ob(Scene *scene, Object *ob, float *ofs, float *quat, float *dist, float *lens)
+{	
+	float bmat[4][4];
+	float imat[4][4];
+	float tmat[3][3];
+	
+	if (!ob) return;
+	
+	/* Offset */
+	if (ofs) {
+		/* this should not be needed, nly for camera to prevent lag */
+		if(scene) where_is_object(scene, ob);	
+		VECCOPY(ofs, ob->obmat[3]);
+		VecMulf(ofs, -1.0f); /*flip the vector*/
+	}
+	
+	/* Quat */
+	if (quat) {
+		Mat4CpyMat4(bmat, ob->obmat);
+		Mat4Ortho(bmat);
+		Mat4Invert(imat, bmat);
+		Mat3CpyMat4(tmat, imat);
+		Mat3ToQuat(tmat, quat);
+	}
+	
+	if (dist) {
+		float vec[3];
+		Mat3CpyMat4(tmat, ob->obmat);
+		
+		vec[0]= vec[1] = 0.0;
+		vec[2]= -(*dist);
+		Mat3MulVecfl(tmat, vec);
+		VecSubf(ofs, ofs, vec);
+	}
+	
+	/* Lens */
+	if (lens)
+		object_lens_clip_settings(ob, lens, NULL, NULL);
+}
+
+
 /* ****************** smooth view operator ****************** */
 
 struct SmoothViewStore {
@@ -128,6 +204,7 @@ struct SmoothViewStore {
 /* the arguments are the desired situation */
 void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, float *quat, float *dist, float *lens)
 {
+	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= (View3D *)CTX_wm_space_data(C);
 	struct SmoothViewStore sms;
 	
@@ -145,7 +222,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 	if(lens) sms.new_lens= *lens;
 	
 	if (camera) {
-		view_settings_from_ob(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
+		view_settings_from_ob(scene, camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera= 1; /* restore view3d values in end */
 	}
 	
@@ -192,7 +269,7 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 			/* original values */
 			if (oldcamera) {
 				sms.orig_dist= v3d->dist; // below function does weird stuff with it...
-				view_settings_from_ob(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
+				view_settings_from_ob(scene, oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
 				VECCOPY(sms.orig_ofs, v3d->ofs);
@@ -798,81 +875,7 @@ void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect)		/* rect: f
 }
 
 
-
-/* Gets the lens and clipping values from a camera of lamp type object */
-static void object_lens_clip_settings(Object *ob, float *lens, float *clipsta, float *clipend)
-{	
-	if (!ob) return;
-	
-	if(ob->type==OB_LAMP ) {
-		Lamp *la = ob->data;
-		if (lens) {
-			float x1, fac;
-			fac= cos( M_PI*la->spotsize/360.0);
-			x1= saacos(fac);
-			*lens= 16.0*fac/sin(x1);
-		}
-		if (clipsta)	*clipsta= la->clipsta;
-		if (clipend)	*clipend= la->clipend;
-	}
-	else if(ob->type==OB_CAMERA) {
-		Camera *cam= ob->data;
-		if (lens)		*lens= cam->lens;
-		if (clipsta)	*clipsta= cam->clipsta;
-		if (clipend)	*clipend= cam->clipend;
-	}
-	else {
-		if (lens)		*lens= 35.0f;
-	}
-}
-
-
-/* Gets the view trasnformation from a camera
-* currently dosnt take camzoom into account
-* 
-* The dist is not modified for this function, if NULL its assimed zero
-* */
-void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
-{	
-	float bmat[4][4];
-	float imat[4][4];
-	float tmat[3][3];
-	
-	if (!ob) return;
-	
-	/* Offset */
-	if (ofs) {
-		where_is_object(ob);
-		VECCOPY(ofs, ob->obmat[3]);
-		VecMulf(ofs, -1.0f); /*flip the vector*/
-	}
-	
-	/* Quat */
-	if (quat) {
-		Mat4CpyMat4(bmat, ob->obmat);
-		Mat4Ortho(bmat);
-		Mat4Invert(imat, bmat);
-		Mat3CpyMat4(tmat, imat);
-		Mat3ToQuat(tmat, quat);
-	}
-	
-	if (dist) {
-		float vec[3];
-		Mat3CpyMat4(tmat, ob->obmat);
-		
-		vec[0]= vec[1] = 0.0;
-		vec[2]= -(*dist);
-		Mat3MulVecfl(tmat, vec);
-		VecSubf(ofs, ofs, vec);
-	}
-	
-	/* Lens */
-	if (lens)
-		object_lens_clip_settings(ob, lens, NULL, NULL);
-}
-
-
-void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth)
+static void obmat_to_viewmat(Scene *scene, View3D *v3d, Object *ob, short smooth)
 {
 	float bmat[4][4];
 	float tmat[3][3];
@@ -901,7 +904,7 @@ void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth)
 			v3d->persp=V3D_PERSP;
 			v3d->dist= 0.0;
 			
-			view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
+			view_settings_from_ob(scene, v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
 			smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 			
 			v3d->persp=V3D_CAMOB; /* just to be polite, not needed */
@@ -916,12 +919,12 @@ void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth)
 }
 
 /* dont set windows active in in here, is used by renderwin too */
-void setviewmatrixview3d(View3D *v3d)
+void setviewmatrixview3d(Scene *scene, View3D *v3d)
 {
 	if(v3d->persp==V3D_CAMOB) {	    /* obs/camera */
 		if(v3d->camera) {
-			where_is_object(v3d->camera);	
-			obmat_to_viewmat(v3d, v3d->camera, 0);
+			where_is_object(scene, v3d->camera);	
+			obmat_to_viewmat(scene, v3d, v3d->camera, 0);
 		}
 		else {
 			QuatToMat4(v3d->viewquat, v3d->viewmat);
@@ -1276,7 +1279,7 @@ void endlocalview(Scene *scene, ScrArea *sa)
 	} 
 }
 
-void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
+void view3d_align_axis_to_vector(Scene *scene, View3D *v3d, int axisidx, float vec[3])
 {
 	float alignaxis[3] = {0.0, 0.0, 0.0};
 	float norm[3], axis[3], angle, new_quat[4];
@@ -1302,7 +1305,7 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 		VECCOPY(orig_ofs, v3d->ofs);
 		v3d->persp= V3D_PERSP;
 		v3d->dist= 0.0;
-		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
+		view_settings_from_ob(scene, v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
 		smooth_view(NULL, NULL, NULL, orig_ofs, new_quat, &orig_dist, &orig_lens); // XXX
 	} else {
 		if (v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP; /* switch out of camera mode */

@@ -24,9 +24,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -952,7 +950,8 @@ void nurbs_to_mesh(Object *ob)
 
 }
 
-void mesh_delete_material_index(Mesh *me, int index) {
+void mesh_delete_material_index(Mesh *me, int index)
+{
 	int i;
 
 	for (i=0; i<me->totface; i++) {
@@ -962,7 +961,8 @@ void mesh_delete_material_index(Mesh *me, int index) {
 	}
 }
 
-void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
+void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) 
+{
 	Mesh *me = meshOb->data;
 	int i;
 
@@ -976,7 +976,7 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
 		}
 	}
 
-	DAG_object_flush_update(G.scene, meshOb, OB_RECALC_DATA);
+// XXX do this in caller	DAG_object_flush_update(scene, meshOb, OB_RECALC_DATA);
 }
 
 void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
@@ -1246,7 +1246,7 @@ void mesh_pmv_revert(Object *ob, Mesh *me)
 		MEM_freeN(me->pv->vert_map);
 		me->pv->vert_map= NULL;
 
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+// XXX do this in caller		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
 }
 

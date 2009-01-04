@@ -34,6 +34,7 @@
 struct Curve;
 struct ListBase;
 struct Object;
+struct Scene;
 struct Nurb;
 struct ListBase;
 struct BezTriple;
@@ -68,9 +69,9 @@ void makeknots( struct Nurb *nu, short uv, short type);
 void makeNurbfaces(struct Nurb *nu, float *coord_array, int rowstride);
 void makeNurbcurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, int resolu);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
-float *make_orco_curve( struct Object *ob);
+float *make_orco_curve(struct Scene *scene, struct Object *ob);
 float *make_orco_surf( struct Object *ob);
-void makebevelcurve( struct Object *ob,  struct ListBase *disp);
+void makebevelcurve(struct Scene *scene, struct Object *ob,  struct ListBase *disp);
 
 void makeBevelList( struct Object *ob);
 

@@ -73,6 +73,7 @@
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_cloth.h"
+#include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
@@ -763,7 +764,7 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 /* change the chain-length of auto-ik */
 void transform_autoik_update (TransInfo *t, short mode)
 {
-	short *chainlen= &G.scene->toolsettings->autoik_chainlen;
+	short *chainlen= &t->scene->toolsettings->autoik_chainlen;
 	bPoseChannel *pchan;
 	
 	/* mode determines what change to apply to chainlen */
@@ -1610,7 +1611,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	int count = 0, hasselected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	if(psys==NULL || G.scene->selectmode==SCE_SELECT_PATH) return;
+	if(psys==NULL || t->scene->selectmode==SCE_SELECT_PATH) return;
 
 	psmd = psys_get_modifier(ob,psys);
 
@@ -1959,11 +1960,11 @@ static float *get_crazy_mapped_editverts(TransInfo *t)
 	/* disable subsurf temporal, get mapped cos, and enable it */
 	if(modifiers_disable_subsurf_temporary(t->obedit)) {
 		/* need to make new derivemesh */
-		makeDerivedMesh(t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
+		makeDerivedMesh(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 	}
 
 	/* now get the cage */
-	dm= editmesh_get_derived_cage(t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
+	dm= editmesh_get_derived_cage(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
 	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
@@ -3265,7 +3266,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 			ob->constraints.first = ob->constraints.last = NULL;
 		}
 		
-		where_is_object(ob);
+		where_is_object(t->scene, ob);
 		
 		if (constinv == 0) {
 			ob->constraints.first = fakecons.first;
@@ -3275,7 +3276,7 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		ob->track= track;
 	}
 	else
-		where_is_object(ob);
+		where_is_object(t->scene, ob);
 
 	td->ob = ob;
 
@@ -3349,12 +3350,12 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 		return;
 
 	/* makes sure base flags and object flags are identical */
-	copy_baseflags();
+	copy_baseflags(t->scene);
 	
 	/* handle pending update events, otherwise they got copied below */
 	for (base= sce->base.first; base; base= base->next) {
 		if(base->object->recalc) 
-			object_handle_update(base->object);
+			object_handle_update(t->scene, base->object);
 	}
 	
 	for (base= sce->base.first; base; base= base->next) {
@@ -3388,7 +3389,7 @@ static void set_trans_object_base_flags(bContext *C, TransInfo *t)
 	}
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
-	DAG_scene_flush_update(G.scene, -1, 0);
+	DAG_scene_flush_update(t->scene, -1, 0);
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
@@ -3852,7 +3853,7 @@ void special_aftertrans_update(TransInfo *t)
 		synchronize_action_strips();
 		
 		/* cleanup */
-		for (base=G.scene->base.first; base; base=base->next)
+		for (base=t->scene->base.first; base; base=base->next)
 			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
 		
 		/* after transform, remove duplicate keyframes on a frame that resulted from transform */
@@ -3919,15 +3920,15 @@ void special_aftertrans_update(TransInfo *t)
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
 		if (!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
 			/* old optimize trick... this enforces to bypass the depgraph */
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
 			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
 		else 
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
 		
 		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -4075,7 +4076,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 					for(ik= elems.first; ik; ik= ik->next) {
 						
 						/* weak... this doesn't correct for floating values, giving small errors */
-						CFRA= (int)(ik->val/G.scene->r.framelen);
+						CFRA= (int)(ik->val/t->scene->r.framelen);
 						
 						do_ob_ipo(ob);
 						ObjectToTransData(C, t, td, ob);	// does where_is_object()
@@ -4098,7 +4099,7 @@ static void createTransObject(bContext *C, TransInfo *t)
 					CFRA= cfraont;
 					ob->ipoflag= ipoflag;
 					
-					where_is_object(ob);	// restore 
+					where_is_object(t->scene, ob);	// restore 
 				}
 				else {
 					ObjectToTransData(C, t, td, ob);
@@ -4305,7 +4306,7 @@ void createTransData(bContext *C, TransInfo *t)
 
 // TRANSFORM_FIX_ME
 //	/* temporal...? */
-//	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
+//	t->scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
 
 

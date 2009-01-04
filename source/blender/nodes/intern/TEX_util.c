@@ -185,7 +185,7 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 	}
 }
 
-void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, Tex *tex, short which_output)
+void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, Tex *tex, short which_output, int cfra)
 {
 	TexResult dummy_texres;
 	TexCallData data;
@@ -196,6 +196,7 @@ void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do
 	data.do_preview = do_preview;
 	data.thread = thread;
 	data.which_output = which_output;
+	data.cfra= cfra;
 	
 	ntreeExecTree(nodes, &data, thread);
 }
@@ -213,7 +214,7 @@ void ntreeTexUpdatePreviews(bNodeTree* nodetree)
 	dummy_texres.nor = 0;
 	
 	ntreeBeginExecTree(nodetree);
-	ntreeTexExecTree(nodetree, &dummy_texres, coord, 1, 0, tex, 0);
+	ntreeTexExecTree(nodetree, &dummy_texres, coord, 1, 0, tex, 0, 0);
 	ntreeEndExecTree(nodetree);
 	
 }

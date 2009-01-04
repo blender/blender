@@ -293,7 +293,7 @@ static int materialIndex(Material *ma)
 	return -1;
 }
 
-void rad_collect_meshes(View3D *v3d)
+void rad_collect_meshes(Scene *scene, View3D *v3d)
 {
 	extern Material defmaterial;
 	Base *base;
@@ -314,16 +314,16 @@ void rad_collect_meshes(View3D *v3d)
 		return;
 	}
 	
-	set_radglobal();
+	set_radglobal(scene);
 
-	freeAllRad();
+	freeAllRad(scene);
 
 	start_fastmalloc("Radiosity");
 					
 	/* count the number of verts */
 	RG.totvert= 0;
 	RG.totface= 0;
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
 		if(((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
@@ -346,7 +346,7 @@ void rad_collect_meshes(View3D *v3d)
 	mfdatatot= 0;
 	
 	/* min-max and material array */
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
 		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
@@ -413,7 +413,7 @@ void rad_collect_meshes(View3D *v3d)
 	RG.totlamp= 0;
 	offs= 0;
 	
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
 		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) )  {
 			if(base->object->type==OB_MESH) {
@@ -528,7 +528,7 @@ void rad_collect_meshes(View3D *v3d)
 
 	makeGlobalElemArray();
 	pseudoAmb();
-	rad_setlimits();
+	rad_setlimits(scene);
 }
 
 void setparelem(RNode *rn, RPatch *par)

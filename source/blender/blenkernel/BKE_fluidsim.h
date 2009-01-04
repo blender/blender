@@ -37,7 +37,7 @@
 /* old interface */
 FluidsimSettings *fluidsimSettingsNew(Object *srcob);
 
-void initElbeemMesh(Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords, int modifierIndex);
+void initElbeemMesh(Scene *scene, Object *ob, int *numVertices, float **vertices, int *numTriangles, int **triangles, int useGlobalCoords, int modifierIndex);
 
 
 /* new fluid-modifier interface */
@@ -46,7 +46,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd);
 
 DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifierData *fluidmd, int framenr, int useRenderParams);
 void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *dm, char *filename);
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 // get bounding box of mesh
 void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],

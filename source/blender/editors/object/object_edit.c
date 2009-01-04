@@ -255,15 +255,15 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 	exit_paint_modes();
 
 // XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
-	ob= add_object(type);
+	ob= add_object(scene, type);
 //	ED_base_object_activate(C, BASACT);
-	base_init_from_view3d(BASACT, v3d);
+	base_init_from_view3d(BASACT, v3d, scene);
 	
 	/* only undo pushes on objects without editmode... */
 	if(type==OB_EMPTY) BIF_undo_push("Add Empty");
 	else if(type==OB_LAMP) {
 		BIF_undo_push("Add Lamp");
-		reshadeall_displist();	/* only frees */
+		reshadeall_displist(scene);	/* only frees */
 	}
 	else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
 	else if(type==OB_CAMERA) BIF_undo_push("Add Camera");
@@ -287,7 +287,7 @@ void add_objectLamp(Scene *scene, View3D *v3d, short type)
 
 	if(scene->obedit==NULL) { // XXX get from context
 		add_object_draw(scene, v3d, OB_LAMP);
-		base_init_from_view3d(BASACT, v3d);
+		base_init_from_view3d(BASACT, v3d, scene);
 	}
 	
 	la = BASACT->object->data;
@@ -353,7 +353,7 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 		}
 	}
 
-	if(islamp) reshadeall_displist();	/* only frees displist */
+	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 
 // XXX	redraw_test_buttons(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
@@ -775,7 +775,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 			if(mode==1) {
 				Base *base= BASACT, *newbase;
 				
-				ob= add_object(OB_EMPTY);
+				ob= add_object(scene, OB_EMPTY);
 				/* set layers OK */
 				newbase= BASACT;
 				newbase->lay= base->lay;
@@ -814,7 +814,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
 				/*        (parentinv         )                          */
 				
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
@@ -831,7 +831,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		obedit_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
-		where_is_object(ob);	/* ob is hook->parent */
+		where_is_object(scene, ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
@@ -845,7 +845,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 
 /* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
  * apply-size-rot or object center for eg */
-static void ignore_parent_tx( Object *ob ) 
+static void ignore_parent_tx(Scene *scene, Object *ob ) 
 {
 	Object workob;
 	Object *ob_child;
@@ -854,7 +854,7 @@ static void ignore_parent_tx( Object *ob )
 	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
 		if (ob_child->parent == ob) {
 			apply_obmat(ob_child);
-			what_does_parent(ob_child, &workob);
+			what_does_parent(scene, ob_child, &workob);
 			Mat4Invert(ob_child->parentinv, workob.obmat);
 		}
 	}
@@ -1618,7 +1618,7 @@ void reset_slowparents(Scene *scene, View3D *v3d)
 		if(base->object->parent) {
 			if(base->object->partype & PARSLOW) {
 				base->object->partype -= PARSLOW;
-				where_is_object(base->object);
+				where_is_object(scene, base->object);
 				base->object->partype |= PARSLOW;
 			}
 		}
@@ -1756,7 +1756,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 						ob->par3= v3-1;
 
 						/* inverse parent matrix */
-						what_does_parent(ob, &workob);
+						what_does_parent(scene, ob, &workob);
 						Mat4Invert(ob->parentinv, workob.obmat);
 					}
 					else {
@@ -1764,7 +1764,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 						ob->par1= v1-1;
 
 						/* inverse parent matrix */
-						what_does_parent(ob, &workob);
+						what_does_parent(scene, ob, &workob);
 						Mat4Invert(ob->parentinv, workob.obmat);
 					}
 				}
@@ -1837,7 +1837,7 @@ void make_proxy(Scene *scene)
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
 		
-		newob= add_object(OB_EMPTY);
+		newob= add_object(scene, OB_EMPTY);
 		if(gob)
 			strcpy(name, gob->id.name+2);
 		else
@@ -1904,12 +1904,12 @@ oldcode()
 // XXX							create_vgroups_from_armature(base->object, par);
 
 			base->object->partype= PAROBJECT;
-			what_does_parent(base->object);
+			what_does_parent(scene, base->object);
 			Mat4One (base->object->parentinv);
 			base->object->partype= mode;
 		}
 		else
-			what_does_parent(base->object, &workob);
+			what_does_parent(scene, base->object, &workob);
 		Mat4Invert(base->object->parentinv, workob.obmat);
 	}
 }
@@ -1951,6 +1951,7 @@ static int test_parent_loop(Object *par, Object *ob)
 
 static int make_parent_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
 	int partype= RNA_enum_get(op->ptr, "type");
@@ -1966,7 +1967,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 			
 			if((cu->flag & CU_PATH)==0) {
 				cu->flag |= CU_PATH|CU_FOLLOW;
-				makeDispListCurveTypes(par, 0);  /* force creation of path data */
+				makeDispListCurveTypes(scene, par, 0);  /* force creation of path data */
 			}
 			else cu->flag |= CU_FOLLOW;
 			
@@ -2010,7 +2011,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				}
 				
 				/* calculate inverse parent matrix */
-				what_does_parent(ob, &workob);
+				what_does_parent(scene, ob, &workob);
 				Mat4Invert(ob->parentinv, workob.obmat);
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
@@ -2515,8 +2516,8 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 							base->object->loc[1]+= centn[1];
 							base->object->loc[2]+= centn[2];
 							
-							where_is_object(base->object);
-							ignore_parent_tx(base->object);
+							where_is_object(scene, base->object);
+							ignore_parent_tx(scene, base->object);
 							
 							/* other users? */
 							ob= G.main->object.first;
@@ -2536,8 +2537,8 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 										ob->loc[1]+= centn[1];
 										ob->loc[2]+= centn[2];
 										
-										where_is_object(ob);
-										ignore_parent_tx(ob);
+										where_is_object(scene, ob);
+										ignore_parent_tx(scene, ob);
 										
 										if(tme && (tme->flag & ME_ISDONE)==0) {
 											mvert= tme->mvert;
@@ -2632,8 +2633,8 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 							base->object->loc[1]+= cent[1];
 							base->object->loc[2]+= cent[2];
 							
-							where_is_object(base->object);
-							ignore_parent_tx(base->object);
+							where_is_object(scene, base->object);
+							ignore_parent_tx(scene, base->object);
 						}
 						
 						tot_change++;
@@ -2682,8 +2683,8 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 // XXX						docenter_armature(base->object, centermode);
 						tot_change++;
 						
-						where_is_object(base->object);
-						ignore_parent_tx(base->object);
+						where_is_object(scene, base->object);
+						ignore_parent_tx(scene, base->object);
 						
 						if(obedit) 
 							break;
@@ -2780,7 +2781,7 @@ void movetolayer(Scene *scene, View3D *v3d)
 			}
 		}
 	}
-	if(islamp) reshadeall_displist();	/* only frees */
+	if(islamp) reshadeall_displist(scene);	/* only frees */
 	
 	/* warning, active object may be hidden now */
 	
@@ -3312,7 +3313,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	
 }
 
-static void curvetomesh(Object *ob) 
+static void curvetomesh(Scene *scene, Object *ob) 
 {
 	Curve *cu;
 	DispList *dl;
@@ -3321,7 +3322,7 @@ static void curvetomesh(Object *ob)
 	cu= ob->data;
 	
 	dl= cu->disp.first;
-	if(dl==0) makeDispListCurveTypes(ob, 0);		/* force creation */
+	if(dl==0) makeDispListCurveTypes(scene, ob, 0);		/* force creation */
 
 	nurbs_to_mesh(ob); /* also does users */
 	if (ob->type != OB_MESH) {
@@ -3415,7 +3416,7 @@ void convertmenu(Scene *scene, View3D *v3d)
 				G.totmesh++;
 
 				/* make new mesh data from the original copy */
-				dm= mesh_get_derived_final(ob1, CD_MASK_MESH);
+				dm= mesh_get_derived_final(scene, ob1, CD_MASK_MESH);
 				/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 				
 				DM_to_mesh(dm, ob1->data);
@@ -3470,18 +3471,18 @@ void convertmenu(Scene *scene, View3D *v3d)
 					}					
 				}
 				if (nr==3) {
-					curvetomesh(ob);
+					curvetomesh(scene, ob);
 				}
 			}
 			else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 				if(nr==1) {
-					curvetomesh(ob);
+					curvetomesh(scene, ob);
  				}
 			}
 			else if(ob->type==OB_MBALL) {
 			
 				if(nr==1 || nr == 2) {
-					ob= find_basis_mball(ob);
+					ob= find_basis_mball(scene, ob);
 					
 					if(ob->disp.first && !(ob->flag&OB_DONE)) {
 						basedel = base;
@@ -4069,7 +4070,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						text_to_curve(base->object, 0);		/* needed? */
+						text_to_curve(scene, base->object, 0);		/* needed? */
 
 						
 						strcpy(cu1->family, cu->family);
@@ -4371,7 +4372,7 @@ void make_links(Scene *scene, View3D *v3d, short event)
 					obt->ipo= ob->ipo;
 					if(obt->ipo) {
 						id_us_plus((ID *)obt->ipo);
-						do_ob_ipo(obt);
+						do_ob_ipo(scene, obt);
 					}
 				}
 				else if(event==6) {
@@ -4535,7 +4536,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0f;
 				/*QuatOne(ob->quat);*/ /* Quats arnt used yet */
 				
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				
 				/* texspace and normals */
 				BASACT= base;
@@ -4565,7 +4566,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (not used anymore)*/
 				
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				
 				change = 1;
 			}
@@ -4611,7 +4612,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 					ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 				/*QuatOne(ob->quat); (quats arnt used anymore)*/
 				
-				where_is_object(ob);
+				where_is_object(scene, ob);
 				
 				/* texspace and normals */
 				BASACT= base;
@@ -4625,7 +4626,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				continue;
 			}
 			
-			ignore_parent_tx(ob);
+			ignore_parent_tx(scene, ob);
 		}
 	}
 	if (change) {
@@ -4663,12 +4664,12 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 	for (base= FIRSTBASE; base; base= base->next) {
 		if(TESTBASELIB(v3d, base)) {
 			ob= base->object;
-			where_is_object(ob);
+			where_is_object(scene, ob);
 			VECCOPY(ob->loc, ob->obmat[3]);
 			Mat4ToSize(ob->obmat, ob->size);
 			Mat4ToEul(ob->obmat, ob->rot);
 			
-			where_is_object(ob);
+			where_is_object(scene, ob);
 			
 			change = 1;
 		}
@@ -6243,7 +6244,7 @@ void hookmenu(Scene *scene, View3D *v3d)
 						float *curs = give_cursor(scene, v3d);
 						float bmat[3][3], imat[3][3];
 						
-						where_is_object(ob);
+						where_is_object(scene, ob);
 					
 						Mat3CpyMat4(bmat, ob->obmat);
 						Mat3Inv(imat, bmat);

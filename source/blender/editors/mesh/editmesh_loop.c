@@ -383,7 +383,7 @@ void CutEdgeloop(Object *obedit, EditMesh *em, int numcuts)
 		EM_selectmode_set(em);
 	}	
 	
-//	DAG_object_flush_update(G.scene, obedit, OB_RECALC_DATA);
+//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	return;
 }
 
@@ -547,7 +547,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	int  i;
 	
 	//threshold = 0.000001; /*tolerance for vertex intersection*/
-// XXX	threshold = G.scene->toolsettings->select_thresh / 100;
+// XXX	threshold = scene->toolsettings->select_thresh / 100;
 	
 	/* Get screen coords of verts */
 	scr = BLI_ghash_lookup(gh, e->v1);

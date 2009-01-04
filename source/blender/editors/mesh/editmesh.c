@@ -1973,7 +1973,6 @@ static void *editMesh_to_undoMesh(void *emv)
 //	um->retopo_mode= scene->toolsettings->retopo_mode;
 	
 	{
-		Mesh *me= NULL; // XXX
 		Multires *mr= NULL; // XXX old-style multires
 		UndoMesh *prev= NULL; // XXX undo_editmode_get_prev(obedit);
 		

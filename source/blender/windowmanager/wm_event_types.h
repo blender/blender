@@ -75,6 +75,7 @@
 #define TIMER0			0x0111	/* timer event, slot for internal use */
 #define TIMER1			0x0112	/* timer event, slot for internal use */
 #define TIMER2			0x0113	/* timer event, slot for internal use */
+#define TIMER3			0x0114	/* timer event, slot for internal use */
 
 /* standard keyboard */
 

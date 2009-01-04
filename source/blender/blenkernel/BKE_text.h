@@ -44,7 +44,7 @@ void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
 struct Text*	add_empty_text	(char *name);
 int	            reopen_text		(struct Text *text);
-struct Text*	add_text		(char *file); 
+struct Text*	add_text		(char *file, const char *relpath); 
 struct Text*	copy_text		(struct Text *ta);
 
 void	txt_free_cut_buffer	(void);

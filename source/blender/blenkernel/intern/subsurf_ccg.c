@@ -2590,7 +2590,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		CCGSubSurf *ss;
 		int levels;
 		
-		levels= get_render_subsurf_level(&G.scene->r, smd->renderLevels);
+		levels= smd->renderLevels; // XXX get_render_subsurf_level(&scene->r, smd->renderLevels);
 		if(levels == 0)
 			return dm;
 		

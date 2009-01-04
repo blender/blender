@@ -46,7 +46,7 @@ typedef struct bMovieHandle {
 	void (*start_movie)(struct RenderData *rd, int rectx, int recty);
 	void (*append_movie)(int frame, int *pixels, int rectx, int recty);
 	void (*end_movie)(void);
-	int (*get_next_frame)(void); /* can be null */
+	int (*get_next_frame)(struct RenderData *rd); /* optional */
 } bMovieHandle;
 
 bMovieHandle *BKE_get_movie_handle(int imtype);

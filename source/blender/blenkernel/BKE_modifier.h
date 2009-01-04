@@ -38,6 +38,7 @@ struct DerivedMesh;
 struct DagForest;
 struct DagNode;
 struct Object;
+struct Scene;
 struct ListBase;
 struct LinkNode;
 struct bArmature;
@@ -226,7 +227,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
+	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
 	                       struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time

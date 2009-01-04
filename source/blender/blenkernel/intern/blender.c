@@ -224,8 +224,6 @@ static void clear_global(void)
 	
 //	free_vertexpaint();
 
-	G.curscreen= NULL;
-	G.scene= NULL;
 	G.main= NULL;
 	
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
@@ -351,10 +349,12 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscreen->scene);
 	}
+	
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
 	if(CTX_data_scene(C)==NULL) {
 		CTX_data_scene_set(C, G.main->scene.first);
 		CTX_wm_screen(C)->scene= CTX_data_scene(C);
+		curscene= CTX_data_scene(C);
 	}
 
 	/* special cases, override loaded flags: */
@@ -378,7 +378,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_ARMATURE)
-			if(ob->recalc) object_handle_update(ob);
+			if(ob->recalc) object_handle_update(curscene, ob);
 	}
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */

@@ -58,6 +58,7 @@
 
 /* Structs */
 struct Object;
+struct Scene *scene;
 struct SoftBody;
 struct ParticleSystem;
 struct ClothModifierData;
@@ -93,7 +94,7 @@ void BKE_ptcache_remove(void);
 void	BKE_ptcache_id_clear(PTCacheID *id, int mode, int cfra);
 int		BKE_ptcache_id_exist(PTCacheID *id, int cfra);
 int		BKE_ptcache_id_reset(PTCacheID *id, int mode);
-void	BKE_ptcache_id_time(PTCacheID *pid, float cfra, int *startframe, int *endframe, float *timescale);
+void	BKE_ptcache_id_time(PTCacheID *pid, struct Scene *scene, float cfra, int *startframe, int *endframe, float *timescale);
 int		BKE_ptcache_object_reset(struct Object *ob, int mode);
 
 /* File reading/writing */
@@ -103,7 +104,7 @@ int          BKE_ptcache_file_read_floats(PTCacheFile *pf, float *f, int tot);
 int          BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot);
 
 /* Continue physics */
-void BKE_ptcache_set_continue_physics(int enable);
+void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
 int BKE_ptcache_get_continue_physics(void);
 
 /* Point Cache */

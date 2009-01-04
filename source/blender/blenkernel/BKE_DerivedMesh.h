@@ -50,6 +50,7 @@ struct MEdge;
 struct MFace;
 struct MTFace;
 struct Object;
+struct Scene;
 struct Mesh;
 struct EditMesh;
 struct ModifierData;
@@ -418,36 +419,38 @@ void vDM_ColorBand_store(struct ColorBand *coba);
 /* Simple function to get me->totvert amount of vertices/normals,
    correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
    In use now by vertex/weigt paint and particles */
-float *mesh_get_mapped_verts_nors(struct Object *ob);
+float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */
-DerivedMesh *mesh_get_derived_final(struct Object *ob,
+DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
                                     CustomDataMask dataMask);
-DerivedMesh *mesh_get_derived_deform(struct Object *ob,
+DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
                                      CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
+DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob, struct ModifierData *md);
 
-DerivedMesh *mesh_create_derived_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
                                         CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_index_render(struct Object *ob, CustomDataMask dataMask, int index);
+DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
 
 		/* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived_view(struct Object *ob,
+DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
                                       CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
                                            float (*vertCos)[3],
                                            CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Object *ob,
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
 
 DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
-DerivedMesh *editmesh_get_derived_cage(struct Object *, struct EditMesh *em, CustomDataMask dataMask);
-DerivedMesh *editmesh_get_derived_cage_and_final(struct Object *, struct EditMesh *em, DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
+									   struct EditMesh *em, CustomDataMask dataMask);
+DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
+												 struct EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
-void makeDerivedMesh(struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
+void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */

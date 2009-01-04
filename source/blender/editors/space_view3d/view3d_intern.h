@@ -128,8 +128,6 @@ void view3d_get_object_project_mat(View3D *v3d, struct Object *ob, float pmat[4]
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4]);
 
 int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
-void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens);
-void obmat_to_viewmat(View3D *v3d, Object *ob, short smooth);
 
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
 void initlocalview(Scene *scene, ARegion *ar, View3D *v3d);
@@ -141,7 +139,7 @@ void centerview(ARegion *ar, View3D *v3d);
 void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
 
 void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
-void setviewmatrixview3d(View3D *v3d);
+void setviewmatrixview3d(Scene *scene, View3D *v3d);
 
 #endif /* ED_VIEW3D_INTERN_H */
 

@@ -925,9 +925,10 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	
 	/* works in conjunction with hack during modifier calc, where active mcol
 	   layer with weight paint colors is temporarily added */
-	if ((G.f & G_WEIGHTPAINT) &&
-		(ob && ob==(G.scene->basact?G.scene->basact->object:NULL)))
-		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MCOL);
+	/* XXX make this real but temporary layer */
+//	if ((G.f & G_WEIGHTPAINT) &&
+//		(ob && ob==(scene->basact?scene->basact->object:NULL)))
+//		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MCOL);
 
 	return dm;
 }

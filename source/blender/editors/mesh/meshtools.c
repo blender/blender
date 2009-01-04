@@ -950,12 +950,12 @@ static int thread_break(void)
 	return G.afbreek;
 }
 
-static ScrArea *biggest_image_area(void)
+static ScrArea *biggest_image_area(bScreen *screen)
 {
 	ScrArea *sa, *big= NULL;
 	int size, maxsize= 0;
 	
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
 		if(sa->spacetype==SPACE_IMAGE) {
 			size= sa->winx*sa->winy;
 			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
@@ -1004,8 +1004,9 @@ void objects_bake_render(Scene *scene, short event, char **error_msg)
 	}
 	
 	if(event>0) {
+		bScreen *screen= NULL; // XXX CTX
 		Render *re= RE_NewRender("_Bake View_");
-		ScrArea *area= biggest_image_area();
+		ScrArea *area= biggest_image_area(screen);
 		ListBase threads;
 		BakeRender bkr;
 		int timer=0, tot; // XXX, sculptmode= G.f & G_SCULPTMODE;

@@ -355,7 +355,7 @@ static int screen_area_rip_op(bContext *C, wmOperator *op)
 	newwin= WM_window_open(C, &rect);
 	
 	/* allocs new screen and adds to newly created window, using window size */
-	newsc= screen_add(newwin, sc->id.name+2);
+	newsc= screen_add(newwin, CTX_data_scene(C), sc->id.name+2);
 	newwin->screen= newsc;
 	
 	/* copy area to new screen */

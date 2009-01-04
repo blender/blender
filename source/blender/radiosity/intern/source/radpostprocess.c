@@ -56,6 +56,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -694,7 +695,7 @@ unsigned int rad_find_or_add_mvert(Mesh *me, MFace *mf, RNode *orignode, float *
 	return (unsigned int)(mvert - me->mvert);
 }
 
-void rad_addmesh(void)
+void rad_addmesh(Scene *scene)
 {
 	Face *face = NULL;
 	Object *ob;
@@ -715,7 +716,7 @@ void rad_addmesh(void)
 // XXX		notice("warning: cannot assign more than 16 materials to 1 mesh");
 
 	/* create the mesh */
-	ob= add_object(OB_MESH);
+	ob= add_object(scene, OB_MESH);
 	
 	me= ob->data;
 	me->totvert= totalRadVert();
@@ -799,7 +800,7 @@ void rad_addmesh(void)
 	make_edges(me, 0);
 }
 
-void rad_replacemesh(void)
+void rad_replacemesh(Scene *scene)
 {
 	RPatch *rp;
 	
@@ -815,9 +816,9 @@ void rad_replacemesh(void)
 		rp= rp->next;
 	}
 	
-	copy_objectflags();
+	copy_objectflags(scene);
 // XXX	delete_obj(1);
 	
-	rad_addmesh();
+	rad_addmesh(scene);
 }
 

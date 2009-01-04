@@ -349,14 +349,14 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 	}
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Object *ob, DagNode *node)
+static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node)
 {
 	Base *base;
 	DagNode *node2;
 
 	// would be nice to have a list of colliders here
 	// so for now walk all objects in scene check 'same layer rule'
-	for(base = G.scene->base.first; base; base= base->next) {
+	for(base = scene->base.first; base; base= base->next) {
 		if((base->lay & ob->lay) && base->object->pd) {
 			Object *ob1= base->object;
 			if((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob))  {
@@ -367,7 +367,7 @@ static void dag_add_collision_field_relation(DagForest *dag, Object *ob, DagNode
 	}
 }
 
-static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
+static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, Object *ob, int mask)
 {
 	bConstraint *con;
 	bConstraintChannel *conchan;
@@ -471,7 +471,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		for(md=ob->modifiers.first; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			
-			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
+			if (mti->updateDepgraph) mti->updateDepgraph(md, dag, scene, ob, node);
 		}
 	}
 	if (ob->parent) {
@@ -546,10 +546,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	/* softbody collision  */
 	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE))
 		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob))
-			dag_add_collision_field_relation(dag, ob, node);
+			dag_add_collision_field_relation(dag, scene, ob, node);
 		
 	if (ob->type==OB_MBALL) {
-		Object *mom= find_basis_mball(ob);
+		Object *mom= find_basis_mball(scene, ob);
 		if(mom!=ob) {
 			node2 = dag_get_node(dag, mom);
 			dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Metaball");  // mom depends on children!
@@ -612,7 +612,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 
 			if(psys->effectors.first)
 				psys_end_effectors(psys);
-			psys_init_effectors(ob,psys->part->eff_group,psys);
+			psys_init_effectors(scene, ob, psys->part->eff_group, psys);
 
 			if(psys->effectors.first) {
 				for(nec= psys->effectors.first; nec; nec= nec->next) {
@@ -707,9 +707,9 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	for(base = sce->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		build_dag_object(dag, scenenode, ob, mask);
+		build_dag_object(dag, scenenode, sce, ob, mask);
 		if(ob->proxy)
-			build_dag_object(dag, scenenode, ob->proxy, mask);
+			build_dag_object(dag, scenenode, sce, ob->proxy, mask);
 		
 		/* handled in next loop */
 		if(ob->dup_group) 
@@ -720,7 +720,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
-				build_dag_object(dag, scenenode, go->ob, mask);
+				build_dag_object(dag, scenenode, sce, go->ob, mask);
 			}
 			group->id.flag &= ~LIB_DOIT;
 		}
@@ -2137,22 +2137,6 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	
 }
 
-/* for depgraph updating, all layers visible in a screen */
-/* this is a copy from editscreen.c... I need to think over a more proper solution for this */
-/* probably the DAG_object_flush_update() should give layer too? */
-/* or some kind of dag context... (DAG_set_layer) */
-static unsigned int dag_screen_view3d_layers(void)
-{
-	ScrArea *sa;
-	int layer= 0;
-	
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D)
-			layer |= ((View3D *)sa->spacedata.first)->lay;
-	}
-	return layer;
-}
-
 
 /* flag this object and all its relations to recalc */
 /* if you need to do more objects, tag object yourself and
@@ -2186,9 +2170,9 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 		}
 	}
 	
-	if(G.curscreen)
-		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
-	else
+// XXX	if(G.curscreen)
+//		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
+//	else
 		DAG_scene_flush_update(sce, sce->lay, 0);
 }
 

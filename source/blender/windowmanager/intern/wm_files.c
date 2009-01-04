@@ -70,10 +70,6 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#ifdef WITH_VERSE
-#include "BKE_verse.h"
-#endif
-
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
@@ -360,17 +356,6 @@ static void init_userdef_themes(void)
 	/* this timer uses U */
 // XXX	reset_autosave();
 
-#ifdef WITH_VERSE
-	if(strlen(U.versemaster)<1) {
-		strcpy(U.versemaster, "master.uni-verse.org");
-	}
-	if(strlen(U.verseuser)<1) {
-// XXX		char *name = verse_client_name();
-// XXX		strcpy(U.verseuser, name);
-// XXX		MEM_freeN(name);
-	}
-#endif
-
 }
 
 /* To be able to read files without windows closing, opening, moving 
@@ -473,47 +458,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 	}
 }
 
-#ifdef WITH_VERSE
-static void verse_unsub(void)
-{
-	extern ListBase session_list;
-	struct VerseSession *session;
-	struct VNode *vnode;
-	
-	session = session_list.first;
-	while(session) {
-		vnode = session->nodes.lb.first;
-		while(vnode) {
-			switch(vnode->type) {
-				case V_NT_OBJECT:
-//XXX					unsubscribe_from_obj_node(vnode);
-					break;
-				case V_NT_GEOMETRY:
-//XXX					unsubscribe_from_geom_node(vnode);
-					break;
-				case V_NT_BITMAP:
-//XXX					unsubscribe_from_bitmap_node(vnode);
-					break;
-			}
-			vnode = vnode->next;
-		}
-		session = session->next;
-	}
-}
-#endif
-
 void WM_read_file(bContext *C, char *name, ReportList *reports)
 {
 	int retval;
 
-#ifdef WITH_VERSE
-	verse_unsub();		/* bad call here (ton) */
-#endif
-	
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
-	retval= BKE_read_exotic(name);
+	retval= BKE_read_exotic(CTX_data_scene(C), name);
 	
 	/* we didn't succeed, now try to read Blender file */
 	if (retval== 0) {
@@ -552,26 +504,6 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 	}
 }
 
-static void outliner_242_patch(void)
-{
-	ScrArea *sa;
-	
-// XXX	
-	if(G.curscreen==NULL) return;
-	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		SpaceLink *sl= sa->spacedata.first;
-		for(; sl; sl= sl->next) {
-			if(sl->spacetype==SPACE_OOPS) {
-				SpaceOops *soops= (SpaceOops *)sl;
-				if(soops->type!=SO_OUTLINER) {
-					soops->type= SO_OUTLINER;
-// XXX					init_v2d_oops(sa, soops);
-				}
-			}
-		}
-	}
-	G.fileflags |= G_FILE_GAME_MAT;
-}
 
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'Erase All' */
@@ -600,8 +532,6 @@ int WM_read_homefile(bContext *C, int from_memory)
 		success = BKE_read_file(C, tstr, NULL, NULL);
 	} else {
 		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL, NULL);
-		/* outliner patch for 2.42 .b.blend */
-		outliner_242_patch();
 	}
 	
 	/* match the read WM with current WM */

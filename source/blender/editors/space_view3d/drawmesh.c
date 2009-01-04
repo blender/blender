@@ -477,7 +477,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		if(FACESEL_PAINT_TEST)
 			return;
 
-	ddm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
+	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
 	for(a=0, mf=mface; a<totface; a++, tface++, mf++) {
 		int mode= tface->mode;

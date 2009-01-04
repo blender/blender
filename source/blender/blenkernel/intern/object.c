@@ -129,9 +129,9 @@ void clear_workob(Object *workob)
 	
 }
 
-void copy_baseflags()
+void copy_baseflags(struct Scene *scene)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 	
 	while(base) {
 		base->object->flag= base->flag;
@@ -139,9 +139,9 @@ void copy_baseflags()
 	}
 }
 
-void copy_objectflags()
+void copy_objectflags(struct Scene *scene)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 	
 	while(base) {
 		base->flag= base->object->flag;
@@ -149,9 +149,9 @@ void copy_objectflags()
 	}
 }
 
-void update_base_layer(Object *ob)
+void update_base_layer(struct Scene *scene, Object *ob)
 {
-	Base *base= G.scene->base.first;
+	Base *base= scene->base.first;
 
 	while (base) {
 		if (base->object == ob) base->lay= ob->lay;
@@ -291,7 +291,7 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 		ob->recalc |= OB_RECALC;
 	}
 }
-void unlink_object(Object *ob)
+void unlink_object(Scene *scene, Object *ob)
 {
 	Object *obt;
 	Material *mat;
@@ -493,9 +493,9 @@ void unlink_object(Object *ob)
 		tex= tex->id.next;
 	}
 	
-	/* mballs */
-	if(ob->type==OB_MBALL) {
-		obt= find_basis_mball(ob);
+	/* mballs (scene==NULL when called from library.c) */
+	if(scene && ob->type==OB_MBALL) {
+		obt= find_basis_mball(scene, ob);
 		if(obt) freedisplist(&obt->disp);
 	}
 	
@@ -987,9 +987,9 @@ Object *add_only_object(int type, char *name)
 	return ob;
 }
 
-/* general add: to G.scene, with layer from area and default name */
+/* general add: to scene, with layer from area and default name */
 /* creates minimum required data, but without vertices etc. */
-Object *add_object(int type)
+Object *add_object(struct Scene *scene, int type)
 {
 	Object *ob;
 	Base *base;
@@ -1000,23 +1000,23 @@ Object *add_object(int type)
 
 	ob->data= add_obdata_from_type(type);
 
-	ob->lay= G.scene->lay;
+	ob->lay= scene->lay;
 
-	base= scene_add_base(G.scene, ob);
-	scene_select_base(G.scene, base);
+	base= scene_add_base(scene, ob);
+	scene_select_base(scene, base);
 	ob->recalc |= OB_RECALC;
 
 	return ob;
 }
 
-void base_init_from_view3d(Base *base, View3D *v3d)
+void base_init_from_view3d(Base *base, View3D *v3d, struct Scene *scene)
 {
 	Object *ob= base->object;
 	
 	if (!v3d) {
 		/* no 3d view, this wont happen often */
 		base->lay = 1;
-		VECCOPY(ob->loc, G.scene->cursor);
+		VECCOPY(ob->loc, scene->cursor);
 		
 		/* return now because v3d->viewquat isnt available */
 		return;
@@ -1025,7 +1025,7 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 		VECCOPY(ob->loc, v3d->cursor);
 	} else {
 		base->lay= ob->lay= v3d->layact;
-		VECCOPY(ob->loc, G.scene->cursor);
+		VECCOPY(ob->loc, scene->cursor);
 	}
 
 	if (U.flag & USER_ADD_VIEWALIGNED) {
@@ -1462,7 +1462,7 @@ void disable_speed_curve(int val)
 }
 
 /* ob can be NULL */
-float bsystem_time(Object *ob, float cfra, float ofs)
+float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
 	
@@ -1470,7 +1470,7 @@ float bsystem_time(Object *ob, float cfra, float ofs)
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
-	cfra*= G.scene->r.framelen;	
+	cfra*= scene->r.framelen;	
 	
 	if (ob) {
 		if (no_speed_curve==0 && ob->ipo)
@@ -1558,7 +1558,7 @@ void object_to_mat4(Object *ob, float mat[][4])
 
 int enable_cu_speed= 1;
 
-static void ob_parcurve(Object *ob, Object *par, float mat[][4])
+static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 {
 	Curve *cu;
 	float q[4], vec[4], dir[3], quat[4], x1, ctime;
@@ -1568,7 +1568,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	
 	cu= par->data;
 	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-		makeDispListCurveTypes(par, 0);
+		makeDispListCurveTypes(scene, par, 0);
 	if(cu->path==NULL) return;
 	
 	/* exception, timeoffset is regarded as distance offset */
@@ -1583,7 +1583,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	}
 	/* catch exceptions: curve paths used as a duplicator */
 	else if(enable_cu_speed) {
-		ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);
 		
 		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 			ctime /= cu->pathlen;
@@ -1591,7 +1591,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		}
 	}
 	else {
-		ctime= G.scene->r.cfra - give_timeoffset(ob);
+		ctime= scene->r.cfra - give_timeoffset(ob);
 		ctime /= cu->pathlen;
 		
 		CLAMP(ctime, 0.0, 1.0);
@@ -1831,7 +1831,7 @@ int during_scriptlink(void) {
 	return during_scriptlink_flag;
 }
 
-void where_is_object_time(Object *ob, float ctime)
+void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
 	float stime, fac1, fac2, vec[3];
@@ -1845,7 +1845,7 @@ void where_is_object_time(Object *ob, float ctime)
 	if(ob==NULL) return;
 	
 	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(ob, ctime, 0.0);
+	stime= bsystem_time(scene, ob, ctime, 0.0);
 	if(stime != ob->ctime) {
 		
 		ob->ctime= stime;
@@ -1855,7 +1855,7 @@ void where_is_object_time(Object *ob, float ctime)
 			execute_ipo((ID *)ob, ob->ipo);
 		}
 		else 
-			do_all_object_actions(ob);
+			do_all_object_actions(scene, ob);
 		
 		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
@@ -1882,7 +1882,7 @@ void where_is_object_time(Object *ob, float ctime)
 			pop= 1;
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
-			else where_is_object_time(par, ctime);
+			else where_is_object_time(scene, par, ctime);
 		}
 		
 		solve_parenting(ob, par, ob->obmat, slowmat, 0);
@@ -1912,7 +1912,7 @@ void where_is_object_time(Object *ob, float ctime)
 
 	/* Handle tracking */
 	if(ob->track) {
-		if( ctime != ob->track->ctime) where_is_object_time(ob->track, ctime);
+		if( ctime != ob->track->ctime) where_is_object_time(scene, ob->track, ctime);
 		solve_tracking (ob, ob->track->obmat);
 		
 	}
@@ -1921,7 +1921,7 @@ void where_is_object_time(Object *ob, float ctime)
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		
 		/* constraints need ctime, not stime. Some call where_is_object_time and bsystem_time */
 		solve_constraints (&ob->constraints, cob, ctime);
@@ -1958,7 +1958,7 @@ static void solve_parenting (Object *ob, Object *par, float obmat[][4], float sl
 		ok= 0;
 		if(par->type==OB_CURVE) {
 			if( ((Curve *)par->data)->flag & CU_PATH ) {
-				ob_parcurve(ob, par, tmat);
+				ob_parcurve(scene, ob, par, tmat);
 				ok= 1;
 			}
 		}
@@ -2047,13 +2047,13 @@ void solve_tracking (Object *ob, float targetmat[][4])
 
 }
 
-void where_is_object(Object *ob)
+void where_is_object(struct Scene *scene, Object *ob)
 {
-	where_is_object_time(ob, (float)G.scene->r.cfra);
+	where_is_object_time(scene, ob, (float)scene->r.cfra);
 }
 
 
-void where_is_object_simul(Object *ob)
+void where_is_object_simul(Scene *scene, Object *ob)
 /* was written for the old game engine (until 2.04) */
 /* It seems that this function is only called
 for a lamp that is the child of another object */
@@ -2099,8 +2099,8 @@ for a lamp that is the child of another object */
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		solve_constraints (&ob->constraints, cob, G.scene->r.cfra);
+		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		solve_constraints (&ob->constraints, cob, scene->r.cfra);
 		constraints_clear_evalob(cob);
 	}
 	
@@ -2109,7 +2109,7 @@ for a lamp that is the child of another object */
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
-void what_does_parent(Object *ob, Object *workob)
+void what_does_parent(Scene *scene, Object *ob, Object *workob)
 {
 	clear_workob(workob);
 	
@@ -2132,7 +2132,7 @@ void what_does_parent(Object *ob, Object *workob)
 
 	strcpy(workob->parsubstr, ob->parsubstr); 
 
-	where_is_object(workob);
+	where_is_object(scene, workob);
 }
 
 BoundBox *unit_boundbox()
@@ -2251,7 +2251,7 @@ void minmax_object(Object *ob, float *min, float *max)
 }
 
 /* TODO - use dupli objects bounding boxes */
-void minmax_object_duplis(Object *ob, float *min, float *max)
+void minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 {
 	if ((ob->transflag & OB_DUPLI)==0) {
 		return;
@@ -2259,7 +2259,7 @@ void minmax_object_duplis(Object *ob, float *min, float *max)
 		ListBase *lb;
 		DupliObject *dob;
 		
-		lb= object_duplilist(G.scene, ob);
+		lb= object_duplilist(scene, ob);
 		for(dob= lb->first; dob; dob= dob->next) {
 			if(dob->no_draw);
 			else {
@@ -2279,7 +2279,7 @@ void minmax_object_duplis(Object *ob, float *min, float *max)
 
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
-void object_handle_update(Object *ob)
+void object_handle_update(Scene *scene, Object *ob)
 {
 	if(ob->recalc & OB_RECALC) {
 		
@@ -2299,7 +2299,7 @@ void object_handle_update(Object *ob)
 					Mat4CpyMat4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
-				where_is_object(ob);
+				where_is_object(scene, ob);
 #ifndef DISABLE_PYTHON
 			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
 #endif
@@ -2311,25 +2311,25 @@ void object_handle_update(Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(ob, NULL, get_viewedit_datamask());
+				makeDerivedMesh(scene, ob, NULL, get_viewedit_datamask());
 			}
 			else if(ob->type==OB_MBALL) {
-				makeDispListMBall(ob);
+				makeDispListMBall(scene, ob);
 			} 
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-				makeDispListCurveTypes(ob, 0);
+				makeDispListCurveTypes(scene, ob, 0);
 			}
 			else if(ob->type==OB_LATTICE) {
-				lattice_calc_modifiers(ob);
+				lattice_calc_modifiers(scene, ob);
 			}
 			else if(ob->type==OB_CAMERA) {
 				Camera *cam = (Camera *)ob->data;
-				calc_ipo(cam->ipo, frame_to_float(G.scene->r.cfra));
+				calc_ipo(cam->ipo, frame_to_float(scene, scene->r.cfra));
 				execute_ipo(&cam->id, cam->ipo);
 			}
 			else if(ob->type==OB_LAMP) {
 				Lamp *la = (Lamp *)ob->data;
-				calc_ipo(la->ipo, frame_to_float(G.scene->r.cfra));
+				calc_ipo(la->ipo, frame_to_float(scene, scene->r.cfra));
 				execute_ipo(&la->id, la->ipo);
 			}
 			else if(ob->type==OB_ARMATURE) {
@@ -2342,8 +2342,8 @@ void object_handle_update(Object *ob)
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				}
 				else {
-					do_all_pose_actions(ob);
-					where_is_pose(ob);
+					do_all_pose_actions(scene, ob);
+					where_is_pose(scene, ob);
 				}
 			}
 
@@ -2354,7 +2354,7 @@ void object_handle_update(Object *ob)
 				psys= ob->particlesystem.first;
 				while(psys) {
 					if(psys_check_enabled(ob, psys)) {
-						particle_system_update(ob, psys);
+						particle_system_update(scene, ob, psys);
 						psys= psys->next;
 					}
 					else if(psys->flag & PSYS_DELETE) {
@@ -2371,7 +2371,7 @@ void object_handle_update(Object *ob)
 					/* this is to make sure we get render level duplis in groups:
 					 * the derivedmesh must be created before init_render_mesh,
 					 * since object_duplilist does dupliparticles before that */
-					dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+					dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
 					dm->release(dm);
 
 					for(psys=ob->particlesystem.first; psys; psys=psys->next)
@@ -2388,7 +2388,7 @@ void object_handle_update(Object *ob)
 			/* set pointer in library proxy target, for copying, but restore it */
 			ob->proxy->proxy_from= ob;
 			// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
-			object_handle_update(ob->proxy);
+			object_handle_update(scene, ob->proxy);
 		}
 	
 		ob->recalc &= ~OB_RECALC;

@@ -54,6 +54,7 @@
 /* prototypes */
 
 struct Base;
+struct Scene;
 struct Object;
 struct Curve;
 struct ListBase;
@@ -86,20 +87,20 @@ extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
 
-extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
-extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
-extern void makeDispListMBall(struct Object *ob);
-extern void shadeDispList(struct Base *base);
-extern void shadeMeshMCol(struct Object *ob, struct Mesh *me);
+extern void makeDispListSurf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, int forRender);
+extern void makeDispListCurveTypes(struct Scene *scene, struct Object *ob, int forOrco);
+extern void makeDispListMBall(struct Scene *scene, struct Object *ob);
+extern void shadeDispList(struct Scene *scene, struct Base *base);
+extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
 
 int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void imagestodisplist(void);
-void reshadeall_displist(void);
+void reshadeall_displist(struct Scene *scene);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
 void fastshade_free_render(void);
 
-float calc_taper(struct Object *taperobj, int cur, int tot);
+float calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 #endif
 

@@ -42,6 +42,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_multires.h"
 
 //XXX #include "editmesh.h"
@@ -215,7 +216,7 @@ static void multires_get_face(MultiresFace *f, CustomData *fdata, int findex, Ed
 		tmp.v3= efa->v3->tmp.l;
 		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
-		//XXX test_index_face(&tmp, fdata, findex, efa->v4?4:3);
+		test_index_face(&tmp, fdata, findex, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
 
 		/* Flags */
@@ -354,7 +355,7 @@ void multires_create(Object *ob, Mesh *me)
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
 
-	//XXX if(me->pv) mesh_pmv_off(ob, me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	me->mr= MEM_callocN(sizeof(Multires), "multires data");
 	
@@ -1034,7 +1035,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-	//XXX mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me);
 
 	/* Vertices/Edges/Faces */
 	
@@ -1089,11 +1090,11 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 			
 	}
 	
-	//XXX mesh_update_customdata_pointers(me);
+	mesh_update_customdata_pointers(me);
 	
 	multires_edge_level_update(ob,me);
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	//XXX mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+// XXX do this in caller	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
 void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
@@ -1104,7 +1105,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 	MVert *oldverts= NULL;
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
-	//XXX if(me->pv) mesh_pmv_off(ob, me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, 0);
@@ -1270,7 +1271,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 
 void multires_set_level(Object *ob, Mesh *me, const int render)
 {
-	//XXX if(me->pv) mesh_pmv_off(ob, me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, render);
@@ -1301,6 +1302,6 @@ void multires_edge_level_update(Object *ob, Mesh *me)
 			}
 		}
 		
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+// XXX do this in caller		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
 }

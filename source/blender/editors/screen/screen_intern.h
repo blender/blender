@@ -30,13 +30,14 @@
 
 /* internal exports only */
 struct wmWindow;
+struct Scene;
 
 /* area.c */
 void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
 void		area_newspace(bContext *C, ScrArea *sa, int type);
 
 /* screen_edit.c */
-bScreen		*screen_add(struct wmWindow *win, char *name);
+bScreen		*screen_add(struct wmWindow *win, struct Scene *scene, char *name);
 ScrEdge		*screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
 ScrArea		*area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac);
 int			screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2);

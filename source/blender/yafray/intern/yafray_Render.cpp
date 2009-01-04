@@ -29,7 +29,7 @@ bool yafrayRender_t::exportScene(Render* re)
 	this->re = re;
 
   // get camera first, no checking should be necessary, all done by Blender
-	maincam_obj = G.scene->camera;
+	maincam_obj = re->scene->camera;
 
 	// use fixed lens for objects functioning as temporary camera (ctrl-0)
 	mainCamLens = 35.0;

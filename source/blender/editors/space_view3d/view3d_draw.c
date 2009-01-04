@@ -797,7 +797,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-	if (id_frame_has_keyframe((ID *)ob, frame_to_float(CFRA), v3d->keyflags))
+	if (id_frame_has_keyframe((ID *)ob, frame_to_float(scene, CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -1099,7 +1099,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	base= (G.scene->basact);
+	base= (scene->basact);
 	if(base && (base->lay & v3d->lay)) {
 		draw_object_backbufsel(scene, v3d, base->object);
 	}
@@ -1629,7 +1629,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
 	
 	setwinmatrixview3d(v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(v3d);	/* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d);	/* note: calls where_is_object for camera... */
 	
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
@@ -1805,12 +1805,12 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	if(scene->set) {
 		for(SETLOOPER(scene->set, base))
-			object_handle_update(base->object);   // bke_object.h
+			object_handle_update(scene, base->object);   // bke_object.h
 	}
 	
 	v3d->lay_used = 0;
 	for(base= scene->base.first; base; base= base->next) {
-		object_handle_update(base->object);   // bke_object.h
+		object_handle_update(scene, base->object);   // bke_object.h
 		v3d->lay_used |= base->lay;
 	}
 	
@@ -1819,7 +1819,7 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 		gpu_update_lamps_shadows(scene, v3d);
 	
 	setwinmatrixview3d(v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(v3d);	/* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d);	/* note: calls where_is_object for camera... */
 	
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
@@ -1875,7 +1875,7 @@ void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
 		if(v3d->persp==2) {
 			if(scene->world) {
 				if(scene->world->mode & WO_STARS) {
-					RE_make_stars(NULL, star_stuff_init_func, star_stuff_vertex_func,
+					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
 								  star_stuff_term_func);
 				}
 			}

@@ -652,7 +652,7 @@ void recalcData(TransInfo *t)
 	
 	/* update shaded drawmode while transform */
 	if(t->spacetype==SPACE_VIEW3D && ((View3D*)t->view)->drawtype == OB_SHADED)
-		reshadeall_displist();
+		reshadeall_displist(t->scene);
 }
 
 void drawLine(float *center, float *dir, char axis, short options)
@@ -1206,7 +1206,7 @@ void calculatePropRatio(TransInfo *t)
 				if (dist < 0.0f)
 					dist = 0.0f;
 				
-				switch(G.scene->prop_mode) {
+				switch(t->scene->prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
 					break;
@@ -1234,7 +1234,7 @@ void calculatePropRatio(TransInfo *t)
 				}
 			}
 		}
-		switch(G.scene->prop_mode) {
+		switch(t->scene->prop_mode) {
 		case PROP_SHARP:
 			strcpy(t->proptext, "(Sharp)");
 			break;

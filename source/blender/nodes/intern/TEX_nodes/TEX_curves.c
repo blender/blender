@@ -41,8 +41,9 @@ static void time_colorfn(float *out, float *coord, bNode *node, bNodeStack **in,
 	/* stack order output: fac */
 	float fac= 0.0f;
 	
-	if(node->custom1 < node->custom2)
-		fac = (G.scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
+	// XXX SOLVE! these functions should get the TexCallData pointer
+//	if(node->custom1 < node->custom2)
+//		fac = (scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
 	out[0] = CLAMPIS(fac, 0.0f, 1.0f);
@@ -56,8 +57,8 @@ static void time_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out
 
 static void time_init(bNode* node)
 {
-   node->custom1= G.scene->r.sfra;
-   node->custom2= G.scene->r.efra;
+   node->custom1= 1;
+   node->custom2= 250;
    node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 

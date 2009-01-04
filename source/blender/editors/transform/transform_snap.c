@@ -212,7 +212,7 @@ int  handleSnapping(TransInfo *t, wmEvent *event)
 	if (BIF_snappingSupported(t->obedit) && event->type == TABKEY && event->shift)
 	{
 		/* toggle snap and reinit */
-		G.scene->snap_flag ^= SCE_SNAP;
+		t->scene->snap_flag ^= SCE_SNAP;
 		initSnapping(t);
 		status = 1;
 	}
@@ -258,7 +258,7 @@ void resetSnapping(TransInfo *t)
 
 int usingSnappingNormal(TransInfo *t)
 {
-	if (G.scene->snap_flag & SCE_SNAP_ROTATE)
+	if (t->scene->snap_flag & SCE_SNAP_ROTATE)
 	{
 		return 1;
 	}
@@ -800,7 +800,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 		
 		if (test == 1) {
 			
-			switch (G.scene->snap_mode)
+			switch (t->scene->snap_mode)
 			{
 				case SCE_SNAP_MODE_FACE:
 				{ 
@@ -1194,7 +1194,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 		Object *ob = t->obedit;
 		EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 		
-		dm = editmesh_get_derived_cage(t->obedit, em, CD_MASK_BAREMESH);
+		dm = editmesh_get_derived_cage(t->scene, t->obedit, em, CD_MASK_BAREMESH);
 		
 		retval = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 1);
 		
@@ -1212,14 +1212,14 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 			if (ob->transflag & OB_DUPLI)
 			{
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(G.scene, ob);
+				ListBase *lb = object_duplilist(t->scene, ob);
 				
 				for(dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next)
 				{
 					Object *ob = dupli_ob->ob;
 					
 					if (ob->type == OB_MESH) {
-						DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+						DerivedMesh *dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
 						int val;
 						
 						val = snapDerivedMesh(t, ob, dm, dupli_ob->mat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 0);
@@ -1234,7 +1234,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 			}
 			
 			if (ob->type == OB_MESH) {
-				DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+				DerivedMesh *dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
 				int val;
 				
 				val = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 0);
