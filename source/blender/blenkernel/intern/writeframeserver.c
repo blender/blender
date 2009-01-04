@@ -355,7 +355,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	connsock = -1;
 }
 
-void append_frameserver(int frame, int *pixels, int rectx, int recty)
+void append_frameserver(RenderData *rd, int frame, int *pixels, int rectx, int recty)
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
 	if (write_ppm) {

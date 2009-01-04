@@ -2503,7 +2503,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			dofree = 1;
 		}
 		RE_ResultGet32(re, (unsigned int *)rres.rect32);
-		mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
+		mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 		if(dofree) {
 			MEM_freeN(rres.rect32);
 		}
