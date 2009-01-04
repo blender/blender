@@ -1496,6 +1496,7 @@ void OBJECT_OT_clear_origin(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_clear_origin";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= object_clear_origin_exec;
 	ot->poll= ED_operator_object_active;
 }
