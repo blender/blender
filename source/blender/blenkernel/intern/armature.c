@@ -2273,13 +2273,15 @@ void where_is_pose (Scene *scene, Object *ob)
 	Bone *bone;
 	bPoseChannel *pchan;
 	float imat[4][4];
-	float ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
+	float ctime;
 	
 	arm = get_armature(ob);
 	
-	if(arm==NULL) return;
-	if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC)) 
+	if(ELEM(NULL, arm, scene)) return;
+	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 
 	   armature_rebuild_pose(ob, arm);
+	   
+	ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);	/* not accurate... */
 	
 	/* In editmode or restposition we read the data from the bones */
 	if(arm->edbo || (arm->flag & ARM_RESTPOS)) {

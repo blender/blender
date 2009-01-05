@@ -233,6 +233,7 @@ void free_ipo (Ipo *ipo)
 /* ---------------------- Init --------------------------- */
 
 /* on adding new ipos, or for empty views */
+// XXX users usually find these zoom settings problematic...
 void ipo_default_v2d_cur (Scene *scene, int blocktype, rctf *cur)
 {
 	switch (blocktype) {

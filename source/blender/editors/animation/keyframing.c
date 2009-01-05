@@ -67,6 +67,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -86,6 +87,9 @@
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #if 0 // XXX resolve these old dependencies!
 	#include "BIF_butspace.h"
@@ -1792,7 +1796,7 @@ static void commonkey_context_getv3d (const bContext *C, ListBase *sources, bKey
 		*ksc= &ks_contexts[KSC_V3D_OBJECT];
 		
 		/* loop through bases */
-		// XXX but we're only supposed to do this on editable ones!
+		// XXX but we're only supposed to do this on editable ones, not just selected ones!
 		CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 			bCommonKeySrc *cks;
 			

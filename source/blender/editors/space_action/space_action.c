@@ -254,28 +254,6 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_free(scrollers);
 }
 
-static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
-{
-	/* context changes */
-	switch(wmn->category) {
-		case NC_SCENE:
-			switch(wmn->data) {
-				case ND_OB_ACTIVE:
-					ED_region_tag_redraw(ar);
-					break;
-			}
-			break;
-		case NC_OBJECT:
-			switch(wmn->data) {
-				case ND_BONE_ACTIVE:
-				case ND_BONE_SELECT:
-					ED_region_tag_redraw(ar);
-					break;
-			}
-			break;
-	}
-}
-
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -303,6 +281,28 @@ static void action_header_area_draw(const bContext *C, ARegion *ar)
 	
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
+}
+
+static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_BONE_ACTIVE:
+				case ND_BONE_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
 }
 
 static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -333,19 +333,52 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 static void action_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
-			switch(wmn->data) {
+			/*switch (wmn->data) {
 				case ND_OB_ACTIVE:
+				case ND_OB_SELECT:
 					ED_area_tag_refresh(sa);
 					break;
-			}
+			}*/
+			ED_area_tag_refresh(sa);
+			break;
+		case NC_OBJECT:
+			/*switch (wmn->data) {
+				case ND_BONE_SELECT:
+				case ND_BONE_ACTIVE:
+					ED_area_tag_refresh(sa);
+					break;
+			}*/
+			ED_area_tag_refresh(sa);
+			break;
 	}
 }
 
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
-	printf("Heya, Action refresh needed!\n");
+	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+	
+	/* updates to data needed depends on Action Editor mode... */
+	switch (saction->mode) {
+		case SACTCONT_DOPESHEET: /* DopeSheet - for now, just all armatures... */
+		{
+			
+		}
+			break;
+		
+		case SACTCONT_ACTION: /* Action Editor - just active object will do */
+		{
+			Object *ob= CTX_data_active_object(C);
+			
+			/* sync changes to bones to the corresponding action channels */
+			ANIM_pose_to_action_sync(ob, sa);
+		}
+			break; 
+	}
+	
+	/* region updates? */
+	// XXX resizing y-extents of tot should go here?
 }
 
 /* only called once, from space/spacetypes.c */

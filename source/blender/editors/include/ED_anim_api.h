@@ -327,7 +327,19 @@ void ED_update_for_newframe(const struct bContext *C, int mute);
 
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);
-void ANIM_pose_to_action_sync(struct Object *ob);
+void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
+
+
+/* what types of animation data was changed (for sending notifiers from animation tools) */
+enum {
+	ANIM_CHANGED_BOTH= 0,
+	ANIM_CHANGED_KEYFRAMES_VALUES,
+	ANIM_CHANGED_KEYFRAMES_SELECT,
+	ANIM_CHANGED_CHANNELS
+} eAnimData_Changed;
+
+/* Send notifiers on behalf of animation editing tools, based on various context info */
+void ANIM_animdata_send_notifiers(struct bContext *C, bAnimContext *ac, short data_changed);
 
 /* ************************************************* */
 /* OPERATORS */

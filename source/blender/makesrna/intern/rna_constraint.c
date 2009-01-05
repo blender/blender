@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008), Juho Vepsäläinen
+ * Contributor(s): Blender Foundation (2008), Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */

@@ -56,6 +56,10 @@
 #include "RNA_define.h"
 
 #include "ED_anim_api.h"
+#include "ED_screen.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 /* ***************** depsgraph calls and anim updates ************* */
 
@@ -122,6 +126,53 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	}
 }
 
+/* **************************** animation tool notifiers ******************************** */
+
+/* Send notifiers on behalf of animation editing tools, based on various context info 
+ *	- data_changed: eAnimData_Changed
+ */
+void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_changed)
+{
+	/* types of notifiers to send, depends on the editor context */
+	switch (ac->datatype) {
+		case ANIMCONT_DOPESHEET: /* dopesheet */
+		{
+			/* what action was taken */
+			switch (data_changed) {
+				case ANIM_CHANGED_KEYFRAMES_VALUES:
+					/* keyframe values changed, so transform may have changed */
+					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
+					WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+					break;
+				//case ANIM_CHANGED_KEYFRAMES_SELECT:	// XXX what to do here?
+				//	break;
+				case ANIM_CHANGED_CHANNELS:
+					// XXX err... check available datatypes in dopesheet first?
+					// FIXME: this currently doesn't work (to update own view)
+					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE|ND_OB_SELECT, ac->scene);
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE|ND_BONE_SELECT, NULL);
+					break;
+			}
+			
+			// XXX for now, at least update own editor!
+			ED_area_tag_redraw(CTX_wm_area(C));
+		}
+			break;
+		
+		case ANIMCONT_ACTION: /* action editor */
+		{
+			Object *obact= CTX_data_active_object(C);
+			
+			// only update active object for now... more detail to come!
+			WM_event_add_notifier(C, NC_OBJECT, obact);
+		}
+			break;
+			
+		default: /* some other data... just update area for now */
+			ED_area_tag_redraw(CTX_wm_area(C)); 
+	}
+}
+
 /* **************************** pose <-> action syncing ******************************** */
 /* Summary of what needs to be synced between poses and actions:
  *	1) Flags
@@ -177,8 +228,9 @@ void ANIM_action_to_pose_sync (Object *ob)
  * An object (usually 'active' Object) needs to be supplied, so that its Pose-Channels can be synced with
  * the channels in its active Action.
  */
-void ANIM_pose_to_action_sync (Object *ob)
+void ANIM_pose_to_action_sync (Object *ob, ScrArea *sa)
 {
+	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
 	bArmature *arm= (bArmature *)ob->data;
 	bAction *act= (bAction *)ob->action;
 	bActionChannel *achan;
@@ -197,12 +249,12 @@ void ANIM_pose_to_action_sync (Object *ob)
 		/* sync selection and visibility settings */
 		if (pchan && pchan->bone) {
 			/* visibility - if layer is hidden, or if bone itself is hidden */
-			// XXX we may not want this happening though! (maybe we need some extra flags from context or so)
-			// only if SACTION_NOHIDE==0, and saction->pin == 0, when in Action Editor mode
-			if (!(pchan->bone->layer & arm->layer) || (pchan->bone->flag & BONE_HIDDEN_P))
-				achan->flag |= ACHAN_HIDDEN;
-			else
-				achan->flag &= ~ACHAN_HIDDEN;
+			if (!(saction->flag & SACTION_NOHIDE) && !(saction->pin)) {
+				if (!(pchan->bone->layer & arm->layer) || (pchan->bone->flag & BONE_HIDDEN_P))
+					achan->flag |= ACHAN_HIDDEN;
+				else
+					achan->flag &= ~ACHAN_HIDDEN;
+			}
 				
 			/* selection */
 			if (pchan->bone->flag & BONE_SELECTED)

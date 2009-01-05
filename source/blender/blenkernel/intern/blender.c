@@ -352,7 +352,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
 	if(CTX_data_scene(C)==NULL) {
-		CTX_data_scene_set(C, G.main->scene.first);
+		CTX_data_scene_set(C, bfd->main->scene.first);
 		CTX_wm_screen(C)->scene= CTX_data_scene(C);
 		curscene= CTX_data_scene(C);
 	}

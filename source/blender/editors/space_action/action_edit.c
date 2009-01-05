@@ -163,8 +163,9 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
 	
-	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	/* set notifier that things have changed */
+	// XXX err... there's nothing for frame ranges yet, but this should do fine too
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, ac.scene); 
 	
 	return OPERATOR_FINISHED;
 }
@@ -211,7 +212,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -516,7 +517,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -560,7 +561,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -623,7 +624,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -685,7 +686,7 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -812,7 +813,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -889,7 +890,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -970,7 +971,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1071,7 +1072,7 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1241,7 +1242,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1359,7 +1360,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
 	
 	return OPERATOR_FINISHED;
 }

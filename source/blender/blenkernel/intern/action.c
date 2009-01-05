@@ -1493,19 +1493,19 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 void do_all_pose_actions(Scene *scene, Object *ob)
 {
 	/* only to have safe calls from editor */
-	if(ob==NULL) return;
-	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
+	if(ELEM(NULL, scene, ob)) return;
+	if((ob->type!=OB_ARMATURE) || (ob->pose==NULL)) return;
 
 	if(ob->pose->flag & POSE_LOCKED) {  /*  no actions to execute while transform */
 		if(ob->pose->flag & POSE_DO_UNLOCK)
 			ob->pose->flag &= ~(POSE_LOCKED|POSE_DO_UNLOCK);
 	}
-	else if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
+	else if( (ob->action) && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || (ob->nlastrips.first==NULL)) ) {
 		float cframe= (float) scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_pose_from_action (ob->pose, ob->action, bsystem_time(scene, ob, cframe, 0.0));
+		extract_pose_from_action(ob->pose, ob->action, bsystem_time(scene, ob, cframe, 0.0));
 	}
 	else if(ob->nlastrips.first) {
 		do_nla(scene, ob, ID_AR);

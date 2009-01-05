@@ -721,7 +721,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 		columnselect_action_keys(&ac, mode);
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1108,7 +1108,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* set notifier tha things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
 	
 	return OPERATOR_FINISHED;
 }
