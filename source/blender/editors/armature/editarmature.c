@@ -87,8 +87,6 @@
 #include "reeb.h"
 #endif
 
-extern	float center[3], centroid[3];	/* Originally defined in editobject.c */
-
 /* ************* XXX *************** */
 static int okee() {return 0;}
 static int pupmenu() {return 0;}

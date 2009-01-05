@@ -79,8 +79,6 @@
 
 #include "view3d_intern.h"
 
-/* XXX ***************** */
-int pose_channel_in_IK_chain() {return 0;}
 
 /* *************** Armature Drawing - Coloring API ***************************** */
 

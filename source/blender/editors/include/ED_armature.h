@@ -82,12 +82,17 @@ typedef struct EditBone
 #define BONE_SELECT_PARENT	0
 #define BONE_SELECT_CHILD	1
 
-void ED_pose_deselectall(struct Object *ob, int test, int doundo);
-
+/* editarmature.c */
 void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
 void ED_armature_edit_remake(struct Object *obedit);
+
+/* poseobject.c */
+int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
+void ED_pose_deselectall(struct Object *ob, int test, int doundo);
+
+
 
 #endif /* ED_ARMATURE_H */
 
