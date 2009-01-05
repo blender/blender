@@ -58,7 +58,7 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_activePriority(999),
 	m_lastapplyframe(0.0)
 {
-	m_armature = get_armature(m_objArma);
+	m_armature = (bArmature *)armature->data;
 
 	/* we make a copy of blender object's pose, and then always swap it with
 	 * the original pose before calling into blender functions, to deal with
