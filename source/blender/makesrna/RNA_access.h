@@ -227,6 +227,7 @@ extern StructRNA RNA_WaveModifier;
 extern StructRNA RNA_WindowManager;
 extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_World;
+extern StructRNA RNA_WorldAmbientOcclusion;
 extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
 
