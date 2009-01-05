@@ -35,6 +35,7 @@ struct Main;
 
 extern BlenderRNA BLENDER_RNA;
 
+extern StructRNA RNA_Action;
 extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_AlwaysSensor;
