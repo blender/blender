@@ -918,7 +918,7 @@ class vrmlNode(object):
 							lines.insert(0, 'root_node____')
 							lines.append('}')
 							'''
-							ff = open('/root/test.txt', 'w')
+							ff = open('/tmp/test.txt', 'w')
 							ff.writelines([l+'\n' for l in lines])
 							'''
 							
@@ -1167,11 +1167,11 @@ def vrml_parse(path):
 	lines.append('}')
 	# Use for testing our parsed output, so we can check on line numbers.
 	
-	
-	ff = open('/root/test.txt', 'w')
+	"""
+	ff = open('/tmp/test.txt', 'w')
 	ff.writelines([l+'\n' for l in lines])
 	ff.close()
-	
+	"""
 	
 	# Now evaluate it
 	node_type, new_i = is_nodeline(0, [])
