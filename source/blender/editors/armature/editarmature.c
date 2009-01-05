@@ -82,7 +82,10 @@
 
 #include "armature_intern.h"
 #include "meshlaplacian.h"
+
+#if 0
 #include "reeb.h"
+#endif
 
 extern	float center[3], centroid[3];	/* Originally defined in editobject.c */
 
@@ -4401,7 +4404,7 @@ void transform_armature_mirror_update(Object *obedit)
 /*************************************** SKELETON GENERATOR ******************************************/
 /*****************************************************************************************************/
 
-
+#if 0
 
 /**************************************** SUBDIVISION ALGOS ******************************************/
 
@@ -4969,3 +4972,5 @@ void generateSkeleton(Scene *scene)
 
 	//setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 }
+
+#endif
