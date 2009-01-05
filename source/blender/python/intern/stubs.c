@@ -26,18 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <string.h>
-
-/* various UI stuff */
-void set_timecursor() {}
-void mainqenter() {}
-
-char texstr[20][12];
-
-/* global vars */
-void *editNurb;
-void *editelems;
-
 /* python, will come back */
 void BPY_post_start_python() {}
 //void BPY_run_python_script() {}
@@ -52,32 +40,3 @@ void BPY_free_compiled_text() {}
 void BPY_pyconstraint_eval() {}
 void BPY_pyconstraint_target() {}
 
-/* areas */
-void copy_view3d_lock() {}
-
-/* seq */
-void do_render_seq() {}
-void get_forground_frame_seq() {}
-
-/* sculpt */
-void sculptmode_free_all() {}
-void sculptmode_init() {}
-
-/* mesh */
-void free_realtime_image() {}
-void NewBooleanDerivedMesh() {}
-
-/* particle */
-void PE_recalc_world_cos() {}
-void PE_free_particle_edit() {}
-void PE_get_colors() {}
-
-/* fluid */
-void fluidsimSettingsCopy() {}
-void fluidsimSettingsFree() {}
-
-void BIF_filelist_freelib() {}
-
-/* audio */
-void audiostream_play() {}
-void audiostream_fill() {}

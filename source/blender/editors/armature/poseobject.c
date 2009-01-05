@@ -157,26 +157,6 @@ void exit_posemode(Scene *scene)
 
 }
 
-#if 0
-/* called by buttons to find a bone to display/edit values for */
-bPoseChannel *get_active_posechannel (Object *ob)
-{
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
-	
-	if ELEM(NULL, ob, ob->pose)
-		return NULL;
-	
-	/* find active */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
-			return pchan;
-	}
-	
-	return NULL;
-}
-#endif
-
 /* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
 /* only_selected==1 : the active bone is allowed to be protected */
 static short pose_has_protected_selected(Object *ob, short only_selected, short warn)

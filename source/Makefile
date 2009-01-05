@@ -82,8 +82,6 @@ GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
 GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
-GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
-GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -107,6 +105,7 @@ COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
 COMLIB += $(NAN_GLEW)/lib/libglew.a
+COMLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -219,7 +218,6 @@ endif
 
 # note: space_api.a in begin of editors, screen.a in end
 PULIB = $(NAN_MOTO)/lib/libmoto.a
-PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/ed_space/libed_space.a
 PULIB += $(OCGDIR)/blender/ed_sound/libed_sound.a
@@ -527,13 +525,13 @@ ifeq ($(OS),windows)
 	endif
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) 
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(SADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS) $(SADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -541,13 +539,13 @@ ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderstatic
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) 
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS)  $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif

@@ -732,7 +732,9 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-	extern char texstr[20][12];	 /* buttons.c */
+	char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+		"Voronoi", "DistNoise", "", "", "", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	

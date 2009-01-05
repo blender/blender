@@ -76,7 +76,7 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bmesh.h"
-#include "BKE_booleanops.h"
+// XXX #include "BKE_booleanops.h"
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
 #include "BKE_cdderivedmesh.h"
@@ -106,6 +106,9 @@
 
 //XXX #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
+
+// XXX
+static struct DerivedMesh *NewBooleanDerivedMesh() {return NULL;}
 
 #include "CCGSubSurf.h"
 

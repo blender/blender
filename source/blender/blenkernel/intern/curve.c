@@ -68,7 +68,8 @@
 
 /* globals */
 
-extern ListBase editNurb;  /* editcurve.c */
+// XXX
+ListBase editNurb;
 
 /* local */
 int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
