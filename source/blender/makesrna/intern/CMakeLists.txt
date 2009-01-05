@@ -26,6 +26,7 @@
 
 SET(SRC
      makesrna.c
+     rna_action.c
      rna_actuator.c
      rna_armature.c
      rna_brush.c
