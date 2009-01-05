@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -76,6 +77,10 @@ void rna_def_ambient_occlusion(BlenderRNA *brna, StructRNA *parent)
 	RNA_def_property_struct_type(prop, "WorldAmbientOcclusion");
 	RNA_def_property_pointer_funcs(prop, "rna_World_ambient_occlusion_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Ambient Occlusion", "");
+
+	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_AMB_OCC);
+	RNA_def_property_ui_text(prop, "Enabled", "");
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
@@ -225,6 +230,64 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "real_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Renders background with a real horizon.");
+
+	/* mist */
+	prop= RNA_def_property(srna, "mist_intensity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "misi");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Mist Intensity", "");
+
+	prop= RNA_def_property(srna, "mist_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "miststa");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
+	RNA_def_property_ui_text(prop, "Mist Intensity", "");
+
+	prop= RNA_def_property(srna, "mist_depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "mistdist");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
+	RNA_def_property_ui_text(prop, "Mist Depth", "");
+
+	prop= RNA_def_property(srna, "mist_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "misthi");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Mist Height", "");
+
+	/* stars */
+	prop= RNA_def_property(srna, "star_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "starsize");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Star Size", "");
+
+	prop= RNA_def_property(srna, "star_minimum_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "starmindist");
+	RNA_def_property_range(prop, 0, 1000);
+	RNA_def_property_ui_text(prop, "Star Minimum Distance", "");
+
+	prop= RNA_def_property(srna, "star_average_separation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "stardist");
+	RNA_def_property_range(prop, 2, 1000);
+	RNA_def_property_ui_text(prop, "Star Average Separation", "");
+
+	prop= RNA_def_property(srna, "star_color_randomization", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "starcolnoise");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Star Color Randomization", "");
+
+	prop= RNA_def_property(srna, "star_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "starr");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Star Color", "");
+
+	/* modes */
+	prop= RNA_def_property(srna, "mist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_MIST);
+	RNA_def_property_ui_text(prop, "Mist", "");
+
+	prop= RNA_def_property(srna, "stars", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_STARS);
+	RNA_def_property_ui_text(prop, "Stars", "");
 }
 
 #endif
