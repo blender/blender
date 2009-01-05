@@ -177,6 +177,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 		else if (v2d->scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert= v2d->mask;
+			v2d->vert.xmax++; /* one pixel extra... was having leaving a minor gap... */
 			v2d->vert.xmin= v2d->vert.xmax - V2D_SCROLL_WIDTH;
 			v2d->mask.xmax= v2d->vert.xmin - 1;
 		}
@@ -675,7 +676,7 @@ void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 	height= abs(height);
 	
 	if (ELEM3(0, v2d, width, height)) {
-		printf("Error: View2D totRect set exiting: %p %d %d \n", v2d, width, height); // XXX temp debug string
+		printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
 		return;
 	}
 	

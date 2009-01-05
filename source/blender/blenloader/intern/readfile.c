@@ -5215,6 +5215,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				ar->v2d.keepzoom |= (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPASPECT);
 				ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
+				ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				
 				soops->type= SO_OUTLINER;
@@ -5268,8 +5269,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			}
 			case SPACE_ACTION:
 			{
-				SpaceAction *saction= (SpaceAction *)sl;
-				
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
 				ar->v2d.tot.xmin= -20.0f;
 				ar->v2d.tot.ymin= (float)(-sa->winy);

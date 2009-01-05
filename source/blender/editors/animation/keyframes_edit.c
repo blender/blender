@@ -188,13 +188,15 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 	
 	/* method to use depends on the type of keyframe data */
 	switch (ale->datatype) {
-			/* direct keyframe data (these loops are exposed) */
+		/* direct keyframe data (these loops are exposed) */
 		case ALE_ICU: /* ipo-curve */
 			return ANIM_icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		case ALE_IPO: /* ipo */
 			return ANIM_ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
 		
-			/* indirect 'summaries' (these are not exposed) */
+		/* indirect 'summaries' (these are not exposed directly) 
+		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
+		 */
 		case ALE_GROUP: /* action group */
 			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, icu_cb);
 		case ALE_ACT: /* action */

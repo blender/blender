@@ -33,6 +33,17 @@
 
 #ifdef RNA_RUNTIME
 
+static StructRNA* rna_Constraint_refine(struct PointerRNA *ptr)
+{
+	bConstraint *con= (bConstraint*)ptr->data;
+
+	switch(con->type) {
+		// FIXME: add constraint types
+		default:
+			return &RNA_Constraint;
+	}
+}
+
 #else
 
 /* base struct for constraints */
@@ -73,6 +84,7 @@ void rna_def_constraint_basedata(BlenderRNA *brna)
 	/* data */
 	srna= RNA_def_struct(brna, "Constraint", NULL );
 	RNA_def_struct_ui_text(srna, "Constraint", "alter the transformation of 'Objects' or 'Bones' from a number of predefined constraints");
+	//RNA_def_struct_refine_func(srna, "rna_Constraint_refine");  // XXX or should this go down below with the data?
 	RNA_def_struct_sdna(srna, "bConstraint");
 	
 	/* strings */
@@ -114,10 +126,6 @@ void rna_def_constraint_basedata(BlenderRNA *brna)
 	
 	
 	/* pointers */
-		// err... how to enable this to work, since data pointer can be of various types?
-	//prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_ui_text(prop, "Settings", "Settings specific to this constraint type.");
-	
 	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "IPO", "Local IPO data.");
 }

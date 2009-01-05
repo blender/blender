@@ -251,6 +251,9 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 /* Deselect all animation channels */
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 
+/* Set the 'active' channel of type channel_type, in the given action */
+void ANIM_action_set_active_channel(void *data, short datatype, void *channel_data, short channel_type);
+
 /* --------------- Settings and/or Defines -------------- */
 
 /* flag-setting behaviour */

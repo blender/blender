@@ -102,11 +102,69 @@
 
 /* -------------------------- Internal Tools -------------------------------- */
 
+/* set the given Action Channel to be the 'active' one in its Action */
+static void action_set_active_achan (bAction *act, bActionChannel *achan)
+{
+	bActionChannel *chan;
+	
+	/* sanity check */
+	if (act == NULL)
+		return;
+	
+	/* clear active flag on all others */
+	for (chan= act->chanbase.first; chan; chan= chan->next)
+		chan->flag &= ~ACHAN_HILIGHTED;
+		
+	/* set the given Action Channel to be the active one */
+	if (achan)
+		achan->flag |= ACHAN_HILIGHTED;
+}
+
+/* set the given Action Group to be the 'active' one in its Action */
+static void action_set_active_agrp (bAction *act, bActionGroup *agrp)
+{
+	bActionGroup *grp;
+	
+	/* sanity check */
+	if (act == NULL)
+		return;
+		
+	/* clear active flag on all others */
+	for (grp= act->groups.first; grp; grp= grp->next)
+		grp->flag &= ~AGRP_ACTIVE;
+		
+	/* set the given group to be the active one */
+	if (agrp)
+		agrp->flag |= AGRP_ACTIVE;
+}
+
 /* -------------------------- Exposed API ----------------------------------- */
+
+/* Set the given ActionChannel or ActionGroup as the active one in the given action
+ *	- data: should be bAction...
+ *	- datatype: should be ANIMCONT_ACTION 
+ *	- channel_data: bActionChannel or bActionGroup
+ *	- channel_type: eAnim_ChannelType
+ */
+void ANIM_action_set_active_channel (void *data, short datatype, void *channel_data, short channel_type)
+{
+	/* sanity checks */
+	if ((data == NULL) || (datatype != ANIMCONT_ACTION))
+		return;
+		
+	switch (channel_type) {
+		case ANIMTYPE_ACHAN:
+			action_set_active_achan((bAction *)data, (bActionChannel *)channel_data);
+			break;
+		case ANIMTYPE_GROUP:
+			action_set_active_agrp((bAction *)data, (bActionGroup *)channel_data);
+			break;
+	}
+}
 
 /* Deselect all animation channels 
  *	- data: pointer to datatype, as contained in bAnimContext
- *	- datatype: the type of data that 'data' represents (eAnim_ChannelType)
+ *	- datatype: the type of data that 'data' represents (eAnimCont_Types)
  *	- test: check if deselecting instead of selecting
  *	- sel: eAnimChannels_SetFlag;
  */
@@ -216,6 +274,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 
 /* ************************************************************************** */
 /* OPERATORS */
+
+/* ****************** Rearrange Channels Operator ******************* */
+
+
 
 /* ********************** Set Flags Operator *********************** */
 
@@ -492,7 +554,6 @@ void ANIM_OT_channels_deselectall (wmOperatorType *ot)
 
 /* ******************** Borderselect Operator *********************** */
 
-// XXX do we need to set some extra thingsfor each channel selected?
 static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
@@ -533,6 +594,7 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					bActionGroup *agrp= (bActionGroup *)ale->data;
 					
 					ACHANNEL_SET_FLAG(agrp, selectmode, AGRP_SELECTED);
+					agrp->flag &= ~AGRP_ACTIVE;
 				}
 					break;
 				case ANIMTYPE_ACHAN: /* action channel */
@@ -542,9 +604,7 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					bActionChannel *achan= (bActionChannel *)ale->data;
 					
 					ACHANNEL_SET_FLAG(achan, selectmode, ACHAN_SELECTED);
-					
-					/* messy... set active bone */
-					//select_poseelement_by_name(achan->name, selectmode);
+					achan->flag &= ~ACHAN_HILIGHTED;
 				}
 					break;
 				case ANIMTYPE_CONCHAN: /* constraint channel */
@@ -572,10 +632,10 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 			
 			/* select action-channel 'owner' */
 			if ((ale->owner) && (ale->ownertype == ANIMTYPE_ACHAN)) {
-				//bActionChannel *achano= (bActionChannel *)ale->owner;
+				bActionChannel *achano= (bActionChannel *)ale->owner;
 				
-				/* messy... set active bone */
-				//select_poseelement_by_name(achano->name, selectmode);
+				ACHANNEL_SET_FLAG(achano, selectmode, ACHAN_SELECTED);
+				achano->flag &= ~ACHAN_HILIGHTED;
 			}
 		}
 		
@@ -632,7 +692,6 @@ void ANIM_OT_channels_borderselect(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	// XXX er...
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
@@ -665,10 +724,16 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel not found in mouse_anim_channels() \n");
-			// XXX remove me..
-		printf("\t channel index = %d, channels = %d\n", channel_index, filter);
+		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
+		BLI_freelistN(&anim_data);
+		return;
+	}
+	
+	/* selectmode -1 is a special case for ActionGroups only, which selects all of the channels underneath it only... */
+	// TODO: should this feature be extended to work with other channel types too?
+	if ((selectmode == -1) && (ale->type != ANIMTYPE_GROUP)) {
+		/* normal channels should not behave normally in this case */
 		BLI_freelistN(&anim_data);
 		return;
 	}
@@ -676,133 +741,142 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	/* action to take depends on what channel we've got */
 	switch (ale->type) {
 		case ANIMTYPE_OBJECT:
-			{
-				bDopeSheet *ads= (bDopeSheet *)ac->data;
-				Scene *sce= (Scene *)ads->source;
-				Base *base= (Base *)ale->data;
-				Object *ob= base->object;
-				
-				if (x < 16) {
-					/* toggle expand */
-					ob->nlaflag ^= OB_ADS_COLLAPSED;
+		{
+			bDopeSheet *ads= (bDopeSheet *)ac->data;
+			Scene *sce= (Scene *)ads->source;
+			Base *base= (Base *)ale->data;
+			Object *ob= base->object;
+			
+			if (x < 16) {
+				/* toggle expand */
+				ob->nlaflag ^= OB_ADS_COLLAPSED;
+			}
+			else {
+				/* set selection status */
+				if (selectmode == SELECT_INVERT) {
+					/* swap select */
+					base->flag ^= SELECT;
+					ob->flag= base->flag;
 				}
 				else {
-					/* set selection status */
-					// FIXME: this needs to use the new stuff...
-					if (selectmode == SELECT_INVERT) {
-						/* swap select */
-						base->flag ^= SELECT;
-						ob->flag= base->flag;
-					}
-					else {
-						Base *b;
-						
-						/* deleselect all */
-						for (b= sce->base.first; b; b= b->next) {
-							b->flag &= ~SELECT;
-							b->object->flag= b->flag;
-						}
-						
-						/* select object now */
-						base->flag |= SELECT;
-						ob->flag |= SELECT;
+					Base *b;
+					
+					/* deleselect all */
+					for (b= sce->base.first; b; b= b->next) {
+						b->flag &= ~SELECT;
+						b->object->flag= b->flag;
 					}
 					
-					//set_active_base(base);	/* editview.c */
+					/* select object now */
+					base->flag |= SELECT;
+					ob->flag |= SELECT;
 				}
+				
+				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
+				//set_active_base(base);
 			}
-				break;
+		}
+			break;
 		case ANIMTYPE_FILLIPOD:
-			{
-				Object *ob= (Object *)ale->data;
-				ob->nlaflag ^= OB_ADS_SHOWIPO;
-			}
-				break;
+		{
+			Object *ob= (Object *)ale->data;
+			ob->nlaflag ^= OB_ADS_SHOWIPO;
+		}
+			break;
 		case ANIMTYPE_FILLACTD:
-			{
-				bAction *act= (bAction *)ale->data;
-				act->flag ^= ACTC_EXPANDED;
-			}
-				break;
+		{
+			bAction *act= (bAction *)ale->data;
+			act->flag ^= ACTC_EXPANDED;
+		}
+			break;
 		case ANIMTYPE_FILLCOND:
-			{
-				Object *ob= (Object *)ale->data;
-				ob->nlaflag ^= OB_ADS_SHOWCONS;
-			}
-				break;
+		{
+			Object *ob= (Object *)ale->data;
+			ob->nlaflag ^= OB_ADS_SHOWCONS;
+		}
+			break;
 		case ANIMTYPE_FILLMATD:
-			{
-				Object *ob= (Object *)ale->data;
-				ob->nlaflag ^= OB_ADS_SHOWMATS;
-			}
-				break;
+		{
+			Object *ob= (Object *)ale->data;
+			ob->nlaflag ^= OB_ADS_SHOWMATS;
+		}
+			break;
 				
 		case ANIMTYPE_DSMAT:
-			{
-				Material *ma= (Material *)ale->data;
-				ma->flag ^= MA_DS_EXPAND;
-			}
-				break;
+		{
+			Material *ma= (Material *)ale->data;
+			ma->flag ^= MA_DS_EXPAND;
+		}
+			break;
 		case ANIMTYPE_DSLAM:
-			{
-				Lamp *la= (Lamp *)ale->data;
-				la->flag ^= LA_DS_EXPAND;
-			}
-				break;
+		{
+			Lamp *la= (Lamp *)ale->data;
+			la->flag ^= LA_DS_EXPAND;
+		}
+			break;
 		case ANIMTYPE_DSCAM:
-			{
-				Camera *ca= (Camera *)ale->data;
-				ca->flag ^= CAM_DS_EXPAND;
-			}
-				break;
+		{
+			Camera *ca= (Camera *)ale->data;
+			ca->flag ^= CAM_DS_EXPAND;
+		}
+			break;
 		case ANIMTYPE_DSCUR:
-			{
-				Curve *cu= (Curve *)ale->data;
-				cu->flag ^= CU_DS_EXPAND;
-			}
-				break;
+		{
+			Curve *cu= (Curve *)ale->data;
+			cu->flag ^= CU_DS_EXPAND;
+		}
+			break;
 		case ANIMTYPE_DSSKEY:
-			{
-				Key *key= (Key *)ale->data;
-				key->flag ^= KEYBLOCK_DS_EXPAND;
-			}
-				break;
+		{
+			Key *key= (Key *)ale->data;
+			key->flag ^= KEYBLOCK_DS_EXPAND;
+		}
+			break;
 			
 		case ANIMTYPE_GROUP: 
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
-				
-				if ((x < (offset+17)) && (agrp->channels.first)) {
-					/* toggle expand */
-					agrp->flag ^= AGRP_EXPANDED;
-				}
-				else if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-					/* toggle protection/locking */
-					agrp->flag ^= AGRP_PROTECTED;
- 				}
- 				else {
-					/* select/deselect group */
-					if (selectmode == SELECT_INVERT) {
-						/* inverse selection status of group */
-						//select_action_group(act, agrp, SELECT_INVERT);
-					}
-					else if (/*G.qual == (LR_CTRLKEY|LR_SHIFTKEY)*/selectmode == -1) {
-						// FIXME: need a special case for this!
-						/* select all in group (and deselect everthing else) */	
-						//select_action_group_channels(act, agrp);
-						//select_action_group(act, agrp, SELECT_ADD);
-					}
-					else {
-						/* select group by itself */
-						ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-						//select_action_group(act, agrp, SELECT_ADD);
-					}
-					
-					// XXX
-					agrp->flag ^= AGRP_SELECTED;
- 				}
+		{
+			bActionGroup *agrp= (bActionGroup *)ale->data;
+			short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
+			
+			if ((x < (offset+17)) && (agrp->channels.first)) {
+				/* toggle expand */
+				agrp->flag ^= AGRP_EXPANDED;
 			}
+			else if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
+				/* toggle protection/locking */
+				agrp->flag ^= AGRP_PROTECTED;
+			}
+			else {
+				/* select/deselect group */
+				if (selectmode == SELECT_INVERT) {
+					/* inverse selection status of this group only */
+					agrp->flag ^= AGRP_SELECTED;
+				}
+				else if (selectmode == -1) {
+					/* select all in group (and deselect everthing else) */	
+					bActionChannel *achan;
+					
+					/* deselect all other channels */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					
+					/* only select channels in group and group itself */
+					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next)
+						achan->flag |= ACHAN_SELECTED;
+					agrp->flag |= AGRP_SELECTED;					
+				}
+				else {
+					/* select group by itself */
+					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					agrp->flag |= AGRP_SELECTED;
+				}
+				
+				/* if group is selected now, and we're in Action Editor mode (so that we have pointer to active action),
+				 * we can make this group the 'active' one in that action
+				 */
+				if ((agrp->flag & AGRP_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
+					action_set_active_agrp((bAction *)ac->data, agrp);
+			}
+		}
 			break;
 		case ANIMTYPE_ACHAN:
 			{
@@ -824,18 +898,20 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				else {
 					/* select/deselect achan */		
 					if (selectmode == SELECT_INVERT) {
-						//select_channel(act, achan, SELECT_INVERT);
+						/* invert selection of this channel only */
+						achan->flag ^= ACHAN_SELECTED;
 					}
 					else {
+						/* replace, so make sure only this channel is selected after everything has happened) */
 						ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-						//select_channel(act, achan, SELECT_ADD);
+						achan->flag |= ACHAN_SELECTED;
 					}
 					
-					/* messy... set active bone */
-					//select_poseelement_by_name(achan->name, 2);
-					
-					// XXX for now only
-					achan->flag ^= ACHAN_SELECTED;
+					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
+					 * we can make this channel the 'active' one in that action
+					 */
+					if ((achan->flag & ACHAN_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
+						action_set_active_achan((bAction *)ac->data, achan);
 				}
 			}
 				break;
@@ -848,13 +924,13 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				if ((x > 24) && (achan->flag & ACHAN_SHOWIPO)) {
 					/* select+make active achan */		
 					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					//select_channel(act, achan, SELECT_ADD);
+					achan->flag |= ACHAN_SELECTED;
 					
-					/* messy... set active bone */
-					//select_poseelement_by_name(achan->name, 2);
-					
-					// XXX for now only
-					achan->flag ^= ACHAN_SELECTED;
+					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
+					 * we can make this channel the 'active' one in that action
+					 */
+					if (ac->datatype == ANIMCONT_ACTION)
+						action_set_active_achan((bAction *)ac->data, achan);
 				}	
 			}
 			break;
@@ -867,13 +943,13 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				if ((x > 24) && (achan->flag & ACHAN_SHOWCONS)) {
 					/* select+make active achan */	
 					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					//select_channel(act, achan, SELECT_ADD);
+					achan->flag |= ACHAN_SELECTED;
 					
-					/* messy... set active bone */
-					//select_poseelement_by_name(achan->name, 2);
-					
-					// XXX for now only
-					achan->flag ^= ACHAN_SELECTED;
+					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
+					 * we can make this channel the 'active' one in that action
+					 */
+					if (ac->datatype == ANIMCONT_ACTION)
+						action_set_active_achan((bAction *)ac->data, achan);
 				}	
 			}
 			break;
@@ -891,9 +967,6 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				}
 				else {
 					/* select/deselect */
-					//select_icu_channel(act, icu, SELECT_INVERT);
-					
-					// XXX for now only
 					icu->flag ^= IPO_SELECT;
 				}
 			}
@@ -912,9 +985,6 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 				}
 				else {
 					/* select/deselect */
-					//select_constraint_channel(act, conchan, SELECT_INVERT);
-					
-					// XXX for now only
 					conchan->flag ^= CONSTRAINT_CHANNEL_SELECT;
 				}
 			}
@@ -995,6 +1065,8 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend_select"))
 		selectmode= SELECT_INVERT;
+	else if (RNA_boolean_get(op->ptr, "select_children_only"))
+		selectmode= -1; /* this is a bit of a special case for ActionGroups only... should it be removed or extended to all instead? */
 	else
 		selectmode= SELECT_REPLACE;
 	
@@ -1011,6 +1083,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 	
 	/* set notifier tha things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	// FIXME: add tags which will cause 3d-view to do a flush of data...
 	
 	return OPERATOR_FINISHED;
 }
@@ -1027,6 +1100,7 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 	
 	/* id-props */
 	RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY
+	RNA_def_property(ot->srna, "select_children_only", PROP_BOOLEAN, PROP_NONE); // CTRLKEY|SHIFTKEY
 }
 
 /* ************************************************************************** */
@@ -1052,6 +1126,7 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 		// XXX for now, only leftmouse.... 
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_mouseclick", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "select_children_only", 1);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_deselectall", AKEY, KM_PRESS, 0, 0);

@@ -268,6 +268,7 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
+#if 0  // XXX this is currently disabled until te->xend is set correctly
 static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 {
 	TreeElement *te= lb->first;
@@ -275,19 +276,15 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 //		TreeStoreElem *tselem= TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
-/*
 		if(tselem->flag & TSE_CLOSED) {
 			if (te->xend > *w)
 				*w = te->xend;
 		}
-*/
 		outliner_width(soops, &te->subtree, w);
 		te= te->next;
 	}
-	
-	// XXX for now, use constant width for this level (until te->xend is set)
-	*w += 100;
 }
+#endif
 
 static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int startx)
 {
@@ -1125,6 +1122,7 @@ static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 	TreeStoreElem *tselem;
 
 	/* build hierarchy */
+	// XXX also, set extents here...
 	te= lb->first;
 	while(te) {
 		ten= te->next;
@@ -1240,7 +1238,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			ten= nten;
 		}
 		/* restore newid pointers */
-		for(lib= G.main->library.first; lib; lib= lib->id.next)
+		for(lib= mainvar->library.first; lib; lib= lib->id.next)
 			lib->id.newid= NULL;
 		
 	}
@@ -1282,7 +1280,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		Group *group;
 		GroupObject *go;
 		
-		for(group= G.main->group.first; group; group= group->id.next) {
+		for(group= mainvar->group.first; group; group= group->id.next) {
 			if(group->id.us) {
 				te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
 				tselem= TREESTORE(te);
@@ -4313,8 +4311,16 @@ void draw_outliner(const bContext *C)
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
 		sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
-	else
-		outliner_width(soops, &soops->tree, &sizex);
+	else {
+		/* width must take into account restriction columns (if visible) so that entries will still be visible */
+		//outliner_width(soops, &soops->tree, &sizex);
+		outliner_rna_width(soops, &soops->tree, &sizex, 0); // XXX should use outliner_width instead when te->xend will be set correctly...
+		
+		/* constant offset for restriction columns */
+		// XXX this isn't that great yet...
+		if ((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
+			sizex += OL_TOGW*3;
+	}
 	
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);

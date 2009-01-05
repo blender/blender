@@ -856,13 +856,12 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 			/* Highlight either an Action-Channel or Action-Group */
 			if (achan) {
 				achan->flag |= ACHAN_SELECTED;
-				//hilight_channel(act, achan, 1);
-				//select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
+				ANIM_action_set_active_channel(ac->data, ac->datatype, achan, ANIMTYPE_ACHAN);
 			}
 			else if (agrp) {
 				agrp->flag |= AGRP_SELECTED;
-				//set_active_actiongroup(act, agrp, 1);
-			}
+				ANIM_action_set_active_channel(ac->data, ac->datatype, agrp, ANIMTYPE_GROUP);
+			}	
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
 			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
