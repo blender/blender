@@ -75,7 +75,8 @@ static void do_node_selectmenu(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case 1: /* border select */
-			// XXX node_border_select(snode);
+			// NODE_FIX_ME border select draws in menu area only :S
+			// WM_operator_name_call(C, "NODE_OT_border_select", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
 			break;
 		case 2: /* select/deselect all */
 			// XXX node_deselectall(snode, 1);

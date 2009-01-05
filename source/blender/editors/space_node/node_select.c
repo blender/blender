@@ -190,3 +190,72 @@ void NODE_OT_select(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
 	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
 }
+
+/* ****** Border Select ****** */
+
+static EnumPropertyItem prop_select_types[] = {
+	{NODE_EXCLUSIVE, "EXCLUSIVE", "Exclusive", ""}, /* right mouse */
+	{NODE_EXTEND, "EXTEND", "Extend", ""}, /* left mouse */
+	{0, NULL, NULL, NULL}
+};
+
+static int node_borderselect_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	bNode *node;
+	rcti rect;
+	rctf rectf;
+	short val;
+	
+	val= RNA_int_get(op->ptr, "event_type");
+	
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+	
+	
+	printf("%d - %f %f %f %f\n", val, rectf.xmin, rectf.ymin, rectf.xmax, rectf.ymax);
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		printf("\t%f %f %f %f\n", node->totr.xmin, node->totr.ymin, node->totr.xmax, node->totr.ymax);
+		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
+			if(val==NODE_EXTEND)
+				node->flag |= SELECT;
+			else
+				node->flag &= ~SELECT;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_border_select(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Border Select";
+	ot->idname= "NODE_OT_border_select";
+	
+	/* api callbacks */
+	ot->invoke= WM_border_select_invoke;
+	ot->exec= node_borderselect_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* rna */
+	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_types);
+}

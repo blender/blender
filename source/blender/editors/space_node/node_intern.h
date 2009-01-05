@@ -39,6 +39,10 @@ struct wmWindowManager;
 
 #define NODE_SELECT_MOUSE		1
 
+/* border select defines XXX these seem to be hardcode values still in border select invoke, check */
+#define NODE_EXTEND				1
+#define NODE_EXCLUSIVE			3
+
 /* node_header.c */
 void node_header_buttons(const bContext *C, ARegion *ar);
 
@@ -54,6 +58,7 @@ void NODE_OT_select(struct wmOperatorType *ot);
 void NODE_OT_extend_select(struct wmOperatorType *ot);
 void NODE_OT_toggle_visibility(struct wmOperatorType *ot);
 void NODE_OT_fit_all(struct wmOperatorType *ot);
+void NODE_OT_border_select(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
