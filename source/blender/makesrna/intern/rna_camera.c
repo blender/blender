@@ -31,6 +31,8 @@
 
 #include "DNA_camera_types.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 #else
@@ -61,73 +63,88 @@ void RNA_def_camera(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "passepartalpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the passepartout area in Camera view.");
+	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lens value in degrees.");
+	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lend field of view in degrees.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Clip Start", "Camera clipping start.");
+	RNA_def_property_ui_text(prop, "Clip Start", "Camera near clipping distance.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 1.0f, 5000.0f);
-	RNA_def_property_ui_text(prop, "Clip End", "Camera clipping end.");
+	RNA_def_property_ui_text(prop, "Clip End", "Camera far clipping distance.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_range(prop, 1.0f, 250.0f);
 	RNA_def_property_ui_text(prop, "Lens", "Perspective Camera lens value in mm.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ortho_scale");
 	RNA_def_property_range(prop, 0.01f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Orthographic Scale", "Ortographic Camera scale.");
+	RNA_def_property_ui_text(prop, "Orthographic Scale", "Orthographic Camera scale (similar to zoom).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "drawsize");
 	RNA_def_property_range(prop, 0.1f, 10.0f);
 	RNA_def_property_ui_text(prop, "Draw Size", "Apparent size of the Camera object in the 3D View.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "shift_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shiftx");
 	RNA_def_property_range(prop, -2.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Shift X", "Perspective Camera horizontal shift.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "shift_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shifty");
 	RNA_def_property_range(prop, -2.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Shift Y", "Perspective Camera vertical shift.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "dof_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "YF_dofdist");
 	RNA_def_property_range(prop, 0.0f, 5000.0f);
-	RNA_def_property_ui_text(prop, "DOF Distance", "Depth of field distance.");
+	RNA_def_property_ui_text(prop, "DOF Distance", "Distance to the focus point for depth of field.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* flag */
 	prop= RNA_def_property(srna, "show_limits", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWLIMITS);
-	RNA_def_property_ui_text(prop, "Show Limits", "Draw the clipping range and focal point in Camera view.");
+	RNA_def_property_ui_text(prop, "Show Limits", "Draw the clipping range and focus point on the camera.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "show_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWMIST);
 	RNA_def_property_ui_text(prop, "Show Mist", "Draw a line from the Camera to indicate the mist area.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "show_passepartout", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWPASSEPARTOUT);
-	RNA_def_property_ui_text(prop, "Show Passepartout", "Enable passepartout mode in Camera view.");
+	RNA_def_property_ui_text(prop, "Show Passepartout", "Show a darkened overlay outside the image area in Camera view.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "show_title_safe", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWTITLESAFE);
-	RNA_def_property_ui_text(prop, "Show Title Safe", "Draw a title safe zone in Camera view.");
+	RNA_def_property_ui_text(prop, "Show Title Safe", "Show indicators for the title safe zone in Camera view.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "show_name", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWNAME);
-	RNA_def_property_ui_text(prop, "Show Name", "Draw the active Camera's name in Camera view.");
+	RNA_def_property_ui_text(prop, "Show Name", "Show the active Camera's name in Camera view.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "lens_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -141,6 +158,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "dof_ob");
 	RNA_def_property_ui_text(prop, "DOF Object", "Use this object to define the depth of field focal point.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 }
 
 #endif

@@ -88,7 +88,7 @@ static void rna_def_lamp_sunsky_settings(BlenderRNA *brna)
 		
 	prop= RNA_def_property(srna, "sky_colorspace", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_skycolorspace_items);
-	RNA_def_property_ui_text(prop, "Sky Color Space", "");
+	RNA_def_property_ui_text(prop, "Sky Color Space", "Color space to use for internal XYZ->RGB color conversion");
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 
 	prop= RNA_def_property(srna, "sky_blend_type", PROP_ENUM, PROP_NONE);
@@ -178,11 +178,11 @@ void rna_def_lamp(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "OMNI", "Omni", ""},
-		{LA_SUN, "SUN", "Sun", ""},
-		{LA_SPOT, "SPOT", "Spot", ""},
-		{LA_HEMI, "HEMI", "Hemi", ""},
-		{LA_AREA, "AREA", "Area", ""},
+		{LA_LOCAL, "OMNI", "Omni", "Light cast evenly in all directions from a point source"},
+		{LA_SUN, "SUN", "Sun", "Light cast in a single direction from a distant source"},
+		{LA_SPOT, "SPOT", "Spot", "Light cast in a cone shape from a point"},
+		{LA_HEMI, "HEMI", "Hemi", "Light cast from a hemispherical direction"},
+		{LA_AREA, "AREA", "Area", "Light case from an area surface"},
 		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_shadow_items[] = {
 		{0, "NOSHADOW", "No Shadow", ""},
@@ -272,7 +272,7 @@ void rna_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_range(prop, 0.0f, 9999.0f);
-	RNA_def_property_ui_text(prop, "Distance", "Distance that the lamp emits light.");
+	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "linear_attenuation", PROP_FLOAT, PROP_NONE);
@@ -290,7 +290,7 @@ void rna_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spot_blend", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spotblend");
 	RNA_def_property_range(prop, 0.0f ,1.0f);
-	RNA_def_property_ui_text(prop, "Spot Blend", "The softeness of the spotlight edge.");
+	RNA_def_property_ui_text(prop, "Spot Blend", "The softness of the spotlight edge.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "spot_size", PROP_FLOAT, PROP_NONE);
@@ -361,14 +361,14 @@ void rna_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "buffer_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bufsize");
 	RNA_def_property_range(prop, 512, 10240);
-	RNA_def_property_ui_text(prop, "Buffer Size", "Sets the size of the shadow buffer to nearest multiple of 16");
+	RNA_def_property_ui_text(prop, "Buffer Size", "Resolution of the buffer, higher values give crisper shadows but use more memory");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Lamp_buffer_size_set", NULL);
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	prop= RNA_def_property(srna, "halo_intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "haint");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
-	RNA_def_property_ui_text(prop, "Halo Intensity", "Intensity of Spot Halo");
+	RNA_def_property_ui_text(prop, "Halo Intensity", "Brightness of the spotlight's halo cone.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	/*short sky_colorspace, pad4;*/

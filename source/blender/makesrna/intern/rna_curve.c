@@ -296,7 +296,7 @@ void rna_def_textbox(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "TextBox", NULL);
-	RNA_def_struct_ui_text(srna, "Text Box", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Text Box", "Bounding box for text layout");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
