@@ -27,6 +27,7 @@
 #ifndef ED_ARMATURE_H
 #define ED_ARMATURE_H
 
+struct bContext;
 struct Scene;
 struct Object;
 struct Base;
@@ -87,8 +88,14 @@ void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
 void ED_armature_edit_remake(struct Object *obedit);
+int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
+							short hits, short extend);
+void mouse_armature(struct bContext *C, short mval[2], int extend);
+
 
 /* poseobject.c */
+void ED_armature_exit_posemode(struct Base *base);
+void ED_armature_enter_posemode(struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test, int doundo);
 

@@ -112,6 +112,7 @@
 #include "BKE_modifier.h"
 
 #include "ED_anim_api.h"
+#include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -2255,9 +2256,10 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
 	}
-	else if (obedit->type==OB_ARMATURE){	
-//		load_editArmature();
-//		if (freedata) free_editArmature();
+	else if (obedit->type==OB_ARMATURE) {	
+		ED_armature_from_edit(scene, obedit);
+		if(freedata)
+			ED_armature_edit_free(obedit);
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 //		extern ListBase editNurb;
@@ -2304,11 +2306,16 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
 	Object *ob= base->object;
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= NULL;
 	int ok= 0;
 	
 	if(scene->id.lib) return;
 	if(base==NULL) return;
+	
+	if(sa->spacetype==SPACE_VIEW3D)
+		v3d= sa->spacedata.first;
+	
 	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
 	
 	if(ob->data==NULL) return;
@@ -2331,7 +2338,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MESH, ob);
 	}
-	if (ob->type==OB_ARMATURE){
+	else if (ob->type==OB_ARMATURE){
 		bArmature *arm= base->object->data;
 		if (!arm) return;
 		/*
@@ -2346,9 +2353,9 @@ void ED_object_enter_editmode(bContext *C, int flag)
 			error_libdata();
 			return;
 		}
-//		ok=1;
+		ok=1;
 		scene->obedit= ob;
-// XXX		make_editArmature();
+		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
 		DAG_object_flush_update(scene, ob, OB_RECALC);
 

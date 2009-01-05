@@ -74,6 +74,9 @@
 
 #include "BIF_gl.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -108,6 +111,25 @@ static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */
+
+/* Sync selection to parent for connected children */
+static void armature_sync_selection(ListBase *edbo)
+{
+	EditBone *ebo;
+	
+	for (ebo=edbo->first; ebo; ebo= ebo->next) {
+		if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+			if (ebo->parent->flag & BONE_TIPSEL)
+				ebo->flag |= BONE_ROOTSEL;
+			else
+				ebo->flag &= ~BONE_ROOTSEL;
+		}
+		if ((ebo->flag & BONE_TIPSEL) && (ebo->flag & BONE_ROOTSEL))
+			ebo->flag |= BONE_SELECTED;
+		else
+			ebo->flag &= ~BONE_SELECTED;
+	}				
+}
 
 /* converts Bones to EditBone list, used for tools as well */
 void make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent)
@@ -1437,9 +1459,8 @@ void selectconnected_armature(Scene *scene, View3D *v3d, Object *obedit)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone * get_nearest_editbonepoint (Scene *scene, Object *obedit, ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint (ViewContext *vc, short mval[2], ListBase *edbo, int findunsel, int *selmask)
 {
-	ViewContext vc;
 	EditBone *ebone;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
@@ -1447,20 +1468,21 @@ static EditBone * get_nearest_editbonepoint (Scene *scene, Object *obedit, ListB
 	int i, mindep= 4;
 	short hits;
 
-	memset(&vc, 0, sizeof(ViewContext));
-	vc.scene= scene;
-	vc.obedit= scene->obedit;
-	
 	glInitNames();
 	
-//	getmouseco_areawin(mval);
-	// fill in rect! +- 5 
+	rect.xmin= mval[0]-5;
+	rect.xmax= mval[0]+5;
+	rect.ymin= mval[1]-5;
+	rect.ymax= mval[1]+5;
 	
-	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
-	if(hits==0)
-		// rect +- 12
-		hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
-		
+	hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
+	if(hits==0) {
+		rect.xmin= mval[0]-12;
+		rect.xmax= mval[0]+12;
+		rect.ymin= mval[1]-12;
+		rect.ymax= mval[1]+12;
+		hits= view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
+	}
 	/* See if there are any selected bones in this group */
 	if (hits>0) {
 		
@@ -1697,29 +1719,35 @@ void deselectall_armature(Object *obedit, int toggle, int doundo)
 }
 
 
-/* context: editmode armature */
-void mouse_armature(Scene *scene, Object *obedit)
+/* context: editmode armature in view3d */
+void mouse_armature(bContext *C, short mval[2], int extend)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
+	ViewContext vc;
 	EditBone *nearBone = NULL, *ebone;
 	int	selmask;
-	int shift= 0; // XXX
 
-	nearBone= get_nearest_editbonepoint(scene, obedit, arm->edbo, 1, &selmask);
+	memset(&vc, 0, sizeof(ViewContext));
+	vc.ar= CTX_wm_region(C);
+	vc.scene= CTX_data_scene(C);
+	vc.v3d= (View3D *)CTX_wm_space_data(C);
+	vc.obact= CTX_data_active_object(C);
+	vc.obedit= obedit; 
+	
+	nearBone= get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {
-		
-		if (!(shift)) {
+
+		if (!extend)
 			deselectall_armature(obedit, 0, 0);
-		}
 		
 		/* by definition the non-root connected bones have no root point drawn,
-	       so a root selection needs to be delivered to the parent tip,
-	       countall() (bad location) flushes these flags */
+	       so a root selection needs to be delivered to the parent tip */
 		
 		if(selmask & BONE_SELECTED) {
 			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
 				/* click in a chain */
-				if(shift) {
+				if(extend) {
 					/* hold shift inverts this bone's selection */
 					if(nearBone->flag & BONE_SELECTED) {
 						/* deselect this bone */
@@ -1741,7 +1769,7 @@ void mouse_armature(Scene *scene, Object *obedit)
 				}
 			}
 			else {
-				if(shift) {
+				if(extend) {
 					/* hold shift inverts this bone's selection */
 					if(nearBone->flag & BONE_SELECTED)
 					   nearBone->flag &= ~(BONE_TIPSEL|BONE_ROOTSEL);
@@ -1752,13 +1780,13 @@ void mouse_armature(Scene *scene, Object *obedit)
 			}
 		}
 		else {
-			if ((shift) && (nearBone->flag & selmask))
+			if (extend && (nearBone->flag & selmask))
 				nearBone->flag &= ~selmask;
 			else
 				nearBone->flag |= selmask;
 		}
-
-		countall(); // flushes selection!
+		
+		armature_sync_selection(arm->edbo);
 		
 		if(nearBone) {
 			/* then now check for active status */
@@ -1766,9 +1794,8 @@ void mouse_armature(Scene *scene, Object *obedit)
 			if(nearBone->flag & BONE_SELECTED) nearBone->flag |= BONE_ACTIVE;
 		}
 		
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
 	}
-
-//	rightmouse_transform();
 }
 
 void ED_armature_edit_free(struct Object *ob)
@@ -3541,11 +3568,10 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact... XXX */
-int do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits)
+int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
 {
 	Object *ob= base->object;
 	Bone *nearBone;
-	int shift= 0; // XXX
 	
 	if (!ob || !ob->pose) return 0;
 
@@ -3555,7 +3581,7 @@ int do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short h
 		bArmature *arm= ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		if (!(shift) || (base != scene->basact)) {
+		if (!(extend) || (base != scene->basact)) {
 			ED_pose_deselectall(ob, 0, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			select_actionchannel_by_name(ob->action, nearBone->name, 1);

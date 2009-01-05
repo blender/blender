@@ -62,10 +62,11 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h" /* for VECCOPY */
 
-#include "ED_screen.h"
+#include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_util.h"
+#include "ED_screen.h"
 #include "ED_types.h"
 
 #include "WM_api.h"
@@ -5306,7 +5307,8 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Object *ob= OBACT;
+	Base *basact= scene->basact;
+	Object *ob= basact->object;
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl=0, shift=0; // XXX shift arg?
@@ -5367,8 +5369,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			
 			v3d->flag &= ~V3D_MODE;
 // XXX			exit_paint_modes();
-// XXX			if(ob) exit_posemode();		/* exit posemode for active object */
-			if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+			ED_armature_exit_posemode(basact);
+			if(obedit) 
+				ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 		} 
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
 			if(!obedit) {
@@ -5409,7 +5412,8 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				v3d->flag &= ~V3D_MODE;
 // XXX				exit_paint_modes();
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) 
+					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
 // XXX				set_wpaint();
 			}
@@ -5418,9 +5422,10 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			
 			if (ob) {
 				v3d->flag &= ~V3D_MODE;
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-					
-// XXX				enter_posemode();
+				if(obedit) 
+					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				
+				ED_armature_enter_posemode(basact);
 			}
 		}
 		else if(v3d->modeselect == V3D_PARTICLEEDITMODE_SEL){

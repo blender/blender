@@ -89,41 +89,6 @@ static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
 
-void enter_posemode(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Base *base;
-	Object *ob;
-	
-	if(scene->id.lib) return;
-	base= BASACT;
-	if(base==NULL) return;
-	
-	ob= base->object;
-	
-	if (ob->id.lib){
-		error ("Can't pose libdata");
-		return;
-	}
-
-	switch (ob->type){
-	case OB_ARMATURE:
-		
-		ob->flag |= OB_POSEMODE;
-		base->flag= ob->flag;
-		
-		break;
-	default:
-		return;
-	}
-
-	if (obedit) {
-		ED_armature_from_edit(scene, obedit);
-		ED_armature_edit_free(obedit);
-	}
-	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT | G_SCULPTMODE);
-}
-
 void set_pose_keys (Object *ob)
 {
 	bArmature *arm= ob->data;
@@ -142,19 +107,37 @@ void set_pose_keys (Object *ob)
 	}
 }
 
-
-void exit_posemode(Scene *scene)
+void ED_armature_enter_posemode(Base *base)
 {
-	Object *ob= OBACT;
-	Base *base= BASACT;
-
-	if(ob==NULL) return;
+	Object *ob= base->object;
 	
-	ob->flag &= ~OB_POSEMODE;
-	base->flag= ob->flag;
+	if (ob->id.lib){
+		error ("Can't pose libdata");
+		return;
+	}
 	
-	countall();
+	switch (ob->type){
+		case OB_ARMATURE:
+			
+			ob->flag |= OB_POSEMODE;
+			base->flag= ob->flag;
+			
+			break;
+		default:
+			return;
+	}
+	// XXX
+	G.f &= ~(G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT | G_SCULPTMODE);
+}
 
+void ED_armature_exit_posemode(Base *base)
+{
+	if(base) {
+		Object *ob= base->object;
+		
+		ob->flag &= ~OB_POSEMODE;
+		base->flag= ob->flag;
+	}	
 }
 
 /* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
@@ -184,7 +167,7 @@ static short pose_has_protected_selected(Object *ob, short only_selected, short 
 }
 
 /* only for real IK, not for auto-IK */
-int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
+int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 {
 	bConstraint *con;
 	Bone *bone;
@@ -200,7 +183,7 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 	}
 	for(bone= pchan->bone->childbase.first; bone; bone= bone->next) {
 		pchan= get_pose_channel(ob->pose, bone->name);
-		if(pchan && pose_channel_in_IK_chain(ob, pchan))
+		if(pchan && ED_pose_channel_in_IK_chain(ob, pchan))
 			return 1;
 	}
 	return 0;

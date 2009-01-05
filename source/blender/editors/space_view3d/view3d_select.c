@@ -1060,7 +1060,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 			}
 			
 			if(has_bones && basact) {
-				if(0) {// XXX do_pose_selectbuffer(basact, buffer, hits) ) {	/* then bone is found */
+				if(ED_do_pose_selectbuffer(scene, basact, buffer, hits, extend) ) {	/* then bone is found */
 				
 					/* we make the armature selected: 
 					   not-selected active object in posemode won't work well for tools */
@@ -1539,6 +1539,9 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(obedit) {
 		if(obedit->type==OB_MESH)
 			mouse_mesh(C, mval, extend);
+		else if(obedit->type==OB_ARMATURE)
+			mouse_armature(C, mval, extend);
+			
 	}
 	else 
 		mouse_select(C, mval, extend, 0);
