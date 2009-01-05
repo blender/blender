@@ -518,6 +518,81 @@ static void rna_def_material_sss(BlenderRNA *brna, StructRNA *parent)
 	RNA_def_property_ui_text(prop, "Enable", "");
 }
 
+void rna_def_material_specularity(StructRNA *srna, PropertyRNA *prop)
+{
+	prop= RNA_def_property(srna, "specularity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "spec");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Specularity", "");
+
+	/* XXX: this field is also used for Halo hardness. should probably be fixed in DNA */
+	prop= RNA_def_property(srna, "specular_hardness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "har");
+	RNA_def_property_range(prop, 1, 511);
+	RNA_def_property_ui_text(prop, "Specular Hardness", "");
+
+	prop= RNA_def_property(srna, "specular_refraction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "refrac");
+	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_ui_text(prop, "Specular Refraction", "");
+
+	/* XXX: evil "param" field also does specular stuff */
+
+	prop= RNA_def_property(srna, "specular_slope", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rms");
+	RNA_def_property_range(prop, 0, 0.4);
+	RNA_def_property_ui_text(prop, "Specular Slope", "The standard deviation of surface slope.");
+}
+
+void rna_def_material_strand(StructRNA *srna, PropertyRNA *prop)
+{
+	prop= RNA_def_property(srna, "strand_tangent_shading", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TANGENT_STR);
+	RNA_def_property_ui_text(prop, "Strand Tangent Shading", "Uses direction of strands as normal for tangent-shading.");
+	
+	prop= RNA_def_property(srna, "strand_surface_diffuse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_STR_SURFDIFF);
+	RNA_def_property_ui_text(prop, "Strand Surface Diffuse", "Make diffuse shading more similar to shading the surface.");
+
+	prop= RNA_def_property(srna, "strand_blend_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_surfnor");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Blend Distance", "Distance in Blender units over which to blend in the surface normal.");
+
+	prop= RNA_def_property(srna, "strand_blender_units", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_STR_B_UNITS);
+	RNA_def_property_ui_text(prop, "Strand Blender Units", "Use Blender units for widths instead of pixels.");
+
+	/* XXX: range is different depending on (mode & MA_STR_B_UNITS) */
+	prop= RNA_def_property(srna, "strand_start_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_sta");
+	RNA_def_property_ui_text(prop, "Strand Start Size", "");
+
+	/* XXX: range is different depending on (mode & MA_STR_B_UNITS) */
+	prop= RNA_def_property(srna, "strand_end_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_end");
+	RNA_def_property_ui_text(prop, "Strand End Size", "");
+
+	prop= RNA_def_property(srna, "strand_minimum_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_min");
+	RNA_def_property_range(prop, 0.001, 10);
+	RNA_def_property_ui_text(prop, "Strand Minimum Size", "Minimum size of strands in pixels.");
+
+	prop= RNA_def_property(srna, "strand_shape", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_ease");
+	RNA_def_property_range(prop, -0.9, 0.9);
+	RNA_def_property_ui_text(prop, "Strand Shape", "Positive values make strands rounder, negative makes strands spiky.");
+
+	prop= RNA_def_property(srna, "strand_fade", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strand_widthfade");
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Strand Fade", "Transparency along the width of the strand.");
+
+	prop= RNA_def_property(srna, "strand_uv_layer", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "strand_uvname");
+	RNA_def_property_ui_text(prop, "Strand UV Layer", "Name of UV layer to override.");
+}
+
 void RNA_def_material(BlenderRNA *brna)
 {
 	StructRNA *srna= NULL;
@@ -531,6 +606,44 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TextureSlot");
 	RNA_def_property_collection_funcs(prop, "rna_Material_mtex_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Textures", "");
+
+	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amb");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Ambient", "");
+
+	prop= RNA_def_property(srna, "emit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Emit", "Amount of light to emit.");
+
+	prop= RNA_def_property(srna, "translucency", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Translucency", "Amount of diffuse shading on the back side.");
+		
+	prop= RNA_def_property(srna, "cubic_interpolation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_CUBIC);
+	RNA_def_property_ui_text(prop, "Cubic Interpolation", "Use cubic interpolation for diffuse values, for smoother transitions.");
+	
+	prop= RNA_def_property(srna, "object_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_OBCOLOR);
+	RNA_def_property_ui_text(prop, "Object Color", "Modulate the result with a per-object color.");
+
+	prop= RNA_def_property(srna, "shadow_bias", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sbias");
+	RNA_def_property_range(prop, 0, 0.25);
+	RNA_def_property_ui_text(prop, "Shadow Bias", "Shadow bias to prevent terminator problems on shadow boundary.");
+
+	prop= RNA_def_property(srna, "shadow_bias_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "lbias");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Shadow Bias Factor", "Factor to multiple shadowbuffer bias with (0 is ignore.)");
+
+	prop= RNA_def_property(srna, "shadow_casting_alpha", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
+	RNA_def_property_range(prop, 0.001, 1);
+	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, only in use for Irregular Shadowbuffer.");
+
+	/* XXX: does Material.septex get RNA? */
 	
 	/* colors */
 	rna_def_material_colors(srna, prop);
@@ -544,6 +657,10 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_halo(brna, srna);
 	/* Subsurface scattering */
 	rna_def_material_sss(brna, srna);
+	/* specularity */
+	rna_def_material_specularity(srna, prop);
+	/* strand */
+	rna_def_material_strand(srna, prop);
 
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
