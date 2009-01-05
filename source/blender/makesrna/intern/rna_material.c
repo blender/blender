@@ -22,6 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <stdlib.h>
 
 #include "RNA_define.h"
@@ -36,17 +37,7 @@
 
 #ifdef RNA_RUNTIME
 
-static void *rna_Material_raytrace_mirror_get(PointerRNA *ptr)
-{
-	return ptr->id.data;
-}
-
-static void *rna_Material_raytrace_transparency_get(PointerRNA *ptr)
-{
-	return ptr->id.data;
-}
-
-static void *rna_Material_halo_get(PointerRNA *ptr)
+static void *rna_Material_self_get(PointerRNA *ptr)
 {
 	return ptr->id.data;
 }
@@ -170,7 +161,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna, StructRNA *parent)
 
 	prop= RNA_def_property(parent, "raytrace_mirror", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceMirror");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_raytrace_mirror_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Mirror", "");
 	
 	prop= RNA_def_property(srna, "mode_ray_mirror", PROP_BOOLEAN, PROP_NONE);
@@ -249,7 +240,7 @@ static void rna_def_material_raytra(BlenderRNA *brna, StructRNA *parent)
 
 	prop= RNA_def_property(parent, "raytrace_transparency", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceTransparency");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_raytrace_transparency_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Raytrace Transparency", "");
 
 	prop= RNA_def_property(srna, "mode_ray_transparency", PROP_BOOLEAN, PROP_NONE);
@@ -335,7 +326,7 @@ static void rna_def_material_halo(BlenderRNA *brna, StructRNA *parent)
 
 	prop= RNA_def_property(parent, "halo", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaterialHalo");
-	RNA_def_property_pointer_funcs(prop, "rna_Material_halo_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Halo", "");
 
 	prop= RNA_def_property(srna, "mode_halo", PROP_BOOLEAN, PROP_NONE);
@@ -462,6 +453,71 @@ static void rna_def_material_halo(BlenderRNA *brna, StructRNA *parent)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
+static void rna_def_material_sss(BlenderRNA *brna, StructRNA *parent)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MaterialSubsurfaceScattering", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_ui_text(srna, "Subsurface Scattering", "");
+
+	prop= RNA_def_property(parent, "subsurface_scattering", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MaterialSubsurfaceScattering");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_self_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Subsurface Scattering", "");
+
+	/* XXX: The labels for the array elements should really be R, G, B */
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
+	RNA_def_property_range(prop, 0.001, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);
+	RNA_def_property_ui_text(prop, "Radius", "Mean red/green/blue scattering path length.");
+
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "sss_col");
+	RNA_def_property_ui_text(prop, "Color", "Scattering color.");
+
+	prop= RNA_def_property(srna, "error_tolerance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_error");
+	RNA_def_property_ui_range(prop, 0.0001, 10, 1, 3);
+	RNA_def_property_ui_text(prop, "Error tolerance", "");
+
+	prop= RNA_def_property(srna, "object_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_scale");
+	RNA_def_property_ui_range(prop, 0.001, 1000, 1, 3);
+	RNA_def_property_ui_text(prop, "Object Scale", "");
+
+	prop= RNA_def_property(srna, "index_of_refraction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_ior");
+	RNA_def_property_ui_range(prop, 0.1, 2, 1, 3);
+	RNA_def_property_ui_text(prop, "Index of Refraction", "");
+
+	prop= RNA_def_property(srna, "blend_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_colfac");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Blend Factor", "");
+
+	prop= RNA_def_property(srna, "texture_scattering_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_texfac");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Texture Scattering Factor", "");
+
+	prop= RNA_def_property(srna, "front_weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_front");
+	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_ui_text(prop, "Front Weight", "");
+
+	prop= RNA_def_property(srna, "back_weight", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sss_back");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Back Weight", "");
+
+	prop= RNA_def_property(srna, "enable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "sss_flag", MA_DIFF_SSS);
+	RNA_def_property_ui_text(prop, "Enable", "");
+}
+
 void RNA_def_material(BlenderRNA *brna)
 {
 	StructRNA *srna= NULL;
@@ -486,7 +542,9 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_raytra(brna, srna);
 	/* Halo settings */
 	rna_def_material_halo(brna, srna);
-	
+	/* Subsurface scattering */
+	rna_def_material_sss(brna, srna);
+
 	/* nodetree */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "");
