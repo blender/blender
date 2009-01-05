@@ -41,7 +41,40 @@ struct EditFace;
 struct ImBuf;
 struct Scene;
 
-float *give_cursor(struct Scene *scene, View3D *v3d);
+/* for derivedmesh drawing callbacks, for view3d_select, .... */
+typedef struct ViewContext {
+	Scene *scene;
+	Object *obact;
+	Object *obedit;
+	struct ARegion *ar;
+	struct View3D *v3d;
+	struct EditMesh *em;
+	short mval[2];
+} ViewContext;
+
+typedef struct VPaint {
+	float r, g, b, a;
+	float size;			/* of brush */
+	float gamma, mul;
+	short mode, flag;
+	int tot, pad;						/* allocation size of prev buffers */
+	unsigned int *vpaint_prev;			/* previous mesh colors */
+	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
+} VPaint;
+
+/* Gvp.flag and Gwp.flag */
+#define VP_COLINDEX	1
+#define VP_AREA		2
+#define VP_SOFT		4
+#define VP_NORMALS	8
+#define VP_SPRAY	16
+#define VP_MIRROR_X	32
+#define VP_HARD		64
+#define VP_ONLYVGROUP	128
+
+
+
+float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
 void initgrabz(struct View3D *v3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
@@ -74,6 +107,11 @@ void view3d_align_axis_to_vector(struct Scene *scene, struct View3D *v3d, int ax
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
+
+/* select */
+#define MAXPICKBUF      10000
+short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+
 
 #endif /* ED_VIEW3D_H */
 

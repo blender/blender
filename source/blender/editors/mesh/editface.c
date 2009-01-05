@@ -74,6 +74,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_view3d.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -108,7 +109,6 @@ static int sample_backbuf() {return 0;}
 static void BIF_undo_push() {}
 static void error() {}
 static int pupmenu() {return 0;}
-static void *give_cursor() {return NULL;}
 /* ***************** XXX **************** */
 
 

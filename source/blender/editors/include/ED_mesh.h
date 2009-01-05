@@ -37,6 +37,7 @@ struct EditFace;
 struct bContext;
 struct wmWindowManager;
 struct EditSelection;
+struct ViewContext;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -58,17 +59,6 @@ struct EditSelection;
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
 
-
-/* especially for derivedmesh drawing callbacks */
-typedef struct ViewContext {
-	Scene *scene;
-	Object *obact;
-	Object *obedit;
-	struct ARegion *ar;
-	struct View3D *v3d;
-	struct EditMesh *em;
-	short mval[2];
-} ViewContext;
 
 /* meshtools.c */
 

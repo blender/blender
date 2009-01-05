@@ -248,6 +248,38 @@ void exit_paint_modes(void)
 #endif
 }
 
+/* exported */
+void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
+{
+	Object *ob= base->object;
+	
+	if (scene==NULL)
+		return;
+	
+	if (v3d==NULL) {
+		base->lay = scene->lay;
+		VECCOPY(ob->loc, scene->cursor);
+	} 
+	else {
+		if (v3d->localview) {
+			base->lay= ob->lay= v3d->layact | v3d->lay;
+			VECCOPY(ob->loc, v3d->cursor);
+		} 
+		else {
+			base->lay= ob->lay= v3d->layact;
+			VECCOPY(ob->loc, scene->cursor);
+		}
+		
+		if (U.flag & USER_ADD_VIEWALIGNED) {
+			v3d->viewquat[0]= -v3d->viewquat[0];
+			
+			QuatToEul(v3d->viewquat, ob->rot);
+			v3d->viewquat[0]= -v3d->viewquat[0];
+		}
+	}
+}
+
+
 void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
 {
 	Object *ob;
@@ -257,7 +289,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 // XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 	ob= add_object(scene, type);
 //	ED_base_object_activate(C, BASACT);
-	base_init_from_view3d(BASACT, v3d, scene);
+	ED_object_base_init_from_view(scene, v3d, BASACT);
 	
 	/* only undo pushes on objects without editmode... */
 	if(type==OB_EMPTY) BIF_undo_push("Add Empty");
@@ -287,7 +319,7 @@ void add_objectLamp(Scene *scene, View3D *v3d, short type)
 
 	if(scene->obedit==NULL) { // XXX get from context
 		add_object_draw(scene, v3d, OB_LAMP);
-		base_init_from_view3d(BASACT, v3d, scene);
+		ED_object_base_init_from_view(scene, v3d, BASACT);
 	}
 	
 	la = BASACT->object->data;
@@ -584,7 +616,7 @@ static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
 	return totvert;
 }
 
-static void apply_obmat(Object *ob)
+void ED_object_apply_obmat(Object *ob)
 {
 	float mat[3][3], imat[3][3], tmat[3][3];
 	
@@ -853,7 +885,7 @@ static void ignore_parent_tx(Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
 		if (ob_child->parent == ob) {
-			apply_obmat(ob_child);
+			ED_object_apply_obmat(ob_child);
 			what_does_parent(scene, ob_child, &workob);
 			Mat4Invert(ob_child->parentinv, workob.obmat);
 		}
@@ -991,7 +1023,7 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
 			ob->parent= NULL;
 			ob->track= NULL;
-			apply_obmat(ob);
+			ED_object_apply_obmat(ob);
 		}
 		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
 			Mat4One(ob->parentinv);
@@ -1047,7 +1079,7 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 			ob->recalc |= OB_RECALC;
 			
 			if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
-				apply_obmat(ob);
+				ED_object_apply_obmat(ob);
 			}			
 		/*}*/
 	}
@@ -1996,7 +2028,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				Object workob;
 				
 				/* apply transformation of previous parenting */
-				apply_obmat(ob);
+				ED_object_apply_obmat(ob);
 				
 				ob->parent= par;
 				
@@ -4831,7 +4863,7 @@ void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 		ob->transflag &= ~OB_DUPLI;	
 		
 		Mat4CpyMat4(ob->obmat, dob->mat);
-		apply_obmat(ob);
+		ED_object_apply_obmat(ob);
 	}
 	
 	copy_object_set_idnew(scene, v3d, 0);

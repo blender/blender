@@ -49,11 +49,11 @@
 #include "BLI_editVert.h"
 
 //#include "BIF_editmesh.h"
-#include "BIF_editarmature.h"
 //#include "BIF_interface.h"
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
 
+#include "ED_armature.h"
 #include "ED_mesh.h"
 
 #include "transform.h"

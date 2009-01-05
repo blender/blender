@@ -1009,38 +1009,6 @@ Object *add_object(struct Scene *scene, int type)
 	return ob;
 }
 
-void base_init_from_view3d(Base *base, View3D *v3d, struct Scene *scene)
-{
-	Object *ob= base->object;
-	
-	if (!v3d) {
-		/* no 3d view, this wont happen often */
-		base->lay = 1;
-		VECCOPY(ob->loc, scene->cursor);
-		
-		/* return now because v3d->viewquat isnt available */
-		return;
-	} else if (v3d->localview) {
-		base->lay= ob->lay= v3d->layact + v3d->lay;
-		VECCOPY(ob->loc, v3d->cursor);
-	} else {
-		base->lay= ob->lay= v3d->layact;
-		VECCOPY(ob->loc, scene->cursor);
-	}
-
-	if (U.flag & USER_ADD_VIEWALIGNED) {
-		v3d->viewquat[0]= -v3d->viewquat[0];
-
-		/* Quats arnt used yet */
-		/*if (ob->transflag & OB_QUAT) {
-			QUATCOPY(ob->quat, v3d->viewquat);
-		} else {*/
-			QuatToEul(v3d->viewquat, ob->rot);
-		/*}*/
-		v3d->viewquat[0]= -v3d->viewquat[0];
-	}
-}
-
 SoftBody *copy_softbody(SoftBody *sb)
 {
 	SoftBody *sbn;
@@ -1628,11 +1596,9 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 static void ob_parbone(Object *ob, Object *par, float mat[][4])
 {	
 	bPoseChannel *pchan;
-	bArmature *arm;
 	float vec[3];
 	
-	arm=get_armature(par);
-	if (!arm) {
+	if (ob->type!=OB_ARMATURE) {
 		Mat4One(mat);
 		return;
 	}

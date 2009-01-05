@@ -82,6 +82,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_view3d.h"
 
 /* own include */
 #include "mesh_intern.h"

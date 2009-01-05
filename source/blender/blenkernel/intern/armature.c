@@ -77,13 +77,6 @@
 
 /*	**************** Generic Functions, data level *************** */
 
-bArmature *get_armature(Object *ob)
-{
-	if(ob==NULL) return NULL;
-	if(ob->type==OB_ARMATURE) return ob->data;
-	else return NULL;
-}
-
 bArmature *add_armature(char *name)
 {
 	bArmature *arm;
@@ -2275,7 +2268,8 @@ void where_is_pose (Scene *scene, Object *ob)
 	float imat[4][4];
 	float ctime;
 	
-	arm = get_armature(ob);
+	if(ob->type!=OB_ARMATURE) return;
+	arm = ob->data;
 	
 	if(ELEM(NULL, arm, scene)) return;
 	if((ob->pose==NULL) || (ob->pose->flag & POSE_RECALC)) 

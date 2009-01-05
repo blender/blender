@@ -55,6 +55,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BKE_utildefines.h"
 
 #include "ED_mesh.h"
+#include "ED_view3d.h"
 
 #include "mesh_intern.h"
 

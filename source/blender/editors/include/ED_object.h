@@ -33,6 +33,7 @@ struct Scene;
 struct Object;
 struct bContext;
 struct Base;
+struct View3D;
 
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);
@@ -44,12 +45,18 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
 
+void ED_object_apply_obmat(struct Object *ob);
+
+
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA		1
 #define EM_FREEUNDO		2
 #define EM_WAITCURSOR	4
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
+
+void ED_object_base_init_from_view(struct Scene *scene, struct View3D *v3d, struct Base *base);
+
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);

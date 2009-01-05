@@ -57,7 +57,6 @@
 //#include "BIF_mywindow.h"
 #include "BIF_gl.h"
 //#include "BIF_editaction.h"
-#include "BIF_editarmature.h"
 //#include "BIF_editmesh.h"
 //#include "BIF_editnla.h"
 //#include "BIF_editsima.h"
@@ -87,6 +86,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 
+#include "ED_armature.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
 

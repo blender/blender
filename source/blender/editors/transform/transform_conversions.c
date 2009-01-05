@@ -101,7 +101,6 @@
 //#include "BIF_editview.h"
 //#include "BIF_editlattice.h"
 //#include "BIF_editconstraint.h"
-#include "BIF_editarmature.h"
 //#include "BIF_editmesh.h"
 //#include "BIF_editnla.h"
 //#include "BIF_editsima.h"
@@ -117,6 +116,7 @@
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
 
+#include "ED_armature.h"
 #include "ED_types.h"
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"

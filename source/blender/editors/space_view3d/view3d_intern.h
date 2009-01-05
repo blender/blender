@@ -129,7 +129,6 @@ void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4]);
 
 int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 
-short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
 void initlocalview(Scene *scene, ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);

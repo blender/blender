@@ -87,7 +87,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_editarmature.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -97,6 +96,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_armature.h"
 #include "ED_object.h"
 
 #include "outliner_intern.h"

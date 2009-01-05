@@ -67,7 +67,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_retopo.h"
-#include "BIF_editarmature.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -75,6 +74,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -784,10 +784,8 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 /* ************************** mouse select ************************* */
 
 
-#define MAXPICKBUF      10000
 /* The max number of menu items in an object select menu */
 #define SEL_MENU_SIZE	22
-
 
 static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
 {

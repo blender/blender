@@ -66,10 +66,10 @@
 #include "BKE_ipo.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_editarmature.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_armature.h"
 #include "ED_keyframes_draw.h"
 
 #include "WM_api.h"

@@ -81,7 +81,6 @@ void *add_wave(void);
 
 struct Object *add_only_object(int type, char *name);
 struct Object *add_object(struct Scene *scene, int type);
-void base_init_from_view3d(struct Base *base, struct View3D *v3d, struct Scene *scene);
 
 struct Object *copy_object(struct Object *ob);
 void expand_local_object(struct Object *ob);
