@@ -66,7 +66,6 @@ void sculptmode_init() {}
 /* mesh */
 void free_realtime_image() {}
 void NewBooleanDerivedMesh() {}
-void harmonic_coordinates_bind() {}
 
 /* particle */
 void PE_recalc_world_cos() {}
@@ -82,8 +81,3 @@ void BIF_filelist_freelib() {}
 /* audio */
 void audiostream_play() {}
 void audiostream_fill() {}
-
-struct RenderData;	
-void start_avi_codec(struct RenderData *rd,int rectx, int recty ){}
-void append_avi_codec(int frame,int *pixels,int rectx, int recty){};
-void end_avi_codec(void){};

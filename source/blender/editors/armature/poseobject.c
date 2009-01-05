@@ -157,6 +157,7 @@ void exit_posemode(Scene *scene)
 
 }
 
+#if 0
 /* called by buttons to find a bone to display/edit values for */
 bPoseChannel *get_active_posechannel (Object *ob)
 {
@@ -174,6 +175,7 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	
 	return NULL;
 }
+#endif
 
 /* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
 /* only_selected==1 : the active bone is allowed to be protected */
