@@ -68,7 +68,7 @@ static void waitcursor() {}
 static void progress_bar() {}
 static void start_progress_bar() {}
 static void end_progress_bar() {}
-static float get_vert_defgroup() {return NULL;}
+static float get_vert_defgroup() {return 0.0;}
 static void add_vert_to_defgroup() {}
 #define WEIGHT_REPLACE 0
 #define WEIGHT_ADD 0
