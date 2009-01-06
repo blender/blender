@@ -223,7 +223,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	mouse_select(sfile, sfile->params, ar, mval);
-	WM_event_add_notifier(C, NC_WINDOW, 0, NULL);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	return OPERATOR_FINISHED;
 }
 
