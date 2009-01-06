@@ -58,6 +58,7 @@ void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate);
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect);
 void UI_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
+void UI_icon_draw_size_blended(float x, float y, int size, int icon_id, int shade);
 void UI_icons_free();
 void UI_icons_free_drawinfo(void *drawinfo);
 

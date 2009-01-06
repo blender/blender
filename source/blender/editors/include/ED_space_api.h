@@ -48,5 +48,11 @@ void ED_spacetype_script(void);
 void ED_spacetype_text(void);
 void ED_spacetype_sequencer(void);
 
+/* calls for instancing and freeing spacetype static data 
+   called in WM_init_exit */
+/* in space_file.c */
+void ED_file_init(void);
+void ED_file_exit(void);
+
 #endif /* ED_SPACE_API_H */
 

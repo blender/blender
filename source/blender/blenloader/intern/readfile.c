@@ -3942,11 +3942,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
 
-						sfile->filelist= NULL;
-						sfile->libfiledata= NULL;
-						sfile->returnfunc= NULL;
+						sfile->params= NULL;
+						sfile->op= NULL;
+						/* sfile->returnfunc= NULL; 
 						sfile->menup= NULL;
-						sfile->pupmenu= NULL;
+						sfile->pupmenu= NULL; */ /* XXX removed */
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
 						SpaceImaSel *simasel= (SpaceImaSel *)sl;
@@ -4143,10 +4143,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
+					
 					SpaceFile *sfile= (SpaceFile *)sl;
+					sfile->params = NULL;
+					sfile->op = NULL;
+					/* XXX needs checking - best solve in filesel itself 
 					if(sfile->libfiledata)	
 						BLO_blendhandle_close(sfile->libfiledata);
 					sfile->libfiledata= 0;
+					*/
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
                     SpaceImaSel *simasel= (SpaceImaSel *)sl;
@@ -5191,6 +5196,13 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+			case SPACE_FILE:
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_LEFT;
+				ar->v2d.scroll= V2D_SCROLL_RIGHT;
+				break;
 		}
 	}
 	/* main region */
@@ -5317,6 +5329,19 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
 				ar->v2d.keepzoom |= V2D_KEEPASPECT;
+				break;
+			}
+			case SPACE_FILE:
+ 			{
+				SpaceFile *sfile= (SpaceFile *)sl;
+				ar->v2d.tot.xmin = ar->v2d.tot.ymin = 0;
+				ar->v2d.tot.xmax = ar->winx;
+				ar->v2d.tot.ymax = ar->winy;
+				ar->v2d.cur = ar->v2d.tot;
+				ar->regiontype= RGN_TYPE_WINDOW;
+				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM_O);
+				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+				ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
 				break;
 			}
 				//case SPACE_XXX: // FIXME... add other ones
@@ -8454,7 +8479,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
-		}
+	}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
@@ -9601,14 +9626,7 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 }
 
 /* append to scene */
-/* dir is a full path */	
-void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Main *mainvar, Scene *scene, ReportList *reports)
-{
-	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, 
-						dir, sfile->file, sfile->flag, idcode, mainvar, scene, reports);
-}
-
-void BLO_library_append_(BlendHandle** bh, struct direntry* filelist, int totfile, 
+void BLO_library_append(BlendHandle** bh, struct direntry* filelist, int totfile, 
 						 char *dir, char* file, short flag, int idcode, Main *mainvar, Scene *scene, ReportList *reports)
 {
 	FileData *fd= (FileData*)(*bh);

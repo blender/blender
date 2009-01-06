@@ -72,13 +72,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "ED_datafiles.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
 
 #include "PIL_time.h"
 
-#include "ED_datafiles.h"
 
 #include "filelist.h"
 
@@ -908,7 +909,7 @@ void filelist_from_library(struct FileList* filelist)
 void filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode, struct Main *mainvar, struct Scene* scene)
 {
 	// XXX todo: replace NULL with op->reports
-	BLO_library_append_(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, mainvar, scene, NULL);
+	BLO_library_append(&filelist->libfiledata, filelist->filelist, filelist->numfiles, dir, file, flag, idcode, mainvar, scene, NULL);
 }
 
 void filelist_from_main(struct FileList *filelist)

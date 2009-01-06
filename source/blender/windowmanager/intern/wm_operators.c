@@ -46,6 +46,9 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
+#include "ED_fileselect.h"
+#include "ED_screen.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -60,7 +63,7 @@
 #include "wm_subwindow.h"
 #include "wm_event_system.h"
 
-#include "ED_screen.h"
+
 
 static ListBase global_ops= {NULL, NULL};
 
@@ -306,6 +309,9 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+// XXX for Ton: bad level, maybe this needs export in ED_screen?
+extern void	area_newspace(bContext *C, ScrArea *sa, int type);
+
 static void WM_OT_open_recentfile(wmOperatorType *ot)
 {
 	ot->name= "Open Recent File";
@@ -318,6 +324,87 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
+
+}
+
+/* ********* main file *********** */
+
+static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindow *newwin, *win;
+	bScreen *newsc, *sc;
+	ScrArea *sa, *oldsa;
+	SpaceFile *sfile;
+
+	rcti rect;
+	
+	win= CTX_wm_window(C);
+	sc= CTX_wm_screen(C);
+	oldsa= CTX_wm_area(C);
+
+#if 0 /* XXX experimental code for opening filebrowser in new window */
+	/*  poll() checks area context, but we don't accept full-area windows */
+	if(sc->full != SCREENNORMAL) 
+		return OPERATOR_CANCELLED;
+	
+	/* adds window to WM */
+	rect.xmin = 0;
+	rect.ymin = 0;
+	rect.xmax = win->sizex;
+	rect.ymax = win->sizey;
+	BLI_translate_rcti(&rect, win->posx, win->posy);
+	newwin= WM_window_open(C, &rect);
+	
+	/* allocs new screen and adds to newly created window, using window size */
+	newsc= screen_add(newwin, CTX_data_scene(C), sc->id.name+2);
+	newwin->screen= newsc;
+
+	/* create filebrowser */
+	CTX_wm_window_set(C, newwin);
+	CTX_wm_screen_set(C, newsc);
+	sa= (ScrArea*)newsc->areabase.first;
+	CTX_wm_area_set(C, sa);
+	area_newspace(C, sa, SPACE_FILE);
+#else 
+	area_newspace(C, oldsa, SPACE_FILE);
+#endif
+
+	/* settings for filebrowser */
+	sfile= (SpaceFile*)CTX_wm_space_data(C);
+	sfile->op = op;
+
+	ED_fileselect_set_params(C, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
+
+	/* screen, areas init */
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int wm_mainfile_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	RNA_string_get(op->ptr, "filename", filename);
+	
+	WM_read_file(C, filename, op->reports);
+	
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return 0;
+}
+
+static void WM_OT_open_mainfile(wmOperatorType *ot)
+{
+	ot->name= "Open Blender File";
+	ot->idname= "WM_OT_open_mainfile";
+	
+	ot->invoke= wm_mainfile_invoke;
+	ot->exec= wm_mainfile_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
 
 }
 
@@ -748,6 +835,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_tweak_gesture);
 	WM_operatortype_append(WM_OT_open_recentfile);
+	WM_operatortype_append(WM_OT_open_mainfile);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -759,6 +847,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }

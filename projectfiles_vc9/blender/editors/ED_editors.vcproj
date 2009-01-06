@@ -202,6 +202,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_fileselect.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
 				>
 			</File>
@@ -296,6 +300,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\blenderbuttons.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\prvicons.c"
 				>
 			</File>
 			<File
@@ -599,11 +607,19 @@
 			Name="space_file"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\file_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\file_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\file_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_file\file_ops.c"
 				>
 			</File>
 			<File

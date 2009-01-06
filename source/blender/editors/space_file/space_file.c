@@ -48,6 +48,7 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_fileselect.h"
 
 #include "BIF_gl.h"
 
@@ -59,8 +60,11 @@
 #include "UI_view2d.h"
 
 #include "ED_markers.h"
+#include "ED_fileselect.h"
 
 #include "file_intern.h"	// own include
+#include "fsmenu.h"
+#include "filelist.h"
 
 /* ******************** default callbacks for file space ***************** */
 
@@ -70,27 +74,50 @@ static SpaceLink *file_new(const bContext *C)
 	SpaceFile *sfile;
 	
 	sfile= MEM_callocN(sizeof(SpaceFile), "initfile");
-	sfile->spacetype= SPACE_FILE;
-	
+	sfile->spacetype= SPACE_FILE;	
+	sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+	sfile->params->files = filelist_new();
+
+	// ED_fileselect_set_params(C, FILE_UNIX, "Load File", "F:\\photos\\2008_Kos", NULL, NULL, 0, 0, 0);
+
+	/* XXX move to context
 	sfile->dir[0]= '/';
+	strcpy(sfile->dir, "F:\\photos\\2008_Kos");
 	sfile->type= FILE_UNIX;
-	
+	strcpy(sfile->title, "Load");
+	sfile->prv_h = 96;
+	sfile->prv_w = 96;
+	sfile->files = NULL;
+	*/
+
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
-	
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
-	
+
+	/* channel list region */
+	ar= MEM_callocN(sizeof(ARegion), "channel area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype= RGN_TYPE_CHANNELS;
+	ar->alignment= RGN_ALIGN_LEFT;
+
+	/* ui list region */
+	ar= MEM_callocN(sizeof(ARegion), "ui area for file");
+	BLI_addtail(&sfile->regionbase, ar);
+	ar->regiontype= RGN_TYPE_UI;
+	ar->alignment= RGN_ALIGN_TOP;
+
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for file");
-	
 	BLI_addtail(&sfile->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
-	
-	/* channel list region XXX */
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+	ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	ar->v2d.keeptot= V2D_KEEPTOT_STRICT;
+	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 
-	
 	return (SpaceLink *)sfile;
 }
 
@@ -98,21 +125,26 @@ static SpaceLink *file_new(const bContext *C)
 static void file_free(SpaceLink *sl)
 {	
 	SpaceFile *sfile= (SpaceFile *) sl;
-
-	if(sfile->libfiledata)	
-		BLO_blendhandle_close(sfile->libfiledata);
-	if(sfile->filelist)
-		freefilelist(sfile);
-	if(sfile->pupmenu)
-		MEM_freeN(sfile->pupmenu);
+	
+	if (sfile->params) {
+		if(sfile->params->files) {
+			filelist_free(sfile->params->files);
+			filelist_freelib(sfile->params->files);
+			MEM_freeN(sfile->params->files);
+			sfile->params->files = 0;
+		}
+		if(sfile->params->pupmenu)
+			MEM_freeN(sfile->params->pupmenu);
+		MEM_freeN(sfile->params);
+		sfile->params = 0;
+	}
 	
 }
 
 
 /* spacetype; init callback */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
-{
-
+{	
 }
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
@@ -141,34 +173,103 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	// SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	FileSelectParams* params = ED_fileselect_get_params(C);
 	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	float col[3];
 	
+	if (!params->files) {
+		params->files = filelist_new();
+		filelist_setdir(params->files, params->dir);
+		filelist_settype(params->files, params->type);
+	}
+
+	if (filelist_empty(params->files))
+	{
+		unsigned int filter = 0;
+		filelist_hidedot(params->files, params->flag & FILE_HIDE_DOT);
+		if (params->flag & FILE_FILTER) {
+			filter = params->filter ;
+		} else {
+			filter = 0;
+		}
+
+		filelist_setfilter(params->files, filter);
+		filelist_readdir(params->files);
+		
+		if(params->sort!=FILE_SORTALPHA) filelist_sort(params->files, params->sort);		
+	}
+
+
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	UI_view2d_view_ortho(C, v2d);
-		
+	file_calc_previews(C,ar);
+
+
 	/* data... */
+	UI_view2d_view_ortho(C, v2d);
+	
+	if (params->display) {
+		file_draw_previews(C, ar);
+	} else {
+		file_draw_list(C, ar);
+	}
 	
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
-	/* scrollers? */
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
+
 }
 
 void file_operatortypes(void)
 {
-	
+	WM_operatortype_append(ED_FILE_OT_select);
+	WM_operatortype_append(ED_FILE_OT_select_bookmark);
 }
 
 void file_keymap(struct wmWindowManager *wm)
 {
-	
+	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+
+	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_select_bookmark", SELECTMOUSE, KM_PRESS, 0, 0);
+}
+
+
+static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	ListBase *keymap;
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+
+	/* own keymap */
+	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, NULL, NULL);
+}
+
+static void file_channel_area_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d= &ar->v2d;
+	float col[3];
+
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* data... */
+	UI_view2d_view_ortho(C, v2d);
+
+	file_draw_fsmenu(C, ar);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -199,6 +300,28 @@ static void file_header_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void file_ui_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+}
+
+static void file_ui_area_draw(const bContext *C, ARegion *ar)
+{
+	float col[3];
+	/* clear */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* set view2d view matrix for scrolling (without scrollers) */
+	UI_view2d_view_ortho(C, &ar->v2d);
+
+	file_draw_buttons(C, ar);
+
+	UI_view2d_view_restore(C);
+}
+
 static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
@@ -224,9 +347,8 @@ void ED_spacetype_file(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= file_main_area_init;
 	art->draw= file_main_area_draw;
-	art->listener= file_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
-
+	// art->listener= file_main_area_listener;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
@@ -234,24 +356,42 @@ void ED_spacetype_file(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
 	art->init= file_header_area_init;
 	art->draw= file_header_area_draw;
-	
 	BLI_addhead(&st->regiontypes, art);
 	
-	/* regions: channels */
+	/* regions: ui */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art->regionid = RGN_TYPE_UI;
+	art->minsizey= 100;
+	art->keymapflag= ED_KEYMAP_UI;
+	art->init= file_ui_area_init;
+	art->draw= file_ui_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: channels (directories) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
+	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
-	
-//	art->init= file_channel_area_init;
-//	art->draw= file_channel_area_draw;
-	
+	art->init= file_channel_area_init;
+	art->draw= file_channel_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
-	
 	BKE_spacetype_register(st);
+
 }
 
+void ED_file_init(void)
+{
+	char name[FILE_MAX];
+	BLI_make_file_string("/", name, BLI_gethome(), ".Bfs");
+	fsmenu_read_file(name);
+	filelist_init_icons();
+}
+
+void ED_file_exit(void)
+{
+	fsmenu_free();
+	filelist_free_icons();
+}

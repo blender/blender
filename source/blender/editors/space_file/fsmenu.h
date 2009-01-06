@@ -37,10 +37,10 @@ int		fsmenu_get_nentries		(void);
 	/** Returns true if the fsmenu entry at @a index exists and
 	 * is a seperator.
 	 */
-int	fsmenu_is_entry_a_seperator	(int index);
+int	fsmenu_is_entry_a_separator	(int index);
 
 	/** Returns the fsmenu entry at @a index (or NULL if a bad index)
-     * or a seperator.
+     * or a separator.
 	 */
 char*	fsmenu_get_entry		(int index);
 
@@ -63,8 +63,11 @@ void	fsmenu_insert_entry		(char *path, int sorted, short save);
 	/** Removes the fsmenu entry at the given @a index. */
 void	fsmenu_remove_entry		(int index);
 
-	/** saves the 'favourites' to the specified file */
+	/** saves the 'bookmarks' to the specified file */
 void	fsmenu_write_file(const char *filename);
+	
+	/** reads the 'bookmarks' from the specified file */
+void	fsmenu_read_file(const char *filename);
 
 	/** Free's all the memory associated with the fsmenu */
 void	fsmenu_free				(void);

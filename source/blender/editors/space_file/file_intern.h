@@ -34,9 +34,20 @@
 /* file_header.c */
 void file_header_buttons(const bContext *C, ARegion *ar);
 
-/* filesel.c */
 
-void freefilelist(SpaceFile *sfile);
+/* file_draw.c */
+#define TILE_BORDER_X 8
+#define TILE_BORDER_Y 8
 
+void file_draw_buttons(const bContext *C, ARegion *ar);
+void file_calc_previews(const bContext *C, ARegion *ar);
+void file_draw_previews(const bContext *C, ARegion *ar);
+void file_draw_list(const bContext *C, ARegion *ar);
+void file_draw_fsmenu(const bContext *C, ARegion *ar);
+
+/* file_ops.h */
+struct wmOperatorType;
+void ED_FILE_OT_select(struct wmOperatorType *ot);
+void ED_FILE_OT_select_bookmark(struct wmOperatorType *ot);
 #endif /* ED_FILE_INTERN_H */
 

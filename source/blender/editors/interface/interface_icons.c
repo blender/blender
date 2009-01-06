@@ -98,12 +98,13 @@ static struct ListBase iconfilelist = {0, 0};
 
 /* **************************************************** */
 
-static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
+static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size)
 {
 	Icon *new_icon = NULL;
 	IconImage *iimg = NULL;
 	DrawInfo *di;
 	int y = 0;
+	int imgsize = 0;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
@@ -112,18 +113,19 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->drawFunc = 0;
-	di->w = ICON_DEFAULT_HEIGHT;
-	di->h = ICON_DEFAULT_HEIGHT;
+	di->w = size;
+	di->h = size;
 	di->aspect = 1.0f;
 	
 	iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
-	iimg->rect = MEM_mallocN(ICON_DEFAULT_HEIGHT*ICON_DEFAULT_HEIGHT*sizeof(unsigned int), "icon_rect");
-	iimg->w = ICON_DEFAULT_HEIGHT;
-	iimg->h = ICON_DEFAULT_HEIGHT;
+	iimg->rect = MEM_mallocN(size*size*sizeof(unsigned int), "icon_rect");
+	iimg->w = size;
+	iimg->h = size;
 
 	/* Here we store the rect in the icon - same as before */
-	for (y=0; y<ICON_DEFAULT_HEIGHT; y++) {
-		memcpy(&iimg->rect[y*ICON_DEFAULT_HEIGHT], &bbuf->rect[(y+yofs)*ICON_IMAGE_W+xofs], ICON_DEFAULT_HEIGHT*sizeof(int));
+	imgsize = bbuf->x;
+	for (y=0; y<size; y++) {
+		memcpy(&iimg->rect[y*size], &bbuf->rect[(y+yofs)*imgsize+xofs], size*sizeof(int));
 	}
 
 	di->icon = iimg;
@@ -423,8 +425,8 @@ static void init_internal_icons()
 				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
 				bbuf= NULL;
-			}
 		}
+	}
 	}
 	if(bbuf==NULL)
 		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
@@ -433,7 +435,7 @@ static void init_internal_icons()
 		for (x=0; x<ICON_GRID_COLS; x++) {
 			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
 				x*(ICON_GRID_W+ICON_GRID_MARGIN)+ICON_GRID_MARGIN,
-				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN);
+				y*(ICON_GRID_H+ICON_GRID_MARGIN)+ICON_GRID_MARGIN, ICON_GRID_W);
 		}
 	}
 
@@ -867,13 +869,11 @@ static int preview_size(int miplevel)
 	return 0;
 }
 
-
-static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
+static void icon_draw_size(float x, float y, int icon_id, float aspect, int miplevel, int draw_size, int nocreate)
 {
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
-	int draw_size = preview_size(miplevel);
-
+	
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
@@ -926,6 +926,13 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 	}
 }
 
+static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)
+{
+	int draw_size = preview_size(miplevel);
+	icon_draw_size(x,y,icon_id, aspect, miplevel, draw_size, nocreate);
+}
+
+
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect)
 {
 	icon_draw_mipmap(x,y,icon_id, aspect, PREVIEW_MIPMAP_ZERO, 0);
@@ -934,6 +941,19 @@ void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect)
 void UI_icon_draw(float x, float y, int icon_id)
 {
 	UI_icon_draw_aspect(x, y, icon_id, 1.0f);
+}
+
+void UI_icon_draw_size_blended(float x, float y, int size, int icon_id, int shade)
+{
+	if(shade < 0) {
+		float r= (128+shade)/128.0f;
+		glPixelTransferf(GL_ALPHA_SCALE, r);
+	}
+
+	icon_draw_size(x,y,icon_id, 1.0f, 0, size, 1);
+
+	if(shade < 0)
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)

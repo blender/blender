@@ -649,6 +649,42 @@ void area_newspace(bContext *C, ScrArea *sa, int type)
 	}
 }
 
+void area_prevspace(bContext *C)
+{
+	SpaceLink *sl= CTX_wm_space_data(C);
+	ScrArea *sa= CTX_wm_area(C);
+
+	/* cleanup */
+#if 0 // XXX needs to be space type specific
+	if(sfile->spacetype==SPACE_FILE) {
+		if(sfile->pupmenu) {
+			MEM_freeN(sfile->pupmenu);
+			sfile->pupmenu= NULL;
+		}
+	}
+#endif
+
+	if(sl->next) {
+	
+		BLI_remlink(&sa->spacedata, sl);
+		BLI_addtail(&sa->spacedata, sl);
+
+		sl= sa->spacedata.first;
+
+#if 0 // XXX check whether this is still needed
+		if (sfile->spacetype == SPACE_SCRIPT) {
+			SpaceScript *sc = (SpaceScript *)sfile;
+			if (sc->script) sc->script->flags &=~SCRIPT_FILESEL;
+		}
+#endif
+
+		area_newspace(C, sa, SPACE_FILE);
+	}
+	else {
+		area_newspace(C, sa, SPACE_INFO);
+	}
+}
+
 static char *windowtype_pup(void)
 {
 	return(

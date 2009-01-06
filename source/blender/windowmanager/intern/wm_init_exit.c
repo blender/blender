@@ -127,7 +127,9 @@ void WM_init(bContext *C)
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
 	
 	ED_spacetypes_init();	/* editors/area/spacetype.c */
-		
+	
+	ED_file_init(); /* for fsmenu */
+
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, 0);
 	
@@ -140,8 +142,6 @@ void WM_init(bContext *C)
 //	init_node_butfuncs();
 	
 // XXX	BIF_preview_init_dbase();
-	
-// XXX	UI_filelist_init_icons();
 	
 	GPU_extensions_init();
 	
@@ -259,6 +259,8 @@ void WM_exit(bContext *C)
 	BKE_undo_save_quit();	// saves quit.blend if global undo is on
 	BKE_reset_undo(); 
 	
+	ED_file_exit(); /* for fsmenu */
+
 	UI_exit();
 	BLI_freelistN(&U.themes);
 // XXX	BIF_preview_free_dbase();

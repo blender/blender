@@ -37,6 +37,9 @@ extern char datatoc_B_blend[];
 extern int datatoc_blenderbuttons_size;
 extern char datatoc_blenderbuttons[];
 
+extern int datatoc_prvicons_size;
+extern char datatoc_prvicons[];
+
 extern int datatoc_splash_jpg_size;
 extern char datatoc_splash_jpg[];
 

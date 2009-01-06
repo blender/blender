@@ -51,6 +51,8 @@ struct bNodeTree;
 struct uiBlock;
 struct FileList;
 struct bGPdata;
+struct FileSelectParams;
+struct wmOperator;
 
 	/**
 	 * The base structure all the other spaces
@@ -160,35 +162,27 @@ typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
-	float blockscale;
-	
-	short blockhandler[8];
 
-	struct direntry *filelist;
-	int totfile;
+	struct FileSelectParams* params; /* config and input for file select */
 	
-	char title[24];
-	char dir[240];
-	char file[80];
-	
-	short type, ofs, flag, sort;
-	short maxnamelen, collums, f_fp, pad1;
-	int pad2;
-	char fp_str[8];
+	/* operator that is invoking fileselect 
+	   op->exec() will be called on the 'Load' button.
+	   if operator provides op->cancel(), then this will be invoked
+	   on the cancel button.
+	*/
+	struct wmOperator *op; 
 
-	struct BlendHandle *libfiledata;
+	/* view settings - XXX - move into own struct */
+	short prv_w;
+	short prv_h;
+	short tile_w;
+	short tile_h;
+	short tile_border_x;
+	short tile_border_y;
+	short prv_border_x;
+	short prv_border_y;
+
 	
-	unsigned short retval;		/* event */
-	short menu, act, ipotype;
-	
-	/* one day we'll add unions to dna */
-	void (*returnfunc)(char *);
-	void (*returnfunc_event)(unsigned short);
-	void (*returnfunc_args)(char *, void *, void *);
-	
-	void *arg1, *arg2;
-	short *menup;	/* pointer to menu result or ID browsing */
-	char *pupmenu;	/* optional menu in header */
 } SpaceFile;
 
 typedef struct SpaceOops {

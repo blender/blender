@@ -35,6 +35,7 @@ struct Scene;
 /* area.c */
 void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
 void		area_newspace(bContext *C, ScrArea *sa, int type);
+void		area_prevspace(bContext *C);
 
 /* screen_edit.c */
 bScreen		*screen_add(struct wmWindow *win, struct Scene *scene, char *name);

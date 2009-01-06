@@ -200,8 +200,7 @@ BLO_blendhandle_close(
 char *BLO_gethome(void);
 int BLO_has_bfile_extension(char *str);
 
-void BLO_library_append(struct SpaceFile *sfile, char *dir, int idcode, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
-void BLO_library_append_(BlendHandle **libfiledata, struct direntry* filelist, int totfile, 
+void BLO_library_append(BlendHandle **libfiledata, struct direntry* filelist, int totfile, 
 						 char *dir, char* file, short flag, int idcode, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
 void BLO_script_library_append(BlendHandle **bh, char *dir, char *name, int idcode, short flag, struct Main *mainvar, struct Scene *scene, struct ReportList *reports);
 

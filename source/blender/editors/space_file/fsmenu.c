@@ -22,13 +22,14 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Andrea Weikert (c) 2008 Blender Foundation.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -37,6 +38,14 @@
 #include "BLI_linklist.h"
 #include "BLI_dynstr.h"
 
+#ifdef WIN32
+#include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
+#endif
+#include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
+#include "BLI_winstuff.h"
+#endif
 
 #include "fsmenu.h"  /* include ourselves */
 
@@ -64,7 +73,7 @@ int fsmenu_get_nentries(void)
 
 	return count;
 }
-int fsmenu_is_entry_a_seperator(int idx)
+int fsmenu_is_entry_a_separator(int idx)
 {
 	FSMenuEntry *fsme;
 
@@ -228,6 +237,60 @@ void fsmenu_write_file(const char *filename)
 	for (fsme= fsmenu; fsme; fsme= fsme->next) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);
+		}
+	}
+	fclose(fp);
+}
+
+void fsmenu_read_file(const char *filename)
+{
+	char line[256];
+	FILE *fp;
+
+	#ifdef WIN32
+	/* Add the drive names to the listing */
+	{
+		__int64 tmp;
+		char folder[256];
+		char tmps[4];
+		int i;
+			
+		tmp= GetLogicalDrives();
+		
+		for (i=2; i < 26; i++) {
+			if ((tmp>>i) & 1) {
+				tmps[0]='a'+i;
+				tmps[1]=':';
+				tmps[2]='\\';
+				tmps[3]=0;
+				
+				fsmenu_insert_entry(tmps, 0, 0);
+			}
+		}
+
+		/* Adding Desktop and My Documents */
+		fsmenu_append_separator();
+
+		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
+		fsmenu_insert_entry(folder, 0, 0);
+		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
+		fsmenu_insert_entry(folder, 0, 0);
+
+		fsmenu_append_separator();
+	}
+#endif
+
+	fp = fopen(filename, "w");
+	if (!fp) return;
+
+	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
+	{
+		int len = strlen(line);
+		if (len>0) {
+			if (line[len-1] == '\n') {
+				line[len-1] = '\0';
+			}
+			fsmenu_insert_entry(line, 0, 1);
 		}
 	}
 	fclose(fp);

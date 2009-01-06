@@ -56,9 +56,11 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_global.h"
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_fileselect.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -71,22 +73,78 @@
 #include "UI_view2d.h"
 
 #include "file_intern.h"
+#include "filelist.h"
 
 
-void freefilelist(SpaceFile *sfile)
+FileSelectParams* ED_fileselect_get_params(const struct bContext *C)
 {
-	int num;
-	
-	num= sfile->totfile-1;
-	
-	if (sfile->filelist==0) return;
-	
-	for(; num>=0; num--){
-		MEM_freeN(sfile->filelist[num].relname);
-		
-		if (sfile->filelist[num].string) MEM_freeN(sfile->filelist[num].string);
+	SpaceLink *sl= CTX_wm_space_data(C);
+	SpaceFile *sfile;
+	FileSelectParams *params = 0;
+
+	if (sl->spacetype == SPACE_FILE) {
+		sfile= (SpaceFile*)sl;
+		params = sfile->params;
 	}
-	free(sfile->filelist);
-	sfile->filelist= 0;
+	return params;
+}
+
+short ED_fileselect_set_params(const struct bContext *C, int type, const char *title, const char *path,
+							   short flag, short display, short filter)
+{
+	char group[32], name[FILE_MAX], temp[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
+	SpaceLink *sl= CTX_wm_space_data(C);
+	SpaceFile *sfile;
+	FileSelectParams *params;
+
+	if (sl->spacetype != SPACE_FILE) {
+		return 0;
+	}
+	sfile= (SpaceFile*)sl;
+
+	if (!sfile->params) {
+		sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+		sfile->params->files = filelist_new();
+	}
+	params = sfile->params;
+
+	params->type = type;
+	params->flag = flag;
+	params->display = display;
+	params->filter = filter;
+
+	BLI_strncpy(params->title, title, sizeof(params->title));
+	
+	BLI_strncpy(name, path, sizeof(name));
+	BLI_convertstringcode(name, G.sce);
+	
+	switch(type) {
+		case FILE_MAIN:
+			break;
+		case FILE_LOADLIB:
+			break;
+		case FILE_BLENDER:
+		case FILE_LOADFONT:
+		default:
+			{
+				BLI_split_dirfile(name, dir, file);
+				BLI_strncpy(params->file, file, sizeof(params->file));
+				BLI_strncpy(params->dir, dir, sizeof(params->dir));
+				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
+				
+				filelist_settype(params->files, type);
+				filelist_setdir(params->files, params->dir);
+				BLI_cleanup_dir(G.sce, params->dir); /* XXX solve G.sce */
+
+				/* free: filelist and libfiledata became incorrect */
+				if (params->files) {
+					filelist_free(params->files);
+					filelist_freelib(params->files);
+				}				
+			}
+			break;
+	}
+
+	return 1;
 }
 

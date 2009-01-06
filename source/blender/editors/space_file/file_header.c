@@ -40,10 +40,12 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_global.h"
 
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
+#include "ED_fileselect.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -51,11 +53,17 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BMF_Api.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "file_intern.h"
+#include "filelist.h"
+
+#define B_SORTIMASELLIST 1
+#define B_RELOADIMASELDIR 2
 
 
 /* ************************ header area region *********************** */
@@ -91,10 +99,17 @@ static uiBlock *dummy_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 	return block;
 }
 
-
-static void do_file_buttons(bContext *C, void *arg, int event)
+static void do_file_header_buttons(bContext *C, void *arg, int event)
 {
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	switch(event) {
+		case B_SORTIMASELLIST:
+			filelist_sort(sfile->params->files, sfile->params->sort);
+			WM_event_add_notifier(C, NC_WINDOW, NULL);
+			break;
+		case B_RELOADIMASELDIR:
+			WM_event_add_notifier(C, NC_WINDOW, NULL);
+			break;
 	}
 }
 
@@ -102,11 +117,15 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 void file_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	FileSelectParams* params = sfile->params;
+
 	uiBlock *block;
 	int xco, yco= 3;
+	int xcotitle;
 	
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS, UI_HELV);
-	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
+	uiBlockSetHandleFunc(block, do_file_header_buttons, NULL);
 	
 	xco= ED_area_header_standardbuttons(C, block, yco);
 	
@@ -122,6 +141,23 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 		xco+=XIC+xmax;
 	}
 	
+	/* SORT TYPE */
+	xco+=XIC;
+	uiBlockBeginAlign(block);
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTBYEXT,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 3.0, 0, 0, "Sorts files by extension");	
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
+	uiDefIconButS(block, ROW, B_SORTIMASELLIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &params->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
+	uiBlockEndAlign(block);
+	xco+=XIC+10;
+
+	if (sfile->params->type != FILE_MAIN) {
+		uiDefIconButBitS(block, TOG, 1, B_RELOADIMASELDIR, ICON_BOOKMARKS,xco+=XIC,0,XIC,YIC, &params->display, 0, 0, 0, 0, "Toggles Bookmarks on/off");
+		xco+=XIC+10;
+	} 
+	xcotitle= xco;
+	xco+= BMF_GetStringWidth(G.font, params->title);
+
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* always as last  */
@@ -130,5 +166,6 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 }
+
 
 
