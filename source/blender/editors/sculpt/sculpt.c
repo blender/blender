@@ -338,7 +338,7 @@ char brush_size()
 	SculptData *sd = NULL; /* XXX */
 	const BrushData *b= sculptmode_brush();
 	float size= b->size;
-	float pressure= get_pressure();
+	float pressure= 0; /* XXX: get_pressure(); */
 	short activedevice= get_activedevice();
 	
 	if(sculpt_data()->brush_type!=GRAB_BRUSH) {
@@ -372,7 +372,7 @@ float brush_strength(BrushAction *a)
 #if 0
 	if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
 		pressure= sd->sculptdata.tablet_strength==0?1:
-		(1-strength_factor) + get_pressure()*strength_factor;
+			(1-strength_factor) + 1/*XXX: get_pressure()*/ *strength_factor;
 	
 	/* Flip direction for eraser */
 	if(activedevice==DEV_ERASER)
