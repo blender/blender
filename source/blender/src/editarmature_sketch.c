@@ -189,6 +189,8 @@ int sk_detectMergeGesture(SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyMergeGesture(SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectReverseGesture(SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyReverseGesture(SK_Gesture *gest, SK_Sketch *sketch);
+int sk_detectConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
+void sk_applyConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
 
 
 /******************** GESTURE ACTIONS ******************************/
@@ -201,6 +203,7 @@ SK_GestureAction GESTURE_ACTIONS[] =
 		{"Delete", sk_detectDeleteGesture, sk_applyDeleteGesture},
 		{"Merge", sk_detectMergeGesture, sk_applyMergeGesture},
 		{"Reverse", sk_detectReverseGesture, sk_applyReverseGesture},
+		{"Convert", sk_detectConvertGesture, sk_applyConvertGesture},
 		{"", NULL, NULL}
 	};
 
@@ -338,6 +341,27 @@ int BIF_nbJointsTemplate()
 	{
 		return -1; 
 	}
+}
+
+char * BIF_nameBoneTemplate()
+{
+	SK_Sketch *stk = GLOBAL_sketch;
+	RigGraph *rg;
+	int index = 0;
+
+	if (stk && stk->active_stroke != NULL)
+	{
+		index = stk->active_stroke->nb_points;
+	}
+	
+	rg = sk_makeTemplateGraph(G.scene->toolsettings->skgen_template);
+	
+	if (rg == NULL)
+	{
+		return "";
+	}
+
+	return RIG_nameBone(rg, 0, index);
 }
 
 void  BIF_freeTemplates()
@@ -2448,6 +2472,20 @@ void sk_applyReverseGesture(SK_Gesture *gest, SK_Sketch *sketch)
 			isect = isect->next;
 		}
 	}
+}
+
+int sk_detectConvertGesture(SK_Gesture *gest, SK_Sketch *sketch)
+{
+	if (gest->nb_segments == 3 && gest->nb_self_intersections == 1)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+void sk_applyConvertGesture(SK_Gesture *gest, SK_Sketch *sketch)
+{
+	sk_convert(sketch);
 }
 
 static void sk_initGesture(SK_Gesture *gest, SK_Sketch *sketch)

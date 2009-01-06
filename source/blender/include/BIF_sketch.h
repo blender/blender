@@ -37,6 +37,7 @@ char *BIF_listTemplates();
 int   BIF_currentTemplate();
 void  BIF_freeTemplates();
 void  BIF_setTemplate(int);
-int   BIF_nbJointsTemplate();	
+int   BIF_nbJointsTemplate();
+char * BIF_nameBoneTemplate();
 
 #endif /* BIF_SKETCH_H */

@@ -2291,9 +2291,10 @@ static void assign_template_sketch_armature(void *arg1, void *arg2)
 static void view3d_panel_bonesketch_spaces(short cntrl)
 {
 	static int template_index;
-	static char joint_label[32];
+	static char joint_label[128];
 	uiBlock *block;
 	uiBut *but;
+	char *bone_name;
 	int yco = 130, height = 140;
 	int nb_joints;
 
@@ -2379,7 +2380,9 @@ static void view3d_panel_bonesketch_spaces(short cntrl)
 			nb_joints = G.totvertsel;
 		}
 		
-		BLI_snprintf(joint_label, 32, "%i joints", nb_joints);
+		bone_name = BIF_nameBoneTemplate();
+		
+		BLI_snprintf(joint_label, 32, "%i joints: %s", nb_joints, bone_name);
 		
 		uiDefBut(block, LABEL, 1, joint_label,					10, yco, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
 		yco -= 20;

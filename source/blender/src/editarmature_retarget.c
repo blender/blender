@@ -2903,6 +2903,36 @@ static void retargetGraphs(RigGraph *rigg)
 	editbones_to_armature(rigg->editbones, rigg->ob);
 }
 
+char *RIG_nameBone(RigGraph *rg, int arc_index, int bone_index)
+{
+	RigArc *arc = BLI_findlink(&rg->arcs, arc_index);
+	RigEdge *iedge;
+
+	if (arc == NULL)
+	{
+		return "None";
+	}
+	
+	if (bone_index == BLI_countlist(&arc->edges))
+	{
+		return "Last joint";
+	}
+
+	iedge = BLI_findlink(&arc->edges, bone_index);
+	
+	if (iedge == NULL)
+	{
+		return "Done";
+	}
+	
+	if (iedge->bone == NULL)
+	{
+		return "Bone offset";
+	}
+	
+	return iedge->bone->name;
+}
+
 int RIG_nbJoints(RigGraph *rg)
 {
 	RigArc *arc;
