@@ -51,9 +51,6 @@ typedef struct FileSelectParams {
 	char *pupmenu; /* allows menu for save options - result stored in menup */
 	short menu; /* currently selected option in pupmenu */
 	/* XXX --- end unused -- */
-
-	struct FileList *files;
-
 } FileSelectParams;
 
 FileSelectParams* ED_fileselect_get_params(const struct bContext *C);

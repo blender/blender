@@ -103,7 +103,7 @@ static void do_file_header_buttons(bContext *C, void *arg, int event)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	switch(event) {
 		case B_SORTIMASELLIST:
-			filelist_sort(sfile->params->files, sfile->params->sort);
+			filelist_sort(sfile->files, sfile->params->sort);
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
 			break;
 		case B_RELOADIMASELDIR:

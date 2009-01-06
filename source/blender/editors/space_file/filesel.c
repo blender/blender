@@ -104,7 +104,6 @@ short ED_fileselect_set_params(const struct bContext *C, int type, const char *t
 
 	if (!sfile->params) {
 		sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-		sfile->params->files = filelist_new();
 	}
 	params = sfile->params;
 
@@ -132,14 +131,14 @@ short ED_fileselect_set_params(const struct bContext *C, int type, const char *t
 				BLI_strncpy(params->dir, dir, sizeof(params->dir));
 				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
 				
-				filelist_settype(params->files, type);
-				filelist_setdir(params->files, params->dir);
+				filelist_settype(sfile->files, type);
+				filelist_setdir(sfile->files, params->dir);
 				BLI_cleanup_dir(G.sce, params->dir); /* XXX solve G.sce */
 
 				/* free: filelist and libfiledata became incorrect */
-				if (params->files) {
-					filelist_free(params->files);
-					filelist_freelib(params->files);
+				if (sfile->files) {
+					filelist_free(sfile->files);
+					filelist_freelib(sfile->files);
 				}				
 			}
 			break;

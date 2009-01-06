@@ -650,10 +650,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\multires-firstlevel.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\multires.c"
 				>
 			</File>

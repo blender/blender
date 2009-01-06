@@ -165,6 +165,8 @@ typedef struct SpaceFile {
 
 	struct FileSelectParams* params; /* config and input for file select */
 	
+	struct FileList *files; /* holds the list of files to show */
+
 	/* operator that is invoking fileselect 
 	   op->exec() will be called on the 'Load' button.
 	   if operator provides op->cancel(), then this will be invoked

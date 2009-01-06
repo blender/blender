@@ -159,11 +159,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	slen = UI_GetStringWidth(G.font, sfile->params->title, 0);
 	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(G.font, params->title, 0));
 	if(ar->v2d.mask.xmax-ar->v2d.mask.xmin > loadbutton+20) {
-		/* XXX
-		if(simasel->title[0]==0) {
+		if(params->title[0]==0) {
 			loadbutton= 0;
 		}
-		*/
 	}
 	else {
 		loadbutton= 0;
@@ -295,7 +293,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 		sfile->tile_h = sfile->prv_h + 2*sfile->prv_border_y + U.fontsize*3/2;
 		width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
 		columns= file_view_columns(sfile, v2d);
-		rows= filelist_numfiles(params->files)/columns + 1; // XXX dirty, modulo is zero
+		rows= filelist_numfiles(sfile->files)/columns + 1; // XXX dirty, modulo is zero
 		height= rows*(sfile->tile_h+sfile->tile_border_y) + sfile->tile_border_y*2;
 	} else {
 		sfile->prv_w = 0;
@@ -308,7 +306,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 		sfile->tile_h = U.fontsize*3/2;
 		height= v2d->cur.ymax - v2d->cur.ymin;
 		rows = file_view_rows(sfile, v2d);
-		columns = filelist_numfiles(params->files)/rows + 1; // XXX dirty, modulo is zero
+		columns = filelist_numfiles(sfile->files)/rows + 1; // XXX dirty, modulo is zero
 		width = columns * (sfile->tile_w + sfile->tile_border_x) + sfile->tile_border_x*2;
 	}
 
@@ -321,7 +319,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	FileSelectParams* params=sfile->params;
 	View2D *v2d= &ar->v2d;
 	static double lasttime= 0;
-	struct FileList* files = params->files;
+	struct FileList* files = sfile->files;
 	int numfiles;
 	struct direntry *file;
 
@@ -474,7 +472,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = sfile->params;
-	struct FileList* files = params->files;
+	struct FileList* files = sfile->files;
 	struct direntry *file;
 	int numfiles;
 	int colorid = 0;

@@ -67,7 +67,7 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 	int active_file = -1;
 	struct direntry* file;
 	int offsetx, offsety;
-	int numfiles = filelist_numfiles(params->files);
+	int numfiles = filelist_numfiles(sfile->files);
 	int columns;
 
 	View2D* v2d = &ar->v2d;
@@ -82,7 +82,7 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 	{
 		params->active_file = active_file;
 		if (params->selstate & ACTIVATE) {
-			file = filelist_file(params->files, params->active_file);
+			file = filelist_file(sfile->files, params->active_file);
 			file->flags |= ACTIVE;
 		}			
 	}
@@ -94,7 +94,7 @@ static void set_active_file(SpaceFile *sfile, FileSelectParams* params, struct A
 	int offsetx, offsety;
 	float x,y;
 	int active_file = -1;
-	int numfiles = filelist_numfiles(params->files);
+	int numfiles = filelist_numfiles(sfile->files);
 	int rows;
 	struct direntry* file;
 
@@ -109,7 +109,7 @@ static void set_active_file(SpaceFile *sfile, FileSelectParams* params, struct A
 	{
 		params->active_file = active_file;
 		if (params->selstate & ACTIVATE) {
-			file = filelist_file(params->files, params->active_file);
+			file = filelist_file(sfile->files, params->active_file);
 			file->flags |= ACTIVE;
 		}			
 	} 
@@ -128,7 +128,7 @@ static void set_active_bookmark(SpaceFile *sfile, FileSelectParams* params, stru
 
 static void mouse_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar, short *mval)
 {
-	int numfiles = filelist_numfiles(params->files);
+	int numfiles = filelist_numfiles(sfile->files);
 	if(mval[0]>ar->v2d.mask.xmin && mval[0]<ar->v2d.mask.xmax
 		&& mval[1]>ar->v2d.mask.ymin && mval[1]<ar->v2d.mask.ymax) {
 			params->selstate = NOTACTIVE;
@@ -138,7 +138,7 @@ static void mouse_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar
 				set_active_file(sfile, params, ar, mval);
 			}
 			if (params->active_file >= 0 && params->active_file < numfiles) {
-				struct direntry* file = filelist_file(params->files, params->active_file);
+				struct direntry* file = filelist_file(sfile->files, params->active_file);
 				
 				if(file && S_ISDIR(file->type)) {
 					/* the path is too long and we are not going up! */
@@ -157,8 +157,8 @@ static void mouse_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar
 							params->file[0] = '\0';
 							BLI_cleanup_dir(G.sce, params->dir);
 						}
-						filelist_setdir(params->files, params->dir);
-						filelist_free(params->files);
+						filelist_setdir(sfile->files, params->dir);
+						filelist_free(sfile->files);
 						params->active_file = -1;
 					}
 				}
@@ -194,8 +194,8 @@ static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 			FileSelectParams* params = sfile->params;
 			BLI_strncpy(params->dir, selected, sizeof(params->dir));
 			BLI_cleanup_dir(G.sce, params->dir);
-			filelist_free(params->files);	
-			filelist_setdir(params->files, params->dir);
+			filelist_free(sfile->files);	
+			filelist_setdir(sfile->files, params->dir);
 			params->file[0] = '\0';			
 			params->active_file = -1;
 		}
@@ -207,9 +207,6 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	short mval[2];
-	
-	/* note; otherwise opengl select won't work. do this for every glSelectBuffer() */
-	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 	
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
@@ -237,9 +234,6 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	short mval[2];
-	
-	/* note; otherwise opengl select won't work. do this for every glSelectBuffer() */
-	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 	
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;

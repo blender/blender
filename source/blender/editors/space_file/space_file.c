@@ -76,19 +76,11 @@ static SpaceLink *file_new(const bContext *C)
 	sfile= MEM_callocN(sizeof(SpaceFile), "initfile");
 	sfile->spacetype= SPACE_FILE;	
 	sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-	sfile->params->files = filelist_new();
-
-	// ED_fileselect_set_params(C, FILE_UNIX, "Load File", "F:\\photos\\2008_Kos", NULL, NULL, 0, 0, 0);
-
-	/* XXX move to context
-	sfile->dir[0]= '/';
-	strcpy(sfile->dir, "F:\\photos\\2008_Kos");
-	sfile->type= FILE_UNIX;
-	strcpy(sfile->title, "Load");
-	sfile->prv_h = 96;
-	sfile->prv_w = 96;
-	sfile->files = NULL;
-	*/
+	sfile->files = filelist_new();
+	
+	ED_fileselect_set_params(C, FILE_UNIX, "", "/", 0, 0, 0);
+	filelist_setdir(sfile->files, sfile->params->dir);
+	filelist_settype(sfile->files, sfile->params->type);
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
@@ -126,36 +118,47 @@ static void file_free(SpaceLink *sl)
 {	
 	SpaceFile *sfile= (SpaceFile *) sl;
 	
+	if(sfile->files) {
+		filelist_free(sfile->files);
+		filelist_freelib(sfile->files);
+		MEM_freeN(sfile->files);
+		sfile->files = 0;
+	}
+
 	if (sfile->params) {
-		if(sfile->params->files) {
-			filelist_free(sfile->params->files);
-			filelist_freelib(sfile->params->files);
-			MEM_freeN(sfile->params->files);
-			sfile->params->files = 0;
-		}
 		if(sfile->params->pupmenu)
 			MEM_freeN(sfile->params->pupmenu);
 		MEM_freeN(sfile->params);
 		sfile->params = 0;
 	}
 	
+	if (sfile->op) {
+		WM_operator_free(sfile->op);
+	}
 }
 
 
 /* spacetype; init callback */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
-{	
+{
 }
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
 {
+	SpaceFile *sfileo= (SpaceFile*)sl;
 	SpaceFile *sfilen= MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-	
+	sfilen->op = NULL; // XXX check if operator can be duplicated
+
+	sfilen->params= MEM_dupallocN(sfileo->params);
+	sfilen->params->pupmenu = NULL;
+	sfilen->files = filelist_new();
+	filelist_setdir(sfilen->files, sfilen->params->dir);
+	filelist_settype(sfilen->files, sfilen->params->type);
+
 	return (SpaceLink *)sfilen;
 }
-
 
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -173,32 +176,32 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-//	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
 	
-	if (!params->files) {
-		params->files = filelist_new();
-		filelist_setdir(params->files, params->dir);
-		filelist_settype(params->files, params->type);
+	if (!sfile->files) {
+		sfile->files = filelist_new();
+		filelist_setdir(sfile->files, params->dir);
+		filelist_settype(sfile->files, params->type);
 	}
 
-	if (filelist_empty(params->files))
+	if (filelist_empty(sfile->files))
 	{
 		unsigned int filter = 0;
-		filelist_hidedot(params->files, params->flag & FILE_HIDE_DOT);
+		filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
 		if (params->flag & FILE_FILTER) {
 			filter = params->filter ;
 		} else {
 			filter = 0;
 		}
 
-		filelist_setfilter(params->files, filter);
-		filelist_readdir(params->files);
+		filelist_setfilter(sfile->files, filter);
+		filelist_readdir(sfile->files);
 		
-		if(params->sort!=FILE_SORTALPHA) filelist_sort(params->files, params->sort);		
+		if(params->sort!=FILE_SORTALPHA) filelist_sort(sfile->files, params->sort);		
 	}
 
 
