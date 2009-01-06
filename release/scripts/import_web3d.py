@@ -52,11 +52,11 @@ def dirName(path):
 
 def imageConvertCompat(path):
 	
-	try:	import os
-	except:
-		return path
+	try:             import os
+	except:          return path
+	if os.sep=='\\': return path # assime win32 has quicktime, dont convert
 	
-	if path.endswith('.gif'):
+	if path.lower().endswith('.gif'):
 		path_to = path[:-3] + 'png'
 		
 		'''
@@ -147,11 +147,10 @@ def vrmlFormat(data):
 					data = data[:start] + data[end:]
 					ok = True # keep looking
 					
-					last_i = end - len(item) + 1
+					last_i = (end - len(item)) + 1
 					# print last_i, item, '|' + data[last_i] + '|'
 		
 	# done with messy extracting strings part
-	
 	
 	
 	# Bad, dont take strings into account
@@ -175,13 +174,14 @@ def vrmlFormat(data):
 		while ok:
 			ok = False
 			i = data.find(search + '"', last_i)
-			
+			# print i
 			if i != -1:
 				start = i + len(search) # first char after end of search
 				item = string_ls.pop(0)
+				# print item
 				data = data[:start] + item + data[start:]
 				
-				last_i = start + len(item)
+				last_i = start + len(item) + 1
 				
 				ok = True
 	
@@ -918,7 +918,7 @@ class vrmlNode(object):
 							lines.insert(0, 'root_node____')
 							lines.append('}')
 							'''
-							ff = open('/tmp/test.txt', 'w')
+							ff = open('/root/test.txt', 'w')
 							ff.writelines([l+'\n' for l in lines])
 							'''
 							
@@ -1167,11 +1167,11 @@ def vrml_parse(path):
 	lines.append('}')
 	# Use for testing our parsed output, so we can check on line numbers.
 	
-	"""
+	
 	ff = open('/tmp/test.txt', 'w')
 	ff.writelines([l+'\n' for l in lines])
 	ff.close()
-	"""
+	
 	
 	# Now evaluate it
 	node_type, new_i = is_nodeline(0, [])
@@ -1908,7 +1908,7 @@ def importShape(node, ancestry):
 				ima_url =			ima.getFieldAsString('url', None, ancestry)
 				
 				if ima_url==None:
-					try:		ima_url = ima.getFieldAsStringArray('url', None, ancestry)[0] # in some cases we get a list of images.
+					try:		ima_url = ima.getFieldAsStringArray('url', ancestry)[0] # in some cases we get a list of images.
 					except:		ima_url = None
 				
 				if ima_url==None:
@@ -2137,6 +2137,10 @@ def importTransform(node, ancestry):
 	bpyob = node.blendObject = bpy.data.scenes.active.objects.new('Empty', name) # , name)
 	bpyob.setMatrix( getFinalMatrix(node, None, ancestry) )
 
+	# so they are not too annoying
+	bpyob.emptyShape= Blender.Object.EmptyShapes.AXES
+	bpyob.drawSize= 0.2
+
 	
 #def importTimeSensor(node):
 
@@ -2332,8 +2336,12 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 		prefix = node.getPrefix()
 		if prefix=='PROTO':
 			pass
-		el
+		else
 		'''
+		if HELPER_FUNC and HELPER_FUNC(node, ancestry):
+			# Note, include this function so the VRML/X3D importer can be extended
+			# by an external script. - gets first pick 
+			pass
 		if spec=='Shape':
 			importShape(node, ancestry)
 		elif spec in ('PointLight', 'DirectionalLight', 'SpotLight'):
@@ -2350,15 +2358,9 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC = None):
 			ipo = bpy.data.ipos.new('web3d_ipo', 'Object')
 			translatePositionInterpolator(node, ipo)
 			'''
-			
-		else:
-			# Note, include this function so the VRML/X3D importer can be extended
-			# by an external script.
-			if HELPER_FUNC:
-				HELPER_FUNC(node, ancestry)
-
-
-
+	
+	
+	
 	# After we import all nodes, route events - anim paths
 	for node, ancestry in all_nodes:
 		importRoute(node, ancestry)
@@ -2504,3 +2506,4 @@ def test():
 		# Window.
 		load_web3d(f, PREF_FLAT=True)
 	
+
