@@ -1302,6 +1302,24 @@ void ed_screen_fullarea(bContext *C)
 
 }
 
+void ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
+{
+	if(sa->full==0)
+		ed_screen_fullarea(C);
+
+	ED_area_newspace(C, CTX_wm_area(C), type);
+}
+
+void ED_screen_full_prevspace(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	
+	ED_area_prevspace(C);
+	
+	if(sa->full)
+		ed_screen_fullarea(C);
+}
+
 void ED_screen_animation_timer(bContext *C, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);

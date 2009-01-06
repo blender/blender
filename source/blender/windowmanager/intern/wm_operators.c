@@ -328,43 +328,9 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 
 static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	wmWindow *newwin, *win;
-	bScreen *newsc, *sc;
-	ScrArea *sa, *oldsa;
 	SpaceFile *sfile;
-
-	rcti rect;
 	
-	win= CTX_wm_window(C);
-	sc= CTX_wm_screen(C);
-	oldsa= CTX_wm_area(C);
-
-#if 0 /* XXX experimental code for opening filebrowser in new window */
-	/*  poll() checks area context, but we don't accept full-area windows */
-	if(sc->full != SCREENNORMAL) 
-		return OPERATOR_CANCELLED;
-	
-	/* adds window to WM */
-	rect.xmin = 0;
-	rect.ymin = 0;
-	rect.xmax = win->sizex;
-	rect.ymax = win->sizey;
-	BLI_translate_rcti(&rect, win->posx, win->posy);
-	newwin= WM_window_open(C, &rect);
-	
-	/* allocs new screen and adds to newly created window, using window size */
-	newsc= screen_add(newwin, CTX_data_scene(C), sc->id.name+2);
-	newwin->screen= newsc;
-
-	/* create filebrowser */
-	CTX_wm_window_set(C, newwin);
-	CTX_wm_screen_set(C, newsc);
-	sa= (ScrArea*)newsc->areabase.first;
-	CTX_wm_area_set(C, sa);
-	ED_area_newspace(C, sa, SPACE_FILE);
-#else 
-	ED_area_newspace(C, oldsa, SPACE_FILE);
-#endif
+	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
 
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);

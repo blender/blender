@@ -80,6 +80,9 @@ bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
 void	ED_screen_animation_timer(struct bContext *C, int enable);
+void	ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
+void	ED_screen_full_prevspace(struct bContext *C);
+
 
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmWindowManager *wm);

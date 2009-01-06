@@ -95,7 +95,7 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 			{
 				char name[FILE_MAX];
 
-				ED_area_prevspace(C);
+				ED_screen_full_prevspace(C);
 				if(sfile->op) {
 					wmOperator *op= sfile->op;
 					
@@ -119,7 +119,7 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 				WM_operator_free(sfile->op);
 				sfile->op = NULL;
 			}
-			ED_area_prevspace(C);
+			ED_screen_full_prevspace(C);
 			
 			break;
 	}
