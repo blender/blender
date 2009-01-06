@@ -971,6 +971,22 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="sculpt"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt\sculpt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt\sculpt_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sculpt\stroke.c"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
