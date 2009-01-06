@@ -92,7 +92,7 @@ FileSelectParams* ED_fileselect_get_params(const struct bContext *C)
 short ED_fileselect_set_params(const struct bContext *C, int type, const char *title, const char *path,
 							   short flag, short display, short filter)
 {
-	char group[32], name[FILE_MAX], temp[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
+	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	SpaceLink *sl= CTX_wm_space_data(C);
 	SpaceFile *sfile;
 	FileSelectParams *params;

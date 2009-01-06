@@ -45,6 +45,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_view2d.h"
+
 #include "file_intern.h"
 #include "filelist.h"
 #include "fsmenu.h"
@@ -63,7 +65,7 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 {
 	float x,y;
 	int active_file = -1;
-	int stridex, stridey;
+//	int stridex, stridey;
 	struct direntry* file;
 	int offsetx, offsety;
 	int numfiles = filelist_numfiles(params->files);
@@ -192,7 +194,7 @@ static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 {
 	if(mval[0]>ar->v2d.mask.xmin && mval[0]<ar->v2d.mask.xmax
 	&& mval[1]>ar->v2d.mask.ymin && mval[1]<ar->v2d.mask.ymax) {			
-		int nentries = fsmenu_get_nentries();
+		//int nentries = fsmenu_get_nentries();
 		char *selected;
 		printf("selecting...\n");
 		set_active_bookmark(sfile, sfile->params, ar, mval[1]);
@@ -212,7 +214,7 @@ static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 
 static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ScrArea *sa= CTX_wm_area(C);
+//	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	short mval[2];

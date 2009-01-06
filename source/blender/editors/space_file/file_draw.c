@@ -26,6 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 #ifdef WIN32
@@ -273,7 +275,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	int width=0, height=0;
 	int rows, columns;
-	int linestep = U.fontsize*3/2;
+//	int linestep = U.fontsize*3/2;
 
 	if (params->display) {
 		sfile->prv_w = 96;
