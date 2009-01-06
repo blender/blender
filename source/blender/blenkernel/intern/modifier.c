@@ -86,6 +86,7 @@
 #include "BKE_displist.h"
 #include "BKE_fluidsim.h"
 #include "BKE_global.h"
+#include "BKE_multires.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
@@ -6173,7 +6174,6 @@ static void particleSystemModifier_deformVerts(
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
-	Mesh *me;
 	int needsFree=0;
 
 	if(ob->particlesystem.first)
@@ -6181,14 +6181,6 @@ static void particleSystemModifier_deformVerts(
 	else
 		return;
 	
-	/* multires check */
-	if(ob->type == OB_MESH) {
-		me= (Mesh*)ob->data;
-		if(me->mr && me->mr->current != 1)
-			modifier_setError(md,
-				"Particles only supported on first multires level.");
-	}
-
 	if(!psys_check_enabled(ob, psys))
 		return;
 
@@ -7738,6 +7730,58 @@ static void meshdeformModifier_deformVertsEM(
 		dm->release(dm);
 }
 
+/* Multires */
+static void multiresModifier_initData(ModifierData *md)
+{
+	MultiresModifierData *mmd = (MultiresModifierData*)md;
+
+	mmd->lvl = mmd->totlvl = 1;
+}
+
+static void multiresModifier_freeData(ModifierData *md)
+{
+	MultiresModifierData *mmd = (MultiresModifierData*)md;
+
+	if(mmd->undo_verts)
+		MEM_freeN(mmd->undo_verts);
+}
+
+static void multiresModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	MultiresModifierData *mmd = (MultiresModifierData*) md;
+	MultiresModifierData *tmmd = (MultiresModifierData*) target;
+
+	tmmd->totlvl = mmd->totlvl;
+	tmmd->lvl = mmd->lvl;
+}
+
+static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
+						   int useRenderParams, int isFinalCalc)
+{
+	MultiresModifierData *mmd = (MultiresModifierData*)md;
+	Mesh *me = get_mesh(ob);
+	DerivedMesh *final;
+
+	/* TODO: for now just skip a level1 mesh */
+	if(mmd->lvl == 1)
+		return dm;
+
+	final = multires_dm_create_from_derived(mmd, dm, me, useRenderParams, isFinalCalc);
+	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
+		int i;
+		MVert *dst = CDDM_get_verts(final);
+		for(i = 0; i < mmd->undo_verts_tot; ++i) {
+			VecCopyf(dst[i].co, mmd->undo_verts[i].co);
+		}
+		CDDM_calc_normals(final);
+
+		MEM_freeN(mmd->undo_verts);
+		mmd->undo_signal = 0;
+		mmd->undo_verts = NULL;
+	}
+
+	return final;
+}
 
 /* Shrinkwrap */
 
@@ -8337,6 +8381,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVertsEM = simpledeformModifier_deformVertsEM;
 		mti->foreachObjectLink = simpledeformModifier_foreachObjectLink;
 		mti->updateDepgraph = simpledeformModifier_updateDepgraph;
+
+		mti = INIT_TYPE(Multires);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
+		mti->initData = multiresModifier_initData;
+		mti->freeData = multiresModifier_freeData;
+		mti->copyData = multiresModifier_copyData;
+		mti->applyModifier = multiresModifier_applyModifier;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

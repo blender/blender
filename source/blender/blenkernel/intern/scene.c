@@ -707,7 +707,6 @@ void sculptsession_free(Scene *sce)
 	}
 }
 
-/*  Default curve approximates 0.5 * (cos(pi * x) + 1), with 0 <= x <= 1 */
 void sculpt_reset_curve(SculptData *sd)
 {
 	CurveMap *cm = NULL;
@@ -719,21 +718,15 @@ void sculpt_reset_curve(SculptData *sd)
 
 	if(cm->curve)
 		MEM_freeN(cm->curve);
-	cm->curve= MEM_callocN(6*sizeof(CurveMapPoint), "curve points");
+	cm->curve= MEM_callocN(3*sizeof(CurveMapPoint), "curve points");
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-	cm->totpoint= 6;
+	cm->totpoint= 3;
 	cm->curve[0].x= 0;
 	cm->curve[0].y= 1;
-	cm->curve[1].x= 0.1;
-	cm->curve[1].y= 0.97553;
-	cm->curve[2].x= 0.3;
-	cm->curve[2].y= 0.79389;
-	cm->curve[3].x= 0.9;
-	cm->curve[3].y= 0.02447;
-	cm->curve[4].x= 0.7;
-	cm->curve[4].y= 0.20611;
-	cm->curve[5].x= 1;
-	cm->curve[5].y= 0;
+	cm->curve[1].x= 0.33;
+	cm->curve[1].y= 0.33;
+	cm->curve[2].x= 1;
+	cm->curve[2].y= 0;
 
 	curvemapping_changed(sd->cumap, 0);
 }

@@ -125,6 +125,7 @@
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -2803,6 +2804,19 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 	}
 }
 
+static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps)
+{
+	if(mdisps) {
+		int i;
+
+		for(i = 0; i < count; ++i) {
+			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
+			if(!mdisps[i].disps)
+				mdisps[i].totdisp = 0;
+		}
+	}       
+}
+
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
 	int i = 0;
@@ -2814,6 +2828,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 
 		if (CustomData_verify_versions(data, i)) {
 			layer->data = newdataadr(fd, layer->data);
+			if(layer->type == CD_MDISPS)
+				direct_link_mdisps(fd, count, layer->data);
 			i++;
 		}
 	}
@@ -2866,11 +2882,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
 		direct_link_customdata(fd, &mesh->mr->fdata, lvl->totface);
 		
-		if(mesh->mr->edge_flags)
-			mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
-		if(mesh->mr->edge_creases)
-			mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
-		
 		if(!mesh->mr->edge_flags)
 			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
 		if(!mesh->mr->edge_creases)
@@ -2883,9 +2894,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
 			lvl->colfaces= newdataadr(fd, lvl->colfaces);
-			lvl->edge_boundary_states= NULL;
-			lvl->vert_face_map = lvl->vert_edge_map = NULL;
-			lvl->map_mem= NULL;
 		}
 	}
 	
@@ -3272,6 +3280,12 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					for(a=0; a<mmd->totvert; a++)
 						SWITCH_INT(mmd->dynverts[a])
 			}
+		}
+		else if (md->type==eModifierType_Multires) {
+			MultiresModifierData *mmd = (MultiresModifierData*) md;
+			
+			mmd->undo_verts = newdataadr(fd, mmd->undo_verts);
+			mmd->undo_signal = !!mmd->undo_verts;
 		}
 	}
 }
@@ -8491,8 +8505,78 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
 		}
 	}
-	
-	
+
+	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
+	   bump the version (or sub-version.) */
+	{
+		Object *ob;
+		int i;
+
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+
+			if(ob->type == OB_MESH) {
+				Mesh *me = newlibadr(fd, lib, ob->data);
+				void *olddata = ob->data;
+				ob->data = me;
+
+				if(me && me->mr) {
+					MultiresLevel *lvl;
+					ModifierData *md;
+					MultiresModifierData *mmd;
+					DerivedMesh *dm, *orig;
+
+					/* Load original level into the mesh */
+					lvl = me->mr->levels.first;
+					CustomData_free_layers(&me->vdata, CD_MVERT, lvl->totvert);
+					CustomData_free_layers(&me->edata, CD_MEDGE, lvl->totedge);
+					CustomData_free_layers(&me->fdata, CD_MFACE, lvl->totface);
+					me->totvert = lvl->totvert;
+					me->totedge = lvl->totedge;
+					me->totface = lvl->totface;
+					me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+					me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
+					me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+					memcpy(me->mvert, me->mr->verts, sizeof(MVert) * me->totvert);
+					for(i = 0; i < me->totedge; ++i) {
+						me->medge[i].v1 = lvl->edges[i].v[0];
+						me->medge[i].v2 = lvl->edges[i].v[1];
+					}
+					for(i = 0; i < me->totface; ++i) {
+						me->mface[i].v1 = lvl->faces[i].v[0];
+						me->mface[i].v2 = lvl->faces[i].v[1];
+						me->mface[i].v3 = lvl->faces[i].v[2];
+						me->mface[i].v4 = lvl->faces[i].v[3];
+					}
+
+					/* Add a multires modifier to the object */
+					md = ob->modifiers.first;
+					while(md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
+						md = md->next;                          
+					mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
+					BLI_insertlinkbefore(&ob->modifiers, md, mmd);
+
+					multiresModifier_subdivide(mmd, ob, me->mr->level_count - 1, 1, 0);
+
+					mmd->lvl = mmd->totlvl;
+					orig = CDDM_from_mesh(me, NULL);
+					dm = multires_dm_create_from_derived(mmd, orig, me, 0, 0);
+                                       
+					multires_load_old(dm, me->mr);
+
+					*MultiresDM_get_flags(dm) |= MULTIRES_DM_UPDATE_ALWAYS;
+					dm->release(dm);
+					orig->release(orig);
+
+					/* Remove the old multires */
+					multires_free(me->mr);
+					me->mr = NULL;
+				}
+
+				ob->data = olddata;
+			}
+		}
+	}
+				       
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

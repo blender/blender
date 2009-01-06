@@ -42,6 +42,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -52,6 +53,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -64,6 +66,7 @@
 
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 
 typedef struct {
 	DerivedMesh dm;
@@ -885,6 +888,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_mesh dm");
 	DerivedMesh *dm = &cddm->dm;
+	CustomDataMask mask = CD_MASK_MESH & (~CD_MASK_MDISPS);
 	int i, *index, alloctype;
 
 	/* this does a referenced copy, the only new layers being ORIGINDEX,
@@ -900,11 +904,11 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	alloctype= CD_REFERENCE;
 
-	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, alloctype,
+	CustomData_merge(&mesh->vdata, &dm->vertData, mask, alloctype,
 	                 mesh->totvert);
-	CustomData_merge(&mesh->edata, &dm->edgeData, CD_MASK_MESH, alloctype,
+	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
 	                 mesh->totedge);
-	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, alloctype,
+	CustomData_merge(&mesh->fdata, &dm->faceData, mask, alloctype,
 	                 mesh->totface);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
@@ -1282,3 +1286,192 @@ MFace *CDDM_get_faces(DerivedMesh *dm)
 	return ((CDDerivedMesh*)dm)->mface;
 }
 
+/* Multires DerivedMesh, extends CDDM */
+typedef struct MultiresDM {
+	CDDerivedMesh cddm;
+
+	MultiresModifierData *mmd;
+
+	int lvl, totlvl;
+	float (*orco)[3];
+	MVert *subco;
+
+	ListBase *vert_face_map, *vert_edge_map;
+	IndexNode *vert_face_map_mem, *vert_edge_map_mem;
+	int *face_offsets;
+
+	Mesh *me;
+	int flags;
+
+	void (*update)(DerivedMesh*);
+} MultiresDM;
+
+static void MultiresDM_release(DerivedMesh *dm)
+{
+	MultiresDM *mrdm = (MultiresDM*)dm;
+	int mvert_layer;
+
+	/* Before freeing, need to update the displacement map */
+	if(dm->needsFree && !(mrdm->flags & MULTIRES_DM_UPDATE_BLOCK))
+		mrdm->update(dm);
+
+	/* If the MVert data is being used as the sculpt undo store, don't free it */
+	mvert_layer = CustomData_get_layer_index(&dm->vertData, CD_MVERT);
+	if(mvert_layer != -1) {
+		CustomDataLayer *cd = &dm->vertData.layers[mvert_layer];
+		if(cd->data == mrdm->mmd->undo_verts)
+			cd->flag |= CD_FLAG_NOFREE;
+	}
+
+	if(DM_release(dm)) {
+		MEM_freeN(mrdm->subco);
+		MEM_freeN(mrdm->orco);
+		if(mrdm->vert_face_map)
+			MEM_freeN(mrdm->vert_face_map);
+		if(mrdm->vert_face_map_mem)
+			MEM_freeN(mrdm->vert_face_map_mem);
+		if(mrdm->vert_edge_map)
+			MEM_freeN(mrdm->vert_edge_map);
+		if(mrdm->vert_edge_map_mem)
+			MEM_freeN(mrdm->vert_edge_map_mem);
+		if(mrdm->face_offsets)
+			MEM_freeN(mrdm->face_offsets);
+		MEM_freeN(mrdm);
+	}
+}
+
+DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig, int numVerts, int numEdges, int numFaces)
+{
+	MultiresDM *mrdm = MEM_callocN(sizeof(MultiresDM), "MultiresDM");
+	CDDerivedMesh *cddm = cdDM_create("MultiresDM CDDM");
+	DerivedMesh *dm = NULL;
+
+	mrdm->cddm = *cddm;
+	MEM_freeN(cddm);
+	dm = &mrdm->cddm.dm;
+
+	mrdm->mmd = ms->mmd;
+	mrdm->me = ms->me;
+
+	if(dm) {
+		MDisps *disps;
+		MVert *mvert;
+		int i;
+
+		DM_from_template(dm, orig, numVerts, numEdges, numFaces);
+		CustomData_free_layers(&dm->faceData, CD_MDISPS, numFaces);
+
+		disps = CustomData_get_layer(&orig->faceData, CD_MDISPS);
+		if(disps)
+			CustomData_add_layer(&dm->faceData, CD_MDISPS, CD_REFERENCE, disps, numFaces);
+
+
+		mvert = CustomData_get_layer(&orig->vertData, CD_MVERT);
+		mrdm->orco = MEM_callocN(sizeof(float) * 3 * orig->getNumVerts(orig), "multires orco");
+		for(i = 0; i < orig->getNumVerts(orig); ++i)
+			VecCopyf(mrdm->orco[i], mvert[i].co);
+	}
+	else
+		DM_init(dm, numVerts, numEdges, numFaces);
+
+	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+
+	mrdm->cddm.mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
+	mrdm->cddm.medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
+	mrdm->cddm.mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+
+	mrdm->lvl = ms->mmd->lvl;
+	mrdm->totlvl = ms->mmd->totlvl;
+	mrdm->subco = MEM_callocN(sizeof(MVert)*numVerts, "multires subdivided verts");
+	mrdm->flags = 0;
+
+	dm->release = MultiresDM_release;
+
+	return dm;
+}
+
+Mesh *MultiresDM_get_mesh(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->me;
+}
+
+void *MultiresDM_get_orco(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->orco;
+
+}
+
+MVert *MultiresDM_get_subco(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->subco;
+}
+
+int MultiresDM_get_totlvl(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->totlvl;
+}
+
+int MultiresDM_get_lvl(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->lvl;
+}
+
+void MultiresDM_set_orco(DerivedMesh *dm, float (*orco)[3])
+{
+	((MultiresDM*)dm)->orco = orco;
+}
+
+void MultiresDM_set_update(DerivedMesh *dm, void (*update)(DerivedMesh*))
+{
+	((MultiresDM*)dm)->update = update;
+}
+
+ListBase *MultiresDM_get_vert_face_map(DerivedMesh *dm)
+{
+	MultiresDM *mrdm = (MultiresDM*)dm;
+
+	if(!mrdm->vert_face_map)
+		create_vert_face_map(&mrdm->vert_face_map, &mrdm->vert_face_map_mem, mrdm->me->mface,
+				     mrdm->me->totvert, mrdm->me->totface);
+
+	return mrdm->vert_face_map;
+}
+
+ListBase *MultiresDM_get_vert_edge_map(DerivedMesh *dm)
+{
+	MultiresDM *mrdm = (MultiresDM*)dm;
+
+	if(!mrdm->vert_edge_map)
+		create_vert_edge_map(&mrdm->vert_edge_map, &mrdm->vert_edge_map_mem, mrdm->me->medge,
+				     mrdm->me->totvert, mrdm->me->totedge);
+
+	return mrdm->vert_edge_map;
+}
+
+int *MultiresDM_get_face_offsets(DerivedMesh *dm)
+{
+	MultiresDM *mrdm = (MultiresDM*)dm;
+	int i, accum = 0;
+
+	if(!mrdm->face_offsets) {
+		int len = (int)pow(2, mrdm->lvl - 2) - 1;
+		int area = len * len;
+		int t = 1 + len * 3 + area * 3, q = t + len + area;
+
+		mrdm->face_offsets = MEM_callocN(sizeof(int) * mrdm->me->totface, "mrdm face offsets");
+		for(i = 0; i < mrdm->me->totface; ++i) {
+			mrdm->face_offsets[i] = accum;
+
+			accum += (mrdm->me->mface[i].v4 ? q : t);
+		}
+	}
+
+	return mrdm->face_offsets;
+}
+
+int *MultiresDM_get_flags(DerivedMesh *dm)
+{
+	return &((MultiresDM*)dm)->flags;
+}

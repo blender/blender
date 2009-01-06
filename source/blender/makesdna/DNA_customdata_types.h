@@ -74,7 +74,8 @@ typedef struct CustomData {
 #define CD_MLOOPUV		16
 #define CD_MLOOPCOL		17
 #define CD_TANGENT		18
-#define CD_NUMTYPES		19
+#define CD_MDISPS		19
+#define CD_NUMTYPES		20
 	/* fake type, derivedmesh wants CustomDataMask for weightpaint too, is not stored  */
 #define CD_WEIGHTPAINT	30
 
@@ -98,6 +99,7 @@ typedef struct CustomData {
 #define CD_MASK_MLOOPUV		(1 << CD_MLOOPUV)
 #define CD_MASK_MLOOPCOL	(1 << CD_MLOOPCOL)
 #define CD_MASK_TANGENT		(1 << CD_TANGENT)
+#define CD_MASK_MDISPS		(1 << CD_MDISPS)
 
 /* derivedmesh wants CustomDataMask for weightpaint too, is not customdata though */
 #define CD_MASK_WEIGHTPAINT	(1 << CD_WEIGHTPAINT)

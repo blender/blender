@@ -852,7 +852,7 @@ static void write_constraint_channels(WriteData *wd, ListBase *chanbase)
 
 }
 
-static void write_modifiers(WriteData *wd, ListBase *modbase)
+static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 {
 	ModifierData *md;
 
@@ -903,10 +903,16 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
+		else if (md->type==eModifierType_Multires) {
+			MultiresModifierData *mmd = (MultiresModifierData*) md;
+
+			if(mmd->undo_verts && write_undo)
+				writestruct(wd, DATA, "MVert", mmd->undo_verts_tot, mmd->undo_verts);
+		}
 	}
 }
 
-static void write_objects(WriteData *wd, ListBase *idbase)
+static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 {
 	Object *ob;
 	
@@ -940,7 +946,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);
-			write_modifiers(wd, &ob->modifiers);
+			write_modifiers(wd, &ob->modifiers, write_undo);
 		}
 		ob= ob->id.next;
 	}
@@ -1138,7 +1144,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 {
 	if (dvlist) {
-		int	i;
+		int i;
 		
 		/* Write the dvert list */
 		writestruct(wd, DATA, "MDeformVert", count, dvlist);
@@ -1147,6 +1153,19 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 		for (i=0; i<count; i++) {
 			if (dvlist[i].dw)
 				writestruct(wd, DATA, "MDeformWeight", dvlist[i].totweight, dvlist[i].dw);
+		}
+	}
+}
+
+static void write_mdisps(WriteData *wd, int count, MDisps *mdlist)
+{
+	if(mdlist) {
+		int i;
+		
+		writestruct(wd, DATA, "MDisps", count, mdlist);
+		for(i = 0; i < count; ++i) {
+			if(mdlist[i].disps)
+				writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
 		}
 	}
 }
@@ -1165,6 +1184,9 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 		if (layer->type == CD_MDEFORMVERT) {
 			/* layer types that allocate own memory need special handling */
 			write_dverts(wd, count, layer->data);
+		}
+		else if (layer->type == CD_MDISPS) {
+			write_mdisps(wd, count, layer->data);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);
@@ -1186,7 +1208,6 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 static void write_meshs(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
-	MultiresLevel *lvl;
 
 	mesh= idbase->first;
 	while(mesh) {
@@ -1210,29 +1231,6 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				write_customdata(wd, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, mesh->totedge, &mesh->edata, -1, 0);
 				write_customdata(wd, mesh->totface, &mesh->fdata, -1, 0);
-			}
-
-			/* Multires data */
-			writestruct(wd, DATA, "Multires", 1, mesh->mr);
-			if(mesh->mr) {
-				lvl= mesh->mr->levels.first;
-				if(lvl) {
-					write_customdata(wd, lvl->totvert, &mesh->mr->vdata, -1, 0);
-					write_customdata(wd, lvl->totface, &mesh->mr->fdata, -1, 0);
-					writedata(wd, DATA, sizeof(short)*lvl->totedge, mesh->mr->edge_flags);
-					writedata(wd, DATA, sizeof(char)*lvl->totedge, mesh->mr->edge_creases);
-				}
-
-				for(; lvl; lvl= lvl->next) {
-					writestruct(wd, DATA, "MultiresLevel", 1, lvl);
-					writestruct(wd, DATA, "MultiresFace", lvl->totface, lvl->faces);
-					writestruct(wd, DATA, "MultiresEdge", lvl->totedge, lvl->edges);
-					writestruct(wd, DATA, "MultiresColFace", lvl->totface, lvl->colfaces);
-				}
-
-				lvl= mesh->mr->levels.last;
-				if(lvl)
-					writestruct(wd, DATA, "MVert", lvl->totvert, mesh->mr->verts);
 			}
 
 			/* PMV data */
@@ -2098,7 +2096,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_groups   (wd, &mainvar->group);
 	write_armatures(wd, &mainvar->armature);
 	write_actions  (wd, &mainvar->action);
-	write_objects  (wd, &mainvar->object);
+	write_objects  (wd, &mainvar->object, (current != NULL));
 	write_materials(wd, &mainvar->mat);
 	write_textures (wd, &mainvar->tex);
 	write_meshs    (wd, &mainvar->mesh);

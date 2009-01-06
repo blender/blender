@@ -58,7 +58,6 @@
 #include "BIF_retopo.h"
 
 #include "ED_mesh.h"
-#include "ED_multires.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
@@ -137,8 +136,6 @@ void add_click_mesh(Scene *scene, Object *obedit, EditMesh *em)
 	EditVert *eve, *v1;
 	float min[3], max[3];
 	int done= 0;
-	
-	if(multires_test()) return;
 	
 	INIT_MINMAX(min, max);
 	
@@ -610,8 +607,6 @@ void addedgeface_mesh(EditMesh *em)
 	EditFace *efa;
 	short amount=0;
 
-	if(multires_test()) return;
-
 	/* how many selected ? */
 	if(em->selectmode & SCE_SELECT_EDGE) {
 		/* in edge mode finding selected vertices means flushing down edge codes... */
@@ -740,8 +735,6 @@ void addedgeface_mesh(EditMesh *em)
 
 void adduplicate_mesh(Scene *scene, Object *obedit, EditMesh *em)
 {
-
-	if(multires_test()) return;
 
 	waitcursor(1);
 
@@ -1250,8 +1243,6 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, 
 	/* this function also comes from an info window */
 // XXX	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 
-	if (obedit && obedit->type==OB_MESH && multires_test()) return;
-	
 	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
 	

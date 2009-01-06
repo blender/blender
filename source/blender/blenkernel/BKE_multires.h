@@ -27,42 +27,58 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
-struct CustomData;
-struct EditMesh;
-struct Multires;
-struct MultiresLevel;
+struct DerivedMesh;
 struct Mesh;
+struct MFace;
+struct MultiresModifierData;
 struct Object;
 
-/* Level access */
-struct MultiresLevel *current_level(struct Multires *mr);
-struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
+typedef struct MultiresSubsurf {
+	struct MultiresModifierData *mmd;
+	struct Mesh *me;
+} MultiresSubsurf;
 
-/* Level control */
-void multires_add_level(struct Object *ob, struct Mesh *me, const char subdiv_type);
-void multires_set_level(struct Object *ob, struct Mesh *me, const int render);
-void multires_free_level(struct MultiresLevel *lvl);
+typedef struct IndexNode {
+	struct IndexNode *next, *prev;
+	int index;
+} IndexNode;
 
-void multires_edge_level_update(struct Object *ob, struct Mesh *me);
+void create_vert_face_map(ListBase **map, IndexNode **mem, const struct MFace *mface,
+			  const int totvert, const int totface);
+void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *medge,
+			  const int totvert, const int totedge);
 
-void multires_free(struct Multires *mr);
-struct Multires *multires_copy(struct Multires *orig);
-void multires_create(struct Object *ob, struct Mesh *me);
+/* MultiresDM */
+struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
+struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);
+void *MultiresDM_get_vertnorm(struct DerivedMesh *);
+void *MultiresDM_get_orco(struct DerivedMesh *);
+struct MVert *MultiresDM_get_subco(struct DerivedMesh *);
+struct ListBase *MultiresDM_get_vert_face_map(struct DerivedMesh *);
+struct ListBase *MultiresDM_get_vert_edge_map(struct DerivedMesh *);
+int *MultiresDM_get_face_offsets(struct DerivedMesh *);
+int MultiresDM_get_totlvl(struct DerivedMesh *);
+int MultiresDM_get_lvl(struct DerivedMesh *);
+void MultiresDM_set_update(struct DerivedMesh *, void (*)(struct DerivedMesh*));
+int *MultiresDM_get_flags(struct DerivedMesh *);
 
-/* CustomData */
-void multires_delete_layer(struct Object *ob, struct CustomData *cd, const int type, int n);
-void multires_add_layer(struct Object *ob, struct CustomData *cd, const int type, const int n);
-void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
-void multires_to_mcol(struct MultiresColFace *f, MCol mcol[4]);
-/* After adding or removing vcolor layers, run this */
-void multires_load_cols(struct Mesh *me);
+#define MULTIRES_DM_UPDATE_BLOCK 1
+#define MULTIRES_DM_UPDATE_ALWAYS 2
 
-/* Private (used in multires-firstlevel.c) */
-void multires_level_to_mesh(struct Object *ob, struct Mesh *me, const int render);
-void multires_update_levels(struct Mesh *me, const int render);
-void multires_update_first_level(struct Mesh *me, struct EditMesh *em);
-void multires_update_customdata(struct MultiresLevel *lvl1, struct EditMesh *em, struct CustomData *src,
-				struct CustomData *dst, const int type);
-void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em,
-				 struct MultiresLevel *lvl, struct CustomData *src,
-                                 struct CustomData *dst, const int type);
+void multires_force_update(struct Object *ob);
+
+struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, struct DerivedMesh*,
+						    struct Mesh *, int, int);
+
+int multiresModifier_switch_level(struct Object *, const int);
+void multiresModifier_join(struct Object *);
+void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
+void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int distance,
+				int updateblock, int simple);
+void multiresModifier_setLevel(void *mmd_v, void *ob_v);
+int multiresModifier_reshape(struct MultiresModifierData *mmd, struct Object *dst, struct Object *src);
+
+/* Related to the old multires */
+struct Multires;
+void multires_load_old(struct DerivedMesh *, struct Multires *);
+void multires_free(struct Multires*);

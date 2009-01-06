@@ -30,6 +30,8 @@
 #ifndef BKE_SCULPT_H
 #define BKE_SCULPT_H
 
+struct MFace;
+struct MVert;
 struct NumInput;
 struct RadialControl;
 struct Scene;
@@ -40,6 +42,13 @@ typedef struct SculptSession {
 	struct ProjVert *projverts;
 
 	struct bglMats *mats;
+
+	int multires;
+	int totvert;
+	int totface;
+	struct MVert *mvert;
+	struct MFace *mface;
+	float *face_normals;
 	
 	/* An array of lists; array is sized as
 	   large as the number of verts in the mesh,

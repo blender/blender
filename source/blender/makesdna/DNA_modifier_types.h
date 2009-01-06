@@ -39,6 +39,7 @@ typedef enum ModifierType {
 	eModifierType_Fluidsim,
 	eModifierType_Mask,
 	eModifierType_SimpleDeform,
+	eModifierType_Multires,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -516,6 +517,17 @@ typedef struct ExplodeModifierData {
 	short flag, vgroup;
 	float protect;
 } ExplodeModifierData;
+
+typedef struct MultiresModifierData {
+	ModifierData modifier;
+
+	struct MVert *undo_verts; /* Store DerivedMesh vertices for multires undo */
+	int undo_verts_tot; /* Length of undo_verts array */
+	char undo_signal; /* If true, signals to replace verts with undo verts */
+
+	char lvl, totlvl;
+	char simple;
+} MultiresModifierData;
 
 typedef struct FluidsimModifierData {
 	ModifierData modifier;

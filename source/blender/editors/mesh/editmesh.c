@@ -66,7 +66,6 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
@@ -97,7 +96,6 @@ static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
 static void key_to_mesh() {}
-static int multires_test() {return 0;}
 static void adduplicate() {}
 
 
@@ -1443,7 +1441,6 @@ void separate_mesh(Scene *scene, Object *obedit)
 	ListBase edve, eded, edvl;
 	
 	if(obedit==NULL) return;
-	if(multires_test()) return;
 
 	waitcursor(1);
 	
@@ -1572,8 +1569,6 @@ void separate_material(Scene *scene, Object *obedit)
 	EditMesh *em;
 	unsigned char curr_mat;
 	
-	if(multires_test()) return;
-	
 	me= obedit->data;
 	em= me->edit_mesh;
 	if(me->key) {
@@ -1620,7 +1615,6 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 		return;
 	}
 
-	if(multires_test()) return;
 	waitcursor(1);	
 	
 	/* we are going to abuse the system as follows:
@@ -1830,11 +1824,6 @@ typedef struct EditSelectionC{
 	int index;
 }EditSelectionC;
 
-typedef struct EM_MultiresUndo {
-	int users;
-	Multires *mr;
-} EM_MultiresUndo;
-
 typedef struct UndoMesh {
 	EditVertC *verts;
 	EditEdgeC *edges;
@@ -1845,7 +1834,6 @@ typedef struct UndoMesh {
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
 	CustomData vdata, edata, fdata;
-	EM_MultiresUndo *mru;
 } UndoMesh;
 
 /* for callbacks */
@@ -1865,14 +1853,6 @@ static void free_undoMesh(void *umv)
 	CustomData_free(&um->vdata, um->totvert);
 	CustomData_free(&um->edata, um->totedge);
 	CustomData_free(&um->fdata, um->totface);
-	if(um->mru) {
-		--um->mru->users;
-		if(um->mru->users==0) {
-			multires_free(um->mru->mr);
-			um->mru->mr= NULL;
-			MEM_freeN(um->mru);
-		}
-	}
 	MEM_freeN(um);
 }
 
@@ -1972,25 +1952,6 @@ static void *editMesh_to_undoMesh(void *emv)
 
 // XXX	um->retopo_paint_data= retopo_paint_data_copy(em->retopo_paint_data);
 //	um->retopo_mode= scene->toolsettings->retopo_mode;
-	
-	{
-		Multires *mr= NULL; // XXX old-style multires
-		UndoMesh *prev= NULL; // XXX undo_editmode_get_prev(obedit);
-		
-		um->mru= NULL;
-		
-		if(mr) {
-			if(prev && prev->mru && prev->mru->mr && prev->mru->mr->current == mr->current) {
-				um->mru= prev->mru;
-				++um->mru->users;
-			}
-			else {
-				um->mru= MEM_callocN(sizeof(EM_MultiresUndo), "EM_MultiresUndo");
-				um->mru->users= 1;
-				um->mru->mr= multires_copy(mr);
-			}
-		}
-	}
 	
 	return um;
 }
@@ -2101,12 +2062,6 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 //		retopo_paint_view_update(G.vd);
 //	}
 	
-	{
-		Mesh *me= NULL; // XXX;
-		multires_free(me->mr);
-		me->mr= NULL;
-		if(um->mru && um->mru->mr) me->mr= multires_copy(um->mru->mr);
-	}
 }
 
 static void *getEditMesh(bContext *C)

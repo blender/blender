@@ -78,7 +78,6 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 #include "BMF_Api.h"
 
-#include "ED_multires.h"
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 
@@ -143,8 +142,6 @@ void convert_to_triface(EditMesh *em, int direction)
 	EditFace *efa, *efan, *next;
 	float fac;
 	
-	if(multires_test()) return;
-	
 	efa= em->faces.last;
 	while(efa) {
 		next= efa->prev;
@@ -196,8 +193,6 @@ int removedoublesflag(EditMesh *em, short flag, short automerge, float limit)		/
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	int a, b, test, amount;
 	
-	if(multires_test()) return 0;
-
 	
 	/* flag 128 is cleared, count */
 
@@ -499,8 +494,6 @@ void xsortvert_flag(bContext *C, int flag)
 	ListBase tbase;
 	int i, amount;
 	
-	if(multires_test()) return;
-	
 	em_setup_viewcontext(C, &vc);
 	
 	amount = BLI_countlist(&vc.em->verts);
@@ -539,8 +532,6 @@ void hashvert_flag(EditMesh *em, int flag)
 	struct xvertsort *sortblock, *sb, onth, *newsort;
 	ListBase tbase;
 	int amount, a, b;
-	
-	if(multires_test()) return;
 	
 	/* count */
 	eve= em->verts.first;
@@ -600,8 +591,6 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 	float nor[3]= {0.0, 0.0, 0.0};
 	short nr, transmode= 0;
 
-	if(multires_test()) return;
-	
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		if(G.totvertsel==0) nr= 0;
 		else if(G.totvertsel==1) nr= 4;
@@ -673,8 +662,6 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 void split_mesh(EditMesh *em)
 {
 
-	if(multires_test()) return;
-
 	if(okee(" Split ")==0) return;
 
 	waitcursor(1);
@@ -698,8 +685,6 @@ void extrude_repeat_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, f
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a;
 
-	if(multires_test()) return;
-	
 	/* dvec */
 	dvec[0]= v3d->persinv[2][0];
 	dvec[1]= v3d->persinv[2][1];
@@ -737,8 +722,6 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 	float phi;
 	short a,ok;
 
-	if(multires_test()) return;
-	
 	/* imat and center and size */
 	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat,bmat);
@@ -821,8 +804,6 @@ void screw_mesh(Object *obedit, EditMesh *em, int steps, int turns)
 	EditEdge *eed;
 	float dvec[3], nor[3];
 
-	if(multires_test()) return;
-	
 	/* clear flags */
 	eve= em->verts.first;
 	while(eve) {
@@ -933,8 +914,6 @@ void delete_mesh(Object *obedit, EditMesh *em)
 	int count;
 	char *str="Erase";
 
-	if(multires_test()) return;
-	
 	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
 	if(event<1) return;
 
@@ -1078,8 +1057,6 @@ void fill_mesh(EditMesh *em)
 	short ok;
 
 	if(em==NULL) return;
-	if(multires_test()) return;
-
 	waitcursor(1);
 
 	/* copy all selected vertices */
@@ -2372,8 +2349,6 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beaut
 	ModifierData *md= obedit->modifiers.first;
 	int ctrl= 0; // XXX
 	
-	if(multires_test()) return;
-
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) ef->f1 = 0;
 	for(eve=em->verts.first; eve; eve=eve->next) {
@@ -2930,8 +2905,6 @@ void beauty_fill(EditMesh *em)
 	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 	int totedge, ok, notbeauty=8, onedone, vindex[4];
 	
-	if(multires_test()) return;
-
 	/* - all selected edges with two faces
 		* - find the faces: store them in edges (using datablock)
 		* - per edge: - test convex
@@ -3238,9 +3211,6 @@ void join_triangles(EditMesh *em)
 	float limit = 0.0f; // XXX scene->toolsettings->jointrilimit;
 	int i, ok, totedge=0, totseledge=0, complexedges, vindex[4];
 	
-	/*test for multi-resolution data*/
-	if(multires_test()) return;
-
 	/*if we take a long time on very dense meshes we want waitcursor to display*/
 	waitcursor(1);
 	
@@ -5586,8 +5556,6 @@ int collapseEdges(EditMesh *em)
 	
 	mergecount = 0;
 	
-	if(multires_test()) return 0;
-	
 	build_edgecollection(em, &allcollections);
 	groupcount = BLI_countlist(&allcollections);
 	
@@ -5646,8 +5614,6 @@ int merge_firstlast(EditMesh *em, int first, int uvmerge)
 	EditVert *eve,*mergevert;
 	EditSelection *ese;
 	
-	if(multires_test()) return 0;
-	
 	/* do sanity check in mergemenu in edit.c ?*/
 	if(first == 0){ 
 		ese = em->selected.last;
@@ -5680,8 +5646,6 @@ int merge_firstlast(EditMesh *em, int first, int uvmerge)
 int merge_target(EditMesh *em, int target, int uvmerge)
 {
 	EditVert *eve;
-	
-	if(multires_test()) return 0;
 	
 	if(target) snap_sel_to_curs();
 	else snap_to_center();

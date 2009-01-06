@@ -98,7 +98,6 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -2284,9 +2283,6 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	/* for example; displist make is different in editmode */
 	if(freedata) obedit= NULL;
 	scene->obedit= obedit; // XXX for context
-	
-	if(ob->type==OB_MESH && get_mesh(ob)->mr)
-		multires_edge_level_update(ob, get_mesh(ob));
 	
 	/* also flush ob recalc, doesn't take much overhead, but used for particles */
 	DAG_object_flush_update(scene, ob, OB_RECALC_OB|OB_RECALC_DATA);

@@ -56,7 +56,6 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -628,14 +627,8 @@ static void make_tfaces(Object *ob)
 	Mesh *me= ob->data;
 	
 	if(!me->mtface) {
-		if(me->mr) {
-			multires_add_layer(ob, &me->mr->fdata, CD_MTFACE,
-			                   CustomData_number_of_layers(&me->fdata, CD_MTFACE));
-		}
-		else {
-			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
-				NULL, me->totface);
-		}
+		me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
+						 NULL, me->totface);
 	}
 }
 

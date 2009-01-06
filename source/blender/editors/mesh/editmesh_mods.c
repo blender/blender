@@ -79,7 +79,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "ED_multires.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -3346,8 +3345,6 @@ void editmesh_mark_seam(EditMesh *em, int clear)
 {
 	EditEdge *eed;
 	
-// XXX	if(multires_level1_test()) return;
-
 	/* auto-enable seams drawing */
 	if(clear==0) {
 		if(!(G.f & G_DRAWSEAMS)) {
@@ -3390,8 +3387,6 @@ void editmesh_mark_sharp(EditMesh *em, int set)
 		}
 	}
 #endif
-
-// XXX	if(multires_level1_test()) return;
 
 	if(set) {
 		eed= em->edges.first;

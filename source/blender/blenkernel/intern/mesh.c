@@ -56,7 +56,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
@@ -137,8 +136,6 @@ void free_mesh(Mesh *me)
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->mselect) MEM_freeN(me->mselect);
 	if(me->edit_mesh) MEM_freeN(me->edit_mesh);
-
-	if(me->mr) multires_free(me->mr);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
@@ -222,9 +219,6 @@ Mesh *copy_mesh(Mesh *me)
 		}
 	}
 	
-	if(me->mr)
-		men->mr= multires_copy(me->mr);
-
 	men->mselect= NULL;
 
 	men->bb= MEM_dupallocN(men->bb);
