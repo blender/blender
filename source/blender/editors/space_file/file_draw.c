@@ -98,14 +98,22 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 				char name[FILE_MAX];
 
 				area_prevspace(C);
-				BLI_strncpy(name, sfile->params->dir, sizeof(name));
-				strcat(name, sfile->params->file);
-				RNA_string_set(sfile->op->ptr, "filename", name);
-				sfile->op->type->exec(C, sfile->op);
-				/* XXX for Ton: the call to WM_operator_free crashes
-				   WM_operator_free(sfile->op);
-				   sfile->op = NULL;
-				*/
+				if(sfile->op) {
+					wmOperator *op= sfile->op;
+					
+					/* if load .blend, all UI pointers after exec are invalid! */
+					/* but, operator can be freed still */
+					
+					sfile->op = NULL;
+					BLI_strncpy(name, sfile->params->dir, sizeof(name));
+					strcat(name, sfile->params->file);
+					RNA_string_set(op->ptr, "filename", name);
+				
+					op->type->exec(C, op);
+				
+					WM_operator_free(op);
+				}
+
 			}
 			break;
 		case B_FS_CANCEL:

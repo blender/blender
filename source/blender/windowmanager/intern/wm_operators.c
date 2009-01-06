@@ -402,7 +402,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 	
 	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
 

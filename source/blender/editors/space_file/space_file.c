@@ -173,7 +173,7 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+//	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -322,10 +322,10 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
-{
+//static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
+//{
 	/* context changes */
-}
+//}
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
