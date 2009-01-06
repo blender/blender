@@ -258,6 +258,10 @@ def is_nodeline(i, words):
 	if lines[i].startswith('PROTO'):
 		words[:] = lines[i].split()
 		return NODE_NORMAL, i+1 # TODO - assumes the next line is a '[\n', skip that
+	if lines[i].startswith('EXTERNPROTO'):
+		words[:] = lines[i].split()
+		return NODE_ARRAY, i+1 # TODO - assumes the next line is a '[\n', skip that
+	
 	'''
 	proto_type, new_i = is_protoline(i, words, proto_field_defs)
 	if new_i != -1:
@@ -437,6 +441,17 @@ class vrmlNode(object):
 		except:
 			return None
 	
+	def findSpecRecursive(self, spec):
+		self_real = self.getRealNode()
+		if spec == self_real.getSpec():
+			return self
+		
+		for child in self_real.children:
+			if child.findSpecRecursive(spec):
+				return child
+		
+		return None
+	
 	def getPrefix(self):
 		if self.id:
 			return self.id[0]
@@ -453,6 +468,9 @@ class vrmlNode(object):
 	
 	def getProtoName(self):
 		return self.getSpecialTypeName('PROTO')
+		
+	def getExternprotoName(self):
+		return self.getSpecialTypeName('EXTERNPROTO')
 	
 	def getChildrenBySpec(self, node_spec): # spec could be Transform, Shape, Appearance
 		self_real = self.getRealNode()
@@ -496,14 +514,19 @@ class vrmlNode(object):
 				# where the parent of this object is not the real parent
 				# - In this case we have added the proto as a child to a node instancing it.
 				# This is a bit arbitary, but its how Proto's are done with this importer.
-				if child.getProtoName() == None:
+				if child.getProtoName() == None and child.getExternprotoName() == None:
 					child.getSerialized(results, ancestry)
 				else:
 					
-					if DEBUG: print 'getSerialized() is proto:', child.getProtoName(), self.getSpec()
-					if child.getProtoName()==self.getSpec():
+					if DEBUG: print 'getSerialized() is proto:', child.getProtoName(), child.getExternprotoName(), self.getSpec()
+					
+					self_spec = self.getSpec()
+					
+					if child.getProtoName() == self_spec or child.getExternprotoName() == self_spec:
 						if DEBUG: "FoundProto!"
 						child.getSerialized(results, ancestry)
+					
+					
 		
 		return results
 		
@@ -869,17 +892,50 @@ class vrmlNode(object):
 		
 		# print self.id, self.getFilename()
 		
-		# If we were an inline then try load the file
+		# Check if this node was an inline or externproto
+		
+		url_ls = []
+		
 		if self.node_type == NODE_NORMAL and self.getSpec() == 'Inline':
-			
-			
 			ancestry = [] # Warning! - PROTO's using this wont work at all.
 			url = self.getFieldAsString('url', None, ancestry)
+			if url:
+				url_ls = [(url, None)]
 			del ancestry
+		
+		elif self.getExternprotoName():
+			# externproto
+			url_ls = []
+			for f in self.fields:
+				
+				if type(f)==str:
+					f = [f]
+				
+				for ff in f:
+					for f_split in ff.split('"'):
+						# print f_split
+						# "someextern.vrml#SomeID"
+						if '#' in f_split:
+							
+							f_split, f_split_id = f_split.split('#') # there should only be 1 # anyway
+							
+							url_ls.append( (f_split, f_split_id) )
+						else:
+							url_ls.append( (f_split, None) )
+		
+		
+		# Was either an Inline or an EXTERNPROTO
+		if url_ls:
 			
-			if url != None:
+			# print url_ls
+			
+			for url, extern_key in url_ls:
+				print url
 				urls = []
 				urls.append( url )
+				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
+				
+				urls.append( dirName(self.getFilename()) + url )
 				urls.append( BPySys.caseInsensitivePath(urls[-1]) )
 				
 				urls.append( dirName(self.getFilename()) + baseName(url) )
@@ -918,7 +974,7 @@ class vrmlNode(object):
 							lines.insert(0, 'root_node____')
 							lines.append('}')
 							'''
-							ff = open('/root/test.txt', 'w')
+							ff = open('/tmp/test.txt', 'w')
 							ff.writelines([l+'\n' for l in lines])
 							'''
 							
@@ -926,9 +982,28 @@ class vrmlNode(object):
 							child.setRoot(url) # initialized dicts
 							child.parse(0)
 							
+							# if self.getExternprotoName():
+							
+							if not extern_key: # if none is spesified - use the name
+								extern_key = self.getSpec()
+							
+							if extern_key:
+								
+								self.children.remove(child)
+								child.parent = None
+								
+								extern_child = child.findSpecRecursive(extern_key)
+								
+								if extern_child:
+									self.children.append(extern_child)
+									extern_child.parent = self
+									
+									if DEBUG: print "\tEXTERNPROTO ID found!:", extern_key
+								else:
+									print "\tEXTERNPROTO ID not found!:", extern_key
+									
 							# Watch it! - restore lines
 							lines[:] = lines_old
-					
 		
 		return new_i
 	
@@ -967,6 +1042,8 @@ class vrmlNode(object):
 				self.getDefDict()[ key ] = self
 			
 			key = self.getProtoName()
+			if not key:	key = self.getExternprotoName()
+			
 			proto_dict = self.getProtoDict()
 			if key != None:
 				proto_dict[ key ] = self
@@ -1167,11 +1244,11 @@ def vrml_parse(path):
 	lines.append('}')
 	# Use for testing our parsed output, so we can check on line numbers.
 	
-	
+	'''
 	ff = open('/tmp/test.txt', 'w')
 	ff.writelines([l+'\n' for l in lines])
 	ff.close()
-	
+	'''
 	
 	# Now evaluate it
 	node_type, new_i = is_nodeline(0, [])
