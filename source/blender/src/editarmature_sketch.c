@@ -1514,6 +1514,7 @@ int sk_getStrokeEmbedPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_D
 			float vec[3];
 			float new_dist;
 			
+			p2 = NULL;
 			p1->flag = 1;
 
 			/* if peeling objects, take the first and last from each object */			
