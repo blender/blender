@@ -1282,7 +1282,7 @@ void ed_screen_fullarea(bContext *C)
 		
 		/* returns the top small area */
 		newa= area_split(CTX_wm_window(C), sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
-		area_newspace(C, newa, SPACE_INFO);
+		ED_area_newspace(C, newa, SPACE_INFO);
 
 		/* copy area */
 		newa= newa->prev;

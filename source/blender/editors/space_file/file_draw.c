@@ -49,8 +49,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "ED_fileselect.h"
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
  
@@ -59,6 +57,9 @@
 #include "PIL_time.h"
 
 #include "RNA_access.h"
+
+#include "ED_fileselect.h"
+#include "ED_screen.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -86,9 +87,6 @@ enum {
 	B_FS_CANCEL,
 } eFile_ButEvents;
 
-// XXX for Ton: bad level, maybe needs export in ED_screen?
-extern void area_prevspace(bContext *C);
-
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
@@ -97,7 +95,7 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 			{
 				char name[FILE_MAX];
 
-				area_prevspace(C);
+				ED_area_prevspace(C);
 				if(sfile->op) {
 					wmOperator *op= sfile->op;
 					
@@ -117,9 +115,12 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 			}
 			break;
 		case B_FS_CANCEL:
-			/* XXX for Ton: the call to area_prevspace crashes
-				   area_prevspace(C);
-			*/
+			if(sfile->op) {
+				WM_operator_free(sfile->op);
+				sfile->op = NULL;
+			}
+			ED_area_prevspace(C);
+			
 			break;
 	}
 }

@@ -68,6 +68,8 @@ void	ED_area_tag_redraw(ScrArea *sa);
 void	ED_area_tag_refresh(ScrArea *sa);
 void	ED_area_do_refresh(struct bContext *C, ScrArea *sa);
 void	ED_area_headerprint(ScrArea *sa, const char *str);
+void	ED_area_newspace(struct bContext *C, ScrArea *sa, int type);
+void	ED_area_prevspace(struct bContext *C);
 
 /* screens */
 void	ED_screens_initialize(struct wmWindowManager *wm);

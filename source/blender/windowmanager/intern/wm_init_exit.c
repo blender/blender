@@ -82,6 +82,7 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
 

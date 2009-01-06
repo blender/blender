@@ -309,9 +309,6 @@ static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-// XXX for Ton: bad level, maybe this needs export in ED_screen?
-extern void	area_newspace(bContext *C, ScrArea *sa, int type);
-
 static void WM_OT_open_recentfile(wmOperatorType *ot)
 {
 	ot->name= "Open Recent File";
@@ -364,9 +361,9 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	CTX_wm_screen_set(C, newsc);
 	sa= (ScrArea*)newsc->areabase.first;
 	CTX_wm_area_set(C, sa);
-	area_newspace(C, sa, SPACE_FILE);
+	ED_area_newspace(C, sa, SPACE_FILE);
 #else 
-	area_newspace(C, oldsa, SPACE_FILE);
+	ED_area_newspace(C, oldsa, SPACE_FILE);
 #endif
 
 	/* settings for filebrowser */

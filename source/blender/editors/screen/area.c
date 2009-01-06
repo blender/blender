@@ -586,10 +586,9 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 #endif
 }
 
-/* *********** Space switching code, local now *********** */
-/* XXX make operator for this */
+/* *********** Space switching code *********** */
 
-void area_newspace(bContext *C, ScrArea *sa, int type)
+void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 {
 	if(sa->spacetype != type) {
 		SpaceType *st;
@@ -646,10 +645,12 @@ void area_newspace(bContext *C, ScrArea *sa, int type)
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
+		
+		ED_area_tag_redraw(sa);
 	}
 }
 
-void area_prevspace(bContext *C)
+void ED_area_prevspace(bContext *C)
 {
 	SpaceLink *sl= CTX_wm_space_data(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -665,11 +666,6 @@ void area_prevspace(bContext *C)
 #endif
 
 	if(sl->next) {
-	
-		BLI_remlink(&sa->spacedata, sl);
-		BLI_addtail(&sa->spacedata, sl);
-
-		sl= sa->spacedata.first;
 
 #if 0 // XXX check whether this is still needed
 		if (sfile->spacetype == SPACE_SCRIPT) {
@@ -678,11 +674,12 @@ void area_prevspace(bContext *C)
 		}
 #endif
 
-		area_newspace(C, sa, SPACE_FILE);
+		ED_area_newspace(C, sa, sl->next->spacetype);
 	}
 	else {
-		area_newspace(C, sa, SPACE_INFO);
+		ED_area_newspace(C, sa, SPACE_INFO);
 	}
+	ED_area_tag_redraw(sa);
 }
 
 static char *windowtype_pup(void)
@@ -725,7 +722,7 @@ static char *windowtype_pup(void)
 
 static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
-	area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
+	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
