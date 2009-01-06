@@ -26,8 +26,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_AREA_H
-#define ED_AREA_H
+#ifndef ED_SPACE_API_H
+#define ED_SPACE_API_H
 
 /* the pluginnable API for export to editors */
 
@@ -48,5 +48,5 @@ void ED_spacetype_script(void);
 void ED_spacetype_text(void);
 void ED_spacetype_sequencer(void);
 
-#endif /* ED_AREA_H */
+#endif /* ED_SPACE_API_H */
 

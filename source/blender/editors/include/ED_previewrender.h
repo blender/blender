@@ -21,8 +21,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BIF_PREVIEWRENDER_H
-#define BIF_PREVIEWRENDER_H
+#ifndef ED_PREVIEWRENDER_H
+#define ED_PREVIEWRENDER_H
 
 #include "DNA_vec_types.h"
 

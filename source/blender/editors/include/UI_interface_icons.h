@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BIF_PREVIEW_ICONS_H
-#define BIF_PREVIEW_ICONS_H
+#ifndef UI_INTERFACE_ICONS_H
+#define UI_INTERFACE_ICONS_H
 
 struct Image;
 struct ImBuf;
@@ -65,4 +65,4 @@ struct ListBase *UI_iconfile_list(void);
 int UI_iconfile_get_index(char *filename);
 
 
-#endif /*  BIF_ICONS_H */
+#endif /*  UI_INTERFACE_ICONS_H */

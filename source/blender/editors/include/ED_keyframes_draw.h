@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BDR_DRAWACTION_H
-#define BDR_DRAWACTION_H
+#ifndef ED_KEYFRAMES_DRAW_H
+#define ED_KEYFRAMES_DRAW_H
 
 struct BezTriple;
 struct Ipo;
@@ -95,5 +95,5 @@ void action_nlascaled_to_keylist(struct Object *ob, struct bAction *act, ListBas
 void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 void gpl_to_keylist(struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
 
-#endif  /*  BDR_DRAWACTION_H */
+#endif  /*  ED_KEYFRAMES_DRAW_H */
 

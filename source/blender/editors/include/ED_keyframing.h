@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BIF_KEYFRAMING_H
-#define BIF_KEYFRAMING_H
+#ifndef ED_KEYFRAMING_H
+#define ED_KEYFRAMING_H
 
 struct ListBase;
 struct ID;
@@ -138,4 +138,4 @@ enum {
 	ANIMFILTER_KEYS_NOSKEY		= (1<<10),		/* don't include shape keys (for geometry) */
 } eAnimFilterFlags;
 
-#endif /*  BIF_KEYFRAMING_H */
+#endif /*  ED_KEYFRAMING_H */
