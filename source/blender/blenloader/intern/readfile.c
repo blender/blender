@@ -3956,7 +3956,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
-
+						sfile->files= NULL;
 						sfile->params= NULL;
 						sfile->op= NULL;
 						/* sfile->returnfunc= NULL; 
@@ -4160,8 +4160,9 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				else if(sl->spacetype==SPACE_FILE) {
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
-					sfile->params = NULL;
-					sfile->op = NULL;
+					sfile->files= NULL;
+					sfile->params= NULL;
+					sfile->op= NULL;
 					/* XXX needs checking - best solve in filesel itself 
 					if(sfile->libfiledata)	
 						BLO_blendhandle_close(sfile->libfiledata);
@@ -5212,11 +5213,17 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
 			case SPACE_FILE:
+				/* channel (bookmarks/directories) region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll= V2D_SCROLL_RIGHT;
+				/* button UI region */
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_TOP;
 				break;
 		}
 	}

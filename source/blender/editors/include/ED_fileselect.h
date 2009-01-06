@@ -55,7 +55,7 @@ typedef struct FileSelectParams {
 
 FileSelectParams* ED_fileselect_get_params(const struct bContext *C);
 
-short ED_fileselect_set_params(const struct bContext *C, int type, const char *title, const char *path, 
+short ED_fileselect_set_params(FileSelectParams *params, int type, const char *title, const char *path, 
 						   short flag, short display, short filter);
 
 #endif /* ED_FILES_H */

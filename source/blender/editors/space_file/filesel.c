@@ -76,36 +76,14 @@
 #include "filelist.h"
 
 
-FileSelectParams* ED_fileselect_get_params(const struct bContext *C)
-{
-	SpaceLink *sl= CTX_wm_space_data(C);
-	SpaceFile *sfile;
-	FileSelectParams *params = 0;
-
-	if (sl->spacetype == SPACE_FILE) {
-		sfile= (SpaceFile*)sl;
-		params = sfile->params;
-	}
-	return params;
-}
-
-short ED_fileselect_set_params(const struct bContext *C, int type, const char *title, const char *path,
+short ED_fileselect_set_params(FileSelectParams *params, int type, const char *title, const char *path,
 							   short flag, short display, short filter)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
-	SpaceLink *sl= CTX_wm_space_data(C);
-	SpaceFile *sfile;
-	FileSelectParams *params;
 
-	if (sl->spacetype != SPACE_FILE) {
+	if (!params) {
 		return 0;
 	}
-	sfile= (SpaceFile*)sl;
-
-	if (!sfile->params) {
-		sfile->params = MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-	}
-	params = sfile->params;
 
 	params->type = type;
 	params->flag = flag;
@@ -129,17 +107,7 @@ short ED_fileselect_set_params(const struct bContext *C, int type, const char *t
 				BLI_split_dirfile(name, dir, file);
 				BLI_strncpy(params->file, file, sizeof(params->file));
 				BLI_strncpy(params->dir, dir, sizeof(params->dir));
-				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
-				
-				filelist_settype(sfile->files, type);
-				filelist_setdir(sfile->files, params->dir);
-				BLI_cleanup_dir(G.sce, params->dir); /* XXX solve G.sce */
-
-				/* free: filelist and libfiledata became incorrect */
-				if (sfile->files) {
-					filelist_free(sfile->files);
-					filelist_freelib(sfile->files);
-				}				
+				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
 			}
 			break;
 	}

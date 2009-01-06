@@ -78,7 +78,7 @@ static SpaceLink *file_new(const bContext *C)
 	sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 	sfile->files = filelist_new();
 	
-	ED_fileselect_set_params(C, FILE_UNIX, "", "/", 0, 0, 0);
+	ED_fileselect_set_params(sfile->params, FILE_UNIX, "", "/", 0, 0, 0);
 	filelist_setdir(sfile->files, sfile->params->dir);
 	filelist_settype(sfile->files, sfile->params->type);
 
@@ -141,6 +141,17 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	SpaceFile *sfile= sa->spacedata.first;	/* XXX get through context? */
+	if (!sfile->params) {
+		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+		ED_fileselect_set_params(sfile->params, FILE_UNIX, "", "/", 0, 0, 0);
+	}
+	if (!sfile->files) {
+		sfile->files = filelist_new();
+	}
+	
+	filelist_setdir(sfile->files, sfile->params->dir);
+	filelist_settype(sfile->files, sfile->params->type);
 }
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
@@ -152,7 +163,11 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	sfilen->op = NULL; // XXX check if operator can be duplicated
 
 	sfilen->params= MEM_dupallocN(sfileo->params);
-	sfilen->params->pupmenu = NULL;
+	if (!sfilen->params) {
+		sfilen->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+		ED_fileselect_set_params(sfilen->params, FILE_UNIX, "", "/", 0, 0, 0);
+		sfilen->params->pupmenu = NULL;
+	}
 	sfilen->files = filelist_new();
 	filelist_setdir(sfilen->files, sfilen->params->dir);
 	filelist_settype(sfilen->files, sfilen->params->type);
@@ -177,7 +192,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = ED_fileselect_get_params(C);
+	FileSelectParams* params = sfile->params;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
