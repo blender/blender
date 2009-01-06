@@ -37,6 +37,58 @@
 
 #else
 
+void rna_def_color_ramp_element(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ColorRampElement", NULL);
+	RNA_def_struct_sdna(srna, "CBData");
+	RNA_def_struct_ui_text(srna, "Color Ramp Element", "DOC_BROKEN");
+
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "r");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Color", "");
+
+	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "pos");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Position", "");
+
+	/* XXX: CBData.cur? */
+}
+
+void rna_def_color_ramp(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_interpolation_items[] = {
+		{1, "EASE", "Ease", ""},
+		{3, "CARDINAL", "Cardinal", ""},
+		{0, "LINEAR", "Linear", ""},
+		{2, "B_SPLINE", "B-Spline", ""},
+		{4, "CONSTANT", "Constant", ""},
+		{0, NULL, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "ColorRamp", NULL);
+	RNA_def_struct_sdna(srna, "ColorBand");
+	RNA_def_struct_ui_text(srna, "Color Ramp", "DOC_BROKEN");
+
+	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_COLOR);
+	RNA_def_property_collection_sdna(prop, NULL, "data", "tot");
+	RNA_def_property_struct_type(prop, "ColorRampElement");
+	RNA_def_property_ui_text(prop, "Elements", "");
+
+	/* XXX: CBData.flag, tot, cur ? */
+
+	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipotype");
+	RNA_def_property_enum_items(prop, prop_interpolation_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "");
+}
+
 void rna_def_mapping_texture(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -295,6 +347,8 @@ void RNA_def_texture(BlenderRNA *brna)
 
 	rna_def_mapping_texture(brna);
 	rna_def_environment_map(brna);
+	rna_def_color_ramp(brna);
+	rna_def_color_ramp_element(brna);
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
@@ -437,11 +491,10 @@ void RNA_def_texture(BlenderRNA *brna)
 
 	/* XXX: plugin */
 
-	/*
-	prop= RNA_def_property(srna, "color_band", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coba");
-	RNA_def_property_struct_type(prop, "ColorBand");
-	RNA_def_property_ui_text(prop, "Color Band", "");*/
+	RNA_def_property_struct_type(prop, "ColorRamp");
+	RNA_def_property_ui_text(prop, "Color Ramp", "");
 
 	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");

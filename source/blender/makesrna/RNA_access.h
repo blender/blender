@@ -62,6 +62,8 @@ extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionModifier;
 extern StructRNA RNA_CollisionSensor;
 extern StructRNA RNA_CollisionSettings;
+extern StructRNA RNA_ColorRamp;
+extern StructRNA RNA_ColorRampElement;
 extern StructRNA RNA_ColorSequence;
 extern StructRNA RNA_Constraint;
 extern StructRNA RNA_ControlFluidSettings;

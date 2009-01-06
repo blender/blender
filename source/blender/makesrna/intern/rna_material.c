@@ -103,6 +103,17 @@ static void rna_def_material_colors(StructRNA *srna, PropertyRNA *prop)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Alpha", "");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	
+	/* Color bands */
+	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ramp_col");
+	RNA_def_property_struct_type(prop, "ColorRamp");
+	RNA_def_property_ui_text(prop, "Color Ramp", "");
+
+	prop= RNA_def_property(srna, "specularity_ramp", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ramp_spec");
+	RNA_def_property_struct_type(prop, "ColorRamp");
+	RNA_def_property_ui_text(prop, "Specularity Ramp", "");
 }
 
 static void rna_def_material_diffuse(StructRNA *srna, PropertyRNA *prop)
