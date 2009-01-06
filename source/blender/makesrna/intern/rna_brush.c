@@ -82,10 +82,10 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
 	RNA_def_property_ui_text(prop, "Color", "");
 	
-	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Opacity", "The amount of pressure on the brush.");
+	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
 	
 	/* flag */
 	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);
