@@ -30,6 +30,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -72,13 +73,7 @@
 
 //XXX #include "BIF_editdeform.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 Lattice *editLatt=0;
-static Lattice *deformLatt=0;
-
 static float *latticedata=0, latmat[4][4];
 
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
@@ -308,7 +303,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	if(lt->editlatt) lt= lt->editlatt;
 	bp = lt->def;
 	
-	fp= latticedata= MEM_mallocN(sizeof(float)*3*deformLatt->pntsu*deformLatt->pntsv*deformLatt->pntsw, "latticedata");
+	fp= latticedata= MEM_mallocN(sizeof(float)*3*lt->pntsu*lt->pntsv*lt->pntsw, "latticedata");
 	
 		/* for example with a particle system: ob==0 */
 	if(ob==0) {
@@ -354,8 +349,6 @@ void calc_latt_deform(float *co, float weight)
 	int ui, vi, wi, uu, vv, ww;
 	
 	if(latticedata==0) return;
-	
-	lt= deformLatt;	/* just for shorter notation! */
 	
 	/* co is in local coords, treat with latmat */
 	
@@ -873,10 +866,12 @@ float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
 {
 	Lattice *lt = ob->data;
 	int i, numVerts;
-	float (*vertexCos)[3] = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
+	float (*vertexCos)[3];
 
 	if(lt->editlatt) lt= lt->editlatt;
 	numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
+	
+	vertexCos = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
 	
 	for (i=0; i<numVerts; i++) {
 		VECCOPY(vertexCos[i], lt->def[i].vec);
