@@ -185,6 +185,8 @@ static void node_but_title_cb(bContext *C, void *node_v, void *but_v)
 	// allqueue(REDRAWNODE, 0);
 }
 
+#if 0
+/* XXX not used yet, make compiler happy :) */
 static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
 {
 	bNode *node= node_v;
@@ -225,6 +227,7 @@ static int node_buts_group(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 	}	
 	return 19;
 }
+#endif
 
 static int node_buts_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {

@@ -75,8 +75,7 @@ static void do_node_selectmenu(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case 1: /* border select */
-			// NODE_FIX_ME border select draws in menu area only :S
-			// WM_operator_name_call(C, "NODE_OT_border_select", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
+			WM_operator_name_call(C, "NODE_OT_border_select", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
 			break;
 		case 2: /* select/deselect all */
 			// XXX node_deselectall(snode, 1);
@@ -587,8 +586,8 @@ static uiBlock *node_nodemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 
 static void do_node_viewmenu(bContext *C, void *arg, int event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
-	ARegion *ar= CTX_wm_region(C);
+//	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+//	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
 	switch(event) {

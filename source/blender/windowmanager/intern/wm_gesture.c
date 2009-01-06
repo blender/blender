@@ -58,14 +58,14 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 {
 	wmGesture *gesture= MEM_callocN(sizeof(wmGesture), "new gesture");
 	wmWindow *window= CTX_wm_window(C);
-	bScreen *screen= CTX_wm_screen(C);
+	ARegion *ar= CTX_wm_region(C);
 	int sx, sy;
 	
 	BLI_addtail(&window->gesture, gesture);
 	
 	gesture->type= type;
 	gesture->event_type= event->type;
-	gesture->swinid= screen->subwinactive;	/* means only in area-region context! */
+	gesture->swinid= ar->swinid;	/* means only in area-region context! */
 	
 	wm_subwindow_getorigin(window, gesture->swinid, &sx, &sy);
 	
