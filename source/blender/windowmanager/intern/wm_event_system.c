@@ -177,9 +177,9 @@ void wm_event_do_notifiers(bContext *C)
 					ED_region_do_listen(ar, note);
 				}
 			}
-
-			CTX_wm_window_set(C, NULL);
 		}
+		
+		CTX_wm_window_set(C, NULL);
 		
 		MEM_freeN(note);
 	}
@@ -187,11 +187,16 @@ void wm_event_do_notifiers(bContext *C)
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
 		ScrArea *sa;
+		CTX_wm_window_set(C, win);
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-			if(sa->do_refresh)
+			if(sa->do_refresh) {
+				CTX_wm_area_set(C, sa);
 				ED_area_do_refresh(C, sa);
+			}
 		}
+		CTX_wm_area_set(C, NULL);
 	}
+	CTX_wm_window_set(C, NULL);
 }
 
 /* mark area-regions to redraw if overlapped with rect */
