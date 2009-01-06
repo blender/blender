@@ -1204,17 +1204,19 @@ void ed_screen_set(bContext *C, bScreen *sc)
 	}
 	
 	if (oldscreen != sc) {
+		wmWindow *win= CTX_wm_window(C);
 		wmTimer *wt= oldscreen->animtimer;
 		
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
-			WM_event_window_timer_sleep(CTX_wm_window(C), wt, 1);
+			WM_event_window_timer_sleep(win, wt, 1);
 		
-		ED_screen_exit(C, CTX_wm_window(C), oldscreen);
+		ED_screen_exit(C, win, oldscreen);
 		oldscreen->animtimer= wt;
 		
-		CTX_wm_window(C)->screen= sc;
+		win->screen= sc;
+		CTX_wm_window_set(C, win);	// stores C->wm.screen... hrmf
 		
 		ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
