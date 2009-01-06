@@ -46,6 +46,9 @@ void initNumInput(NumInput *n)
 	n->flag		=
 	n->idx		=
 	n->idx_max	=
+	n->inv[0]   =
+	n->inv[1]   =
+	n->inv[2]   =
 	n->ctrl[0]	= 
 	n->ctrl[1]	= 
 	n->ctrl[2]	= 0;
@@ -58,6 +61,7 @@ void initNumInput(NumInput *n)
 void outputNumInput(NumInput *n, char *str)
 {
 	char cur;
+	char inv[] = "1/";
 	short i, j;
 
 	for (j=0; j<=n->idx_max; j++) {
@@ -72,35 +76,40 @@ void outputNumInput(NumInput *n, char *str)
 		else
 			cur = '|';
 
+		if (n->inv[i])
+			inv[0] = '1';
+		else
+			inv[0] = 0;
+
 		if( n->val[i] > 1e10 || n->val[i] < -1e10 )
-			sprintf(&str[j*20], "%.4e%c", n->val[i], cur);
+			sprintf(&str[j*20], "%s%.4e%c", inv, n->val[i], cur);
 		else
 			switch (n->ctrl[i]) {
 			case 0:
-				sprintf(&str[j*20], "NONE%c", cur);
+				sprintf(&str[j*20], "%sNONE%c", inv, cur);
 				break;
 			case 1:
 			case -1:
-				sprintf(&str[j*20], "%.0f%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.0f%c", inv, n->val[i], cur);
 				break;
 			case 10:
 			case -10:
-				sprintf(&str[j*20], "%.f.%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.f.%c", inv, n->val[i], cur);
 				break;
 			case 100:
 			case -100:
-				sprintf(&str[j*20], "%.1f%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.1f%c", inv, n->val[i], cur);
 				break;
 			case 1000:
 			case -1000:
-				sprintf(&str[j*20], "%.2f%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.2f%c", inv, n->val[i], cur);
 				break;
 			case 10000:
 			case -10000:
-				sprintf(&str[j*20], "%.3f%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.3f%c", inv, n->val[i], cur);
 				break;
 			default:
-				sprintf(&str[j*20], "%.4e%c", n->val[i], cur);
+				sprintf(&str[j*20], "%s%.4e%c", inv, n->val[i], cur);
 			}
 	}
 }
@@ -139,7 +148,14 @@ void applyNumInput(NumInput *n, float *vec)
 				vec[j] = 0.0001f;
 			}
 			else {
-				vec[j] = val[i];
+				if (n->inv[i])
+				{
+					vec[j] = 1.0f / val[i];
+				}
+				else
+				{
+					vec[j] = val[i];
+				}
 			}
 		}
 	}
@@ -159,10 +175,14 @@ char handleNumInput(NumInput *n, wmEvent *event)
 			n->ctrl[0]		= 
 				n->ctrl[1]	= 
 				n->ctrl[2]	= 0;
+			n->inv[0]		= 
+				n->inv[1]	= 
+				n->inv[2]	= 0;
 		}
 		else {
 			n->val[idx] = 0.0f;
 			n->ctrl[idx] = 0;
+			n->inv[idx] = 0;
 		}
 		break;
 	case PERIODKEY:
@@ -193,6 +213,10 @@ char handleNumInput(NumInput *n, wmEvent *event)
 		}
 		else
 			n->ctrl[idx] = -1;
+		break;
+	case PADSLASHKEY:
+	case SLASHKEY:
+		n->inv[idx] = !n->inv[idx];
 		break;
 	case TABKEY:
 		idx++;
