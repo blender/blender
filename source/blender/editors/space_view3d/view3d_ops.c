@@ -78,6 +78,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_lasso_select);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
+	WM_operatortype_append(VIEW3D_OT_drawtype);
 	
 	transform_operatortypes();
 }
@@ -85,6 +86,7 @@ void view3d_operatortypes(void)
 void view3d_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
+	wmKeymapItem *km;
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
@@ -120,6 +122,19 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANLEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANRIGHT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANUP);
+
+	/* drawtype */
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
+	RNA_int_set(km->ptr, "drawtype", OB_SOLID);
+	RNA_int_set(km->ptr, "drawtype_alt", OB_WIRE);
+
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_ALT, 0);
+	RNA_int_set(km->ptr, "drawtype", OB_TEXTURE);
+	RNA_int_set(km->ptr, "drawtype_alt", OB_SOLID);
+
+	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_int_set(km->ptr, "drawtype", OB_SHADED);
+	RNA_int_set(km->ptr, "drawtype_alt", OB_WIRE);
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);

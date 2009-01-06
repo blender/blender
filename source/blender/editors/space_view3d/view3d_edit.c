@@ -1284,6 +1284,64 @@ void VIEW3D_OT_clipping(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
 }
 
+/* ********************* draw type operator ****************** */
+
+static int view3d_drawtype_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	int dt, dt_alt;
+
+	dt  = RNA_int_get(op->ptr, "drawtype");
+	dt_alt = RNA_int_get(op->ptr, "drawtype_alt");
+	
+	if (dt_alt != -1)
+	{
+		if (v3d->drawtype == dt)
+		{
+			v3d->drawtype = dt_alt;
+		}
+		else
+		{
+			v3d->drawtype = dt;
+		}
+	}
+	else
+	{
+		v3d->drawtype = dt;
+	}
+
+	ED_area_tag_redraw(sa);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return view3d_drawtype_exec(C, op);
+}
+
+/* toggles */
+void VIEW3D_OT_drawtype(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Change draw type";
+	ot->idname= "VIEW3D_OT_drawtype";
+
+	/* api callbacks */
+	ot->invoke= view3d_drawtype_invoke;
+	ot->exec= view3d_drawtype_exec;
+
+	ot->poll= ED_operator_view3d_active;
+
+	/* rna */
+	RNA_def_property(ot->srna, "drawtype", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "drawtype_alt", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, -1);
+}
+
 /* ********************************************************* */
 
 void set_render_border(Scene *scene, ARegion *ar, View3D *v3d)
