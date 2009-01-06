@@ -162,8 +162,9 @@ typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
+	int pad;
 
-	struct FileSelectParams* params; /* config and input for file select */
+	struct FileSelectParams *params; /* config and input for file select */
 	
 	struct FileList *files; /* holds the list of files to show */
 
