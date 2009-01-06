@@ -49,7 +49,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_storage_types.h"
-#include "BLI_threads.h"
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -107,15 +106,7 @@ typedef struct FileList
 	short prv_h;
 	short hide_dot;
 	unsigned int filter;
-	struct ThreadedWorker *worker;
-	LinkNode *worklist;
 } FileList;
-
-typedef struct WorkItem
-{
-	FileList* files;
-	int item;
-} WorkItem;
 
 int BIF_groupname_to_code(char *group)
 {
@@ -376,7 +367,6 @@ struct FileList*	filelist_new()
 	p->type = 0;
 	p->has_func = 0;
 	p->filter = 0;
-	p->worker = 0; // BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep_time);
 	return p;
 }
 
