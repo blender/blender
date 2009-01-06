@@ -32,7 +32,7 @@
  *
  */
 
-#include "GHOST_Types.h"
+// XXX #include "GHOST_Types.h"
 
 #include "MEM_guardedalloc.h"
 

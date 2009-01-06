@@ -26,4 +26,5 @@ SConscript(['datafiles/SConscript',
 			'space_text/SConscript',
 			'space_sequencer/SConscript',
 			'transform/SConscript',
-			'screen/SConscript'])
+			'screen/SConscript',
+			'sculpt/SConscript'])
