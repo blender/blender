@@ -111,6 +111,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_MaskModifier;
 		case eModifierType_SimpleDeform:
 			return &RNA_SimpleDeformModifier;
+		case eModifierType_Multires:
+			return &RNA_MultiresModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -231,30 +233,36 @@ static void rna_WaveModifier_uvlayer_set(PointerRNA *ptr, const char *value)
 
 #else
 
-static void rna_def_modifier_subsurf(BlenderRNA *brna)
+static void rna_def_property_subdivision_common(StructRNA *srna, const char type[], const char level[])
 {
-	StructRNA *srna;
-	PropertyRNA *prop;
-
 	static EnumPropertyItem prop_subdivision_type_items[] = {
 		{0, "CATMULL_CLARK", "Catmull-Clark", ""},
 		{1, "SIMPLE", "Simple", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "SubsurfModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subsurf Modifier.");
-	RNA_def_struct_sdna(srna, "SubsurfModifierData");
-
-	prop= RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "subdivType");
+	PropertyRNA *prop= RNA_def_property(srna, "subdivision_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, type);
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Selects type of subdivision algorithm.");
 
 	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, level);
 	RNA_def_property_range(prop, 1, 20);
 	RNA_def_property_ui_range(prop, 1, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+}
+
+static void rna_def_modifier_subsurf(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SubsurfModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Subsurf Modifier", "Subsurf Modifier.");
+	RNA_def_struct_sdna(srna, "SubsurfModifierData");
+
+	rna_def_property_subdivision_common(srna, "subdivType", "levels");
 
 	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
@@ -271,6 +279,18 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
 	RNA_def_property_ui_text(prop, "Subsurf UV", "Use subsurf to subdivide UVs.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+}
+
+static void rna_def_modifier_multires(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MultiresModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Multires Modifier", "");
+	RNA_def_struct_sdna(srna, "MultiresModifierData");
+
+	rna_def_property_subdivision_common(srna, "simple", "lvl");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)
@@ -1519,6 +1539,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 		{eModifierType_Fluidsim, "FLUID_SIMULATION", "Fluid Simulation", ""},
 		{eModifierType_Mask, "MASK", "Mask", ""},
 		{eModifierType_SimpleDeform, "SIMPLE_DEFORM", "Simple Deform", ""},
+		{eModifierType_SimpleDeform, "MULTIRES", "Multires", ""},
 		{0, NULL, NULL, NULL}};
 	
 	/* data */
@@ -1593,6 +1614,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_fluidsim(brna);
 	rna_def_modifier_mask(brna);
 	rna_def_modifier_simpledeform(brna);
+	rna_def_modifier_multires(brna);
 }
 
 #endif

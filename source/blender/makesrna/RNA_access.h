@@ -152,6 +152,7 @@ extern StructRNA RNA_MirrorModifier;
 extern StructRNA RNA_Modifier;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_MovieSequence;
+extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_NandController;
 extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_Node;
