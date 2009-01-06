@@ -107,6 +107,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
