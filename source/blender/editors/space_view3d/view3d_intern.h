@@ -116,6 +116,7 @@ void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
+void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 
 void view3d_operator_needs_opengl(const struct bContext *C);
 

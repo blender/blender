@@ -380,6 +380,46 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_view3d_active;
 }
+static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	Object *ob;
+	float dvec[3];
+	
+	ob= v3d->camera;
+	dvec[0]= v3d->dist*v3d->viewinv[2][0];
+	dvec[1]= v3d->dist*v3d->viewinv[2][1];
+	dvec[2]= v3d->dist*v3d->viewinv[2][2];					
+	VECCOPY(ob->loc, dvec);
+	VecSubf(ob->loc, ob->loc, v3d->ofs);
+	v3d->viewquat[0]= -v3d->viewquat[0];
+	/*  */
+	/*if (ob->transflag & OB_QUAT) {
+		QUATCOPY(ob->quat, v3d->viewquat);
+	} else {*/
+	QuatToEul(v3d->viewquat, ob->rot);
+	/*}*/
+	v3d->viewquat[0]= -v3d->viewquat[0];
+	
+	ob->recalc= OB_RECALC_OB;
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+
+}
+void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Align Camera To View";
+	ot->idname= "VIEW3D_OT_set_camera_to_view";
+	
+	/* api callbacks */
+	ot->exec= view3d_setcameratoview_exec;	
+	ot->poll= ED_operator_view3d_active;
+}
 
 /* ********************************** */
 
