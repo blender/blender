@@ -358,6 +358,10 @@
 					RelativePath="..\..\..\source\blender\python\intern\bpy_util.c"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\intern\stubs.c"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

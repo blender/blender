@@ -218,11 +218,7 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
-	
-	printf("%d - %f %f %f %f\n", val, rectf.xmin, rectf.ymin, rectf.xmax, rectf.ymax);
-	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		printf("\t%f %f %f %f\n", node->totr.xmin, node->totr.ymin, node->totr.xmax, node->totr.ymax);
 		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
 			if(val==NODE_EXTEND)
 				node->flag |= SELECT;

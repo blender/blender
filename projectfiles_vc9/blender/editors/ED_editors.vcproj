@@ -174,10 +174,6 @@
 			Filter="h"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\BIF_editarmature.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\include\BIF_gl.h"
 				>
 			</File>
@@ -195,6 +191,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_anim_api.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_armature.h"
 				>
 			</File>
 			<File
@@ -468,10 +468,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\screen\screen_ops.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\screen\stubs.c"
 				>
 			</File>
 		</Filter>
@@ -928,6 +924,34 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\meshtools.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="armature"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\armature_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\editarmature.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\meshlaplacian.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\meshlaplacian.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\poseobject.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\reeb.h"
 				>
 			</File>
 		</Filter>
