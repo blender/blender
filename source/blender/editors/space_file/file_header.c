@@ -53,11 +53,10 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "BMF_Api.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
+#include "UI_text.h"
 
 #include "file_intern.h"
 #include "filelist.h"
@@ -156,7 +155,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 		xco+=XIC+10;
 	} 
 	xcotitle= xco;
-	xco+= BMF_GetStringWidth(G.font, params->title);
+	xco+= UI_GetStringWidth(G.font, params->title, 0);
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 

@@ -43,12 +43,11 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
-#include "BMF_Api.h"
-
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "ED_fileselect.h"
 
@@ -148,7 +147,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	*/
 
 	/* space available for load/save buttons? */
-	slen = BMF_GetStringWidth(G.font, sfile->params->title);
+	slen = UI_GetStringWidth(G.font, sfile->params->title, 0);
 	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(G.font, params->title, 0));
 	if(ar->v2d.mask.xmax-ar->v2d.mask.xmin > loadbutton+20) {
 		/* XXX
@@ -194,7 +193,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 }
 
 
-static void draw_tile(SpaceFile *sfile, short sx, short sy, short width, short height, int colorid)
+static void draw_tile(short sx, short sy, short width, short height, int colorid)
 {
 	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
 	glEnable(GL_BLEND);
@@ -275,7 +274,6 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	int width=0, height=0;
 	int rows, columns;
-//	int linestep = U.fontsize*3/2;
 
 	if (params->display) {
 		sfile->prv_w = 96;
@@ -356,10 +354,10 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sfile, sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sfile, sx, sy+sfile->tile_border_y, sfile->tile_w, sfile->tile_h-sfile->tile_border_y, colorid);
+			draw_tile(sx, sy+sfile->tile_border_y, sfile->tile_w, sfile->tile_h-sfile->tile_border_y, colorid);
 		} else {
 			/*
 			colorid = TH_PANEL;
@@ -507,14 +505,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sfile, sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sfile, sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
 		} else {
 			/*
 			colorid = TH_PANEL;
-			draw_tile(simasel, sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
 			*/
 		}
 		if (type == FILE_MAIN) {

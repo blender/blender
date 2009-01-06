@@ -65,7 +65,6 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 {
 	float x,y;
 	int active_file = -1;
-//	int stridex, stridey;
 	struct direntry* file;
 	int offsetx, offsety;
 	int numfiles = filelist_numfiles(params->files);
@@ -77,17 +76,13 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 	offsetx = (x - (v2d->cur.xmin+sfile->tile_border_x))/(sfile->tile_w + sfile->tile_border_x);
 	offsety = (-y+sfile->tile_border_y)/(sfile->tile_h + sfile->tile_border_y);
 	columns = (v2d->cur.xmax - v2d->cur.xmin) / (sfile->tile_w+ sfile->tile_border_x);
-
-	printf("tile (%d, %d, %d)\n", offsetx, offsety, columns);
 	active_file = offsetx + columns*offsety;
 
 	if (active_file >= 0 && active_file < numfiles )
 	{
-		printf("active file: %d\n", active_file);
 		params->active_file = active_file;
 		if (params->selstate & ACTIVATE) {
 			file = filelist_file(params->files, params->active_file);
-			printf("active file: %s\n", file->relname);
 			file->flags |= ACTIVE;
 		}			
 	}
@@ -110,8 +105,6 @@ static void set_active_file(SpaceFile *sfile, FileSelectParams* params, struct A
 	offsety = (v2d->cur.ymax-y-sfile->tile_border_y)/(sfile->tile_h + sfile->tile_border_y);
 	rows = (v2d->cur.ymax - v2d->cur.ymin - 2*sfile->tile_border_y) / (sfile->tile_h+sfile->tile_border_y);
 	active_file = rows*offsetx + offsety;
-	printf("offsets (%d, %d)\n", offsetx, offsety);
-	printf("active_file (%d)\n", active_file);
 	if ( (active_file >= 0) && (active_file < numfiles) )
 	{
 		params->active_file = active_file;
@@ -128,7 +121,6 @@ static void set_active_bookmark(SpaceFile *sfile, FileSelectParams* params, stru
 	int nentries = fsmenu_get_nentries();
 	short posy = ar->v2d.mask.ymax - TILE_BORDER_Y - y;
 	params->active_bookmark = ((float)posy / (U.fontsize*3.0f/2.0f));
-	printf("active bookmark: %d\n", params->active_bookmark);
 	if (params->active_bookmark < 0 || params->active_bookmark > nentries) {
 		params->active_bookmark = -1;
 	}
@@ -193,10 +185,8 @@ static void mouse_select(SpaceFile* sfile, FileSelectParams* params, ARegion* ar
 static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 {
 	if(mval[0]>ar->v2d.mask.xmin && mval[0]<ar->v2d.mask.xmax
-	&& mval[1]>ar->v2d.mask.ymin && mval[1]<ar->v2d.mask.ymax) {			
-		//int nentries = fsmenu_get_nentries();
+	&& mval[1]>ar->v2d.mask.ymin && mval[1]<ar->v2d.mask.ymax) {
 		char *selected;
-		printf("selecting...\n");
 		set_active_bookmark(sfile, sfile->params, ar, mval[1]);
 		selected= fsmenu_get_entry(sfile->params->active_bookmark);			
 		/* which string */
@@ -214,7 +204,6 @@ static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 
 static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-//	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	short mval[2];
