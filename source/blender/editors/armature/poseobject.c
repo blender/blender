@@ -462,6 +462,7 @@ void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 						curbone->flag &= ~BONE_ACTIVE;
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
 						
+						// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
 						select_actionchannel_by_name (ob->action, pchan->name, 0);
 						select_actionchannel_by_name (ob->action, pchan->parent->name, 1);
 						break;
@@ -477,6 +478,7 @@ void pose_select_hierarchy(Scene *scene, short direction, short add_to_sel)
 						curbone->flag &= ~BONE_ACTIVE;
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
 						
+						// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
 						select_actionchannel_by_name (ob->action, pchan->name, 0);
 						select_actionchannel_by_name (ob->action, pchan->child->name, 1);
 						break;
@@ -1325,6 +1327,7 @@ void pose_activate_flipped_bone(Scene *scene)
 					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 				}
 				
+				// XXX this is evil... this sort of stuff is to be handled in one go as a result of a notifier
 				select_actionchannel_by_name(ob->action, name, 1);
 				
 			}			

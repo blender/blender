@@ -93,9 +93,10 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", POSE_LOCKED);
 	RNA_def_property_ui_text(prop, "Protected", "Protect channel from being transformed.");
 
-	prop= RNA_def_property(srna, "action_group_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "agrp_index");
-	RNA_def_property_ui_text(prop, "Action Group Index", "Action Group this pose channel belogs to (0=no group).");
+		// XXX note: bone groups are stored internally as bActionGroups :) - Aligorith
+	//prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
+	//RNA_def_property_int_sdna(prop, NULL, "agrp_index");
+	//RNA_def_property_ui_text(prop, "Bone Group Index", "Bone Group this pose channel belongs to (0=no group).");
 
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
@@ -188,17 +189,11 @@ void RNA_def_pose(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "PoseChannel");
 	RNA_def_property_ui_text(prop, "Pose Channels", "Individual pose channels for the armature.");
 
-	/* This is in the DNA, but probably not the best way to access it. Better to go through Action.
-	   If someone disagrees, simply un-comment! */
-	/*prop= RNA_def_property(srna, "action_channels", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
-	RNA_def_property_struct_type(prop, "ActionChannel");
-	RNA_def_property_ui_text(prop, "Action Channels", "The individual animation channels that make up the Action.");*/
-
-	prop= RNA_def_property(srna, "action_groups", PROP_COLLECTION, PROP_NONE);
+	/* commented for now... missing info... */
+	/*prop= RNA_def_property(srna, "action_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);
 	RNA_def_property_struct_type(prop, "ActionGroup");
-	RNA_def_property_ui_text(prop, "Action Groups", "Groups of bones.");
+	RNA_def_property_ui_text(prop, "Action Groups", "Groups of bones.");*/
 }
 
 #endif
