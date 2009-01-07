@@ -55,6 +55,7 @@ SET(SRC
      rna_object_force.c
      rna_packedfile.c
      rna_particle.c
+     rna_pose.c
      rna_property.c
      rna_radio.c
      rna_rna.c
