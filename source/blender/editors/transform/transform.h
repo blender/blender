@@ -344,7 +344,7 @@ void TFM_OT_transform(struct wmOperatorType *ot);
 void initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 void transformEvent(TransInfo *t, struct wmEvent *event);
-void transformApply(TransInfo *t);
+void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);

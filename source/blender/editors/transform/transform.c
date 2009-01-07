@@ -101,6 +101,7 @@
 #include "ED_util.h"
 #include "UI_view2d.h"
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -329,13 +330,12 @@ void convertDisplayNumToVec(float *num, float *vec)
 #endif
 }
 
-static void viewRedrawForce(TransInfo *t)
+static void viewRedrawForce(bContext *C, TransInfo *t)
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
-		// TRANSFORM_FIX_ME
-		// need to redraw ALL 3d view
-		ED_area_tag_redraw(t->sa);
+		/* Do we need more refined tags? */		
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -347,8 +347,10 @@ static void viewRedrawForce(TransInfo *t)
 		else 
 			ED_area_tag_redraw(t->sa);
 	}
-	else if(t->spacetype == SPACE_NODE) {
-		ED_area_tag_redraw(t->sa);
+	else if(t->spacetype == SPACE_NODE)
+	{
+		//ED_area_tag_redraw(t->sa);
+		WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {
@@ -1101,7 +1103,7 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 }
 
-void transformApply(TransInfo *t)
+void transformApply(bContext *C, TransInfo *t)
 {
 	if (t->redraw)
 	{
@@ -1111,6 +1113,7 @@ void transformApply(TransInfo *t)
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()
+			viewRedrawForce(C, t);
 		}
 		t->redraw = 0;
 	}
@@ -1140,6 +1143,7 @@ int transformEnd(bContext *C, TransInfo *t)
 		{
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
+			viewRedrawForce(C, t);
 		}
 		else
 		{
@@ -1850,8 +1854,6 @@ int Warp(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	viewRedrawForce(t);
-	
 	helpline(t, gcursor);
 	
 	return 1;
@@ -1973,8 +1975,6 @@ int Shear(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	helpline (t, t->center);
 
@@ -2247,8 +2247,6 @@ int Resize(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
 	return 1;
@@ -2339,8 +2337,6 @@ int ToSphere(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	return 1;
 }
@@ -2656,8 +2652,6 @@ int Rotation(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
 	return 1;
@@ -2764,8 +2758,6 @@ int Trackball(TransInfo *t, short mval[2])
 	recalcData(t);
 	
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 	
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
@@ -2959,8 +2951,6 @@ int Translation(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 
 	drawSnapping(t);
 
@@ -3039,8 +3029,6 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	return 1;
 }
 
@@ -3113,8 +3101,6 @@ int Tilt(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	helpline (t, t->center);
 
 	return 1;
@@ -3180,8 +3166,6 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 	recalcData(t);
 	
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 	
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
@@ -3271,8 +3255,6 @@ int PushPull(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	return 1;
 }
@@ -3387,8 +3369,6 @@ int Bevel(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	return 1;
 }
 
@@ -3459,8 +3439,6 @@ int BevelWeight(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	helpline (t, t->center);
 
@@ -3537,8 +3515,6 @@ int Crease(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	helpline (t, t->center);
 
@@ -3657,8 +3633,6 @@ int BoneSize(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	viewRedrawForce(t);
-	
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
@@ -3727,8 +3701,6 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 	
 	ED_area_headerprint(t->sa, str);
 	
-	viewRedrawForce(t);
-	
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
@@ -3794,8 +3766,6 @@ int BoneRoll(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-
-	viewRedrawForce(t);
 
 	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
@@ -3875,8 +3845,6 @@ int BakeTime(TransInfo *t, short mval[2])
 
 	ED_area_headerprint(t->sa, str);
 
-	viewRedrawForce(t);
-
 	helpline (t, t->center);
 
 	return 1;
@@ -3933,8 +3901,6 @@ int Mirror(TransInfo *t, short mval[2])
 		recalcData(t);
 	
 		ED_area_headerprint(t->sa, str);
-	
-		viewRedrawForce(t);
 	}
 	else
 	{
@@ -3955,8 +3921,6 @@ int Mirror(TransInfo *t, short mval[2])
 		recalcData(t);
 	
 		ED_area_headerprint(t->sa, "Select a mirror axis (X, Y, Z)");
-	
-		viewRedrawForce(t);
 	}
 
 	return 1;
@@ -4275,8 +4239,6 @@ int TimeTranslate(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 
 	return 1;
 }
@@ -4403,8 +4365,6 @@ int TimeSlide(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 
 	return 1;
 }
@@ -4519,8 +4479,6 @@ int TimeScale(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	ED_area_headerprint(t->sa, str);
-	
-	viewRedrawForce(t);
 
 	return 1;
 }

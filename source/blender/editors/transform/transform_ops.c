@@ -70,7 +70,7 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	transformEvent(t, event);
 	
-	transformApply(t);
+	transformApply(C, t);
 	
 	
 	exit_code = transformEnd(C, t);
@@ -104,7 +104,7 @@ static int transform_exec(bContext *C, wmOperator *op)
 
 	t->options |= CTX_AUTOCONFIRM;
 
-	transformApply(t);
+	transformApply(C, t);
 	
 	transformEnd(C, t);
 
