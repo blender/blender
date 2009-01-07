@@ -36,18 +36,6 @@
 
 #ifdef RNA_RUNTIME
 
-static float rna_TextMarker_color_get(PointerRNA *ptr, int index)
-{
-	TextMarker *marker= (TextMarker*)ptr->data;
-	return marker->color[index]/255.0f;
-}
-
-static void rna_TextMarker_color_set(PointerRNA *ptr, int index, float value)
-{
-	TextMarker *marker= (TextMarker*)ptr->data;
-	marker->color[index] = (char)(CLAMPIS(value*255.0f, 0, 255));
-}
-
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
 	Text *text= (Text*)ptr->data;
@@ -163,7 +151,6 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit All", "Edit all markers of the same group as one.");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_funcs(prop, "rna_TextMarker_color_get", "rna_TextMarker_color_set", NULL);
 	RNA_def_property_ui_text(prop, "Color", "Color to display the marker with.");
 }
 

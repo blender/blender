@@ -167,6 +167,15 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 	return mask;
 }
 
+static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
+{
+	if(prop->type == PROP_FLOAT && prop->subtype == PROP_COLOR)
+		if(strcmp(dp->dnatype, "float") != 0 && strcmp(dp->dnatype, "double") != 0)
+			return 1;
+	
+	return 0;
+}
+
 static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp)
 {
 	char *func;
@@ -212,6 +221,8 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				else {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit)
 						fprintf(f, "	return (%s(data->%s[index] & %d) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
+					else if(rna_color_quantize(prop, dp))
+						fprintf(f, "	return (%s)(data->%s[index]/255.0f);\n", rna_type_type(prop), dp->dnaname);
 					else
 						fprintf(f, "	return (%s)%s(data->%s[index]);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 				}
@@ -325,6 +336,9 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
 						fprintf(f, "	if(%svalue) data->%s[index] |= %d;\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
 						fprintf(f, "	else data->%s[index] &= ~%d;\n", dp->dnaname, dp->booleanbit);
+					}
+					else if(rna_color_quantize(prop, dp)) {
+						fprintf(f, "	data->%s[index]= FTOCHAR(value);\n", dp->dnaname);
 					}
 					else {
 						rna_clamp_value(f, prop);
