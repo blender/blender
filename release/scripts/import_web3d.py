@@ -1076,6 +1076,9 @@ class vrmlNode(object):
 		# print self.id
 		ok = True
 		while ok:
+			if i>=len(lines):
+				return len(lines)-1
+			
 			l = lines[i]
 			# print '\tDEBUG:', i, self.node_type, l
 			if l=='':
@@ -1085,13 +1088,15 @@ class vrmlNode(object):
 			if l=='}':
 				if self.node_type != NODE_NORMAL: # also ends proto nodes, we may want a type for these too.
 					print 'wrong node ending, expected an } ' + str(i) + ' ' + str(self.node_type)
-					raise ValueError
+					if DEBUG:
+						raise ValueError
 				### print "returning", i
 				return i+1
 			if l==']':
 				if self.node_type != NODE_ARRAY:
 					print 'wrong node ending, expected a ] ' + str(i) + ' ' + str(self.node_type)
-					raise ValueError
+					if DEBUG:
+						raise ValueError
 				### print "returning", i
 				return i+1
 				
@@ -2567,11 +2572,11 @@ def test():
 	files.sort()
 	tot = len(files)
 	for i, f in enumerate(files):
-		#if i < 126 or i > 1000000:
-		#	continue
-		
-		if i != 1068:
+		if i < 124 or i > 1000000:
 			continue
+		
+		#if i != 1068:
+		#	continue
 		
 		#if i != 12686:
 		#	continue
@@ -2583,4 +2588,4 @@ def test():
 		# Window.
 		load_web3d(f, PREF_FLAT=True)
 	
-
+# test()
