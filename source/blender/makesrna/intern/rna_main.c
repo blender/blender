@@ -246,7 +246,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text datablocks."},
 		{"sounds", "ID", "rna_Main_sound_begin", "Sounds", "Sound datablocks."},
 		{"armatures", "Armature", "rna_Main_armature_begin", "Armatures", "Armature datablocks."},
-		{"actions", "ID", "rna_Main_action_begin", "Actions", "Action datablocks."},
+		{"actions", "Action", "rna_Main_action_begin", "Actions", "Action datablocks."},
 		{"particles", "ID", "rna_Main_particle_begin", "Particles", "Particle datablocks."},
 		{NULL, NULL, NULL, NULL, NULL}};
 	int i;

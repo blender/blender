@@ -176,6 +176,8 @@ extern StructRNA RNA_ParticleSystemModifier;
 extern StructRNA RNA_PluginSequence;
 extern StructRNA RNA_PointCache;
 extern StructRNA RNA_PointerProperty;
+extern StructRNA RNA_Pose;
+extern StructRNA RNA_PoseChannel;
 extern StructRNA RNA_Property;
 extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_PythonController;

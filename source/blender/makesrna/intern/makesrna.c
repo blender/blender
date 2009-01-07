@@ -925,6 +925,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_object_force.c", RNA_def_object_force},
 	{"rna_packedfile.c", RNA_def_packedfile},
 	{"rna_particle.c", RNA_def_particle},
+	{"rna_pose.c", RNA_def_pose},
 	{"rna_property.c", RNA_def_gameproperty},
 	{"rna_radio.c", RNA_def_radio},
 	{"rna_rna.c", RNA_def_rna},
