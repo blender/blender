@@ -2273,7 +2273,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(scene, ob, NULL, get_viewedit_datamask());
+				makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);	// here was vieweditdatamask? XXX
 			}
 			else if(ob->type==OB_MBALL) {
 				makeDispListMBall(scene, ob);

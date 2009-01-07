@@ -1412,47 +1412,6 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob, Modifier
 	return dm;
 }
 
-CustomDataMask get_viewedit_datamask()
-{
-#if 0
-	XXX
-	CustomDataMask mask = CD_MASK_BAREMESH;
-	ScrArea *sa;
-	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
-		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
-
-	/* check if we need tfaces & mcols due to view mode */
-	for(sa = G.curscreen->areabase.first; sa; sa = sa->next) {
-		if(sa->spacetype == SPACE_VIEW3D) {
-			View3D *view = sa->spacedata.first;
-			if(view->drawtype == OB_SHADED) {
-				/* this includes normals for mesh_create_shadedColors */
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
-			}
-			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
-				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
-
-				if((G.fileflags & G_FILE_GAME_MAT) &&
-				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
-					mask |= CD_MASK_ORCO;
-				}
-			}
-		}
-	}
-
-	/* check if we need mcols due to vertex paint or weightpaint */
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT)
-		mask |= CD_MASK_MCOL;
-
-	if(G.f & G_SCULPTMODE)
-		mask |= CD_MASK_MDISPS;
-
-	return mask;
-#endif
-	return 0;
-}
-
 static float *get_editmesh_orco_verts(EditMesh *em)
 {
 	EditVert *eve;

@@ -32,6 +32,7 @@
 
 /* internal exports only */
 
+struct bScreen;
 struct BoundBox;
 struct Object;
 struct DerivedMesh;
@@ -96,7 +97,7 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
 void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMesh *dm, int faceselect);
 
 /* view3d_draw.c */
-void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d);
+void drawview3dspace(struct bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d);
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *));
 void view3d_clr_clipping(void);
 void view3d_set_clipping(View3D *v3d);

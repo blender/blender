@@ -2151,7 +2151,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 	int draw_wire = 0;
 	int totvert, totedge, totface;
 	DispList *dl;
-	DerivedMesh *dm= mesh_get_derived_final(scene, ob, get_viewedit_datamask());
+	DerivedMesh *dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 
 	if(!dm)
 		return;
@@ -2278,7 +2278,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, Base *base, int dt, int f
 				dm->release(dm);
 				shadeDispList(scene, base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
-				dm= mesh_get_derived_final(scene, ob, get_viewedit_datamask());
+				dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 			}
 
 			if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
@@ -2371,7 +2371,7 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, Base *base, int dt, int f
 			finalDM = cageDM = editmesh_get_derived_base(ob, em);
 		else
 			cageDM = editmesh_get_derived_cage_and_final(scene, ob, em, &finalDM,
-			                                get_viewedit_datamask());
+			                                v3d->customdata_mask);
 
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
@@ -5361,9 +5361,9 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 }
 
 /* TODO remove this - since face select mode now only works with painting */
-static void bbs_mesh_solid(Scene *scene, Object *ob)
+static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, get_viewedit_datamask());
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -5408,7 +5408,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(scene, ob);
+		else bbs_mesh_solid(scene, v3d, ob);
 	}
 		break;
 	case OB_CURVE:

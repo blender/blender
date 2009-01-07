@@ -8471,8 +8471,6 @@ void modifiers_clearErrors(Object *ob)
 			qRedraw = 1;
 		}
 	}
-
-// XXX	if (qRedraw) allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void modifiers_foreachObjectLink(Object *ob, ObjectWalkFunc walk,
@@ -8538,7 +8536,6 @@ void modifier_setError(ModifierData *md, char *format, ...)
 
 	md->error = BLI_strdup(buffer);
 
-// XXX	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 /* used for buttons, to find out if the 'draw deformed in editmode' option is
@@ -8766,15 +8763,15 @@ int modifier_isDeformer(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isDeformed(Object *ob)
+int modifiers_isDeformed(Scene *scene, Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-			// XXX if(ob==obedit && (md->mode & eModifierMode_Editmode)==0);
-			// else 
+		if(ob==scene->obedit && (md->mode & eModifierMode_Editmode)==0);
+		else 
 			if(modifier_isDeformer(md))
-			return 1;
+				return 1;
 	}
 	return 0;
 }

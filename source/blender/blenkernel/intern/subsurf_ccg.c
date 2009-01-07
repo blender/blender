@@ -2108,7 +2108,7 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 			if (draw) {
 				if (draw==2) {
 		  			glEnable(GL_POLYGON_STIPPLE);
-		  			glPolygonStipple(0); //XXX stipple_quarttone);
+		  			glPolygonStipple(stipple_quarttone);
 				}
 				
 				for (S=0; S<numVerts; S++) {

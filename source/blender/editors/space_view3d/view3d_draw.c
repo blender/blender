@@ -33,6 +33,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -50,6 +51,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"
+#include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -70,6 +72,7 @@
 
 #include "WM_api.h"
 
+#include "ED_armature.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -741,13 +744,13 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 			
 			/* show name of active bone too (if possible) */
 			if(arm->edbo) {
-//	XXX			EditBone *ebo;
-//				for (ebo=G.edbo.first; ebo; ebo=ebo->next){
-//					if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
-//						name= ebo->name;
-//						break;
-//					}
-//				}
+				EditBone *ebo;
+				for (ebo=arm->edbo->first; ebo; ebo=ebo->next){
+					if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
+						name= ebo->name;
+						break;
+					}
+				}
 			}
 			else if(ob->pose && (ob->flag & OB_POSEMODE)) {
 				bPoseChannel *pchan;
@@ -1791,14 +1794,59 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 	BLI_freelistN(&shadows);
 }
 
+/* *********************** customdata **************** */
 
-void drawview3dspace(Scene *scene, ARegion *ar, View3D *v3d)
+/* goes over all modes and view3d settings */
+static CustomDataMask get_viewedit_datamask(bScreen *screen)
+{
+	CustomDataMask mask = CD_MASK_BAREMESH;
+	ScrArea *sa;
+	
+	/* check if we need tfaces & mcols due to face select or texture paint */
+	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
+		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+	
+	/* check if we need tfaces & mcols due to view mode */
+	for(sa = screen->areabase.first; sa; sa = sa->next) {
+		if(sa->spacetype == SPACE_VIEW3D) {
+			View3D *view = sa->spacedata.first;
+			if(view->drawtype == OB_SHADED) {
+				/* this includes normals for mesh_create_shadedColors */
+				mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
+			}
+			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
+				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
+				
+				if((G.fileflags & G_FILE_GAME_MAT) &&
+				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+					mask |= CD_MASK_ORCO;
+				}
+			}
+		}
+	}
+	
+	/* check if we need mcols due to vertex paint or weightpaint */
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT)
+		mask |= CD_MASK_MCOL;
+	
+	if(G.f & G_SCULPTMODE)
+		mask |= CD_MASK_MDISPS;
+	
+	return mask;
+}
+
+
+
+void drawview3dspace(bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d)
 {
 	Scene *sce;
 	Base *base;
 	Object *ob;
 	char retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
+	
+	/* from now on all object derived meshes check this */
+	v3d->customdata_mask= get_viewedit_datamask(screen);
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 		no layer check here, gets correct flushed */

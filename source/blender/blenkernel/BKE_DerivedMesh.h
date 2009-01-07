@@ -459,9 +459,6 @@ int editmesh_get_first_deform_matrices(struct Object *, struct EditMesh *em, flo
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
-/* determines required DerivedMesh data according to view and edit modes */
-CustomDataMask get_viewedit_datamask();
-
 /* convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
 typedef struct DMVertexAttribs {

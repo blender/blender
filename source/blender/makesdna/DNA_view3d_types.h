@@ -152,8 +152,9 @@ typedef struct View3D {
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;
-
-	short pad5, pad6;
+	
+	/* customdata flags from modes */
+	unsigned int customdata_mask;
 } View3D;
 
 
