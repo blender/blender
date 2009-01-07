@@ -38,6 +38,9 @@ struct bContext;
 struct wmWindowManager;
 struct EditSelection;
 struct ViewContext;
+struct bDeformGroup;
+struct MDeformWeight;
+struct MDeformVert;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -64,6 +67,7 @@ struct ViewContext;
 
 intptr_t	mesh_octree_table(Object *ob, struct EditMesh *em, float *co, char mode);
 struct EditVert   *editmesh_get_x_mirror_vert(Object *ob, struct EditMesh *em, float *co);
+int			mesh_get_x_mirror_vert(Object *ob, int index);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
@@ -118,6 +122,20 @@ int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], sho
 void		EM_free_backbuf(void);
 int			EM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
+
+/* editdeform.c XXX rename functions? */
+
+#define WEIGHT_REPLACE 1
+#define WEIGHT_ADD 2
+#define WEIGHT_SUBTRACT 3
+
+void		add_defgroup (Object *ob);
+void		remove_vert_defgroup (Object *ob, struct bDeformGroup	*dg, int vertnum);
+void		remove_verts_defgroup (Object *obedit, int allverts);
+struct bDeformGroup *add_defgroup_name (Object *ob, char *name);
+struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
+struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
+bDeformGroup *add_defgroup_name (Object *ob, char *name);
 
 
 #endif /* ED_MESH_H */
