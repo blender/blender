@@ -36,7 +36,7 @@
 
 struct uiBlock;
 struct BrushAction;
-struct BrushData;
+struct Brush;
 struct IndexNode;
 struct KeyBlock;
 struct Mesh;
@@ -64,7 +64,7 @@ void sculpt_paint_brush(char clear);
 void sculpt_stroke_draw();
 void sculpt_radialcontrol_start(int mode);
 
-struct BrushData *sculptmode_brush(void);
+struct Brush *sculptmode_brush(void);
 void do_symmetrical_brush_actions(struct BrushAction *a, short *, short *);
 
 void sculptmode_update_tex(void);

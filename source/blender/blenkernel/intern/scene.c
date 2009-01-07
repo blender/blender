@@ -625,13 +625,9 @@ void sculptdata_init(Scene *sce)
 
 	sd= &sce->sculptdata;
 
-	if(sd->cumap) {
-		curvemapping_free(sd->cumap);
-		sd->cumap = NULL;
-	}
-
 	memset(sd, 0, sizeof(SculptData));
 
+	/* XXX: create preset brushes here
 	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
 		sd->inflatebrush.size = sd->grabbrush.size =
 		sd->layerbrush.size = sd->flattenbrush.size = 50;
@@ -653,8 +649,7 @@ void sculptdata_init(Scene *sce)
 	sd->flags= SCULPT_DRAW_BRUSH;
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
-	sd->rake=0;
-	sculpt_reset_curve(sd);
+	sd->rake=0;*/
 }
 
 void sculptdata_free(Scene *sce)
@@ -671,9 +666,6 @@ void sculptdata_free(Scene *sce)
 			MEM_freeN(mtex);
 		}
 	}
-
-	curvemapping_free(sd->cumap);
-	sd->cumap = NULL;
 }
 
 void sculpt_vertexusers_free(SculptSession *ss)
@@ -705,30 +697,6 @@ void sculptsession_free(Scene *sce)
 		MEM_freeN(ss);
 		sce->sculptdata.session= NULL;
 	}
-}
-
-void sculpt_reset_curve(SculptData *sd)
-{
-	CurveMap *cm = NULL;
-
-	if(!sd->cumap)
-		sd->cumap = curvemapping_add(1, 0, 0, 1, 1);
-
-	cm = sd->cumap->cm;
-
-	if(cm->curve)
-		MEM_freeN(cm->curve);
-	cm->curve= MEM_callocN(3*sizeof(CurveMapPoint), "curve points");
-	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-	cm->totpoint= 3;
-	cm->curve[0].x= 0;
-	cm->curve[0].y= 1;
-	cm->curve[1].x= 0.33;
-	cm->curve[1].y= 0.33;
-	cm->curve[2].x= 1;
-	cm->curve[2].y= 0;
-
-	curvemapping_changed(sd->cumap, 0);
 }
 
 /* render simplification */

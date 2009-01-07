@@ -1456,6 +1456,22 @@ void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd)
 {
 }
 
+/* ************ READ CurveMapping *************** */
+
+/* cuma itself has been read! */
+static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
+{
+	int a;
+	
+	/* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
+	cumap->flag &= ~CUMA_PREMULLED;
+	
+	for(a=0; a<CM_TOT; a++) {
+		cumap->cm[a].curve= newdataadr(fd, cumap->cm[a].curve);
+		cumap->cm[a].table= NULL;
+	}
+}
+
 /* ************ READ Brush *************** */
 /* library brush linking after fileread */
 static void lib_link_brush(FileData *fd, Main *main)
@@ -1485,28 +1501,17 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 
 	for(a=0; a<MAX_MTEX; a++)
 		brush->mtex[a]= newdataadr(fd, brush->mtex[a]);
+
+	/* fallof curve */
+	brush->curve= newdataadr(fd, brush->curve);
+	if(brush->curve)
+		direct_link_curvemapping(fd, brush->curve);
 }
 
 static void direct_link_script(FileData *fd, Script *script)
 {
 	script->id.us = 1;
 	SCRIPT_SET_NULL(script)
-}
-
-/* ************ READ CurveMapping *************** */
-
-/* cuma itself has been read! */
-static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
-{
-	int a;
-	
-	/* flag seems to be able to hang? Maybe old files... not bad to clear anyway */
-	cumap->flag &= ~CUMA_PREMULLED;
-	
-	for(a=0; a<CM_TOT; a++) {
-		cumap->cm[a].curve= newdataadr(fd, cumap->cm[a].curve);
-		cumap->cm[a].table= NULL;
-	}
 }
 
 /* ************ READ NODE TREE *************** */
@@ -3604,12 +3609,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	/* SculptData textures */
 	for(a=0; a<MAX_MTEX; ++a)
 		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
-	/* Sculpt intensity curve */
-	sce->sculptdata.cumap= newdataadr(fd, sce->sculptdata.cumap);
-	if(sce->sculptdata.cumap)
-		direct_link_curvemapping(fd, sce->sculptdata.cumap);
-	else
-		sculpt_reset_curve(&sce->sculptdata);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;

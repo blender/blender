@@ -1475,8 +1475,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		for(a=0; a<MAX_MTEX; ++a)
 			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
-		if(sce->sculptdata.cumap)
-			write_curvemapping(wd, sce->sculptdata.cumap);
 
 		ed= sce->ed;
 		if(ed) {
@@ -2011,6 +2009,9 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 			for(a=0; a<MAX_MTEX; a++)
 				if(brush->mtex[a])
 					writestruct(wd, DATA, "MTex", 1, brush->mtex[a]);
+
+			if(brush->curve)
+				write_curvemapping(wd, brush->curve);
 		}
 	}
 }

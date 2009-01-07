@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
@@ -114,6 +115,8 @@ void free_brush(Brush *brush)
 			MEM_freeN(mtex);
 		}
 	}
+
+	curvemapping_free(brush->curve);
 }
 
 void make_local_brush(Brush *brush)
@@ -215,6 +218,40 @@ void brush_toggled_fake_user(Brush *brush)
 			id->us--;
 		}
 	}
+}
+
+
+void sculpt_preset_curve(Brush *b, BrushCurvePreset preset)
+{
+	CurveMap *cm = NULL;
+
+	if(!b->curve)
+		b->curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = b->curve->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+
+	if(preset == BRUSH_PRESET_SHARP) {
+		cm->curve= MEM_callocN(3*sizeof(CurveMapPoint), "curve points");
+		cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+		cm->totpoint= 3;
+		cm->curve[0].x= 0;
+		cm->curve[0].y= 1;
+		cm->curve[1].x= 0.33;
+		cm->curve[1].y= 0.33;
+		cm->curve[2].x= 1;
+		cm->curve[2].y= 0;
+	}
+	else if(preset == BRUSH_PRESET_SMOOTH) {
+		// XXX: todo
+	}
+	else if(preset == BRUSH_PRESET_MAX) {
+		// XXX: todo
+	}
+
+	curvemapping_changed(b->curve, 0);
 }
 
 int brush_texture_set_nr(Brush *brush, int nr)

@@ -51,6 +51,14 @@ int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
+/* brush curve */
+typedef enum {
+	BRUSH_PRESET_SHARP,
+	BRUSH_PRESET_SMOOTH,
+	BRUSH_PRESET_MAX
+} BrushCurvePreset;
+void brush_curve_preset(struct Brush *b, BrushCurvePreset preset);
+
 /* sampling */
 float brush_sample_falloff(struct Brush *brush, float dist);
 float brush_sample_falloff_noalpha(struct Brush *brush, float dist);

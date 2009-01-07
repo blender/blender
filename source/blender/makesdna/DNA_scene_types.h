@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+#include "DNA_brush_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 #include "DNA_scriptlink_types.h"
@@ -451,22 +452,10 @@ typedef struct ToolSettings {
 	char edge_mode;
 } ToolSettings;
 
-/* Used by all brushes to store their properties, which can be directly set
-   by the interface code. Note that not all properties are actually used by
-   all the brushes. */
-typedef struct BrushData
-{
-	short size;
-	char strength, dir; /* Not used for smooth brush */
-	char view;
-	char flag;
-	char pad[2];
-} BrushData;
-
 struct SculptSession;
 typedef struct SculptData
 {
-	/* Note! all pointers in this struct must be duplicated header_info.c's copy_scene function */
+	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */
 	
 	/* Data stored only from entering sculptmode until exiting sculptmode */
 	struct SculptSession *session;
@@ -474,38 +463,25 @@ typedef struct SculptData
 	/* Pointers to all of sculptmodes's textures */
 	struct MTex *mtex[18];
 
-	/* Editable brush shape */
-	struct CurveMapping *cumap;
-
-	/* Settings for each brush */
-	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush, flattenbrush;
+	struct Brush *brush;
 
 	/* For rotating around a pivot point */
 	float pivot[3];
 
-	short brush_type;
+	int flags;
 
 	/* For the Brush Shape */
 	short texact, texnr;
 	short spacing;
 	char texrept;
-	char texfade;
 	char texsep;
 
 	char averaging;
-	char flags;
 	
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
-	
-	/* Symmetry is separate from the other BrushData because the same
-	   settings are always used for all brush types */
-	char symm;
 
-	/* Added to store if the 'Rake' setting has been set */
-	char rake;
-	char axislock;
-	char pad[2];
+	char pad[5];
 } SculptData;
 
 typedef struct Scene {
@@ -800,33 +776,20 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
-/* Sculpt brush flags */
-#define SCULPT_BRUSH_AIRBRUSH 1
-#define SCULPT_BRUSH_ANCHORED 2
 /* SculptData.flags */
-#define SCULPT_INPUT_SMOOTH 1
-#define SCULPT_DRAW_FAST    2
-#define SCULPT_DRAW_BRUSH   4
-/* SculptData.brushtype */
-#define DRAW_BRUSH    1
-#define SMOOTH_BRUSH  2
-#define PINCH_BRUSH   3
-#define INFLATE_BRUSH 4
-#define GRAB_BRUSH    5
-#define LAYER_BRUSH   6
-#define FLATTEN_BRUSH 7
+#define SCULPT_SYMM_X        1
+#define SCULPT_SYMM_Y        2
+#define SCULPT_SYMM_Z        4
+#define SCULPT_INPUT_SMOOTH  8
+#define SCULPT_DRAW_FAST    16
+#define SCULPT_DRAW_BRUSH   32
+#define SCULPT_LOCK_X       64
+#define SCULPT_LOCK_Y      128
+#define SCULPT_LOCK_Z      256
 /* SculptData.texrept */
 #define SCULPTREPT_DRAG 1
 #define SCULPTREPT_TILE 2
 #define SCULPTREPT_3D   3
-
-#define SYMM_X 1
-#define SYMM_Y 2
-#define SYMM_Z 4
-
-#define AXISLOCK_X 1
-#define AXISLOCK_Y 2
-#define AXISLOCK_Z 4
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1

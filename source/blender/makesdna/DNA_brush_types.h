@@ -36,6 +36,7 @@
 #define MAX_MTEX	18
 #endif
 
+struct CurveMapping;
 struct MTex;
 struct Image;
 
@@ -47,6 +48,11 @@ typedef struct BrushClone {
 
 typedef struct Brush {
 	ID id;
+
+	struct BrushClone clone;
+
+	struct CurveMapping *curve;		/* falloff curve */
+	struct MTex *mtex[18];		/* MAX_MTEX */
 	
 	short flag, blend;			/* general purpose flag, blend mode */
 	int size;					/* brush diameter */
@@ -57,10 +63,8 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	short texact, pad;
-	struct MTex *mtex[18];		/* MAX_MTEX */
-
-	struct BrushClone clone;
+	short texact;				/* active texture */
+	char sculpt_tool, pad;			/* active tool */
 } Brush;
 
 /* Brush.flag */
@@ -71,6 +75,9 @@ typedef struct Brush {
 #define BRUSH_RAD_PRESSURE		16
 #define BRUSH_SPACING_PRESSURE	32
 #define BRUSH_FIXED_TEX			64
+#define BRUSH_RAKE		128
+#define BRUSH_ANCHORED		256
+#define BRUSH_DIR_IN		512
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 		0
@@ -81,6 +88,15 @@ typedef struct Brush {
 #define BRUSH_BLEND_DARKEN		5
 #define BRUSH_BLEND_ERASE_ALPHA	6
 #define BRUSH_BLEND_ADD_ALPHA	7
+
+/* Brush.sculpt_tool */
+#define SCULPT_TOOL_DRAW    1
+#define SCULPT_TOOL_SMOOTH  2
+#define SCULPT_TOOL_PINCH   3
+#define SCULPT_TOOL_INFLATE 4
+#define SCULPT_TOOL_GRAB    5
+#define SCULPT_TOOL_LAYER   6
+#define SCULPT_TOOL_FLATTEN 7
 
 #define PAINT_TOOL_DRAW		0
 #define PAINT_TOOL_SOFTEN	1

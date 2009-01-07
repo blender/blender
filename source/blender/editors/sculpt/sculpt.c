@@ -333,15 +333,14 @@ static void project(const float v[3], short p[2])
    shrink the brush. Skipped for grab brush because only the first mouse down
    size is used, which is small if the user has just touched the pen to the
    tablet */
-char brush_size()
+char brush_size(Brush *b)
 {
 	SculptData *sd = NULL; /* XXX */
-	const BrushData *b= sculptmode_brush();
 	float size= b->size;
 	float pressure= 0; /* XXX: get_pressure(); */
 	short activedevice= get_activedevice();
 	
-	if(sculpt_data()->brush_type!=GRAB_BRUSH) {
+	if(b->sculpt_tool!=SCULPT_TOOL_GRAB) {
 		const float size_factor= sd->tablet_size / 10.0f;
 		
 		/* XXX: tablet stuff
@@ -356,15 +355,14 @@ char brush_size()
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
    special multiplier found experimentally to scale the strength factor. */
-float brush_strength(BrushAction *a)
+float brush_strength(Brush *b, BrushAction *a)
 {
 	SculptData *sd = NULL; /* XXX */
-	const BrushData* b= sculptmode_brush();
-	float dir= b->dir==1 ? 1 : -1;
+	float dir= b->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
 	short activedevice= get_activedevice();
 	float flip= a->flip ? -1:1;
-	float anchored = b->flag & SCULPT_BRUSH_ANCHORED ? 25 : 1;
+	float anchored = b->flag & BRUSH_ANCHORED ? 25 : 1;
 
 	const float strength_factor= sd->tablet_strength / 10.0f;
 
@@ -379,20 +377,20 @@ float brush_strength(BrushAction *a)
 		dir= -dir;
 #endif
 
-	switch(sd->brush_type){
-	case DRAW_BRUSH:
-	case LAYER_BRUSH:
-		return b->strength / 5000.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
-	case SMOOTH_BRUSH:
-		return b->strength / 50.0f * pressure * anchored;
-	case PINCH_BRUSH:
-		return b->strength / 1000.0f * dir * pressure * flip * anchored;
-	case GRAB_BRUSH:
+	switch(b->sculpt_tool){
+	case SCULPT_TOOL_DRAW:
+	case SCULPT_TOOL_LAYER:
+		return b->alpha / 5000.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
+	case SCULPT_TOOL_SMOOTH:
+		return b->alpha / 50.0f * pressure * anchored;
+	case SCULPT_TOOL_PINCH:
+		return b->alpha / 1000.0f * dir * pressure * flip * anchored;
+	case SCULPT_TOOL_GRAB:
 		return 1;
-	case INFLATE_BRUSH:
-		return b->strength / 5000.0f * dir * pressure * flip * anchored;
-	case FLATTEN_BRUSH:
-		return b->strength / 500.0f * pressure * anchored;
+	case SCULPT_TOOL_INFLATE:
+		return b->alpha / 5000.0f * dir * pressure * flip * anchored;
+	case SCULPT_TOOL_FLATTEN:
+		return b->alpha / 500.0f * pressure * anchored;
 	default:
 		return 0;
 	}
@@ -413,21 +411,21 @@ void sculpt_clip(const BrushAction *a, float *co, const float val[3])
 void sculpt_axislock(float *co)
 {
 	SculptData *sd = sculpt_data();
-	if (sd->axislock == AXISLOCK_X+AXISLOCK_Y+AXISLOCK_Z) return;
+	if (sd->flags & (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z)) return;
 	/* XXX: if(G.vd->twmode == V3D_MANIP_LOCAL) { */
 	if(0) {
 		float mat[3][3], imat[3][3];
 		/* XXX: Mat3CpyMat4(mat, OBACT->obmat); */
 		Mat3Inv(imat, mat);
 		Mat3MulVecfl(mat, co);
-		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
-		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
-		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
+		if (sd->flags & SCULPT_LOCK_Y) co[1] = 0.0;
+		if (sd->flags & SCULPT_LOCK_Z) co[2] = 0.0;		
 		Mat3MulVecfl(imat, co);
 	} else {
-		if (sd->axislock & AXISLOCK_X) co[0] = 0.0;
-		if (sd->axislock & AXISLOCK_Y) co[1] = 0.0;
-		if (sd->axislock & AXISLOCK_Z) co[2] = 0.0;		
+		if (sd->flags & SCULPT_LOCK_X) co[0] = 0.0;
+		if (sd->flags & SCULPT_LOCK_Y) co[1] = 0.0;
+		if (sd->flags & SCULPT_LOCK_Z) co[2] = 0.0;		
 	}
 }
 
@@ -450,12 +448,12 @@ void calc_area_normal(float out[3], const BrushAction *a, const float *outdir, c
 {
 	ActiveData *node = active_verts->first;
 	SculptData *sd = sculpt_data();
-	const int view = sd->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
+	const int view = 0; /* XXX: should probably be a flag, not number: sd->brush_type==SCULPT_TOOL_DRAW ? sculptmode_brush()->view : 0; */
 	float out_flip[3];
 	
 	out[0]=out[1]=out[2] = out_flip[0]=out_flip[1]=out_flip[2] = 0;
 
-	if(sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED) {
+	if(sculptmode_brush()->flag & BRUSH_ANCHORED) {
 		for(; node; node = node->next)
 			add_norm_if(((BrushAction*)a)->symm.out, out, out_flip, a->orig_norms[node->Index]);
 	}
@@ -604,7 +602,7 @@ void do_layer_brush(SculptSession *ss, BrushAction *a, const ListBase *active_ve
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	const float bstr= brush_strength(a);
+	const float bstr= brush_strength(sculptmode_brush(), a);
 
 	calc_area_normal(area_normal, a, NULL, active_verts);
 
@@ -717,21 +715,20 @@ void do_flatten_brush(SculptSession *ss, const BrushAction *a, const ListBase *a
 }
 
 /* Uses the brush curve control to find a strength value between 0 and 1 */
-float curve_strength(float p, const float len)
+float curve_strength(CurveMapping *cumap, float p, const float len)
 {
-	SculptData *sd = NULL; /* XXX */
 	if(p > len) p= len;
-	return curvemapping_evaluateF(sd->cumap, 0, p/len);
+	return curvemapping_evaluateF(cumap, 0, p/len);
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */
 void flip_coord(float co[3], const char symm)
 {
-	if(symm & SYMM_X)
+	if(symm & SCULPT_SYMM_X)
 		co[0]= -co[0];
-	if(symm & SYMM_Y)
+	if(symm & SCULPT_SYMM_Y)
 		co[1]= -co[1];
-	if(symm & SYMM_Z)
+	if(symm & SCULPT_SYMM_Z)
 		co[2]= -co[2];
 }
 
@@ -876,8 +873,7 @@ float tex_strength(BrushAction *a, float *point, const float len,const unsigned 
 		}
 	}
 
-	if(sd->texfade)
-		avg*= curve_strength(len, a->size_3d); /* Smooth curve */
+//XXX	avg*= curve_strength(NULL, len, a->size_3d); /* Falloff curve */
 
 	return avg;
 }
@@ -943,7 +939,7 @@ void sculpt_clear_damaged_areas(SculptSession *ss)
 	}
 }
 
-void do_brush_action(BrushAction *a)
+void do_brush_action(Brush *b, BrushAction *a)
 {
 	int i;
 	float av_dist;
@@ -951,7 +947,7 @@ void do_brush_action(BrushAction *a)
 	ActiveData *adata= 0;
 	float *vert;
 	Mesh *me= NULL; /*XXX: get_mesh(OBACT); */
-	const float bstrength= brush_strength(a);
+	const float bstrength= brush_strength(sculptmode_brush(), a);
 	KeyBlock *keyblock= NULL; /*XXX: ob_get_keyblock(OBACT); */
 	SculptData *sd = sculpt_data();
 	SculptSession *ss = sculpt_session();
@@ -960,7 +956,7 @@ void do_brush_action(BrushAction *a)
 
 	/* Build a list of all vertices that are potentially within the brush's
 	   area of influence. Only do this once for the grab brush. */
-	if((sd->brush_type != GRAB_BRUSH) || a->firsttime) {
+	if((b->sculpt_tool != SCULPT_TOOL_GRAB) || a->firsttime) {
 		for(i=0; i<ss->totvert; ++i) {
 			/* Projverts.inside provides a rough bounding box */
 			if(ss->multires || ss->projverts[i].inside) {
@@ -976,7 +972,7 @@ void do_brush_action(BrushAction *a)
 					adata->Fade= tex_strength(a, vert, av_dist, i) * bstrength;
 					adata->dist = av_dist;
 
-					if(sd->brush_type == GRAB_BRUSH && a->firsttime)
+					if(b->sculpt_tool == SCULPT_TOOL_GRAB && a->firsttime)
 						BLI_addtail(&a->grab_active_verts[a->symm.index], adata);
 					else
 						BLI_addtail(&active_verts, adata);
@@ -986,28 +982,28 @@ void do_brush_action(BrushAction *a)
 	}
 
 	/* Only act if some verts are inside the brush area */
-	if(active_verts.first || (sd->brush_type == GRAB_BRUSH && a->grab_active_verts[a->symm.index].first)) {
+	if(active_verts.first || (b->sculpt_tool == SCULPT_TOOL_GRAB && a->grab_active_verts[a->symm.index].first)) {
 		/* Apply one type of brush action */
-		switch(sd->brush_type){
-		case DRAW_BRUSH:
+		switch(b->sculpt_tool){
+		case SCULPT_TOOL_DRAW:
 			do_draw_brush(ss, a, &active_verts);
 			break;
-		case SMOOTH_BRUSH:
+		case SCULPT_TOOL_SMOOTH:
 			do_smooth_brush(ss, a, &active_verts);
 			break;
-		case PINCH_BRUSH:
+		case SCULPT_TOOL_PINCH:
 			do_pinch_brush(ss, a, &active_verts);
 			break;
-		case INFLATE_BRUSH:
+		case SCULPT_TOOL_INFLATE:
 			do_inflate_brush(ss, a, &active_verts);
 			break;
-		case GRAB_BRUSH:
+		case SCULPT_TOOL_GRAB:
 			do_grab_brush(ss, a);
 			break;
-		case LAYER_BRUSH:
+		case SCULPT_TOOL_LAYER:
 			do_layer_brush(ss, a, &active_verts);
 			break;
-		case FLATTEN_BRUSH:
+		case SCULPT_TOOL_FLATTEN:
 			do_flatten_brush(ss, a, &active_verts);
 			break;
 		}
@@ -1016,7 +1012,7 @@ void do_brush_action(BrushAction *a)
 		if(keyblock && !ss->multires) {
 			float *co= keyblock->data;
 			if(co) {
-				if(sd->brush_type == GRAB_BRUSH)
+				if(b->sculpt_tool == SCULPT_TOOL_GRAB)
 					adata = a->grab_active_verts[a->symm.index].first;
 				else
 					adata = active_verts.first;
@@ -1030,7 +1026,7 @@ void do_brush_action(BrushAction *a)
 		if(ss->vertexcosnos && !ss->multires)
 			BLI_freelistN(&active_verts);
 		else {
-			if(sd->brush_type != GRAB_BRUSH)
+			if(b->sculpt_tool != SCULPT_TOOL_GRAB)
 				addlisttolist(&ss->damaged_verts, &active_verts);
 		}
 	}
@@ -1052,13 +1048,14 @@ void calc_brushdata_symm(BrushAction *a, const char symm)
 
 void do_symmetrical_brush_actions(BrushAction *a, short co[2], short pr_co[2])
 {
-	const char symm = sculpt_data()->symm;
+	SculptData *sd = NULL; // XXX
+	const char symm = sd->flags & 7;
 	BrushActionSymm orig;
 	int i;
 
 	init_brushaction(a, co, pr_co);
 	orig = a->symm;
-	do_brush_action(a);
+	do_brush_action(sd->brush, a);
 
 	for(i = 1; i <= symm; ++i) {
 		if(symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
@@ -1066,7 +1063,7 @@ void do_symmetrical_brush_actions(BrushAction *a, short co[2], short pr_co[2])
 			a->symm = orig;
 
 			calc_brushdata_symm(a, i);
-			do_brush_action(a);
+			do_brush_action(sd->brush, a);
 		}
 	}
 
@@ -1139,27 +1136,6 @@ void projverts_clear_inside(SculptSession *ss)
 		ss->projverts[i].inside = 0;
 }
 
-BrushData *sculptmode_brush(void)
-{
-	SculptData *sd= sculpt_data();
-
-	BrushData *bd = 
-		(sd->brush_type==DRAW_BRUSH ? &sd->drawbrush :
-		 sd->brush_type==SMOOTH_BRUSH ? &sd->smoothbrush :
-		 sd->brush_type==PINCH_BRUSH ? &sd->pinchbrush :
-		 sd->brush_type==INFLATE_BRUSH ? &sd->inflatebrush :
-		 sd->brush_type==GRAB_BRUSH ? &sd->grabbrush :
-		 sd->brush_type==LAYER_BRUSH ? &sd->layerbrush :
-		 sd->brush_type==FLATTEN_BRUSH ? &sd->flattenbrush : NULL);
-
-	if(!bd) {
-		/* XXX: sculptdata_init(G.scene); */
-		bd = &sd->drawbrush;
-	}
-
-	return bd;
-}
-
 void sculptmode_update_tex()
 {
 	SculptData *sd= sculpt_data();
@@ -1216,14 +1192,16 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 {
 	SculptData *sd = sculpt_data();
 	SculptSession *ss = sculpt_session();
+	Brush *b = sd->brush;
 	Object *ob = NULL; /* XXX */
 	const float mouse_depth = get_depth(mouse[0], mouse[1]);
 	float brush_edge_loc[3], zero_loc[3], oldloc[3];
 	ModifierData *md;
 	int i;
 	const char flip = 0; /*XXX: (get_qual() == LR_SHIFTKEY); */
- 	const char anchored = sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED;
+ 	const char anchored = sculptmode_brush()->flag & BRUSH_ANCHORED;
  	short orig_mouse[2], dx=0, dy=0;
+	float size = brush_size(b);
 
 	a->flip = flip;
 	a->symm.index = 0;
@@ -1250,7 +1228,7 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
  		a->anchored_rot = atan2(dy, dx);
  	}
  	else
- 		unproject(brush_edge_loc, mouse[0] + brush_size(), mouse[1], mouse_depth);
+ 		unproject(brush_edge_loc, mouse[0] + size, mouse[1], mouse_depth);
  
 	a->size_3d = VecLenf(a->symm.center_3d, brush_edge_loc);
 
@@ -1259,7 +1237,7 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 	if(anchored)
  		a->radius = sqrt(dx*dx + dy*dy);
  	else
- 		a->radius = brush_size();
+ 		a->radius = size;
 
 	/* Set the pivot to allow the model to rotate around the center of the brush */
 	if(get_depth(mouse[0],mouse[1]) < 1.0)
@@ -1294,7 +1272,7 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 		}
 	}
 
-	if(sd->brush_type == GRAB_BRUSH) {
+	if(b->sculpt_tool == SCULPT_TOOL_GRAB) {
 		float gcenter[3];
 
 		/* Find the delta */
@@ -1302,12 +1280,12 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 		unproject(oldloc, pr_mouse[0], pr_mouse[1], a->depth);
 		VecSubf(a->symm.grab_delta, gcenter, oldloc);
 	}
-	else if(sd->brush_type == LAYER_BRUSH) {
+	else if(b->sculpt_tool == SCULPT_TOOL_LAYER) {
 		if(!a->layer_disps)
 			a->layer_disps= MEM_callocN(sizeof(float)*ss->totvert,"Layer disps");
 	}
 
-	if(sd->brush_type == LAYER_BRUSH || anchored) {
+	if(b->sculpt_tool == SCULPT_TOOL_LAYER || anchored) {
  		unsigned i;
  
  		if(!a->mesh_store) {
@@ -1329,13 +1307,15 @@ static void init_brushaction(BrushAction *a, short *mouse, short *pr_mouse)
 		}
   	}
 }
+
+/* XXX: Used anywhere?
 void sculptmode_set_strength(const int delta)
 {
 	int val = sculptmode_brush()->strength + delta;
 	if(val < 1) val = 1;
 	if(val > 100) val = 100;
 	sculptmode_brush()->strength= val;
-}
+}*/
 
 /* XXX: haven't brought in the radial control files, not sure where to put them. Note that all the paint modes should have access to radial control! */
 #if 0
@@ -1424,7 +1404,7 @@ void sculpt_radialcontrol_start(int mode)
 /* XXX: drawing code to go elsewhere!
 void sculpt_paint_brush(char clear)
 {
-	if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
+	if(sculpt_data()->flags & SCULPT_SCULPT_TOOL_DRAW) {
 		static short mvalo[2];
 		short mval[2];
 		const short rad= sculptmode_brush()->size;
@@ -1639,7 +1619,7 @@ void sculpt(void)
 	int scissor_box[4];
 	float offsetRot;
 	int smooth_stroke = 0, i;
-	int anchored;
+	int anchored, rake = 0 /* XXX: rake = ? */;
 
 	/* XXX: checking that sculpting is allowed
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
@@ -1658,8 +1638,8 @@ void sculpt(void)
 		ss= sd->session;
 	}
 
-	anchored = sculptmode_brush()->flag & SCULPT_BRUSH_ANCHORED;
-	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush_type != GRAB_BRUSH) && !anchored;
+	anchored = sculptmode_brush()->flag & BRUSH_ANCHORED;
+	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush->sculpt_tool != SCULPT_TOOL_GRAB) && !anchored;
 
 	if(smooth_stroke)
 		sculpt_stroke_new(256);
@@ -1731,7 +1711,7 @@ void sculpt(void)
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);
 		/* If rake, and the mouse has moved over 10 pixels (euclidean) (prevents jitter) then get the new angle */
-		if (sd->rake && (pow(lastSigMouse[0]-mouse[0],2)+pow(lastSigMouse[1]-mouse[1],2))>100){
+		if (rake && (pow(lastSigMouse[0]-mouse[0],2)+pow(lastSigMouse[1]-mouse[1],2))>100){
 			/*Nasty looking, but just orig + new angle really*/
 			set_tex_angle(offsetRot+180.+to_deg(atan2((float)(mouse[1]-lastSigMouse[1]),(float)(mouse[0]-lastSigMouse[0]))));
 			lastSigMouse[0]=mouse[0];
@@ -1739,7 +1719,7 @@ void sculpt(void)
 		}
 		
 		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] ||
-		   sculptmode_brush()->flag & SCULPT_BRUSH_AIRBRUSH) {
+		   sculptmode_brush()->flag & BRUSH_AIRBRUSH) {
 			a->firsttime = firsttime;
 			firsttime= 0;
 
@@ -1751,7 +1731,7 @@ void sculpt(void)
 			if(modifier_calculations && !ss->vertexcosnos)
 				ss->vertexcosnos= mesh_get_mapped_verts_nors(NULL, ob); /*XXX scene = ? */
 
-			if(sd->brush_type != GRAB_BRUSH) {
+			if(sd->brush->sculpt_tool != SCULPT_TOOL_GRAB) {
 				if(anchored) {
  					/* Restore the mesh before continuing with anchored stroke */
  					if(a->mesh_store) {
@@ -1783,7 +1763,7 @@ void sculpt(void)
 			if((!ss->multires && modifier_calculations) || ob_get_keyblock(ob))
 				;/* XXX: DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); */
 
-			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !(sd->flags & SCULPT_DRAW_FAST)) {
+			if(modifier_calculations || sd->brush->sculpt_tool == SCULPT_TOOL_GRAB || !(sd->flags & SCULPT_DRAW_FAST)) {
 				calc_damaged_verts(&ss->damaged_verts, a);
 				/*XXX: scrarea_do_windraw(curarea); */
 				screen_swapbuffers();
@@ -1806,7 +1786,7 @@ void sculpt(void)
 				glDisable(GL_DEPTH_TEST);
 				
 				/* Draw cursor */
-				if(sculpt_data()->flags & SCULPT_DRAW_BRUSH)
+				if(sculpt_data()->flags & SCULPT_TOOL_DRAW)
 					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
 				if(smooth_stroke)
 					sculpt_stroke_draw();
@@ -1863,19 +1843,19 @@ void sculpt(void)
 static void sculpt_undo_push(const short brush_type)
 {
 	switch(brush_type) {
-	case DRAW_BRUSH:
+	case SCULPT_TOOL_DRAW:
 		BIF_undo_push("Draw Brush"); break;
-	case SMOOTH_BRUSH:
+	case SCULPT_TOOL_SMOOTH:
 		BIF_undo_push("Smooth Brush"); break;
-	case PINCH_BRUSH:
+	case SCULPT_TOOL_PINCH:
 		BIF_undo_push("Pinch Brush"); break;
-	case INFLATE_BRUSH:
+	case SCULPT_TOOL_INFLATE:
 		BIF_undo_push("Inflate Brush"); break;
-	case GRAB_BRUSH:
+	case SCULPT_TOOL_GRAB:
 		BIF_undo_push("Grab Brush"); break;
-	case LAYER_BRUSH:
+	case SCULPT_TOOL_LAYER:
 		BIF_undo_push("Layer Brush"); break;
-	case FLATTEN_BRUSH:
+	case SCULPT_TOOL_FLATTEN:
  		BIF_undo_push("Flatten Brush"); break;
 	default:
 		BIF_undo_push("Sculpting"); break;
