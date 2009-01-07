@@ -881,6 +881,7 @@ typedef struct Scene {
 /* toolsettings->bone_sketching */
 #define BONE_SKETCHING			1
 #define BONE_SKETCHING_QUICK	2
+#define BONE_SKETCHING_ADJUST	4
 
 /* toolsettings->bone_sketching_convert */
 #define	SK_CONVERT_CUT_FIXED			1

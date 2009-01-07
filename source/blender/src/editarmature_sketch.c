@@ -92,6 +92,12 @@ typedef struct SK_Stroke
 	int selected;
 } SK_Stroke;
 
+typedef struct SK_Adjustment
+{
+	SK_Stroke *target;
+	int	start, end;
+} SK_Adjustment;
+
 #define SK_Stroke_BUFFER_INIT_SIZE 20
 
 typedef struct SK_DrawData
@@ -118,6 +124,7 @@ typedef struct SK_Sketch
 	SK_Stroke	*active_stroke;
 	SK_Stroke	*gesture;
 	SK_Point	next_point;
+	SK_Adjustment adj;
 } SK_Sketch;
 
 typedef struct SK_StrokeIterator {
@@ -836,6 +843,26 @@ void sk_growStrokeBuffer(SK_Stroke *stk)
 	}
 }
 
+void sk_growStrokeBufferN(SK_Stroke *stk, int n)
+{
+	if (stk->nb_points + n > stk->buf_size)
+	{
+		SK_Point *old_points = stk->points;
+		
+		while (stk->nb_points + n > stk->buf_size)
+		{
+			stk->buf_size *= 2;
+		}
+		
+		sk_allocStrokeBuffer(stk);
+		
+		memcpy(stk->points, old_points, sizeof(SK_Point) * stk->nb_points);
+		
+		MEM_freeN(old_points);
+	}
+}
+
+
 void sk_replaceStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
 {
 	memcpy(stk->points + n, pt, sizeof(SK_Point));
@@ -861,6 +888,24 @@ void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
 	memcpy(stk->points + stk->nb_points, pt, sizeof(SK_Point));
 	
 	stk->nb_points++;
+}
+
+void sk_inserStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end)
+{
+	int size = end - start + 1;
+	
+	sk_growStrokeBufferN(stk, len - size);
+	
+	if (len != size)
+	{
+		int tail_size = stk->nb_points - end + 1;
+		
+		memmove(stk->points + start + len, stk->points + end + 1, tail_size * sizeof(SK_Point));
+	}
+	
+	memcpy(stk->points + start, pts, len * sizeof(SK_Point));
+	
+	stk->nb_points += len - size;
 }
 
 void sk_trimStroke(SK_Stroke *stk, int start, int end)
@@ -1221,14 +1266,14 @@ void sk_drawStrokeSubdivision(SK_Stroke *stk)
 	}	
 }
 
-SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
+SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist, int *index)
 {
 	SK_Point *pt = NULL;
 	int i;
 	
 	for (i = 0; i < stk->nb_points; i++)
 	{
-		if (stk->points[i].type == PT_EXACT)
+		if (1) // stk->points[i].type == PT_EXACT)
 		{
 			short pval[2];
 			int pdist;
@@ -1241,6 +1286,11 @@ SK_Point *sk_snapPointStroke(SK_Stroke *stk, short mval[2], int *dist)
 			{
 				*dist = pdist;
 				pt = stk->points + i;
+				
+				if (index != NULL)
+				{
+					*index = i;
+				}
 			}
 		}
 	}
@@ -1295,17 +1345,121 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 	return pt;
 }
 
+void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
+{
+	if (sketch->adj.target == NULL)
+	{
+		SK_Stroke *target;
+		int closest_index = 0;
+		int dist = SNAP_MIN_DISTANCE * 2;
+		
+		for (target = sketch->strokes.first; target; target = target->next)
+		{
+			if (target != stk)
+			{
+				int index;
+				
+				SK_Point *spt = sk_snapPointStroke(target, dd->mval, &dist, &index);
+				
+				if (spt != NULL)
+				{
+					sketch->adj.target = target;
+					closest_index = index;
+				}
+			}
+		}
+		
+		if (sketch->adj.target != NULL)
+		{
+			if (stk->nb_points == 1)
+			{
+				sketch->adj.start = closest_index;
+			}
+			else
+			{
+				sketch->adj.end = closest_index;
+			}
+			sketch->adj.target->selected = 1;
+		}
+	}
+	else if (sketch->adj.target != NULL)
+	{
+		SK_Point *closest_pt = NULL;
+		int dist = SNAP_MIN_DISTANCE * 2;
+		int index;
+
+		closest_pt = sk_snapPointStroke(sketch->adj.target, dd->mval, &dist, &index);
+		
+		if (closest_pt != NULL)
+		{
+			sketch->adj.end = index;
+		}
+		else
+		{
+			sketch->adj.end = 0;
+		}
+	}
+}
+
+void sk_endAdjust(SK_Sketch *sketch)
+{
+	SK_Stroke *stk = sketch->active_stroke;
+	
+	if (sketch->adj.target)
+	{
+		int start = sketch->adj.start;
+		int end = sketch->adj.end;
+		
+		if (end == 0)
+		{
+			end = sketch->adj.target->nb_points - 1;
+		}
+		else
+		{
+			sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
+		}
+		
+		if (start != 0)
+		{
+			stk->points->type = PT_CONTINUOUS;
+		}
+		
+		if (end < start)
+		{
+			int tmp = start;
+			start = end;
+			end = tmp;
+			sk_reverseStroke(stk);
+		}
+		
+		sk_inserStrokePoints(sketch->adj.target, stk->points, stk->nb_points, start, end);
+		
+		sk_removeStroke(sketch, stk);
+	}
+}
+
+
 void sk_startStroke(SK_Sketch *sketch)
 {
 	SK_Stroke *stk = sk_createStroke();
 	
 	BLI_addtail(&sketch->strokes, stk);
 	sketch->active_stroke = stk;
+	
+	sketch->adj.target = NULL;
+	sketch->adj.start = 0;
+	sketch->adj.end = 0;
 }
 
 void sk_endStroke(SK_Sketch *sketch)
 {
 	sk_shrinkStrokeBuffer(sketch->active_stroke);
+
+	if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
+	{
+		sk_endAdjust(sketch);
+	}
+
 	sketch->active_stroke = NULL;
 }
 
@@ -1412,7 +1566,7 @@ int sk_getStrokeSnapPoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *source_stk
 	
 	for (stk = sketch->strokes.first; stk; stk = stk->next)
 	{
-		SK_Point *spt = sk_snapPointStroke(stk, dd->mval, &dist);
+		SK_Point *spt = sk_snapPointStroke(stk, dd->mval, &dist, NULL);
 		
 		if (spt != NULL)
 		{
@@ -1648,7 +1802,12 @@ void sk_addStrokePoint(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short
 	if (point_added == 0)
 	{
 		point_added = sk_addStrokeDrawPoint(sketch, stk, dd);
-	}	
+	}
+	
+	if (G.scene->toolsettings->bone_sketching & BONE_SKETCHING_ADJUST)
+	{
+		sk_updateAdjust(sketch, stk, dd);
+	}
 }
 
 void sk_getStrokePoint(SK_Point *pt, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd, short qual)
@@ -2749,6 +2908,9 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 		if (sketch->active_stroke == NULL)
 		{
 			sk_startStroke(sketch);
+			sk_selectAllSketch(sketch, -1);
+			
+			sketch->active_stroke->selected = 1;
 		}
 
 		sk_initDrawData(&dd);
@@ -2805,11 +2967,6 @@ int sk_paint(SK_Sketch *sketch, short mbut)
 				BIF_undo_push("Convert Sketch");
 				sk_removeStroke(sketch, stk);
 				allqueue(REDRAWBUTSEDIT, 0);
-			}
-			else
-			{
-				sk_selectAllSketch(sketch, -1);
-				stk->selected = 1;
 			}
 			
 			allqueue(REDRAWVIEW3D, 0);
