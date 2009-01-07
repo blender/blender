@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_SCENE_H
 #define __KX_SCENE_H
@@ -39,6 +36,7 @@
 
 #include <vector>
 #include <set>
+#include <list>
 
 #include "GEN_Map.h"
 #include "GEN_HashedPtr.h"
@@ -56,6 +54,7 @@
  */
 struct SM_MaterialProps;
 struct SM_ShapeProps;
+struct Scene;
 
 class GEN_HashedPtr;
 class CListValue;
@@ -84,6 +83,8 @@ class RAS_IPolyMaterial;
 class RAS_IRasterizer;
 class RAS_IRenderTools;
 class SCA_JoystickManager;
+class btCollisionShape;
+class KX_BlenderSceneConverter;
 /**
  * The KX_Scene holds all data for an independent scene. It relates
  * KX_Objects to the specific objects in the modules.
@@ -110,6 +111,7 @@ protected:
 	CListValue*			m_objectlist;
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
+	CListValue*			m_inactivelist;	// all objects that are not in the active layer
 
 	/**
 	 *  The tree of objects in the scene.
@@ -119,8 +121,7 @@ protected:
 	/**
 	 * The set of cameras for this scene
 	 */
-	set<class KX_Camera*>       m_cameras;
-	
+	list<class KX_Camera*>       m_cameras;
 	/**
 	 * Various SCA managers used by the scene
 	 */
@@ -129,10 +130,12 @@ protected:
 	SCA_MouseManager*		m_mousemgr;
 	SCA_TimeEventManager*	m_timemgr;
 
+	// Scene converter where many scene entities are registered
+	// Used to deregister objects that are deleted
+	class KX_BlenderSceneConverter*		m_sceneConverter;
 	/**
 	* physics engine abstraction
 	*/
-
 	//e_PhysicsEngine m_physicsEngine; //who needs this ?
 	class PHY_IPhysicsEnvironment*		m_physicsEnvironment;
 
@@ -209,6 +212,16 @@ protected:
 	 */
 	std::vector<KX_GameObject*>	m_logicHierarchicalGameObjects;
 	
+	/**
+	 * This temporary variable will contain the list of 
+	 * object that can be added during group instantiation.
+	 * objects outside this list will not be added (can 
+	 * happen with children that are outside the group).
+	 * Used in AddReplicaObject. If the list is empty, it
+	 * means don't care.
+	 */
+	std::set<CValue*>	m_groupGameObjects;
+	
 	/** 
 	 * Pointer to system variable passed in in constructor
 	 * only used in constructor so we do not need to keep it
@@ -253,9 +266,9 @@ protected:
 	/**
 	 * Visibility testing functions.
 	 */
-	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam);
-	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam);
-	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam);
+	void MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera*cam,int layer=0);
+	void MarkSubTreeVisible(SG_Tree *node, RAS_IRasterizer* rasty, bool visible, KX_Camera*cam,int layer=0);
+	void MarkVisible(RAS_IRasterizer* rasty, KX_GameObject* gameobj, KX_Camera*cam, int layer=0);
 
 	double				m_suspendedtime;
 	double				m_suspendeddelta;
@@ -265,18 +278,21 @@ protected:
 	 */
 	PyObject* m_attrlist;
 
+	struct Scene* m_blenderScene;
+
 public:
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
 		class NG_NetworkDeviceInterface* ndi,
 		class SND_IAudioDevice* adi,
-		const STR_String& scenename	);
+		const STR_String& scenename,
+		struct Scene* scene);
 
 	virtual	
 	~KX_Scene();
 
 	RAS_BucketManager* GetBucketManager();
-	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat);
+	RAS_MaterialBucket*	FindBucket(RAS_IPolyMaterial* polymat, bool &bucketCreated);
 	void RenderBuckets(const MT_Transform& cameratransform,
 						RAS_IRasterizer* rasty,
 						RAS_IRenderTools* rendertools);
@@ -284,6 +300,12 @@ public:
 	 * Update all transforms according to the scenegraph.
 	 */
 	void UpdateParents(double curtime);
+	void DupliGroupRecurse(CValue* gameobj, int level);
+	bool IsObjectInGroup(CValue* gameobj)
+	{ 
+		return (m_groupGameObjects.empty() || 
+				m_groupGameObjects.find(gameobj) != m_groupGameObjects.end());
+	}
 	SCA_IObject* AddReplicaObject(CValue* gameobj,
 								  CValue* locationobj,
 								  int lifespan=0);
@@ -296,7 +318,7 @@ public:
 	
 	void DelayedReleaseObject(CValue* gameobj);
 
-	void NewRemoveObject(CValue* gameobj);
+	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshobj);
 	/**
@@ -315,6 +337,10 @@ public:
 	);
 
 		CListValue*				
+	GetInactiveList(
+	);
+
+		CListValue*				
 	GetRootParentList(
 	);
 
@@ -330,7 +356,7 @@ public:
 	GetTimeEventManager(
 	);
 
-		set<class KX_Camera*>*
+		list<class KX_Camera*>*
 	GetCameras(
 	);
  
@@ -365,6 +391,15 @@ public:
 
 		void					
 	SetActiveCamera(
+		class KX_Camera*
+	);
+
+	/**
+	 * Move this camera to the end of the list so that it is rendered last.
+	 * If the camera is not on the list, it will be added
+	 */
+		void
+	SetCameraOnTop(
 		class KX_Camera*
 	);
 
@@ -462,7 +497,7 @@ public:
 	void SetNetworkScene(NG_NetworkScene *newScene);
 	void SetWorldInfo(class KX_WorldInfo* wi);
 	KX_WorldInfo* GetWorldInfo();
-	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam);
+	void CalculateVisibleMeshes(RAS_IRasterizer* rasty, KX_Camera *cam, int layer=0);
 	void UpdateMeshTransformations();
 	KX_Camera* GetpCamera();
 	SND_Scene* GetSoundScene();
@@ -496,6 +531,8 @@ public:
 	bool IsClearingZBuffer();
 	void EnableZBufferClearing(bool isclearingZbuffer);
 	
+	void SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter);
+
 	class PHY_IPhysicsEnvironment*		GetPhysicsEnvironment()
 	{
 		return m_physicsEnvironment;
@@ -549,6 +586,10 @@ public:
 	 * was running and not suspended) and the "curtime"
 	 */
 	double getSuspendedDelta();
+	/**
+	 * Returns the Blender scene this was made from
+	 */
+	struct Scene *GetBlenderScene() { return m_blenderScene; }
 };
 
 typedef std::vector<KX_Scene*> KX_SceneList;

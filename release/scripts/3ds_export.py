@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ 
 Name: '3D Studio (.3ds)...'
 Blender: 243

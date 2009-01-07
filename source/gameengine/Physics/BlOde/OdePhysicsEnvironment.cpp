@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * The contents of this file may be used under the terms of either the GNU
  * General Public License Version 2 or later (the "GPL", see
@@ -17,7 +17,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include "OdePhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
@@ -198,7 +198,7 @@ int			ODEPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 }
 
-void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
+void		ODEPhysicsEnvironment::removeConstraint(void *constraintid)
 {
 	if (constraintid)
 	{
@@ -206,8 +206,7 @@ void		ODEPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 }
 
-PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* ODEPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback,float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 
 	//m_OdeWorld

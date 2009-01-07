@@ -16,105 +16,48 @@ subject to the following restrictions:
 #ifndef OPTIMIZED_BVH_H
 #define OPTIMIZED_BVH_H
 
-
-#include "LinearMath/btVector3.h"
-
-
-//http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vclang/html/vclrf__m128.asp
-
-
-#include <vector>
-
+#include "BulletCollision/BroadphaseCollision/btQuantizedBvh.h"
 
 class btStridingMeshInterface;
 
-/// btOptimizedBvhNode contains both internal and leaf node information.
-/// It hasn't been optimized yet for storage. Some obvious optimizations are:
-/// Removal of the pointers (can already be done, they are not used for traversal)
-/// and storing aabbmin/max as quantized integers.
-/// 'subpart' doesn't need an integer either. It allows to re-use graphics triangle
-/// meshes stored in a non-uniform way (like batches/subparts of triangle-fans
-ATTRIBUTE_ALIGNED16 (struct btOptimizedBvhNode)
+
+///The btOptimizedBvh extends the btQuantizedBvh to create AABB tree for triangle meshes, through the btStridingMeshInterface.
+ATTRIBUTE_ALIGNED16(class) btOptimizedBvh : public btQuantizedBvh
 {
-
-	btVector3	m_aabbMin;
-	btVector3	m_aabbMax;
-
-//these 2 pointers are obsolete, the stackless traversal just uses the escape index
-	btOptimizedBvhNode*	m_leftChild;
-	btOptimizedBvhNode*	m_rightChild;
-
-	int	m_escapeIndex;
-
-	//for child nodes
-	int	m_subPart;
-	int	m_triangleIndex;
-
-};
-
-class btNodeOverlapCallback
-{
-public:
-	virtual ~btNodeOverlapCallback() {};
-
-	virtual void processNode(const btOptimizedBvhNode* node) = 0;
-};
-
-#include "LinearMath/btAlignedAllocator.h"
-#include "LinearMath/btAlignedObjectArray.h"
-
-//typedef std::vector< unsigned , allocator_type >     container_type;
-const unsigned size = (1 << 20);
-typedef btAlignedAllocator< btOptimizedBvhNode , size >  allocator_type;
-
-//typedef btAlignedObjectArray<btOptimizedBvhNode, allocator_type>	NodeArray;
-
-typedef btAlignedObjectArray<btOptimizedBvhNode>	NodeArray;
-
-
-///OptimizedBvh store an AABB tree that can be quickly traversed on CPU (and SPU,GPU in future)
-class btOptimizedBvh
-{
-	NodeArray			m_leafNodes;
-
-	btOptimizedBvhNode*	m_rootNode1;
 	
-	btOptimizedBvhNode*	m_contiguousNodes;
-	int					m_curNodeIndex;
+public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
-	int					m_numNodes;
-
-
+protected:
 
 public:
+
 	btOptimizedBvh();
 
 	virtual ~btOptimizedBvh();
-	
-	void	build(btStridingMeshInterface* triangles);
 
-	btOptimizedBvhNode*	buildTree	(NodeArray&	leafNodes,int startIndex,int endIndex);
+	void	build(btStridingMeshInterface* triangles,bool useQuantizedAabbCompression, const btVector3& bvhAabbMin, const btVector3& bvhAabbMax);
 
-	int	calcSplittingAxis(NodeArray&	leafNodes,int startIndex,int endIndex);
+	void	refit(btStridingMeshInterface* triangles,const btVector3& aabbMin,const btVector3& aabbMax);
 
-	int	sortAndCalcSplittingIndex(NodeArray&	leafNodes,int startIndex,int endIndex,int splitAxis);
-	
-	void	walkTree(btOptimizedBvhNode* rootNode,btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
-	
-	void	walkStacklessTree(btOptimizedBvhNode* rootNode,btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
-	
+	void	refitPartial(btStridingMeshInterface* triangles,const btVector3& aabbMin, const btVector3& aabbMax);
 
-	//OptimizedBvhNode*	GetRootNode() { return m_rootNode1;}
+	void	updateBvhNodes(btStridingMeshInterface* meshInterface,int firstNode,int endNode,int index);
 
-	int					getNumNodes() { return m_numNodes;}
+	/// Data buffer MUST be 16 byte aligned
+	virtual bool serialize(void *o_alignedDataBuffer, unsigned i_dataBufferSize, bool i_swapEndian)
+	{
+		return btQuantizedBvh::serialize(o_alignedDataBuffer,i_dataBufferSize,i_swapEndian);
 
-	void	reportAabbOverlappingNodex(btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
+	}
 
-	void	reportSphereOverlappingNodex(btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
+	///deSerializeInPlace loads and initializes a BVH from a buffer in memory 'in place'
+	static btOptimizedBvh *deSerializeInPlace(void *i_alignedDataBuffer, unsigned int i_dataBufferSize, bool i_swapEndian);
 
 
 };
 
 
 #endif //OPTIMIZED_BVH_H
+
 

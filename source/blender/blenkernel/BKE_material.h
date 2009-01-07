@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * General operations, lookup, etc. for materials.
  */
 
@@ -57,6 +54,9 @@ struct ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
 
+int find_material_index(struct Object *ob, struct Material *ma);
+
+
 void init_render_material(struct Material *, int, float *);
 void init_render_materials(int, float *);
 void end_render_material(struct Material *);
@@ -65,7 +65,7 @@ void end_render_materials(void);
 int material_in_material(struct Material *parmat, struct Material *mat);
 
 void automatname(struct Material *);
-void delete_material_index(void);            
+void delete_material_index(struct Object *ob);            
 
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
 

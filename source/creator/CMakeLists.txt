@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,45 +22,57 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
 SETUP_LIBDIRS()
 
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
   ../blender/blenkernel
+  ../blender/editors/include
+  ../blender/makesrna
+  ../blender/makesrna/intern
   ../blender/nodes
   ../blender/include
   ../blender/blenloader
   ../blender/imbuf
   ../blender/renderconverter
   ../blender/render/extern/include
-  ../blender/python
   ../blender/makesdna
+  ../blender/gpu
+  ../blender/windowmanager
   ../kernel/gen_messaging
   ../kernel/gen_system
+  ../../extern/glew/include
 )
+
+
 
 IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
-IF(YESIAMSTUPID)
-  ADD_DEFINITIONS(-DYESIAMSTUPID)
-ENDIF(YESIAMSTUPID)
+IF(WITH_OPENEXR)
+  ADD_DEFINITIONS(-DWITH_OPENEXR)
+ENDIF(WITH_OPENEXR)
+
+IF(WITH_PYTHON)
+  INCLUDE_DIRECTORIES(../blender/python)
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
+
+IF(LINUX)
+  ADD_DEFINITIONS(-DWITH_BINRELOC)
+  INCLUDE_DIRECTORIES(${BINRELOC_INC})
+endif(LINUX)
 
 MESSAGE(STATUS "Configuring blender")
 
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
-  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
-)
-
 IF(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../icons/winblender.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c)
 ENDIF(WIN32)
 
 
@@ -127,16 +136,17 @@ IF(WIN32)
   ADD_CUSTOM_COMMAND(TARGET blender
     POST_BUILD
     MAIN_DEPENDENCY blender
-    COMMAND if not exist \"$\(TargetDir\)\\.blender\" mkdir \"$\(TargetDir\)\\.blender\"
-    COMMAND if not exist \"$\(TargetDir\)\\.blender\\locale\" mkdir \"$\(TargetDir\)\\.blender\\locale\"
-    COMMAND if not exist \"$\(TargetDir\)\\.blender\\scripts\" mkdir \"$\(TargetDir\)\\.blender\\scripts\"
-    COMMAND if not exist \"$\(TargetDir\)\\plugins\" mkdir \"$\(TargetDir\)\\plugins\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"$\(TargetDir\)\\.blender\\\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"$\(TargetDir\)\\.blender\\\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"$\(TargetDir\)\\.blender\\locale\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"$\(TargetDir\)\\.blender\\scripts\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"$\(TargetDir\)\\plugins\"
-    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"$\(TargetDir\)\"
+    COMMAND if not exist \"${TARGETDIR}\\.blender\" mkdir \"${TARGETDIR}\\.blender\"
+    COMMAND if not exist \"${TARGETDIR}\\.blender\\locale\" mkdir \"${TARGETDIR}\\.blender\\locale\"
+    COMMAND if not exist \"${TARGETDIR}\\.blender\\scripts\" mkdir \"${TARGETDIR}\\.blender\\scripts\"
+    COMMAND if not exist \"${TARGETDIR}\\plugins\" mkdir \"${TARGETDIR}\\plugins\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"${TARGETDIR}\\.blender\\\" 
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"${TARGETDIR}\\.blender\\\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"${TARGETDIR}\\.blender\\locale\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"${TARGETDIR}\\.blender\\scripts\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"${TARGETDIR}\\plugins\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"${TARGETDIR}\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\windows\\extra\\python25.zip\" \"${TARGETDIR}\\\"
   )
   
   FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
@@ -144,22 +154,20 @@ IF(WIN32)
   ADD_CUSTOM_COMMAND(TARGET blender
     POST_BUILD
     MAIN_DEPENDENCY blender
-    COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"$\(TargetDir\)\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"$\(TargetDir\)\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"$\(TargetDir\)\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"$\(TargetDir\)\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"$\(TargetDir\)\\\"
-    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25_D.dll\" \"$\(TargetDir\)\\\"
-    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\CRTL\\lib\\msvcrtd.dll\" \"$\(TargetDir\)\\\"
-    COMMAND if NOT $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25.dll\" \"$\(TargetDir\)\\\"
-    COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
   )
 
   IF(WITH_INTERNATIONAL)
     ADD_CUSTOM_COMMAND(TARGET blender
       POST_BUILD
       MAIN_DEPENDENCY blender
-      COMMAND copy /Y \"${WIN_LIBDIR}\\iconv\\lib\\iconv.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\iconv\\lib\\iconv.dll\" \"${TARGETDIR}\\\"
     )
   ENDIF(WITH_INTERNATIONAL)
 
@@ -167,20 +175,16 @@ IF(WIN32)
     ADD_CUSTOM_COMMAND(TARGET blender
       POST_BUILD
       MAIN_DEPENDENCY blender
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-51.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-51.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-49.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libdts.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libgsm.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libogg-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbis-0.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbisenc-2.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-54.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\postproc-51.dll\" \"$\(TargetDir\)\\\"
-      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-51.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-52.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avdevice-52.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-49.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac-0.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad-0.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-59.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\swscale-0.dll\" \"${TARGETDIR}\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
     )
   ENDIF(WITH_FFMPEG)
 ENDIF(WIN32)
@@ -189,12 +193,21 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render blender_radiosity)
+
+IF(WITH_ELBEEM)
+  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} bf_elbeem)
+ENDIF(WITH_ELBEEM)
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 IF(UNIX)
   # Sort libraries
   SET(BLENDER_SORTED_LIBS
-    src 
+    bf_windowmanager
+	bf_editors
     bf_decimation 
     blender_BSP 
     bf_soundsystem 
@@ -203,9 +216,10 @@ IF(UNIX)
     blender_render 
     blender_radiosity 
     blender_ONL 
-    blender_python 
+    bf_python 
     bf_blenkernel 
     bf_nodes
+	bf_gpu
     bf_blenloader 
     bf_blenpluginapi 
     bf_imbuf 
@@ -213,20 +227,21 @@ IF(UNIX)
     bf_avi 
     bf_cineon 
     bf_openexr 
+    bf_dds
     bf_readblenfile 
     blender_bop 
     bf_kernel 
     bf_decimation 
     bf_elbeem 
     bf_yafray 
-    blender_IK 
+    bf_IK 
     bf_memutil 
     bf_guardedalloc 
     blender_CTR 
     bf_moto 
     bf_bmfont 
-    verse 
-    src 
+    bf_windowmanager
+	bf_editors
     bf_ftfont 
     extern_ftgl 
     bf_blroutines 
@@ -252,8 +267,13 @@ IF(UNIX)
     extern_solid 
     extern_qhull 
     bf_moto 
-    blender_python
+    bf_python
     bf_quicktime
+    extern_binreloc
+    extern_glew
+    bf_videotex
+    bf_rna
+    bf_dna
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

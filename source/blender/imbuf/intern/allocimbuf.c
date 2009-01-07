@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* It's become a bit messy... Basically, only the IMB_ prefixed files
@@ -43,6 +40,7 @@
 
 #include "IMB_divers.h"
 #include "IMB_allocimbuf.h"
+#include "IMB_imginfo.h"
 #include "MEM_CacheLimiterC-Api.h"
 
 static unsigned int dfltcmap[16] = {
@@ -163,6 +161,7 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 			IMB_freecmapImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_cache_limiter_unmanage(ibuf);
+			IMB_imginfo_free(ibuf);
 			MEM_freeN(ibuf);
 		}
 	}
@@ -278,6 +277,7 @@ short imb_addrectfloatImBuf(struct ImBuf * ibuf)
 	
 	size = ibuf->x * ibuf->y;
 	size = size * 4 * sizeof(float);
+	ibuf->channels= 4;
 	
 	if ( (ibuf->rect_float = MEM_mapallocN(size, "imb_addrectfloatImBuf")) ){
 		ibuf->mall |= IB_rectfloat;
@@ -443,7 +443,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 		memcpy(ibuf2->rect, ibuf1->rect, x * y * sizeof(int));
 	
 	if (flags & IB_rectfloat)
-		memcpy(ibuf2->rect_float, ibuf1->rect_float, 4 * x * y * sizeof(float));
+		memcpy(ibuf2->rect_float, ibuf1->rect_float, ibuf1->channels * x * y * sizeof(float));
 
 	if (flags & IB_planes) 
 		memcpy(*(ibuf2->planes),*(ibuf1->planes),ibuf1->depth * ibuf1->skipx * y * sizeof(int));
@@ -475,6 +475,10 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
 	tbuf.c_handle           = 0;
+	tbuf.refcounter         = 0;
+
+	// for now don't duplicate image info
+	tbuf.img_info = 0;
 
 	*ibuf2 = tbuf;
 	

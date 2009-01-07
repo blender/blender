@@ -6,7 +6,7 @@ Group: 'UVCalculation'
 Tooltip: 'Follow from active quads.'
 """
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.0 2006/02/07"
 
 __bpydoc__ = """\
@@ -50,6 +50,11 @@ def extend():
 	if ob == None or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: No mesh object.')
 		return
+	
+	# Toggle Edit mode
+	is_editmode = Window.EditMode()
+	if is_editmode:
+		Window.EditMode(0)
 	
 	me = ob.getData(mesh=1)
 	me_verts = me.verts
@@ -233,7 +238,12 @@ def extend():
 				
 				face_modes[i] = 2 # dont search again
 	print  sys.time() - t
-	me.update()
+	
+	if is_editmode:
+		Window.EditMode(1)
+	else:
+		me.update()
+	
 	Window.RedrawAll()
 	Window.WaitCursor(0)
 

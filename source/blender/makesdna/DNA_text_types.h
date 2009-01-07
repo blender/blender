@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_TEXT_TYPES_H
 #define DNA_TEXT_TYPES_H
@@ -41,25 +38,36 @@ typedef struct TextLine {
 	struct TextLine *next, *prev;
 
 	char *line;
-	char *format;
-	int len, blen;
+	char *format; /* may be NULL if syntax is off or not yet formatted */
+	int len, blen; /* blen unused */
 } TextLine;
+
+typedef struct TextMarker {
+	struct TextMarker *next, *prev;
+
+	int lineno, start, end, pad1; /* line number and start/end character indices */
+	
+	int group, flags; /* see BKE_text.h for flag defines */
+	char color[4], pad[4]; /* draw color of the marker */
+} TextMarker;
 
 typedef struct Text {
 	ID id;
 	
 	char *name;
-	
+
 	int flags, nlines;
 	
 	ListBase lines;
 	TextLine *curl, *sell;
 	int curc, selc;
+	ListBase markers;
 	
 	char *undo_buf;
 	int undo_pos, undo_len;
 	
 	void *compiled;
+	double mtime;
 } Text;
 
 
@@ -76,5 +84,13 @@ typedef struct Text {
 #define TXT_ISSCRIPT            0x0010 /* used by space handler scriptlinks */
 #define TXT_READONLY            0x0100
 #define TXT_FOLLOW              0x0200 /* always follow cursor (console) */
+
+/* format continuation flags */
+#define TXT_NOCONT				0x00 /* no continuation */
+#define TXT_SNGQUOTSTR			0x01 /* single quotes */
+#define TXT_DBLQUOTSTR			0x02 /* double quotes */
+#define TXT_TRISTR				0x04 /* triplets of quotes: """ or ''' */
+#define TXT_SNGTRISTR			0x05 /*(TXT_TRISTR | TXT_SNGQUOTSTR)*/
+#define TXT_DBLTRISTR			0x06 /*(TXT_TRISTR | TXT_DBLQUOTSTR)*/
 
 #endif

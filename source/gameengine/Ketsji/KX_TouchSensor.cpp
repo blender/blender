@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_TouchSensor.h"
@@ -51,30 +48,30 @@
 
 void KX_TouchSensor::SynchronizeTransform()
 {
-
-	if (m_physCtrl)
-	{
-
-		KX_GameObject* parent = ((KX_GameObject*)GetParent());
-		MT_Vector3 pos = parent->NodeGetWorldPosition();
-		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
-		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
-		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
-		m_physCtrl->calcXform();
-	}
-	
+	// the touch sensor does not require any synchronization: it uses
+	// the same physical object which is already synchronized by Blender
 }
 
 
 void KX_TouchSensor::EndFrame() {
 	m_colliders->ReleaseAndRemoveAll();
+	m_hitObject = NULL;
 	m_bTriggered = false;
+}
+
+void KX_TouchSensor::UnregisterToManager()
+{
+	// before unregistering the sensor, make sure we release all references
+	EndFrame();
+	m_eventmgr->RemoveSensor(this);
 }
 
 bool KX_TouchSensor::Evaluate(CValue* event)
 {
 	bool result = false;
+	bool reset = m_reset && m_level;
 
+	m_reset = false;
 	if (m_bTriggered != m_bLastTriggered)
 	{
 		m_bLastTriggered = m_bTriggered;
@@ -82,7 +79,9 @@ bool KX_TouchSensor::Evaluate(CValue* event)
 			m_hitObject = NULL;
 		result = true;
 	}
-	
+	if (reset)
+		// force an event
+		result = true;
 	return result;
 }
 
@@ -90,18 +89,14 @@ KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
-m_eventmgr(eventmgr),
+m_eventmgr(eventmgr)
 /*m_sumoObj(sumoObj),*/
-m_bCollision(false),
-m_bTriggered(false),
-m_bLastTriggered(false)
 {
 //	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
 //	m_resptable = touchmgr->GetResponseTable();
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
 
-	m_hitObject =  NULL;
 	m_colliders = new CListValue();
 	
 	KX_ClientObjectInfo *client_info = gameobj->getClientInfo();
@@ -111,8 +106,17 @@ m_bLastTriggered(false)
 	
 	m_physCtrl = dynamic_cast<PHY_IPhysicsController*>(gameobj->GetPhysicsController());
 	MT_assert( !gameobj->GetPhysicsController() || m_physCtrl );
+	Init();
 }
 
+void KX_TouchSensor::Init()
+{
+	m_bCollision = false;
+	m_bTriggered = false;
+	m_bLastTriggered = (m_invert)?true:false;
+	m_hitObject =  NULL;
+	m_reset = true;
+}
 
 KX_TouchSensor::~KX_TouchSensor()
 {
@@ -124,10 +128,7 @@ CValue* KX_TouchSensor::GetReplica()
 {
 	KX_TouchSensor* replica = new KX_TouchSensor(*this);
 	replica->m_colliders = new CListValue();
-	replica->m_bCollision = false;
-	replica->m_bTriggered= false;
-	replica->m_hitObject = NULL;
-	replica->m_bLastTriggered = false;
+	replica->Init();
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 	return replica;
@@ -160,6 +161,14 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 	}
 }
 
+void KX_TouchSensor::UnregisterSumo(KX_TouchEventManager* touchman)
+{
+	if (m_physCtrl)
+	{
+		touchman->GetPhysicsEnvironment()->removeCollisionCallback(m_physCtrl);
+	}
+}
+
 bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)
 {
 //	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
@@ -175,7 +184,10 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 			client_info->m_gameobject : 
 			NULL);
 	
-	if (gameobj && (gameobj != parent) && client_info->isActor())
+	// add the same check as in SCA_ISensor::Activate(), 
+	// we don't want to record collision when the sensor is not active.
+	if (m_links && !m_suspended &&
+		gameobj && (gameobj != parent) && client_info->isActor())
 	{
 		if (!m_colliders->SearchValue(gameobj))
 			m_colliders->Add(gameobj->AddRef());
@@ -239,13 +251,13 @@ PyParentObject KX_TouchSensor::Parents[] = {
 
 PyMethodDef KX_TouchSensor::Methods[] = {
 	{"setProperty", 
-	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_VARARGS, SetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
 	{"getProperty", 
-	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_VARARGS, GetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
 	{"getHitObject", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_VARARGS, GetHitObject_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_VARARGS, (PY_METHODCHAR)GetHitObject_doc},
 	{"getHitObjectList", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_VARARGS, GetHitObjectList_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_VARARGS, (PY_METHODCHAR)GetHitObjectList_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -256,7 +268,7 @@ PyObject* KX_TouchSensor::_getattr(const STR_String& attr) {
 /* Python API */
 
 /* 1. setProperty */
-char KX_TouchSensor::SetProperty_doc[] = 
+const char KX_TouchSensor::SetProperty_doc[] = 
 "setProperty(name)\n"
 "\t- name: string\n"
 "\tSet the property or material to collide with. Use\n"
@@ -274,15 +286,15 @@ PyObject* KX_TouchSensor::PySetProperty(PyObject* self,
 
 	if (!prop->IsError()) {
 		m_touchedpropname = nameArg;
-		prop->Release();
 	} else {
 		; /* not found ... */
 	}
+	prop->Release();
 	
 	Py_Return;
 }
 /* 2. getProperty */
-char KX_TouchSensor::GetProperty_doc[] = 
+const char KX_TouchSensor::GetProperty_doc[] = 
 "getProperty(name)\n"
 "\tReturns the property or material to collide with. Use\n"
 "\tgetTouchMaterial() to find out whether this sensor\n"
@@ -293,7 +305,7 @@ PyObject*  KX_TouchSensor::PyGetProperty(PyObject* self,
 	return PyString_FromString(m_touchedpropname);
 }
 
-char KX_TouchSensor::GetHitObject_doc[] = 
+const char KX_TouchSensor::GetHitObject_doc[] = 
 "getHitObject()\n"
 ;
 PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self, 
@@ -309,7 +321,7 @@ PyObject* KX_TouchSensor::PyGetHitObject(PyObject* self,
 	Py_Return;
 }
 
-char KX_TouchSensor::GetHitObjectList_doc[] = 
+const char KX_TouchSensor::GetHitObjectList_doc[] = 
 "getHitObjectList()\n"
 "\tReturn a list of the objects this object collided with,\n"
 "\tbut only those matching the property/material condition.\n";
@@ -351,8 +363,8 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 				CValue* val = m_colliders->GetValue(i)->FindIdentifier(m_touchedpropname);
 				if (!val->IsError()) {
 					newList->Add(m_colliders->GetValue(i)->AddRef());
-					val->Release();
 				}
+				val->Release();
 			}
 			
 			i++;
@@ -363,7 +375,7 @@ PyObject* KX_TouchSensor::PyGetHitObjectList(PyObject* self,
 }
 
 /* 5. getTouchMaterial */
-char KX_TouchSensor::GetTouchMaterial_doc[] = 
+const char KX_TouchSensor::GetTouchMaterial_doc[] = 
 "getTouchMaterial()\n"
 "\tReturns KX_TRUE if this sensor looks for a specific material,\n"
 "\tKX_FALSE if it looks for a specific property.\n" ;
@@ -375,7 +387,7 @@ PyObject* KX_TouchSensor::PyGetTouchMaterial(PyObject* self,
 }
 
 /* 6. setTouchMaterial */
-char KX_TouchSensor::SetTouchMaterial_doc[] = 
+const char KX_TouchSensor::SetTouchMaterial_doc[] = 
 "setTouchMaterial(flag)\n"
 "\t- flag: KX_TRUE or KX_FALSE.\n"
 "\tSet flag to KX_TRUE to switch on positive pulse mode,\n"

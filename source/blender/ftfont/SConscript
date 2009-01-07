@@ -4,13 +4,13 @@ Import ('env')
 
 sources = env.Glob('intern/*.cpp')
 
-incs = '. intern ../blenkernel ../blenlib ../makesdna'
+incs = '. intern ../blenkernel ../blenlib ../makesdna ../editors/include'
 incs += ' ' + env['BF_FTGL_INC']
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_GETTEXT_INC']
-                 
+
 defs = 'FTGL_STATIC_LIBRARY'
 if sys.platform == 'win32':
 	defs += ' _WIN32 USE_GETTEXT_DLL'
 
-env.BlenderLib ( 'bf_ftfont', sources, Split(incs), Split(defs), libtype=['international','player'], priority=[0, 205] )
+env.BlenderLib ( 'bf_ftfont', sources, Split(incs), Split(defs), libtype=['core'], priority=[210] )

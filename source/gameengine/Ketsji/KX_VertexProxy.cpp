@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -85,7 +82,7 @@ PyObject*
 KX_VertexProxy::_getattr(const STR_String& attr)
 {
   if (attr == "XYZ")
-  	return PyObjectFrom(MT_Vector3(m_vertex->getLocalXYZ()));
+  	return PyObjectFrom(MT_Vector3(m_vertex->getXYZ()));
 
   if (attr == "UV")
   	return PyObjectFrom(MT_Point2(m_vertex->getUV1()));
@@ -105,11 +102,11 @@ KX_VertexProxy::_getattr(const STR_String& attr)
 
   // pos
   if (attr == "x")
-  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[0]);
+  	return PyFloat_FromDouble(m_vertex->getXYZ()[0]);
   if (attr == "y")
-  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[1]);
+  	return PyFloat_FromDouble(m_vertex->getXYZ()[1]);
   if (attr == "z")
-  	return PyFloat_FromDouble(m_vertex->getLocalXYZ()[2]);
+  	return PyFloat_FromDouble(m_vertex->getXYZ()[2]);
 
   // Col
   if (attr == "r")
@@ -187,7 +184,7 @@ int    KX_VertexProxy::_setattr(const STR_String& attr, PyObject *pyvalue)
   {
   	float val = PyFloat_AsDouble(pyvalue);
   	// pos
-	MT_Point3 pos(m_vertex->getLocalXYZ());
+	MT_Point3 pos(m_vertex->getXYZ());
   	if (attr == "x")
 	{
 		pos.x() = val;
@@ -315,7 +312,7 @@ PyObject* KX_VertexProxy::PyGetXYZ(PyObject*,
 			       PyObject*, 
 			       PyObject*)
 {
-	return PyObjectFrom(MT_Point3(m_vertex->getLocalXYZ()));
+	return PyObjectFrom(MT_Point3(m_vertex->getXYZ()));
 }
 
 PyObject* KX_VertexProxy::PySetXYZ(PyObject*, 
@@ -429,7 +426,7 @@ PyObject* KX_VertexProxy::PySetUV2(PyObject*,
 	{
 		if (PyVecTo(list, vec))
 		{
-			m_vertex->SetFlag((m_vertex->getFlag()|TV_2NDUV));
+			m_vertex->SetFlag((m_vertex->getFlag()|RAS_TexVert::SECOND_UV));
 			m_vertex->SetUnit(unit);
 			m_vertex->SetUV2(vec);
 			m_mesh->SetMeshModified(true);

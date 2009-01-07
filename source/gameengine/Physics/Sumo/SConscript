@@ -1,7 +1,6 @@
 #!/usr/bin/python
 Import ('env')
 
-sumoenv = env.Copy()
 sources = ['SumoPHYCallbackBridge.cpp',
                 'SumoPhysicsController.cpp',
                 'SumoPhysicsEnvironment.cpp',
@@ -16,11 +15,11 @@ incs =['.',
 	'Fuzzics/include',
 	'#/intern/moto/include'
 	]
-incs += [sumoenv['BF_SOLID_INC']]
+incs += [env['BF_SOLID_INC']]
 
 cflags = []
 if env['OURPLATFORM']=='win32-vc':
 	cflags.append('/GR')
 	cflags.append('/O1')
 
-env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['game2','player'], priority=[30, 70] , compileflags=cflags)
+env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['core','player'], priority=[400, 55] , compileflags=cflags)

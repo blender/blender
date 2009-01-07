@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_BLENDERCANVAS
 #define __KX_BLENDERCANVAS
@@ -35,11 +32,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include "GL/glew.h"
 
 #include "RAS_ICanvas.h"
 #include "RAS_Rect.h"
@@ -123,6 +117,10 @@ public:
 		return m_displayarea;
 	};
 
+		RAS_Rect &
+	GetWindowArea(
+	);
+
 		void
 	SetViewPort(
 		int x1, int y1,
@@ -165,6 +163,7 @@ public:
 private:
 	/** Blender area the game engine is running within */
 	struct ScrArea* m_area;
+	RAS_Rect 	m_area_rect;
 };
 
 #endif // __KX_BLENDERCANVAS

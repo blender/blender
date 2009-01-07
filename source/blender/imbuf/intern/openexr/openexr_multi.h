@@ -46,13 +46,13 @@ void	IMB_exr_add_channel			(void *handle, const char *layname, const char *passn
 
 int		IMB_exr_begin_read			(void *handle, char *filename, int *width, int *height);
 void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height, int compress);
-void	IMB_exrtile_begin_write		(void *handle, char *filename, int width, int height, int tilex, int tiley);
+void	IMB_exrtile_begin_write		(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley);
 
 void	IMB_exr_set_channel			(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect);
 
 void	IMB_exr_read_channels		(void *handle);
 void	IMB_exr_write_channels		(void *handle);
-void	IMB_exrtile_write_channels	(void *handle, int partx, int party);
+void	IMB_exrtile_write_channels	(void *handle, int partx, int party, int level);
 void	IMB_exrtile_clear_channels	(void *handle);
 
 void    IMB_exr_multilayer_convert	(void *handle, void *base,  
@@ -71,13 +71,13 @@ void	IMB_exr_add_channel			(void *handle, const char *layname, const char *chann
 
 int		IMB_exr_begin_read			(void *handle, char *filename, int *width, int *height) {return 0;}
 void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height, int compress) {}
-void	IMB_exrtile_begin_write		(void *handle, char *filename, int width, int height, int tilex, int tiley) {}
+void	IMB_exrtile_begin_write		(void *handle, char *filename, int mipmap, int width, int height, int tilex, int tiley) {}
 
 void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect) {}
 
 void	IMB_exr_read_channels		(void *handle) {}
 void	IMB_exr_write_channels		(void *handle) {}
-void	IMB_exrtile_write_channels	(void *handle, int partx, int party) {}
+void	IMB_exrtile_write_channels	(void *handle, int partx, int party, int level) {}
 void	IMB_exrtile_clear_channels	(void *handle) {}
 
 void    IMB_exr_multilayer_convert	(void *handle, void *base,  

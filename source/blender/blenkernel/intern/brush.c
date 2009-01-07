@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -35,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
@@ -73,7 +71,8 @@ Brush *add_brush(char *name)
 	brush->clone.alpha= 0.5;
 
 	/* enable fake user by default */
-	brush_toggle_fake_user(brush);
+	brush->id.flag |= LIB_FAKEUSER;
+	brush_toggled_fake_user(brush);
 	
 	return brush;	
 }
@@ -95,8 +94,10 @@ Brush *copy_brush(Brush *brush)
 	}
 
 	/* enable fake user by default */
-	if (!(brushn->id.flag & LIB_FAKEUSER))
-		brush_toggle_fake_user(brushn);
+	if (!(brushn->id.flag & LIB_FAKEUSER)) {
+		brushn->id.flag |= LIB_FAKEUSER;
+		brush_toggled_fake_user(brushn);
+	}
 	
 	return brushn;
 }
@@ -114,6 +115,8 @@ void free_brush(Brush *brush)
 			MEM_freeN(mtex);
 		}
 	}
+
+	curvemapping_free(brush->curve);
 }
 
 void make_local_brush(Brush *brush)
@@ -148,8 +151,10 @@ void make_local_brush(Brush *brush)
 		new_id(0, (ID *)brush, 0);
 
 		/* enable fake user by default */
-		if (!(brush->id.flag & LIB_FAKEUSER))
-			brush_toggle_fake_user(brush);
+		if (!(brush->id.flag & LIB_FAKEUSER)) {
+			brush->id.flag |= LIB_FAKEUSER;
+			brush_toggled_fake_user(brush);
+		}
 	}
 	else if(local && lib) {
 		brushn= copy_brush(brush);
@@ -203,18 +208,50 @@ int brush_delete(Brush **current_brush)
 	return 0;
 }
 
-void brush_toggle_fake_user(Brush *brush)
+void brush_toggled_fake_user(Brush *brush)
 {
 	ID *id= (ID*)brush;
 	if(id) {
 		if(id->flag & LIB_FAKEUSER) {
-			id->flag -= LIB_FAKEUSER;
-			id->us--;
-		} else {
-			id->flag |= LIB_FAKEUSER;
 			id_us_plus(id);
+		} else {
+			id->us--;
 		}
 	}
+}
+
+
+void sculpt_preset_curve(Brush *b, BrushCurvePreset preset)
+{
+	CurveMap *cm = NULL;
+
+	if(!b->curve)
+		b->curve = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = b->curve->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+
+	if(preset == BRUSH_PRESET_SHARP) {
+		cm->curve= MEM_callocN(3*sizeof(CurveMapPoint), "curve points");
+		cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+		cm->totpoint= 3;
+		cm->curve[0].x= 0;
+		cm->curve[0].y= 1;
+		cm->curve[1].x= 0.33;
+		cm->curve[1].y= 0.33;
+		cm->curve[2].x= 1;
+		cm->curve[2].y= 0;
+	}
+	else if(preset == BRUSH_PRESET_SMOOTH) {
+		// XXX: todo
+	}
+	else if(preset == BRUSH_PRESET_MAX) {
+		// XXX: todo
+	}
+
+	curvemapping_changed(b->curve, 0);
 }
 
 int brush_texture_set_nr(Brush *brush, int nr)
@@ -328,6 +365,23 @@ float brush_sample_falloff(Brush *brush, float dist)
 		return 0.0f;
 }
 
+float brush_sample_falloff_noalpha(Brush *brush, float dist)
+{
+	float outer, inner;
+
+	outer = brush->size >> 1;
+	inner = outer*brush->innerradius;
+
+	if (dist <= inner) {
+		return 1.0f;
+	}
+	else if ((dist < outer) && (inner < outer)) {
+		return 1.0f - sqrt((dist - inner)/(outer - inner));
+	}
+	else 
+		return 0.0f;
+}
+
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
 	MTex *mtex= brush->mtex[brush->texact];
@@ -359,7 +413,6 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 		rgba[0]= rgba[1]= rgba[2]= rgba[3]= 1.0f;
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
 void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **outbuf)
 {

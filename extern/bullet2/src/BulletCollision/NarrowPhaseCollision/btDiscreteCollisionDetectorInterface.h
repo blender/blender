@@ -30,19 +30,18 @@ struct btDiscreteCollisionDetectorInterface
 	
 	struct Result
 	{
-		void operator delete(void* ptr) {};
 	
 		virtual ~Result(){}	
 
 		///setShapeIdentifiers provides experimental support for per-triangle material / custom material combiner
 		virtual void setShapeIdentifiers(int partId0,int index0,	int partId1,int index1)=0;
-		virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth)=0;
+		virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)=0;
 	};
 
 	struct ClosestPointInput
 	{
 		ClosestPointInput()
-			:m_maximumDistanceSquared(1e30f),
+			:m_maximumDistanceSquared(btScalar(1e30)),
 			m_stackAlloc(0)
 		{
 		}
@@ -59,7 +58,7 @@ struct btDiscreteCollisionDetectorInterface
 	// give either closest points (distance > 0) or penetration (distance)
 	// the normal always points from B towards A
 	//
-	virtual void	getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw) = 0;
+	virtual void	getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults=false) = 0;
 
 };
 
@@ -69,13 +68,13 @@ struct btStorageResult : public btDiscreteCollisionDetectorInterface::Result
 		btVector3	m_closestPointInB;
 		btScalar	m_distance; //negative means penetration !
 
-		btStorageResult() : m_distance(1e30f)
+		btStorageResult() : m_distance(btScalar(1e30))
 		{
 
 		}
 		virtual ~btStorageResult() {};
 
-		virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth)
+		virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)
 		{
 			if (depth < m_distance)
 			{

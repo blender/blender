@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  * Original Author: Laurence
  * Contributor(s): Brecht
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef NAN_INCLUDED_IK_QJacobianSolver_h
@@ -43,6 +40,7 @@
 #include <list>
 
 #include "MT_Vector3.h"
+#include "MT_Transform.h"
 #include "IK_QJacobian.h"
 #include "IK_QSegment.h"
 #include "IK_QTask.h"
@@ -50,11 +48,18 @@
 class IK_QJacobianSolver
 {
 public:
-	IK_QJacobianSolver() {};
+	IK_QJacobianSolver();
 	~IK_QJacobianSolver() {};
 
-	// returns true if converged, false if max number of iterations was used
+	// setup pole vector constraint
+	void SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal,
+		MT_Vector3& polegoal, float poleangle, bool getangle);
+	float GetPoleAngle() { return m_poleangle; };
 
+	// call setup once before solving, if it fails don't solve
+	bool Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks);
+
+	// returns true if converged, false if max number of iterations was used
 	bool Solve(
 		IK_QSegment *root,
 		std::list<IK_QTask*> tasks,
@@ -64,8 +69,11 @@ public:
 
 private:
 	void AddSegmentList(IK_QSegment *seg);
-	bool Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks);
 	bool UpdateAngles(MT_Scalar& norm);
+	void ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks);
+
+	MT_Scalar ComputeScale();
+	void Scale(float scale, std::list<IK_QTask*>& tasks);
 
 private:
 
@@ -75,6 +83,15 @@ private:
 	bool m_secondary_enabled;
 
 	std::vector<IK_QSegment*> m_segments;
+
+	MT_Transform m_rootmatrix;
+
+	bool m_poleconstraint;
+	bool m_getpoleangle;
+	MT_Vector3 m_goal;
+	MT_Vector3 m_polegoal;
+	float m_poleangle;
+	IK_QSegment *m_poletip;
 };
 
 #endif

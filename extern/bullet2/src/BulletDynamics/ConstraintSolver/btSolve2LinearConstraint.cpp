@@ -43,12 +43,18 @@ void btSolve2LinearConstraint::resolveUnilateralPairConstraint(
 					  btScalar depthB, const btVector3& normalB, 
 					  btScalar& imp0,btScalar& imp1)
 {
+	(void)linvelA;
+	(void)linvelB;
+	(void)angvelB;
+	(void)angvelA;
 
-	imp0 = 0.f;
-	imp1 = 0.f;
 
-	btScalar len = fabs(normalA.length())-1.f;
-	if (fabs(len) >= SIMD_EPSILON)
+
+	imp0 = btScalar(0.);
+	imp1 = btScalar(0.);
+
+	btScalar len = btFabs(normalA.length()) - btScalar(1.);
+	if (btFabs(len) >= SIMD_EPSILON)
 		return;
 
 	btAssert(len < SIMD_EPSILON);
@@ -67,7 +73,7 @@ void btSolve2LinearConstraint::resolveUnilateralPairConstraint(
 	const btScalar vel1 = normalB.dot(body1->getVelocityInLocalPoint(rel_posB1)-body2->getVelocityInLocalPoint(rel_posB1));
 
 //	btScalar penetrationImpulse = (depth*contactTau*timeCorrection)  * massTerm;//jacDiagABInv
-	btScalar massTerm = 1.f / (invMassA + invMassB);
+	btScalar massTerm = btScalar(1.) / (invMassA + invMassB);
 
 
 	// calculate rhs (or error) terms
@@ -87,7 +93,7 @@ void btSolve2LinearConstraint::resolveUnilateralPairConstraint(
 
 
 	btScalar nonDiag = jacA.getNonDiagonal(jacB,invMassA,invMassB);
-	btScalar	invDet = 1.0f / (jacA.getDiagonal() * jacB.getDiagonal() - nonDiag * nonDiag );
+	btScalar	invDet = btScalar(1.0) / (jacA.getDiagonal() * jacB.getDiagonal() - nonDiag * nonDiag );
 	
 	//imp0 = dv0 * jacA.getDiagonal() * invDet + dv1 * -nonDiag * invDet;
 	//imp1 = dv1 * jacB.getDiagonal() * invDet + dv0 * - nonDiag * invDet;
@@ -126,11 +132,18 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 					  btScalar& imp0,btScalar& imp1)
 {
 
-	imp0 = 0.f;
-	imp1 = 0.f;
+	(void)linvelA;
+	(void)linvelB;
+	(void)angvelA;
+	(void)angvelB;
 
-	btScalar len = fabs(normalA.length())-1.f;
-	if (fabs(len) >= SIMD_EPSILON)
+
+
+	imp0 = btScalar(0.);
+	imp1 = btScalar(0.);
+
+	btScalar len = btFabs(normalA.length()) - btScalar(1.);
+	if (btFabs(len) >= SIMD_EPSILON)
 		return;
 
 	btAssert(len < SIMD_EPSILON);
@@ -164,7 +177,7 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 
 
 	btScalar nonDiag = jacA.getNonDiagonal(jacB,invMassA,invMassB);
-	btScalar	invDet = 1.0f / (jacA.getDiagonal() * jacB.getDiagonal() - nonDiag * nonDiag );
+	btScalar	invDet = btScalar(1.0) / (jacA.getDiagonal() * jacB.getDiagonal() - nonDiag * nonDiag );
 	
 	//imp0 = dv0 * jacA.getDiagonal() * invDet + dv1 * -nonDiag * invDet;
 	//imp1 = dv1 * jacB.getDiagonal() * invDet + dv0 * - nonDiag * invDet;
@@ -178,41 +191,41 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 	//[jA nD] * [imp0] = [dv0]
 	//[nD jB]   [imp1]   [dv1]
 
-	if ( imp0 > 0.0f)
+	if ( imp0 > btScalar(0.0))
 	{
-		if ( imp1 > 0.0f )
+		if ( imp1 > btScalar(0.0) )
 		{
 			//both positive
 		}
 		else
 		{
-			imp1 = 0.f;
+			imp1 = btScalar(0.);
 
 			// now imp0>0 imp1<0
 			imp0 = dv0 / jacA.getDiagonal();
-			if ( imp0 > 0.0f )
+			if ( imp0 > btScalar(0.0) )
 			{
 			} else
 			{
-				imp0 = 0.f;
+				imp0 = btScalar(0.);
 			}
 		}
 	}
 	else
 	{
-		imp0 = 0.f;
+		imp0 = btScalar(0.);
 
 		imp1 = dv1 / jacB.getDiagonal();
-		if ( imp1 <= 0.0f )
+		if ( imp1 <= btScalar(0.0) )
 		{
-			imp1 = 0.f;
+			imp1 = btScalar(0.);
 			// now imp0>0 imp1<0
 			imp0 = dv0 / jacA.getDiagonal();
-			if ( imp0 > 0.0f )
+			if ( imp0 > btScalar(0.0) )
 			{
 			} else
 			{
-				imp0 = 0.f;
+				imp0 = btScalar(0.);
 			}
 		} else
 		{
@@ -221,7 +234,7 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 }
 
 
-
+/*
 void btSolve2LinearConstraint::resolveAngularConstraint(	const btMatrix3x3& invInertiaAWS,
 											const btScalar invMassA,
 											const btVector3& linvelA,const btVector3& angvelA,
@@ -238,4 +251,5 @@ void btSolve2LinearConstraint::resolveAngularConstraint(	const btMatrix3x3& invI
 {
 
 }
+*/
 

@@ -1,7 +1,7 @@
 #!BPY
 
 """
- Name: 'Save Mesh as MDD'
+ Name: 'Vertex Keyframe Animation (.mdd)...'
  Blender: 242
  Group: 'Export'
  Tooltip: 'Animated mesh to MDD vertex keyframe file.'
@@ -18,7 +18,25 @@ Be sure not to use modifiers that change the number or order of verts in the mes
 """
 #Please send any fixes,updates,bugs to Slow67_at_Gmail.com or cbarton_at_metavr.com
 #Bill Niewuendorp
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
 
+import bpy
 import Blender
 from Blender import *
 import BPyMessages
@@ -27,7 +45,7 @@ try:
 except:
 	pack = None
 
-
+	
 def zero_file(filepath):
 	'''
 	If a file fails, this replaces it with 1 char, better not remove it?
@@ -36,11 +54,24 @@ def zero_file(filepath):
 	file.write('\n') # aparently macosx needs some data in a blank file?
 	file.close()
 
+
+def check_vertcount(mesh,vertcount):
+	'''
+	check and make sure the vertcount is consistent throghout the frame range
+	'''
+	if len(mesh.verts) != vertcount:
+		Blender.Draw.PupMenu('Error%t|Number of verts has changed during animation|cannot export')
+		f.close()
+		zero_file(filepath)
+		return
+	
+	
 def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	
 	Window.EditMode(0)
 	Blender.Window.WaitCursor(1)
-	mesh_orig = ob.getData(mesh=1)
+	mesh_orig = Mesh.New()
+	mesh_orig.getFromObject(ob.name)
 	
 	#Flip y and z
 	'''
@@ -65,23 +96,25 @@ def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	f = open(filepath, 'wb') #no Errors yet:Safe to create file
 	
 	# Write the header
-	f.write(pack(">2i", numframes-1, numverts))
+	f.write(pack(">2i", numframes, numverts))
 	
 	# Write the frame times (should we use the time IPO??)
-	f.write( pack(">%df" % (numframes-1), *[frame/PREF_FPS for frame in xrange(numframes-1)]) ) # seconds
+	f.write( pack(">%df" % (numframes), *[frame/PREF_FPS for frame in xrange(numframes)]) ) # seconds
 	
+	#rest frame needed to keep frames in sync
 	Blender.Set('curframe', PREF_STARTFRAME)
+	me_tmp.getFromObject(ob.name)
+	check_vertcount(me_tmp,numverts)
+	me_tmp.transform(ob.matrixWorld * mat_flip)
+	f.write(pack(">%df" % (numverts*3), *[axis for v in me_tmp.verts for axis in v.co]))
+	me_tmp.verts= None
+		
 	for frame in xrange(PREF_STARTFRAME,PREF_ENDFRAME+1):#in order to start at desired frame
 		Blender.Set('curframe', frame)
-		# Blender.Window.RedrawAll() # not needed
+		
 		me_tmp.getFromObject(ob.name)
 		
-		if len(me_tmp.verts) != numverts:
-			Blender.Draw.PupMenu('Error%t|Number of verts has changed during animation|cannot export')
-			Blender.Window.WaitCursor(0)
-			f.close() # should we zero?
-			zero_file(filepath)
-			return
+		check_vertcount(me_tmp,numverts)
 		
 		me_tmp.transform(ob.matrixWorld * mat_flip)
 		
@@ -100,7 +133,7 @@ def mdd_export_ui(filepath):
 	if not BPyMessages.Warning_SaveOver(filepath):
 		return
 	
-	scn= Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob_act= scn.objects.active
 	if not ob_act or ob_act.type != 'Mesh':
 		BPyMessages.Error_NoMeshActive()

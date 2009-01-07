@@ -16,13 +16,17 @@ subject to the following restrictions:
 #ifndef CONSTRAINT_SOLVER_H
 #define CONSTRAINT_SOLVER_H
 
+#include "LinearMath/btScalar.h"
+
 class btPersistentManifold;
 class btRigidBody;
+class btCollisionObject;
 class btTypedConstraint;
 struct btContactSolverInfo;
 struct btBroadphaseProxy;
 class btIDebugDraw;
-
+class btStackAlloc;
+class	btDispatcher;
 /// btConstraintSolver provides solver interface
 class btConstraintSolver
 {
@@ -31,8 +35,15 @@ public:
 
 	virtual ~btConstraintSolver() {}
 	
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints, const btContactSolverInfo& info,class btIDebugDraw* debugDrawer = 0) = 0;
+	virtual void prepareSolve (int /* numBodies */, int /* numManifolds */) {;}
 
+	///solve a group of constraints
+	virtual btScalar solveGroup(btCollisionObject** bodies,int numBodies,btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints, const btContactSolverInfo& info,class btIDebugDraw* debugDrawer, btStackAlloc* stackAlloc,btDispatcher* dispatcher) = 0;
+
+	virtual void allSolved (const btContactSolverInfo& /* info */,class btIDebugDraw* /* debugDrawer */, btStackAlloc* /* stackAlloc */) {;}
+
+	///clear internal cached data and reset random seed
+	virtual	void	reset() = 0;
 };
 
 

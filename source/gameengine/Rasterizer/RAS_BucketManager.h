@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 // this will be put in a class later on
 
@@ -42,31 +39,33 @@
 
 class RAS_BucketManager
 {
-	//GEN_Map<class RAS_IPolyMaterial,class RAS_MaterialBucket*> m_MaterialBuckets;
-	
 	typedef std::vector<class RAS_MaterialBucket*> BucketList;
-	BucketList m_MaterialBuckets;
+	BucketList m_SolidBuckets;
 	BucketList m_AlphaBuckets;
 	
-	struct alphamesh;
+	struct sortedmeshslot;
 	struct backtofront;
+	struct fronttoback;
 
 public:
 	RAS_BucketManager();
 	virtual ~RAS_BucketManager();
 
-	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
-		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 	void Renderbuckets(const MT_Transform & cameratrans,
-							RAS_IRasterizer* rasty,
-							class RAS_IRenderTools* rendertools);
+		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 
-	RAS_MaterialBucket* RAS_BucketManagerFindBucket(RAS_IPolyMaterial * material);
+	RAS_MaterialBucket* FindBucket(RAS_IPolyMaterial * material, bool &bucketCreated);
+	void OptimizeBuckets(MT_Scalar distance);
 	
+	void ReleaseDisplayLists(RAS_IPolyMaterial * material = NULL);
 
 private:
-	void RAS_BucketManagerClearAll();
+	void OrderBuckets(const MT_Transform& cameratrans, BucketList& buckets, vector<sortedmeshslot>& slots, bool alpha);
 
+	void RenderSolidBuckets(const MT_Transform& cameratrans, 
+		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
+	void RenderAlphaBuckets(const MT_Transform& cameratrans, 
+		RAS_IRasterizer* rasty, RAS_IRenderTools* rendertools);
 };
 
 #endif //__RAS_BUCKETMANAGER

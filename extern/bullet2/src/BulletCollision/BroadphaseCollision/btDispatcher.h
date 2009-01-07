@@ -16,6 +16,8 @@ subject to the following restrictions:
 #ifndef _DISPATCHER_H
 #define _DISPATCHER_H
 
+#include "LinearMath/btScalar.h"
+
 class btCollisionAlgorithm;
 struct btBroadphaseProxy;
 class btRigidBody;
@@ -34,32 +36,36 @@ struct btDispatcherInfo
 		DISPATCH_CONTINUOUS
 	};
 	btDispatcherInfo()
-		:m_timeStep(0.f),
+		:m_timeStep(btScalar(0.)),
 		m_stepCount(0),
 		m_dispatchFunc(DISPATCH_DISCRETE),
-		m_timeOfImpact(1.f),
+		m_timeOfImpact(btScalar(1.)),
 		m_useContinuous(false),
 		m_debugDraw(0),
 		m_enableSatConvex(false),
-		m_enableSPU(false),
+		m_enableSPU(true),
+		m_useEpa(true),
+		m_allowedCcdPenetration(btScalar(0.04)),
 		m_stackAllocator(0)
 	{
 
 	}
-	float	m_timeStep;
+	btScalar	m_timeStep;
 	int		m_stepCount;
 	int		m_dispatchFunc;
-	float	m_timeOfImpact;
+	mutable btScalar	m_timeOfImpact;
 	bool	m_useContinuous;
 	class btIDebugDraw*	m_debugDraw;
 	bool	m_enableSatConvex;
 	bool	m_enableSPU;
+	bool	m_useEpa;
+	btScalar	m_allowedCcdPenetration;
 	btStackAlloc*	m_stackAllocator;
 	
 };
 
-/// btDispatcher can be used in combination with broadphase to dispatch overlapping pairs.
-/// For example for pairwise collision detection or user callbacks (game logic).
+///The btDispatcher interface class can be used in combination with broadphase to dispatch calculations for overlapping pairs.
+///For example for pairwise collision detection, calculating contact points stored in btPersistentManifold or user callbacks (game logic).
 class btDispatcher
 {
 
@@ -79,11 +85,17 @@ public:
 
 	virtual bool	needsResponse(btCollisionObject* body0,btCollisionObject* body1)=0;
 
-	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,btDispatcherInfo& dispatchInfo)=0;
+	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,const btDispatcherInfo& dispatchInfo,btDispatcher* dispatcher)  =0;
 
 	virtual int getNumManifolds() const = 0;
 
 	virtual btPersistentManifold* getManifoldByIndexInternal(int index) = 0;
+
+	virtual	btPersistentManifold**	getInternalManifoldPointer() = 0;
+
+	virtual	void* allocateCollisionAlgorithm(int size)  = 0;
+
+	virtual	void freeCollisionAlgorithm(void* ptr) = 0;
 
 };
 

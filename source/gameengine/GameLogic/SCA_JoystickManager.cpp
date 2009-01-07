@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include "SCA_JoystickSensor.h"
 #include "SCA_JoystickManager.h"
@@ -43,42 +40,49 @@ SCA_JoystickManager::SCA_JoystickManager(class SCA_LogicManager* logicmgr)
 	: SCA_EventManager(JOY_EVENTMGR),
 	m_logicmgr(logicmgr)
 {
-	m_joystick = new SCA_Joystick();
-	m_joystick->CreateJoystickDevice();
+	int i;
+	for (i=0; i<JOYINDEX_MAX; i++) {
+		m_joystick[i] = SCA_Joystick::GetInstance( i );
+	}
 }
 
 
 SCA_JoystickManager::~SCA_JoystickManager()
 {
-	m_joystick->DestroyJoystickDevice();
-	delete m_joystick;
+	int i;
+	for (i=0; i<JOYINDEX_MAX; i++) {
+		if(m_joystick[i])
+			m_joystick[i]->ReleaseInstance();
+	}
 }
 
 
 void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 {
-	for (unsigned int i = 0; i < m_sensors.size(); i++)
-	{
-		SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*) m_sensors[i];
-		if(!joysensor->IsSuspended())
+	if (m_sensors.size()==0) {
+		return;
+	}
+	else {
+		set<SCA_ISensor*>::iterator it;
+#ifndef	DISABLE_SDL
+		SCA_Joystick::HandleEvents(); /* Handle all SDL Joystick events */
+#endif
+		for (it = m_sensors.begin(); it != m_sensors.end(); it++)
 		{
-			m_joystick->HandleEvents();
-			joysensor->Activate(m_logicmgr, NULL);
+			SCA_JoystickSensor* joysensor = (SCA_JoystickSensor*)(*it);
+			if(!joysensor->IsSuspended())
+			{
+				joysensor->Activate(m_logicmgr, NULL);
+			}
 		}
 	}
 }
 
 
-void SCA_JoystickManager::RegisterSensor(SCA_ISensor* sensor)
-{
-	m_sensors.push_back(sensor);
-}
-
-
-SCA_Joystick *SCA_JoystickManager::GetJoystickDevice()
+SCA_Joystick *SCA_JoystickManager::GetJoystickDevice( short int joyindex)
 {
 	/* 
 	 *Return the instance of SCA_Joystick for use 
  	 */
-	return m_joystick;
+	return m_joystick[joyindex];
 }

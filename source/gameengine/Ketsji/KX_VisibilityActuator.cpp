@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Actuator to toggle visibility/invisibility of objects
  */
 
@@ -41,10 +38,12 @@
 KX_VisibilityActuator::KX_VisibilityActuator(
 	SCA_IObject* gameobj,
 	bool visible,
+	bool recursive,
 	PyTypeObject* T
 	) 
 	: SCA_IActuator(gameobj,T),
-	  m_visible(visible)
+	  m_visible(visible),
+	  m_recursive(recursive)
 {
 	// intentionally empty
 }
@@ -78,10 +77,10 @@ KX_VisibilityActuator::Update()
 
 	KX_GameObject *obj = (KX_GameObject*) GetParent();
 	
-	obj->SetVisible(m_visible);
-	obj->MarkVisible();
+	obj->SetVisible(m_visible, m_recursive);
+	obj->UpdateBuckets(m_recursive);
 
-	return true;
+	return false;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -123,7 +122,7 @@ KX_VisibilityActuator::Parents[] = {
 PyMethodDef 
 KX_VisibilityActuator::Methods[] = {
 	{"set", (PyCFunction) KX_VisibilityActuator::sPySetVisible, 
-	 METH_VARARGS, SetVisible_doc},
+	 METH_VARARGS, (PY_METHODCHAR)SetVisible_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -138,7 +137,7 @@ KX_VisibilityActuator::_getattr(
 
 
 /* set visibility ---------------------------------------------------------- */
-char 
+const char 
 KX_VisibilityActuator::SetVisible_doc[] = 
 "setVisible(visible?)\n"
 "\t - visible? : Make the object visible? (KX_TRUE, KX_FALSE)"

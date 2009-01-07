@@ -6,8 +6,8 @@ Group: 'Mesh'
 Tooltip: 'Snap Verticies to X mirrord locations and weights.'
 """
 
-__author__= ['Campbell Barton']
-__url__= ["blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/"]
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__= '1.0'
 __bpydoc__= '''\
 This script is used to mirror vertex locations and weights

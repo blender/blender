@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_DERIVEDMESH_H
@@ -45,163 +42,53 @@
  *    conversion to DLM.
  */
 
-#include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
 
 struct MVert;
 struct MEdge;
-struct MFace; /* EVIL! */
-struct MTFace; /* EVIL! */
-struct MPoly;
-struct MLoop;
+struct MFace;
+struct MTFace;
 struct Object;
+struct Scene;
 struct Mesh;
 struct EditMesh;
 struct ModifierData;
 struct MCol;
-struct Material;
-struct MemArena;
+struct ColorBand;
+struct GPUVertexAttribs;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 4
 
-/*Only accepts triangles!*/
-typedef struct bglCacheDrawInterface {
-	/*this must be called first!*/
-	void (*setMaterials)(void *vself, int totmat, struct Material **materials);
-	void (*beginCache)(void *vself);
-	
-	/*highcols are for drawing transparent highlight faces.*/
-	void (*addTriangle)(void *vself, float verts[][3], float normals[][3], char cols[][3],
-	                              char highcols[4], int mat);
-	                              
-	/*if index > 0, then this edge wire is included in backbuffered select draw.*/
-	void (*addEdgeWire)(void *vself, float v1[3], float v2[3], char c1[3], char c2[3], int index);
-	void (*addVertPoint)(void *vself, float v[3], char col[3]);
-	void (*addFacePoint)(void *vself, float v[3], char col[3]);
-	void (*endCache)(void *vself);
-	
-	void (*drawFacesSolid)(void *vself, int usecolors);
-	void (*drawFacesTransp)(void *vself);
-	void (*drawVertPoints)(void *vself, float alpha, float size);
-	void (*drawWireEdges)(void *vself, float alpha);
-	void (*drawFacePoints)(void *vself, float alpha, float size);
-
-	void (*drawFacesBackSel)(void *vself, int offset);
-
-	/*returns start offset to be used with faces*/
-	int (*drawEdgesBackSel)(void *vself, int offset);
-
-	/*returns start offset to be used with edges*/
-	int (*drawVertsBackSel)(void *vself);
-
-	/*NOTE: does not free the struct pointed to at vself! just direct data*/
-	void (*release)(void *vself);
-} bglCacheDrawInterface;
-
-/** Interal data structure for bglCacheMesh, should not be accessed directly.
-    Note that all this data is converted to opengl arrays and freed on cache->endCache()
- **/
-typedef struct bglTriangle {
-	struct bglTriangle *next, *prev;
-	float uv[3][2];
-	unsigned char colors[3][3];
-	float cos[3][3];
-	float nos[3][3];
-	unsigned char highlightclr[4];
-	int mat;
-} bglTriangle;
-
-typedef struct bglEdgeWire {
-	struct bglEdgeWire *next, *pref;
-	float v1[3], v2[3];
-	char c1[3], c2[3];
-	int index; /*backbuffered select index*/
-} bglEdgeWire;
-
-typedef struct bglVertPoint {
-	struct bglVertPoint *next, *prev;
-	float co[3];
-	char col[3];
-} bglVertPoint;
-
-/*theres always one group per material, that is
-  entirely triangles.*/
-typedef struct bglCacheFaceGroup {
-	float *faceverts;
-	char *facecolors;
-	char *highcolors; /*highlight colors for editmode*/
-	float *facenormals;
-	int tottris;
-} bglCacheFaceGroup;
-
-#define MAX_FACEGROUP	16 /*actually a copy of the maximum number of materials, which is 16*/
-
-typedef struct bglCacheMesh {
-	bglCacheDrawInterface cinterface;
-	
-	/*temporary stuff used until ->endCache() is called:*/
-	ListBase triangles[MAX_FACEGROUP], wires, points, fpoints;
-	int tottri, totwire, totpoint, totfpoint;
-	struct MemArena *arena;
-	struct MemArena *gl_arena; /*this holds only opengl arrays*/
-
-	struct Material **mats;
-
-	/*initilzed is set to 1 by setmaterials and 2 by begincache, 
-	  then 3 by endcache (e.g. ready to draw).*/
-	int  totmat, initilized; 
-
-	/*actual opengl array stuff:*/
-	bglCacheFaceGroup facegroups[MAX_FACEGROUP];
-	float *wireverts;
-	char *wirecols;
-	char *wire_selcols; /*selection colors*/
-
-	float *pointverts;
-	char *pointcols;
-	char *point_selcols; /*backbuffered select colors for vert dots.  this is auto-generated.*/
-
-	float *fpointverts;
-	char *fpointcols;
-	char *fpoint_selcols; /*backbuffered select colors for face dots. this is auto-generated.*/
-} bglCacheMesh;
-
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
-	
-	/*faceData is stored tesselated faces only for updated DerivedMeshes.*/
-	CustomData vertData, edgeData, faceData, loopData, polyData;
-	int numVertData, numEdgeData, numFaceData, numLoopData, numPolyData;
+	CustomData vertData, edgeData, faceData;
+	int numVertData, numEdgeData, numFaceData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
-	int needsDrawCacheUpdate;
-	int backbuf_wireoff, backbuf_faceoff;
-	
+	int deformedOnly; /* set by modifier stack if only deformed from original */
+
 	/* Misc. Queries */
 
 	/* Also called in Editmode */
 	int (*getNumVerts)(DerivedMesh *dm);
 	/* Also called in Editmode */
-	int (*getNumEdges)(DerivedMesh *dm);
 	int (*getNumFaces)(DerivedMesh *dm);
-	int (*getNumLoops)(DerivedMesh *dm);
-	int (*getNumPolys)(DerivedMesh *dm);
-	
-	/* copy a single vert/edge/tesselated face/face ngon from the derived mesh into
+
+	int (*getNumEdges)(DerivedMesh *dm);
+
+	/* copy a single vert/edge/face from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
-	 * elements (editmesh, verse mesh)
+	 * elements (editmesh)
 	 */
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);
 	void (*getFace)(DerivedMesh *dm, int index, struct MFace *face_r);
-	void (*getLoop)(DerivedMesh *dm, int index, struct MFace *face_r);
-	void (*getPoly)(DerivedMesh *dm, int index, struct MPoly *face_r);
-	
+
 	/* return a pointer to the entire array of verts/edges/face from the
 	 * derived mesh. if such an array does not exist yet, it will be created,
 	 * and freed on the next ->release(). consider using getVert/Edge/Face if
@@ -210,48 +97,38 @@ struct DerivedMesh {
 	struct MVert *(*getVertArray)(DerivedMesh *dm);
 	struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*getFaceArray)(DerivedMesh *dm);
-	struct MLoop *(*getLoopArray)(DerivedMesh *dm);
-	struct MPoly *(*getPolyArray)(DerivedMesh *dm);
-	
-	/* copy all verts/edges/tesselated faces/polys from the derived mesh into
+
+	/* copy all verts/edges/faces from the derived mesh into
 	 * *{vert/edge/face}_r (must point to a buffer large enough)
 	 */
 	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
 	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
 	void (*copyFaceArray)(DerivedMesh *dm, struct MFace *face_r);
-	void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *loop_r);
-	void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *poly_r);
-	
-	/* return a copy of all verts/edges/tesselated faces/polys from the derived mesh
-	 * it is the caller's responsibility to free the returned pointer with MEM_freeN(pointer).
+
+	/* return a copy of all verts/edges/faces from the derived mesh
+	 * it is the caller's responsibility to free the returned pointer
 	 */
 	struct MVert *(*dupVertArray)(DerivedMesh *dm);
 	struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*dupFaceArray)(DerivedMesh *dm);
-	struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
-	struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
-	
-	/* return a pointer to a single element of vert/edge/tesselated faces/polys custom data
+
+	/* return a pointer to a single element of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
 	void *(*getVertData)(DerivedMesh *dm, int index, int type);
 	void *(*getEdgeData)(DerivedMesh *dm, int index, int type);
 	void *(*getFaceData)(DerivedMesh *dm, int index, int type);
-	void *(*getLoopData)(DerivedMesh *dm, int index, int type);
-	void *(*getPolyData)(DerivedMesh *dm, int index, int type);
-	
-	/* return a pointer to the entire array of vert/edge/tesselated faces/polys custom data
+
+	/* return a pointer to the entire array of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
 	void *(*getVertDataArray)(DerivedMesh *dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getFaceDataArray)(DerivedMesh *dm, int type);
-	void *(*getLoopDataArray)(DerivedMesh *dm, int type);
-	void *(*getPolyDataArray)(DerivedMesh *dm, int type);
-	 
-	/* DEPRECATED FOR DIRECT DRAWING: Iterate over each mapped vertex in the derived mesh, calling the
+
+	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
 	 * coordinate and normal. For historical reasons the normal can be
 	 * passed as a float or short array, only one should be non-NULL.
@@ -299,29 +176,10 @@ struct DerivedMesh {
 	/* Get vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
-	/* Create opengl arrays with the new drawing API*/
-	void (*UpdateDrawCache)(DerivedMesh *dm, bglCacheDrawInterface *interface);
-	void (*setOverrideVerts)(DerivedMesh *dm, float *cos, float *nos);
-	
-	/* Drawing Operations -- These should use the cache opengl functions.*/
+	/* Drawing Operations */
 
 	/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
-
-	/* Draw edit verts. 
-	Note that the dm->backbuf_wireoff/faceoff will be used.*/
-	void (*drawEditVerts)(DerivedMesh *dm, float alpha);
-
-	/* Draw edit verts.*/
-	int (*drawEditVertsBackbuffer)(DerivedMesh *dm);
-
-	/* Draw edit face points.  */
-	void (*drawEditFacePoints)(DerivedMesh *dm, float alpha);
-
-	/* Draw edit face points for backbuffer select.  
-	Note that the dm->backbuf_wireoff/faceoff will be used.*/
-	void (*drawEditFacePointsBackbuffer)(DerivedMesh *dm);
-
 
 	/* Draw edges in the UV mesh (if exists) */
 	void (*drawUVEdges)(DerivedMesh *dm);
@@ -336,14 +194,14 @@ struct DerivedMesh {
 	void (*drawLooseEdges)(DerivedMesh *dm);
 
 	/* Draw all faces
-	 *  These are deprecated, use the drawPoly*** functions instead.
 	 *  o Set face normal or vertex normal based on inherited face flag
 	 *  o Use inherited face material index to call setMaterial
 	 *  o Only if setMaterial returns true
 	 *
 	 * Also called for *final* editmode DerivedMeshes
 	 */
-	void (*drawFacesSolid)(DerivedMesh *dm, int (*setMaterial)(int));
+	void (*drawFacesSolid)(DerivedMesh *dm,
+	                       int (*setMaterial)(int, void *attribs));
 
 	/* Draw all faces
 	 *  o If useTwoSided, draw front and back using col arrays
@@ -360,6 +218,12 @@ struct DerivedMesh {
 	                     int (*setDrawOptions)(struct MTFace *tface,
 	                     struct MCol *mcol, int matnr));
 
+	/* Draw all faces with GLSL materials
+	 *  o setMaterial is called for every different material nr
+	 *  o Only if setMaterial returns true
+	 */
+	void (*drawFacesGLSL)(DerivedMesh *dm,
+		int (*setMaterial)(int, void *attribs));
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -386,6 +250,15 @@ struct DerivedMesh {
 	                           int (*setDrawOptions)(void *userData,
 	                                                 int index),
 	                           void *userData);
+
+	/* Draw mapped faces with GLSL materials
+	 *  o setMaterial is called for every different material nr
+	 *  o setDrawOptions is called for every face
+	 *  o Only if setMaterial and setDrawOptions return true
+	 */
+	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
+		int (*setMaterial)(int, void *attribs),
+		int (*setDrawOptions)(void *userData, int index), void *userData);
 
 	/* Draw mapped edges as lines
 	 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge)
@@ -415,9 +288,6 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
-/*create a new cache drawing interface*/
-bglCacheDrawInterface *bglCacheNew(void);
-
 /* utility function to initialise a DerivedMesh's function pointers to
  * the default implementation (for those functions which have a default)
  */
@@ -427,13 +297,13 @@ void DM_init_funcs(DerivedMesh *dm);
  * of vertices, edges and faces (doesn't allocate memory for them, just
  * sets up the custom data layers)
  */
-void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
+void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
+                      int numVerts, int numEdges, int numFaces);
 
 /* utility function to release a DerivedMesh's layers
  * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
@@ -543,40 +413,82 @@ void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 
 void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
 
+/* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
+void vDM_ColorBand_store(struct ColorBand *coba);
+
 /* Simple function to get me->totvert amount of vertices/normals,
    correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
    In use now by vertex/weigt paint and particles */
-float *mesh_get_mapped_verts_nors(struct Object *ob);
+float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 	/* */
-DerivedMesh *mesh_get_derived_final(struct Object *ob,
+DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,
                                     CustomDataMask dataMask);
-DerivedMesh *mesh_get_derived_deform(struct Object *ob,
+DerivedMesh *mesh_get_derived_deform(struct Scene *scene, struct Object *ob,
                                      CustomDataMask dataMask);
 
-DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
+DerivedMesh *mesh_create_derived_for_modifier(struct Scene *scene, struct Object *ob, struct ModifierData *md);
 
-DerivedMesh *mesh_create_derived_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_render(struct Scene *scene, struct Object *ob,
                                         CustomDataMask dataMask);
-/* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived_view(struct Object *ob,
+
+DerivedMesh *mesh_create_derived_index_render(struct Scene *scene, struct Object *ob, CustomDataMask dataMask, int index);
+
+		/* same as above but wont use render settings */
+DerivedMesh *mesh_create_derived_view(struct Scene *scene, struct Object *ob,
                                       CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform(struct Scene *scene, struct Object *ob,
                                            float (*vertCos)[3],
                                            CustomDataMask dataMask);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
+DerivedMesh *mesh_create_derived_no_deform_render(struct Scene *scene, struct Object *ob,
                                                   float (*vertCos)[3],
                                                   CustomDataMask dataMask);
 
-DerivedMesh *editmesh_get_derived_base(void);
-DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
+DerivedMesh *editmesh_get_derived_base(struct Object *, struct EditMesh *em);
+DerivedMesh *editmesh_get_derived_cage(struct Scene *scene, struct Object *, 
+									   struct EditMesh *em, CustomDataMask dataMask);
+DerivedMesh *editmesh_get_derived_cage_and_final(struct Scene *scene, struct Object *, 
+												 struct EditMesh *em, DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
+void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct EditMesh *em, CustomDataMask dataMask);
+
+/* returns an array of deform matrices for crazyspace correction, and the
+   number of modifiers left */
+int editmesh_get_first_deform_matrices(struct Object *, struct EditMesh *em, float (**deformmats)[3][3],
+                                       float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
-/* determines required DerivedMesh data according to view and edit modes */
-CustomDataMask get_viewedit_datamask();
+/* convert layers requested by a GLSL material to actually available layers in
+ * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
+typedef struct DMVertexAttribs {
+	struct {
+		struct MTFace *array;
+		int emOffset, glIndex;
+	} tface[MAX_MTFACE];
+
+	struct {
+		struct MCol *array;
+		int emOffset, glIndex;
+	} mcol[MAX_MCOL];
+
+	struct {
+		float (*array)[3];
+		int emOffset, glIndex;
+	} tang;
+
+	struct {
+		float (*array)[3];
+		int emOffset, glIndex;
+	} orco;
+
+	int tottface, totmcol, tottang, totorco;
+} DMVertexAttribs;
+
+void DM_vertex_attributes_from_gpu(DerivedMesh *dm,
+	struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
+
+void DM_add_tangent_layer(DerivedMesh *dm);
 
 #endif
 

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_SUMOPHYSICSCONTROLLER_H
 #define __KX_SUMOPHYSICSCONTROLLER_H
@@ -71,20 +68,23 @@ public:
 	void	ApplyTorque(const MT_Vector3& torque,bool local);
 	void	ApplyForce(const MT_Vector3& force,bool local);
 	MT_Vector3 GetLinearVelocity();
+	MT_Vector3 GetAngularVelocity()		// to keep compiler happy
+		{ return MT_Vector3(0.0,0.0,0.0); }
 	MT_Vector3 GetVelocity(const MT_Point3& pos);
 	void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local);
 	void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 	void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 
 
-	void	SuspendDynamics();
+	void	SuspendDynamics(bool);
 	void	RestoreDynamics();
 	virtual	void	getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
+	virtual	MT_Scalar	GetRadius();
 	virtual	MT_Vector3	getReactionForce();
 	virtual	void	setRigidBody(bool rigid);
 	

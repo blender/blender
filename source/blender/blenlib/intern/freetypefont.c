@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  * This code parses the Freetype font outline data to chains of Blender's beziertriples.
  * Additional information can be found at the bottom of this file.
@@ -52,9 +49,10 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"  
 
-#include "BIF_toolbox.h"
+//XXX #include "BIF_toolbox.h"
 
 #include "BKE_global.h"
+#include "BKE_font.h"
 #include "BKE_utildefines.h"
 
 #include "DNA_vfont_types.h"
@@ -153,7 +151,7 @@ void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vfd)
 			nu->type= CU_BEZIER+CU_2D;
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
-			nu->flagu= 1;
+			nu->flagu= CU_CYCLIC;
 			nu->bezt = bezt;
 
 			//individual curve loop, start-end
@@ -283,13 +281,7 @@ int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	struct TmpFont *tf;
 	
 	// Find the correct FreeType font
-	tf= G.ttfdata.first;
-	while(tf)
-	{
-		if(tf->vfont == vfont)
-			break;
-		tf= tf->next;		
-	}
+	tf= vfont_find_tmpfont(vfont);
 	
 	// What, no font found. Something strange here
 	if(!tf) return FALSE;
@@ -407,8 +399,6 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 			break;
 		lcode = charcode;
 	}
-	
-	err = FT_Set_Charmap( face, (FT_CharMap) FT_ENCODING_UNICODE );
 
 	return vfd;	
 }
@@ -435,7 +425,7 @@ static int check_freetypefont(PackedFile * pf)
 							&face );
 	if(err) {
 		success = 0;
-	    error("This is not a valid font");
+	    //XXX error("This is not a valid font");
 	}
 	else {
 /*
@@ -464,7 +454,7 @@ static int check_freetypefont(PackedFile * pf)
 			if (glyph->format == ft_glyph_format_outline ) {
 				success = 1;
 			} else {
-				error("Selected Font has no outline data");
+				//XXX error("Selected Font has no outline data");
 				success = 0;
 			}
 		}
@@ -482,7 +472,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	//init Freetype	
 	err = FT_Init_FreeType( &library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 
@@ -507,7 +497,7 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Init Freetype
 	err = FT_Init_FreeType(&library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 

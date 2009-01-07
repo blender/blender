@@ -21,7 +21,7 @@ virtual ~btVehicleRaycaster()
 }
 	struct btVehicleRaycasterResult
 	{
-		btVehicleRaycasterResult() :m_distFraction(-1.f){};
+		btVehicleRaycasterResult() :m_distFraction(btScalar(-1.)){};
 		btVector3	m_hitPointInWorld;
 		btVector3	m_hitNormalInWorld;
 		btScalar	m_distFraction;

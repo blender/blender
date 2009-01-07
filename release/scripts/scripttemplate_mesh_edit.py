@@ -70,6 +70,7 @@ def main():
 	# editmode if its enabled, we cant make
 	# changes to the mesh data while in editmode.
 	is_editmode = Window.EditMode()
+	if is_editmode: Window.EditMode(0)
 	
 	Window.WaitCursor(1)
 	me = ob_act.getData(mesh=1) # old NMesh api is default

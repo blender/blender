@@ -13,22 +13,35 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+
 #include "btCollisionObject.h"
 
 btCollisionObject::btCollisionObject()
-	:	m_broadphaseHandle(0),
+	:	m_anisotropicFriction(1.f,1.f,1.f),
+	m_hasAnisotropicFriction(false),
+		m_broadphaseHandle(0),
 		m_collisionShape(0),
-		m_collisionFlags(0),
+		m_rootCollisionShape(0),
+		m_collisionFlags(btCollisionObject::CF_STATIC_OBJECT),
+		m_islandTag1(-1),
+		m_companionId(-1),
 		m_activationState1(1),
-		m_deactivationTime(0.f),
+		m_deactivationTime(btScalar(0.)),
+		m_friction(btScalar(0.5)),
+		m_restitution(btScalar(0.)),
 		m_userObjectPointer(0),
-		m_hitFraction(1.f),
-		m_ccdSweptSphereRadius(0.f),
-		m_ccdSquareMotionThreshold(0.f)
+		m_internalType(CO_COLLISION_OBJECT),
+		m_hitFraction(btScalar(1.)),
+		m_ccdSweptSphereRadius(btScalar(0.)),
+		m_ccdMotionThreshold(btScalar(0.)),
+		m_checkCollideWith(false)
 {
 	
 }
 
+btCollisionObject::~btCollisionObject()
+{
+}
 
 void btCollisionObject::setActivationState(int newState) 
 { 
@@ -46,8 +59,9 @@ void btCollisionObject::activate(bool forceActivation)
 	if (forceActivation || !(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OBJECT)))
 	{
 		setActivationState(ACTIVE_TAG);
-		m_deactivationTime = 0.f;
+		m_deactivationTime = btScalar(0.);
 	}
 }
+
 
 

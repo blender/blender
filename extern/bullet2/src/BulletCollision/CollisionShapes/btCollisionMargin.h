@@ -18,7 +18,7 @@ subject to the following restrictions:
 
 //used by Gjk and some other algorithms
 
-#define CONVEX_DISTANCE_MARGIN 0.04f// 0.1f//;//0.01f
+#define CONVEX_DISTANCE_MARGIN btScalar(0.04)// btScalar(0.1)//;//btScalar(0.01)
 
 
 

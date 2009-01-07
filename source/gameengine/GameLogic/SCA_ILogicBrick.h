@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_ILOGICBRICK
 #define __KX_ILOGICBRICK
@@ -35,6 +32,8 @@
 #include "Value.h"
 #include "SCA_IObject.h"
 #include "BoolValue.h"
+#include "GEN_Map.h"
+#include "GEN_HashedPtr.h"
 
 class SCA_ILogicBrick : public CValue
 {
@@ -62,6 +61,7 @@ public:
 
 	SCA_IObject*	GetParent();
 	virtual void	ReParent(SCA_IObject* parent);
+	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	// act as a BoolValue (with value IsPositiveTrigger)
 	virtual CValue*	Calc(VALUE_OPERATOR op, CValue *val);
@@ -85,9 +85,9 @@ public:
 
 	// python methods
 
-	KX_PYMETHOD(SCA_ILogicBrick,GetOwner);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetOwner);
 	KX_PYMETHOD(SCA_ILogicBrick,SetExecutePriority);
-	KX_PYMETHOD(SCA_ILogicBrick,GetExecutePriority);
+	KX_PYMETHOD_NOARGS(SCA_ILogicBrick,GetExecutePriority);
 
 	enum KX_BOOL_TYPE {
 		KX_BOOL_NODEF = 0,

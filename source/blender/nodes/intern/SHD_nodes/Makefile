@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 #
 
@@ -36,16 +33,17 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd openbsd linux solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS +=  -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+CPPFLAGS += -I../../../python
 CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../../makesdna
 CPPFLAGS += -I../../../blenlib
-CPPFLAGS += -I../../../include
+CPPFLAGS += -I../../../editors/include
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../render/extern/include
+CPPFLAGS += -I../../../gpu
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)

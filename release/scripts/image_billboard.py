@@ -46,47 +46,37 @@ Usage
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-import Blender as B
+import Blender
+from Blender import Mesh, Material, Draw
 import BPyMathutils
-# reload(BPyMathutils)
+import bpy
 import BPyRender
-reload(BPyRender)
-import boxpack2d
-# reload(boxpack2d) # for developing.
 from Blender.Scene import Render
 
+# reload(BPyRender)
+# reload(BPyMathutils)
+
 import os
-Vector= B.Mathutils.Vector
+Vector= Blender.Mathutils.Vector
 
 def alpha_mat(image):
 	# returns a material useable for 
-	mtl= B.Material.New()
-	mtl.mode |= (B.Material.Modes.SHADELESS | B.Material.Modes.ZTRANSP | B.Material.Modes.FULLOSA )
-	mtl.alpha= 0.0 # so image sets the alpha
-	
-	tex= B.Texture.New()
-	tex.type= B.Texture.Types.IMAGE
-	image.antialias = True
-	tex.setImageFlags('InterPol', 'UseAlpha')
-	tex.setExtend('Clip')
-	tex.image= image
-	
-	mtl.setTexture(0, tex, B.Texture.TexCo.UV, B.Texture.MapTo.COL | B.Texture.MapTo.ALPHA)
-	
+	mtl= bpy.data.materials.new()
+	mtl.mode |= (Material.Modes.SHADELESS | Material.Modes.ZTRANSP | Material.Modes.FULLOSA | Material.Modes.TEXFACE | Material.Modes.TEXFACE_ALPHA )
 	return mtl
 
 # PupBlock Settings
 GLOBALS= {}
-PREF_RES= B.Draw.Create(512)
-PREF_TILE_RES= B.Draw.Create(256)
-PREF_AA = B.Draw.Create(1)
-PREF_ALPHA= B.Draw.Create(1)
-PREF_Z_OFFSET = B.Draw.Create(10.0)
-PREF_IMG_PACK= B.Draw.Create(1)
+PREF_RES= Draw.Create(512)
+PREF_TILE_RES= Draw.Create(256)
+PREF_AA = Draw.Create(1)
+PREF_ALPHA= Draw.Create(1)
+PREF_Z_OFFSET = Draw.Create(10.0)
+PREF_IMG_PACK= Draw.Create(1)
 
 
 def save_billboard(PREF_IMAGE_PATH):
-	B.Window.WaitCursor(1)
+	Blender.Window.WaitCursor(1)
 	# remove png, add it later
 	PREF_IMAGE_PATH= PREF_IMAGE_PATH.replace('.png', '')
 	
@@ -94,7 +84,7 @@ def save_billboard(PREF_IMAGE_PATH):
 	me_ob = GLOBALS['me_ob']
 	me_data = GLOBALS['me_data']
 	
-	time= B.sys.time()
+	time= Blender.sys.time()
 	
 	me_mat= me_ob.matrixWorld
 	
@@ -102,9 +92,10 @@ def save_billboard(PREF_IMAGE_PATH):
 	face_data= [] # Store faces, images etc
 	boxes2Pack= []
 	me_data.faceUV= True
-		
+	
 	for i, f in enumerate(me_data.faces):
 		no= f.no
+		
 		# Offset the plane by the zoffset on the faces normal
 		plane= [v.co * me_mat for v in f]
 		
@@ -117,61 +108,64 @@ def save_billboard(PREF_IMAGE_PATH):
 		else:
 			rot90= False
 		
-		
-		#plane.reverse()
-		no= B.Mathutils.QuadNormal(*plane)
+		no= Blender.Mathutils.QuadNormal(*plane)
 		plane= [v + no*PREF_Z_OFFSET.val for v in plane]
 		
 		cent= (plane[0]+plane[1]+plane[2]+plane[3] ) /4.0
 		camera_matrix= BPyMathutils.plane2mat(plane)
 		tmp_path= '%s_%d' % (PREF_IMAGE_PATH, i)
 		img= BPyRender.imageFromObjectsOrtho(ob_sel, tmp_path, PREF_TILE_RES.val, PREF_TILE_RES.val, PREF_AA.val, PREF_ALPHA.val, camera_matrix)
-		# img.reload()
+		img.reload()
 		#img.pack() # se we can keep overwriting the path
 		#img.filename= ""
 		
+		if rot90:
+			f.uv=Vector(1,1), Vector(0,1), Vector(0,0), Vector(1,0)
+		else:	
+			f.uv= Vector(0,1), Vector(0,0), Vector(1,0), Vector(1,1)
 		
 		if not PREF_IMG_PACK.val:
-			f.mode |= B.Mesh.FaceModes.TEX
+			f.mode |= Mesh.FaceModes.TEX
 			f.image = img
-			f.uv=Vector(0,1), Vector(0,0), Vector(1,0), Vector(1,1)
 			
 			if PREF_ALPHA.val:
-				f.transp |= B.Mesh.FaceTranspModes.ALPHA
+				f.transp |= Mesh.FaceTranspModes.ALPHA
 		else:
 			w= ((plane[0]-plane[1]).length + (plane[2]-plane[3]).length)/2
 			h= ((plane[1]-plane[2]).length + (plane[3]-plane[0]).length)/2
 			
-			face_data.append( (f, img, rot90) )
-			boxes2Pack.append( (i, h, w) )
+			face_data.append( (f, img) )
+			boxes2Pack.append( [0.0,0.0,h, w, i] )
 	
 	if PREF_IMG_PACK.val:
 		# pack the quads into a square
+		packWidth, packHeight = Blender.Geometry.BoxPack2D(boxes2Pack)
 		
-		packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
 		render_obs= []
 		
+		render_mat= alpha_mat(img)
+		
 		# Add geometry to the mesh
-		for box in packedLs:
-			i= box[0]
+		for box in boxes2Pack:
+			i= box[4]
 			
-			orig_f, img, rot90= face_data[i]
+			orig_f, img= face_data[i]
 			
 			# New Mesh and Object
-			render_mat= alpha_mat(img)
 			
-			render_me= B.Mesh.New()
-			render_ob= B.Object.New('Mesh')
+			render_me= bpy.data.meshes.new()
+			
+			render_ob= Blender.Object.New('Mesh')
 			render_me.materials= [render_mat]
 			render_ob.link(render_me)
 			
 			render_obs.append(render_ob)
 			
 			# Add verts clockwise from the bottom left.
-			_x= box[1] / packWidth
-			_y= box[2] / packHeight
-			_w= box[3] / packWidth
-			_h= box[4] / packHeight
+			_x= box[0] / packWidth
+			_y= box[1] / packHeight
+			_w= box[2] / packWidth
+			_h= box[3] / packHeight
 			
 			
 			render_me.verts.extend([\
@@ -180,65 +174,56 @@ def save_billboard(PREF_IMAGE_PATH):
 			Vector(_x + _w, _y +_h, 0),\
 			Vector(_x + _w, _y, 0),\
 			])
-			
+				
 			render_me.faces.extend(list(render_me.verts))
 			render_me.faceUV= True
 			
-			# target_face= render_me.faces[-1]
-			# TEXFACE isnt used because of the renderign engine cant to alpha's for texdface.
-			#target_face.image= img
-			#target_face.mode |= B.Mesh.FaceModes.TEX
+			render_me.faces[0].uv = [Vector(0,0), Vector(0,1), Vector(1,1), Vector(1,0)]
+			render_me.faces[0].image = img
 			
 			# Set the UV's, we need to flip them HOZ?
-			uv1, uv2, uv3, uv4= orig_f.uv
-			uv3.x= uv4.x= _x+_w
-			uv1.x= uv2.x= _x
-			
-			uv2.y= uv3.y= _y+_h
-			uv1.y= uv4.y= _y
-			
-			if rot90:
-				orig_f.uv= Vector(uv4), Vector(uv1), Vector(uv2), Vector(uv3)
-			
+			for uv in orig_f.uv:
+				uv.x = _x + (uv.x * _w)
+				uv.y = _y + (uv.y * _h)
+		
 		target_image= BPyRender.imageFromObjectsOrtho(render_obs, PREF_IMAGE_PATH, PREF_RES.val, PREF_RES.val, PREF_AA.val, PREF_ALPHA.val, None)
+		target_image.reload() # incase your overwriting an existing image.
 		
 		# Set to the 1 image.
 		for f in me_data.faces:
 			f.image= target_image
 			if PREF_ALPHA.val:
-				f.transp |= B.Mesh.FaceTranspModes.ALPHA
+				f.transp |= Mesh.FaceTranspModes.ALPHA
 		
 		# Free the images data and remove
 		for data in face_data:
 			img= data[1]
 			os.remove(img.filename)
 			img.reload()
+			
 	# Finish pack
 	
 	me_data.update()
 	me_ob.makeDisplayList()
-	B.Window.WaitCursor(0)
-	print '%.2f secs taken' % (B.sys.time()-time)
-	
-
+	Blender.Window.WaitCursor(0)
+	print '%.2f secs taken' % (Blender.sys.time()-time)
 
 
 def main():
-	scn= B.Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob_sel= list(scn.objects.context)
 	
 	PREF_KEEP_ASPECT= False
 	
-	
 	# Error Checking
 	if len(ob_sel) < 2:
-		B.Draw.PupMenu("Error%t|Select 2 mesh objects")
+		Draw.PupMenu("Error%t|Select 2 mesh objects")
 		return
 		
 	me_ob= scn.objects.active
 	
 	if not me_ob:
-		B.Draw.PupMenu("Error%t|No active mesh selected.")
+		Draw.PupMenu("Error%t|No active mesh selected.")
 	
 	try:
 		ob_sel.remove(me_ob)
@@ -246,17 +231,15 @@ def main():
 		pass
 	
 	if me_ob.type != 'Mesh':
-		B.Draw.PupMenu("Error%t|Active Object must be a mesh to write billboard images too")
+		Draw.PupMenu("Error%t|Active Object must be a mesh to write billboard images too")
 		return
 	
 	me_data= me_ob.getData(mesh=1)
 	
 	for f in me_data.faces:
 		if len(f) != 4:
-			B.Draw.PupMenu("Error%t|Active mesh must have only quads")
+			Draw.PupMenu("Error%t|Active mesh must have only quads")
 			return
-	
-	
 	
 	
 	# Get user input
@@ -265,13 +248,13 @@ def main():
 	("Packed Size: ", PREF_RES, 128, 2048, "Pixel width and height to render the billboard to"),\
 	("Tile Size: ", PREF_TILE_RES, 64, 1024, "Pixel  width and height for each tile to render to"),\
 	'Render Settings',\
-	("Pack Final", PREF_IMG_PACK , "Pack all images into 1 image"),\
+	("Pack Final", PREF_IMG_PACK , "Pack the image for each face into images into a single image"),\
 	("Oversampling", PREF_AA , "Higher quality woth extra sampling"),\
 	("Alpha Clipping", PREF_ALPHA , "Render empty areas as transparent"),\
 	("Cam ZOffset: ", PREF_Z_OFFSET, 0.1, 100, "Distance to place the camera away from the quad when rendering")\
 	]
 	
-	if not B.Draw.PupBlock("Billboard Render", block):
+	if not Draw.PupBlock("Billboard Render", block):
 		return
 	
 	# Set globals
@@ -279,7 +262,8 @@ def main():
 	GLOBALS['me_ob'] = me_ob
 	GLOBALS['me_data'] = me_data
 	
-	B.Window.FileSelector(save_billboard, 'SAVE BILLBOARD', B.sys.makename(ext='.png'))
+	Blender.Window.FileSelector(save_billboard, 'SAVE BILLBOARD', Blender.sys.makename(ext='.png'))
+	# save_billboard('/tmp/test.png')
 
 if __name__=='__main__':
 	main()

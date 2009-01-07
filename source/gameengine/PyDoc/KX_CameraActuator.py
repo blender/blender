@@ -8,11 +8,13 @@ class KX_CameraActuator(SCA_IActuator):
 	
 	@author: snail
 	"""
-	def getObject():
+	def getObject(name_only = 1):
 		"""
 		Returns the name of the object this actuator tracks.
 		
-		rtype: string
+		@type name_only: bool
+		@param name_only: optional argument, when 0 return a KX_GameObject
+		@rtype: string, KX_GameObject or None if no object is set
 		"""
 	
 	def setObject(target):
@@ -20,7 +22,7 @@ class KX_CameraActuator(SCA_IActuator):
 		Sets the object this actuator tracks.
 		
 		@param target: the object to track.
-		@type target: string or L{KX_GameObject}
+		@type target: L{KX_GameObject}, string or None
 		"""
 	
 	def getMin():

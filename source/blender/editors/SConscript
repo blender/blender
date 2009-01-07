@@ -1,0 +1,30 @@
+#!/usr/bin/python
+Import ('env')
+
+
+SConscript(['datafiles/SConscript',
+			'space_api/SConscript',
+			'util/SConscript',
+			'interface/SConscript',
+			'animation/SConscript',
+			'armature/SConscript',
+			'mesh/SConscript',
+			'object/SConscript',
+			'space_buttons/SConscript',
+			'space_file/SConscript',
+			'space_image/SConscript',
+			'space_info/SConscript',
+			'space_ipo/SConscript',
+			'space_node/SConscript',
+			'space_outliner/SConscript',
+			'space_time/SConscript',
+			'space_view3d/SConscript',
+			'space_sound/SConscript',
+			'space_action/SConscript',
+			'space_nla/SConscript',
+			'space_script/SConscript',
+			'space_text/SConscript',
+			'space_sequencer/SConscript',
+			'transform/SConscript',
+			'screen/SConscript',
+			'sculpt/SConscript'])

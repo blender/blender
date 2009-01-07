@@ -2,15 +2,12 @@
 /* 
 	$Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
 */
 
@@ -53,39 +50,18 @@
 #define DL_FRONT_CURVE	4
 #define DL_BACK_CURVE	8
 
-#define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev)	    \
-\
-if( (cyclv)==0 && a==(sizev)-1) break;		    \
-if(cyclu) {						    \
-	p1= sizeu*a;					    \
-		p2= p1+ sizeu-1;				    \
-			p3= p1+ sizeu;					    \
-				p4= p2+ sizeu;					    \
-					b= 0;						    \
-}							    \
-else {						    \
-	p2= sizeu*a;					    \
-		p1= p2+1;					    \
-			p4= p2+ sizeu;					    \
-				p3= p1+ sizeu;					    \
-					b= 1;						    \
-}							    \
-if( (cyclv) && a==sizev-1) {			    \
-	p3-= sizeu*sizev;				    \
-		p4-= sizeu*sizev;				    \
-}
-
 
 /* prototypes */
 
 struct Base;
+struct Scene;
 struct Object;
 struct Curve;
 struct ListBase;
 struct Material;
 struct Bone;
 struct Mesh;
-
+struct EditMesh;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
@@ -110,18 +86,21 @@ extern void addnormalsDispList(struct Object *ob, struct ListBase *lb);
 extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
-extern void makeDerivedMesh(struct Object *ob, CustomDataMask dataMask);
-extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
-extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
-extern void makeDispListMBall(struct Object *ob);
-extern void shadeDispList(struct Base *base);
-extern void shadeMeshMCol(struct Object *ob, struct Mesh *me);
 
+extern void makeDispListSurf(struct Scene *scene, struct Object *ob, struct ListBase *dispbase, int forRender);
+extern void makeDispListCurveTypes(struct Scene *scene, struct Object *ob, int forOrco);
+extern void makeDispListMBall(struct Scene *scene, struct Object *ob);
+extern void shadeDispList(struct Scene *scene, struct Base *base);
+extern void shadeMeshMCol(struct Scene *scene, struct Object *ob, struct Mesh *me);
+
+int surfindex_displist(DispList *dl, int a, int *b, int *p1, int *p2, int *p3, int *p4);
 void imagestodisplist(void);
-void reshadeall_displist(void);
+void reshadeall_displist(struct Scene *scene);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
 void fastshade_free_render(void);
+
+float calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
 #endif
 

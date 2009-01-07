@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * General operations for brushes.
  */
 
@@ -48,14 +45,23 @@ void free_brush(struct Brush *brush);
 int brush_set_nr(struct Brush **current_brush, int nr);
 int brush_delete(struct Brush **current_brush);
 void brush_check_exists(struct Brush **brush);
-void brush_toggle_fake_user(struct Brush *brush);
+void brush_toggled_fake_user(struct Brush *brush);
 int brush_texture_set_nr(struct Brush *brush, int nr);
 int brush_texture_delete(struct Brush *brush);
 int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
+/* brush curve */
+typedef enum {
+	BRUSH_PRESET_SHARP,
+	BRUSH_PRESET_SMOOTH,
+	BRUSH_PRESET_MAX
+} BrushCurvePreset;
+void brush_curve_preset(struct Brush *b, BrushCurvePreset preset);
+
 /* sampling */
 float brush_sample_falloff(struct Brush *brush, float dist);
+float brush_sample_falloff_noalpha(struct Brush *brush, float dist);
 void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
 void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
 	struct ImBuf **imbuf);

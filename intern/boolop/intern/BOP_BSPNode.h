@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #ifndef BOP_BSPNODE_H
@@ -34,6 +31,9 @@
 #include "MT_Plane3.h"
 #include "BOP_Tag.h"
 #include "BOP_Face.h"
+
+typedef vector<MT_Point3> BOP_BSPPoints;
+typedef vector<MT_Point3>::iterator BOP_IT_BSPPoints;
 
 class BOP_BSPNode
 {
@@ -47,9 +47,7 @@ public:
 	// Construction methods
 	BOP_BSPNode(const MT_Plane3& plane);
 	~BOP_BSPNode();
-	unsigned int addFace(const MT_Point3& p1, 
-						 const MT_Point3& p2, 
-						 const MT_Point3& p3, 
+	unsigned int addFace(BOP_BSPPoints pts, 
 						 const MT_Plane3& plane);
 	BOP_TAG classifyFace(const MT_Point3& p1, 
 						 const MT_Point3& p2, 

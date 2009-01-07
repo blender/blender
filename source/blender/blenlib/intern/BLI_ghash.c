@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * A general (pointer -> pointer) hash table ADT
  */
 
@@ -36,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -117,14 +116,16 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-void* BLI_ghash_lookup(GHash *gh, void *key) {
-	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
-	Entry *e;
-	
-	for (e= gh->buckets[hash]; e; e= e->next)
-		if (gh->cmpfp(key, e->key)==0)
-			return e->val;
-	
+void* BLI_ghash_lookup(GHash *gh, void *key) 
+{
+	if(gh) {
+		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+		Entry *e;
+		
+		for (e= gh->buckets[hash]; e; e= e->next)
+			if (gh->cmpfp(key, e->key)==0)
+				return e->val;
+	}	
 	return NULL;
 }
 
@@ -199,12 +200,6 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 
 /***/
 
-struct GHashIterator {
-	GHash *gh;
-	int curBucket;
-	Entry *curEntry;
-};
-
 GHashIterator *BLI_ghashIterator_new(GHash *gh) {
 	GHashIterator *ghi= malloc(sizeof(*ghi));
 	ghi->gh= gh;
@@ -217,6 +212,17 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh) {
 		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
 	}
 	return ghi;
+}
+void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh) {
+	ghi->gh= gh;
+	ghi->curEntry= NULL;
+	ghi->curBucket= -1;
+	while (!ghi->curEntry) {
+		ghi->curBucket++;
+		if (ghi->curBucket==ghi->gh->nbuckets)
+			break;
+		ghi->curEntry= ghi->gh->buckets[ghi->curBucket];
+	}
 }
 void BLI_ghashIterator_free(GHashIterator *ghi) {
 	free(ghi);
@@ -257,11 +263,7 @@ int BLI_ghashutil_ptrcmp(void *a, void *b) {
 }
 
 unsigned int BLI_ghashutil_inthash(void *ptr) {
-#if defined(_WIN64)
-	unsigned __int64 key = (unsigned __int64)ptr;
-#else
-	unsigned long key = (unsigned long)ptr;
-#endif
+	uintptr_t key = (uintptr_t)ptr;
 
 	key += ~(key << 16);
 	key ^=  (key >>  5);

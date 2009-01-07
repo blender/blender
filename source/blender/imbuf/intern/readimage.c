@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,14 +23,20 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * allocimbuf.c
  *
  * $Id$
  */
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include "mmap_win.h"
+#define open _open
+#define read _read
+#define close _close
 #endif
 
 #include "BLI_blenlib.h"
@@ -59,6 +62,10 @@
 #include "openexr/openexr_api.h"
 #endif
 
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
+#endif
+
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
 #include "quicktime_import.h"
@@ -72,7 +79,7 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined(__hppa__) || defined (__BIG_ENDIAN__)
 #define GET_ID GET_BIG_LONG
 #define LITTLE_LONG SWAP_LONG
 #else
@@ -153,6 +160,11 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_load_openexr((uchar *)mem, size, flags);
 		if (ibuf) return (ibuf);
 #endif
+
+#ifdef WITH_DDS
+		ibuf = imb_load_dds((uchar *)mem, size, flags);
+		if (ibuf) return (ibuf);
+#endif
 		
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
@@ -223,7 +235,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 
 	size = BLI_filesize(file);
 
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	mem= (int *)malloc(size);
 	if (mem==0) {
 		printf("Out of mem\n");
@@ -259,7 +271,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 }
 
 
-struct ImBuf *IMB_loadiffname(char *naam, int flags) {
+struct ImBuf *IMB_loadiffname(const char *naam, int flags) {
 	int file;
 	struct ImBuf *ibuf;
 	int buf[1];

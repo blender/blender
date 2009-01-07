@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -34,6 +31,11 @@
  * $Id$
  * Copyright (C) 2001 NaN Technologies B.V.
  */
+
+
+#include <stdio.h>
+
+
 
 #include <string.h>
 
@@ -107,13 +109,39 @@ int BMF_BitmapFont::GetStringWidth(char* str)
 	return length;
 }
 
-void BMF_BitmapFont::GetBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax)
+void BMF_BitmapFont::GetFontBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax)
 {
 	xMin = m_fontData->xmin;
 	yMin = m_fontData->ymin;
 	xMax = m_fontData->xmax;
 	yMax = m_fontData->ymax;
 }
+
+int BMF_BitmapFont::GetFontHeight( void )
+{
+	return m_fontData->ymax - m_fontData->ymin;
+}
+
+void BMF_BitmapFont::GetStringBoundingBox(char* str, float*llx, float *lly, float *urx, float *ury)
+{
+	unsigned char c;
+	int length = 0;
+	int ascent = 0;
+	int descent = 0;
+
+	while ( (c = (unsigned char) *str++) ) {
+		length += m_fontData->chars[c].advance;
+		int d = m_fontData->chars[c].yorig;
+		int a = m_fontData->chars[c].height - m_fontData->chars[c].yorig;
+		if(a > ascent) ascent = a;
+		if(d > descent) descent = d;
+	}
+	*llx = (float)0;
+	*lly = (float)-descent;
+	*urx = (float)length;
+	*ury = (float)ascent;
+}
+
 
 int BMF_BitmapFont::GetTexture()
 {
@@ -207,4 +235,89 @@ void BMF_BitmapFont::DrawStringTexture(char *str, float x, float y, float z)
 		pos += cd.advance;
 	}
 	glEnd();
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h, int channels)
+{
+	int x, y;
+	
+	if (buf==0 && fbuf==0)
+		return;
+
+	/*offset for font*/
+	posx -= m_fontData->xmin;
+	posy -= m_fontData->ymin;
+	
+	if (buf) {
+		unsigned char colch[4];
+		unsigned char *max, *pixel;
+		unsigned char c;
+		
+		for (x=0; x<4; x++) {
+			colch[x] = FTOCHAR(col[x]);
+		}
+		
+		max = buf + (4 * (w * h));
+		while ((c = (unsigned char) *str++)) {
+			BMF_CharData & cd = m_fontData->chars[c];
+			if (cd.data_offset != -1) { 
+				for (y = 0; y < cd.height; y++) {
+					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*y];
+					for (x = cd.xorig; x < cd.width; x++) {
+						pixel = buf + 4 * (((posy + y - cd.yorig) * w) + (posx + x));
+						if ((pixel < max) && (pixel > buf)) {
+							int byteIdx = x/8;
+							int bitIdx = 7 - (x%8);
+							
+							if (chrRow[byteIdx]&(1<<bitIdx)) {
+								pixel[0] = colch[0];
+								pixel[1] = colch[1];
+								pixel[2] = colch[2];
+								if (channels==4) {
+									pixel[4] = 1; /*colch[3];*/
+								}
+								
+							}
+						}
+					}
+				}
+			}
+			posx += cd.advance;
+		}
+	}
+	
+	if (fbuf) {
+		float *pixel, *max;
+		unsigned char c;
+		int xi, yi;
+		
+		max = fbuf + (4 * (w * h));
+		
+		while ((c = (unsigned char) *str++)) {
+			BMF_CharData & cd = m_fontData->chars[c];
+			if (cd.data_offset != -1) { 
+				for (yi = 0; yi < cd.height; yi++) {
+					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*yi];
+					for (xi = cd.xorig; xi < cd.width; xi++) {
+						pixel = fbuf + 4 * (((posy + yi - cd.yorig) * w) + (posx + xi));
+						if ((pixel < max) && (pixel > fbuf)) {
+							int byteIdx = xi/8;
+							int bitIdx = 7 - (xi%8);
+							
+							if (chrRow[byteIdx]&(1<<bitIdx)) {
+								pixel[0] = col[0];
+								pixel[1] = col[1];
+								pixel[2] = col[2];
+								if (channels==4) {
+									pixel[3] = 1; /*col[3];*/
+								}
+							}
+						}
+					}
+				}
+			}
+			posx += cd.advance;
+		}
+	}
 }

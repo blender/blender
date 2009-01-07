@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Conversion of Blender data blocks to KX sensor system
  */
 
@@ -39,6 +36,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "wm_event_types.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertSensors.h"
 
@@ -67,6 +65,8 @@ probably misplaced */
 #include "KX_MouseFocusSensor.h"
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
+#include "SCA_ActuatorSensor.h"
+#include "SCA_DelaySensor.h"
 
 
 #include "SCA_PropertySensor.h"
@@ -93,6 +93,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					   class KX_GameObject* gameobj,
 					   SCA_LogicManager* logicmgr,
 					   KX_Scene* kxscene,
+					   KX_KetsjiEngine* kxengine,
 					   SCA_IInputDevice* keydev,
 					   int & executePriority,
 					   int activeLayerBitInfo,
@@ -143,7 +144,15 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	gReverseKeyTranslateTable[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
 	gReverseKeyTranslateTable[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
 	gReverseKeyTranslateTable[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 	gReverseKeyTranslateTable[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
 	gReverseKeyTranslateTable[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
 	gReverseKeyTranslateTable[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
 	gReverseKeyTranslateTable[KKEY				] = SCA_IInputDevice::KX_KKEY;                  
@@ -254,6 +263,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	bool neg_pulsemode = false;
 	int frequency = 0;
 	bool invert = false;
+	bool level = false;
 	
 	while(sens)
 	{
@@ -266,7 +276,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		
 		frequency = sens->freq;
 		invert    = !(sens->invert == 0);
-		
+		level     = !(sens->level == 0);
+
 		switch (sens->type)
 		{
 		case  SENS_ALWAYS:
@@ -281,6 +292,22 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				break;
 			}
 			
+		case  SENS_DELAY:
+			{
+				// we can reuse the Always event manager for the delay sensor
+				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::ALWAYS_EVENTMGR);
+				if (eventmgr)
+				{
+					bDelaySensor* delaysensor = (bDelaySensor*)sens->data;
+					gamesensor = new SCA_DelaySensor(eventmgr, 
+						gameobj,
+						delaysensor->delay,
+						delaysensor->duration,
+						(delaysensor->flag & SENS_DELAY_REPEAT) != 0);
+				}
+				break;
+			}
+
 		case SENS_COLLISION:
 			{
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
@@ -386,8 +413,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					bool bFindMaterial = false;
 					PHY_IPhysicsController* physCtrl = kxscene->GetPhysicsEnvironment()->CreateSphereController(radius,pos);
 
-					if (isInActiveLayer)
-						kxscene->GetPhysicsEnvironment()->addSensor(physCtrl);
+					//will be done in KX_TouchEventManager::RegisterSensor()  
+					//if (isInActiveLayer)
+					//	kxscene->GetPhysicsEnvironment()->addSensor(physCtrl);
 
 						
 
@@ -414,8 +442,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				{
 					gamesensor = new SCA_KeyboardSensor(eventmgr,
 						gReverseKeyTranslateTable[blenderkeybdsensor->key],
-						blenderkeybdsensor->qual,
-						blenderkeybdsensor->qual2,
+						gReverseKeyTranslateTable[blenderkeybdsensor->qual],
+						gReverseKeyTranslateTable[blenderkeybdsensor->qual2],
 						(blenderkeybdsensor->type == SENS_ALL_KEYS),
 						blenderkeybdsensor->targetName,
 						blenderkeybdsensor->toggleName,
@@ -490,6 +518,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							trackfocus,
 							canvas,
 							kxscene,
+							kxengine,
 							gameobj); 
 					}
 				} else {
@@ -536,6 +565,19 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					gamesensor = new SCA_PropertySensor(eventmgr,gameobj,propname,propval,propmaxval,propchecktype);
 				}
 				
+				break;
+			}
+		case SENS_ACTUATOR:
+			{
+				bActuatorSensor* blenderactsensor = (bActuatorSensor*) sens->data;
+				// we will reuse the property event manager, there is nothing special with this sensor
+				SCA_EventManager* eventmgr 
+					= logicmgr->FindEventManager(SCA_EventManager::ACTUATOR_EVENTMGR);
+				if (eventmgr)
+				{
+					STR_String propname=blenderactsensor->name;
+					gamesensor = new SCA_ActuatorSensor(eventmgr,gameobj,propname);
+				}
 				break;
 			}
 			
@@ -602,6 +644,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				if (eventmgr)
 				{
 					bool bFindMaterial = (blenderraysensor->mode & SENS_COLLISION_MATERIAL);
+					bool bXRay = (blenderraysensor->mode & SENS_RAY_XRAY);
 					
 					STR_String checkname = (bFindMaterial? blenderraysensor->matname : blenderraysensor->propname);
 
@@ -614,6 +657,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 												  gameobj,
 												  checkname,
 												  bFindMaterial,
+												  bXRay,
 												  distance,
 												  axis,
 												  kxscene);
@@ -650,7 +694,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					int axis	=0;
 					int axisf	=0;
 					int button	=0;
-					int buttonf =0; 
 					int hat		=0; 
 					int hatf	=0;
 					int prec	=0;
@@ -665,7 +708,6 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						break;
 					case SENS_JOY_BUTTON:
 						button	= bjoy->button;
-						buttonf	= bjoy->buttonf;
 						joysticktype  = SCA_JoystickSensor::KX_JOYSENSORMODE_BUTTON;
 						break;
 					case SENS_JOY_HAT:
@@ -680,11 +722,13 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					gamesensor = new SCA_JoystickSensor(
 						eventmgr,
 						gameobj,
+						bjoy->joyindex,
 						joysticktype,
 						axis,axisf,
 						prec,
-						button,buttonf,
-						hat,hatf);
+						button,
+						hat,hatf,
+						(bjoy->flag & SENS_JOY_ANY_EVENT));
 				} 
 				else
 				{
@@ -713,25 +757,49 @@ void BL_ConvertSensors(struct Object* blenderobject,
 									 neg_pulsemode, 
 									 frequency);
 			gamesensor->SetInvert(invert);
+			gamesensor->SetLevel(level);
 			gamesensor->SetName(STR_String(sens->name));			
 			
 			gameobj->AddSensor(gamesensor);
 			
 			// only register to manager if it's in an active layer
-			
-			if (isInActiveLayer)
-				gamesensor->RegisterToManager();
+			// Make registration dynamic: only when sensor is activated
+			//if (isInActiveLayer)
+			//	gamesensor->RegisterToManager();
 			
 			
 			for (int i=0;i<sens->totlinks;i++)
 			{
 				bController* linkedcont = (bController*) sens->links[i];
-				SCA_IController* gamecont = converter->FindGameController(linkedcont);
+				if (linkedcont) {
+					SCA_IController* gamecont = converter->FindGameController(linkedcont);
 
-				if (gamecont) {
-					logicmgr->RegisterToSensor(gamecont,gamesensor);
+					if (gamecont) {
+						logicmgr->RegisterToSensor(gamecont,gamesensor);
+					} else {
+						printf(
+							"Warning, sensor \"%s\" could not find its controller "
+							"(link %d of %d) from object \"%s\"\n"
+							"\tthere has been an error converting the blender controller for the game engine,"
+							"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
+					}
+				} else {
+					printf(
+						"Warning, sensor \"%s\" has lost a link to a controller "
+						"(link %d of %d) from object \"%s\"\n"
+						"\tpossible causes are partially appended objects or an error reading the file,"
+						"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 				}
 			}
+			// special case: Keyboard sensor with no link
+			// this combination is usually used for key logging. 
+			if (sens->type == SENS_KEYBOARD && sens->totlinks == 0) {
+				// Force the registration so that the sensor runs
+				gamesensor->IncLink();
+			}
+				
+			// done with gamesensor
+			gamesensor->Release();
 			
 		}
 		sens=sens->next;

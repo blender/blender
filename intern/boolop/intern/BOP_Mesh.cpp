@@ -2,15 +2,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "BOP_Mesh.h"
@@ -452,6 +449,13 @@ bool BOP_Mesh::getIndexEdge(BOP_Index v1, BOP_Index v2, BOP_Index &e)
 			printf ("found edge (%d %d)\n",v1,v2);
 #endif
 		  	e = edge->index;
+#ifdef BOP_NEW_MERGE
+			if( m_edges[e]->getUsed() == false ) {
+				m_edges[e]->setUsed(true);
+				m_vertexs[v1]->addEdge(e);
+				m_vertexs[v2]->addEdge(e);
+			}
+#endif
 			return true;
 		}
 #ifdef HASH_PRINTF_DEBUG
@@ -681,6 +685,23 @@ unsigned int BOP_Mesh::getNumFaces(BOP_TAG tag)
 }
 
 /**
+ * Marks faces which bad edges as BROKEN (invalid face, no further processing).
+ * @param edge edge which is being replaced
+ * @param mesh mesh containing faces
+ */
+
+static void removeBrokenFaces( BOP_Edge *edge, BOP_Mesh *mesh )
+{
+	BOP_Faces m_faces = mesh->getFaces();
+
+	BOP_Indexs edgeFaces = edge->getFaces();
+	const BOP_IT_Indexs edgeFacesEnd = edgeFaces.end();
+	for(BOP_IT_Indexs idxFace=edgeFaces.begin();idxFace!=edgeFacesEnd;
+			   idxFace++)
+		m_faces[*idxFace]->setTAG(BROKEN);
+}
+
+/**
  * Replaces a vertex index.
  * @param oldIndex old vertex index
  * @param newIndex new vertex index
@@ -695,9 +716,6 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 	BOP_Vertex *newVertex = m_vertexs[newIndex];
 	BOP_Indexs oldEdges = oldVertex->getEdges();
 
-	BOP_Index edgeIdx=0;
-	bool found = false;
-
 	// Update faces to the newIndex
 	BOP_IT_Indexs oldEdgesEnd = oldEdges.end();
 	for(oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
@@ -706,14 +724,9 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 		if ((edge->getVertex1()==oldIndex && edge->getVertex2()==newIndex) ||
 			(edge->getVertex2()==oldIndex && edge->getVertex1()==newIndex)) {
 			// Remove old edge  ==> set edge faces to BROKEN      
-			BOP_Indexs edgeFaces = edge->getFaces();
-			const BOP_IT_Indexs edgeFacesEnd = edgeFaces.end();
-			for(BOP_IT_Indexs idxFace=edgeFaces.begin();idxFace!=edgeFacesEnd;
-				   idxFace++) {
-				m_faces[*idxFace]->setTAG(BROKEN);
-			}
-			edgeIdx = *oldEdgeIndex;
-			found = true;
+			removeBrokenFaces( edge, this );
+			oldVertex->removeEdge(*oldEdgeIndex);
+			newVertex->removeEdge(*oldEdgeIndex);
 		}
 		else {
 			BOP_Indexs faces = edge->getFaces();
@@ -724,10 +737,6 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 			}
 		}
 	} 
-	if (found) {
-		oldVertex->removeEdge(edgeIdx);
-		newVertex->removeEdge(edgeIdx);
-	}
 
 	oldEdgesEnd = oldEdges.end();
 	for(oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
@@ -739,6 +748,10 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 		v1 = (v1==oldIndex?edge->getVertex2():v1);      
 		if ((edge2 = getEdge(newIndex,v1)) == NULL) {
 			edge->replaceVertexIndex(oldIndex,newIndex);
+			if ( edge->getVertex1() == edge->getVertex2() ) {
+				removeBrokenFaces( edge, this );
+				oldVertex->removeEdge(*oldEdgeIndex);
+			}
 #ifdef HASH
 			rehashVertex(oldIndex,newIndex,v1);
 #endif
@@ -754,6 +767,11 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 			BOP_Vertex *oppositeVertex = m_vertexs[v1];
 			oppositeVertex->removeEdge(*oldEdgeIndex);
 			edge->replaceVertexIndex(oldIndex,newIndex);
+			if ( edge->getVertex1() == edge->getVertex2() ) {
+				removeBrokenFaces( edge, this );
+				oldVertex->removeEdge(*oldEdgeIndex);
+				newVertex->removeEdge(*oldEdgeIndex);
+			}
 #ifdef HASH
 			rehashVertex(oldIndex,newIndex,v1);
 #endif
@@ -783,7 +801,8 @@ bool BOP_Mesh::isClosedMesh()
 }
 
 
-/** ***************************************************************************
+#ifdef BOP_DEBUG
+/******************************************************************************
  * DEBUG METHODS                                                              * 
  * This functions are used to test the mesh state and debug program errors.   *
  ******************************************************************************/
@@ -1063,3 +1082,5 @@ void BOP_Mesh::updatePlanes()
 	  face->setPlane(plane);
 	}
 }
+
+#endif

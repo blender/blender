@@ -2,15 +2,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_MODIFIER_H
 #define BKE_MODIFIER_H
@@ -41,6 +38,7 @@ struct DerivedMesh;
 struct DagForest;
 struct DagNode;
 struct Object;
+struct Scene;
 struct ListBase;
 struct LinkNode;
 struct bArmature;
@@ -59,6 +57,12 @@ typedef enum {
 
 	eModifierTypeType_Constructive,
 	eModifierTypeType_Nonconstructive,
+
+	/* both deformVerts & applyModifier are valid calls
+	 * used for particles modifier that doesn't actually modify the object
+	 * unless it's a mesh and can be exploded -> curve can also emit particles
+	 */
+	eModifierTypeType_DeformOrConstruct
 } ModifierTypeType;
 
 typedef enum {
@@ -79,10 +83,14 @@ typedef enum {
 	 * be placed after any non-deformative modifier.
 	 */
 	eModifierTypeFlag_RequiresOriginalData = (1<<5),
+
+	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
+	*/
+	eModifierTypeFlag_UsesPointCache = (1<<6),
 } ModifierTypeFlag;
 
-typedef void (*ObjectWalkFunc)(void *userData, Object *ob, Object **obpoin);
-typedef void (*IDWalkFunc)(void *userData, Object *ob, ID **idpoin);
+typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
+typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
 
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
@@ -125,6 +133,11 @@ typedef struct ModifierTypeInfo {
 	            struct EditMesh *editData, struct DerivedMesh *derivedData,
 	            float (*vertexCos)[3], int numVerts);
 
+	/* Set deform matrix per vertex for crazyspace correction */
+	void (*deformMatricesEM)(
+	            struct ModifierData *md, struct Object *ob,
+	            struct EditMesh *editData, struct DerivedMesh *derivedData,
+	            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
 
@@ -214,7 +227,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
+	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
 	                       struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time
@@ -257,6 +270,7 @@ void          modifier_copyData(struct ModifierData *md, struct ModifierData *ta
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
+int           modifier_isDeformer(struct ModifierData *md);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -271,10 +285,16 @@ int           modifiers_getCageIndex(struct Object *ob,
                                      int *lastPossibleCageIndex_r);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
+int           modifiers_isClothEnabled(struct Object *ob);
+int           modifiers_isParticleEnabled(struct Object *ob);
+
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-int           modifiers_isDeformed(struct Object *ob);
+int           modifiers_isDeformed(struct Scene *scene, struct Object *ob);
+void          modifier_freeTemporaryData(struct ModifierData *md);
+
+int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 
 /* Calculates and returns a linked list of CustomDataMasks indicating the
  * data required by each modifier in the stack pointed to by md for correct

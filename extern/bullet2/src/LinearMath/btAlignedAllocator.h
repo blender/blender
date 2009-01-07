@@ -21,26 +21,52 @@ subject to the following restrictions:
 ///that is better portable and more predictable
 
 #include "btScalar.h"
+//#define BT_DEBUG_MEMORY_ALLOCATIONS 1
+#ifdef BT_DEBUG_MEMORY_ALLOCATIONS
 
-void*	btAlignedAlloc	(int size, int alignment);
+#define btAlignedAlloc(a,b) \
+		btAlignedAllocInternal(a,b,__LINE__,__FILE__)
 
-void	btAlignedFree	(void* ptr);
+#define btAlignedFree(ptr) \
+		btAlignedFreeInternal(ptr,__LINE__,__FILE__)
 
+void*	btAlignedAllocInternal	(size_t size, int alignment,int line,char* filename);
 
+void	btAlignedFreeInternal	(void* ptr,int line,char* filename);
+
+#else
+	void*	btAlignedAllocInternal	(size_t size, int alignment);
+	void	btAlignedFreeInternal	(void* ptr);
+
+	#define btAlignedAlloc(a,b) btAlignedAllocInternal(a,b)
+	#define btAlignedFree(ptr) btAlignedFreeInternal(ptr)
+
+#endif
 typedef int	size_type;
 
+typedef void *(btAlignedAllocFunc)(size_t size, int alignment);
+typedef void (btAlignedFreeFunc)(void *memblock);
+typedef void *(btAllocFunc)(size_t size);
+typedef void (btFreeFunc)(void *memblock);
 
+void btAlignedAllocSetCustomAligned(btAlignedAllocFunc *allocFunc, btAlignedFreeFunc *freeFunc);
+void btAlignedAllocSetCustom(btAllocFunc *allocFunc, btFreeFunc *freeFunc);
+
+///The btAlignedAllocator is a portable class for aligned memory allocations.
+///Default implementations for unaligned and aligned allocations can be overridden by a custom allocator using btAlignedAllocSetCustom and btAlignedAllocSetCustomAligned.
 template < typename T , unsigned Alignment >
 class btAlignedAllocator {
 	
 	typedef btAlignedAllocator< T , Alignment > self_type;
 	
 public:
+
 	//just going down a list:
 	btAlignedAllocator() {}
-	
+	/*
 	btAlignedAllocator( const self_type & ) {}
-	
+	*/
+
 	template < typename Other >
 	btAlignedAllocator( const btAlignedAllocator< Other , Alignment > & ) {}
 
@@ -53,6 +79,7 @@ public:
 	pointer       address   ( reference        ref ) const                           { return &ref; }
 	const_pointer address   ( const_reference  ref ) const                           { return &ref; }
 	pointer       allocate  ( size_type        n   , const_pointer *      hint = 0 ) {
+		(void)hint;
 		return reinterpret_cast< pointer >(btAlignedAlloc( sizeof(value_type) * n , Alignment ));
 	}
 	void          construct ( pointer          ptr , const value_type &   value    ) { new (ptr) value_type( value ); }

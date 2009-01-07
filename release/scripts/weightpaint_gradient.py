@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Weight Gradient...'
-Blender: 241
+Blender: 245
 Group: 'WeightPaint'
 Tooltip: 'Click on the start and end grad points for the mesh for selected faces.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__=\
 '''
@@ -19,6 +19,24 @@ The color under the mouse will be used for the start and end blend colors.
 Note:
 Holding Shift or clicking outside the mesh on the second click will blend the first colour to nothing.	
 '''
+
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
 
 import mesh_gradient
 import Blender

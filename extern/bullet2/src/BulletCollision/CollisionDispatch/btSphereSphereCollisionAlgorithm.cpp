@@ -41,38 +41,65 @@ btSphereSphereCollisionAlgorithm::~btSphereSphereCollisionAlgorithm()
 
 void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
+	(void)dispatchInfo;
+
 	if (!m_manifoldPtr)
 		return;
+
+	resultOut->setPersistentManifold(m_manifoldPtr);
 
 	btSphereShape* sphere0 = (btSphereShape*)col0->getCollisionShape();
 	btSphereShape* sphere1 = (btSphereShape*)col1->getCollisionShape();
 
 	btVector3 diff = col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
-	float len = diff.length();
+	btScalar len = diff.length();
 	btScalar radius0 = sphere0->getRadius();
 	btScalar radius1 = sphere1->getRadius();
 
+#ifdef CLEAR_MANIFOLD
+	m_manifoldPtr->clearManifold(); //don't do this, it disables warmstarting
+#endif
+
 	///iff distance positive, don't generate a new contact
 	if ( len > (radius0+radius1))
+	{
+#ifndef CLEAR_MANIFOLD
+		resultOut->refreshContactPoints();
+#endif //CLEAR_MANIFOLD
 		return;
-
+	}
 	///distance (negative means penetration)
 	btScalar dist = len - (radius0+radius1);
 
-	btVector3 normalOnSurfaceB = diff / len;
+	btVector3 normalOnSurfaceB(1,0,0);
+	if (len > SIMD_EPSILON)
+	{
+		normalOnSurfaceB = diff / len;
+	}
+
 	///point on A (worldspace)
 	btVector3 pos0 = col0->getWorldTransform().getOrigin() - radius0 * normalOnSurfaceB;
 	///point on B (worldspace)
 	btVector3 pos1 = col1->getWorldTransform().getOrigin() + radius1* normalOnSurfaceB;
 
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
-	resultOut->setPersistentManifold(m_manifoldPtr);
+	
+	
 	resultOut->addContactPoint(normalOnSurfaceB,pos1,dist);
+
+#ifndef CLEAR_MANIFOLD
+	resultOut->refreshContactPoints();
+#endif //CLEAR_MANIFOLD
 
 }
 
-float btSphereSphereCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+btScalar btSphereSphereCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
+	(void)col0;
+	(void)col1;
+	(void)dispatchInfo;
+	(void)resultOut;
+
 	//not yet
-	return 1.f;
+	return btScalar(1.);
 }

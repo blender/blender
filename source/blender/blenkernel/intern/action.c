@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -65,8 +62,9 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
-#include "nla.h"
+//XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -82,6 +80,17 @@
   ****************************** (ton) ************************************ */
 
 /* ***************** Library data level operations on action ************** */
+
+bAction *add_empty_action(const char name[])
+{
+	bAction *act;
+	
+	act= alloc_libblock(&G.main->action, ID_AC, name);
+	act->id.flag |= LIB_FAKEUSER;
+	act->id.us++;
+	
+	return act;
+}	
 
 static void make_local_action_channels(bAction *act)
 {
@@ -112,7 +121,6 @@ static void make_local_action_channels(bAction *act)
 			}
 		}
 	}
-					
 }
 
 void make_local_action(bAction *act)
@@ -165,37 +173,64 @@ void make_local_action(bAction *act)
 }
 
 
-void free_action(bAction *act)
+void free_action (bAction *act)
 {
 	bActionChannel *chan;
 	
 	/* Free channels */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		if (chan->ipo)
 			chan->ipo->id.us--;
 		free_constraint_channels(&chan->constraintChannels);
 	}
 	
 	if (act->chanbase.first)
-		BLI_freelistN (&act->chanbase);
+		BLI_freelistN(&act->chanbase);
+		
+	/* Free groups */
+	if (act->groups.first)
+		BLI_freelistN(&act->groups);
+		
+	/* Free pose-references (aka local markers) */
+	if (act->markers.first)
+		BLI_freelistN(&act->markers);
 }
 
-bAction* copy_action(bAction *src)
+bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
+	bActionGroup *dgrp, *sgrp;
 	
-	if(!src) return NULL;
+	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
-	duplicatelist(&(dst->chanbase), &(src->chanbase));
 	
-	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
+	BLI_duplicatelist(&(dst->chanbase), &(src->chanbase));
+	BLI_duplicatelist(&(dst->groups), &(src->groups));
+	BLI_duplicatelist(&(dst->markers), &(src->markers));
+	
+	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next) {
+		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+			if (dchan->grp == sgrp) {
+				dchan->grp= dgrp;
+				
+				if (dgrp->channels.first == schan)
+					dgrp->channels.first= dchan;
+				if (dgrp->channels.last == schan)
+					dgrp->channels.last= dchan;
+					
+				break;
+			}
+		}
+		
 		dchan->ipo = copy_ipo(dchan->ipo);
 		copy_constraint_channels(&dchan->constraintChannels, &schan->constraintChannels);
 	}
+	
 	dst->id.flag |= LIB_FAKEUSER;
 	dst->id.us++;
+	
 	return dst;
 }
 
@@ -225,12 +260,12 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 {
 	bPoseChannel *chan;
 	
-	if (!pose){
+	if (!pose) {
 		return NULL;
 	}
 	
 	/*      See if this channel exists */
-	for (chan=pose->chanbase.first; chan; chan=chan->next){
+	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		if (!strcmp (name, chan->name))
 			return chan;
 	}
@@ -239,7 +274,7 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
 	strncpy (chan->name, name, 31);
-	/* init vars to prevent mat errors */
+	/* init vars to prevent math errors */
 	chan->quat[0] = 1.0F;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
 	
@@ -247,9 +282,29 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
 	chan->stiffness[0]= chan->stiffness[1]= chan->stiffness[2]= 0.0f;
 	
+	Mat4One(chan->constinv);
+	
 	BLI_addtail (&pose->chanbase, chan);
 	
 	return chan;
+}
+
+/* Find the active posechannel for an object (we can't just use pose, as layer info is in armature) */
+bPoseChannel *get_active_posechannel (Object *ob)
+{
+	bArmature *arm= (ob) ? ob->data : NULL;
+	bPoseChannel *pchan;
+	
+	if ELEM3(NULL, ob, ob->pose, arm)
+		return NULL;
+	
+	/* find active */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
+			return pchan;
+	}
+	
+	return NULL;
 }
 
 
@@ -265,9 +320,15 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 		return;
 	}
 	
+	if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
-	duplicatelist (&outPose->chanbase, &src->chanbase);
+	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
 	
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
@@ -284,13 +345,82 @@ void free_pose_channels(bPose *pose)
 {
 	bPoseChannel *pchan;
 	
-	if (pose->chanbase.first){
+	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
-			if(pchan->path)
+			if (pchan->path)
 				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 		}
-		BLI_freelistN (&pose->chanbase);
+		BLI_freelistN(&pose->chanbase);
+	}
+}
+
+void free_pose(bPose *pose)
+{
+	if (pose) {
+		/* free pose-channels */
+		free_pose_channels(pose);
+		
+		/* free pose-groups */
+		if (pose->agroups.first)
+			BLI_freelistN(&pose->agroups);
+		
+		/* free pose */
+		MEM_freeN(pose);
+	}
+}
+
+void game_copy_pose(bPose **dst, bPose *src)
+{
+	bPose *out;
+	bPoseChannel *pchan, *outpchan;
+	GHash *ghash;
+	
+	/* the game engine copies the current armature pose and then swaps
+	 * the object pose pointer. this makes it possible to change poses
+	 * without affecting the original blender data. */
+
+	if (!src) {
+		*dst=NULL;
+		return;
+	}
+	else if (*dst==src) {
+		printf("copy_pose source and target are the same\n");
+		*dst=NULL;
+		return;
+	}
+	
+	out= MEM_dupallocN(src);
+	out->agroups.first= out->agroups.last= NULL;
+	BLI_duplicatelist(&out->chanbase, &src->chanbase);
+
+	/* remap pointers */
+	ghash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+	pchan= src->chanbase.first;
+	outpchan= out->chanbase.first;
+	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
+		BLI_ghash_insert(ghash, pchan, outpchan);
+
+	for (pchan=out->chanbase.first; pchan; pchan=pchan->next) {
+		pchan->parent= BLI_ghash_lookup(ghash, pchan->parent);
+		pchan->child= BLI_ghash_lookup(ghash, pchan->child);
+		pchan->path= NULL;
+	}
+
+	BLI_ghash_free(ghash, NULL, NULL);
+	
+	*dst=out;
+}
+
+void game_free_pose(bPose *pose)
+{
+	if (pose) {
+		/* we don't free constraints, those are owned by the original pose */
+		if(pose->chanbase.first)
+			BLI_freelistN(&pose->chanbase);
+		
+		MEM_freeN(pose);
 	}
 }
 
@@ -300,15 +430,23 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	
 	VECCOPY(pchan->loc, chan->loc);
 	VECCOPY(pchan->size, chan->size);
+	VECCOPY(pchan->eul, chan->eul);
 	QUATCOPY(pchan->quat, chan->quat);
+	pchan->rotmode= chan->rotmode;
+	Mat4CpyMat4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
+	Mat4CpyMat4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next)
+	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next, con= con->next) {
 		pcon->enforce= con->enforce;
+		pcon->headtail= con->headtail;
+	}
 }
 
-/* checks for IK constraint, can do more constraints flags later */
+/* checks for IK constraint, and also for Follow-Path constraint.
+ * can do more constraints flags later 
+ */
 /* pose should be entirely OK */
 void update_pose_constraint_flags(bPose *pose)
 {
@@ -316,13 +454,15 @@ void update_pose_constraint_flags(bPose *pose)
 	bConstraint *con;
 	
 	/* clear */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		pchan->constflag= 0;
 	}
+	pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
+	
 	/* detect */
-	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
-		for(con= pchan->constraints.first; con; con= con->next) {
-			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		for (con= pchan->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 				
 				pchan->constflag |= PCHAN_HAS_IK;
@@ -345,11 +485,46 @@ void update_pose_constraint_flags(bPose *pose)
 					}
 				}
 			}
-			else pchan->constflag |= PCHAN_HAS_CONST;
+			else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
+				bFollowPathConstraint *data= (bFollowPathConstraint *)con->data;
+				
+				/* for drawing constraint colors when color set allows this */
+				pchan->constflag |= PCHAN_HAS_CONST;
+				
+				/* if we have a valid target, make sure that this will get updated on frame-change
+				 * (needed for when there is no anim-data for this pose)
+				 */
+				if ((data->tar) && (data->tar->type==OB_CURVE))
+					pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
+			}
+			else 
+				pchan->constflag |= PCHAN_HAS_CONST;
 		}
 	}
 }
 
+/* Clears all BONE_UNKEYED flags for every pose channel in every pose 
+ * This should only be called on frame changing, when it is acceptable to
+ * do this. Otherwise, these flags should not get cleared as poses may get lost.
+ */
+void framechange_poses_clear_unkeyed(void)
+{
+	Object *ob;
+	bPose *pose;
+	bPoseChannel *pchan;
+	
+	/* This needs to be done for each object that has a pose */
+	// TODO: proxies may/may not be correctly handled here... (this needs checking) 
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* we only need to do this on objects with a pose */
+		if ( (pose= ob->pose) ) {
+			for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+				if (pchan->bone) 
+					pchan->bone->flag &= ~BONE_UNKEYED;
+			}
+		}
+	}
+}
 
 /* ************************ END Pose channels *************** */
 
@@ -363,7 +538,7 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	if (!act || !name)
 		return NULL;
 	
-	for (chan = act->chanbase.first; chan; chan=chan->next){
+	for (chan = act->chanbase.first; chan; chan=chan->next) {
 		if (!strcmp (chan->name, name))
 			return chan;
 	}
@@ -371,18 +546,16 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 	return NULL;
 }
 
-/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that*/
+/* returns existing channel, or adds new one. In latter case it doesnt activate it, context is required for that */
 bActionChannel *verify_action_channel(bAction *act, const char *name)
 {
 	bActionChannel *chan;
 	
 	chan= get_action_channel(act, name);
-	if(chan==NULL) {
-		if (!chan) {
-			chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-			strncpy (chan->name, name, 31);
-			BLI_addtail (&act->chanbase, chan);
-		}
+	if (chan == NULL) {
+		chan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
+		strncpy(chan->name, name, 31);
+		BLI_addtail(&act->chanbase, chan);
 	}
 	return chan;
 }
@@ -408,21 +581,20 @@ static bActionStrip *get_active_strip(Object *ob)
 /* non clipped mapping of strip */
 static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
 {
-	float length, actlength, repeat;
+	float length, actlength, repeat, scale;
 	
-	if (strip->flag & ACTSTRIP_USESTRIDE)
-		repeat= 1.0f;
-	else
-		repeat= strip->repeat;
+	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
+	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
 	
-	length = strip->end-strip->start;
-	if(length==0.0f)
-		length= 1.0f;
+	if (strip->scale == 0.0f) strip->scale= 1.0f;
+	scale = fabs(strip->scale); /* scale must be positive (for now) */
+	
 	actlength = strip->actend-strip->actstart;
+	if (actlength == 0.0f) actlength = 1.0f;
+	length = repeat * scale * actlength;
 	
-	
-	
-	if(invert)
+	/* invert = convert action-strip time to global time */
+	if (invert)
 		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
 	else
 		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
@@ -456,10 +628,10 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 	float dstweight;
 	
 	switch (mode){
-		case POSE_BLEND:
+		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
-		case POSE_ADD:
+		case ACTSTRIPMODE_ADD:
 			dstweight = 1.0F;
 			break;
 		default :
@@ -556,15 +728,14 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
 	bConstraint *dcon, *scon;
-	float	dquat[4], squat[4];
 	float dstweight;
 	int i;
 	
 	switch (mode){
-	case POSE_BLEND:
+	case ACTSTRIPMODE_BLEND:
 		dstweight = 1.0F - srcweight;
 		break;
-	case POSE_ADD:
+	case ACTSTRIPMODE_ADD:
 		dstweight = 1.0F;
 		break;
 	default :
@@ -578,21 +749,34 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 			
 			/* Do the transformation blend */
 			if (schan->flag & POSE_ROT) {
-				QUATCOPY(dquat, dchan->quat);
-				QUATCOPY(squat, schan->quat);
-				if(mode==POSE_BLEND)
-					QuatInterpol(dchan->quat, dquat, squat, srcweight);
-				else
-					QuatAdd(dchan->quat, dquat, squat, srcweight);
-				
-				NormalQuat (dchan->quat);
+				/* quat interpolation done separate */
+				if (schan->rotmode == PCHAN_ROT_QUAT) {
+					float dquat[4], squat[4];
+					
+					QUATCOPY(dquat, dchan->quat);
+					QUATCOPY(squat, schan->quat);
+					if (mode==ACTSTRIPMODE_BLEND)
+						QuatInterpol(dchan->quat, dquat, squat, srcweight);
+					else {
+						QuatMulFac(squat, srcweight);
+						QuatMul(dchan->quat, dquat, squat);
+					}
+					
+					NormalQuat(dchan->quat);
+				}
 			}
 
-			for (i=0; i<3; i++){
+			for (i=0; i<3; i++) {
+				/* blending for loc and scale are pretty self-explanatory... */
 				if (schan->flag & POSE_LOC)
 					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
 				if (schan->flag & POSE_SIZE)
 					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
+				
+				/* euler-rotation interpolation done here instead... */
+				// FIXME: are these results decent?
+				if ((schan->flag & POSE_ROT) && (schan->rotmode))
+					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
 			}
 			dchan->flag |= schan->flag;
 		}
@@ -606,33 +790,33 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 	dst->ctime= src->ctime;
 }
 
-
+/* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
 {
-	const bActionChannel *chan;
-	const bConstraintChannel *conchan;
-	const IpoCurve	*icu;
-	float min=999999999.0f, max=-999999999.0;
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+	IpoCurve *icu;
+	float min=999999999.0f, max=-999999999.0f;
 	int	foundvert=0;
 
-	if(act) {
+	if (act) {
 		for (chan=act->chanbase.first; chan; chan=chan->next) {
-			if(incl_hidden || (chan->flag & ACHAN_HIDDEN)==0) {
-				if(chan->ipo) {
+			if ((incl_hidden) || (chan->flag & ACHAN_HIDDEN)==0) {
+				if (chan->ipo) {
 					for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-						if(icu->totvert) {
-							min= MIN2 (min, icu->bezt[0].vec[1][0]);
-							max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
+						if (icu->totvert) {
+							min= MIN2(min, icu->bezt[0].vec[1][0]);
+							max= MAX2(max, icu->bezt[icu->totvert-1].vec[1][0]);
 							foundvert=1;
 						}
 					}
 				}
 				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-					if(conchan->ipo) {
+					if (conchan->ipo) {
 						for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
-							if(icu->totvert) {
-								min= MIN2 (min, icu->bezt[0].vec[1][0]);
-								max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
+							if (icu->totvert) {
+								min= MIN2(min, icu->bezt[0].vec[1][0]);
+								max= MAX2(max, icu->bezt[icu->totvert-1].vec[1][0]);
 								foundvert=1;
 							}
 						}
@@ -660,6 +844,11 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 	const bPoseChannel *schan;
 	bPoseChannel *pchan= pose->chanbase.first;
 
+	if (pose==src) {
+		printf("extract_pose_from_pose source and target are the same\n");
+		return;
+	}
+
 	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
@@ -679,9 +868,15 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 	
 	/* Copy the data from the action into the pose */
 	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		/* skip this pose channel if it has been tagged as having unkeyed poses */
+		if ((pchan->bone) && (pchan->bone->flag & BONE_UNKEYED)) 
+			continue;
+		
+		/* get action channel and clear pchan-transform flags */
 		achan= get_action_channel(act, pchan->name);
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
-		if(achan) {
+		
+		if (achan) {
 			ipo = achan->ipo;
 			if (ipo) {
 				/* Evaluates and sets the internal ipo value */
@@ -689,7 +884,8 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 				/* This call also sets the pchan flags */
 				execute_action_ipo(achan, pchan);
 			}
-			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
+			/* 0 = do all ipos, not only drivers */
+			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime, 0);
 		}
 	}
 	
@@ -712,6 +908,7 @@ void rest_pose(bPose *pose)
 		for (i=0; i<3; i++) {
 			pchan->loc[i]= 0.0f;
 			pchan->quat[i+1]= 0.0f;
+			pchan->eul[i]= 0.0f;
 			pchan->size[i]= 1.0f;
 		}
 		pchan->quat[0]= 1.0f;
@@ -729,6 +926,12 @@ void copy_pose_result(bPose *to, bPose *from)
 		printf("pose result copy error\n"); // debug temp
 		return;
 	}
+
+	if (to==from) {
+		printf("copy_pose_result source and target are the same\n");
+		return;
+	}
+
 
 	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
 		pchanto= get_pose_channel(to, pchanfrom->name);
@@ -756,7 +959,7 @@ typedef struct NlaIpoChannel {
 	int type;
 } NlaIpoChannel;
 
-static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, char *name, float ctime)
+void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, const char *name, float ctime)
 {
 	bActionChannel *achan= get_action_channel(act, name);
 	IpoCurve *icu;
@@ -789,7 +992,7 @@ static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, 
 			
 			if(conchan && conchan->ipo) {
 				calc_ipo(conchan->ipo, ctime);
-
+				
 				icu= conchan->ipo->curve.first;	// only one ipo now
 				if(icu) {
 					nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel constr");
@@ -823,10 +1026,10 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	float dstweight;
 	
 	switch (mode){
-		case POSE_BLEND:
+		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
-		case POSE_ADD:
+		case ACTSTRIPMODE_ADD:
 			dstweight = 1.0F;
 			break;
 		default :
@@ -849,22 +1052,25 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	}
 }
 
-static void execute_ipochannels(ListBase *lb)
+int execute_ipochannels(ListBase *lb)
 {
 	NlaIpoChannel *nic;
+	int count = 0;
 	
 	for(nic= lb->first; nic; nic= nic->next) {
 		if(nic->poin) {
 			write_ipo_poin(nic->poin, nic->type, nic->val);
+			count++;
 		}
 	}
+	return count;
 }
 
 /* nla timing */
 
 /* this now only used for repeating cycles, to enable fields and blur. */
 /* the whole time control in blender needs serious thinking... */
-static float nla_time(float cfra, float unit)
+static float nla_time(Scene *scene, float cfra, float unit)
 {
 	extern float bluroffs;	// bad construct, borrowed from object.c for now
 	extern float fieldoffs;
@@ -873,12 +1079,8 @@ static float nla_time(float cfra, float unit)
 	cfra+= unit*(bluroffs+fieldoffs);
 	
 	/* global time */
-	cfra*= G.scene->r.framelen;	
-
-
-	/* decide later... */
-//	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-
+	cfra*= scene->r.framelen;	
+	
 	return cfra;
 }
 
@@ -888,7 +1090,7 @@ static float nla_time(float cfra, float unit)
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
 	bAction *act= strip->act;
-	char *name= strip->stridechannel;
+	const char *name= strip->stridechannel;
 	bActionChannel *achan= get_action_channel(act, name);
 	int stride_axis= strip->stride_axis;
 
@@ -1031,7 +1233,48 @@ static Object *get_parent_path(Object *ob)
 
 /* ************** do the action ************ */
 
-static void do_nla(Object *ob, int blocktype)
+/* For the calculation of the effects of an action at the given frame on an object 
+ * This is currently only used for the action constraint 
+ */
+void what_does_obaction (Scene *scene, Object *ob, Object *workob, bAction *act, float cframe)
+{
+	ListBase tchanbase= {NULL, NULL};
+	
+	clear_workob(workob);
+	Mat4CpyMat4(workob->obmat, ob->obmat);
+	Mat4CpyMat4(workob->parentinv, ob->parentinv);
+	Mat4CpyMat4(workob->constinv, ob->constinv);
+	workob->parent= ob->parent;
+	workob->track= ob->track;
+
+	workob->trackflag= ob->trackflag;
+	workob->upflag= ob->upflag;
+	
+	workob->partype= ob->partype;
+	workob->par1= ob->par1;
+	workob->par2= ob->par2;
+	workob->par3= ob->par3;
+
+	workob->constraints.first = ob->constraints.first;
+	workob->constraints.last = ob->constraints.last;
+
+	strcpy(workob->parsubstr, ob->parsubstr);
+	strcpy(workob->id.name, ob->id.name);
+	
+	/* extract_ipochannels_from_action needs id's! */
+	workob->action= act;
+	
+	extract_ipochannels_from_action(&tchanbase, &workob->id, act, "Object", bsystem_time(scene, workob, cframe, 0.0));
+	
+	if (tchanbase.first) {
+		execute_ipochannels(&tchanbase);
+		BLI_freelistN(&tchanbase);
+	}
+}
+
+/* ----- nla, etc. --------- */
+
+static void do_nla(Scene *scene, Object *ob, int blocktype)
 {
 	bPose *tpose= NULL;
 	Key *key= NULL;
@@ -1039,7 +1282,7 @@ static void do_nla(Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= G.scene->r.cfra;
+	float scene_cfra= frame_to_float(scene, scene->r.cfra); 
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
@@ -1069,10 +1312,10 @@ static void do_nla(Object *ob, int blocktype)
 		}
 	}
 	if(strip==NULL) {	/* extend */
-		if(stripfirst)
-			scene_cfra= stripfirst->start;
-		else if(striplast)
+		if(striplast)
 			scene_cfra= striplast->end;
+		else if(stripfirst)
+			scene_cfra= stripfirst->start;
 	}
 	
 	/* and now go over all strips */
@@ -1105,11 +1348,11 @@ static void do_nla(Object *ob, int blocktype)
 							
 							if (cu->flag & CU_PATH){
 								/* Ensure we have a valid path */
-								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(parent, 0);
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
 								if(cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(ob, parent, scene_cfra, 0.0);
+									ctime= bsystem_time(scene, ob, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										/* correct for actions not starting on zero */
@@ -1131,7 +1374,7 @@ static void do_nla(Object *ob, int blocktype)
 									}
 									
 									frametime = (striptime * actlength) + strip->actstart;
-									frametime= bsystem_time(ob, 0, frametime, 0.0);
+									frametime= bsystem_time(scene, ob, frametime, 0.0);
 									
 									if(blocktype==ID_AR) {
 										extract_pose_from_action (tpose, strip->act, frametime);
@@ -1161,7 +1404,7 @@ static void do_nla(Object *ob, int blocktype)
 						}
 
 						frametime = (striptime * actlength) + strip->actstart;
-						frametime= nla_time(frametime, (float)strip->repeat);
+						frametime= nla_time(scene, frametime, (float)strip->repeat);
 							
 						if(blocktype==ID_AR) {
 							extract_pose_from_action (tpose, strip->act, frametime);
@@ -1182,7 +1425,7 @@ static void do_nla(Object *ob, int blocktype)
 						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
 						if(frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
-						frametime= bsystem_time(ob, 0, frametime+strip->actstart, 0.0);
+						frametime= bsystem_time(scene, ob, frametime+strip->actstart, 0.0);
 						
 						if(blocktype==ID_AR)
 							extract_pose_from_action (tpose, strip->act, frametime);
@@ -1241,39 +1484,39 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	
 	/* free */
-	if (tpose){
-		free_pose_channels(tpose);
-		MEM_freeN(tpose);
-	}
+	if (tpose)
+		free_pose(tpose);
 	if(chanbase.first)
 		BLI_freelistN(&chanbase);
 }
 
-void do_all_pose_actions(Object *ob)
+void do_all_pose_actions(Scene *scene, Object *ob)
 {
+	/* only to have safe calls from editor */
+	if(ELEM(NULL, scene, ob)) return;
+	if((ob->type!=OB_ARMATURE) || (ob->pose==NULL)) return;
 
-	// only to have safe calls from editor
-	if(ob==NULL) return;
-	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
-
-	if(ob->pose->flag & POSE_LOCKED) {  // no actions to execute while transform
+	if(ob->pose->flag & POSE_LOCKED) {  /*  no actions to execute while transform */
 		if(ob->pose->flag & POSE_DO_UNLOCK)
 			ob->pose->flag &= ~(POSE_LOCKED|POSE_DO_UNLOCK);
 	}
-	else if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
-		float cframe= (float) G.scene->r.cfra;
+	else if( (ob->action) && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || (ob->nlastrips.first==NULL)) ) {
+		float cframe= (float) scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, cframe, 0.0));
+		extract_pose_from_action(ob->pose, ob->action, bsystem_time(scene, ob, cframe, 0.0));
 	}
 	else if(ob->nlastrips.first) {
-		do_nla(ob, ID_AR);
+		do_nla(scene, ob, ID_AR);
 	}
+	
+	/* clear POSE_DO_UNLOCK flags that might have slipped through (just in case) */
+	ob->pose->flag &= ~POSE_DO_UNLOCK;
 }
 
 /* called from where_is_object */
-void do_all_object_actions(Object *ob)
+void do_all_object_actions(Scene *scene, Object *ob)
 {
 	if(ob==NULL) return;
 	if(ob->dup_group) return;	/* prevent conflicts, might add smarter check later */
@@ -1282,13 +1525,13 @@ void do_all_object_actions(Object *ob)
 	if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
 		ListBase tchanbase= {NULL, NULL};
 		Key *key= ob_get_key(ob);
-		float cframe= (float) G.scene->r.cfra;
+		float cframe= (float) scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(ob, 0, cframe, 0.0));
+		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(scene, ob, cframe, 0.0));
 		if(key)
-			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(ob, 0, cframe, 0.0));
+			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(scene, ob, cframe, 0.0));
 		
 		if(tchanbase.first) {
 			execute_ipochannels(&tchanbase);
@@ -1296,8 +1539,6 @@ void do_all_object_actions(Object *ob)
 		}
 	}
 	else if(ob->nlastrips.first) {
-		do_nla(ob, ID_OB);
+		do_nla(scene, ob, ID_OB);
 	}
 }
-
-

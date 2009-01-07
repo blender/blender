@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_MESH_H
 #define BKE_MESH_H
@@ -62,20 +59,19 @@ void make_local_tface(struct Mesh *me);
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
-float *mesh_create_orco_render(struct Object *ob);
-float *mesh_create_orco(struct Object *ob);
-void test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
+float *get_mesh_orco_verts(struct Object *ob);
+void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
+int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 void nurbs_to_mesh(struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
-int update_realtime_texture(struct MTFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 
-struct BoundBox *mesh_get_bb(struct Mesh *me);
+struct BoundBox *mesh_get_bb(struct Object *ob);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
 
 /* if old, it converts mface->edcode to edge drawflags */
@@ -90,21 +86,41 @@ void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces,
 	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
 	 * (_numVerts_r_ may be NULL) */
 float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
+float (*mesh_getRefKeyCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 
-struct UvVertMap;
-typedef struct UvVertMap UvVertMap;
+/* UvVertMap */
+
+#define STD_UV_CONNECT_LIMIT	0.0001f
+
+typedef struct UvVertMap {
+	struct UvMapVert **vert;
+	struct UvMapVert *buf;
+} UvVertMap;
 
 typedef struct UvMapVert {
 	struct UvMapVert *next;
 	unsigned int f;
-	unsigned char tfindex, separate;
+	unsigned char tfindex, separate, flag;
 } UvMapVert;
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit);
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
+
+/* Partial Mesh Visibility */
+struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);
+void mesh_pmv_free(struct PartialVisibility *);
+void mesh_pmv_revert(struct Object *ob, struct Mesh *me);
+void mesh_pmv_off(struct Object *ob, struct Mesh *me);
+
+/* functions for making menu's from customdata layers */
+int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
+void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
+int mesh_layers_menu(struct CustomData *data, int type);
+
+
 
 #ifdef __cplusplus
 }

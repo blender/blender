@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BL_ACTIONACTUATOR
@@ -43,12 +40,14 @@ public:
 	Py_Header;
 	BL_ActionActuator(SCA_IObject* gameobj,
 						const STR_String& propname,
+						const STR_String& framepropname,
 						float starttime,
 						float endtime,
 						struct bAction *action,
 						short	playtype,
 						short	blendin,
 						short	priority,
+						short	end_reset,
 						float	stride,
 						PyTypeObject* T=&Type) 
 		: SCA_IActuator(gameobj,T),
@@ -66,11 +65,13 @@ public:
 		m_stridelength(stride),
 		m_playtype(playtype),
 		m_priority(priority),
+		m_end_reset(end_reset),
 		m_pose(NULL),
 		m_blendpose(NULL),
 		m_userpose(NULL),
 		m_action(action),
-		m_propname(propname)
+		m_propname(propname),
+		m_framepropname(framepropname)		
 	{
 	};
 	virtual ~BL_ActionActuator();
@@ -87,6 +88,7 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetEnd);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
+	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetChannel);
 
@@ -97,9 +99,12 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetEnd);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrame);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetProperty);
+	KX_PYMETHOD_DOC(BL_ActionActuator,GetFrameProperty);
 //	KX_PYMETHOD(BL_ActionActuator,GetChannel);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetType);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
+	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
+	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
 
 	virtual PyObject* _getattr(const STR_String& attr);
 
@@ -136,11 +141,13 @@ protected:
 	float	m_stridelength;
 	short	m_playtype;
 	short	m_priority;
+	short	m_end_reset;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;
 	struct bAction *m_action;
 	STR_String	m_propname;
+	STR_String	m_framepropname;
 };
 
 enum {

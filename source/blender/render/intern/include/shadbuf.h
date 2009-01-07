@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef SHADBUF_EXT_H
@@ -37,12 +34,16 @@
 
 #include "render_types.h"
 
+struct ObjectRen;
+
 /**
  * Calculates shadowbuffers for a vector of shadow-giving lamps
  * @param lar The vector of lamps
  */
 void makeshadowbuf(struct Render *re, LampRen *lar);
 void freeshadowbuf(struct LampRen *lar);
+
+void threaded_makeshadowbufs(struct Render *re);
 
 /**
  * Determines the shadow factor for a face and lamp. There is some
@@ -53,7 +54,7 @@ void freeshadowbuf(struct LampRen *lar);
  * @param inp The inproduct between viewvector and ?
  *
  */
-float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp);	
+float testshadowbuf(struct Render *re, struct ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias);	
 
 /**
  * Determines the shadow factor for lamp <lar>, between <p1>
@@ -80,6 +81,7 @@ float ISB_getshadow(ShadeInput *shi, ShadBuf *shb);
 typedef struct ISBSample {
 	float zco[3];			/* coordinate in lampview projection */
 	short *shadfac;			/* initialized zero = full lighted */
+	int obi;				/* object for face lookup */
 	int facenr;				/* index in faces list */	
 } ISBSample;
 
@@ -87,6 +89,7 @@ typedef struct ISBSample {
 typedef struct ISBSampleA {
 	float zco[3];				/* coordinate in lampview projection */
 	short *shadfac;				/* NULL = full lighted */
+	int obi;					/* object for face lookup */
 	int facenr;					/* index in faces list */	
 	struct ISBSampleA *next;	/* in end, we want the first items to align with ISBSample */
 } ISBSampleA;
@@ -94,6 +97,7 @@ typedef struct ISBSampleA {
 /* used for transparent storage only */
 typedef struct ISBShadfacA {
 	struct ISBShadfacA *next;
+	int obi;
 	int facenr;
 	float shadfac;
 } ISBShadfacA;

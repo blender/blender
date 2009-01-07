@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  */
 /**
@@ -54,6 +51,7 @@
 #include "BLO_readblenfile.h"
 
 #include "BKE_blender.h"
+#include "BKE_report.h"
 
 #include "BLI_blenlib.h"
 
@@ -133,7 +131,7 @@ cleanup:
 BlendFileData *
 blo_read_runtime(
 	char *path, 
-	BlendReadError *error_r) 
+	ReportList *reports)
 {
 	BlendFileData *bfd= NULL;
 	int fd, actualsize, datastart;
@@ -141,7 +139,7 @@ blo_read_runtime(
 
 	fd= open(path, O_BINARY|O_RDONLY, 0);
 	if (fd==-1) {
-		*error_r= BRE_UNABLE_TO_OPEN;
+		BKE_report(reports, RPT_ERROR, "Unable to open");
 		goto cleanup;
 	}
 	
@@ -151,18 +149,18 @@ blo_read_runtime(
 
 	datastart= handle_read_msb_int(fd);
 	if (datastart==-1) {
-		*error_r= BRE_UNABLE_TO_READ;
+		BKE_report(reports, RPT_ERROR, "Unable to read");
 		goto cleanup;
 	} else if (read(fd, buf, 8)!=8) {
-		*error_r= BRE_UNABLE_TO_READ;
+		BKE_report(reports, RPT_ERROR, "Unable to read");
 		goto cleanup;
 	} else if (memcmp(buf, "BRUNTIME", 8)!=0) {
-		*error_r= BRE_NOT_A_BLEND;
+		BKE_report(reports, RPT_ERROR, "File is not a Blender file");
 		goto cleanup;
 	} else {	
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
-		bfd = blo_read_blendafterruntime(fd, actualsize-datastart, error_r);
+		bfd = blo_read_blendafterruntime(fd, path, actualsize-datastart, reports);
 		fd= -1;	// file was closed in blo_read_blendafterruntime()
 	}
 	

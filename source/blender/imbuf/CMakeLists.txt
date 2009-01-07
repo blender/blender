@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
 FILE(GLOB SRC intern/*.c)
 
@@ -37,11 +34,6 @@ SET(INC
   ${TIFF_INC}
   ${ZLIB_INC}
 )
-
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} VERSE_INC)
-ENDIF(WITH_VERSE)
 
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
@@ -56,6 +48,10 @@ IF(WITH_FFMPEG)
   SET(INC ${INC} ${FFMPEG_INC})
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+if(WITH_DDS)
+  ADD_DEFINITIONS(-DWITH_DDS)
+ENDIF(WITH_DDS)
 
 BLENDERLIB(bf_imbuf "${SRC}" "${INC}")
 #env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [80, 40] )

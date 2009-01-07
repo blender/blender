@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef GEN_MAP_H
@@ -53,6 +50,19 @@ public:
             m_buckets[i] = 0;
         }
     }
+
+	GEN_Map(const GEN_Map& map)
+	{
+		m_num_buckets = map.m_num_buckets;
+		m_buckets = new Entry *[m_num_buckets];
+
+		for (int i = 0; i < m_num_buckets; ++i) {
+			m_buckets[i] = 0;
+
+			for(Entry *entry = map.m_buckets[i]; entry; entry=entry->m_next)
+				insert(entry->m_key, entry->m_value);
+		}
+	}
     
     int size() { 
         int count=0;
@@ -78,6 +88,24 @@ public:
                 if (count==index)
                 {
                     return &bucket->m_value;
+                }
+                bucket = bucket->m_next;
+                count++;
+            }
+        }
+        return 0;
+    }
+
+    Key* getKey(int index) {
+        int count=0;
+        for (int i=0;i<m_num_buckets;i++)
+        {
+            Entry* bucket = m_buckets[i];
+            while(bucket)
+            {
+                if (count==index)
+                {
+                    return &bucket->m_key;
                 }
                 bucket = bucket->m_next;
                 count++;

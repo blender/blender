@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,9 +22,22 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
 FILE(GLOB SRC *.cpp)
+
+#XXX disabled for 2.5 because of missing python
+#SET(SRC 
+#  ${SRC}
+#  ../../../source/blender/python/api2_2x/Mathutils.c
+#  ../../../source/blender/python/api2_2x/constant.c
+#  ../../../source/blender/python/api2_2x/euler.c
+#  ../../../source/blender/python/api2_2x/gen_utils.c
+#  ../../../source/blender/python/api2_2x/matrix.c
+#  ../../../source/blender/python/api2_2x/point.c
+#  ../../../source/blender/python/api2_2x/quat.c
+#  ../../../source/blender/python/api2_2x/vector.c
+#)
 
 SET(INC
   .
@@ -42,7 +52,8 @@ SET(INC
   ../../../intern/moto/include
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
-  ../../../source/blender/blenkernel 
+  ../../../source/blender/blenkernel
+  ../../../source/blender/python/api2_2x
   ../../../source/blender 
   ../../../source/blender/include
   ../../../source/blender/makesdna 
@@ -60,8 +71,10 @@ SET(INC
   ../../../intern/SoundSystem 
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
+  ../../../source/blender/gpu
   ../../../extern/bullet2/src
   ../../../extern/solid
+  ../../../extern/glew/include
   ${PYTHON_INC}
   ${SDL_INC}
 )

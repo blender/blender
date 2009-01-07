@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Blender/Python Scripting API'
-Blender: 243
+Blender: 244
 Group: 'Help'
 Tooltip: 'The Blender Python API reference manual'
 """
 
 __author__ = "Matt Ebb"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartist")
 __version__ = "1.0"
 __bpydoc__ = """\
 This script opens the user's default web browser at http://www.blender.org's
@@ -15,7 +15,7 @@ This script opens the user's default web browser at http://www.blender.org's
 """
 
 # --------------------------------------------------------------------------
-# Manual Help Menu Item
+# Blender/Python Scripting Reference Help Menu Item
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

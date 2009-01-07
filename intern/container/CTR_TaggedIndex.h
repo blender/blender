@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -96,6 +93,16 @@ public:
 	}
 
 
+#if defined(_WIN64)
+	CTR_TaggedIndex(
+		const unsigned __int64 val
+	) :
+		m_val ( ((unsigned __int64)val & index_mask)
+				| ( (empty_tag << tag_shift)
+					& (~index_mask) ) ) {
+	}
+#endif
+
 	CTR_TaggedIndex(
 		const CTR_TaggedIndex &my_index
 	):
@@ -126,6 +133,12 @@ public:
 	operator long int () const {
 		return (long int)(m_val & index_mask);
 	}
+
+#if defined(_WIN64)
+	operator unsigned __int64 () const {
+			return (unsigned __int64)(m_val & index_mask);
+		}
+#endif
 
 		bool
 	IsEmpty(

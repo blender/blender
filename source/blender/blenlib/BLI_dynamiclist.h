@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,15 +23,13 @@
  *
  * http://wiki.blender.org/bin/view.pl/Blenderwiki/DynamicListWithAccessArray
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef B_DYNAMIC_LIST_H
-#define B_DYNAMIC_LIST_H
+#ifndef BLI_DYNAMIC_LIST_H
+#define BLI_DYNAMIC_LIST_H
 
-#define PAGE_SIZE 4
-
-struct ListBase;
+#include "DNA_listBase.h"
 
 /*
  * Access array using realloc 
@@ -54,5 +49,16 @@ typedef struct DynamicList {
 	struct DynamicArray da;		/* access array */
 	struct ListBase lb;		/* two way linked dynamic list */
 } DynamicList;
+
+struct DynamicList *BLI_dlist_from_listbase(struct ListBase *lb);
+struct ListBase *BLI_listbase_from_dlist(struct DynamicList *dlist, struct ListBase *lb);
+void * BLI_dlist_find_link(struct DynamicList *dlist, unsigned int index);
+unsigned int BLI_count_items(struct DynamicList *dlist);
+void BLI_dlist_free_item(struct DynamicList *dlist, unsigned int index);
+void BLI_dlist_rem_item(struct DynamicList *dlist, unsigned int index);
+void * BLI_dlist_add_item_index(struct DynamicList *dlist, void *item, unsigned int index);
+void BLI_dlist_destroy(struct DynamicList *dlist);
+void BLI_dlist_init(struct DynamicList *dlist);
+void BLI_dlist_reinit(struct DynamicList *dlist);
 
 #endif

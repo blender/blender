@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -55,13 +52,15 @@
 #include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_node_types.h"
+#include "DNA_color_types.h"
+#include "DNA_scene_types.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "BKE_plugin_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_global.h"
@@ -75,6 +74,7 @@
 #include "BKE_icons.h"
 #include "BKE_ipo.h"
 #include "BKE_brush.h"
+#include "BKE_node.h"
 
 
 /* ------------------------------------------------------------------------- */
@@ -107,6 +107,7 @@ void open_plugin_tex(PluginTex *pit)
 	pit->result= 0;
 	pit->cfra= 0;
 	pit->version= 0;
+	pit->instance_init= 0;
 	
 	/* clear the error list */
 	PIL_dynlib_get_error_as_string(NULL);
@@ -126,7 +127,7 @@ void open_plugin_tex(PluginTex *pit)
 		
 		if (version != 0) {
 			pit->version= version();
-			if (pit->version>=2 && pit->version<=5) {
+			if( pit->version >= 2 && pit->version <=6) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
@@ -175,8 +176,8 @@ PluginTex *add_plugin_tex(char *str)
 	open_plugin_tex(pit);
 	
 	if(pit->doit==0) {
-		if(pit->handle==0) error("no plugin: %s", str);
-		else error("in plugin: %s", str);
+		if(pit->handle==0); //XXX error("no plugin: %s", str);
+		else ; //XXX error("in plugin: %s", str);
 		MEM_freeN(pit);
 		return NULL;
 	}
@@ -238,12 +239,9 @@ void init_mapping(TexMapping *texmap)
 
 /* ****************** COLORBAND ******************* */
 
-ColorBand *add_colorband(int rangetype)
+void init_colorband(ColorBand *coba, int rangetype)
 {
-	ColorBand *coba;
 	int a;
-	
-	coba= MEM_callocN( sizeof(ColorBand), "colorband");
 	
 	coba->data[0].pos= 0.0;
 	coba->data[1].pos= 1.0;
@@ -280,6 +278,15 @@ ColorBand *add_colorband(int rangetype)
 	}
 	
 	coba->tot= 2;
+	
+}
+
+ColorBand *add_colorband(int rangetype)
+{
+	ColorBand *coba;
+	
+	coba= MEM_callocN( sizeof(ColorBand), "colorband");
+	init_colorband(coba, rangetype);
 	
 	return coba;
 }
@@ -340,6 +347,15 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 				else
 					fac= 0.0f;
 				
+				if (coba->ipotype==4) {
+					/* constant */
+					out[0]= cbd2->r;
+					out[1]= cbd2->g;
+					out[2]= cbd2->b;
+					out[3]= cbd2->a;
+					return 1;
+				}
+				
 				if(coba->ipotype>=2) {
 					/* ipo from right to left: 3 2 1 0 */
 					
@@ -383,6 +399,17 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 	return 1;	/* OK */
 }
 
+void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
+{
+	int a;
+	
+	*size = CM_TABLE+1;
+	*array = MEM_callocN(sizeof(float)*(*size)*4, "ColorBand");
+
+	for(a=0; a<*size; a++)
+		do_colorband(coba, (float)a/(float)CM_TABLE, &(*array)[a*4]);
+}
+
 /* ******************* TEX ************************ */
 
 void free_texture(Tex *tex)
@@ -390,8 +417,14 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
+	
+	if(tex->nodetree) {
+		ntreeFreeTree(tex->nodetree);
+		MEM_freeN(tex->nodetree);
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -404,7 +437,7 @@ void default_tex(Tex *tex)
 
 	tex->stype= 0;
 	tex->flag= TEX_CHECKER_ODD;
-	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
+	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP+TEX_USEALPHA;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
@@ -418,7 +451,8 @@ void default_tex(Tex *tex)
 	tex->turbul= 5.0;
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
-	tex->contrast= tex->filtersize= 1.0;
+	tex->contrast= 1.0;
+	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;
@@ -462,6 +496,8 @@ void default_tex(Tex *tex)
 	tex->iuser.fie_ima= 2;
 	tex->iuser.ok= 1;
 	tex->iuser.frames= 100;
+	
+	tex->preview = NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -507,6 +543,7 @@ void default_mtex(MTex *mtex)
 	mtex->norfac= 0.5;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
+	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 
 
@@ -533,6 +570,8 @@ Tex *copy_texture(Tex *tex)
 	if(texn->type==TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima= 0;
 	
+	id_us_plus((ID *)texn->ipo);
+	
 	if(texn->plugin) {
 		texn->plugin= MEM_dupallocN(texn->plugin);
 		open_plugin_tex(texn->plugin);
@@ -540,6 +579,13 @@ Tex *copy_texture(Tex *tex)
 	
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
+	
+	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
+
+	if(tex->nodetree) {
+		ntreeEndExecTree(tex->nodetree);
+		texn->nodetree= ntreeCopyTree(tex->nodetree, 0); /* 0 == full new tree */
+	}
 	
 	return texn;
 }
@@ -686,11 +732,17 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-/*	extern char texstr[20][12];	 *//* buttons.c, already in bad lev calls*/
+	char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+		"Voronoi", "DistNoise", "", "", "", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	
 	if(tex) {
+		if(tex->use_nodes) {
+			new_id(&G.main->tex, (ID *)tex, "Noddy");
+		}
+		else
 		if(tex->type==TEX_IMAGE) {
 			ima= tex->ima;
 			if(ima) {
@@ -715,9 +767,10 @@ Tex *give_current_texture(Object *ob, int act)
 	Lamp *la = 0;
 	MTex *mtex = 0;
 	Tex *tex = 0;
+	bNode *node;
 	
 	if(ob==0) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob->totcol==0 && !(ob->type==OB_LAMP)) return 0;
 	
 	if(ob->type==OB_LAMP) {
 		la=(Lamp *)ob->data;
@@ -725,7 +778,6 @@ Tex *give_current_texture(Object *ob, int act)
 			mtex= la->mtex[(int)(la->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	} else {
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
@@ -738,18 +790,42 @@ Tex *give_current_texture(Object *ob, int act)
 			
 			if(matarar && *matarar) ma= (*matarar)[act-1];
 			else ma= 0;
-			
+		}
+
+		if(ma && ma->use_nodes && ma->nodetree) {
+			node= nodeGetActiveID(ma->nodetree, ID_TE);
+
+			if(node) {
+				tex= (Tex *)node->id;
+				ma= NULL;
+			}
+			else {
+				node= nodeGetActiveID(ma->nodetree, ID_MA);
+				if(node)
+					ma= (Material*)node->id;
+			}
 		}
 		if(ma) {
 			mtex= ma->mtex[(int)(ma->texact)];
 			if(mtex) tex= mtex->tex;
 		}
-		else tex= 0;
 	}
 	
 	return tex;
 }
 
+Tex *give_current_world_texture(Scene *scene)
+{
+	MTex *mtex = 0;
+	Tex *tex = 0;
+	
+	if(!(scene->world)) return 0;
+	
+	mtex= scene->world->mtex[(int)(scene->world->texact)];
+	if(mtex) tex= mtex->tex;
+	
+	return tex;
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -804,6 +880,22 @@ void BKE_free_envmap(EnvMap *env)
 	BKE_free_envmapdata(env);
 	MEM_freeN(env);
 	
+}
+
+/* ------------------------------------------------------------------------- */
+int BKE_texture_dependsOnTime(const struct Tex *texture)
+{
+	if(texture->plugin) {
+		// assume all plugins depend on time
+		return 1;
+	} else if(	texture->ima && 
+			ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		return 1;
+	} else if(texture->ipo) {
+		// assume any ipo means the texture is animated
+		return 1;
+	}
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

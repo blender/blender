@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  * These structs are the foundation for all linked lists in the
  * library system.
@@ -43,10 +40,19 @@
 extern "C" {
 #endif
 
+/* generic - all structs which are used in linked-lists used this */
 typedef struct Link
 {
 	struct Link *next,*prev;
 } Link;
+
+
+/* use this when it is not worth defining a custom one... */
+typedef struct LinkData
+{
+	struct LinkData *next, *prev;
+	void *data;
+} LinkData;
 
 /* never change the size of this! genfile.c detects pointerlen with it */
 typedef struct ListBase 

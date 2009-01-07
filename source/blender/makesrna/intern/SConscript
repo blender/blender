@@ -1,0 +1,69 @@
+#!/usr/bin/python
+import sys
+import os
+
+Import ('env')
+cflags = '-Wall'
+defines = []
+root_build_dir=env['BF_BUILDDIR']
+
+source_files = env.Glob('*.c')
+
+# making rna_access.c part of both makesrna and blender seems to
+# give conflict, how to solve?
+source_files.remove('rna_access.c')
+source_files.remove('rna_dependency.c')
+
+makesrna_tool = env.Clone()
+rna = env.Clone()
+makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
+
+makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
+                                 '../../blenlib',
+                                 '../../blenkernel',
+                                 '../../makesdna',
+                                 '../../makesrna',
+								 '../../windowmanager'])
+
+if env['OURPLATFORM'] == 'linuxcross':
+    makesrna_tool.Replace(CC='gcc')
+    makesrna_tool.Replace(AR='ar')
+    makesrna_tool.Replace(LINK='gcc')
+
+if sys.platform != 'cygwin':
+    makesrna_tool.Append (CCFLAGS = cflags)
+makesrna_tool.Append (CPPDEFINES = defines)
+
+libdir = root_build_dir+'/lib'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	libdir = '#' + libdir
+
+makesrna_tool.Append (LIBPATH = libdir)
+
+if env['BF_PROFILE']:
+	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
+
+if env['BF_DEBUG']:
+	makesrna_tool.Append(CFLAGS = env['BF_DEBUG_CFLAGS'])
+	makesrna_tool.Append(CCFLAGS = env['BF_DEBUG_CCFLAGS'])
+	if env['OURPLATFORM'] == 'win32-vc':
+		makesrna_tool.Append(LINKFLAGS = ['/DEBUG','/PDB:makesrna.pdb'])
+
+targetpath = root_build_dir+'/makesrna'
+if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
+	targetpath = '#' + targetpath
+
+if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
+    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+else:
+    makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
+
+rna_dict = rna.Dictionary()
+rna.Depends ('rna.c', makesrna)
+if env['OURPLATFORM'] != 'linuxcross':
+    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna $TARGET")
+else:
+    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna.exe $TARGET")
+obj = ['intern/rna.c', 'intern/rna_access.c', 'intern/rna_dependency.c']
+Return ('obj')
+

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Ketsji Logic Extenstion: Network Event Manager generic implementation
  */
 
@@ -58,28 +55,13 @@ KX_NetworkEventManager::~KX_NetworkEventManager()
 	//printf("KX_NetworkEventManager destructor\n");
 }
 
-void KX_NetworkEventManager::RegisterSensor(class SCA_ISensor* sensor)
-{
-	//printf("KX_NetworkEventManager RegisterSensor\n");
-	m_sensors.push_back(sensor);
-}
-
-void KX_NetworkEventManager::RemoveSensor(class SCA_ISensor* sensor)
-{
-	//printf("KX_NetworkEventManager RemoveSensor\n");
-	// Network specific RemoveSensor stuff goes here
-
-	// parent
-	SCA_EventManager::RemoveSensor(sensor);
-}
-
 void KX_NetworkEventManager::NextFrame()
 {
 // printf("KX_NetworkEventManager::proceed %.2f - %.2f\n", curtime, deltatime);
 	// each frame, the logicmanager will call the network
 	// eventmanager to look for network events, and process it's
 	// 'network' sensors
-	vector<class SCA_ISensor*>::iterator it;
+	set<class SCA_ISensor*>::iterator it;
 
 	for (it = m_sensors.begin(); !(it==m_sensors.end()); it++) {
 //	    printf("KX_NetworkEventManager::proceed sensor %.2f\n", curtime);

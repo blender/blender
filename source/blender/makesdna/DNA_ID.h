@@ -5,15 +5,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_ID_H
 #define DNA_ID_H
@@ -49,14 +46,14 @@ struct ID;
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;
-	int val, pad;
+	int val, val2; /*note, we actually fit a double into these two ints*/
 } IDPropertyData;
 
 typedef struct IDProperty {
 	struct IDProperty *next, *prev;
-	char name[32];
 	char type, subtype;
 	short flag;
+	char name[32];
 	int saved; /*saved is used to indicate if this struct has been saved yet.
 				seemed like a good idea as a pad var was needed anyway :)*/
 	IDPropertyData data;	/* note, alignment for 64 bits */
@@ -65,38 +62,34 @@ typedef struct IDProperty {
 	/*totallen is total length of allocated array/string, including a buffer.
 	  Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
-	                saved.  at least it won't be when I write that code. :)*/
+	                saved.*/
 } IDProperty;
 
 #define MAX_IDPROP_NAME	32
 #define DEFAULT_ALLOC_FOR_NULL_STRINGS	64
 
 /*->type*/
-#define IDP_STRING	0
-#define IDP_INT		1
-#define IDP_FLOAT	2
-#define IDP_VECTOR	3
-#define IDP_MATRIX	4
-#define IDP_ARRAY	5
-#define IDP_GROUP	6
-#define IDP_ID		7
+#define IDP_STRING		0
+#define IDP_INT			1
+#define IDP_FLOAT		2
+#define IDP_ARRAY		5
+#define IDP_GROUP		6
+/* the ID link property type hasn't been implemented yet, this will require
+   some cleanup of blenkernel, most likely.*/
+#define IDP_ID			7
+#define IDP_DOUBLE		8
+#define IDP_IDPARRAY	9
+#define IDP_NUMTYPES	10
 
-/*special types for vector, matrices and arrays
- these arn't quite completely implemented, and
- may be removed.*/
-#define IDP_MATRIX4X4	9
-#define IDP_MATRIX3X3	10
-#define IDP_VECTOR2D	11
-#define IDP_VECTOR3D	12
-#define IDP_VECTOR4D	13
-#define IDP_FILE	14
-/*add any future new id property types here.*/
+/* add any future new id property types here.*/
 
 /* watch it: Sequence has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.
  * */
+
+#define MAX_ID_NAME	24
 
 /* There's a nasty circular dependency here.... void* to the rescue! I
  * really wonder why this is needed. */
@@ -129,6 +122,18 @@ typedef struct Library {
 	struct Library *parent;	/* for outliner, showing dependency */
 } Library;
 
+#define PREVIEW_MIPMAPS 2
+#define PREVIEW_MIPMAP_ZERO 0
+#define PREVIEW_MIPMAP_LARGE 1
+
+typedef struct PreviewImage {
+	unsigned int w[2];
+	unsigned int h[2];	
+	short changed[2];
+	short pad0, pad1;
+	unsigned int * rect[2];
+} PreviewImage;
+
 /**
  * Defines for working with IDs.
  *
@@ -137,7 +142,7 @@ typedef struct Library {
  *
  **/
 
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__)  || defined (__hppa__) || defined (__BIG_ENDIAN__)
 /* big endian */
 #define MAKE_ID2(c, d)		( (c)<<8 | (d) )
 #define MOST_SIG_BYTE				0
@@ -170,6 +175,7 @@ typedef struct Library {
 #define ID_KE		MAKE_ID2('K', 'E')
 #define ID_WO		MAKE_ID2('W', 'O')
 #define ID_SCR		MAKE_ID2('S', 'R')
+#define ID_SCRN		MAKE_ID2('S', 'N')
 #define ID_VF		MAKE_ID2('V', 'F')
 #define ID_TXT		MAKE_ID2('T', 'X')
 #define ID_SO		MAKE_ID2('S', 'O')
@@ -180,6 +186,8 @@ typedef struct Library {
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
 #define ID_NT		MAKE_ID2('N', 'T')
 #define ID_BR		MAKE_ID2('B', 'R')
+#define ID_PA		MAKE_ID2('P', 'A')
+#define ID_WM		MAKE_ID2('W', 'M')
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')
@@ -191,15 +199,6 @@ typedef struct Library {
 #define ID_NLA		MAKE_ID2('N', 'L')
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
-
-
-/*#ifdef WITH_VERSE*/
-#define ID_VS		MAKE_ID2('V', 'S')	/* fake id for VerseSession, needed for outliner */
-#define ID_VN		MAKE_ID2('V', 'N')	/* fake id for VerseNode, needed for outliner */
-#define ID_MS		MAKE_ID2('M', 'S')  /* fake id for VerseServer root entry, needed for outliner */
-#define ID_SS		MAKE_ID2('S', 'S')  /* fake id for VerseServer entry, needed for ountliner */
-/*#endif*/
-
 
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0

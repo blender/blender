@@ -14,7 +14,7 @@
 #define DEBUG_PARAMCHANNELS 0
 
 /*! param seen debug string array */
-char *ParamStrings[] = {
+const char *ParamStrings[] = {
 	"RelaxTime",
 	"Reynolds",
 	"Viscosity",

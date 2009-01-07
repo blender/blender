@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef RAS_FRAMINGMANAGER_H
 #define RAS_FRAMINGMANAGER_H
@@ -111,6 +108,13 @@ public :
 	) const {
 		return m_frame_type;
 	};
+
+		void
+	SetFrameType(
+		RAS_FrameType type
+	) {
+		m_frame_type = type;
+	};
 	
 		float
 	BarRed(
@@ -143,14 +147,6 @@ public :
 	};
 
 private :
-	
-	/**
-	 * private to force use of public constructor
-	 */
-
-	RAS_FrameSettings(
-		const RAS_FrameSettings &
-	);
 
 	RAS_FrameType m_frame_type;
 	float m_bar_r;
@@ -216,9 +212,6 @@ public :
 		RAS_FrameFrustum &frustum
 	);
 
-
-private :
-
 	static
 		void
 	ComputeDefaultFrustum(
@@ -228,6 +221,8 @@ private :
 		const float design_aspect_ratio,
 		RAS_FrameFrustum & frustum
 	);	
+
+private :
 
 	static
 		void

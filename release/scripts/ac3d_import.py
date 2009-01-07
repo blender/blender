@@ -8,7 +8,7 @@ Tip: 'Import an AC3D (.ac) file.'
 """
 
 __author__ = "Willian P. Germano"
-__url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
+__url__ = ("blender", "blenderartists.org", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
 __version__ = "2.43.1 2007-02-21"
 
@@ -679,6 +679,8 @@ class AC3DImport:
 						baseimgname = bsys.basename(objtex)
 						if bsys.exists(objtex) == 1:
 							texfname = objtex
+						elif bsys.exists(bsys.join(self.importdir, objtex)):
+							texfname = bsys.join(self.importdir, objtex)
 						else:
 							if baseimgname.find('\\') > 0:
 								baseimgname = bsys.basename(objtex.replace('\\','/'))

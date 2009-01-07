@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * SND_SDLCDDevice
  */
 
@@ -44,7 +41,9 @@
 #include "SND_SDLCDDevice.h"
 #include "SoundDefines.h"
 
+#ifndef DISABLE_SDL
 #include <SDL.h>
+#endif
 
 SND_SDLCDDevice::SND_SDLCDDevice() :
 	m_cdrom(NULL),
@@ -58,6 +57,10 @@ SND_SDLCDDevice::SND_SDLCDDevice() :
 
 void SND_SDLCDDevice::init()
 {
+#ifdef DISABLE_SDL
+	fprintf(stderr, "Blender compiled without SDL, no CDROM support\n");
+	return;
+#else
 	if (SDL_InitSubSystem(SDL_INIT_CDROM))
 	{
 		fprintf(stderr, "Error initializing CDROM\n");
@@ -78,19 +81,23 @@ void SND_SDLCDDevice::init()
 	/* Did if open? Check if cdrom is NULL */
 	if(!m_cdrom)
 	{
-		fprintf(stderr, "Couldn't open drive: %s", SDL_GetError());
+		fprintf(stderr, "Couldn't open drive: %s\n", SDL_GetError());
 		return;
 	}
+#endif
 }
 
 SND_SDLCDDevice::~SND_SDLCDDevice()
 {
+#ifndef DISABLE_SDL
 	StopCD();
 	SDL_CDClose(m_cdrom);
+#endif
 }
 
 void SND_SDLCDDevice::NextFrame()
 {
+#ifndef DISABLE_SDL
 	m_frame++;
 	m_frame &= 127;
 	
@@ -114,20 +121,24 @@ void SND_SDLCDDevice::NextFrame()
 		}
 	
 	}
+#endif
 }
 	
 void SND_SDLCDDevice::PlayCD(int track)
 {
+#ifndef DISABLE_SDL
 	if ( m_cdrom && CD_INDRIVE(SDL_CDStatus(m_cdrom)) ) {
 		SDL_CDPlayTracks(m_cdrom, track-1, 0, track, 0);
 		m_cdplaying = true;
 		m_cdtrack = track;
 	}
+#endif
 }
 
 
 void SND_SDLCDDevice::PauseCD(bool pause)
 {
+#ifndef DISABLE_SDL
 	if (!m_cdrom)
 		return;
 		
@@ -135,13 +146,16 @@ void SND_SDLCDDevice::PauseCD(bool pause)
 		SDL_CDPause(m_cdrom);
 	else
 		SDL_CDResume(m_cdrom);
+#endif
 }
 
 void SND_SDLCDDevice::StopCD()
 {
+#ifndef DISABLE_SDL
 	if (m_cdrom)
 		SDL_CDStop(m_cdrom);
 	m_cdplaying = false;
+#endif
 }
 
 void SND_SDLCDDevice::SetCDPlaymode(int playmode)

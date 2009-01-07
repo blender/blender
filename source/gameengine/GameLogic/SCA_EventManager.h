@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,18 +24,20 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_EVENTMANAGER
 #define __KX_EVENTMANAGER
 
 #include <vector>
+#include <set>
 #include <algorithm>
 
 class SCA_EventManager
 {
 protected:
-	std::vector <class SCA_ISensor*>				m_sensors;
+	// use a set to speed-up insertion/removal
+	std::set <class SCA_ISensor*>				m_sensors;
 
 public:
 	enum EVENT_MANAGER_TYPE {
@@ -52,7 +51,8 @@ public:
 		RAY_EVENTMGR,
 		RADAR_EVENTMGR,
 		NETWORK_EVENTMGR,
-		JOY_EVENTMGR
+		JOY_EVENTMGR,
+		ACTUATOR_EVENTMGR
 	};
 
 	SCA_EventManager(EVENT_MANAGER_TYPE mgrtype);
@@ -61,8 +61,9 @@ public:
 	virtual void	RemoveSensor(class SCA_ISensor* sensor);
 	virtual void	NextFrame(double curtime, double fixedtime);
 	virtual void	NextFrame();
+	virtual void    UpdateFrame();
 	virtual void	EndFrame();
-	virtual void	RegisterSensor(class SCA_ISensor* sensor)=0;
+	virtual void	RegisterSensor(class SCA_ISensor* sensor);
 	int		GetType();
 
 protected:

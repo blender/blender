@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #pragma warning(once: 4761 4305 4244 4018)
 
@@ -64,6 +61,10 @@
 
 	// These definitions are also in arithb for simplicity
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
@@ -75,6 +76,9 @@
 #endif
 #ifndef M_SQRT1_2
 #define M_SQRT1_2	0.70710678118654752440
+#endif
+#ifndef M_1_PI
+#define M_1_PI		0.318309886183790671538
 #endif
 
 #define MAXPATHLEN MAX_PATH
@@ -113,7 +117,16 @@ void RegisterBlendExtension(char * str);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
-void get_default_root(char* root);
+void get_default_root(char *root);
+int check_file_chars(char *filename);
+
+#ifdef WIN32
+int BLI_getInstallationDir(char *str);
+#endif
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __WINSTUFF_H__ */
 

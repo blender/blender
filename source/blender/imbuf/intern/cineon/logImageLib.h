@@ -47,6 +47,7 @@ typedef struct {
 	float gamma;
 	int blackPoint;
 	int whitePoint;
+	int doLogarithm;
 } LogImageByteConversionParameters;
 
 /* int functions return 0 for OK */

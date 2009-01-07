@@ -45,7 +45,7 @@
  * mask is pixel coverage in bits
  * @return pointer to the object
  */
-void shadeHaloFloat(HaloRen *har, 
+int shadeHaloFloat(HaloRen *har, 
 					float *col, int zz, 
 					float dist, float xn, 
 					float yn, short flarec);
@@ -53,9 +53,10 @@ void shadeHaloFloat(HaloRen *har,
 /**
  * Render the sky at pixel (x, y).
  */
-void shadeSkyPixel(float *collector, float fx, float fy);
-void shadeSkyView(float *colf, float *rco, float *view, float *dxyview);
-
+void shadeSkyPixel(float *collector, float fx, float fy, short thread);
+void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short thread);
+void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, float distance);
+void shadeSunView(float *colf, float *view);
 /* ------------------------------------------------------------------------- */
 
 #endif

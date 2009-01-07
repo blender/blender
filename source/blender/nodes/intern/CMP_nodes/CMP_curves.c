@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Björn C. Schaefer
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -40,11 +40,12 @@ static bNodeSocketType cmp_node_time_out[]= {
 
 static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	RenderData *rd= data;
 	/* stack order output: fac */
 	float fac= 0.0f;
 	
 	if(node->custom1 < node->custom2)
-		fac= (G.scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
+		fac= (rd->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
 	fac= curvemapping_evaluateF(node->storage, 0, fac);
 	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
@@ -53,8 +54,8 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 
 static void node_composit_init_curves_time(bNode* node)
 {
-   node->custom1= G.scene->r.sfra;
-   node->custom2= G.scene->r.efra;
+   node->custom1= 1;
+   node->custom2= 250;
    node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
@@ -123,6 +124,8 @@ bNodeType cmp_node_curve_vec= {
 static bNodeSocketType cmp_node_curve_rgb_in[]= {
 	{	SOCK_VALUE, 1, "Fac",	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Black Level",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "White Level",	1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -157,7 +160,7 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 
 static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	/* stack order input:  fac, image */
+	/* stack order input:  fac, image, black level, white level */
 	/* stack order output: image */
 	
 	if(out[0]->hasoutput==0)
@@ -172,10 +175,12 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
-		if(in[0]->data)
-			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
-		else
+		curvemapping_set_black_white(node->storage, in[2]->vec, in[3]->vec);
+		
+		if(in[0]->vec[0] == 1.0)
 			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);
+		else
+			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
 	}

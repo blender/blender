@@ -5,15 +5,12 @@
  *
  * Function(s) related to struct script management.
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,14 +28,13 @@
  *
  * Contributor(s): Willian P. Germano.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "BKE_script.h"
-#include "BPI_script.h"
+#include "DNA_space_types.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_bad_level_calls.h" /* for BPY_clear_script */
 
 /*
 #include "BLI_blenlib.h"
@@ -47,25 +43,22 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h" // Blender Python library
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
 #endif
 */
 
 /* XXX this function and so also the file should not be needed anymore,
  * since we have to force clearing all Python related data before freeing
  * Blender's library. Still testing, will decide later (Willian). */
+
+//XXX 
+#if 0
 void free_script (Script *script)
 {
 	if (!script) return;
-
-	if (script->py_globaldict || script->py_button ||
-			script->py_event || script->py_draw)
-	{
-		BPY_clear_script(script);
-	}
-
-	return;
+#ifndef DISABLE_PYTHON
+	BPY_clear_script(script);
+#endif
 }
+#endif

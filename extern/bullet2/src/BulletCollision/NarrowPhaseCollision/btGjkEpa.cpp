@@ -26,7 +26,7 @@ Nov.2006
 
 #include "btGjkEpa.h"
 #include <string.h> //for memset
-#include <LinearMath/btStackAlloc.h>
+#include "LinearMath/btStackAlloc.h"
 
 #if defined(DEBUG) || defined (_DEBUG)
 #include <stdio.h> //for debug printf
@@ -580,8 +580,8 @@ using namespace	gjkepa_impl;
 
 
 //
-bool	btGjkEpaSolver::Collide(btConvexShape *shape0,const btTransform &wtrs0,
-								btConvexShape *shape1,const btTransform &wtrs1,
+bool	btGjkEpaSolver::Collide(const btConvexShape *shape0,const btTransform &wtrs0,
+								const btConvexShape *shape1,const btTransform &wtrs1,
 								btScalar	radialmargin,
 								btStackAlloc* stackAlloc,
 								sResults&	results)
@@ -602,13 +602,13 @@ GJK			gjk(stackAlloc,
 				wtrs1.getBasis(),wtrs1.getOrigin(),shape1,
 				radialmargin+EPA_accuracy);
 const Z		collide(gjk.SearchOrigin());
-results.gjk_iterations	=	gjk.iterations+1;
+results.gjk_iterations	=	static_cast<int>(gjk.iterations+1);
 if(collide)
 	{
 	/* Then EPA for penetration depth	*/
 	EPA			epa(&gjk);
 	const F		pd(epa.EvaluatePD());
-	results.epa_iterations	=	epa.iterations+1;
+	results.epa_iterations	=	static_cast<int>(epa.iterations+1);
 	if(pd>0)
 		{
 		results.status			=	sResults::Penetrating;

@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_CAMERAACTUATOR
@@ -52,7 +49,7 @@ class KX_CameraActuator : public SCA_IActuator
 	Py_Header;
 private :
 	/** Object that will be tracked. */
-	CValue *m_ob;
+	SCA_IObject *m_ob;
 
 	/** height (float), */
 	//const MT_Scalar m_height;
@@ -90,7 +87,7 @@ private :
 
 		SCA_IObject *gameobj,
 		//const CValue *ob,
-		CValue *ob,
+		SCA_IObject *ob,
 		MT_Scalar hght,
 		MT_Scalar minhght,
 		MT_Scalar maxhght,
@@ -106,6 +103,7 @@ private :
 
 	/** Methods Inherited from  CValue */
 	CValue* GetReplica();
+	virtual void ProcessReplica();
 	
 
 	/** Methods inherited from SCA_IActuator */
@@ -113,7 +111,10 @@ private :
 		double curtime,
 		bool frame
 	);
+	virtual bool	UnlinkObject(SCA_IObject* clientobj);
 
+	/** Methods inherited from SCA_ILogicBrick */
+	virtual void	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -122,9 +123,9 @@ private :
 	virtual PyObject* _getattr(const STR_String& attr);
 	
 	/* set object to look at */
-	KX_PYMETHOD_DOC(KX_CameraActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_CameraActuator,SetObject);
 	/* get current object  */
-	KX_PYMETHOD_DOC(KX_CameraActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_CameraActuator,GetObject);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,GetMin);
 	KX_PYMETHOD_DOC(KX_CameraActuator,SetMax);

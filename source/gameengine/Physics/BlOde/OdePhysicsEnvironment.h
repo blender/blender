@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * The contents of this file may be used under the terms of either the GNU
  * General Public License Version 2 or later (the "GPL", see
@@ -17,7 +17,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef _ODEPHYSICSENVIRONMENT
 #define _ODEPHYSICSENVIRONMENT
@@ -54,8 +54,7 @@ public:
 			float axisX,float axisY,float axisZ);
 
 	virtual void		removeConstraint(void * constraintid);
-	virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+	virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback,float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 	//gamelogic callbacks
@@ -65,6 +64,7 @@ public:
 	{
 	}
 	virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl) {}
+	virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl) {}
 	virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
 	virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 

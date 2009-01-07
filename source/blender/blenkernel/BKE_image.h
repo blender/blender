@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_IMAGE_H
 #define BKE_IMAGE_H
@@ -42,13 +39,16 @@ struct Image;
 struct ImBuf;
 struct Tex;
 struct anim;
+struct Scene;
 
 /* call from library */
 void	free_image(struct Image *me);
 
-int		BKE_write_ibuf(struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
-void	BKE_makepicstring(char *string, char *base, int frame, int imtype);
-void	BKE_add_image_extension(char *string, int imtype);
+void	BKE_stamp_info(struct Scene *scene, struct ImBuf *ibuf);
+void	BKE_stamp_buf(struct Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels);
+int		BKE_write_ibuf(struct Scene *scene, struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
+void	BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype);
+void	BKE_add_image_extension(struct Scene *scene, char *string, int imtype);
 int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);
 int		BKE_imtype_is_movie(int imtype);
@@ -82,7 +82,6 @@ struct RenderResult;
 #define IMA_TYPE_MULTILAYER	1
 		/* generated */
 #define IMA_TYPE_UV_TEST	2
-#define IMA_TYPE_VERSE		3
 		/* viewers */
 #define IMA_TYPE_R_RESULT   4
 #define IMA_TYPE_COMPOSITE	5
@@ -108,11 +107,11 @@ struct RenderResult;
 /* always call to make signals work */
 struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
 
-/* returns existing Image when filename/type is same */
-struct Image *BKE_add_image_file(const char *name);
+/* returns existing Image when filename/type is same (frame optional) */
+struct Image *BKE_add_image_file(const char *name, int frame);
 
 /* adds image, adds ibuf, generates color or pattern */
-struct Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, float color[4]);
+struct Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4]);
 
 /* for reload, refresh, pack */
 void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);
@@ -133,7 +132,7 @@ void BKE_image_user_new_image(struct Image *ima, struct ImageUser *iuser);
 struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct ImageUser *iuser);
 
 /* for multilayer images as well as for render-viewer */
-struct RenderResult *BKE_image_get_renderresult(struct Image *ima);
+struct RenderResult *BKE_image_get_renderresult(struct Scene *scene, struct Image *ima);
 
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);
@@ -145,6 +144,9 @@ void	BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 void BKE_image_all_free_anim_ibufs(int except_frame);
 
 void BKE_image_memorypack(struct Image *ima);
+
+/* prints memory statistics for images */
+void BKE_image_print_memlist(void);
 
 #ifdef __cplusplus
 }

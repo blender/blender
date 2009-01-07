@@ -688,7 +688,8 @@ ntlScene::~ntlScene()
 	if(mpTree != NULL) delete mpTree;
 
 	// cleanup lists, only if this is the rendering cleanup scene
-	if(mSceneDel) {
+	if(mSceneDel) 
+	{
 		for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin();
 				iter != mGeos.end(); iter++) {
 			//errMsg("ntlScene::~ntlScene","Deleting obj "<<(*iter)->getName() );

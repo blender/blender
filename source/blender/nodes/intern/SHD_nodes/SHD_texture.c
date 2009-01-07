@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "DNA_texture_types.h"
+
 #include "../SHD_util.h"
 
 /* **************** TEXTURE ******************** */
@@ -48,6 +50,9 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		TexResult texres;
 		float vec[3], nor[3]={0.0f, 0.0f, 0.0f};
 		int retval;
+		short which_output = node->custom1;
+		
+		short thread = shi->thread;
 		
 		/* out: value, color, normal */
 		
@@ -59,7 +64,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 			
 			if(in[0]->datatype==NS_OSA_VECTORS) {
 				float *fp= in[0]->data;
-				retval= multitex_ext((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres);
+				retval= multitex_thread((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres, thread, which_output);
 			}
 			else if(in[0]->datatype==NS_OSA_VALUES) {
 				float *fp= in[0]->data;
@@ -67,14 +72,14 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				
 				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
 				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
-				retval= multitex_ext((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres);
+				retval= multitex_thread((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres, thread, which_output);
 			}
 			else
-				retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+				retval= multitex_thread((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output);
 		}
-		else {	/* only for previewrender, so we see stuff */
+		else {
 			VECCOPY(vec, shi->lo);
-			retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
+			retval= multitex_thread((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output);
 		}
 		
 		/* stupid exception */
@@ -110,6 +115,18 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 	}
 }
 
+static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	Tex *tex = (Tex*)node->id;
+
+	if(tex && tex->type == TEX_IMAGE && tex->ima) {
+		GPUNodeLink *texlink = GPU_image(tex->ima, NULL);
+		return GPU_stack_link(mat, "texture_image", in, out, texlink);
+	}
+	else
+		return 0;
+}
+
 bNodeType sh_node_texture= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_TEXTURE,
@@ -124,7 +141,8 @@ bNodeType sh_node_texture= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_texture
 	
 };
 

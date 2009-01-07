@@ -1,15 +1,12 @@
 
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  * Original Author: Laurence
  * Contributor(s): Brecht
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef NAN_INCLUDED_IK_QJacobian_h
@@ -49,7 +46,7 @@ public:
 	~IK_QJacobian();
 
 	// Call once to initialize
-	void ArmMatrices(int dof, int task_size, int tasks);
+	void ArmMatrices(int dof, int task_size);
 	void SetDoFWeight(int dof, MT_Scalar weight);
 
 	// Iteratively called
@@ -75,7 +72,7 @@ private:
 	void InvertSDLS();
 	void InvertDLS();
 
-	int m_dof, m_task_size, m_tasks;
+	int m_dof, m_task_size;
 	bool m_transpose;
 
 	// the jacobian matrix and it's null space projector

@@ -110,7 +110,7 @@ def eulerRotate(x,y,z, rot_order):
 def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	# File loading stuff
 	# Open the file for importing
-	file = open(file_path, 'r')	
+	file = open(file_path, 'rU')	
 	
 	# Seperate into a list of lists, each line a list of words.
 	file_lines = file.readlines()
@@ -231,7 +231,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	
 	bvh_nodes_list= bvh_nodes.values()
 	
-	while lineIdx < len(file_lines) -1:
+	while lineIdx < len(file_lines):
 		line= file_lines[lineIdx]
 		for bvh_node in bvh_nodes_list:
 			#for bvh_node in bvh_nodes_serial:
@@ -354,7 +354,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
-			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeys.LOCROT)
+			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)
 	
 	scn.update(1)
 	return objects
@@ -726,7 +726,7 @@ def load_bvh_ui(file, PREF_UI= True):
 	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
 	t1= Blender.sys.time()
-	print '\tpassing bvh...',
+	print '\tparsing bvh...',
 	bvh_nodes= read_bvh(file, IMPORT_SCALE)
 	print '%.4f' % (Blender.sys.time()-t1)
 	t1= Blender.sys.time()

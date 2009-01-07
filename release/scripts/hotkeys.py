@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ Registration info for Blender menus:
 Name: 'HotKey and MouseAction Reference'
 Blender: 242
@@ -128,17 +128,21 @@ hotkeys={
 ['RMB hold down', 'Popup menu'],
 ['Alt-RMB', 'Object Mode :Select but in a displayed list of objects located under the mouse cursor'],
 ['Alt-RMB', 'Edit Mode: Select EDGES LOOP '],
-['Alt+Ctrl-RMB', 'Edit Mode: Select FACES LOOP'],	
-['Alt+Ctrl-RMB', 'UV Image Editor: Select face'],
+['Alt-Ctrl-RMB', 'Edit Mode: Select FACES LOOP'],	
+['Alt-Ctrl-RMB', 'UV Image Editor: Select face'],
 ['Shift-RMB', 'Add/subtract to/from selection'],
 ['Wheel', 'Zoom view'],
 ['Transformations:', ''],
 ['Drag+Ctrl', 'Step adjustment'],
-['Drag+Ctrl+Shift', 'Small step adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
+['Drag+Ctrl-Shift', 'Small step adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
 ['Drag+Shift', 'Fine adjustment (Transform Widget : first select the axe or axes with LBM alone)'],
 ['LMB', 'Confirm transformation'],
 ['MMB', 'Toggle optional transform feature'],
 ['RMB', 'Abort transformation'],
+['LMB', 'Grease Pencil: when "Draw Mode On", draw new stroke'],
+['RMB', 'Grease Pencil: when "Draw Mode On", eraser tool for stroke segments'],
+['Shift-LMB', 'Grease Pencil: draw new stroke'],
+['Alt-RMB', 'Grease Pencil: eraser tool for stroke segments'],
 ['.', '...']
 ],
 
@@ -228,7 +232,7 @@ hotkeys={
 ['Home', 'OutLiner Windows, Show hierarchy'],
 ['PgUp', 'Edit Mode and Proportionnal Editing Tools, increase influence'],
 ['PgUp', 'Strip Editor, Move Down'],
-['PgUn', 'TimeLine: Jump to next marker'],
+['PgUp', 'TimeLine: Jump to next marker'],
 ['PgUp', 'IPO: Select next keyframe'],
 ['Ctrl-PgUp', 'IPO: Select and jump to next keyframe'],
 ['Ctrl-PgUn', 'TimeLine: Jump to next key'],	
@@ -246,7 +250,6 @@ hotkeys={
 ['Alt-Up', 'Blender in Fullscreen mode'],
 ['Ctrl-Left', 'Previous screen'],
 ['Ctrl-Right', 'Next screen'],
-['Ctrl-Alt-C', 'Object Mode : Add  Constraint'],
 ['Ctrl-Down', 'Maximize window toggle'],
 ['Ctrl-Up', 'Maximize window toggle'],
 ['Shift-Arrow', 'Toggle first frame/ last frame'],
@@ -264,8 +267,10 @@ hotkeys={
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
 ['Ctrl-A', 'Text Editor: Select all'],
+['Ctrl-ALT-A', '3D-View: Armature Edit mode, align selected bones to active bone'],
 ['Shift-A', 'Sequencer: Add menu'],
 ['Shift-A', '3D-View: Add menu'],
+['Shift-A', 'Sculpt Mode: Keep the brush center anchored to the initial location'],
 ['Shift-ALT-A', 'Play animation in all windows'],
 ['Shift-CTRL-A', 'Apply lattice / Make dupliverts real'],
 ['Shift-CTRL-A', 'Apply Deform '],
@@ -275,13 +280,13 @@ hotkeys={
 "B":[ 
 ['B', 'Border select'],
 ['BB', 'Circle select'],
-['Alt+B', 'Object Mode: Select visible view section in 3D space'],
+['Alt-B', 'Object Mode: Select visible view section in 3D space'],
 ['Shift-B', 'Set render border (in active camera view)'],
-['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake (on an image in the uv editor window) the selected Meshes'], #243
-['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Full render of selected Meshes'],	 #243
-['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Ambient Occlusion of selected Meshes'],  #243	
-['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Normals of the selected Meshes'],	 #243
-['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Texture Only of selected Meshes'],	#243
+['Ctrl-Alt-B', 'Object Mode: in 3D view, Bake (on an image in the uv editor window) the selected Meshes'], #243
+['Ctrl-Alt-B', 'Object Mode: in 3D view, Bake Full render of selected Meshes'],	 #243
+['Ctrl-Alt-B', 'Object Mode: in 3D view, Bake Ambient Occlusion of selected Meshes'],  #243	
+['Ctrl-Alt-B', 'Object Mode: in 3D view, Bake Normals of the selected Meshes'],	 #243
+['Ctrl-Alt-B', 'Object Mode: in 3D view, Bake Texture Only of selected Meshes'],	#243
 ['.', '...']
 ],
 
@@ -295,11 +300,12 @@ hotkeys={
 ['C', 'NODE window : Show cyclic referencies'], #243				
 ['Alt-C', 'Object Mode: Convert menu'],
 ['Alt-C', 'Text Editor: Copy '],
+['Ctrl-Alt-C', 'Object Mode : Add  Constraint'],
 ['Ctrl-Shift-C', 'Text Editor: Copy selection to clipboard'],
 ['Ctrl-C', 'Copy menu (Copy properties of active to selected objects)'],
 ['Ctrl-C', 'UV Image Editor: Stick UVs to mesh vertex'],
 ['Ctrl-C','ARMATURE : posemode, Copy pose attributes'],
-['Ctrl+Alt-C',' ARMATURE : posemode, add constraint to new empty object.'],
+['Ctrl-Alt-C',' ARMATURE : posemode, add constraint to new empty object.'],
 ['Shift-C', 'Center and zoom view on selected objects'],
 ['Shift-C', 'UV Image Editor: Stick local UVs to mesh vertex'],
 ['.', '...']
@@ -393,9 +399,11 @@ hotkeys={
 ],
 
 "I":[ 
-['I', 'Keyframe menu'],
-['Alt-I','ARMATURE : posemode, remove IK constraints.'],
-['Ctrl-I','ARMATURE : add IK constraint'],
+['I', 'Insert Keyframe menu'],
+['Alt-I','Delete Keyframe menu'],
+['Ctrl-I','Select Inverse'],
+['Shift-I','ARMATURE : add IK constraint'],
+['Ctrl-Alt-I','ARMATURE : posemode, remove IK constraints.'],
 ['.', '...']
 ],
 
@@ -433,6 +441,10 @@ hotkeys={
 ['Ctrl-L', 'Make links menu (for instance : to scene...)'],
 ['Shift-L', 'Select links menu'],
 ['Shift-L', 'NODE window: Select linked to '], #243
+['Ctrl-L', 'POSELIB: browse poses'],
+['Shift-L', 'POSELIB: add/replace pose'],
+['Ctrl-Shift-L', 'POSELIB: rename pose'],
+['Alt-L', 'POSELIB: remove pose'],
 ['.', '...']
 ],
 
@@ -483,8 +495,8 @@ hotkeys={
 "P":[ 
 ['P', 'Object Mode: Start realtime engine'],
 ['P', 'Edit mode: Seperate vertices to new object'],
-['shift-P', 'Edit mode: Push-Pull'],
-['shift-P', 'Object mode: Add a preview window in the D window'],
+['Shift-P', 'Edit mode: Push-Pull'],
+['Shift-P', 'Object mode: Add a preview window in the D window'],
 ['P', 'UV Image Editor:  Pin selected vertices. Pinned vertices will stay in place on the UV editor when executing an LSCM unwrap.'],
 ['Alt-P', 'Clear parent relationship'],
 ['Alt-P', 'UV Image Editor: Unpin UVs'],
@@ -493,6 +505,7 @@ hotkeys={
 ['Ctrl-Shift-P', 'Make active object parent of selected object without inverse'],
 ['Ctrl-P', 'Edit mode: Make active vertex parent of selected object'],
 ['Ctrl-P', 'ARMATURE : editmode, make bone parent.'],
+['Ctrl-Alt-P', 'ARMATURE: edimode, separate bones to new object'],
 ['.', '...']
 ],
 
@@ -541,6 +554,7 @@ hotkeys={
 ['Alt-Shift-S,','Text editor : Select the line '],
 ['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Size Mode'],
 ['Shift-S', 'Cursor/Grid snap menu'],
+['Shift-S', 'Sculpt Mode: Smooth Stroke.'],
 ['Shift-S+1', 'VIDEO SEQUENCE editor : jump to the current frame '],
 ['.', '...']
 ],
@@ -556,7 +570,7 @@ hotkeys={
 ['Alt-T', 'Clear tracking of object'],
 ['Ctrl-T', 'Make selected object track active object'],
 ['Ctrl-T', 'Edit Mode: Convert to triangles'],
-['Ctrl-ALT-T', 'Benchmark'],
+['Ctrl-Alt-T', 'Benchmark'],
 ['.', '...']
 ],
 
@@ -594,9 +608,18 @@ hotkeys={
 "W":[ 
 ['W', 'Edit Mode: Specials menu'],
 ['W', 'Edit Mode: Specials menu, ARMATURE 1 Subdivide'],
-['W', 'Edit Mode: Specials menu, ARMATURE 2 Flip Left-Right Name'],
+['W', 'Edit Mode: Specials menu, ARMATURE 2 Subdivide Multi'],
+['W', 'Edit Mode: Specials menu, ARMATURE 3 Switch Direction'],
+['W', 'Edit Mode: Specials menu, ARMATURE 4 Flip Left-Right Name'],
+['W', 'Edit Mode: Specials menu, ARMATURE 5 AutoName Left-Right'],
+['W', 'Edit Mode: Specials menu, ARMATURE 6 AutoName Front-Back'],
+['W', 'Edit Mode: Specials menu, ARMATURE 7 AutoName Top-Bottom'],
 ['W', 'Edit Mode: Specials menu, CURVE 1 Subdivide'],
 ['W', 'Edit Mode: Specials menu, CURVE 2 Swich Direction'],
+['W', 'Edit Mode: Specials menu, CURVE 3 Set Goal Weight'],
+['W', 'Edit Mode: Specials menu, CURVE 4 Set Radius'],
+['W', 'Edit Mode: Specials menu, CURVE 5 Smooth'],
+['W', 'Edit Mode: Specials menu, CURVE 6 Smooth Radius'],
 ['W', 'Edit Mode: Specials menu, MESH 1 Subdivide'],
 ['W', 'Edit Mode: Specials menu, MESH 2 Subdivide Multi'],
 ['W', 'Edit Mode: Specials menu, MESH 3 Subdivide Multi Fractal'],
@@ -624,7 +647,6 @@ hotkeys={
 ['WY', 'UV Image Editor: Weld/Align Y axis'],
 ['Ctrl-W', 'Save current file'] ,
 ['Shift-W', 'Warp/bend selected vertices around cursor'],
-['alt-W', 'Export in videoscape format'],
 ['.', '...']
  ],
 
@@ -635,6 +657,7 @@ hotkeys={
 ['X', 'IPO : Remove marker'],	
 ['X', 'NODE window : delete'], #243		
 ['Alt-X', 'Text Editor : Cut '],
+['Alt-X', 'Grease Pencil: Delete menu'],
 ['Ctrl-X', 'Restore default state (Erase all)'],
 ['.', '...']
  ],

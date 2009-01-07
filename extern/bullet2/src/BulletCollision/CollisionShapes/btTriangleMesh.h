@@ -17,61 +17,50 @@ subject to the following restrictions:
 #ifndef TRIANGLE_MESH_H
 #define TRIANGLE_MESH_H
 
-#include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
-#include <LinearMath/btVector3.h>
+#include "btTriangleIndexVertexArray.h"
+#include "LinearMath/btVector3.h"
 #include "LinearMath/btAlignedObjectArray.h"
-struct btMyTriangle
-{
-	btVector3	m_vert0;
-	btVector3	m_vert1;
-	btVector3	m_vert2;
-};
 
-///TriangleMesh provides storage for a concave triangle mesh. It can be used as data for the btTriangleMeshShape.
-class btTriangleMesh : public btStridingMeshInterface
+///The btTriangleMesh class is a convenience class derived from btTriangleIndexVertexArray, that provides storage for a concave triangle mesh. It can be used as data for the btBvhTriangleMeshShape.
+///It allows either 32bit or 16bit indices, and 4 (x-y-z-w) or 3 (x-y-z) component vertices.
+///If you want to share triangle/index data between graphics mesh and collision mesh (btBvhTriangleMeshShape), you can directly use btTriangleIndexVertexArray or derive your own class from btStridingMeshInterface.
+///Performance of btTriangleMesh and btTriangleIndexVertexArray used in a btBvhTriangleMeshShape is the same.
+///It has a brute-force option to weld together closeby vertices.
+class btTriangleMesh : public btTriangleIndexVertexArray
 {
-	btAlignedObjectArray<btMyTriangle>	m_triangles;
+	btAlignedObjectArray<btVector3>	m_4componentVertices;
+	btAlignedObjectArray<float>		m_3componentVertices;
+
+	btAlignedObjectArray<unsigned int>		m_32bitIndices;
+	btAlignedObjectArray<unsigned short int>		m_16bitIndices;
+	bool	m_use32bitIndices;
+	bool	m_use4componentVertices;
+	
 
 	public:
-		btTriangleMesh ();
+		btScalar	m_weldingThreshold;
 
-		void	addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2)
+		btTriangleMesh (bool use32bitIndices=true,bool use4componentVertices=true);
+
+		int		findOrAddVertex(const btVector3& vertex);
+		void	addIndex(int index);
+
+		bool	getUse32bitIndices() const
 		{
-			btMyTriangle tri;
-			tri.m_vert0 = vertex0;
-			tri.m_vert1 = vertex1;
-			tri.m_vert2 = vertex2;
-			m_triangles.push_back(tri);
+			return m_use32bitIndices;
 		}
 
-		int getNumTriangles() const
+		bool	getUse4componentVertices() const
 		{
-			return m_triangles.size();
+			return m_use4componentVertices;
 		}
-
-		const btMyTriangle&	getTriangle(int index) const
-		{
-			return m_triangles[index];
-		}
-
-//StridingMeshInterface interface implementation
-
-		virtual void	getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0);
-
-		virtual void	getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& stride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0) const;
-
-		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
-		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-		virtual void	unLockVertexBase(int subpart) {}
-
-		virtual void	unLockReadOnlyVertexBase(int subpart) const {}
-
-		/// getNumSubParts returns the number of seperate subparts
-		/// each subpart has a continuous array of vertices and indices
-		virtual int		getNumSubParts() const;
 		
-		virtual void	preallocateVertices(int numverts){}
-		virtual void	preallocateIndices(int numindices){}
+		void	addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2);
+		
+		int getNumTriangles() const;
+
+		virtual void	preallocateVertices(int numverts){(void) numverts;}
+		virtual void	preallocateIndices(int numindices){(void) numindices;}
 
 		
 };

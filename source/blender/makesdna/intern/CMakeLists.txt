@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,13 +22,24 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
-
-SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c)
+# ***** END GPL LICENSE BLOCK *****
 
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc ..)
-
 FILE(GLOB INC_FILES ../*.h)
+
+# Build makesdna executable
+SET(SRC makesdna.c ../../../../intern/guardedalloc/intern/mallocn.c ../../../../intern/guardedalloc/intern/mmap_win.c)
 ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
+
+# Output dna.c
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+  DEPENDS makesdna
+)
+
+# Build bf_dna library
+SET(SRC dna_genfile.c dna.c)
+BLENDERLIB(bf_dna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesdna")

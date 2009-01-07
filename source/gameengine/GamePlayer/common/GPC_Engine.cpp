@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -42,6 +39,7 @@
 
 #include "BKE_blender.h"  // initglobals()
 #include "BKE_global.h"  // Global G
+#include "BKE_report.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"  // Camera
 #include "DNA_object_types.h"  // Object
@@ -138,15 +136,19 @@ GPC_Engine::~GPC_Engine()
 
 bool GPC_Engine::Start(char *filename)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_file(filename, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_file(filename, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here
 		cout << "Unable to load: " << filename << endl;
 		return false;
 	}
-	
+
 	StartKetsji();
 
 	if(bfd->type == BLENFILETYPE_PUB)
@@ -159,8 +161,12 @@ bool GPC_Engine::Start(char *filename)
 bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 		unsigned int blenderDataBufferSize)
 {
-	BlendReadError error;
-	BlendFileData *bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &error);
+	ReportList reports;
+	BlendFileData *bfd;
+	
+	BKE_reports_init(&reports, RPT_STORE);
+	bfd= BLO_read_from_memory(blenderDataBuffer, blenderDataBufferSize, &reports);
+	BKE_reports_clear(&reports);
 
 	if (!bfd) {
 			// XXX, deal with error here
@@ -179,7 +185,7 @@ bool GPC_Engine::Start(unsigned char *blenderDataBuffer,
 
 bool GPC_Engine::StartKetsji(void)
 {
-	STR_String startSceneName = G.scene->id.name + 2;
+	STR_String startSceneName = ""; // XXX scene->id.name + 2;
 /*
 	KX_KetsjiEngine* ketsjieng = new KX_KetsjiEngine(m_system);
 	m_portal = new KetsjiPortal(ketsjieng);

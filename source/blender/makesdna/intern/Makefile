@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,20 +24,15 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 #
 
+LIBNAME = dna
 DIR = $(OCGDIR)/blender/makesdna
-CSRCS = $(wildcard *.c)
-
-ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)makesdna $(DIR)/$(SHARED_DIR)$(DEBUG_DIR)DNA.o
+CSRCS = DNA.c $(wildcard dna_*.c)
 
 include nan_compile.mk
-
-ifneq ($(OS),irix)
-    CFLAGS += -funsigned-char
-endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
@@ -73,9 +65,10 @@ clean::
 # A small note: we do not use the debug version of the alloc lib. That
 # is done quite intentionally. If there is a bug in that lib, it needs
 # to be fixed by the module maintainer.
-$(DIR)/$(DEBUG_DIR)makesdna: $(OBJS) $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a 
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) \
-	$(NAN_GUARDEDALLOC)/lib/libguardedalloc.a $(WINLIBS)
+DNAOBJS = $(filter-out %DNA.o, $(OBJS))
+
+$(DIR)/$(DEBUG_DIR)makesdna: $(DNAOBJS) $(DIR)/$(DEBUG_DIR)makesdna.o $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+	$(CC) $(LDFLAGS) -o $@ $^
 
 $(DIR)/$(DEBUG_DIR)DNA.c: $(DIR)/$(DEBUG_DIR)makesdna
     ifeq ($(OS),windows)
@@ -85,6 +78,6 @@ $(DIR)/$(DEBUG_DIR)DNA.c: $(DIR)/$(DEBUG_DIR)makesdna
 	$(DIR)/$(DEBUG_DIR)makesdna $(DIR)/$(DEBUG_DIR)DNA.c
     endif
 
-$(DIR)/$(SHARED_DIR)$(DEBUG_DIR)DNA.o: $(DIR)/$(DEBUG_DIR)DNA.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+$(DIR)/$(DEBUG_DIR)makesdna.o: makesdna.c $(wildcard ../*.h)
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) makesdna.c -o $@
 

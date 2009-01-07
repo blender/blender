@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __SG_CONTROLLER_H
@@ -104,7 +101,9 @@ public:
 	enum SG_Controller_option {
 		SG_CONTR_NODEF = 0,
 		SG_CONTR_IPO_IPO_AS_FORCE,
-		SG_CONTR_IPO_FORCES_ACT_LOCAL,
+		SG_CONTR_IPO_IPO_ADD,
+		SG_CONTR_IPO_LOCAL,
+		SG_CONTR_IPO_RESET,
 		SG_CONTR_CAMIPO_LENS,
 		SG_CONTR_CAMIPO_CLIPEND,
 		SG_CONTR_CAMIPO_CLIPSTART,

@@ -1,14 +1,11 @@
 /* ***************************************
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
 
 
@@ -50,15 +47,13 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_screen.h"
-
 #include "radio.h"
 #include "RE_render_ext.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 
 /* locals */
-void rad_setmatrices(RadView *vw);
-void clearsubflagelem(RNode *rn);
-void setsubflagelem(RNode *rn);
+static void rad_setmatrices(RadView *vw);
+static void clearsubflagelem(RNode *rn);
+static void setsubflagelem(RNode *rn);
 
 RadView hemitop, hemiside;
 
@@ -257,7 +252,7 @@ void rad_make_hocos(RadView *vw)
 	/* } */
 }
 
-void rad_setmatrices(RadView *vw)	    /* for hemi's */
+static void rad_setmatrices(RadView *vw)	    /* for hemi's */
 {
 	float up1[3], len, twist;
 
@@ -549,7 +544,7 @@ void progressiverad()
 			applyformfactors(shoot);
 	
 			it++;
-			set_timecursor(it);
+			//XXX set_timecursor(it);
 			if( (it & 3)==1 ) {
 				make_node_display();
 				rad_forcedraw();
@@ -559,7 +554,7 @@ void progressiverad()
 		
 		clear_backface_test();
 		
-		if(blender_test_break()) break;
+		//XXX if(blender_test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 
 		shoot=findshootpatch();
@@ -631,7 +626,7 @@ void minmaxradelemfilt(RNode *rn, float *min, float *max, float *errmin, float *
 	}
 }
 
-void setsubflagelem(RNode *rn)
+static void setsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {
@@ -643,7 +638,7 @@ void setsubflagelem(RNode *rn)
 	}
 }
 
-void clearsubflagelem(RNode *rn)
+static void clearsubflagelem(RNode *rn)
 {
 	
 	if(rn->down1) {
@@ -675,7 +670,7 @@ void subdivideshootElements(int it)
 			shoot= findshootpatch();
 			if(shoot==0) break;
 			
-			set_timecursor(a);
+			//XXX set_timecursor(a);
 			drawpatch_ext(shoot, 0x88FF00);
 			
 			setnodeflags(shoot->first, RAD_SHOOT, 1);
@@ -725,7 +720,7 @@ void subdivideshootElements(int it)
 			}
 			else a--;
 			
-			if(blender_test_break()) break;
+			//XXX if(blender_test_break()) break;
 		}
 		
 		/* test for extreme small color change within a patch with subdivflag */
@@ -744,11 +739,9 @@ void subdivideshootElements(int it)
 					}
 				}
 				if(rn) {
-					min[0]= min[1]= min[2]= 1.0e10;
-					max[0]= max[1]= max[2]= -1.0e10;
+					INIT_MINMAX(min, max);
 					/* errmin and max are the filtered colors */
-					errmin[0]= errmin[1]= errmin[2]= 1.0e10;
-					errmax[0]= errmax[1]= errmax[2]= -1.0e10;
+					INIT_MINMAX(errmin, errmax);
 					minmaxradelemfilt(rp->first, min, max, errmin, errmax);
 					
 					/* if small difference between colors: no subdiv */
@@ -796,7 +789,7 @@ void subdivideshootElements(int it)
 		}
 		makeGlobalElemArray();
 
-		if(contin==0 || blender_test_break()) break;
+		//XXX if(contin==0 || blender_test_break()) break;
 	}
 	
 	make_node_display();
@@ -821,7 +814,7 @@ void subdivideshootPatches(int it)
 			shoot= findshootpatch();
 			if(shoot==0) break;
 			
-			set_timecursor(a);
+			//XXX set_timecursor(a);
 			drawpatch_ext(shoot, 0x88FF00);
 			
 			setnodeflags(shoot->first, RAD_SHOOT, 1);
@@ -871,7 +864,7 @@ void subdivideshootPatches(int it)
 				
 				setnodeflags(shoot->first, RAD_SHOOT, 0);
 				
-				if(blender_test_break()) break;
+				//XXX if(blender_test_break()) break;
 			}
 			else a--;
 			
@@ -898,7 +891,7 @@ void subdivideshootPatches(int it)
 		converttopatches();
 		makeGlobalElemArray();
 
-		if(contin==0 || blender_test_break()) break;
+		//XXX if(contin==0 || blender_test_break()) break;
 	}
 	make_node_display();
 }
@@ -912,8 +905,8 @@ void inithemiwindows()
 	memset(vw, 0, sizeof(RadView));
 	vw->rectx= RG.hemires;
 	vw->recty= RG.hemires;
-	vw->rectz= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
-	vw->rect= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
+	vw->rectz= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
+	vw->rect= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
 	vw->mynear= RG.maxsize/2000.0;
 	vw->myfar= 2.0*RG.maxsize;
 	vw->wx1= -vw->mynear;

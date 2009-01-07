@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef _FTF_API_H
@@ -106,12 +103,12 @@ FTF_EXPORT float FTF_GetStringWidth(char* str, unsigned int flag);
 
 /**
  * Get Bounding Box
- * @param llx
- * @param lly
- * @param llz
- * @param urx
- * @param ury
- * @param urz
+ * @param llx   Lower left near x coord
+ * @param lly   Lower left near y coord
+ * @param llz   Lower left near z coord
+ * @param urx   Upper right far x coord
+ * @param ury   Upper right far y coord
+ * @param urz   Upper right far z coord
  * @param mode flag to forward to FTF_TransConvString()
  * not test yet.
  */
@@ -153,6 +150,10 @@ FTF_EXPORT void FTF_SetMode(int mode);
 FTF_EXPORT void FTF_SetScale(float fsize);
 
 FTF_EXPORT void FTF_End(void);
+
+/* Font preview functions */
+FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fontsize);
+FTF_EXPORT float FTF_DrawNewFontString(char* str, unsigned int flag);
 
 #ifdef __cplusplus
 }

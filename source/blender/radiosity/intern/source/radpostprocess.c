@@ -1,14 +1,11 @@
 /* ***************************************
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
 
 
@@ -53,13 +50,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
-#include "BIF_toolbox.h"  // notice()
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -68,11 +65,6 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-
-#include "BIF_screen.h"		/* waitcursor */
-#include "BIF_editview.h"	/* deselectall */
-
-#include "BDR_editobject.h"	/* delete_obj */
 
 #include "radio.h"
 
@@ -627,7 +619,7 @@ void removeEqualNodes(short limit)
 	thresh= 1.0/(256.0*RG.radfactor);
 	thresh= 3.0*pow(thresh, RG.gamma);
 	
-	waitcursor(1);
+// XXX	waitcursor(1);
 		
 	while(foundone) {
 		foundone= 0;
@@ -682,7 +674,7 @@ void removeEqualNodes(short limit)
 			makeGlobalElemArray();
 		}
 	}
-	waitcursor(0);
+// XXX	waitcursor(0);
 }
 
 unsigned int rad_find_or_add_mvert(Mesh *me, MFace *mf, RNode *orignode, float *w, float *radco, GHash *hash)
@@ -703,7 +695,7 @@ unsigned int rad_find_or_add_mvert(Mesh *me, MFace *mf, RNode *orignode, float *
 	return (unsigned int)(mvert - me->mvert);
 }
 
-void rad_addmesh(void)
+void rad_addmesh(Scene *scene)
 {
 	Face *face = NULL;
 	Object *ob;
@@ -720,11 +712,11 @@ void rad_addmesh(void)
 	if(RG.totface==0)
 		return;
 	
-	if(RG.totmat==MAXMAT)
-		notice("warning: cannot assign more than 16 materials to 1 mesh");
+//	if(RG.totmat==MAXMAT)
+// XXX		notice("warning: cannot assign more than 16 materials to 1 mesh");
 
 	/* create the mesh */
-	ob= add_object(OB_MESH);
+	ob= add_object(scene, OB_MESH);
 	
 	me= ob->data;
 	me->totvert= totalRadVert();
@@ -808,11 +800,11 @@ void rad_addmesh(void)
 	make_edges(me, 0);
 }
 
-void rad_replacemesh(void)
+void rad_replacemesh(Scene *scene)
 {
 	RPatch *rp;
 	
-	deselectall();
+// XXX	deselectall();
 	
 	rp= RG.patchbase.first;
 	while(rp) {
@@ -824,9 +816,9 @@ void rad_replacemesh(void)
 		rp= rp->next;
 	}
 	
-	copy_objectflags();
-	delete_obj(1);
+	copy_objectflags(scene);
+// XXX	delete_obj(1);
 	
-	rad_addmesh();
+	rad_addmesh(scene);
 }
 

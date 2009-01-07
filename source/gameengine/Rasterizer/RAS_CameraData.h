@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __RAS_CAMERADATA_H
 #define __RAS_CAMERADATA_H
@@ -43,9 +40,11 @@ struct RAS_CameraData
 	int m_viewportbottom;
 	int m_viewportright;
 	int m_viewporttop;
+	float m_focallength;
 
-	RAS_CameraData(float lens = 35., float clipstart = 0.1, float clipend = 100., bool perspective = true,
-	bool viewport = false, int viewportleft = 0, int viewportbottom = 0, int viewportright = 0, int viewporttop = 0) :
+	RAS_CameraData(float lens = 35.0, float clipstart = 0.1, float clipend = 5000.0, bool perspective = true,
+	float focallength = 0.0f, bool viewport = false, int viewportleft = 0, int viewportbottom = 0, 
+	int viewportright = 0, int viewporttop = 0) :
 		m_lens(lens),
 		m_clipstart(clipstart),
 		m_clipend(clipend),
@@ -54,7 +53,8 @@ struct RAS_CameraData
 		m_viewportleft(viewportleft),
 		m_viewportbottom(viewportbottom),
 		m_viewportright(viewportright),
-		m_viewporttop(viewporttop)
+		m_viewporttop(viewporttop),
+		m_focallength(focallength)
 	{
 	}
 };

@@ -16,28 +16,28 @@ subject to the following restrictions:
 #ifndef MINKOWSKI_SUM_SHAPE_H
 #define MINKOWSKI_SUM_SHAPE_H
 
-#include "btConvexShape.h"
+#include "btConvexInternalShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-/// btMinkowskiSumShape represents implicit (getSupportingVertex) based minkowski sum of two convex implicit shapes.
-class btMinkowskiSumShape : public btConvexShape
+/// The btMinkowskiSumShape is only for advanced users. This shape represents implicit based minkowski sum of two convex implicit shapes.
+class btMinkowskiSumShape : public btConvexInternalShape
 {
 
 	btTransform	m_transA;
 	btTransform	m_transB;
-	btConvexShape*	m_shapeA;
-	btConvexShape*	m_shapeB;
+	const btConvexShape*	m_shapeA;
+	const btConvexShape*	m_shapeB;
 
 public:
 
-	btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB);
+	btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB);
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	void	setTransformA(const btTransform&	transA) { m_transA = transA;}
 	void	setTransformB(const btTransform&	transB) { m_transB = transB;}
@@ -48,12 +48,12 @@ public:
 
 	virtual int	getShapeType() const { return MINKOWSKI_SUM_SHAPE_PROXYTYPE; }
 
-	virtual float	getMargin() const;
+	virtual btScalar	getMargin() const;
 
 	const btConvexShape*	getShapeA() const { return m_shapeA;}
 	const btConvexShape*	getShapeB() const { return m_shapeB;}
 
-	virtual char*	getName()const 
+	virtual const char*	getName()const 
 	{
 		return "MinkowskiSum";
 	}

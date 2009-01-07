@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * blenloader readfile private function prototypes
  */
 #ifndef READFILE_H
@@ -37,6 +34,8 @@
 
 struct OldNewMap;
 struct MemFile;
+struct bheadsort;
+struct ReportList;
 
 typedef struct FileData {
 	// linked list of BHeadN's
@@ -45,7 +44,7 @@ typedef struct FileData {
 	int eof;
 	int buffersize;
 	int seek;
-	int (*read)(struct FileData *filedata, void *buffer, int size);
+	int (*read)(struct FileData *filedata, void *buffer, unsigned int size);
 
 	// variables needed for reading from memory / stream
 	char *buffer;
@@ -76,13 +75,16 @@ typedef struct FileData {
 	struct OldNewMap *libmap;
 	struct OldNewMap *imamap;
 	
+	struct bheadsort *bheadmap;
+	int tot_bheadmap;
+	
 	ListBase mainlist;
 	
 		/* ick ick, used to return
 		 * data through streamglue.
 		 */
 	BlendFileData **bfd_r;
-	BlendReadError *error_r;
+	struct ReportList *reports;
 } FileData;
 
 typedef struct BHeadN {
@@ -105,14 +107,15 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal( FileData *fd,  BlendReadError *error_r);
+BlendFileData *blo_read_file_internal(FileData *fd);
 
-FileData *blo_openblenderfile( char *name, BlendReadError *error_r);
-FileData *blo_openblendermemory( void *buffer, int buffersize, BlendReadError *error_r);
-FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_r);
+FileData *blo_openblenderfile(char *name, struct ReportList *reports);
+FileData *blo_openblendermemory(void *buffer, int buffersize, struct ReportList *reports);
+FileData *blo_openblendermemfile(struct MemFile *memfile, struct ReportList *reports);
 
-void blo_make_image_pointer_map(FileData *fd);
-void blo_end_image_pointer_map(FileData *fd);
+void blo_clear_proxy_pointers_from_lib(FileData *fd, Main *oldmain);
+void blo_make_image_pointer_map(FileData *fd, Main *oldmain);
+void blo_end_image_pointer_map(FileData *fd, Main *oldmain);
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
 
 void blo_freefiledata( FileData *fd);

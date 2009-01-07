@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -41,7 +38,10 @@
 #include <stdarg.h>
 
 /* mmap exception */
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
+#elif defined(WIN32)
+#include <sys/types.h>
+#include "mmap_win.h"
 #else
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -111,11 +111,11 @@ static const char *check_memlist(MemHead *memh);
 /* --------------------------------------------------------------------- */
 	
 
-volatile int totblock= 0;
-volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
+static volatile int totblock= 0;
+static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
 
-volatile static struct localListBase _membase;
-volatile static struct localListBase *membase = &_membase;
+static volatile struct localListBase _membase;
+static volatile struct localListBase *membase = &_membase;
 static void (*error_callback)(char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
@@ -292,7 +292,7 @@ void *MEM_callocN(unsigned int len, const char *str)
 /* note; mmap returns zero'd memory */
 void *MEM_mapallocN(unsigned int len, const char *str)
 {
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
 	return MEM_callocN(len, str);
 #else
 	MemHead *memh;
@@ -332,8 +332,94 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 #endif
 }
 
+/* Memory statistics print */
+typedef struct MemPrintBlock {
+	const char *name;
+	uintptr_t len;
+	int items;
+} MemPrintBlock;
 
-void MEM_printmemlist()
+static int compare_name(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	return strcmp(pb1->name, pb2->name);
+}
+
+static int compare_len(const void *p1, const void *p2)
+{
+	const MemPrintBlock *pb1= (const MemPrintBlock*)p1;
+	const MemPrintBlock *pb2= (const MemPrintBlock*)p2;
+
+	if(pb1->len < pb2->len)
+		return 1;
+	else if(pb1->len == pb2->len)
+		return 0;
+	else
+		return -1;
+}
+
+void MEM_printmemlist_stats()
+{
+	MemHead *membl;
+	MemPrintBlock *pb, *printblock;
+	int totpb, a, b;
+
+	mem_lock_thread();
+
+	/* put memory blocks into array */
+	printblock= malloc(sizeof(MemPrintBlock)*totblock);
+
+	pb= printblock;
+	totpb= 0;
+
+	membl = membase->first;
+	if (membl) membl = MEMNEXT(membl);
+
+	while(membl) {
+		pb->name= membl->name;
+		pb->len= membl->len;
+		pb->items= 1;
+
+		totpb++;
+		pb++;
+
+		if(membl->next)
+			membl= MEMNEXT(membl->next);
+		else break;
+	}
+
+	/* sort by name and add together blocks with the same name */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_name);
+	for(a=0, b=0; a<totpb; a++) {
+		if(a == b) {
+			continue;
+		}
+		else if(strcmp(printblock[a].name, printblock[b].name) == 0) {
+			printblock[b].len += printblock[a].len;
+			printblock[b].items++;
+		}
+		else {
+			b++;
+			memcpy(&printblock[b], &printblock[a], sizeof(MemPrintBlock));
+		}
+	}
+	totpb= b+1;
+
+	/* sort by length and print */
+	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
+	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use/(double)(1024*1024));
+	for(a=0, pb=printblock; a<totpb; a++, pb++)
+		printf("%s items: %d, len: %.3f MB\n", pb->name, pb->items, (double)pb->len/(double)(1024*1024));
+
+	free(printblock);
+	
+	mem_unlock_thread();
+}
+
+/* Prints in python syntax for easy */
+static void MEM_printmemlist_internal( int pydict )
 {
 	MemHead *membl;
 
@@ -341,56 +427,80 @@ void MEM_printmemlist()
 
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
+	
+	if (pydict) {
+		print_error("# membase_debug.py\n");
+		print_error("membase = [\\\n");
+	}
 	while(membl) {
-		print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		if (pydict) {
+			fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
+		} else {
+			print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		}
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
-
+	if (pydict) {
+		fprintf(stderr, "]\n\n");
+		fprintf(stderr,
+"mb_userinfo = {}\n"
+"totmem = 0\n"
+"for mb_item in membase:\n"
+"\tmb_item_user_size = mb_userinfo.setdefault(mb_item['name'], [0,0])\n"
+"\tmb_item_user_size[0] += 1 # Add a user\n"
+"\tmb_item_user_size[1] += mb_item['len'] # Increment the size\n"
+"\ttotmem += mb_item['len']\n"
+"print '(membase) items:', len(membase), '| unique-names:', len(mb_userinfo), '| total-mem:', totmem\n"
+"mb_userinfo_sort = mb_userinfo.items()\n"
+"for sort_name, sort_func in (('size', lambda a: -a[1][1]), ('users', lambda a: -a[1][0]), ('name', lambda a: a[0])):\n"
+"\tprint '\\nSorting by:', sort_name\n"
+"\tmb_userinfo_sort.sort(key = sort_func)\n"
+"\tfor item in mb_userinfo_sort:\n"
+"\t\tprint 'name:%%s, users:%%i, len:%%i' %% (item[0], item[1][0], item[1][1])\n"
+		);
+	}
+	
 	mem_unlock_thread();
 }
 
-short WMEM_freeN(void *vmemh)
-{
-	return _MEM_freeN(vmemh, "(called through C stub function)", -1);
+void MEM_printmemlist( void ) {
+	MEM_printmemlist_internal(0);
+}
+void MEM_printmemlist_pydict( void ) {
+	MEM_printmemlist_internal(1);
 }
 
-/*special macro-wrapped MEM_freeN that keeps track of where MEM_freeN is called.*/
-short _MEM_freeN(void *vmemh, char *file, int line)		/* anders compileertie niet meer */
+short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 {
 	short error = 0;
 	MemTail *memt;
 	MemHead *memh= vmemh;
 	const char *name;
-	char str1[90];
-	
+
 	if (memh == NULL){
-		sprintf(str1, "Error in %s on line %d: attempt to free NULL pointer", file, line);
-		MemorY_ErroR("free", str1);
+		MemorY_ErroR("free","attempt to free NULL pointer");
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
 	}
 
-	if(sizeof(long)==8) {
-		if (((long) memh) & 0x7) {
-			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
-			MemorY_ErroR("free", str1);
+	if(sizeof(intptr_t)==8) {
+		if (((intptr_t) memh) & 0x7) {
+			MemorY_ErroR("free","attempt to free illegal pointer");
 			return(-1);
 		}
 	}
 	else {
-		if (((long) memh) & 0x3) {
-			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
-			MemorY_ErroR("free", str1);
+		if (((intptr_t) memh) & 0x3) {
+			MemorY_ErroR("free","attempt to free illegal pointer");
 			return(-1);
 		}
 	}
 	
 	memh--;
 	if(memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
-		sprintf(str1, "Error in %s on line %d: double free", file, line);
-		MemorY_ErroR(memh->name, str1);
+		MemorY_ErroR(memh->name,"double free");
 		return(-1);
 	}
 
@@ -414,19 +524,15 @@ short _MEM_freeN(void *vmemh, char *file, int line)		/* anders compileertie niet
 		MemorY_ErroR(memh->name,"end corrupt");
 		name = check_memlist(memh);
 		if (name != 0){
-			sprintf(str1, "Error in %s on line %d: %s is also corrupt", file, line, name);
-			if (name != memh->name) MemorY_ErroR(name, str1);
+			if (name != memh->name) MemorY_ErroR(name,"is also corrupt");
 		}
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0) {
-			sprintf(str1, "Error in %s on line %d: pointer not in memlist", file, line);
-			MemorY_ErroR("free", str1);
-		} else {
-			sprintf(str1, "Error in %s on line %d: error in header", file, line);
-			MemorY_ErroR(name, str1);
-		}
+		if (name == 0)
+			MemorY_ErroR("free","pointer not in memlist");
+		else
+			MemorY_ErroR(name,"error in header");
 	}
 
 	totblock--;
@@ -483,7 +589,7 @@ static void rem_memblock(MemHead *memh)
     totblock--;
     mem_in_use -= memh->len;
    
-#if defined(AMIGA) || defined(__BeOS) || defined(WIN32)
+#if defined(AMIGA) || defined(__BeOS)
     free(memh);
 #else   
    
@@ -588,6 +694,21 @@ static const char *check_memlist(MemHead *memh)
 	}
 
 	return(name);
+}
+
+uintptr_t MEM_get_memory_in_use(void)
+{
+	return mem_in_use;
+}
+
+uintptr_t MEM_get_mapped_memory_in_use(void)
+{
+	return mmap_in_use;
+}
+
+int MEM_get_memory_blocks_in_use(void)
+{
+	return totblock;
 }
 
 /* eof */

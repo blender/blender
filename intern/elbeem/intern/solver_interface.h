@@ -21,7 +21,7 @@
 #if LBM_USE_GUI==1
 #define USE_GLUTILITIES
 // for debug display
-#include <GL/gl.h>
+//#include <GL/gl.h>
 #include "../gui/guifuncs.h"
 #endif
 
@@ -596,8 +596,10 @@ class LbmSolverInterface
 void initGridSizes(int &mSizex, int &mSizey, int &mSizez,
 		ntlVec3Gfx &mvGeoStart, ntlVec3Gfx &mvGeoEnd, 
 		int mMaxRefine, bool parallel);
+// return the amount of memory required in total (reqret)
+// and for the finest grid only (reqretFine, can be NULL)
 void calculateMemreqEstimate(int resx,int resy,int resz, int refine,
-		float farfieldsize, double *reqret, string *reqstr);
+		float farfieldsize, double *reqret, double *reqretFine, string *reqstr);
 
 //! helper function to convert flag to string (for debuggin)
 string convertCellFlagType2String( CellFlagType flag );

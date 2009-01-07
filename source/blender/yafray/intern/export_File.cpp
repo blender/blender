@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#include <cstring>
+
 using namespace std;
 
 static string command_path = "";
@@ -94,7 +96,7 @@ static void addDrive(string &path)
 
 static string unixYafrayPath()
 {
-	static char *alternative[]=
+	static const char *alternative[]=
 	{
 		"/usr/local/bin/",
 		"/usr/bin/",
@@ -124,7 +126,7 @@ static void adjustPath(string &path)
 	// if relative, expand to full path
 	char cpath[MAXPATHLEN];
 	strcpy(cpath, path.c_str());
-	BLI_convertstringcode(cpath, G.sce, 0);
+	BLI_convertstringcode(cpath, G.sce);
 	path = cpath;
 #ifdef WIN32
 	// add drive char if not there
@@ -242,7 +244,7 @@ bool yafrayFileRender_t::writeRender()
 				 << "\" clamp_rgb=\"" << ((re->r.YF_clamprgb==0) ? "on" : "off") << "\"\n";
 	}
 
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	if (world) ostr << "\tbackground_name=\"world_background\"\n";
  
 	// alpha channel render when RGBA button enabled
@@ -330,7 +332,7 @@ void yafrayFileRender_t::displayImage()
 				char a = (byte_per_pix==4) ? fgetc(fp) : 255;
 				int bx = x-xs, by = y-ys;
 				if ((bx >= 0) && (bx < (int)re->rectx) && (by >= 0) && (by < re->recty)) {
-					float* bpt = (float*)rres.rectf + (bx + (((re->recty-1) - by)*re->rectx) << 2);
+					float* bpt = (float*)rres.rectf + ((bx + (((re->recty-1) - by)*re->rectx)) << 2);
 					bpt[2] = (float)r * btf;
 					bpt[1] = (float)g * btf;
 					bpt[0] = (float)b * btf;
@@ -879,7 +881,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				ostr << "\t\t<input value=\"" << shader_name << "_map" << m2 << "\" />\n";
 
 			// blendtype, would have been nice if the order would have been the same as for ramps...
-			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			const string blendtype[MTEX_NUM_BLENDTYPES] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen", "hue", "sat", "val", "color"};
 			ostr << "\t\t<mode value=\"" << blendtype[(int)mtex->blendtype] << "\" />\n";
 
 			// texture color (for use with MUL and/or no_rgb etc..)
@@ -1188,7 +1190,7 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 }
 
 
-void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
+void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<VlakRen*> &VLR_list, const float obmat[4][4])
 {
 	ostr.str("");
 	// transform first (not necessarily actual obj->obmat, can be duplivert see below)
@@ -1230,7 +1232,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		MTFace* tface = RE_vlakren_get_tface(re, face0, 0, NULL, 0);
+		MTFace* tface = RE_vlakren_get_tface(obr, face0, obr->actmtface, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
@@ -1412,7 +1414,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		string fmatname(fmat->id.name);
 		// use name in imgtex_shader list if 'TexFace' enabled for this face material
 		if (fmat->mode & MA_FACETEXTURE) {
-			MTFace* tface = RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
+			MTFace* tface = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
 				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1437,14 +1439,14 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		}
 		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 
-		MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
+		MTFace* uvc = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0); // possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 			     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 		}
 
-		MCol *mcol= RE_vlakren_get_mcol(re, vlr, 0, NULL, 0);
+		MCol *mcol= RE_vlakren_get_mcol(obr, vlr, obr->actmcol, NULL, 0);
 
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
 		if ((EXPORT_VCOL) && mcol) {
@@ -1508,13 +1510,13 @@ void yafrayFileRender_t::writeAllObjects()
 {
 
 	// first all objects except dupliverts (and main instance object for dups)
-	for (map<Object*, vector<VlakRen*> >::const_iterator obi=all_objects.begin();
+	for (map<Object*, yafrayObjectRen >::const_iterator obi=all_objects.begin();
 			obi!=all_objects.end(); ++obi)
 	{
 		// skip main duplivert object if in dupliMtx_list, written later
 		Object* obj = obi->first;
 		if (dupliMtx_list.find(string(obj->id.name))!=dupliMtx_list.end()) continue;
-		writeObject(obj, obi->second, obj->obmat);
+		writeObject(obj, obi->second.obr, obi->second.faces, obj->obmat);
 	}
 
 	// Now all duplivert objects (if any) as instances of main object
@@ -1534,7 +1536,7 @@ void yafrayFileRender_t::writeAllObjects()
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
-		writeObject(obj, all_objects[obj], obmat);
+		writeObject(obj, all_objects[obj].obr, all_objects[obj].faces, obmat);
 
 		// all others instances of first
 		for (unsigned int curmtx=16;curmtx<dupMtx->second.size();curmtx+=16) {	// number of 4x4 matrices
@@ -1853,7 +1855,7 @@ void yafrayFileRender_t::writeCamera()
 
 void yafrayFileRender_t::writeHemilight()
 {
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	bool fromAO = false;
 	if (re->r.GIquality==6){
 		// use Blender AO params is possible
@@ -1959,7 +1961,7 @@ void yafrayFileRender_t::writePathlight()
 
 bool yafrayFileRender_t::writeWorld()
 {
-	World *world = G.scene->world;
+	World *world = re->scene->world;
 	if (re->r.GIquality!=0) {
 		if (re->r.GImethod==1) {
 			if (world==NULL) cout << "WARNING: need world background for skydome!\n";
@@ -2015,7 +2017,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 {
 	ostr.str("");
 	if (re->r.mode & R_BORDER) {
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs
+		ostr << command_path << "yafray -c " << re->r.threads
 		     << " -r " << (2.f*re->r.border.xmin - 1.f)
 		     << ":"    << (2.f*re->r.border.xmax - 1.f)
 		     << ":"    << (2.f*re->r.border.ymin - 1.f)
@@ -2023,7 +2025,7 @@ bool yafrayFileRender_t::executeYafray(const string &xmlpath)
 		     << " \"" << xmlpath << "\"";
 	}
 	else
-		ostr << command_path << "yafray -c " << re->r.YF_numprocs << " \"" << xmlpath << "\"";
+		ostr << command_path << "yafray -c " << re->r.threads << " \"" << xmlpath << "\"";
 	
 	string command = ostr.str();
 	cout << "COMMAND: " << command << endl;

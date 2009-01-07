@@ -1,5 +1,5 @@
 #!BPY
-
+# coding: utf-8
 """ Registration info for Blender menus
 Name: 'Bevel Center'
 Blender: 243
@@ -8,7 +8,7 @@ Tip: 'Bevel selected faces, edges, and vertices'
 """
 
 __author__ = "Loic BERTHE"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "2.0"
 
 __bpydoc__ = """\

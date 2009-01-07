@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  * Original author: Laurence
  * Contributor(s): Brecht
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef NAN_INCLUDED_IK_QTask_h
@@ -75,6 +72,10 @@ public:
 
 	virtual MT_Scalar Distance() const=0;
 
+	virtual bool PositionTask() const { return false; }
+
+	virtual void Scale(float) {}
+
 protected:
 	int m_id;
 	int m_size;
@@ -96,6 +97,9 @@ public:
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 	MT_Scalar Distance() const;
+
+	bool PositionTask() const { return true; }
+	void Scale(float scale) { m_goal *= scale; m_clamp_length *= scale; }
 
 private:
 	MT_Vector3 m_goal;
@@ -132,6 +136,8 @@ public:
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 	MT_Scalar Distance() const;
+
+	void Scale(float scale) { m_goal_center *= scale; m_distance *= scale; }
 
 private:
 	MT_Scalar ComputeTotalMass(const IK_QSegment *segment);

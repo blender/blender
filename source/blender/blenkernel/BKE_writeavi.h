@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_WRITEAVI_H
@@ -42,14 +39,14 @@ extern "C" {
 struct RenderData;	
 void start_avi(struct RenderData *rd, int rectx, int recty);
 void end_avi(void);
-void append_avi(int frame, int *pixels, int rectx, int recty);
+void append_avi(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 void makeavistring (struct RenderData *rd, char *string);
 
 typedef struct bMovieHandle {
 	void (*start_movie)(struct RenderData *rd, int rectx, int recty);
-	void (*append_movie)(int frame, int *pixels, int rectx, int recty);
+	void (*append_movie)(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 	void (*end_movie)(void);
-	int (*get_next_frame)(void); /* can be null */
+	int (*get_next_frame)(struct RenderData *rd); /* optional */
 } bMovieHandle;
 
 bMovieHandle *BKE_get_movie_handle(int imtype);

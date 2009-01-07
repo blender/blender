@@ -1,14 +1,14 @@
 #!BPY
 """ 
 Name: '3D Studio (.3ds)...'
-Blender: 241
+Blender: 244
 Group: 'Import'
 Tooltip: 'Import from 3DS file format (.3ds)'
 """
 
-__author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton']
+__author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton', 'Mario Lapin']
 __url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
-__version__= '0.995'
+__version__= '0.996'
 __bpydoc__= '''\
 
 3ds Importer
@@ -17,6 +17,15 @@ This script imports a 3ds file and the materials into Blender for editing.
 
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
+0.996 by Mario Lapin (mario.lapin@gmail.com) 13/04/200 <br>
+ - Implemented workaround to correct association between name, geometry and materials of
+   imported meshes.
+   
+   Without this patch, version 0.995 of this importer would associate to each mesh object the
+   geometry and the materials of the previously parsed mesh object. By so, the name of the
+   first mesh object would be thrown away, and the name of the last mesh object would be
+   automatically merged with a '.001' at the end. No object would desappear, however object's
+   names and materials would be completely jumbled.
 
 0.995 by Campbell Barton<br>
 - workaround for buggy mesh vert delete
@@ -319,6 +328,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	contextMesh_vertls= None
 	contextMesh_facels= None
 	contextMeshMaterials= {} # matname:[face_idxs]
+	contextMeshUV= None
 	
 	TEXTURE_DICT={}
 	MATDICT={}
@@ -382,7 +392,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			# +1 because of DUMMYVERT
 			face_mapping= bmesh.faces.extend( [ [ bmesh_verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
 			
-			if contextMeshUV or img:
+			if bmesh.faces and (contextMeshUV or img):
 				bmesh.faceUV= 1
 				for ii, i in enumerate(faces):
 					
@@ -409,7 +419,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				ob.setMatrix(contextMatrix_rot)
 			
 			importedObjects.append(ob)
-			
+			bmesh.calcNormals()
 		
 		for matName, faces in myContextMeshMaterials.iteritems():
 			makeMeshMaterialCopy(matName, faces)
@@ -422,6 +432,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	#a spare chunk
 	new_chunk= chunk()
 	temp_chunk= chunk()
+	
+	CreateBlenderObject = False
 
 	#loop through all the data for this chunk (previous chunk) and see what it is
 	while (previous_chunk.bytes_read<previous_chunk.length):
@@ -454,6 +466,20 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 		#is it an object chunk?
 		elif (new_chunk.ID==OBJECT):
+			
+			if CreateBlenderObject:
+				putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
+				contextMesh_vertls= []; contextMesh_facels= []
+			
+				## preparando para receber o proximo objeto
+				contextMeshMaterials= {} # matname:[face_idxs]
+				contextMeshUV= None
+				#contextMesh.vertexUV= 1 # Make sticky coords.
+				# Reset matrix
+				contextMatrix_rot= None
+				#contextMatrix_tx= None
+				
+			CreateBlenderObject= True
 			tempName= read_string(file)
 			contextObName= tempName
 			new_chunk.bytes_read += len(tempName)+1
@@ -625,9 +651,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			new_chunk.bytes_read+=STRUCT_SIZE_3FLOAT
 			
 			contextLamp[1]= bpy.data.lamps.new()
-			contextLamp[0]= SCN_OBJECTS.link(contextLamp[1])
-			contextLamp[0].link(contextLamp[1])
-			##scn.link(contextLamp[0])
+			contextLamp[0]= SCN_OBJECTS.new(contextLamp[1])
 			importedObjects.append(contextLamp[0])
 			
 			#print 'number of faces: ', num_faces
@@ -639,21 +663,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			#contextMatrix_tx= None
 			#print contextLamp.name, 
 			
-			
 		elif (new_chunk.ID==OBJECT_MESH):
 			# print 'Found an OBJECT_MESH chunk'
-			if contextMesh_facels != None: # Write context mesh if we have one.
-				putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
-			
-			contextMesh_vertls= []; contextMesh_facels= []
-			
-			contextMeshMaterials= {} # matname:[face_idxs]
-			contextMeshUV= None
-			#contextMesh.vertexUV= 1 # Make sticky coords.
-			# Reset matrix
-			contextMatrix_rot= None
-			#contextMatrix_tx= None
-		
+			pass
 		elif (new_chunk.ID==OBJECT_VERTICES):
 			'''
 			Worldspace vertex locations
@@ -947,6 +959,7 @@ if __name__=='__main__' and not DEBUG:
 #load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
 #load_3ds('/metavr/archive/convert/old/arranged_3ds_to_hpx-2/only-need-engine-trains/Engine2.3DS', False)
 '''
+
 else:
 	# DEBUG ONLY
 	TIME= Blender.sys.time()
@@ -958,6 +971,11 @@ else:
 	file= open('/tmp/temp3ds_list', 'r')
 	lines= file.readlines()
 	file.close()
+	# sort by filesize for faster testing
+	lines_size = [(os.path.getsize(f[:-1]), f[:-1]) for f in lines]
+	lines_size.sort()
+	lines = [f[1] for f in lines_size]
+	
 
 	def between(v,a,b):
 		if v <= max(a,b) and v >= min(a,b):
@@ -965,8 +983,8 @@ else:
 		return False
 		
 	for i, _3ds in enumerate(lines):
-		if between(i, 1,200):
-			_3ds= _3ds[:-1]
+		if between(i, 650,800):
+			#_3ds= _3ds[:-1]
 			print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
 			_3ds_file= _3ds.split('/')[-1].split('\\')[-1]
 			newScn= Blender.Scene.New(_3ds_file)
@@ -974,4 +992,5 @@ else:
 			load_3ds(_3ds, False)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+
 '''

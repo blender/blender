@@ -89,8 +89,8 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	if(kfg>0.0) {  /* found a pixel that is within key color */
 
 		newY=in[0]-(1-c->t3)*kfg;
-		newCb=in[1]-kfg*cosf(theta);
-		newCr=in[2]-kfg*sinf(theta);
+		newCb=in[1]-kfg*cos((double)theta);
+		newCr=in[2]-kfg*sin((double)theta);
 		alpha=(kfg+c->fsize)*(c->fstrength);
 
 		beta=atan2(newCr,newCb);

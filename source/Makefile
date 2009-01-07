@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 # Top level makefile. Start looping through subdirs and link....
 #
@@ -56,11 +53,11 @@ ifdef NAN_BUILDINFO
     BUILDINFO_C = $(SRCHOME)/creator/buildinfo.c
     BUILD_DATE := $(shell date "+%Y-%m-%d")
     BUILD_TIME := $(shell date "+%H:%M:%S")
+	BUILD_REV := $(shell svnversion)
 endif
 
 ############# set pyplayerlib ##################
 
-PYPLAYERLIB ?= $(PYLIB)
 
 ############# libraries ##################
 # COMLIB COMmon LIBraries for all targets
@@ -77,7 +74,7 @@ PYPLAYERLIB ?= $(PYLIB)
 # Note: the order is important here
 
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
-GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
@@ -85,28 +82,30 @@ GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
 GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
-GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
-GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
-GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
 # linkers (e.g. under Linux) need libs to be specified multiple times
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
-COMLIB += $(OCGDIR)/blender/bmesh/$(DEBUG_DIR)libbmesh.a
-
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
 COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
 COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
 COMLIB += $(OCGDIR)/blender/nodes_shd/$(DEBUG_DIR)libnodes_shd.a
 COMLIB += $(OCGDIR)/blender/nodes_cmp/$(DEBUG_DIR)libnodes_cmp.a
+COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
 COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+COMLIB += $(NAN_IKSOLVER)/lib/libiksolver.a
+COMLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
+COMLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
 COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
 COMLIB += $(NAN_JPEG)/lib/libjpeg.a
+COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
+COMLIB += $(NAN_GLEW)/lib/libglew.a
+COMLIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -142,6 +141,7 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/OpenGLrasterizer/$(DEBUG_DIR)libOpenGLrasterizer.a
     COMLIB += $(OCGDIR)/gameengine/expression/$(DEBUG_DIR)libexpression.a
     COMLIB += $(OCGDIR)/gameengine/scenegraph/$(DEBUG_DIR)libscenegraph.a
+    COMLIB += $(OCGDIR)/gameengine/videotex/$(DEBUG_DIR)libvideotex.a
 #    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libfuzzics.a
 #    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libsolid.a
     COMLIB += $(NAN_MOTO)/lib/libmoto.a
@@ -154,12 +154,12 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(NAN_BULLET2)/lib/libbullet2.a
 endif
 
+COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/yafray/$(DEBUG_DIR)libyafrayexport.a
-COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
@@ -171,65 +171,32 @@ endif
 
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
+ifeq ($(WITH_DDS), true)
+    COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a
+endif
+
+ifeq ($(WITH_BINRELOC), true)
+    COMLIB += $(OCGDIR)/extern/binreloc/$(DEBUG_DIR)libbinreloc.a
+endif
+
 ifeq ($(WITH_FREETYPE2), true)
+    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)
+        COMLIB += $(NAN_FTGL)/lib/libftgl.a
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       else
+        COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
         COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
       endif
     else
+      COMLIB += $(NAN_FTGL)/lib/libftgl.a
       ifeq ($(OS), irix)
-        COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
-       else
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+        else
+            COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       endif
     endif
-endif
-
-ifeq ($(INTERNATIONAL), true)
-    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
-    ifeq ($(OS), windows)
-        ifeq ($(FREE_WINDOWS), true)
-          COMLIB += $(NAN_GETTEXT)/lib/freegettext.a
-          COMLIB += $(NAN_FTGL)/lib/libftgl.a
-          #COMLIB += $(NAN_ICONV)/lib/freeiconv.a
-        else
-          COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
-          COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
-          COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
-          COMLIB += $(NAN_ICONV)/lib/iconv.lib
-        endif
-    else
-        COMLIB += $(NAN_FTGL)/lib/libftgl.a
-        ifeq ($(OS), irix)
-          COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
-          COMLIB += $(NAN_FREETYPE)/lib32/libintl.a
-        else
-          COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-        endif
-    endif
-    ifeq ($(OS), darwin)
-        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
-        ifeq ($(CPU), i386)
-	    COMLIB += $(NAN_GETTEXT)/lib/libiconv.a
-        endif
-    endif
-    ifeq ($(OS), solaris)
-        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
-    endif
-endif
-
-ifeq ($(WITH_VERSE), true)
-   ifeq ($(OS), windows)
-       ifeq ($(FREE_WINDOWS), true)
-           COMLIB += $(NAN_VERSE)/lib/libverse.a
-       else
-           COMLIB += $(NAN_VERSE)/lib/verse.lib
-       endif
-   else
-       COMLIB += $(NAN_VERSE)/lib/libverse.a
-   endif
 endif
 
 ifeq ($(OS), irix)
@@ -249,11 +216,39 @@ ifeq ($(WITH_OPENEXR), true)
     COMLIB += $(NAN_OPENEXR_LIBS)
 endif
 
-PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
-PULIB += $(NAN_MOTO)/lib/libmoto.a
-PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+# note: space_api.a in begin of editors, screen.a in end
+PULIB = $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+PULIB += $(OCGDIR)/blender/ed_space/libed_space.a
+PULIB += $(OCGDIR)/blender/ed_sound/libed_sound.a
+PULIB += $(OCGDIR)/blender/ed_action/libed_action.a
+PULIB += $(OCGDIR)/blender/ed_nla/libed_nla.a
+PULIB += $(OCGDIR)/blender/ed_script/libed_script.a
+PULIB += $(OCGDIR)/blender/ed_text/libed_text.a
+PULIB += $(OCGDIR)/blender/ed_sequencer/libed_sequencer.a
+PULIB += $(OCGDIR)/blender/ed_file/libed_file.a
+PULIB += $(OCGDIR)/blender/ed_info/libed_info.a
+PULIB += $(OCGDIR)/blender/ed_buttons/libed_buttons.a
+PULIB += $(OCGDIR)/blender/ed_node/libed_node.a
+PULIB += $(OCGDIR)/blender/ed_image/libed_image.a
+PULIB += $(OCGDIR)/blender/ed_ipo/libed_ipo.a
+PULIB += $(OCGDIR)/blender/ed_outliner/libed_outliner.a
+PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
+PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
+PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
+PULIB += $(OCGDIR)/blender/ed_object/libed_object.a
+PULIB += $(OCGDIR)/blender/ed_mesh/libed_mesh.a
+PULIB += $(OCGDIR)/blender/ed_armature/libed_armature.a
+PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
+PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
+PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
+PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
+PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
+PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
+PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
+# note, no idea but it suddenly doesn't compile :(
+PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a
@@ -264,15 +259,16 @@ endif
 
 SPLIB1 = $(OCGDIR)/gameengine/GamePlayer/ghost/$(DEBUG_DIR)libghost.a
 SPLIB1 += $(OCGDIR)/gameengine/GamePlayer/common/$(DEBUG_DIR)libcommon.a
+SPLIB1 += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
 SPLIB1 += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 SPLIB1 += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 
-SPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
-SPLIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
+SPLIB = $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 # this is used for the plugin. It uses some things from libz.a, 
 # but somehow it consistently fails to resolve these symbols... or 
 # can I just not check them? nm claims they aren't...
 SPLIB += $(OCGDIR)/blender/blenkernel/blenkernel_blc/$(DEBUG_DIR)libblenkernel_blc.a
+SPLIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 
 # These three need to be explicitly mentioned on the cl, because 
 # if they are offered as a lib, they are optimized away. (nzc)
@@ -339,24 +335,15 @@ ifeq ($(WITH_BF_BLENDERPLAYER), true)
 endif
 
 ifeq ($(WITH_BF_WEBPLUGIN), true)
-    ifneq ($(NAN_NO_PLUGIN), true)
-        BINTARGETS += plugin
-        ifeq ($(OS),linux)
-            ifeq ($(CPU),i386)
-                 BINTARGETS += xplink
-             endif
+    BINTARGETS += plugin
+    ifeq ($(OS),linux)
+        ifeq ($(CPU),i386)
+             BINTARGETS += xplink
         endif
     endif
 endif
 
-ifdef PY_FRAMEWORK
-        PYLIB = -framework Python
-else
-    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-endif
-
 ifeq ($(OS),solaris)
-    PYLIB += $(NAN_ZLIB)/lib/libz.a
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
@@ -377,7 +364,7 @@ ifeq ($(NAN_NO_OPENAL), true)
     NAN_SND_LIBS += $(SOUNDSYSTEM)
 else
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
-    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64"))
+    ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64 parisc64"))
         NAN_SND_LIBS =  $(SOUNDSYSTEM)
         NAN_SND_LIBS += $(DUMMYSOUND)
         NAN_SND_LIBS += $(OPENALSOUND)
@@ -422,23 +409,22 @@ else
         NAN_SND_LIBS += $(ALUT)
         NAN_SND_LIBS += $(SOUNDSYSTEM)
       else
-        NAN_SND_LIBS =  $(SOUNDSYSTEM)
-        NAN_SND_LIBS += $(DUMMYSOUND)
-        NAN_SND_LIBS += $(SOUNDSYSTEM)
+        ifeq ($(OS), irix)
+           NAN_SND_LIBS = $(SOUNDSYSTEM)
+           NAN_SND_LIBS += $(DUMMYSOUND)
+           NAN_SND_LIBS += $(SDLSOUND)
+           NAN_SND_LIBS += $(SOUNDSYSTEM)
+        else
+           NAN_SND_LIBS =  $(SOUNDSYSTEM)
+           NAN_SND_LIBS += $(DUMMYSOUND)
+           NAN_SND_LIBS += $(SOUNDSYSTEM)
+        endif
       endif
     endif
   endif
 endif
 
 ifeq ($(OS),windows)
-    ifeq ($(FREE_WINDOWS),true)
-        PYLIB = $(NAN_PYTHON)/lib/freepy.a
-    else
-        PYLIB = $(NAN_PYTHON)/lib/python23.lib
-    endif
-
-    PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
-    PYPLAYERLIB = $(PYLIB)
 
     # Might need to change this to $(NAN_MOZILLA_LIB)/nspr4.lib
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
@@ -539,13 +525,13 @@ ifeq ($(OS),windows)
 	endif
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blenderstatic: $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) 
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(SADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS) $(SADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -553,13 +539,13 @@ ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderstatic
 endif
 
-$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
+$(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) 
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(PULIB) $(COMLIB) $(LLIBS)  $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -570,10 +556,10 @@ endif
 $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -584,10 +570,10 @@ endif
 $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -598,7 +584,7 @@ endif
 $(DIR)/$(DEBUG_DIR)bin/Blender3DPlugin$(SOEXT): $(PLUGAPPLIB_XPLINK)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
 	$(CCC) $(DYNLDFLAGS) -o $@ $(PLUGAPPLIB_XPLINK) $(LOPTS)
@@ -614,10 +600,10 @@ DEFFILE = ./gameengine/GamePlayer/netscape/src/npB3DPlg.def
 $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
-#	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) 
-	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) /def:$(DEFFILE)
+#	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) 
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) /def:$(DEFFILE)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -625,10 +611,10 @@ endif
 $(DIR)/$(DEBUG_DIR)bin/npBlender3DPlugin$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -636,7 +622,7 @@ endif
 $(DIR)/$(DEBUG_DIR)bin/npTestPlugin$(SOEXT): $(NSPLUGLIB)
 	@echo "****> Link $@"
 ifdef NAN_BUILDINFO
-	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
+	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
 	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGTESTLIB) $(LLIBS) $(DADD) $(LOPTS)

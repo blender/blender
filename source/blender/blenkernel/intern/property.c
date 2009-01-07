@@ -4,15 +4,12 @@
  *  ton roosendaal
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -47,9 +44,7 @@
 #include "DNA_object_types.h"
 #include "DNA_listBase.h"
 
-
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_property.h"
 
 void free_property(bProperty *prop)
@@ -86,8 +81,7 @@ bProperty *copy_property(bProperty *prop)
 void copy_properties(ListBase *lbn, ListBase *lbo)
 {
 	bProperty *prop, *propn;
-	
-	lbn->first= lbn->last= 0;
+	free_properties( lbn ); /* incase we are copying to an object with props */
 	prop= lbo->first;
 	while(prop) {
 		propn= copy_property(prop);
@@ -109,19 +103,19 @@ void init_property(bProperty *prop)
 	prop->data= 0;
 	
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
 		prop->poin= &prop->data;
 		break;
-	case PROP_INT:
+	case GPROP_INT:
 		prop->poin= &prop->data;
 		break;
-	case PROP_FLOAT:
+	case GPROP_FLOAT:
 		prop->poin= &prop->data;
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		prop->poin= MEM_callocN(MAX_PROPSTRING, "property string");
 		break;
-	case PROP_TIME:
+	case GPROP_TIME:
 		prop->poin= &prop->data;
 		break;
 	}
@@ -142,7 +136,7 @@ bProperty *new_property(int type)
 	return prop;
 }
 
-bProperty *get_property(Object *ob, char *name)
+bProperty *get_ob_property(Object *ob, char *name)
 {
 	bProperty *prop;
 	
@@ -154,6 +148,17 @@ bProperty *get_property(Object *ob, char *name)
 	return NULL;
 }
 
+void set_ob_property(Object *ob, bProperty *propc)
+{
+	bProperty *prop;
+	prop= get_ob_property(ob, propc->name);
+	if(prop) {
+		free_property(prop);
+		BLI_remlink(&ob->prop, prop);
+	}
+	BLI_addtail(&ob->prop, copy_property(propc));
+}
+
 /* negative: prop is smaller
  * positive: prop is larger
  */
@@ -163,7 +168,7 @@ int compare_property(bProperty *prop, char *str)
 	float fvalue, ftest;
 	
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
 		if(BLI_strcasecmp(str, "true")==0) {
 			if(prop->data==1) return 0;
 			else return 1;
@@ -172,14 +177,14 @@ int compare_property(bProperty *prop, char *str)
 			if(prop->data==0) return 0;
 			else return 1;
 		}
-		/* no break, do prop_int too! */
+		/* no break, do GPROP_int too! */
 		
-	case PROP_INT:
+	case GPROP_INT:
 		return prop->data - atoi(str);
 
-	case PROP_FLOAT:
-	case PROP_TIME:
-		// WARNING: untested for PROP_TIME
+	case GPROP_FLOAT:
+	case GPROP_TIME:
+		// WARNING: untested for GPROP_TIME
 		// function isn't used currently
 		fvalue= *((float *)&prop->data);
 		ftest= (float)atof(str);
@@ -187,7 +192,7 @@ int compare_property(bProperty *prop, char *str)
 		else if( fvalue < ftest) return -1;
 		return 0;
 
-	case PROP_STRING:
+	case GPROP_STRING:
 		return strcmp(prop->poin, str);
 	}
 	
@@ -199,19 +204,19 @@ void set_property(bProperty *prop, char *str)
 //	extern int Gdfra;		/* sector.c */
 
 	switch(prop->type) {
-	case PROP_BOOL:
+	case GPROP_BOOL:
 		if(BLI_strcasecmp(str, "true")==0) prop->data= 1;
 		else if(BLI_strcasecmp(str, "false")==0) prop->data= 0;
 		else prop->data= (atoi(str)!=0);
 		break;
-	case PROP_INT:
+	case GPROP_INT:
 		prop->data= atoi(str);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		*((float *)&prop->data)= (float)atof(str);
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		strcpy(prop->poin, str);
 		break;
 	}
@@ -223,15 +228,15 @@ void add_property(bProperty *prop, char *str)
 //	extern int Gdfra;		/* sector.c */
 
 	switch(prop->type) {
-	case PROP_BOOL:
-	case PROP_INT:
+	case GPROP_BOOL:
+	case GPROP_INT:
 		prop->data+= atoi(str);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		*((float *)&prop->data)+= (float)atof(str);
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		/* strcpy(prop->poin, str); */
 		break;
 	}
@@ -245,15 +250,15 @@ void set_property_valstr(bProperty *prop, char *str)
 	if(str == NULL) return;
 
 	switch(prop->type) {
-	case PROP_BOOL:
-	case PROP_INT:
+	case GPROP_BOOL:
+	case GPROP_INT:
 		sprintf(str, "%d", prop->data);
 		break;
-	case PROP_FLOAT:
-	case PROP_TIME:
+	case GPROP_FLOAT:
+	case GPROP_TIME:
 		sprintf(str, "%f", *((float *)&prop->data));
 		break;
-	case PROP_STRING:
+	case GPROP_STRING:
 		BLI_strncpy(str, prop->poin, MAX_PROPSTRING);
 		break;
 	}

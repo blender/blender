@@ -22,6 +22,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "btCollisionCreateFunc.h"
+#include "btCollisionDispatcher.h"
 
 class btConvexPenetrationDepthSolver;
 
@@ -44,7 +45,15 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+
+	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
+	{
+		///should we use m_ownManifold to avoid adding duplicates?
+		if (m_manifoldPtr && m_ownManifold)
+			manifoldArray.push_back(m_manifoldPtr);
+	}
+
 
 	void	setLowLevelOfDetail(bool useLowLevel);
 
@@ -58,14 +67,15 @@ public:
 	{
 		btConvexPenetrationDepthSolver*		m_pdSolver;
 		btSimplexSolverInterface*			m_simplexSolver;
-		bool	m_ownsSolvers;
 		
 		CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver);
-		CreateFunc();
+		
+		virtual ~CreateFunc();
 
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1,m_simplexSolver,m_pdSolver);
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btConvexConvexAlgorithm));
+			return new(mem) btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1,m_simplexSolver,m_pdSolver);
 		}
 	};
 

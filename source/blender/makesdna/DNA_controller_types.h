@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_CONTROLLER_TYPES_H
 #define DNA_CONTROLLER_TYPES_H
@@ -60,7 +57,7 @@ typedef struct bController {
 
 	struct bSensor **slinks;
 	short val, valo;
-	int pad5;
+	unsigned int state_mask;
 	
 } bController;
 
@@ -69,11 +66,16 @@ typedef struct bController {
 #define CONT_LOGIC_OR	1
 #define CONT_EXPRESSION	2
 #define CONT_PYTHON		3
+#define CONT_LOGIC_NAND	4
+#define CONT_LOGIC_NOR	5
+#define CONT_LOGIC_XOR	6
+#define CONT_LOGIC_XNOR	7
 
 /* controller->flag */
 #define CONT_SHOW		1
 #define CONT_DEL		2
 #define CONT_NEW		4
+#define CONT_MASK		8
 
 #endif
 

@@ -29,6 +29,7 @@
 
 #include "../SHD_util.h"
 
+#include "DNA_customdata_types.h"
 
 /* **************** GEOMETRY  ******************** */
 
@@ -41,6 +42,7 @@ static bNodeSocketType sh_node_geom_out[]= {
 	{	SOCK_VECTOR, 0, "UV",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA,   0, "Vertex Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE,   0, "Front/Back", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -50,8 +52,9 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
-		ShadeInputUV *suv= &shi->uv[0];
+		ShadeInputUV *suv= &shi->uv[shi->actuv];
 		static float defaultvcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+		static float front= 0.0;
 		int i;
 
 		if(ngeo->uvname[0]) {
@@ -105,12 +108,33 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 			out[GEOM_OUT_NORMAL]->data= shi->dxno;
 			out[GEOM_OUT_NORMAL]->datatype= NS_OSA_VECTORS;
 		}
+		
+		/* front/back
+		* check the original un-flipped normals to determine front or back side */
+		if (shi->orignor[2] < FLT_EPSILON) {
+			front= 1.0f;
+		} else {
+			front = 0.0f;
+		}
+		out[GEOM_OUT_FRONTBACK]->vec[0]= front;
 	}
 }
 
 static void node_shader_init_geometry(bNode *node)
 {
    node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
+}
+
+static int gpu_shader_geom(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	NodeGeometry *ngeo= (NodeGeometry*)node->storage;
+	GPUNodeLink *orco = GPU_attribute(CD_ORCO, "");
+	GPUNodeLink *mtface = GPU_attribute(CD_MTFACE, ngeo->uvname);
+	GPUNodeLink *mcol = GPU_attribute(CD_MCOL, ngeo->colname);
+
+	return GPU_stack_link(mat, "geom", in, out,
+		GPU_builtin(GPU_VIEW_POSITION), GPU_builtin(GPU_VIEW_NORMAL),
+		GPU_builtin(GPU_INVERSE_VIEW_MATRIX), orco, mtface, mcol);
 }
 
 /* node type definition */
@@ -128,6 +152,7 @@ bNodeType sh_node_geom= {
 	/* initfunc    */	node_shader_init_geometry,
 	/* freestoragefunc    */	node_free_standard_storage,
 	/* copystoragefunc    */	node_copy_standard_storage,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_geom
 	
 };

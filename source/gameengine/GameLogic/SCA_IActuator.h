@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_IACTUATOR
 #define __KX_IACTUATOR
@@ -37,8 +34,11 @@
 
 class SCA_IActuator : public SCA_ILogicBrick
 {
+	friend class SCA_LogicManager;
 protected:
 	std::vector<CValue*> m_events;
+	int					 m_links;	// number of active links to controllers
+									// when 0, the actuator is automatically stopped
 	void RemoveAllEvents();
 
 public:
@@ -48,6 +48,15 @@ public:
 
 	SCA_IActuator(SCA_IObject* gameobj,
 				  PyTypeObject* T =&Type); 
+
+	/**
+	 * UnlinkObject(...)
+	 * Certain actuator use gameobject pointers (like TractTo actuator)
+	 * This function can be called when an object is removed to make
+	 * sure that the actuator will not use it anymore.
+	 */
+
+	virtual bool UnlinkObject(SCA_IObject* clientobj) { return false; }
 
 	/**
 	 * Update(...)
@@ -77,6 +86,11 @@ public:
 	 */
 	bool IsNegativeEvent() const;
 	virtual ~SCA_IActuator();
+
+	void ClrLink() { m_links=0; }
+	void IncLink() { m_links++; }
+	void DecLink();
+	bool IsNoLink() const { return !m_links; }
 };
 
 #endif //__KX_IACTUATOR

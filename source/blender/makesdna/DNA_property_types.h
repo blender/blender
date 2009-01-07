@@ -6,15 +6,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_PROPERTY_TYPES_H
 #define DNA_PROPERTY_TYPES_H
@@ -51,13 +48,13 @@ typedef struct bProperty {
 	
 } bProperty;
 
-/* property->type */
-#define PROP_BOOL		0
-#define PROP_INT		1
-#define PROP_FLOAT		2
-#define PROP_STRING		3
-#define PROP_VECTOR		4
-#define PROP_TIME		5
+/* property->type XXX Game Property, not RNA */
+#define GPROP_BOOL		0
+#define GPROP_INT		1
+#define GPROP_FLOAT		2
+#define GPROP_STRING	3
+#define GPROP_VECTOR	4
+#define GPROP_TIME		5
 
 /* property->flag */
 #define PROP_DEBUG		1

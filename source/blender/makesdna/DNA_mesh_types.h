@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_MESH_TYPES_H
 #define DNA_MESH_TYPES_H
@@ -49,6 +46,7 @@ struct Mesh;
 struct OcInfo;
 struct Multires;
 struct PartialVisibility;
+struct EditMesh;
 
 typedef struct Mesh {
 	ID id;
@@ -61,26 +59,29 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-	struct MFace *mface;
-	struct MTFace *mtface;
+	struct MFace *mface;	/* array of mesh object mode faces */
+	struct MTFace *mtface;	/* store face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
-	struct MVert *mvert;
-	struct MEdge *medge;
-	struct MDeformVert *dvert;	/* __NLA */
-	struct MCol *mcol;
+	struct MVert *mvert;	/* array of verts */
+	struct MEdge *medge;	/* array of edges */
+	struct MDeformVert *dvert;	/* deformgroup vertices */
+	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
-	struct MLoop *mloop; /*new bmesh ngon stuff*/
-	struct MPoly *mpoly; /*new bmesh ngon stuff*/
+	struct EditMesh *edit_mesh;	/* not saved in file! */
+
+	struct CustomData vdata, edata, fdata;
+
+	int totvert, totedge, totface, totselect;
 	
-	struct OcInfo *oc;		/* not written in file */
-	void *sumohandle;
-
-	struct CustomData vdata, edata, fdata, ldata, pdata;
-
-	int totvert, totedge, totface, totselect, totloop, totpoly;
+	/* the last selected vertex/edge/face are used for the active face however
+	 * this means the active face must always be selected, this is to keep track
+	 * of the last selected face and is similar to the old active face flag where
+	 * the face does not need to be selected, -1 is inactive */
+	int act_face; 
+	
 	int texflag;
 	
 	/* texture space, copied as one block in editobject.c */
@@ -94,22 +95,15 @@ typedef struct Mesh {
 
 	short subdiv, subdivr;
 	short totcol;
-	short subsurftype; 
-	int padbleh;
-	
+	short subsurftype;		/* only kept for backwards compat, not used anymore */
+
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
-/*ifdef WITH_VERSE*/
-	/* not written in file, pointer at geometry VerseNode */
-	void *vnode;
-/*#endif*/
-	void *trias;
-	int tottrias, pad4;
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
 typedef struct TFace {
-	void *tpage;
+	void *tpage;	/* the faces image for the active UVLayer */
 	float uv[4][2];
 	unsigned int col[4];
 	char flag, transp;

@@ -22,11 +22,12 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btManifoldResult.h"
 
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-
+#include "LinearMath/btAlignedObjectArray.h"
 
 class btIDebugDraw;
 class btOverlappingPairCache;
-
+class btPoolAllocator;
+class btCollisionConfiguration;
 
 #include "btCollisionCreateFunc.h"
 
@@ -34,41 +35,37 @@ class btOverlappingPairCache;
 
 class btCollisionDispatcher;
 ///user can override this nearcallback for collision filtering and more finegrained control over collision detection
-typedef void (*btNearCallback)(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+typedef void (*btNearCallback)(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo);
 
 
 ///btCollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
 ///Time of Impact, Closest Points and Penetration Depth.
 class btCollisionDispatcher : public btDispatcher
 {
+	int m_count;
 	
-	std::vector<btPersistentManifold*>	m_manifoldsPtr;
+	btAlignedObjectArray<btPersistentManifold*>	m_manifoldsPtr;
 
 	bool m_useIslands;
+
+	bool	m_staticWarningReported;
 	
 	btManifoldResult	m_defaultManifoldResult;
 
 	btNearCallback		m_nearCallback;
 	
+	btPoolAllocator*	m_collisionAlgorithmPoolAllocator;
+
+	btPoolAllocator*	m_persistentManifoldPoolAllocator;
+
 	btCollisionAlgorithmCreateFunc* m_doubleDispatch[MAX_BROADPHASE_COLLISION_TYPES][MAX_BROADPHASE_COLLISION_TYPES];
 	
-	btCollisionAlgorithmCreateFunc* internalFindCreateFunc(int proxyType0,int proxyType1);
 
-	//default CreationFunctions, filling the m_doubleDispatch table
-	btCollisionAlgorithmCreateFunc*	m_convexConvexCreateFunc;
-	btCollisionAlgorithmCreateFunc*	m_convexConcaveCreateFunc;
-	btCollisionAlgorithmCreateFunc*	m_swappedConvexConcaveCreateFunc;
-	btCollisionAlgorithmCreateFunc*	m_compoundCreateFunc;
-	btCollisionAlgorithmCreateFunc*	m_swappedCompoundCreateFunc;
-	btCollisionAlgorithmCreateFunc*   m_emptyCreateFunc;
+	btCollisionConfiguration*	m_collisionConfiguration;
 
-#ifndef USE_DISPATCH_REGISTRY_ARRAY
-	btCollisionAlgorithm* internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold = 0);
-#endif //USE_DISPATCH_REGISTRY_ARRAY
 
 public:
 
-	
 	///registerCollisionCreateFunc allows registration of custom/alternative collision create functions
 	void	registerCollisionCreateFunc(int proxyType0,int proxyType1, btCollisionAlgorithmCreateFunc* createFunc);
 
@@ -92,13 +89,7 @@ public:
 		return m_manifoldsPtr[index];
 	}
 
-	int m_count;
-	
-	///the default constructor creates/register default collision algorithms, for convex, compound and concave shape support
-	btCollisionDispatcher ();
-
-	///a special constructor that doesn't create/register the default collision algorithms
-	btCollisionDispatcher(bool noDefaultAlgorithms);
+	btCollisionDispatcher (btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btCollisionDispatcher();
 
@@ -116,7 +107,7 @@ public:
 	
 	virtual bool	needsResponse(btCollisionObject* body0,btCollisionObject* body1);
 	
-	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,btDispatcherInfo& dispatchInfo);
+	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,const btDispatcherInfo& dispatchInfo,btDispatcher* dispatcher) ;
 
 	void	setNearCallback(btNearCallback	nearCallback)
 	{
@@ -129,7 +120,26 @@ public:
 	}
 
 	//by default, Bullet will use this near callback
-	static void  defaultNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+	static void  defaultNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, const btDispatcherInfo& dispatchInfo);
+
+	virtual	void* allocateCollisionAlgorithm(int size);
+
+	virtual	void freeCollisionAlgorithm(void* ptr);
+
+	btCollisionConfiguration*	getCollisionConfiguration()
+	{
+		return m_collisionConfiguration;
+	}
+
+	const btCollisionConfiguration*	getCollisionConfiguration() const
+	{
+		return m_collisionConfiguration;
+	}
+
+	void	setCollisionConfiguration(btCollisionConfiguration* config)
+	{
+		m_collisionConfiguration = config;
+	}
 
 };
 

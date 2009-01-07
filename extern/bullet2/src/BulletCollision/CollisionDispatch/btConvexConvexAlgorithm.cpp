@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 #include "btConvexConvexAlgorithm.h"
 
-#include <stdio.h>
+//#include <stdio.h>
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
@@ -33,7 +33,6 @@ subject to the following restrictions:
 
 
 
-#include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 
@@ -43,37 +42,21 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h"
 
 
-#ifdef WIN32
-#if _MSC_VER >= 1310
-//only use SIMD Hull code under Win32
-#ifdef TEST_HULL
-#define USE_HULL 1
-#endif //TEST_HULL
-#endif //_MSC_VER 
-#endif //WIN32
 
 
-#ifdef USE_HULL
-
-#include "NarrowPhaseCollision/Hull.h"
-#include "NarrowPhaseCollision/HullContactCollector.h"
 
 
-#endif //USE_HULL
 
 
-btConvexConvexAlgorithm::CreateFunc::CreateFunc()
-{
-	m_ownsSolvers = true;
-	m_simplexSolver = new btVoronoiSimplexSolver();
-	m_pdSolver = new btGjkEpaPenetrationDepthSolver;
-}
 
 btConvexConvexAlgorithm::CreateFunc::CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
 {
-	m_ownsSolvers = false;
 	m_simplexSolver = simplexSolver;
 	m_pdSolver = pdSolver;
+}
+
+btConvexConvexAlgorithm::CreateFunc::~CreateFunc() 
+{ 
 }
 
 btConvexConvexAlgorithm::btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
@@ -83,6 +66,9 @@ m_ownManifold (false),
 m_manifoldPtr(mf),
 m_lowLevelOfDetail(false)
 {
+	(void)body0;
+	(void)body1;
+
 
 }
 
@@ -147,7 +133,7 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	input.m_stackAlloc = dispatchInfo.m_stackAllocator;
 
-//	input.m_maximumDistanceSquared = 1e30f;
+//	input.m_maximumDistanceSquared = btScalar(1e30);
 	
 	input.m_transformA = body0->getWorldTransform();
 	input.m_transformB = body1->getWorldTransform();
@@ -155,29 +141,36 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	m_gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 #endif
 
+	if (m_ownManifold)
+	{
+		resultOut->refreshContactPoints();
+	}
+
 }
 
 
 
 bool disableCcd = false;
-float	btConvexConvexAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+btScalar	btConvexConvexAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
+	(void)resultOut;
+	(void)dispatchInfo;
 	///Rather then checking ALL pairs, only calculate TOI when motion exceeds threshold
     
 	///Linear motion for one of objects needs to exceed m_ccdSquareMotionThreshold
 	///col0->m_worldTransform,
-	float resultFraction = 1.f;
+	btScalar resultFraction = btScalar(1.);
 
 
-	float squareMot0 = (col0->getInterpolationWorldTransform().getOrigin() - col0->getWorldTransform().getOrigin()).length2();
-	float squareMot1 = (col1->getInterpolationWorldTransform().getOrigin() - col1->getWorldTransform().getOrigin()).length2();
+	btScalar squareMot0 = (col0->getInterpolationWorldTransform().getOrigin() - col0->getWorldTransform().getOrigin()).length2();
+	btScalar squareMot1 = (col1->getInterpolationWorldTransform().getOrigin() - col1->getWorldTransform().getOrigin()).length2();
     
 	if (squareMot0 < col0->getCcdSquareMotionThreshold() &&
 		squareMot1 < col1->getCcdSquareMotionThreshold())
 		return resultFraction;
 
 	if (disableCcd)
-		return 1.f;
+		return btScalar(1.);
 
 
 	//An adhoc way of testing the Continuous Collision Detection algorithms

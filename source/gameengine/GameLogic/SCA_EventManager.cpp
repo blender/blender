@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <assert.h>
@@ -48,17 +45,14 @@ SCA_EventManager::~SCA_EventManager()
 {
 }
 
-
+void SCA_EventManager::RegisterSensor(class SCA_ISensor* sensor)
+{
+	m_sensors.insert(sensor);
+}
 
 void SCA_EventManager::RemoveSensor(class SCA_ISensor* sensor)
 {
-	std::vector<SCA_ISensor*>::iterator i =
-	std::find(m_sensors.begin(), m_sensors.end(), sensor);
-	if (!(i == m_sensors.end()))
-	{
-		std::swap(*i, m_sensors.back());
-		m_sensors.pop_back();
-	}
+	m_sensors.erase(sensor);
 }
 
 void SCA_EventManager::NextFrame(double curtime, double fixedtime)
@@ -75,7 +69,9 @@ void SCA_EventManager::EndFrame()
 {
 }
 
-
+void SCA_EventManager::UpdateFrame()
+{
+}
 
 int SCA_EventManager::GetType()
 {

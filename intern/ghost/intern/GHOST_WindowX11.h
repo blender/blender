@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_WindowX11.h
@@ -67,6 +64,7 @@ public:
 	 * @param width		The width the window.
 	 * @param height	The height the window.
 	 * @param state		The state the window is initially opened with.
+	 * @param parentWindow 	Parent (embedder) window
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
@@ -79,6 +77,7 @@ public:
 		GHOST_TUns32 width,	
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
+		const GHOST_TEmbedderWindowID parentWindow,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 		const bool stereoVisual = false
 	);
@@ -213,6 +212,15 @@ public:
 
 	const GHOST_TabletData* GetTabletData()
 	{ return &m_xtablet.CommonData; }
+
+	/*
+	 * Need this in case that we want start the window
+	 * in FullScree or Maximized state.
+	 * Check GHOST_WindowX11.cpp
+	 */
+	bool m_post_init;
+	GHOST_TWindowState m_post_state;
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -328,6 +336,18 @@ private :
 
 	/* Tablet devices */
 	XTablet m_xtablet;
+
+	void icccmSetState(int state);
+	int icccmGetState() const;
+
+	void netwmMaximized(bool set);
+	bool netwmIsMaximized() const;
+
+	void netwmFullScreen(bool set);
+	bool netwmIsFullScreen() const;
+
+	void motifFullScreen(bool set);
+	bool motifIsFullScreen() const;
 };
 
 

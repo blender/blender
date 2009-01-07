@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_VIEW3D_TYPES_H
 #define DNA_VIEW3D_TYPES_H
@@ -43,6 +40,9 @@ struct Base;
 struct BoundBox;
 struct RenderInfo;
 struct RetopoViewData;
+struct bGPdata;
+struct SmoothViewStore;
+struct wmTimer;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -56,9 +56,12 @@ struct RetopoViewData;
 #include "DNA_listBase.h"
 #include "DNA_image_types.h"
 
+/* ******************************** */
+
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
-
+ 
+/* Background Picture in 3D-View */
 typedef struct BGpic {
     struct Image *ima;
 	struct ImageUser iuser;
@@ -66,29 +69,26 @@ typedef struct BGpic {
     short xim, yim;
 } BGpic;
 
+/* ********************************* */
+
+/* 3D ViewPort Struct */
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	short blockhandler[8];
 
+	float winmat[4][4];
 	float viewmat[4][4];
 	float viewinv[4][4];
 	float persmat[4][4];
 	float persinv[4][4];
 	
-	float winmat1[4][4];  // persp(1) storage, for swap matrices
-	float viewmat1[4][4];
-	
-	float viewquat[4], dist, zfac, pad0;	/* zfac is initgrabz() result */
+	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
+	int lay_used; /* used while drawing */
 
-	/**
-	 * 0 - ortho
-	 * 1 - do 3d perspective
-	 * 2 - use the camera
-	 */
 	short persp;
 	short view;
 
@@ -103,7 +103,7 @@ typedef struct View3D {
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURED */
+	 * OB_SHADED or OB_TEXTURE */
 	short drawtype;
 	short localview;
 	int lay, layact;
@@ -137,13 +137,26 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short snap_target;
+	short keyflags;		/* flags for display of keyframes */
 	
-	short pad2;
+	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
+	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 
+	/* animated smooth view */
+	struct SmoothViewStore *sms;
+	struct wmTimer *smooth_timer;
+	
+	/* last view */
+	float lviewquat[4];
+	short lpersp, lview;
+	
+	/* customdata flags from modes */
+	unsigned int customdata_mask;
 } View3D;
+
 
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
@@ -165,15 +178,12 @@ typedef struct View3D {
 #define V3D_DRAW_CENTERS	32768
 
 /* View3d->flag2 (short) */
+#define V3D_MODE2			(32)
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
-#define V3D_TRANSFORM_SNAP		4
-
-/* View3d->snap_target */
-#define V3D_SNAP_TARGET_CLOSEST	0
-#define V3D_SNAP_TARGET_CENTER	1
-#define V3D_SNAP_TARGET_MEDIAN	2
-
+#define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
+#define V3D_SOLID_TEX			8
+#define V3D_DISPGP				16
 
 /* View3D->around */
 #define V3D_CENTER		 0
@@ -182,11 +192,28 @@ typedef struct View3D {
 #define V3D_LOCAL		 2
 #define V3D_ACTIVE		 4
 
+/*View3D view types*/
+#define V3D_VIEW_FRONT		 1
+#define V3D_VIEW_BACK		 2
+#define V3D_VIEW_LEFT		 3
+#define V3D_VIEW_RIGHT		 4
+#define V3D_VIEW_TOP		 5
+#define V3D_VIEW_BOTTOM		 6
+#define V3D_VIEW_PERSPORTHO		 7
+#define V3D_VIEW_CAMERA		 8
+#define V3D_VIEW_STEPLEFT		 9
+#define V3D_VIEW_STEPRIGHT		 10
+#define V3D_VIEW_STEPDOWN		 11
+#define V3D_VIEW_STEPUP		 12
+#define V3D_VIEW_PANLEFT		 13
+#define V3D_VIEW_PANRIGHT		 14
+#define V3D_VIEW_PANDOWN		 15
+#define V3D_VIEW_PANUP		 16
 
 /* View3d->persp */
-#define V3D_PERSP_ORTHO          0
-#define V3D_PERSP_DO_3D_PERSP    1
-#define V3D_PERSP_USE_THE_CAMERA 2
+#define V3D_ORTHO				0
+#define V3D_PERSP				1
+#define V3D_CAMOB				2
 
 /* View3d->gridflag */
 #define V3D_SHOW_FLOOR			1
@@ -204,6 +231,7 @@ typedef struct View3D {
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
+#define V3D_MANIP_CUSTOM		4 /* anything of value 4 or higher is custom */
 
 /* View3d->twflag */
    /* USE = user setting, DRAW = based on selection */
@@ -213,4 +241,5 @@ typedef struct View3D {
 
 
 #endif
+
 

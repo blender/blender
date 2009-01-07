@@ -18,15 +18,15 @@ subject to the following restrictions:
 #define GEN_MINMAX_H
 
 template <class T>
-SIMD_FORCE_INLINE const T& GEN_min(const T& a, const T& b) 
+SIMD_FORCE_INLINE const T& btMin(const T& a, const T& b) 
 {
-  return b < a ? b : a;
+  return a < b ? a : b ;
 }
 
 template <class T>
-SIMD_FORCE_INLINE const T& GEN_max(const T& a, const T& b) 
+SIMD_FORCE_INLINE const T& btMax(const T& a, const T& b) 
 {
-  return  a < b ? b : a;
+  return  a > b ? a : b;
 }
 
 template <class T>
@@ -36,7 +36,7 @@ SIMD_FORCE_INLINE const T& GEN_clamped(const T& a, const T& lb, const T& ub)
 }
 
 template <class T>
-SIMD_FORCE_INLINE void GEN_set_min(T& a, const T& b) 
+SIMD_FORCE_INLINE void btSetMin(T& a, const T& b) 
 {
     if (b < a) 
 	{
@@ -45,7 +45,7 @@ SIMD_FORCE_INLINE void GEN_set_min(T& a, const T& b)
 }
 
 template <class T>
-SIMD_FORCE_INLINE void GEN_set_max(T& a, const T& b) 
+SIMD_FORCE_INLINE void btSetMax(T& a, const T& b) 
 {
     if (a < b) 
 	{

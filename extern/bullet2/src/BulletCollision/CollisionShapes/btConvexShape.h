@@ -21,80 +21,53 @@ subject to the following restrictions:
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btMatrix3x3.h"
-#include <vector>
-#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+#include "btCollisionMargin.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 //todo: get rid of this btConvexCastResult thing!
 struct btConvexCastResult;
 #define MAX_PREFERRED_PENETRATION_DIRECTIONS 10
 
-/// btConvexShape is an abstract shape interface.
-/// The explicit part provides plane-equations, the implicit part provides GetClosestPoint interface.
-/// used in combination with GJK or btConvexCast
-class btConvexShape : public btCollisionShape
+/// The btConvexShape is an abstract shape interface, implemented by all convex shapes such as btBoxShape, btConvexHullShape etc.
+/// It describes general convex shapes using the localGetSupportingVertex interface, used by collision detectors such as btGjkPairDetector.
+ATTRIBUTE_ALIGNED16(class) btConvexShape : public btCollisionShape
 {
-	
-protected:
 
-	//local scaling. collisionMargin is not scaled !
-	btVector3	m_localScaling;
-
-	btVector3	m_implicitShapeDimensions;
-	
-	btScalar	m_collisionMargin;
 
 public:
-	btConvexShape();
 
-	virtual btVector3	localGetSupportingVertex(const btVector3& vec)const;
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
+	virtual ~btConvexShape()
+	{
+
+	}
+
+
+	virtual btVector3	localGetSupportingVertex(const btVector3& vec)const =0;
+#ifndef __SPU__
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec) const= 0;
 	
 	//notice that the vectors should be unit length
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const= 0;
+#endif //#ifndef __SPU__
 
-	const btVector3& getImplicitShapeDimensions() const
-	{
-		return m_implicitShapeDimensions;
-	}
 
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
-	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
-	{
-		getAabbSlow(t,aabbMin,aabbMax);
-	}
+	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const =0;
 
+	virtual void getAabbSlow(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const =0;
 
+	virtual void	setLocalScaling(const btVector3& scaling) =0;
+	virtual const btVector3& getLocalScaling() const =0;
+
+	virtual void	setMargin(btScalar margin)=0;
+
+	virtual btScalar	getMargin() const=0;
+
+	virtual int		getNumPreferredPenetrationDirections() const=0;
 	
-	virtual void getAabbSlow(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
-
-
-	virtual void	setLocalScaling(const btVector3& scaling);
-	virtual const btVector3& getLocalScaling() const 
-	{
-		return m_localScaling;
-	}
-
-
-	virtual void	setMargin(float margin)
-	{
-		m_collisionMargin = margin;
-	}
-	virtual float	getMargin() const
-	{
-		return m_collisionMargin;
-	}
-
-	virtual int		getNumPreferredPenetrationDirections() const
-	{
-		return 0;
-	}
-	
-	virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const
-	{
-		assert(0);
-	}
-
-
+	virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const=0;
 
 };
 

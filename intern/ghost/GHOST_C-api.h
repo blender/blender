@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_C-api.h
@@ -265,6 +262,19 @@ extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
 											  GHOST_EventConsumerHandle consumerhandle);
 	
 
+/***************************************************************************************
+ ** N-degree of freedom device management functionality
+ ***************************************************************************************/
+ 
+/**
+* Open N-degree of freedom devices
+ */
+extern int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, 
+                           GHOST_WindowHandle windowhandle,
+                          GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+                          GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+                          );
 
 /***************************************************************************************
  ** Cursor management functionality
@@ -758,6 +768,18 @@ extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
  */
 extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
 										  GHOST_RectangleHandle anotherrectanglehandle);
+
+/**
+ * Return the data from the clipboad
+ * @return clipboard data
+ */
+extern GHOST_TUns8* GHOST_getClipboard(int flag);
+
+/**
+ * Put data to the Clipboard
+ */
+extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int flag);
+
 #ifdef __cplusplus
 }
 #endif

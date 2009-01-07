@@ -5,15 +5,12 @@
  *
  * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.	
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,1547 +26,1300 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Geoffrey Bantle.
+ * Contributor(s): Geoffrey Bantle and Levi Schooley.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
-#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
-#include "BKE_global.h"
-#include "BKE_depsgraph.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
-#include "BLI_memarena.h"
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "BLI_ghash.h"
+#include "BLI_blenlib.h"
 
-/*Vertex Tools*/
-void BME_connect_verts(BME_Mesh *bm)
+/*split this all into a seperate bevel.c file in src*/
+
+/* ------- Bevel code starts here -------- */
+
+BME_TransData_Head *BME_init_transdata(int bufsize) {
+	BME_TransData_Head *td;
+
+	td = MEM_callocN(sizeof(BME_TransData_Head), "BMesh transdata header");
+	td->gh = BLI_ghash_new(BLI_ghashutil_ptrhash,BLI_ghashutil_ptrcmp);
+	td->ma = BLI_memarena_new(bufsize);
+	BLI_memarena_use_calloc(td->ma);
+
+	return td;
+}
+
+void BME_free_transdata(BME_TransData_Head *td) {
+	BLI_ghash_free(td->gh,NULL,NULL);
+	BLI_memarena_free(td->ma);
+	MEM_freeN(td);
+}
+
+BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BME_Mesh *bm, BME_Vert *v,
+		float *co, float *org, float *vec, float *loc,
+		float factor, float weight, float maxfactor, float *max) {
+	BME_TransData *vtd;
+	int is_new = 0;
+
+	if (v == NULL) return NULL;
+
+	if ((vtd = BLI_ghash_lookup(td->gh, v)) == NULL && bm != NULL) {
+		vtd = BLI_memarena_alloc(td->ma, sizeof(*vtd));
+		BLI_ghash_insert(td->gh, v, vtd);
+		td->len++;
+		is_new = 1;
+	}
+
+	vtd->bm = bm;
+	vtd->v = v;
+	if (co != NULL) VECCOPY(vtd->co,co);
+	if (org == NULL && is_new) { VECCOPY(vtd->org,v->co); } /* default */
+	else if (org != NULL) VECCOPY(vtd->org,org);
+	if (vec != NULL) {
+		VECCOPY(vtd->vec,vec);
+		Normalize(vtd->vec);
+	}
+	vtd->loc = loc;
+
+	vtd->factor = factor;
+	vtd->weight = weight;
+	vtd->maxfactor = maxfactor;
+	vtd->max = max;
+
+	return vtd;
+}
+
+BME_TransData *BME_get_transdata(BME_TransData_Head *td, BME_Vert *v) {
+	BME_TransData *vtd;
+	vtd = BLI_ghash_lookup(td->gh, v);
+	return vtd;
+}
+
+/* a hack (?) to use the transdata memarena to allocate floats for use with the max limits */
+float *BME_new_transdata_float(BME_TransData_Head *td) {
+	return BLI_memarena_alloc(td->ma, sizeof(float));
+}
+
+static int BME_is_nonmanifold_vert(BME_Mesh *bm, BME_Vert *v) {
+	BME_Edge *e, *oe;
+	BME_Loop *l;
+	int len, count, flag;
+
+	if (v->edge == NULL) {
+		/* loose vert */
+		return 1;
+	}
+
+	/* count edges while looking for non-manifold edges */
+	oe = v->edge;
+	for (len=0,e=v->edge; e != oe || (e == oe && len == 0); len++,e=BME_disk_nextedge(e,v)) {
+		if (e->loop == NULL) {
+			/* loose edge */
+			return 1;
+		}
+
+		if (BME_cycle_length(&(e->loop->radial)) > 2) {
+			/* edge shared by more than two faces */
+			return 1;
+		}
+	}
+
+	count = 1;
+	flag = 1;
+	e = NULL;
+	oe = v->edge;
+	l = oe->loop;
+	while(e != oe) {
+		if (l->v == v) l = l->prev;
+		else l = l->next;
+		e = l->e;
+		count++; /* count the edges */
+
+		if (flag && l->radial.next->data == l) {
+			/* we've hit the edge of an open mesh, reset once */
+			flag = 0;
+			count = 1;
+			oe = e;
+			e = NULL;
+			l = oe->loop;
+		}
+		else if (l->radial.next->data == l) {
+			/* break the loop */
+			e = oe;
+		}
+		else {
+			l = l->radial.next->data;
+		}
+	}
+
+	if (count < len) {
+		/* vert shared by multiple regions */
+		return 1;
+	}
+
+	return 0;
+}
+
+/* a wrapper for BME_JFKE that [for now just] checks to
+ * make sure loop directions are compatible */
+static BME_Poly *BME_JFKE_safe(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e) {
+	BME_Loop *l1, *l2;
+
+	l1 = e->loop;
+	l2 = l1->radial.next->data;
+	if (l1->v == l2->v) {
+		BME_loop_reverse(bm, f2);
+	}
+
+	return BME_JFKE(bm, f1, f2, e);
+}
+
+/* a wrapper for BME_SFME that transfers element flags */
+static BME_Poly *BME_split_face(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Loop **nl, BME_Edge *example) {
+	BME_Poly *nf;
+	nf = BME_SFME(bm,f,v1,v2,nl);
+	nf->flag = f->flag;
+	/* if the edge was selected, select this face, too */
+	if (example->flag & SELECT) f->flag |= ME_FACE_SEL;
+	nf->h = f->h;
+	nf->mat_nr = f->mat_nr;
+	if (nl && example) {
+		(*nl)->e->flag = example->flag;
+		(*nl)->e->h = example->h;
+		(*nl)->e->crease = example->crease;
+		(*nl)->e->bweight = example->bweight;
+	}
+
+	return nf;
+}
+
+
+#if 0
+static void BME_data_interp_from_verts(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, float fac)
 {
-	BME_Poly *f;
-	BME_Loop *l, *v1loop, *v2loop;
-	int pass;
-	
-	/*visit the faces with selected verts*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		v1loop = v2loop = NULL;
-		pass = 0;
-		if(!(BME_NEWELEM(f))){
-			l = f->loopbase;
-			do{
-				if(BME_ISVISITED(l->v)){ 
-					if(v2loop) pass = 1;
-					else if(v1loop) v2loop = l;
-					else v1loop = l;
-				}
-				l = l->next;
-			}while(l != f->loopbase);
+	void *src[2];
+	float w[2];
+	if (v1->data && v2->data) {
+		src[0]= v1->data;
+		src[1]= v2->data;
+		w[0] = 1.0f-fac;
+		w[1] = fac;
+		CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->data);
+	}
+}
+#endif
 
-			if(v1loop && v2loop && (!pass) && (v1loop->next != v2loop) && (v2loop->next != v1loop)) BME_SFME(bm,f,v1loop->v, v2loop->v,NULL);
+
+static void BME_data_facevert_edgesplit(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v, BME_Edge *e1, float fac){
+	void *src[2];
+	float w[2];
+	BME_Loop *l=NULL, *v1loop = NULL, *vloop = NULL, *v2loop = NULL;
+	
+	w[0] = 1.0f - fac;
+	w[1] = fac;
+
+	if(!e1->loop) return;
+	l = e1->loop;
+	do{
+		if(l->v == v1){ 
+			v1loop = l;
+			vloop = v1loop->next;
+			v2loop = vloop->next;
+		}else if(l->v == v){
+			v1loop = l->next;
+			vloop = l;
+			v2loop = l->prev;
 			
 		}
-	}
-}
 
-void BME_connect_edges(BME_Mesh *bm)
-{
-	BME_Vert *nv;
-	BME_Edge *e, *e1, *e2;
-	BME_Loop *l;
-	BME_Poly *f;
-	int pass;
-	
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		e1 = e2 = NULL;
-		pass = 0;
-		l=f->loopbase;
-		do{
-			if(BME_SELECTED(l->e)){
-				if(e2) pass = 1;
-				else if(e1) e2 = l->e;
-				else e1 = l->e;
-			}
-			l = l->next;
-		}while(l!=f->loopbase);
-		
-		//if two edges selected and not pass, mark each one for split
-		if((e1) && (e2) && (pass == 0)) e1->tflag1 = e2->tflag1 = 1;
-	}
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(e->tflag1){
-			nv= BME_cut_edge(bm,e,1);
-			BME_VISIT(nv);
-		}
-	}
-	BME_connect_verts(bm);
+		src[0] = v1loop->data;
+		src[1] = v2loop->data;					
+
+		CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->data); 				
+		l = l->radial.next->data;
+	}while(l!=e1->loop);
 }
 
 
-/**
- *			BME_dissolve_edge
- *
- *	Edge Dissolve Function:
- *	
- *	Dissolves a 2-manifold edge by joining it's two faces. 
-*	
-*	TODO:if  the two adjacent faces have opposite windings, first 
-*	make them consistent by calling BME_loop_reverse()?
- *
- *	Returns -
-*/
+/* a wrapper for BME_SEMV that transfers element flags */ /*add custom data interpolation in here!*/
+static BME_Vert *BME_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Edge **ne, float percent) {
+	BME_Vert *nv, *v2;
+	float len;
 
-void BME_dissolve_edges(BME_Mesh *bm)
-{
-	BME_Edge *e,*nexte;
-	BME_Poly *f1, *f2;
-	BME_Loop *next;
-	
-	e=BME_first(bm,BME_EDGE);
-	while(e){
-		nexte = BME_next(bm,BME_EDGE,e);
-		if(BME_SELECTED(e)){
-			f1 = e->loop->f;
-			next = BME_radial_nextloop(e->loop);
-			f2 = next->f;
-			BME_JFKE(bm,f1,f2,e);
-		}
-		e = nexte;
+	v2 = BME_edge_getothervert(e,v);
+	nv = BME_SEMV(bm,v,e,ne);
+	if (nv == NULL) return NULL;
+	VECSUB(nv->co,v2->co,v->co);
+	len = VecLength(nv->co);
+	VECADDFAC(nv->co,v->co,nv->co,len*percent);
+	nv->flag = v->flag;
+	nv->bweight = v->bweight;
+	if (ne) {
+		(*ne)->flag = e->flag;
+		(*ne)->h = e->h;
+		(*ne)->crease = e->crease;
+		(*ne)->bweight = e->bweight;
 	}
-}
-
-/**
- *			BME_cut_edge
- *
- *	Cuts a single edge in a mesh into multiple parts
- *
- */
-
-BME_Vert  *BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts)
-{
-	int i;
-	float percent, step,length, vt1[3], v2[3];
-	BME_Vert *nv;
-	
-	percent = 0.0;
-	step = (1.0/((float)numcuts+1));
-	
-	length = VecLenf(e->v1->co,e->v2->co);
-	VECCOPY(v2,e->v2->co);
-	VecSubf(vt1, e->v1->co,  e->v2->co);
-	
-	for(i=0; i < numcuts; i++){
-		percent += step;
-		nv = BME_SEMV(bm,e->v2,e,NULL);
-		VECCOPY(nv->co,vt1);
-		VecMulf(nv->co,percent);
-		VecAddf(nv->co,v2,nv->co);
-	}
+	/*v->nv->v2*/
+	BME_data_facevert_edgesplit(bm,v2, v, nv, e, 0.75);	
 	return nv;
 }
 
+static void BME_collapse_vert(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv, float fac){
+	void *src[2];
+	float w[2];
+	BME_Loop *l=NULL, *kvloop=NULL, *tvloop=NULL;
+	BME_Vert *tv = BME_edge_getothervert(ke,kv);
 
-/**
- *			BME_cut_edges
- *
- *	Edge Cut Function:
- *	
- *	Cuts all selected edges a given number of times 
- *	TODO:
- *	-Do percentage cut for knife tool?
-*	-Need to fix up patching of selection flags in eulers as well as marking new elements with BME_NEW.
-*		Tools should then test for 'if( BME_SELECTED(e) && (!e->flag & BME_NEW))' when iterating over mesh and cutting elements.
-*	-Move BME_model_begin and BME_model_end out of here. They belong in UI code. Also DAG_object_flush_update call and allqueue().
-*
- *	Returns -
-*/
+	w[0] = 1.0f - fac;
+	w[1] = fac;
 
-void BME_cut_edges(BME_Mesh *bm, int numcuts)
-{
-	BME_Edge *e;
-	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e) && !(BME_NEWELEM(e))) 
-			BME_cut_edge(bm,e,numcuts);
+	if(ke->loop){
+		l = ke->loop;
+		do{
+			if(l->v == tv && l->next->v == kv){
+				tvloop = l;
+				kvloop = l->next;
+
+				src[0] = kvloop->data;
+				src[1] = tvloop->data;
+				CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, kvloop->data); 								
+			}
+			l=l->radial.next->data;
+		}while(l!=ke->loop);
+	}
+	BME_JEKV(bm,ke,kv);
+}
+
+
+
+static int BME_bevel_is_split_vert(BME_Loop *l) {
+	/* look for verts that have already been added to the edge when
+	 * beveling other polys; this can be determined by testing the
+	 * vert and the edges around it for originality
+	 */
+	if ((l->v->tflag1 & BME_BEVEL_ORIG)==0
+			&& (l->e->tflag1 & BME_BEVEL_ORIG)
+			&& (l->prev->e->tflag1 & BME_BEVEL_ORIG))
+	{
+		return 1;
+	}
+	return 0;
+}
+
+/* get a vector, vec, that points from v1->co to wherever makes sense to
+ * the bevel operation as a whole based on the relationship between v1 and v2
+ * (won't necessarily be a vec from v1->co to v2->co, though it probably will be);
+ * the return value is -1 for failure, 0 if we used vert co's, and 1 if we used transform origins */
+static int BME_bevel_get_vec(float *vec, BME_Vert *v1, BME_Vert *v2, BME_TransData_Head *td) {
+	BME_TransData *vtd1, *vtd2;
+
+	vtd1 = BME_get_transdata(td,v1);
+	vtd2 = BME_get_transdata(td,v2);
+	if (!vtd1 || !vtd2) {
+		//printf("BME_bevel_get_vec() got called without proper BME_TransData\n");
+		return -1;
+	}
+
+	/* compare the transform origins to see if we can use the vert co's;
+	 * if they belong to different origins, then we will use the origins to determine
+	 * the vector */
+	if (VecCompare(vtd1->org,vtd2->org,0.000001f)) {
+		VECSUB(vec,v2->co,v1->co);
+		if (VecLength(vec) < 0.000001f) {
+			VecMulf(vec,0);
+		}
+		return 0;
+	}
+	else {
+		VECSUB(vec,vtd2->org,vtd1->org);
+		if (VecLength(vec) < 0.000001f) {
+			VecMulf(vec,0);
+		}
+		return 1;
 	}
 }
 
+/* "Projects" a vector perpendicular to vec2 against vec1, such that
+ * the projected vec1 + vec2 has a min distance of 1 from the "edge" defined by vec2.
+ * note: the direction, is_forward, is used in conjunction with up_vec to determine
+ * whether this is a convex or concave corner. If it is a concave corner, it will
+ * be projected "backwards." If vec1 is before vec2, is_forward should be 0 (we are projecting backwards).
+ * vec1 is the vector to project onto (expected to be normalized)
+ * vec2 is the direction of projection (pointing away from vec1)
+ * up_vec is used for orientation (expected to be normalized)
+ * returns the length of the projected vector that lies along vec1 */
+static float BME_bevel_project_vec(float *vec1, float *vec2, float *up_vec, int is_forward, BME_TransData_Head *td) {
+	float factor, vec3[3], tmp[3],c1,c2;
 
-/**
- *			BME_split_face
- *
- *	Face Split Tool:
- *	
- *	Splits a face into multiple other faces depending oh how 
- *	many of its vertices have been visited.
-*	
-*	TODO: This is only one 'fill type' for face subdivisions. Need to 
-*	port over all the old subdivision fill types from editmesh and figure
-*	out best strategy for dealing with n-gons.
-*
- *	Returns -
- *	Nothing
- */
-void BME_split_face(BME_Mesh *bm, BME_Poly *f)
-{
-	return;
+	Crossf(tmp,vec1,vec2);
+	Normalize(tmp);
+	factor = Inpf(up_vec,tmp);
+	if ((factor > 0 && is_forward) || (factor < 0 && !is_forward)) {
+		Crossf(vec3,vec2,tmp); /* hmm, maybe up_vec should be used instead of tmp */
+	}
+	else {
+		Crossf(vec3,tmp,vec2); /* hmm, maybe up_vec should be used instead of tmp */
+	}
+	Normalize(vec3);
+	c1 = Inpf(vec3,vec1);
+	c2 = Inpf(vec1,vec1);
+	if (fabs(c1) < 0.000001f || fabs(c2) < 0.000001f) {
+		factor = 0.0f;
+	}
+	else {
+		factor = c2/c1;
+	}
+
+	return factor;
 }
 
-/*
+/* BME_bevel_split_edge() is the main math work-house; its responsibilities are:
+ * using the vert and the loop passed, get or make the split vert, set its coordinates
+ * and transform properties, and set the max limits.
+ * Finally, return the split vert. */
+static BME_Vert *BME_bevel_split_edge(BME_Mesh *bm, BME_Vert *v, BME_Vert *v1, BME_Loop *l, float *up_vec, float value, BME_TransData_Head *td) {
+	BME_TransData *vtd, *vtd1, *vtd2;
+	BME_Vert *sv, *v2, *v3, *ov;
+	BME_Loop *lv1, *lv2;
+	BME_Edge *ne, *e1, *e2;
+	float maxfactor, scale, len, dis, vec1[3], vec2[3], t_up_vec[3];
+	int is_edge, forward, is_split_vert;
 
-{
-	BME_Loop *l, *scanloop, *nextl;
-	int len, i,j;
-	len = f->len;
-	for(i=0,l=f->loopbase; i <= len; ){
-		nextl = l->next;
-		j=2;
-		//printf("Face ID is%i, BM->Nextp is %i",f->EID,bm->nextp);
-		if(BME_ISVISITED(l->v)){
-			for(scanloop = l->next->next; j < (len-1); j++ , scanloop = scanloop->next){
-				if(BME_ISVISITED(scanloop->v)){
-					f = BME_SFME(bm,f,l->v,scanloop->v,NULL);
-					nextl=scanloop;
+	if (l == NULL) {
+		/* what you call operator overloading in C :)
+		 * I wanted to use the same function for both wire edges and poly loops
+		 * so... here we walk around edges to find the needed verts */
+		forward = 1;
+		is_split_vert = 0;
+		if (v->edge == NULL) {
+			//printf("We can't split a loose vert's edge!\n");
+			return NULL;
+		}
+		e1 = v->edge; /* we just use the first two edges */
+		e2 = BME_disk_nextedge(v->edge, v);
+		if (e1 == e2) {
+			//printf("You need at least two edges to use BME_bevel_split_edge()\n");
+			return NULL;
+		}
+		v2 = BME_edge_getothervert(e1, v);
+		v3 = BME_edge_getothervert(e2, v);
+		if (v1 != v2 && v1 != v3) {
+			//printf("Error: more than 2 edges in v's disk cycle, or v1 does not share an edge with v\n");
+			return NULL;
+		}
+		if (v1 == v2) {
+			v2 = v3;
+		}
+		else {
+			e1 = e2;
+		}
+		ov = BME_edge_getothervert(e1,v);
+		sv = BME_split_edge(bm,v,e1,&ne,0);
+		//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
+		//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
+		//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);
+		BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
+		sv->tflag1 |= BME_BEVEL_BEVEL;
+		ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
+		BME_bevel_get_vec(vec1,v1,v,td);
+		BME_bevel_get_vec(vec2,v2,v,td);
+		Crossf(t_up_vec,vec1,vec2);
+		Normalize(t_up_vec);
+		up_vec = t_up_vec;
+	}
+	else {
+		/* establish loop direction */
+		if (l->v == v) {
+			forward = 1;
+			lv1 = l->next;
+			lv2 = l->prev;
+			v1 = l->next->v;
+			v2 = l->prev->v;
+		}
+		else if (l->next->v == v) {
+			forward = 0;
+			lv1 = l;
+			lv2 = l->next->next;
+			v1 = l->v;
+			v2 = l->next->next->v;
+		}
+		else {
+			//printf("ERROR: BME_bevel_split_edge() - v must be adjacent to l\n");
+			return NULL;
+		}
+
+		if (BME_bevel_is_split_vert(lv1)) {
+			is_split_vert = 1;
+			sv = v1;
+			if (forward) v1 = l->next->next->v;
+			else v1 = l->prev->v;
+		}
+		else {
+			is_split_vert = 0;
+			ov = BME_edge_getothervert(l->e,v);
+			sv = BME_split_edge(bm,v,l->e,&ne,0);
+			//BME_data_interp_from_verts(bm, v, ov, sv, 0.25); /*this is technically wrong...*/
+			//BME_data_interp_from_faceverts(bm, v, ov, sv, 0.25);
+			//BME_data_interp_from_faceverts(bm, ov, v, sv, 0.25);
+			BME_assign_transdata(td, bm, sv, sv->co, sv->co, NULL, sv->co, 0, -1, -1, NULL); /* quick default */
+			sv->tflag1 |= BME_BEVEL_BEVEL;
+			ne->tflag1 = BME_BEVEL_ORIG; /* mark edge as original, even though it isn't */
+		}
+
+		if (BME_bevel_is_split_vert(lv2)) {
+			if (forward) v2 = lv2->prev->v;
+			else v2 = lv2->next->v;
+		}
+	}
+
+	is_edge = BME_bevel_get_vec(vec1,v,v1,td); /* get the vector we will be projecting onto */
+	BME_bevel_get_vec(vec2,v,v2,td); /* get the vector we will be projecting parallel to */
+	len = VecLength(vec1);
+	Normalize(vec1);
+
+	vtd = BME_get_transdata(td, sv);
+	vtd1 = BME_get_transdata(td, v);
+	vtd2 = BME_get_transdata(td,v1);
+
+	if (vtd1->loc == NULL) {
+		/* this is a vert with data only for calculating initial weights */
+		if (vtd1->weight < 0) {
+			vtd1->weight = 0;
+		}
+		scale = vtd1->weight/vtd1->factor;
+		if (!vtd1->max) {
+			vtd1->max = BME_new_transdata_float(td);
+			*vtd1->max = -1;
+		}
+	}
+	else {
+		scale = vtd1->weight;
+	}
+	vtd->max = vtd1->max;
+
+	if (is_edge && vtd1->loc != NULL) {
+		maxfactor = vtd1->maxfactor;
+	}
+	else {
+		maxfactor = scale*BME_bevel_project_vec(vec1,vec2,up_vec,forward,td);
+		if (vtd->maxfactor > 0 && vtd->maxfactor < maxfactor) {
+			maxfactor = vtd->maxfactor;
+		}
+	}
+
+	dis = (v1->tflag1 & BME_BEVEL_ORIG)? len/3 : len/2;
+	if (is_edge || dis > maxfactor*value) {
+		dis = maxfactor*value;
+	}
+	VECADDFAC(sv->co,v->co,vec1,dis);
+	VECSUB(vec1,sv->co,vtd1->org);
+	dis = VecLength(vec1);
+	Normalize(vec1);
+	BME_assign_transdata(td, bm, sv, vtd1->org, vtd1->org, vec1, sv->co, dis, scale, maxfactor, vtd->max);
+
+	return sv;
+}
+
+static float BME_bevel_set_max(BME_Vert *v1, BME_Vert *v2, float value, BME_TransData_Head *td) {
+	BME_TransData *vtd1, *vtd2;
+	float max, fac1, fac2, vec1[3], vec2[3], vec3[3];
+
+	BME_bevel_get_vec(vec1,v1,v2,td);
+	vtd1 = BME_get_transdata(td,v1);
+	vtd2 = BME_get_transdata(td,v2);
+
+	if (vtd1->loc == NULL) {
+		fac1 = 0;
+	}
+	else {
+		VECCOPY(vec2,vtd1->vec);
+		VecMulf(vec2,vtd1->factor);
+		if (Inpf(vec1, vec1)) {
+			Projf(vec2,vec2,vec1);
+			fac1 = VecLength(vec2)/value;
+		}
+		else {
+			fac1 = 0;
+		}
+	}
+
+	if (vtd2->loc == NULL) {
+		fac2 = 0;
+	}
+	else {
+		VECCOPY(vec3,vtd2->vec);
+		VecMulf(vec3,vtd2->factor);
+		if (Inpf(vec1, vec1)) {
+			Projf(vec2,vec3,vec1);
+			fac2 = VecLength(vec2)/value;
+		}
+		else {
+			fac2 = 0;
+		}
+	}
+
+	if (fac1 || fac2) {
+		max = VecLength(vec1)/(fac1 + fac2);
+		if (vtd1->max && (*vtd1->max < 0 || max < *vtd1->max)) {
+			*vtd1->max = max;
+		}
+		if (vtd2->max && (*vtd2->max < 0 || max < *vtd2->max)) {
+			*vtd2->max = max;
+		}
+	}
+	else {
+		max = -1;
+	}
+
+	return max;
+}
+
+static BME_Vert *BME_bevel_wire(BME_Mesh *bm, BME_Vert *v, float value, int res, int options, BME_TransData_Head *td) {
+	BME_Vert *ov1, *ov2, *v1, *v2;
+
+	ov1 = BME_edge_getothervert(v->edge, v);
+	ov2 = BME_edge_getothervert(BME_disk_nextedge(v->edge, v), v);
+
+	/* split the edges */
+	v1 = BME_bevel_split_edge(bm,v,ov1,NULL,NULL,value,td);
+	v1->tflag1 |= BME_BEVEL_NONMAN;
+	v2 = BME_bevel_split_edge(bm,v,ov2,NULL,NULL,value,td);
+	v2->tflag1 |= BME_BEVEL_NONMAN;
+
+	if (value > 0.5) {
+		BME_bevel_set_max(v1,ov1,value,td);
+		BME_bevel_set_max(v2,ov2,value,td);
+	}
+
+	/* remove the original vert */
+	if (res) {
+		BME_JEKV(bm,v->edge,v);
+	}
+
+	return v1;
+}
+
+static BME_Loop *BME_bevel_edge(BME_Mesh *bm, BME_Loop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+	BME_Vert *v1, *v2, *kv;
+	BME_Loop *kl=NULL, *nl;
+	BME_Edge *e;
+	BME_Poly *f;
+
+	f = l->f;
+	e = l->e;
+
+	if ((l->e->tflag1 & BME_BEVEL_BEVEL) == 0
+		&& ((l->v->tflag1 & BME_BEVEL_BEVEL) || (l->next->v->tflag1 & BME_BEVEL_BEVEL)))
+	{ /* sanity check */
+		return l;
+	}
+
+	/* checks and operations for prev edge */
+	/* first, check to see if this edge was inset previously */
+	if ((l->prev->e->tflag1 & BME_BEVEL_ORIG) == 0
+		&& (l->v->tflag1 & BME_BEVEL_NONMAN) == 0) {
+		kl = l->prev->radial.next->data;
+		if (kl->v == l->v) kl = kl->prev;
+		else kl = kl->next;
+		kv = l->v;
+	}
+	else {
+		kv = NULL;
+	}
+	/* get/make the first vert to be used in SFME */
+	if (l->v->tflag1 & BME_BEVEL_NONMAN){
+		v1 = l->v;
+	}
+	else { /* we'll need to split the previous edge */
+		v1 = BME_bevel_split_edge(bm,l->v,NULL,l->prev,up_vec,value,td);
+	}
+	/* if we need to clean up geometry... */
+	if (kv) {
+		l = l->next;
+		if (kl->v == kv) {
+			BME_split_face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
+			BME_JFKE(bm,((BME_Loop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
+			
+		}
+		else {
+			BME_split_face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
+			BME_JFKE(bm,((BME_Loop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
+		}
+		l = l->prev;
+	}
+
+	/* checks and operations for the next edge */
+	/* first, check to see if this edge was inset previously  */
+	if ((l->next->e->tflag1 & BME_BEVEL_ORIG) == 0
+		&& (l->next->v->tflag1 & BME_BEVEL_NONMAN) == 0) {
+		kl = l->next->radial.next->data;
+		if (kl->v == l->next->v) kl = kl->prev;
+		else kl = kl->next;
+		kv = l->next->v;
+	}
+	else {
+		kv = NULL;
+	}
+	/* get/make the second vert to be used in SFME */
+	if (l->next->v->tflag1 & BME_BEVEL_NONMAN) {
+		v2 = l->next->v;
+	}
+	else { /* we'll need to split the next edge */
+		v2 = BME_bevel_split_edge(bm,l->next->v,NULL,l->next,up_vec,value,td);
+	}
+	/* if we need to clean up geometry... */
+	if (kv) {
+		if (kl->v == kv) {
+			BME_split_face(bm,kl->f,kl->prev->v,kl->next->v,&nl,kl->prev->e);
+			BME_JFKE(bm,((BME_Loop*)kl->prev->radial.next->data)->f,kl->f,kl->prev->e);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
+		}
+		else {
+			BME_split_face(bm,kl->f,kl->next->next->v,kl->v,&nl,kl->next->e);
+			BME_JFKE(bm,((BME_Loop*)kl->next->radial.next->data)->f,kl->f,kl->next->e);
+			BME_collapse_vert(bm, kl->e, kv, 1.0);
+			//BME_JEKV(bm,kl->e,kv);
+		}
+	}
+
+	if ((v1->tflag1 & BME_BEVEL_NONMAN)==0 || (v2->tflag1 & BME_BEVEL_NONMAN)==0) {
+		BME_split_face(bm,f,v2,v1,&l,e);
+		l->e->tflag1 = BME_BEVEL_BEVEL;
+		l = l->radial.next->data;
+	}
+
+	if (l->f != f){
+		//printf("Whoops! You got something out of order in BME_bevel_edge()!\n");
+	}
+
+	return l;
+}
+
+static BME_Loop *BME_bevel_vert(BME_Mesh *bm, BME_Loop *l, float value, int options, float *up_vec, BME_TransData_Head *td) {
+	BME_Vert *v1, *v2;
+	BME_Poly *f;
+
+	/* get/make the first vert to be used in SFME */
+	/* may need to split the previous edge */
+	v1 = BME_bevel_split_edge(bm,l->v,NULL,l->prev,up_vec,value,td);
+
+	/* get/make the second vert to be used in SFME */
+	/* may need to split this edge (so move l) */
+	l = l->prev;
+	v2 = BME_bevel_split_edge(bm,l->next->v,NULL,l->next,up_vec,value,td);
+	l = l->next->next;
+
+	/* "cut off" this corner */
+	f = BME_split_face(bm,l->f,v2,v1,NULL,l->e);
+
+	return l;
+}
+
+/**
+ *			BME_bevel_poly
+ *
+ *	Polygon inset tool:
+ *
+ *	Insets a polygon/face based on the tflag1's of its vertices
+ *	and edges. Used by the bevel tool only, for now.
+ *  The parameter "value" is the distance to inset (should be negative).
+ *  The parameter "options" is not currently used.
+ *
+ *	Returns -
+ *  A BME_Poly pointer to the resulting inner face.
+*/
+static BME_Poly *BME_bevel_poly(BME_Mesh *bm, BME_Poly *f, float value, int options, BME_TransData_Head *td) {
+	BME_Loop *l, *ol;
+	BME_TransData *vtd1, *vtd2;
+	float up_vec[3], vec1[3], vec2[3], vec3[3], fac1, fac2, max = -1;
+	int len, i;
+
+	up_vec[0] = 0.0f;
+	up_vec[1] = 0.0f;
+	up_vec[2] = 0.0f;
+	/* find a good normal for this face (there's better ways, I'm sure) */
+	ol = f->loopbase;
+	l = ol->next;
+	for (i=0,ol=f->loopbase,l=ol->next; l->next!=ol; l=l->next) {
+		BME_bevel_get_vec(vec1,l->next->v,ol->v,td);
+		BME_bevel_get_vec(vec2,l->v,ol->v,td);
+		Crossf(vec3,vec2,vec1);
+		VECADD(up_vec,up_vec,vec3);
+		i++;
+	}
+	VecMulf(up_vec,1.0f/i);
+	Normalize(up_vec);
+
+	for (i=0,len=f->len; i<len; i++,l=l->next) {
+		if ((l->e->tflag1 & BME_BEVEL_BEVEL) && (l->e->tflag1 & BME_BEVEL_ORIG)) {
+			max = 1.0f;
+			l = BME_bevel_edge(bm, l, value, options, up_vec, td);
+		}
+		else if ((l->v->tflag1 & BME_BEVEL_BEVEL) && (l->v->tflag1 & BME_BEVEL_ORIG) && (l->prev->e->tflag1 & BME_BEVEL_BEVEL) == 0) {
+			max = 1.0f;
+			l = BME_bevel_vert(bm, l, value, options, up_vec, td);
+		}
+	}
+
+	/* max pass */
+	if (value > 0.5 && max > 0) {
+		max = -1;
+		for (i=0,len=f->len; i<len; i++,l=l->next) {
+			if ((l->e->tflag1 & BME_BEVEL_BEVEL) || (l->e->tflag1 & BME_BEVEL_ORIG)) {
+				BME_bevel_get_vec(vec1,l->v,l->next->v,td);
+				vtd1 = BME_get_transdata(td,l->v);
+				vtd2 = BME_get_transdata(td,l->next->v);
+				if (vtd1->loc == NULL) {
+					fac1 = 0;
+				}
+				else {
+					VECCOPY(vec2,vtd1->vec);
+					VecMulf(vec2,vtd1->factor);
+					if (Inpf(vec1, vec1)) {
+						Projf(vec2,vec2,vec1);
+						fac1 = VecLength(vec2)/value;
+					}
+					else {
+						fac1 = 0;
+					}
+				}
+				if (vtd2->loc == NULL) {
+					fac2 = 0;
+				}
+				else {
+					VECCOPY(vec3,vtd2->vec);
+					VecMulf(vec3,vtd2->factor);
+					if (Inpf(vec1, vec1)) {
+						Projf(vec2,vec3,vec1);
+						fac2 = VecLength(vec2)/value;
+					}
+					else {
+						fac2 = 0;
+					}
+				}
+				if (fac1 || fac2) {
+					max = VecLength(vec1)/(fac1 + fac2);
+					if (vtd1->max && (*vtd1->max < 0 || max < *vtd1->max)) {
+						*vtd1->max = max;
+					}
+					if (vtd2->max && (*vtd2->max < 0 || max < *vtd2->max)) {
+						*vtd2->max = max;
+					}
+				}
+			}
+		}
+	}
+
+	return l->f;
+}
+
+static void BME_bevel_add_vweight(BME_TransData_Head *td, BME_Mesh *bm, BME_Vert *v, float weight, float factor, int options) {
+	BME_TransData *vtd;
+
+	if (v->tflag1 & BME_BEVEL_NONMAN) return;
+	v->tflag1 |= BME_BEVEL_BEVEL;
+	if ( (vtd = BME_get_transdata(td, v)) ) {
+		if (options & BME_BEVEL_EMIN) {
+			vtd->factor = 1.0;
+			if (vtd->weight < 0 || weight < vtd->weight) {
+				vtd->weight = weight;
+			}
+		}
+		else if (options & BME_BEVEL_EMAX) {
+			vtd->factor = 1.0;
+			if (weight > vtd->weight) {
+				vtd->weight = weight;
+			}
+		}
+		else if (vtd->weight < 0) {
+			vtd->factor = factor;
+			vtd->weight = weight;
+		}
+		else {
+			vtd->factor += factor; /* increment number of edges with weights (will be averaged) */
+			vtd->weight += weight; /* accumulate all the weights */
+		}
+	}
+	else {
+		/* we'll use vtd->loc == NULL to mark that this vert is not moving */
+		vtd = BME_assign_transdata(td, bm, v, v->co, NULL, NULL, NULL, factor, weight, -1, NULL);
+	}
+}
+
+static float BME_bevel_get_angle(BME_Mesh *bm, BME_Edge *e, BME_Vert *v) {
+	BME_Vert *v1, *v2;
+	BME_Loop *l1, *l2;
+	float vec1[3], vec2[3], vec3[3], vec4[3];
+
+	l1 = e->loop;
+	l2 = e->loop->radial.next->data;
+	if (l1->v == v) {
+		v1 = l1->prev->v;
+		v2 = l1->next->v;
+	}
+	else {
+		v1 = l1->next->next->v;
+		v2 = l1->v;
+	}
+	VECSUB(vec1,v1->co,v->co);
+	VECSUB(vec2,v2->co,v->co);
+	Crossf(vec3,vec1,vec2);
+
+	l1 = l2;
+	if (l1->v == v) {
+		v1 = l1->prev->v;
+		v2 = l1->next->v;
+	}
+	else {
+		v1 = l1->next->next->v;
+		v2 = l1->v;
+	}
+	VECSUB(vec1,v1->co,v->co);
+	VECSUB(vec2,v2->co,v->co);
+	Crossf(vec4,vec2,vec1);
+
+	Normalize(vec3);
+	Normalize(vec4);
+
+	return Inpf(vec3,vec4);
+}
+static int BME_face_sharededges(BME_Poly *f1, BME_Poly *f2){
+	BME_Loop *l;
+	int count = 0;
+	
+	l = f1->loopbase;
+	do{
+		if(BME_radial_find_face(l->e,f2)) count++;
+		l = l->next;
+	}while(l != f1->loopbase);
+	
+	return count;
+}
+/**
+ *			BME_bevel_initialize
+ *
+ *	Prepare the mesh for beveling:
+ *
+ *	Sets the tflag1's of the mesh elements based on the options passed.
+ *
+ *	Returns -
+ *  A BME_Mesh pointer to the BMesh passed as a parameter.
+*/
+static BME_Mesh *BME_bevel_initialize(BME_Mesh *bm, int options, int defgrp_index, float angle, BME_TransData_Head *td) {
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Poly *f;
+	BME_TransData *vtd;
+	MDeformVert *dvert;
+	MDeformWeight *dw;
+	int len;
+	float weight, threshold;
+
+	/* vert pass */
+	for (v=bm->verts.first; v; v=v->next) {
+		dvert = NULL;
+		dw = NULL;
+		v->tflag1 = BME_BEVEL_ORIG;
+		/* originally coded, a vertex gets tagged with BME_BEVEL_BEVEL in this pass if
+		 * the vert is manifold (or is shared by only two edges - wire bevel)
+		 * BME_BEVEL_SELECT is passed and the vert has v->flag&SELECT or
+		 * BME_BEVEL_VWEIGHT is passed, and the vert has a defgrp and weight
+		 * BME_BEVEL_ANGLE is not passed
+		 * BME_BEVEL_EWEIGHT is not passed
+		 */
+		/* originally coded, a vertex gets tagged with BME_BEVEL_NONMAN in this pass if
+		 * the vert is loose, shared by multiple regions, or is shared by wire edges
+		 * note: verts belonging to edges of open meshes are not tagged with BME_BEVEL_NONMAN
+		 */
+		/* originally coded, a vertex gets a transform weight set in this pass if
+		 * BME_BEVEL_VWEIGHT is passed, and the vert has a defgrp and weight
+		 */
+
+		/* get disk cycle length */
+		if (v->edge == NULL) {
+			len = 0;
+		}
+		else {
+			len = BME_cycle_length(BME_disk_getpointer(v->edge,v));
+			/* we'll assign a default transform data to every vert (except the loose ones) */
+			vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 0, -1, -1, NULL);
+		}
+
+		/* check for non-manifold vert */
+		if (BME_is_nonmanifold_vert(bm,v)) {
+			v->tflag1 |= BME_BEVEL_NONMAN;
+		}
+
+		/* BME_BEVEL_BEVEL tests */
+		if ((v->tflag1 & BME_BEVEL_NONMAN) == 0 || len == 2) { /* either manifold vert, or wire vert */
+			if (((options & BME_BEVEL_SELECT) && (v->flag & SELECT))
+				|| ((options & BME_BEVEL_WEIGHT) && (options & BME_BEVEL_VERT)) /* use weights for verts */
+				|| ((options & BME_BEVEL_ANGLE) == 0
+					&& (options & BME_BEVEL_SELECT) == 0
+					&& (options & BME_BEVEL_WEIGHT) == 0))
+			{
+				if (options & BME_BEVEL_WEIGHT) {
+					/* do vert weight stuff */
+					//~ dvert = CustomData_em_get(&bm->vdata,v->data,CD_MDEFORMVERT);
+					//~ if (!dvert) continue;
+					//~ for (i = 0; i < dvert->totweight; ++i) {
+						//~ if(dvert->dw[i].def_nr == defgrp_index) {
+							//~ dw = &dvert->dw[i];
+							//~ break;
+						//~ }
+					//~ }
+					//~ if (!dw || dw->weight == 0.0) continue;
+					if (v->bweight == 0.0) continue;
+					vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, v->bweight, -1, NULL);
+					v->tflag1 |= BME_BEVEL_BEVEL;
+				}
+				else {
+					vtd = BME_assign_transdata(td, bm, v, v->co, v->co, NULL, NULL, 1.0, 1.0, -1, NULL);
+					v->tflag1 |= BME_BEVEL_BEVEL;
+				}
+			}
+		}
+	}
+
+	/* edge pass */
+	threshold = (float)cos((angle + 0.00001) * M_PI / 180.0);
+	for (e=bm->edges.first; e; e=e->next) {
+		e->tflag1 = BME_BEVEL_ORIG;
+		weight = 0.0;
+		/* originally coded, an edge gets tagged with BME_BEVEL_BEVEL in this pass if
+		 * BME_BEVEL_VERT is not set
+		 * the edge is manifold (shared by exactly two faces)
+		 * BME_BEVEL_SELECT is passed and the edge has e->flag&SELECT or
+		 * BME_BEVEL_EWEIGHT is passed, and the edge has the crease set or
+		 * BME_BEVEL_ANGLE is passed, and the edge is sharp enough
+		 * BME_BEVEL_VWEIGHT is passed, and both verts are set for bevel
+		 */
+		/* originally coded, a vertex gets tagged with BME_BEVEL_BEVEL in this pass if
+		 * the vert belongs to the edge
+		 * the vert is not tagged with BME_BEVEL_NONMAN
+		 * the edge is eligible for bevel (even if BME_BEVEL_VERT is set, or the edge is shared by less than 2 faces)
+		 */
+		/* originally coded, a vertex gets a transform weight set in this pass if
+		 * the vert belongs to the edge
+		 * the edge has a weight
+		 */
+		/* note: edge weights are cumulative at the verts,
+		 * i.e. the vert's weight is the average of the weights of its weighted edges
+		 */
+
+		if (e->loop == NULL) {
+			len = 0;
+			e->v1->tflag1 |= BME_BEVEL_NONMAN;
+			e->v2->tflag1 |= BME_BEVEL_NONMAN;
+		}
+		else {
+			len = BME_cycle_length(&(e->loop->radial));
+		}
+
+		if (len > 2) {
+			/* non-manifold edge of the worst kind */
+			continue;
+		}
+
+		if ((options & BME_BEVEL_SELECT) && (e->flag & SELECT)) {
+			weight = 1.0;
+			/* stupid editmode doesn't always flush selections, or something */
+			e->v1->flag |= SELECT;
+			e->v2->flag |= SELECT;
+		}
+		else if ((options & BME_BEVEL_WEIGHT) && (options & BME_BEVEL_VERT) == 0) {
+			weight = e->bweight;
+		}
+		else if (options & BME_BEVEL_ANGLE) {
+			if ((e->v1->tflag1 & BME_BEVEL_NONMAN) == 0 && BME_bevel_get_angle(bm,e,e->v1) < threshold) {
+				e->tflag1 |= BME_BEVEL_BEVEL;
+				e->v1->tflag1 |= BME_BEVEL_BEVEL;
+				BME_bevel_add_vweight(td, bm, e->v1, 1.0, 1.0, options);
+			}
+			else {
+				BME_bevel_add_vweight(td, bm, e->v1, 0.0, 1.0, options);
+			}
+			if ((e->v2->tflag1 & BME_BEVEL_NONMAN) == 0 && BME_bevel_get_angle(bm,e,e->v2) < threshold) {
+				e->tflag1 |= BME_BEVEL_BEVEL;
+				e->v2->tflag1 |= BME_BEVEL_BEVEL;
+				BME_bevel_add_vweight(td, bm, e->v2, 1.0, 1.0, options);
+			}
+			else {
+				BME_bevel_add_vweight(td, bm, e->v2, 0.0, 1.0, options);
+			}
+		}
+		//~ else if ((options & BME_BEVEL_VWEIGHT) && (options & BME_BEVEL_VERT) == 0) {
+			//~ if ((e->v1->tflag1 & BME_BEVEL_BEVEL) && (e->v2->tflag1 & BME_BEVEL_BEVEL)) {
+				//~ e->tflag1 |= BME_BEVEL_BEVEL;
+			//~ }
+		//~ }
+		else if ((options & BME_BEVEL_SELECT) == 0
+			&& (options & BME_BEVEL_VERT) == 0)
+		{
+			weight = 1.0;
+		}
+
+		if (weight > 0.0) {
+			e->tflag1 |= BME_BEVEL_BEVEL;
+			BME_bevel_add_vweight(td, bm, e->v1, weight, 1.0, options);
+			BME_bevel_add_vweight(td, bm, e->v2, weight, 1.0, options);
+		}
+
+		if (len != 2 || options & BME_BEVEL_VERT) {
+			e->tflag1 &= ~BME_BEVEL_BEVEL;
+		}
+	}
+
+	/* face pass */
+	for (f=bm->polys.first; f; f=f->next) f->tflag1 = BME_BEVEL_ORIG;
+
+	/*clean up edges with 2 faces that share more than one edge*/
+	for (e=bm->edges.first; e; e=e->next){
+		if(e->tflag1 & BME_BEVEL_BEVEL){
+			int count = 0;
+			count = BME_face_sharededges(e->loop->f, ((BME_Loop*)e->loop->radial.next->data)->f);
+			if(count > 1){
+				e->tflag1 &= ~BME_BEVEL_BEVEL;
+			}	
+		}
+	}
+
+	return bm;
+}
+
+/* tags all elements as originals */
+static BME_Mesh *BME_bevel_reinitialize(BME_Mesh *bm) {
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Poly *f;
+
+	for (v = bm->verts.first; v; v=v->next) {
+		v->tflag1 |= BME_BEVEL_ORIG;
+	}
+
+	for (e=bm->edges.first; e; e=e->next) {
+		e->tflag1 |= BME_BEVEL_ORIG;
+	}
+
+	for (f=bm->polys.first; f; f=f->next) {
+		f->tflag1 |= BME_BEVEL_ORIG;
+	}
+
+	return bm;
+}
+
+/**
+ *			BME_bevel_mesh
+ *
+ *	Mesh beveling tool:
+ *
+ *	Bevels an entire mesh. It currently uses the tflag1's of
+ *	its vertices and edges to track topological changes.
+ *  The parameter "value" is the distance to inset (should be negative).
+ *  The parameter "options" is not currently used.
+ *
+ *	Returns -
+ *  A BME_Mesh pointer to the BMesh passed as a parameter.
+*/
+
+static void bmesh_dissolve_disk(BME_Mesh *bm, BME_Vert *v){
+	BME_Poly *f;
+	BME_Edge *e;
+	int done, len;
+	
+	if(v->edge){
+		done = 0;
+		while(!done){
+			done = 1;
+			e = v->edge; /*loop the edge looking for a edge to dissolve*/
+			do{
+				f = NULL;
+				len = BME_cycle_length(&(e->loop->radial));
+				if(len == 2){
+					f = BME_JFKE_safe(bm,e->loop->f, ((BME_Loop*)(e->loop->radial.next->data))->f, e);
+				}
+				if(f){ 
+					done = 0;
+					break;
+				}
+				e = BME_disk_nextedge(e,v);
+			}while(e != v->edge);
+		}
+		BME_collapse_vert(bm, v->edge, v, 1.0);
+		//BME_JEKV(bm,v->edge,v);
+	}
+}
+static BME_Mesh *BME_bevel_mesh(BME_Mesh *bm, float value, int res, int options, int defgrp_index, BME_TransData_Head *td) {
+	BME_Vert *v, *nv;
+	BME_Edge *e, *oe;
+	BME_Loop *l, *l2;
+	BME_Poly *f;
+	unsigned int i, len;
+
+	for (f=bm->polys.first; f; f=f->next) {
+		if(f->tflag1 & BME_BEVEL_ORIG) {
+			BME_bevel_poly(bm,f,value,options,td);
+		}
+	}
+
+	/* here we will loop through all the verts to clean up the left over geometry */
+	/* crazy idea. when res == 0, don't remove the original geometry */
+	for (v = bm->verts.first; v; /* we may kill v, so increment in-loop */) {
+		nv = v->next;
+		if ((v->tflag1 & BME_BEVEL_NONMAN) && (v->tflag1 & BME_BEVEL_BEVEL) && (v->tflag1 & BME_BEVEL_ORIG)) {
+			v = BME_bevel_wire(bm, v, value, res, options, td);
+		}
+		else if (res && ((v->tflag1 & BME_BEVEL_BEVEL) && (v->tflag1 & BME_BEVEL_ORIG))) {
+			int count = 0;
+			/* first, make sure we're not sitting on an edge to be removed */
+			oe = v->edge;
+			e = BME_disk_nextedge(oe,v);
+			while ((e->tflag1 & BME_BEVEL_BEVEL) && (e->tflag1 & BME_BEVEL_ORIG)) {
+				e = BME_disk_nextedge(e,v);
+				if (e == oe) {
+					//printf("Something's wrong! We can't remove every edge here!\n");
 					break;
 				}
 			}
+			/* look for original edges, and remove them */
+			oe = e;
+			while ( (e = BME_disk_next_edgeflag(oe, v, 0, BME_BEVEL_ORIG | BME_BEVEL_BEVEL)) ) {
+				count++;
+				/* join the faces (we'll split them later) */
+				f = BME_JFKE_safe(bm,e->loop->f,((BME_Loop*)e->loop->radial.next->data)->f,e);
+				if (!f){
+					//printf("Non-manifold geometry not getting tagged right?\n");
+				}
+			}
+
+			/*need to do double check *before* you bevel to make sure that manifold edges are for two faces that share only *one* edge to make sure it doesnt hang here!*/
+
+
+			/* all original edges marked to be beveled have been removed;
+			 * now we need to link up the edges for this "corner" */
+			len = BME_cycle_length(BME_disk_getpointer(v->edge, v));
+			for (i=0,e=v->edge; i < len; i++,e=BME_disk_nextedge(e,v)) {
+				l = e->loop;
+				l2 = l->radial.next->data;
+				if (l->v != v) l = l->next;
+				if (l2->v != v) l2 = l2->next;
+				/* look for faces that have had the original edges removed via JFKE */
+				if (l->f->len > 3) {
+					BME_split_face(bm,l->f,l->next->v,l->prev->v,&l,l->e); /* clip this corner off */
+					if (len > 2) {
+						l->e->tflag1 |= BME_BEVEL_BEVEL;
+					}
+				}
+				if (l2->f->len > 3) {
+					BME_split_face(bm,l2->f,l2->next->v,l2->prev->v,&l,l2->e); /* clip this corner off */
+					if (len > 2) {
+						l->e->tflag1 |= BME_BEVEL_BEVEL;
+					}
+				}
+			}
+			bmesh_dissolve_disk(bm, v);
 		}
-		l=nextl;
-		i+=j;
+		v = nv;
 	}
+
+	return bm;
 }
+
+static BME_Mesh *BME_tesselate(BME_Mesh *bm) {
+	BME_Loop *l, *nextloop;
+	BME_Poly *f;
+
+	for (f=bm->polys.first; f; f=f->next) {
+		l = f->loopbase;
+		while (l->f->len > 4) {
+			nextloop = l->next->next->next;
+			/* make a quad */
+			BME_split_face(bm,l->f,l->v,nextloop->v,NULL,l->e);
+			l = nextloop;
+		}
+	}
+	return bm;
+}
+
+
+/*Main bevel function:
+	Should be only one exported
+
 */
 
-/**
- *			BME_inset_poly
- *
- *	Face Inset Tool:
- *	
- *	Insets a single face and returns a pointer to the face at the 
- *	center of the newly created region
-*	
-*	TODO: Rewrite this. It's a mess. Especially take out the geometry modification stuff and make it a topo only thingy.
-*
- *	Returns -
- *	A BME_Poly pointer.
+/* options that can be passed:
+ * BME_BEVEL_VWEIGHT	<---- v, Look at vertex weights; use defgrp_index if option is present
+ * BME_BEVEL_SELECT		<---- v,e, check selection for verts and edges
+ * BME_BEVEL_ANGLE		<---- v,e, don't bevel-tag verts - tag verts per edge
+ * BME_BEVEL_VERT		<---- e, don't tag edges
+ * BME_BEVEL_EWEIGHT	<---- e, use crease flag for now
+ * BME_BEVEL_PERCENT	<---- Will need to think about this one; will probably need to incorporate into actual bevel routine
+ * BME_BEVEL_RADIUS		<---- Will need to think about this one; will probably need to incorporate into actual bevel routine
+ * All weights/limits are stored per-vertex
  */
-
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
-
-BME_Poly *BME_inset_poly(BME_Mesh *bm,BME_Poly *f){
-	
-	BME_Vert *v, *killvert;
-	BME_Edge *killedge;
-	BME_Loop *l,*nextloop, *newloop, *killoop, *sloop;
-	BME_CycleNode *loopref;
-	
-	int done,len,i;
-	float max[3],min[3],cent[3]; //center of original face
-	
-	/*get bounding box for face*/
-	VECCOPY(max,f->loopbase->v->co);
-	VECCOPY(min,f->loopbase->v->co);
-	len = f->len;
-	for(i=0,l=f->loopbase;i<len;i++,l=l->next){
-		max[0] = MAX(max[0],l->v->co[0]);
-		max[1] = MAX(max[1],l->v->co[1]);
-		max[2] = MAX(max[2],l->v->co[2]);
-		
-		min[0] = MIN(min[0],l->v->co[0]);
-		min[1] = MIN(min[1],l->v->co[1]);
-		min[2] = MIN(min[2],l->v->co[2]);
-	}
-	
-	cent[0] = (min[0] + max[0]) / 2.0;
-	cent[1] = (min[1] + max[1]) / 2.0;
-	cent[2] = (min[2] + max[2]) / 2.0;
-	
-	
-	
-	/*inset each edge in the polygon.*/
-	len = f->len;
-	for(i=0,l=f->loopbase; i < len; i++){
-		nextloop = l->next;
-		f = BME_SFME(bm,l->f,l->v,l->next->v,NULL);
-		l=nextloop;
-	}
-	
-	/*for each new edge, call SEMV twice on it*/
-	for(i=0,l=f->loopbase; i < len; i++, l=l->next){ 
-		l->tflag1 = 1; //going to store info that this loops edge still needs split
-		l->tflag2 = l->v->tflag1 = l->v->tflag2 = 0; 
-	}
-	
-	len = f->len;
-	for(i=0,l=f->loopbase; i < len; i++){
-		if(l->tflag1){
-			l->tflag1 = 0;
-			v= BME_SEMV(bm,l->next->v,l->e,NULL);
-			VECCOPY(v->co,l->v->co);
-			l->e->tflag2 =1; //mark for kill with JFKE
-			v->tflag2 = 1; //mark for kill with JEKV
-			v->tflag1 = 1; //mark for what?
-			v= BME_SEMV(bm,l->next->v,l->e,NULL);
-			VECCOPY(v->co,l->next->next->v->co);
-			v->tflag1 = 1;
-			l = l->next->next->next;
-		}
-	}
-	
-	len = f->len;
-	sloop = NULL;
-	for(i=0,l=f->loopbase; i < len; i++,l=l->next){
-		if(l->v->tflag1 && l->next->next->v->tflag1){
-			sloop = l;
-			break;
-		}
-	}
-	if(sloop){
-		for(i=0,l=sloop; i < len; i++){
-			nextloop = l->next->next->next;
-			f = BME_SFME(bm,f,l->v,l->next->next->v,&killoop);
-			i+=2;
-			BME_JFKE(bm,l->f,((BME_Loop*)l->radial.next->data)->f,l->e);
-			killedge = killoop->e;
-			killvert = killoop->v;
-			done = BME_JEKV(bm,killedge,killvert);
-			if(!done){
-				printf("whoops!");
-			}
-			l=nextloop;
-		}
-	}
-	
-	len = f->len;
-	for(i=0,l=f->loopbase; i < len; i++,l=l->next){
-		l->v->co[0] = (l->v->co[0] + cent[0]) / 2.0;
-		l->v->co[1] = (l->v->co[1] + cent[1]) / 2.0;
-		l->v->co[2] = (l->v->co[2] + cent[2]) / 2.0;
-	}
-	return NULL;
-}
-
-
-//*shouild change these to take a BME_DELETE flag instead!
-static void remove_tagged_polys(BME_Mesh *bm){
-	BME_Poly *f, *nextf;
-	f=BME_first(bm,BME_POLY);
-	while(f){
-		nextf = BME_next(bm,BME_POLY,f);
-		if(BME_ISVISITED(f)) BME_KF(bm,f);
-		f = nextf;
-	}
-}
-static void remove_tagged_edges(BME_Mesh *bm){
-	BME_Edge *e, *nexte;
-	e=BME_first(bm,BME_EDGE);
-	while(e){
-		nexte = BME_next(bm,BME_EDGE,e);
-		if(BME_ISVISITED(e)) BME_KE(bm,e);
-		e = nexte;
-	}
-}
-static void remove_tagged_verts(BME_Mesh *bm){
-	BME_Vert *v, *nextv;
-	v=BME_first(bm,BME_VERT);
-	while(v){
-		nextv = BME_next(bm,BME_VERT,v);
-		if(BME_ISVISITED(v)) BME_KV(bm,v);
-		v=nextv;
-	}
-}
-
-void BME_delete_verts(BME_Mesh *bm){
+BME_Mesh *BME_bevel(BME_Mesh *bm, float value, int res, int options, int defgrp_index, float angle, BME_TransData_Head **rtd) {
 	BME_Vert *v;
-	BME_Edge *e, *curedge;
-	BME_Loop *curloop;
-	
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)){
-			BME_VISIT(v); // mark for delete
-			/*visit edges and faces of edges*/
-			if(v->edge){
-				curedge = v->edge;
-				do{
-					BME_VISIT(curedge); // mark for delete
-					if(curedge->loop){
-						curloop = curedge->loop;
-						do{
-							BME_VISIT(curloop->f); // mark for delete
-							curloop = curloop->radial.next->data;
-						} while(curloop != curedge->loop);
-					}
-					curedge = BME_disk_nextedge(curedge,v);
-				} while(curedge != v->edge);
-			}
-		}
-	}
-
-	remove_tagged_polys(bm);
-	remove_tagged_edges(bm);
-	remove_tagged_verts(bm);
-}
-
-void BME_delete_edges(BME_Mesh *bm){
-	BME_Edge *e;
-	BME_Loop *curloop;
-	
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)){
-			BME_VISIT(e); //mark for delete
-			if(e->loop){
-				curloop = e->loop;
-				do{
-					BME_VISIT(curloop->f); //mark for delete
-					curloop = curloop->radial.next->data;
-				} while(curloop != e->loop);
-			}
-		}
-	}
-	remove_tagged_polys(bm);
-	remove_tagged_edges(bm);
-}
-
-void BME_delete_polys(BME_Mesh *bm){
-	BME_Poly *f;
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)) BME_VISIT(f);
-	}
-	remove_tagged_polys(bm);
-}
-
-void BME_delete_context(BME_Mesh *bm, int type){
-	BME_Vert *v;
-	BME_Edge *e;
-	BME_Loop *l;
-	BME_Poly *f;
-	
-	if(type == BME_DEL_VERTS) BME_delete_verts(bm);
-	else if(type == BME_DEL_EDGES){ 
-		BME_delete_edges(bm);
-		//remove loose vertices
-		v=BME_first(bm,BME_VERT);
-		while(v){
-			BME_Vert *nextv = BME_next(bm,BME_VERT,v);
-			if(BME_SELECTED(v) && (!(v->edge))) BME_KV(bm, v);
-			v = nextv;
-		}
-	}
-	else if(type == BME_DEL_EDGESFACES) BME_delete_edges(bm);
-	else if(type == BME_DEL_ONLYFACES) BME_delete_polys(bm);
-	else if(type == BME_DEL_FACES){
-		/*go through and mark all edges of all faces for delete*/
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			if(BME_SELECTED(f)){
-				BME_VISIT(f);
-				l=f->loopbase;
-				do{
-					BME_VISIT(l->e);
-					l=l->next;
-				}while(l!=f->loopbase);
-			}
-		}
-		
-		/*now go through and mark all remaining faces all edges for keeping.*/
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			if(!(BME_SELECTED(f))){
-				l=f->loopbase;
-				do{
-					BME_UNVISIT(l->e);
-					l=l->next;
-				}while(l!=f->loopbase);
-			}
-		}
-		
-		/*now delete marked faces*/
-		remove_tagged_polys(bm);
-		/*delete marked edges*/
-		remove_tagged_edges(bm);
-		/*remove loose vertices*/
-		v=BME_first(bm,BME_VERT);
-		while(v){
-			BME_Vert *nextv = BME_next(bm,BME_VERT,v);
-			if(BME_SELECTED(v) && (!(v->edge))) BME_KV(bm,v);
-			v=nextv;
-		}
-	}
-	else if(type == BME_DEL_ALL){
-		f=BME_first(bm,BME_POLY);
-		while(f){
-			BME_Poly *nextf = BME_next(bm,BME_POLY,f);
-			BME_KF(bm,f);
-			f = nextf;
-		}
-		e=BME_first(bm,BME_EDGE);
-		while(e){
-			BME_Edge *nexte = BME_next(bm,BME_EDGE,e);
-			BME_KE(bm,e);
-			e = nexte;
-		}
-		v=BME_first(bm,BME_VERT);
-		while(v){
-			BME_Vert *nextv = BME_next(bm,BME_VERT,v);
-			BME_KV(bm,v);
-			v = nextv;
-		}
-	}
-	BME_selectmode_flush(bm);
-}
-
-/**
- *			BME_extrudeXX functions
- *
- *	Extrude tool for verts/edges/faces
- *	
-*	A rewrite of the old editmesh extrude code with the redundant parts broken into multiple functions
-*	in an effort to reduce code. This works with multiple selection modes, and is intended to build the
-*	extrusion in steps, depending on what elements are selected. Also decoupled the calculation of transform normal
-*	and put it in UI where it probably is more appropriate for the moment.
- */
-
-void BME_extrude_verts(BME_Mesh *bm, GHash *vhash){
-	BME_Vert *v, *nv = NULL;
-	BME_Edge *ne = NULL;
-	float vec[3];
-
-	//extrude the vertices
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)){
-			VECCOPY(vec,v->co);
-			nv = BME_MV(bm,vec);
-			nv->tflag2 =1; //mark for select
-			ne = BME_ME(bm,v,nv);
-			ne->tflag1 = 2; //mark as part of skirt 'ring'
-			BLI_ghash_insert(vhash,v,nv);
-			BME_VISIT(v);
-		}
-	}
-}
-
-void BME_extrude_skirt(BME_Mesh *bm, GHash *ehash){
-	
-	BME_Poly *nf=NULL;
-	BME_Edge *e, *l=NULL, *r=NULL, *edar[4], *ne;
-	BME_Vert *v, *v1, *v2, *lv, *rv, *nv;
-
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)){
-			/*find one face incident upon e and use it for winding of new face*/
-			if(e->loop){
-				v1 = e->loop->next->v;
-				v2 = e->loop->v;
-			}
-			else{
-				v1 = e->v1;
-				v2 = e->v2;
-			}
-			
-			if(v1->edge->tflag1 == 2) l = v1->edge;
-			else l = BME_disk_next_edgeflag(v1->edge, v1, 0, 2);
-			if(v2->edge->tflag1 == 2) r = v2->edge;
-			else r = BME_disk_next_edgeflag(v2->edge, v2, 0, 2);
-			
-			lv = BME_edge_getothervert(l,v1);
-			rv = BME_edge_getothervert(r,v2);
-			
-			ne = BME_ME(bm,lv,rv);
-			ne->tflag2 = 1; //mark for select
-			BLI_ghash_insert(ehash,e,ne);
-			BME_VISIT(e);
-			
-			edar[0] = e;
-			edar[1] = l;
-			edar[2] = ne;
-			edar[3] = r;
-			BME_MF(bm,v1,v2,edar,4);
-		}
-	}
-}
-
-void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
-	BME_Vert *v, *nv, *v1, *v2;
-	BME_Edge *e, **edar, *ne;
-	BME_Loop *l;
-	BME_Poly *f, *nf;
-	MemArena *edgearena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
-	float vec[3];
-	int i, j, del_old =0;
-	
-
-	//loop through faces, then loop through their verts. If the verts havnt been visited yet, duplicate these.
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)){
-			l = f->loopbase;
-			do{
-				if(!(BME_ISVISITED(l->v))){ //interior vertex
-					//dupe vert
-					VECCOPY(vec,l->v->co);
-					nv = BME_MV(bm,vec);
-					BLI_ghash_insert(vhash,l->v,nv);
-					//mark for delete
-					l->v->tflag1 = 1;
-					BME_VISIT(l->v); //we dont want to dupe it again.
-				}
-				l=l->next;
-			}while(l!=f->loopbase);
-		}
-	}
-	
-	//find out if we delete old faces or not. This needs to be improved a lot.....
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e) && e->loop){
-			i= BME_cycle_length(&(e->loop->radial));
-			if(i > 2){ 
-				del_old = 1;
-				break;
-			}
-		}
-	}
-	
-	
-	//build a new edge net, insert the new edges into the edge hash
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)){
-			l=f->loopbase;
-			do{
-				if(!(BME_ISVISITED(l->e))){ //interior edge
-					//dupe edge
-					ne = BME_ME(bm,BLI_ghash_lookup(vhash,l->e->v1),BLI_ghash_lookup(vhash,l->e->v2));
-					BLI_ghash_insert(ehash,l->e,ne);
-					//mark for delete
-					l->e->tflag1 = 1;
-					BME_VISIT(l->e); //we dont want to dupe it again.
-				}
-				l=l->next;
-			}while(l!=f->loopbase);
-		}
-	}
-	
-	//build new faces. grab edges from edge hash.
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)){
-			edar = MEM_callocN(sizeof(BME_Edge*)*f->len,"Extrude array");
-			 v1 = BLI_ghash_lookup(vhash,f->loopbase->v);
-			v2 = BLI_ghash_lookup(vhash,f->loopbase->next->v);
-			for(i=0,l=f->loopbase; i < f->len; i++,l=l->next){
-				ne = BLI_ghash_lookup(ehash,l->e);
-				edar[i] = ne;
-			}
-			nf=BME_MF(bm,v1,v2,edar,f->len);
-			nf->tflag2 = 1; // mark for select
-			if(del_old) f->tflag1 = 1; //mark for delete
-			MEM_freeN(edar);
-		}
-	}
-	BLI_memarena_free(edgearena);
-}
-
-/*unified extrude code*/
-void BME_extrude_mesh(BME_Mesh *bm, int type){
-	
-	BME_Vert *v;
-	BME_Edge *e;
-	BME_Poly *f;
-	BME_Loop *l;
-	
-	struct GHash *vhash, *ehash;
-	/*Build a hash table of old pointers and new pointers.*/
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	
-	BME_selectmode_flush(bm); //ensure consistent selection. contains hack to make sure faces get consistent select.
-	if(type & BME_EXTRUDE_FACES){ //Find selected edges with more than one incident face that is also selected. deselect them.
-		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-			int totsel=0;
-			if(e->loop){
-				l= e->loop;
-				do{
-					if(BME_SELECTED(l->f)) totsel++;
-					l=BME_radial_nextloop(l);
-				}while(l!=e->loop);
-			}
-			if(totsel > 1) BME_select_edge(bm,e,0);
-		}
-	}
-
-	/*another hack to ensure consistent selection.....*/
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)) BME_select_edge(bm,e,1);
-	}
-	
-	/*now we are ready to extrude*/
-	if(type & BME_EXTRUDE_VERTS) BME_extrude_verts(bm,vhash);
-	if(type & BME_EXTRUDE_EDGES) BME_extrude_skirt(bm,ehash);
-	if(type & BME_EXTRUDE_FACES) BME_cap_skirt(bm,vhash,ehash);
-	
-	/*clear all selection flags*/
-	BME_clear_flag_all(bm, SELECT|BME_VISITED);
-	/*go through and fix up selection flags. Anything with BME_NEW should be selected*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(f->tflag2 == 1) BME_select_poly(bm,f,1);
-		if(f->tflag1 == 1) BME_VISIT(f); //mark for delete
-	}
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(e->tflag2 == 1) BME_select_edge(bm,e,1);
-		if(e->tflag1 == 1) BME_VISIT(e); // mark for delete
-	}
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(v->tflag2 == 1) BME_select_vert(bm,v,1);
-		if(v->tflag1 == 1) BME_VISIT(v); //mark for delete
-	}
-	/*go through and delete all of our old faces , edges and vertices.*/
-	remove_tagged_polys(bm);
-	remove_tagged_edges(bm);
-	remove_tagged_verts(bm);
-	/*free our hash tables*/
-	BLI_ghash_free(vhash,NULL, NULL); //check usage!
-	BLI_ghash_free(ehash,NULL, NULL); //check usage!
-	BME_selectmode_flush(bm);
-}
-
-
-
-static BME_Vert *BME_dupevert(BME_Mesh *bm, BME_Vert *ov){
-	BME_Vert *nv = BME_MV(bm,ov->co);
-	/*copy info about ov*/
-	if(BME_SELECTED(ov))BME_select_vert(bm,nv,1);
-	return nv;
-}
-static BME_Edge *BME_dupedge(BME_Mesh *bm, BME_Edge *oe,BME_Vert *v1, BME_Vert *v2){
-	BME_Edge *ne = BME_ME(bm,v1,v2);
-	if(BME_SELECTED(oe))BME_select_edge(bm,ne,1);
-	/*copy info about oe*/
-	return ne;
-}
-static BME_Poly *BME_dupepoly(BME_Mesh *bm, BME_Poly *of, BME_Vert *v1, BME_Vert *v2, BME_Edge **edar){
-
-	BME_Poly *nf = NULL;
-	nf = BME_MF(bm,v1,v2,edar,of->len);
-	/*copy info about of*/
-	if(BME_SELECTED(of))BME_select_poly(bm,nf,1);
-	return nf;
-}
-void BME_duplicate(BME_Mesh *bm){
-	
-	BME_Vert *v, *nv, *ev1, *ev2;
-	BME_Edge *e, *ne, **edar;
-	BME_Loop *l;
-	BME_Poly *f;
-	struct GHash *vhash, *ehash;//pointer hashes
-	int edarlength, i;
-	
-	/*Build a hash table of old pointers and new pointers.*/
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	
-	/*Edge pointer array, realloc if too small (unlikely)*/
-	edarlength = 4096;
-	edar = MEM_callocN(sizeof(BME_Edge*)*edarlength,"Mesh duplicate tool \n");
-	
-	/*first search for selected faces, dupe all verts*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)){
-			/*dupe each vertex*/
-			l=f->loopbase;
-			do{
-				if(!(BME_ISVISITED(l->v))){
-					nv = BME_dupevert(bm,l->v);
-					BLI_ghash_insert(vhash,l->v,nv);
-					BME_VISIT(l->v);
-				}
-				l=l->next;
-			}while(l!=f->loopbase);
-		}
-	}
-	
-	/*now search for selected edges, dupe all verts (if nessecary)*/
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)){
-			if(!(BME_ISVISITED(e->v1))){
-				nv = BME_dupevert(bm,e->v1);
-				BLI_ghash_insert(vhash,e->v1,nv);
-				BME_VISIT(e->v1);
-			}
-			if(!(BME_ISVISITED(e->v2))){
-				nv = BME_dupevert(bm,e->v2);
-				BLI_ghash_insert(vhash,e->v2,nv);
-				BME_VISIT(e->v2);
-			}
-		}
-	}
-	/*finally, any unvisited vertices should be duped (loose)*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v) && (!(BME_NEWELEM(v)))){
-			if(!(BME_ISVISITED(v))){
-				nv = BME_dupevert(bm,v);
-				BLI_ghash_insert(vhash,v,nv);
-				BME_VISIT(v);
-			}
-		}
-	}
-		
-	/*go through selected edges and dupe using vert hash as lookup.*/
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e) && (!(BME_NEWELEM(e)))){
-			ev1 = ev2 = NULL;
-			ev1 = BLI_ghash_lookup(vhash,e->v1);
-			ev2 = BLI_ghash_lookup(vhash,e->v2);
-			
-			ne = BME_dupedge(bm,e,ev1,ev2);
-			BLI_ghash_insert(ehash,e,ne);
-			BME_VISIT(e);
-		}
-	}
-	/*go through selected faces and dupe edges*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)){
-			l=f->loopbase;
-			do{
-				if(!(BME_ISVISITED(l->e))){
-					ev1 = ev2 = NULL;
-					ev1 = BLI_ghash_lookup(vhash,l->e->v1);
-					ev2 = BLI_ghash_lookup(vhash,l->e->v2);
-					
-					ne = BME_dupedge(bm,l->e,ev1,ev2);
-					BLI_ghash_insert(ehash,l->e,ne);
-					BME_VISIT(l->e);
-				}
-				l=l->next;
-			}while(l!=f->loopbase);
-		}
-	}
-	
-	
-	/*go through faces and dupe using edge hash as lookup*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f) && (!(BME_NEWELEM(f)))){
-			/*first check facelen and see if edar needs to be reallocated. Highly unlikely.*/
-			if(f->len > edarlength){
-				MEM_freeN(edar);
-				edarlength = edarlength * 2;
-				edar = MEM_callocN(sizeof(BME_Edge*)*edarlength,"Mesh duplicate tool");
-			}
-			/*now loop through face, looking up the edge that should go in edar, and placing in there.*/
-			l = f->loopbase;
-			i = 0;
-			do{
-				edar[i] = BLI_ghash_lookup(ehash, l->e);
-				BME_VISIT(l->e);
-				i++;
-				l=l->next;
-			}while(l!=f->loopbase);
-			ev1=ev2=NULL;
-			ev1 = BLI_ghash_lookup(vhash,f->loopbase->v);
-			ev2 = BLI_ghash_lookup(vhash,f->loopbase->next->v);
-			
-			BME_VISIT(f);
-			BME_dupepoly(bm,f,ev1,ev2,edar);
-		}
-	}	
-	
-	/*finally go through and unselect all 'visited' elements*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_ISVISITED(v)) BME_select_vert(bm,v,0);
-	}
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_ISVISITED(e)) BME_select_edge(bm,e,0);
-	}
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_ISVISITED(f)) BME_select_poly(bm,f,0);
-	}
-	
-	/*free memory*/
-	if(edar) MEM_freeN(edar);
-	BLI_ghash_free(vhash,NULL, NULL); //check usage!
-	BLI_ghash_free(ehash,NULL, NULL); //check usage!
-	BME_selectmode_flush(bm);
-}
-
-int convex(float *v1, float *v2, float *v3, float *v4)
-{
-	float nor[3], nor1[3], nor2[3], vec[4][2];
-	
-	/* define projection, do both trias apart, quad is undefined! */
-	CalcNormFloat(v1, v2, v3, nor1);
-	CalcNormFloat(v1, v3, v4, nor2);
-	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
-	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
-	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
-
-	if(nor[2] >= nor[0] && nor[2] >= nor[1]) {
-		vec[0][0]= v1[0]; vec[0][1]= v1[1];
-		vec[1][0]= v2[0]; vec[1][1]= v2[1];
-		vec[2][0]= v3[0]; vec[2][1]= v3[1];
-		vec[3][0]= v4[0]; vec[3][1]= v4[1];
-	}
-	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
-		vec[0][0]= v1[0]; vec[0][1]= v1[2];
-		vec[1][0]= v2[0]; vec[1][1]= v2[2];
-		vec[2][0]= v3[0]; vec[2][1]= v3[2];
-		vec[3][0]= v4[0]; vec[3][1]= v4[2];
-	}
-	else {
-		vec[0][0]= v1[1]; vec[0][1]= v1[2];
-		vec[1][0]= v2[1]; vec[1][1]= v2[2];
-		vec[2][0]= v3[1]; vec[2][1]= v3[2];
-		vec[3][0]= v4[1]; vec[3][1]= v4[2];
-	}
-	
-	/* linetests, the 2 diagonals have to instersect to be convex */
-	if( IsectLL2Df(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
-	return 0;
-}
-
-
-static BME_Poly *add_quadtri(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v3, BME_Vert *v4){
-	BME_Poly *nf;
-	BME_Edge *edar[4];
-	edar[0] = edar[1] = edar[2] = edar[3] = NULL;
-	
-	
-	edar[0] = BME_disk_existedge(v1,v2);
-	if(edar[0] == NULL) edar[0] = BME_ME(bm,v1,v2);
-	edar[1] = BME_disk_existedge(v2,v3);
-	if(edar[1] == NULL) edar[1] = BME_ME(bm,v2,v3);
-	if(v4){
-		edar[2] = BME_disk_existedge(v3,v4);
-		if(edar[2] == NULL) edar[2] = BME_ME(bm,v3,v4);
-		edar[3] = BME_disk_existedge(v4,v1);
-		if(edar[3] == NULL) edar[3] = BME_ME(bm,v4,v1);
-	}
-	else{
-		edar[2] = BME_disk_existedge(v3,v1);
-		if(edar[2]==NULL) edar[2] = BME_ME(bm,v3,v1);
-	}
-	if(v4) nf = BME_MF(bm,v1,v2,edar,4);
-	else nf = BME_MF(bm,v1,v2,edar,3);
-	return nf;
-}
-
-/*finds out if any of the faces connected to any of the verts have all other vertices in varr as well. */
-/*this can be MUCH more compact if we just use BME_VertFaceWalk from BME_traversals.c*/
-static int exist_face_overlaps(BME_Mesh *bm, BME_Vert **varr, int len){
-	BME_Edge *curedge;
-	BME_Loop *curloop, *l;
+	BME_TransData_Head *td;
+	BME_TransData *vtd;
 	int i;
-	/*loop through every face in every vert, if it contains all vertices in varr, its an overlap*/ 
-	for(i=0;i<len;i++){
-		if(varr[i]->edge){
-			curedge = varr[i]->edge;
-			do{
-				if(curedge->loop){
-					curloop = curedge->loop;
-					do{
-						int amount = 0;
-						/*if amount of 'visited' verts == len then we have an overlap*/
-						l = curloop->f->loopbase;
-						do{
-							if(BME_SELECTED(l->v)) amount++;
-							l = l->next;
-						}while(l != curloop->f->loopbase);
-						if(amount >= len){
-							if(len == curloop->f->len)  return 2; //existface
-							else return 1; //overlap
-						}
-						curloop = BME_radial_nextloop(curloop);
-					}while(curloop != curedge->loop);
-				}
-				curedge = BME_disk_nextedge(curedge,varr[i]);
-			}while(curedge!=varr[i]->edge);
-		}
-	}
-	return 0;
-}
+	float fac=1, d;
 
+	td = BME_init_transdata(BLI_MEMARENA_STD_BUFSIZE);
 
-/* precondition; 4 vertices selected, check for 4 edges and create face */
-static BME_Poly *addface_from_edges(BME_Mesh *bm)
-{
-	BME_Edge *e, *eedar[4]={NULL, NULL, NULL, NULL};
-	BME_Vert *v1=NULL, *v2=NULL, *v3=NULL, *v4=NULL;
-	int a;
-	
-	/* find the 4 edges */
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)) {
-			if(eedar[0]==NULL) eedar[0]= e;
-			else if(eedar[1]==NULL) eedar[1]= e;
-			else if(eedar[2]==NULL) eedar[2]= e;
-			else eedar[3]= e;
-		}
+	BME_bevel_initialize(bm, options, defgrp_index, angle, td);
+
+	/* recursion math courtesy of Martin Poirier (theeth) */
+	for (i=0; i<res-1; i++) {
+		if (i==0) fac += 1.0f/3.0f; else fac += 1.0f/(3 * i * 2.0f);
 	}
-	
-	if(eedar[3]) {
-		/* first 2 points */
-		v1= eedar[0]->v1;
-		v2= eedar[0]->v2;
-		
-		/* find the 2 edges connected to first edge */
-		for(a=1; a<4; a++) {
-			if( eedar[a]->v1 == v2) v3= eedar[a]->v2;
-			else if(eedar[a]->v2 == v2) v3= eedar[a]->v1;
-			else if( eedar[a]->v1 == v1) v4= eedar[a]->v2;
-			else if(eedar[a]->v2 == v1) v4= eedar[a]->v1;
-		}
-		
-		/* verify if last edge exists */
-		if(v3 && v4) {
-			for(a=1; a<4; a++) {
-				if( eedar[a]->v1==v3 && eedar[a]->v2==v4) break;
-				if( eedar[a]->v2==v3 && eedar[a]->v1==v4) break;
+	d = 1.0f/fac;
+	/* crazy idea. if res == 0, don't remove original geometry */
+	for (i=0; i<res || (res==0 && i==0); i++) {
+		if (i != 0) BME_bevel_reinitialize(bm);
+		BME_model_begin(bm);
+		BME_bevel_mesh(bm,d,res,options,defgrp_index,td);
+		BME_model_end(bm);
+		if (i==0) d /= 3; else d /= 2;
+	}
+
+	BME_tesselate(bm);
+
+	if (rtd) {
+		*rtd = td;
+		return bm;
+	}
+
+	/* transform pass */
+	for (v = bm->verts.first; v; v=v->next) {
+		if ( (vtd = BME_get_transdata(td, v)) ) {
+			if (vtd->max && (*vtd->max > 0 && value > *vtd->max)) {
+				d = *vtd->max;
 			}
-			if(a!=4) {
-				return add_quadtri(bm,v1,v2,v3,v4);
+			else {
+				d = value;
 			}
+			VECADDFAC(v->co,vtd->org,vtd->vec,vtd->factor*d);
 		}
-	}
-	return NULL;
-}
-
-static BME_Poly *make_ngon_from_selected(BME_Mesh *bm){
-	
-	BME_Edge *e, **edar;
-	BME_Poly *nf= NULL;
-	int i, edsel=0;
-	
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)) edsel++;
-	}		
-	edar = MEM_callocN(sizeof(BME_Edge*)*edsel,"Add edgeface Ngon array");
-	i = 0;		
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)){	
-			edar[i] = e;
-			i++;
-		}
-	}
-	nf =  BME_MF(bm,edar[0]->v1,edar[0]->v2,edar,edsel);
-	if(edar) MEM_freeN(edar);
-	return nf;
-}
-
-int BME_make_edgeface(BME_Mesh *bm){
-
-	BME_Vert *v, *newface[4];
-	BME_Edge *e, **edar=NULL, *halt;
-	BME_Loop *l;
-	BME_Poly *f, *nf=NULL;
-	int i, amount=0, facesel=0;
-
-
-	if(bm->selectmode & SCE_SELECT_EDGE){ 
-		/* in edge mode finding selected vertices means flushing down edge codes... */
-		/* can't make face with only edge selection info... */
-		BME_selectmode_set(bm);
-	}	
-
-	/*special exception here....  if there is one or more faces selected, we want to fuse them into one face*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		/*if all vertices of the face are selected, we need to mark it, and count. Run a seperate function on it to fuse faces*/
-		l=f->loopbase;
-		do{
-			if(BME_SELECTED(l->v)) amount++;
-			l=l->next;
-		}while(l!=f->loopbase);
-		
-		if(amount == f->len) facesel++;
-	}	
-
-	//insert face fusing code here in case facesel > 1. if == 1, error.
-
-	amount = 0;
-	/*we make special excepton for quads and tris, only require vertex information to make them. For n-gons we need  closed loop of edges.*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)){ 
-			if(amount == 4){ 
-				nf = make_ngon_from_selected(bm);
-				break;
-			}
-			newface[amount] = v;
-			amount++;
-		}
-	}
-	
-	if(!nf){
-		/*if amount == 2, create edge*/
-		if(amount == 2){
-			if(!(BME_disk_existedge(newface[0],newface[1]))) BME_ME(bm,newface[0],newface[1]);
-		}
-		/*if amount == 3, triangle...*/
-		else if(amount == 3){
-			if(exist_face_overlaps(bm,newface,3) == 0) add_quadtri(bm,newface[0],newface[1],newface[2],NULL);
-		}
-		/*if amount == 4, quad...*/
-		else if(amount == 4){
-			if(exist_face_overlaps(bm,newface,4) == 0){
-				/* if 4 edges exist, we just create the face, convex or not */
-				nf= addface_from_edges(bm);
-				if(nf==NULL) {
-					if( convex(newface[0]->co, newface[1]->co, newface[2]->co, newface[3]->co) ) {
-						nf= add_quadtri(bm, newface[0], newface[1], newface[2], newface[3]);
-					}
-					else if( convex(newface[0]->co, newface[2]->co, newface[3]->co, newface[1]->co) ) {
-						nf= add_quadtri(bm, newface[0], newface[2], newface[3], newface[1]);
-					}
-					else if( convex(newface[0]->co, newface[2]->co, newface[1]->co, newface[3]->co) ) {
-						nf= add_quadtri(bm, newface[0], newface[2], newface[1], newface[3]);
-					}
-					else if( convex(newface[1]->co, newface[2]->co, newface[3]->co, newface[0]->co) ) {
-						nf= add_quadtri(bm, newface[1], newface[2], newface[3], newface[0]);
-					}
-					else if( convex(newface[1]->co, newface[3]->co, newface[0]->co, newface[2]->co) ) {
-						nf= add_quadtri(bm, newface[1], newface[3], newface[0], newface[2]);
-					}
-					else if( convex(newface[1]->co, newface[3]->co, newface[2]->co, newface[0]->co) ) {
-						nf= add_quadtri(bm, newface[1], newface[3], newface[2], newface[0]);
-					}
-					return -1;				
-				}
-			}
-			return -1;;
-		}
-	}
-	
-	if(nf) {
-		BME_select_poly(bm,nf, 1);
-		//fix_new_face(efa); fix me!
-		//recalc_editnormals(); fix me too!
-
-	}
-	BME_selectmode_flush(bm);
-}
-
-
-/********* qsort routines *********/
-
-
-typedef struct xvertsort {
-	float x;
-	BME_Vert *v1;
-} xvertsort;
-
-static int vergxco(const void *v1, const void *v2)
-{
-	const xvertsort *x1=v1, *x2=v2;
-
-	if( x1->x > x2->x ) return 1;
-	else if( x1->x < x2->x) return -1;
-	return 0;
-}
-
-struct facesort {
-	unsigned long x;
-	struct BME_Poly *f;
-};
-
-
-static int vergface(const void *v1, const void *v2)
-{
-	const struct facesort *x1=v1, *x2=v2;
-	
-	if( x1->x > x2->x ) return 1;
-	else if( x1->x < x2->x) return -1;
-	return 0;
-}
-
-
-
-/*break this into two functions.... 'find doubles' and 'remove doubles'?*/
-
-static void BME_remove_doubles__splitface(BME_Mesh *bm,BME_Poly *f,GHash *vhash){
-	BME_Vert *doub=NULL, *target=NULL;
-	BME_Loop *l;
-	BME_Poly *f2=NULL;
-	int split=0;
-	
-	l=f->loopbase;
-	do{
-		if(l->v->tflag1 == 2){
-			target = BLI_ghash_lookup(vhash,l->v);
-			if((BME_vert_in_face(target,f)) && (target != l->next->v) && (target != l->prev->v)){
-				doub = l->v;
-				split = 1;
-				break;
-			}
-		}
-		
-		l= l->next;
-	}while(l!= f->loopbase);
-
-	if(split){
-		f2 = BME_SFME(bm,f,doub,target,NULL);
-		BME_remove_doubles__splitface(bm,f,vhash);
-		BME_remove_doubles__splitface(bm,f2,vhash);
-	}
-}
-
-int BME_remove_doubles(BME_Mesh *bm, float limit)		
-{
-
-	/* all verts with (flag & 'flag') are being evaluated */
-	BME_Vert *v, *v2, *target;
-	BME_Edge *e, **edar, *ne;
-	BME_Loop *l;
-	BME_Poly *f, *nf;
-	xvertsort *sortblock, *sb, *sb1;
-	struct GHash *vhash;
-	struct facesort *fsortblock, *vsb, *vsb1;
-	int a, b, test, amount=0, found;
-	float dist;
-
-	/*Build a hash table of doubles to thier target vert/edge.*/
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);	
-	
-	/*count amount of selected vertices*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v))amount++;
-	}
-	
-	/*qsort vertices based upon average of coordinate. We test this way first.*/
-	sb= sortblock= MEM_mallocN(sizeof(xvertsort)*amount,"sortremovedoub");
-
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)){
-			sb->x = v->co[0]+v->co[1]+v->co[2];
-			sb->v1 = v;
-			sb++;
-		}
-	}
-	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
-
-	/* test for doubles */
-	sb= sortblock;
-	for(a=0; a<amount; a++) {
-		v= sb->v1;
-		if(!(v->tflag1)) { //have we tested yet?
-			sb1= sb+1;
-			for(b=a+1; b<amount; b++) {
-				/* first test: simple distance. Simple way to discard*/
-				dist= sb1->x - sb->x;
-				if(dist > limit) break;
-				
-				/* second test: have we already done this vertex?
-				(eh this should be swapped, simple equality test should be cheaper than math above... small savings 
-				though) */
-				v2= sb1->v1;
-				if(!(v2->tflag1)) {
-					dist= (float)fabs(v2->co[0]-v->co[0]);
-					if(dist<=limit) {
-						dist= (float)fabs(v2->co[1]-v->co[1]);
-						if(dist<=limit) {
-							dist= (float)fabs(v2->co[2]-v->co[2]);
-							if(dist<=limit) {
-								/*v2 is a double of v. We want to throw out v1 and relink everything to v*/
-								BLI_ghash_insert(vhash,v2, v);
-								v->tflag1 = 1; //mark this vertex as a target
-								v->tflag2++; //increase user count for this vert.
-								v2->tflag1 = 2; //mark this vertex as a double.
-								BME_VISIT(v2); //mark for delete
-							}
-						}
-					}
-				}
-				sb1++;
-			}
-		}
-		sb++;
-	}
-	MEM_freeN(sortblock);
-
-	
-	/*todo... figure out what this is for...
-	for(eve = em->verts.first; eve; eve=eve->next)
-		if((eve->f & flag) && (eve->f & 128))
-			EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
-	*/
-	
-	/*We cannot collapse a vertex onto another vertex if they share a face and are not connected via a collapsable edge.
-		so to deal with this we simply find these offending vertices and split the faces. Note that this is not optimal, but works.
-	*/
-	
-	
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(!(BME_NEWELEM(f))){
-			BME_remove_doubles__splitface(bm,f,vhash);
-		}
-	}
-	
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		/*If either vertices of this edge are a double, we must mark it for removal and we create a new one.*/
-		if(e->v1->tflag1 == 2 || e->v2->tflag1 == 2){ 
-			v = v2 = NULL;
-			/*For each vertex in the edge, test to find out what it should equal now.*/
-			if(e->v1->tflag1 == 2) v= BLI_ghash_lookup(vhash,e->v1);
-			else v = e->v1;
-			if(e->v2->tflag1 == 2) v2 = BLI_ghash_lookup(vhash,e->v2);
-			else v2 = e->v2;
-			
-			/*small optimization, test to see if the edge needs to be rebuilt at all*/
-			if((e->v1 != v) || (e->v2 != v2)){ /*will this always be true of collapsed edges?*/
-				if(v == v2) e->tflag1 = 2; /*mark as a collapsed edge*/
-				else if(!BME_disk_existedge(v,v2)) ne = BME_ME(bm,v,v2);
-				BME_VISIT(e); /*mark for delete*/
-			}
-		}
+		v->tflag1 = 0;
 	}
 
-
-	/*need to remove double edges as well. To do this we decide on one edge to keep, and if its inserted into hash then we need to remove all other
-	edges incident upon and relink.*/
-	/*
-	*	REBUILD FACES
-	*
-	*	Loop through double faces and if they have vertices that have been flagged, they need to be rebuilt.
-	*	We do this by looking up the face 
-	*rebuild faces. loop through original face, for each loop, if the edge it is attached to is marked for delete and has no 
-	*other edge in the hash edge, then we know to skip that loop on face recreation. Simple.
-	*/
-	
-	/*1st loop through, just marking elements*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){ //insert bit here about double edges, mark with a flag (e->tflag2) so that we can nuke it later.
-		l = f->loopbase;
-		do{
-			if(l->v->tflag1 == 2) f->tflag1 = 1; //double, mark for rebuild
-			if(l->e->tflag1 != 2) f->tflag2++; //count number of edges in the new face.
-			l=l->next;
-		}while(l!=f->loopbase);
-	}
-	
-	/*now go through and create new faces*/
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(f->tflag1 && f->tflag2 < 3) BME_VISIT(f); //mark for delete
-		else if (f->tflag1 == 1){ /*is the face marked for rebuild*/
-			edar = MEM_callocN(sizeof(BME_Edge *)*f->tflag2,"Remove doubles face creation array.");
-			a=0;
-			l = f->loopbase;
-			do{
-				v = l->v;
-				v2 = l->next->v;
-				if(l->v->tflag1 == 2) v = BLI_ghash_lookup(vhash,l->v);
-				if(l->next->v->tflag1 == 2) v2 = BLI_ghash_lookup(vhash,l->next->v);
-				ne = BME_disk_existedge(v,v2); //use BME_disk_next_edgeflag here or something to find the edge that is marked as 'target'.
-				//add in call here to edge doubles hash array... then bobs your uncle.
-				if(ne){
-					edar[a] = ne;
-					a++;
-				}
-				l=l->next;
-			}while(l!=f->loopbase);
-			
-			if(BME_vert_in_edge(edar[1],edar[0]->v2)){ 
-				v = edar[0]->v1; 
-				v2 = edar[0]->v2;
-			}
-			else{ 
-				v = edar[0]->v2; 
-				v2 = edar[0]->v1;
-			}
-			
-			nf = BME_MF(bm,v,v2,edar,f->tflag2);
-	
-			/*copy per loop data here*/
-			if(nf){
-				BME_VISIT(f); //mark for delete
-			}
-			MEM_freeN(edar);
-		}
-	}
-	
-	/*count amount of removed vert doubles*/
-	a = 0;
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(v->tflag1 == 2) a++;
-	}
-	
-	/*free memory and return amount removed*/
-	remove_tagged_polys(bm);
-	remove_tagged_edges(bm);
-	remove_tagged_verts(bm);
-	BLI_ghash_free(vhash,NULL, NULL);
-	BME_selectmode_flush(bm);
-	return a;
-}
-
-static void BME_MeshWalk__collapsefunc(void *userData, BME_Edge *applyedge){
-	int index;
-	GHash *collected = userData;
-	index = BLI_ghash_size(collected);
-	if(!BLI_ghash_lookup(collected,applyedge->v1)){ 
-		BLI_ghash_insert(collected,index,applyedge->v1);
-		index++;
-	}
-	if(!BLI_ghash_lookup(collected,applyedge->v2)){
-		BLI_ghash_insert(collected,index,applyedge->v2);
-	}
-}
-
-void BME_collapse_edges(BME_Mesh *bm){
-
-	BME_Vert *v, *cvert;
-	GHash *collected;
-	float min[3], max[3], cent[3];
-	int size, i=0, j, num=0;
-	
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(!(BME_ISVISITED(v)) && v->edge){
-			/*initiate hash table*/
-			collected = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-			/*do the walking.*/
-			BME_MeshWalk(bm,v,BME_MeshWalk__collapsefunc,collected,BME_RESTRICTSELECT);
-			/*now loop through the hash table twice, once to calculate bounding box, second time to do the actual collapse*/
-			size = BLI_ghash_size(collected);
-			/*initial values*/
-			VECCOPY(min,v->co);
-			VECCOPY(max,v->co);
-			cent[0] = cent[1] = cent[2]=0;
-			for(i=0; i<size; i++){
-				cvert = BLI_ghash_lookup(collected,i);
-				cent[0] = cent[0] + cvert->co[0];
-				cent[1] = cent[1] + cvert->co[1];
-				cent[2] = cent[2] + cvert->co[2];
-			}
-			
-			cent[0] = cent[0] / size;
-			cent[1] = cent[1] / size;
-			cent[2] = cent[2] / size;
-			
-			for(i=0; i<size; i++){
-				cvert = BLI_ghash_lookup(collected,i);
-				VECCOPY(cvert->co,cent);
-				num++;
-			}
-			/*free the hash table*/
-			BLI_ghash_free(collected,NULL, NULL);
-		}
-	}
-	/*if any collapsed, call remove doubles*/
-	if(num){
-		//need to change selection mode here, OR do something else? Or does tool change selection mode?
-		//selectgrep
-		//first clear flags
-		BME_Edge *e;
-		BME_Poly *f;
-		BME_clear_flag_all(bm,BME_VISITED);
-		for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)) v->tflag1 = v->tflag2 = 0;
-		for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) e->tflag1 = e->tflag2 = 0;
-		for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) f->tflag1 = f->tflag2 = 0;
-		/*now call remove doubles*/
-		BME_remove_doubles(bm,0.0000001);
-	}
-	BME_selectmode_flush(bm);
-}
-
-void BME_split_mesh(BME_Mesh *bm){
-	BME_Vert *v;
-	BME_Edge *e;
-	BME_Poly *f;
-	
-	/*first mark all selected elements*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)) v->tflag1 = 1;
-	}
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)) e->tflag1 = 1;
-	}
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(BME_SELECTED(f)) f->tflag1 = 1;
-	}
-	
-	BME_duplicate(bm); //dupe the selected parts.
-	BME_clear_flag_all(bm,BME_VISITED); //clear visited flags set in the duplicate function
-	/*now go through and visit all the previously selected parts and delete them*/
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(v->tflag1) BME_VISIT(v);
-	}
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if(e->tflag1) BME_VISIT(e);
-	}
-	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		if(f->tflag1) BME_VISIT(f);
-	}
-	
-	remove_tagged_polys(bm);
-	remove_tagged_edges(bm);
-	remove_tagged_verts(bm);
-}
-
-
-
-void BME_vertex_smooth(BME_Mesh *bm)
-{
-	BME_Vert *v;
-	BME_Edge *e;
-	float *adror, *adr, fac;
-	float fvec[3];
-	int selected=0;
-	GHash *vhash;
-
-	/* count */
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)) selected++;
-	}
-	
-	if(!selected) return 0;
-	
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-	adr=adror= (float *)MEM_callocN(3*sizeof(float *)*selected, "vertsmooth");
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if(BME_SELECTED(v)){
-			BLI_ghash_insert(vhash,v,adr);
-			adr+= 3;
-		}
-	}
-
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if((BME_SELECTED(e->v1)) || (BME_SELECTED(e->v2))){
-			fvec[0]= (e->v1->co[0]+e->v2->co[0])/2.0;
-			fvec[1]= (e->v1->co[1]+e->v2->co[1])/2.0;
-			fvec[2]= (e->v1->co[2]+e->v2->co[2])/2.0;
-			
-			if((BME_SELECTED(e->v1)) && e->v1->tflag1<255){
-				e->v1->tflag1++;
-				VecAddf(BLI_ghash_lookup(vhash,e->v1), BLI_ghash_lookup(vhash,e->v1), fvec);				
-			}
-			if((BME_SELECTED(e->v2)) && e->v2->tflag1<255){
-				e->v2->tflag1++;
-				VecAddf(BLI_ghash_lookup(vhash,e->v2), BLI_ghash_lookup(vhash,e->v2), fvec);
-			}
-		}
-	}
-	
-	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-		if( (BME_SELECTED(e->v1)) || (BME_SELECTED(e->v2)) ){
-			fvec[0]= (e->v1->co[0]+e->v2->co[0])/2.0;
-			fvec[1]= (e->v1->co[1]+e->v2->co[1])/2.0;
-			fvec[2]= (e->v1->co[2]+e->v2->co[2])/2.0;
-		}
-	}
-	
-	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
-		if( (BME_SELECTED(v)) ){
-			if(v->tflag1){
-				adr = BLI_ghash_lookup(vhash,v);
-				fac= 0.5/(float)v->tflag1;
-				
-				v->co[0]= 0.5*v->co[0]+fac*adr[0];
-				v->co[1]= 0.5*v->co[1]+fac*adr[1];
-				v->co[2]= 0.5*v->co[2]+fac*adr[2];
-			}
-		}
-	}
-	BLI_ghash_free(vhash,NULL, NULL);
-	MEM_freeN(adror);
-
-	//recalc_editnormals(); replace me!
+	BME_free_transdata(td);
+	return bm;
 }

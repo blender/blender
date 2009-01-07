@@ -1,13 +1,13 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,14 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "BOP_Merge.h"
 
+#ifdef BOP_ORIG_MERGE
 
 #ifdef _MSC_VER
 #if _MSC_VER < 1300
@@ -592,6 +593,7 @@ bool BOP_Merge::createQuads()
 	
 	// Get mesh faces
 	BOP_Faces faces = m_mesh->getFaces();
+
 	
     // Merge mesh triangles
 	const BOP_IT_Faces facesIEnd = (faces.end()-1);
@@ -801,3 +803,5 @@ void BOP_Merge::getFaces(BOP_LFaces &facesByOriginalFace, BOP_Indexs vertices, B
 	}
 	}
 }
+
+#endif  /* BOP_ORIG_MERGE */

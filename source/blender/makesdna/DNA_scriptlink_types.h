@@ -5,15 +5,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SCRIPTLINK_TYPES_H
 #define DNA_SCRIPTLINK_TYPES_H
@@ -61,14 +58,19 @@ typedef struct ScriptLink {
  * RENDER script links for clean-up actions */
 #define SCRIPT_POSTRENDER 32
 
+#define SCRIPT_OBJECTUPDATE 64
+#define SCRIPT_OBDATAUPDATE 128
+
 /* **************** SPACE HANDLERS ********************* */
 /* these are special scriptlinks that can be assigned to
  * a given space in a given ScrArea to:
  * - (EVENT type) handle events sent to that space;
- * - (DRAW type) draw on the space after its own drawing function finishes
+ * - (EVENT_ALL type): handle release events, too;
+ * - (DRAW type) draw on the space after its own drawing function finishes.
  */
-#define SPACEHANDLER_VIEW3D_EVENT 1
-#define SPACEHANDLER_VIEW3D_DRAW 2
+#define SPACEHANDLER_VIEW3D_DRAW 1
+#define SPACEHANDLER_VIEW3D_EVENT 2
+#define SPACEHANDLER_VIEW3D_EVENT_ALL 3
 
 
 #ifdef __cplusplus

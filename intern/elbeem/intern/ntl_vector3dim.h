@@ -22,6 +22,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // hack for MSVC6.0 compiler
 #ifdef _MSC_VER
@@ -202,7 +203,7 @@ private:
 
 
 //! global string for formatting vector output in utilities.cpp
-extern char *globVecFormatStr;
+extern const char *globVecFormatStr;
 
 /*************************************************************************
   Outputs the object in human readable form using the format
@@ -824,7 +825,7 @@ template<class T> inline ntlColor vec2Col(T v) { return ntlColor(v[0],v[1],v[2])
 #endif
 #endif
 #endif
-
+		
 #if GFX_PRECISION==1
 typedef float gfxReal;
 #define GFX_REAL_MAX __FLT_MAX__

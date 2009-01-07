@@ -158,18 +158,38 @@ PyParentObject CValue::Parents[] = {
 };
 
 PyMethodDef CValue::Methods[] = {
-//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, Py_NEWARGS},
-	{ "getName", (PyCFunction) CValue::sPyGetName, Py_NEWARGS},
+//  	{ "printHello", (PyCFunction) CValue::sPyPrintHello, METH_VARARGS},
+	{ "getName", (PyCFunction) CValue::sPyGetName, METH_NOARGS},
 	{NULL,NULL} //Sentinel
 };
 
-PyObject* CValue::PyGetName(PyObject* self,PyObject* args,PyObject* kwds)
+PyObject* CValue::PyGetName(PyObject* self)
 {
-	PyObject* pyname = PyString_FromString(this->GetName());
-	return pyname;
+	return PyString_FromString(this->GetName());
 }
 
+/*#define CVALUE_DEBUG*/
+#ifdef CVALUE_DEBUG
+int gRefCount;
+struct SmartCValueRef 
+{
+	CValue *m_ref;
+	int m_count;
+	SmartCValueRef(CValue *ref)
+	{
+		m_ref = ref;
+		m_count = gRefCount++;
+	}
+};
 
+#include <vector>
+
+std::vector<SmartCValueRef> gRefList;
+#endif
+
+#ifdef _DEBUG
+//int gRefCountValue;
+#endif
 
 CValue::CValue(PyTypeObject *T)
 		: PyObjectPlus(T),
@@ -186,6 +206,12 @@ effect: constucts a CValue
 */
 {
 	//debug(gRefCountValue++)	// debugging
+#ifdef _DEBUG
+	//gRefCountValue++;
+#ifdef CVALUE_DEBUG
+	gRefList.push_back(SmartCValueRef(this));
+#endif
+#endif
 }
 
 
@@ -199,6 +225,18 @@ effect: deletes the object
 	ClearProperties();
 
 	assertd (m_refcount==0);
+#ifdef CVALUE_DEBUG
+	std::vector<SmartCValueRef>::iterator it;
+	for (it=gRefList.begin(); it!=gRefList.end(); it++)
+	{
+		if (it->m_ref == this)
+		{
+			*it = gRefList.back();
+			gRefList.pop_back();
+			break;
+		}
+	}
+#endif
 }
 
 
@@ -293,7 +331,7 @@ void CValue::SetProperty(const STR_String & name,CValue* ioProperty)
 	}
 	
 	// Add property at end of array
-	(*m_pNamedPropertyArray)[name] = ioProperty;//->Add(ioProperty);
+	(*m_pNamedPropertyArray)[name] = ioProperty->AddRef();//->Add(ioProperty);
 }
 
 
@@ -353,17 +391,40 @@ float CValue::GetPropertyNumber(const STR_String& inName,float defnumber)
 bool CValue::RemoveProperty(const STR_String & inName)
 {
 	// Check if there are properties at all which can be removed
-	if (m_pNamedPropertyArray == NULL)
-		return false;
-
-	// Scan all properties, as soon as we find one with <inName> -> Remove it
-//  	CValue* val = (*m_pNamedPropertyArray)[inName];
-	if (m_pNamedPropertyArray->erase(inName)) return true;
+	if (m_pNamedPropertyArray) {	
+		CValue* val = GetProperty(inName);
+		if (NULL != val) 
+		{
+			val->Release();
+			m_pNamedPropertyArray->erase(inName);
+			return true;
+		}
+	} 
 	
+	char err[128];
+	if (m_pNamedPropertyArray)
+		sprintf(err, "attribute \"%s\" dosnt exist", inName.ReadPtr());
+	else
+		sprintf(err, "attribute \"%s\" dosnt exist (no property array)", inName.ReadPtr());
+	
+	PyErr_SetString(PyExc_AttributeError, err);
 	return false;
 }
 
-
+//
+// Get Property Names
+//
+vector<STR_String> CValue::GetPropertyNames()
+{
+	vector<STR_String> result;
+	if(!m_pNamedPropertyArray) return result;
+	for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+	!(it == m_pNamedPropertyArray->end());it++)
+	{
+		result.push_back((*it).first);
+	}
+	return result;
+}
 
 //
 // Clear all properties
@@ -379,7 +440,7 @@ void CValue::ClearProperties()
 	!(it == m_pNamedPropertyArray->end());it++)
 	{
 		CValue* tmpval = (*it).second;
-		STR_String name = (*it).first;
+		//STR_String name = (*it).first;
 		tmpval->Release();
 	}
 
@@ -469,28 +530,20 @@ void CValue::CloneProperties(CValue *replica)
 		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
 		!(it == m_pNamedPropertyArray->end());it++)
 		{
-			
-			replica->SetProperty((*it).first,(*it).second->GetReplica());
+			CValue *val = (*it).second->GetReplica();
+			replica->SetProperty((*it).first,val);
+			val->Release();
 		}
 	}
 
 	
 }
 
-
-
-
-
-
 double*		CValue::GetVector3(bool bGetTransformedVec)
 {
 	assertd(false); // don;t get vector from me
 	return m_sZeroVec;//::sZero;
 }
-
-
-
-
 
 
 /*---------------------------------------------------------------------------------------------------------------------
@@ -504,6 +557,9 @@ CValue *CValue::AddRef()
 	// Increase global reference count, used to see at the end of the program
 	// if all CValue-derived classes have been dereferenced to 0
 	//debug(gRefCountValue++);
+#ifdef _DEBUG
+	//gRefCountValue++;
+#endif
 	m_refcount++; 
 	return this;
 }
@@ -518,7 +574,9 @@ int	CValue::Release()
 	// Decrease global reference count, used to see at the end of the program
 	// if all CValue-derived classes have been dereferenced to 0
 	//debug(gRefCountValue--);
-
+#ifdef _DEBUG
+	//gRefCountValue--;
+#endif
 	// Decrease local reference count, if it reaches 0 the object should be freed
 	if (--m_refcount > 0)
 	{
@@ -546,6 +604,9 @@ void CValue::DisableRefCount()
 	m_refcount--;
 
 	//debug(gRefCountValue--);
+#ifdef _DEBUG
+	//gRefCountValue--;
+#endif
 	m_ValFlags.RefCountDisabled=true;
 }
 
@@ -590,11 +651,14 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 	} else
 	{
 		result = GetProperty(identifiername);
+		if (result)
+			return result->AddRef();
 	}
-	if (result)
-		return result->AddRef();
-	// warning here !!!
-	result = new CErrorValue(identifiername+" not found");
+	if (!result)
+	{
+		// warning here !!!
+		result = new CErrorValue(identifiername+" not found");
+	}
 	return result;
 }
 
@@ -604,7 +668,7 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 
 static PyMethodDef	CValueMethods[] = 
 {
-	//{ "new", CValue::PyMake , Py_NEWARGS},
+	//{ "new", CValue::PyMake , METH_VARARGS},
 	{ NULL,NULL}	// Sentinel
 };
 
@@ -642,9 +706,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 	CValue* vallie = NULL;
 
-	PyTypeObject* type = pyobj->ob_type;
-
-	if (type == &PyList_Type)
+	if (PyList_Check(pyobj))
 	{
 		CListValue* listval = new CListValue();
 		bool error = false;
@@ -674,26 +736,25 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 		}
 
 	} else
-	if (type == &PyFloat_Type)
+	if (PyFloat_Check(pyobj))
 	{
-		float fl;
-		PyArg_Parse(pyobj,"f",&fl);
-		vallie = new CFloatValue(fl);
+		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
-	if (type==&PyInt_Type)
+	if (PyInt_Check(pyobj))
 	{
-		int innie;
-		PyArg_Parse(pyobj,"i",&innie);
-		vallie = new CIntValue(innie);
+		vallie = new CIntValue( (int)PyInt_AS_LONG(pyobj) );
 	} else
-	
-	if (type==&PyString_Type)
+	if (PyString_Check(pyobj))
 	{
 		vallie = new CStringValue(PyString_AsString(pyobj),"");
 	} else
-	if (type==&CValue::Type || type==&CListValue::Type)
+	if (pyobj->ob_type==&CValue::Type || pyobj->ob_type==&CListValue::Type)
 	{
 		vallie = ((CValue*) pyobj)->AddRef();
+	} else
+	{
+		/* return an error value from the caller */
+		PyErr_SetString(PyExc_TypeError, "This python value could not be assigned to a game engine property");
 	}
 	return vallie;
 
@@ -701,7 +762,8 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj)
 
 int	CValue::_delattr(const STR_String& attr)
 {
-	RemoveProperty(attr);
+	if (!RemoveProperty(attr)) /* sets error */
+		return 1;
 	return 0;
 }
 
@@ -717,21 +779,42 @@ int	CValue::_setattr(const STR_String& attr,PyObject* pyobj)
 			oldprop->SetValue(vallie);
 		} else
 		{
-			SetProperty(attr,vallie->AddRef());
+			SetProperty(attr,vallie);
 		}
 		vallie->Release();
+	} else
+	{
+		return 1; /* ConvertPythonToValue sets the error message */
 	}
 	
 	//PyObjectPlus::_setattr(attr,value);
 	return 0;
 };
+
+PyObject*	CValue::ConvertKeysToPython( void )
+{
+	PyObject *pylist = PyList_New( 0 );
+	PyObject *pystr;
+	
+	if (m_pNamedPropertyArray)
+	{
+		for ( std::map<STR_String,CValue*>::iterator it = m_pNamedPropertyArray->begin();
+		!(it == m_pNamedPropertyArray->end());it++)
+		{
+			pystr = PyString_FromString( (*it).first );
+			PyList_Append(pylist, pystr);
+			Py_DECREF( pystr );
+		}
+	}
+	return pylist;
+}
+
 /*
 PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
 {
 
-	//Py_Try(PyArg_ParseTuple(args,"s",&name));
-	Py_INCREF(Py_None);
-	return Py_None;//new CValue();
+	//if (!PyArg_ParseTuple(args,"s",&name)) return NULL;
+	Py_RETURN_NONE;//new CValue();
 }
 */
 

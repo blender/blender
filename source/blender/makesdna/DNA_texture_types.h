@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_TEXTURE_TYPES_H
 #define DNA_TEXTURE_TYPES_H
@@ -44,6 +41,7 @@ struct EnvMap;
 struct Object;
 struct Tex;
 struct Image;
+struct PreviewImage;
 struct ImBuf;
 
 typedef struct MTex {
@@ -56,13 +54,14 @@ typedef struct MTex {
 	char projx, projy, projz, mapping;
 	float ofs[3], size[3];
 	
-	short texflag, colormodel;
+	short texflag, colormodel, pmapto, pmaptoneg;
+	short normapspace, which_output, pad[2];
 	float r, g, b, k;
-	float def_var;
+	float def_var, rt;
 	
 	float colfac, norfac, varfac;
 	float dispfac; 
-	float warpfac; 
+	float warpfac;
 	
 } MTex;
 
@@ -106,6 +105,7 @@ typedef struct CBData {
 } CBData;
 
 /* 32 = MAXCOLORBAND */
+/* note that this has to remain a single struct, for UserDef */
 typedef struct ColorBand {
 	short flag, tot, cur, ipotype;
 	CBData data[32];
@@ -155,7 +155,7 @@ typedef struct Tex {
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
 	short extend;
-	
+
 	/* variables disabled, moved to struct iuser */
 	short fie_ima;
 	int len;
@@ -166,12 +166,16 @@ typedef struct Tex {
 	
 	struct ImageUser iuser;
 	
+	struct bNodeTree *nodetree;
 	struct Ipo *ipo;
 	struct Image *ima;
 	struct PluginTex *plugin;
 	struct ColorBand *coba;
 	struct EnvMap *env;
+	struct PreviewImage * preview;
 	
+	char use_nodes;
+	char pad[7];
 	
 } Tex;
 
@@ -245,6 +249,7 @@ typedef struct TexMapping {
 #define TEX_CALCALPHA	32
 #define TEX_NORMALMAP	2048
 #define TEX_GAUSS_MIP	4096
+#define TEX_FILTER_MIN	8192
 
 /* imaflag unused, only for version check */
 #define TEX_FIELDS_		8
@@ -264,6 +269,7 @@ typedef struct TexMapping {
 #define TEX_PRV_NOR			64
 #define TEX_REPEAT_XMIR		128
 #define TEX_REPEAT_YMIR		256
+#define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR ) 
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
@@ -287,6 +293,10 @@ typedef struct TexMapping {
 #define TEX_BANDNOISE	2
 #define TEX_RINGNOISE	3
 
+/* tex->stype in texture.c - cloud types */
+#define TEX_DEFAULT		0
+#define TEX_COLOR		1
+
 /* tex->stype in texture.c - marble types */
 #define TEX_SOFT		0
 #define TEX_SHARP		1
@@ -300,6 +310,23 @@ typedef struct TexMapping {
 #define TEX_SPHERE		4
 #define TEX_HALO		5
 #define TEX_RAD			6
+
+/* tex->stype in texture.c - stucci types */
+#define TEX_PLASTIC		0
+#define TEX_WALLIN		1
+#define TEX_WALLOUT		2
+
+/* tex->stype in texture.c - voronoi types */
+#define TEX_INTENSITY	0
+#define TEX_COL1		1
+#define TEX_COL2		2
+#define TEX_COL3		3
+
+/* mtex->normapspace */
+#define MTEX_NSPACE_CAMERA	0
+#define MTEX_NSPACE_WORLD	1
+#define MTEX_NSPACE_OBJECT	2
+#define MTEX_NSPACE_TANGENT	3
 
 /* wrap */
 #define MTEX_FLAT		0
@@ -321,11 +348,13 @@ typedef struct TexMapping {
 #define PROJ_Z			3
 
 /* texflag */
-#define MTEX_RGBTOINT	1
-#define MTEX_STENCIL	2
-#define MTEX_NEGATIVE	4
-#define MTEX_ALPHAMIX	8
-#define MTEX_VIEWSPACE	16
+#define MTEX_RGBTOINT		1
+#define MTEX_STENCIL		2
+#define MTEX_NEGATIVE		4
+#define MTEX_ALPHAMIX		8
+#define MTEX_VIEWSPACE		16
+#define MTEX_DUPLI_MAPTO	32
+#define MTEX_OB_DUPLI_ORIG	64
 
 /* blendtype */
 #define MTEX_BLEND		0
@@ -338,6 +367,11 @@ typedef struct TexMapping {
 #define MTEX_LIGHT		7
 #define MTEX_SCREEN		8
 #define MTEX_OVERLAY	9
+#define MTEX_BLEND_HUE		10
+#define MTEX_BLEND_SAT		11
+#define MTEX_BLEND_VAL		12
+#define MTEX_BLEND_COLOR	13
+#define MTEX_NUM_BLENDTYPES	14
 
 /* **************** EnvMap ********************* */
 

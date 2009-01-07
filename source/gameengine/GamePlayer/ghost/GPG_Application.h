@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * GHOST Blender Player application declaration file.
  */
 
@@ -53,17 +50,19 @@ class GPG_Canvas;
 class GPG_KeyboardDevice;
 class GPG_System;
 struct Main;
+struct Scene;
 
 class GPG_Application : public GHOST_IEventConsumer
 {
 public:
-	GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName);
+	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie,STR_String startSceneName);
+			bool SetGameEngineData(struct Main* maggie, struct Scene* scene);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
+			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode);
 #ifdef WIN32
 			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);
 			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode);
@@ -103,6 +102,7 @@ protected:
 
 	/* The game data */
 	STR_String				m_startSceneName;
+	struct Scene*			m_startScene;
 	struct Main*			m_maggie;
 
 	/* Exit state. */
@@ -121,6 +121,8 @@ protected:
 	bool m_engineInitialized;
 	/** Engine state. */
 	bool m_engineRunning;
+	/** Running on embedded window */
+	bool m_isEmbedded;
 
 	/** the gameengine itself */
 	KX_KetsjiEngine* m_ketsjiengine;
@@ -144,6 +146,13 @@ protected:
 	SND_IAudioDevice* m_audiodevice;
 
 	bool m_blendermat;
-
+	bool m_blenderglslmat;
+	
+	/*
+	 * GameLogic.globalDict as a string so that loading new blend files can use the same dict.
+	 * Do this because python starts/stops when loading blend files.
+	 */
+	char* m_pyGlobalDictString;
+	int m_pyGlobalDictString_Length;
 };
 

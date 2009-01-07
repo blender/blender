@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,11 +26,12 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
+struct Scene;
 struct Tex;
 struct MTex;
 struct PluginTex;
@@ -52,8 +50,12 @@ int test_dlerr(const char *name,  const char *symbol);
 void open_plugin_tex(struct PluginTex *pit);
 struct PluginTex *add_plugin_tex(char *str);
 void free_plugin_tex(struct PluginTex *pit);
+
+void init_colorband(struct ColorBand *coba, int rangetype);
 struct ColorBand *add_colorband(int rangetype);
 int do_colorband(struct ColorBand *coba, float in, float out[4]);
+void colorband_table_RGBA(struct ColorBand *coba, float **array, int *size);
+
 void default_tex(struct Tex *tex);
 struct Tex *add_texture(char *name);
 void default_mtex(struct MTex *mtex);
@@ -62,6 +64,7 @@ struct Tex *copy_texture(struct Tex *tex);
 void make_local_texture(struct Tex *tex);
 void autotexname(struct Tex *tex);
 struct Tex *give_current_texture(struct Object *ob, int act);
+struct Tex *give_current_world_texture(struct Scene *scene);
 
 struct TexMapping *add_mapping(void);
 void init_mapping(struct TexMapping *texmap);
@@ -72,6 +75,7 @@ void    BKE_free_envmap(struct EnvMap *env);
 struct EnvMap *BKE_add_envmap(void);
 struct EnvMap *BKE_copy_envmap(struct EnvMap *env);
 
+int     BKE_texture_dependsOnTime(const struct Tex *texture);
 
 #endif
 

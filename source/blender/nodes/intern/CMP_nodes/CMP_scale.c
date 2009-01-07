@@ -52,6 +52,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		return;
 	
 	if(in[0]->data) {
+		RenderData *rd= data;
 		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		ImBuf *ibuf;
 		int newx, newy;
@@ -60,7 +61,10 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			newx= MAX2((int)(in[1]->vec[0]*cbuf->x), 1);
 			newy= MAX2((int)(in[2]->vec[0]*cbuf->y), 1);
 		}
-		else {	/* CMP_SCALE_ABSOLUTE */
+		else if(node->custom1==CMP_SCALE_SCENEPERCENT) {
+			newx = cbuf->x * (rd->size / 100.0f);
+			newy = cbuf->y * (rd->size / 100.0f);
+		} else {	/* CMP_SCALE_ABSOLUTE */
 			newx= (int)in[1]->vec[0];
 			newy= (int)in[2]->vec[0];
 		}

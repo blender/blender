@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -43,7 +40,17 @@
 #include "../FTF_Api.h"
 #include "FTF_TTFont.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+//XXX 	#include "datatoc.h"
+#ifdef __cplusplus
+}
+#endif
+
 #define FTF_EXPORT
+
+FTF_TTFont *newfont= 0; // preview font
 
 static FTF_TTFont *_FTF_GetFont(void) { 
 	static FTF_TTFont *theFont = NULL; 
@@ -55,8 +62,28 @@ static FTF_TTFont *_FTF_GetFont(void) {
 	return theFont; 
 }
 
+FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fontsize) {
+
+	if (newfont) delete newfont;
+	newfont= new FTF_TTFont(); 
+
+	if (!(newfont->SetFont((unsigned char*)str, datasize, fontsize))) {
+		//XXX newfont->SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, fontsize);
+		return 0;
+	}
+	return 1;
+}
+
+FTF_EXPORT float FTF_DrawNewFontString(char* str, unsigned int flag)
+{
+	if (newfont)
+		return newfont->DrawString(str, flag);
+	return 0.0f;
+}
+
 FTF_EXPORT void FTF_End(void) { 
 	delete _FTF_GetFont(); 
+	delete newfont;
 }
 
 FTF_EXPORT void FTF_SetSize(int size)
@@ -174,3 +201,5 @@ FTF_EXPORT void FTF_SetScale(float fsize)
 {
   _FTF_GetFont()->SetScale(fsize);
 }
+
+

@@ -20,12 +20,18 @@ subject to the following restrictions:
 #include "LinearMath/btAabbUtil2.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 
-#include "stdio.h"
 
 btTriangleMeshShape::btTriangleMeshShape(btStridingMeshInterface* meshInterface)
 : m_meshInterface(meshInterface)
 {
-	recalcLocalAabb();
+	if(meshInterface->hasPremadeAabb())
+	{
+		meshInterface->getPremadeAabb(&m_localAabbMin, &m_localAabbMax);
+	}
+	else
+	{
+		recalcLocalAabb();
+	}
 }
 
 
@@ -40,8 +46,9 @@ btTriangleMeshShape::~btTriangleMeshShape()
 void btTriangleMeshShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax) const
 {
 
-	btVector3 localHalfExtents = 0.5f*(m_localAabbMax-m_localAabbMin);
-	btVector3 localCenter = 0.5f*(m_localAabbMax+m_localAabbMin);
+	btVector3 localHalfExtents = btScalar(0.5)*(m_localAabbMax-m_localAabbMin);
+	localHalfExtents += btVector3(getMargin(),getMargin(),getMargin());
+	btVector3 localCenter = btScalar(0.5)*(m_localAabbMax+m_localAabbMin);
 	
 	btMatrix3x3 abs_b = trans.getBasis().absolute();  
 
@@ -50,23 +57,21 @@ void btTriangleMeshShape::getAabb(const btTransform& trans,btVector3& aabbMin,bt
 	btVector3 extent = btVector3(abs_b[0].dot(localHalfExtents),
 		   abs_b[1].dot(localHalfExtents),
 		  abs_b[2].dot(localHalfExtents));
-	extent += btVector3(getMargin(),getMargin(),getMargin());
-
 	aabbMin = center - extent;
 	aabbMax = center + extent;
 
-	
+
 }
 
 void	btTriangleMeshShape::recalcLocalAabb()
 {
 	for (int i=0;i<3;i++)
 	{
-		btVector3 vec(0.f,0.f,0.f);
-		vec[i] = 1.f;
+		btVector3 vec(btScalar(0.),btScalar(0.),btScalar(0.));
+		vec[i] = btScalar(1.);
 		btVector3 tmp = localGetSupportingVertex(vec);
 		m_localAabbMax[i] = tmp[i]+m_collisionMargin;
-		vec[i] = -1.f;
+		vec[i] = btScalar(-1.);
 		tmp = localGetSupportingVertex(vec);
 		m_localAabbMin[i] = tmp[i]-m_collisionMargin;
 	}
@@ -85,7 +90,7 @@ public:
 	btVector3 m_supportVecLocal;
 
 	SupportVertexCallback(const btVector3& supportVecWorld,const btTransform& trans)
-		: m_supportVertexLocal(0.f,0.f,0.f), m_worldTrans(trans) ,m_maxDot(-1e30f)
+		: m_supportVertexLocal(btScalar(0.),btScalar(0.),btScalar(0.)), m_worldTrans(trans) ,m_maxDot(btScalar(-1e30))
 		
 	{
 		m_supportVecLocal = supportVecWorld * m_worldTrans.getBasis();
@@ -93,6 +98,8 @@ public:
 
 	virtual void processTriangle( btVector3* triangle,int partId, int triangleIndex)
 	{
+		(void)partId;
+		(void)triangleIndex;
 		for (int i=0;i<3;i++)
 		{
 			btScalar dot = m_supportVecLocal.dot(triangle[i]);
@@ -136,10 +143,10 @@ const btVector3& btTriangleMeshShape::getLocalScaling() const
 //#define DEBUG_TRIANGLE_MESH
 
 
+
 void	btTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const
 {
-
-	struct FilteredCallback : public btInternalTriangleIndexCallback
+		struct FilteredCallback : public btInternalTriangleIndexCallback
 	{
 		btTriangleCallback* m_callback;
 		btVector3 m_aabbMin;
@@ -167,18 +174,18 @@ void	btTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,const
 	FilteredCallback filterCallback(callback,aabbMin,aabbMax);
 
 	m_meshInterface->InternalProcessAllTriangles(&filterCallback,aabbMin,aabbMax);
-
 }
 
 
 
 
 
-void	btTriangleMeshShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btTriangleMeshShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
+	(void)mass;
 	//moving concave objects not supported
-	assert(0);
-	inertia.setValue(0.f,0.f,0.f);
+	btAssert(0);
+	inertia.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 }
 
 
@@ -191,7 +198,7 @@ btVector3 btTriangleMeshShape::localGetSupportingVertex(const btVector3& vec) co
 
 	SupportVertexCallback supportCallback(vec,ident);
 
-	btVector3 aabbMax(1e30f,1e30f,1e30f);
+	btVector3 aabbMax(btScalar(1e30),btScalar(1e30),btScalar(1e30));
 	
 	processAllTriangles(&supportCallback,-aabbMax,aabbMax);
 		

@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -50,7 +47,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"		
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -62,7 +58,11 @@
 #include "BKE_node.h"
 #include "BKE_utildefines.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
+#include "GPU_material.h"
 
 /* used in UI and render */
 Material defmaterial;
@@ -79,7 +79,9 @@ void free_material(Material *ma)
 	MTex *mtex;
 	int a;
 
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&ma->scriptlink);
+#endif
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
@@ -90,6 +92,7 @@ void free_material(Material *ma)
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	
+	BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
 	ma->id.icon_id = 0;
 	
@@ -98,6 +101,9 @@ void free_material(Material *ma)
 		ntreeFreeTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
 	}
+
+	if(ma->gpumaterial.first)
+		GPU_material_free(ma);
 }
 
 void init_material(Material *ma)
@@ -139,6 +145,12 @@ void init_material(Material *ma)
 	ma->tx_falloff= 1.0;
 	ma->shad_alpha= 1.0f;
 	
+	ma->gloss_mir = ma->gloss_tra= 1.0;
+	ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+	ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+	ma->dist_mir = 0.0;
+	ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3;			/* two lamps, is bits */
@@ -159,6 +171,8 @@ void init_material(Material *ma)
 	ma->sss_back= 1.0f;
 
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
+
+	ma->preview = NULL;
 }
 
 Material *add_material(char *name)
@@ -190,15 +204,21 @@ Material *copy_material(Material *ma)
 			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
-	
+
+#ifndef DISABLE_PYTHON	
 	BPY_copy_scriptlink(&ma->scriptlink);
+#endif
 	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
+	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+
 	if(ma->nodetree) {
 		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
 	}
+
+	man->gpumaterial.first= man->gpumaterial.last= NULL;
 	
 	return man;
 }
@@ -570,6 +590,26 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+int find_material_index(Object *ob, Material *ma)
+{
+	Material ***matarar;
+	short a, *totcolp;
+	
+	if(ma==NULL) return 0;
+	
+	totcolp= give_totcolp(ob);
+	matarar= give_matarar(ob);
+	
+	if(totcolp==NULL || matarar==NULL) return 0;
+	
+	for(a=0; a<*totcolp; a++)
+		if((*matarar)[a]==ma)
+		   break;
+	if(a<*totcolp)
+		return a+1;
+	return 0;	   
+}
+
 void new_material_to_objectdata(Object *ob)
 {
 	Material *ma;
@@ -598,20 +638,18 @@ void new_material_to_objectdata(Object *ob)
 static void do_init_render_material(Material *ma, int r_mode, float *amb)
 {
 	MTex *mtex;
-	int a, needuv=0;
+	int a, needuv=0, needtang=0;
 	
 	if(ma->flarec==0) ma->flarec= 1;
 
-	/* add all texcoflags from mtex */
-	ma->texco= 0;
-	ma->mapto= 0;
+	/* add all texcoflags from mtex, texco and mapto were cleared in advance */
 	for(a=0; a<MAX_MTEX; a++) {
 		
 		/* separate tex switching */
 		if(ma->septex & (1<<a)) continue;
 
 		mtex= ma->mtex[a];
-		if(mtex && mtex->tex && mtex->tex->type) {
+		if(mtex && mtex->tex && (mtex->tex->type | (mtex->tex->use_nodes && mtex->tex->nodetree) )) {
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;
@@ -622,8 +660,14 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT|TEXCO_SPEED)) needuv= 1;
 			else if(ma->texco & (TEXCO_LAVECTOR|TEXCO_VIEW|TEXCO_STICKY)) needuv= 1;
+
+			if((ma->mapto & MAP_NORM) && (mtex->normapspace == MTEX_NSPACE_TANGENT))
+				needtang= 1;
 		}
 	}
+
+	if(needtang) ma->mode |= MA_NORMAP_TANG;
+	else ma->mode &= ~MA_NORMAP_TANG;
 	
 	if(r_mode & R_RADIO)
 		if(ma->mode & MA_RADIO) needuv= 1;
@@ -650,6 +694,9 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	/* will become or-ed result of all node modes */
 	ma->mode_l= ma->mode;
 	ma->mode_l &= ~MA_SHLESS;
+
+	if(ma->strand_surfnor > 0.0f)
+		ma->mode_l |= MA_STR_SURFDIFF;
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
@@ -690,6 +737,16 @@ void init_render_materials(int r_mode, float *amb)
 {
 	Material *ma;
 	
+	/* clear these flags before going over materials, to make sure they
+	 * are cleared only once, otherwise node materials contained in other
+	 * node materials can go wrong */
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		if(ma->id.us) {
+			ma->texco= 0;
+			ma->mapto= 0;
+		}
+	}
+
 	/* two steps, first initialize, then or the flags for layers */
 	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		/* is_used flag comes back in convertblender.c */
@@ -746,9 +803,9 @@ int material_in_material(Material *parmat, Material *mat)
 /* ****************** */
 
 char colname_array[125][20]= {
-"Black","DarkRed","HalveRed","Red","Red",
+"Black","DarkRed","HalfRed","Red","Red",
 "DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
-"HalveGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
+"HalfGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
 "LightGreen","Chartreuse","YellowGreen","Yellow","Gold",
 "Green","LawnGreen","GreenYellow","LightOlive","Yellow",
 "DarkBlue","DarkPurple","HotPink","VioletPink","RedPink",
@@ -756,7 +813,7 @@ char colname_array[125][20]= {
 "SeaGreen","PaleGreen","GreenKhaki","LightBrown","LightSalmon",
 "SpringGreen","PaleGreen","MediumOlive","YellowBrown","LightGold",
 "LightGreen","LightGreen","LightGreen","GreenYellow","PaleYellow",
-"HalveBlue","DarkSky","HalveMagenta","VioletRed","DeepPink",
+"HalfBlue","DarkSky","HalfMagenta","VioletRed","DeepPink",
 "SteelBlue","SkyBlue","Orchid","LightHotPink","HotPink",
 "SeaGreen","SlateGray","MediumGrey","Burlywood","LightPink",
 "SpringGreen","Aquamarine","PaleGreen","Khaki","PaleOrange",
@@ -792,21 +849,16 @@ void automatname(Material *ma)
 }
 
 
-void delete_material_index()
+void delete_material_index(Object *ob)
 {
 	Material *mao, ***matarar;
-	Object *ob, *obt;
+	Object *obt;
 	Curve *cu;
 	Nurb *nu;
 	short *totcolp;
 	int a, actcol;
 	
-	if(G.obedit) {
-		error("Unable to perform function in EditMode");
-		return;
-	}
-	ob= ((G.scene->basact)? (G.scene->basact->object) : 0) ;
-	if(ob==0 || ob->totcol==0) return;
+	if(ob==NULL || ob->totcol==0) return;
 	
 	/* take a mesh/curve/mball as starting point, remove 1 index,
 	 * AND with all objects that share the ob->data

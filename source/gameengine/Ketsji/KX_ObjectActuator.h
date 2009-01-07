@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_OBJECTACTUATOR
@@ -49,7 +46,12 @@ struct KX_LocalFlags {
 		DLoc(false),
 		LinearVelocity(false),
 		AngularVelocity(false),
-		AddOrSetLinV(false)
+		AddOrSetLinV(false),
+		ZeroForce(false),
+		ZeroDRot(false),
+		ZeroDLoc(false),
+		ZeroLinearVelocity(false),
+		ZeroAngularVelocity(false)
 	{
 	}
 
@@ -60,6 +62,13 @@ struct KX_LocalFlags {
 	unsigned short LinearVelocity : 1;
 	unsigned short AngularVelocity : 1;
 	unsigned short AddOrSetLinV : 1;
+	unsigned short ServoControl : 1;
+	unsigned short ZeroForce : 1;
+	unsigned short ZeroTorque : 1;
+	unsigned short ZeroDRot : 1;
+	unsigned short ZeroDLoc : 1;
+	unsigned short ZeroLinearVelocity : 1;
+	unsigned short ZeroAngularVelocity : 1;
 };
 
 class KX_ObjectActuator : public SCA_IActuator
@@ -72,6 +81,15 @@ class KX_ObjectActuator : public SCA_IActuator
 	MT_Vector3		m_drot;
 	MT_Vector3		m_linear_velocity;
 	MT_Vector3		m_angular_velocity;	
+	MT_Scalar		m_linear_length2;
+	MT_Scalar		m_angular_length2;
+	// used in damping
+	MT_Scalar		m_current_linear_factor;
+	MT_Scalar		m_current_angular_factor;
+	short			m_damping;
+	// used in servo control
+	MT_Vector3		m_previous_error;
+	MT_Vector3		m_error_accumulator;
   	KX_LocalFlags	m_bitLocalFlag;
 
 	// A hack bool -- oh no sorry everyone
@@ -80,6 +98,8 @@ class KX_ObjectActuator : public SCA_IActuator
 	// setting linear velocity.
 
 	bool m_active_combined_velocity;
+	bool m_linear_damping_active;
+	bool m_angular_damping_active;
 	
 public:
 	enum KX_OBJECT_ACT_VEC_TYPE {
@@ -106,6 +126,7 @@ public:
 		const MT_Vector3& drot,
 		const MT_Vector3& linV,
 		const MT_Vector3& angV,
+		const short damping,
 		const KX_LocalFlags& flag,
 		PyTypeObject* T=&Type
 	);
@@ -113,6 +134,17 @@ public:
 	CValue* GetReplica();
 
 	void SetForceLoc(const double force[3])	{ /*m_force=force;*/ }
+	void UpdateFuzzyFlags()
+		{ 
+			m_bitLocalFlag.ZeroForce = MT_fuzzyZero(m_force);
+			m_bitLocalFlag.ZeroTorque = MT_fuzzyZero(m_torque);
+			m_bitLocalFlag.ZeroDLoc = MT_fuzzyZero(m_dloc);
+			m_bitLocalFlag.ZeroDRot = MT_fuzzyZero(m_drot);
+			m_bitLocalFlag.ZeroLinearVelocity = MT_fuzzyZero(m_linear_velocity);
+			m_linear_length2 = (m_bitLocalFlag.ZeroLinearVelocity) ? 0.0 : m_linear_velocity.length2();
+			m_bitLocalFlag.ZeroAngularVelocity = MT_fuzzyZero(m_angular_velocity);
+			m_angular_length2 = (m_bitLocalFlag.ZeroAngularVelocity) ? 0.0 : m_angular_velocity.length2();
+		}
 	virtual bool Update();
 
 
@@ -123,18 +155,28 @@ public:
 	
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD(KX_ObjectActuator,GetForce);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD(KX_ObjectActuator,SetForce);
-	KX_PYMETHOD(KX_ObjectActuator,GetTorque);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetTorque);
 	KX_PYMETHOD(KX_ObjectActuator,SetTorque);
-	KX_PYMETHOD(KX_ObjectActuator,GetDLoc);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDLoc);
 	KX_PYMETHOD(KX_ObjectActuator,SetDLoc);
-	KX_PYMETHOD(KX_ObjectActuator,GetDRot);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDRot);
 	KX_PYMETHOD(KX_ObjectActuator,SetDRot);
-	KX_PYMETHOD(KX_ObjectActuator,GetLinearVelocity);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetLinearVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetLinearVelocity);
-	KX_PYMETHOD(KX_ObjectActuator,GetAngularVelocity);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetAngularVelocity);
 	KX_PYMETHOD(KX_ObjectActuator,SetAngularVelocity);
+	KX_PYMETHOD(KX_ObjectActuator,SetDamping);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDamping);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitX);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitX);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitY);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitY);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitZ);
+	KX_PYMETHOD(KX_ObjectActuator,SetForceLimitZ);
+	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetPID);
+	KX_PYMETHOD(KX_ObjectActuator,SetPID);
 };
 
 #endif //__KX_OBJECTACTUATOR

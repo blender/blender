@@ -34,7 +34,7 @@
   
 static bNodeSocketType cmp_node_gamma_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Gamma",			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 2.0f},
+	{	SOCK_VALUE, 1, "Gamma",			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f},
     {	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_gamma_out[]= {
@@ -46,7 +46,8 @@ static void do_gamma(bNode *node, float *out, float *in, float *fac)
 {
 	int i=0;
 	for(i=0; i<3; i++) {
-		out[i] = pow(in[i],fac[0]);
+		/* check for negative to avoid nan's */
+		out[i] = (in[i] > 0.0f)? pow(in[i],fac[0]): in[i];
 	}
 	out[3] = in[3];
 }

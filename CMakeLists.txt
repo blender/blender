@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
 #-----------------------------------------------------------------------------
 # We don't allow in-source builds. This causes no end of troubles because 
@@ -60,13 +57,15 @@ OPTION(WITH_PLAYER		"Build Player"						OFF)
 OPTION(WITH_GAMEENGINE		"Enable Game Engine"					ON)
 OPTION(WITH_BULLET		"Enable Bullet (Physics Engine)"			ON)
 OPTION(WITH_INTERNATIONAL	"Enable I18N   (International fonts and text)"		ON)
-OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
 OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
 OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
-OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	OFF)
+OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
+OPTION(WITH_DDS			"Enable DDS Support"                                   	ON)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
-OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"	ON)
-OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"					OFF)
+OPTION(WITH_PYTHON		"Enable Embedded Python API"				ON)
+OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
+OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
+OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -88,14 +87,16 @@ INCLUDE(CMake/macros.cmake)
 #Platform specifics
 
 IF(UNIX)
-  INCLUDE(${CMAKE_ROOT}/Modules/FindOpenAL.cmake)
-  IF(OPENAL_FOUND)
-    SET(WITH_OPENAL ON)
-    SET(OPENAL_LIB ${OPENAL_LIBRARY})
-    SET(OPENAL_INC ${OPENAL_INCLUDE_DIR})
-  ELSE(OPENAL_FOUND)
-    SET(WITH_OPENAL OFF)
-  ENDIF(OPENAL_FOUND)
+  IF(WITH_OPENAL)
+    INCLUDE(${CMAKE_ROOT}/Modules/FindOpenAL.cmake)
+    IF(OPENAL_FOUND)
+      SET(WITH_OPENAL ON)
+      SET(OPENAL_LIB ${OPENAL_LIBRARY})
+      SET(OPENAL_INC ${OPENAL_INCLUDE_DIR})
+    ELSE(OPENAL_FOUND)
+      SET(WITH_OPENAL OFF)
+    ENDIF(OPENAL_FOUND)
+  ENDIF(WITH_OPENAL)
 
   FIND_LIBRARY(ALUT_LIBRARY
     NAMES alut
@@ -144,6 +145,7 @@ IF(UNIX)
     /opt/local/include/freetype2
     /opt/csw/include/freetype2
     /opt/include/freetype2
+    NO_DEFAULT_PATH
   )
   SET(FREETYPE_LIB freetype)
 
@@ -181,7 +183,14 @@ IF(UNIX)
 
   SET(ZLIB_LIB z)
 
-  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++")
+  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11 -ldl")
+
+  IF(WITH_OPENMP)
+    SET(LLIBS "${LLIBS} -lgomp")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  ENDIF(WITH_OPENMP)
+
 
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DXP_UNIX -Wno-char-subscripts")
 
@@ -191,9 +200,16 @@ IF(UNIX)
 ENDIF(UNIX)
 
 IF(WIN32)
-  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
 
+  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
+  
   SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
+
+  # Setup 64bit and 64bit windows systems
+  IF(CMAKE_CL_64)
+    message("64 bit compiler detected.")
+    SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
+  ENDIF(CMAKE_CL_64)
 
   SET(PYTHON ${LIBDIR}/python)
   SET(PYTHON_VERSION 2.5)
@@ -208,12 +224,20 @@ IF(WIN32)
   SET(OPENAL_LIB openal_static)
   SET(OPENAL_LIBPATH ${OPENAL}/lib)
 
-  SET(PNG_LIB libpng_st)
+  IF(CMAKE_CL_64)
+  	SET(PNG_LIB libpng)
+  ELSE(CMAKE_CL_64)
+  	SET(PNG_LIB libpng_st)
+  ENDIF(CMAKE_CL_64)
   SET(JPEG_LIB libjpeg)
 
   SET(ZLIB ${LIBDIR}/zlib)
   SET(ZLIB_INC ${ZLIB}/include)
-  SET(ZLIB_LIB libz)
+  IF(CMAKE_CL_64)
+  	SET(ZLIB_LIB zlib)
+  ELSE(CMAKE_CL_64)
+  	SET(ZLIB_LIB libz)
+  ENDIF(CMAKE_CL_64)
   SET(ZLIB_LIBPATH ${ZLIB}/lib)
   
   SET(PTHREADS ${LIBDIR}/pthreads)
@@ -228,7 +252,11 @@ IF(WIN32)
   
   SET(GETTEXT ${LIBDIR}/gettext)
   SET(GETTEXT_INC ${GETTEXT}/include)
-  SET(GETTEXT_LIB gnu_gettext)
+  IF(CMAKE_CL_64)
+  	SET(GETTEXT_LIB gettextlib)
+  ELSE(CMAKE_CL_64)
+  	SET(GETTEXT_LIB gnu_gettext)
+  ENDIF(CMAKE_CL_64)
   SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
 
   SET(FREETYPE ${LIBDIR}/freetype)
@@ -239,7 +267,15 @@ IF(WIN32)
   SET(OPENEXR ${LIBDIR}/openexr)
   SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/IlmImf ${OPENEXR}/include/Iex ${OPENEXR}/include/Imath)
   SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
+  IF (MSVC80)
+  SET(OPENEXR_LIBPATH ${OPENEXR}/lib_vs2005)
+  ELSE (MSVC80)
   SET(OPENEXR_LIBPATH ${OPENEXR}/lib_msvc)
+  ENDIF(MSVC80)
+  IF (MSVC90)
+  SET(OPENEXR_LIBPATH ${OPENEXR}/lib_vs2008)
+  ENDIF(MSVC90)
+
   
   SET(QUICKTIME ${LIBDIR}/QTDevWin)
   SET(QUICKTIME_INC ${QUICKTIME}/CIncludes)
@@ -248,10 +284,15 @@ IF(WIN32)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
   SET(FFMPEG_INC ${FFMPEG}/include)
-  SET(FFMPEG_LIB avcodec-51 avformat-51 avutil-49)
+  SET(FFMPEG_LIB avcodec-51 avformat-52 avdevice-52 avutil-49 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
+  IF(CMAKE_CL_64)
+  SET(LLIBS kernel32 user32 vfw32 winmm ws2_32 )
+  ELSE(CMAKE_CL_64)
   SET(LLIBS kernel32 user32 gdi32 comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32 vfw32 winmm)
+  ENDIF(CMAKE_CL_64)
+  
   IF(WITH_OPENAL)
     SET(LLIBS ${LLIBS} dxguid)
   ENDIF(WITH_OPENAL)
@@ -264,6 +305,11 @@ IF(WIN32)
   SET(CMAKE_C_FLAGS_RELEASE "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305 /O2 /Ob2 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
   SET(CMAKE_C_FLAGS_MINSIZEREL "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305 /O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
   SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305 /O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
+
+  IF(WITH_OPENMP)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
+  ENDIF(WITH_OPENMP)
 
   SET(SDL ${LIBDIR}/sdl)
   SET(SDL_INC ${SDL}/include)
@@ -283,8 +329,12 @@ IF(WIN32)
   
   SET(WINTAB_INC ${LIBDIR}/wintab/include) 
 
-  SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib")
-  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib ")
+  IF(CMAKE_CL_64)
+  SET(PLATFORM_LINKFLAGS "/MANIFEST:NO /MANIFESTUAC:NO /MACHINE:X64 /NODEFAULTLIB:libc.lib;MSVCRT.lib ")
+  ELSE(CMAKE_CL_64)
+  SET(PLATFORM_LINKFLAGS "/NODEFAULTLIB:libc.lib ")
+  ENDIF(CMAKE_CL_64)
+  SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:libcmt.lib;libc.lib ")
 ENDIF(WIN32)
 
 IF(APPLE)
@@ -342,6 +392,12 @@ IF(APPLE)
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
   SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
 
+  IF(WITH_OPENMP)
+    SET(LLIBS "${LLIBS} -lgomp ")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
+  ENDIF(WITH_OPENMP)
+
   SET(SDL ${LIBDIR}/sdl)
   SET(SDL_INC ${SDL}/include)
   SET(SDL_LIB SDL)
@@ -361,13 +417,28 @@ IF(APPLE)
   SET(EXETYPE MACOSX_BUNDLE)
 ENDIF(APPLE)
 
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
+  SET(BINRELOC_INC ${BINRELOC}/include)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+
 #-----------------------------------------------------------------------------
 # Common.
-SET(VERSE_INC ${CMAKE_SOURCE_DIR}/extern/verse/dist)
 
 SET(FTGL ${CMAKE_SOURCE_DIR}/extern/bFTGL)
 SET(FTGL_INC ${FTGL}/include)
 SET(FTGL_LIB extern_ftgl)
+
+
+#-----------------------------------------------------------------------------
+# Blender WebPlugin
+
+IF(WITH_WEBPLUGIN) 
+  SET(GECKO_DIR "${CMAKE_SOURCE_DIR}/../gecko-sdk/" CACHE PATH "Gecko SDK path")
+  SET(WEBPLUGIN_SANDBOX_MODE "apparmor" CACHE STRING "WEB Plugin sandbox mode, can be apparmor, privsep, none")
+
+  SET(WITH_PLAYER ON)
+ENDIF(WITH_WEBPLUGIN)
 
 
 #-----------------------------------------------------------------------------
@@ -379,6 +450,9 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 IF(WITH_GAMEENGINE)
   SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DGAMEBLENDER ")
 ENDIF(WITH_GAMEENGINE)
+IF(WITH_BULLET)
+  SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DWITH_BULLET ")
+ENDIF(WITH_BULLET)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 
@@ -395,6 +469,7 @@ SUBDIRS(
 #-----------------------------------------------------------------------------
 # Blender Application
 SUBDIRS(source/creator)
+
 
 #-----------------------------------------------------------------------------
 # Blender Player

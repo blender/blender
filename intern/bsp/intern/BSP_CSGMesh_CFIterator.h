@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BSP_CSGMesh_CFIterator_h
@@ -125,7 +122,8 @@ BSP_CSGMeshVertexIt_Construct(
 	
 	BSP_CSGMesh_VertexIt * v_it = new BSP_CSGMesh_VertexIt;
 	v_it->mesh = mesh;
-	v_it->pos = &mesh->VertexSet()[0];
+	if( output->num_elements > 0 )
+		v_it->pos = &mesh->VertexSet()[0];
 	output->it = v_it;
 };			
 
@@ -257,11 +255,11 @@ BSP_CSGMesh_FaceIt_Construct(
 	
 	BSP_CSGMesh_FaceIt * f_it = new BSP_CSGMesh_FaceIt;
 	f_it->mesh = mesh;
-	f_it->pos = &mesh->FaceSet()[0];
+	if( output->num_elements > 0 )
+		f_it->pos = &mesh->FaceSet()[0];
 	f_it->face_triangle = 0;
 
 	output->it = f_it;
-
 };
 
 

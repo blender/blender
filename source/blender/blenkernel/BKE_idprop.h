@@ -1,15 +1,12 @@
 /**
  * $Id: BKE_idprop.h
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): Joseph Eagar
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #ifndef _BKE_IDPROP_H
@@ -33,22 +30,13 @@
 
 #include "DNA_ID.h"
 
-/*
-these two are included for their (new :P )function
-pointers.
-*/
-#include "BLO_readfile.h"
-#include "BLO_writefile.h"
-
-struct WriteData;
-struct FileData;
-
 struct IDProperty;
 struct ID;
 
 typedef union {
 	int i;
 	float f;
+	double d;
 	char *str;
 	struct ID *id;
 	struct {
@@ -61,7 +49,22 @@ typedef union {
 	} matrix_or_vector;
 } IDPropertyTemplate;
 
-/* ----------- Array Type ----------- */
+/* ----------- Property Array Type ---------- */
+
+/*note: as a start to move away from the stupid IDP_New function, this type
+  has it's own allocation function.*/
+IDProperty *IDP_NewIDPArray(const char *name);
+IDProperty *IDP_CopyIDPArray(IDProperty *array);
+
+void IDP_FreeIDPArray(IDProperty *prop);
+
+/* shallow copies item */
+void IDP_SetIndexArray(struct IDProperty *prop, int index, struct IDProperty *item);
+struct IDProperty *IDP_GetIndexArray(struct IDProperty *prop, int index);
+struct IDProperty *IDP_AppendArray(struct IDProperty *prop, struct IDProperty *item);
+void IDP_ResizeIDPArray(struct IDProperty *prop, int len);
+
+/* ----------- Numeric Array Type ----------- */
 /*this function works for strings too!*/
 void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
@@ -78,6 +81,11 @@ void IDP_LinkID(struct IDProperty *prop, ID *id);
 void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
+
+/*checks if a property with the same name as prop exists, and if so replaces it.
+  Use this to preserve order!*/
+void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);
+
 /*
 This function has a sanity check to make sure ID properties with the same name don't
 get added to the group.
@@ -132,6 +140,7 @@ void IDP_FreeIterBeforeEnd(void *vself);
   to create the Group property and attach it to id if it doesn't exist; otherwise
   the function will return NULL if there's no Group property attached to the ID.*/
 struct IDProperty *IDP_GetProperties(struct ID *id, int create_if_needed);
+struct IDProperty *IDP_CopyProperty(struct IDProperty *prop);
 
 /*
 Allocate a new ID.
@@ -158,7 +167,7 @@ Note that you MUST either attach the id property to an id property group with
 IDP_AddToGroup or MEM_freeN the property, doing anything else might result in
 a memory leak.
 */
-struct IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name);
+struct IDProperty *IDP_New(int type, IDPropertyTemplate val, const char *name);
 \
 /*NOTE: this will free all child properties of list arrays and groups!
   Also, note that this does NOT unlink anything!  Plus it doesn't free
@@ -167,5 +176,12 @@ void IDP_FreeProperty(struct IDProperty *prop);
 
 /*Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
+
+#define IDP_Int(prop) ((prop)->data.val)
+#define IDP_Float(prop) (*(float*)&(prop)->data.val)
+#define IDP_String(prop) ((char*)(prop)->data.pointer)
+#define IDP_Array(prop) ((prop)->data.pointer)
+#define IDP_IDPArray(prop) ((IDProperty*)(prop)->data.pointer)
+#define IDP_Double(prop) (*(double*)&(prop)->data.val)
 
 #endif /* _BKE_IDPROP_H */

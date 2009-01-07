@@ -207,10 +207,6 @@ static void __nlRowColumnAppend(__NLRowColumn* c, NLint index, NLfloat value) {
 	c->size++;
 }
 
-static void __nlRowColumnZero(__NLRowColumn* c) {
-	c->size = 0;
-}
-
 static void __nlRowColumnClear(__NLRowColumn* c) {
 	c->size	 = 0;
 	c->capacity = 0;
@@ -244,7 +240,7 @@ static void __nlSparseMatrixConstruct(
 	M->storage = storage;
 	if(storage & __NL_ROWS) {
 		M->row = __NL_NEW_ARRAY(__NLRowColumn, m);
-		for(i=0; i<n; i++) {
+		for(i=0; i<m; i++) {
 			__nlRowColumnConstruct(&(M->row[i]));
 		}
 	} else {
@@ -432,48 +428,98 @@ static void __nlSparseMatrixMult(__NLSparseMatrix* A, NLfloat* x, NLfloat* y) {
 	}
 }
 
+/* ****************** Routines for least squares ******************* */
+
+static void __nlSparseMatrix_square(
+	__NLSparseMatrix* AtA, __NLSparseMatrix *A
+) {
+	NLuint m = A->m;
+	NLuint n = A->n;
+	NLuint i, j0, j1;
+	__NLRowColumn *Ri = NULL;
+	__NLCoeff *c0 = NULL, *c1 = NULL;
+	float value;
+
+	__nlSparseMatrixConstruct(AtA, n, n, A->storage);
+
+	for(i=0; i<m; i++) {
+		Ri = &(A->row[i]);
+
+		for(j0=0; j0<Ri->size; j0++) {
+			c0 = &(Ri->coeff[j0]);
+			for(j1=0; j1<Ri->size; j1++) {
+				c1 = &(Ri->coeff[j1]);
+
+				value = c0->value*c1->value;
+				__nlSparseMatrixAdd(AtA, c0->index, c1->index, value);
+			}
+		}
+	}
+}
+
+static void __nlSparseMatrix_transpose_mult_rows(
+	__NLSparseMatrix* A, NLfloat* x, NLfloat* y
+) {
+	NLuint m = A->m;
+	NLuint n = A->n;
+	NLuint i,ij;
+	__NLRowColumn* Ri = NULL;
+	__NLCoeff* c = NULL;
+
+	__NL_CLEAR_ARRAY(NLfloat, y, n);
+
+	for(i=0; i<m; i++) {
+		Ri = &(A->row[i]);
+		for(ij=0; ij<Ri->size; ij++) {
+			c = &(Ri->coeff[ij]);
+			y[c->index] += c->value * x[i];
+		}
+	}
+}
+
 /************************************************************************************/
 /* NLContext data structure */
 
 typedef void(*__NLMatrixFunc)(float* x, float* y);
 
 typedef struct {
-	NLfloat  value;
+	NLfloat  value[4];
 	NLboolean locked;
 	NLuint	index;
+	__NLRowColumn *a;
 } __NLVariable;
 
 #define __NL_STATE_INITIAL				0
 #define __NL_STATE_SYSTEM				1
 #define __NL_STATE_MATRIX				2
-#define __NL_STATE_ROW					3
-#define __NL_STATE_MATRIX_CONSTRUCTED	4
-#define __NL_STATE_SYSTEM_CONSTRUCTED	5
-#define __NL_STATE_SYSTEM_SOLVED		7
+#define __NL_STATE_MATRIX_CONSTRUCTED	3
+#define __NL_STATE_SYSTEM_CONSTRUCTED	4
+#define __NL_STATE_SYSTEM_SOLVED		5
 
 typedef struct {
-	NLenum		   state;
+	NLenum			state;
+	NLuint			n;
+	NLuint			m;
 	__NLVariable*	variable;
-	NLuint		   n;
-	__NLSparseMatrix M;
-	__NLRowColumn	af;
-	__NLRowColumn	al;
-	NLfloat*		x;
 	NLfloat*		b;
-	NLfloat		 right_hand_side;
-	NLuint		   nb_variables;
-	NLuint		   current_row;
+	NLfloat*		Mtb;
+	__NLSparseMatrix M;
+	__NLSparseMatrix MtM;
+	NLfloat*		x;
+	NLuint			nb_variables;
+	NLuint			nb_rows;
 	NLboolean		least_squares;
 	NLboolean		symmetric;
+	NLuint			nb_rhs;
 	NLboolean		solve_again;
 	NLboolean		alloc_M;
-	NLboolean		alloc_af;
-	NLboolean		alloc_al;
+	NLboolean		alloc_MtM;
 	NLboolean		alloc_variable;
 	NLboolean		alloc_x;
 	NLboolean		alloc_b;
-	NLfloat		 error;
-	__NLMatrixFunc   matrix_vector_prod;
+	NLboolean		alloc_Mtb;
+	NLfloat			error;
+	__NLMatrixFunc	matrix_vector_prod;
 
 	struct __NLSuperLUContext {
 		NLboolean alloc_slu;
@@ -493,8 +539,8 @@ static void __nlMatrixVectorProd_default(NLfloat* x, NLfloat* y) {
 NLContext nlNewContext(void) {
 	__NLContext* result	  = __NL_NEW(__NLContext);
 	result->state			= __NL_STATE_INITIAL;
-	result->right_hand_side  = 0.0;
 	result->matrix_vector_prod = __nlMatrixVectorProd_default;
+	result->nb_rhs = 1;
 	nlMakeCurrent(result);
 	return result;
 }
@@ -503,26 +549,33 @@ static void __nlFree_SUPERLU(__NLContext *context);
 
 void nlDeleteContext(NLContext context_in) {
 	__NLContext* context = (__NLContext*)(context_in);
+	int i;
+
 	if(__nlCurrentContext == context) {
 		__nlCurrentContext = NULL;
 	}
 	if(context->alloc_M) {
 		__nlSparseMatrixDestroy(&context->M);
 	}
-	if(context->alloc_af) {
-		__nlRowColumnDestroy(&context->af);
-	}
-	if(context->alloc_al) {
-		__nlRowColumnDestroy(&context->al);
+	if(context->alloc_MtM) {
+		__nlSparseMatrixDestroy(&context->MtM);
 	}
 	if(context->alloc_variable) {
-		__NL_DELETE_ARRAY(context->variable);
-	}
-	if(context->alloc_x) {
-		__NL_DELETE_ARRAY(context->x);
+		for(i=0; i<context->nb_variables; i++) {
+			if(context->variable[i].a) {
+				__nlRowColumnDestroy(context->variable[i].a);
+				__NL_DELETE(context->variable[i].a);
+			}
+		}
 	}
 	if(context->alloc_b) {
 		__NL_DELETE_ARRAY(context->b);
+	}
+	if(context->alloc_Mtb) {
+		__NL_DELETE_ARRAY(context->Mtb);
+	}
+	if(context->alloc_x) {
+		__NL_DELETE_ARRAY(context->x);
 	}
 	if (context->slu.alloc_slu) {
 		__nlFree_SUPERLU(context);
@@ -561,12 +614,19 @@ void nlSolverParameterf(NLenum pname, NLfloat param) {
 		__nl_assert(param > 0);
 		__nlCurrentContext->nb_variables = (NLuint)param;
 	} break;
+	case NL_NB_ROWS: {
+		__nl_assert(param > 0);
+		__nlCurrentContext->nb_rows = (NLuint)param;
+	} break;
 	case NL_LEAST_SQUARES: {
 		__nlCurrentContext->least_squares = (NLboolean)param;
 	} break;
 	case NL_SYMMETRIC: {
 		__nlCurrentContext->symmetric = (NLboolean)param;		
-	}
+	} break;
+	case NL_NB_RIGHT_HAND_SIDES: {
+		__nlCurrentContext->nb_rhs = (NLuint)param;
+	} break;
 	default: {
 		__nl_assert_not_reached;
 	} break;
@@ -580,32 +640,21 @@ void nlSolverParameteri(NLenum pname, NLint param) {
 		__nl_assert(param > 0);
 		__nlCurrentContext->nb_variables = (NLuint)param;
 	} break;
+	case NL_NB_ROWS: {
+		__nl_assert(param > 0);
+		__nlCurrentContext->nb_rows = (NLuint)param;
+	} break;
 	case NL_LEAST_SQUARES: {
 		__nlCurrentContext->least_squares = (NLboolean)param;
 	} break;
 	case NL_SYMMETRIC: {
 		__nlCurrentContext->symmetric = (NLboolean)param;		
-	}
+	} break;
+	case NL_NB_RIGHT_HAND_SIDES: {
+		__nlCurrentContext->nb_rhs = (NLuint)param;
+	} break;
 	default: {
 		__nl_assert_not_reached;
-	} break;
-	}
-}
-
-void nlRowParameterf(NLenum pname, NLfloat param) {
-	__nlCheckState(__NL_STATE_MATRIX);
-	switch(pname) {
-	case NL_RIGHT_HAND_SIDE: {
-		__nlCurrentContext->right_hand_side = param;
-	} break;
-	}
-}
-
-void nlRowParameteri(NLenum pname, NLint param) {
-	__nlCheckState(__NL_STATE_MATRIX);
-	switch(pname) {
-	case NL_RIGHT_HAND_SIDE: {
-		__nlCurrentContext->right_hand_side = (NLfloat)param;
 	} break;
 	}
 }
@@ -629,6 +678,9 @@ void nlGetFloatv(NLenum pname, NLfloat* params) {
 	case NL_NB_VARIABLES: {
 		*params = (NLfloat)(__nlCurrentContext->nb_variables);
 	} break;
+	case NL_NB_ROWS: {
+		*params = (NLfloat)(__nlCurrentContext->nb_rows);
+	} break;
 	case NL_LEAST_SQUARES: {
 		*params = (NLfloat)(__nlCurrentContext->least_squares);
 	} break;
@@ -648,6 +700,9 @@ void nlGetIntergerv(NLenum pname, NLint* params) {
 	switch(pname) {
 	case NL_NB_VARIABLES: {
 		*params = (NLint)(__nlCurrentContext->nb_variables);
+	} break;
+	case NL_NB_ROWS: {
+		*params = (NLint)(__nlCurrentContext->nb_rows);
 	} break;
 	case NL_LEAST_SQUARES: {
 		*params = (NLint)(__nlCurrentContext->least_squares);
@@ -692,16 +747,16 @@ NLboolean nlIsEnabled(NLenum pname) {
 /************************************************************************************/
 /* Get/Set Lock/Unlock variables */
 
-void nlSetVariable(NLuint index, NLfloat value) {
+void nlSetVariable(NLuint rhsindex, NLuint index, NLfloat value) {
 	__nlCheckState(__NL_STATE_SYSTEM);
 	__nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
-	__nlCurrentContext->variable[index].value = value;	
+	__nlCurrentContext->variable[index].value[rhsindex] = value;	
 }
 
-NLfloat nlGetVariable(NLuint index) {
+NLfloat nlGetVariable(NLuint rhsindex, NLuint index) {
 	__nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL);
 	__nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
-	return __nlCurrentContext->variable[index].value;
+	return __nlCurrentContext->variable[index].value[rhsindex];
 }
 
 void nlLockVariable(NLuint index) {
@@ -726,27 +781,41 @@ NLboolean nlVariableIsLocked(NLuint index) {
 /* System construction */
 
 static void __nlVariablesToVector() {
-	NLuint i;
-	__nl_assert(__nlCurrentContext->alloc_x);
-	__nl_assert(__nlCurrentContext->alloc_variable);
-	for(i=0; i<__nlCurrentContext->nb_variables; i++) {
-		__NLVariable* v = &(__nlCurrentContext->variable[i]);
+	__NLContext *context = __nlCurrentContext;
+	NLuint i, j, nb_rhs;
+
+	__nl_assert(context->alloc_x);
+	__nl_assert(context->alloc_variable);
+
+	nb_rhs= context->nb_rhs;
+
+	for(i=0; i<context->nb_variables; i++) {
+		__NLVariable* v = &(context->variable[i]);
 		if(!v->locked) {
-			__nl_assert(v->index < __nlCurrentContext->n);
-			__nlCurrentContext->x[v->index] = v->value;
+			__nl_assert(v->index < context->n);
+
+			for(j=0; j<nb_rhs; j++)
+				context->x[context->n*j + v->index] = v->value[j];
 		}
 	}
 }
 
 static void __nlVectorToVariables() {
-	NLuint i;
-	__nl_assert(__nlCurrentContext->alloc_x);
-	__nl_assert(__nlCurrentContext->alloc_variable);
-	for(i=0; i<__nlCurrentContext->nb_variables; i++) {
-		__NLVariable* v = &(__nlCurrentContext->variable[i]);
+	__NLContext *context = __nlCurrentContext;
+	NLuint i, j, nb_rhs;
+
+	__nl_assert(context->alloc_x);
+	__nl_assert(context->alloc_variable);
+
+	nb_rhs= context->nb_rhs;
+
+	for(i=0; i<context->nb_variables; i++) {
+		__NLVariable* v = &(context->variable[i]);
 		if(!v->locked) {
-			__nl_assert(v->index < __nlCurrentContext->n);
-			v->value = __nlCurrentContext->x[v->index];
+			__nl_assert(v->index < context->n);
+
+			for(j=0; j<nb_rhs; j++)
+				v->value[j] = context->x[context->n*j + v->index];
 		}
 	}
 }
@@ -760,8 +829,8 @@ static void __nlBeginSystem() {
 		__nlTransition(__NL_STATE_INITIAL, __NL_STATE_SYSTEM);
 
 		__nlCurrentContext->variable = __NL_NEW_ARRAY(
-			__NLVariable, __nlCurrentContext->nb_variables
-		);
+			__NLVariable, __nlCurrentContext->nb_variables);
+		
 		__nlCurrentContext->alloc_variable = NL_TRUE;
 	}
 }
@@ -772,159 +841,161 @@ static void __nlEndSystem() {
 
 static void __nlBeginMatrix() {
 	NLuint i;
-	NLuint n = 0;
+	NLuint m = 0, n = 0;
 	NLenum storage = __NL_ROWS;
+	__NLContext *context = __nlCurrentContext;
 
 	__nlTransition(__NL_STATE_SYSTEM, __NL_STATE_MATRIX);
 
-	if (!__nlCurrentContext->solve_again) {
-		for(i=0; i<__nlCurrentContext->nb_variables; i++) {
-			if(!__nlCurrentContext->variable[i].locked)
-				__nlCurrentContext->variable[i].index = n++;
+	if (!context->solve_again) {
+		for(i=0; i<context->nb_variables; i++) {
+			if(context->variable[i].locked) {
+				context->variable[i].index = ~0;
+				context->variable[i].a = __NL_NEW(__NLRowColumn);
+				__nlRowColumnConstruct(context->variable[i].a);
+			}
 			else
-				__nlCurrentContext->variable[i].index = ~0;
+				context->variable[i].index = n++;
 		}
 
-		__nlCurrentContext->n = n;
+		m = (context->nb_rows == 0)? n: context->nb_rows;
 
-		/* a least squares problem results in a symmetric matrix */
-		if(__nlCurrentContext->least_squares)
-			__nlCurrentContext->symmetric = NL_TRUE;
+		context->m = m;
+		context->n = n;
 
-		if(__nlCurrentContext->symmetric)
-			storage = (storage | __NL_SYMMETRIC);
+		__nlSparseMatrixConstruct(&context->M, m, n, storage);
+		context->alloc_M = NL_TRUE;
 
-		/* SuperLU storage does not support symmetric storage */
-		storage = (storage & ~__NL_SYMMETRIC);
+		context->b = __NL_NEW_ARRAY(NLfloat, m*context->nb_rhs);
+		context->alloc_b = NL_TRUE;
 
-		__nlSparseMatrixConstruct(&__nlCurrentContext->M, n, n, storage);
-		__nlCurrentContext->alloc_M = NL_TRUE;
-
-		__nlCurrentContext->x = __NL_NEW_ARRAY(NLfloat, n);
-		__nlCurrentContext->alloc_x = NL_TRUE;
-		
-		__nlCurrentContext->b = __NL_NEW_ARRAY(NLfloat, n);
-		__nlCurrentContext->alloc_b = NL_TRUE;
+		context->x = __NL_NEW_ARRAY(NLfloat, n*context->nb_rhs);
+		context->alloc_x = NL_TRUE;
 	}
 	else {
 		/* need to recompute b only, A is not constructed anymore */
-		__NL_CLEAR_ARRAY(NLfloat, __nlCurrentContext->b, __nlCurrentContext->n);
+		__NL_CLEAR_ARRAY(NLfloat, context->b, context->m*context->nb_rhs);
 	}
 
 	__nlVariablesToVector();
+}
 
-	__nlRowColumnConstruct(&__nlCurrentContext->af);
-	__nlCurrentContext->alloc_af = NL_TRUE;
-	__nlRowColumnConstruct(&__nlCurrentContext->al);
-	__nlCurrentContext->alloc_al = NL_TRUE;
+static void __nlEndMatrixRHS(NLuint rhs) {
+	__NLContext *context = __nlCurrentContext;
+	__NLVariable *variable;
+	__NLRowColumn *a;
+	NLfloat *b, *Mtb;
+	NLuint i, j;
 
-	__nlCurrentContext->current_row = 0;
+	b = context->b + context->m*rhs;
+	Mtb = context->Mtb + context->n*rhs;
+
+	for(i=0; i<__nlCurrentContext->nb_variables; i++) {
+		variable = &(context->variable[i]);
+
+		if(variable->locked) {
+			a = variable->a;
+
+			for(j=0; j<a->size; j++) {
+				b[a->coeff[j].index] -= a->coeff[j].value*variable->value[rhs];
+			}
+		}
+	}
+
+	if(context->least_squares)
+		__nlSparseMatrix_transpose_mult_rows(&context->M, b, Mtb);
 }
 
 static void __nlEndMatrix() {
+	__NLContext *context = __nlCurrentContext;
+	NLuint i;
+
 	__nlTransition(__NL_STATE_MATRIX, __NL_STATE_MATRIX_CONSTRUCTED);	
 	
-	__nlRowColumnDestroy(&__nlCurrentContext->af);
-	__nlCurrentContext->alloc_af = NL_FALSE;
-	__nlRowColumnDestroy(&__nlCurrentContext->al);
-	__nlCurrentContext->alloc_al = NL_FALSE;
-	
-#if 0
-	if(!__nlCurrentContext->least_squares) {
-		__nl_assert(
-			__nlCurrentContext->current_row == 
-			__nlCurrentContext->n
-		);
-	}
-#endif
-}
+	if(context->least_squares) {
+		if(!__nlCurrentContext->solve_again) {
+			__nlSparseMatrix_square(&context->MtM, &context->M);
+			context->alloc_MtM = NL_TRUE;
 
-static void __nlBeginRow() {
-	__nlTransition(__NL_STATE_MATRIX, __NL_STATE_ROW);
-	__nlRowColumnZero(&__nlCurrentContext->af);
-	__nlRowColumnZero(&__nlCurrentContext->al);
-}
-
-static void __nlEndRow() {
-	__NLRowColumn*	af = &__nlCurrentContext->af;
-	__NLRowColumn*	al = &__nlCurrentContext->al;
-	__NLSparseMatrix* M  = &__nlCurrentContext->M;
-	NLfloat* b		= __nlCurrentContext->b;
-	NLuint nf		  = af->size;
-	NLuint nl		  = al->size;
-	NLuint current_row = __nlCurrentContext->current_row;
-	NLuint i;
-	NLuint j;
-	NLfloat S;
-	__nlTransition(__NL_STATE_ROW, __NL_STATE_MATRIX);
-
-	if(__nlCurrentContext->least_squares) {
-		if (!__nlCurrentContext->solve_again) {
-			for(i=0; i<nf; i++) {
-				for(j=0; j<nf; j++) {
-					__nlSparseMatrixAdd(
-						M, af->coeff[i].index, af->coeff[j].index,
-						af->coeff[i].value * af->coeff[j].value
-					);
-				}
-			}
-		}
-
-		S = -__nlCurrentContext->right_hand_side;
-		for(j=0; j<nl; j++)
-			S += al->coeff[j].value;
-
-		for(i=0; i<nf; i++)
-			b[ af->coeff[i].index ] -= af->coeff[i].value * S;
-	} else {
-		if (!__nlCurrentContext->solve_again) {
-			for(i=0; i<nf; i++) {
-				__nlSparseMatrixAdd(
-					M, current_row, af->coeff[i].index, af->coeff[i].value
-				);
-			}
-		}
-		b[current_row] = -__nlCurrentContext->right_hand_side;
-		for(i=0; i<nl; i++) {
-			b[current_row] -= al->coeff[i].value;
+			context->Mtb =
+				__NL_NEW_ARRAY(NLfloat, context->n*context->nb_rhs);
+			context->alloc_Mtb = NL_TRUE;
 		}
 	}
-	__nlCurrentContext->current_row++;
-	__nlCurrentContext->right_hand_side = 0.0;	
+
+	for(i=0; i<context->nb_rhs; i++)
+		__nlEndMatrixRHS(i);
 }
 
 void nlMatrixAdd(NLuint row, NLuint col, NLfloat value)
 {
-	__NLSparseMatrix* M  = &__nlCurrentContext->M;
-	__nlCheckState(__NL_STATE_MATRIX);
-	__nl_range_assert(row, 0, __nlCurrentContext->n - 1);
-	__nl_range_assert(col, 0, __nlCurrentContext->nb_variables - 1);
-	__nl_assert(!__nlCurrentContext->least_squares);
+	__NLContext *context = __nlCurrentContext;
 
-	__nlSparseMatrixAdd(M, row, col, value);
+	__nlCheckState(__NL_STATE_MATRIX);
+
+	if(context->solve_again)
+		return;
+
+	if (!context->least_squares && context->variable[row].locked);
+	else if (context->variable[col].locked) {
+		if(!context->least_squares)
+			row = context->variable[row].index;
+		__nlRowColumnAppend(context->variable[col].a, row, value);
+	}
+	else {
+		__NLSparseMatrix* M  = &context->M;
+		
+		if(!context->least_squares)
+			row = context->variable[row].index;
+		col = context->variable[col].index;
+		
+		__nl_range_assert(row, 0, context->m - 1);
+		__nl_range_assert(col, 0, context->n - 1);
+
+		__nlSparseMatrixAdd(M, row, col, value);
+	}
 }
 
-void nlRightHandSideAdd(NLuint index, NLfloat value)
+void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLfloat value)
 {
-	NLfloat* b = __nlCurrentContext->b;
+	__NLContext *context = __nlCurrentContext;
+	NLfloat* b = context->b;
 
 	__nlCheckState(__NL_STATE_MATRIX);
-	__nl_range_assert(index, 0, __nlCurrentContext->n - 1);
-	__nl_assert(!__nlCurrentContext->least_squares);
 
-	b[index] += value;
+	if(context->least_squares) {
+		__nl_range_assert(index, 0, context->m - 1);
+		b[rhsindex*context->m + index] += value;
+	}
+	else {
+		if(!context->variable[index].locked) {
+			index = context->variable[index].index;
+			__nl_range_assert(index, 0, context->m - 1);
+
+			b[rhsindex*context->m + index] += value;
+		}
+	}
 }
 
-void nlCoefficient(NLuint index, NLfloat value) {
-	__NLVariable* v;
-	unsigned int zero= 0;
-	__nlCheckState(__NL_STATE_ROW);
-	__nl_range_assert(index, zero, __nlCurrentContext->nb_variables - 1);
-	v = &(__nlCurrentContext->variable[index]);
-	if(v->locked)
-		__nlRowColumnAppend(&(__nlCurrentContext->al), 0, value*v->value);
-	else
-		__nlRowColumnAppend(&(__nlCurrentContext->af), v->index, value);
+void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLfloat value)
+{
+	__NLContext *context = __nlCurrentContext;
+	NLfloat* b = context->b;
+
+	__nlCheckState(__NL_STATE_MATRIX);
+
+	if(context->least_squares) {
+		__nl_range_assert(index, 0, context->m - 1);
+		b[rhsindex*context->m + index] = value;
+	}
+	else {
+		if(!context->variable[index].locked) {
+			index = context->variable[index].index;
+			__nl_range_assert(index, 0, context->m - 1);
+
+			b[rhsindex*context->m + index] = value;
+		}
+	}
 }
 
 void nlBegin(NLenum prim) {
@@ -934,9 +1005,6 @@ void nlBegin(NLenum prim) {
 	} break;
 	case NL_MATRIX: {
 		__nlBeginMatrix();
-	} break;
-	case NL_ROW: {
-		__nlBeginRow();
 	} break;
 	default: {
 		__nl_assert_not_reached;
@@ -952,9 +1020,6 @@ void nlEnd(NLenum prim) {
 	case NL_MATRIX: {
 		__nlEndMatrix();
 	} break;
-	case NL_ROW: {
-		__nlEndRow();
-	} break;
 	default: {
 		__nl_assert_not_reached;
 	}
@@ -969,7 +1034,7 @@ void nlEnd(NLenum prim) {
 static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation) {
 
 	/* OpenNL Context */
-	__NLSparseMatrix* M = &(context->M);
+	__NLSparseMatrix* M = (context->least_squares)? &context->MtM: &context->M;
 	NLuint n = context->n;
 	NLuint nnz = __nlSparseMatrixNNZ(M); /* number of non-zero coeffs */
 
@@ -986,7 +1051,6 @@ static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation)
 	superlu_options_t options;
 
 	/* Temporary variables */
-	__NLRowColumn* Ri = NULL;
 	NLuint i, jj, count;
 	
 	__nl_assert(!(M->storage & __NL_SYMMETRIC));
@@ -1049,7 +1113,7 @@ static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation)
 	/* Cleanup */
 
 	Destroy_SuperMatrix_Store(&At);
-	Destroy_SuperMatrix_Store(&AtP);
+	Destroy_CompCol_Permuted(&AtP);
 
 	__NL_DELETE_ARRAY(etree);
 	__NL_DELETE_ARRAY(xa);
@@ -1065,31 +1129,33 @@ static NLboolean __nlFactorize_SUPERLU(__NLContext *context, NLint *permutation)
 static NLboolean __nlInvert_SUPERLU(__NLContext *context) {
 
 	/* OpenNL Context */
-	NLfloat* b = context->b;
+	NLfloat* b = (context->least_squares)? context->Mtb: context->b;
 	NLfloat* x = context->x;
-	NLuint n = context->n;
+	NLuint n = context->n, j;
 
 	/* SuperLU variables */
 	SuperMatrix B;
 	NLint info;
 
-	/* Create superlu array for B */
-	sCreate_Dense_Matrix(
-		&B, n, 1, b, n, 
-		SLU_DN, /* Fortran-type column-wise storage */
-		SLU_S,  /* floats						  */
-		SLU_GE  /* general						  */
-	);
+	for(j=0; j<context->nb_rhs; j++, b+=n, x+=n) {
+		/* Create superlu array for B */
+		sCreate_Dense_Matrix(
+			&B, n, 1, b, n, 
+			SLU_DN, /* Fortran-type column-wise storage */
+			SLU_S,  /* floats						  */
+			SLU_GE  /* general						  */
+		);
 
-	/* Forward/Back substitution to compute x */
-	sgstrs(TRANS, &(context->slu.L), &(context->slu.U),
-		context->slu.perm_c, context->slu.perm_r, &B,
-		&(context->slu.stat), &info);
+		/* Forward/Back substitution to compute x */
+		sgstrs(TRANS, &(context->slu.L), &(context->slu.U),
+			context->slu.perm_c, context->slu.perm_r, &B,
+			&(context->slu.stat), &info);
 
-	if(info == 0)
-		memcpy(x, ((DNformat*)B.Store)->nzval, sizeof(*x)*n);
+		if(info == 0)
+			memcpy(x, ((DNformat*)B.Store)->nzval, sizeof(*x)*n);
 
-	Destroy_SuperMatrix_Store(&B);
+		Destroy_SuperMatrix_Store(&B);
+	}
 
 	return (info == 0);
 }
@@ -1108,15 +1174,18 @@ static void __nlFree_SUPERLU(__NLContext *context) {
 }
 
 void nlPrintMatrix(void) {
-	__NLSparseMatrix* M  = &(__nlCurrentContext->M);
-	float *b = __nlCurrentContext->b;
+	__NLContext *context = __nlCurrentContext;
+	__NLSparseMatrix* M  = &(context->M);
+	__NLSparseMatrix* MtM  = &(context->MtM);
+	float *b = context->b;
 	NLuint i, jj, k;
-	NLuint n = __nlCurrentContext->n;
+	NLuint m = context->m;
+	NLuint n = context->n;
 	__NLRowColumn* Ri = NULL;
-	float *value = malloc(sizeof(*value)*n);
+	float *value = malloc(sizeof(*value)*(n+m));
 
 	printf("A:\n");
-	for(i=0; i<n; i++) {
+	for(i=0; i<m; i++) {
 		Ri = &(M->row[i]);
 
 		memset(value, 0.0, sizeof(*value)*n);
@@ -1128,10 +1197,35 @@ void nlPrintMatrix(void) {
 		printf("\n");
 	}
 
-	printf("b:\n");
-	for(i=0; i<n; i++)
-		printf("%f ", b[i]);
-	printf("\n");
+	for(k=0; k<context->nb_rhs; k++) {
+		printf("b (%d):\n", k);
+		for(i=0; i<n; i++)
+			printf("%f ", b[context->n*k + i]);
+		printf("\n");
+	}
+
+	if(context->alloc_MtM) {
+		printf("AtA:\n");
+		for(i=0; i<n; i++) {
+			Ri = &(MtM->row[i]);
+
+			memset(value, 0.0, sizeof(*value)*m);
+			for(jj=0; jj<Ri->size; jj++)
+				value[Ri->coeff[jj].index] = Ri->coeff[jj].value;
+
+			for (k = 0; k<n; k++)
+				printf("%.3f ", value[k]);
+			printf("\n");
+		}
+
+		for(k=0; k<context->nb_rhs; k++) {
+			printf("Mtb (%d):\n", k);
+			for(i=0; i<n; i++)
+				printf("%f ", context->Mtb[context->n*k + i]);
+			printf("\n");
+		}
+		printf("\n");
+	}
 
 	free(value);
 }

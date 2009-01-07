@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_LAMP_TYPES_H
 #define DNA_LAMP_TYPES_H
@@ -38,35 +35,64 @@
 #include "DNA_scriptlink_types.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 struct MTex;
 struct Ipo;
+struct CurveMapping;
 
 typedef struct Lamp {
 	ID id;
 	
-	short type, mode;
+	short type, flag;
+	int mode;
 	
 	short colormodel, totex;
 	float r, g, b, k;
+	float shdwr, shdwg, shdwb, shdwpad;
 	
 	float energy, dist, spotsize, spotblend;
 	float haint;
-	float att1, att2;
+	
+	
+	float att1, att2;	/* Quad1 and Quad2 attenuation */
+	struct CurveMapping *curfalloff;
+	short falloff_type;
+	short pad2;
 	
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
 	
-	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
+	short ray_samp, ray_sampy, ray_sampz;
+	short ray_samp_type;
 	short area_shape;
 	float area_size, area_sizey, area_sizez;
+	float adapt_thresh;
+	short ray_samp_method;
+	short pad1;
 	
 	/* texact is for buttons */
 	short texact, shadhalostep;
+	
+	/* sun/sky */
+	short sun_effect_type;
+	short skyblendtype;
+    float horizon_brightness;
+    float spread;
+    float sun_brightness;
+    float sun_size;
+    float backscattered_light;
+    float sun_intensity;
+	float atm_turbidity;
+    float atm_inscattering_factor;
+    float atm_extinction_factor;
+    float atm_distance_factor;
+	float skyblendfac;
+	float sky_exposure;
+	short sky_colorspace, pad4;
 	
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
@@ -76,13 +102,19 @@ typedef struct Lamp {
 	float YF_glowint, YF_glowofs;
 	short YF_glowtype, YF_pad2;
 	
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];			/* MAX_MTEX */
 	struct Ipo *ipo;
 	
+	/* preview */
+	struct PreviewImage *preview;
+
 	ScriptLink scriptlink;
 } Lamp;
 
 /* **************** LAMP ********************* */
+
+/* flag */
+#define LA_DS_EXPAND	1
 
 /* type */
 #define LA_LOCAL		0
@@ -97,7 +129,7 @@ typedef struct Lamp {
 #define LA_SHAD_BUF		1
 #define LA_HALO			2
 #define LA_LAYER		4
-#define LA_QUAD			8
+#define LA_QUAD			8	/* no longer used */
 #define LA_NEG			16
 #define LA_ONLYSHADOW	32
 #define LA_SPHERE		64
@@ -111,6 +143,25 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+#define LA_LAYER_SHADOW	32768
+#define LA_SHAD_TEX     (1<<16)
+
+/* layer_shadow */
+#define LA_LAYER_SHADOW_BOTH	0
+#define LA_LAYER_SHADOW_CAST	1
+#define LA_LAYER_SHADOW_RECEIVE	2
+
+/* sun effect type*/
+#define LA_SUN_EFFECT_SKY			1
+#define LA_SUN_EFFECT_AP			2
+
+/* falloff_type */
+#define LA_FALLOFF_CONSTANT		0
+#define LA_FALLOFF_INVLINEAR		1
+#define LA_FALLOFF_INVSQUARE	2
+#define LA_FALLOFF_CURVE		3
+#define LA_FALLOFF_SLIDERS		4
+
 
 /* buftype, no flag */
 #define LA_SHADBUF_REGULAR		0
@@ -132,6 +183,12 @@ typedef struct Lamp {
 #define LA_AREA_CUBE	2
 #define LA_AREA_BOX		3
 
+/* ray_samp_method */
+#define LA_SAMP_CONSTANT			0
+#define LA_SAMP_HALTON				1
+#define LA_SAMP_HAMMERSLEY			2
+
+
 /* ray_samp_type */
 #define LA_SAMP_ROUND	1
 #define LA_SAMP_UMBRA	2
@@ -140,6 +197,7 @@ typedef struct Lamp {
 
 /* mapto */
 #define LAMAP_COL		1
+#define LAMAP_SHAD		2
 
 
 #endif /* DNA_LAMP_TYPES_H */

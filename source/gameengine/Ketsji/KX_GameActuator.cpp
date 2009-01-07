@@ -3,15 +3,12 @@
 *
 * $Id$
 *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 */
 
 #include "SCA_IActuator.h"
@@ -37,6 +34,7 @@
 //#include <iostream>
 #include "KX_Scene.h"
 #include "KX_KetsjiEngine.h"
+#include "KX_PythonInit.h" /* for config load/saving */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -128,6 +126,71 @@ bool KX_GameActuator::Update()
 			}
 			break;
 		}
+	case KX_GAME_SAVECFG:
+		{
+			if (m_ketsjiengine)
+			{
+				char mashal_path[512];
+				char *marshal_buffer = NULL;
+				int marshal_length;
+				FILE *fp = NULL;
+				
+				pathGamePythonConfig(mashal_path);
+				marshal_length = saveGamePythonConfig(&marshal_buffer);
+				
+				if (marshal_length && marshal_buffer) {
+					fp = fopen(mashal_path, "wb");
+					if (fp) {
+						if (fwrite(marshal_buffer, 1, marshal_length, fp) != marshal_length) {
+							printf("Warning: could not write marshal data\n");
+						}
+						fclose(fp);
+					} else {
+						printf("Warning: could not open marshal file\n");
+					}
+				} else {
+					printf("Warning: could not create marshal buffer\n");
+				}
+			}
+			break;
+		}
+	case KX_GAME_LOADCFG:
+		{
+			if (m_ketsjiengine)
+			{
+				char mashal_path[512];
+				char *marshal_buffer;
+				int marshal_length;
+				FILE *fp = NULL;
+				int result;
+				
+				pathGamePythonConfig(mashal_path);
+				
+				fp = fopen(mashal_path, "rb");
+				if (fp) {
+					// obtain file size:
+					fseek (fp , 0 , SEEK_END);
+					marshal_length = ftell(fp);
+					rewind(fp);
+					
+					marshal_buffer = (char*) malloc (sizeof(char)*marshal_length);
+					
+					result = fread (marshal_buffer, 1, marshal_length, fp);
+					
+					if (result == marshal_length) {
+						loadGamePythonConfig(marshal_buffer, marshal_length);
+					} else {
+						printf("warning: could not read all of '%s'\n", mashal_path);
+					}
+					
+					free(marshal_buffer);
+					fclose(fp);
+				} else {
+					printf("warning: could not open '%s'\n", mashal_path);
+				}
+			}
+			break;
+		}
 	default:
 		; /* do nothing? this is an internal error !!! */
 	}
@@ -178,13 +241,13 @@ PyParentObject KX_GameActuator::Parents[] =
 
 PyMethodDef KX_GameActuator::Methods[] =
 {
-	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, GetFile_doc},
-	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, SetFile_doc},
+	{"getFile",	(PyCFunction) KX_GameActuator::sPyGetFile, METH_VARARGS, (PY_METHODCHAR)GetFile_doc},
+	{"setFile", (PyCFunction) KX_GameActuator::sPySetFile, METH_VARARGS, (PY_METHODCHAR)SetFile_doc},
 	{NULL,NULL} //Sentinel
 };
 
 /* getFile */
-char KX_GameActuator::GetFile_doc[] = 
+const char KX_GameActuator::GetFile_doc[] = 
 "getFile()\n"
 "get the name of the file to start.\n";
 PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* kwds)
@@ -193,7 +256,7 @@ PyObject* KX_GameActuator::PyGetFile(PyObject* self, PyObject* args, PyObject* k
 }
 
 /* setFile */
-char KX_GameActuator::SetFile_doc[] =
+const char KX_GameActuator::SetFile_doc[] =
 "setFile(name)\n"
 "set the name of the file to start.\n";
 PyObject* KX_GameActuator::PySetFile(PyObject* self, PyObject* args, PyObject* kwds)

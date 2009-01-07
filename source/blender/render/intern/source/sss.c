@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 /* this module */
@@ -234,11 +235,7 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 	float indexf, t, idxf;
 	int index;
 
-	if(rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2)) {
-		rd[0]= Rd_rsquare(ss[0], rr);
-		rd[1]= Rd_rsquare(ss[1], rr);
-		rd[2]= Rd_rsquare(ss[2], rr);
-	}
+	if(rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
 	else if(rr > RD_TABLE_RANGE) {
 		rr= sqrt(rr);
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE_2);
@@ -246,9 +243,12 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		rd[0]= (ss[0]->tableRd2[index]*(1-t) + ss[0]->tableRd2[index+1]*t);
-		rd[1]= (ss[1]->tableRd2[index]*(1-t) + ss[1]->tableRd2[index+1]*t);
-		rd[2]= (ss[2]->tableRd2[index]*(1-t) + ss[2]->tableRd2[index+1]*t);
+		if(index >= 0 && index < RD_TABLE_SIZE) {
+			rd[0]= (ss[0]->tableRd2[index]*(1-t) + ss[0]->tableRd2[index+1]*t);
+			rd[1]= (ss[1]->tableRd2[index]*(1-t) + ss[1]->tableRd2[index+1]*t);
+			rd[2]= (ss[2]->tableRd2[index]*(1-t) + ss[2]->tableRd2[index+1]*t);
+			return;
+		}
 	}
 	else {
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE);
@@ -256,10 +256,18 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		rd[0]= (ss[0]->tableRd[index]*(1-t) + ss[0]->tableRd[index+1]*t);
-		rd[1]= (ss[1]->tableRd[index]*(1-t) + ss[1]->tableRd[index+1]*t);
-		rd[2]= (ss[2]->tableRd[index]*(1-t) + ss[2]->tableRd[index+1]*t);
+		if(index >= 0 && index < RD_TABLE_SIZE) {
+			rd[0]= (ss[0]->tableRd[index]*(1-t) + ss[0]->tableRd[index+1]*t);
+			rd[1]= (ss[1]->tableRd[index]*(1-t) + ss[1]->tableRd[index+1]*t);
+			rd[2]= (ss[2]->tableRd[index]*(1-t) + ss[2]->tableRd[index+1]*t);
+			return;
+		}
 	}
+
+	/* fallback to slow Rd computation */
+	rd[0]= Rd_rsquare(ss[0], rr);
+	rd[1]= Rd_rsquare(ss[1], rr);
+	rd[2]= Rd_rsquare(ss[2], rr);
 }
 
 static void build_Rd_table(ScatterSettings *ss)
@@ -443,13 +451,13 @@ static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 	VECCOPY(rdsum, result.rdsum);
 	VECADD(backrdsum, result.rdsum, result.backrdsum);
 
-	if(rdsum[0] > 0.0f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
-	if(rdsum[1] > 0.0f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
-	if(rdsum[2] > 0.0f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
+	if(rdsum[0] > 1e-16f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
+	if(rdsum[1] > 1e-16f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
+	if(rdsum[2] > 1e-16f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
 
-	if(backrdsum[0] > 0.0f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
-	if(backrdsum[1] > 0.0f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
-	if(backrdsum[2] > 0.0f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
+	if(backrdsum[0] > 1e-16f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
+	if(backrdsum[1] > 1e-16f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
+	if(backrdsum[2] > 1e-16f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
 
 	rad[0]= MAX2(rad[0], backrad[0]);
 	rad[1]= MAX2(rad[1], backrad[1]);
@@ -473,7 +481,7 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 	for(i=0; i<node->totpoint; i++) {
 		p= &node->points[i];
 
-		rad= p->area*(p->rad[0] + p->rad[1] + p->rad[2]);
+		rad= p->area*fabs(p->rad[0] + p->rad[1] + p->rad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*p->co[0];
@@ -496,20 +504,20 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 		}
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -550,8 +558,8 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 
 		subnode= node->child[i];
 
-		rad= subnode->area*(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
-		rad += subnode->backarea*(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
+		rad= subnode->area*fabs(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
+		rad += subnode->backarea*fabs(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*subnode->co[0];
@@ -570,20 +578,20 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 		node->backarea += subnode->backarea;
 	}
 
-	if(node->area > 0) {
+	if(node->area > 1e-16f) {
 		inv= 1.0/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
-	if(node->backarea > 0) {
+	if(node->backarea > 1e-16f) {
 		inv= 1.0/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
-	if(totrad > 0.0f) {
+	if(totrad > 1e-16f) {
 		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
@@ -840,7 +848,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 {
 	SSSPoints *p;
 	RenderResult *rr;
-	ListBase layers, points;
+	ListBase points;
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
 
@@ -853,13 +861,11 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	   setting them back, maybe we need to create our own Render? */
 
 	/* do SSS preprocessing render */
-	layers= re->r.layers;
+	rr= re->result;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
 	partsdone= re->i.partsdone;
-	rr= re->result;
 
-	re->r.layers.first= re->r.layers.last= NULL;
 	re->osa= 0;
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
@@ -874,7 +880,6 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;
-	re->r.layers= layers;
 	re->osa= osa;
 	if (osaflag) re->r.mode |= R_OSA;
 
@@ -914,7 +919,8 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float *col= mat->sss_col, *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
-		
+
+		error= get_render_aosss_error(&re->r, error);
 		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 
@@ -978,7 +984,7 @@ void make_sss_tree(Render *re)
 	re->stats_draw(&re->i);
 	
 	for(mat= G.main->mat.first; mat; mat= mat->id.next)
-		if(mat->id.us && (mat->sss_flag & MA_DIFF_SSS))
+		if(mat->id.us && (mat->flag & MA_IS_USED) && (mat->sss_flag & MA_DIFF_SSS))
 			sss_create_tree_mat(re, mat);
 }
 
@@ -1017,8 +1023,8 @@ int sample_sss(Render *re, Material *mat, float *co, float *color)
 	return 0;
 }
 
-int has_sss_tree(struct Render *re, struct Material *mat)
+int sss_pass_done(struct Render *re, struct Material *mat)
 {
-	return (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat));
+	return ((re->flag & R_BAKING) || !(re->r.mode & R_SSS) || (re->sss_hash && BLI_ghash_lookup(re->sss_hash, mat)));
 }
 

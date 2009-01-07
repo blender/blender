@@ -20,19 +20,20 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 #include "LinearMath/btVector3.h"
 
-/// implements cylinder shape interface
+/// The btCylinderShape class implements a cylinder shape primitive, centered around the origin. Its central axis aligned with the Y axis. btCylinderShapeX is aligned with the X axis and btCylinderShapeZ around the Z axis.
 class btCylinderShape : public btBoxShape
 
 {
+
+protected:
+
+	int	m_upAxis;
 
 public:
 	btCylinderShape (const btVector3& halfExtents);
 	
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
-	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
-	{
-		getAabbSlow(t,aabbMin,aabbMax);
-	}
+	void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
@@ -44,12 +45,12 @@ public:
 		btVector3 supVertex;
 		supVertex = localGetSupportingVertexWithoutMargin(vec);
 		
-		if ( getMargin()!=0.f )
+		if ( getMargin()!=btScalar(0.) )
 		{
 			btVector3 vecnorm = vec;
 			if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 			{
-				vecnorm.setValue(-1.f,-1.f,-1.f);
+				vecnorm.setValue(btScalar(-1.),btScalar(-1.),btScalar(-1.));
 			} 
 			vecnorm.normalize();
 			supVertex+= getMargin() * vecnorm;
@@ -59,25 +60,25 @@ public:
 
 
 	//use box inertia
-	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	virtual int	getShapeType() const
 	{
 		return CYLINDER_SHAPE_PROXYTYPE;
 	}
 	
-	virtual int	getUpAxis() const
+	int	getUpAxis() const
 	{
-		return 1;
+		return m_upAxis;
 	}
 
-	virtual float getRadius() const
+	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getX();
+		return getHalfExtentsWithMargin().getX();
 	}
 
 	//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderY";
 	}
@@ -93,19 +94,16 @@ public:
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
-	virtual int	getUpAxis() const
-	{
-		return 0;
-	}
+	
 		//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderX";
 	}
 
-	virtual float getRadius() const
+	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getY();
+		return getHalfExtentsWithMargin().getY();
 	}
 
 };
@@ -123,14 +121,14 @@ public:
 		return 2;
 	}
 		//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderZ";
 	}
 
-	virtual float getRadius() const
+	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getX();
+		return getHalfExtentsWithMargin().getX();
 	}
 
 };

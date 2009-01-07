@@ -22,7 +22,7 @@
 #ifndef _LOGMEMFILE_H
 #define _LOGMEMFILE_H
 
-int logimage_fseek(void* logfile, long offsett, int origin);
+int logimage_fseek(void* logfile, intptr_t offsett, int origin);
 int logimage_fwrite(void *buffer, unsigned int size, unsigned int count, void *logfile);
 int logimage_fread(void *buffer, unsigned int size, unsigned int count, void *logfile);
 

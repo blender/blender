@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "BOP_Triangulator.h"
@@ -90,8 +87,11 @@ void BOP_triangulateA(BOP_Mesh *mesh, BOP_Faces *faces, BOP_Face * face, BOP_Ind
 	
 	BOP_addFace(mesh, faces, face1, face->getTAG());
 	BOP_addFace(mesh, faces, face2, face->getTAG());
+	face1->setSplit(face->getSplit());
+	face2->setSplit(face->getSplit());
 	
 	face->setTAG(BROKEN);
+	face->freeBBox();
 }
 
 /**
@@ -122,7 +122,11 @@ void BOP_triangulateB(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face, BOP_Inde
 	BOP_addFace(mesh,faces,face1,face->getTAG());
 	BOP_addFace(mesh,faces,face2,face->getTAG());
 	BOP_addFace(mesh,faces,face3,face->getTAG());
+	face1->setSplit(face->getSplit());
+	face2->setSplit(face->getSplit());
+	face3->setSplit(face->getSplit());
 	face->setTAG(BROKEN);
+	face->freeBBox();
 }
 
 
@@ -180,26 +184,33 @@ void BOP_triangulateC_split(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face,
 {
 	BOP_Index v = BOP_getTriangleVertex(mesh, v1, v2, v4, v5);
 	BOP_Index w = (v == v4 ? v5 : v4);
+	BOP_Face *face1 = new BOP_Face3(v1, v, w, face->getPlane(), face->getOriginalFace());
+	BOP_Face *face2 = new BOP_Face3(v1, v2, v, face->getPlane(), face->getOriginalFace());
+	BOP_Face *face3 = new BOP_Face3(v1, w, v3, face->getPlane(), face->getOriginalFace());
 	
 	// v1 v w defines the nice triangle in the correct order
 	// v1 v2 v defines one lateral triangle in the correct order
 	// v1 w v3 defines the other lateral triangle in the correct order
 	// w v v2 v3 defines the quad in the correct order
 	
-	BOP_addFace(mesh, faces, new BOP_Face3(v1, v, w, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
-	BOP_addFace(mesh, faces, new BOP_Face3(v1, v2, v, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
-	BOP_addFace(mesh, faces, new BOP_Face3(v1, w, v3, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
+	BOP_addFace(mesh, faces, face1, face->getTAG());
+	BOP_addFace(mesh, faces, face2, face->getTAG());
+	BOP_addFace(mesh, faces, face3, face->getTAG());
+
+	face1->setSplit(face->getSplit());
+	face2->setSplit(face->getSplit());
+	face3->setSplit(face->getSplit());
 	
 	BOP_Face *faces45[2];
 	
 	BOP_splitQuad(mesh, face->getPlane(), v2, v3, w, v, faces45, face->getOriginalFace());
 	BOP_addFace(mesh, faces, faces45[0], face->getTAG());
 	BOP_addFace(mesh, faces, faces45[1], face->getTAG());
+	faces45[0]->setSplit(face->getSplit());
+	faces45[1]->setSplit(face->getSplit());
 	
 	face->setTAG(BROKEN); 
+	face->freeBBox();
 }
 
 
@@ -254,15 +265,19 @@ void BOP_triangulateD_split(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face,
 {
 	BOP_Index v = BOP_getNearestVertex(mesh, v1, v4, v5);
 	BOP_Index w = (v == v4 ? v5 : v4);
+	BOP_Face *face1 = new BOP_Face3(v1, v, v3, face->getPlane(), face->getOriginalFace());
+	BOP_Face *face2 = new BOP_Face3(v, w, v3, face->getPlane(), face->getOriginalFace());
+	BOP_Face *face3 = new BOP_Face3(w, v2, v3, face->getPlane(), face->getOriginalFace());
 	
-	BOP_addFace(mesh, faces, new BOP_Face3(v1, v, v3, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
-	BOP_addFace(mesh, faces, new BOP_Face3(v, w, v3, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
-	BOP_addFace(mesh, faces, new BOP_Face3(w, v2, v3, face->getPlane(), 
-				face->getOriginalFace()), face->getTAG());
-	
+	BOP_addFace(mesh, faces, face1, face->getTAG());
+	BOP_addFace(mesh, faces, face2, face->getTAG());
+	BOP_addFace(mesh, faces, face3, face->getTAG());
+	face1->setSplit(face->getSplit());
+	face2->setSplit(face->getSplit());
+	face3->setSplit(face->getSplit());
+
 	face->setTAG(BROKEN);
+	face->freeBBox();
 }
 
 
@@ -328,7 +343,11 @@ void BOP_triangulateE(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face,
 	BOP_addFace(mesh, faces, face1, face->getTAG());
 	BOP_addFace(mesh, faces, faces23[0], face->getTAG());
 	BOP_addFace(mesh, faces, faces23[1], face->getTAG());
+	face1->setSplit(face->getSplit());
+	faces23[0]->setSplit(face->getSplit());
+	faces23[1]->setSplit(face->getSplit());
 	face->setTAG(BROKEN);
+	face->freeBBox();
 }
 
 /**
@@ -380,8 +399,13 @@ void BOP_triangulateF(BOP_Mesh* mesh, BOP_Faces* faces, BOP_Face* face,
 	BOP_addFace(mesh, faces, faces12[1], face->getTAG());
 	BOP_addFace(mesh, faces, faces34[0], face->getTAG());
 	BOP_addFace(mesh, faces, faces34[1], face->getTAG());
+	faces12[0]->setSplit(face->getSplit());
+	faces12[1]->setSplit(face->getSplit());
+	faces34[0]->setSplit(face->getSplit());
+	faces34[1]->setSplit(face->getSplit());
 	
 	face->setTAG(BROKEN);
+	face->freeBBox();
 }
 
 /**

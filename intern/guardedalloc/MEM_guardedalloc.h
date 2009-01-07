@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -61,8 +58,8 @@
 #ifndef MEM_MALLOCN_H
 #define MEM_MALLOCN_H
 
-/* Needed for FILE* */
-#include "stdio.h"
+#include "stdio.h" /* needed for FILE* */
+#include "BLO_sys_types.h" /* needed for uintptr_t */
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,9 +73,8 @@ extern "C" {
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
-	short WMEM_freeN(void *vmemh);
-	short _MEM_freeN(void *vmemh, char *file, int line);
-	#define MEM_freeN(vmemh)	_MEM_freeN(vmemh, __FILE__, __LINE__)
+	short MEM_freeN(void *vmemh);
+
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
@@ -101,9 +97,16 @@ extern "C" {
 	void *MEM_mapallocN(unsigned int len, const char * str);
 
 	/** Print a list of the names and sizes of all allocated memory
+	 * blocks. as a python dict for easy investigation */ 
+	void MEM_printmemlist_pydict(void);
+
+	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. */ 
 	void MEM_printmemlist(void);
 
+	/** Print statistics about memory usage */
+	void MEM_printmemlist_stats(void);
+	
 	/** Set the callback function for error output. */
 	void MEM_set_error_callback(void (*func)(char *));
 
@@ -120,6 +123,12 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
+	/* Memory usage stats
+	 * - MEM_get_memory_in_use is all memory
+	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
+	uintptr_t MEM_get_memory_in_use(void);
+	uintptr_t MEM_get_mapped_memory_in_use(void);
+	int MEM_get_memory_blocks_in_use(void);
 
 #ifdef __cplusplus
 }

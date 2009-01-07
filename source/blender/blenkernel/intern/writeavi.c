@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): Robert Wenzlaff
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * 
  */
 
@@ -53,10 +50,6 @@
 #include "quicktime_export.h"
 #endif
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-#include "BIF_writeavicodec.h"
-#endif
-
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
 #endif
@@ -71,7 +64,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	mh.start_movie= start_avi;
 	mh.append_movie= append_avi;
 	mh.end_movie= end_avi;
-	mh.get_next_frame = 0;
+	mh.get_next_frame = NULL;
 	
 	/* do the platform specific handles */
 #ifdef __sgi
@@ -81,9 +74,9 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 #endif
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (imtype == R_AVICODEC) {		
-		mh.start_movie= start_avi_codec;
-		mh.append_movie= append_avi_codec;
-		mh.end_movie= end_avi_codec;
+		//XXX mh.start_movie= start_avi_codec;
+		//XXX mh.append_movie= append_avi_codec;
+		//XXX mh.end_movie= end_avi_codec;
 	}
 #endif
 #ifdef WITH_QUICKTIME
@@ -123,7 +116,7 @@ void makeavistring (RenderData *rd, char *string)
 	if (string==0) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce, rd->cfra);
+	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -138,7 +131,8 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	int x, y;
 	char name[256];
 	AviFormat format;
-	int quality, framerate;
+	int quality;
+	double framerate;
 	
 	makeavistring(rd, name);
 
@@ -147,7 +141,7 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	y = recty;
 
 	quality= rd->quality;
-	framerate= rd->frs_sec;
+	framerate= (double) rd->frs_sec / (double) rd->frs_sec_base;
 	
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 
@@ -177,7 +171,7 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	printf("Created avi: %s\n", name);
 }
 
-void append_avi(int frame, int *pixels, int rectx, int recty)
+void append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty)
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;

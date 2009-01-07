@@ -17,11 +17,12 @@ subject to the following restrictions:
 #ifndef btTransform_H
 #define btTransform_H
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btMatrix3x3.h"
+#include "btVector3.h"
+#include "btMatrix3x3.h"
 
 
-///btTransform supports rigid transforms (only translation and rotation, no scaling/shear)
+///The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
+///It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes.
 class btTransform {
 	
 
@@ -42,23 +43,38 @@ public:
 		m_origin(c)
 	{}
 
+	SIMD_FORCE_INLINE btTransform (const btTransform& other)
+		: m_basis(other.m_basis),
+		m_origin(other.m_origin)
+	{
+	}
+
+	SIMD_FORCE_INLINE btTransform& operator=(const btTransform& other)
+	{
+		m_basis = other.m_basis;
+		m_origin = other.m_origin;
+		return *this;
+	}
+
 
 		SIMD_FORCE_INLINE void mult(const btTransform& t1, const btTransform& t2) {
 			m_basis = t1.m_basis * t2.m_basis;
 			m_origin = t1(t2.m_origin);
 		}
 
-		void multInverseLeft(const btTransform& t1, const btTransform& t2) {
+/*		void multInverseLeft(const btTransform& t1, const btTransform& t2) {
 			btVector3 v = t2.m_origin - t1.m_origin;
 			m_basis = btMultTransposeLeft(t1.m_basis, t2.m_basis);
 			m_origin = v * t1.m_basis;
 		}
+		*/
+
 
 	SIMD_FORCE_INLINE btVector3 operator()(const btVector3& x) const
 	{
-		return btVector3(m_basis[0].dot(x) + m_origin[0], 
-			m_basis[1].dot(x) + m_origin[1], 
-			m_basis[2].dot(x) + m_origin[2]);
+		return btVector3(m_basis[0].dot(x) + m_origin.x(), 
+			m_basis[1].dot(x) + m_origin.y(), 
+			m_basis[2].dot(x) + m_origin.z());
 	}
 
 	SIMD_FORCE_INLINE btVector3 operator*(const btVector3& x) const
@@ -77,29 +93,21 @@ public:
 		m_basis.getRotation(q);
 		return q;
 	}
-	template <typename Scalar2>
-		void setValue(const Scalar2 *m) 
-	{
-		m_basis.setValue(m);
-		m_origin.setValue(&m[12]);
-	}
-
+	
 	
 	void setFromOpenGLMatrix(const btScalar *m)
 	{
 		m_basis.setFromOpenGLSubMatrix(m);
-		m_origin[0] = m[12];
-		m_origin[1] = m[13];
-		m_origin[2] = m[14];
+		m_origin.setValue(m[12],m[13],m[14]);
 	}
 
 	void getOpenGLMatrix(btScalar *m) const 
 	{
 		m_basis.getOpenGLSubMatrix(m);
-		m[12] = m_origin[0];
-		m[13] = m_origin[1];
-		m[14] = m_origin[2];
-		m[15] = btScalar(1.0f);
+		m[12] = m_origin.x();
+		m[13] = m_origin.y();
+		m[14] = m_origin.z();
+		m[15] = btScalar(1.0);
 	}
 
 	SIMD_FORCE_INLINE void setOrigin(const btVector3& origin) 
@@ -181,11 +189,17 @@ btTransform::operator*(const btTransform& t) const
 {
 	return btTransform(m_basis * t.m_basis, 
 		(*this)(t.m_origin));
-}	
+}
 
+SIMD_FORCE_INLINE bool operator==(const btTransform& t1, const btTransform& t2)
+{
+   return ( t1.getBasis()  == t2.getBasis() &&
+            t1.getOrigin() == t2.getOrigin() );
+}
 
 
 #endif
+
 
 
 

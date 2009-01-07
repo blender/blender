@@ -9,7 +9,7 @@ Tooltip: 'UV Unwrap mesh faces for all select mesh objects'
 
 
 __author__ = "Campbell Barton"
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.1 12/18/05"
 
 __bpydoc__ = """\
@@ -1120,6 +1120,9 @@ def main():
 	
 	print "Smart Projection time: %.2f" % (sys.time() - time1)
 	# Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (sys.time() - time1))
+	
+	if is_editmode:
+		Window.EditMode(1)
 	
 	Window.DrawProgressBar(1.0, "")
 	Window.WaitCursor(0)

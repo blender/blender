@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_IPOACTUATOR
@@ -75,11 +72,17 @@ protected:
 	/** Name of the property (only used in from_prop mode). */
 	STR_String	m_propname;
 
+	/** Name of the property where we write the current frame number */
+	STR_String	m_framepropname;
+
 	/** Interpret the ipo as a force? */
 	bool    m_ipo_as_force;
 	
-	/** Apply a force-ipo locally? */
-	bool    m_force_ipo_local;
+	/** Add Ipo curve to current loc/rot/scale */
+	bool    m_ipo_add;
+	
+	/** The Ipo curve is applied in local coordinates */
+	bool    m_ipo_local;
 
 	bool	m_bIpoPlaying;
 
@@ -111,12 +114,14 @@ public:
 
 	KX_IpoActuator(SCA_IObject* gameobj,
 				   const STR_String& propname,
+				   const STR_String& framePropname,
 				   float starttime,
 				   float endtime,
 				   bool recurse,
 				   int acttype,
 				   bool ipo_as_force, 
-				   bool force_ipo_local, 
+				   bool ipo_add,
+				   bool ipo_local,
 				   PyTypeObject* T=&Type);
 	virtual ~KX_IpoActuator() {};
 
@@ -142,15 +147,17 @@ public:
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetProperty);
 /*  	KX_PYMETHOD_DOC(KX_IpoActuator,SetKey2Key); */
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetStart);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetStart);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetStart);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetEnd);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetEnd);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetEnd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAsForce);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetIpoAsForce);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAsForce);
+	KX_PYMETHOD_DOC(KX_IpoActuator,SetIpoAdd);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetIpoAdd);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetType);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetType);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetType);
 	KX_PYMETHOD_DOC(KX_IpoActuator,SetForceIpoActsLocal);
-	KX_PYMETHOD_DOC(KX_IpoActuator,GetForceIpoActsLocal);
+	KX_PYMETHOD_DOC_NOARGS(KX_IpoActuator,GetForceIpoActsLocal);
 	
 };
 

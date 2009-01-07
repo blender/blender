@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_IMAGE_TYPES_H
 #define DNA_IMAGE_TYPES_H
@@ -37,15 +34,12 @@
 #include "DNA_ID.h"
 
 struct PackedFile;
+struct Scene;
 struct anim;
 struct ImBuf;
 struct RenderResult;
+struct GPUTexture;
 
-typedef struct PreviewImage {
-	unsigned int w;
-	unsigned int h;
-	unsigned int * rect;
-} PreviewImage;
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
@@ -58,18 +52,22 @@ typedef struct ImageUser {
 	
 	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
 	short menunr;					/* localized menu entry, for handling browse event */
+	
+	struct Scene *scene;		/* to retrieve render result */
 } ImageUser;
 
 /* iuser->flag */
 #define	IMA_ANIM_ALWAYS		1
 #define IMA_ANIM_REFRESHED	2
+/* #define IMA_DO_PREMUL	4 */
 
 typedef struct Image {
 	ID id;
 	
-	char name[240];
+	char name[240];			/* file path */
 	
-	ListBase ibufs;			/* not written in file */
+	ListBase ibufs;					/* not written in file */
+	struct GPUTexture *gputexture;	/* not written in file */
 	
 	/* sources from: */
 	struct anim *anim;
@@ -95,9 +93,8 @@ typedef struct Image {
 	
 	short gen_x, gen_y, gen_type;	/* for generated images */
 	
-/*#ifdef WITH_VERSE*/
-	void *vnode;		/* pointer at verse bitmap node */
-/*#endif*/
+	/* display aspect - for UV editing images resized for faster openGL display */
+	float aspx, aspy;
 } Image;
 
 
@@ -106,11 +103,12 @@ typedef struct Image {
 /* flag */
 #define IMA_FIELDS		1
 #define IMA_STD_FIELD	2
+#define IMA_DO_PREMUL	4
 
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-
+#define IMA_OLD_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

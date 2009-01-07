@@ -1,12 +1,9 @@
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,24 +21,19 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c)
+FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_nodes/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
-  ../python ../render/extern/include ../../../intern/decimation/extern
+  . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
+  ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../blenkernel
+  ../blenkernel ../../../extern/glew/include ../gpu
   ${SDL_INC}
   ${ZLIB_INC}
 )
-
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
 
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
@@ -57,13 +49,15 @@ IF(WITH_FFMPEG)
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
+IF(WITH_PYTHON)
+  SET(INC ${INC} ../python ${PYTHON_INC})
+ELSE(WITH_PYTHON)
+  ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
+
 ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
 
 BLENDERLIB(bf_nodes "${SRC}" "${INC}")
-
-IF(WITH_VERSE)
-  ADD_DEPENDENCIES(bf_nodes mkprot verse)
-ENDIF(WITH_VERSE)
 
 IF(WITH_INTERNATIONAL)
    ADD_DEFINITIONS(-DWITH_FREETYPE2)

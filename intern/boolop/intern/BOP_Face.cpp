@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "BOP_Face.h"
@@ -44,6 +41,8 @@ BOP_Face::BOP_Face(MT_Plane3 plane, BOP_Index originalFace)
 	m_plane        = plane;
 	m_tag          = UNCLASSIFIED;
 	m_originalFace = originalFace;
+	m_split        = 0;
+	m_bbox         = NULL;
 }
 
 /**
@@ -197,6 +196,14 @@ bool BOP_Face3::getNextVertex(BOP_Index v, BOP_Index &w)
  */
 void BOP_Face3::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 {
+	/* if the old index really exists, and new index also exists already,
+	 * don't create an edge with both vertices == newIndex */
+
+	if( (m_indexs[0] == oldIndex || m_indexs[1] == oldIndex || m_indexs[2] == oldIndex) &&
+			(m_indexs[0] == newIndex || m_indexs[1] == newIndex || m_indexs[2] == newIndex) ) {
+		setTAG(BROKEN);
+	}
+
 	if (m_indexs[0] == oldIndex) m_indexs[0] = newIndex;
 	else if (m_indexs[1] == oldIndex) m_indexs[1] = newIndex;
 	else if (m_indexs[2] == oldIndex) m_indexs[2] = newIndex;
@@ -395,6 +402,7 @@ bool BOP_Face4::getEdgeIndex(BOP_Index v1, BOP_Index v2, unsigned int &e)
 	return  true;
 }  
 
+#ifdef BOP_DEBUG
 /**
  * Implements operator <<.
  */
@@ -414,3 +422,4 @@ ostream &operator<<(ostream &stream, BOP_Face *f)
 
 	return stream;
 }
+#endif

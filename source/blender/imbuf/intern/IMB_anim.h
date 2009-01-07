@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef IMB_ANIM_H
@@ -81,6 +78,15 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/swscale.h>
+#endif
+
+#ifdef WITH_REDCODE
+#ifdef _WIN32 /* on windows we use the one in extern instead */
+#include "libredcode/format.h"
+#else
+#include "libredcode/format.h"
+#endif
 #endif
 
 #include "IMB_imbuf_types.h"
@@ -98,7 +104,7 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__BIG_ENDIAN__)
+#if defined(__sgi) || defined (__sparc) || (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
 #define GET_ID GET_BIG_LONG
 #define LITTLE_LONG SWAP_LONG
 #else
@@ -118,6 +124,7 @@
 #define ANIM_AVI		(1 << 6)
 #define ANIM_QTIME		(1 << 7)
 #define ANIM_FFMPEG             (1 << 8)
+#define ANIM_REDCODE            (1 << 9)
 
 #define ANIM5_MMAP		0
 #define ANIM5_MALLOC		1
@@ -180,11 +187,16 @@ struct anim {
 	AVFormatContext *pFormatCtx;
 	AVCodecContext *pCodecCtx;
 	AVCodec *pCodec;
+	AVFrame *pFrame;
 	AVFrame *pFrameRGB;
-	AVFrame *pFrame; 
+	AVFrame *pFrameDeinterlaced;
+	struct SwsContext *img_convert_ctx;
 	int videoStream;
 #endif
 
+#ifdef WITH_REDCODE
+	struct redcode_handle * redcodeCtx;
+#endif
 };
 
 #endif

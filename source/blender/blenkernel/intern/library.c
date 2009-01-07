@@ -1,15 +1,12 @@
 /** 
  * $Id$
  * 
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /*
@@ -78,12 +75,15 @@
 #include "DNA_nla_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_particle_types.h"
+#include "DNA_space_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_library.h"
+#include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_sound.h"
@@ -111,8 +111,7 @@
 #include "BKE_effect.h"
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
-
-#include "BPI_script.h"
+#include "BKE_particle.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -194,6 +193,10 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
+		case ID_PA:
+			return &(mainlib->particle);
+		case ID_WM:
+			return &(mainlib->wm);
 	}
 	return 0;
 }
@@ -223,47 +226,51 @@ void flag_all_listbases_ids(short flag, short value)
 /* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
 {
+	int a = 0;
+
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */
 
-	lb[0]= &(main->ipo);
-	lb[1]= &(main->key);
-	lb[2]= &(main->image);
-	lb[3]= &(main->tex);
-	lb[4]= &(main->mat);
-	lb[5]= &(main->vfont);
+	lb[a++]= &(main->ipo);
+	lb[a++]= &(main->key);
+	lb[a++]= &(main->nodetree);
+	lb[a++]= &(main->image);
+	lb[a++]= &(main->tex);
+	lb[a++]= &(main->mat);
+	lb[a++]= &(main->vfont);
 	
 	/* Important!: When adding a new object type,
 	 * the specific data should be inserted here 
 	 */
 
-	lb[6]= &(main->armature);
-	lb[7]= &(main->action);
+	lb[a++]= &(main->armature);
+	lb[a++]= &(main->action);
 
-	lb[8]= &(main->mesh);
-	lb[9]= &(main->curve);
-	lb[10]= &(main->mball);
+	lb[a++]= &(main->mesh);
+	lb[a++]= &(main->curve);
+	lb[a++]= &(main->mball);
 
-	lb[11]= &(main->wave);
-	lb[12]= &(main->latt);
-	lb[13]= &(main->lamp);
-	lb[14]= &(main->camera);
+	lb[a++]= &(main->wave);
+	lb[a++]= &(main->latt);
+	lb[a++]= &(main->lamp);
+	lb[a++]= &(main->camera);
 	
-	lb[15]= &(main->text);
-	lb[16]= &(main->sound);
-	lb[17]= &(main->group);
-	lb[18]= &(main->nodetree);
-	lb[19]= &(main->brush);
-	lb[20]= &(main->script);
+	lb[a++]= &(main->text);
+	lb[a++]= &(main->sound);
+	lb[a++]= &(main->group);
+	lb[a++]= &(main->brush);
+	lb[a++]= &(main->script);
+	lb[a++]= &(main->particle);
 	
-	lb[21]= &(main->world);
-	lb[22]= &(main->screen);
-	lb[23]= &(main->object);
-	lb[24]= &(main->scene);
-	lb[25]= &(main->library);
+	lb[a++]= &(main->world);
+	lb[a++]= &(main->screen);
+	lb[a++]= &(main->object);
+	lb[a++]= &(main->scene);
+	lb[a++]= &(main->library);
+	lb[a++]= &(main->wm);
 	
-	lb[26]= NULL;
+	lb[a]= NULL;
 
-	return 26;
+	return a;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -339,7 +346,7 @@ static ID *alloc_libblock_notest(short type)
 			id= MEM_callocN(sizeof(Text), "text");
 			break;
 		case ID_SCRIPT:
-			id= MEM_callocN(sizeof(Script), "script");
+			//XXX id= MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
@@ -359,6 +366,12 @@ static ID *alloc_libblock_notest(short type)
 		case ID_BR:
 			id = MEM_callocN(sizeof(Brush), "brush");
 			break;
+		case ID_PA:
+			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
+  			break;
+		case ID_WM:
+			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
+  			break;
 	}
 	return id;
 }
@@ -400,6 +413,10 @@ void *copy_libblock(void *rt)
 	lb= wich_libbase(G.main, GS(id->name));
 	idn= alloc_libblock(lb, GS(id->name), id->name+2);
 	
+	if(idn==NULL) {
+		printf("ERROR: Illegal ID name for %s (Crashing now)\n", id->name);
+	}
+	
 	idn_len= MEM_allocN_len(idn);
 	if(idn_len - sizeof(ID) > 0) {
 		cp= (char *)id;
@@ -409,13 +426,21 @@ void *copy_libblock(void *rt)
 	
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
-	
+	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
+
 	return idn;
 }
 
 static void free_library(Library *lib)
 {
     /* no freeing needed for libraries yet */
+}
+
+static void (*free_windowmanager_cb)(bContext *, wmWindowManager *)= NULL;
+
+void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
+{
+	free_windowmanager_cb= func;
 }
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
@@ -482,7 +507,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_text((Text *)id);
 			break;
 		case ID_SCRIPT:
-			free_script((Script *)id);
+			//XXX free_script((Script *)id);
 			break;
 		case ID_SO:
 			sound_free_sound((bSound *)id);
@@ -501,6 +526,13 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_BR:
 			free_brush((Brush *)id);
+			break;
+		case ID_PA:
+			psys_free_settings((ParticleSettings *)id);
+			break;
+		case ID_WM:
+			if(free_windowmanager_cb)
+				free_windowmanager_cb(NULL, (wmWindowManager *)id);
 			break;
 	}
 
@@ -524,7 +556,7 @@ void free_libblock_us(ListBase *lb, void *idv)		/* test users */
 		else printf("ERROR block %s users %d\n", id->name, id->us);
 	}
 	if(id->us==0) {
-		if( GS(id->name)==ID_OB ) unlink_object((Object *)id);
+		if( GS(id->name)==ID_OB ) unlink_object(NULL, (Object *)id);
 		
 		free_libblock(lb, id);
 	}
@@ -582,6 +614,8 @@ static void get_flags_for_id(ID *id, char *buf)
 
 	if(GS(id->name)==ID_MA)
 		isnode= ((Material *)id)->use_nodes;
+	if(GS(id->name)==ID_TE)
+		isnode= ((Tex *)id)->use_nodes;
 	
 	if (id->us<0)
 		sprintf(buf, "-1W ");
@@ -915,12 +949,17 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	/* if no libdata given, look up based on ID */
 	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
 
-	if(tname==0) 	/* if no name given, use name of current ID */
+	if(tname==0) {	/* if no name given, use name of current ID */
 		strncpy(name, id->name+2, 21);
-	else /* else make a copy (tname args can be const) */
+		result= strlen(id->name+2);
+	}
+	else { /* else make a copy (tname args can be const) */
 		strncpy(name, tname, 21);
+		result= strlen(tname);
+	}
 
-	if( strlen(name) > 21 ) name[21]= 0;
+	/* if result > 21, strncpy don't put the final '\0' to name. */
+	if( result >= 21 ) name[21]= 0;
 
 	result = check_for_dupid( lb, id, name );
 	strcpy( id->name+2, name );
@@ -960,7 +999,7 @@ static void image_fix_relative_path(Image *ima)
 {
 	if(ima->id.lib==NULL) return;
 	if(strncmp(ima->name, "//", 2)==0) {
-		BLI_convertstringcode(ima->name, ima->id.lib->filename, 0);
+		BLI_convertstringcode(ima->name, ima->id.lib->filename);
 		BLI_makestringcode(G.sce, ima->name);
 	}
 }
@@ -977,7 +1016,7 @@ static void lib_indirect_test_id(ID *id)
 		Object *ob= (Object *)id;
 		bActionStrip *strip;
 		Mesh *me;
-		PartEff *paf;
+
 		int a;
 
 		for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -989,10 +1028,6 @@ static void lib_indirect_test_id(ID *id)
 		for(a=0; a<ob->totcol; a++) {
 			LIBTAG(ob->mat[a]);
 		}
-		
-		paf = give_parteff(ob);
-		if (paf) 
-			LIBTAG(paf->group);
 	
 		LIBTAG(ob->dup_group);
 		LIBTAG(ob->proxy);

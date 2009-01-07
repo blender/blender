@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,12 +24,13 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Camera in the gameengine. Cameras are also used for views.
  */
  
 #include "KX_Camera.h"
-
+#include "KX_Scene.h"
+#include "KX_PythonInit.h"
 #include "KX_Python.h"
 #include "KX_PyMath.h"
 #ifdef HAVE_CONFIG_H
@@ -57,7 +55,9 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 	m_name = "cam";
 	m_projection_matrix.setIdentity();
 	m_modelview_matrix.setIdentity();
-	SetProperty("camera",new CIntValue(1));
+	CValue* val = new CIntValue(1);
+	SetProperty("camera",val);
+	val->Release();
 }
 
 
@@ -66,7 +66,22 @@ KX_Camera::~KX_Camera()
 }	
 
 
+CValue*	KX_Camera::GetReplica()
+{
+	KX_Camera* replica = new KX_Camera(*this);
 	
+	// this will copy properties and so on...
+	CValue::AddDataToReplica(replica);
+	ProcessReplica(replica);
+	
+	return replica;
+}
+	
+void KX_Camera::ProcessReplica(KX_Camera* replica)
+{
+	KX_GameObject::ProcessReplica(replica);
+}
+
 MT_Transform KX_Camera::GetWorldToCamera() const
 { 
 	MT_Transform camtrans;
@@ -189,6 +204,11 @@ float KX_Camera::GetCameraFar() const
 	return m_camdata.m_clipend;
 }
 
+float KX_Camera::GetFocalLength() const
+{
+	return m_camdata.m_focallength;
+}
+
 
 
 RAS_CameraData*	KX_Camera::GetCameraData()
@@ -239,10 +259,75 @@ void KX_Camera::ExtractFrustumSphere()
 	if (m_set_frustum_center)
 		return;
 
-	// The most extreme points on the near and far plane. (normalized device coords)
-	MT_Vector4 hnear(1., 1., 0., 1.), hfar(1., 1., 1., 1.);
+    // compute sphere for the general case and not only symmetric frustum:
+    // the mirror code in ImageRender can use very asymmetric frustum.
+    // We will put the sphere center on the line that goes from origin to the center of the far clipping plane
+    // This is the optimal position if the frustum is symmetric or very asymmetric and probably close
+    // to optimal for the general case. The sphere center position is computed so that the distance to 
+    // the near and far extreme frustum points are equal.
+
+    // get the transformation matrix from device coordinate to camera coordinate
 	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
 	clip_camcs_matrix.invert();
+
+    // detect which of the corner of the far clipping plane is the farthest to the origin
+	MT_Vector4 nfar;    // far point in device normalized coordinate
+    MT_Point3 farpoint; // most extreme far point in camera coordinate
+    MT_Point3 nearpoint;// most extreme near point in camera coordinate
+    MT_Point3 farcenter(0.,0.,0.);// center of far cliping plane in camera coordinate
+    MT_Scalar F=1.0, N; // square distance of far and near point to origin
+    MT_Scalar f, n;     // distance of far and near point to z axis. f is always > 0 but n can be < 0
+    MT_Scalar e, s;     // far and near clipping distance (<0)
+    MT_Scalar c;        // slope of center line = distance of far clipping center to z axis / far clipping distance
+    MT_Scalar z;        // projection of sphere center on z axis (<0)
+    // tmp value
+    MT_Vector4 npoint(1., 1., 1., 1.);
+    MT_Vector4 hpoint;
+    MT_Point3 point;
+    MT_Scalar len;
+    for (int i=0; i<4; i++)
+    {
+    	hpoint = clip_camcs_matrix*npoint;
+        point.setValue(hpoint[0]/hpoint[3], hpoint[1]/hpoint[3], hpoint[2]/hpoint[3]);
+        len = point.dot(point);
+        if (len > F)
+        {
+            nfar = npoint;
+            farpoint = point;
+            F = len;
+        }
+        // rotate by 90 degree along the z axis to walk through the 4 extreme points of the far clipping plane
+        len = npoint[0];
+        npoint[0] = -npoint[1];
+        npoint[1] = len;
+        farcenter += point;
+    }
+    // the far center is the average of the far clipping points
+    farcenter *= 0.25;
+    // the extreme near point is the opposite point on the near clipping plane
+    nfar.setValue(-nfar[0], -nfar[1], -1., 1.);
+   	nfar = clip_camcs_matrix*nfar;
+    nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
+    N = nearpoint.dot(nearpoint);
+    e = farpoint[2];
+    s = nearpoint[2];
+    // projection on XY plane for distance to axis computation
+    MT_Point2 farxy(farpoint[0], farpoint[1]);
+    // f is forced positive by construction
+    f = farxy.length();
+    // get corresponding point on the near plane
+    farxy *= s/e;
+    // this formula preserve the sign of n
+    n = f*s/e - MT_Point2(nearpoint[0]-farxy[0], nearpoint[1]-farxy[1]).length();
+    c = MT_Point2(farcenter[0], farcenter[1]).length()/e;
+    // the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case
+    z = (F-N)/(2.0*(e-s+c*(f-n)));
+	m_frustum_center = MT_Point3(farcenter[0]*z/e, farcenter[1]*z/e, z);
+	m_frustum_radius = m_frustum_center.distance(farpoint);
+
+#if 0
+	// The most extreme points on the near and far plane. (normalized device coords)
+	MT_Vector4 hnear(1., 1., 0., 1.), hfar(1., 1., 1., 1.);
 	
 	// Transform to hom camera local space
 	hnear = clip_camcs_matrix*hnear;
@@ -253,10 +338,12 @@ void KX_Camera::ExtractFrustumSphere()
 	MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
 	
 	// Compute center
+    // don't use camera data in case the user specifies the matrix directly
 	m_frustum_center = MT_Point3(0., 0.,
-		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
+		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(nearpoint[2]-farpoint[2] /*m_camdata.m_clipend - m_camdata.m_clipstart*/)));
 	m_frustum_radius = m_frustum_center.distance(farpoint);
-	
+#endif
+
 	// Transform to world space.
 	m_frustum_center = GetCameraToWorld()(m_frustum_center);
 	m_frustum_radius /= fabs(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
@@ -391,6 +478,7 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE(KX_Camera, setProjectionMatrix),
 	KX_PYMETHODTABLE(KX_Camera, enableViewport),
 	KX_PYMETHODTABLE(KX_Camera, setViewport),
+	KX_PYMETHODTABLE(KX_Camera, setOnTop),
 	
 	{NULL,NULL} //Sentinel
 };
@@ -567,7 +655,7 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 
 	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (center, radius)");
 	
-	Py_Return;
+	return NULL;
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, boxInsideFrustum,
@@ -745,6 +833,10 @@ KX_PYMETHODDEF_DOC(KX_Camera, enableViewport,
 		else
 			EnableViewport(false);
 	}
+	else {
+		return NULL;
+	}
+	
 	Py_Return;
 }
 
@@ -756,6 +848,20 @@ KX_PYMETHODDEF_DOC(KX_Camera, setViewport,
 	if (PyArg_ParseTuple(args,"iiii",&left, &bottom, &right, &top))
 	{
 		SetViewport(left, bottom, right, top);
+	} else {
+		return NULL;
 	}
+	Py_Return;
+}
+
+KX_PYMETHODDEF_DOC(KX_Camera, setOnTop,
+"setOnTop()\n"
+"Sets this camera's viewport on top\n")
+{
+	class KX_Scene* scene;
+	
+	scene = KX_GetActiveScene();
+	MT_assert(scene);
+	scene->SetCameraOnTop(this);
 	Py_Return;
 }

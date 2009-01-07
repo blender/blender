@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * @file	GHOST_SystemX11.h
@@ -111,6 +108,7 @@ public:
 	 * @param	state		The state of the window when opened.
 	 * @param	type		The type of drawing context installed in this window.
 	 * @param       stereoVisual    Create a stereo visual for quad buffered stereo.
+	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
 		GHOST_IWindow* 
@@ -122,9 +120,10 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type,
-		const bool stereoVisual
+		const bool stereoVisual,
+		const GHOST_TEmbedderWindowID parentWindow = 0 
 	);
-	 
+
 	/**
 	 * @section Interface Inherited from GHOST_ISystem 
 	 */
@@ -196,15 +195,46 @@ public:
 		return m_display;
 	}	
 
+		void *
+	prepareNdofInfo(
+		volatile GHOST_TEventNDOFData *current_values
+	);
+		
+	/**
+	 * Returns unsinged char from CUT_BUFFER0
+	 * @param flag		Flag indicates which buffer to return 0 for clipboard 1 for selection
+	 * @return		Returns the Clipboard indicated by Flag
+	 */
+		GHOST_TUns8*
+	getClipboard(int flag) const;
 	
+	/**
+	 * Puts buffer to system clipboard
+	 * @param buffer	The buffer to copy to the clipboard	
+	 * @param flag		Flag indicates which buffer to set ownership of 0 for clipboard 1 for selection
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, int flag) const;
+
+	/**
+	 * Atom used for ICCCM, WM-spec and Motif.
+	 * We only need get this atom at the start, it's relative
+	 * to the display not the window and are public for every
+	 * window that need it.
+	 */
+	Atom m_wm_state;
+	Atom m_wm_change_state;
+	Atom m_net_state;
+	Atom m_net_max_horz;
+	Atom m_net_max_vert;
+	Atom m_net_fullscreen;
+	Atom m_motif;
+	Atom m_wm_take_focus;
+	Atom m_wm_protocols;
+	Atom m_delete_window_atom;
+
 private :
 
 	Display * m_display;
-
-	/**
-	 * Atom used to detect window close events
-	 */
-	Atom m_delete_window_atom;
 
 	/// The vector of windows that need to be updated.
 	std::vector<GHOST_WindowX11 *> m_dirty_windows;

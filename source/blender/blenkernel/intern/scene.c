@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -47,6 +44,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"	
+#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -62,12 +60,14 @@
 #include "BKE_action.h"			
 #include "BKE_anim.h"
 #include "BKE_armature.h"		
-#include "BKE_bad_level_calls.h"
+#include "BKE_colortools.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_ipo.h"
+#include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -75,17 +75,22 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
+#include "BKE_sequence.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_previewrender.h"
-#include "BDR_sculptmode.h"
+//XXX #include "BIF_previewrender.h"
+//XXX #include "BIF_editseq.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "nla.h"
+//XXX #include "nla.h"
 
 #ifdef WIN32
 #else
@@ -134,11 +139,14 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
-	free_editing(sce->ed);
+	seq_free_editing(sce->ed);
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
+#endif
+	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
 		MEM_freeN(sce->r.avicodecdata);
@@ -149,8 +157,14 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->r.qtcodecdata);
 		sce->r.qtcodecdata = NULL;
 	}
+	if (sce->r.ffcodecdata.properties) {
+		IDP_FreeProperty(sce->r.ffcodecdata.properties);
+		MEM_freeN(sce->r.ffcodecdata.properties);
+		sce->r.ffcodecdata.properties = NULL;
+	}
 	
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings){
@@ -168,17 +182,20 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->nodetree);
 	}
 
-	sculptmode_free_all(sce);
+	sculptdata_free(sce);
 }
 
 Scene *add_scene(char *name)
 {
 	Scene *sce;
+	ParticleEditSettings *pset;
+	int a;
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
 	sce->selectmode= SCE_SELECT_VERTEX;
 	sce->editbutsize= 0.1;
+	sce->autokey_mode= U.autokey_mode;
 	
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
@@ -197,11 +214,14 @@ Scene *add_scene(char *name)
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
+	sce->r.frs_sec_base= 1;
+	sce->r.ocres = 128;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
 	sce->r.bake_filter= 2;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
+	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
 	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;
@@ -212,6 +232,15 @@ Scene *add_scene(char *name)
 	
 	sce->r.stereomode = 1;  // no stereo
 
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
+
+	sce->r.cineonblack= 95;
+	sce->r.cineonwhite= 685;
+	sce->r.cineongamma= 1.7f;
+	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
@@ -229,19 +258,47 @@ Scene *add_scene(char *name)
 	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
+	sce->toolsettings->jointrilimit = 0.8f;
+
+	sce->toolsettings->skgen_resolution = 100;
+	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+	sce->toolsettings->skgen_threshold_external 	= 0.01f;
+	sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+	sce->toolsettings->skgen_length_ratio			= 1.3f;
+	sce->toolsettings->skgen_length_limit			= 1.5f;
+	sce->toolsettings->skgen_correlation_limit		= 0.98f;
+	sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+	sce->toolsettings->skgen_postpro_passes = 1;
+	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_HARMONIC|SKGEN_SUB_CORRELATION|SKGEN_STICK_TO_EMBEDDING;
+	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+
+	pset= &sce->toolsettings->particle;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->emitterdist= 0.25f;
+	pset->totrekey= 5;
+	pset->totaddkey= 5;
+	pset->brushtype= PE_BRUSH_NONE;
+	for(a=0; a<PE_TOT_BRUSH; a++) {
+		pset->brush[a].strength= 50;
+		pset->brush[a].size= 50;
+		pset->brush[a].step= 10;
+	}
+	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
 	sce->audio.mixrate = 44100;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
-	strcpy(sce->r.ftype, "//ftype");
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 
-	sculptmode_init(sce);
-	
+	sculptdata_init(sce);
+
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
@@ -260,18 +317,17 @@ Base *object_in_scene(Object *ob, Scene *sce)
 	return NULL;
 }
 
-void set_scene_bg(Scene *sce)
+void set_scene_bg(Scene *scene)
 {
+	Scene *sce;
 	Base *base;
 	Object *ob;
 	Group *group;
 	GroupObject *go;
 	int flag;
 	
-	G.scene= sce;
-	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
-	scene_check_setscene(G.scene);
+	scene_check_setscene(scene);
 	
 	/* deselect objects (for dataselect) */
 	for(ob= G.main->object.first; ob; ob= ob->id.next)
@@ -287,15 +343,15 @@ void set_scene_bg(Scene *sce)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(sce);
+	DAG_scene_sort(scene);
 	
 	/* ensure dags are built for sets */
-	for(sce= sce->set; sce; sce= sce->set)
+	for(sce= scene->set; sce; sce= sce->set)
 		if(sce->theDag==NULL)
 			DAG_scene_sort(sce);
 
 	/* copy layers and flags from bases to objects */
-	for(base= G.scene->base.first; base; base= base->next) {
+	for(base= scene->base.first; base; base= base->next) {
 		ob= base->object;
 		ob->lay= base->lay;
 		
@@ -313,7 +369,7 @@ void set_scene_bg(Scene *sce)
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 	
 	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -328,13 +384,13 @@ void set_scene_name(char *name)
 		}
 	}
 	
-	error("Can't find scene: %s", name);
+	//XXX error("Can't find scene: %s", name);
 }
 
 /* used by metaballs
  * doesnt return the original duplicated object, only dupli's
  */
-int next_object(int val, Base **base, Object **ob)
+int next_object(Scene *scene, int val, Base **base, Object **ob)
 {
 	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
@@ -354,15 +410,15 @@ int next_object(int val, Base **base, Object **ob)
 
 			/* the first base */
 			if(fase==F_START) {
-				*base= G.scene->base.first;
+				*base= scene->base.first;
 				if(*base) {
 					*ob= (*base)->object;
 					fase= F_SCENE;
 				}
 				else {
 				    /* exception: empty scene */
-					if(G.scene->set && G.scene->set->base.first) {
-						*base= G.scene->set->base.first;
+					if(scene->set && scene->set->base.first) {
+						*base= scene->set->base.first;
 						*ob= (*base)->object;
 						fase= F_SET;
 					}
@@ -375,8 +431,8 @@ int next_object(int val, Base **base, Object **ob)
 					else {
 						if(fase==F_SCENE) {
 							/* scene is finished, now do the set */
-							if(G.scene->set && G.scene->set->base.first) {
-								*base= G.scene->set->base.first;
+							if(scene->set && scene->set->base.first) {
+								*base= scene->set->base.first;
 								*ob= (*base)->object;
 								fase= F_SET;
 							}
@@ -393,9 +449,12 @@ int next_object(int val, Base **base, Object **ob)
 						this enters eternal loop because of 
 						makeDispListMBall getting called inside of group_duplilist */
 						if((*base)->object->dup_group == NULL) {
-							duplilist= object_duplilist(G.scene, (*base)->object);
+							duplilist= object_duplilist(scene, (*base)->object);
 							
 							dupob= duplilist->first;
+
+							if(!dupob)
+								free_object_duplilist(duplilist);
 						}
 					}
 				}
@@ -477,27 +536,23 @@ void scene_select_base(Scene *sce, Base *selbase)
 int scene_check_setscene(Scene *sce)
 {
 	Scene *scene;
+	int a, totscene;
 	
 	if(sce->set==NULL) return 1;
 	
-	/* LIB_DOIT is the free flag to tag library data */
+	totscene= 0;
 	for(scene= G.main->scene.first; scene; scene= scene->id.next)
-		scene->id.flag &= ~LIB_DOIT;
+		totscene++;
 	
-	scene= sce;
-	while(scene->set) {
-		scene->id.flag |= LIB_DOIT;
-		/* when set has flag set, we got a cycle */
-		if(scene->set->id.flag & LIB_DOIT)
-			break;
-		scene= scene->set;
+	for(a=0, scene=sce; scene->set; scene=scene->set, a++) {
+		/* more iterations than scenes means we have a cycle */
+		if(a > totscene) {
+			/* the tested scene gets zero'ed, that's typically current scene */
+			sce->set= NULL;
+			return 0;
+		}
 	}
-	
-	if(scene->set) {
-		/* the tested scene gets zero'ed, that's typically current scene */
-		sce->set= NULL;
-		return 0;
-	}
+
 	return 1;
 }
 
@@ -514,7 +569,7 @@ static void scene_update(Scene *sce, unsigned int lay)
 	for(base= sce->base.first; base; base= base->next) {
 		ob= base->object;
 		
-		object_handle_update(ob);   // bke_object.h
+		object_handle_update(sce, ob);   // bke_object.h
 		
 		/* only update layer when an ipo */
 		if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
@@ -528,17 +583,19 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
 	
+	/* clears all BONE_UNKEYED flags for every pose's pchans */
+	framechange_poses_clear_unkeyed();
+	
 	/* object ipos are calculated in where_is_object */
-	do_all_data_ipos();
-	
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	
+	do_all_data_ipos(sce);
+#ifndef DISABLE_PYTHON
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
+#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);
 
 	scene_update(scene, lay);
-	
 }
 
 /* return default layer, also used to patch old files */
@@ -555,5 +612,124 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+}
+
+/* Initialize 'permanent' sculpt data that is saved with file kept after
+   switching out of sculptmode. */
+void sculptdata_init(Scene *sce)
+{
+	SculptData *sd;
+
+	if(!sce)
+		return;
+
+	sd= &sce->sculptdata;
+
+	memset(sd, 0, sizeof(SculptData));
+
+	/* XXX: create preset brushes here
+	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
+		sd->inflatebrush.size = sd->grabbrush.size =
+		sd->layerbrush.size = sd->flattenbrush.size = 50;
+	sd->drawbrush.strength = sd->smoothbrush.strength =
+		sd->pinchbrush.strength = sd->inflatebrush.strength =
+		sd->grabbrush.strength = sd->layerbrush.strength =
+		sd->flattenbrush.strength = 25;
+	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
+	sd->drawbrush.flag = sd->smoothbrush.flag =
+		sd->pinchbrush.flag = sd->inflatebrush.flag =
+		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
+	sd->drawbrush.view= 0;
+	sd->brush_type= DRAW_BRUSH;
+	sd->texact= -1;
+	sd->texfade= 1;
+	sd->averaging= 1;
+	sd->texsep= 0;
+	sd->texrept= SCULPTREPT_DRAG;
+	sd->flags= SCULPT_DRAW_BRUSH;
+	sd->tablet_size=3;
+	sd->tablet_strength=10;
+	sd->rake=0;*/
+}
+
+void sculptdata_free(Scene *sce)
+{
+	SculptData *sd= &sce->sculptdata;
+	int a;
+
+	sculptsession_free(sce);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		MTex *mtex= sd->mtex[a];
+		if(mtex) {
+			if(mtex->tex) mtex->tex->id.us--;
+			MEM_freeN(mtex);
+		}
+	}
+}
+
+void sculpt_vertexusers_free(SculptSession *ss)
+{
+	if(ss && ss->vertex_users){
+		MEM_freeN(ss->vertex_users);
+		MEM_freeN(ss->vertex_users_mem);
+		ss->vertex_users= NULL;
+		ss->vertex_users_mem= NULL;
+		ss->vertex_users_size= 0;
+	}
+}
+
+void sculptsession_free(Scene *sce)
+{
+	SculptSession *ss= sce->sculptdata.session;
+	if(ss) {
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+		if(ss->mats)
+			MEM_freeN(ss->mats);
+
+		if(ss->radialcontrol)
+			MEM_freeN(ss->radialcontrol);
+
+		sculpt_vertexusers_free(ss);
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+		MEM_freeN(ss);
+		sce->sculptdata.session= NULL;
+	}
+}
+
+/* render simplification */
+
+int get_render_subsurf_level(RenderData *r, int lvl)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return MIN2(r->simplify_subsurf, lvl);
+	else
+		return lvl;
+}
+
+int get_render_child_particle_number(RenderData *r, int num)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return (int)(r->simplify_particles*num);
+	else
+		return num;
+}
+
+int get_render_shadow_samples(RenderData *r, int samples)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+		return MIN2(r->simplify_shadowsamples, samples);
+	else
+		return samples;
+}
+
+float get_render_aosss_error(RenderData *r, float error)
+{
+	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
+	else
+		return error;
 }
 

@@ -5,15 +5,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * 
  */
 
@@ -41,11 +38,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h> /* for log10 */
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
 #include "BLI_dynamiclist.h"
@@ -65,6 +65,14 @@
 #endif
 
 #ifdef WIN32
+
+#ifdef _WIN32_IE
+#undef _WIN32_IE
+#endif
+#define _WIN32_IE 0x0501
+#include <windows.h>
+#include <shlobj.h>
+
 #include "BLI_winstuff.h"
 
 /* for duplicate_defgroup */
@@ -84,37 +92,22 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#ifdef __linux__
+#include "binreloc.h"
+#endif
+
 /* local */
 
 static int add_win32_extension(char *name);
 
 /* implementation */
 
-/* Ripped this from blender.c
- */
-void addlisttolist(ListBase *list1, ListBase *list2)
-{
-
-	if(list2->first==0) return;
-
-	if(list1->first==0) {
-		list1->first= list2->first;
-		list1->last= list2->last;
-	}
-	else {
-		((struct Link *)list1->last)->next= list2->first;
-		((struct Link *)list2->first)->prev= list1->last;
-		list1->last= list2->last;
-	}
-	list2->first= list2->last= 0;
-}
-
-int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
+int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen)
 {
 	unsigned short len, len2, nums = 0, nume = 0;
 	short i, found = 0;
 
-	len2 = len =  strlen( string);
+	len2 = len = strlen(string);
 	
 	if (len > 6) {
 		if (BLI_strncasecmp(string + len - 6, ".blend", 6) == 0) len -= 6;
@@ -125,7 +118,6 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		if (BLI_strncasecmp(string + len - 9, ".blend.gz", 9) == 0) len -= 9;
 	}
 		
-	
 	if (len == len2) {
 		if (len > 4) {
 			/* handle .jf0 en .jf1 for jstreams */
@@ -143,7 +135,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		}
 	}
 	
-	for (i = len - 1; i >= 0; i--){
+	for (i = len - 1; i >= 0; i--) {
 		if (string[i] == '/') break;
 		if (isdigit(string[i])) {
 			if (found){
@@ -155,12 +147,12 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 				found = 1;
 			}
 		}
-		else{
+		else {
 			if (found) break;
 		}
 	}
 	if (found){
-		if (staart) strcpy(staart,&string[nume+1]);
+		if (start) strcpy(start,&string[nume+1]);
 		if (kop) {
 			strcpy(kop,string);
 			kop[nums]=0;
@@ -168,7 +160,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		if (numlen) *numlen = nume-nums+1;
 		return ((int)atoi(&(string[nums])));
 	}
-	if (staart) strcpy(staart, string + len);
+	if (start) strcpy(start, string + len);
 	if (kop) {
 		strncpy(kop, string, len);
 		kop[len] = 0;
@@ -178,7 +170,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 }
 
 
-void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen, int pic)
+void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic)
 {
 	char numstr[10]="";
 	unsigned short len,i;
@@ -187,17 +179,17 @@ void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen,
 	
 	if (pic>0 || numlen==4) {
 		len= sprintf(numstr,"%d",pic);
-
+		
 		for(i=len;i<numlen;i++){
 			strcat(string,"0");
 		}
 		strcat(string,numstr);
 	}
-	strcat(string,staart);
+	strcat(string, start);
 }
 
 
-void BLI_newname(char * name, int add)
+void BLI_newname(char *name, int add)
 {
 	char head[128], tail[128];
 	int pic;
@@ -215,461 +207,81 @@ void BLI_newname(char * name, int add)
 	
 	pic += add;
 	
-	if(digits==4 && pic<0) pic= 0;
+	if (digits==4 && pic<0) pic= 0;
 	BLI_stringenc(name, head, tail, digits, pic);
 }
 
+/* little helper macro for BLI_uniquename */
+#ifndef GIVE_STRADDR
+	#define GIVE_STRADDR(data, offset) ( ((char *)data) + offset )
+#endif
 
-void BLI_addhead(ListBase *listbase, void *vlink)
+/* Generic function to set a unique name. It is only designed to be used in situations
+ * where the name is part of the struct, and also that the name is at most 128 chars long.
+ * 
+ * For places where this is used, see constraint.c for example...
+ *
+ * 	name_offs: should be calculated using offsetof(structname, membername) macro from stddef.h
+ *	len: maximum length of string (to prevent overflows, etc.)
+ *	defname: the name that should be used by default if none is specified already
+ */
+void BLI_uniquename(ListBase *list, void *vlink, char defname[], short name_offs, short len)
 {
-	struct Link *link= vlink;
-
-	if (link == 0) return;
-	if (listbase == 0) return;
-
-	link->next = listbase->first;
-	link->prev = 0;
-
-	if (listbase->first) ((struct Link *)listbase->first)->prev = link;
-	if (listbase->last == 0) listbase->last = link;
-	listbase->first = link;
-}
-
-
-void BLI_addtail(ListBase *listbase, void *vlink)
-{
-	struct Link *link= vlink;
-
-	if (link == 0) return;
-	if (listbase == 0) return;
-
-	link->next = 0;
-	link->prev = listbase->last;
-
-	if (listbase->last) ((struct Link *)listbase->last)->next = link;
-	if (listbase->first == 0) listbase->first = link;
-	listbase->last = link;
-}
-
-
-void BLI_remlink(ListBase *listbase, void *vlink)
-{
-	struct Link *link= vlink;
-
-	if (link == 0) return;
-	if (listbase == 0) return;
-
-	if (link->next) link->next->prev = link->prev;
-	if (link->prev) link->prev->next = link->next;
-
-	if (listbase->last == link) listbase->last = link->prev;
-	if (listbase->first == link) listbase->first = link->next;
-}
-
-
-void BLI_freelinkN(ListBase *listbase, void *vlink)
-{
-	struct Link *link= vlink;
-
-	if (link == 0) return;
-	if (listbase == 0) return;
-
-	BLI_remlink(listbase,link);
-	MEM_freeN(link);
-}
-
-
-void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
-{
-	struct Link *prevlink= vprevlink, *newlink= vnewlink;
-
-	/* newlink comes after prevlink */
-
-	if (newlink == 0) return;
-	if (listbase == 0) return;
-
-	if(listbase->first==0) { /* empty list */
-		listbase->first= newlink;
-		listbase->last= newlink;
-		return;
-	}
-	if (prevlink== 0) {	/* insert before first element */
-		newlink->next= listbase->first;
-		newlink->prev= 0;
-		newlink->next->prev= newlink;
-		listbase->first= newlink;
-		return;
-	}
-
-	if (listbase->last== prevlink) /* at end of list */
-		listbase->last = newlink;
-
-	newlink->next= prevlink->next;
-	prevlink->next= newlink;
-	if(newlink->next) newlink->next->prev= newlink;
-	newlink->prev= prevlink;
-}
-
-void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
-{
-	struct Link *nextlink= vnextlink, *newlink= vnewlink;
-
-	/* newlink before nextlink */
-
-	if (newlink == 0) return;
-	if (listbase == 0) return;
-
-	if(listbase->first==0) { /* empty list */
-		listbase->first= newlink;
-		listbase->last= newlink;
-		return;
-	}
-	if (nextlink== 0) {	/* insert at end of list */
-		newlink->prev= listbase->last;
-		newlink->next= 0;
-		((struct Link *)listbase->last)->next= newlink;
-		listbase->last= newlink;
-		return;
-	}
-
-	if (listbase->first== nextlink) /* at beginning of list */
-		listbase->first = newlink;
-
-	newlink->next= nextlink;
-	newlink->prev= nextlink->prev;
-	nextlink->prev= newlink;
-	if(newlink->prev) newlink->prev->next= newlink;
-}
-
-
-void BLI_freelist(ListBase *listbase)
-{
-	struct Link *link,*next;
-
-	if (listbase == 0) return;
-	link= listbase->first;
-	while(link) {
-		next= link->next;
-		free(link);
-		link= next;
-	}
-	listbase->first=0;
-	listbase->last=0;
-}
-
-void BLI_freelistN(ListBase *listbase)
-{
-	struct Link *link,*next;
-
-	if (listbase == 0) return;
-	link= listbase->first;
-	while(link) {
-		next= link->next;
-		MEM_freeN(link);
-		link= next;
-	}
-	listbase->first=0;
-	listbase->last=0;
-}
-
-
-int BLI_countlist(ListBase *listbase)
-{
-	Link * link;
-	int count = 0;
+	Link *link;
+	char tempname[128];
+	int	number = 1, exists = 0;
+	char *dot;
 	
-	if (listbase){
-		link = listbase->first;
-		while(link) {
-			count++;
-			link= link->next;
+	/* Make sure length can be handled */
+	if ((len < 0) || (len > 128))
+		return;
+	
+	/* See if we are given an empty string */
+	if (ELEM(NULL, vlink, defname))
+		return;
+	
+	if (GIVE_STRADDR(vlink, name_offs) == '\0') {
+		/* give it default name first */
+		BLI_strncpy(GIVE_STRADDR(vlink, name_offs), defname, len);
+	}
+	
+	/* See if we even need to do this */
+	if (list == NULL)
+		return;
+	
+	for (link = list->first; link; link= link->next) {
+		if (link != vlink) {
+			if (!strcmp(GIVE_STRADDR(link, name_offs), GIVE_STRADDR(vlink, name_offs))) {
+				exists = 1;
+				break;
+			}
 		}
 	}
-	return(count);
-}
+	if (exists == 0)
+		return;
 
-void * BLI_findlink(ListBase *listbase, int number)
-{
-	Link * link = NULL;
-
-	if (number >= 0) {
-		link = listbase->first;
-		while (link != NULL && number != 0) {
-			number--;
-			link = link->next;
+	/* Strip off the suffix */
+	dot = strchr(GIVE_STRADDR(vlink, name_offs), '.');
+	if (dot)
+		*dot=0;
+	
+	for (number = 1; number <= 999; number++) {
+		BLI_snprintf(tempname, 128, "%s.%03d", GIVE_STRADDR(vlink, name_offs), number);
+		
+		exists = 0;
+		for (link= list->first; link; link= link->next) {
+			if (vlink != link) {
+				if (!strcmp(GIVE_STRADDR(link, name_offs), tempname)) {
+					exists = 1;
+					break;
+				}
+			}
+		}
+		if (exists == 0) {
+			BLI_strncpy(GIVE_STRADDR(vlink, name_offs), tempname, len);
+			return;
 		}
 	}
-
-	return (link);
-}
-
-/*=====================================================================================*/
-/* Methods for access array (realloc) */
-/*=====================================================================================*/
-
-/* remove item with index */
-static void rem_array_item(struct DynamicArray *da, unsigned int index)
-{
-	da->items[index]=NULL;
-	da->count--;
-	if(index==da->last_item_index){
-		while((!da->items[da->last_item_index]) && (da->last_item_index>0)){
-			da->last_item_index--;
-		}
-	}
-}
-
-/* add array (if needed, then realloc) */
-static void add_array_item(struct DynamicArray *da, void *item, unsigned int index)
-{
-	/* realloc of access array */
-	if(da->max_item_index < index){
-		unsigned int i, max = da->max_item_index;
-		void **nitems;
-
-		do {
-			da->max_item_index += PAGE_SIZE;	/* OS can allocate only PAGE_SIZE Bytes */
-		} while(da->max_item_index<=index);
-
-		nitems = (void**)MEM_mallocN(sizeof(void*)*(da->max_item_index+1), "dlist access array");
-		for(i=0;i<=max;i++)
-			nitems[i] = da->items[i];
-
-		/* set rest pointers to the NULL */
-		for(i=max+1; i<=da->max_item_index; i++)
-			nitems[i]=NULL;
-
-		MEM_freeN(da->items);		/* free old access array */
-		da->items = nitems;
-	}
-
-	da->items[index] = item;
-	da->count++;
-	if(index > da->last_item_index) da->last_item_index = index;
-}
-
-/* free access array */
-static void destroy_array(DynamicArray *da)
-{
-	da->count=0;
-	da->last_item_index=0;
-	da->max_item_index=0;
-	MEM_freeN(da->items);
-	da->items = NULL;
-}
-
-/* initialize dynamic array */
-static void init_array(DynamicArray *da)
-{
-	unsigned int i;
-
-	da->count=0;
-	da->last_item_index=0;
-	da->max_item_index = PAGE_SIZE-1;
-	da->items = (void*)MEM_mallocN(sizeof(void*)*(da->max_item_index+1), "dlist access array");
-	for(i=0; i<=da->max_item_index; i++) da->items[i]=NULL;
-}
-
-/* reinitialize dynamic array */
-static void reinit_array(DynamicArray *da)
-{
-	destroy_array(da);
-	init_array(da);
-}
-
-/*=====================================================================================*/
-/* Methods for two way dynamic list with access array */
-/*=====================================================================================*/
-
-/* create new two way dynamic list with access array from two way dynamic list
- * it doesn't copy any items to new array or something like this It is strongly
- * recomended to use BLI_dlist_ methods for adding/removing items from dynamic list
- * unless you can end with inconsistence system !!! */
-DynamicList *BLI_dlist_from_listbase(ListBase *lb)
-{
-	DynamicList *dlist;
-	Link *item;
-	int i=0, count;
-	
-	if(!lb) return NULL;
-	
-	count = BLI_countlist(lb);
-
-	dlist = MEM_mallocN(sizeof(DynamicList), "temp dynamic list");
-	/* ListBase stuff */
-	dlist->lb.first = lb->first;
-	dlist->lb.last = lb->last;
-	/* access array stuff */
-	dlist->da.count=count;
-	dlist->da.max_item_index = count-1;
-	dlist->da.last_item_index = count -1;
-	dlist->da.items = (void*)MEM_mallocN(sizeof(void*)*count, "temp dlist access array");
-
-	item = (Link*)lb->first;
-	while(item){
-		dlist->da.items[i] = (void*)item;
-		item = item->next;
-		i++;
-	}
-
-	/* to prevent you of using original ListBase :-) */
-	lb->first = lb->last = NULL;
-
-	return dlist;
-}
-
-/* take out ListBase from DynamicList and destroy all temporary structures of DynamicList */
-ListBase *BLI_listbase_from_dlist(DynamicList *dlist, ListBase *lb)
-{
-	if(!dlist) return NULL;
-
-	if(!lb) lb = (ListBase*)MEM_mallocN(sizeof(ListBase), "ListBase");
-	
-	lb->first = dlist->lb.first;
-	lb->last = dlist->lb.last;
-
-	/* free all items of access array */
-	MEM_freeN(dlist->da.items);
-	/* free DynamicList*/
-	MEM_freeN(dlist);
-
-	return lb;
-}
-
-/* return pointer at item from th dynamic list with access array */
-void *BLI_dlist_find_link(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return NULL;
-
-	if((index <= dlist->da.last_item_index) && (index >= 0) && (dlist->da.count>0)){
-      		return dlist->da.items[index];
-	}
-	else {
-		return NULL;
-	}
-}
-
-/* return count of items in the dynamic list with access array */
-unsigned int BLI_count_items(DynamicList *dlist)
-{
-	if(!dlist) return 0;
-
-	return dlist->da.count;
-}
-
-/* free item from the dynamic list with access array */
-void BLI_dlist_free_item(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return;
-	
-	if((index <= dlist->da.last_item_index) && (dlist->da.items[index])){
-		BLI_freelinkN(&(dlist->lb), dlist->da.items[index]);
-		rem_array_item(&(dlist->da), index);
-	}
-}
-
-/* remove item from the dynamic list with access array */
-void BLI_dlist_rem_item(DynamicList *dlist, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return;
-	
-	if((index <= dlist->da.last_item_index) && (dlist->da.items[index])){
-		BLI_remlink(&(dlist->lb), dlist->da.items[index]);
-		rem_array_item(&(dlist->da), index);
-	}
-}
-
-/* add item to the dynamic list with access array (index) */
-void* BLI_dlist_add_item_index(DynamicList *dlist, void *item, unsigned int index)
-{
-	if(!dlist || !dlist->da.items) return NULL;
-
-	if((index <= dlist->da.max_item_index) && (dlist->da.items[index])) {
-		/* you can't place item at used index */
-		return NULL;
-	}
-	else {
-		add_array_item(&(dlist->da), item, index);
-		BLI_addtail(&(dlist->lb), item);
-		return item;
-	}
-}
-
-/* destroy dynamic list with access array */
-void BLI_dlist_destroy(DynamicList *dlist)
-{
-	if(!dlist) return;
-
-	BLI_freelistN(&(dlist->lb));
-	destroy_array(&(dlist->da));
-}
-
-/* initialize dynamic list with access array */
-void BLI_dlist_init(DynamicList *dlist)
-{
-	if(!dlist) return;
-
-	dlist->lb.first = NULL;
-	dlist->lb.last = NULL;
-
-	init_array(&(dlist->da));
-}
-
-/* reinitialize dynamic list with acces array */
-void BLI_dlist_reinit(DynamicList *dlist)
-{
-	if(!dlist) return;
-	
-	BLI_freelistN(&(dlist->lb));
-	reinit_array(&(dlist->da));
-}
-
-/*=====================================================================================*/
-
-char *BLI_strdupn(char *str, int len) {
-	char *n= MEM_mallocN(len+1, "strdup");
-	memcpy(n, str, len);
-	n[len]= '\0';
-	
-	return n;
-}
-char *BLI_strdup(char *str) {
-	return BLI_strdupn(str, strlen(str));
-}
-
-char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
-	int srclen= strlen(src);
-	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
-	
-	memcpy(dst, src, cpylen);
-	dst[cpylen]= '\0';
-	
-	return dst;
-}
-
-int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
-{
-	int n;
-	va_list arg;
-
-	va_start(arg, format);
-	n = vsnprintf(buffer, count, format, arg);
-	
-	if (n != -1 && n < count) {
-		buffer[n] = '\0';
-	} else {
-		buffer[count-1] = '\0';
-	}
-	
-	va_end(arg);
-	return n;
-}
-
-int BLI_streq(char *a, char *b) {
-	return (strcmp(a, b)==0);
-}
-int BLI_strcaseeq(char *a, char *b) {
-	return (BLI_strcasecmp(a, b)==0);
 }
 
 /* ******************** string encoding ***************** */
@@ -678,17 +290,45 @@ int BLI_strcaseeq(char *a, char *b) {
  * take the dir name, make it absolute, and clean it up, replacing
  * excess file entry stuff (like /tmp/../tmp/../)
  * note that dir isn't protected for max string names... 
+ * 
+ * If relbase is NULL then its ignored
  */
 
 void BLI_cleanup_dir(const char *relabase, char *dir)
 {
+	BLI_cleanup_file(relabase, dir);
+	BLI_add_slash(dir);
+
+}
+
+void BLI_cleanup_file(const char *relabase, char *dir)
+{
 	short a;
 	char *start, *eind;
+	if (relabase) {
+		BLI_convertstringcode(dir, relabase);
+	} else {
+		if (dir[0]=='/' && dir[1]=='/') {
+			if (dir[2]== '\0') {
+				return; /* path is "//" - cant clean it */
+			}
+			dir = dir+2; /* skip the first // */
+		}
+	}
 	
-	BLI_convertstringcode(dir, relabase, 0);
+	/* Note
+	 *   memmove( start, eind, strlen(eind)+1 );
+	 * is the same as
+	 *   strcpy( start, eind ); 
+	 * except strcpy should not be used because there is overlap,
+	  * so use memmove's slightly more obscure syntax - Campbell
+	 */
 	
 #ifdef WIN32
-	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
+	
+	/* Note, this should really be moved to the file selector,
+	 * since this function is used in many areas */
+	if(strcmp(dir, ".")==0) {	/* happens for example in FILE_MAIN */
 	   get_default_root(dir);
 	   return;
 	}	
@@ -700,17 +340,21 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			if (dir[a] == '\\') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"\\.\\")) ){
 		eind = start + strlen("\\.\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"\\\\" )) ){
 		eind = start + strlen("\\\\") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if((a = strlen(dir))){				/* remove the '\\' at the end */
@@ -719,9 +363,7 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			dir[a] = 0;
 		}
 	}
-
-	strcat(dir, "\\");
-#else	
+#else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
 	   dir[0]= '/';
 	   dir[1]= 0;
@@ -735,17 +377,21 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			if (dir[a] == '/') break;
 			a--;
 		}
-		strcpy(dir+a,eind);
+		if (a<0) {
+			break;
+		} else {
+			memmove( dir+a, eind, strlen(eind)+1 );
+		}
 	}
 
 	while ( (start = strstr(dir,"/./")) ){
 		eind = start + strlen("/./") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	while ( (start = strstr(dir,"//" )) ){
 		eind = start + strlen("//") - 1;
-		strcpy(start,eind);
+		memmove( start, eind, strlen(eind)+1 );
 	}
 
 	if( (a = strlen(dir)) ){				/* remove all '/' at the end */
@@ -755,8 +401,6 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			if (a<=0) break;
 		}
 	}
-
-	strcat(dir, "/");
 #endif
 }
 
@@ -768,7 +412,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * lslash;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
-
+	
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
@@ -800,7 +444,11 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 	BLI_char_switch(temp, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
-
+	
+	/* remove /./ which confuse the following slash counting... */
+	BLI_cleanup_file(NULL, file);
+	BLI_cleanup_file(NULL, temp);
+	
 	/* the last slash in the file indicates where the path part ends */
 	lslash = BLI_last_slash(temp);
 
@@ -845,17 +493,104 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
-int BLI_convertstringcode(char *path, const char *basepath, int framenum)
+int BLI_parent_dir(char *path)
 {
-	int len, wasrelative;
-	char tmp[FILE_MAXDIR+FILE_MAXFILE];
-	char base[FILE_MAXDIR];
+#ifdef WIN32
+	static char *parent_dir="..\\";
+#else
+	static char *parent_dir="../";
+#endif
+	char tmp[FILE_MAXDIR+FILE_MAXFILE+4];
+	BLI_strncpy(tmp, path, sizeof(tmp));
+	BLI_add_slash(tmp);
+	strcat(tmp, parent_dir);
+	BLI_cleanup_dir(NULL, tmp);
+ 	
+	if (!BLI_testextensie(tmp, parent_dir)) {
+		BLI_strncpy(path, tmp, sizeof(tmp));	
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+int BLI_convertstringframe(char *path, int frame)
+{
+	int ch_sta, ch_end, i;
+	/* Insert current frame: file### -> file001 */
+	ch_sta = ch_end = 0;
+	for (i = 0; path[i] != '\0'; i++) {
+		if (path[i] == '\\' || path[i] == '/') {
+			ch_end = 0; /* this is a directory name, dont use any hashes we found */
+		} else if (path[i] == '#') {
+			ch_sta = i;
+			ch_end = ch_sta+1;
+			while (path[ch_end] == '#') {
+				ch_end++;
+			}
+			i = ch_end-1; /* keep searching */
+			
+			/* dont break, there may be a slash after this that invalidates the previous #'s */
+		}
+	}
+	if (ch_end) { /* warning, ch_end is the last # +1 */
+		/* Add the frame number? */
+		short numlen, hashlen;
+		char tmp[FILE_MAX];
+		
+		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
+		if (((ch_end-1)-ch_sta) >= 16) {
+			ch_end = ch_sta+15; /* disallow values longer then 'format' can hold */
+		}
+		
+		strcpy(tmp, path);
+		
+		numlen = 1 + (int)log10((double)frame); /* this is the number of chars in the number */
+		hashlen = ch_end - ch_sta;
+		
+		sprintf(format, "%d", frame);
+		
+		if (numlen==hashlen) { /* simple case */
+			memcpy(tmp+ch_sta, format, numlen);
+		} else if (numlen < hashlen) {
+			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
+			memset(tmp+ch_sta, '0', hashlen-numlen);
+		} else {
+			/* number is longer then number of #'s */
+			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
+				/* bad juju - not testing string length here :/ */
+				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
+			} else {
+				/* we need to move the end characters, reuse i */
+				int j;
+				
+				i = strlen(tmp); /* +1 to copy the string terminator */
+				j = i + (numlen-hashlen); /* from/to */
+				
+				while (i >= ch_end) {
+					tmp[j] = tmp[i]; 
+					i--;
+					j--;
+				}
+				memcpy(tmp + ch_sta, format, numlen);
+			}
+		}	
+		strcpy(path, tmp);
+		return 1;
+	}
+	return 0;
+}
+
+
+int BLI_convertstringcode(char *path, const char *basepath)
+{
+	int wasrelative = (strncmp(path, "//", 2)==0);
+	char tmp[FILE_MAX];
+	char base[FILE_MAX];
+#ifdef WIN32
 	char vol[3] = {'\0', '\0', '\0'};
 
 	BLI_strncpy(vol, path, 3);
-	wasrelative= (strncmp(vol, "//", 2)==0);
-
-#ifdef WIN32
 	/* we are checking here if we have an absolute path that is not in the current
 	   blend file as a lib main - we are basically checking for the case that a 
 	   UNIX root '/' is passed.
@@ -870,13 +605,29 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 		strcat(tmp, p);
 	}
 	else {
-		strcpy(tmp, path);
+		BLI_strncpy(tmp, path, FILE_MAX);
 	}
 #else
-	strcpy(tmp, path);
+	BLI_strncpy(tmp, path, FILE_MAX);
+	
+	/* Check for loading a windows path on a posix system
+	 * in this case, there is no use in trying C:/ since it 
+	 * will never exist on a unix os.
+	 * 
+	 * Add a / prefix and lowercase the driveletter, remove the :
+	 * C:\foo.JPG -> /c/foo.JPG */
+	
+	if (isalpha(tmp[0]) && tmp[1] == ':' && (tmp[2]=='\\' || tmp[2]=='/') ) {
+		tmp[1] = tolower(tmp[0]); /* replace ':' with driveletter */
+		tmp[0] = '/'; 
+		/* '\' the slash will be converted later */
+	}
+	
 #endif
 
-	strcpy(base, basepath);
+	BLI_strncpy(base, basepath, FILE_MAX);
+	
+	BLI_cleanup_file(NULL, base);
 	
 	/* push slashes into unix mode - strings entering this part are
 	   potentially messed up: having both back- and forward slashes.
@@ -887,28 +638,33 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	BLI_char_switch(tmp, '\\', '/');
 	BLI_char_switch(base, '\\', '/');	
 
-	if (tmp[0] == '/' && tmp[1] == '/') {
-		char *filepart= BLI_strdup(tmp+2); /* skip code */
+	/* Paths starting with // will get the blend file as their base,
+	 * this isnt standard in any os but is uesed in blender all over the place */
+	if (wasrelative) {
 		char *lslash= BLI_last_slash(base);
-
 		if (lslash) {
 			int baselen= (int) (lslash-base) + 1;
-
+			/* use path for for temp storage here, we copy back over it right away */
+			BLI_strncpy(path, tmp+2, FILE_MAX);
+			
 			memcpy(tmp, base, baselen);
-			strcpy(tmp+baselen, filepart);
+			strcpy(tmp+baselen, path);
+			strcpy(path, tmp);
 		} else {
-			strcpy(tmp, filepart);
+			strcpy(path, tmp+2);
 		}
-		
-		MEM_freeN(filepart);
+	} else {
+		strcpy(path, tmp);
 	}
-
-	len= strlen(tmp);
-	if(len && tmp[len-1]=='#') {
-		sprintf(tmp+len-1, "%04d", framenum);
+	
+	if (path[0]!='\0') {
+		if ( path[strlen(path)-1]=='/') {
+			BLI_cleanup_dir(NULL, path);
+		} else {
+			BLI_cleanup_file(NULL, path);
+		}
 	}
-
-	strcpy(path, tmp);
+	
 #ifdef WIN32
 	/* skip first two chars, which in case of
 	   absolute path will be drive:/blabla and
@@ -918,10 +674,54 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	*/
 	BLI_char_switch(path+2, '/', '\\');
 #endif
-
+	
 	return wasrelative;
 }
 
+
+/*
+ * Should only be done with command line paths.
+ * this is NOT somthing blenders internal paths support like the // prefix
+ */
+int BLI_convertstringcwd(char *path)
+{
+	int wasrelative = 1;
+	int filelen = strlen(path);
+	
+#ifdef WIN32
+	if (filelen >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+		wasrelative = 0;
+#else
+	if (filelen >= 2 && path[0] == '/')
+		wasrelative = 0;
+#endif
+	
+	if (wasrelative==1) {
+		char cwd[FILE_MAXDIR + FILE_MAXFILE];
+		BLI_getwdN(cwd); /* incase the full path to the blend isnt used */
+		
+		if (cwd[0] == '\0') {
+			printf( "Could not get the current working directory - $PWD for an unknown reason.");
+		} else {
+			/* uses the blend path relative to cwd important for loading relative linked files.
+			*
+			* cwd should contain c:\ etc on win32 so the relbase can be NULL
+			* relbase being NULL also prevents // being misunderstood as relative to the current
+			* blend file which isnt a feature we want to use in this case since were dealing
+			* with a path from the command line, rather then from inside Blender */
+			
+			char origpath[FILE_MAXDIR + FILE_MAXFILE];
+			BLI_strncpy(origpath, path, FILE_MAXDIR + FILE_MAXFILE);
+			
+			BLI_make_file_string(NULL, path, cwd, origpath); 
+		}
+	}
+	
+	return wasrelative;
+}
+
+
+/* copy di to fi, filename only */
 void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);
@@ -945,6 +745,8 @@ char *BLI_gethome(void) {
 	#else /* Windows */
 		char * ret;
 		static char dir[512];
+		static char appdatapath[MAXPATHLEN];
+		HRESULT hResult;
 
 		/* Check for %HOME% env var */
 
@@ -966,9 +768,36 @@ char *BLI_gethome(void) {
 
 				
 		/* add user profile support for WIN 2K / NT */
+		hResult = SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+		
+		if (hResult == S_OK)
+		{
+			if (BLI_exists(appdatapath)) { /* from fop, also below... */
+				sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+				BLI_recurdir_fileops(dir);
+				if (BLI_exists(dir)) {
+					strcat(dir,"\\.blender");
+					if(BLI_exists(dir)) return(dir);
+				}
+			}
+			hResult = SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, appdatapath);
+			if (hResult == S_OK)
+			{
+				if (BLI_exists(appdatapath)) 
+				{ /* from fop, also below... */
+					sprintf(dir, "%s\\Blender Foundation\\Blender", appdatapath);
+					BLI_recurdir_fileops(dir);
+					if (BLI_exists(dir)) {
+						strcat(dir,"\\.blender");
+						if(BLI_exists(dir)) return(dir);
+					}
+				}
+			}
+		}
+#if 0
 		ret = getenv("USERPROFILE");
 		if (ret) {
-			if (BLI_exists(ret)) { /* from fop, also below... */
+			if (BLI_exists(ret)) { /* from fop, also below...  */
 				sprintf(dir, "%s\\Application Data\\Blender Foundation\\Blender", ret);
 				BLI_recurdir_fileops(dir);
 				if (BLI_exists(dir)) {
@@ -977,6 +806,7 @@ char *BLI_gethome(void) {
 				}
 			}
 		}
+#endif
 
 		/* 
 		   Saving in the Windows dir is less than desirable. 
@@ -1166,36 +996,71 @@ int BLI_testextensie(const char *str, const char *ext)
 	return (retval);
 }
 
+/*
+ * This is a simple version of BLI_split_dirfile that has the following advantages...
+ * 
+ * Converts "/foo/bar.txt" to "/foo/" and "bar.txt"
+ * - wont change 'string'
+ * - wont create any directories
+ * - dosnt use CWD, or deal with relative paths.
+ * - Only fill's in *dir and *file when they are non NULL
+ * */
+void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
+{
+	int lslash=0, i = 0;
+	for (i=0; string[i]!='\0'; i++) {
+		if (string[i]=='\\' || string[i]=='/')
+			lslash = i+1;
+	}
+	if (dir) {
+		if (lslash) {
+			BLI_strncpy( dir, string, lslash+1); /* +1 to include the slash and the last char */
+		} else {
+			dir[0] = '\0';
+		}
+	}
+	
+	if (file) {
+		strcpy( file, string+lslash);
+	}
+}
 
 
-void BLI_split_dirfile(const char *string, char *dir, char *file)
+/* Warning,
+ * - May modify 'string' variable
+ * - May create the directory if it dosnt exist
+ * if this is not needed use BLI_split_dirfile_basic(...)
+ */
+void BLI_split_dirfile(char *string, char *dir, char *file)
 {
 	int a;
 #ifdef WIN32
 	int sl;
 	short is_relative = 0;
+	char path[FILE_MAX];
 #endif
 
 	dir[0]= 0;
 	file[0]= 0;
 
 #ifdef WIN32
-	BLI_char_switch(string, '/', '\\'); /* make sure we have a valid path format */
-	sl = strlen(string);
+	BLI_strncpy(path, string, FILE_MAX);
+	BLI_char_switch(path, '/', '\\'); /* make sure we have a valid path format */
+	sl = strlen(path);
 	if (sl) {
 		int len;
-		if (string[0] == '/' || string[0] == '\\') { 
-			BLI_strncpy(dir, string, FILE_MAXDIR);
-			if (sl > 1 && string[0] == '\\' && string[1] == '\\') is_relative = 1;
-		} else if (sl > 2 && string[1] == ':' && string[2] == '\\') {
-			BLI_strncpy(dir, string, FILE_MAXDIR);
+		if (path[0] == '/' || path[0] == '\\') { 
+			BLI_strncpy(dir, path, FILE_MAXDIR);
+			if (sl > 1 && path[0] == '\\' && path[1] == '\\') is_relative = 1;
+		} else if (sl > 2 && path[1] == ':' && path[2] == '\\') {
+			BLI_strncpy(dir, path, FILE_MAXDIR);
 		} else {
 			BLI_getwdN(dir);
 			strcat(dir,"\\");
-			strcat(dir,string);
-			BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
+			strcat(dir,path);
+			BLI_strncpy(path,dir,FILE_MAXDIR+FILE_MAXFILE);
 		}
-
+		
 		// BLI_exist doesn't recognize a slashed dirname as a dir
 		//  check if a trailing slash exists, and remove it. Do not do this
 		//  when we are already at root. -jesterKing
@@ -1203,7 +1068,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 		if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
 
 		if (is_relative) {
-			printf("WARNING: BLI_split_dirfile needs absolute dir");
+			printf("WARNING: BLI_split_dirfile needs absolute dir\n");
 		}
 		else {
 			BLI_make_exist(dir);
@@ -1214,18 +1079,18 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			/* copy from end of string into file, to ensure filename itself isn't truncated 
 			if string is too long. (aphex) */
 
-			len = FILE_MAXFILE - strlen(string);
+			len = FILE_MAXFILE - strlen(path);
 
 			if (len < 0)
-				BLI_strncpy(file,string + abs(len),FILE_MAXFILE);
+				BLI_strncpy(file,path + abs(len),FILE_MAXFILE);
 			else
-				BLI_strncpy(file,string,FILE_MAXFILE);
+				BLI_strncpy(file,path,FILE_MAXFILE);
 		    
-			if (strrchr(string,'\\')){
-				BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
+			if (strrchr(path,'\\')) {
+				BLI_strncpy(file,strrchr(path,'\\')+1,FILE_MAXFILE);
 			}
-
-			if (a = strlen(dir)) {
+			
+			if ( (a = strlen(dir)) ) {
 				if (dir[a-1] != '\\') strcat(dir,"\\");
 			}
 		}
@@ -1233,7 +1098,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			a = strlen(dir) - 1;
 			while(a>0 && dir[a] != '\\') a--;
 			dir[a + 1] = 0;
-			BLI_strncpy(file, string + strlen(dir),FILE_MAXFILE);
+			BLI_strncpy(file, path + strlen(dir),FILE_MAXFILE);
 		}
 
 	}
@@ -1288,12 +1153,20 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file)
 	int sl_dir = strlen(dir);
 	BLI_strncpy(string, dir, FILE_MAX);
 	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+	
+	/* only add seperator if needed */
 #ifdef WIN32
-	string[sl_dir] = '\\';
+	if (string[sl_dir-1] != '\\') {
+		string[sl_dir] = '\\';
+		sl_dir++;
+	}
 #else
-	string[sl_dir] = '/';
+	if (string[sl_dir-1] != '/') {
+		string[sl_dir] = '/';
+		sl_dir++;
+	}
 #endif
-	sl_dir++;
+	
 	if (sl_dir <FILE_MAX) {
 		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
 	}
@@ -1340,10 +1213,10 @@ static int add_win32_extension(char *name)
 	return (retval);
 }
 
-void BLI_where_am_i(char *fullname, char *name)
+void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char *path, *temp;
+	char *path = NULL, *temp;
 	int len;
 #ifdef _WIN32
 	char *seperator = ";";
@@ -1353,6 +1226,18 @@ void BLI_where_am_i(char *fullname, char *name)
 	char *slash = "/";
 #endif
 
+	
+#ifdef __linux__
+	/* linux uses binreloc since argv[0] is not relyable, call br_init( NULL ) first */
+	path = br_find_exe( NULL );
+	if (path) {
+		strcpy(fullname, path);
+		free(path);
+		return;
+	}
+#endif
+	
+	/* unix and non linux */
 	if (name && fullname && strlen(name)) {
 		strcpy(fullname, name);
 		if (name[0] == '.') {
@@ -1413,6 +1298,68 @@ void BLI_where_am_i(char *fullname, char *name)
 	}
 }
 
+void BLI_where_is_temp(char *fullname, int usertemp)
+{
+	fullname[0] = '\0';
+	
+	if (usertemp && BLI_exists(U.tempdir)) {
+		strcpy(fullname, U.tempdir);
+	}
+	
+	
+#ifdef WIN32
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TEMP"); /* Windows */
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+#else
+	/* Other OS's - Try TMP and TMPDIR */
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TMP");
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+	
+	if (fullname[0] == '\0') {
+		char *tmp = getenv("TMPDIR");
+		if (tmp && BLI_exists(tmp)) {
+			strcpy(fullname, tmp);
+		}
+	}
+#endif	
+	
+	if (fullname[0] == '\0') {
+		strcpy(fullname, "/tmp/");
+	} else {
+		/* add a trailing slash if needed */
+		BLI_add_slash(fullname);
+	}
+}
+
+char *get_install_dir(void) {
+	extern char bprogname[];
+	char *tmpname = BLI_strdup(bprogname);
+	char *cut;
+
+#ifdef __APPLE__
+	cut = strstr(tmpname, ".app");
+	if (cut) cut[0] = 0;
+#endif
+
+	cut = BLI_last_slash(tmpname);
+
+	if (cut) {
+		cut[0] = 0;
+		return tmpname;
+	} else {
+		MEM_freeN(tmpname);
+		return NULL;
+	}
+}
+
 /* 
  * returns absolute path to the app bundle
  * only useful on OS X 
@@ -1431,128 +1378,38 @@ char* BLI_getbundle(void) {
 }
 #endif
 
-/* strcasestr not available in MSVC */
-char *BLI_strcasestr(const char *s, const char *find)
+
+
+
+#ifdef WITH_ICONV
+#include "iconv.h"
+#include "localcharset.h"
+
+void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 {
-    register char c, sc;
-    register size_t len;
+	size_t inbytesleft=strlen(original);
+	size_t outbytesleft=512;
+	size_t rv=0;
+	iconv_t cd;
 	
-    if ((c = *find++) != 0) {
-		c= tolower(c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-				sc= tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len) != 0);
-		s--;
-    }
-    return ((char *) s);
-}
-
-
-int BLI_strcasecmp(const char *s1, const char *s2) {
-	int i;
-
-	for (i=0; ; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
-
-		if (c1<c2) {
-			return -1;
-		} else if (c1>c2) {
-			return 1;
-		} else if (c1==0) {
-			break;
-		}
+	if (NULL == code) {
+		code = locale_charset();
 	}
+	cd=iconv_open("UTF-8", code);
 
-	return 0;
-}
-
-int BLI_strncasecmp(const char *s1, const char *s2, int n) {
-	int i;
-
-	for (i=0; i<n; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
-
-		if (c1<c2) {
-			return -1;
-		} else if (c1>c2) {
-			return 1;
-		} else if (c1==0) {
-			break;
-		}
+	if (cd == (iconv_t)(-1)) {
+		printf("iconv_open Error");
+		*utf_8='\0';
+		return ;
 	}
-
-	return 0;
-}
-
-void BLI_timestr(double time, char *str)
-{
-	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= ((int) time) / (60*60);
-	int min= ( ((int) time) / 60 ) % 60;
-	int sec= ((int) (time)) % 60;
-	int hun= ((int) (time * 100.0)) % 100;
-	
-	if (hr) {
-		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);
-	} else {
-		sprintf(str, "%.2d:%.2d.%.2d",min,sec,hun);
+	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
+	if (rv == (size_t) -1) {
+		printf("iconv Error\n");
+		return ;
 	}
-	
-	str[11]=0;
+	*utf_8 = '\0';
+	iconv_close(cd);
 }
+#endif // WITH_ICONV
 
-/* ************** 64 bits magic, trick to support up to 32 gig of address space *************** */
-/*                only works for malloced pointers (8 aligned)                   */
-
-#ifdef __LP64__ 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#define PMASK		0x07FFFFFFFFi64
-#else
-#define PMASK		0x07FFFFFFFFll
-#endif
-
-
-int BLI_int_from_pointer(void *poin)
-{
-	long lval= (long)poin;
-	
-	return (int)(lval>>3);
-}
-
-void *BLI_pointer_from_int(int val)
-{
-	static int firsttime= 1;
-	static long basevalue= 0;
-	
-	if(firsttime) {
-		void *poin= malloc(10000);
-		basevalue= (long)poin;
-		basevalue &= ~PMASK;
-		printf("base: %d pointer %p\n", basevalue, poin); /* debug */
-		firsttime= 0;
-		free(poin);
-	}
-	return (void *)(basevalue | (((long)val)<<3));
-}
-
-#else
-
-int BLI_int_from_pointer(void *poin)
-{
-	return (int)poin;
-}
-void *BLI_pointer_from_int(int val)
-{
-	return (void *)val;
-}
-
-#endif
 

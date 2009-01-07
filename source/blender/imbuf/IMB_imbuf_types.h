@@ -13,15 +13,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,7 +36,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 /**
  * \file IMB_imbuf_types.h
@@ -55,6 +52,8 @@
 #include "DNA_listBase.h" /* for ListBase */
 struct _AviMovie;
 struct Mdec;
+
+struct ImgInfo;
 
 #define IB_MIPMAP_LEVELS	10
 
@@ -93,7 +92,7 @@ typedef struct ImBuf {
 	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
 	int	*zbuf;				/**< z buffer data, original zbuffer */
 	float *zbuf_float;		/**< z buffer data, camera coordinates */
-	void *userdata;	
+	void *userdata;			/**< temporary storage, only used by baking at the moment */
 	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
 	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
 	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
@@ -103,6 +102,7 @@ typedef struct ImBuf {
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	struct ImgInfo * img_info;
 	int refcounter;			/**< Refcounter for multiple users */
 	int index;				/**< reference index for ImBuf lists */
 	
@@ -148,6 +148,8 @@ typedef enum {
 #define IB_rectfloat	(1 << 15)
 #define IB_zbuffloat	(1 << 16)
 #define IB_multilayer	(1 << 17)
+#define IB_imginfo		(1 << 18)
+#define IB_animdeinterlace      (1 << 19)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.
@@ -166,6 +168,7 @@ typedef enum {
 
 #define RADHDR			(1 << 24)
 #define TIF				(1 << 23)
+#define TIF_16BIT		(1 << 8 )
 
 #define OPENEXR			(1 << 22)
 #define OPENEXR_HALF	(1 << 8 )
@@ -173,6 +176,10 @@ typedef enum {
 
 #define CINEON			(1 << 21)
 #define DPX				(1 << 20)
+
+#ifdef WITH_DDS
+#define DDS				(1 << 19)
+#endif
 
 #define RAWTGA	        (TGA | 1)
 
@@ -215,6 +222,10 @@ typedef enum {
 #define IS_bmp(x)		(x->ftype & BMP)
 #define IS_tiff(x)		(x->ftype & TIF)
 #define IS_radhdr(x)	(x->ftype & RADHDR)
+
+#ifdef WITH_DDS
+#define IS_dds(x)		(x->ftype & DDS)
+#endif
 
 #define IMAGIC 	0732
 #define IS_iris(x)		(x->ftype == IMAGIC)

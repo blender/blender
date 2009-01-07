@@ -8,7 +8,7 @@ Tooltip: 'Information about your Blender environment, useful to diagnose problem
 """
 
 __author__ = "Willian P. Germano"
-__url__ = ("blender", "elysiun")
+__url__ = ("blenderartists.org", "blenderartists.org")
 __version__ = "1.1"
 __bpydoc__ = """\
 This script creates a text in Blender's Text Editor with information
@@ -93,6 +93,8 @@ header = lilies + header + "\n" + lilies
 output = Blender.Text.New(output_filename)
 
 output.write(header + "\n\n")
+
+output.write("%s\n\n" % Blender.Get('buildinfo'))
 
 output.write("Platform: %s\n========\n\n" % sys.platform)
 

@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * The contents of this file may be used under the terms of either the GNU
  * General Public License Version 2 or later (the "GPL", see
@@ -17,7 +17,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_ODEPHYSICSCONTROLLER_H
 #define __KX_ODEPHYSICSCONTROLLER_H
@@ -67,16 +67,16 @@ public:
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local);
 	virtual void		resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ);
 	virtual	void		getOrientation(MT_Quaternion& orn);
-	virtual	void setOrientation(const MT_Quaternion& orn);
+	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	virtual	void setPosition(const MT_Point3& pos);
 	virtual	void setScaling(const MT_Vector3& scaling);
 	virtual	MT_Scalar	GetMass();
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);
 
-	virtual void	SuspendDynamics();
+	virtual void	SuspendDynamics(bool);
 	virtual void	RestoreDynamics();
-	
+	virtual MT_Scalar GetRadius();
 
 	virtual	SG_Controller*	GetReplica(class SG_Node* destnode);
 

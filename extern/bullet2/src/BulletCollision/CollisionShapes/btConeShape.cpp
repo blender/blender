@@ -24,7 +24,7 @@ m_height(height)
 {
 	setConeUpIndex(1);
 	btVector3 halfExtents;
-	m_sinAngle = (m_radius / sqrt(m_radius * m_radius + m_height * m_height));
+	m_sinAngle = (m_radius / btSqrt(m_radius * m_radius + m_height * m_height));
 }
 
 btConeShapeZ::btConeShapeZ (btScalar radius,btScalar height):
@@ -67,15 +67,15 @@ void	btConeShape::setConeUpIndex(int upIndex)
 btVector3 btConeShape::coneLocalSupport(const btVector3& v) const
 {
 	
-	float halfHeight = m_height * 0.5f;
+	btScalar halfHeight = m_height * btScalar(0.5);
 
  if (v[m_coneIndices[1]] > v.length() * m_sinAngle)
  {
 	btVector3 tmp;
 
-	tmp[m_coneIndices[0]] = 0.f;
+	tmp[m_coneIndices[0]] = btScalar(0.);
 	tmp[m_coneIndices[1]] = halfHeight;
-	tmp[m_coneIndices[2]] = 0.f;
+	tmp[m_coneIndices[2]] = btScalar(0.);
 	return tmp;
  }
   else {
@@ -90,9 +90,9 @@ btVector3 btConeShape::coneLocalSupport(const btVector3& v) const
     }
     else  {
 		btVector3 tmp;
-		tmp[m_coneIndices[0]] = 0.f;
+		tmp[m_coneIndices[0]] = btScalar(0.);
 		tmp[m_coneIndices[1]] = -halfHeight;
-		tmp[m_coneIndices[2]] = 0.f;
+		tmp[m_coneIndices[2]] = btScalar(0.);
 		return tmp;
 	}
   }
@@ -117,12 +117,12 @@ void	btConeShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVect
 btVector3	btConeShape::localGetSupportingVertex(const btVector3& vec)  const
 {
 	btVector3 supVertex = coneLocalSupport(vec);
-	if ( getMargin()!=0.f )
+	if ( getMargin()!=btScalar(0.) )
 	{
 		btVector3 vecnorm = vec;
 		if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 		{
-			vecnorm.setValue(-1.f,-1.f,-1.f);
+			vecnorm.setValue(btScalar(-1.),btScalar(-1.),btScalar(-1.));
 		} 
 		vecnorm.normalize();
 		supVertex+= getMargin() * vecnorm;

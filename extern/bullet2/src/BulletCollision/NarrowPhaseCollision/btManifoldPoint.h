@@ -29,7 +29,10 @@ class btManifoldPoint
 	{
 		public:
 			btManifoldPoint()
-				:m_userPersistentData(0)
+				:m_userPersistentData(0),
+				m_appliedImpulse(0.f),
+				m_lateralFrictionInitialized(false),
+				m_lifeTime(0)
 			{
 			}
 
@@ -40,9 +43,13 @@ class btManifoldPoint
 					m_localPointB( pointB ), 
 					m_normalWorldOnB( normal ), 
 					m_distance1( distance ),
-					m_combinedFriction(0.f),
-					m_combinedRestitution(0.f),
-					m_userPersistentData(0),					
+					m_combinedFriction(btScalar(0.)),
+					m_combinedRestitution(btScalar(0.)),
+					m_userPersistentData(0),
+					m_appliedImpulse(0.f),
+					m_lateralFrictionInitialized(false),
+					m_appliedImpulseLateral1(0.f),
+					m_appliedImpulseLateral2(0.f),
 					m_lifeTime(0)
 			{
 				
@@ -58,16 +65,28 @@ class btManifoldPoint
 			btVector3	m_positionWorldOnA;
 			btVector3 m_normalWorldOnB;
 		
-			float	m_distance1;
-			float	m_combinedFriction;
-			float	m_combinedRestitution;
+			btScalar	m_distance1;
+			btScalar	m_combinedFriction;
+			btScalar	m_combinedRestitution;
 
+         //BP mod, store contact triangles.
+         int	   m_partId0;
+         int      m_partId1;
+         int      m_index0;
+         int      m_index1;
 				
-			void*	m_userPersistentData;
+			mutable void*	m_userPersistentData;
+			btScalar		m_appliedImpulse;
 
-			int		m_lifeTime;//lifetime of the contactpoint in frames
+			bool			m_lateralFrictionInitialized;
+			btScalar		m_appliedImpulseLateral1;
+			btScalar		m_appliedImpulseLateral2;
+			int				m_lifeTime;//lifetime of the contactpoint in frames
 			
-			float getDistance() const
+			btVector3		m_lateralFrictionDir1;
+			btVector3		m_lateralFrictionDir2;
+
+			btScalar getDistance() const
 			{
 				return m_distance1;
 			}
@@ -76,17 +95,17 @@ class btManifoldPoint
 				return m_lifeTime;
 			}
 
-			btVector3 getPositionWorldOnA() {
+			const btVector3& getPositionWorldOnA() const {
 				return m_positionWorldOnA;
 //				return m_positionWorldOnB + m_normalWorldOnB * m_distance1;
 			}
 
-			const btVector3& getPositionWorldOnB()
+			const btVector3& getPositionWorldOnB() const
 			{
 				return m_positionWorldOnB;
 			}
 
-			void	setDistance(float dist)
+			void	setDistance(btScalar dist)
 			{
 				m_distance1 = dist;
 			}

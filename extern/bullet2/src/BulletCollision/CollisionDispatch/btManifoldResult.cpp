@@ -27,7 +27,7 @@ inline btScalar	calculateCombinedFriction(const btCollisionObject* body0,const b
 {
 	btScalar friction = body0->getFriction() * body1->getFriction();
 
-	const btScalar MAX_FRICTION  = 10.f;
+	const btScalar MAX_FRICTION  = btScalar(10.);
 	if (friction < -MAX_FRICTION)
 		friction = -MAX_FRICTION;
 	if (friction > MAX_FRICTION)
@@ -53,7 +53,7 @@ btManifoldResult::btManifoldResult(btCollisionObject* body0,btCollisionObject* b
 }
 
 
-void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth)
+void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)
 {
 	assert(m_manifoldPtr);
 	//order in manifold needs to match
@@ -63,21 +63,46 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 
 	bool isSwapped = m_manifoldPtr->getBody0() != m_body0;
 
-	btTransform transAInv = isSwapped? m_rootTransB.inverse() : m_rootTransA.inverse();
-	btTransform transBInv = isSwapped? m_rootTransA.inverse() : m_rootTransB.inverse();
-
 	btVector3 pointA = pointInWorld + normalOnBInWorld * depth;
-	btVector3 localA = transAInv(pointA );
-	btVector3 localB = transBInv(pointInWorld);
-	btManifoldPoint newPt(localA,localB,normalOnBInWorld,depth);
 
+	btVector3 localA;
+	btVector3 localB;
 	
+	if (isSwapped)
+	{
+		localA = m_rootTransB.invXform(pointA );
+		localB = m_rootTransA.invXform(pointInWorld);
+	} else
+	{
+		localA = m_rootTransA.invXform(pointA );
+		localB = m_rootTransB.invXform(pointInWorld);
+	}
 
+	btManifoldPoint newPt(localA,localB,normalOnBInWorld,depth);
+	newPt.m_positionWorldOnA = pointA;
+	newPt.m_positionWorldOnB = pointInWorld;
+	
 	int insertIndex = m_manifoldPtr->getCacheEntry(newPt);
 
 	newPt.m_combinedFriction = calculateCombinedFriction(m_body0,m_body1);
 	newPt.m_combinedRestitution = calculateCombinedRestitution(m_body0,m_body1);
 
+   //BP mod, store contact triangles.
+   newPt.m_partId0 = m_partId0;
+   newPt.m_partId1 = m_partId1;
+   newPt.m_index0  = m_index0;
+   newPt.m_index1  = m_index1;
+	
+	///todo, check this for any side effects
+	if (insertIndex >= 0)
+	{
+		//const btManifoldPoint& oldPoint = m_manifoldPtr->getContactPoint(insertIndex);
+		m_manifoldPtr->replaceContactPoint(newPt,insertIndex);
+	} else
+	{
+		insertIndex = m_manifoldPtr->addManifoldPoint(newPt);
+	}
+	
 	//User can override friction and/or restitution
 	if (gContactAddedCallback &&
 		//and if either of the two bodies requires custom material
@@ -87,16 +112,8 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 		//experimental feature info, for per-triangle material etc.
 		btCollisionObject* obj0 = isSwapped? m_body1 : m_body0;
 		btCollisionObject* obj1 = isSwapped? m_body0 : m_body1;
-		(*gContactAddedCallback)(newPt,obj0,m_partId0,m_index0,obj1,m_partId1,m_index1);
+		(*gContactAddedCallback)(m_manifoldPtr->getContactPoint(insertIndex),obj0,m_partId0,m_index0,obj1,m_partId1,m_index1);
 	}
 
-	if (insertIndex >= 0)
-	{
-		//const btManifoldPoint& oldPoint = m_manifoldPtr->getContactPoint(insertIndex);
-		m_manifoldPtr->replaceContactPoint(newPt,insertIndex);
-	} else
-	{
-		m_manifoldPtr->AddManifoldPoint(newPt);
-	}
 }
 

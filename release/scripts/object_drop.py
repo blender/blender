@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'Drop Onto Ground'
-Blender: 243
+Blender: 245
 Group: 'Object'
 Tooltip: 'Drop the selected objects onto "ground" objects'
 """
@@ -216,9 +216,10 @@ def main():
 	
 	# hack so the toggle buttons redraw. this is not nice at all
 	while GLOBALS['EVENT'] == EVENT_REDRAW:
-		Draw.UIBlock(terain_clamp_ui)
+		Draw.UIBlock(terain_clamp_ui, 0)
 	
 if __name__ == '__main__':
 	main()
 
 GLOBALS.clear()
+

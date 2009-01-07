@@ -4,6 +4,7 @@
 class SM_Callback {
 public:
 	virtual void do_me() = 0;
+	virtual ~SM_Callback() {}
 }; 
 
 #endif

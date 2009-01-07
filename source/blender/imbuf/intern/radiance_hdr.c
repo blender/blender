@@ -61,6 +61,7 @@
 #define BLU 2
 #define EXP 3
 #define COLXS 128
+#define STR_MAX 540
 typedef unsigned char RGBE[4];
 typedef float fCOLOR[3];
 /* copy source -> dest */
@@ -161,8 +162,10 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 
 int imb_is_a_hdr(void *buf)
 {
-	/* For recognition, Blender only loades first 32 bytes, so use #?RADIANCE id instead */
-	if (strstr((char*)buf, "#?RADIANCE")) return 1;
+	// For recognition, Blender only loads first 32 bytes, so use #?RADIANCE id instead
+	// update: actually, the 'RADIANCE' part is just an optional program name, the magic word is really only the '#?' part
+	//if (strstr((char*)buf, "#?RADIANCE")) return 1;
+	if (strstr((char*)buf, "#?")) return 1;
 	// if (strstr((char*)buf, "32-bit_rle_rgbe")) return 1;
 	return 0;
 }
@@ -176,7 +179,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 	int found=0;
 	int width=0, height=0;
 	int x, y;
-	int ir, ig, ib;
 	unsigned char* ptr;
 	unsigned char* rect;
 	char oriY[80], oriX[80];
@@ -191,7 +193,8 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 			}
 		}
 		if (found) {
-			sscanf((char*)&mem[x+1], "%s %d %s %d", (char*)&oriY, &height, (char*)&oriX, &width);
+			if (sscanf((char *)&mem[x+1], "%79s %d %79s %d", (char*)&oriY, &height, 
+				(char*)&oriX, &width) != 4) return NULL;
 
 			/* find end of this line, data right behind it */
 			ptr = (unsigned char *)strchr((char*)&mem[x+1], '\n');
@@ -225,18 +228,14 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 					*rect_float++ = fcol[GRN];
 					*rect_float++ = fcol[BLU];
 					*rect_float++ = 1.0f;
-
 					/* Also old oldstyle for the rest of blender which is not using floats yet */
-/* very weird mapping! (ton) */
-					fcol[RED] = 1.f-exp(fcol[RED]*-1.414213562f);
-					fcol[GRN] = 1.f-exp(fcol[GRN]*-1.414213562f);
-					fcol[BLU] = 1.f-exp(fcol[BLU]*-1.414213562f);
-					ir = (int)(255.f*pow(fcol[RED], 0.45454545f));
-					ig = (int)(255.f*pow(fcol[GRN], 0.45454545f));
-					ib = (int)(255.f*pow(fcol[BLU], 0.45454545f));
-					*rect++ = (unsigned char)((ir<0) ? 0 : ((ir>255) ? 255 : ir));
-					*rect++ = (unsigned char)((ig<0) ? 0 : ((ig>255) ? 255 : ig));
-					*rect++ = (unsigned char)((ib<0) ? 0 : ((ib>255) ? 255 : ib));
+					// e: changed to simpler tonemapping, previous code was rather slow (is this actually still relevant at all?)
+					fcol[RED] = fcol[RED]/(1.f + fcol[RED]);
+					fcol[GRN] = fcol[GRN]/(1.f + fcol[GRN]);
+					fcol[BLU] = fcol[BLU]/(1.f + fcol[BLU]);
+					*rect++ = (unsigned char)((fcol[RED] < 0.f) ? 0 : ((fcol[RED] > 1.f) ? 255 : (255.f*fcol[RED])));
+					*rect++ = (unsigned char)((fcol[GRN] < 0.f) ? 0 : ((fcol[GRN] > 1.f) ? 255 : (255.f*fcol[GRN])));
+					*rect++ = (unsigned char)((fcol[BLU] < 0.f) ? 0 : ((fcol[BLU] > 1.f) ? 255 : (255.f*fcol[BLU])));
 					*rect++ = 255;
 				}
 			}
@@ -252,7 +251,7 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 }
 
 /* ImBuf write */
-static int fwritecolrs(FILE* file, int width, unsigned char* ibufscan, float* fpscan)
+static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufscan, float* fpscan)
 {
 	int x, i, j, beg, c2, cnt=0;
 	fCOLOR fcol;
@@ -267,16 +266,16 @@ static int fwritecolrs(FILE* file, int width, unsigned char* ibufscan, float* fp
 	for (i=0;i<width;i++) {
 		if (fpscan) {
 			fcol[RED] = fpscan[j];
-			fcol[GRN] = fpscan[j+1];
-			fcol[BLU] = fpscan[j+2];
+			fcol[GRN] = (channels >= 2)? fpscan[j+1]: fpscan[j];
+			fcol[BLU] = (channels >= 3)? fpscan[j+2]: fpscan[j];
 		} else {
 			fcol[RED] = (float)ibufscan[j] / 255.f;
-			fcol[GRN] = (float)ibufscan[j+1] / 255.f;
-			fcol[BLU] = (float)ibufscan[j+2] /255.f;
+			fcol[GRN] = (float)((channels >= 2)? ibufscan[j+1]: ibufscan[j]) / 255.f;
+			fcol[BLU] = (float)((channels >= 3)? ibufscan[j+2]: ibufscan[j]) / 255.f;
 		}
 		FLOAT2RGBE(fcol, rgbe);
 		copy_rgbe(rgbe, rgbe_scan[i]);
-		j+=4;
+		j+=channels;
 	}
 
 	if ((width < MINELEN) | (width > MAXELEN)) {	/* OOBs, write out flat */
@@ -328,9 +327,9 @@ static void writeHeader(FILE *file, int width, int height)
 	fputc(10, file);
 	fprintf(file, "# %s", "Created with Blender");
 	fputc(10, file);
-	fprintf(file, "FORMAT=32-bit_rle_rgbe");
-	fputc(10, file);
 	fprintf(file, "EXPOSURE=%25.13f", 1.0);
+	fputc(10, file);
+	fprintf(file, "FORMAT=32-bit_rle_rgbe");
 	fputc(10, file);
 	fputc(10, file);
 	fprintf(file, "-Y %d +X %d", height, width);
@@ -349,18 +348,18 @@ short imb_savehdr(struct ImBuf *ibuf, char *name, int flags)
 	writeHeader(file, width, height);
 
 	if(ibuf->rect)
-		cp= (unsigned char *)(ibuf->rect + (height-1)*width);
+		cp= (unsigned char *)ibuf->rect + ibuf->channels*(height-1)*width;
 	if(ibuf->rect_float)
-		fp= ibuf->rect_float + 4*(height-1)*width;
+		fp= ibuf->rect_float + ibuf->channels*(height-1)*width;
 	
 	for (y=height-1;y>=0;y--) {
-		if (fwritecolrs(file, width, cp, fp) < 0) {
+		if (fwritecolrs(file, width, ibuf->channels, cp, fp) < 0) {
 			fclose(file);
 			printf("HDR write error\n");
 			return 0;
 		}
-		if(cp) cp-= 4*width;
-		if(fp) fp-= 4*width;
+		if(cp) cp-= ibuf->channels*width;
+		if(fp) fp-= ibuf->channels*width;
 	}
 
 	fclose(file);

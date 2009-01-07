@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * these all are linked to objects (listbase)
  * all data is 'direct data', not Blender lib data.
  */
@@ -40,7 +37,6 @@
 #include <string.h>
 #include "MEM_guardedalloc.h"
 
-#include "nla.h"	/* For __NLA: Important, do not remove */
 #include "DNA_text_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_sensor_types.h"
@@ -48,12 +44,13 @@
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_blender.h"
 #include "BKE_sca.h"
+
+//#include "wm_event_types.h"
 
 void free_text_controllers(Text *txt)
 {
@@ -153,9 +150,15 @@ void init_sensor(bSensor *sens)
 	case SENS_PROPERTY:
 		sens->data= MEM_callocN(sizeof(bPropertySensor), "propsens");
 		break;
+	case SENS_ACTUATOR:
+		sens->data= MEM_callocN(sizeof(bActuatorSensor), "actsens");
+		break;
+	case SENS_DELAY:
+		sens->data= MEM_callocN(sizeof(bDelaySensor), "delaysens");
+		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
-		ms->type= LEFTMOUSE;
+		//XXX ms->type= LEFTMOUSE;
 		break;
 	case SENS_COLLISION:
 		sens->data= MEM_callocN(sizeof(bCollisionSensor), "colsens");
@@ -192,7 +195,7 @@ bSensor *new_sensor(int type)
 	init_sensor(sens);
 	
 	strcpy(sens->name, "sensor");
-	make_unique_prop_names(sens->name);
+// XXX	make_unique_prop_names(sens->name);
 	
 	return sens;
 }
@@ -316,7 +319,7 @@ bController *new_controller(int type)
 	init_controller(cont);
 	
 	strcpy(cont->name, "cont");
-	make_unique_prop_names(cont->name);
+// XXX	make_unique_prop_names(cont->name);
 	
 	return cont;
 }
@@ -414,6 +417,7 @@ void init_actuator(bActuator *act)
 	switch(act->type) {
 #ifdef __NLA
 	case ACT_ACTION:
+	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
 #endif
@@ -461,6 +465,15 @@ void init_actuator(bActuator *act)
 	case ACT_VISIBILITY:
 		act->data= MEM_callocN(sizeof(bVisibilityActuator), "visibility act");
 		break;
+    case ACT_2DFILTER:
+        act->data = MEM_callocN(sizeof( bTwoDFilterActuator ), "2d filter act");
+        break;
+    case ACT_PARENT:
+        act->data = MEM_callocN(sizeof( bParentActuator ), "parent act");
+        break;
+	case ACT_STATE:
+        act->data = MEM_callocN(sizeof( bStateActuator ), "state act");
+        break;
 	default:
 		; /* this is very severe... I cannot make any memory for this        */
 		/* logic brick...                                                    */
@@ -478,7 +491,7 @@ bActuator *new_actuator(int type)
 	init_actuator(act);
 	
 	strcpy(act->name, "act");
-	make_unique_prop_names(act->name);
+// XXX	make_unique_prop_names(act->name);
 	
 	return act;
 }

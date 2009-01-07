@@ -1,15 +1,12 @@
 /*
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * external writefile function prototypes
  */
 
@@ -35,10 +32,13 @@
 #define BLO_WRITEFILE_H
 
 struct MemFile;
+struct Main;
+struct ReportList;
 
-extern int BLO_write_file(char *dir, int write_flags, char **error_r);
-extern int BLO_write_file_mem(struct MemFile *compare, struct MemFile *current, int write_flags, char **error_r);
-extern void BLO_write_runtime(char *file, char *exename);
+extern int BLO_write_file(struct Main *mainvar, char *dir, int write_flags, struct ReportList *reports);
+extern int BLO_write_file_mem(struct Main *mainvar, struct MemFile *compare, struct MemFile *current, 
+							  int write_flags, struct ReportList *reports);
+extern int BLO_write_runtime(struct Main *mainvar, char *file, char *exename, struct ReportList *reports);
 
 #endif
 

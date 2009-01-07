@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_7\extern\glew\include"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -73,7 +73,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\misc;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\render\intern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\..\build\msvc_7\extern\glew\include"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

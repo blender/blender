@@ -6,15 +6,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BLI_EDITVERT_H
@@ -40,6 +37,8 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
+
+#include "BLO_sys_types.h" // for intptr_t support
 
 struct DerivedMesh;
 struct RetopoPaintData;
@@ -55,9 +54,9 @@ typedef struct EditVert
 		struct EditVert *v;
 		struct EditEdge *e;
 		struct EditFace *f;
-		float           *fp;
 		void            *p;
-		long             l;
+		intptr_t         l;
+		float            fp;
 	} tmp;
 	float no[3]; /*vertex normal */
 	float co[3]; /*vertex location */
@@ -67,12 +66,10 @@ typedef struct EditVert
 	h for hidden. if (!eve->h) {...
 	f1 and f2 can be used for temp data, clear them first*/
 	unsigned char f, h, f1, f2; 
+	float bweight;
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
 	int hash;
 	int keyindex; /* original index #, for restoring  key information */
-/*#ifdef WITH_VERSE*/
-	void *vvert;
-/*#endif*/
 
 	void *data;		/* custom vertex data */
 } EditVert;
@@ -97,15 +94,17 @@ typedef struct EditEdge
 		struct EditEdge *e;
 		struct EditFace *f;
 		void            *p;
-		long             l;
+		intptr_t         l;
 		float			fp;
 	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
 	unsigned char f, h, dir, seam, sharp;
 	float crease;
+	float bweight;
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
 	short fgoni;		/* index for fgon, for search */
 	HashEdge hash;
+	void *data;			/*custom edge data*/
 } EditEdge;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
@@ -122,7 +121,7 @@ typedef struct EditFace
 		struct EditEdge *e;
 		struct EditFace *f;
 		void            *p;
-		long             l;
+		intptr_t         l;
 		float			fp;
 	} tmp;
 	float n[3], cent[3];
@@ -130,9 +129,6 @@ typedef struct EditFace
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
-/*#ifdef WITH_VERSE*/
-	void *vface;
-/*#endif*/
 	void *data;		/* custom face data */
 } EditFace;
 
@@ -163,6 +159,18 @@ typedef struct EditMesh
 		/* DerivedMesh caches... note that derived cage can be equivalent
 		 * to derived final, care should be taken on release.
 		 */
+	
+	/* used for keeping track of the last clicked on face - so the space image
+	 * when using the last selected face - (EditSelection) the space image flickered too much
+	 * 
+	 * never access this directly, use EM_set_actFace and EM_get_actFace */
+	EditFace *act_face; 
+	
+	/* copy from scene */
+	short selectmode;
+	/* copy from object actcol */
+	short mat_nr;
+	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate
 	 * derivedCage and derivedFinal
@@ -171,11 +179,8 @@ typedef struct EditMesh
 
 	struct RetopoPaintData *retopo_paint_data;
 
-	CustomData vdata, fdata;
+	CustomData vdata, edata, fdata;
 
-#ifdef WITH_VERSE
-	void *vnode;
-#endif
 } EditMesh;
 
 #endif

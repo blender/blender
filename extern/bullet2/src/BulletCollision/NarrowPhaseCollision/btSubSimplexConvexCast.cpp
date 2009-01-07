@@ -16,11 +16,13 @@ subject to the following restrictions:
 
 #include "btSubSimplexConvexCast.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
+
 #include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
+#include "btPointCollector.h"
+#include "LinearMath/btTransformUtil.h"
 
-
-btSubsimplexConvexCast::btSubsimplexConvexCast (btConvexShape* convexA,btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
+btSubsimplexConvexCast::btSubsimplexConvexCast (const btConvexShape* convexA,const btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
 :m_simplexSolver(simplexSolver),
 m_convexA(convexA),m_convexB(convexB)
 {
@@ -28,8 +30,11 @@ m_convexA(convexA),m_convexB(convexB)
 
 ///Typically the conservative advancement reaches solution in a few iterations, clip it to 32 for degenerate cases.
 ///See discussion about this here http://continuousphysics.com/Bullet/phpBB2/viewtopic.php?t=565
+#ifdef BT_USE_DOUBLE_PRECISION
+#define MAX_ITERATIONS 64
+#else
 #define MAX_ITERATIONS 32
-
+#endif
 bool	btSubsimplexConvexCast::calcTimeOfImpact(
 		const btTransform& fromA,
 		const btTransform& toA,
@@ -38,58 +43,57 @@ bool	btSubsimplexConvexCast::calcTimeOfImpact(
 		CastResult& result)
 {
 
-	btMinkowskiSumShape combi(m_convexA,m_convexB);
-	btMinkowskiSumShape* convex = &combi;
-
-	btTransform	rayFromLocalA;
-	btTransform	rayToLocalA;
-
-	rayFromLocalA = fromA.inverse()* fromB;
-	rayToLocalA = toA.inverse()* toB;
-
-
 	m_simplexSolver->reset();
 
-	convex->setTransformB(btTransform(rayFromLocalA.getBasis()));
+	btVector3 linVelA,linVelB;
+	linVelA = toA.getOrigin()-fromA.getOrigin();
+	linVelB = toB.getOrigin()-fromB.getOrigin();
 
-	//float radius = 0.01f;
+	btScalar lambda = btScalar(0.);
 
-	btScalar lambda = 0.f;
-	//todo: need to verify this:
-	//because of minkowski difference, we need the inverse direction
-	
-	btVector3 s = -rayFromLocalA.getOrigin();
-	btVector3 r = -(rayToLocalA.getOrigin()-rayFromLocalA.getOrigin());
-	btVector3 x = s;
+	btTransform interpolatedTransA = fromA;
+	btTransform interpolatedTransB = fromB;
+
+	///take relative motion
+	btVector3 r = (linVelA-linVelB);
 	btVector3 v;
-	btVector3 arbitraryPoint = convex->localGetSupportingVertex(r);
 	
-	v = x - arbitraryPoint;
-
+	btVector3 supVertexA = fromA(m_convexA->localGetSupportingVertex(-r*fromA.getBasis()));
+	btVector3 supVertexB = fromB(m_convexB->localGetSupportingVertex(r*fromB.getBasis()));
+	v = supVertexA-supVertexB;
 	int maxIter = MAX_ITERATIONS;
 
 	btVector3 n;
-	n.setValue(0.f,0.f,0.f);
+	n.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	bool hasResult = false;
 	btVector3 c;
 
-	float lastLambda = lambda;
+	btScalar lastLambda = lambda;
 
 
-	float dist2 = v.length2();
-	float epsilon = 0.0001f;
-
+	btScalar dist2 = v.length2();
+#ifdef BT_USE_DOUBLE_PRECISION
+	btScalar epsilon = btScalar(0.0001);
+#else
+	btScalar epsilon = btScalar(0.0001);
+#endif //BT_USE_DOUBLE_PRECISION
 	btVector3	w,p;
-	float VdotR;
+	btScalar VdotR;
 	
 	while ( (dist2 > epsilon) && maxIter--)
 	{
-		p = convex->localGetSupportingVertex( v);
-		 w = x - p;
+		supVertexA = interpolatedTransA(m_convexA->localGetSupportingVertex(-v*interpolatedTransA.getBasis()));
+		supVertexB = interpolatedTransB(m_convexB->localGetSupportingVertex(v*interpolatedTransB.getBasis()));
+		w = supVertexA-supVertexB;
 
-		float VdotW = v.dot(w);
+		btScalar VdotW = v.dot(w);
 
-		if ( VdotW > 0.f)
+		if (lambda > btScalar(1.0))
+		{
+			return false;
+		}
+
+		if ( VdotW > btScalar(0.))
 		{
 			VdotR = v.dot(r);
 
@@ -98,36 +102,56 @@ bool	btSubsimplexConvexCast::calcTimeOfImpact(
 			else
 			{
 				lambda = lambda - VdotW / VdotR;
-				x = s + lambda * r;
-				m_simplexSolver->reset();
+				//interpolate to next lambda
+				//	x = s + lambda * r;
+				interpolatedTransA.getOrigin().setInterpolate3(fromA.getOrigin(),toA.getOrigin(),lambda);
+				interpolatedTransB.getOrigin().setInterpolate3(fromB.getOrigin(),toB.getOrigin(),lambda);
+				//m_simplexSolver->reset();
 				//check next line
-				w = x-p;
+				 w = supVertexA-supVertexB;
 				lastLambda = lambda;
 				n = v;
 				hasResult = true;
 			}
 		} 
-		m_simplexSolver->addVertex( w, x , p);
+		m_simplexSolver->addVertex( w, supVertexA , supVertexB);
 		if (m_simplexSolver->closest(v))
 		{
 			dist2 = v.length2();
 			hasResult = true;
+			//todo: check this normal for validity
+			//n=v;
 			//printf("V=%f , %f, %f\n",v[0],v[1],v[2]);
 			//printf("DIST2=%f\n",dist2);
 			//printf("numverts = %i\n",m_simplexSolver->numVertices());
 		} else
 		{
-			dist2 = 0.f;
+			dist2 = btScalar(0.);
 		} 
 	}
 
 	//int numiter = MAX_ITERATIONS - maxIter;
 //	printf("number of iterations: %d", numiter);
-	result.m_fraction = lambda;
-	result.m_normal = n;
+	
+	//don't report a time of impact when moving 'away' from the hitnormal
+	
 
+	result.m_fraction = lambda;
+	if (n.length2() >= (SIMD_EPSILON*SIMD_EPSILON))
+		result.m_normal = n.normalized();
+	else
+		result.m_normal = btVector3(btScalar(0.0), btScalar(0.0), btScalar(0.0));
+
+	//don't report time of impact for motion away from the contact normal (or causes minor penetration)
+	if (result.m_normal.dot(r)>=-result.m_allowedPenetration)
+		return false;
+
+	btVector3 hitA,hitB;
+	m_simplexSolver->compute_points(hitA,hitB);
+	result.m_hitPoint=hitB;
 	return true;
 }
+
 
 
 

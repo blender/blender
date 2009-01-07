@@ -5,15 +5,12 @@
 //
 // $Id$
 //
-// ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+// ***** BEGIN GPL LICENSE BLOCK *****
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version. The Blender
-// Foundation also sells licenses for use in proprietary software under
-// the Blender License.  See http://www.blender.org/BL/ for information
-// about this.
+// of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
 //
 // Contributor(s): none yet.
 //
-// ***** END GPL/BL DUAL LICENSE BLOCK *****
+// ***** END GPL LICENSE BLOCK *****
 //
 // Previously existed as:
 // \source\gameengine\GameLogic\SCA_AddObjectActuator.h
@@ -56,16 +53,20 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	int	m_timeProp;
 
 	/// Original object reference (object to replicate)  	
-	CValue*	m_OriginalObject;
+	SCA_IObject*	m_OriginalObject;
 
 	/// Object will be added to the following scene
 	SCA_IScene*	m_scene;
 
 	/// Linear velocity upon creation of the object. 
 	MT_Vector3  m_linear_velocity;
+	
+	/// Angular velocity upon creation of the object. 
+	MT_Vector3  m_angular_velocity;
 
 	/// Apply the velocity locally 
-	bool m_localFlag;
+	bool m_localLinvFlag;
+	bool m_localAngvFlag;
 	
 	SCA_IObject*	m_lastCreatedObject;
 	
@@ -78,11 +79,13 @@ public:
 
 	KX_SCA_AddObjectActuator(
 		SCA_IObject *gameobj,
-		CValue* original,
+		SCA_IObject *original,
 		int time,
 		SCA_IScene* scene,
 		const MT_Vector3& linvel,
-		bool local,
+		bool linv_local,
+		const MT_Vector3& angvel,
+		bool angv_local,
 		PyTypeObject* T=&Type
 	);
 
@@ -91,6 +94,15 @@ public:
 		CValue* 
 	GetReplica(
 	) ;
+
+	virtual void 
+	ProcessReplica();
+
+	virtual bool 
+	UnlinkObject(SCA_IObject* clientobj);
+
+	virtual void 
+	Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map);
 
 	virtual bool 
 	Update();
@@ -107,21 +119,25 @@ public:
 	void	InstantAddObject();
 
 	/* 1. setObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetObject);
+	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetObject);
 	/* 2. setTime */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetTime);
+	KX_PYMETHOD_DOC_O(KX_SCA_AddObjectActuator,SetTime);
 	/* 3. getTime */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetTime);
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetTime);
 	/* 4. getObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,GetObject);
 	/* 5. getLinearVelocity */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLinearVelocity);
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLinearVelocity);
 	/* 6. setLinearVelocity */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,SetLinearVelocity);
-	/* 7. getLastCreatedObject */
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,GetLastCreatedObject);
-	/* 8. instantAddObject*/
-	KX_PYMETHOD_DOC(KX_SCA_AddObjectActuator,InstantAddObject);
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetLinearVelocity);
+	/* 7. getAngularVelocity */
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetAngularVelocity);
+	/* 8. setAngularVelocity */
+	KX_PYMETHOD_DOC_VARARGS(KX_SCA_AddObjectActuator,SetAngularVelocity);
+	/* 9. getLastCreatedObject */
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,GetLastCreatedObject);
+	/* 10. instantAddObject*/
+	KX_PYMETHOD_DOC_NOARGS(KX_SCA_AddObjectActuator,InstantAddObject);
 
 	
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */

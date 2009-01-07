@@ -3,7 +3,7 @@ Import ('env')
 
 sources = 'CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp'
 
-incs = '. ../common'
+incs = '. ../common #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'
 
 incs += ' ' + env['BF_BULLET_INC']
 
@@ -12,4 +12,4 @@ if env['OURPLATFORM']=='win32-vc':
     cflags.append('/GR')
     cflags.append('/O2')
 
-env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90] )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360,80] )

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #include "DummyPhysicsEnvironment.h"
 #include "PHY_IMotionState.h"
@@ -95,8 +92,7 @@ void DummyPhysicsEnvironment::setGravity(float x,float y,float z)
 int			DummyPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 		float pivotX,float pivotY,float pivotZ,float axisX,float axisY,float axisZ,
 			float axis1X,float axis1Y,float axis1Z,
-			float axis2X,float axis2Y,float axis2Z
-
+			float axis2X,float axis2Y,float axis2Z,int flag
 		)
 {
 	
@@ -112,8 +108,7 @@ void		DummyPhysicsEnvironment::removeConstraint(int	constraintid)
 	}
 }
 
-PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient,float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-									float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
+PHY_IPhysicsController* DummyPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallback &filterCallback,float fromX,float fromY,float fromZ, float toX,float toY,float toZ)
 {
 	//collision detection / raytesting
 	return NULL;

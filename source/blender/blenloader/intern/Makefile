@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 #
 
@@ -38,10 +35,6 @@ include nan_compile.mk
 
 # CFLAGS += $(LEVEL_2_C_WARNINGS)
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 # OpenGL and Python
 CPPFLAGS += $(OGL_CPPFLAGS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
@@ -49,11 +42,6 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 # zlib
 ifeq ($(OS),$(findstring $(OS), "solaris windows"))
     CPPFLAGS += -I$(NAN_ZLIB)/include
-endif
-
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
 endif
 
 # streaming write function
@@ -74,7 +62,7 @@ CPPFLAGS += -I../../render/extern/include/
 CPPFLAGS += -I../../python
 
 # we still refer to /include a bit...
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 
 # path to our own external headerfiles
 CPPFLAGS += -I..

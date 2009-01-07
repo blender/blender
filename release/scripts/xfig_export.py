@@ -7,7 +7,7 @@ Tooltip: 'Export selected mesh to xfig Format (.fig)'
 """
 
 __author__ = 'Dino Ghilardi',  'Campbell Barton AKA Ideasman42'
-__url__ = ("blender", "elysiun")
+__url__ = ("blender", "blenderartists.org")
 __version__ = "1.1"
 
 __bpydoc__ = """\

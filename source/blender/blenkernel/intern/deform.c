@@ -6,15 +6,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +29,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -113,14 +110,31 @@ bDeformGroup *get_named_vertexgroup (Object *ob, char *name)
 	return NULL;
 }
 
-int get_defgroup_num (Object *ob, bDeformGroup	*dg)
+int get_named_vertexgroup_num (Object *ob, char *name)
+{
+	/* Return the location of the named deform group within the list of
+	 * deform groups. This function is a combination of get_defgroup_num and
+	 * get_named_vertexgroup. The other two could be called instead, but that
+	 * require looping over the vertexgroups twice.
+	 */
+	bDeformGroup *curdef;
+	int def_nr;
+	
+	for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
+		if (!strcmp(curdef->name, name))
+			return def_nr;
+	}
+	
+	return -1;
+}
+
+int get_defgroup_num (Object *ob, bDeformGroup *dg)
 {
 	/* Fetch the location of this deform group
 	 * within the linked list of deform groups.
 	 * (this number is stored in the deform
 	 * weights of the deform verts to link them
-	 * to this deform group) deform deform
-	 * deform blah blah deform
+	 * to this deform group).
 	 */
 
 	bDeformGroup *eg;
@@ -129,8 +143,7 @@ int get_defgroup_num (Object *ob, bDeformGroup	*dg)
 	eg = ob->defbase.first;
 	def_nr = 0;
 
-	/* loop through all deform groups
-	 */
+	/* loop through all deform groups */
 	while (eg != NULL) {
 
 		/* if the current deform group is
@@ -207,3 +220,28 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 		}
 	}	
 }
+
+float deformvert_get_weight(const struct MDeformVert *dvert, int group_num)
+{
+	if(dvert)
+	{
+		const MDeformWeight *dw = dvert->dw;
+		int i;
+
+		for(i=dvert->totweight; i>0; i--, dw++)
+			if(dw->def_nr == group_num)
+				return dw->weight;
+	}
+
+	/* Not found */
+	return 0.0;
+}
+
+float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num)
+{
+	if(group_num == -1 || dvert == NULL)
+		return 1.0;
+
+	return deformvert_get_weight(dvert+index, group_num);
+}
+

@@ -16,6 +16,8 @@ subject to the following restrictions:
 #ifndef BROADPHASE_PROXY_H
 #define BROADPHASE_PROXY_H
 
+#include "LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
+#include "LinearMath/btAlignedAllocator.h"
 
 
 /// btDispatcher uses these types
@@ -33,21 +35,26 @@ enum BroadphaseNativeTypes
 IMPLICIT_CONVEX_SHAPES_START_HERE,
 	SPHERE_SHAPE_PROXYTYPE,
 	MULTI_SPHERE_SHAPE_PROXYTYPE,
+	CAPSULE_SHAPE_PROXYTYPE,
 	CONE_SHAPE_PROXYTYPE,
 	CONVEX_SHAPE_PROXYTYPE,
 	CYLINDER_SHAPE_PROXYTYPE,
+	UNIFORM_SCALING_SHAPE_PROXYTYPE,
 	MINKOWSKI_SUM_SHAPE_PROXYTYPE,
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
 //concave shapes
 CONCAVE_SHAPES_START_HERE,
 	//keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
 	TRIANGLE_MESH_SHAPE_PROXYTYPE,
+	SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE,
 	///used for demo integration FAST/Swift collision library and Bullet
 	FAST_CONCAVE_MESH_PROXYTYPE,
 	//terrain
 	TERRAIN_SHAPE_PROXYTYPE,
 ///Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
+///Multimaterial mesh
+    MULTIMATERIAL_TRIANGLE_MESH_PROXYTYPE,
 	
 	EMPTY_SHAPE_PROXYTYPE,
 	STATIC_PLANE_PROXYTYPE,
@@ -55,13 +62,18 @@ CONCAVE_SHAPES_END_HERE,
 
 	COMPOUND_SHAPE_PROXYTYPE,
 
+	SOFTBODY_SHAPE_PROXYTYPE,
+
 	MAX_BROADPHASE_COLLISION_TYPES
 };
 
 
-///btBroadphaseProxy
-struct btBroadphaseProxy
+///The btBroadphaseProxy is the main class that can be used with the Bullet broadphases. 
+///It stores collision shape type information, collision filter information and a client object, typically a btCollisionObject or btRigidBody.
+ATTRIBUTE_ALIGNED16(struct) btBroadphaseProxy
 {
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 	
 	///optional filtering to cull potential collisions
 	enum CollisionFilterGroups
@@ -71,49 +83,66 @@ struct btBroadphaseProxy
 	        KinematicFilter = 4,
 	        DebrisFilter = 8,
 			SensorTrigger = 16,
-	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger,
+	        AllFilter = -1 //all bits sets: DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger
 	};
 
 	//Usually the client btCollisionObject or Rigidbody class
 	void*	m_clientObject;
+
 	short int m_collisionFilterGroup;
 	short int m_collisionFilterMask;
 
-	//used for memory pools
-	btBroadphaseProxy() :m_clientObject(0){}
+	void*	m_multiSapParentProxy;		
 
-	btBroadphaseProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask)
+
+	int			m_uniqueId;//m_uniqueId is introduced for paircache. could get rid of this, by calculating the address offset etc.
+
+	SIMD_FORCE_INLINE int getUid() const
+	{
+		return m_uniqueId;
+	}
+
+	//used for memory pools
+	btBroadphaseProxy() :m_clientObject(0),m_multiSapParentProxy(0)
+	{
+	}
+
+	btBroadphaseProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask,void* multiSapParentProxy=0)
 		:m_clientObject(userPtr),
 		m_collisionFilterGroup(collisionFilterGroup),
 		m_collisionFilterMask(collisionFilterMask)
 	{
+		m_multiSapParentProxy = multiSapParentProxy;
 	}
 
-	static inline bool isPolyhedral(int proxyType)
+	
+
+	static SIMD_FORCE_INLINE bool isPolyhedral(int proxyType)
 	{
 		return (proxyType  < IMPLICIT_CONVEX_SHAPES_START_HERE);
 	}
 
-	static inline bool	isConvex(int proxyType)
+	static SIMD_FORCE_INLINE bool	isConvex(int proxyType)
 	{
 		return (proxyType < CONCAVE_SHAPES_START_HERE);
 	}
 
-	static inline bool	isConcave(int proxyType)
+	static SIMD_FORCE_INLINE bool	isConcave(int proxyType)
 	{
 		return ((proxyType > CONCAVE_SHAPES_START_HERE) &&
 			(proxyType < CONCAVE_SHAPES_END_HERE));
 	}
-	static inline bool	isCompound(int proxyType)
+	static SIMD_FORCE_INLINE bool	isCompound(int proxyType)
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
-	static inline bool isInfinite(int proxyType)
+	static SIMD_FORCE_INLINE bool isInfinite(int proxyType)
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
 	
-};
+}
+;
 
 class btCollisionAlgorithm;
 
@@ -121,21 +150,26 @@ struct btBroadphaseProxy;
 
 
 
-/// contains a pair of aabb-overlapping objects
-struct btBroadphasePair
+///The btBroadphasePair class contains a pair of aabb-overlapping objects.
+///A btDispatcher can search a btCollisionAlgorithm that performs exact/narrowphase collision detection on the actual collision shapes.
+ATTRIBUTE_ALIGNED16(struct) btBroadphasePair
 {
 	btBroadphasePair ()
 		:
 	m_pProxy0(0),
 		m_pProxy1(0),
-		m_algorithm(0)
+		m_algorithm(0),
+		m_userInfo(0)
 	{
 	}
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btBroadphasePair(const btBroadphasePair& other)
 		:		m_pProxy0(other.m_pProxy0),
 				m_pProxy1(other.m_pProxy1),
-				m_algorithm(other.m_algorithm)
+				m_algorithm(other.m_algorithm),
+				m_userInfo(other.m_userInfo)
 	{
 	}
 	btBroadphasePair(btBroadphaseProxy& proxy0,btBroadphaseProxy& proxy1)
@@ -154,6 +188,7 @@ struct btBroadphasePair
         }
 
 		m_algorithm = 0;
+		m_userInfo = 0;
 
 	}
 	
@@ -161,14 +196,37 @@ struct btBroadphasePair
 	btBroadphaseProxy* m_pProxy1;
 	
 	mutable btCollisionAlgorithm* m_algorithm;
+	mutable void* m_userInfo;
+
 };
 
-
+/*
 //comparison for set operation, see Solid DT_Encounter
-inline bool operator<(const btBroadphasePair& a, const btBroadphasePair& b) 
+SIMD_FORCE_INLINE bool operator<(const btBroadphasePair& a, const btBroadphasePair& b) 
 { 
     return a.m_pProxy0 < b.m_pProxy0 || 
         (a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 < b.m_pProxy1); 
+}
+*/
+
+
+
+class btBroadphasePairSortPredicate
+{
+	public:
+
+		bool operator() ( const btBroadphasePair& a, const btBroadphasePair& b )
+		{
+			 return a.m_pProxy0 > b.m_pProxy0 || 
+				(a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 > b.m_pProxy1) ||
+				(a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 == b.m_pProxy1 && a.m_algorithm > b.m_algorithm); 
+		}
+};
+
+
+SIMD_FORCE_INLINE bool operator==(const btBroadphasePair& a, const btBroadphasePair& b) 
+{
+	 return (a.m_pProxy0 == b.m_pProxy0) && (a.m_pProxy1 == b.m_pProxy1);
 }
 
 

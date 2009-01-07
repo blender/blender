@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_ACTUATOR_TYPES_H
 #define DNA_ACTUATOR_TYPES_H
@@ -38,6 +35,7 @@ struct Object;
 struct Mesh;
 struct Scene;
 struct Group;
+struct Text;
 
 /* ****************** ACTUATORS ********************* */
 
@@ -52,8 +50,10 @@ typedef struct bActionActuator {
 	short	type, flag;		/* Playback type */					
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
-	int	blendin;		/* Number of frames of blending */	
-	short	priority;		/* Execution priority */			
+	char	frameProp[32];	/* Set this property to the actions current frame */
+	short	blendin;		/* Number of frames of blending */
+	short	priority;		/* Execution priority */
+	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
 	float	stridelength;	/* Displacement incurred by cycle */
 } bActionActuator;												
@@ -81,8 +81,10 @@ typedef struct bEditObjectActuator {
 	struct Mesh *me;
 	char name[32];
 	float linVelocity[3]; /* initial lin. velocity on creation */
-	short localflag; /* flag for the lin. vel: apply locally   */
-	short pad;
+	float angVelocity[3]; /* initial ang. velocity on creation */
+	float pad;
+	short localflag; /* flag for the lin & ang. vel: apply locally   */
+	short dyn_operation;
 } bEditObjectActuator;
 
 typedef struct bSceneActuator {
@@ -99,7 +101,8 @@ typedef struct bPropertyActuator {
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
-	int flag, type;
+	short flag, type, otype;
+	short damping;
 	float forceloc[3], forcerot[3];
 	float loc[3], rot[3];
 	float dloc[3], drot[3];
@@ -110,6 +113,7 @@ typedef struct bIpoActuator {
 	short flag, type;
 	int sta, end;
 	char name[32];
+	char frameProp[32];	/* Set this property to the actions current frame */
 	
 	short pad1, cur, butsta, butend;
 	
@@ -124,10 +128,13 @@ typedef struct bCameraActuator {
 } bCameraActuator ;
 
 typedef struct bConstraintActuator {
+	short type, mode;
 	short flag, damp;
-	float slow;
+	short time, rotdamp;
+	int pad;
 	float minloc[3], maxloc[3];
 	float minrot[3], maxrot[3];
+	char matprop[32];
 } bConstraintActuator;
 
 typedef struct bGroupActuator {
@@ -187,9 +194,34 @@ typedef struct bGameActuator {
 } bGameActuator;
 
 typedef struct bVisibilityActuator {
-	/** bit 0: Is this object visible? */
+	/** bit 0: Is this object visible? 
+	 ** bit 1: Apply recursively  */
 	int flag;
 } bVisibilityActuator;
+
+typedef struct bTwoDFilterActuator{
+	char pad[4];
+	/* Tells what type of 2D Filter */
+	short type;
+	/* (flag == 0) means 2D filter is activate and
+	   (flag != 0) means 2D filter is inactive */
+	short flag;
+	int   int_arg;
+	/* a float argument */
+	float float_arg;
+	struct Text *text;
+}bTwoDFilterActuator;
+
+typedef struct bParentActuator {
+	char pad[4];
+	int type;
+	struct Object *ob;
+} bParentActuator;
+
+typedef struct bStateActuator {
+	int type;			/* 0=Set, 1=Add, 2=Rem, 3=Chg */
+	unsigned int mask;	/* the bits to change */
+} bStateActuator;
 
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
@@ -223,19 +255,19 @@ typedef struct FreeCamera {
 /* objectactuator->flag */
 #define ACT_FORCE_LOCAL			1
 #define ACT_TORQUE_LOCAL		2
+#define ACT_SERVO_LIMIT_X		2
 #define ACT_DLOC_LOCAL			4
+#define ACT_SERVO_LIMIT_Y		4
 #define ACT_DROT_LOCAL			8
+#define ACT_SERVO_LIMIT_Z		8
 #define ACT_LIN_VEL_LOCAL		16
 #define ACT_ANG_VEL_LOCAL		32
 //#define ACT_ADD_LIN_VEL_LOCAL	64
 #define ACT_ADD_LIN_VEL			64
 
-#define ACT_OBJECT_FORCE	0
-#define ACT_OBJECT_TORQUE	1
-#define ACT_OBJECT_DLOC		2
-#define ACT_OBJECT_DROT		3
-#define ACT_OBJECT_LINV		4
-#define ACT_OBJECT_ANGV		5
+/* objectactuator->type */
+#define ACT_OBJECT_NORMAL	0
+#define ACT_OBJECT_SERVO	1
 
 /* actuator->type */
 #define ACT_OBJECT		0
@@ -259,11 +291,18 @@ typedef struct FreeCamera {
 #define ACT_CD			16
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
+#define ACT_2DFILTER	19
+#define ACT_PARENT      20
+#define ACT_SHAPEACTION 21
+#define ACT_STATE		22
 
 /* actuator flag */
 #define ACT_SHOW		1
 #define ACT_DEL			2
 #define ACT_NEW			4
+#define ACT_LINKED		8	
+#define ACT_VISIBLE		16	
+#define ACT_PIN			32
 
 /* link codes */
 #define LINK_SENSOR		0
@@ -304,8 +343,9 @@ typedef struct FreeCamera {
 /* ipoactuator->flag */
 #define ACT_IPOFORCE        (1 << 0)
 #define ACT_IPOEND          (1 << 1)
-#define ACT_IPOFORCE_LOCAL  (1 << 2)
-#define ACT_IPOCHILD        (1 << 4)			
+#define ACT_IPOLOCAL		(1 << 2)
+#define ACT_IPOCHILD        (1 << 4)	
+#define ACT_IPOADD			(1 << 5)
 
 /* ipoactuator->flag for k2k */
 #define ACT_K2K_PREV		1
@@ -325,14 +365,38 @@ typedef struct FreeCamera {
 #define ACT_CONST_ROTX		8
 #define ACT_CONST_ROTY		16
 #define ACT_CONST_ROTZ		32
+#define ACT_CONST_NORMAL	64
+#define ACT_CONST_MATERIAL	128
+#define ACT_CONST_PERMANENT 256
+#define ACT_CONST_DISTANCE	512
+#define ACT_CONST_LOCAL     1024
+#define ACT_CONST_DOROTFH	2048
+
+/* constraint mode */
+#define ACT_CONST_DIRPX		1
+#define ACT_CONST_DIRPY		2
+#define ACT_CONST_DIRPZ		4
+#define ACT_CONST_DIRNX		8
+#define ACT_CONST_DIRNY		16
+#define ACT_CONST_DIRNZ		32
+
+/* constraint type */
+#define ACT_CONST_TYPE_LOC	0
+#define ACT_CONST_TYPE_DIST	1
+#define ACT_CONST_TYPE_ORI	2
+#define ACT_CONST_TYPE_FH   3
 
 /* editObjectActuator->type */
 #define ACT_EDOB_ADD_OBJECT		0
 #define ACT_EDOB_END_OBJECT		1
-#define ACT_EDOB_REPLACE_MESH	2
+#define ACT_EDOB_REPLACE_MESH		2
 #define ACT_EDOB_TRACK_TO		3
-#define ACT_EDOB_MAKE_CHILD		4
-#define ACT_EDOB_END_CHILD		5
+#define ACT_EDOB_DYNAMICS		4
+
+/* editObjectActuator->localflag */
+#define ACT_EDOB_LOCAL_LINV		2
+#define ACT_EDOB_LOCAL_ANGV		4
+
 
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1
@@ -386,10 +450,35 @@ typedef struct FreeCamera {
 #define ACT_GAME_START		1
 #define ACT_GAME_RESTART	2
 #define ACT_GAME_QUIT		3
+#define ACT_GAME_SAVECFG	4
+#define ACT_GAME_LOADCFG	5
 
 /* visibilityact->flag */
 /* Set means the object will become invisible */
 #define ACT_VISIBILITY_INVISIBLE       (1 << 0)
+#define ACT_VISIBILITY_RECURSIVE       (1 << 1)
 
+/* twodfilter->type */
+#define ACT_2DFILTER_ENABLED			-2
+#define ACT_2DFILTER_DISABLED			-1
+#define ACT_2DFILTER_NOFILTER			0
+#define ACT_2DFILTER_MOTIONBLUR			1
+#define ACT_2DFILTER_BLUR				2
+#define ACT_2DFILTER_SHARPEN			3
+#define ACT_2DFILTER_DILATION			4
+#define ACT_2DFILTER_EROSION			5
+#define ACT_2DFILTER_LAPLACIAN			6
+#define ACT_2DFILTER_SOBEL				7
+#define ACT_2DFILTER_PREWITT			8
+#define ACT_2DFILTER_GRAYSCALE			9
+#define ACT_2DFILTER_SEPIA				10
+#define ACT_2DFILTER_INVERT				11
+#define ACT_2DFILTER_CUSTOMFILTER		12
+#define ACT_2DFILTER_NUMBER_OF_FILTERS	13
+
+/* parentactuator->type */
+#define ACT_PARENT_SET      0
+#define ACT_PARENT_REMOVE   1
 #endif
+
 

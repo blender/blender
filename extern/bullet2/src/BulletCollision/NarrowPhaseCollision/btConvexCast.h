@@ -17,9 +17,9 @@ subject to the following restrictions:
 #ifndef CONVEX_CAST_H
 #define CONVEX_CAST_H
 
-#include <LinearMath/btTransform.h>
-#include <LinearMath/btVector3.h>
-#include <LinearMath/btScalar.h>
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btScalar.h"
 class btMinkowskiSumShape;
 #include "LinearMath/btIDebugDraw.h"
 
@@ -37,24 +37,26 @@ public:
 	{
 		//virtual bool	addRayResult(const btVector3& normal,btScalar	fraction) = 0;
 				
-		virtual void	DebugDraw(btScalar	fraction) {}
-		virtual void	drawCoordSystem(const btTransform& trans) {}
+		virtual void	DebugDraw(btScalar	fraction) {(void)fraction;}
+		virtual void	drawCoordSystem(const btTransform& trans) {(void)trans;}
 
 		CastResult()
-			:m_fraction(1e30f),
-			m_debugDrawer(0)
+			:m_fraction(btScalar(1e30)),
+			m_debugDrawer(0),
+			m_allowedPenetration(btScalar(0))
 		{
 		}
 
 
 		virtual ~CastResult() {};
 
-		btVector3	m_normal;
-		btScalar	m_fraction;
 		btTransform	m_hitTransformA;
 		btTransform	m_hitTransformB;
-
+		btVector3	m_normal;
+		btVector3   m_hitPoint;
+		btScalar	m_fraction; //input and output
 		btIDebugDraw* m_debugDrawer;
+		btScalar	m_allowedPenetration;
 
 	};
 

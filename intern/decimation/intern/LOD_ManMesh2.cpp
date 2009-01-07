@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -480,7 +477,7 @@ DeleteVertex(
 		return;
 	}
 
-	LOD_VertexInd last = LOD_VertexInd(verts.end() - verts.begin() - 1);
+	LOD_VertexInd last = LOD_VertexInd(size_t(verts.end() - verts.begin() - 1));
 
 	if (!(last == v)) {
 
@@ -536,7 +533,7 @@ DeleteEdge(
 		return;
 	}
 
-	LOD_EdgeInd last = LOD_EdgeInd(edges.end() - edges.begin() - 1);
+	LOD_EdgeInd last = LOD_EdgeInd(size_t(edges.end() - edges.begin() - 1));
 
 	if (!(last == e)) {
 		vector<LOD_EdgeInd> e_verts;
@@ -576,7 +573,7 @@ DeleteFace(
 		return;
 	}
 
-	LOD_FaceInd last = LOD_FaceInd(faces.end() - faces.begin() - 1);
+	LOD_FaceInd last = LOD_FaceInd(size_t (faces.end() - faces.begin() - 1));
 
 	if (!(last == f)) {
 		

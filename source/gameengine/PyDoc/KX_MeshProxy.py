@@ -95,6 +95,21 @@ class KX_MeshProxy:
 		@rtype: L{KX_VertexProxy}
 		@return: a vertex object.
 		"""
+	def getNumPolygons():
+		"""
+		Returns the number of polygon in the mesh.
+		
+		@rtype: integer
+		"""
+	def getPolygon(index):
+		"""
+		Gets the specified polygon from the mesh.
+		
+		@type index: integer
+		@param index: polygon number
+		@rtype: L{KX_PolyProxy}
+		@return: a polygon object.
+		"""
 	def reinstancePhysicsMesh():
 		"""
 		Updates the physics system with the changed mesh.

@@ -81,7 +81,7 @@ bNodeType cmp_node_mix_rgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
-	/* width+range */	80, 60, 120,
+	/* width+range */	110, 60, 120,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_mix_rgb_in,
 	/* output sock */	cmp_node_mix_rgb_out,

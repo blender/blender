@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * $Id$
  */
 
@@ -43,6 +40,7 @@
 
 #include "IMB_allocimbuf.h"
 #include "IMB_cmap.h"
+#include "IMB_imginfo.h"
 #include "IMB_png.h"
 
 typedef struct PNGReadStruct {
@@ -100,6 +98,7 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 {
 	png_structp png_ptr;
 	png_infop info_ptr;
+
 	unsigned char *pixels = 0;
 	unsigned char *from, *to;
 	png_bytepp row_pointers = 0;
@@ -218,6 +217,34 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 		 PNG_INTERLACE_NONE,
 		 PNG_COMPRESSION_TYPE_DEFAULT,
 		 PNG_FILTER_TYPE_DEFAULT);
+
+	/* image text info */
+	if (ibuf->img_info) {
+		png_text*  imginfo;
+		ImgInfo* iptr;
+		int  num_text = 0;
+		iptr = ibuf->img_info;
+		while (iptr) {
+			num_text++;
+			iptr = iptr->next;
+		}
+		
+		imginfo = MEM_callocN(num_text*sizeof(png_text), "png_imginfo");
+		iptr = ibuf->img_info;
+		num_text = 0;
+		while (iptr) {
+			
+			imginfo[num_text].compression = PNG_TEXT_COMPRESSION_NONE;
+			imginfo[num_text].key = iptr->key;
+			imginfo[num_text].text = iptr->value;
+			num_text++;
+			iptr = iptr->next;
+		}
+		
+		png_set_text(png_ptr, info_ptr, imginfo, num_text);
+		MEM_freeN(imginfo);
+
+	}
 
 	// write the file header information
 	png_write_info(png_ptr, info_ptr);
@@ -407,6 +434,15 @@ struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
 				to += 4; from++;
 			}
 			break;
+		}
+
+		if (flags & IB_imginfo) {
+			png_text* text_chunks;
+			int count = png_get_text(png_ptr, info_ptr, &text_chunks, NULL);
+			for(i = 0; i < count; i++) {
+				IMB_imginfo_add_field(ibuf, text_chunks[i].key, text_chunks[i].text);
+				ibuf->flags |= IB_imginfo;				
+ 			}
 		}
 
 		png_read_end(png_ptr, info_ptr);

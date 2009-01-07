@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -49,20 +46,20 @@ AGLContext GHOST_WindowCarbon::s_firstaglCtx = NULL;
 const GHOST_TInt32 GHOST_WindowCarbon::s_sizeRectSize = 16;
 #endif //GHOST_DRAW_CARBON_GUTTER
 
-static const GLint sPreferredFormatWindow[9] = {
-AGL_RGBA,			GL_TRUE,
-AGL_DOUBLEBUFFER,	GL_TRUE,
-AGL_DEPTH_SIZE,		16,
-AGL_AUX_BUFFERS,     1,
+static const GLint sPreferredFormatWindow[8] = {
+AGL_RGBA,
+AGL_DOUBLEBUFFER,	
+AGL_ACCELERATED,
+AGL_DEPTH_SIZE,		32,
 AGL_NONE,
 };
 
-static const GLint sPreferredFormatFullScreen[7] = {
+static const GLint sPreferredFormatFullScreen[9] = {
 AGL_RGBA,
 AGL_DOUBLEBUFFER,
 AGL_ACCELERATED,
 AGL_FULLSCREEN,
-AGL_DEPTH_SIZE,		16,
+AGL_DEPTH_SIZE,		32,
 AGL_NONE,
 };
 
@@ -253,7 +250,9 @@ void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 {
 	Rect rect;
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getClientBounds(): window invalid")
-	::GetPortBounds(m_grafPtr, &rect);
+	//::GetPortBounds(m_grafPtr, &rect);
+	::GetWindowBounds(m_windowRef, kWindowContentRgn, &rect);
+
 	bounds.m_b = rect.bottom;
 	bounds.m_l = rect.left;
 	bounds.m_r = rect.right;
@@ -327,7 +326,7 @@ GHOST_TWindowState GHOST_WindowCarbon::getState() const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getState(): window invalid")
 	GHOST_TWindowState state;
-	if (::IsWindowVisible(m_windowRef)) {
+	if (::IsWindowVisible(m_windowRef) == false) {
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if (::IsWindowInStandardState(m_windowRef, nil, nil)) {

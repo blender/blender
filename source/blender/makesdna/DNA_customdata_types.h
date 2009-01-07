@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,8 +24,9 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef DNA_CUSTOMDATA_TYPES_H
 #define DNA_CUSTOMDATA_TYPES_H
 
@@ -39,6 +37,8 @@ typedef struct CustomDataLayer {
 	int flag;       /* general purpose flag */
 	int active;     /* number of the active layer of this type */
 	int active_rnd; /* number of the layer to render*/
+	int active_clone; /* number of the layer to render*/
+	int active_mask; /* number of the layer to render*/
 	char pad[4];
 	char name[32];  /* layer name */
 	void *data;     /* layer data */
@@ -51,6 +51,7 @@ typedef struct CustomData {
 	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
 	int totlayer, maxlayer;   /* number of layers, size of layers array */
 	int totsize, pad;         /* in editmode, total size of all data layers */
+	void *pool;		  /* for Bmesh: Memory pool for allocation of blocks*/
 } CustomData;
 
 /* CustomData.type */
@@ -64,10 +65,19 @@ typedef struct CustomData {
 #define CD_ORIGINDEX	7
 #define CD_NORMAL		8
 #define CD_FLAGS		9
-#define CD_MPOLY		10
-#define CD_MLOOP		11
-
-#define CD_NUMTYPES		12
+#define CD_PROP_FLT		10
+#define CD_PROP_INT		11
+#define CD_PROP_STR		12
+#define CD_ORIGSPACE	13 /* for modifier stack face location mapping */
+#define CD_ORCO			14
+#define CD_MTEXPOLY		15
+#define CD_MLOOPUV		16
+#define CD_MLOOPCOL		17
+#define CD_TANGENT		18
+#define CD_MDISPS		19
+#define CD_NUMTYPES		20
+	/* fake type, derivedmesh wants CustomDataMask for weightpaint too, is not stored  */
+#define CD_WEIGHTPAINT	30
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -80,8 +90,19 @@ typedef struct CustomData {
 #define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
 #define CD_MASK_NORMAL		(1 << CD_NORMAL)
 #define CD_MASK_FLAGS		(1 << CD_FLAGS)
-#define CD_MASK_MLOOP		(1 << CD_MLOOP)
-#define CD_MASK_MPOLY		(1 << CD_MPOLY)
+#define CD_MASK_PROP_FLT	(1 << CD_PROP_FLT)
+#define CD_MASK_PROP_INT	(1 << CD_PROP_INT)
+#define CD_MASK_PROP_STR	(1 << CD_PROP_STR)
+#define CD_MASK_ORIGSPACE	(1 << CD_ORIGSPACE)
+#define CD_MASK_ORCO		(1 << CD_ORCO)
+#define CD_MASK_MTEXPOLY	(1 << CD_MTEXPOLY)
+#define CD_MASK_MLOOPUV		(1 << CD_MLOOPUV)
+#define CD_MASK_MLOOPCOL	(1 << CD_MLOOPCOL)
+#define CD_MASK_TANGENT		(1 << CD_TANGENT)
+#define CD_MASK_MDISPS		(1 << CD_MDISPS)
+
+/* derivedmesh wants CustomDataMask for weightpaint too, is not customdata though */
+#define CD_MASK_WEIGHTPAINT	(1 << CD_WEIGHTPAINT)
 
 /* CustomData.flag */
 

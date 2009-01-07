@@ -58,7 +58,8 @@ SimulationObject::~SimulationObject()
 	if(mpGiTree)         delete mpGiTree;
 	if(mpElbeemSettings) delete mpElbeemSettings;
 	if(mpLbm)            delete mpLbm;
-  if(mpParam)          delete mpParam;
+  	if(mpParam)          delete mpParam;
+	if(mpParts)          delete mpParts;
 	debMsgStd("SimulationObject",DM_MSG,"El'Beem Done!\n",10);
 }
 
@@ -68,6 +69,7 @@ SimulationObject::~SimulationObject()
 /*! init tree for certain geometry init */
 /*****************************************************************************/
 void SimulationObject::initGeoTree() {
+	// unused!! overriden by solver interface	
 	if(mpGlob == NULL) { 
 		errFatal("SimulationObject::initGeoTree error","Requires globals!", SIMWORLD_INITERROR); 
 		return;
@@ -79,7 +81,7 @@ void SimulationObject::initGeoTree() {
 	char treeFlag = (1<<(mGeoInitId+4));
 	mpGiTree = new ntlTree( 20, 4, // warning - fixed values for depth & maxtriangles here...
 												scene, treeFlag );
-	exit(1); // unused!? overriden by solver interface	
+	// unused!! overriden by solver interface	
 }
 
 /*****************************************************************************/
@@ -309,7 +311,7 @@ void SimulationObject::step( void )
 		// dont advance for stopped time
 		mpLbm->step();
 		mTime += mpParam->getTimestep();
-//if(mTime>0.001) { errMsg("DEBUG!!!!!!!!","quit mlsu..."); exit(1); } // PROFILE DEBUG TEST!
+		//if(mTime>0.001) { errMsg("DEBUG!!!!!!!!","quit mlsu..."); xit(1); } // PROFILE DEBUG TEST!
 	}
 	if(mpLbm->getPanic()) mPanic = true;
 

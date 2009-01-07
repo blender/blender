@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_PROPERTY_H
 #define BKE_PROPERTY_H
@@ -44,7 +41,8 @@ struct bProperty *copy_property(struct bProperty *prop);
 void copy_properties(struct ListBase *lbn, struct ListBase *lbo);
 void init_property(struct bProperty *prop);
 struct bProperty *new_property(int type);
-struct bProperty *get_property(struct Object *ob, char *name);
+struct bProperty *get_ob_property(struct Object *ob, char *name);
+void set_ob_property(struct Object *ob, struct bProperty *propc);
 int compare_property(struct bProperty *prop, char *str);
 void set_property(struct bProperty *prop, char *str);
 void add_property(struct bProperty *prop, char *str);

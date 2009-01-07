@@ -17,7 +17,7 @@ subject to the following restrictions:
 
 #include "btConcaveShape.h"
 
-btConcaveShape::btConcaveShape() : m_collisionMargin(0.f)
+btConcaveShape::btConcaveShape() : m_collisionMargin(btScalar(0.))
 {
 
 }

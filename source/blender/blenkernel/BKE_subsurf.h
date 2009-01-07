@@ -1,14 +1,11 @@
 /* $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
@@ -35,11 +32,19 @@ struct Mesh;
 struct Object;
 struct DerivedMesh;
 struct EditMesh;
+struct MultiresSubsurf;
 struct SubsurfModifierData;
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
                         struct DerivedMesh *dm,
                         struct SubsurfModifierData *smd,
+                        int useRenderParams, float (*vertCos)[3],
+                        int isFinalCalc, int editMode);
+
+struct DerivedMesh *subsurf_make_derived_from_derived_with_multires(
+                        struct DerivedMesh *dm,
+                        struct SubsurfModifierData *smd,
+			struct MultiresSubsurf *ms,
                         int useRenderParams, float (*vertCos)[3],
                         int isFinalCalc, int editMode);
 

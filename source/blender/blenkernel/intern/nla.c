@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -76,7 +73,7 @@ void copy_actionstrip (bActionStrip **dst, bActionStrip **src){
 		dstrip->ipo->id.us++;
 	
 	if (dstrip->modifiers.first) {
-		duplicatelist (&dstrip->modifiers, &sstrip->modifiers);
+		BLI_duplicatelist (&dstrip->modifiers, &sstrip->modifiers);
 	}
 	
 }
@@ -87,7 +84,7 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 
 	dst->first=dst->last=NULL;
 
-	duplicatelist (dst, src);
+	BLI_duplicatelist (dst, src);
 
 	/* Update specific data */
 	if (!dst->first)
@@ -100,7 +97,7 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 			strip->ipo->id.us++;
 		if (strip->modifiers.first) {
 			ListBase listb;
-			duplicatelist (&listb, &strip->modifiers);
+			BLI_duplicatelist (&listb, &strip->modifiers);
 			strip->modifiers= listb;
 		}
 	}
@@ -141,7 +138,10 @@ bActionStrip *convert_action_to_strip (Object *ob)
 	//set_active_strip(ob, nstrip); /* is in editnla as does UI calls */
 			
 	nstrip->repeat = 1.0;
-							
+
+	if(ob->nlastrips.first == NULL)
+		ob->nlaflag |= OB_NLA_OVERRIDE;
+	
 	BLI_addtail(&ob->nlastrips, nstrip);
 	return nstrip; /* is created, malloced etc. here so is safe to just return the pointer?
 			  this is needed for setting this active in UI, and probably useful for API too */

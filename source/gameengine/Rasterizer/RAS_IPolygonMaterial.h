@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __RAS_IPOLYGONMATERIAL
 #define __RAS_IPOLYGONMATERIAL
@@ -55,7 +52,7 @@ enum MaterialProps
 	RAS_AUTOGEN		=128,
 	RAS_NORMAL		=256,
 	RAS_DEFMULTI	=512,
-	RAS_FORCEALPHA	=1024
+	RAS_BLENDERGLSL =1024
 };
 
 /**
@@ -70,17 +67,16 @@ protected:
 	int						m_tile;
 	int						m_tilexrep,m_tileyrep;
 	int						m_drawingmode;	// tface->mode
-	bool					m_transparant;
+	int						m_transp;
+	bool					m_alpha;
 	bool					m_zsort;
 	int						m_lightlayer;
-	bool					m_bIsTriangle;
 	
 	unsigned int			m_polymatid;
 	static unsigned int		m_newpolymatid;
 
 	// will move...
 	unsigned int			m_flag;//MaterialProps
-	unsigned int			m_enabled;// enabled for this mat 
 	int						m_multimode; // sum of values
 public:
 
@@ -106,11 +102,10 @@ public:
 					  int tilexrep,
 					  int tileyrep,
 					  int mode,
-					  bool transparant,
+					  int transp,
+					  bool alpha,
 					  bool zsort,
-					  int lightlayer,
-					  bool bIsTriangle,
-					  void* clientobject);
+					  int lightlayer);
 	virtual ~RAS_IPolyMaterial() {};
  
 	/**
@@ -131,20 +126,22 @@ public:
 	{ 
 		return false; 
 	}
-	virtual void ActivateMeshSlot(const class KX_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
+	virtual void ActivateMeshSlot(const class RAS_MeshSlot & ms, RAS_IRasterizer* rasty) const {}
 
 	virtual bool				Equals(const RAS_IPolyMaterial& lhs) const;
 	bool				Less(const RAS_IPolyMaterial& rhs) const;
 	int					GetLightLayer() const;
-	bool				IsTransparant() const;
+	bool				IsAlpha() const;
 	bool				IsZSort() const;
-	bool				UsesTriangles() const;
 	unsigned int		hash() const;
 	int					GetDrawingMode() const;
 	const STR_String&	GetMaterialName() const;
+	dword				GetMaterialNameHash() const;
 	const STR_String&	GetTextureName() const;
 	const unsigned int	GetFlag() const;
-	const unsigned int	GetEnabled() const;
+
+	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
+	virtual bool		UsesObjectColor() const;
 	
 	/*
 	 * PreCalculate texture gen

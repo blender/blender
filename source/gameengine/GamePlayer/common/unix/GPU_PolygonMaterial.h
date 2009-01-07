@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __GPU_POLYGONMATERIAL_H
@@ -40,9 +37,9 @@ class GPU_PolygonMaterial : public BP_PolygonMaterial
 public:
 	GPUPolygonMaterial(const STR_String& texname, bool ba,const STR_String& matname,
 			int tile, int tileXrep, int tileYrep, int mode, int transparant,
-			int lightlayer,bool bIsTriangle,void* clientobject,void* tpage) :
+			int lightlayer,,void* tpage) :
 			BP_PolygonMaterial(texname, ba,matname, tile, tileXrep, tileYrep,
-					mode, transparant, lightlayer, bIsTriangle, clientobject),
+					mode, transparant, lightlayer),
 			m_tface(tpage)
 	{
 	}

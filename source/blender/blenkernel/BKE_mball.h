@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,13 +26,14 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_MBALL_H
 #define BKE_MBALL_H
 
 struct MetaBall;
 struct Object;
+struct Scene;
 struct MetaElem;
 
 typedef struct point {			/* a three-dimensional point */
@@ -94,7 +92,6 @@ typedef struct process {		/* parameters, function, storage */
 	float (*function)(float, float, float);
 	float size, delta;			/* cube size, normal delta */
 	int bounds;					/* cube range within lattice */
-	MB_POINT start;				/* start point on surface */
 	CUBES *cubes;				/* active cubes */
 	VERTICES vertices;			/* surface vertices */
 	CENTERLIST **centers;		/* cube center hash table */
@@ -154,22 +151,22 @@ void add_cube(PROCESS *mbproc, int i, int j, int k, int count);
 void find_first_points(PROCESS *mbproc, struct MetaBall *mb, int a);
 
 void fill_metaball_octal_node(octal_node *node, struct MetaElem *ml, short i);
-void subdivide_metaball_octal_node(octal_node *node, float *size, short depth);
+void subdivide_metaball_octal_node(octal_node *node, float size_x, float size_y, float size_z, short depth);
 void free_metaball_octal_node(octal_node *node);
 void init_metaball_octal_tree(int depth);
 void polygonize(PROCESS *mbproc, struct MetaBall *mb);
-float init_meta(struct Object *ob);
+float init_meta(struct Scene *scene, struct Object *ob);
 
 void unlink_mball(struct MetaBall *mb);
 void free_mball(struct MetaBall *mb);
 struct MetaBall *add_mball(char *name);
 struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
-void tex_space_mball( struct Object *ob);
-void make_orco_mball( struct Object *ob);
-struct Object *find_basis_mball( struct Object *ob);
+void tex_space_mball(struct Object *ob);
+float *make_orco_mball(struct Object *ob);
+struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
-void metaball_polygonize(struct Object *ob);
+void metaball_polygonize(struct Scene *scene, struct Object *ob);
 void calc_mballco(struct MetaElem *ml, float *vec);
 float densfunc(struct MetaElem *ball, float x, float y, float z);
 float metaball(float x, float y, float z);

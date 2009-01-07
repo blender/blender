@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_MATERIAL_TYPES_H
 #define DNA_MATERIAL_TYPES_H
@@ -39,12 +36,11 @@
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
-#define MAX_MTEX	10
+#define MAX_MTEX	18
 #endif
 
 struct MTex;
 struct Ipo;
-struct Material;
 struct ColorBand;
 struct Group;
 struct bNodeTree;
@@ -73,22 +69,36 @@ typedef struct Material {
 	short har;
 	char seed1, seed2;
 	
+	float gloss_mir, gloss_tra;
+	short samp_gloss_mir, samp_gloss_tra;
+	float adapt_thresh_mir, adapt_thresh_tra;
+	float aniso_gloss_mir;
+	float dist_mir;
+	short fadeto_mir;
+	short shade_flag;		/* like Cubic interpolation */
+		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
-	float strand_sta, strand_end, strand_ease;
+	float strand_sta, strand_end, strand_ease, strand_surfnor;
+	float strand_min, strand_widthfade;
+	char strand_uvname[32];
 	
-	float sbias;			/* shadow bias */
-	float shad_alpha, padf;	/* in use for irregular shadowbuffer */
+	float sbias;			/* shadow bias to prevent terminator prob */
+	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
+	float shad_alpha;		/* in use for irregular shadowbuffer */
+	int	septex;
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, septex, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
 	float roughness, refrac;
-	float param[4];		/* size, smooth, size, smooth, for toonshader */
+	/* XXX param[4] needs review and improvement (shader system as whole anyway)
+	   This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
+	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;
 	short texco, mapto;
@@ -101,16 +111,18 @@ typedef struct Material {
 	short ramp_show, pad3;
 	float rampfac_col, rampfac_spec;
 
-	struct MTex *mtex[10];
+	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
-	
+	struct PreviewImage * preview;
+
 	/* dynamic properties */
 	float friction, fh, reflect;
 	float fhdist, xyfrict;
 	short dynamode, pad2;
 
+	/* subsurface scattering */
 	float sss_radius[3], sss_col[3];
 	float sss_error, sss_scale, sss_ior;
 	float sss_colfac, sss_texfac;
@@ -122,6 +134,8 @@ typedef struct Material {
 	int YF_dsmp, YF_preset, YF_djit;
 	
 	ScriptLink scriptlink;
+
+	ListBase gpumaterial;		/* runtime */
 } Material;
 
 /* **************** MATERIAL ********************* */
@@ -140,6 +154,8 @@ typedef struct Material {
 /* flag */
 		/* for render */
 #define MA_IS_USED		1
+		/* for dopesheet */
+#define MA_DS_EXPAND	2
 
 /* mode (is int) */
 #define MA_TRACEBLE		1
@@ -147,6 +163,7 @@ typedef struct Material {
 #define MA_SHLESS		4
 #define MA_WIRE			8
 #define MA_VERTEXCOL	16
+#define MA_HALO_SOFT	16
 #define MA_HALO			32
 #define MA_ZTRA			64
 #define MA_VERTEXCOLP	128
@@ -179,8 +196,19 @@ typedef struct Material {
 /* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */
 #define MA_NORMAP_TANG	0x8000000
 #define MA_GROUP_NOLAY	0x10000000
+#define MA_FACETEXTURE_ALPHA	0x20000000
+#define MA_STR_B_UNITS	0x40000000
+#define MA_STR_SURFDIFF 0x80000000
 
-#define	MA_MODE_MASK	0x1fffffff	/* all valid mode bits */
+#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
+
+/* ray mirror fadeout */
+#define MA_RAYMIR_FADETOSKY	0
+#define MA_RAYMIR_FADETOMAT	1
+
+/* shade_flag */
+#define MA_CUBIC			1
+#define MA_OBCOLOR			2
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
@@ -260,6 +288,31 @@ typedef struct Material {
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
 
+/* mapto for halo */
+//#define MAP_HA_COL		1
+//#define MAP_HA_ALPHA	128
+//#define MAP_HA_HAR		256
+//#define MAP_HA_SIZE		2
+//#define MAP_HA_ADD		64
+
+/* pmapto */
+/* init */
+#define MAP_PA_INIT		31
+#define MAP_PA_TIME		1
+#define MAP_PA_LIFE		2
+#define MAP_PA_DENS		4
+#define MAP_PA_SIZE		8
+#define MAP_PA_LENGTH	16
+/* reset */
+#define MAP_PA_IVEL		32
+/* physics */
+#define MAP_PA_PVEL		64
+/* path cache */
+#define MAP_PA_CACHE	912
+#define MAP_PA_CLUMP	128
+#define MAP_PA_KINK		256
+#define MAP_PA_ROUGH	512
+
 /* pr_type */
 #define MA_FLAT			0
 #define MA_SPHERE		1
@@ -270,6 +323,7 @@ typedef struct Material {
 #define MA_LAMP			6
 #define MA_SKY			7
 #define MA_HAIR			10
+#define MA_ATMOS		11
 
 /* pr_back */
 #define MA_DARK			1

@@ -5,14 +5,12 @@
  *
  * $Id: BME_eulers.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
+ * of the License, or (at your option) any later version.
  * about this.	
  *
  * This program is distributed in the hope that it will be useful,
@@ -31,7 +29,7 @@
  *
  * Contributor(s): Geoffrey Bantle.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "MEM_guardedalloc.h"
@@ -41,6 +39,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 #include "BKE_bmesh.h"
 
 #include "BLI_blenlib.h"
@@ -48,7 +47,7 @@
 #include "BLI_ghash.h"
 
 /*********************************************************
- *                    "Euler API"                     *
+ *                    "Euler API"                        *
  *                                                       *
  *                                                       *
  *	 Primitive construction operators for mesh tools.    *
@@ -85,10 +84,12 @@
 
 	TODO:
 	-Finish inserting 'strict' validation in all Eulers
-	-Add in proper handling of propogation of selection flags
-	-Fix lack of custom data handling for new loops with BME_SFME.
-	-Add in flagging of new elements with BME_NEW bitflag.
 */
+
+void *BME_exit(char *s) {
+	if (s) printf("%s\n",s);
+	return NULL;
+}
 
 #define RETCLEAR(bm) {bm->rval->v = bm->rval->e = bm->rval->f = bm->rva->l = NULL;}
 /*MAKE Eulers*/
@@ -194,8 +195,8 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 {
 	BME_Poly *f = NULL;
 	BME_Edge *curedge;
-	BME_Vert *curvert, *tv, *nextv,**vlist;
-	int i, j, done, cont, edok,vlen;
+	BME_Vert *curvert, *tv, **vlist;
+	int i, j, done, cont, edok;
 	
 	if(len < 2) return NULL;
 	
@@ -228,9 +229,14 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 	tv = v1;
 	curvert = v2;
 	
+	if(bm->vtarlen < len){
+		MEM_freeN(bm->vtar);
+		bm->vtar = MEM_callocN(sizeof(BME_Vert *)* len, "BMesh Vert pointer array");
+		bm->vtarlen = len;
+	}
 	/*insert tv into vlist since its the first vertex in face*/
 	i=0;
-	vlist=MEM_callocN(sizeof(BME_Vert*)*len,"BME_MF vlist array");
+	vlist=bm->vtar;
 	vlist[i] = tv;
 
 	/*	Basic procedure: Starting with curv we find the edge in it's disk cycle which hasn't 
@@ -309,8 +315,6 @@ BME_Poly *BME_MF(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge **elist, int
 			if(edok != (l->e->eflag2 + 1)) BME_error();
 		}
 	}
-	
-	MEM_freeN(vlist);
 	return f;
 }
 
@@ -426,7 +430,7 @@ BME_Vert *BME_SEMV(BME_Mesh *bm, BME_Vert *tv, BME_Edge *e, BME_Edge **re){
 	BME_Vert *nv, *ov;
 	BME_CycleNode *diskbase;
 	BME_Edge *ne;
-	int i, radlen, edok, valance1=0, valance2=0;
+	int i, edok, valance1=0, valance2=0;
 	
 	if(BME_vert_in_edge(e,tv) == 0) return NULL;
 	ov = BME_edge_getothervert(e,tv);
@@ -599,7 +603,6 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	BME_Edge *e;
 	int i, len, f1len, f2len;
 	
-	if(f->holes.first) return NULL; //not good, fix me
 	
 	/*verify that v1 and v2 are in face.*/
 	len = BME_cycle_length(f->loopbase);
@@ -616,8 +619,8 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
 	BME_disk_append_edge(e, v2);
 	
 	f2 = BME_addpolylist(bm,f);
-	f1loop = BME_create_loop(bm,v2,e,f,NULL);
-	f2loop = BME_create_loop(bm,v1,e,f2,NULL);
+	f1loop = BME_create_loop(bm,v2,e,f,v2loop);
+	f2loop = BME_create_loop(bm,v1,e,f2,v1loop);
 	
 	f1loop->prev = v2loop->prev;
 	f2loop->prev = v1loop->prev;
@@ -661,16 +664,16 @@ BME_Poly *BME_SFME(BME_Mesh *bm, BME_Poly *f, BME_Vert *v1, BME_Vert *v2, BME_Lo
  *	Takes a an edge and pointer to one of its vertices and collapses
  *	the edge on that vertex.
  *	
- *	Before:		    OE      KE
+ *	Before:    OE      KE
  *             	 ------- -------
  *               |     ||      |
- *				OV     KV      TV
+ *		OV     KV      TV
  *
  *
  *   After:             OE      
  *             	 ---------------
  *               |             |
- *				OV             TV
+ *		OV             TV
  *
  *
  *	Restrictions:
@@ -721,6 +724,8 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 			/*remove ke from tv's disk cycle*/
 			BME_disk_remove_edge(ke, tv);
 		
+			
+
 			/*deal with radial cycle of ke*/
 			if(ke->loop){
 				/*first step, fix the neighboring loops of all loops in ke's radial cycle*/
@@ -738,18 +743,30 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 				/*second step, remove all the hanging loops attached to ke*/
 				killoop = ke->loop;
 				radlen = BME_cycle_length(&(ke->loop->radial));
+				/*make sure we have enough room in bm->lpar*/
+				if(bm->lparlen < radlen){
+					MEM_freeN(bm->lpar);
+					bm->lpar = MEM_callocN(sizeof(BME_Loop *)* radlen, "BMesh Loop pointer array");
+					bm->lparlen = bm->lparlen * radlen;
+				}
+				/*this should be wrapped into a bme_free_radial function to be used by BME_KF as well...*/
 				i=0;
 				while(i<radlen){
-					nextl = killoop->radial.next->data;
-					BME_free_loop(bm, killoop);
-					killoop = nextl;
+					bm->lpar[i] = killoop;
+					killoop = killoop->radial.next->data;
 					i++;
-				}	
+				}
+				i=0;
+				while(i<radlen){
+					BME_free_loop(bm,bm->lpar[i]);
+					i++;
+				}
 				/*Validate radial cycle of oe*/
 				edok = BME_cycle_validate(radlen,&(oe->loop->radial));
 				
 			}
 			
+
 			/*Validate disk cycles*/
 			diskbase = BME_disk_getpointer(ov->edge,ov);
 			edok = BME_cycle_validate(valance1, diskbase);
@@ -793,16 +810,22 @@ int BME_JEKV(BME_Mesh *bm, BME_Edge *ke, BME_Vert *kv)
 
 int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 	BME_Loop *l = f->loopbase, *curloop, *oldprev, *oldnext;
-	BME_Edge **elist;
 	int i, j, edok, len = 0;
 
 	len = BME_cycle_length(l);
-	elist = MEM_callocN(sizeof(BME_Edge *)*len, "BME Loop Reverse edge array");
+	if(bm->edarlen < len){
+		MEM_freeN(bm->edar);
+		bm->edar = MEM_callocN(sizeof(BME_Edge *)* len, "BMesh Edge pointer array");
+		bm->edarlen = len;
+	}
 	
 	for(i=0, curloop = l; i< len; i++, curloop=curloop->next){
-		BME_radial_remove_loop(curloop, curloop->e);
 		curloop->e->eflag1 = 0;
-		elist[i] = curloop->e;
+		curloop->e->eflag2 = BME_cycle_length(&curloop->radial);
+		BME_radial_remove_loop(curloop, curloop->e);
+		/*in case of border edges we HAVE to zero out curloop->radial Next/Prev*/
+		curloop->radial.next = curloop->radial.prev = NULL;
+		bm->edar[i] = curloop->e;
 	}
 	
 	/*actually reverse the loop. This belongs in BME_cycle_reverse!*/
@@ -816,28 +839,31 @@ int BME_loop_reverse(BME_Mesh *bm, BME_Poly *f){
 
 	if(len == 2){ //two edged face
 		//do some verification here!
-		l->e = elist[0];
-		l->next->e = elist[1];
+		l->e = bm->edar[1];
+		l->next->e = bm->edar[0];
 	}
 	else{
 		for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
 			edok = 0;
 			for(j=0; j < len; j++){
-				edok = BME_verts_in_edge(curloop->v, curloop->next->v, elist[j]);
+				edok = BME_verts_in_edge(curloop->v, curloop->next->v, bm->edar[j]);
 				if(edok){
-					curloop->e = elist[j];
+					curloop->e = bm->edar[j];
 					break;
 				}
 			}
 		}
 	}
 	/*rebuild radial*/
+	for(i=0, curloop = l; i < len; i++, curloop = curloop->next) BME_radial_append(curloop->e, curloop);
+	
+	/*validate radial*/
 	for(i=0, curloop = l; i < len; i++, curloop = curloop->next){
-		BME_radial_append(curloop->e, curloop);
-		//radok = BME_cycle_validate(curloop->e->tmp.l, &(curloop->radial));
-		//if(!radok || curloop->e->loop == NULL) BME_error();
+		edok = BME_cycle_validate(curloop->e->eflag2, &(curloop->radial));
+		if(!edok){
+			BME_error();
+		}
 	}
-	MEM_freeN(elist);
 	return 1;
 }
 
@@ -877,9 +903,8 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 {
 	
 	BME_Loop *curloop, *f1loop=NULL, *f2loop=NULL;
-	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, valance1,valance2,edok;
+	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok;
 	
-	if(f1->holes.first || f2->holes.first) return NULL; //dont operate on faces with holes. Not best solution but tolerable.
 	if(f1 == f2) return NULL; //can't join a face to itself
 	/*verify that e is in both f1 and f2*/
 	f1len = BME_cycle_length(f1->loopbase);
@@ -950,56 +975,3 @@ BME_Poly *BME_JFKE(BME_Mesh *bm, BME_Poly *f1, BME_Poly *f2, BME_Edge *e)
 	BME_free_poly(bm, f2);	
 	return f1;
 }
-
-/**
- *			BME_MEKL
- *
- *	MAKE EDGE KILL LOOP:
- *	
- *	Bridges a perphiary loop of a face with an internal loop
- *
- *	Examples:
- *
- *	----------------		----------------
- *	|      f1      |		|      f1      |
- *	|     -----    |		|     -----    |
- *	|     |   |    |		|     |   |    |
- *	X     X   |    |        X-----X   |    |
- *	|     |   |    |		|     |   |    |
- *	|     -----    |		|     -----    |
- *	|			   |		|			   |
- *	----------------		----------------
- *
- *
- *  Returns -
- *	A BME_Poly pointer
- */
-
-/**
- *			BME_KEML
- *
- *	KILL EDGE MAKE LOOP:
- *	
- *	Kills an edge and splits the loose loops off into an internal loop
- *
- *	Examples:
- *
- *	----------------		----------------
- *	|      f1      |		|      f1      |
- *	|     -----    |		|     -----    |
- *	|     |   |    |		|     |   |    |
- *	X ----X   |    |        X     X   |    |
- *	|     |   |    |		|     |   |    |
- *	|     -----    |		|     -----    |
- *	|			   |		|			   |
- *	----------------		----------------
- *
- *	The tool author should take care to realize that although a face may have 
- *	a hole in its topology, that hole may be filled with one or many other faces.
- *	Regardless, this does not imply a parent child relationship.
- *
- *
- *  Returns -
- *	A BME_Poly pointer
- */
-

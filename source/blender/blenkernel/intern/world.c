@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -48,7 +45,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_library.h"
@@ -57,7 +53,9 @@
 #include "BKE_main.h"
 #include "BKE_icons.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -67,14 +65,17 @@ void free_world(World *wrld)
 {
 	MTex *mtex;
 	int a;
-	
+
+#ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&wrld->scriptlink);
-	
+#endif
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
+	BKE_previewimg_free(&wrld->preview);
+
 	wrld->ipo= 0;
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
@@ -96,13 +97,16 @@ World *add_world(char *name)
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
 
-	wrld->aodist= 10.0;
+	wrld->aodist= 5.0f;
 	wrld->aosamp= 5;
-	wrld->aoenergy= 1.0;
-	wrld->aobias= 0.05;
+	wrld->aoenergy= 1.0f;
+	wrld->aobias= 0.05f;
+	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
+	wrld->ao_approx_error= 0.25f;
 	
 	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
-	
+	wrld->preview = NULL;
+
 	return wrld;
 }
 
@@ -121,8 +125,10 @@ World *copy_world(World *wrld)
 		}
 	}
 	
+	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
+#ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&wrld->scriptlink);
-
+#endif
 	id_us_plus((ID *)wrldn->ipo);
 	
 	return wrldn;

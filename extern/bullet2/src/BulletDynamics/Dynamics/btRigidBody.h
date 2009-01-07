@@ -16,30 +16,29 @@ subject to the following restrictions:
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include <vector>
-#include <LinearMath/btPoint3.h>
-#include <LinearMath/btTransform.h>
+#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btPoint3.h"
+#include "LinearMath/btTransform.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-
-
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 
 class btCollisionShape;
 class btMotionState;
+class btTypedConstraint;
 
 
-
-extern float gLinearAirDamping;
-extern bool gUseEpa;
-
-extern float gDeactivationTime;
+extern btScalar gDeactivationTime;
 extern bool gDisableDeactivation;
-extern float gLinearSleepingThreshold;
-extern float gAngularSleepingThreshold;
 
 
-/// btRigidBody class for btRigidBody Dynamics
-/// 
+///btRigidBody is the main class for rigid body objects. It is derived from btCollisionObject, so it keeps a pointer to a btCollisionShape.
+///It is recommended for performance and memory use to share btCollisionShape objects whenever possible.
+///There are 3 types of rigid bodies: 
+///- A) Dynamic rigid bodies, with positive mass. Motion is controlled by rigid body dynamics.
+///- B) Fixed objects with zero mass. They are not moving (basically collision objects)
+///- C) Kinematic objects, which are objects without mass, but the user can move them. There is on-way interaction, and Bullet calculates a velocity based on the timestep and previous and current world transform.
+///Bullet automatically deactivates dynamic rigid bodies, when the velocity is below a threshold for a given time.
+///Deactivated (sleeping) rigid bodies don't take any processing time, except a minor broadphase collision detection impact (to allow active objects to activate/wake up sleeping objects)
 class btRigidBody  : public btCollisionObject
 {
 
@@ -56,19 +55,104 @@ class btRigidBody  : public btCollisionObject
 	
 	btScalar		m_linearDamping;
 	btScalar		m_angularDamping;
-	
+
+	bool			m_additionalDamping;
+	btScalar		m_additionalDampingFactor;
+	btScalar		m_additionalLinearDampingThresholdSqr;
+	btScalar		m_additionalAngularDampingThresholdSqr;
+	btScalar		m_additionalAngularDampingFactor;
+
+
+	btScalar		m_linearSleepingThreshold;
+	btScalar		m_angularSleepingThreshold;
 
 	//m_optionalMotionState allows to automatic synchronize the world transform for active objects
 	btMotionState*	m_optionalMotionState;
 
+	//keep track of typed constraints referencing this rigid body
+	btAlignedObjectArray<btTypedConstraint*> m_constraintRefs;
+
 public:
 
-#ifdef OBSOLETE_MOTIONSTATE_LESS
-	//not supported, please use btMotionState
-	btRigidBody(float mass, const btTransform& worldTransform, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
-#endif //OBSOLETE_MOTIONSTATE_LESS
 
-	btRigidBody(float mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
+	///btRigidBodyConstructionInfo provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
+	///For dynamic objects, you can use the collision shape to approximate the local inertia tensor, otherwise use the zero vector (default argument)
+	///You can use the motion state to synchronize the world transform between physics and graphics objects. 
+	///And if the motion state is provided, the rigid body will initialize its initial world transform from the motion state,
+	///m_startWorldTransform is only used when you don't provide a motion state.
+	struct	btRigidBodyConstructionInfo
+	{
+		btScalar			m_mass;
+
+		///When a motionState is provided, the rigid body will initialize its world transform from the motion state
+		///In this case, m_startWorldTransform is ignored.
+		btMotionState*		m_motionState;
+		btTransform	m_startWorldTransform;
+
+		btCollisionShape*	m_collisionShape;
+		btVector3			m_localInertia;
+		btScalar			m_linearDamping;
+		btScalar			m_angularDamping;
+
+		///best simulation results when friction is non-zero
+		btScalar			m_friction;
+		///best simulation results using zero restitution.
+		btScalar			m_restitution;
+
+		btScalar			m_linearSleepingThreshold;
+		btScalar			m_angularSleepingThreshold;
+
+		//Additional damping can help avoiding lowpass jitter motion, help stability for ragdolls etc.
+		//Such damping is undesirable, so once the overall simulation quality of the rigid body dynamics system has improved, this should become obsolete
+		bool				m_additionalDamping;
+		btScalar			m_additionalDampingFactor;
+		btScalar			m_additionalLinearDampingThresholdSqr;
+		btScalar			m_additionalAngularDampingThresholdSqr;
+		btScalar			m_additionalAngularDampingFactor;
+
+		
+		btRigidBodyConstructionInfo(	btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0)):
+		m_mass(mass),
+			m_motionState(motionState),
+			m_collisionShape(collisionShape),
+			m_localInertia(localInertia),
+			m_linearDamping(btScalar(0.)),
+			m_angularDamping(btScalar(0.)),
+			m_friction(btScalar(0.5)),
+			m_restitution(btScalar(0.)),
+			m_linearSleepingThreshold(btScalar(0.8)),
+			m_angularSleepingThreshold(btScalar(1.f)),
+			m_additionalDamping(false),
+			m_additionalDampingFactor(btScalar(0.005)),
+			m_additionalLinearDampingThresholdSqr(btScalar(0.01)),
+			m_additionalAngularDampingThresholdSqr(btScalar(0.01)),
+			m_additionalAngularDampingFactor(btScalar(0.01))
+		{
+			m_startWorldTransform.setIdentity();
+		}
+	};
+
+	///btRigidBody constructor using construction info
+	btRigidBody(	const btRigidBodyConstructionInfo& constructionInfo);
+
+	///btRigidBody constructor for backwards compatibility. 
+	///To specify friction (etc) during rigid body construction, please use the other constructor (using btRigidBodyConstructionInfo)
+	btRigidBody(	btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0));
+
+
+	virtual ~btRigidBody()
+        { 
+                //No constraints should point to this rigidbody
+		//Remove constraints from the dynamics world before you delete the related rigidbodies. 
+                btAssert(m_constraintRefs.size()==0); 
+        }
+
+protected:
+
+	///setupRigidBody is only used internally by the constructor
+	void	setupRigidBody(const btRigidBodyConstructionInfo& constructionInfo);
+
+public:
 
 	void			proceedToTransform(const btTransform& newTrans); 
 	
@@ -76,11 +160,15 @@ public:
 	///but a rigidbody is derived from btCollisionObject, so we can safely perform an upcast
 	static const btRigidBody*	upcast(const btCollisionObject* colObj)
 	{
-		return (const btRigidBody*)colObj->getInternalOwner();
+		if (colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY)
+			return (const btRigidBody*)colObj;
+		return 0;
 	}
 	static btRigidBody*	upcast(btCollisionObject* colObj)
 	{
-		return (btRigidBody*)colObj->getInternalOwner();
+		if (colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY)
+			return (btRigidBody*)colObj;
+		return 0;
 	}
 	
 	/// continuous collision detection needs prediction
@@ -88,8 +176,7 @@ public:
 	
 	void			saveKinematicState(btScalar step);
 	
-
-	void			applyForces(btScalar step);
+	void			applyGravity();
 	
 	void			setGravity(const btVector3& acceleration);  
 
@@ -99,12 +186,34 @@ public:
 	}
 
 	void			setDamping(btScalar lin_damping, btScalar ang_damping);
-	
-	inline const btCollisionShape*	getCollisionShape() const {
+
+	btScalar getLinearDamping() const
+	{
+		return m_linearDamping;
+	}
+
+	btScalar getAngularDamping() const
+	{
+		return m_angularDamping;
+	}
+
+	btScalar getLinearSleepingThreshold() const
+	{
+		return m_linearSleepingThreshold;
+	}
+
+	btScalar getAngularSleepingThreshold() const
+	{
+		return m_angularSleepingThreshold;
+	}
+
+	void			applyDamping(btScalar timeStep);
+
+	SIMD_FORCE_INLINE const btCollisionShape*	getCollisionShape() const {
 		return m_collisionShape;
 	}
 
-	inline btCollisionShape*	getCollisionShape() {
+	SIMD_FORCE_INLINE btCollisionShape*	getCollisionShape() {
 			return m_collisionShape;
 	}
 	
@@ -134,6 +243,12 @@ public:
 		m_invInertiaLocal = diagInvInertia;
 	}
 
+	void	setSleepingThresholds(btScalar linear,btScalar angular)
+	{
+		m_linearSleepingThreshold = linear;
+		m_angularSleepingThreshold = angular;
+	}
+
 	void	applyTorque(const btVector3& torque)
 	{
 		m_totalTorque += torque;
@@ -142,7 +257,7 @@ public:
 	void	applyForce(const btVector3& force, const btVector3& rel_pos) 
 	{
 		applyCentralForce(force);
-		applyTorque(rel_pos.cross(force));
+		applyTorque(rel_pos.cross(force)*m_angularFactor);
 	}
 	
 	void applyCentralImpulse(const btVector3& impulse)
@@ -157,7 +272,7 @@ public:
 	
 	void applyImpulse(const btVector3& impulse, const btVector3& rel_pos) 
 	{
-		if (m_inverseMass != 0.f)
+		if (m_inverseMass != btScalar(0.))
 		{
 			applyCentralImpulse(impulse);
 			if (m_angularFactor)
@@ -168,9 +283,9 @@ public:
 	}
 
 	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
-	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,float impulseMagnitude)
+	SIMD_FORCE_INLINE void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
 	{
-		if (m_inverseMass != 0.f)
+		if (m_inverseMass != btScalar(0.))
 		{
 			m_linearVelocity += linearComponent*impulseMagnitude;
 			if (m_angularFactor)
@@ -182,8 +297,8 @@ public:
 	
 	void clearForces() 
 	{
-		m_totalForce.setValue(0.0f, 0.0f, 0.0f);
-		m_totalTorque.setValue(0.0f, 0.0f, 0.0f);
+		m_totalForce.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
+		m_totalTorque.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	}
 	
 	void updateInertiaTensor();    
@@ -238,7 +353,7 @@ public:
 
 
 	
-	inline float computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
+	SIMD_FORCE_INLINE btScalar computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
 	{
 		btVector3 r0 = pos - getCenterOfMassPosition();
 
@@ -250,37 +365,37 @@ public:
 
 	}
 
-	inline float computeAngularImpulseDenominator(const btVector3& axis) const
+	SIMD_FORCE_INLINE btScalar computeAngularImpulseDenominator(const btVector3& axis) const
 	{
 		btVector3 vec = axis * getInvInertiaTensorWorld();
 		return axis.dot(vec);
 	}
 
-	inline void	updateDeactivation(float timeStep)
+	SIMD_FORCE_INLINE void	updateDeactivation(btScalar timeStep)
 	{
 		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == DISABLE_DEACTIVATION))
 			return;
 
-		if ((getLinearVelocity().length2() < gLinearSleepingThreshold*gLinearSleepingThreshold) &&
-			(getAngularVelocity().length2() < gAngularSleepingThreshold*gAngularSleepingThreshold))
+		if ((getLinearVelocity().length2() < m_linearSleepingThreshold*m_linearSleepingThreshold) &&
+			(getAngularVelocity().length2() < m_angularSleepingThreshold*m_angularSleepingThreshold))
 		{
 			m_deactivationTime += timeStep;
 		} else
 		{
-			m_deactivationTime=0.f;
+			m_deactivationTime=btScalar(0.);
 			setActivationState(0);
 		}
 
 	}
 
-	inline bool	wantsSleeping()
+	SIMD_FORCE_INLINE bool	wantsSleeping()
 	{
 
 		if (getActivationState() == DISABLE_DEACTIVATION)
 			return false;
 
 		//disable deactivation
-		if (gDisableDeactivation || (gDeactivationTime == 0.f))
+		if (gDisableDeactivation || (gDeactivationTime == btScalar(0.)))
 			return false;
 
 		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION))
@@ -328,11 +443,11 @@ public:
 	int	m_contactSolverType;
 	int	m_frictionSolverType;
 
-	void	setAngularFactor(float angFac)
+	void	setAngularFactor(btScalar angFac)
 	{
 		m_angularFactor = angFac;
 	}
-	float	getAngularFactor() const
+	btScalar	getAngularFactor() const
 	{
 		return m_angularFactor;
 	}
@@ -341,6 +456,21 @@ public:
 	bool	isInWorld() const
 	{
 		return (getBroadphaseProxy() != 0);
+	}
+
+	virtual bool checkCollideWithOverride(btCollisionObject* co);
+
+	void addConstraintRef(btTypedConstraint* c);
+	void removeConstraintRef(btTypedConstraint* c);
+
+	btTypedConstraint* getConstraintRef(int index)
+	{
+		return m_constraintRefs[index];
+	}
+
+	int getNumConstraintRefs()
+	{
+		return m_constraintRefs.size();
 	}
 
 	int	m_debugBodyId;

@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef _IPHYSICSENVIRONMENT
@@ -36,6 +33,50 @@
 #include <vector>
 #include "PHY_DynamicTypes.h"
 class PHY_IVehicle;
+class RAS_MeshObject;
+class PHY_IPhysicsController;
+
+/**
+ * pass back information from rayTest
+ */
+struct PHY_RayCastResult
+{
+	PHY_IPhysicsController* m_controller;	
+	PHY__Vector3			m_hitPoint;
+	PHY__Vector3			m_hitNormal;
+	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
+	int						m_polygon;		// index of the polygon hit by the ray,
+											// only if m_meshObject != NULL
+};
+
+/**
+ * This class replaces the ignoreController parameter of rayTest function. 
+ * It allows more sophisticated filtering on the physics controller before computing the ray intersection to save CPU. 
+ * It is only used to its full extend by the Ccd physics environement (Bullet).
+ */
+class PHY_IRayCastFilterCallback
+{
+public:
+	PHY_IPhysicsController* m_ignoreController;
+	bool					m_faceNormal;
+
+	virtual		~PHY_IRayCastFilterCallback()
+	{
+	}
+
+	virtual	bool needBroadphaseRayCast(PHY_IPhysicsController* controller)
+	{
+		return true;
+	}
+
+	virtual void reportHit(PHY_RayCastResult* result) = 0;
+
+	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false) 
+		:m_ignoreController(ignoreController),
+		m_faceNormal(faceNormal)
+	{
+	}
+};
 
 /**
 *	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
@@ -88,7 +129,7 @@ class PHY_IPhysicsEnvironment
 			float pivotX,float pivotY,float pivotZ,
 			float axis0X,float axis0Y,float axis0Z,
 			float axis1X=0,float axis1Y=0,float axis1Z=0,
-			float axis2X=0,float axis2Y=0,float axis2Z=0
+			float axis2X=0,float axis2Y=0,float axis2Z=0,int flag=0
 		)=0;
 		virtual void		removeConstraint(int	constraintid)=0;
 		virtual float		getAppliedImpulse(int	constraintid){ return 0.f;}
@@ -97,8 +138,7 @@ class PHY_IPhysicsEnvironment
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)=0;
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -107,6 +147,8 @@ class PHY_IPhysicsEnvironment
 		virtual void removeSensor(PHY_IPhysicsController* ctrl)=0;
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user)=0;
 		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
+		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;
 		

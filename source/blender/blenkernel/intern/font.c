@@ -3,15 +3,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -56,7 +53,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #include "BKE_packedFile.h"
 
@@ -72,6 +68,8 @@
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
  
 struct SelBox *selboxes= NULL;
+
+static ListBase ttfdata= {NULL, NULL};
 
 /* UTF-8 <-> wchar transformations */
 void
@@ -162,41 +160,61 @@ utf8slen(char *src)
 	return size;
 }
 
-int utf8towchar_(wchar_t *w, char *c)
+
+/* Converts Unicode to wchar
+
+According to RFC 3629 "UTF-8, a transformation format of ISO 10646"
+(http://tools.ietf.org/html/rfc3629), the valid UTF-8 encoding are:
+
+  Char. number range  |        UTF-8 octet sequence
+      (hexadecimal)    |              (binary)
+   --------------------+---------------------------------------------
+   0000 0000-0000 007F | 0xxxxxxx
+   0000 0080-0000 07FF | 110xxxxx 10xxxxxx
+   0000 0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+   0001 0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+If the encoding incidated by the first character is incorrect (because the
+1 to 3 following characters do not match 10xxxxxx), the output is a '?' and
+only a single input character is consumed.
+
+*/
+
+int utf8towchar(wchar_t *w, char *c)
 {
 	int len=0;
+
 	if(w==NULL || c==NULL) return(0);
-	//printf("%s\n",c);
-	while(*c)
-	{
-		if(*c & 0x80)
-		{
-			if(*c & 0x40)
-			{
-				if(*c & 0x20)
-				{
-					if(*c & 0x10)
-					{
-						*w=(c[0] & 0x0f)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x7f);
-						c++;
-					}
-					else
-						*w=(c[0] & 0x1f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x7f);
-					c++;
-				}
-				else
-					*w=(((c[0] &0x3f)<<6) | (c[1]&0x7f));
+
+	while(*c) {
+		if ((*c & 0xe0) == 0xc0) {
+			if((c[1] & 0x80) && (c[1] & 0x40) == 0x00) {
+				*w=((c[0] &0x1f)<<6) | (c[1]&0x3f);
 				c++;
+			} else {
+				*w = '?';
 			}
-			else
-				*w=(c[0] & 0x7f);
+		} else if ((*c & 0xf0) == 0xe0) {
+			if((c[1] & c[2] & 0x80) && ((c[1] | c[2]) & 0x40) == 0x00) {
+				*w=((c[0] & 0x0f)<<12) | ((c[1]&0x3f)<<6) | (c[2]&0x3f);
+				c += 2;
+			} else {
+				*w = '?';
 			}
-			else
-				*w=(c[0] & 0x7f);
-			c++;
-			w++;
-			len++;
-		}
+		} else if ((*c & 0xf8) == 0xf0) {
+			if((c[1] & c[2] & c[3] & 0x80) && ((c[1] | c[2] | c[3]) & 0x40) == 0x00) {
+				*w=((c[0] & 0x07)<<18) | ((c[1]&0x1f)<<12) | ((c[2]&0x3f)<<6) | (c[3]&0x3f);
+				c += 3;
+			} else {
+				*w = '?';
+			}
+		} else
+		    *w=(c[0] & 0x7f);
+
+		c++;
+		w++;
+		len++;
+	}
 	return len;
 }
 
@@ -253,6 +271,37 @@ static PackedFile *get_builtin_packedfile(void)
 	}
 }
 
+void free_ttfont(void)
+{
+	struct TmpFont *tf;
+	
+	tf= ttfdata.first;
+	while(tf) {
+		freePackedFile(tf->pf);
+		tf->pf= NULL;
+		tf->vfont= NULL;
+		tf= tf->next;
+	}
+	BLI_freelistN(&ttfdata);
+}
+
+struct TmpFont *vfont_find_tmpfont(VFont *vfont)
+{
+	struct TmpFont *tmpfnt = NULL;
+	
+	if(vfont==NULL) return NULL;
+	
+	// Try finding the font from font list
+	tmpfnt = ttfdata.first;
+	while(tmpfnt)
+	{
+		if(tmpfnt->vfont == vfont)
+			break;
+		tmpfnt = tmpfnt->next;
+	}
+	return tmpfnt;
+}
+
 static VFontData *vfont_get_data(VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
@@ -261,14 +310,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	if(vfont==NULL) return NULL;
 	
 	// Try finding the font from font list
-	tmpfnt = G.ttfdata.first;
-	
-	while(tmpfnt)
-	{
-		if(tmpfnt->vfont == vfont)
-			break;
-		tmpfnt = tmpfnt->next;
-	}
+	tmpfnt = vfont_find_tmpfont(vfont);
 	
 	// And then set the data	
 	if (!vfont->data) {
@@ -292,7 +334,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 					tmpfnt->pf= tpf;
 					tmpfnt->vfont= vfont;
-					BLI_addtail(&G.ttfdata, tmpfnt);
+					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			} else {
 				pf= newPackedFile(vfont->name);
@@ -305,7 +347,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 					tmpfnt->pf= tpf;
 					tmpfnt->vfont= vfont;
-					BLI_addtail(&G.ttfdata, tmpfnt);
+					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			}
 			if(!pf) {
@@ -359,8 +401,6 @@ VFont *load_vfont(char *name)
 
 	if (pf) {
 		VFontData *vfd;
-		
-		waitcursor(1);
 
 #ifdef WITH_FREETYPE2
 		vfd= BLI_vfontdata_from_freetypefont(pf);
@@ -385,7 +425,7 @@ VFont *load_vfont(char *name)
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
 				tmpfnt->vfont= vfont;
-				BLI_addtail(&G.ttfdata, tmpfnt);
+				BLI_addtail(&ttfdata, tmpfnt);
 			}			
 		}
 		
@@ -394,7 +434,7 @@ VFont *load_vfont(char *name)
 			freePackedFile(pf);
 		}
 	
-		waitcursor(0);
+		//XXX waitcursor(0);
 	}
 	
 	return vfont;
@@ -423,7 +463,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	if (nu2 == NULL) return;
 	nu2->resolu= cu->resolu;
 	nu2->bezt = NULL;
-	nu2->knotsu = nu2->knotsv = 0;
+	nu2->knotsu = nu2->knotsv = NULL;
 	nu2->flag= 0;
 	nu2->charidx = charidx+1000;
 	if (mat_nr > 0) nu2->mat_nr= mat_nr-1;
@@ -512,7 +552,7 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 			memcpy(nu2, nu1, sizeof(struct Nurb));
 			nu2->resolu= cu->resolu;
 			nu2->bp = 0;
-			nu2->knotsu = nu2->knotsv = 0;
+			nu2->knotsu = nu2->knotsv = NULL;
 			nu2->flag= CU_SMOOTH;
 			nu2->charidx = charidx;
 			if (info->mat_nr) {
@@ -582,13 +622,11 @@ static void buildchar(Curve *cu, unsigned long character, CharInfo *info, float 
 	}
 }
 
-int getselection(int *start, int *end)
+int getselection(Object *ob, int *start, int *end)
 {
-	Curve *cu;
+	Curve *cu= ob->data;
 	
-	if (G.obedit==NULL || G.obedit->type != OB_FONT) return 0;
-	
-	cu= G.obedit->data;
+	if (cu->editstr==NULL || ob->type != OB_FONT) return 0;
 
 	if (cu->selstart == 0) return 0;
 	if (cu->selstart <= cu->selend) {
@@ -603,7 +641,7 @@ int getselection(int *start, int *end)
 	}
 }
 
-struct chartrans *text_to_curve(Object *ob, int mode) 
+struct chartrans *text_to_curve(Scene *scene, Object *ob, int mode) 
 {
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
@@ -637,14 +675,14 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	cu= (Curve *) ob->data;
 	vfont= cu->vfont;
 
-	if(cu->str == 0) return 0;
-	if(vfont == 0) return 0;
+	if(cu->str == NULL) return 0;
+	if(vfont == NULL) return 0;
 
 	// Create unicode string
 	utf8len = utf8slen(cu->str);
 	tmp = mem = MEM_callocN(((utf8len + 1) * sizeof(wchar_t)), "convertedmem");
 	
-	utf8towchar_(mem, cu->str);
+	utf8towchar(mem, cu->str);
 
 	// Count the wchar_t string length
 	slen = wcslen(mem);
@@ -691,7 +729,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	if (selboxes) MEM_freeN(selboxes);
 	selboxes = NULL;
-	if (getselection(&selstart, &selend))
+	if (getselection(ob, &selstart, &selend))
 		selboxes = MEM_callocN((selend-selstart+1)*sizeof(SelBox), "font selboxes");
 
 	tb = &(cu->tb[0]);
@@ -935,7 +973,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		oldflag= cucu->flag;
 		cucu->flag |= (CU_PATH+CU_FOLLOW);
 		
-		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve, 0);
+		if(cucu->path==NULL) makeDispListCurveTypes(scene, cu->textoncurve, 0);
 		if(cucu->path) {
 			float imat[4][4], imat3[3][3];
 			Mat4Invert(imat, ob->obmat);
@@ -1073,7 +1111,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	}
 	
 	/* cursor first */
-	if(ob==G.obedit) {
+	if(cu->editstr) {
 		ct= chartransdata+cu->pos;
 		si= (float)sin(ct->rot);
 		co= (float)cos(ct->rot);

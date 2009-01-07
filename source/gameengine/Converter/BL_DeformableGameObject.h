@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BL_DEFORMABLEGAMEOBJECT
@@ -37,29 +34,74 @@
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
 #endif //WIN32
 
+#include "DNA_mesh_types.h"
 #include "KX_GameObject.h"
-#include "RAS_Deformer.h"
+#include "BL_MeshDeformer.h"
+#include <vector>
+
+class BL_ShapeActionActuator;
+struct Key;
 
 class BL_DeformableGameObject : public KX_GameObject  
 {
 public:
 
-	RAS_Deformer		*m_pDeformer;	
 	CValue*		GetReplica();
+
+	double GetLastFrame ()
+	{
+		return m_lastframe;
+	}
+	Object* GetBlendObject()
+	{
+		return m_blendobj;
+	}
 	virtual void Relink(GEN_Map<GEN_HashedPtr, void*>*map)
 	{
 		if (m_pDeformer)
 			m_pDeformer->Relink (map);
+		KX_GameObject::Relink(map);
 	};
 	void ProcessReplica(KX_GameObject* replica);
 
-	BL_DeformableGameObject(void* sgReplicationInfo, SG_Callbacks callbacks) :
+	BL_DeformableGameObject(Object* blendobj, void* sgReplicationInfo, SG_Callbacks callbacks) :
 		KX_GameObject(sgReplicationInfo,callbacks),
-		m_pDeformer(NULL)
+		m_pDeformer(NULL),
+		m_activeAct(NULL),
+		m_lastframe(0.),
+		m_blendobj(blendobj),
+		m_activePriority(9999)
 	{
 		m_isDeformable = true;
 	};
 	virtual ~BL_DeformableGameObject();
+	bool SetActiveAction(class BL_ShapeActionActuator *act, short priority, double curtime);
+
+	bool GetShape(vector<float> &shape);
+	Key* GetKey()
+	{
+		return (m_pDeformer) ? ((BL_MeshDeformer*)m_pDeformer)->GetMesh()->key : NULL;
+	}
+	
+	virtual void	SetDeformer(class RAS_Deformer* deformer)
+	{
+		m_pDeformer = deformer;
+	}
+	virtual class RAS_Deformer* GetDeformer()
+	{
+		return m_pDeformer;
+	}
+
+public:
+	
+protected:	
+	
+	RAS_Deformer		*m_pDeformer;
+
+	class BL_ShapeActionActuator *m_activeAct;
+	double		m_lastframe;
+	Object*		m_blendobj;
+	short		m_activePriority;
 
 };
 

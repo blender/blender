@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * KX_MouseFocusSensor determines mouse in/out/over events.
  */
 
@@ -35,6 +32,8 @@
 #define __KX_MOUSEFOCUSSENSOR
 
 #include "SCA_MouseSensor.h"
+
+class KX_RayCast;
 
 /**
  * The mouse focus sensor extends the basic SCA_MouseSensor. It has
@@ -57,6 +56,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						int focusmode,
 						RAS_ICanvas* canvas,
 						KX_Scene* kxscene,
+						KX_KetsjiEngine* kxengine,
 						SCA_IObject* gameobj,
 						PyTypeObject* T=&Type );
 
@@ -71,6 +71,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * @attention Overrides default evaluate. 
 	 */
 	virtual bool Evaluate(CValue* event);
+	virtual void Init();
 
 	virtual bool IsPositiveTrigger() {
 		bool result = m_positive_event;
@@ -78,7 +79,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 		return result;
 	};
 
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	bool RayHit(KX_ClientObjectInfo* client, KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo* client) { return true; }
+	
 
 	
 	/* --------------------------------------------------------------------- */
@@ -141,12 +144,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 
 
 	/**
-	 * Ref to the engine, for retrieving a reference to the current
-	 * scene.  */
-	class KX_KetsjiEngine* m_engine;
-
-
-	/**
 	 * The active canvas. The size of this canvas determines a part of
 	 * the start position of the picking ray.  */
 	RAS_ICanvas* m_gp_canvas;
@@ -156,6 +153,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * determines a part of the start location of the picking ray.  */
 	KX_Scene* m_kxscene;
 
+	/**
+	 * The KX engine is needed for computing the viewport */
+	KX_KetsjiEngine* m_kxengine;
 };
 
 #endif //__KX_MOUSESENSOR

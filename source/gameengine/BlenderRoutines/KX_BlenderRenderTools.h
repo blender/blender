@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,8 +24,9 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef __KX_BLENDERRENDERTOOLS
 #define __KX_BLENDERRENDERTOOLS
 
@@ -40,67 +38,65 @@
 #include "RAS_IRenderTools.h"
 
 struct KX_ClientObjectInfo;
+class KX_RayCast;
 
-/**
-BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which are not
-part of the (polygon) Rasterizer. 
-Effects like 2D text, 3D (polygon) text, lighting.
-*/
+/* BlenderRenderTools are a set of tools to apply 2D/3D graphics effects, which
+ * are not part of the (polygon) Rasterizer. Effects like 2D text, 3D (polygon)
+ * text, lighting.
+ *
+ * Most of this code is duplicated in GPC_RenderTools, so this should be
+ * moved to some common location to avoid duplication. */
 
 class KX_BlenderRenderTools  : public RAS_IRenderTools
 {
-	bool	m_lastblenderlights;
-	void*	m_lastblenderobject;
-	int		m_lastlayer;
+	int		m_lastlightlayer;
 	bool	m_lastlighting;
 	static unsigned int m_numgllights;
-	
+
 public:
-	
 						KX_BlenderRenderTools();
 	virtual				~KX_BlenderRenderTools();	
 
-	virtual void		EndFrame(class RAS_IRasterizer* rasty);
-	virtual void		BeginFrame(class RAS_IRasterizer* rasty);
-	void				DisableOpenGLLights();
-	void				EnableOpenGLLights();
-	int					ProcessLighting(int layer);
+	void				EndFrame(RAS_IRasterizer* rasty);
+	void				BeginFrame(RAS_IRasterizer* rasty);
 
-	virtual void	    RenderText2D(RAS_TEXT_RENDER_MODE mode,
+	void				EnableOpenGLLights();
+	void				DisableOpenGLLights();
+	void				ProcessLighting(int layer, const MT_Transform& viewmat);
+
+	void			    RenderText2D(RAS_TEXT_RENDER_MODE mode,
 									 const char* text,
 									 int xco,
 									 int yco,
 									 int width,
 									 int height);
-	virtual void		RenderText(int mode,
+	void				RenderText(int mode,
 								   class RAS_IPolyMaterial* polymat,
 								   float v1[3],
 								   float v2[3],
 								   float v3[3],
-								   float v4[3]);
-	void				applyTransform(class RAS_IRasterizer* rasty,
-									   double* oglmatrix,
-									   int objectdrawmode );
-	int					applyLights(int objectlayer);
-	virtual void		PushMatrix();
-	virtual void		PopMatrix();
+								   float v4[3],
+								   int glattrib);
 
-	virtual class RAS_IPolyMaterial* CreateBlenderPolyMaterial(const STR_String &texname,
-									bool ba,
-									const STR_String& matname,
-									int tile,
-									int tilexrep,
-									int tileyrep,
-									int mode,
-									bool transparant,
-									bool zsort,
-									int lightlayer,
-									bool bIsTriangle,
-									void* clientobject,
-									void* tface);
-	
-	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+	void				applyTransform(RAS_IRasterizer* rasty, double* oglmatrix, int objectdrawmode);
+	int					applyLights(int objectlayer, const MT_Transform& viewmat);
+
+	void				PushMatrix();
+	void				PopMatrix();
+
+	bool RayHit(KX_ClientObjectInfo* client, class KX_RayCast* result, void * const data);
+	bool NeedRayCast(KX_ClientObjectInfo*) { return true; }
+
+	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
+
+	virtual void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
+
+	virtual	void Render2DFilters(RAS_ICanvas* canvas);
+
+	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
 };
 
 #endif //__KX_BLENDERRENDERTOOLS
+
+
 

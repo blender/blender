@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -78,9 +75,10 @@ void SCA_MouseManager::NextFrame()
 {
 	if (m_mousedevice)
 	{
-		for (unsigned int i = 0; i < m_sensors.size(); i++)
+		set<SCA_ISensor*>::iterator it;
+		for (it=m_sensors.begin(); it!=m_sensors.end(); it++)
 		{
-			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*) m_sensors[i];
+			SCA_MouseSensor* mousesensor = (SCA_MouseSensor*)(*it);
 			// (0,0) is the Upper Left corner in our local window
 			// coordinates
 			if (!mousesensor->IsSuspended())
@@ -100,15 +98,6 @@ void SCA_MouseManager::NextFrame()
 		}
 	}
 }
-
-
-
-void  SCA_MouseManager::RegisterSensor(SCA_ISensor* keysensor)
-{
-	m_sensors.push_back(keysensor);
-}
-
-
 
 bool SCA_MouseManager::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {

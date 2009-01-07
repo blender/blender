@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __RAS_OPENGLRASTERIZER
 #define __RAS_OPENGLRASTERIZER
@@ -44,7 +41,8 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
-#define RAS_MAX 3// match in BL_Material
+#define RAS_MAX_TEXCO	8	// match in BL_Material
+#define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
 
 struct	OglDebugLine
 {
@@ -79,7 +77,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_ambb;
 
 	double			m_time;
-	MT_CmMatrix4x4	m_viewmatrix;
+	MT_Matrix4x4	m_viewmatrix;
+	MT_Matrix4x4	m_viewinvmatrix;
 	MT_Point3		m_campos;
 
 	StereoMode		m_stereomode;
@@ -89,12 +88,19 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_focallength;
 	bool			m_setfocallength;
 	int				m_noOfScanlines;
-	bool			InterlacedStereo() const;
+
+	//motion blur
+	int	m_motionblur;
+	float	m_motionblurvalue;
 
 protected:
 	int				m_drawingmode;
-	TexCoGen		m_texco[RAS_MAX];
-	bool			m_useTang;
+	TexCoGen		m_texco[RAS_MAX_TEXCO];
+	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
+	int				m_texco_num;
+	int				m_attrib_num;
+	int				m_last_blendmode;
+	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
@@ -124,13 +130,16 @@ public:
 	virtual bool	Init();
 	virtual void	Exit();
 	virtual bool	BeginFrame(int drawingmode, double time);
+	virtual void	ClearColorBuffer();
 	virtual void	ClearDepthBuffer();
 	virtual void	ClearCachingInfo(void);
 	virtual void	EndFrame();
 	virtual void	SetRenderArea();
 
 	virtual void	SetStereoMode(const StereoMode stereomode);
+    virtual RAS_IRasterizer::StereoMode GetStereoMode();
 	virtual bool	Stereo();
+	virtual bool	InterlacedStereo();
 	virtual void	SetEye(const StereoEye eye);
 	virtual StereoEye	GetEye();
 	virtual void	SetEyeSeparation(const float eyeseparation);
@@ -138,59 +147,16 @@ public:
 	virtual void	SetFocalLength(const float focallength);
 	virtual float	GetFocalLength();
 
-	virtual void	SetAlphaTest(bool enable);
-
 	virtual void	SwapBuffers();
-	virtual void	IndexPrimitives(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot
-					);
 
-	virtual void	IndexPrimitives_Ex(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor
-					);
-
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 	virtual void	IndexPrimitives_3DText(
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
+						class RAS_MeshSlot& ms,
 						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor
-					);
+						class RAS_IRenderTools* rendertools);
 
-	virtual void IndexPrimitivesMulti( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor,
-						class KX_ListSlot** slot);
-
-	virtual void IndexPrimitivesMulti_Ex( 
-						const vecVertexArray& vertexarrays,
-						const vecIndexArrays & indexarrays,
-						int mode,
-						class RAS_IPolyMaterial* polymat,
-						class RAS_IRenderTools* rendertools,
-						bool useObjectColor,
-						const MT_Vector4& rgbacolor);
-
+	void			IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi);
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);
@@ -202,7 +168,6 @@ public:
 					);
 
 	virtual const	MT_Point3& GetCameraPosition();
-	virtual void	LoadViewMatrix();
 	
 	virtual void	SetFog(
 						float start,
@@ -234,7 +199,6 @@ public:
 	virtual void	SetDrawingMode(int drawingmode);
 	virtual int		GetDrawingMode();
 
-	virtual void	EnableTextures(bool enable);
 	virtual void	SetCullFace(bool enable);
 	virtual void	SetLines(bool enable);
 
@@ -245,6 +209,7 @@ public:
 							float top,
 							float frustnear,
 							float frustfar,
+							float focallength,
 							bool perspective
 						);
 
@@ -284,17 +249,34 @@ public:
 
 	std::vector <OglDebugLine>	m_debugLines;
 
-	virtual void	SetTexCoords(TexCoGen coords,int enabled);
-	virtual void	SetAttrib(int type);
-	void			TexCoord(const RAS_TexVert &tv, int unit);
-	virtual void	GetViewMatrix(MT_Matrix4x4 &mat) const;
+	virtual void SetTexCoordNum(int num);
+	virtual void SetAttribNum(int num);
+	virtual void SetTexCoord(TexCoGen coords, int unit);
+	virtual void SetAttrib(TexCoGen coords, int unit);
 
-	void	Tangent(const RAS_TexVert& v1,
-					const RAS_TexVert& v2,
-					const RAS_TexVert& v3,
-					const MT_Vector3 &no);
+	void TexCoord(const RAS_TexVert &tv);
 
+	const MT_Matrix4x4&	GetViewMatrix() const;
+	const MT_Matrix4x4&	GetViewInvMatrix() const;
+	
+	virtual void	EnableMotionBlur(float motionblurvalue);
+	virtual void	DisableMotionBlur();
+	virtual float	GetMotionBlurValue(){return m_motionblurvalue;};
+	virtual int		GetMotionBlurState(){return m_motionblur;};
+	virtual void	SetMotionBlurState(int newstate)
+	{
+		if(newstate<0) 
+			m_motionblur = 0;
+		else if(newstate>2)
+			m_motionblur = 2;
+		else 
+			m_motionblur = newstate;
+	};
+
+	virtual void	SetBlendingMode(int blendmode);
+	virtual void	SetFrontFace(bool ccw);
 };
 
 #endif //__RAS_OPENGLRASTERIZER
+
 

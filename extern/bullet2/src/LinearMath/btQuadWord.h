@@ -16,23 +16,36 @@ subject to the following restrictions:
 #ifndef SIMD_QUADWORD_H
 #define SIMD_QUADWORD_H
 
-#include "LinearMath/btScalar.h"
+#include "btScalar.h"
+#include "btMinMax.h"
+#include <math.h>
 
 
 
-
-ATTRIBUTE_ALIGNED16 (class	btQuadWord)
+///The btQuadWordStorage class is base class for btVector3 and btQuaternion. 
+///Some issues under PS3 Linux with IBM 2.1 SDK, gcc compiler prevent from using aligned quadword. todo: look into this
+///ATTRIBUTE_ALIGNED16(class) btQuadWordStorage
+class btQuadWordStorage
 {
-	protected:
-		btScalar	m_x;
-		btScalar	m_y;
-		btScalar	m_z;
-		btScalar	m_unusedW;
+protected:
 
+	btScalar	m_x;
+	btScalar	m_y;
+	btScalar	m_z;
+	btScalar	m_unusedW;
+
+public:
+
+};
+
+
+///btQuadWord is base-class for vectors, points
+class	btQuadWord : public btQuadWordStorage
+{
 	public:
 	
-		SIMD_FORCE_INLINE btScalar&       operator[](int i)       { return (&m_x)[i];	}      
-		SIMD_FORCE_INLINE const btScalar& operator[](int i) const { return (&m_x)[i]; }
+//		SIMD_FORCE_INLINE btScalar&       operator[](int i)       { return (&m_x)[i];	}      
+//		SIMD_FORCE_INLINE const btScalar& operator[](int i) const { return (&m_x)[i]; }
 
 		SIMD_FORCE_INLINE const btScalar& getX() const { return m_x; }
 
@@ -40,11 +53,13 @@ ATTRIBUTE_ALIGNED16 (class	btQuadWord)
 
 		SIMD_FORCE_INLINE const btScalar& getZ() const { return m_z; }
 
-		SIMD_FORCE_INLINE void	setX(float x) { m_x = x;};
+		SIMD_FORCE_INLINE void	setX(btScalar x) { m_x = x;};
 
-		SIMD_FORCE_INLINE void	setY(float y) { m_y = y;};
+		SIMD_FORCE_INLINE void	setY(btScalar y) { m_y = y;};
 
-		SIMD_FORCE_INLINE void	setZ(float z) { m_z = z;};
+		SIMD_FORCE_INLINE void	setZ(btScalar z) { m_z = z;};
+
+		SIMD_FORCE_INLINE void	setW(btScalar w) { m_unusedW = w;};
 
 		SIMD_FORCE_INLINE const btScalar& x() const { return m_x; }
 
@@ -52,15 +67,20 @@ ATTRIBUTE_ALIGNED16 (class	btQuadWord)
 
 		SIMD_FORCE_INLINE const btScalar& z() const { return m_z; }
 
+		SIMD_FORCE_INLINE const btScalar& w() const { return m_unusedW; }
 
-		operator       btScalar *()       { return &m_x; }
-		operator const btScalar *() const { return &m_x; }
+
+		SIMD_FORCE_INLINE	operator       btScalar *()       { return &m_x; }
+		SIMD_FORCE_INLINE	operator const btScalar *() const { return &m_x; }
+
+
 
 		SIMD_FORCE_INLINE void 	setValue(const btScalar& x, const btScalar& y, const btScalar& z)
 		{
 			m_x=x;
 			m_y=y;
 			m_z=z;
+			m_unusedW = 0.f;
 		}
 
 /*		void getValue(btScalar *m) const 
@@ -78,52 +98,41 @@ ATTRIBUTE_ALIGNED16 (class	btQuadWord)
 			m_unusedW=w;
 		}
 
-		SIMD_FORCE_INLINE btQuadWord() :
-		m_x(0.f),m_y(0.f),m_z(0.f),m_unusedW(0.f)
+		SIMD_FORCE_INLINE btQuadWord()
+		//	:m_x(btScalar(0.)),m_y(btScalar(0.)),m_z(btScalar(0.)),m_unusedW(btScalar(0.))
 		{
 		}
 
-		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z) 
-		:m_x(x),m_y(y),m_z(z)
-		//todo, remove this in release/simd ?
-		,m_unusedW(0.f)
+		SIMD_FORCE_INLINE btQuadWord(const btQuadWordStorage& q)
 		{
+			*((btQuadWordStorage*)this) = q;
+		}
+
+		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z)		
+		{
+			m_x = x, m_y = y, m_z = z, m_unusedW = 0.0f;
 		}
 
 		SIMD_FORCE_INLINE btQuadWord(const btScalar& x, const btScalar& y, const btScalar& z,const btScalar& w) 
-			:m_x(x),m_y(y),m_z(z),m_unusedW(w)
 		{
+			m_x = x, m_y = y, m_z = z, m_unusedW = w;
 		}
 
 
 		SIMD_FORCE_INLINE void	setMax(const btQuadWord& other)
 		{
-			if (other.m_x > m_x)
-				m_x = other.m_x;
-
-			if (other.m_y > m_y)
-				m_y = other.m_y;
-
-			if (other.m_z > m_z)
-				m_z = other.m_z;
-
-			if (other.m_unusedW > m_unusedW)
-				m_unusedW = other.m_unusedW;
+			btSetMax(m_x, other.m_x);
+			btSetMax(m_y, other.m_y);
+			btSetMax(m_z, other.m_z);
+			btSetMax(m_unusedW, other.m_unusedW);
 		}
 
 		SIMD_FORCE_INLINE void	setMin(const btQuadWord& other)
 		{
-			if (other.m_x < m_x)
-				m_x = other.m_x;
-
-			if (other.m_y < m_y)
-				m_y = other.m_y;
-
-			if (other.m_z < m_z)
-				m_z = other.m_z;
-
-			if (other.m_unusedW < m_unusedW)
-				m_unusedW = other.m_unusedW;
+			btSetMin(m_x, other.m_x);
+			btSetMin(m_y, other.m_y);
+			btSetMin(m_z, other.m_z);
+			btSetMin(m_unusedW, other.m_unusedW);
 		}
 
 

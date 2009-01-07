@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <iostream>
@@ -36,9 +33,12 @@
 #include "BOP_Mesh.h"
 #include "BOP_Face2Face.h"
 #include "BOP_Merge.h"
+#include "BOP_Merge2.h"
 #include "BOP_Chrono.h"
 
-//#define DEBUG
+#if defined(BOP_ORIG_MERGE) && defined(BOP_NEW_MERGE) 
+#include "../../../source/blender/blenkernel/BKE_global.h"
+#endif
 
 BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 								   BOP_Faces* facesA,
@@ -152,12 +152,10 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	// Create BSPs trees for mesh A & B
 	BOP_BSPTree bspA;
 	bspA.addMesh(meshC, *facesA);
-	bspA.computeBox();
 
 	BOP_BSPTree bspB;
 	bspB.addMesh(meshC, *facesB);
-	bspB.computeBox();
-	
+
 	#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Create BSP     " << c << endl;	
@@ -213,7 +211,32 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	#endif
 
 	// Merge faces
+#ifdef BOP_ORIG_MERGE
+#ifndef BOP_NEW_MERGE
 	BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
+#endif
+#endif
+
+#ifdef BOP_NEW_MERGE
+#ifndef BOP_ORIG_MERGE
+	BOP_Merge2::getInstance().mergeFaces(meshC,numVertices);
+#else
+	static int state = -1;
+	if (G.rt == 100) {
+		if( state != 1 ) {
+			cout << "Boolean code using old merge technique." << endl;
+			state = 1;
+		}
+		BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
+	} else {
+		if( state != 0 ) {
+			cout << "Boolean code using new merge technique." << endl;
+			state = 0;
+		}
+		BOP_Merge2::getInstance().mergeFaces(meshC,numVertices);
+	}
+#endif
+#endif
 
 	#ifdef DEBUG
 	c = chrono.stamp(); t += c;

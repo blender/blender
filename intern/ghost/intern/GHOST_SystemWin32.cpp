@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -41,9 +38,15 @@
 #include <config.h>
 #endif
 
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-
 #include "GHOST_SystemWin32.h"
+
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
+#endif
 
 /*
  * According to the docs the mouse wheel message is supported from windows 98 
@@ -54,7 +57,7 @@
 #define WM_MOUSEWHEEL 0x020A
 #endif // WM_MOUSEWHEEL
 #ifndef WHEEL_DELTA
-#define WHEEL_DELTA 120	/* Value for rolling one detent */
+#define WHEEL_DELTA 120	/* Value for rolling one detent, (old convention! MS changed it) */
 #endif // WHEEL_DELTA
 
 
@@ -64,10 +67,12 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
+#include "GHOST_NDOFManager.h"
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -162,7 +167,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	const STR_String& title, 
 	GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
-	bool stereoVisual)
+	bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
 	window = new GHOST_WindowWin32 (title, left, top, width, height, state, type, stereoVisual);
@@ -195,11 +200,12 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 			::Sleep(1);
 #else
 			GHOST_TUns64 next = timerMgr->nextFireTime();
+			GHOST_TInt64 maxSleep = next - getMilliSeconds();
 			
 			if (next == GHOST_kFireTimeNever) {
 				::WaitMessage();
-			} else {
-				::SetTimer(NULL, 0, next - getMilliSeconds(), NULL);
+			} else if(maxSleep >= 0.0) {
+				::SetTimer(NULL, 0, maxSleep, NULL);
 				::WaitMessage();
 				::KillTimer(NULL, 0);
 			}
@@ -225,7 +231,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
 	POINT point;
-	bool success = ::GetCursorPos(&point) == TRUE;
+	::GetCursorPos(&point);
 	x = point.x;
 	y = point.y;
 	return GHOST_kSuccess;
@@ -302,6 +308,15 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons& buttons) const
 GHOST_TSuccess GHOST_SystemWin32::init()
 {
 	GHOST_TSuccess success = GHOST_System::init();
+
+	/* Disable scaling on high DPI displays on Vista */
+	HMODULE user32 = ::LoadLibraryA("user32.dll");
+	typedef BOOL (WINAPI * LPFNSETPROCESSDPIAWARE)();
+	LPFNSETPROCESSDPIAWARE SetProcessDPIAware =
+		(LPFNSETPROCESSDPIAWARE)GetProcAddress(user32, "SetProcessDPIAware");
+	if (SetProcessDPIAware)
+		SetProcessDPIAware();
+	FreeLibrary(user32);
 
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER*)&m_freq) == TRUE;
@@ -479,7 +494,11 @@ GHOST_EventWheel* GHOST_SystemWin32::processWheelEvent(GHOST_IWindow *window, WP
 {
 	// short fwKeys = LOWORD(wParam);			// key flags
 	int zDelta = (short) HIWORD(wParam);	// wheel rotation
-	zDelta /= WHEEL_DELTA;
+	
+	// zDelta /= WHEEL_DELTA;
+	// temporary fix below: microsoft now has added more precision, making the above division not work
+	if (zDelta <= 0 ) zDelta= -1; else zDelta= 1;	
+	
 	// short xPos = (short) LOWORD(lParam);	// horizontal position of pointer
 	// short yPos = (short) HIWORD(lParam);	// vertical position of pointer
 	return new GHOST_EventWheel (getSystem()->getMilliSeconds(), window, zDelta);
@@ -746,10 +765,23 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * message without calling DefWindowProc.
 					 */
 					event = processWindowEvent(GHOST_kEventWindowSize, window);
+					break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
-
+				case WM_MOVING:
+					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
+					 * this message, an application can monitor the size and position of the drag rectangle
+					 * and, if needed, change its size or position.
+					 */
+				case WM_MOVE:
+					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+					 * message without calling DefWindowProc. 
+					 */
+					event = processWindowEvent(GHOST_kEventWindowMove, window);
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -761,12 +793,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc.
-					 */
-				case WM_MOVE:
-					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc. 
 					 */
 				case WM_ERASEBKGND:
 					/* An application sends the WM_ERASEBKGND message when the window background must be 
@@ -802,11 +828,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 */
 				case WM_SETFOCUS:
 					/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
-				case WM_MOVING:
-					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
-					 * this message, an application can monitor the size and position of the drag rectangle
-					 * and, if needed, change its size or position.
-					 */
 				case WM_ENTERSIZEMOVE:
 					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
 					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
@@ -841,6 +862,28 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
+				case WM_BLND_NDOF_AXIS:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFMotion, 
+								window, ndofdata));
+					}
+					break;
+				case WM_BLND_NDOF_BTN:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFButton, 
+								window, ndofdata));
+					}
+					break;
 			}
 		}
 		else {
@@ -869,3 +912,58 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	return lResult;
 }
+
+GHOST_TUns8* GHOST_SystemWin32::getClipboard(int flag) const 
+{
+	char *buffer;
+	char *temp_buff;
+	
+	if ( IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(NULL) ) {
+		HANDLE hData = GetClipboardData( CF_TEXT );
+		if (hData == NULL) {
+			CloseClipboard();
+			return NULL;
+		}
+		buffer = (char*)GlobalLock( hData );
+		
+		temp_buff = (char*) malloc(strlen(buffer)+1);
+		strcpy(temp_buff, buffer);
+		
+		GlobalUnlock( hData );
+		CloseClipboard();
+		
+		temp_buff[strlen(buffer)] = '\0';
+		if (buffer) {
+			return (GHOST_TUns8*)temp_buff;
+		} else {
+			return NULL;
+		}
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+	if (OpenClipboard(NULL)) {
+		HLOCAL clipbuffer;
+		char *data;
+		
+		if (buffer) {
+			EmptyClipboard();
+			
+			clipbuffer = LocalAlloc(LMEM_FIXED,((strlen(buffer)+1)));
+			data = (char*)GlobalLock(clipbuffer);
+
+			strcpy(data, (char*)buffer);
+			data[strlen(buffer)] = '\0';
+			LocalUnlock(clipbuffer);
+			SetClipboardData(CF_TEXT,clipbuffer);
+		}
+		CloseClipboard();
+	} else {
+		return;
+	}
+}
+

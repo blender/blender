@@ -1,7 +1,7 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * The contents of this file may be used under the terms of either the GNU
  * General Public License Version 2 or later (the "GPL", see
@@ -17,7 +17,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __ODE_PHYSICSCONTROLLER_H
 #define __ODE_PHYSICSCONTROLLER_H
@@ -111,6 +111,8 @@ public:
 	virtual void	calcXform(){}
 	virtual void SetMargin(float margin) {}
 	virtual float GetMargin() const {return 0.f;}
+	virtual float GetRadius() const {return 0.f;}
+	virtual void  SetRadius(float margin) {}
 
 		// clientinfo for raycasts for example
 	virtual	void*				getNewClientInfo() { return m_clientInfo;}

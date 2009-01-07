@@ -16,18 +16,17 @@ subject to the following restrictions:
 #ifndef CONCAVE_SHAPE_H
 #define CONCAVE_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "btCollisionShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
-
 #include "btTriangleCallback.h"
 
 
-///Concave shape proves an interface concave shapes that can produce triangles that overlapping a given AABB.
-///Static triangle mesh, infinite plane, height field/landscapes are example that implement this interface.
+///The btConcaveShape class provides an interface for non-moving (static) concave shapes.
+///It has been implemented by the btStaticPlaneShape, btBvhTriangleMeshShape and btHeightfieldTerrainShape.
 class btConcaveShape : public btCollisionShape
 {
 protected:
-	float m_collisionMargin;
+	btScalar m_collisionMargin;
 
 public:
 	btConcaveShape();
@@ -36,10 +35,10 @@ public:
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const = 0;
 
-	virtual float getMargin() const {
+	virtual btScalar getMargin() const {
 		return m_collisionMargin;
 	}
-	virtual void setMargin(float collisionMargin)
+	virtual void setMargin(btScalar collisionMargin)
 	{
 		m_collisionMargin = collisionMargin;
 	}

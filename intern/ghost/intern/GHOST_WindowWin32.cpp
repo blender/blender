@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -49,6 +46,14 @@
 // MSVC6 still doesn't define M_PI
 #ifndef M_PI
 #define M_PI 3.1415926536
+#endif
+
+// win64 doesn't define GWL_USERDATA
+#ifdef WIN32
+#ifndef GWL_USERDATA
+#define GWL_USERDATA GWLP_USERDATA
+#define GWL_WNDPROC GWLP_WNDPROC
+#endif
 #endif
 
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
@@ -106,9 +111,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
+	m_wintab(NULL),
 	m_tabletData(NULL),
 	m_tablet(0),
-	m_wintab(NULL),
 	m_maxPressure(0)
 {
 	if (state != GHOST_kWindowStateFullScreen) {
@@ -145,7 +150,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	}
 	if (m_hWnd) {
 		// Store a pointer to this class in the window structure
-		LONG result = ::SetWindowLong(m_hWnd, GWL_USERDATA, (LONG)this);
+		::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG_PTR)this);
 
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
@@ -292,11 +297,20 @@ void GHOST_WindowWin32::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
-	::GetClientRect(m_hWnd, &rect);
-	bounds.m_b = rect.bottom;
-	bounds.m_l = rect.left;
-	bounds.m_r = rect.right;
-	bounds.m_t = rect.top;
+	::GetWindowRect(m_hWnd, &rect);
+
+	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
+		bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-GetSystemMetrics(SM_CYSIZEFRAME)*2;
+		bounds.m_l = rect.left;
+		bounds.m_r = rect.right-GetSystemMetrics(SM_CYSIZEFRAME)*2;
+		bounds.m_t = rect.top;
+	} else {
+		bounds.m_b = rect.bottom;
+		bounds.m_l = rect.left;
+		bounds.m_r = rect.right;
+		bounds.m_t = rect.top;
+	}
 }
 
 
@@ -305,7 +319,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientWidth(GHOST_TUns32 width)
 	GHOST_TSuccess success;
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-	if (cBnds.getWidth() != width) {
+	if (cBnds.getWidth() != (GHOST_TInt32)width) {
 		getWindowBounds(wBnds);
 		int cx = wBnds.getWidth() + width - cBnds.getWidth();
 		int cy = wBnds.getHeight();
@@ -324,7 +338,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientHeight(GHOST_TUns32 height)
 	GHOST_TSuccess success;
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-	if (cBnds.getHeight() != height) {
+	if (cBnds.getHeight() != (GHOST_TInt32)height) {
 		getWindowBounds(wBnds);
 		int cx = wBnds.getWidth();
 		int cy = wBnds.getHeight() + height - cBnds.getHeight();
@@ -343,7 +357,7 @@ GHOST_TSuccess GHOST_WindowWin32::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 	GHOST_TSuccess success;
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-	if ((cBnds.getWidth() != width) || (cBnds.getHeight() != height)) {
+	if ((cBnds.getWidth() != (GHOST_TInt32)width) || (cBnds.getHeight() != (GHOST_TInt32)height)) {
 		getWindowBounds(wBnds);
 		int cx = wBnds.getWidth() + width - cBnds.getWidth();
 		int cy = wBnds.getHeight() + height - cBnds.getHeight();
@@ -364,7 +378,11 @@ GHOST_TWindowState GHOST_WindowWin32::getState() const
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if (::IsZoomed(m_hWnd)) {
-		state = GHOST_kWindowStateMaximized;
+		LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+		if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE))
+			state = GHOST_kWindowStateMaximized;
+		else
+			state = GHOST_kWindowStateFullScreen;
 	}
 	else {
 		state = GHOST_kWindowStateNormal;
@@ -401,19 +419,21 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		wp.showCmd = SW_SHOWMINIMIZED; 
 		break;
 	case GHOST_kWindowStateMaximized: 
-		ShowWindow(m_hWnd, SW_HIDE); //fe. HACK!
-				//Solves redraw problems when switching from fullscreen to normal.
-				
+		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWMAXIMIZED; 
-		SetWindowLong(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
 	case GHOST_kWindowStateFullScreen:
 		wp.showCmd = SW_SHOWMAXIMIZED;
-		SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
+		wp.ptMaxPosition.x = 0;
+		wp.ptMaxPosition.y = 0;
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
 		break;
 	case GHOST_kWindowStateNormal: 
 	default: 
+		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWNORMAL; 
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
 	}
 	return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
@@ -429,10 +449,6 @@ GHOST_TSuccess GHOST_WindowWin32::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowWin32::swapBuffers()
 {
-	// adding a glFinish() here is to prevent Geforce in 'full scene antialias' mode
-	// from antialising the Blender window. Officially a swapbuffers does a glFinish
-	// itself, so this feels really like a hack... but it won't harm. (ton)
-	glFinish();
 	return ::SwapBuffers(m_hDC) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
@@ -613,7 +629,7 @@ void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 		}
 		
 		if (success) {
-			HCURSOR hCursor = ::SetCursor(::LoadCursor(0, id));
+			::SetCursor(::LoadCursor(0, id));
 		}
 	}
 }
@@ -723,15 +739,15 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 						*/
 						
 						/* convert raw fixed point data to radians */
-						altRad = (fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0;
-						azmRad = ((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0;
+						altRad = (float)((fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0);
+						azmRad = (float)(((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0);
 
 						/* find length of the stylus' projected vector on the XY plane */
 						vecLen = cos(altRad);
 
 						/* from there calculate X and Y components based on azimuth */
 						m_tabletData->Xtilt = sin(azmRad) * vecLen;
-						m_tabletData->Ytilt = sin(M_PI/2.0 - azmRad) * vecLen;
+						m_tabletData->Ytilt = (float)(sin(M_PI/2.0 - azmRad) * vecLen);
 
 					} else {
 						m_tabletData->Xtilt = 0.0f;
@@ -853,7 +869,7 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 static int EnumPixelFormats(HDC hdc) {
 	int iPixelFormat;
 	int i, n, w, weight = 0;
-	PIXELFORMATDESCRIPTOR pfd, pfd_fallback;
+	PIXELFORMATDESCRIPTOR pfd;
 	
 	/* we need a device context to do anything */
 	if(!hdc) return 0;
@@ -874,12 +890,25 @@ static int EnumPixelFormats(HDC hdc) {
 	for(i=1; i<=n; i++) { /* not the idiom, but it's right */
 		::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
 		w = WeightPixelFormat(pfd);
-		if(w > weight) {
-			weight = w;
-			iPixelFormat = i;
+		// be strict on stereo
+		if (!((sPreferredFormat.dwFlags ^ pfd.dwFlags) & PFD_STEREO))	{
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
 		}
 	}
-	
+	if (weight == 0) {
+		// we could find the correct stereo setting, just find any suitable format 
+		for(i=1; i<=n; i++) { /* not the idiom, but it's right */
+			::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
+			w = WeightPixelFormat(pfd);
+			if(w > weight) {
+				weight = w;
+				iPixelFormat = i;
+			}
+		}
+	}
 	return iPixelFormat;
 }
 

@@ -1,15 +1,12 @@
 #
 # $Id$
 #
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
 #
 # Contributor(s): none yet.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 #
 #
 
@@ -38,7 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(OPENGL_HEADERS)
+CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(NAN_SUMO)/include -I$(NAN_SOLID)/include
 CPPFLAGS += -I$(NAN_SOLID)
 CPPFLAGS += -I$(NAN_STRING)/include    
@@ -46,16 +43,20 @@ CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
-CPPFLAGS += -I../../blender/include
+CPPFLAGS += -I../../blender/editors/include
 # because of kernel dependency on imbuf
+CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
 CPPFLAGS += -I../../blender/render/extern/include
 CPPFLAGS += -I../../blender/blenloader
 CPPFLAGS += -I../../blender/blenkernel
+CPPFLAGS += -I../../blender/gpu
 CPPFLAGS += -I../Converter
 CPPFLAGS += -I../Expressions
 CPPFLAGS += -I../GameLogic
@@ -68,6 +69,7 @@ CPPFLAGS += -I../Network
 CPPFLAGS += -I../Network/LoopBackNetwork
 CPPFLAGS += -I../Physics/common
 CPPFLAGS += -I../Physics/Sumo
+CPPFLAGS += -I.
 
 ifeq ($(OS),windows)
     CPPFLAGS += -I../../blender

@@ -22,11 +22,8 @@ class btDispatcher;
 class btOverlappingPairCache;
 class btConstraintSolver;
 
-///btSimpleDynamicsWorld demonstrates very basic usage of Bullet rigid body dynamics
-///It can be used for basic simulations, and as a starting point for porting Bullet
-///btSimpleDynamicsWorld lacks object deactivation, island management and other concepts.
-///For more complicated simulations, btDiscreteDynamicsWorld and btContinuousDynamicsWorld are recommended
-///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController
+///btSimpleDynamicsWorld serves as unit-test and to verify more complicated and optimized dynamics worlds.
+///Please use btDiscreteDynamicsWorld instead (or btContinuousDynamicsWorld once it is finished).
 class btSimpleDynamicsWorld : public btDynamicsWorld
 {
 protected:
@@ -35,11 +32,9 @@ protected:
 
 	bool	m_ownsConstraintSolver;
 
-	btIDebugDraw*	m_debugDrawer;
-
-	void	predictUnconstraintMotion(float timeStep);
+	void	predictUnconstraintMotion(btScalar timeStep);
 	
-	void	integrateTransforms(float timeStep);
+	void	integrateTransforms(btScalar timeStep);
 		
 	btVector3	m_gravity;
 	
@@ -48,24 +43,16 @@ public:
 
 
 	///this btSimpleDynamicsWorld constructor creates dispatcher, broadphase pairCache and constraintSolver
-	btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
+	btSimpleDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btSimpleDynamicsWorld();
 		
 	///maxSubSteps/fixedTimeStep for interpolation is currently ignored for btSimpleDynamicsWorld, use btDiscreteDynamicsWorld instead
-	virtual int	stepSimulation( float timeStep,int maxSubSteps=1, float fixedTimeStep=1.f/60.f);
-
-	virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer) 
-	{
-		m_debugDrawer = debugDrawer;
-	};
-
-	virtual btIDebugDraw*	getDebugDrawer()
-	{
-		return m_debugDrawer;
-	}
+	virtual int	stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.));
 
 	virtual void	setGravity(const btVector3& gravity);
+
+	virtual btVector3 getGravity () const;
 
 	virtual void	addRigidBody(btRigidBody* body);
 
@@ -76,6 +63,15 @@ public:
 	void	synchronizeMotionStates();
 
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
+
+	virtual btConstraintSolver* getConstraintSolver();
+
+	virtual btDynamicsWorldType	getWorldType() const
+	{
+		return BT_SIMPLE_DYNAMICS_WORLD;
+	}
+
+	virtual void	clearForces();
 
 };
 

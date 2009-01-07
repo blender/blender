@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,18 +24,20 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __KX_RAYCAST_H__
 #define __KX_RAYCAST_H__
 
-class MT_Point3;
-class MT_Vector3;
-class KX_IPhysicsController;
-class PHY_IPhysicsEnvironment;
+#include "PHY_IPhysicsEnvironment.h"
+#include "PHY_IPhysicsController.h"
+#include "MT_Point3.h"
+#include "MT_Vector3.h"
 
+class RAS_MeshObject; 
 struct KX_ClientObjectInfo;
+class KX_IPhysicsController;
 
 /**
  *  Defines a function for doing a ray cast.
@@ -52,17 +51,27 @@ struct KX_ClientObjectInfo;
  *
  *  Returns true if a client was accepted, false if nothing found.
  */
-class KX_RayCast
+class KX_RayCast : public PHY_IRayCastFilterCallback
 {
-protected:
-	KX_RayCast() {};
 public:
+	bool					m_hitFound;
+	MT_Point3				m_hitPoint;
+	MT_Vector3				m_hitNormal;
+	const RAS_MeshObject*	m_hitMesh;
+	int						m_hitPolygon;
+
+	KX_RayCast(KX_IPhysicsController* ignoreController, bool faceNormal);
 	virtual ~KX_RayCast() {}
+
+	/**
+	 * The physic environment returns the ray casting result through this function
+	 */
+	virtual void reportHit(PHY_RayCastResult* result);
 
 	/** ray test callback.
 	 *  either override this in your class, or use a callback wrapper.
 	 */
-	virtual bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal) const = 0;
+	virtual bool RayHit(KX_ClientObjectInfo* client) = 0;
 
 	/** 
 	 *  Callback wrapper.
@@ -74,13 +83,11 @@ public:
 	
 	/// Public interface.
 	/// Implement bool RayHit in your class to receive ray callbacks.
-	static bool RayTest(KX_IPhysicsController* physics_controller, 
+	static bool RayTest(
 		PHY_IPhysicsEnvironment* physics_environment, 
-		const MT_Point3& _frompoint, 
+		const MT_Point3& frompoint, 
 		const MT_Point3& topoint, 
-		MT_Point3& result_point, 
-		MT_Vector3& result_normal, 
-		const KX_RayCast& callback);
+		KX_RayCast& callback);
 	
 };
 
@@ -89,18 +96,32 @@ template<class T> class KX_RayCast::Callback : public KX_RayCast
 	T *self;
 	void *data;
 public:
-	Callback(T *_self, void *_data = NULL)
-		: self(_self),
+	Callback(T *_self, KX_IPhysicsController* controller=NULL, void *_data = NULL, bool faceNormal=false)
+		: KX_RayCast(controller, faceNormal),
+		self(_self),
 		data(_data)
 	{
 	}
 	
 	~Callback() {}
-	
-	virtual bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal) const
+
+	virtual bool RayHit(KX_ClientObjectInfo* client)
 	{
-		return self->RayHit(client, hit_point, hit_normal, data);
+		return self->RayHit(client, this, data);
 	}
+
+	virtual	bool needBroadphaseRayCast(PHY_IPhysicsController* controller)
+	{
+		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(controller->getNewClientInfo());
+		
+		if (!info)
+		{
+			MT_assert(info && "Physics controller with no client object info");
+			return false;
+		}
+		return self->NeedRayCast(info);
+	}
+
 };
 	
 

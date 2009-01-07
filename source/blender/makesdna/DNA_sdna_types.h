@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,28 +26,38 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SDNA_H
 #define DNA_SDNA_H
 
 #
 #
-struct SDNA {
-	char *data;
-	int datalen, nr_names;
-	char **names;
-	int nr_types, pointerlen;
-	char **types;
-	short *typelens;
-	int nr_structs;
-	short **structs;
+typedef struct SDNA {
+	char *data;			/* full copy of 'encoded' data */
+	int datalen;		/* length of data */
+
+	int nr_names;		/* total number of struct members */
+	char **names;		/* struct member names */
+
+	int pointerlen;		/* size of a pointer in bytes */
+
+	int nr_types;		/* number of basic types + struct types */
+	char **types;		/* type names */
+	short *typelens;	/* type lengths */
+
+	int nr_structs;		/* number of struct types */
+	short **structs;	/* sp= structs[a] is the adress of a struct definintion
+	                	   sp[0] is struct type number, sp[1] amount of members
+
+						   (sp[2], sp[3]), (sp[4], sp[5]), .. are the member
+						   type and name numbers respectively */
 	
 		/* wrong place for this really, its a simple
 		 * cache for findstruct_nr.
 		 */
 	int lastfind;
-};
+} SDNA;
 
 #
 #

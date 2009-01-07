@@ -3,15 +3,12 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  * The physics scene.
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -101,12 +98,17 @@ void SM_Scene::addTouchCallback(int response_class, DT_ResponseCallback callback
 
 void SM_Scene::addSensor(SM_Object& object) 
 {
-	object.calcXform();
-	m_objectList.push_back(&object);
-	DT_AddObject(m_scene, object.getObjectHandle());
-	DT_SetResponseClass(m_respTable, object.getObjectHandle(), m_ResponseClass[SENSOR_RESPONSE]);
-	DT_SetResponseClass(m_secondaryRespTable, object.getObjectHandle(), m_secondaryResponseClass[SENSOR_RESPONSE]);
-	DT_SetResponseClass(m_fixRespTable, object.getObjectHandle(), m_fixResponseClass[SENSOR_RESPONSE]);
+	T_ObjectList::iterator i =
+		std::find(m_objectList.begin(), m_objectList.end(), &object);
+	if (i == m_objectList.end())
+	{
+		object.calcXform();
+		m_objectList.push_back(&object);
+		DT_AddObject(m_scene, object.getObjectHandle());
+		DT_SetResponseClass(m_respTable, object.getObjectHandle(), m_ResponseClass[SENSOR_RESPONSE]);
+		DT_SetResponseClass(m_secondaryRespTable, object.getObjectHandle(), m_secondaryResponseClass	[SENSOR_RESPONSE]);
+		DT_SetResponseClass(m_fixRespTable, object.getObjectHandle(), m_fixResponseClass[SENSOR_RESPONSE]);
+	}
 }
 
 void SM_Scene::add(SM_Object& object) {

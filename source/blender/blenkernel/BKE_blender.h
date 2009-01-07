@@ -5,15 +5,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_BLENDER_H
 #define BKE_BLENDER_H
@@ -42,20 +39,25 @@ extern "C" {
 
 struct ListBase;
 struct MemFile;
+struct bContext;
+struct ReportList;
 
-#define BLENDER_VERSION			244
-#define BLENDER_SUBVERSION		8
+#define BLENDER_VERSION			250
+#define BLENDER_SUBVERSION		0
 
-#define BLENDER_MINVERSION		240
+#define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
 
-int	BKE_read_file(char *dir, void *type_r);
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r);
-int BKE_read_file_from_memfile(struct MemFile *memfile);
+int BKE_read_file(struct bContext *C, char *dir, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r, struct ReportList *reports);
+int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile, struct ReportList *reports);
 
-void duplicatelist(struct ListBase *list1, struct ListBase *list2);
 void free_blender(void);
 void initglobals(void);
+
+/* set this callback when a UI is running */
+void set_blender_test_break_cb(void (*func)(void) );
+int blender_test_break(void);
 
 void pushdata(void *data, int len);
 void popfirst(void *data);
@@ -64,11 +66,11 @@ void free_pushpop(void);
 void pushpop_test(void);
 
 /* global undo */
-extern void BKE_write_undo(char *name);
-extern void BKE_undo_step(int step);
+extern void BKE_write_undo(struct bContext *C, char *name);
+extern void BKE_undo_step(struct bContext *C, int step);
 extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
-extern void BKE_undo_number(int nr);
+extern void BKE_undo_number(struct bContext *C, int nr);
 extern void BKE_undo_save_quit(void);
 
 #ifdef __cplusplus

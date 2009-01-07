@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_WRITEFRAMESERVER_H
@@ -39,8 +36,8 @@ struct RenderData;
 
 extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
 extern void end_frameserver(void);
-extern void append_frameserver(int frame, int *pixels, int rectx, int recty);
-extern int frameserver_loop();
+extern void append_frameserver(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
+extern int frameserver_loop(struct RenderData *rd);
 
 #ifdef __cplusplus
 }

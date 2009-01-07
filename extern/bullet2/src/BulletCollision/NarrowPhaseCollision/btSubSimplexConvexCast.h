@@ -28,12 +28,12 @@ class btConvexShape;
 class btSubsimplexConvexCast : public btConvexCast
 {
 	btSimplexSolverInterface* m_simplexSolver;
-	btConvexShape*	m_convexA;
-	btConvexShape*	m_convexB;
+	const btConvexShape*	m_convexA;
+	const btConvexShape*	m_convexB;
 
 public:
 
-	btSubsimplexConvexCast (btConvexShape*	shapeA,btConvexShape*	shapeB,btSimplexSolverInterface* simplexSolver);
+	btSubsimplexConvexCast (const btConvexShape*	shapeA,const btConvexShape*	shapeB,btSimplexSolverInterface* simplexSolver);
 
 	//virtual ~btSubsimplexConvexCast();
 	///SimsimplexConvexCast calculateTimeOfImpact calculates the time of impact+normal for the linear cast (sweep) between two moving objects.

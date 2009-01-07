@@ -1,13 +1,10 @@
 /**
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +22,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include "BOP_Edge.h"
@@ -77,5 +74,48 @@ void BOP_Edge::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 	if (m_vertexs[0] == oldIndex) m_vertexs[0] = newIndex;
 	else if (m_vertexs[1] == oldIndex) m_vertexs[1] = newIndex;
 }
+
+#ifdef BOP_NEW_MERGE
+
+/**
+ * Returns if this edge contains the specified face index.
+ * @param i face index
+ * @return true if this edge contains the specified face index, false otherwise
+ */
+bool BOP_Edge::removeFace(BOP_Index i)
+{
+	int pos=0;
+	for(BOP_IT_Indexs it = m_faces.begin();it!=m_faces.end();pos++,it++) {
+		if ((*it) == i) {
+			m_faces.erase(it);
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+#endif
+
+#ifdef BOP_DEBUG
+
+#include <iostream>
+using namespace std;
+
+/**
+ * Implements operator <<.
+ */
+ostream &operator<<(ostream &stream, BOP_Edge *e)
+{
+	stream << "Edge[" << e->getVertex1() << "," << e->getVertex2();
+#ifdef BOP_NEW_MERGE
+	if(e->m_used)
+		stream << "] (used)";
+	else
+		stream << "] (unused)";
+#endif
+	return stream;
+}
+#endif
 
 

@@ -46,7 +46,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 	/* stack order in: col, alpha */
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if(in[0]->data==NULL && in[1]->data==NULL) {
 		out[0]->vec[0] = in[0]->vec[0];
 		out[0]->vec[1] = in[0]->vec[1];
 		out[0]->vec[2] = in[0]->vec[2];
@@ -54,7 +54,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		CompBuf *cbuf= in[0]->data?in[0]->data:in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(in[1]->data==NULL && in[1]->vec[0]==1.0f) {

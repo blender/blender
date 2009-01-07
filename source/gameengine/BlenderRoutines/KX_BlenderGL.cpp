@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_BlenderGL.h"
@@ -47,17 +44,8 @@
 
 #include "BMF_Api.h"
 
+#include "BIF_gl.h"
 
-#ifdef __APPLE__
-#define GL_GLEXT_LEGACY 1
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-#include "RAS_OpenGLRasterizer/RAS_GLExtensionManager.h"
-#include "RAS_OpenGLRasterizer/ARB_multitexture.h"
 #include "BL_Material.h" // MAXTEX
 
 /* Data types encoding the game world: */
@@ -76,22 +64,15 @@
 #include "BKE_bmfont.h"
 #include "BKE_image.h"
 
-#include "BIF_gl.h"
 extern "C" {
-#include "BDR_drawmesh.h"
-#include "BIF_mywindow.h"
-#include "BIF_toolbox.h"
-#include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
+//XXX #include "BDR_drawmesh.h"
+//XXX #include "BIF_mywindow.h"
+//XXX #include "BIF_toolbox.h"
+//XXX #include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
 
 }
 
 /* end of blender block */
-
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
 
 /* was in drawmesh.c */
 void spack(unsigned int ucol)
@@ -103,110 +84,47 @@ void spack(unsigned int ucol)
 
 void BL_warp_pointer(int x,int y)
 {
-	warp_pointer(x,y);
+	//XXX warp_pointer(x,y);
 }
 
 void BL_SwapBuffers()
 {
-	myswapbuffers();
+	//XXX myswapbuffers();
 }
-
-void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface,
-                   unsigned int *col,float v1[3],float v2[3],float v3[3],float v4[3])
-{
-	Image* ima;
-
-	if(mode & TF_BMFONT) {
-			//char string[MAX_PROPSTRING];
-			int characters, index, character;
-			float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-			
-//			bProperty *prop;
-
-			// string = "Frank van Beek";
-
-			characters = textlen;
-
-			ima = (struct Image*) tface->tpage;
-			if (ima == NULL) {
-				characters = 0;
-			}
-
-			if(!col) glColor3f(1.0f, 1.0f, 1.0f);
-
-			glPushMatrix();
-			for (index = 0; index < characters; index++) {
-				// lets calculate offset stuff
-				character = textstr[index];
-				
-				// space starts at offset 1
-				// character = character - ' ' + 1;
-				
-				matrixGlyph((ImBuf *)ima->ibufs.first, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-
-				glBegin(GL_POLYGON);
-				// printf(" %c %f %f %f %f\n", character, tface->uv[0][0], tface->uv[0][1], );
-				// glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-				glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-
-				if(col) spack(col[0]);
-				// glVertex3fv(v1);
-				glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-				
-				glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
-				if(col) spack(col[1]);
-				// glVertex3fv(v2);
-				glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
-	
-				glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
-				if(col) spack(col[2]);
-				// glVertex3fv(v3);
-				glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
-	
-				if(v4) {
-					// glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, 1.0 - (1.0 - tface->uv[3][1]) * sizey - transy);
-					glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
-					if(col) spack(col[3]);
-					// glVertex3fv(v4);
-					glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
-				}
-				glEnd();
-
-				glTranslatef(advance, 0.0, 0.0);
-			}
-			glPopMatrix();
-
-		}
-}
-
 
 void DisableForText()
 {
-	if(glIsEnabled(GL_BLEND))
-		glDisable(GL_BLEND);
+	if(glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
+	if(glIsEnabled(GL_ALPHA_TEST)) glDisable(GL_ALPHA_TEST);
 
 	if(glIsEnabled(GL_LIGHTING)) {
 		glDisable(GL_LIGHTING);
 		glDisable(GL_COLOR_MATERIAL);
 	}
-#ifdef GL_ARB_multitexture
-	for(int i=0; i<MAXTEX; i++) {
-		if(bgl::RAS_EXT_support._ARB_multitexture)
-			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
-#ifdef GL_ARB_texture_cube_map
-	if(bgl::RAS_EXT_support._ARB_texture_cube_map)
-		if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-#endif
+
+	if(GLEW_ARB_multitexture) {
+		for(int i=0; i<MAXTEX; i++) {
+			glActiveTextureARB(GL_TEXTURE0_ARB+i);
+
+			if(GLEW_ARB_texture_cube_map)
+				if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+					glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
+			if(glIsEnabled(GL_TEXTURE_2D))
+				glDisable(GL_TEXTURE_2D);
+		}
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+	}
+	else {
+		if(GLEW_ARB_texture_cube_map)
+			if(glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+
 		if(glIsEnabled(GL_TEXTURE_2D))
 			glDisable(GL_TEXTURE_2D);
 	}
-#else//GL_ARB_multitexture
-	if(glIsEnabled(GL_TEXTURE_2D))
-		glDisable(GL_TEXTURE_2D);
-#endif
 }
-
 
 void BL_print_gamedebug_line(char* text, int xco, int yco, int width, int height)
 {	
@@ -283,19 +201,19 @@ void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int
 
 void BL_HideMouse()
 {
-	set_cursor(CURSOR_NONE);
+	//XXX set_cursor(CURSOR_NONE);
 }
 
 
 void BL_WaitMouse()
 {
-	set_cursor(CURSOR_WAIT);
+	//XXX set_cursor(CURSOR_WAIT);
 }
 
 
 void BL_NormalMouse()
 {
-	set_cursor(CURSOR_STD);
+	//XXX set_cursor(CURSOR_STD);
 }
 #define MAX_FILE_LENGTH 512
 
@@ -308,9 +226,9 @@ void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
 	// filename read - only
 	
 	  /* XXX will need to change at some point */
-	BIF_screendump(0);
+	//XXX BIF_screendump(0);
 
 	// write+read filename
-	write_screendump((char*) copyfilename);
+	//XXX write_screendump((char*) copyfilename);
 }
 

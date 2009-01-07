@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Ketsji Logic Extenstion: Network Message Sensor class
  */
 #ifndef __KX_NETWORKMESSAGE_SENSOR_H
@@ -68,6 +65,7 @@ public:
 	virtual CValue* GetReplica();
 	virtual bool Evaluate(CValue* event);
 	virtual bool IsPositiveTrigger();
+	virtual void Init();
 	void EndFrame();
 	
 	/* ------------------------------------------------------------- */
@@ -76,11 +74,11 @@ public:
 
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, SetSubjectFilterText);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetFrameMessageCount);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetBodies);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubject);
-	KX_PYMETHOD_DOC(KX_NetworkMessageSensor, GetSubjects);
+	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetFrameMessageCount);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetBodies);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubject);
+	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubjects);
 
 
 };

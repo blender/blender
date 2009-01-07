@@ -1,14 +1,11 @@
 /*
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): Campbell barton
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -45,6 +42,8 @@
 #define TRF 2
 #define TLF 4
 #define BRF 8
+#define CORNERFLAGS (BLF|TRF|TLF|BRF)
+
 #define BL 0
 #define TR 1
 #define TL 2
@@ -133,7 +132,7 @@ static int vertex_sort(const void *p1, const void *p2)
  * 		'box->index' is not used at all, the only reason its there
  * 			is that the box array is sorted by area and programs need to be able
  * 			to have some way of writing the boxes back to the original data.
- * 	len - the number of boxes in teh array.
+ * 	len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
 void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
@@ -162,7 +161,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->blb = vert->brb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ TRF;
+		vert->free = CORNERFLAGS &~ TRF;
 		vert->trb = box;
 		vert->index = i; i++;
 		box->v[BL] = vert; vert++;
@@ -170,7 +169,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb= vert->brb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ BLF;
+		vert->free = CORNERFLAGS &~ BLF;
 		vert->blb = box;
 		vert->index = i; i++;
 		box->v[TR] = vert; vert++;
@@ -178,7 +177,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb = vert->blb = vert->tlb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ BRF;
+		vert->free = CORNERFLAGS &~ BRF;
 		vert->brb = box;
 		vert->index = i; i++;
 		box->v[TL] = vert; vert++;
@@ -186,7 +185,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 		vert->trb = vert->blb = vert->brb =\
 			vert->isect_cache[0] = vert->isect_cache[1] =\
 			vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = 15 &~ TLF;
+		vert->free = CORNERFLAGS &~ TLF;
 		vert->tlb = box; 
 		vert->index = i; i++;
 		box->v[BR] = vert; vert++;

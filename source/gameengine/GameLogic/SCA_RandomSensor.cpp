@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "SCA_RandomSensor.h"
@@ -53,12 +50,9 @@ SCA_RandomSensor::SCA_RandomSensor(SCA_EventManager* eventmgr,
   				 PyTypeObject* T)
     : SCA_ISensor(gameobj,eventmgr, T)
 {
-    m_iteration  = 0;
-	m_lastdraw   = false;
-	
+	// m_basegenerator is never deleted => memory leak
 	m_basegenerator = new SCA_RandomNumberGenerator(startseed);
-    m_currentDraw = m_basegenerator->Draw();
-	RegisterToManager();
+	Init();
 }
 
 
@@ -68,11 +62,19 @@ SCA_RandomSensor::~SCA_RandomSensor()
     /* Nothing to be done here. */
 }
 
+void SCA_RandomSensor::Init()
+{
+    m_iteration  = 0;
+	m_interval = 0;
+	m_lastdraw   = false;
+    m_currentDraw = m_basegenerator->Draw();
+}
 
 
 CValue* SCA_RandomSensor::GetReplica()
 {
 	CValue* replica = new SCA_RandomSensor(*this);
+	// replication copies m_basegenerator pointer => share same generator
 	// this will copy properties and so on...
 	CValue::AddDataToReplica(replica);
 
@@ -98,20 +100,25 @@ bool SCA_RandomSensor::Evaluate(CValue* event)
     /* this is a reasonable way of generating bools. Check Knuth.            */
     /* Furthermore, we only draw each <delay>-eth frame.                     */
 
-    bool drawResult = false;
+	bool evaluateResult = false;
 
-	if (m_iteration > 31) {
-		m_currentDraw = m_basegenerator->Draw();
-		drawResult = (m_currentDraw & 0x1) == 0;
-		m_iteration = 1;
-	} else {
-		drawResult = ((m_currentDraw >> m_iteration) & 0x1) == 0;
-		m_iteration++;
+	if (++m_interval > m_pulse_frequency) {
+	    bool drawResult = false;
+		m_interval = 0;
+		if (m_iteration > 31) {
+			m_currentDraw = m_basegenerator->Draw();
+			drawResult = (m_currentDraw & 0x1) == 0;
+			m_iteration = 1;
+		} else {
+			drawResult = ((m_currentDraw >> m_iteration) & 0x1) == 0;
+			m_iteration++;
+		}
+		evaluateResult = drawResult != m_lastdraw;
+		m_lastdraw = drawResult;
 	}
     
     /* now pass this result to some controller */
-	m_lastdraw = drawResult;
-	return drawResult;
+	return evaluateResult;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -147,9 +154,9 @@ PyParentObject SCA_RandomSensor::Parents[] = {
 };
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
-	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, SetSeed_doc},
-	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_VARARGS, GetSeed_doc},
-	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_VARARGS, GetLastDraw_doc},
+	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
+	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_VARARGS, (PY_METHODCHAR)GetSeed_doc},
+	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_VARARGS, (PY_METHODCHAR)GetLastDraw_doc},
 	{NULL,NULL} //Sentinel
 };
 
@@ -158,7 +165,7 @@ PyObject* SCA_RandomSensor::_getattr(const STR_String& attr) {
 }
 
 /* 1. setSeed                                                            */
-char SCA_RandomSensor::SetSeed_doc[] = 
+const char SCA_RandomSensor::SetSeed_doc[] = 
 "setSeed(seed)\n"
 "\t- seed: integer\n"
 "\tSet the initial seed of the generator. Equal seeds produce\n"
@@ -176,7 +183,7 @@ PyObject* SCA_RandomSensor::PySetSeed(PyObject* self, PyObject* args, PyObject* 
 }
 
 /* 2. getSeed                                                            */
-char SCA_RandomSensor::GetSeed_doc[] = 
+const char SCA_RandomSensor::GetSeed_doc[] = 
 "getSeed()\n"
 "\tReturns the initial seed of the generator. Equal seeds produce\n"
 "\tequal series.\n";
@@ -185,7 +192,7 @@ PyObject* SCA_RandomSensor::PyGetSeed(PyObject* self, PyObject* args, PyObject* 
 }
 
 /* 3. getLastDraw                                                            */
-char SCA_RandomSensor::GetLastDraw_doc[] = 
+const char SCA_RandomSensor::GetLastDraw_doc[] = 
 "getLastDraw()\n"
 "\tReturn the last value that was drawn.\n";
 PyObject* SCA_RandomSensor::PyGetLastDraw(PyObject* self, PyObject* args, PyObject* kwds) {

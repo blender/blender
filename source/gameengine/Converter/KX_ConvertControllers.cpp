@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "MEM_guardedalloc.h"
@@ -38,6 +35,10 @@
 // Controller
 #include "SCA_ANDController.h"
 #include "SCA_ORController.h"
+#include "SCA_NANDController.h"
+#include "SCA_NORController.h"
+#include "SCA_XORController.h"
+#include "SCA_XNORController.h"
 #include "SCA_PythonController.h"
 #include "SCA_ExpressionController.h"
 
@@ -115,6 +116,30 @@ void BL_ConvertControllers(
 				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
 				break;
 			}
+			case CONT_LOGIC_NAND:
+			{
+				gamecontroller = new SCA_NANDController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_NOR:
+			{
+				gamecontroller = new SCA_NORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_XOR:
+			{
+				gamecontroller = new SCA_XORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
+			case CONT_LOGIC_XNOR:
+			{
+				gamecontroller = new SCA_XNORController(gameobj);
+				LinkControllerToActuators(gamecontroller,bcontr,logicmgr,converter);
+				break;
+			}
 			case CONT_EXPRESSION:
 			{
 				bExpressionCont* bexpcont = (bExpressionCont*) bcontr->data;
@@ -164,6 +189,7 @@ void BL_ConvertControllers(
 		if (gamecontroller)
 		{
 			gamecontroller->SetExecutePriority(executePriority++);
+			gamecontroller->SetState(bcontr->state_mask);
 			STR_String uniquename = bcontr->name;
 			uniquename += "#CONTR#";
 			uniqueint++;
@@ -174,6 +200,8 @@ void BL_ConvertControllers(
 			gameobj->AddController(gamecontroller);
 			
 			converter->RegisterGameController(gamecontroller, bcontr);
+			//done with gamecontroller
+			gamecontroller->Release();
 		}
 		
 		bcontr = bcontr->next;

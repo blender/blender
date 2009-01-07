@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): Daniel Dunbar
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * A general (pointer -> pointer) hash table ADT
  */
 
@@ -80,8 +77,12 @@ void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	unsigned int hash;
 	Entry *e= malloc(sizeof(*e));
 
-	if (v1<v0) v0 ^= v1 ^= v0 ^= v1;
-	hash = EDGEHASH(v0,v1)%eh->nbuckets;
+	if (v1<v0) {
+		v0 ^= v1;
+		v1 ^= v0;
+		v0 ^= v1;
+	}
+ 	hash = EDGEHASH(v0,v1)%eh->nbuckets;
 
 	e->v0 = v0;
 	e->v1 = v1;
@@ -117,7 +118,11 @@ void** BLI_edgehash_lookup_p(EdgeHash *eh, int v0, int v1) {
 	unsigned int hash;
 	Entry *e;
 
-	if (v1<v0) v0 ^= v1 ^= v0 ^= v1;
+	if (v1<v0) {
+		v0 ^= v1;
+		v1 ^= v0;
+		v0 ^= v1;
+	}
 	hash = EDGEHASH(v0,v1)%eh->nbuckets;
 	for (e= eh->buckets[hash]; e; e= e->next)
 		if (v0==e->v0 && v1==e->v1)
@@ -201,6 +206,11 @@ void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r) {
 }
 void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) {
 	return ehi->curEntry?ehi->curEntry->val:NULL;
+}
+
+void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val) {
+	if(ehi->curEntry)
+		ehi->curEntry->val= val;
 }
 
 void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {

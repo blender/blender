@@ -20,6 +20,8 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
 class btPersistentManifold;
+#include "btCollisionDispatcher.h"
+
 #include "LinearMath/btVector3.h"
 
 /// btSphereBoxCollisionAlgorithm  provides sphere-box collision detection.
@@ -38,7 +40,15 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+
+	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
+	{
+		if (m_manifoldPtr && m_ownManifold)
+		{
+			manifoldArray.push_back(m_manifoldPtr);
+		}
+	}
 
 	btScalar getSphereDistance( btCollisionObject* boxObj,btVector3& v3PointOnBox, btVector3& v3PointOnSphere, const btVector3& v3SphereCenter, btScalar fRadius );
 
@@ -48,12 +58,13 @@ public:
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereBoxCollisionAlgorithm));
 			if (!m_swapped)
 			{
-				return new btSphereBoxCollisionAlgorithm(0,ci,body0,body1,false);
+				return new(mem) btSphereBoxCollisionAlgorithm(0,ci,body0,body1,false);
 			} else
 			{
-				return new btSphereBoxCollisionAlgorithm(0,ci,body0,body1,true);
+				return new(mem) btSphereBoxCollisionAlgorithm(0,ci,body0,body1,true);
 			}
 		}
 	};

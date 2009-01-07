@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,18 +23,15 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_BlenderScalarInterpolator.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-extern "C" int IPO_GetChannels(struct Ipo *ipo, short *channels);
-extern "C" float IPO_GetFloatValue(struct Ipo *ipo, /*IPO_Channel*/ short channel, float ctime);
-
+extern "C" {
+#include "DNA_ipo_types.h"
+#include "BKE_ipo.h"
+}
 
 static const int BL_MAX_CHANNELS = 32;
 
@@ -45,7 +39,7 @@ float BL_ScalarInterpolator::GetValue(float currentTime) const {
 	return IPO_GetFloatValue(m_blender_ipo, m_channel, currentTime);
 }
 
-typedef short IPO_Channel;  
+ 
 
 BL_InterpolatorList::BL_InterpolatorList(struct Ipo *ipo) {
 	IPO_Channel channels[BL_MAX_CHANNELS];

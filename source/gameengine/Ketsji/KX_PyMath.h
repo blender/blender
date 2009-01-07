@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Initialize Python thingies.
  */
 
@@ -87,7 +84,10 @@ bool PyMatTo(PyObject* pymat, T& mat)
 		}
 	} else 
 		noerror = false;
-	 
+	
+	if (noerror==false)
+		PyErr_SetString(PyExc_TypeError, "could not be converted to a matrix (sequence of sequences)");
+	
 	return noerror;
 }
 
@@ -100,9 +100,13 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	if (PySequence_Check(pyval))
 	{
 		unsigned int numitems = PySequence_Size(pyval);
-		if (numitems != Size(vec))
+		if (numitems != Size(vec)) {
+			char err[128];
+			sprintf(err, "error setting vector, %d args, should be %d", numitems, Size(vec));
+			PyErr_SetString(PyExc_AttributeError, err);
 			return false;
-			
+		}
+		
 		for (unsigned int x = 0; x < numitems; x++)
 		{
 			PyObject *item = PySequence_GetItem(pyval, x); /* new ref */
@@ -110,7 +114,17 @@ bool PyVecTo(PyObject* pyval, T& vec)
 			Py_DECREF(item);
 		}
 		
+		if (PyErr_Occurred()) {
+			PyErr_SetString(PyExc_AttributeError, "one or more of the items in the sequence was not a float");
+			return false;
+		}
+		
 		return true;
+	} else
+	{
+		char err[128];
+		sprintf(err, "not a sequence type, expected a sequence of numbers size %d", Size(vec));
+		PyErr_SetString(PyExc_AttributeError, err);
 	}
 	
 	return false;

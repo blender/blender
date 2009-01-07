@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,10 +23,11 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "RAS_IPolygonMaterial.h"
+#include "RAS_IRasterizer.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -41,25 +39,22 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int tilexrep,
 									 int tileyrep,
 									 int mode,
-									 bool transparant,
+									 int transp,
+									 bool alpha,
 									 bool zsort,
-									 int lightlayer,
-									 bool bIsTriangle,
-									 void* clientobject=NULL) :
-
-		m_texturename(texname),
+									 int lightlayer)
+		: m_texturename(texname),
 		m_materialname(matname),
 		m_tile(tile),
 		m_tilexrep(tilexrep),
 		m_tileyrep(tileyrep),
 		m_drawingmode (mode),
-		m_transparant(transparant),
+		m_transp(transp),
+		m_alpha(alpha),
 		m_zsort(zsort),
 		m_lightlayer(lightlayer),
-		m_bIsTriangle(bIsTriangle),
 		m_polymatid(m_newpolymatid++),
 		m_flag(0),
-		m_enabled(0),
 		m_multimode(0)
 {
 	m_shininess = 35.0;
@@ -73,14 +68,16 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 {
 	if(m_flag &RAS_BLENDERMAT)
 	{
-		return (
+		bool test = (
 			this->m_multimode			==		lhs.m_multimode &&
 			this->m_flag				==		lhs.m_flag		&&
 			this->m_drawingmode			==		lhs.m_drawingmode &&
-			this->m_lightlayer			==		lhs.m_lightlayer &&
+			this->m_transp				==		lhs.m_transp &&
 			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 			this->m_materialname.hash() ==		lhs.m_materialname.hash()
 		);
+
+		return test;
 	}
 	else
 	{
@@ -88,11 +85,10 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 				this->m_tile		==		lhs.m_tile &&
 				this->m_tilexrep	==		lhs.m_tilexrep &&
 				this->m_tileyrep	==		lhs.m_tileyrep &&
-				this->m_transparant	==		lhs.m_transparant &&
+				this->m_transp		==		lhs.m_transp &&
+				this->m_alpha		==		lhs.m_alpha &&
 				this->m_zsort		==		lhs.m_zsort &&
 				this->m_drawingmode	==		lhs.m_drawingmode &&
-				this->m_bIsTriangle	==		lhs.m_bIsTriangle &&
-				this->m_lightlayer	==		lhs.m_lightlayer &&
 				this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 				this->m_materialname.hash() ==		lhs.m_materialname.hash()
 		);
@@ -112,19 +108,14 @@ int RAS_IPolyMaterial::GetLightLayer() const
 	return m_lightlayer;
 }
 
-bool RAS_IPolyMaterial::IsTransparant() const
+bool RAS_IPolyMaterial::IsAlpha() const
 {
-	return m_transparant;
+	return m_alpha || m_zsort;
 }
 
 bool RAS_IPolyMaterial::IsZSort() const
 {
 	return m_zsort;
-}
-
-bool RAS_IPolyMaterial::UsesTriangles() const
-{
-	return m_bIsTriangle;
 }
 
 unsigned int RAS_IPolyMaterial::hash() const
@@ -142,6 +133,11 @@ const STR_String& RAS_IPolyMaterial::GetMaterialName() const
 	return m_materialname;
 }
 
+dword RAS_IPolyMaterial::GetMaterialNameHash() const
+{
+	return m_materialname.hash();
+}
+
 const STR_String& RAS_IPolyMaterial::GetTextureName() const
 {
 	return m_texturename;
@@ -151,10 +147,25 @@ const unsigned int	RAS_IPolyMaterial::GetFlag() const
 {
 	return m_flag;
 }
-const unsigned int	RAS_IPolyMaterial::GetEnabled() const
+
+bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 {
-	return m_enabled;
+	bool dolights = false;
+
+	if(m_flag & RAS_BLENDERMAT)
+		dolights = (m_flag &RAS_MULTILIGHT)!=0;
+	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
+	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
+	else
+		dolights = (m_drawingmode & 16)!=0;
+	
+	return dolights;
 }
 
+bool RAS_IPolyMaterial::UsesObjectColor() const
+{
+	return !(m_flag & RAS_BLENDERGLSL);
+}
 
 unsigned int RAS_IPolyMaterial::m_newpolymatid = 0;
+

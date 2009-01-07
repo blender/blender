@@ -8,7 +8,7 @@ Tooltip: 'Import Pro Engineer (.slp) File Format'
 """
 
 __author__ = "Anthony D'Agostino (Scorpius)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartists.org",
 "Author's homepage, http://www.redrival.com/scorpius")
 __version__ = "Part of IOSuite 0.5"
 
@@ -68,7 +68,7 @@ def read(filename):
 	file = open(filename, "rb")
 
 	raw = []
-	for line in file.xreadlines():
+	for line in file: #.xreadlines():
 		data = line.split()
 		if data[0] == "vertex":
 			vert = map(float, data[1:])

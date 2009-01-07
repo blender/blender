@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdlib.h>
@@ -84,6 +81,16 @@ void rng_seed(RNG *rng, unsigned int seed) {
 	rng->X= (((r_uint64) seed)<<16) | LOWSEED;
 }
 
+void rng_srandom(RNG *rng, unsigned int seed) {
+	extern unsigned char hash[];	// noise.c
+	
+	rng_seed(rng, seed + hash[seed & 255]);
+	seed= rng_getInt(rng);
+	rng_seed(rng, seed + hash[seed & 255]);
+	seed= rng_getInt(rng);
+	rng_seed(rng, seed + hash[seed & 255]);
+}
+
 int rng_getInt(RNG *rng) {
 	rng->X= (MULTIPLIER*rng->X + ADDEND)&MASK;
 	return (int) (rng->X>>17);
@@ -116,6 +123,14 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 	free(temp);
 }
 
+void rng_skip(RNG *rng, int n)
+{
+	int i;
+
+	for(i=0; i<n; i++)
+		rng_getInt(rng);
+}
+
 /***/
 
 static RNG theBLI_rng = {0};
@@ -127,13 +142,7 @@ void BLI_srand(unsigned int seed) {
 
 /* using hash table to create better seed */
 void BLI_srandom(unsigned int seed) {
-	extern unsigned char hash[];	// noise.c
-	
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
-	seed= rng_getInt(&theBLI_rng);
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
-	seed= rng_getInt(&theBLI_rng);
-	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
+	rng_srandom(&theBLI_rng, seed);
 }
 
 int BLI_rand(void) {

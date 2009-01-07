@@ -18,11 +18,13 @@
 
 #include "tntmath.h"
 
+#define SVD_MAX_ITER 200
+
 namespace TNT
 {
 
 template <class MaTRiX, class VecToR >
-void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work2) {
+void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work2, int maxiter=SVD_MAX_ITER) {
 
 	int m = A.num_rows();
 	int n = A.num_cols();
@@ -216,7 +218,10 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 		int kase=0;
 		k=0;
 
-		// Here is where a test for too many iterations would go.
+		// Test for maximum iterations to avoid infinite loop
+		if(maxiter == 0)
+			break;
+		maxiter--;
 
 		// This section of the program inspects for
 		// negligible elements in the s and e arrays.  On

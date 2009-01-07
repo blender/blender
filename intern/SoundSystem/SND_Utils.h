@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef	SND_UTILS_H
 #define SND_UTILS_H
@@ -100,8 +97,8 @@ extern unsigned int SND_GetSampleFormat(void* sample);
 extern unsigned int SND_GetNumberOfChannels(void* sample);
 extern unsigned int SND_GetSampleRate(void* sample);
 extern unsigned int SND_GetBitRate(void* sample);
-extern unsigned int SND_GetNumberOfSamples(void* sample);
-extern unsigned int SND_GetHeaderSize(void* sample);
+extern unsigned int SND_GetNumberOfSamples(void* sample, int sample_length);
+extern unsigned int SND_GetHeaderSize(void* sample, int sample_length);
 extern unsigned int SND_GetExtraChunk(void* sample);
 
 extern void SND_GetSampleInfo(signed char* sample, SND_WaveSlot* waveslot);

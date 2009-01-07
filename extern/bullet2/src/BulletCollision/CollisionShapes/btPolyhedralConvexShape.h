@@ -16,14 +16,20 @@ subject to the following restrictions:
 #ifndef BU_SHAPE
 #define BU_SHAPE
 
-#include <LinearMath/btPoint3.h>
-#include <LinearMath/btMatrix3x3.h>
-#include <BulletCollision/CollisionShapes/btConvexShape.h>
+#include "LinearMath/btPoint3.h"
+#include "LinearMath/btMatrix3x3.h"
+#include "LinearMath/btAabbUtil2.h"
+#include "btConvexInternalShape.h"
 
 
-///PolyhedralConvexShape is an interface class for feature based (vertex/edge/face) convex shapes.
-class btPolyhedralConvexShape : public btConvexShape
+///The btPolyhedralConvexShape is an internal interface class for polyhedral convex shapes.
+class btPolyhedralConvexShape : public btConvexInternalShape
 {
+
+protected:
+	btVector3	m_localAabbMin;
+	btVector3	m_localAabbMax;
+	bool		m_isLocalAabbValid;
 
 public:
 
@@ -33,9 +39,23 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 
+	inline void getNonvirtualAabb(const btTransform& trans,btVector3& aabbMin,btVector3& aabbMax, btScalar margin) const
+	{
+
+		//lazy evaluation of local aabb
+		btAssert(m_isLocalAabbValid);
+		btTransformAabb(m_localAabbMin,m_localAabbMax,margin,trans,aabbMin,aabbMax);
+	}
+
+	
+	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
+
+	virtual void	setLocalScaling(const btVector3& scaling);
+
+	void	recalcLocalAabb();
 
 	virtual int	getNumVertices() const = 0 ;
 	virtual int getNumEdges() const = 0;

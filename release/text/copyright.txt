@@ -56,7 +56,7 @@
   information, claims of third parties, damages as a result of injury to
   any person, or any other loss) arising out of or in connection with the
   license granted under this License Agreement or the use of or inability
-  to use the Software, even if VF has been advised of the possibility of
+  to use the Software, even if BF has been advised of the possibility of
   such damages. 
    
   5. User warning and indemnification

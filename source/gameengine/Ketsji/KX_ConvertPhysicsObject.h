@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef KX_CONVERTPHYSICSOBJECTS
 #define KX_CONVERTPHYSICSOBJECTS
@@ -78,6 +75,7 @@ struct KX_CBounds
 struct KX_ObjectProperties
 {
 	bool	m_dyna;
+	bool	m_softbody;
 	double m_radius;
 	bool	m_angular_rigidbody;
 	bool	m_in_active_layer;
@@ -89,6 +87,47 @@ struct KX_ObjectProperties
 	bool	m_disableSleeping;
 	bool	m_hasCompoundChildren;
 	bool	m_isCompoundChild;
+
+	/////////////////////////
+
+	int		m_gamesoftFlag;
+	float	m_soft_linStiff;			/* linear stiffness 0..1 */
+	float	m_soft_angStiff;		/* angular stiffness 0..1 */
+	float	m_soft_volume;			/* volume preservation 0..1 */
+
+	int		m_soft_viterations;		/* Velocities solver iterations */
+	int		m_soft_piterations;		/* Positions solver iterations */
+	int		m_soft_diterations;		/* Drift solver iterations */
+	int		m_soft_citerations;		/* Cluster solver iterations */
+
+	float	m_soft_kSRHR_CL;		/* Soft vs rigid hardness [0,1] (cluster only) */
+	float	m_soft_kSKHR_CL;		/* Soft vs kinetic hardness [0,1] (cluster only) */
+	float	m_soft_kSSHR_CL;		/* Soft vs soft hardness [0,1] (cluster only) */
+	float	m_soft_kSR_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+
+	float	m_soft_kSK_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kSS_SPLT_CL;	/* Soft vs rigid impulse split [0,1] (cluster only) */
+	float	m_soft_kVCF;			/* Velocities correction factor (Baumgarte) */
+	float	m_soft_kDP;			/* Damping coefficient [0,1] */
+
+	float	m_soft_kDG;			/* Drag coefficient [0,+inf] */
+	float	m_soft_kLF;			/* Lift coefficient [0,+inf] */
+	float	m_soft_kPR;			/* Pressure coefficient [-inf,+inf] */
+	float	m_soft_kVC;			/* Volume conversation coefficient [0,+inf] */
+
+	float	m_soft_kDF;			/* Dynamic friction coefficient [0,1] */
+	float	m_soft_kMT;			/* Pose matching coefficient [0,1] */
+	float	m_soft_kCHR;			/* Rigid contacts hardness [0,1] */
+	float	m_soft_kKHR;			/* Kinetic contacts hardness [0,1] */
+
+	float	m_soft_kSHR;			/* Soft contacts hardness [0,1] */
+	float	m_soft_kAHR;			/* Anchors hardness [0,1] */
+	int		m_soft_collisionflags;	/* Vertex/Face or Signed Distance Field(SDF) or Clusters, Soft versus Soft or Rigid */
+	int		m_soft_numclusteriterations;	/* number of iterations to refine collision clusters*/
+
+	/////////////////////////
+	
+	double  m_margin;
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;

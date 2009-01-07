@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define OBB_TRIANGLE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/CollisionShapes/btBoxShape.h"
+#include "btBoxShape.h"
 
 class btTriangleShape : public btPolyhedralConvexShape
 {
@@ -26,7 +26,6 @@ class btTriangleShape : public btPolyhedralConvexShape
 public:
 
 	btVector3	m_vertices1[3];
-
 
 	virtual int getNumVertices() const
 	{
@@ -57,6 +56,7 @@ public:
 		getVertex((i+1)%3,pb);
 	}
 
+
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax)const 
 	{
 //		btAssert(0);
@@ -83,14 +83,13 @@ public:
 
 
 
-	btTriangleShape(const btVector3& p0,const btVector3& p1,const btVector3& p2)
-	{
-		m_vertices1[0] = p0;
-		m_vertices1[1] = p1;
-		m_vertices1[2] = p2;
-	}
+    btTriangleShape(const btVector3& p0,const btVector3& p1,const btVector3& p2)
+    {
+        m_vertices1[0] = p0;
+        m_vertices1[1] = p1;
+        m_vertices1[2] = p2;
+    }
 
-	
 
 	virtual void getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i) const
 	{
@@ -110,14 +109,16 @@ public:
 
 	virtual void getPlaneEquation(int i, btVector3& planeNormal,btPoint3& planeSupport) const
 	{
+		(void)i;
 		calcNormal(planeNormal);
 		planeSupport = m_vertices1[0];
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const
 	{
+		(void)mass;
 		btAssert(0);
-		inertia.setValue(0.f,0.f,0.f);
+		inertia.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	}
 
 		virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const
@@ -152,7 +153,7 @@ public:
 		return false;
 	}
 		//debugging
-		virtual char*	getName()const
+		virtual const char*	getName()const
 		{
 			return "Triangle";
 		}
@@ -166,7 +167,7 @@ public:
 		{
 			calcNormal(penetrationVector);
 			if (index)
-				penetrationVector *= -1.f;
+				penetrationVector *= btScalar(-1.);
 		}
 
 

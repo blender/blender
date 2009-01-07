@@ -34,7 +34,9 @@
 extern "C" {
 #endif
 
-
+#include "BLO_sys_types.h" // for intptr_t support
+#undef ntohl
+#undef htonl
 typedef int (GetRowFn)(LogImageFile* logImage, unsigned short* row, int lineNum);
 typedef int (SetRowFn)(LogImageFile* logImage, const unsigned short* row, int lineNum);
 typedef void (CloseFn)(LogImageFile* logImage);
@@ -71,17 +73,21 @@ struct _Log_Image_File_t_
 	unsigned char lut10[1024];
 	unsigned short lut8[256];
 
+	unsigned short lut10_16[1024];
+	unsigned short lut16_16[65536];
+
 	/* pixel access functions */
 	GetRowFn* getRow;
 	SetRowFn* setRow;
 	CloseFn* close;
 	
 	unsigned char *membuffer;
-	unsigned long membuffersize;
+	uintptr_t membuffersize;
 	unsigned char *memcursor;
 };
 
 void setupLut(LogImageFile*);
+void setupLut16(LogImageFile*);
 
 int pixelsToLongs(int numPixels);
 

@@ -15,6 +15,8 @@ SET(INC
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel 
+  ../../../source/blender/editors/include
+  ../../../source/blender/windowmanager
   ../../../source/blender 
   ../../../source/blender/include
   ../../../source/blender/makesdna 
@@ -31,8 +33,10 @@ SET(INC
   ../../../intern/SoundSystem 
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
+  ../../../source/blender/gpu
   ../../../extern/bullet2/src
   ../../../extern/solid
+  ../../../extern/glew/include
   ${PYTHON_INC}
 )
 

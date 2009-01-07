@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * writeimage.c
  *
  * $Id$
@@ -35,6 +32,8 @@
 #ifdef WIN32
 #include <io.h>
 #endif
+
+#include <stdio.h>
 
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
@@ -60,6 +59,9 @@
 #include "IMB_radiance_hdr.h"
 #ifdef WITH_OPENEXR
 #include "openexr/openexr_api.h"
+#endif
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
 #endif
 
 #include "IMB_iff.h"
@@ -115,6 +117,13 @@ short IMB_saveiff(struct ImBuf *ibuf, char *name, int flags)
 		return imb_save_openexr(ibuf, name, flags);
 	}
 #endif
+/* not supported yet
+#ifdef WITH_DDS
+	if (IS_dds(ibuf)) {
+		return imb_save_dds(ibuf, name, flags);
+	}
+#endif
+*/
 	if (IS_cineon(ibuf)) {
 		return imb_savecineon(ibuf, name, flags);
 		

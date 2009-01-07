@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -21,7 +18,7 @@
  *
  * Contributor(s): Peter Schlaile <peter@schlaile.de> 2005
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef __MEM_cache_limiter_h_included__
@@ -64,10 +61,8 @@ class MEM_CacheLimiter;
 
 #ifndef __MEM_cache_limiter_c_api_h_included__
 extern "C" {
-	extern void MEM_CacheLimiter_set_maximum(int m);
-	extern int MEM_CacheLimiter_get_maximum();
-        // this is rather _ugly_!
-        extern int mem_in_use;
+	extern void MEM_CacheLimiter_set_maximum(intptr_t m);
+	extern intptr_t MEM_CacheLimiter_get_maximum();
 };
 #endif
 
@@ -143,12 +138,15 @@ public:
 		delete handle;
 	}
 	void enforce_limits() {
-		int max = MEM_CacheLimiter_get_maximum();
+		intptr_t max = MEM_CacheLimiter_get_maximum();
+		intptr_t mem_in_use= MEM_get_memory_in_use();
+		intptr_t mmap_in_use= MEM_get_mapped_memory_in_use();
+
 		if (max == 0) {
 			return;
 		}
 		for (iterator it = queue.begin(); 
-		     it != queue.end() && mem_in_use > max;) {
+		     it != queue.end() && mem_in_use + mmap_in_use > max;) {
 			iterator jt = it;
 			++it;
 			(*jt)->destroy_if_possible();

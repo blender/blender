@@ -3,15 +3,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef KX_PYTHONCONTROLLER_H
@@ -38,6 +35,8 @@
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"
+
+#include <vector>
 
 class SCA_IObject;
 class SCA_PythonController : public SCA_IController
@@ -50,6 +49,7 @@ class SCA_PythonController : public SCA_IController
 	STR_String				m_scriptText;
 	STR_String				m_scriptName;
 	PyObject*				m_pythondictionary;
+	std::vector<class SCA_ISensor*>		m_triggeredSensors;
 
  public: 
 	static SCA_PythonController* m_sCurrentController; // protected !!!
@@ -67,23 +67,24 @@ class SCA_PythonController : public SCA_IController
 	void	SetScriptText(const STR_String& text);
 	void	SetScriptName(const STR_String& name);
 	void	SetDictionary(PyObject*	pythondictionary);
+	void	AddTriggeredSensor(class SCA_ISensor* sensor)
+		{ m_triggeredSensors.push_back(sensor); }
+	int		IsTriggered(class SCA_ISensor* sensor);
 
-	static char* sPyGetCurrentController__doc__;
-	static PyObject* sPyGetCurrentController(PyObject* self, 
-											 PyObject* args, 
-											 PyObject* kwds);
-	static char* sPyAddActiveActuator__doc__;
+	static const char* sPyGetCurrentController__doc__;
+	static PyObject* sPyGetCurrentController(PyObject* self);
+	static const char* sPyAddActiveActuator__doc__;
 	static PyObject* sPyAddActiveActuator(PyObject* self, 
-										  PyObject* args, 
-										  PyObject* kwds);
+										  PyObject* args);
 	virtual PyObject* _getattr(const STR_String& attr);
 
-	KX_PYMETHOD_DOC(SCA_PythonController,GetSensors);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetSensor);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetActuator);
-	KX_PYMETHOD_DOC(SCA_PythonController,GetActuators);
-	KX_PYMETHOD(SCA_PythonController,SetScript);
-	KX_PYMETHOD(SCA_PythonController,GetScript);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetSensors);
+	KX_PYMETHOD_DOC_NOARGS(SCA_PythonController,GetActuators);
+	KX_PYMETHOD_DOC_O(SCA_PythonController,GetSensor);
+	KX_PYMETHOD_DOC_O(SCA_PythonController,GetActuator);
+	KX_PYMETHOD_O(SCA_PythonController,SetScript);
+	KX_PYMETHOD_NOARGS(SCA_PythonController,GetScript);
+	KX_PYMETHOD_NOARGS(SCA_PythonController,GetState);
 	
 
 };

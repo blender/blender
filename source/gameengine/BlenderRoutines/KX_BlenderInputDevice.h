@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_BLENDERINPUTDEVICE
 #define __KX_BLENDERINPUTDEVICE
@@ -38,12 +35,7 @@
 
 #include <map>
 
-/* need to be here for conversion purposes */
-#ifdef FREE_WINDOWS
-#undef HKEY
-#endif
-
-#include "mydevice.h"
+#include "wm_event_types.h"
 #include "SCA_IInputDevice.h"
 
 /**
@@ -96,7 +88,15 @@ public:
 			m_reverseKeyTranslateTable[EKEY                             ] = KX_EKEY                    ;                  
 			m_reverseKeyTranslateTable[FKEY                             ] = KX_FKEY                    ;                  
 			m_reverseKeyTranslateTable[GKEY                             ] = KX_GKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 			m_reverseKeyTranslateTable[HKEY                             ] = KX_HKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
 			m_reverseKeyTranslateTable[IKEY                             ] = KX_IKEY                    ;                  
 			m_reverseKeyTranslateTable[JKEY                             ] = KX_JKEY                    ;                  
 			m_reverseKeyTranslateTable[KKEY                             ] = KX_KKEY                    ;                  

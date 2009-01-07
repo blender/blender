@@ -143,7 +143,7 @@ static float RI_vdC(unsigned int bits, unsigned int r)
 // single channel IIR gaussian filtering
 // much faster than anything else, constant time independent of width
 // should extend to multichannel and make this a node, could be useful
-static void IIR_gauss(CompBuf* buf, float sigma)
+static void IIR_gauss_single(CompBuf* buf, float sigma)
 {
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
 	float *X, *Y, *W;
@@ -235,7 +235,7 @@ static void IIR_gauss(CompBuf* buf, float sigma)
 #undef YVV
 }
 
-static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf, float inpval)
+static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf, float inpval, int no_zbuf)
 {
 	NodeDefocus *nqd = node->storage;
 	CompBuf *wts;		// weights buffer
@@ -253,11 +253,12 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	
 	// get some required params from the current scene camera
 	// (ton) this is wrong, needs fixed
-	Object* camob = G.scene->camera;
+	Object* camob = NULL; // XXX G.scene->camera;
 	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
-		cam_fdist = (cam->YF_dofdist==0.f) ? 1e10f : cam->YF_dofdist;
+		cam_fdist = dof_camera(camob);
+		if (cam_fdist==0.0) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */ 
 		cam_invfdist = 1.f/cam_fdist;
 	}
 
@@ -282,7 +283,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 
 	// if 'no_zbuf' flag set (which is always set if input is not an image),
 	// values are instead interpreted directly as blur radius values
-	if (nqd->no_zbuf) {
+	if (no_zbuf) {
 		// to prevent *reaaallly* big radius values and impossible calculation times,
 		// limit the maximum to half the image width or height, whichever is smaller
 		float maxr = 0.5f*(float)MIN2(img->x, img->y);
@@ -321,8 +322,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
 		wt = aperture*128.f;
-		IIR_gauss(crad, wt);
-		IIR_gauss(wts, wt);
+		IIR_gauss_single(crad, wt);
+		IIR_gauss_single(wts, wt);
 		
 		// bug #6656 part 2a, although foreground blur is not based anymore on closest object,
 		// the rescaling op below was still based on that anyway, and unlike the comment in below code,
@@ -375,8 +376,10 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// some sort of visual feedback would be nice, or at least this text in the renderwin header
 		// but for now just print some info in the console every 8 scanlines.
 		if (((y & 7)==0) || (y==(img->y-1))) {
-			printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
-			fflush(stdout);
+			if(G.background==0) {
+				printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
+				fflush(stdout);
+			}
 		}
 		// esc set by main calling process
 		if(node->exec & NODE_BREAK)
@@ -697,7 +700,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 				// sampled, simple rejection sampling here, good enough
 				unsigned int maxsam, s, ui = BLI_rand()*BLI_rand();
 				float wcor, cpr = BLI_frand();
-				if (nqd->no_zbuf)
+				if (no_zbuf)
 					maxsam = nqd->samples;	// no zbuffer input, use sample value directly
 				else {
 					// depth adaptive sampling hack, the more out of focus, the more samples taken, 16 minimum.
@@ -771,14 +774,13 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 {
 	CompBuf *new, *old, *zbuf_use = NULL, *img = in[0]->data, *zbuf = in[1]->data;
 	NodeDefocus *nqd = node->storage;
+	int no_zbuf = nqd->no_zbuf;
 	
 	if ((img==NULL) || (out[0]->hasoutput==0)) return;
 	
 	// if image not valid type or fstop==infinite (128), nothing to do, pass in to out
-	if (((img->type!=CB_RGBA) && (img->type!=CB_VAL)) || ((nqd->no_zbuf==0) && (nqd->fstop==128.f))) {
-		new = alloc_compbuf(img->x, img->y, img->type, 0);
-		new->rect = img->rect;
-		out[0]->data = new;
+	if (((img->type!=CB_RGBA) && (img->type!=CB_VAL)) || ((no_zbuf==0) && (nqd->fstop==128.f))) {
+		out[0]->data = pass_on_compbuf(img);
 		return;
 	}
 	
@@ -792,21 +794,27 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 		}
 		zbuf_use = typecheck_compbuf(zbuf, CB_VAL);
 	}
-	else nqd->no_zbuf = 1;	// no zbuffer input
+	else no_zbuf = 1;	// no zbuffer input
 		
 	// ok, process
 	old = img;
 	if (nqd->gamco) {
-		// gamma correct, blender func is simplified, fixed value & RGBA only, should make user param
+		// gamma correct, blender func is simplified, fixed value & RGBA only,
+		// should make user param. also depremul and premul afterwards, gamma
+		// correction can't work with premul alpha
 		old = dupalloc_compbuf(img);
+		premul_compbuf(old, 1);
 		gamma_correct_compbuf(old, 0);
+		premul_compbuf(old, 0);
 	}
 	
 	new = alloc_compbuf(old->x, old->y, old->type, 1);
-	defocus_blur(node, new, old, zbuf_use, in[1]->vec[0]*nqd->scale);
+	defocus_blur(node, new, old, zbuf_use, in[1]->vec[0]*nqd->scale, no_zbuf);
 	
 	if (nqd->gamco) {
+		premul_compbuf(new, 1);
 		gamma_correct_compbuf(new, 1);
+		premul_compbuf(new, 0);
 		free_compbuf(old);
 	}
 	if(node->exec & NODE_BREAK) {

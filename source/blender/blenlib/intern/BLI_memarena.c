@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Efficient memory allocation for lots of similar small chunks.
  */
 
@@ -63,8 +60,12 @@ void BLI_memarena_use_calloc(MemArena *ma) {
 	ma->use_calloc= 1;
 }
 
+void BLI_memarena_use_malloc(MemArena *ma) {
+	ma->use_calloc= 0;
+}
+
 void BLI_memarena_free(MemArena *ma) {
-	BLI_linklist_free(ma->bufs, (void(*)(void*)) WMEM_freeN);
+	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
 	MEM_freeN(ma);
 }
 

@@ -19,19 +19,22 @@ subject to the following restrictions:
 
 #include "btQuadWord.h"
 
-
-///btVector3 is 16byte aligned, and has an extra unused component m_w
-///this extra component can be used by derived classes (Quaternion?) or by user
-class btVector3 : public btQuadWord {
-
+///btVector3 can be used to represent 3D points and vectors.
+///It has an un-used w component to suit 16-byte alignment when btVector3 is stored in containers. This extra component can be used by derived classes (Quaternion?) or by user
+///Ideally, this class should be replaced by a platform optimized SIMD version that keeps the data in registers
+class	btVector3 : public btQuadWord {
 
 public:
 	SIMD_FORCE_INLINE btVector3() {}
 
+	SIMD_FORCE_INLINE btVector3(const btQuadWordStorage& q) 
+		: btQuadWord(q)
+	{
+	}
 	
 
 	SIMD_FORCE_INLINE btVector3(const btScalar& x, const btScalar& y, const btScalar& z) 
-		:btQuadWord(x,y,z,0.f)
+		:btQuadWord(x,y,z,btScalar(0.))
 	{
 	}
 
@@ -44,6 +47,7 @@ public:
 
 	SIMD_FORCE_INLINE btVector3& operator+=(const btVector3& v)
 	{
+
 		m_x += v.x(); m_y += v.y(); m_z += v.z();
 		return *this;
 	}
@@ -64,7 +68,7 @@ public:
 
 	SIMD_FORCE_INLINE btVector3& operator/=(const btScalar& s) 
 	{
-		assert(s != btScalar(0.0));
+		btFullAssert(s != btScalar(0.0));
 		return *this *= btScalar(1.0) / s;
 	}
 
@@ -99,7 +103,7 @@ public:
 	SIMD_FORCE_INLINE btScalar angle(const btVector3& v) const 
 	{
 		btScalar s = btSqrt(length2() * v.length2());
-		assert(s != btScalar(0.0));
+		btFullAssert(s != btScalar(0.0));
 		return btAcos(dot(v) / s);
 	}
 
@@ -148,10 +152,10 @@ public:
 
 	SIMD_FORCE_INLINE void setInterpolate3(const btVector3& v0, const btVector3& v1, btScalar rt)
 	{
-		btScalar s = 1.0f - rt;
-		m_x = s * v0[0] + rt * v1.x();
-		m_y = s * v0[1] + rt * v1.y();
-		m_z = s * v0[2] + rt * v1.z();
+		btScalar s = btScalar(1.0) - rt;
+		m_x = s * v0.x() + rt * v1.x();
+		m_y = s * v0.y() + rt * v1.y();
+		m_z = s * v0.z() + rt * v1.z();
 		//don't do the unused w component
 		//		m_co[3] = s * v0[3] + rt * v1[3];
 	}
@@ -213,7 +217,7 @@ operator*(const btScalar& s, const btVector3& v)
 SIMD_FORCE_INLINE btVector3
 operator/(const btVector3& v, const btScalar& s)
 {
-	assert(s != btScalar(0.0));
+	btFullAssert(s != btScalar(0.0));
 	return v * (btScalar(1.0) / s);
 }
 
@@ -271,7 +275,7 @@ lerp(const btVector3& v1, const btVector3& v2, const btScalar& t)
 
 SIMD_FORCE_INLINE bool operator==(const btVector3& p1, const btVector3& p2) 
 {
-	return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+	return p1.x() == p2.x() && p1.y() == p2.y() && p1.z() == p2.z();
 }
 
 SIMD_FORCE_INLINE btScalar btVector3::distance2(const btVector3& v) const
@@ -327,13 +331,13 @@ public:
 
 
 
-	float	getW() const { return m_unusedW;}
+	btScalar	getW() const { return m_unusedW;}
 
 
 		SIMD_FORCE_INLINE int maxAxis4() const
 	{
 		int maxIndex = -1;
-		float maxVal = -1e30f;
+		btScalar maxVal = btScalar(-1e30);
 		if (m_x > maxVal)
 		{
 			maxIndex = 0;
@@ -366,7 +370,7 @@ public:
 	SIMD_FORCE_INLINE int minAxis4() const
 	{
 		int minIndex = -1;
-		float minVal = 1e30f;
+		btScalar minVal = btScalar(1e30);
 		if (m_x < minVal)
 		{
 			minIndex = 0;
@@ -399,5 +403,51 @@ public:
 	}
 
 };
+
+
+///btSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btSwapScalarEndian(const btScalar& sourceVal, btScalar& destVal)
+{
+	#ifdef BT_USE_DOUBLE_PRECISION
+	unsigned char* dest = (unsigned char*) &destVal;
+	unsigned char* src  = (unsigned char*) &sourceVal;
+	dest[0] = src[7];
+    dest[1] = src[6];
+    dest[2] = src[5];
+    dest[3] = src[4];
+    dest[4] = src[3];
+    dest[5] = src[2];
+    dest[6] = src[1];
+    dest[7] = src[0];
+#else
+	unsigned char* dest = (unsigned char*) &destVal;
+	unsigned char* src  = (unsigned char*) &sourceVal;
+	dest[0] = src[3];
+    dest[1] = src[2];
+    dest[2] = src[1];
+    dest[3] = src[0];
+#endif //BT_USE_DOUBLE_PRECISION
+}
+///btSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btSwapVector3Endian(const btVector3& sourceVec, btVector3& destVec)
+{
+	for (int i=0;i<4;i++)
+	{
+		btSwapScalarEndian(sourceVec[i],destVec[i]);
+	}
+
+}
+
+///btUnSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btUnSwapVector3Endian(btVector3& vector)
+{
+
+	btVector3	swappedVec;
+	for (int i=0;i<4;i++)
+	{
+		btSwapScalarEndian(vector[i],swappedVec[i]);
+	}
+	vector = swappedVec;
+}
 
 #endif //SIMD__VECTOR3_H

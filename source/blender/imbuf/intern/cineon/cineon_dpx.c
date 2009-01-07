@@ -42,14 +42,31 @@
 
 #include "MEM_guardedalloc.h"
 
+static void cineon_conversion_parameters(LogImageByteConversionParameters *params)
+{
+//	params->blackPoint = scene?scene->r.cineonblack:95;
+//	params->whitePoint = scene?scene->r.cineonwhite:685;
+//	params->gamma = scene?scene->r.cineongamma:1.7f;
+//	params->doLogarithm = scene?scene->r.subimtype & R_CINEON_LOG:0;
+	
+	params->blackPoint = 95;
+	params->whitePoint = 685;
+	params->gamma = 1.7f;
+	params->doLogarithm = 0;
+	
+}
+
 static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
 {
+	LogImageByteConversionParameters conversion;
 	ImBuf *ibuf;
 	LogImageFile *image;
 	int x, y;
 	unsigned short *row, *upix;
 	int width, height, depth;
 	float *frow;
+
+	cineon_conversion_parameters(&conversion);
 	
 	image = logImageOpenFromMem(mem, size, use_cineon);
 	
@@ -70,6 +87,8 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		return NULL;
 	}
 	
+	logImageSetByteConversion(image, &conversion);
+
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
@@ -107,10 +126,9 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	int i, j;
 	int index;
 	float *fline;
-	
-	conversion.blackPoint = 95;
-	conversion.whitePoint = 685;
-	conversion.gamma = 1;
+
+	cineon_conversion_parameters(&conversion);
+
 	/*
 	 * Get the drawable for the current image...
 	 */
@@ -119,7 +137,13 @@ static int imb_save_dpx_cineon(ImBuf *buf, char *filename, int use_cineon, int f
 	height = buf->y;
 	depth = 3;
 	
-	if (!buf->rect_float) return 0;
+	
+	if (!buf->rect_float) {
+		IMB_float_from_rect(buf);
+		if (!buf->rect_float) { /* in the unlikely event that converting to a float buffer fails */
+			return 0;
+		}
+	}
 	
 	logImageSetVerbose(0);
 	logImage = logImageCreate(filename, use_cineon, width, height, depth);

@@ -5,7 +5,7 @@
  *
  * $Id: BKE_bmesh.h,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@
  *
  * Contributor(s): Geoffrey Bantle.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BMESH_PRIVATE
@@ -49,7 +49,6 @@ void BME_free_vert(struct BME_Mesh *bm, struct BME_Vert *v);
 void BME_free_edge(struct BME_Mesh *bm, struct BME_Edge *e);
 void BME_free_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_free_loop(struct BME_Mesh *bm, struct BME_Loop *l);
-void BME_delete_loop(struct BME_Mesh *bm, struct BME_Loop *l);
 
 /*DOUBLE CIRCULAR LINKED LIST FUNCTIONS*/
 void BME_cycle_append(void *h, void *nt);

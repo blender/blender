@@ -5,15 +5,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +28,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BLI_STORAGE_TYPES_H
 #define BLI_STORAGE_TYPES_H
@@ -52,6 +49,8 @@ struct header{
 typedef unsigned int mode_t;
 #endif
 
+struct ImBuf;
+
 struct direntry{
 	char	*string;
 	mode_t	type;
@@ -68,7 +67,17 @@ struct direntry{
 	char	extra[16];
 	void	*poin;
 	int		nr;
+	struct ImBuf *image;
 };
+
+#define SELECT			1
+#define HIDDEN			1
+#define FIRST			1
+#define ACTIVE			2
+#define DESELECT		0
+#define NOT_YET			0
+#define VISIBLE			0
+#define LAST			0
 
 struct dirlink
 {

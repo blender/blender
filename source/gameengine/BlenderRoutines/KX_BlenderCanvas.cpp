@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,10 +23,10 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BIF_scrarea.h"
+//XXX #include "BIF_scrarea.h"
 #include "KX_BlenderCanvas.h"
 
 #ifdef HAVE_CONFIG_H
@@ -96,13 +93,20 @@ void KX_BlenderCanvas::ClearBuffer(int type)
 
 int KX_BlenderCanvas::GetWidth(
 ) const {
-	return scrarea_get_win_width(m_area);
+	return 0; //XXX scrarea_get_win_width(m_area);
 }
 
 int KX_BlenderCanvas::GetHeight(
 ) const {
-	return scrarea_get_win_height(m_area);
+	return 0; //XXX scrarea_get_win_height(m_area);
 }
+
+RAS_Rect &
+KX_BlenderCanvas::
+GetWindowArea(
+){
+	return m_area_rect;
+}	
 
 	void
 KX_BlenderCanvas::
@@ -112,8 +116,13 @@ SetViewPort(
 ){
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
-	int minx = scrarea_get_win_x(m_area);
-	int miny = scrarea_get_win_y(m_area);
+	int minx = 0;//XXX scrarea_get_win_x(m_area);
+	int miny = 0;//XXX scrarea_get_win_y(m_area);
+
+	m_area_rect.SetLeft(minx + x1);
+	m_area_rect.SetBottom(miny + y1);
+	m_area_rect.SetRight(minx + x2);
+	m_area_rect.SetTop(miny + y2);
 
 	glViewport(minx + x1, miny + y1, vp_width, vp_height);
 	glScissor(minx + x1, miny + y1, vp_width, vp_height);
@@ -150,9 +159,9 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 //	(0,0) is top left, (width,height) is bottom right
 void KX_BlenderCanvas::SetMousePosition(int x,int y)
 {
-	int winX = scrarea_get_win_x(m_area);
-	int winY = scrarea_get_win_y(m_area);
-	int winH = scrarea_get_win_height(m_area);
+	int winX = 0;//XXX scrarea_get_win_x(m_area);
+	int winY = 0;//XXX scrarea_get_win_y(m_area);
+	int winH = 0;//XXX scrarea_get_win_height(m_area);
 	
 	BL_warp_pointer(winX + x, winY + (winH-y-1));
 }

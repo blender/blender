@@ -251,6 +251,9 @@ ECHO Done
 			<File
 				RelativePath="..\..\intern\mallocn.c">
 			</File>
+			<File
+				RelativePath="..\..\intern\mmap_win.c">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -259,8 +262,18 @@ ECHO Done
 				Name="extern"
 				Filter="">
 				<File
+					RelativePath="..\..\BLO_sys_types.h">
+				</File>
+				<File
 					RelativePath="..\..\MEM_guardedalloc.h">
 				</File>
+				<File
+					RelativePath="..\..\mmap_win.h">
+				</File>
+			</Filter>
+			<Filter
+				Name="intern"
+				Filter="">
 			</Filter>
 		</Filter>
 	</Files>

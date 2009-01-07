@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef __KX_VERTEXARRAYOPENGLRASTERIZER
 #define __KX_VERTEXARRAYOPENGLRASTERIZER
@@ -36,8 +33,13 @@
 
 class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
 {
-	void TexCoordPtr(const RAS_TexVert *tv, int unit);
+	void TexCoordPtr(const RAS_TexVert *tv);
 	bool m_Lock;
+
+	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
+	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
+	int				m_last_texco_num;
+	int				m_last_attrib_num;
 
 public:
 	RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock=false);
@@ -48,26 +50,10 @@ public:
 
 	virtual void	SetDrawingMode(int drawingmode);
 
-	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
+	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
-	virtual void IndexPrimitivesMulti( 
-		const vecVertexArray& vertexarrays,
-		const vecIndexArrays & indexarrays,
-		int mode,
-		class RAS_IPolyMaterial* polymat,
-		class RAS_IRenderTools* rendertools,
-		bool useObjectColor,
-		const MT_Vector4& rgbacolor,
-		class KX_ListSlot** slot);
-
-
+private:
 	virtual void	EnableTextures(bool enable);
 	//virtual bool	QueryArrays(){return true;}
 	//virtual bool	QueryLists(){return m_Lock;}

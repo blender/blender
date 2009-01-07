@@ -4,15 +4,12 @@
  * 
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +27,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -48,7 +45,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
@@ -63,7 +59,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -157,7 +152,7 @@ Key *copy_key(Key *key)
 	
 	keyn->ipo= copy_ipo(key->ipo);
 
-	duplicatelist(&keyn->block, &key->block);
+	BLI_duplicatelist(&keyn->block, &key->block);
 	
 	kb= key->block.first;
 	kbn= keyn->block.first;
@@ -287,10 +282,10 @@ void set_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*d3	+0.5f*d2	-0.5f*d	+0.16666f;
-			data[1]= 0.5f*d3		-d2				+0.6666f;
-			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.1666f;
-			data[3]= 0.1666f*d3			;
+			data[0]= -0.16666666f*d3	+0.5f*d2	-0.5f*d	+0.16666666f;
+			data[1]= 0.5f*d3		-d2				+0.6666666f;
+			data[2]= -0.5f*d3		+0.5f*d2	+0.5f*d	+0.16666666f;
+			data[3]= 0.16666666f*d3			;
 		}
 	}
 }
@@ -316,10 +311,10 @@ void set_afgeleide_four_ipo(float d, float *data, int type)
 		}
 		else if(type==KEY_BSPLINE) {
 
-			data[0]= -0.1666f*3.0f*d2	+d	-0.5f;
+			data[0]= -0.16666666f*3.0f*d2	+d	-0.5f;
 			data[1]= 1.5f*d2		-2.0f*d;
 			data[2]= -1.5f*d2		+d	+0.5f;
-			data[3]= 0.1666f*3.0f*d2			;
+			data[3]= 0.16666666f*3.0f*d2			;
 		}
 	}
 }
@@ -545,26 +540,26 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			case IPO_FLOAT:
 				
 				if(weights) {
-					memcpy(poin, kref, 4*cp[0]);
+					memcpy(poin, kref, sizeof(float)*cp[0]);
 					if(*weights!=0.0f)
 						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
 					weights++;
 				}
 				else 
-					memcpy(poin, k1, 4*cp[0]);
+					memcpy(poin, k1, sizeof(float)*cp[0]);
 
 				poin+= ofsp[0];
 
 				break;
 			case IPO_BPOINT:
-				memcpy(poin, k1, 3*4);
-				memcpy(poin+16, k1+12, 4);
+				memcpy(poin, k1, 3*sizeof(float));
+				memcpy(poin+4*sizeof(float), k1+3*sizeof(float), sizeof(float));
 				
 				poin+= ofsp[0];				
 
 				break;
 			case IPO_BEZTRIPLE:
-				memcpy(poin, k1, 4*12);
+				memcpy(poin, k1, sizeof(float)*10);
 				poin+= ofsp[0];	
 
 				break;
@@ -633,7 +628,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 }
 
 
-static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
+void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
@@ -672,19 +667,21 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 	
 	/* step 2: do it */
 	
-	kb= key->block.first;
-	while(kb) {
-		
+	for(kb=key->block.first; kb; kb=kb->next) {
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
 			/* only with value, and no difference allowed */
-			if(icuval!=0.0f && kb->totelem==tot) {
+			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
+				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
 				poin= basispoin;
-				reffrom= key->refkey->data;
 				from= kb->data;
+				/* reference now can be any block */
+				refb= BLI_findlink(&key->block, kb->relative);
+				if(refb==NULL) continue;
+				reffrom= refb->data;
 				
 				poin+= start*ofs[0];
 				reffrom+= key->elemsize*start;	// key elemsize yes!
@@ -734,7 +731,6 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 				}
 			}
 		}
-		kb= kb->next;
 	}
 }
 
@@ -997,7 +993,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	return NULL;
 }
 
-static int do_mesh_key(Object *ob, Mesh *me)
+static int do_mesh_key(Scene *scene, Object *ob, Mesh *me)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta, loc[3], size[3];
@@ -1021,11 +1017,11 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			/* in do_key and cp_key the case a>tot is handled */
 		}
 		
-		cfra= G.scene->r.cfra;
+		cfra= scene->r.cfra;
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0);
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1060,7 +1056,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			}
 		}
 		else {
-			ctime= bsystem_time(ob, 0, G.scene->r.cfra, 0.0);
+			ctime= bsystem_time(scene, ob, scene->r.cfra, 0.0);
 
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1153,7 +1149,7 @@ static void do_rel_cu_key(Curve *cu, float ctime)
 	}
 }
 
-static int do_curve_key(Curve *cu)
+static int do_curve_key(Scene *scene, Curve *cu)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta;
@@ -1176,11 +1172,11 @@ static int do_curve_key(Curve *cu)
 			/* in do_key and cp_key the case a>tot has been handled */
 		}
 		
-		cfra= G.scene->r.cfra;
+		cfra= scene->r.cfra;
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0);
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1202,7 +1198,7 @@ static int do_curve_key(Curve *cu)
 	}
 	else {
 		
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
 		
 		if(cu->key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, ctime);
@@ -1225,7 +1221,7 @@ static int do_curve_key(Curve *cu)
 	return 1;
 }
 
-static int do_latt_key(Object *ob, Lattice *lt)
+static int do_latt_key(Scene *scene, Object *ob, Lattice *lt)
 {
 	KeyBlock *k[4];
 	float delta, cfra, ctime, t[4];
@@ -1240,11 +1236,11 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		delta= lt->key->slurph;
 		delta/= (float)tot;
 		
-		cfra= G.scene->r.cfra;
+		cfra= scene->r.cfra;
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(scene, 0, cfra, 0.0);
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1261,7 +1257,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		}		
 	}
 	else {
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(scene, NULL, (float)scene->r.cfra, 0.0);
 	
 		if(lt->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
@@ -1298,7 +1294,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 }
 
 /* returns 1 when key applied */
-int do_ob_key(Object *ob)
+int do_ob_key(Scene *scene, Object *ob)
 {
 	Key *key= ob_get_key(ob);
 	
@@ -1307,6 +1303,9 @@ int do_ob_key(Object *ob)
 		
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+		if(kb && (kb->flag & KEYBLOCK_MUTE))
+			kb= key->refkey;
 
 		if(kb==NULL) {
 			kb= key->block.first;
@@ -1340,16 +1339,16 @@ int do_ob_key(Object *ob)
 	}
 	else {
 		if(ob->ipoflag & OB_ACTION_KEY)
-			do_all_object_actions(ob);
+			do_all_object_actions(scene, ob);
 		else {
-			calc_ipo(key->ipo, bsystem_time(ob, 0, G.scene->r.cfra, 0.0));
+			calc_ipo(key->ipo, bsystem_time(scene, ob, scene->r.cfra, 0.0));
 			execute_ipo((ID *)key, key->ipo);
 		}
 		
-		if(ob->type==OB_MESH) return do_mesh_key(ob, ob->data);
-		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
-		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
-		else if(ob->type==OB_LATTICE) return do_latt_key(ob, ob->data);
+		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);
+		else if(ob->type==OB_CURVE) return do_curve_key(scene, ob->data);
+		else if(ob->type==OB_SURF) return do_curve_key(scene, ob->data);
+		else if(ob->type==OB_LATTICE) return do_latt_key(scene, ob, ob->data);
 	}
 	
 	return 0;
@@ -1384,5 +1383,40 @@ KeyBlock *ob_get_keyblock(Object *ob)
 		return kb;
 	}
 
+	return NULL;
+}
+
+/* get the appropriate KeyBlock given an index */
+KeyBlock *key_get_keyblock(Key *key, int index)
+{
+	KeyBlock *kb;
+	int i;
+	
+	if (key) {
+		kb= key->block.first;
+		
+		for (i= 1; i < key->totkey; i++) {
+			kb= kb->next;
+			
+			if (index==i)
+				return kb;
+		}
+	}
+	
+	return NULL;
+}
+
+/* get the appropriate KeyBlock given a name to search for */
+KeyBlock *key_get_named_keyblock(Key *key, const char name[])
+{
+	KeyBlock *kb;
+	
+	if (key && name) {
+		for (kb= key->block.first; kb; kb= kb->next) {
+			if (strcmp(name, kb->name)==0)
+				return kb;
+		}
+	}
+	
 	return NULL;
 }

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifdef HAVE_CONFIG_H
@@ -97,7 +94,7 @@ PyObjectPlus::PyObjectPlus(PyTypeObject *T) 				// constructor
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {"isA",		 (PyCFunction) sPy_isA,			Py_NEWARGS},
+  {"isA",		 (PyCFunction) sPy_isA,			METH_VARARGS},
   {NULL, NULL}		/* Sentinel */
 };
 
@@ -122,6 +119,7 @@ PyObject *PyObjectPlus::_getattr(const STR_String& attr)
 
 int PyObjectPlus::_delattr(const STR_String& attr)
 {
+	PyErr_SetString(PyExc_AttributeError, "attribute cant be deleted");
 	return 1;
 }
 
@@ -129,7 +127,8 @@ int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 {
 	//return PyObject::_setattr(attr,value);
 	//cerr << "Unknown attribute" << endl;
-  return 1;
+	PyErr_SetString(PyExc_AttributeError, "attribute cant be set");
+	return 1;
 }
 
 /*------------------------------
@@ -137,7 +136,8 @@ int PyObjectPlus::_setattr(const STR_String& attr, PyObject *value)
 ------------------------------*/
 PyObject *PyObjectPlus::_repr(void)
 {
-  Py_Error(PyExc_SystemError, "Representation not overridden by object.");  
+	PyErr_SetString(PyExc_SystemError, "Representation not overridden by object.");  
+	return NULL;
 }
 
 /*------------------------------
@@ -167,11 +167,12 @@ bool PyObjectPlus::isA(const char *mytypename)		// check typename of each parent
 PyObject *PyObjectPlus::Py_isA(PyObject *args)		// Python wrapper for isA
 {
   char *mytypename;
-  Py_Try(PyArg_ParseTuple(args, "s", &mytypename));
+  if (!PyArg_ParseTuple(args, "s", &mytypename))
+    return NULL;
   if(isA(mytypename))
-    {Py_INCREF(Py_True); return Py_True;}
+    Py_RETURN_TRUE;
   else
-    {Py_INCREF(Py_False); return Py_False;};
+    Py_RETURN_FALSE;
 }
 
 #endif //NO_EXP_PYTHON_EMBEDDING

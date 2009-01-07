@@ -23,12 +23,12 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
-#include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
+
 
 class btRaycastVehicle;
 class btIDebugDraw;
+#include "LinearMath/btAlignedObjectArray.h"
 
-#include <vector>
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
 ///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController
@@ -40,61 +40,58 @@ protected:
 
 	btSimulationIslandManager*	m_islandManager;
 
-	std::vector<btTypedConstraint*> m_constraints;
+	btAlignedObjectArray<btTypedConstraint*> m_constraints;
 
-	btIDebugDraw*	m_debugDrawer;
 
 	btVector3	m_gravity;
 
 	//for variable timesteps
-	float	m_localTime;
+	btScalar	m_localTime;
 	//for variable timesteps
 
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
 
-	btContactSolverInfo	m_solverInfo;
-
-
-	std::vector<btRaycastVehicle*>	m_vehicles;
+	
+	btAlignedObjectArray<btRaycastVehicle*>	m_vehicles;
 
 	int	m_profileTimings;
 
-	void	predictUnconstraintMotion(float timeStep);
+	virtual void	predictUnconstraintMotion(btScalar timeStep);
 	
-	void	integrateTransforms(float timeStep);
+	virtual void	integrateTransforms(btScalar timeStep);
 		
 	void	calculateSimulationIslands();
 
 	void	solveConstraints(btContactSolverInfo& solverInfo);
 	
-	void	updateActivationState(float timeStep);
+	void	updateActivationState(btScalar timeStep);
 
-	void	updateVehicles(float timeStep);
+	void	updateVehicles(btScalar timeStep);
 
-	void	startProfiling(float timeStep);
+	void	startProfiling(btScalar timeStep);
 
-	virtual void	internalSingleStepSimulation( float timeStep);
+	virtual void	internalSingleStepSimulation( btScalar timeStep);
 
 	void	synchronizeMotionStates();
 
-	void	saveKinematicState(float timeStep);
+	void	saveKinematicState(btScalar timeStep);
 
+	void	debugDrawSphere(btScalar radius, const btTransform& transform, const btVector3& color);
 
 public:
 
 
 	///this btDiscreteDynamicsWorld constructor gets created objects from the user, and will not delete those
-	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
+	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btDiscreteDynamicsWorld();
 
 	///if maxSubSteps > 0, it will interpolate motion between fixedTimeStep's
-	virtual int	stepSimulation( float timeStep,int maxSubSteps=1, float fixedTimeStep=1.f/60.f);
+	virtual int	stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.));
 
-	virtual void	updateAabbs();
 
-	void	addConstraint(btTypedConstraint* constraint);
+	void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false);
 
 	void	removeConstraint(btTypedConstraint* constraint);
 
@@ -117,25 +114,23 @@ public:
 		return this;
 	}
 
-	virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer)
-	{
-			m_debugDrawer = debugDrawer;
-	}
-
-	virtual btIDebugDraw*	getDebugDrawer()
-	{
-		return m_debugDrawer;
-	}
 
 	virtual void	setGravity(const btVector3& gravity);
+	virtual btVector3 getGravity () const;
 
 	virtual void	addRigidBody(btRigidBody* body);
+
+	virtual void	addRigidBody(btRigidBody* body, short group, short mask);
 
 	virtual void	removeRigidBody(btRigidBody* body);
 
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
 
+	virtual void	debugDrawWorld();
+
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
+
+	virtual btConstraintSolver* getConstraintSolver();
 	
 	virtual	int		getNumConstraints() const;
 
@@ -143,11 +138,21 @@ public:
 
 	virtual const btTypedConstraint* getConstraint(int index) const;
 
-	btContactSolverInfo& getSolverInfo()
+	
+	virtual btDynamicsWorldType	getWorldType() const
 	{
-		return m_solverInfo;
+		return BT_DISCRETE_DYNAMICS_WORLD;
 	}
+	
+	///the forces on each rigidbody is accumulating together with gravity. clear this after each timestep.
+	virtual void	clearForces();
 
+	///apply gravity, call this once per timestep
+	virtual void	applyGravity();
+
+	virtual void	setNumTasks(int numTasks)
+	{
+	}
 
 };
 

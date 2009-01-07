@@ -86,6 +86,14 @@ class BL_ActionActuator(SCA_IActuator):
 		@param mode: KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
 		@type mode: integer
 		"""
+	
+	def setContinue(cont):
+		"""
+		Set the actions continue option True or False. see getContinue.
+
+		@param cont: The continue option.
+		@type cont: bool
+		"""
 
 	def getType():
 		"""
@@ -93,6 +101,13 @@ class BL_ActionActuator(SCA_IActuator):
 	    
 		@rtype: integer
 		@return: KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER, KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+		"""
+
+	def getContinue():
+		"""
+		When True, the action will always play from where last left off, otherwise negative events to this actuator will reset it to its start frame.
+	    
+		@rtype: bool
 		"""
 	
 	def getAction():
@@ -149,5 +164,14 @@ class BL_ActionActuator(SCA_IActuator):
 		@param mode: True for armature/world space, False for bone space
 		@type mode: boolean
 		"""
-
-
+	def setFrameProperty(prop):
+		"""
+		@param prop: A string specifying the property of the object that will be updated with the action frame number.
+		@type prop: string
+		"""
+	def getFrameProperty():
+		"""
+		Returns the name of the property that is set to the current frame number.
+		
+		@rtype: string
+		"""

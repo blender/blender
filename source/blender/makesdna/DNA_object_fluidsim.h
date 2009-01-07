@@ -2,15 +2,12 @@
  *
  * $Id:  
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +25,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_OBJECT_FLUIDSIM_H
 #define DNA_OBJECT_FLUIDSIM_H
@@ -111,7 +108,7 @@ typedef struct FluidsimSettings {
 	float surfaceSmoothing;
 	/* number of surface subdivisions*/
 	int surfaceSubdivs;
-	int unusedDNADummy;
+	int flag; /* GUI flags */
 
 	/* particle display - size scaling, and alpha influence */
 	float particleInfSize, particleInfAlpha;
@@ -120,6 +117,18 @@ typedef struct FluidsimSettings {
 
 	/* save fluidsurface normals in mvert.no, and surface vertex velocities (if available) in mvert.co */
 	struct MVert *meshSurfNormals;
+	
+	/* Fluid control settings */
+	float cpsTimeStart;
+	float cpsTimeEnd;
+	float cpsQuality;
+	
+	float attractforceStrength;
+	float attractforceRadius;
+	float velocityforceStrength;
+	float velocityforceRadius;
+
+	int lastgoodframe;
 
 } FluidsimSettings;
 
@@ -131,8 +140,9 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_INFLOW      16
 #define OB_FLUIDSIM_OUTFLOW     32
 #define OB_FLUIDSIM_PARTICLE    64
+#define OB_FLUIDSIM_CONTROL 	128
 
-#define OB_TYPEFLAG_START       0
+#define OB_TYPEFLAG_START       7
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))
 #define OB_FSBND_NOSLIP         (1<<(OB_TYPEFLAG_START+2))
 #define OB_FSBND_PARTSLIP       (1<<(OB_TYPEFLAG_START+3))
@@ -147,6 +157,10 @@ typedef struct FluidsimSettings {
 #define OB_FSPART_DROP    (1<<2)
 #define OB_FSPART_NEWPART (1<<3)
 #define OB_FSPART_FLOAT   (1<<4)
+#define OB_FSPART_TRACER  (1<<5)
+
+// new fluid bit flags for fss->flags - dg
+#define OB_FLUIDSIM_REVERSE (1 << 0)
 
 #ifdef __cplusplus
 }

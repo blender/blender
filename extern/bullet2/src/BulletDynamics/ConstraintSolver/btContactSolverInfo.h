@@ -16,32 +16,60 @@ subject to the following restrictions:
 #ifndef CONTACT_SOLVER_INFO
 #define CONTACT_SOLVER_INFO
 
-
-struct btContactSolverInfo
+enum	btSolverMode
 {
+	SOLVER_RANDMIZE_ORDER = 1,
+	SOLVER_FRICTION_SEPARATE = 2,
+	SOLVER_USE_WARMSTARTING = 4,
+	SOLVER_CACHE_FRIENDLY = 8
+};
+
+struct btContactSolverInfoData
+{
+	
+
+	btScalar	m_tau;
+	btScalar	m_damping;
+	btScalar	m_friction;
+	btScalar	m_timeStep;
+	btScalar	m_restitution;
+	int		m_numIterations;
+	btScalar	m_maxErrorReduction;
+	btScalar	m_sor;
+	btScalar	m_erp;//used as Baumgarte factor
+	btScalar	m_erp2;//used in Split Impulse
+	int			m_splitImpulse;
+	btScalar	m_splitImpulsePenetrationThreshold;
+	btScalar	m_linearSlop;
+	btScalar	m_warmstartingFactor;
+
+	int			m_solverMode;
+
+
+};
+
+struct btContactSolverInfo : public btContactSolverInfoData
+{
+
+	
 
 	inline btContactSolverInfo()
 	{
-		m_tau = 0.6f;
-		m_damping = 1.0f;
-		m_friction = 0.3f;
-		m_restitution = 0.f;
-		m_maxErrorReduction = 20.f;
+		m_tau = btScalar(0.6);
+		m_damping = btScalar(1.0);
+		m_friction = btScalar(0.3);
+		m_restitution = btScalar(0.);
+		m_maxErrorReduction = btScalar(20.);
 		m_numIterations = 10;
-		m_erp = 0.4f;
-		m_sor = 1.3f;
+		m_erp = btScalar(0.2);
+		m_erp2 = btScalar(0.1);
+		m_sor = btScalar(1.3);
+		m_splitImpulse = false;
+		m_splitImpulsePenetrationThreshold = -0.02f;
+		m_linearSlop = btScalar(0.0);
+		m_warmstartingFactor=btScalar(0.85);
+		m_solverMode = SOLVER_RANDMIZE_ORDER | SOLVER_CACHE_FRIENDLY | SOLVER_USE_WARMSTARTING;
 	}
-
-	float	m_tau;
-	float	m_damping;
-	float	m_friction;
-	float	m_timeStep;
-	float	m_restitution;
-	int		m_numIterations;
-	float	m_maxErrorReduction;
-	float	m_sor;
-	float	m_erp;
-
 };
 
 #endif //CONTACT_SOLVER_INFO

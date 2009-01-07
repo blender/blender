@@ -1,7 +1,7 @@
 #ifndef DEFAULT_MOTION_STATE_H
 #define DEFAULT_MOTION_STATE_H
 
-///btDefaultMotionState provides a common implementation to synchronize world transforms with offsets
+///The btDefaultMotionState provides a common implementation to synchronize world transforms with offsets.
 struct	btDefaultMotionState : public btMotionState
 {
 	btTransform m_graphicsWorldTrans;
@@ -31,12 +31,7 @@ struct	btDefaultMotionState : public btMotionState
 			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
 	}
 
-	///Bullet gives a callback for objects that are about to be deactivated (put asleep)
-	/// You can intercept this callback for your own bookkeeping. 
-	///Also you can return false to disable deactivation for this object this frame.
-	virtual bool deactivationCallback(void*	userPointer) {
-		return true;
-	}
+	
 
 };
 

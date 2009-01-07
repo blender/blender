@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "PHY_IPhysicsEnvironment.h"
 #include <vector>
+#include <set>
 class CcdPhysicsController;
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
@@ -42,6 +43,7 @@ class btBroadphaseInterface;
 class btOverlappingPairCache;
 class btIDebugDraw;
 class PHY_IVehicle;
+class CcdOverlapFilterCallBack;
 
 /// CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
 /// Physics Environment takes care of stepping the simulation and is a container for physics entities.
@@ -49,12 +51,15 @@ class PHY_IVehicle;
 /// A derived class may be able to 'construct' entities by loading and/or converting
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
+	friend class CcdOverlapFilterCallBack;
 	btVector3 m_gravity;
-	
-	
 
 protected:
 	btIDebugDraw*	m_debugDrawer;
+	
+	class btDefaultCollisionConfiguration* m_collisionConfiguration;
+	class btBroadphaseInterface*			m_broadphase;
+
 	//solver iterations
 	int	m_numIterations;
 	
@@ -69,6 +74,7 @@ protected:
 
 	btContactSolverInfo	m_solverInfo;
 	
+	void	processFhSprings(double curTime,float timeStep);
 
 	public:
 		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
@@ -114,12 +120,14 @@ protected:
 		virtual void		setDebugMode(int debugMode);
 
 		virtual	void		setGravity(float x,float y,float z);
+		virtual	void		getGravity(PHY__Vector3& grav);
+
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ,
 			float axis1X=0,float axis1Y=0,float axis1Z=0,
-			float axis2X=0,float axis2Y=0,float axis2Z=0
+			float axis2X=0,float axis2Y=0,float axis2Z=0,int flag=0
 			);
 
 
@@ -131,7 +139,7 @@ protected:
 			const btVector3& linearMinLimits,
 			const btVector3& linearMaxLimits,
 			const btVector3& angularMinLimits,
-			const btVector3& angularMaxLimits
+			const btVector3& angularMaxLimits,int flags
 			);
 
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1);
@@ -156,8 +164,7 @@ protected:
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
-		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
-										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
+		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -166,7 +173,7 @@ protected:
 		virtual void addTouchCallback(int response_class, PHY_ResponseCallback callback, void *user);
 		virtual void requestCollisionCallback(PHY_IPhysicsController* ctrl);
 		virtual void removeCollisionCallback(PHY_IPhysicsController* ctrl);
-
+		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 	
@@ -183,10 +190,15 @@ protected:
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
+		void	updateCcdPhysicsController(CcdPhysicsController* ctrl, btScalar newMass, int newCollisionFlags, short int newCollisionGroup, short int newCollisionMask);
+
+		void	disableCcdPhysicsController(CcdPhysicsController* ctrl);
+
+		void	enableCcdPhysicsController(CcdPhysicsController* ctrl);
+
 		btBroadphaseInterface*	getBroadphase();
 
-		
-		
+		btDispatcher*	getDispatcher();
 		
 
 		bool	IsSatCollisionDetectionEnabled() const
@@ -200,18 +212,15 @@ protected:
 		}
 
 	
-		int	GetNumControllers();
-
-		CcdPhysicsController* GetPhysicsController( int index);
-
-		
-
 		const btPersistentManifold*	GetManifold(int index) const;
 
 	
 		void	SyncMotionStates(float timeStep);
 
-		
+		class	btSoftRigidDynamicsWorld*	getDynamicsWorld()
+		{
+			return m_dynamicsWorld;
+		}
 	
 		class btConstraintSolver*	GetConstraintSolver();
 
@@ -220,18 +229,30 @@ protected:
 		
 
 		
-		std::vector<CcdPhysicsController*> m_controllers;
+		std::set<CcdPhysicsController*> m_controllers;
 		
-		std::vector<CcdPhysicsController*> m_triggerControllers;
+		std::set<CcdPhysicsController*> m_triggerControllers;
 
 		PHY_ResponseCallback	m_triggerCallbacks[PHY_NUM_RESPONSE];
 		void*			m_triggerCallbacksUserPtrs[PHY_NUM_RESPONSE];
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		class	btDynamicsWorld*	m_dynamicsWorld;
+		//use explicit btSoftRigidDynamicsWorld/btDiscreteDynamicsWorld* so that we have access to 
+		//btDiscreteDynamicsWorld::addRigidBody(body,filter,group) 
+		//so that we can set the body collision filter/group at the time of creation 
+		//and not afterwards (breaks the collision system for radar/near sensor)
+		//Ideally we would like to have access to this function from the btDynamicsWorld interface
+		//class	btDynamicsWorld*	m_dynamicsWorld;
+		class	btSoftRigidDynamicsWorld*	m_dynamicsWorld;
 		
 		class btConstraintSolver*	m_solver;
+
+		class btOverlappingPairCache* m_ownPairCache;
+
+		class CcdOverlapFilterCallBack* m_filterCallback;
+
+		class btDispatcher* m_ownDispatcher;
 
 		bool	m_scalingPropagated;
 

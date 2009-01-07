@@ -10,7 +10,7 @@ def getObjectArmature(ob):
 	
 	arm = ob.parent
 	if arm and arm.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
-		arm
+		return arm
 	
 	for m in ob.modifiers:
 		if m.type== Blender.Modifier.Types.ARMATURE:

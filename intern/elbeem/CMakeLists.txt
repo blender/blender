@@ -1,13 +1,10 @@
 # $Id$
-# ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+# ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. The Blender
-# Foundation also sells licenses for use in proprietary software under
-# the Blender License.  See http://www.blender.org/BL/ for information
-# about this.
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,9 +22,9 @@
 #
 # Contributor(s): Jacques Beaurain.
 #
-# ***** END GPL/BL DUAL LICENSE BLOCK *****
+# ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} ${SDL_INC})
+SET(INC ${PNG_INC} ${ZLIB_INC} ${SDL_INC} extern)
 
 FILE(GLOB SRC intern/*.cpp)
 
@@ -35,6 +32,10 @@ ADD_DEFINITIONS(-DNOGUI -DELBEEM_BLENDER=1)
 IF(WINDOWS)
     ADD_DEFINITIONS(-DUSE_MSVC6FIXES)
 ENDIF(WINDOWS)
+
+IF(WITH_OPENMP)
+    ADD_DEFINITIONS(-DPARALLEL=1)
+ENDIF(WITH_OPENMP)
 
 BLENDERLIB_NOLIST(bf_elbeem "${SRC}" "${INC}")
 #, libtype='blender', priority=0 )

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /* A C-program for MT19937: Real number version                */
@@ -79,11 +76,11 @@
 #define TEMPERING_SHIFT_T(y)  (y << 15)
 #define TEMPERING_SHIFT_L(y)  (y >> 18)
 
-static unsigned long mt[N]; /* the array for the state vector  */
+static unsigned int mt[N]; /* the array for the state vector  */
 static int mti = N+1; /* mti==N+1 means mt[N] is not initialized */
 
 /* initializing the array with a NONZERO seed */
-void MT_srand(unsigned long seed)
+void MT_srand(unsigned int seed)
 {
     /* setting initial seeds to mt[N] using         */
     /* the generator Line 25 of Table 1 in          */
@@ -94,12 +91,12 @@ void MT_srand(unsigned long seed)
         mt[mti] = (69069 * mt[mti-1]) & 0xffffffff;
 }
 
-unsigned long MT_rand()
+unsigned int MT_rand()
 {
-    static unsigned long mag01[2] = { 0x0, MATRIX_A };
+    static unsigned int mag01[2] = { 0x0, MATRIX_A };
     /* mag01[x] = x * MATRIX_A  for x=0,1 */
 
-    unsigned long y;
+    unsigned int y;
 
     if (mti >= N) { /* generate N words at one time */
         int kk;

@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SENSOR_TYPES_H
 #define DNA_SENSOR_TYPES_H
@@ -84,6 +81,19 @@ typedef struct bPropertySensor {
 	char value[32];
     char maxvalue[32];
 } bPropertySensor;
+
+typedef struct bActuatorSensor {
+    int type;
+    int pad;
+	char name[32];
+} bActuatorSensor;
+
+typedef struct bDelaySensor {
+    short delay;
+	short duration;
+	short flag;
+	short pad;
+} bDelaySensor;
 
 typedef struct bCollisionSensor {
 	char name[32];          /* property name */
@@ -147,18 +157,18 @@ typedef struct bSensor {
 
 	/* just add here, to avoid align errors... */
 	short invert; /* Whether or not to invert the output. */
-	short freq2;  /* The negative pulsing frequency? Not used anymore... */
+	short level;  /* Whether the sensor is level base (edge by default) */
 	int pad;
 } bSensor;
 
 typedef struct bJoystickSensor {
 	char name[32];
-	short type;
-	short pad;
+	char type;
+	char joyindex;
+	short flag;
 	int axis;
 	int axisf;
 	int button;
-	int buttonf;
 	int hat;
 	int hatf;
 	int precision;
@@ -200,11 +210,15 @@ typedef struct bJoystickSensor {
 #define SENS_RAY        9
 #define SENS_MESSAGE   10
 #define SENS_JOYSTICK  11
+#define SENS_ACTUATOR  12
+#define SENS_DELAY     13
 /* sensor->flag */
 #define SENS_SHOW		1
 #define SENS_DEL		2
 #define SENS_NEW		4
 #define SENS_NOT		8
+#define SENS_VISIBLE	16
+#define SENS_PIN		32
 
 /* sensor->pulse */
 #define SENS_PULSE_CONT 	0
@@ -224,6 +238,9 @@ typedef struct bJoystickSensor {
  * */
 /*  #define SENS_COLLISION_PROPERTY 0  */
 #define SENS_COLLISION_MATERIAL 1
+/* ray specific mode */
+/* X-Ray means that the ray will traverse objects that don't have the property/material */
+#define SENS_RAY_XRAY			2
 
 /* Some stuff for the mouse sensor Type: */
 #define BL_SENS_MOUSE_LEFT_BUTTON    1
@@ -234,6 +251,8 @@ typedef struct bJoystickSensor {
 #define BL_SENS_MOUSE_MOVEMENT       8
 #define BL_SENS_MOUSE_MOUSEOVER      16
 #define BL_SENS_MOUSE_MOUSEOVER_ANY	 32
+
+#define SENS_JOY_ANY_EVENT		1
 
 #define SENS_JOY_BUTTON		0
 #define SENS_JOY_BUTTON_PRESSED	0
@@ -249,5 +268,9 @@ typedef struct bJoystickSensor {
 #define SENS_JOY_HAT			2
 #define SENS_JOY_HAT_DIR		0
 
+
+#define SENS_DELAY_REPEAT		1
+// should match JOYINDEX_MAX in SCA_JoystickDefines.h */
+#define SENS_JOY_MAXINDEX		8
 #endif
 

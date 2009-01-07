@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  * Original Author: Laurence
  * Contributor(s): Brecht
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "../extern/IK_solver.h"
@@ -41,7 +38,7 @@ using namespace std;
 
 class IK_QSolver {
 public:
-	IK_QSolver() {};
+	IK_QSolver() : root(NULL) {};
 
 	IK_QJacobianSolver solver;
 	IK_QSegment *root;
@@ -197,12 +194,11 @@ void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 	if (stiffness < 0.0)
 		return;
 	
-	if (stiffness > 0.99)
-		stiffness = 0.99;
+	if (stiffness > 0.999)
+		stiffness = 0.999;
 
 	IK_QSegment *qseg = (IK_QSegment*)seg;
 	MT_Scalar weight = 1.0-stiffness;
-
 
 	if (axis >= IK_TRANS_X) {
 		if(!qseg->Translational())
@@ -318,6 +314,31 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	qsolver->tasks.push_back(orient);
 }
 
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle)
+{
+	if (solver == NULL || tip == NULL)
+		return;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSegment *qtip = (IK_QSegment*)tip;
+
+	MT_Vector3 qgoal(goal);
+	MT_Vector3 qpolegoal(polegoal);
+
+	qsolver->solver.SetPoleVectorConstraint(
+		qtip, qgoal, qpolegoal, poleangle, getangle);
+}
+
+float IK_SolverGetPoleAngle(IK_Solver *solver)
+{
+	if (solver == NULL)
+		return 0.0f;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+
+	return qsolver->solver.GetPoleAngle();
+}
+
 void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
 {
 	if (solver == NULL || root == NULL)
@@ -345,6 +366,9 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 	IK_QJacobianSolver& jacobian = qsolver->solver;
 	std::list<IK_QTask*>& tasks = qsolver->tasks;
 	MT_Scalar tol = tolerance;
+
+	if(!jacobian.Setup(root, tasks))
+		return 0;
 
 	bool result = jacobian.Solve(root, tasks, tol, max_iterations);
 

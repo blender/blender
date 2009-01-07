@@ -628,7 +628,7 @@ def main():
 		try: me.faces.delete(1, [ f for f in me.faces if f.sel ])
 		except: pass
 	
-	me.faces.extend(faces)
+	me.faces.extend(faces, smooth = True)
 	
 	print '\nSkin done in %.4f sec.' % (Blender.sys.time()-time1)
 	

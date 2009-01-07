@@ -1,13 +1,13 @@
 #!BPY
 """
 Name: 'Clean Meshes'
-Blender: 242
+Blender: 245
 Group: 'Mesh'
 Tooltip: 'Clean unused data from all selected mesh objects.'
 """
 
-__author__ = ["Campbell Barton"]
-__url__ = ("blender", "elysiun", "http://members.iinet.net.au/~cpbarton/ideasman/")
+__author__ = "Campbell Barton aka ideasman42"
+__url__ = ["www.blender.org", "blenderartists.org", "www.python.org"]
 __version__ = "0.1"
 __bpydoc__ = """\
 Clean Meshes
@@ -121,25 +121,29 @@ def rem_unused_materials(me):
 	material_users= dict( [(i,0) for i in xrange(len_materials)] )
 	
 	for f in me.faces:
+		f_mat = f.mat
 		# Make sure the face index isnt too big. this happens sometimes.
-		if f.mat >= len_materials:
-			f.mat=0
-		material_users[f.mat] += 1
+		if f_mat >= len_materials:
+			f_mat = f.mat = 0
+		material_users[f_mat] += 1
 	
-	mat_idx_subtract= 0
-	reindex_mapping= dict( [(i,0) for i in xrange(len_materials)] )
-	i= len_materials
-	while i:
-		i-=1
-		
+	# mat_idx_subtract= 0
+	# reindex_mapping= dict( [(i,0) for i in xrange(len_materials)] )
+	
+	reindex_mapping_ls = range(len_materials)
+	for i in range(len_materials-1, -1, -1):
 		if material_users[i] == 0:
-			mat_idx_subtract+=1
-			reindex_mapping[i]= mat_idx_subtract
-			materials.pop(i)
+			del reindex_mapping_ls[i]
+			del materials[i]
 			rem_materials+=1
 	
+	reindex_mapping= {}
+	
+	for i, mat in enumerate(reindex_mapping_ls):
+		reindex_mapping[mat] = i		
+	
 	for f in me.faces:
-		f.mat= f.mat - reindex_mapping[f.mat]
+		f.mat= reindex_mapping[f.mat]
 	
 	me.materials= materials
 	return rem_materials
@@ -196,7 +200,7 @@ def isnan(f):
 	
 	return False
 
-def fix_nan_verts(me):
+def fix_nan_verts__internal(me):
 	rem_nan = 0
 	for v in me.verts:
 		co = v.co
@@ -206,9 +210,46 @@ def fix_nan_verts(me):
 				rem_nan += 1
 	return rem_nan
 
+def fix_nan_verts(me):
+	rem_nan = 0
+	key = me.key
+	if key:
+		# Find the object, and get a mesh thats thinked to the oblink.
+		# this is a bit crap but needed to set the active key.
+		me_oblink = None
+		for ob in bpy.data.objects:
+			me_oblink = ob.getData(mesh=1)
+			if me_oblink == me:
+				me = me_oblink
+				break
+		if not me_oblink:
+			ob = None
+	
+	if key and ob:
+		blocks = key.blocks
+		# print blocks
+		orig_pin = ob.pinShape
+		orig_shape = ob.activeShape
+		orig_relative = key.relative
+		ob.pinShape = True
+		for i, block in enumerate(blocks):
+			ob.activeShape = i+1
+			ob.makeDisplayList()
+			rem_nan += fix_nan_verts__internal(me)
+			me.update(block.name) # get the new verts
+		ob.pinShape	= orig_pin
+		ob.activeShape = orig_shape
+		key.relative = orig_relative
+		
+	else: # No keys, simple operation
+		rem_nan = fix_nan_verts__internal(me)
+	
+	return rem_nan
+
 def fix_nan_uvs(me):
 	rem_nan = 0
 	if me.faceUV:
+		orig_uvlayer = me.activeUVLayer
 		for uvlayer in me.getUVLayerNames():
 			me.activeUVLayer = uvlayer
 			for f in me.faces:
@@ -217,6 +258,7 @@ def fix_nan_uvs(me):
 						if isnan(uv[i]):
 							uv[i] = 0.0
 							rem_nan += 1
+		me.activeUVLayer = orig_uvlayer
 	return rem_nan
 
 

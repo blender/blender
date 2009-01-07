@@ -7,15 +7,12 @@
 
    $Id$
   
-  ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+  ***** BEGIN GPL LICENSE BLOCK *****
  
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License
   as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version. The Blender
-  Foundation also sells licenses for use in proprietary software under
-  the Blender License.  See http://www.blender.org/BL/ for information
-  about this.
+  of the License, or (at your option) any later version.
  
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,7 +30,7 @@
  
   Contributor(s): none yet.
  
-  ***** END GPL/BL DUAL LICENSE BLOCK *****
+  ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef RADIO_H
@@ -44,6 +41,8 @@
 #include "radio_types.h"
 
 extern RadGlobal RG;
+struct View3D;
+struct Scene;
 
 /* radfactors.c */
 extern float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area);
@@ -68,18 +67,18 @@ extern void closehemiwindows(void);
 void rad_init_energy(void);
 
 /* radio.c */
-void freeAllRad(void);
+void freeAllRad(struct Scene *scene);
 int rad_phase(void);
 void rad_status_str(char *str);
 void rad_printstatus(void);
-void rad_setlimits(void);
-void set_radglobal(void);
-void add_radio(void);
-void delete_radio(void);
-int rad_go(void);
-void rad_subdivshootpatch(void);
-void rad_subdivshootelem(void);
-void rad_limit_subdivide(void);     
+void rad_setlimits(struct Scene *scene);
+void set_radglobal(struct Scene *scene);
+void add_radio(struct Scene *scene);
+void delete_radio(struct Scene *scene);
+int rad_go(struct Scene *scene);
+void rad_subdivshootpatch(struct Scene *scene);
+void rad_subdivshootelem(struct Scene *scene);
+void rad_limit_subdivide(struct Scene *scene);     
 
 /* radnode.c */
 extern void setnodelimit(float limit);
@@ -114,7 +113,7 @@ extern void splitconnected(void);
 extern int vergedge(const void *v1,const void *v2);
 extern void addedge(float *v1, float *v2, EdSort *es);
 extern void setedgepointers(void);
-extern void rad_collect_meshes(void);
+extern void rad_collect_meshes(struct Scene *scene, struct View3D *v3d);
 extern void countelem(RNode *rn);
 extern void countglobaldata(void);
 extern void addelem(RNode ***el, RNode *rn, RPatch *rp);
@@ -143,8 +142,8 @@ void filterFaces(void);
 void calcfiltrad(RNode *rn, float *cd);
 void filterNodes(void);
 void removeEqualNodes(short limit);
-void rad_addmesh(void);
-void rad_replacemesh(void);         
+void rad_addmesh(struct Scene *scene);
+void rad_replacemesh(struct Scene *scene);         
 
 /* raddisplay.c */
 extern char calculatecolor(float col);

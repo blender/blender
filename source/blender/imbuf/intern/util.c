@@ -1,14 +1,11 @@
 /**
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,11 +23,18 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * util.c
  *
  * $Id$
  */
+
+#ifdef _WIN32
+#include <io.h>
+#define open _open
+#define read _read
+#define close _close
+#endif
 
 #include "BLI_blenlib.h"
 
@@ -44,6 +48,11 @@
 
 #include "IMB_targa.h"
 #include "IMB_png.h"
+
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
+#endif
+
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
@@ -62,6 +71,8 @@
 #ifdef WITH_FFMPEG
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
+//#include <ffmpeg/avdevice.h>
+#include <ffmpeg/log.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -113,6 +124,9 @@ static int IMB_ispic_name(char *name)
 
 				}
 				if (imb_is_a_png(buf)) return(PNG);
+#ifdef WITH_DDS
+				if (imb_is_a_dds((uchar *)buf)) return(DDS);
+#endif
 				if (imb_is_a_targa(buf)) return(TGA);
 #ifdef WITH_OPENEXR
 				if (imb_is_a_openexr((uchar *)buf)) return(OPENEXR);
@@ -162,6 +176,9 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
+#ifdef WITH_DDS
+				||	BLI_testextensie(filename, ".dds")
+#endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".gif")
@@ -170,7 +187,10 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
 				||	BLI_testextensie(filename, ".qtif")
-				||  BLI_testextensie(filename, ".cin")
+				||	BLI_testextensie(filename, ".cin")
+#ifdef WITH_BF_OPENEXR
+				||	BLI_testextensie(filename, ".exr")
+#endif
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -184,7 +204,13 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
-				||  BLI_testextensie(filename, ".cin")
+				||	BLI_testextensie(filename, ".cin")
+#ifdef WITH_DDS
+				||	BLI_testextensie(filename, ".dds")
+#endif
+#ifdef WITH_BF_OPENEXR
+				||	BLI_testextensie(filename, ".exr")
+#endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".sgi")) {
@@ -212,12 +238,32 @@ static int isqtime (char *name) {
 #endif
 
 #ifdef WITH_FFMPEG
+
+void silence_log_ffmpeg(int quiet)
+{
+	if (quiet)
+	{
+		av_log_set_level(AV_LOG_QUIET);
+	}
+	else
+	{
+		av_log_set_level(AV_LOG_INFO);
+	}
+}
+
+extern void do_init_ffmpeg();
 void do_init_ffmpeg()
 {
 	static int ffmpeg_init = 0;
 	if (!ffmpeg_init) {
 		ffmpeg_init = 1;
 		av_register_all();
+		//avdevice_register_all();
+		
+		if ((G.f & G_DEBUG) == 0)
+		{
+			silence_log_ffmpeg(1);
+		}
 	}
 }
 
@@ -236,51 +282,63 @@ static AVCodecContext* get_codec_from_stream(AVStream* stream)
 
 static int isffmpeg (char *filename) {
 	AVFormatContext *pFormatCtx;
-	int            i, videoStream;
+	unsigned int i;
+	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
 
 	do_init_ffmpeg();
 
+	if( BLI_testextensie(filename, ".swf") ||
+		BLI_testextensie(filename, ".jpg") ||
+		BLI_testextensie(filename, ".png") ||
+		BLI_testextensie(filename, ".dds") ||
+		BLI_testextensie(filename, ".tga") ||
+		BLI_testextensie(filename, ".bmp") ||
+		BLI_testextensie(filename, ".exr") ||
+		BLI_testextensie(filename, ".cin") ||
+		BLI_testextensie(filename, ".wav")) return 0;
+
 	if(av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
-		fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
 		return 0;
 	}
 
 	if(av_find_stream_info(pFormatCtx)<0) {
-		fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
+		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
-	dump_format(pFormatCtx, 0, filename, 0);
+	if(UTIL_DEBUG) dump_format(pFormatCtx, 0, filename, 0);
 
 
         /* Find the first video stream */
 	videoStream=-1;
 	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(get_codec_from_stream(pFormatCtx->streams[i])
-		   ->codec_type==CODEC_TYPE_VIDEO)
+		if(pFormatCtx->streams[i] &&
+		   get_codec_from_stream(pFormatCtx->streams[i]) && 
+		  (get_codec_from_stream(pFormatCtx->streams[i])->codec_type==CODEC_TYPE_VIDEO))
 		{
 			videoStream=i;
 			break;
 		}
 
-	if(videoStream==-1)
+	if(videoStream==-1) {
+		av_close_input_file(pFormatCtx);
 		return 0;
+	}
 
 	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
         /* Find the decoder for the video stream */
 	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
 	if(pCodec==NULL) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
 	if(avcodec_open(pCodecCtx, pCodec)<0) {
-		avcodec_close(pCodecCtx);
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
@@ -292,25 +350,55 @@ static int isffmpeg (char *filename) {
 }
 #endif
 
+#ifdef WITH_REDCODE
+static int isredcode(char * filename)
+{
+	struct redcode_handle * h = redcode_open(filename);
+	if (!h) {
+		return 0;
+	}
+	redcode_close(h);
+	return 1;
+}
+
+#endif
+
 int imb_get_anim_type(char * name) {
 	int type;
 	struct stat st;
 
 	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 
-#ifdef WITH_FFMPEG
+#ifndef _WIN32
+#	ifdef WITH_FFMPEG
 	/* stat test below fails on large files > 4GB */
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
-#endif
-
+#	endif
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
 	if (isavi(name)) return (ANIM_AVI);
 
 	if (ismovie(name)) return (ANIM_MOVIE);
-#ifdef WITH_QUICKTIME
+#	ifdef WITH_QUICKTIME
 	if (isqtime(name)) return (ANIM_QTIME);
+#	endif
+#else
+	if (ib_stat(name,&st) == -1) return(0);
+	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+
+	if (isavi(name)) return (ANIM_AVI);
+
+	if (ismovie(name)) return (ANIM_MOVIE);
+#	ifdef WITH_QUICKTIME
+	if (isqtime(name)) return (ANIM_QTIME);
+#	endif
+#	ifdef WITH_FFMPEG
+	if (isffmpeg(name)) return (ANIM_FFMPEG);
+#	endif
+#endif
+#ifdef WITH_REDCODE
+	if (isredcode(name)) return (ANIM_REDCODE);
 #endif
 	type = IMB_ispic(name);
 	if (type == ANIM) return (ANIM_ANIM5);
@@ -326,6 +414,7 @@ int IMB_isanim(char *filename) {
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".flc")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mov")
 				||	BLI_testextensie(filename, ".movie")
 				||	BLI_testextensie(filename, ".mv")) {
@@ -336,6 +425,7 @@ int IMB_isanim(char *filename) {
 		} else { // no quicktime
 			if(		BLI_testextensie(filename, ".avi")
 				||	BLI_testextensie(filename, ".dv")
+				||	BLI_testextensie(filename, ".r3d")
 				||	BLI_testextensie(filename, ".mv")) {
 				type = imb_get_anim_type(filename);
 			}

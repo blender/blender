@@ -17,7 +17,7 @@ subject to the following restrictions:
 #ifndef btPoint3_H
 #define btPoint3_H
 
-#include "LinearMath/btVector3.h"
+#include "btVector3.h"
 
 typedef btVector3 btPoint3;
 

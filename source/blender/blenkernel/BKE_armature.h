@@ -3,15 +3,12 @@
  *	
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef BKE_ARMATURE_H
 #define BKE_ARMATURE_H
@@ -40,6 +37,7 @@ struct bArmature;
 struct bPose;
 struct bPoseChannel;
 struct bConstraint;
+struct Scene;
 struct Object;
 struct MDeformVert;
 struct Mesh;
@@ -78,9 +76,10 @@ void unlink_armature(struct bArmature *arm);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
-void bone_flip_name (char *name, int strip_number);
 
-struct bArmature* get_armature (struct Object* ob);
+void bone_flip_name (char *name, int strip_number);
+void bone_autoside_name (char *name, int strip_number, short axis, float head, float tail);
+
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 
 float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist);
@@ -88,7 +87,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 void where_is_armature (struct bArmature *arm);
 void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);
 void armature_rebuild_pose(struct Object *ob, struct bArmature *arm);
-void where_is_pose (struct Object *ob);
+void where_is_pose (struct Scene *scene, struct Object *ob);
 
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
@@ -112,7 +111,7 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
-Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan);
+Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 #ifdef __cplusplus
 }

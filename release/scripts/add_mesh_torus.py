@@ -51,9 +51,9 @@ def main():
 
 	if not Draw.PupBlock('Add Torus', [\
 	('Major Radius:', PREF_MAJOR_RAD,  0.01, 100, 'Radius for the main ring of the torus'),\
-	('Minor Radius:', PREF_MINOR_RAD,  0.01, 100, 'Radius for the minor ring of the torus setting the thickness of the ring.'),\
-	('Major Segments:', PREF_MAJOR_SEG,  3, 256, 'Radius for the main ring of the torus'),\
-	('Minor Segments:', PREF_MINOR_SEG,  3, 256, 'Radius for the minor ring of the torus setting the thickness of the ring.'),\
+	('Minor Radius:', PREF_MINOR_RAD,  0.01, 100, 'Radius for the minor ring of the torus setting the thickness of the ring'),\
+	('Major Segments:', PREF_MAJOR_SEG,  3, 256, 'Number of segments for the main ring of the torus'),\
+	('Minor Segments:', PREF_MINOR_SEG,  3, 256, 'Number of segments for the minor ring of the torus'),\
 	]):
 		return
 	
@@ -62,3 +62,4 @@ def main():
 	BPyAddMesh.add_mesh_simple('Torus', verts, [], faces)
 
 main()
+

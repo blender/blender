@@ -1,15 +1,12 @@
 /**
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,27 +24,16 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_MESHDATA_TYPES_H
 #define DNA_MESHDATA_TYPES_H
 
 #include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 
 struct Bone;
 struct Image;
-
-typedef struct MPoly {
-	unsigned int firstloop, totloop;
-	char flag, mat_nr, pad1, pad2;
-	float no[3]; int pad3;
-} MPoly;
-
-typedef struct MLoop {
-	unsigned int edge, v, poly;
-	unsigned int flag;
-} MLoop;
-
 
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
@@ -57,7 +43,7 @@ typedef struct MFace {
 
 typedef struct MEdge {
 	unsigned int v1, v2;
-	char crease, pad;
+	char crease, bweight;
 	short flag;
 } MEdge;
 
@@ -75,12 +61,30 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr;
+	char flag, mat_nr, bweight, pad[3];
 } MVert;
 
+/* at the moment alpha is abused for vertex painting
+ * and not used for transperency, note that red and blue are swapped */
 typedef struct MCol {
-	char a, r, g, b;
+	char a, r, g, b;	
 } MCol;
+
+/*bmesh custom data stuff*/
+typedef struct MTexPoly{
+	struct Image *tpage;
+	char flag, transp;
+	short mode,tile,unwrap;
+}MTexPoly;
+
+typedef struct MLoopUV{
+	float uv[2];
+}MLoopUV;
+
+typedef struct MLoopCol{
+	char a, r, g, b;
+	int pad;  /*waste!*/
+}MLoopCol;
 
 typedef struct MSticky {
 	float co[2];
@@ -98,7 +102,29 @@ typedef struct MTFace {
 	short mode, tile, unwrap;
 } MTFace;
 
-/* Multiresolution modeling */
+/*Custom Data Properties*/
+typedef struct MFloatProperty{
+	float	f;
+} MFloatProperty;
+typedef struct MIntProperty{
+	int		i;
+} MIntProperty;
+typedef struct MStringProperty{
+	char	s[256];
+} MStringProperty;
+
+typedef struct OrigSpaceFace {
+	float uv[4][2];
+} OrigSpaceFace;
+
+typedef struct MDisps {
+	/* Strange bug in SDNA: if disps pointer comes first, it fails to see totdisp */
+	int totdisp;
+	char pad[4];
+	float (*disps)[3];
+} MDisps;
+
+/** Multires structs kept for compatibility with old files **/
 typedef struct MultiresCol {
 	float a, r, g, b;
 } MultiresCol;
@@ -109,7 +135,6 @@ typedef struct MultiresColFace {
 typedef struct MultiresFace {
 	unsigned int v[4];
        	unsigned int mid;
-	unsigned int childrenstart;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {
@@ -121,21 +146,22 @@ struct MultiresMapNode;
 typedef struct MultiresLevel {
 	struct MultiresLevel *next, *prev;
 
-	MVert *verts;
 	MultiresFace *faces;
 	MultiresColFace *colfaces;
 	MultiresEdge *edges;
-	struct ListBase *vert_edge_map;
-	struct ListBase *vert_face_map;
-	struct MultiresMapNode *map_mem;
 
 	unsigned int totvert, totface, totedge, pad;
+
+	/* Kept for compatibility with even older files */
+	MVert *verts;
 } MultiresLevel;
 
 typedef struct Multires {
 	ListBase levels;
+	MVert *verts;
+
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
-	unsigned char use_col, pad;
+	unsigned char use_col, flag;
 
 	/* Special level 1 data that cannot be modified from other levels */
 	CustomData vdata;
@@ -144,12 +170,14 @@ typedef struct Multires {
 	char *edge_creases;
 } Multires;
 
+/** End Multires **/
+
 typedef struct PartialVisibility {
 	unsigned int *vert_map; /* vert_map[Old Index]= New Index */
 	int *edge_map; /* edge_map[Old Index]= New Index, -1= hidden */
 	MFace *old_faces;
 	MEdge *old_edges;
-	unsigned int totface, totedge, totvert, pad, totloop, totpoly;
+	unsigned int totface, totedge, totvert, pad;
 } PartialVisibility;
 
 /* mvert->flag (1=SELECT) */
@@ -186,10 +214,8 @@ typedef struct PartialVisibility {
 #define ME_V4V1			8
 
 /* flag (mface) */
-#define ME_SMOOTH			1 /*dead, reserved for SELECT now! muahahaha!*/
-#define ME_FACE_SEL			2 /*dead!*/
-
-#define ME_NSMOOTH			2
+#define ME_SMOOTH			1
+#define ME_FACE_SEL			2
 						/* flag ME_HIDE==16 is used here too */ 
 /* mselect->type */
 #define ME_VSEl	0
@@ -198,7 +224,7 @@ typedef struct PartialVisibility {
 
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
-#define TF_ACTIVE	2
+#define TF_ACTIVE	2 /* deprecated! */
 #define TF_SEL1		4
 #define TF_SEL2		8
 #define TF_SEL3		16
@@ -207,7 +233,7 @@ typedef struct PartialVisibility {
 
 /* mtface->mode */
 #define TF_DYNAMIC		1
-#define TF_DEPRECATED	2
+#define TF_ALPHASORT	2
 #define TF_TEX			4
 #define TF_SHAREDVERT	8
 #define TF_LIGHT		16
@@ -223,11 +249,15 @@ typedef struct PartialVisibility {
 #define TF_SHADOW		8192
 #define TF_BMFONT		16384
 
-/* mtface->transp */
+/* mtface->transp, values 1-4 are used as flags in the GL, WARNING, TF_SUB cant work with this */
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+#define TF_CLIP		4 /* clipmap alpha/binary alpha all or nothing! */
+
+/* sub is not available in the user interface anymore */
 #define TF_SUB		3
+
 
 /* mtface->unwrap */
 #define TF_DEPRECATED1	1

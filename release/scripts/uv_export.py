@@ -9,7 +9,7 @@ Tooltip: 'Export the UV face layout of the selected object to a .TGA or .SVG fil
 
 __author__ = "Martin 'theeth' Poirier"
 __url__ = ("http://www.blender.org", "http://blenderartists.org/")
-__version__ = "2.3"
+__version__ = "2.5"
 
 __bpydoc__ = """\
 This script exports the UV face layout of the selected mesh object to
@@ -25,11 +25,7 @@ selected, define size and wire size parameters and push "Export" button.
 There are more options to configure, like setting export path, if image should
 use object's name and more.
 
-Notes:<br>
-	 Jean-Michel Soler (jms) wrote TGA functions used by this script.<br>
-	 Zaz added the default path code and Selected Face option.<br>
-	 Macouno fixed a rounding error in the step calculations<br>
-	 Jarod added the SVG file export<br>
+Notes:<br>See change logs in scripts for a list of contributors.
 """
 
 
@@ -97,10 +93,21 @@ Notes:<br>
 #	Version 2.3
 # Added check for excentric UVs (only affects TGA)
 # --------------------------
+#	Version 2.4
+# Port from NMesh to Mesh by Daniel Salazar (zanqdo)
+# --------------------------
+#	Version 2.5
+# Fixed some old off by one rasterizing errors (didn't render points at 1.0 in the UV scale properly).
+# Fixed wire drawing for non 1 wire size (didn't wrap or stretch properly 
+# and would often raise exceptions)
+# --------------------------
+
 
 FullPython = False
 
 import Blender
+import bpy
+import BPyMessages
 
 try:
 	import os
@@ -175,18 +182,18 @@ def ExportCallback(f):
 	obj = Blender.Scene.GetCurrent().objects.active
 	
 	time1= Blender.sys.time()
+
+	if not obj or obj.type != "Mesh":
+		BPyMessages.Error_NoMeshActive()
+		return
 	
-	if not obj:
-		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
-		return
-
-	if obj.type != "Mesh":
-		Blender.Draw.PupMenu("ERROR%t|Not a Mesh!")
-		return
-
-	mesh = obj.getData()
-	if not mesh.hasFaceUV():
-		Blender.Draw.PupMenu("ERROR%t|No UV coordinates!")
+	is_editmode = Blender.Window.EditMode()
+	if is_editmode: Blender.Window.EditMode(0)
+	
+	mesh = obj.getData(mesh=1)
+	if not mesh.faceUV:
+		if is_editmode: Blender.Window.EditMode(1)
+		BPyMessages.Error_NoMeshUvActive()
 		return
 
 	# just for information...
@@ -204,6 +211,8 @@ def ExportCallback(f):
 	
 	UVFaces = ExtractUVFaces(mesh, bAllFaces.val)
 	
+	if is_editmode: Blender.Window.EditMode(1)
+		
 	if not bSVG.val:
 		print "TGA export is running..."
 		UV_Export_TGA(UVFaces, bSize.val, bWSize.val, bWrap.val, name)
@@ -259,18 +268,9 @@ def GetDefaultFilename():
 	return filename
 
 def ExtractUVFaces(mesh, allface):
-	FaceList = []
 	
-	if allface:
-		faces = mesh.faces
-	else:
-		faces = mesh.getSelectedFaces()
-
-	for f in faces:
-		FaceList.append(f.uv)
-	
-	return FaceList
-
+	if allface: return [f.uv for f in mesh.faces]
+	else:  return [f.uv for f in mesh.faces if f.sel]
 
 def Buffer(height=16, width=16, profondeur=1,rvb=255 ):  
 	"""  
@@ -333,7 +333,7 @@ def UV_Export_TGA(vList, size, wsize, wrap, file):
 	
 	step = 0
 
-	img = Buffer(size+1,size+1)
+	img = Buffer(size,size)
 
 	if wrap:
 		wrapSize = size
@@ -344,15 +344,16 @@ def UV_Export_TGA(vList, size, wsize, wrap, file):
 		for f in vList:
 			for v in f:
 				x = int(v[0] * size)
-				maxx = max (x, maxx)
-				minx = min (x, minx)
+				maxx = max (x + wsize - 1, maxx)
+				minx = min (x - wsize + 1, minx)
 				
 				y = int(v[1] * size)
-				maxy = max (y, maxy)
-				miny = min (y, miny)
+				maxy = max (y + wsize - 1, maxy)
+				miny = min (y - wsize + 1, miny)
 		wrapSize = max (maxx - minx + 1, maxy - miny + 1)
 		scale = float (size) / float (wrapSize)
 
+	max_index = size - 1 # max index of the buffer (height or width)
 	fnum = 0
 	fcnt = len (vList)
 
@@ -372,31 +373,31 @@ def UV_Export_TGA(vList, size, wsize, wrap, file):
 			if step:
 				try:
 					for t in xrange(step):
-							x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * size))
-							y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * size))
+							x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * max_index))
+							y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * max_index))
 		
-							if wrap:
-								x = x % wrapSize
-								y = y % wrapSize
-							else:
-								x = int ((x - minx) * scale)
-								y = int ((y - miny) * scale)
-								
-							co = x * 1 + y * 1 * size;
-							
-							img[co] = 0
-							if wsize > 1:
-								for x in range(-1*wsize + 1,wsize):
-									for y in range(-1*wsize,wsize):
-										img[co + 1 * x + y * 1 * size] = 0
+							for dx in range(-1*wsize + 1, wsize):
+								if wrap:
+									wx = (x + dx) % wrapSize
+								else:
+									wx = int ((x - minx + dx) * scale)
+									
+								for dy in range(-1*wsize + 1, wsize):
+									if wrap:
+										wy = (y + dy) % wrapSize
+									else:
+										wy = int ((y - miny + dy) * scale)
+									
+									co = wx * 1 + wy * 1 * size
+									img[co] = 0
 				except OverflowError:
 					if not extreme_warning:
 						print "Skipping extremely long UV edges, check your layout for excentric values"
 						extreme_warning = True
 		
 		for v in f:
-			x = int(v[0] * size)
-			y = int(v[1] * size)
+			x = int(v[0] * max_index)
+			y = int(v[1] * max_index)
 
 			if wrap:
 				x = x % wrapSize

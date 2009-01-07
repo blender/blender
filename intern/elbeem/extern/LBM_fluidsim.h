@@ -3,15 +3,12 @@
  *	
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef LBM_FLUIDSIM_H
 #define LBM_FLUIDSIM_H
@@ -65,11 +62,6 @@ void loadFluidsimMesh(struct Object *srcob, int useRenderParams);
 /* run simulation with given config file */
 // WARNING - implemented in intern/elbeem/blendercall.cpp
 int performElbeemSimulation(char *cfgfilename);
-
-/* init axis aligned BB for mesh object */
-// implemented in source/blender/blenkernel/intern/DerivedMesh.c
-void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
-		 /*RET*/ float start[3], /*RET*/ float size[3], /*RET*/ struct Mesh **bbmesh );
 
 
 #endif

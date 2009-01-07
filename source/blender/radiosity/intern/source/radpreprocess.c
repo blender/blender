@@ -1,14 +1,11 @@
 	/* *************************************** 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
 
 
@@ -65,15 +62,9 @@
 #include "BKE_object.h" /* during_script() */
 #include "BKE_utildefines.h"
 
-#include "BIF_toolbox.h"
-
-#include "BDR_editface.h"
-
 #include "radio.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "BLO_sys_types.h" // for intptr_t support
 
 void setparelem(RNode *rn, RPatch *par);
 
@@ -182,7 +173,7 @@ int vergedge(const void *v1,const void *v2)
 
 void addedge(float *v1, float *v2, EdSort *es)
 {
-	if( ((long)v1)<((long)v2) ) {
+	if( ((intptr_t)v1)<((intptr_t)v2) ) {
 		es->v1= v1;
 		es->v2= v2;
 	}
@@ -290,7 +281,7 @@ void setedgepointers()
 	MEM_freeN(esblock);
 }
 
-int materialIndex(Material *ma)
+static int materialIndex(Material *ma)
 {
 	int i = 0;
 	for(i=0;i< RG.totmat; i++)
@@ -302,7 +293,7 @@ int materialIndex(Material *ma)
 	return -1;
 }
 
-void rad_collect_meshes()
+void rad_collect_meshes(Scene *scene, View3D *v3d)
 {
 	extern Material defmaterial;
 	Base *base;
@@ -318,28 +309,23 @@ void rad_collect_meshes()
 	float *vd, *v1, *v2, *v3, *v4 = NULL;
 	int a, b, offs, index, mfdatatot;
 	
-	if (G.vd==NULL) {
+	if (v3d==NULL) {
 		printf("Error, trying to collect radiosity meshes with no 3d view\n");
 		return;
 	}
 	
-	if(G.obedit) {
-		if (!during_script()) error("Unable to perform function in EditMode");
-		return;
-	}
+	set_radglobal(scene);
 
-	set_radglobal();
-
-	freeAllRad();
+	freeAllRad(scene);
 
 	start_fastmalloc("Radiosity");
 					
 	/* count the number of verts */
 	RG.totvert= 0;
 	RG.totface= 0;
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
-		if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+		if(((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
 				base->flag |= OB_RADIO;
 				me= base->object->data;
@@ -349,7 +335,7 @@ void rad_collect_meshes()
 		base= base->next;
 	}
 	if(RG.totvert==0) {
-		if (!during_script()) error("No vertices");
+		if (!during_script()); //XXX error("No vertices");
 		return;
 	}
 	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "radioverts");
@@ -360,9 +346,9 @@ void rad_collect_meshes()
 	mfdatatot= 0;
 	
 	/* min-max and material array */
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
-		if( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				mvert= me->mvert;
@@ -427,9 +413,9 @@ void rad_collect_meshes()
 	RG.totlamp= 0;
 	offs= 0;
 	
-	base= (G.scene->base.first);
+	base= (scene->base.first);
 	while(base) {
-		if( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) )  {
+		if( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) )  {
 			if(base->object->type==OB_MESH) {
 				ob= base->object;
 				me= ob->data;
@@ -542,7 +528,7 @@ void rad_collect_meshes()
 
 	makeGlobalElemArray();
 	pseudoAmb();
-	rad_setlimits();
+	rad_setlimits(scene);
 }
 
 void setparelem(RNode *rn, RPatch *par)

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 /**
@@ -37,10 +34,9 @@
  * @date	May 7, 2001
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
+#include <Carbon/Carbon.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include "GHOST_SystemCarbon.h"
 
 #include "GHOST_DisplayManagerCarbon.h"
@@ -48,22 +44,34 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
+
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCarbon.h"
+#include "GHOST_NDOFManager.h"
+#include "AssertMacros.h"
 
 #define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
+
+/* blender class and types events */
+enum {
+  kEventClassBlender              = 'blnd'
+};
+
+enum {
+	kEventBlenderNdofAxis			= 1,
+	kEventBlenderNdofButtons		= 2
+};
 
 const EventTypeSpec	kEvents[] =
 {
 	{ kEventClassAppleEvent, kEventAppleEvent },
-	
 /*
 	{ kEventClassApplication, kEventAppActivated },
 	{ kEventClassApplication, kEventAppDeactivated },
 */	
-
 	{ kEventClassKeyboard, kEventRawKeyDown },
 	{ kEventClassKeyboard, kEventRawKeyRepeat },
 	{ kEventClassKeyboard, kEventRawKeyUp },
@@ -84,7 +92,12 @@ const EventTypeSpec	kEvents[] =
 	{ kEventClassWindow, kEventWindowActivated },
 	{ kEventClassWindow, kEventWindowDeactivated },
 	{ kEventClassWindow, kEventWindowUpdate },
-	{ kEventClassWindow, kEventWindowBoundsChanged }
+	{ kEventClassWindow, kEventWindowBoundsChanged },
+	
+	{ kEventClassBlender, kEventBlenderNdofAxis },
+	{ kEventClassBlender, kEventBlenderNdofButtons }
+	
+	
 	
 };
 
@@ -389,7 +402,8 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	bool stereoVisual
+	bool stereoVisual,
+	const GHOST_TEmbedderWindowID parentWindow
 )
 {
     GHOST_IWindow* window = 0;
@@ -416,7 +430,9 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
     return window;
 }
 
-
+/* this is an old style low level event queue.
+  As we want to handle our own timers, this is ok.
+  the full screen hack should be removed */
 bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 {
 	bool anyProcessed = false;
@@ -424,19 +440,17 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 	
 	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
-
+		
 		if (waitForEvent) {
-			GHOST_TUns64 curtime = getMilliSeconds();
 			GHOST_TUns64 next = timerMgr->nextFireTime();
 			double timeOut;
 			
 			if (next == GHOST_kFireTimeNever) {
 				timeOut = kEventDurationForever;
 			} else {
-				if (next<=curtime)
+				timeOut = (double)(next - getMilliSeconds())/1000.0;
+				if (timeOut < 0.0)
 					timeOut = 0.0;
-				else
-					timeOut = (double) (next - getMilliSeconds())/1000.0;
 			}
 			
 			::ReceiveNextEvent(0, NULL, timeOut, false, &event);
@@ -455,6 +469,8 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 			}
 		}
 
+		
+		/* end loop when no more events available */
 		while (::ReceiveNextEvent(0, NULL, 0, true, &event)==noErr) {
 			OSStatus status= ::SendEventToEventTarget(event, ::GetEventDispatcherTarget());
 			if (status==noErr) {
@@ -466,7 +482,9 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 					 * are, but we get a lot of them
 					 */
 				if (i!='cgs ') {
-					//printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
+					if (i!='tblt') {  // tablet event. we use the one packaged in the mouse event
+						; //printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
+					}
 				}
 			}
 			::ReleaseEvent(event);
@@ -610,6 +628,7 @@ OSErr GHOST_SystemCarbon::sAEHandlerQuit(const AppleEvent *event, AppleEvent *re
 
 GHOST_TSuccess GHOST_SystemCarbon::init()
 {
+ 
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
 		/*
@@ -629,6 +648,7 @@ GHOST_TSuccess GHOST_SystemCarbon::init()
 		::AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, sAEHandlerOpenDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments, sAEHandlerPrintDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, sAEHandlerQuit, (SInt32) this, false);
+		
     }
     return success;
 }
@@ -765,6 +785,7 @@ OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
 		}
 	err = noErr;
 	}
+
 }
 
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
@@ -936,10 +957,16 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			 * events. By setting m_ignoreWindowSizedMessages these are suppressed.
 			 * @see GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 			 */
+			/* even worse: scale window also generates a load of events, and nothing 
+			   is handled (read: client's event proc called) until you release mouse (ton) */
+			
 			GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseDown: invalid window");
 			m_ignoreWindowSizedMessages = true;
 			::DragWindow(window, mousePos, &GetQDGlobalsScreenBits(&screenBits)->bounds);
 			m_ignoreWindowSizedMessages = false;
+			
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, ghostWindow) );
+
 			break;
 		
 		case inContent:
@@ -961,7 +988,7 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
 			if (::TrackGoAway(window, mousePos))
 			{
-				// todo: add option-close, because itØs in the HIG
+				// todo: add option-close, because itÃ¿s in the HIG
 				// if (event.modifiers & optionKey) {
 					// Close the clean documents, others will be confirmed one by one.
 				//}
@@ -1039,11 +1066,15 @@ bool GHOST_SystemCarbon::handleMenuCommand(GHOST_TInt32 menuResult)
     return handled;
 }
 
+
 OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
 {
 	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) userData;
     OSStatus err = eventNotHandledErr;
-
+	GHOST_IWindow* window;
+	GHOST_TEventNDOFData data;
+	UInt32 kind;
+	
     switch (::GetEventClass(event))
     {
 		case kEventClassAppleEvent:
@@ -1061,7 +1092,102 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 		case kEventClassKeyboard:
 			err = sys->handleKeyEvent(event);
 			break;
-    }
+ 		case kEventClassBlender :
+			window = sys->m_windowManager->getActiveWindow();
+			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
+			kind = ::GetEventKind(event);
+			
+			switch (kind)
+			{
+				case 1:
+					sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFMotion, window, data));
+	//				printf("motion\n");
+					break;
+				case 2:
+					sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFButton, window, data));
+//					printf("button\n");
+					break;
+			}
+			err = noErr;
+			break;
+		default : 
+ 			;
+			break;
+   }
 
     return err;
 }
+
+GHOST_TUns8* GHOST_SystemCarbon::getClipboard(int flag) const
+{
+	PasteboardRef inPasteboard;
+	PasteboardItemID itemID;
+	CFDataRef flavorData;
+	OSStatus err = noErr;
+	GHOST_TUns8 * temp_buff;
+	CFRange range;
+	OSStatus syncFlags;
+	
+	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
+	if(err != noErr) { return NULL;}
+
+	syncFlags = PasteboardSynchronize( inPasteboard );
+		/* as we always get in a new string, we can safely ignore sync flags if not an error*/
+	if(syncFlags <0) { return NULL;}
+
+
+	err = PasteboardGetItemIdentifier( inPasteboard, 1, &itemID );
+	if(err != noErr) { return NULL;}
+
+	err = PasteboardCopyItemFlavorData( inPasteboard, itemID, CFSTR("public.utf8-plain-text"), &flavorData);
+	if(err != noErr) { return NULL;}
+
+	range = CFRangeMake(0, CFDataGetLength(flavorData));
+	
+	temp_buff = (GHOST_TUns8*) malloc(range.length+1); 
+
+	CFDataGetBytes(flavorData, range, (UInt8*)temp_buff);
+	
+	temp_buff[range.length] = '\0';
+	
+	if(temp_buff) {
+		return temp_buff;
+	} else {
+		return NULL;
+	}
+}
+
+void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, int flag) const
+{
+	if(flag == 1) {return;} //If Flag is 1 means the selection and is used on X11
+
+	PasteboardRef inPasteboard;
+	CFDataRef textData = NULL;
+	OSStatus err = noErr; /*For error checking*/
+	OSStatus syncFlags;
+	
+	err = PasteboardCreate(kPasteboardClipboard, &inPasteboard);
+	if(err != noErr) { return;}
+	
+	syncFlags = PasteboardSynchronize( inPasteboard ); 
+	/* as we always put in a new string, we can safely ignore sync flags */
+	if(syncFlags <0) { return;}
+	
+	err = PasteboardClear( inPasteboard );
+	if(err != noErr) { return;}
+	
+	textData = CFDataCreate(kCFAllocatorDefault, (UInt8*)buffer, strlen(buffer));
+	
+	if (textData) {
+		err = PasteboardPutItemFlavor( inPasteboard, (PasteboardItemID)1, CFSTR("public.utf8-plain-text"), textData, 0);
+			if(err != noErr) { 
+				if(textData) { CFRelease(textData);}
+				return;
+			}
+	}
+	
+	if(textData) {
+		CFRelease(textData);
+	}
+}
+

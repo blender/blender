@@ -19,6 +19,8 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+#include "btCollisionDispatcher.h"
+
 class btPersistentManifold;
 
 /// btSphereSphereCollisionAlgorithm  provides sphere-sphere collision detection.
@@ -37,8 +39,15 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
+	virtual	void	getAllContactManifolds(btManifoldArray&	manifoldArray)
+	{
+		if (m_manifoldPtr && m_ownManifold)
+		{
+			manifoldArray.push_back(m_manifoldPtr);
+		}
+	}
 	
 	virtual ~btSphereSphereCollisionAlgorithm();
 
@@ -46,7 +55,8 @@ public:
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btSphereSphereCollisionAlgorithm(0,ci,body0,body1);
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereSphereCollisionAlgorithm));
+			return new(mem) btSphereSphereCollisionAlgorithm(0,ci,body0,body1);
 		}
 	};
 

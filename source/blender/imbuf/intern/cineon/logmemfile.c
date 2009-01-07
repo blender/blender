@@ -24,10 +24,10 @@
 
 #include "logImageCore.h"
 
-int logimage_fseek(void* logfile, long offsett, int origin)
+int logimage_fseek(void* logfile, intptr_t offsett, int origin)
 {	
 	struct _Log_Image_File_t_ *file = (struct _Log_Image_File_t_*) logfile;
-	long offset = offsett;
+	intptr_t offset = offsett;
 	
 	if (file->file) fseek(file->file, offset, origin);
 	else { /*we're seeking in memory*/
@@ -38,7 +38,7 @@ int logimage_fseek(void* logfile, long offsett, int origin)
 			if (offset > file->membuffersize) return 1;
 			file->memcursor = (file->membuffer + file->membuffersize) - offset;
 		} else if (origin==SEEK_CUR) {
-			unsigned long pos = (unsigned long)file->membuffer - (unsigned long)file->memcursor;
+			uintptr_t pos = (uintptr_t)file->membuffer - (uintptr_t)file->memcursor;
 			if (pos + offset > file->membuffersize) return 1;
 			if (pos < 0) return 1;
 			file->memcursor += offset;

@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "SG_Node.h"
@@ -71,7 +68,7 @@ SG_Node* SG_Node::GetSGReplica()
 	SG_Node* replica = new SG_Node(*this);
 	if (replica == NULL) return NULL;
 
-	ProcessSGReplica(replica);
+	ProcessSGReplica(&replica);
 	
 	return replica;
 }
@@ -79,24 +76,41 @@ SG_Node* SG_Node::GetSGReplica()
 	void 
 SG_Node::
 ProcessSGReplica(
-	SG_Node* replica
+	SG_Node** replica
 ){
 	// Apply the replication call back function.
-	ActivateReplicationCallback(replica);
+	if (!ActivateReplicationCallback(*replica)) 
+	{
+		delete (*replica);
+		*replica = NULL;
+		return;
+	}
 
 	// clear the replica node of it's parent.
-	static_cast<SG_Node*>(replica)->m_SGparent = NULL;
+	static_cast<SG_Node*>(*replica)->m_SGparent = NULL;
 
 	if (m_children.begin() != m_children.end())
 	{
 		// if this node has children, the replica has too, so clear and clone children
-		replica->ClearSGChildren();
+		(*replica)->ClearSGChildren();
 	
 		NodeList::iterator childit;
 		for (childit = m_children.begin();childit!=m_children.end();++childit)
 		{
-			replica->AddChild((*childit)->GetSGReplica());
+			SG_Node* childnode = (*childit)->GetSGReplica();
+			if (childnode)
+				(*replica)->AddChild(childnode);
 		}
+	}
+	// Nodes without children and without client object are
+	// not worth to keep, they will just take up CPU
+	// This can happen in partial replication of hierarchy
+	// during group duplication.
+	if ((*replica)->m_children.empty() && 
+		(*replica)->GetSGClientObject() == NULL)
+	{
+		delete (*replica);
+		*replica = NULL;
 	}
 }
 
@@ -151,6 +165,27 @@ GetRootSGParent(
 	return (m_SGparent ? (const SG_Node*) m_SGparent->GetRootSGParent() : (const SG_Node*) this);
 }
 
+	bool
+SG_Node::
+IsVertexParent()
+{
+	if (m_parent_relation)
+	{
+		return m_parent_relation->IsVertexRelation();
+	}
+	return false;
+}
+
+	bool
+SG_Node::
+IsSlowParent()
+{
+	if (m_parent_relation)
+	{
+		return m_parent_relation->IsSlowRelation();
+	}
+	return false;
+}
 
 	void 
 SG_Node::

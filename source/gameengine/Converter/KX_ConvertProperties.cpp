@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "KX_ConvertProperties.h"
@@ -69,57 +66,58 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 		show_debug_info = bool (prop->flag & PROP_DEBUG);
 
 		switch(prop->type) {
-		case PROP_BOOL:
-		{
-			propval = new CBoolValue((bool)(prop->data != 0));
-			gameobj->SetProperty(prop->name,propval);
-			//promp->poin= &prop->data;
-			break;
-		}
-		case PROP_INT:
-		{
-			propval = new CIntValue((int)prop->data);
-			gameobj->SetProperty(prop->name,propval);
-			break;
-		}
-		case PROP_FLOAT:
-		{
-			//prop->poin= &prop->data;
-			float floatprop = *((float*)&prop->data);
-			propval = new CFloatValue(floatprop);
-			gameobj->SetProperty(prop->name,propval);
-		}
-		break;
-		case PROP_STRING:
-		{
-			//prop->poin= callocN(MAX_PROPSTRING, "property string");
-			propval = new CStringValue((char*)prop->poin,"");
-			gameobj->SetProperty(prop->name,propval);
-			break;
-		}
-		case PROP_TIME:
-		{
-			float floatprop = *((float*)&prop->data);
-
-			CValue* timeval = new CFloatValue(floatprop);
-			// set a subproperty called 'timer' so that 
-			// we can register the replica of this property 
-			// at the time a game object is replicated (AddObjectActuator triggers this)
-
-			timeval->SetProperty("timer",new CBoolValue(true));
-			if (isInActiveLayer)
+			case GPROP_BOOL:
 			{
-				timemgr->AddTimeProperty(timeval);
+				propval = new CBoolValue((bool)(prop->data != 0));
+				gameobj->SetProperty(prop->name,propval);
+				//promp->poin= &prop->data;
+				break;
 			}
-			
-			propval = timeval;
-			gameobj->SetProperty(prop->name,timeval);
+			case GPROP_INT:
+			{
+				propval = new CIntValue((int)prop->data);
+				gameobj->SetProperty(prop->name,propval);
+				break;
+			}
+			case GPROP_FLOAT:
+			{
+				//prop->poin= &prop->data;
+				float floatprop = *((float*)&prop->data);
+				propval = new CFloatValue(floatprop);
+				gameobj->SetProperty(prop->name,propval);
+			}
+			break;
+			case GPROP_STRING:
+			{
+				//prop->poin= callocN(MAX_PROPSTRING, "property string");
+				propval = new CStringValue((char*)prop->poin,"");
+				gameobj->SetProperty(prop->name,propval);
+				break;
+			}
+			case GPROP_TIME:
+			{
+				float floatprop = *((float*)&prop->data);
 
-		}
-		default:
-		{
-			// todo make an assert etc.
-		}
+				CValue* timeval = new CFloatValue(floatprop);
+				// set a subproperty called 'timer' so that 
+				// we can register the replica of this property 
+				// at the time a game object is replicated (AddObjectActuator triggers this)
+				CValue *bval = new CBoolValue(true);
+				timeval->SetProperty("timer",bval);
+				bval->Release();
+				if (isInActiveLayer)
+				{
+					timemgr->AddTimeProperty(timeval);
+				}
+				
+				propval = timeval;
+				gameobj->SetProperty(prop->name,timeval);
+
+			}
+			default:
+			{
+				// todo make an assert etc.
+			}
 		}
 		
 		if (propval)
@@ -128,10 +126,16 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 			{
 				scene->AddDebugProperty(gameobj,STR_String(prop->name));
 			}
+			// done with propval, release it
+			propval->Release();
 		}
 
 		prop = prop->next;
 	}
-
-	
+	// check if state needs to be debugged
+	if (object->scaflag & OB_DEBUGSTATE)
+	{
+		//  reserve name for object state
+		scene->AddDebugProperty(gameobj,STR_String("__state__"));
+	}
 }

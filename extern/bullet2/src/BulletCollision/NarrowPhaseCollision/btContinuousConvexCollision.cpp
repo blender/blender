@@ -16,7 +16,6 @@ subject to the following restrictions:
 
 #include "btContinuousConvexCollision.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
-#include "BulletCollision/CollisionShapes/btMinkowskiSumShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
 #include "LinearMath/btTransformUtil.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
@@ -26,7 +25,7 @@ subject to the following restrictions:
 
 
 
-btContinuousConvexCollision::btContinuousConvexCollision ( btConvexShape*	convexA,btConvexShape*	convexB,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* penetrationDepthSolver)
+btContinuousConvexCollision::btContinuousConvexCollision ( const btConvexShape*	convexA,const btConvexShape*	convexB,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* penetrationDepthSolver)
 :m_simplexSolver(simplexSolver),
 m_penetrationDepthSolver(penetrationDepthSolver),
 m_convexA(convexA),m_convexB(convexB)
@@ -35,7 +34,7 @@ m_convexA(convexA),m_convexB(convexB)
 
 /// This maximum should not be necessary. It allows for untested/degenerate cases in production code.
 /// You don't want your game ever to lock-up.
-#define MAX_ITERATIONS 1000
+#define MAX_ITERATIONS 64
 
 bool	btContinuousConvexCollision::calcTimeOfImpact(
 				const btTransform& fromA,
@@ -49,28 +48,36 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 
 	/// compute linear and angular velocity for this interval, to interpolate
 	btVector3 linVelA,angVelA,linVelB,angVelB;
-	btTransformUtil::calculateVelocity(fromA,toA,1.f,linVelA,angVelA);
-	btTransformUtil::calculateVelocity(fromB,toB,1.f,linVelB,angVelB);
+	btTransformUtil::calculateVelocity(fromA,toA,btScalar(1.),linVelA,angVelA);
+	btTransformUtil::calculateVelocity(fromB,toB,btScalar(1.),linVelB,angVelB);
+
 
 	btScalar boundingRadiusA = m_convexA->getAngularMotionDisc();
 	btScalar boundingRadiusB = m_convexB->getAngularMotionDisc();
 
 	btScalar maxAngularProjectedVelocity = angVelA.length() * boundingRadiusA + angVelB.length() * boundingRadiusB;
+	btVector3 relLinVel = (linVelB-linVelA);
 
-	float radius = 0.001f;
+	btScalar relLinVelocLength = (linVelB-linVelA).length();
+	
+	if ((relLinVelocLength+maxAngularProjectedVelocity) == 0.f)
+		return false;
 
-	btScalar lambda = 0.f;
+
+	btScalar radius = btScalar(0.001);
+
+	btScalar lambda = btScalar(0.);
 	btVector3 v(1,0,0);
 
 	int maxIter = MAX_ITERATIONS;
 
 	btVector3 n;
-	n.setValue(0.f,0.f,0.f);
+	n.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	bool hasResult = false;
 	btVector3 c;
 
-	float lastLambda = lambda;
-	//float epsilon = 0.001f;
+	btScalar lastLambda = lambda;
+	//btScalar epsilon = btScalar(0.001);
 
 	int numIter = 0;
 	//first solution, using GJK
@@ -79,8 +86,8 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 	btTransform identityTrans;
 	identityTrans.setIdentity();
 
-	btSphereShape	raySphere(0.0f);
-	raySphere.setMargin(0.f);
+	btSphereShape	raySphere(btScalar(0.0));
+	raySphere.setMargin(btScalar(0.));
 
 
 //	result.drawCoordSystem(sphereTr);
@@ -93,7 +100,7 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 		btGjkPairDetector::ClosestPointInput input;
 	
 		//we don't use margins during CCD
-		gjk.setIgnoreMargin(true);
+	//	gjk.setIgnoreMargin(true);
 
 		input.m_transformA = fromA;
 		input.m_transformB = fromB;
@@ -108,36 +115,47 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 		btScalar dist;
 		dist = pointCollector1.m_distance;
 		n = pointCollector1.m_normalOnBInWorld;
+
+		btScalar projectedLinearVelocity = relLinVel.dot(n);
 		
 		//not close enough
 		while (dist > radius)
 		{
 			numIter++;
 			if (numIter > maxIter)
+			{
 				return false; //todo: report a failure
+			}
+			btScalar dLambda = btScalar(0.);
 
-			float dLambda = 0.f;
+			projectedLinearVelocity = relLinVel.dot(n);
 
 			//calculate safe moving fraction from distance / (linear+rotational velocity)
 			
-			//float clippedDist  = GEN_min(angularConservativeRadius,dist);
-			//float clippedDist  = dist;
+			//btScalar clippedDist  = GEN_min(angularConservativeRadius,dist);
+			//btScalar clippedDist  = dist;
 			
-			float projectedLinearVelocity = (linVelB-linVelA).dot(n);
 			
 			dLambda = dist / (projectedLinearVelocity+ maxAngularProjectedVelocity);
 
+			
+			
 			lambda = lambda + dLambda;
 
-			if (lambda > 1.f)
+			if (lambda > btScalar(1.))
 				return false;
 
-			if (lambda < 0.f)
+			if (lambda < btScalar(0.))
 				return false;
+
 
 			//todo: next check with relative epsilon
 			if (lambda <= lastLambda)
+			{
+				return false;
+				//n.setValue(0,0,0);
 				break;
+			}
 			lastLambda = lambda;
 
 			
@@ -159,15 +177,17 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 			gjk.getClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
-				if (pointCollector.m_distance < 0.f)
+				if (pointCollector.m_distance < btScalar(0.))
 				{
 					//degenerate ?!
 					result.m_fraction = lastLambda;
-					result.m_normal = n;
+					n = pointCollector.m_normalOnBInWorld;
+					result.m_normal=n;//.setValue(1,1,1);// = n;
+					result.m_hitPoint = pointCollector.m_pointInWorld;
 					return true;
 				}
 				c = pointCollector.m_pointInWorld;		
-				
+				n = pointCollector.m_normalOnBInWorld;
 				dist = pointCollector.m_distance;
 			} else
 			{
@@ -177,8 +197,13 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 
 		}
 
+		//don't report time of impact for motion away from the contact normal (or causes minor penetration)
+		if ((projectedLinearVelocity+ maxAngularProjectedVelocity)<=result.m_allowedPenetration)//SIMD_EPSILON)
+			return false;
+
 		result.m_fraction = lambda;
 		result.m_normal = n;
+		result.m_hitPoint = c;
 		return true;
 	}
 
@@ -188,9 +213,9 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 //todo:
 	//if movement away from normal, discard result
 	btVector3 move = transBLocalTo.getOrigin() - transBLocalFrom.getOrigin();
-	if (result.m_fraction < 1.f)
+	if (result.m_fraction < btScalar(1.))
 	{
-		if (move.dot(result.m_normal) <= 0.f)
+		if (move.dot(result.m_normal) <= btScalar(0.))
 		{
 		}
 	}

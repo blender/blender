@@ -1,14 +1,11 @@
 /* ***************************************
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +23,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
 
 
@@ -49,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -57,11 +55,6 @@
 #include "BKE_main.h"
 
 #include "BIF_gl.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_mywindow.h"
-
-#include "BSE_view.h"
 
 #include "radio.h"
 
@@ -206,18 +199,20 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 	View3D *v3d;
 	glDrawBuffer(GL_FRONT);
 
+	return; // XXX
+	
 	cpack(col);
 
-	oldsa= curarea;
+	oldsa= NULL; // XXX curarea;
 
-	sa= G.curscreen->areabase.first;
+//	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
 			v3d= sa->spacedata.first;
 			
 		 	/* use mywinget() here: otherwise it draws in header */
-		 	if(sa->win != mywinget()) areawinset(sa->win);
-			persp(PERSP_VIEW);
+// XXX		 	if(sa->win != mywinget()) areawinset(sa->win);
+// XXX			persp(PERSP_VIEW);
 			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			drawnodeWire(patch->first);
 			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);	// pretty useless?
@@ -225,7 +220,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 		sa= sa->next;
 	}
 
-	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
+// XXX	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
 
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -320,8 +315,8 @@ void drawlimits()
 	/* center around cent */
 	short cox=0, coy=1;
 	
-	if((RG.flag & 3)==2) coy= 2;
-	if((RG.flag & 3)==3) {
+	if((RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ))==RAD_SHOWZ) coy= 2;
+	if((RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ))==(RAD_SHOWLIMITS|RAD_SHOWZ)) {
 		cox= 1;	
 		coy= 2;	
 	}
@@ -400,7 +395,7 @@ void RAD_drawall(int depth_is_on)
 	}
 	
 	if(RG.totface) {
-		if(RG.drawtype==DTGOUR) {
+		if(RG.drawtype==RAD_GOURAUD) {
 			glShadeModel(GL_SMOOTH);
 			for(a=0; a<RG.totface; a++) {
 				RAD_NEXTFACE(a);
@@ -408,7 +403,7 @@ void RAD_drawall(int depth_is_on)
 				drawfaceGour(face);
 			}
 		}
-		else if(RG.drawtype==DTSOLID) {
+		else if(RG.drawtype==RAD_SOLID) {
 			for(a=0; a<RG.totface; a++) {
 				RAD_NEXTFACE(a);
 				
@@ -416,33 +411,23 @@ void RAD_drawall(int depth_is_on)
 			}
 		}
 		else {
-			if(!(get_qual()&LR_SHIFTKEY)) {
-
-				for(a=0; a<RG.totface; a++) {
-					RAD_NEXTFACE(a);
-					
-					drawfaceWire(face);
-				}
-			}
-			else {
-				cpack(0);
-				rp= RG.patchbase.first;
-				while(rp) {
-					drawsingnodeWire(rp->first);
-					rp= rp->next;
-				}
+			cpack(0);
+			rp= RG.patchbase.first;
+			while(rp) {
+				drawsingnodeWire(rp->first);
+				rp= rp->next;
 			}
 		}
 	}
 	else {
 		el= RG.elem;
-		if(RG.drawtype==DTGOUR) {
+		if(RG.drawtype==RAD_GOURAUD) {
 			glShadeModel(GL_SMOOTH);
 			for(a=RG.totelem; a>0; a--, el++) {
 				drawnodeGour(*el);
 			}
 		}
-		else if(RG.drawtype==DTSOLID) {
+		else if(RG.drawtype==RAD_SOLID) {
 			for(a=RG.totelem; a>0; a--, el++) {
 				drawnodeSolid(*el);
 			}
@@ -457,7 +442,7 @@ void RAD_drawall(int depth_is_on)
 	glShadeModel(GL_FLAT);
 	
 	if(RG.totpatch) {
-		if(RG.flag & 3) {
+		if(RG.flag & (RAD_SHOWLIMITS|RAD_SHOWZ)) {
 			if(depth_is_on) glDisable(GL_DEPTH_TEST);
 			drawlimits();
 			if(depth_is_on) glEnable(GL_DEPTH_TEST);
@@ -472,19 +457,21 @@ void rad_forcedraw()
 {
  	ScrArea *sa, *oldsa;
 	
-	oldsa= curarea;
+	return; // XXX
+	
+	oldsa= NULL; // XXX curarea;
 
-	sa= G.curscreen->areabase.first;
+///	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
 		 	/* use mywinget() here: othwerwise it draws in header */
-		 	if(sa->win != mywinget()) areawinset(sa->win);
-		 	scrarea_do_windraw(sa);
+// XXX	 	if(sa->win != mywinget()) areawinset(sa->win);
+// XXX		 	scrarea_do_windraw(sa);
 		}
 		sa= sa->next;
 	}
-	screen_swapbuffers();
+// XXX	screen_swapbuffers();
 	
-	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
+// XXX	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
 }
 

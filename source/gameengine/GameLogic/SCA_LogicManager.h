@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  * Regulates the top-level logic behaviour for one scene.
  */
 #ifndef __KX_LOGICMANAGER
@@ -102,6 +99,7 @@ class SCA_LogicManager
 	
 	vector<class SCA_ISensor*>			m_activatedsensors;
 	set<class SmartActuatorPtr>			m_activeActuators;
+	set<class SmartControllerPtr>		m_triggeredControllerSet;
 
 	map<SCA_ISensor*,controllerlist >	m_sensorcontrollermapje;
 
@@ -112,7 +110,7 @@ class SCA_LogicManager
 	GEN_Map<STR_HashedString,void*>		m_mapStringToActions;
 
 	GEN_Map<STR_HashedString,void*>		m_map_gamemeshname_to_blendobj;
-	GEN_Map<CHashedPtr,void*>			m_map_gameobj_to_blendobj;
+	GEN_Map<CHashedPtr,void*>			m_map_blendobj_to_gameobj;
 
 	vector<SmartActuatorPtr>			m_removedActuators;
 public:
@@ -130,6 +128,7 @@ public:
 	void	EndFrame();
 	void	AddActivatedSensor(SCA_ISensor* sensor);
 	void	AddActiveActuator(SCA_IActuator* sensor,class CValue* event);
+	void	AddTriggeredController(SCA_IController* controller, SCA_ISensor* sensor);
 	SCA_EventManager*	FindEventManager(int eventmgrtype);
 	
 	void	RemoveGameObject(const STR_String& gameobjname);
@@ -155,8 +154,9 @@ public:
 	void	RegisterGameMeshName(const STR_String& gamemeshname, void* blendobj);
 	void*	FindBlendObjByGameMeshName(const STR_String& gamemeshname);
 
-	void	RegisterGameObj(CValue* gameobj, void* blendobj);
-	void*	FindBlendObjByGameObj(CValue* gameobj);
+	void	RegisterGameObj(void* blendobj, CValue* gameobj);
+	void	UnregisterGameObj(void* blendobj, CValue* gameobj);
+	CValue*	FindGameObjByBlendObj(void* blendobj);
 };
 
 #endif //__KX_LOGICMANAGER

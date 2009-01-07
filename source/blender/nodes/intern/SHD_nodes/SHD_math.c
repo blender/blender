@@ -174,8 +174,64 @@ bNodeStack **out)
 			else
 				out[0]->vec[0]= (int)(in[1]->vec[0] + 0.5f);
 		}
-		break; 
+		break;
+	case 15: /* Less Than */
+		{
+			if( in[0]->vec[0] < in[1]->vec[0] )
+				out[0]->vec[0]= 1.0f;
+			else
+				out[0]->vec[0]= 0.0f;
+		}
+		break;
+	case 16: /* Greater Than */
+		{
+			if( in[0]->vec[0] > in[1]->vec[0] )
+				out[0]->vec[0]= 1.0f;
+			else
+				out[0]->vec[0]= 0.0f;
+		}
+		break;
 	} 
+}
+
+static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+{
+	static char *names[] = {"math_add", "math_subtract", "math_multiply",
+		"math_divide", "math_sine", "math_cosine", "math_tangnet", "math_asin",
+		"math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
+		"math_round", "math_less_than", "math_greater_than"};
+
+	switch (node->custom1) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 15:
+		case 16:
+			GPU_stack_link(mat, names[node->custom1], NULL, out,
+				GPU_socket(&in[0]), GPU_socket(&in[1]));
+			break;
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 14:
+			if(in[0].hasinput || !in[1].hasinput)
+				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[0]));
+			else
+				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[1]));
+			break;
+		default:
+			return 0;
+	}
+	
+	return 1;
 }
 
 bNodeType sh_node_math= {
@@ -192,6 +248,7 @@ bNodeType sh_node_math= {
 	/* initfunc    */	NULL,
 	/* freestoragefunc    */	NULL,
 	/* copystoragefunc    */	NULL,
-	/* id          */	NULL
+	/* id          */	NULL, NULL, NULL,
+	/* gpufunc     */	gpu_shader_math
 };
 

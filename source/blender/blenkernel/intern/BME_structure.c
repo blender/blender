@@ -5,14 +5,12 @@
  *
  * $Id: BME_structure.c,v 1.00 2007/01/17 17:42:01 Briggs Exp $
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
+ * of the License, or (at your option) any later version.
  * about this.	
  *
  * This program is distributed in the hope that it will be useful,
@@ -31,23 +29,20 @@
  *
  * Contributor(s): Geoffrey Bantle.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <limits.h>
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
-#include "DNA_meshdata_types.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
-
-#include "BKE_customdata.h"
 /**
- *	MISC utility functions. Split these off into BME_utilities.c?
+ *	MISC utility functions.
  *
  */
  
@@ -61,7 +56,7 @@ int BME_verts_in_edge(BME_Vert *v1, BME_Vert *v2, BME_Edge *e){
 	return 0;
 }
 
-BME_Vert *BME_edge_getothervert(BME_Edge *e, BME_Vert *v){
+BME_Vert *BME_edge_getothervert(BME_Edge *e, BME_Vert *v){	
 	if(e->v1 == v) return e->v2;
 	else if(e->v2 == v) return e->v1;
 	return NULL;
@@ -83,127 +78,105 @@ int BME_edge_swapverts(BME_Edge *e, BME_Vert *orig, BME_Vert *new){
 	return 0;
 }
 
-int BME_vert_in_face(BME_Vert *v, BME_Poly *f){
-	BME_Loop *l;
-	
-	l= f->loopbase;
-	do{
-		if(l->v == v) return 1;
-		l= l->next;
-	}while(l!=f->loopbase);
-
-	return 0;
-}
-
-int BME_edge_shareface(BME_Edge *e1, BME_Edge *e2)
-{
-        BME_Loop *rloop=NULL,*l;
-        BME_Poly *sface=NULL;
-        int i,j,radlen;
-
-        /*loop through e1's radial looking for a face that has e2 in it....*/
-        if(e1->loop && e2->loop){
-                radlen = BME_cycle_length(&(e1->loop->radial));
-                for(rloop = e1->loop,i=0; i < radlen; i++){
-                        sface = rloop->f;
-                        /*loop through sface looking for e2*/
-                        for(l=sface->loopbase,j=0;j < sface->len; j++,l=l->next){
-                                if(l->e == e2) return 1;
-                        }
-                        rloop = BME_radial_nextloop(rloop);
-                }
-        }
-        return 0;
-}
-
-
 /**
  *	ALLOCATION/DEALLOCATION FUNCTIONS
  */
 
 BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 	BME_Vert *v=NULL;
-	v = MEM_callocN(sizeof(BME_Vert), "BME Vertex");
-	BLI_addtail(&(bm->verts), v);
+	v = BLI_mempool_alloc(bm->vpool);
+	v->next = v->prev = NULL;
 	v->EID = bm->nextv;
-	v->flag |= BME_NEW;
-	if(example && (example->flag & SELECT))v->flag |=SELECT; 
+	v->co[0] = v->co[1] = v->co[2] = 0.0f;
+	v->no[0] = v->no[1] = v->no[2] = 0.0f;
+	v->edge = NULL;
+	v->data = NULL;
+	v->eflag1 = v->eflag2 = v->tflag1 = v->tflag2 = 0;
+	v->flag = v->h = 0;
+	v->bweight = 0.0f;
+	BLI_addtail(&(bm->verts), v);
 	bm->nextv++;
 	bm->totvert++;
 
-	if(example)
+	if(example){
 		VECCOPY(v->co,example->co);
-/*	if(example)
-		BME_CustomData_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+		CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, example->data, &v->data);
+	}
 	else
-		BME_CustomData_set_default(&bm->vdata, &v->data);
-*/	
+		CustomData_bmesh_set_default(&bm->vdata, &v->data);
+
 	return v;
 }
 BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *example){
 	BME_Edge *e=NULL;
-	e = MEM_callocN(sizeof(BME_Edge), "BME_Edge");
+	e = BLI_mempool_alloc(bm->epool);
+	e->next = e->prev = NULL;
+	e->EID = bm->nexte;
 	e->v1 = v1;
 	e->v2 = v2;
+	e->d1.next = e->d1.prev = e->d2.next = e->d2.prev = NULL;
 	e->d1.data = e;
 	e->d2.data = e;
-	e->EID = bm->nexte;
-	e->flag |= BME_NEW;
-	if(example && (example->flag & SELECT))e->flag |=SELECT;
+	e->loop = NULL;
+	e->data = NULL;
+	e->eflag1 = e->eflag2 = e->tflag1 = e->tflag2 = 0;
+	e->flag = e->h = 0;
+	e->crease = e->bweight = 0.0f;
 	bm->nexte++;
 	bm->totedge++;
 	BLI_addtail(&(bm->edges), e);
 	
-/*	if(example)
-		BME_CustomData_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
+	if(example)
+		CustomData_bmesh_copy_data(&bm->edata, &bm->edata, example->data, &e->data);
 	else
-		BME_CustomData_set_default(&bm->edata, &e->data);
-*/
+		CustomData_bmesh_set_default(&bm->edata, &e->data);
+
 
 	return e;
 }
 BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, BME_Loop *example){
-	/*allocate a BME_Loop and add it to the loophash*/
 	BME_Loop *l=NULL;
-	BME_CycleNode *loopnode = MEM_callocN(sizeof(BME_CycleNode),"BME Loop Reference");
-	l = MEM_callocN(sizeof(BME_Loop), "BME_Loop");
+	l = BLI_mempool_alloc(bm->lpool);
+	l->next = l->prev = NULL;
+	l->EID = bm->nextl;
+	l->radial.next = l->radial.prev = NULL;
 	l->radial.data = l;
 	l->v = v;
 	l->e = e;
 	l->f = f;
-	l->EID = bm->nextl;
-	l->gref = loopnode;
-	l->flag |= BME_NEW;
-	loopnode->data = l;
-	BLI_addtail(&(bm->loops),loopnode);
+	l->data = NULL;
+	l->eflag1 = l->eflag2 = l->tflag1 = l->tflag2 = 0;
+	l->flag = l->h = 0; //stupid waste!
 	bm->nextl++;
 	bm->totloop++;
 	
-
-/*	if(example)
-		BME_CustomData_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
+	if(example)
+		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->data, &l->data);
 	else
-		BME_CustomData_set_default(&bm->ldata, &l->data);
-*/
+		CustomData_bmesh_set_default(&bm->ldata, &l->data);
+
 	return l;
 }
 
 BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	BME_Poly *f = NULL;
-	f= MEM_callocN(sizeof(BME_Poly),"BME_Poly");
-	BLI_addtail(&(bm->polys),f);
+	f = BLI_mempool_alloc(bm->ppool);
+	f->next = f->prev = NULL;
 	f->EID = bm->nextp;
-	f->flag |= BME_NEW;
-	if(example && (example->flag & SELECT))f->flag|=SELECT;
-	if(example && (example->flag & ME_NSMOOTH))f->flag|=ME_NSMOOTH;
+	f->loopbase = NULL;
+	f->len = 0;
+	f->data = NULL;
+	f->eflag1 = f->eflag2 = f->tflag1 = f->tflag2 = 0;
+	f->flag = f->h = f->mat_nr;
+	BLI_addtail(&(bm->polys),f);
 	bm->nextp++;
 	bm->totpoly++;
 
-/*	if(example)
-		BME_CustomData_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
+	if(example)
+		CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, example->data, &f->data);
 	else
-		BME_CustomData_set_default(&bm->pdata, &f->data);
-*/
+		CustomData_bmesh_set_default(&bm->pdata, &f->data);
+
 
 	return f;
 }
@@ -213,31 +186,24 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 */
 void BME_free_vert(BME_Mesh *bm, BME_Vert *v){
 	bm->totvert--;
-	CustomData_em_free_block(&bm->vdata, &v->data);
-	MEM_freeN(v);
+	CustomData_bmesh_free_block(&bm->vdata, &v->data);
+	BLI_mempool_free(bm->vpool, v);
 }
 void BME_free_edge(BME_Mesh *bm, BME_Edge *e){
 	bm->totedge--;
-	CustomData_em_free_block(&bm->edata, &e->data);
-	MEM_freeN(e);
+	CustomData_bmesh_free_block(&bm->edata, &e->data);
+	BLI_mempool_free(bm->epool, e);
 }
 void BME_free_poly(BME_Mesh *bm, BME_Poly *f){
 	bm->totpoly--;
-	CustomData_em_free_block(&bm->pdata, &f->data);
-	MEM_freeN(f);
-}
-void BME_delete_loop(BME_Mesh *bm, BME_Loop *l){
-	bm->totloop--;
-	CustomData_em_free_block(&bm->ldata, &l->data);
-	MEM_freeN(l);
+	CustomData_bmesh_free_block(&bm->pdata, &f->data);
+	BLI_mempool_free(bm->ppool, f);
 }
 void BME_free_loop(BME_Mesh *bm, BME_Loop *l){
-	BME_CycleNode *loopref = l->gref;
-	BLI_freelinkN(&(bm->loops),loopref);
-	BME_delete_loop(bm,l);
+	bm->totloop--;
+	CustomData_bmesh_free_block(&bm->ldata, &l->data);
+	BLI_mempool_free(bm->lpool, l);
 }
-
-
 /**
  *	BMESH CYCLES
  *
@@ -593,23 +559,6 @@ int BME_disk_count_edgeflag(BME_Vert *v, int eflag, int tflag){
 	return count;
 }
 
-BME_Edge *BME_disk_existedge(BME_Vert *v1, BME_Vert *v2){
-	BME_CycleNode *diskbase;
-	BME_Edge *curedge;
-	int i, len=0;
-	
-	if(v1->edge){
-		diskbase = BME_disk_getpointer(v1->edge,v1);
-		len = BME_cycle_length(diskbase);
-		
-		for(i=0,curedge=v1->edge;i<len;i++,curedge = BME_disk_nextedge(curedge,v1)){
-			if(BME_verts_in_edge(v1,v2,curedge)) return curedge;
-		}
-	}
-	
-	return NULL;
-}
-
 int BME_disk_hasedge(BME_Vert *v, BME_Edge *e){
 	BME_CycleNode *diskbase;
 	BME_Edge *curedge;
@@ -664,4 +613,15 @@ int BME_radial_find_face(BME_Edge *e,BME_Poly *f)
 		if(curloop->f == f) return 1;
 	}
 	return 0;
+}
+
+struct BME_Loop *BME_loop_find_loop(struct BME_Poly *f, struct BME_Vert *v) {
+	BME_Loop *l;
+	int i, len;
+	
+	len = BME_cycle_length(f->loopbase);
+	for (i = 0, l=f->loopbase; i < len; i++, l=l->next) {
+		if (l->v == v) return l;
+	}
+	return NULL;
 }

@@ -46,4 +46,12 @@ class SCA_PythonController(SCA_IController):
 		
 		@type script: string.
 		"""
+	def getState():
+		"""
+		Get the controllers state bitmask, this can be used with the GameObject's state to test if the the controller is active.
+		This for instance will always be true however you could compare with a previous state to see when the state was activated.
+		GameLogic.getCurrentController().getState() & GameLogic.getCurrentController().getOwner().getState()
+		
+		@rtype: int
+		"""
 

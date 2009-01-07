@@ -1,14 +1,11 @@
 /**
  * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,46 +23,26 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include "RAS_IRenderTools.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-void RAS_IRenderTools::SetViewMat(const MT_Transform& trans)
-{
-	trans.getValue(m_viewmat);
-}
-	
-
-
-void RAS_IRenderTools::SetClientObject(void* obj)
+void RAS_IRenderTools::SetClientObject(RAS_IRasterizer* rasty, void *obj)
 {
 	if (m_clientobject != obj)
-	{
 		m_clientobject = obj;
-		m_modified = true;
-	}
 }
-
-
 
 void RAS_IRenderTools::SetAuxilaryClientInfo(void* inf)
 {
 	m_auxilaryClientInfo = inf;
 }
 
-
-
 void RAS_IRenderTools::AddLight(struct RAS_LightObject* lightobject)
 {
 	m_lights.push_back(lightobject);
 }
-
-
 
 void RAS_IRenderTools::RemoveLight(struct RAS_LightObject* lightobject)
 {
@@ -74,5 +51,5 @@ void RAS_IRenderTools::RemoveLight(struct RAS_LightObject* lightobject)
 
 	if (!(lit==m_lights.end()))
 		m_lights.erase(lit);
-
 }
+

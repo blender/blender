@@ -3,15 +3,12 @@
 //
 // $Id$
 //
-// ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+// ***** BEGIN GPL LICENSE BLOCK *****
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version. The Blender
-// Foundation also sells licenses for use in proprietary software under
-// the Blender License.  See http://www.blender.org/BL/ for information
-// about this.
+// of the License, or (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +26,7 @@
 //
 // Contributor(s): none yet.
 //
-// ***** END GPL/BL DUAL LICENSE BLOCK *****
+// ***** END GPL LICENSE BLOCK *****
 
 //
 // Previously existed as:
@@ -39,6 +36,8 @@
 // Please look here for revision history.
 
 #include "KX_SCA_ReplaceMeshActuator.h"
+
+#include "PyObjectPlus.h" 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -83,7 +82,7 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_VARARGS, SetMesh_doc},
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
 	
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
@@ -100,30 +99,31 @@ PyObject* KX_SCA_ReplaceMeshActuator::_getattr(const STR_String& attr)
 
 
 /* 1. setMesh */
-char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
+const char KX_SCA_ReplaceMeshActuator::SetMesh_doc[] = 
 	"setMesh(name)\n"
-	"\t- name: string\n"
+	"\t- name: string or None\n"
 	"\tSet the mesh that will be substituted for the current one.\n";
 
-PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self,
-									  PyObject* args, 
-									  PyObject* kwds)
+PyObject* KX_SCA_ReplaceMeshActuator::PySetMesh(PyObject* self, PyObject* value)
 {
-	char* meshname;
-	
-	if (!PyArg_ParseTuple(args, "s", &meshname))
-	{
-		return NULL;	
-	}
-
-	void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
-	
-	if (mesh) {
+	if (value == Py_None) {
+		m_mesh = NULL;
+	} else {
+		char* meshname = PyString_AsString(value);
+		if (!meshname) {
+			PyErr_SetString(PyExc_ValueError, "Expected the name of a mesh or None");
+			return NULL;
+		}
+		void* mesh = SCA_ILogicBrick::m_sCurrentLogicManager->GetMeshByName(STR_String(meshname));
+		
+		if (mesh==NULL) {
+			PyErr_SetString(PyExc_ValueError, "The mesh name given does not exist");
+			return NULL;
+		}
 		m_mesh= (class RAS_MeshObject*)mesh;
-		Py_Return;
 	}
 	
-	return NULL;
+	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
@@ -132,7 +132,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 )
 {
 	if (!m_mesh)
-		Py_Return;
+		Py_RETURN_NONE;
 
 	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
 }
@@ -142,7 +142,7 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 "instantReplaceMesh() : immediately replace mesh without delay\n")
 {
 	InstantReplaceMesh();
-	Py_Return;
+	Py_RETURN_NONE;
 }
 
 /* ------------------------------------------------------------------------- */
