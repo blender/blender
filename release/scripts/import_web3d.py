@@ -983,24 +983,24 @@ class vrmlNode(object):
 							child.parse(0)
 							
 							# if self.getExternprotoName():
-							
-							if not extern_key: # if none is spesified - use the name
-								extern_key = self.getSpec()
-							
-							if extern_key:
+							if self.getExternprotoName():
+								if not extern_key: # if none is spesified - use the name
+									extern_key = self.getSpec()
 								
-								self.children.remove(child)
-								child.parent = None
-								
-								extern_child = child.findSpecRecursive(extern_key)
-								
-								if extern_child:
-									self.children.append(extern_child)
-									extern_child.parent = self
+								if extern_key:
 									
-									if DEBUG: print "\tEXTERNPROTO ID found!:", extern_key
-								else:
-									print "\tEXTERNPROTO ID not found!:", extern_key
+									self.children.remove(child)
+									child.parent = None
+									
+									extern_child = child.findSpecRecursive(extern_key)
+									
+									if extern_child:
+										self.children.append(extern_child)
+										extern_child.parent = self
+										
+										if DEBUG: print "\tEXTERNPROTO ID found!:", extern_key
+									else:
+										print "\tEXTERNPROTO ID not found!:", extern_key
 									
 							# Watch it! - restore lines
 							lines[:] = lines_old
