@@ -6491,8 +6491,8 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 	CDDM_calc_normals(result);
 
 	if(psys->lattice){
-		end_latt_deform();
-		psys->lattice=0;
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
 	}
 
 	return result;
@@ -7267,8 +7267,8 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	CDDM_calc_normals(explode);
 
 	if(psmd->psys->lattice){
-		end_latt_deform();
-		psmd->psys->lattice=0;
+		end_latt_deform(psmd->psys->lattice);
+		psmd->psys->lattice= NULL;
 	}
 
 	return explode;

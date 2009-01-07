@@ -3480,8 +3480,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 	psys->flag &= ~PSYS_DRAWING;
 
 	if(psys->lattice){
-		end_latt_deform();
-		psys->lattice=0;
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
 	}
 
 	wmLoadMatrix(v3d->viewmat);

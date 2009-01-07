@@ -74,7 +74,6 @@
 //XXX #include "BIF_editdeform.h"
 
 Lattice *editLatt=0;
-static float *latticedata=0, latmat[4][4];
 
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
 {
@@ -303,23 +302,23 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	if(lt->editlatt) lt= lt->editlatt;
 	bp = lt->def;
 	
-	fp= latticedata= MEM_mallocN(sizeof(float)*3*lt->pntsu*lt->pntsv*lt->pntsw, "latticedata");
+	fp= lt->latticedata= MEM_mallocN(sizeof(float)*3*lt->pntsu*lt->pntsv*lt->pntsw, "latticedata");
 	
 		/* for example with a particle system: ob==0 */
-	if(ob==0) {
+	if(ob==NULL) {
 		/* in deformspace, calc matrix  */
-		Mat4Invert(latmat, oblatt->obmat);
+		Mat4Invert(lt->latmat, oblatt->obmat);
 	
 		/* back: put in deform array */
-		Mat4Invert(imat, latmat);
+		Mat4Invert(imat, lt->latmat);
 	}
 	else {
 		/* in deformspace, calc matrix */
 		Mat4Invert(imat, oblatt->obmat);
-		Mat4MulMat4(latmat, ob->obmat, imat);
+		Mat4MulMat4(lt->latmat, ob->obmat, imat);
 	
 		/* back: put in deform array */
-		Mat4Invert(imat, latmat);
+		Mat4Invert(imat, lt->latmat);
 	}
 	
 	for(w=0,fw=lt->fw; w<lt->pntsw; w++,fw+=lt->dw) {
@@ -341,19 +340,20 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	}
 }
 
-void calc_latt_deform(float *co, float weight)
+void calc_latt_deform(Object *ob, float *co, float weight)
 {
-	Lattice *lt;
+	Lattice *lt= ob->data;
 	float u, v, w, tu[4], tv[4], tw[4];
 	float *fpw, *fpv, *fpu, vec[3];
 	int ui, vi, wi, uu, vv, ww;
 	
-	if(latticedata==0) return;
+	if(lt->editlatt) lt= lt->editlatt;
+	if(lt->latticedata==NULL) return;
 	
 	/* co is in local coords, treat with latmat */
 	
 	VECCOPY(vec, co);
-	Mat4MulVecfl(latmat, vec);
+	Mat4MulVecfl(lt->latmat, vec);
 	
 	/* u v w coords */
 	
@@ -395,10 +395,10 @@ void calc_latt_deform(float *co, float weight)
 		
 		if(w!=0.0) {
 			if(ww>0) {
-				if(ww<lt->pntsw) fpw= latticedata + 3*ww*lt->pntsu*lt->pntsv;
-				else fpw= latticedata + 3*(lt->pntsw-1)*lt->pntsu*lt->pntsv;
+				if(ww<lt->pntsw) fpw= lt->latticedata + 3*ww*lt->pntsu*lt->pntsv;
+				else fpw= lt->latticedata + 3*(lt->pntsw-1)*lt->pntsu*lt->pntsv;
 			}
-			else fpw= latticedata;
+			else fpw= lt->latticedata;
 			
 			for(vv= vi-1; vv<=vi+2; vv++) {
 				v= w*tv[vv-vi+1];
@@ -431,11 +431,15 @@ void calc_latt_deform(float *co, float weight)
 	}
 }
 
-void end_latt_deform()
+void end_latt_deform(Object *ob)
 {
-
-	MEM_freeN(latticedata);
-	latticedata= 0;
+	Lattice *lt= ob->data;
+	
+	if(lt->editlatt) lt= lt->editlatt;
+	
+	if(lt->latticedata)
+		MEM_freeN(lt->latticedata);
+	lt->latticedata= NULL;
 }
 
 	/* calculations is in local space of deformed object
@@ -767,17 +771,17 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 				for(j = 0; j < dvert->totweight; j++) {
 					if (dvert->dw[j].def_nr == index) {
-						calc_latt_deform(vertexCos[a], dvert->dw[j].weight);
+						calc_latt_deform(laOb, vertexCos[a], dvert->dw[j].weight);
 					}
 				}
 			}
 		}
 	} else {
 		for(a = 0; a < numVerts; a++) {
-			calc_latt_deform(vertexCos[a], 1.0f);
+			calc_latt_deform(laOb, vertexCos[a], 1.0f);
 		}
 	}
-	end_latt_deform();
+	end_latt_deform(laOb);
 }
 
 int object_deform_mball(Object *ob)

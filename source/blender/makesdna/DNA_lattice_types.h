@@ -53,6 +53,10 @@ typedef struct Lattice {
 	
 	struct MDeformVert *dvert;
 	
+	/* used while deforming, always free and NULL after use */
+	float *latticedata;
+	float latmat[4][4];
+	
 	struct Lattice *editlatt;
 } Lattice;
 
