@@ -343,6 +343,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\keyval.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\resources.c"
 				>
 			</File>
@@ -476,6 +480,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\screen\screen_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\screen\screendump.c"
 				>
 			</File>
 		</Filter>

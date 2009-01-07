@@ -518,6 +518,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\booleanops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\booleanops_mesh.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\brush.c"
 				>
 			</File>
