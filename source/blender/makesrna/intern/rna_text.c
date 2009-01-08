@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_text.h"
 
 #include "RNA_define.h"

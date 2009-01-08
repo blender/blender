@@ -24,7 +24,17 @@
 
 LIBNAME = rna
 DIR = $(OCGDIR)/blender/makesrna
-CSRCS = RNA.c $(wildcard rna_*.c)
+
+ALLRNA = $(wildcard rna_*.c)
+DEFRNA = $(filter-out %rna_define.c, $(filter-out %rna_dependency.c, $(filter-out %rna_access.c, $(ALLRNA))))
+
+GENSRCS = $(patsubst rna_%.c, rna_%_gen.c, $(DEFRNA))
+GENTARGET = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.c, $(GENSRCS))
+
+MAKESRCS = $(DEFRNA) makesrna.c rna_define.c
+MAKEOBJS = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.o, $(MAKESRCS))
+
+CSRCS = $(GENSRCS) rna_access.c rna_dependency.c
 
 include nan_compile.mk
 
@@ -53,8 +63,8 @@ ifeq ($(OS),windows)
 endif
 
 clean::
-	@$(RM) $(DIR)/makesrna* $(DIR)/RNA.c
-	@$(RM) $(DIR)/debug/makesrna* $(DIR)/debug/RNA.c
+	@$(RM) $(DIR)/makesrna* $(DIR)/rna*
+	@$(RM) $(DIR)/debug/makesrna* $(DIR)/debug/rna*
 
 # TODO include right .mk for ldflags
 
@@ -62,18 +72,19 @@ clean::
 # is done quite intentionally. If there is a bug in that lib, it needs
 # to be fixed by the module maintainer.
 
-RNAOBJS = $(filter-out %rna_dependency.o, $(filter-out %rna_access.o, $(filter-out %RNA.o, $(OBJS))))
-
-$(DIR)/$(DEBUG_DIR)makesrna: $(RNAOBJS) $(DIR)/$(DEBUG_DIR)makesrna.o $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
+$(DIR)/$(DEBUG_DIR)makesrna: $(MAKEOBJS) $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 	$(CC) $(LDFLAGS) -o $@ $(WINLIBS) $^
 
-$(DIR)/$(DEBUG_DIR)RNA.c: $(DIR)/$(DEBUG_DIR)makesrna
+$(DIR)/$(DEBUG_DIR)rna_phony_gen.c: $(DIR)/$(DEBUG_DIR)makesrna
     ifeq ($(OS),windows)
 	$(SRCHOME)/tools/cygwin/cl_wrapper.pl - $(DIR)/$(DEBUG_DIR)makesrna \
-	    $(DIR)/$(DEBUG_DIR)RNA.c
+	    $(DIR)/$(DEBUG_DIR)
     else
-	$(DIR)/$(DEBUG_DIR)makesrna $(DIR)/$(DEBUG_DIR)RNA.c
+	$(DIR)/$(DEBUG_DIR)makesrna $(DIR)/$(DEBUG_DIR)
     endif
+	@touch $@
+
+$(GENTARGET): $(DIR)/$(DEBUG_DIR)rna_phony_gen.c
 
 $(DIR)/$(DEBUG_DIR)makesrna.o: makesrna.c $(wildcard rna_*.c)
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) makesrna.c -o $@

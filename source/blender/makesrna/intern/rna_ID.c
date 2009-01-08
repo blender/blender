@@ -35,25 +35,25 @@
 #include "BKE_idprop.h"
 
 /* name functions that ignore the first two ID characters */
-static void rna_ID_name_get(PointerRNA *ptr, char *value)
+void rna_ID_name_get(PointerRNA *ptr, char *value)
 {
 	ID *id= (ID*)ptr->data;
 	BLI_strncpy(value, id->name+2, sizeof(id->name)-2);
 }
 
-static int rna_ID_name_length(PointerRNA *ptr)
+int rna_ID_name_length(PointerRNA *ptr)
 {
 	ID *id= (ID*)ptr->data;
 	return strlen(id->name+2);
 }
 
-static void rna_ID_name_set(PointerRNA *ptr, const char *value)
+void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
 	ID *id= (ID*)ptr->data;
 	BLI_strncpy(id->name+2, value, sizeof(id->name)-2);
 }
 
-static StructRNA *rna_ID_refine(PointerRNA *ptr)
+StructRNA *rna_ID_refine(PointerRNA *ptr)
 {
 	ID *id= (ID*)ptr->data;
 
@@ -87,7 +87,7 @@ static StructRNA *rna_ID_refine(PointerRNA *ptr)
 	}
 }
 
-static void rna_ID_fake_user_set(PointerRNA *ptr, int value)
+void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 {
 	ID *id= (ID*)ptr->data;
 

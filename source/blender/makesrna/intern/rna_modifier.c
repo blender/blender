@@ -33,6 +33,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_bmesh.h" /* For BevelModifierData */
@@ -284,7 +285,6 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 static void rna_def_modifier_multires(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "MultiresModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Multires Modifier", "");

@@ -29,6 +29,7 @@
 
 #include "rna_internal.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 
 #ifdef RNA_RUNTIME

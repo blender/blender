@@ -24,8 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(SRC
-     makesrna.c
+SET(DEFSRC
      rna_action.c
      rna_actuator.c
      rna_armature.c
@@ -36,7 +35,6 @@ SET(SRC
      rna_constraint.c
      rna_controller.c
      rna_curve.c
-     rna_define.c
      rna_fluidsim.c
      rna_group.c
      rna_ID.c
@@ -70,7 +68,58 @@ SET(SRC
      rna_userdef.c
      rna_vfont.c
      rna_wm.c
-     rna_world.c
+     rna_world.c)
+
+SET(GENSRC
+     rna_action_gen.c
+     rna_actuator_gen.c
+     rna_armature_gen.c
+     rna_brush_gen.c
+     rna_camera_gen.c
+     rna_cloth_gen.c
+     rna_color_gen.c
+     rna_constraint_gen.c
+     rna_controller_gen.c
+     rna_curve_gen.c
+     rna_fluidsim_gen.c
+     rna_group_gen.c
+     rna_ID_gen.c
+     rna_image_gen.c
+     rna_ipo_gen.c
+     rna_key_gen.c
+     rna_lamp_gen.c
+     rna_lattice_gen.c
+     rna_main_gen.c
+     rna_material_gen.c
+     rna_mesh_gen.c
+     rna_meta_gen.c
+     rna_modifier_gen.c
+     rna_nodetree_gen.c
+     rna_object_gen.c
+     rna_object_force_gen.c
+     rna_packedfile_gen.c
+     rna_particle_gen.c
+     rna_pose_gen.c
+     rna_property_gen.c
+     rna_radio_gen.c
+     rna_rna_gen.c
+     rna_scene_gen.c
+     rna_screen_gen.c
+     rna_scriptlink_gen.c
+     rna_sensor_gen.c
+     rna_sequence_gen.c
+     rna_sound_gen.c
+     rna_text_gen.c
+     rna_texture_gen.c
+     rna_userdef_gen.c
+     rna_vfont_gen.c
+     rna_wm_gen.c
+     rna_world_gen.c)
+
+SET(SRC
+     makesrna.c
+     rna_define.c
+     ${DEFSRC}
      ../../../../intern/guardedalloc/intern/mallocn.c
      ../../../../intern/guardedalloc/intern/mmap_win.c)
 
@@ -81,15 +130,16 @@ FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})
 TARGET_LINK_LIBRARIES(makesrna bf_dna)
 
-# Output rna.c
+# Output rna_*_gen.c
 ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/rna.c
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/rna.c ${CMAKE_SOURCE_DIR}/source/blender/makesrna/
+  OUTPUT ${GENSRC}
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_SOURCE_DIR}/source/blender/makesrna/
   DEPENDS makesrna
 )
 
 # Build bf_rna
-SET(SRC rna_access.c rna_dependency.c rna.c)
+SET(SRC rna_access.c rna_dependency.c ${GENSRC})
 BLENDERLIB(bf_rna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesrna")
+
