@@ -335,12 +335,10 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
 
-	ED_fileselect_set_params(sfile->params, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
+	/* screen and area have been reset already in ED_screen_full_newspace */
 
-	/* screen, areas init */
-	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	
 	return OPERATOR_RUNNING_MODAL;
 }
 

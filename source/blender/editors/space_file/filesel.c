@@ -76,14 +76,25 @@
 #include "filelist.h"
 
 
-short ED_fileselect_set_params(FileSelectParams *params, int type, const char *title, const char *path,
+FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
+{
+	if (!sfile->params) {
+		ED_fileselect_set_params(sfile, FILE_UNIX, "", "/", 0, 0, 0);
+	}
+	return sfile->params;
+}
+
+short ED_fileselect_set_params(SpaceFile *sfile, int type, const char *title, const char *path,
 							   short flag, short display, short filter)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
+	FileSelectParams *params;
 
-	if (!params) {
-		return 0;
+	if (!sfile->params) {
+		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
 	}
+
+	params = sfile->params;
 
 	params->type = type;
 	params->flag = flag;
@@ -115,3 +126,9 @@ short ED_fileselect_set_params(FileSelectParams *params, int type, const char *t
 	return 1;
 }
 
+void ED_fileselect_reset_params(SpaceFile *sfile)
+{
+	sfile->params->type = FILE_UNIX;
+	sfile->params->flag = 0;
+	sfile->params->title[0] = '\0';
+}
