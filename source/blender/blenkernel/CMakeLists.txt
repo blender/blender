@@ -33,6 +33,7 @@ SET(INC
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../../../intern/bmfont ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna
+  ../../../intern/bsp/extern
   ${SDL_INC}
   ${ZLIB_INC}
 )
