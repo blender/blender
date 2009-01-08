@@ -102,9 +102,7 @@ static void countall() {}
 static void vertexgroup_select_by_name() {}
 static void deselect_actionchannels() {}
 static void add_vert_to_defgroup() {}
-#define WEIGHT_REPLACE 0
 static void create_dverts() {}
-static int mesh_get_x_mirror_vert() {return 0;}
 static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
