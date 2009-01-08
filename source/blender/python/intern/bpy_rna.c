@@ -63,10 +63,10 @@ static long pyrna_struct_hash( BPy_StructRNA * self )
 static void pyrna_struct_dealloc( BPy_StructRNA * self )
 {
 	/* Note!! for some weired reason calling PyObject_DEL() directly crashes blender! */
-	if (self->properties) {
-		IDP_FreeProperty(self->properties);
-		MEM_freeN(self->properties);
-		self->properties= NULL;
+	if (self->freeptr && self->ptr.data) {
+		IDP_FreeProperty(self->ptr.data);
+		MEM_freeN(self->ptr.data);
+		self->ptr.data= NULL;
 	}
 
 	((PyObject *)self)->ob_type->tp_free(self);
@@ -1135,7 +1135,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	}
 	
 	pyrna->ptr= *ptr;
-	pyrna->properties= NULL;
+	pyrna->freeptr= 0;
 	
 	return ( PyObject * ) pyrna;
 }
