@@ -1830,7 +1830,7 @@ void ED_armature_to_edit(Object *ob)
 /* adjust bone roll to align Z axis with vector
  * vec is in local space and is normalized
  */
-float rollBoneToVector(EditBone *bone, float new_up_axis[3])
+float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 {
 	float mat[3][3], nor[3], up_axis[3], vec[3];
 	float roll;

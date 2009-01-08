@@ -92,6 +92,9 @@ int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int
 							short hits, short extend);
 void mouse_armature(struct bContext *C, short mval[2], int extend);
 
+float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
+
+void transform_armature_mirror_update(struct Object *obedit);
 
 /* poseobject.c */
 void ED_armature_exit_posemode(struct Base *base);
