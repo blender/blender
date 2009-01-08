@@ -1344,41 +1344,6 @@ void VIEW3D_OT_drawtype(wmOperatorType *ot)
 
 /* ********************************************************* */
 
-void set_render_border(Scene *scene, ARegion *ar, View3D *v3d)
-{
-	rcti rect;
-	short val;
-
-	val= 0; // XXX get_border(&rect, 3);
-	if(val) {
-		rctf vb;
-
-		calc_viewborder(scene, ar, v3d, &vb);
-
-		scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
-		scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
-		scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
-		scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
-
-		CLAMP(scene->r.border.xmin, 0.0, 1.0);
-		CLAMP(scene->r.border.ymin, 0.0, 1.0);
-		CLAMP(scene->r.border.xmax, 0.0, 1.0);
-		CLAMP(scene->r.border.ymax, 0.0, 1.0);
-
-		/* drawing a border surrounding the entire camera view switches off border rendering
-			* or the border covers no pixels */
-		if ((scene->r.border.xmin <= 0.0 && scene->r.border.xmax >= 1.0 &&
-			 scene->r.border.ymin <= 0.0 && scene->r.border.ymax >= 1.0) ||
-			(scene->r.border.xmin == scene->r.border.xmax ||
-			 scene->r.border.ymin == scene->r.border.ymax ))
-		{
-			scene->r.mode &= ~R_BORDER;
-		} else {
-			scene->r.mode |= R_BORDER;
-		}
-	}
-}
-
 void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
 {
 

@@ -79,6 +79,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_clear_origin);
 	WM_operatortype_append(OBJECT_OT_clear_restrictview);
 	WM_operatortype_append(OBJECT_OT_set_restrictview);
+	WM_operatortype_append(OBJECT_OT_set_slowparent);
+	WM_operatortype_append(OBJECT_OT_clear_slowparent);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

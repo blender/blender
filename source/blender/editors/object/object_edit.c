@@ -1639,36 +1639,78 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 	RNA_def_property_enum_items(prop, prop_set_restrictview_types);
 	
 }
-/* ******************** **************** */
-
-void reset_slowparents(Scene *scene, View3D *v3d)
+/* ************* Slow Parent ******************* */
+static int object_set_slowparent_exec(bContext *C, wmOperator *op)
 {
-	/* back to original locations */
-	Base *base;
+	Scene *scene= CTX_data_scene(C);
 
-	for(base= FIRSTBASE; base; base= base->next) {
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+				
+		if(base->object->parent) base->object->partype |= PARSLOW;
+		base->object->recalc |= OB_RECALC_OB;
+		
+	}
+	CTX_DATA_END;
+
+	ED_anim_dag_flush_update(C);	
+	ED_undo_push(C,"Set Slow Parent");
+	
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_set_slowparent(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Set Slow Parent";
+	ot->idname= "OBJECT_OT_set_slow_parent";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_set_slowparent_exec;
+	ot->poll= ED_operator_view3d_active;
+}
+
+static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(base->object->parent) {
 			if(base->object->partype & PARSLOW) {
 				base->object->partype -= PARSLOW;
 				where_is_object(scene, base->object);
 				base->object->partype |= PARSLOW;
+				base->object->recalc |= OB_RECALC_OB;
 			}
 		}
+		
 	}
+	CTX_DATA_END;
+
+	ED_anim_dag_flush_update(C);	
+	ED_undo_push(C,"Clear Slow Parent");
+	
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
 }
-void set_slowparent(Scene *scene, View3D *v3d)
+
+void OBJECT_OT_clear_slowparent(wmOperatorType *ot)
 {
-	Base *base;
-
-	if( okee("Set slow parent")==0 ) return;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(base->object->parent) base->object->partype |= PARSLOW;
-		}
-	}
-	BIF_undo_push("Slow parent");
+	
+	/* identifiers */
+	ot->name= "Clear Slow Parent";
+	ot->idname= "OBJECT_OT_clear_slow_parent";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_clear_slowparent_exec;
+	ot->poll= ED_operator_view3d_active;
 }
+/* ******************** **************** */
 
 // XXX
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
@@ -6307,56 +6349,4 @@ void hookmenu(Scene *scene, View3D *v3d)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}	
-}
-
-void hide_objects(Scene *scene, View3D *v3d, int select)
-{
-	Base *base;
-	short changed = 0, changed_act = 0;
-	for(base = FIRSTBASE; base; base=base->next){
-		if ((base->lay & v3d->lay) && TESTBASELIB(v3d, base)==select) {
-			base->flag &= ~SELECT;
-			base->object->flag = base->flag;
-			base->object->restrictflag |= OB_RESTRICT_VIEW;
-			changed = 1;
-			if (base==BASACT) {
-				BASACT= NULL;
-				changed_act = 1;
-			}
-		}
-	}
-	if (changed) {
-		if(select) BIF_undo_push("Hide Selected Objects");
-		else if(select) BIF_undo_push("Hide Unselected Objects");
-		DAG_scene_sort(scene);
-		allqueue(REDRAWVIEW3D,0);
-		allqueue(REDRAWOOPS,0);
-		allqueue(REDRAWDATASELECT,0);
-		if (changed_act) { /* these spaces depend on the active object */
-			allqueue(REDRAWBUTSALL,0);
-			allqueue(REDRAWIPO,0);
-			allqueue(REDRAWACTION,0);
-		}
-	}
-}
-
-void show_objects(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	int changed = 0;
-	
-	for(base = FIRSTBASE; base; base=base->next){
-		if((base->lay & v3d->lay) && base->object->restrictflag & OB_RESTRICT_VIEW) {
-			base->flag |= SELECT;
-			base->object->flag = base->flag;
-			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
-			changed = 1;
-		}
-	}
-	if (changed) {
-		BIF_undo_push("Unhide Objects");
-		DAG_scene_sort(scene);
-		allqueue(REDRAWVIEW3D,0);
-		allqueue(REDRAWOOPS,0);
-	}
 }
