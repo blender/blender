@@ -96,6 +96,7 @@ typedef struct SK_Adjustment
 {
 	SK_Stroke *target;
 	int	start, end;
+	int count;
 } SK_Adjustment;
 
 #define SK_Stroke_BUFFER_INIT_SIZE 20
@@ -199,6 +200,9 @@ void sk_applyReverseGesture(SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyConvertGesture(SK_Gesture *gest, SK_Sketch *sketch);
 
+
+void sk_resetAdjust(SK_Sketch *sketch);
+int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk);
 
 /******************** GESTURE ACTIONS ******************************/
 
@@ -1013,6 +1017,7 @@ void sk_cancelStroke(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL)
 	{
+		sk_resetAdjust(sketch);
 		sk_removeStroke(sketch, sketch->active_stroke);
 	}
 }
@@ -1122,7 +1127,7 @@ SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
 	return pt;
 }
 
-void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
+void sk_drawStroke(SK_Stroke *stk, int id, float color[3], int start, int end)
 {
 	float rgb[3];
 	int i;
@@ -1153,7 +1158,14 @@ void sk_drawStroke(SK_Stroke *stk, int id, float color[3])
 
 		for (i = 0; i < stk->nb_points; i++)
 		{
-			glColor3fv(rgb);
+			if (i >= start && i <= end)
+			{
+				glColor3f(0.3, 0.3, 0.3);
+			}
+			else
+			{
+				glColor3fv(rgb);
+			}
 			glVertex3fv(stk->points[i].p);
 			VecAddf(rgb, rgb, d_rgb);
 		}
@@ -1345,12 +1357,25 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 	return pt;
 }
 
+void sk_resetAdjust(SK_Sketch *sketch)
+{
+	sketch->adj.target = NULL;
+	sketch->adj.start = 0;
+	sketch->adj.end = 0;
+	sketch->adj.count = 0;
+}
+
+int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk)
+{
+	return sketch->adj.target && sketch->adj.count >= 3 && (sketch->adj.target == stk || stk == NULL);
+}
+
 void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	if (sketch->adj.target == NULL)
 	{
 		SK_Stroke *target;
-		int closest_index = 0;
+		int closest_index = -1;
 		int dist = SNAP_MIN_DISTANCE * 2;
 		
 		for (target = sketch->strokes.first; target; target = target->next)
@@ -1371,6 +1396,11 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		
 		if (sketch->adj.target != NULL)
 		{
+			if (closest_index > -1)
+			{
+				sketch->adj.count++;
+			}
+
 			if (stk->nb_points == 1)
 			{
 				sketch->adj.start = closest_index;
@@ -1379,7 +1409,6 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 			{
 				sketch->adj.end = closest_index;
 			}
-			sketch->adj.target->selected = 1;
 		}
 	}
 	else if (sketch->adj.target != NULL)
@@ -1392,31 +1421,52 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		
 		if (closest_pt != NULL)
 		{
+			sketch->adj.count++;
 			sketch->adj.end = index;
 		}
 		else
 		{
-			sketch->adj.end = 0;
+			sketch->adj.end = -1;
 		}
 	}
+}
+
+/* return 1 on reverse needed */
+int sk_adjustIndexes(SK_Sketch *sketch, int *start, int *end)
+{
+	int retval = 0;
+
+	*start = sketch->adj.start;
+	*end = sketch->adj.end;
+	
+	if (*end == -1)
+	{
+		*end = sketch->adj.target->nb_points - 1;
+	}
+	
+	if (*end < *start)
+	{
+		int tmp = *start;
+		*start = *end;
+		*end = tmp;
+		retval = 1;
+	}
+	
+	return retval;
 }
 
 void sk_endAdjust(SK_Sketch *sketch)
 {
 	SK_Stroke *stk = sketch->active_stroke;
 	
-	if (sketch->adj.target)
+	if (sk_hasAdjust(sketch, NULL))
 	{
-		int start = sketch->adj.start;
-		int end = sketch->adj.end;
+		int start;
+		int end;
 		
-		if (end == 0)
+		if (sk_adjustIndexes(sketch, &start, &end))
 		{
-			end = sketch->adj.target->nb_points - 1;
-		}
-		else
-		{
-			sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
+			sk_reverseStroke(stk);
 		}
 		
 		if (start != 0)
@@ -1424,17 +1474,16 @@ void sk_endAdjust(SK_Sketch *sketch)
 			stk->points->type = PT_CONTINUOUS;
 		}
 		
-		if (end < start)
+		if (end != sketch->adj.target->nb_points - 1)
 		{
-			int tmp = start;
-			start = end;
-			end = tmp;
-			sk_reverseStroke(stk);
+			sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
 		}
 		
 		sk_inserStrokePoints(sketch->adj.target, stk->points, stk->nb_points, start, end);
 		
 		sk_removeStroke(sketch, stk);
+		
+		sk_resetAdjust(sketch);
 	}
 }
 
@@ -1445,10 +1494,8 @@ void sk_startStroke(SK_Sketch *sketch)
 	
 	BLI_addtail(&sketch->strokes, stk);
 	sketch->active_stroke = stk;
-	
-	sketch->adj.target = NULL;
-	sketch->adj.start = 0;
-	sketch->adj.end = 0;
+
+	sk_resetAdjust(sketch);	
 }
 
 void sk_endStroke(SK_Sketch *sketch)
@@ -2812,7 +2859,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		int id;
 		for (id = 1, stk = sketch->strokes.first; stk; id++, stk = stk->next)
 		{
-			sk_drawStroke(stk, id, NULL);
+			sk_drawStroke(stk, id, NULL, -1, -1);
 		}
 		
 		glLoadName(-1);
@@ -2824,7 +2871,15 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		
 		for (stk = sketch->strokes.first; stk; stk = stk->next)
 		{
-			sk_drawStroke(stk, -1, (stk->selected==1?selected_rgb:unselected_rgb));
+			int start = -1;
+			int end = -1;
+			
+			if (sk_hasAdjust(sketch, stk))
+			{
+				sk_adjustIndexes(sketch, &start, &end);
+			}
+			
+			sk_drawStroke(stk, -1, (stk->selected==1?selected_rgb:unselected_rgb), start, end);
 		
 			if (stk->selected == 1)
 			{
@@ -2836,7 +2891,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 		if (sketch->gesture != NULL && area_is_active_area(G.vd->area))
 		{
 			float gesture_rgb[3] = {0, 0.5, 1};
-			sk_drawStroke(sketch->gesture, -1, gesture_rgb);
+			sk_drawStroke(sketch->gesture, -1, gesture_rgb, -1, -1);
 		}
 		
 		if (sketch->active_stroke != NULL)
@@ -2860,7 +2915,7 @@ void sk_drawSketch(SK_Sketch *sketch, int with_names)
 				}
 				
 				glEnable(GL_LINE_STIPPLE);
-				glColor3f(1, 0.5, 0);
+				glColor3fv(selected_rgb);
 				glBegin(GL_LINE_STRIP);
 				
 					glVertex3fv(last->p);
