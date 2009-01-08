@@ -410,6 +410,10 @@
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\vpaint.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="space_time"
@@ -910,6 +914,10 @@
 		<Filter
 			Name="mesh"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editdeform.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editface.c"
 				>
