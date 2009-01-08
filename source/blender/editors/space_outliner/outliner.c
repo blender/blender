@@ -1357,7 +1357,7 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	else if(soops->outlinevis==SO_USERDEF) {
 		PointerRNA userdefptr;
 
-		RNA_pointer_create(NULL, NULL, &RNA_UserPreferences, &U, &userdefptr);
+		RNA_pointer_create(NULL, &RNA_UserPreferences, &U, &userdefptr);
 
 		ten= outliner_add_element(soops, &soops->tree, (void*)&userdefptr, NULL, TSE_RNA_STRUCT, -1);
 

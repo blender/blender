@@ -392,7 +392,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			IDPropertyTemplate val = {0};
 			op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
 		}
-		RNA_pointer_create(&RNA_WindowManager, &wm->id, ot->srna, op->properties, op->ptr);
+		RNA_pointer_create(&wm->id, ot->srna, op->properties, op->ptr);
 
 		/* initialize error reports */
 		if (reports) {

@@ -172,7 +172,7 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 
 	if(ot)
-		RNA_pointer_create(NULL, NULL, ot->srna, NULL, ptr);
+		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
 	else
 		memset(ptr, 0, sizeof(*ptr));
 }
