@@ -204,7 +204,7 @@ static void lightcache_filter(float *cache, int res)
 					i = rgb*res_3 + x*res_2 + y*res + z;
 
 					/* trigger for outside mesh */
-					if (cache[i] < 0.5f) cache[i] = get_avg_surrounds(cache, res, res_2, res_3, rgb, x, y, z);
+					if (cache[i] < -0.5f) cache[i] = get_avg_surrounds(cache, res, res_2, res_3, rgb, x, y, z);
 				}
 			}
 		}
