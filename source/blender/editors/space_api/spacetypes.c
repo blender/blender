@@ -123,7 +123,60 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	}
 }
 
-/* ****************************** space template *********************** */
+/* ********************** custom drawcall api ***************** */
+
+/* type */
+#define REGION_DRAW_PRE		1
+#define REGION_DRAW_POST	0
+
+typedef struct RegionDrawCB {
+	struct RegionDrawCB *next, *prev;
+	
+	void		(*draw)(const struct bContext *, struct ARegion *);	
+	
+	int type;
+	
+} RegionDrawCB;
+
+void *ED_region_draw_cb_activate(ARegionType *art, 
+								 void	(*draw)(const struct bContext *, struct ARegion *),
+								 int type)
+{
+	RegionDrawCB *rdc= MEM_callocN(sizeof(RegionDrawCB), "RegionDrawCB");
+	
+	BLI_addtail(&art->drawcalls, rdc);
+	rdc->draw= draw;
+	rdc->type= type;
+	
+	return rdc;
+}
+
+void ED_region_draw_cb_exit(ARegionType *art, void *handle)
+{
+	RegionDrawCB *rdc;
+	
+	for(rdc= art->drawcalls.first; rdc; rdc= rdc->next) {
+		if(rdc==(RegionDrawCB *)handle) {
+			BLI_remlink(&art->drawcalls, rdc);
+			MEM_freeN(rdc);
+			return;
+		}
+	}
+}
+
+void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
+{
+	RegionDrawCB *rdc;
+	
+	for(rdc= ar->type->drawcalls.first; rdc; rdc= rdc->next) {
+		if(rdc->type==type)
+			rdc->draw(C, ar);
+	}		
+}
+
+
+
+/* ********************* space template *********************** */
 
 /* allocate and init some vars */
 static SpaceLink *xxx_new(const bContext *C)

@@ -181,15 +181,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	return (SpaceLink *)v3dn;
 }
 
-static void view3d_main_area_draw(const bContext *C, ARegion *ar)
-{
-	/* draw entirely, view changes should be handled here */
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;	/* XXX get from region */
-	
-	drawview3dspace(CTX_wm_screen(C), CTX_data_scene(C), ar, v3d);
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {

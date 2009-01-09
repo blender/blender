@@ -115,6 +115,9 @@ typedef struct ARegionType {
 	/* return context data */
 	int			(*context)(const struct bContext *, const void *, struct bContextDataResult *);
 
+	/* custom drawing callbacks */
+	ListBase	drawcalls;
+
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
 	/* default keymaps to add */

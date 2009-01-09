@@ -69,6 +69,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -96,6 +97,7 @@ typedef struct ViewOpsData {
 	int origx, origy, oldx, oldy;
 	int origkey;
 
+	void *vh; // XXX temp
 } ViewOpsData;
 
 #define TRACKBALLSIZE  (1.1)
@@ -362,6 +364,10 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		default:
 			if(event->type==vod->origkey && event->val==0) {
 
+				if(vod->vh) {
+					ED_region_draw_cb_exit(CTX_wm_region(C)->type, vod->vh);
+					ED_region_tag_redraw(CTX_wm_region(C));
+				}
 				MEM_freeN(vod);
 				op->customdata= NULL;
 
@@ -372,6 +378,12 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void vh_draw(const bContext *C, ARegion *ar)
+{
+	glColor3ub(100, 200, 100);
+	glRectf(-0.2,  -0.2,  0.2,  0.2); 
+}
+
 static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewOpsData *vod;
@@ -380,6 +392,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data(C, op, event);
 	vod= op->customdata;
 
+	vod->vh= ED_region_draw_cb_activate(CTX_wm_region(C)->type, vh_draw, REGION_DRAW_POST);
+	
 	/* switch from camera view when: */
 	if(vod->v3d->persp != V3D_PERSP) {
 

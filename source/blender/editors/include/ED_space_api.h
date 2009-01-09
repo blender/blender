@@ -29,6 +29,9 @@
 #ifndef ED_SPACE_API_H
 #define ED_SPACE_API_H
 
+struct ARegionType;
+struct bContext;
+
 /* the pluginnable API for export to editors */
 
 /* calls for registering default spaces */
@@ -53,6 +56,15 @@ void ED_spacetype_sequencer(void);
 /* in space_file.c */
 void ED_file_init(void);
 void ED_file_exit(void);
+
+#define REGION_DRAW_PRE		1
+#define REGION_DRAW_POST	0
+
+void *ED_region_draw_cb_activate(struct ARegionType *, 
+								 void	(*draw)(const struct bContext *, struct ARegion *),
+								 int type);
+void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
+void ED_region_draw_cb_exit(struct ARegionType *, void *);
 
 #endif /* ED_SPACE_API_H */
 
