@@ -319,7 +319,7 @@ char brush_size(SculptData *sd, Brush *b)
 {
 	float size= b->size;
 	float pressure= 0; /* XXX: get_pressure(); */
-	short activedevice= get_activedevice();
+	short activedevice= 0; /* XXX: get_activedevice(); */
 	
 	if(b->sculpt_tool!=SCULPT_TOOL_GRAB) {
 		const float size_factor= sd->tablet_size / 10.0f;
@@ -340,7 +340,7 @@ float brush_strength(SculptData *sd, Brush *b, BrushAction *a)
 {
 	float dir= b->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
-	short activedevice= get_activedevice();
+	short activedevice= 0;/*XXX: get_activedevice(); */
 	float flip= a->flip ? -1:1;
 	float anchored = b->flag & BRUSH_ANCHORED ? 25 : 1;
 
@@ -431,7 +431,7 @@ void calc_area_normal(SculptData *sd, float out[3], const BrushAction *a, const 
 	
 	out[0]=out[1]=out[2] = out_flip[0]=out_flip[1]=out_flip[2] = 0;
 
-	if(sculptmode_brush()->flag & BRUSH_ANCHORED) {
+	if(sd->brush->flag & BRUSH_ANCHORED) {
 		for(; node; node = node->next)
 			add_norm_if(((BrushAction*)a)->symm.out, out, out_flip, a->orig_norms[node->Index]);
 	}
@@ -580,7 +580,7 @@ void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, const Lis
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	const float bstr= brush_strength(sd, sculptmode_brush(), a);
+	const float bstr= brush_strength(sd, sd->brush, a);
 
 	calc_area_normal(sd, area_normal, a, NULL, active_verts);
 
@@ -921,7 +921,7 @@ void do_brush_action(SculptData *sd, BrushAction *a)
 	ActiveData *adata= 0;
 	float *vert;
 	Mesh *me= NULL; /*XXX: get_mesh(OBACT); */
-	const float bstrength= brush_strength(sd, sculptmode_brush(), a);
+	const float bstrength= brush_strength(sd, sd->brush, a);
 	KeyBlock *keyblock= NULL; /*XXX: ob_get_keyblock(OBACT); */
 	SculptSession *ss = sd->session;
 	Brush *b = sd->brush;
@@ -1169,7 +1169,7 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 	ModifierData *md;
 	int i;
 	const char flip = 0; /*XXX: (get_qual() == LR_SHIFTKEY); */
- 	const char anchored = sculptmode_brush()->flag & BRUSH_ANCHORED;
+ 	const int anchored = sd->brush->flag & BRUSH_ANCHORED;
  	short orig_mouse[2], dx=0, dy=0;
 	float size = brush_size(sd, b);
 
@@ -1629,7 +1629,7 @@ void sculpt(SculptData *sd)
 		ss= sd->session;
 	}
 
-	anchored = sculptmode_brush()->flag & BRUSH_ANCHORED;
+	anchored = sd->brush->flag & BRUSH_ANCHORED;
 	smooth_stroke = (sd->flags & SCULPT_INPUT_SMOOTH) && (sd->brush->sculpt_tool != SCULPT_TOOL_GRAB) && !anchored;
 
 	if(smooth_stroke)
@@ -1710,7 +1710,7 @@ void sculpt(SculptData *sd)
 		}
 		
 		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] ||
-		   sculptmode_brush()->flag & BRUSH_AIRBRUSH) {
+		   sd->brush->flag & BRUSH_AIRBRUSH) {
 			a->firsttime = firsttime;
 			firsttime= 0;
 
@@ -1778,7 +1778,7 @@ void sculpt(SculptData *sd)
 				
 				/* Draw cursor */
 				if(sd->flags & SCULPT_TOOL_DRAW)
-					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
+					fdrawXORcirc((float)mouse[0],(float)mouse[1],sd->brush->size);
 				/* XXX: if(smooth_stroke)
 				   sculpt_stroke_draw(); */
 				
@@ -1835,9 +1835,6 @@ void sculpt(SculptData *sd)
 void ED_sculpt_enter_sculptmode()
 {
 	G.f |= G_SCULPTMODE;
-
-	/* Called here to sanity-check the brush */
-	sculptmode_brush();
 
 	sculpt_init_session(NULL /*XXX*/);
 		
