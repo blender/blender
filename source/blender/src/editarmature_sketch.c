@@ -92,6 +92,8 @@ typedef struct SK_Stroke
 	int selected;
 } SK_Stroke;
 
+#define SK_ADJUST_LIMIT	5
+
 typedef struct SK_Adjustment
 {
 	SK_Stroke *target;
@@ -1360,14 +1362,14 @@ SK_Point *sk_snapPointArmature(Object *ob, ListBase *ebones, short mval[2], int 
 void sk_resetAdjust(SK_Sketch *sketch)
 {
 	sketch->adj.target = NULL;
-	sketch->adj.start = 0;
-	sketch->adj.end = 0;
+	sketch->adj.start = -1;
+	sketch->adj.end = -1;
 	sketch->adj.count = 0;
 }
 
 int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk)
 {
-	return sketch->adj.target && sketch->adj.count >= 3 && (sketch->adj.target == stk || stk == NULL);
+	return sketch->adj.target && sketch->adj.count >= SK_ADJUST_LIMIT && (sketch->adj.target == stk || stk == NULL);
 }
 
 void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
@@ -1398,7 +1400,14 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		{
 			if (closest_index > -1)
 			{
-				sketch->adj.count++;
+				if (sk_lastStrokePoint(stk)->type == PT_EXACT)
+				{
+					sketch->adj.count = SK_ADJUST_LIMIT;
+				}
+				else
+				{
+					sketch->adj.count++;
+				}
 			}
 
 			if (stk->nb_points == 1)
@@ -1421,7 +1430,15 @@ void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 		
 		if (closest_pt != NULL)
 		{
-			sketch->adj.count++;
+			if (sk_lastStrokePoint(stk)->type == PT_EXACT)
+			{
+				sketch->adj.count = SK_ADJUST_LIMIT;
+			}
+			else
+			{
+				sketch->adj.count++;
+			}
+			
 			sketch->adj.end = index;
 		}
 		else
