@@ -516,6 +516,15 @@ void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *pr
 		srna->nameproperty= prop;
 }
 
+void RNA_def_struct_parent(StructRNA *srna, StructRNA *parent)
+{
+
+	if(DefRNA.preprocess)
+		srna->parent= (StructRNA*)parent->identifier;
+	else
+		srna->parent= parent;
+}
+
 void RNA_def_struct_flag(StructRNA *srna, int flag)
 {
 	srna->flag= flag;

@@ -205,6 +205,8 @@ typedef struct CollectionPropertyRNA {
 	struct StructRNA *structtype;
 } CollectionPropertyRNA;
 
+
+/* changes to this struct require updating rna_generate_struct in makesrna.c */
 struct StructRNA {
 	struct StructRNA *next, *prev;
 
@@ -226,6 +228,12 @@ struct StructRNA {
 
 	/* struct this is derivedfrom */
 	struct StructRNA *from;
+
+	/* only use for nested structs, where both the parent and child access
+	 * the same C Struct but nesting is used for grouping properties.
+	 * The parent property is used so we know NULL checks are not needed,
+	 * and that this struct will never exist without its parent */
+	struct StructRNA *parent;
 
 	/* function to give the more specific type */
 	StructRefineFunc refine; 

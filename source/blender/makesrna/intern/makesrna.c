@@ -883,6 +883,9 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 	if(srna->from) fprintf(f, "\t&RNA_%s,\n", (char*)srna->from);
 	else fprintf(f, "\tNULL,\n");
 
+	if(srna->parent) fprintf(f, "\t&RNA_%s,\n", (char*)srna->parent);
+	else fprintf(f, "\tNULL,\n");
+
 	fprintf(f, "\t%s,\n", rna_function_string(srna->refine));
 
 	prop= srna->properties.first;

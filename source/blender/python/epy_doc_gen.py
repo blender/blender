@@ -43,23 +43,23 @@ def rna2epy(target_path):
 	
 
 	
-	def write_struct(rna_struct):
+	def write_struct(rna_struct, structs, ident):
 		identifier = rna_struct.identifier
 		
 		rna_base = rna_struct.base
 		
 		if rna_base:
-			out.write('class %s(%s):\n' % (identifier, rna_base.identifier))
+			out.write(ident+ 'class %s(%s):\n' % (identifier, rna_base.identifier))
 		else:
-			out.write('class %s:\n' % identifier)
+			out.write(ident+ 'class %s:\n' % identifier)
 		
-		out.write('\t"""\n')
+		out.write(ident+ '\t"""\n')
 		
 		title = 'The %s Object' % rna_struct.name
 		
-		out.write('\t%s\n' %  title)
-		out.write('\t%s\n' %  ('=' * len(title)))
-		out.write('\t\t%s\n' %  rna_struct.description)
+		out.write(ident+ '\t%s\n' %  title)
+		out.write(ident+ '\t%s\n' %  ('=' * len(title)))
+		out.write(ident+ '\t\t%s\n' %  rna_struct.description)
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 			
@@ -90,25 +90,30 @@ def rna2epy(target_path):
 			else:				readonly_str = ' (readonly)'
 			
 			if rna_prop_ptr: # Use the pointer type
-				out.write('\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
-				out.write('\t@type %s: %sL{%s}%s%s\n' %  (rna_prop_identifier, collection_str, rna_prop_ptr.identifier, array_str, readonly_str))
+				out.write(ident+ '\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
+				out.write(ident+ '\t@type %s: %sL{%s}%s%s\n' %  (rna_prop_identifier, collection_str, rna_prop_ptr.identifier, array_str, readonly_str))
 			else:
 				if rna_prop_type == 'enum':
-					out.write('\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
-					out.write('\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
+					out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
+					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
 				elif rna_prop_type == 'int' or rna_prop_type == 'float':
-					out.write('\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
-					out.write('\t@type %s: %s%s%s in [%s, %s]\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str, range_str(rna_prop.hard_min), range_str(rna_prop.hard_max) ))
+					out.write(ident+ '\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
+					out.write(ident+ '\t@type %s: %s%s%s in [%s, %s]\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str, range_str(rna_prop.hard_min), range_str(rna_prop.hard_max) ))
 				elif rna_prop_type == 'string':
-					out.write('\t@ivar %s: %s (maximum length of %s)\n' %  (rna_prop_identifier, rna_desc, rna_prop.max_length))
-					out.write('\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str))
+					out.write(ident+ '\t@ivar %s: %s (maximum length of %s)\n' %  (rna_prop_identifier, rna_desc, rna_prop.max_length))
+					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str))
 				else:
-					out.write('\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
-					out.write('\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str))
+					out.write(ident+ '\t@ivar %s: %s\n' %  (rna_prop_identifier, rna_desc))
+					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type, array_str, readonly_str))
 				
 			
-		out.write('\t"""\n\n')
-	
+		out.write(ident+ '\t"""\n\n')
+		
+		# Now write children recursively
+		for child in structs:
+			if rna_struct == child.parent:
+				write_struct(child, structs, ident + '\t')
+		
 	
 	out = open(target_path, 'w')
 
@@ -150,7 +155,11 @@ def rna2epy(target_path):
 	
 	
 	for rna_struct in structs:
-		write_struct(rna_struct)
+		if rna_struct.parent:
+			continue
+		
+		write_struct(rna_struct, structs, '')
+		
 		
 	out.write('\n')
 	out.close()

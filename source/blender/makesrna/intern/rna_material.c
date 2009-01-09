@@ -168,6 +168,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna, StructRNA *parent)
 
 	srna= RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
 	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Raytrace Mirror", "");
 
 	prop= RNA_def_property(parent, "raytrace_mirror", PROP_POINTER, PROP_NONE);
@@ -248,6 +249,7 @@ static void rna_def_material_raytra(BlenderRNA *brna, StructRNA *parent)
 
 	srna= RNA_def_struct(brna, "MaterialRaytraceTransparency", NULL);
 	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Raytrace Transparency", "");
 
 	prop= RNA_def_property(parent, "raytrace_transparency", PROP_POINTER, PROP_NONE);
@@ -334,6 +336,7 @@ static void rna_def_material_halo(BlenderRNA *brna, StructRNA *parent)
 
 	srna= RNA_def_struct(brna, "MaterialHalo", NULL);
 	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Halo", "");
 
 	prop= RNA_def_property(parent, "halo", PROP_POINTER, PROP_NONE);
@@ -472,6 +475,7 @@ static void rna_def_material_sss(BlenderRNA *brna, StructRNA *parent)
 
 	srna= RNA_def_struct(brna, "MaterialSubsurfaceScattering", NULL);
 	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Subsurface Scattering", "");
 
 	prop= RNA_def_property(parent, "subsurface_scattering", PROP_POINTER, PROP_NONE);
