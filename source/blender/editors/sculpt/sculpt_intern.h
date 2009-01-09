@@ -47,17 +47,7 @@ struct ScrArea;
 struct SculptData;
 struct SculptStroke;
 
-struct SculptSession *sculpt_session(void);
-struct SculptData *sculpt_data(void);
-
-/* Memory */
-void sculptmode_correct_state(void);
-
 /* Interface */
-void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
-void sculptmode_draw_interface_brush(struct uiBlock *block,unsigned short cx, unsigned short cy);
-void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx, unsigned short cy);
-void sculptmode_rem_tex(void*,void*);
 void sculptmode_selectbrush_menu(void);
 void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
@@ -65,21 +55,17 @@ void sculpt_stroke_draw();
 void sculpt_radialcontrol_start(int mode);
 
 struct Brush *sculptmode_brush(void);
-void do_symmetrical_brush_actions(struct BrushAction *a, short *, short *);
+void do_symmetrical_brush_actions(struct SculptData *sd, struct BrushAction *a, short *, short *);
 
-void sculptmode_update_tex(void);
 char sculpt_modifiers_active(struct Object *ob);
-void sculpt(void);
-void set_sculptmode(void);
+void sculpt(SculptData *sd);
 
 /* Stroke */
-void sculpt_stroke_new(const int max);
-void sculpt_stroke_free();
-void sculpt_stroke_add_point(const short x, const short y);
-void sculpt_stroke_apply(struct BrushAction *);
-void sculpt_stroke_apply_all(struct BrushAction *);
-void sculpt_stroke_draw();
-
+struct SculptStroke *sculpt_stroke_new(const int max);
+void sculpt_stroke_free(struct SculptStroke *);
+void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
+void sculpt_stroke_apply(struct SculptData *sd, struct SculptStroke *, struct BrushAction *);
+void sculpt_stroke_apply_all(struct SculptData *sd, struct SculptStroke *, struct BrushAction *);
 
 /* Partial Mesh Visibility */
 void sculptmode_pmv(int mode);

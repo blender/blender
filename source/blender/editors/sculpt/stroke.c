@@ -58,31 +58,27 @@ typedef struct SculptStroke {
 	float offset;
 } SculptStroke;
 
-void sculpt_stroke_new(const int max)
+SculptStroke *sculpt_stroke_new(const int max)
 {
-	SculptSession *ss = sculpt_session();
-
-	ss->stroke = MEM_callocN(sizeof(SculptStroke), "SculptStroke");
-	ss->stroke->loc = MEM_callocN(sizeof(short) * 4 * max, "SculptStroke.loc");
-	ss->stroke->max = max;
-	ss->stroke->index = -1;
+	SculptStroke *stroke = MEM_callocN(sizeof(SculptStroke), "SculptStroke");
+	stroke->loc = MEM_callocN(sizeof(short) * 4 * max, "SculptStroke.loc");
+	stroke->max = max;
+	stroke->index = -1;
+	return stroke;
 }
 
-void sculpt_stroke_free()
+void sculpt_stroke_free(SculptStroke *stroke)
 {
-	SculptSession *ss = sculpt_session();
-	if(ss && ss->stroke) {
-		if(ss->stroke->loc) MEM_freeN(ss->stroke->loc);
-		if(ss->stroke->final_mem) MEM_freeN(ss->stroke->final_mem);
+	if(stroke) {
+		if(stroke->loc) MEM_freeN(stroke->loc);
+		if(stroke->final_mem) MEM_freeN(stroke->final_mem);
 
-		MEM_freeN(ss->stroke);
-		ss->stroke = NULL;
+		MEM_freeN(stroke);
 	}
 }
 
-void sculpt_stroke_add_point(const short x, const short y)
+void sculpt_stroke_add_point(SculptStroke *stroke, const short x, const short y)
 {
-	SculptStroke *stroke = sculpt_session()->stroke;
 	const int next = stroke->index + 1;
 
 	if(stroke->index == -1) {
@@ -112,10 +108,8 @@ void sculpt_stroke_smooth(SculptStroke *stroke)
 	}	
 }
 
-static void sculpt_stroke_create_final()
+static void sculpt_stroke_create_final(SculptStroke *stroke)
 {
-	SculptStroke *stroke = sculpt_session()->stroke;
-
 	if(stroke) {
 		StrokePoint *p, *pnext;
 		int i;
@@ -178,9 +172,9 @@ float sculpt_stroke_final_length(SculptStroke *stroke)
 }
 
 /* If partial is nonzero, cuts off apply after that length has been processed */
-static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct BrushAction *a, const int partial)
+static StrokePoint *sculpt_stroke_apply_generic(SculptData *sd, SculptStroke *stroke, struct BrushAction *a, const int partial)
 {
-	const int sdspace = sculpt_data()->spacing;
+	const int sdspace = sd->spacing;
 	const short spacing = sdspace > 0 ? sdspace : 2;
 	const int dots = sculpt_stroke_final_length(stroke) / spacing;
 	int i;
@@ -215,24 +209,23 @@ static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct Bru
 		co[0] = p->x*v + p->next->x*u;
 		co[1] = p->y*v + p->next->y*u;
 
-		do_symmetrical_brush_actions(a, co, NULL);
+		do_symmetrical_brush_actions(sd, a, co, NULL);
 	}
 
 	return p ? p->next : NULL;
 }
 
-void sculpt_stroke_apply(struct BrushAction *a)
+void sculpt_stroke_apply(SculptData *sd, SculptStroke *stroke, struct BrushAction *a)
 {
-	SculptStroke *stroke = sculpt_session()->stroke;
 	/* TODO: make these values user-modifiable? */
 	const int partial_len = 100;
 	const int min_len = 200;
 
 	if(stroke) {
-		sculpt_stroke_create_final();
+		sculpt_stroke_create_final(stroke);
 
 		if(sculpt_stroke_final_length(stroke) > min_len) {
-			StrokePoint *p = sculpt_stroke_apply_generic(stroke, a, partial_len);
+			StrokePoint *p = sculpt_stroke_apply_generic(sd, stroke, a, partial_len);
 
 			/* Replace remaining values in stroke->loc with remaining stroke->final values */
 			stroke->index = -1;
@@ -249,21 +242,18 @@ void sculpt_stroke_apply(struct BrushAction *a)
 	}
 }
 
-void sculpt_stroke_apply_all(struct BrushAction *a)
+void sculpt_stroke_apply_all(SculptData *sd, SculptStroke *stroke, struct BrushAction *a)
 {
-	SculptStroke *stroke = sculpt_session()->stroke;
-
-	sculpt_stroke_create_final();
+	sculpt_stroke_create_final(stroke);
 
 	if(stroke) {
-		sculpt_stroke_apply_generic(stroke, a, 0);
+		sculpt_stroke_apply_generic(sd, stroke, a, 0);
 	}
 }
 
-void sculpt_stroke_draw()
+/* XXX: drawing goes elsewhere */
+void sculpt_stroke_draw(SculptStroke *stroke)
 {
-	SculptStroke *stroke = sculpt_session()->stroke;
-
 	if(stroke) {
 		StrokePoint *p;
 
