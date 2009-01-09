@@ -220,7 +220,7 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 			MEM_freeN(ss->texcache);
 			ss->texcache= NULL;
 		}
-		BIF_undo_push("Unlink brush texture");
+		// XXX BIF_undo_push("Unlink brush texture");
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWOOPS, 0);
 	}
@@ -1565,7 +1565,7 @@ void sculptmode_draw_mesh(int only_damaged)
 
 static void sculpt_undo_push(SculptData *sd)
 {
-	switch(sd->brush->sculpt_tool) {
+	/*XXX: switch(sd->brush->sculpt_tool) {
 	case SCULPT_TOOL_DRAW:
 		BIF_undo_push("Draw Brush"); break;
 	case SCULPT_TOOL_SMOOTH:
@@ -1582,7 +1582,7 @@ static void sculpt_undo_push(SculptData *sd)
  		BIF_undo_push("Flatten Brush"); break;
 	default:
 		BIF_undo_push("Sculpting"); break;
-	}
+		}*/
 }
 
 void sculptmode_correct_state(SculptData *sd)
@@ -1664,7 +1664,7 @@ void sculpt(SculptData *sd)
 	if(sd->texrept!=SCULPTREPT_3D)
 		sculptmode_update_tex(sd);
 
-	getmouseco_areawin(mouse);
+	/*XXX: getmouseco_areawin(mouse); */
 	mvalo[0]= mouse[0];
 	mvalo[1]= mouse[1];
 	lastSigMouse[0]=mouse[0];
@@ -1699,8 +1699,8 @@ void sculpt(SculptData *sd)
 
 	me = get_mesh(ob);
 
-	while (get_mbut() & mousebut) {
-		getmouseco_areawin(mouse);
+	while (/*XXX:get_mbut() & mousebut*/0) {
+		/* XXX: getmouseco_areawin(mouse); */
 		/* If rake, and the mouse has moved over 10 pixels (euclidean) (prevents jitter) then get the new angle */
 		if (rake && (pow(lastSigMouse[0]-mouse[0],2)+pow(lastSigMouse[1]-mouse[1],2))>100){
 			/*Nasty looking, but just orig + new angle really*/
@@ -1756,8 +1756,8 @@ void sculpt(SculptData *sd)
 
 			if(modifier_calculations || sd->brush->sculpt_tool == SCULPT_TOOL_GRAB || !(sd->flags & SCULPT_DRAW_FAST)) {
 				calc_damaged_verts(ss, a);
-				/*XXX: scrarea_do_windraw(curarea); */
-				screen_swapbuffers();
+				/*XXX: scrarea_do_windraw(curarea);
+				screen_swapbuffers(); */
 			} else { /* Optimized drawing */
 				calc_damaged_verts(ss, a);
 
@@ -1768,7 +1768,7 @@ void sculpt(SculptData *sd)
 				
 				/* Draw all the polygons that are inside the modified area(s) */
 				glScissor(scissor_box[0], scissor_box[1], scissor_box[2], scissor_box[3]);
-				sculptmode_draw_mesh(1);
+				/* XXX: sculptmode_draw_mesh(1); */
 				glAccum(GL_LOAD, 1);
 
 				projverts_clear_inside(ss);
@@ -1780,9 +1780,9 @@ void sculpt(SculptData *sd)
 				if(sd->flags & SCULPT_TOOL_DRAW)
 					fdrawXORcirc((float)mouse[0],(float)mouse[1],sd->brush->size);
 				/* XXX: if(smooth_stroke)
-				   sculpt_stroke_draw(); */
+				   sculpt_stroke_draw();
 				
-				myswapbuffers();
+				myswapbuffers(); */
 			}
 
 			BLI_freelistN(&ss->damaged_rects);
@@ -1797,7 +1797,7 @@ void sculpt(SculptData *sd)
 			}
 
 		}
-		else BIF_wait_for_statechange();
+		else ;/*XXX:BIF_wait_for_statechange();*/
 	}
 
 	/* Set the rotation of the brush back to what it was before any rake */
