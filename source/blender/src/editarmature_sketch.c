@@ -1456,6 +1456,11 @@ int sk_adjustIndexes(SK_Sketch *sketch, int *start, int *end)
 	*start = sketch->adj.start;
 	*end = sketch->adj.end;
 	
+	if (*start == -1)
+	{
+		*start = 0;
+	}
+	
 	if (*end == -1)
 	{
 		*end = sketch->adj.target->nb_points - 1;
