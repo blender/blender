@@ -1494,14 +1494,17 @@ void sk_endAdjust(SK_Sketch *sketch)
 			sk_reverseStroke(stk);
 		}
 		
-		if (start != 0)
+		if (stk->nb_points > 1)
 		{
-			stk->points->type = PT_CONTINUOUS;
-		}
-		
-		if (end != sketch->adj.target->nb_points - 1)
-		{
-			sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
+			if (start != 0)
+			{
+				stk->points->type = PT_CONTINUOUS;
+			}
+			
+			if (end != sketch->adj.target->nb_points - 1)
+			{
+				sk_lastStrokePoint(stk)->type = PT_CONTINUOUS;
+			}
 		}
 		
 		sk_inserStrokePoints(sketch->adj.target, stk->points, stk->nb_points, start, end);
