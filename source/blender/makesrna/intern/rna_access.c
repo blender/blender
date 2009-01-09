@@ -61,16 +61,34 @@ void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
 	r_ptr->data= main;
 }
 
-void RNA_id_pointer_create(StructRNA *idtype, ID *id, PointerRNA *r_ptr)
+void RNA_id_pointer_create(ID *id, PointerRNA *r_ptr)
 {
+	PointerRNA tmp;
+	StructRNA *idtype= NULL;
+
+	if(id) {
+		memset(&tmp, 0, sizeof(tmp));
+		tmp.data= id;
+		idtype= rna_ID_refine(&tmp);
+	}
+
 	r_ptr->id.type= idtype;
 	r_ptr->id.data= id;
 	r_ptr->type= idtype;
 	r_ptr->data= id;
 }
 
-void RNA_pointer_create(StructRNA *idtype, ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
+void RNA_pointer_create(ID *id, StructRNA *type, void *data, PointerRNA *r_ptr)
 {
+	PointerRNA tmp;
+	StructRNA *idtype= NULL;
+
+	if(id) {
+		memset(&tmp, 0, sizeof(tmp));
+		tmp.data= id;
+		idtype= rna_ID_refine(&tmp);
+	}
+
 	r_ptr->id.type= idtype;
 	r_ptr->id.data= id;
 	r_ptr->type= type;

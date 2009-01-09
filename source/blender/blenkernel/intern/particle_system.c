@@ -1495,8 +1495,8 @@ void psys_threads_free(ParticleThread *threads)
 		MEM_freeN(ctx->vg_roughe);
 
 	if(ctx->psys->lattice){
-		end_latt_deform();
-		ctx->psys->lattice=0;
+		end_latt_deform(ctx->psys->lattice);
+		ctx->psys->lattice= NULL;
 	}
 
 	/* distribution */
@@ -2629,8 +2629,8 @@ void do_effectors(int pa_no, ParticleData *pa, ParticleKey *state, Object *ob, P
 				}
 
 				if(epsys->lattice){
-					end_latt_deform();
-					epsys->lattice=0;
+					end_latt_deform(epsys->lattice);
+					epsys->lattice= NULL;
 				}
 			}
 		}
@@ -4254,8 +4254,8 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 		}
 
 		if(psys->lattice){
-			end_latt_deform();
-			psys->lattice=0;
+			end_latt_deform(psys->lattice);
+			psys->lattice= NULL;
 		}
 
 		if(pa->r_rot[0] > disp)
@@ -4630,8 +4630,8 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	if(vg_size) MEM_freeN(vg_size);
 
 	if(psys->lattice){
-		end_latt_deform();
-		psys->lattice=0;
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
 	}
 }
 

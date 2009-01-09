@@ -1119,7 +1119,8 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 }
 
 
-/* called in wm_event_system.c. sets state var in screen */
+/* called in wm_event_system.c. sets state vars in screen, cursors */
+/* event type is mouse move */
 void ED_screen_set_subwinactive(wmWindow *win, wmEvent *event)
 {
 	if(win->screen) {

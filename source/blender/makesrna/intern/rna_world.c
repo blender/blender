@@ -71,6 +71,7 @@ void rna_def_ambient_occlusion(BlenderRNA *brna, StructRNA *parent)
 
 	srna= RNA_def_struct(brna, "WorldAmbientOcclusion", NULL);
 	RNA_def_struct_sdna(srna, "World");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Ambient Occlusion", "DOC_BROKEN");
 
 	prop= RNA_def_property(parent, "ambient_occlusion", PROP_POINTER, PROP_NONE);

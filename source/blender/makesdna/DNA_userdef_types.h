@@ -331,5 +331,11 @@ extern UserDef U; /* from blenkernel blender.c */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
 
+/* theme drawtypes */
+#define TH_MINIMAL  	0
+#define TH_ROUNDSHADED	1
+#define TH_ROUNDED  	2
+#define TH_OLDSKOOL 	3
+#define TH_SHADED   	4
 
 #endif

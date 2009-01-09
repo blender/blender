@@ -128,7 +128,7 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	uiBlock *block;
 	int loadbutton;
 	char name[20];
@@ -277,7 +277,7 @@ static int file_view_columns(SpaceFile* sfile, View2D *v2d)
 void file_calc_previews(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	View2D *v2d= &ar->v2d;
 	int width=0, height=0;
 	int rows, columns;
@@ -316,7 +316,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 void file_draw_previews(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params=sfile->params;
+	FileSelectParams* params= ED_fileselect_get_params(sfile);
 	View2D *v2d= &ar->v2d;
 	static double lasttime= 0;
 	struct FileList* files = sfile->files;
@@ -471,7 +471,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 void file_draw_list(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	int numfiles;
@@ -558,7 +558,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 void file_draw_fsmenu(const bContext *C, ARegion *ar)
 {
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	char bookmark[FILE_MAX];
 	int nentries = fsmenu_get_nentries();
 	int linestep = U.fontsize*3/2;

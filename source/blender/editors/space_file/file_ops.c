@@ -116,7 +116,7 @@ static void set_active_file(SpaceFile *sfile, FileSelectParams* params, struct A
 }
 
 
-static void set_active_bookmark(SpaceFile *sfile, FileSelectParams* params, struct ARegion* ar, short y)
+static void set_active_bookmark(FileSelectParams* params, struct ARegion* ar, short y)
 {
 	int nentries = fsmenu_get_nentries();
 	short posy = ar->v2d.mask.ymax - TILE_BORDER_Y - y;
@@ -187,7 +187,7 @@ static void mouse_select_bookmark(SpaceFile* sfile, ARegion* ar, short *mval)
 	if(mval[0]>ar->v2d.mask.xmin && mval[0]<ar->v2d.mask.xmax
 	&& mval[1]>ar->v2d.mask.ymin && mval[1]<ar->v2d.mask.ymax) {
 		char *selected;
-		set_active_bookmark(sfile, sfile->params, ar, mval[1]);
+		set_active_bookmark(sfile->params, ar, mval[1]);
 		selected= fsmenu_get_entry(sfile->params->active_bookmark);			
 		/* which string */
 		if (selected) {

@@ -378,7 +378,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
 		if(ob->type==OB_ARMATURE)
-			if(ob->recalc) object_handle_update(curscene, ob);
+			if(ob->recalc) object_handle_update(CTX_data_scene(C), ob);
 	}
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */

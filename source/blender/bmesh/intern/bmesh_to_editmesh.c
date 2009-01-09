@@ -10,9 +10,11 @@
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
+
 #include "BLI_editVert.h"
-#include "BIF_editmesh.h"
-#include "editmesh.h"
+#include "mesh_intern.h"
+#include "ED_mesh.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 
@@ -88,7 +90,7 @@ static EditVert *bmeshvert_to_editvert(BMesh *bm, EditMesh *em, BMVert *v, int i
 	EditVert *eve = NULL;
 
 	v->head.eflag1 = index; /*abuse!*/
-	eve = addvertlist(v->co, NULL);
+	eve = addvertlist(em, v->co, NULL);
 	eve->keyindex = index;
 	evlist[index]= eve;
 	
@@ -125,8 +127,8 @@ static EditEdge *bmeshedge_to_editedge(BMesh *bm, EditMesh *em, BMEdge *e, EditV
 {
 	EditEdge *eed = NULL;
 
-	if(!(findedgelist(evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1]))){
-		eed= addedgelist(evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1], NULL);
+	if(!(findedgelist(em, evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1]))){
+		eed= addedgelist(em, evlist[e->v1->head.eflag1], evlist[e->v2->head.eflag1], NULL);
 		bmeshedge_to_editedge_internal(bm, em, e, eed);
 	}
 
@@ -151,7 +153,7 @@ static EditFace *bmeshface_to_editface(BMesh *bm, EditMesh *em, BMFace *f, EditV
 		eve4= NULL;
 	}
 
-	efa = addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
+	efa = addfacelist(em, eve1, eve2, eve3, eve4, NULL, NULL);
 
 	bmeshedge_to_editedge_internal(bm, em, f->loopbase->e, efa->e1);
 	bmeshedge_to_editedge_internal(bm, em, ((BMLoop*)(f->loopbase->head.next))->e, efa->e2);
@@ -193,10 +195,8 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 
 	int totvert, i, numTex, numCol;
 
-	em = G.editMesh;
-
-	if (em == NULL) return NULL; //what?
-	em->act_face = NULL;
+	em = MEM_callocN(sizeof(EditMesh), "EditMesh from bmesh");
+	em->selectmode= bm->selectmode;
 
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -221,7 +221,6 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 		bmeshface_to_editface(bm, em, f, evlist, numCol, numTex);
 			
 	MEM_freeN(evlist);
-	countall();
 	return em;
 }
 

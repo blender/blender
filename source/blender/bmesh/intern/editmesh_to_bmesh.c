@@ -10,9 +10,11 @@
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
+
 #include "BLI_editVert.h"
-#include "BIF_editmesh.h"
-#include "editmesh.h"
+#include "mesh_intern.h"
+#include "ED_mesh.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 
@@ -336,7 +338,7 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 
 	/*make sure to update FGon flags*/
-	EM_fgon_flags();
+	EM_fgon_flags(em);
 
 	/*copy custom data layout*/
 	CustomData_copy(&em->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -356,9 +358,9 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 
 	/*copy over selection mode*/
 	bm->selectmode = 0;
-	if(G.scene->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
-	if(G.scene->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
-	if(G.scene->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
+	if(bm->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
+	if(bm->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
+	if(bm->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
 
 
 	/*begin editloop*/

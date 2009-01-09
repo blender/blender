@@ -2584,7 +2584,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 
 			/* apply lattice */
 			if(psys->lattice && edit==0)
-				calc_latt_deform(ca->co, 1.0f);
+				calc_latt_deform(psys->lattice, ca->co, 1.0f);
 
 			/* figure out rotation */
 			
@@ -2664,8 +2664,8 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	psys->totcached = totpart;
 
 	if(psys && psys->lattice){
-		end_latt_deform();
-		psys->lattice=0;
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
 	}
 
 	if(vg_effector)
@@ -3473,7 +3473,7 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 				}
 
 				if(psys->lattice && edit==0)
-					calc_latt_deform(state->co,1.0f);
+					calc_latt_deform(psys->lattice, state->co,1.0f);
 			}
 		}
 	}
@@ -3696,7 +3696,7 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 			do_clump(state,key1,t,part->clumpfac,part->clumppow,1.0);
 
 			if(psys->lattice)
-				calc_latt_deform(state->co,1.0f);
+				calc_latt_deform(psys->lattice, state->co,1.0f);
 		}
 		else{
 			if (pa) { /* TODO PARTICLE - should this ever be NULL? - Campbell */
@@ -3748,7 +3748,7 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 				}
 
 				if(psys->lattice)
-					calc_latt_deform(state->co,1.0f);
+					calc_latt_deform(psys->lattice, state->co,1.0f);
 			}
 		}
 		

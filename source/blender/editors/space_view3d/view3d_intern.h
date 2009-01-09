@@ -33,6 +33,7 @@
 /* internal exports only */
 
 struct bScreen;
+struct ARegion;
 struct BoundBox;
 struct Object;
 struct DerivedMesh;
@@ -64,7 +65,7 @@ typedef struct ViewDepths {
 #define IS_CLIPPED        12000
 
 /* view3d_header.c */
-void view3d_header_buttons(const struct bContext *C, ARegion *ar);
+void view3d_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* view3d_ops.c */
 void view3d_operatortypes(void);
@@ -83,7 +84,7 @@ void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 /* drawobject.c */
-void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag);
+void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 void draw_object_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline);
@@ -97,17 +98,17 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
 void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMesh *dm, int faceselect);
 
 /* view3d_draw.c */
-void drawview3dspace(struct bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d);
-void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *));
+void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
+void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void *));
 void view3d_clr_clipping(void);
 void view3d_set_clipping(View3D *v3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
 void make_axis_color(char *col, char *col2, char axis);
-void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r);
+void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
-void view3d_update_depths(ARegion *ar, View3D *v3d);
+void view3d_update_depths(struct ARegion *ar, View3D *v3d);
 
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
@@ -115,6 +116,12 @@ void VIEW3D_OT_select_extend(struct wmOperatorType *ot);
 void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
+
+void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
+
+/* vpaint.c */
+void VIEW3D_OT_vpaint_toggle(struct wmOperatorType *ot);
+void VIEW3D_OT_vpaint(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
@@ -124,19 +131,19 @@ void view3d_operator_needs_opengl(const struct bContext *C);
 
 int boundbox_clip(View3D *v3d, float obmat[][4], struct BoundBox *bb);
 
-void view3d_project_short_clip(ARegion *ar, View3D *v3d, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
-void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr, float mat[4][4]);
-void view3d_project_float(ARegion *a, float *vec, float *adr, float mat[4][4]);
+void view3d_project_short_clip(struct ARegion *ar, View3D *v3d, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
+void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, float mat[4][4]);
+void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 void view3d_get_object_project_mat(View3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
-void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4]);
+void view3d_project_float(struct ARegion *ar, float *vec, float *adr, float mat[4][4]);
 
 int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 
-void initlocalview(Scene *scene, ARegion *ar, View3D *v3d);
+void initlocalview(Scene *scene, struct ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);
 
-void centerview(ARegion *ar, View3D *v3d);
+void centerview(struct ARegion *ar, View3D *v3d);
 
 void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
 

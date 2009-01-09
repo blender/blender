@@ -34,6 +34,7 @@
 
 struct bContext;
 struct wmOperatorType;
+struct ViewContext;
 
 #define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
 
@@ -45,7 +46,6 @@ int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge
 
 /* ******************* meshtools.c */
 
-int mesh_get_x_mirror_vert(Object *ob, int index);
 
 /* XXX move to uv editor? */
 enum {
@@ -92,7 +92,7 @@ int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
 int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
 int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 
-void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
+void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 /* ******************* editmesh_add.c */
 
@@ -162,7 +162,7 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
 
-extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
+extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
 void editmesh_select_by_material(EditMesh *em, int index);
 void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
@@ -177,7 +177,7 @@ void EM_select_more(EditMesh *em);
  * 		if 0, unselected vertice are given the bias
  * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
  */
-extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict);
+extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
 
 
 /* ******************* editmesh_tools.c */

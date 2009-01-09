@@ -2043,8 +2043,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	psys->flag &= ~PSYS_DRAWING;
 
 	if(psys->lattice){
-		end_latt_deform();
-		psys->lattice=0;
+		end_latt_deform(psys->lattice);
+		psys->lattice= NULL;
 	}
 
 	if(path && (ma->mode_l & MA_TANGENT_STR)==0)

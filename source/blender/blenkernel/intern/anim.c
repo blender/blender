@@ -946,8 +946,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		MEM_freeN(obcopylist);
 
 	if(psys->lattice) {
-		end_latt_deform();
-		psys->lattice = 0;
+		end_latt_deform(psys->lattice);
+		psys->lattice = NULL;
 	}
 }
 

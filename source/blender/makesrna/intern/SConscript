@@ -14,6 +14,12 @@ source_files = env.Glob('*.c')
 source_files.remove('rna_access.c')
 source_files.remove('rna_dependency.c')
 
+generated_files = source_files[:]
+generated_files.remove('rna_define.c')
+generated_files.remove('makesrna.c')
+
+generated_files = [filename[:-2] + '_gen.c' for filename in generated_files]
+
 makesrna_tool = env.Clone()
 rna = env.Clone()
 makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" ')
@@ -59,11 +65,19 @@ else:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_guardedalloc', 'bf_dna'])
 
 rna_dict = rna.Dictionary()
-rna.Depends ('rna.c', makesrna)
+rna.Depends (generated_files, makesrna)
+
+# this seems bad, how to retrieve it from scons?
+build_dir = root_build_dir + '/source/blender/makesrna/intern/'
+
 if env['OURPLATFORM'] != 'linuxcross':
-    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna $TARGET")
+    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna " + build_dir)
 else:
-    rna.Command ('rna.c', '', root_build_dir+os.sep+"makesrna.exe $TARGET")
-obj = ['intern/rna.c', 'intern/rna_access.c', 'intern/rna_dependency.c']
+    rna.Command (generated_files, '', root_build_dir+os.sep+"makesrna.exe "  + build_dir)
+
+obj = ['intern/rna_access.c', 'intern/rna_dependency.c']
+for generated_file in generated_files:
+	obj += ['intern/' + generated_file]
+
 Return ('obj')
 

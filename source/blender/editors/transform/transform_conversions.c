@@ -1021,25 +1021,29 @@ static void createTransPose(bContext *C, TransInfo *t, Object *ob)
 
 static void createTransArmatureVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
 	EditBone *ebo;
 	bArmature *arm= t->obedit->data;
+	ListBase *edbo = arm->edbo;
 	TransData *td;
 	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
 
 	t->total = 0;
-	for (ebo=G.edbo.first;ebo;ebo=ebo->next) {
-		if(ebo->layer & arm->layer) {
-			if (t->mode==TFM_BONESIZE) {
+	for (ebo = edbo->first; ebo; ebo = ebo->next)
+	{
+		if(ebo->layer & arm->layer)
+		{
+			if (t->mode==TFM_BONESIZE)
+			{
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
-			else if (t->mode==TFM_BONE_ROLL) {
+			else if (t->mode==TFM_BONE_ROLL)
+			{
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
-			else {
+			else
+			{
 				if (ebo->flag & BONE_TIPSEL)
 					t->total++;
 				if (ebo->flag & BONE_ROOTSEL)
@@ -1055,13 +1059,15 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 	
-	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		ebo->oldlength= ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
+	for (ebo = edbo->first; ebo; ebo = ebo->next)
+	{
+		ebo->oldlength = ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 		
 		if(ebo->layer & arm->layer) {
-			if (t->mode==TFM_BONE_ENVELOPE) {
-				
-				if (ebo->flag & BONE_ROOTSEL){
+			if (t->mode==TFM_BONE_ENVELOPE)
+			{
+				if (ebo->flag & BONE_ROOTSEL)
+				{
 					td->val= &ebo->rad_head;
 					td->ival= *td->val;
 					
@@ -1077,7 +1083,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					
 					td++;
 				}
-				if (ebo->flag & BONE_TIPSEL){
+				if (ebo->flag & BONE_TIPSEL)
+				{
 					td->val= &ebo->rad_tail;
 					td->ival= *td->val;
 					VECCOPY (td->center, ebo->tail);
@@ -1094,14 +1101,17 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 				}
 				
 			}
-			else if (t->mode==TFM_BONESIZE) {
+			else if (t->mode==TFM_BONESIZE)
+			{
 				if (ebo->flag & BONE_SELECTED) {
-					if(arm->drawtype==ARM_ENVELOPE) {
+					if(arm->drawtype==ARM_ENVELOPE)
+					{
 						td->loc= NULL;
 						td->val= &ebo->dist;
 						td->ival= ebo->dist;
 					}
-					else {
+					else
+					{
 						// abusive storage of scale in the loc pointer :)
 						td->loc= &ebo->xwidth;
 						VECCOPY (td->iloc, td->loc);
@@ -1125,8 +1135,10 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td++;
 				}
 			}
-			else if (t->mode==TFM_BONE_ROLL) {
-				if (ebo->flag & BONE_SELECTED) {
+			else if (t->mode==TFM_BONE_ROLL)
+			{
+				if (ebo->flag & BONE_SELECTED)
+				{
 					td->loc= NULL;
 					td->val= &(ebo->roll);
 					td->ival= ebo->roll;
@@ -1140,8 +1152,10 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td++;
 				}
 			}
-			else {
-				if (ebo->flag & BONE_TIPSEL){
+			else
+			{
+				if (ebo->flag & BONE_TIPSEL)
+				{
 					VECCOPY (td->iloc, ebo->tail);
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->tail;
@@ -1166,7 +1180,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td++;
 				}
-				if (ebo->flag & BONE_ROOTSEL){
+				if (ebo->flag & BONE_ROOTSEL)
+				{
 					VECCOPY (td->iloc, ebo->head);
 					VECCOPY (td->center, td->iloc);
 					td->loc= ebo->head;
@@ -1191,7 +1206,6 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 			}
 		}
 	}
-#endif
 }
 
 /* ********************* meta elements ********* */

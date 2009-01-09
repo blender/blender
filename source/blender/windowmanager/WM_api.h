@@ -63,6 +63,9 @@ void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
+void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int));
+void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
+
 			/* keymap */
 wmKeymapItem *WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);

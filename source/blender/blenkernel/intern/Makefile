@@ -69,6 +69,7 @@ CPPFLAGS += -I$(NAN_IKSOLVER)/include
 CPPFLAGS += -I$(NAN_DECIMATION)/include
 CPPFLAGS += -I$(NAN_ELBEEM)/include
 CPPFLAGS += -I$(NAN_OPENNL)/include
+CPPFLAGS += -I$(NAN_BSP)/include
 
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include

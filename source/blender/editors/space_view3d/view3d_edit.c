@@ -69,6 +69,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 
@@ -96,6 +97,7 @@ typedef struct ViewOpsData {
 	int origx, origy, oldx, oldy;
 	int origkey;
 
+	void *vh; // XXX temp
 } ViewOpsData;
 
 #define TRACKBALLSIZE  (1.1)
@@ -362,6 +364,10 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		default:
 			if(event->type==vod->origkey && event->val==0) {
 
+				if(vod->vh) {
+					ED_region_draw_cb_exit(CTX_wm_region(C)->type, vod->vh);
+					ED_region_tag_redraw(CTX_wm_region(C));
+				}
 				MEM_freeN(vod);
 				op->customdata= NULL;
 
@@ -372,6 +378,12 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void vh_draw(const bContext *C, ARegion *ar)
+{
+	glColor3ub(100, 200, 100);
+	glRectf(-0.2,  -0.2,  0.2,  0.2); 
+}
+
 static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewOpsData *vod;
@@ -380,6 +392,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data(C, op, event);
 	vod= op->customdata;
 
+	vod->vh= ED_region_draw_cb_activate(CTX_wm_region(C)->type, vh_draw, REGION_DRAW_POST);
+	
 	/* switch from camera view when: */
 	if(vod->v3d->persp != V3D_PERSP) {
 
@@ -1343,41 +1357,6 @@ void VIEW3D_OT_drawtype(wmOperatorType *ot)
 }
 
 /* ********************************************************* */
-
-void set_render_border(Scene *scene, ARegion *ar, View3D *v3d)
-{
-	rcti rect;
-	short val;
-
-	val= 0; // XXX get_border(&rect, 3);
-	if(val) {
-		rctf vb;
-
-		calc_viewborder(scene, ar, v3d, &vb);
-
-		scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
-		scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
-		scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
-		scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
-
-		CLAMP(scene->r.border.xmin, 0.0, 1.0);
-		CLAMP(scene->r.border.ymin, 0.0, 1.0);
-		CLAMP(scene->r.border.xmax, 0.0, 1.0);
-		CLAMP(scene->r.border.ymax, 0.0, 1.0);
-
-		/* drawing a border surrounding the entire camera view switches off border rendering
-			* or the border covers no pixels */
-		if ((scene->r.border.xmin <= 0.0 && scene->r.border.xmax >= 1.0 &&
-			 scene->r.border.ymin <= 0.0 && scene->r.border.ymax >= 1.0) ||
-			(scene->r.border.xmin == scene->r.border.xmax ||
-			 scene->r.border.ymin == scene->r.border.ymax ))
-		{
-			scene->r.mode &= ~R_BORDER;
-		} else {
-			scene->r.mode |= R_BORDER;
-		}
-	}
-}
 
 void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
 {

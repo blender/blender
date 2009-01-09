@@ -157,39 +157,10 @@ void RNA_def_action(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ActionGroup");
 	RNA_def_property_ui_text(prop, "Action Groups", "Convenient groupings of Action Channels.");
 
-	prop= RNA_def_property(srna, "timeline_markers", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "UnknownType"); /* implement when timeline rna is wrapped */
-	RNA_def_property_ui_text(prop, "Timeline Markers", "Markers specific to this Action, for labeling poses.");
-
-	prop= RNA_def_property(srna, "action_show_sliders", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_SLIDERS);
-	RNA_def_property_ui_text(prop, "Show Sliders", "Show Shape Key sliders.");
-
-	prop= RNA_def_property(srna, "action_time_units", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_DRAWTIME);
-	RNA_def_property_ui_text(prop, "Time Units", "Show seconds or frames in the timeline.");
-
-	prop= RNA_def_property(srna, "action_show_all", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_NOHIDE);
-	RNA_def_property_ui_text(prop, "Show All", "Show all channels regardless of hidden status.");
-
-	prop= RNA_def_property(srna, "action_kill_overlapping_keys", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
-	RNA_def_property_ui_text(prop, "Kill Overlapping Keys", "Remove overlapping keys after a transform.");
-
-	prop= RNA_def_property(srna, "action_key_cull_to_view", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_HORIZOPTIMISEON);
-	RNA_def_property_ui_text(prop, "Cull Keys to View", "Only consider keys that are within the view.");
-
-	prop= RNA_def_property(srna, "action_group_colors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_NODRAWGCOLORS);
-	RNA_def_property_ui_text(prop, "Group Color", "Use custom color grouping and instead of default color scheme.");
-
-	prop= RNA_def_property(srna, "action_current_frame_number", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_NODRAWCFRANUM);
-	RNA_def_property_ui_text(prop, "Current Frame Number", "Draw the frame number beside the current frame indicator.");
-
+	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses.");
 }
 
 #endif

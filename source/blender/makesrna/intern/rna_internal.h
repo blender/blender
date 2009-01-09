@@ -64,6 +64,7 @@ typedef struct StructDefRNA {
 	struct StructDefRNA *next, *prev;
 
 	struct StructRNA *srna;
+	const char *filename;
 
 	const char *dnaname;
 
@@ -141,6 +142,12 @@ void RNA_def_world(struct BlenderRNA *brna);
 
 void rna_def_ipo_common(struct StructRNA *srna);
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
+
+void rna_ID_name_get(struct PointerRNA *ptr, char *value);
+int rna_ID_name_length(struct PointerRNA *ptr);
+void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
+struct StructRNA *rna_ID_refine(struct PointerRNA *ptr);
+void rna_ID_fake_user_set(struct PointerRNA *ptr, int value);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);

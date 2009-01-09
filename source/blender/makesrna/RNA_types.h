@@ -132,7 +132,8 @@ typedef enum StructFlag {
 	STRUCT_ID = 1,
 
 	/* internal flags */
-	STRUCT_RUNTIME = 2
+	STRUCT_RUNTIME = 2,
+	STRUCT_GENERATED = 4
 } StructFlag;
 
 typedef struct StructRNA StructRNA;

@@ -24,6 +24,9 @@
 
 #include <stdlib.h>
 
+#include "DNA_ID.h"
+
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -64,6 +67,11 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 static void *rna_Struct_base_get(PointerRNA *ptr)
 {
 	return ((StructRNA*)ptr->data)->from;
+}
+
+static void *rna_Struct_parent_get(PointerRNA *ptr)
+{
+	return ((StructRNA*)ptr->data)->parent;
 }
 
 static void *rna_Struct_name_property_get(PointerRNA *ptr)
@@ -426,6 +434,12 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Struct");
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from.");
+
+	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
+	RNA_def_property_struct_type(prop, "Struct");
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_parent_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Parent", "Parent struct, used only for nested structs.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);

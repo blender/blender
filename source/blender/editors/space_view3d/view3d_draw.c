@@ -51,6 +51,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_anim.h"
+#include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
@@ -76,6 +77,7 @@
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_util.h"
 #include "ED_types.h"
 
@@ -1835,10 +1837,11 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 	return mask;
 }
 
-
-
-void drawview3dspace(bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d)
+void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;	/* XXX get from region */
 	Scene *sce;
 	Base *base;
 	Object *ob;
@@ -1846,7 +1849,7 @@ void drawview3dspace(bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d)
 	Object *obact = OBACT;
 	
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(screen);
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C));
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 		no layer check here, gets correct flushed */
@@ -1999,12 +2002,7 @@ void drawview3dspace(bScreen *screen, Scene *scene, ARegion *ar, View3D *v3d)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	if(G.moving) {
-//		BIF_drawConstraint();
-//		if(obedit || (G.f & G_PARTICLEEDIT))
-//			BIF_drawPropCircle(); // only editmode and particles have proportional edit
-//		BIF_drawSnap();
-	}
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST);
 	
 //	REEB_draw();
 	

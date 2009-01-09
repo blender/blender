@@ -74,13 +74,7 @@ static SpaceLink *file_new(const bContext *C)
 	SpaceFile *sfile;
 	
 	sfile= MEM_callocN(sizeof(SpaceFile), "initfile");
-	sfile->spacetype= SPACE_FILE;	
-	sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-	sfile->files = filelist_new();
-	
-	ED_fileselect_set_params(sfile->params, FILE_UNIX, "", "/", 0, 0, 0);
-	filelist_setdir(sfile->files, sfile->params->dir);
-	filelist_settype(sfile->files, sfile->params->type);
+	sfile->spacetype= SPACE_FILE;
 
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for file");
@@ -122,14 +116,14 @@ static void file_free(SpaceLink *sl)
 		filelist_free(sfile->files);
 		filelist_freelib(sfile->files);
 		MEM_freeN(sfile->files);
-		sfile->files = 0;
+		sfile->files= NULL;
 	}
 
 	if (sfile->params) {
 		if(sfile->params->pupmenu)
 			MEM_freeN(sfile->params->pupmenu);
 		MEM_freeN(sfile->params);
-		sfile->params = 0;
+		sfile->params= NULL;
 	}
 	
 	if (sfile->op) {
@@ -142,16 +136,15 @@ static void file_free(SpaceLink *sl)
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
 	SpaceFile *sfile= sa->spacedata.first;	/* XXX get through context? */
-	if (!sfile->params) {
-		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-		ED_fileselect_set_params(sfile->params, FILE_UNIX, "", "/", 0, 0, 0);
+	if (sfile->params) {
+		ED_fileselect_reset_params(sfile);
 	}
-	if (!sfile->files) {
-		sfile->files = filelist_new();
+	if (sfile->files) {
+		filelist_free(sfile->files);
+		filelist_freelib(sfile->files);
+		MEM_freeN(sfile->files);
+		sfile->files= NULL;
 	}
-	
-	filelist_setdir(sfile->files, sfile->params->dir);
-	filelist_settype(sfile->files, sfile->params->type);
 }
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
@@ -165,9 +158,10 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	sfilen->params= MEM_dupallocN(sfileo->params);
 	if (!sfilen->params) {
 		sfilen->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
-		ED_fileselect_set_params(sfilen->params, FILE_UNIX, "", "/", 0, 0, 0);
+		ED_fileselect_set_params(sfilen, FILE_UNIX, "", "/", 0, 0, 0);
 		sfilen->params->pupmenu = NULL;
 	}
+	
 	sfilen->files = filelist_new();
 	filelist_setdir(sfilen->files, sfilen->params->dir);
 	filelist_settype(sfilen->files, sfilen->params->type);

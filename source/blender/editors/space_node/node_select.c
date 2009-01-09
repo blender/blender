@@ -99,7 +99,6 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 			;//	node_link_viewer(snode, node);
 		
 		//std_rmouse_transform(node_transform_ext);	/* does undo push for select */
-		ED_region_tag_redraw(ar);
 	}
 }
 
@@ -121,6 +120,9 @@ static int node_select_exec(bContext *C, wmOperator *op)
 			node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
 	return OPERATOR_FINISHED;
 }
 
@@ -227,6 +229,8 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
 	return OPERATOR_FINISHED;
 }
 

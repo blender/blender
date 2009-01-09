@@ -117,7 +117,7 @@ void file_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
-	FileSelectParams* params = sfile->params;
+	FileSelectParams* params = ED_fileselect_get_params(sfile);
 
 	uiBlock *block;
 	int xco, yco= 3;

@@ -9,7 +9,7 @@ incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
 incs += ' #/intern/bmfont'
-incs += ' #/intern/opennl/extern'
+incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 
 incs += ' ' + env['BF_OPENGL_INC']

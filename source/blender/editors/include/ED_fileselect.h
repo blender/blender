@@ -28,6 +28,8 @@
 #ifndef ED_FILES_H
 #define ED_FILES_H
 
+struct SpaceFile;
+
 typedef struct FileSelectParams {
 	int type; /* the mode of the filebrowser, FILE_BLENDER, FILE_SPECIAL, FILE_MAIN or FILE_LOADLIB */
 	char title[24]; /* title, also used for the text of the execute button */
@@ -53,10 +55,12 @@ typedef struct FileSelectParams {
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
-FileSelectParams* ED_fileselect_get_params(const struct bContext *C);
+FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(FileSelectParams *params, int type, const char *title, const char *path, 
+short ED_fileselect_set_params(struct SpaceFile *sfile, int type, const char *title, const char *path, 
 						   short flag, short display, short filter);
+
+void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
 #endif /* ED_FILES_H */
 

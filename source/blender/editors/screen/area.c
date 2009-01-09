@@ -206,33 +206,31 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	/* note; this sets state, so we can use wmOrtho and friends */
 	wmSubWindowSet(win, ar->swinid);
 	
-	if(ar->swinid) {
-		/* optional header info instead? */
-		if(ar->headerstr) {
-			float col[3];
-			UI_SetTheme(sa);
-			UI_GetThemeColor3fv(TH_HEADER, col);
-			glClearColor(col[0], col[1], col[2], 0.0);
-			glClear(GL_COLOR_BUFFER_BIT);
-			
-			UI_ThemeColor(TH_MENU_TEXT);
-			glRasterPos2i(20, 6);
-			BMF_DrawString(G.font, ar->headerstr);
-		}
-		else if(at->draw) {
-			UI_SetTheme(sa);
-			at->draw(C, ar);
-			UI_SetTheme(NULL);
-		}
+	/* optional header info instead? */
+	if(ar->headerstr) {
+		float col[3];
+		UI_SetTheme(sa);
+		UI_GetThemeColor3fv(TH_HEADER, col);
+		glClearColor(col[0], col[1], col[2], 0.0);
+		glClear(GL_COLOR_BUFFER_BIT);
 		
-		if(sa)
-			region_draw_emboss(ar);
-
-		uiFreeInactiveBlocks(C, &ar->uiblocks);
-		
-		/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
-		ED_region_pixelspace(ar);
+		UI_ThemeColor(TH_MENU_TEXT);
+		glRasterPos2i(20, 6);
+		BMF_DrawString(G.font, ar->headerstr);
 	}
+	else if(at->draw) {
+		UI_SetTheme(sa);
+		at->draw(C, ar);
+		UI_SetTheme(NULL);
+	}
+	
+	if(sa)
+		region_draw_emboss(ar);
+
+	uiFreeInactiveBlocks(C, &ar->uiblocks);
+	
+	/* XXX test: add convention to end regions always in pixel space, for drawing of borders/gestures etc */
+	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
 }

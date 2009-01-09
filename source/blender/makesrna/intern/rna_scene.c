@@ -35,6 +35,7 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 
 void *rna_Scene_objects_get(CollectionPropertyIterator *iter)

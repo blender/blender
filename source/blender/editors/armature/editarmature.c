@@ -101,12 +101,8 @@ static void adduplicate() {}
 static void countall() {}
 static void vertexgroup_select_by_name() {}
 static void deselect_actionchannels() {}
-static void *add_defgroup_name() {return NULL;}
 static void add_vert_to_defgroup() {}
-#define WEIGHT_REPLACE 0
 static void create_dverts() {}
-static void remove_vert_defgroup() {}
-static int mesh_get_x_mirror_vert() {return 0;}
 static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
@@ -1834,7 +1830,7 @@ void ED_armature_to_edit(Object *ob)
 /* adjust bone roll to align Z axis with vector
  * vec is in local space and is normalized
  */
-float rollBoneToVector(EditBone *bone, float new_up_axis[3])
+float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 {
 	float mat[3][3], nor[3], up_axis[3], vec[3];
 	float roll;

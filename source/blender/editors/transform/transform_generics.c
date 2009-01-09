@@ -421,30 +421,7 @@ void recalcData(TransInfo *t)
 		}
 	}
 	else if (t->obedit) {
-		if (t->obedit->type == OB_MESH) {
-			if(t->spacetype==SPACE_IMAGE) {
-				flushTransUVs(t);
-				if (G.sima->flag & SI_LIVE_UNWRAP)
-					unwrap_lscm_live_re_solve();
-			} else {
-				EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh
-				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL) {
-					if ((G.qual & LR_CTRLKEY)==0) {
-						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
-						retopo_do_all();
-					}
-					clipMirrorModifier(t, t->obedit);
-				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
-					editmesh_apply_to_mirror(t);
-				
-				DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-				
-				recalc_editnormals(em);
-			}
-		}
-		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			Nurb *nu= editNurb.first;
 			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
@@ -463,14 +440,68 @@ void recalcData(TransInfo *t)
 				retopo_do_all();
 			}
 		}
-		else if(t->obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
+		else if(t->obedit->type==OB_LATTICE) {
+			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			
+			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
+		}
+		else {
+			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+		}
+	}
+	else if( (t->flag & T_POSE) && t->poseobj) {
+		Object *ob= t->poseobj;
+		bArmature *arm= ob->data;
+		
+		/* old optimize trick... this enforces to bypass the depgraph */
+		if (!(arm->flag & ARM_DELAYDEFORM)) {
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+		}
+		else
+			where_is_pose(ob);
+	}
+	else if(G.f & G_PARTICLEEDIT) {
+		flushTransParticles(t);
+	}
+#endif
+	if (t->spacetype==SPACE_NODE) {
+		flushTransNodes(t);
+	}
+	else if (t->obedit) {
+		if (t->obedit->type == OB_MESH) {
+			if(t->spacetype==SPACE_IMAGE) {
+				flushTransUVs(t);
+				/* TRANSFORM_FIX_ME */
+//				if (G.sima->flag & SI_LIVE_UNWRAP)
+//					unwrap_lscm_live_re_solve();
+			} else {
+				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL) {
+					/* TRANSFORM_FIX_ME */
+//					if ((G.qual & LR_CTRLKEY)==0) {
+//						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
+//						retopo_do_all();
+//					}
+					clipMirrorModifier(t, t->obedit);
+				}
+				if((t->options & CTX_NO_MIRROR) == 0 && (t->scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+					editmesh_apply_to_mirror(t);
+				
+				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals(em);
+			}
+		}
+		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
 			bArmature *arm= t->obedit->data;
+			ListBase *edbo = arm->edbo;
 			EditBone *ebo;
 			TransData *td = t->data;
 			int i;
 			
 			/* Ensure all bones are correctly adjusted */
-			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
+			for (ebo = edbo->first; ebo; ebo = ebo->next){
 				
 				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					/* If this bone has a parent tip that has been moved */
@@ -531,67 +562,14 @@ void recalcData(TransInfo *t)
 							Mat3MulVecfl(t->mat, up_axis);
 						}
 						
-						ebo->roll = rollBoneToVector(ebo, up_axis);
+						ebo->roll = ED_rollBoneToVector(ebo, up_axis);
 					}
 				}
 			}
 			
 			if(arm->flag & ARM_MIRROR_EDIT) 
-				transform_armature_mirror_update();
+				transform_armature_mirror_update(t->obedit);
 			
-		}
-		else if(t->obedit->type==OB_LATTICE) {
-			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
-		}
-		else {
-			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-		}
-	}
-	else if( (t->flag & T_POSE) && t->poseobj) {
-		Object *ob= t->poseobj;
-		bArmature *arm= ob->data;
-		
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-		}
-		else
-			where_is_pose(ob);
-	}
-	else if(G.f & G_PARTICLEEDIT) {
-		flushTransParticles(t);
-	}
-#endif
-	if (t->spacetype==SPACE_NODE) {
-		flushTransNodes(t);
-	}
-	else if (t->obedit) {
-		if (t->obedit->type == OB_MESH) {
-			if(t->spacetype==SPACE_IMAGE) {
-				flushTransUVs(t);
-				/* TRANSFORM_FIX_ME */
-//				if (G.sima->flag & SI_LIVE_UNWRAP)
-//					unwrap_lscm_live_re_solve();
-			} else {
-				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
-				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL) {
-					/* TRANSFORM_FIX_ME */
-//					if ((G.qual & LR_CTRLKEY)==0) {
-//						/* Only retopo if not snapping, Note, this is the only case of G.qual being used, but we have no T_SHIFT_MOD - Campbell */
-//						retopo_do_all();
-//					}
-					clipMirrorModifier(t, t->obedit);
-				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (t->scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
-					editmesh_apply_to_mirror(t);
-				
-				DAG_object_flush_update(t->scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
-				
-				recalc_editnormals(em);
-			}
 		}
 	}
 	else {
@@ -1026,10 +1004,10 @@ void calculateCenter(TransInfo *t)
 	case V3D_ACTIVE:
 		{
 		/* set median, and if if if... do object center */
+#if 0 // TRANSFORM_FIX_ME
 		EditSelection ese;
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
-#if 0 // TRANSFORM_FIX_ME
 		if (t->obedit && t->obedit->type == OB_MESH && EM_get_actSelection(&ese)) {
 			EM_editselection_center(t->center, &ese);
 			calculateCenter2D(t);

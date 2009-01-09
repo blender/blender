@@ -68,6 +68,8 @@ typedef struct wmWindowManager {
 
 	ListBase reports;		/* information and error reports */
 	
+	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
+	
 	/* used keymaps, optionally/partially saved */
 	ListBase keymaps;
 	

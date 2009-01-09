@@ -172,7 +172,7 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 
 	if(ot)
-		RNA_pointer_create(NULL, NULL, ot->srna, NULL, ptr);
+		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
 	else
 		memset(ptr, 0, sizeof(*ptr));
 }
@@ -335,12 +335,10 @@ static int wm_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* settings for filebrowser */
 	sfile= (SpaceFile*)CTX_wm_space_data(C);
 	sfile->op = op;
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
 
-	ED_fileselect_set_params(sfile->params, FILE_BLENDER, "Load", "C:\\", 0, 0, 0);
+	/* screen and area have been reset already in ED_screen_full_newspace */
 
-	/* screen, areas init */
-	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -391,6 +389,38 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
 	ot->poll= WM_operator_winactive;
+}
+
+/* ************ default paint cursors, draw always around cursor *********** */
+/*
+ - returns handler to free 
+ - poll(bContext): returns 1 if draw should happen
+ - draw(bContext): drawing callback for paint cursor
+*/
+
+void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C), void (*draw)(bContext *C, int, int))
+{
+	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
+	
+	BLI_addtail(&wm->paintcursors, pc);
+	
+	pc->poll= poll;
+	pc->draw= draw;
+	
+	return pc;
+}
+
+void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
+{
+	wmPaintCursor *pc;
+	
+	for(pc= wm->paintcursors.first; pc; pc= pc->next) {
+		if(pc == (wmPaintCursor *)handle) {
+			BLI_remlink(&wm->paintcursors, pc);
+			MEM_freeN(pc);
+			return;
+		}
+	}
 }
 
 /* ************ window gesture operator-callback definitions ************** */
@@ -498,7 +528,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* **************** circle gesture *************** */
-/* works now only for selection or modal paint stuff, calls exec while hold mouse */
+/* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {

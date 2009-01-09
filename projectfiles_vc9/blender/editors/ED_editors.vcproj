@@ -343,6 +343,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\interface\keyval.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\interface\resources.c"
 				>
 			</File>
@@ -404,6 +408,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_view3d\view3d_view.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_view3d\vpaint.c"
 				>
 			</File>
 		</Filter>
@@ -476,6 +484,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\screen\screen_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\screen\screendump.c"
 				>
 			</File>
 		</Filter>
@@ -902,6 +914,10 @@
 		<Filter
 			Name="mesh"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editdeform.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editface.c"
 				>
