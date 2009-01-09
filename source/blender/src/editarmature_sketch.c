@@ -1369,7 +1369,10 @@ void sk_resetAdjust(SK_Sketch *sketch)
 
 int sk_hasAdjust(SK_Sketch *sketch, SK_Stroke *stk)
 {
-	return sketch->adj.target && sketch->adj.count >= SK_ADJUST_LIMIT && (sketch->adj.target == stk || stk == NULL);
+	return	sketch->adj.target &&
+			sketch->adj.count >= SK_ADJUST_LIMIT &&
+			(sketch->adj.target == stk || stk == NULL) &&
+			(sketch->adj.start != -1 || sketch->adj.end != -1);
 }
 
 void sk_updateAdjust(SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
