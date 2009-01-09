@@ -391,6 +391,38 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 }
 
+/* ************ default paint cursors, draw always around cursor *********** */
+/*
+ - returns handler to free 
+ - poll(bContext): returns 1 if draw should happen
+ - draw(bContext): drawing callback for paint cursor
+*/
+
+void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C), void (*draw)(bContext *C, int, int))
+{
+	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
+	
+	BLI_addtail(&wm->paintcursors, pc);
+	
+	pc->poll= poll;
+	pc->draw= draw;
+	
+	return pc;
+}
+
+void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
+{
+	wmPaintCursor *pc;
+	
+	for(pc= wm->paintcursors.first; pc; pc= pc->next) {
+		if(pc == (wmPaintCursor *)handle) {
+			BLI_remlink(&wm->paintcursors, pc);
+			MEM_freeN(pc);
+			return;
+		}
+	}
+}
+
 /* ************ window gesture operator-callback definitions ************** */
 /*
  * These are default callbacks for use in operators requiring gesture input
@@ -496,7 +528,7 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* **************** circle gesture *************** */
-/* works now only for selection or modal paint stuff, calls exec while hold mouse */
+/* works now only for selection or modal paint stuff, calls exec while hold mouse, exit on release */
 
 int WM_gesture_circle_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {

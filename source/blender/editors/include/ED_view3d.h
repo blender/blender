@@ -40,6 +40,7 @@ struct EditEdge;
 struct EditFace;
 struct ImBuf;
 struct Scene;
+struct bContext;
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
@@ -60,6 +61,8 @@ typedef struct VPaint {
 	int tot, pad;						/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
+	
+	void *paintcursor;					/* wm handle */
 } VPaint;
 
 /* Gvp.flag and Gwp.flag */
@@ -111,6 +114,9 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 /* select */
 #define MAXPICKBUF      10000
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+
+/* modes */
+void ED_view3d_exit_paint_modes(struct bContext *C);
 
 
 #endif /* ED_VIEW3D_H */

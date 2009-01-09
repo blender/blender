@@ -64,6 +64,7 @@
 #include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
+#include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
@@ -76,11 +77,15 @@
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "view3d_intern.h"
@@ -344,7 +349,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 /* fills in the selected faces with the current weight and vertex group */
 void clear_wpaint_selectedfaces(Scene *scene)
 {
-	extern float editbutvweight;
+	float editbutvweight;
 	float paintweight= editbutvweight;
 	Mesh *me;
 	MFace *mface;
@@ -721,69 +726,51 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 }
 
 
-static int sample_backbuf_area(ARegion *ar, int *indexar, int totface, int x, int y, float size)
+static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x, int y, float size)
 {
-	unsigned int *rt;
 	struct ImBuf *ibuf;
-	int x1, y1, x2, y2, a, tot=0, index;
+	int a, tot=0, index;
 	
 	if(totface+4>=MAXINDEX) return 0;
 	
 	if(size>64.0) size= 64.0;
 	
-	x1= x-size;
-	x2= x+size;
-	CLAMP(x1, 0, ar->winx-1);
-	CLAMP(x2, 0, ar->winx-1);
-	y1= y-size;
-	y2= y+size;
-	CLAMP(y1, 0, ar->winy-1);
-	CLAMP(y2, 0, ar->winy-1);
-	
-	if(x1>=x2 || y1>=y2) return 0;
-	
-	ibuf = IMB_allocImBuf(2*size + 4, 2*size + 4, 32, IB_rect, 0);
-	glReadPixels(x1+ar->winrct.xmin, y1+ar->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-	glReadBuffer(GL_BACK);	
+	ibuf= view3d_read_backbuf(vc, x-size, y-size, x+size, y+size);
+	if(ibuf) {
+		unsigned int *rt= ibuf->rect;
 
-	if(ENDIAN_ORDER==B_ENDIAN)  {
-		IMB_convert_rgba_to_abgr(ibuf);
-	}
-
-	rt= ibuf->rect;
-	size= (y2-y1)*(x2-x1);
-	if(size<=0) return 0;
-
-	memset(indexar, 0, sizeof(int)*totface+4);	/* plus 2! first element is total, +2 was giving valgrind errors, +4 seems ok */
-	
-	while(size--) {
-			
-		if(*rt) {
-			index= WM_framebuffer_to_index(*rt);
-			if(index>0 && index<=totface)
-				indexar[index] = 1;
+		memset(indexar, 0, sizeof(int)*totface+4);	/* plus 2! first element is total, +2 was giving valgrind errors, +4 seems ok */
+		
+		size= ibuf->x*ibuf->y;
+		while(size--) {
+				
+			if(*rt) {
+				index= WM_framebuffer_to_index(*rt);
+				if(index>0 && index<=totface)
+					indexar[index] = 1;
+			}
+		
+			rt++;
 		}
-	
-		rt++;
-	}
-	
-	for(a=1; a<=totface; a++) {
-		if(indexar[a]) indexar[tot++]= a;
-	}
+		
+		for(a=1; a<=totface; a++) {
+			if(indexar[a]) indexar[tot++]= a;
+		}
 
-	IMB_freeImBuf(ibuf);
+		IMB_freeImBuf(ibuf);
+	}
 	
 	return tot;
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, ARegion *ar, View3D *v3d, float vpimat[][3], float *vert_nor, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, short *mval)
 {
 	float fac, dx, dy;
 	int alpha;
 	short vertco[2];
 	
 	if(vp->flag & VP_SOFT) {
-	 	project_short_noclip(ar, v3d, vert_nor, vertco);
+	 	project_short_noclip(vc->ar, vc->v3d, vert_nor, vertco);
 		dx= mval[0]-vertco[0];
 		dy= mval[1]-vertco[1];
 		
@@ -967,7 +954,7 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		else {
 			DerivedMesh *dm;
 			MDeformWeight *dw;
-			extern float editbutvweight;
+			float editbutvweight;
 			float w1, w2, w3, w4, co[3], fac;
 			
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -1054,6 +1041,7 @@ static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paint
 		}
 	}
 }
+
 
 void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 {
@@ -1170,7 +1158,7 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 			
 			/* which faces are involved */
 			if(Gwp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(ar, indexar, me->totface, mval[0], mval[1], Gwp.size);
+				totindex= sample_backbuf_area(&vc, indexar, me->totface, mval[0], mval[1], Gwp.size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(&vc, mval[0], mval[1]);
@@ -1252,7 +1240,7 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 					mface= me->mface + (indexar[index]-1);
 					
 					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, ar, v3d, vpimat, vertexcosnos+6*mface->v1, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v1, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v1, alpha, paintweight, vgroup_mirror);
 						}
@@ -1260,7 +1248,7 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 					}
 					
 					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, ar, v3d, vpimat, vertexcosnos+6*mface->v2, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v2, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v2, alpha, paintweight, vgroup_mirror);
 						}
@@ -1268,7 +1256,7 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 					}
 					
 					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, ar, v3d, vpimat, vertexcosnos+6*mface->v3, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v3, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v3, alpha, paintweight, vgroup_mirror);
 						}
@@ -1277,7 +1265,7 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 					
 					if((me->dvert+mface->v4)->flag) {
 						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(&Gwp, ar, v3d, vpimat, vertexcosnos+6*mface->v4, mval);
+							alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v4, mval);
 							if(alpha) {
 								do_weight_paint_vertex(ob, mface->v4, alpha, paintweight, vgroup_mirror);
 							}
@@ -1335,175 +1323,16 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 	BIF_undo_push("Weight Paint");
 }
 
-void vertex_paint(Scene *scene, ARegion *ar, View3D *v3d)
-{
-	ViewContext vc;
-	Object *ob;
-	Mesh *me;
-	MFace *mface;
-	float mat[4][4], imat[4][4], *vertexcosnos;
-	float vpimat[3][3];
-	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
-	int *indexar, index, alpha, totindex;
-	short mval[2], mvalo[2], firsttime=1;
-	
-	if((G.f & G_VERTEXPAINT)==0) return;
-	if(scene->obedit) return;
-	
-	ob= OBACT;
-	if(!ob || ob->id.lib) return;
-
-	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return;
-	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
-	
-	if(me->mcol==NULL) make_vertexcol(scene, 0);
-
-	if(me->mcol==NULL) return;
-	
-	/* ALLOCATIONS! No return after his line */
-	
-				/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
-	indexar= get_indexarray();
-	copy_vpaint_prev(&Gvp, (unsigned int *)me->mcol, me->totface);
-	
-	/* opengl/matrix stuff */
-// XXX	persp(PERSP_VIEW);
-	/* imat for normals */
-	Mat4MulMat4(mat, ob->obmat, v3d->viewmat);
-	Mat4Invert(imat, mat);
-	Mat3CpyMat4(vpimat, imat);
-	
-	/* load projection matrix */
-	wmMultMatrix(ob->obmat);
-	wmGetSingleMatrix(mat);
-	wmLoadMatrix(v3d->viewmat);
-	
-	paintcol= vpaint_get_current_col(&Gvp);
-	
-//	getmouseco_areawin(mvalo);
-	
-//	getmouseco_areawin(mval);
-	mvalo[0]= mval[0];
-	mvalo[1]= mval[1];
-	
-	while (get_mbut() & 0) {
-//		getmouseco_areawin(mval);
-		
-		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-
-			firsttime= 0;
-
-			/* which faces are involved */
-			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(ar, indexar, me->totface, mval[0], mval[1], Gvp.size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(&vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
-			
-			MTC_Mat4SwapMat4(v3d->persmat, mat);
-			
-			if(Gvp.flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-					
-						mface= ((MFace *)me->mface) + (indexar[index]-1);
-					
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						mface= ((MFace *)me->mface) + (indexar[index]-1);
-					
-						if((mface->flag & ME_FACE_SEL)==0)
-							indexar[index]= 0;
-					}					
-				}
-			}
-
-			for(index=0; index<totindex; index++) {
-
-				if(indexar[index] && indexar[index]<=me->totface) {
-				
-					mface= ((MFace *)me->mface) + (indexar[index]-1);
-					mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-					mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
-
-					if(Gvp.mode==VP_BLUR) {
-						fcol1= mcol_blend( mcol[0], mcol[1], 128);
-						if(mface->v4) {
-							fcol2= mcol_blend( mcol[2], mcol[3], 128);
-							paintcol= mcol_blend( fcol1, fcol2, 128);
-						}
-						else {
-							paintcol= mcol_blend( mcol[2], fcol1, 170);
-						}
-						
-					}
-					
-					alpha= calc_vp_alpha_dl(&Gvp, ar, v3d, vpimat, vertexcosnos+6*mface->v1, mval);
-					if(alpha) vpaint_blend( mcol, mcolorig, paintcol, alpha);
-					
-					alpha= calc_vp_alpha_dl(&Gvp, ar, v3d, vpimat, vertexcosnos+6*mface->v2, mval);
-					if(alpha) vpaint_blend( mcol+1, mcolorig+1, paintcol, alpha);
-	
-					alpha= calc_vp_alpha_dl(&Gvp, ar, v3d, vpimat, vertexcosnos+6*mface->v3, mval);
-					if(alpha) vpaint_blend( mcol+2, mcolorig+2, paintcol, alpha);
-
-					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(&Gvp, ar, v3d, vpimat, vertexcosnos+6*mface->v4, mval);
-						if(alpha) vpaint_blend( mcol+3, mcolorig+3, paintcol, alpha);
-					}
-				}
-			}
-				
-			MTC_Mat4SwapMat4(v3d->persmat, mat);
-			
-			do_shared_vertexcol(me);
-	
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-			if(Gvp.flag & (VP_AREA|VP_SOFT)) {
-				/* draw circle in backbuf! */
-// XXX				persp(PERSP_WIN);
-//				fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
-//				persp(PERSP_VIEW);
-			}
-			
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-		}
-	}
-	
-	if(vertexcosnos)
-		MEM_freeN(vertexcosnos);
-	MEM_freeN(indexar);
-	
-	/* frees prev buffer */
-	copy_vpaint_prev(&Gvp, NULL, 0);
-
-	BIF_undo_push("Vertex Paint");
-	
-}
-
-void set_wpaint(Scene *scene)		/* toggle */
+void set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 {		
-	Object *ob;
+	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	Mesh *me;
 	
 	ob= OBACT;
 	if(!ob || ob->id.lib) return;
 	me= get_mesh(ob);
-		
+	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
 		G.f &= ~G_WEIGHTPAINT;
@@ -1514,20 +1343,20 @@ void set_wpaint(Scene *scene)		/* toggle */
 	else G.f |= G_WEIGHTPAINT;
 	
 	
-		/* Weightpaint works by overriding colors in mesh,
-		 * so need to make sure we recalc on enter and
-		 * exit (exit needs doing regardless because we
-		 * should redeform).
-		 */
+	/* Weightpaint works by overriding colors in mesh,
+		* so need to make sure we recalc on enter and
+		* exit (exit needs doing regardless because we
+				* should redeform).
+		*/
 	if (me) {
 		DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 	}
-
+	
 	if(G.f & G_WEIGHTPAINT) {
 		Object *par;
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
-
+		
 		/* verify if active weight group is also active bone */
 		par= modifiers_isDeformedByArmature(ob);
 		if(par && (par->flag & OB_POSEMODE)) {
@@ -1535,8 +1364,8 @@ void set_wpaint(Scene *scene)		/* toggle */
 			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
 				if(pchan->bone->flag & BONE_ACTIVE)
 					break;
-//			if(pchan)
-// XXX				vertexgroup_select_by_name(ob, pchan->name);
+			//			if(pchan)
+			// XXX				vertexgroup_select_by_name(ob, pchan->name);
 		}
 	}
 	else {
@@ -1544,16 +1373,45 @@ void set_wpaint(Scene *scene)		/* toggle */
 	}
 }
 
+/* ************ set / clear vertex paint mode ********** */
 
-void set_vpaint(Scene *scene)		/* toggle */
-{		
-	Object *ob;
+/* retrieve whether cursor should be set or operator should be done */
+static int vp_poll(bContext *C)
+{
+	if(G.f & G_VERTEXPAINT) {
+		ScrArea *sa= CTX_wm_area(C);
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar= CTX_wm_region(C);
+			if(ar->regiontype==RGN_TYPE_WINDOW)
+				return 1;
+		}
+	}
+	return 0;
+}
+
+static void vp_drawcursor(bContext *C, int x, int y)
+{
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(255, 255, 255, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, Gvp.size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
+{	
+	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
 	Mesh *me;
 	
-	ob= OBACT;
-	if(!ob || object_data_is_libdata(ob)) {
+	if(object_data_is_libdata(ob)) {
 		G.f &= ~G_VERTEXPAINT;
-		return;
+		return OPERATOR_FINISHED;
 	}
 	
 	me= get_mesh(ob);
@@ -1561,24 +1419,266 @@ void set_vpaint(Scene *scene)		/* toggle */
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
 		G.f &= ~G_VERTEXPAINT;
-		return;
+		return OPERATOR_FINISHED;
 	}
 	
 	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
 	
+	/* toggle: end vpaint */
 	if(G.f & G_VERTEXPAINT){
 		G.f &= ~G_VERTEXPAINT;
+		
+		WM_paint_cursor_end(CTX_wm_manager(C), Gvp.paintcursor);
+		Gvp.paintcursor= NULL;
 	}
 	else {
 		G.f |= G_VERTEXPAINT;
 		/* Turn off weight painting */
 		if (G.f & G_WEIGHTPAINT)
-			set_wpaint(scene);
-	}
+			set_wpaint(C, op);
 		
+		Gvp.paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor);
+	}
+	
 	if (me)
 		/* update modifier stack for mapping requirements */
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, ob);
+	
+	return OPERATOR_FINISHED;
 }
+
+void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Vpaint mode";
+	ot->idname= "VIEW3D_OT_vpaint_toggle";
+	
+	/* api callbacks */
+	ot->exec= set_vpaint;
+	ot->poll= ED_operator_object_active;
+	
+}
+
+
+
+/* ********************** vertex paint operator ******************* */
+
+/* Implementation notes:
+
+Operator->invoke()
+  - validate context (add mcol)
+  - create customdata storage
+  - call paint once (mouse click)
+  - add modal handler 
+
+Operator->modal()
+  - for every mousemove, apply vertex paint
+  - exit on mouse release, free customdata
+    (return OPERATOR_FINISHED also removes handler and operator)
+
+For future:
+  - implement a stroke event (or mousemove with past positons)
+  - revise whether customdata should be added in object, in set_vpaint
+  - store Gvp locally (in scene?)
+
+*/
+
+struct VPaintData {
+	ViewContext vc;
+	unsigned int paintcol;
+	int *indexar;
+	float *vertexcosnos;
+	float vpimat[3][3];
+};
+
+static void vpaint_exit(bContext *C, wmOperator *op)
+{
+	struct VPaintData *vpd= op->customdata;
+	
+	if(vpd->vertexcosnos)
+		MEM_freeN(vpd->vertexcosnos);
+	MEM_freeN(vpd->indexar);
+	
+	/* frees prev buffer */
+	copy_vpaint_prev(&Gvp, NULL, 0);
+	
+	ED_undo_push(C, "Vertex Paint");
+	
+	MEM_freeN(vpd);
+	op->customdata= NULL;
+}
+
+static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	switch(event->type) {
+		case LEFTMOUSE:
+			if(event->val==0) { /* release */
+				vpaint_exit(C, op);
+				return OPERATOR_FINISHED;
+			}
+			/* pass on, first press gets painted too */
+			
+		case MOUSEMOVE: 
+		{
+			struct VPaintData *vpd= op->customdata;
+			ViewContext *vc= &vpd->vc;
+			Object *ob= vc->obact;
+			Mesh *me= ob->data;
+			float mat[4][4];
+			int *indexar= vpd->indexar;
+			int totindex, index;
+			short mval[2];
+			
+			view3d_operator_needs_opengl(C);
+			
+			/* load projection matrix */
+			wmMultMatrix(ob->obmat);
+			wmGetSingleMatrix(mat);
+			wmLoadMatrix(vc->v3d->viewmat);
+			
+			mval[0]= event->x - vc->ar->winrct.xmin;
+			mval[1]= event->y - vc->ar->winrct.ymin;
+				
+			/* which faces are involved */
+			if(Gvp.flag & VP_AREA) {
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], Gvp.size);
+			}
+			else {
+				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+				if(indexar[0]) totindex= 1;
+				else totindex= 0;
+			}
+			
+			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			
+			if(Gvp.flag & VP_COLINDEX) {
+				for(index=0; index<totindex; index++) {
+					if(indexar[index] && indexar[index]<=me->totface) {
+						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+						if(mface->mat_nr!=ob->actcol-1) {
+							indexar[index]= 0;
+						}
+					}					
+				}
+			}
+			if((G.f & G_FACESELECT) && me->mface) {
+				for(index=0; index<totindex; index++) {
+					if(indexar[index] && indexar[index]<=me->totface) {
+						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+						if((mface->flag & ME_FACE_SEL)==0)
+							indexar[index]= 0;
+					}					
+				}
+			}
+			
+			for(index=0; index<totindex; index++) {
+				
+				if(indexar[index] && indexar[index]<=me->totface) {
+					MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+					unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
+					unsigned int *mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
+					int alpha;
+					
+					if(Gvp.mode==VP_BLUR) {
+						unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
+						if(mface->v4) {
+							unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
+							vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
+						}
+						else {
+							vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
+						}
+						
+					}
+					
+					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
+					if(alpha) vpaint_blend( mcol, mcolorig, vpd->paintcol, alpha);
+					
+					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
+					if(alpha) vpaint_blend( mcol+1, mcolorig+1, vpd->paintcol, alpha);
+					
+					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
+					if(alpha) vpaint_blend( mcol+2, mcolorig+2, vpd->paintcol, alpha);
+					
+					if(mface->v4) {
+						alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
+						if(alpha) vpaint_blend( mcol+3, mcolorig+3, vpd->paintcol, alpha);
+					}
+				}
+			}
+						
+			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			
+			do_shared_vertexcol(me);
+			
+			ED_region_tag_redraw(vc->ar);
+			
+			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+		}
+		break;
+	}	
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	struct VPaintData *vpd;
+	Object *ob= CTX_data_active_object(C);
+	Mesh *me;
+	float mat[4][4], imat[4][4];
+	
+	/* context checks could be a poll() */
+	me= get_mesh(ob);
+	if(me==NULL || me->totface==0) return OPERATOR_CANCELLED;
+	
+	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
+	if(me->mcol==NULL) return OPERATOR_CANCELLED;
+	
+	/* make customdata storage */
+	op->customdata= vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
+	view3d_set_viewcontext(C, &vpd->vc);
+	
+	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
+	vpd->indexar= get_indexarray();
+	vpd->paintcol= vpaint_get_current_col(&Gvp);
+	
+	/* for filtering */
+	copy_vpaint_prev(&Gvp, (unsigned int *)me->mcol, me->totface);
+	
+	/* some old cruft to sort out later */
+	Mat4MulMat4(mat, ob->obmat, vpd->vc.v3d->viewmat);
+	Mat4Invert(imat, mat);
+	Mat3CpyMat4(vpd->vpimat, imat);
+	
+	/* do paint once for click only paint */
+	vpaint_modal(C, op, event);
+	
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void VIEW3D_OT_vpaint(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Vpaint";
+	ot->idname= "VIEW3D_OT_vpaint";
+	
+	/* api callbacks */
+	ot->invoke= vpaint_invoke;
+	ot->modal= vpaint_modal;
+	/* ot->exec= vpaint_exec; <-- needs stroke property */
+	ot->poll= vp_poll;
+	
+}
+
 

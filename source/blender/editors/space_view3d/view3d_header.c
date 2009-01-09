@@ -136,6 +136,25 @@ static int retopo_mesh_paint_check() {return 0;}
 
 /* end XXX ************* */
 
+
+/* well... in this file a lot of view mode manipulation happens, so let's have it defined here */
+void ED_view3d_exit_paint_modes(bContext *C)
+{
+	if(G.f & G_VERTEXPAINT)
+		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+
+//	if(G.f & G_TEXTUREPAINT) set_texturepaint();
+//	if(G.f & G_WEIGHTPAINT) set_wpaint();
+//	if(G.f & G_SCULPTMODE) set_sculptmode();
+//	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
+	
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
+}
+
+
+
+
+
 static void do_view3d_buttons(bContext *C, void *arg, int event);
 
 #define B_SCENELOCK 101
@@ -5368,7 +5387,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		if (v3d->modeselect == V3D_OBJECTMODE_SEL) {
 			
 			v3d->flag &= ~V3D_MODE;
-// XXX			exit_paint_modes();
+			ED_view3d_exit_paint_modes(C);
 			ED_armature_exit_posemode(basact);
 			if(obedit) 
 				ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
@@ -5376,7 +5395,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
 			if(!obedit) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				ED_object_enter_editmode(C, EM_WAITCURSOR);
 				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
 			}
@@ -5384,7 +5403,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_SCULPTMODE_SEL) {
 			if (!(G.f & G_SCULPTMODE)) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO);	/* exit editmode and undo */
 					
 // XXX				set_sculptmode();
@@ -5393,16 +5412,16 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
 			if (!(G.f & G_VERTEXPAINT)) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-					
-// XXX				set_vpaint();
+				
+				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
 			if (!(G.f & G_TEXTUREPAINT)) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 // XXX				set_texturepaint();
@@ -5411,7 +5430,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
 			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
@@ -5431,7 +5450,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		else if(v3d->modeselect == V3D_PARTICLEEDITMODE_SEL){
 			if (!(G.f & G_PARTICLEEDIT)) {
 				v3d->flag &= ~V3D_MODE;
-// XXX				exit_paint_modes();
+				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
 // XXX				PE_set_particle_edit();

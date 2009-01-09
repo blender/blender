@@ -79,6 +79,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_lasso_select);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
 	WM_operatortype_append(VIEW3D_OT_drawtype);
+	WM_operatortype_append(VIEW3D_OT_vpaint_toggle);
+	WM_operatortype_append(VIEW3D_OT_vpaint);
 	
 	transform_operatortypes();
 }
@@ -87,6 +89,9 @@ void view3d_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D", SPACE_VIEW3D, 0);
 	wmKeymapItem *km;
+	
+	/* paint poll checks mode */
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_vpaint", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_cursor3d", ACTIONMOUSE, KM_PRESS, 0, 0);
 	
@@ -148,6 +153,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_set_camera_to_view", PAD0, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_vpaint_toggle", VKEY, KM_PRESS, 0, 0);
 
 	/* TODO - this is just while we have no way to load a text datablock */
 	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");

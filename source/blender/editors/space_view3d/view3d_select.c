@@ -89,7 +89,7 @@
 #include "view3d_intern.h"	// own include
 
 
-static void view3d_set_viewcontext(bContext *C, ViewContext *vc)
+void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar= CTX_wm_region(C);

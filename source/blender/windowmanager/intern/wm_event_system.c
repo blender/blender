@@ -277,6 +277,23 @@ static int wm_draw_update_test_window(wmWindow *win)
 	return 0;
 }
 
+static void wm_paintcursor_draw(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	
+	if(wm->paintcursors.first) {
+		wmWindow *win= CTX_wm_window(C);
+		wmPaintCursor *pc;
+		
+		for(pc= wm->paintcursors.first; pc; pc= pc->next) {
+			if(pc->poll(C)) {
+				ARegion *ar= CTX_wm_region(C);
+				pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin);
+			}
+		}
+	}
+}
+
 void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -304,12 +321,16 @@ void wm_draw_update(bContext *C)
 				CTX_wm_area_set(C, sa);
 				
 				for(ar=sa->regionbase.first; ar; ar= ar->next) {
-					CTX_wm_region_set(C, ar);
 					
-					if(ar->swinid && ar->do_draw)
+					if(ar->swinid && ar->do_draw) {
+						CTX_wm_region_set(C, ar);
+						
 						ED_region_do_draw(C, ar);
-					
-					CTX_wm_region_set(C, NULL);
+						if(win->screen->subwinactive==ar->swinid)
+							wm_paintcursor_draw(C);
+						
+						CTX_wm_region_set(C, NULL);
+					}
 				}
 				
 				CTX_wm_area_set(C, NULL);
@@ -508,7 +529,6 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 }
 
 /* ********************* handlers *************** */
-
 
 /* not handler itself, is called by UI to move handlers to other queues, so don't close modal ones */
 static void wm_event_free_handler(wmEventHandler *handler)
@@ -799,11 +819,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 static int wm_event_inside_i(wmEvent *event, rcti *rect)
 {
-	return BLI_in_rcti(rect, event->x, event->y);
-}
-
-static int wm_event_prev_inside_i(wmEvent *event, rcti *rect)
-{
 	if(BLI_in_rcti(rect, event->x, event->y))
 	   return 1;
 	if(event->type==MOUSEMOVE) {
@@ -815,19 +830,19 @@ static int wm_event_prev_inside_i(wmEvent *event, rcti *rect)
 	return 0;
 }
 
-static ScrArea *area_event_inside(bContext *C, wmEvent *event)
+static ScrArea *area_event_inside(bContext *C, int x, int y)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *sa;
 	
 	if(screen)
 		for(sa= screen->areabase.first; sa; sa= sa->next)
-			if(BLI_in_rcti(&sa->totrct, event->x, event->y))
+			if(BLI_in_rcti(&sa->totrct, x, y))
 				return sa;
 	return NULL;
 }
 
-static ARegion *region_event_inside(bContext *C, wmEvent *event)
+static ARegion *region_event_inside(bContext *C, int x, int y)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
@@ -835,11 +850,44 @@ static ARegion *region_event_inside(bContext *C, wmEvent *event)
 	
 	if(screen && area)
 		for(ar= area->regionbase.first; ar; ar= ar->next)
-			if(BLI_in_rcti(&ar->winrct, event->x, event->y))
+			if(BLI_in_rcti(&ar->winrct, x, y))
 				return ar;
 	return NULL;
 }
 
+static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
+{
+	if(ar)
+		for(; pc; pc= pc->next) 
+			if(pc->poll(C))
+				ED_region_tag_redraw(ar);
+}
+
+/* called on mousemove, check updates for paintcursors */
+/* context was set on active area and region */
+static void wm_paintcursor_test(bContext *C, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	
+	if(wm->paintcursors.first) {
+		ARegion *ar= CTX_wm_region(C);
+		if(ar)
+			wm_paintcursor_tag(C, wm->paintcursors.first, ar);
+		
+		/* if previous position was not in current region, we have to set a temp new context */
+		if(ar==NULL || !BLI_in_rcti(&ar->winrct, event->prevx, event->prevy)) {
+			ScrArea *sa= CTX_wm_area(C);
+			
+			CTX_wm_area_set(C, area_event_inside(C, event->prevx, event->prevy));
+			CTX_wm_region_set(C, region_event_inside(C, event->prevx, event->prevy));
+
+			wm_paintcursor_tag(C, wm->paintcursors.first, CTX_wm_region(C));
+			
+			CTX_wm_area_set(C, sa);
+			CTX_wm_region_set(C, ar);
+		}
+	}
+}
 
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
@@ -857,8 +905,9 @@ void wm_event_do_handlers(bContext *C)
 			int action;
 
 			CTX_wm_window_set(C, win);
-			CTX_wm_area_set(C, area_event_inside(C, event));
-			CTX_wm_region_set(C, region_event_inside(C, event));
+			/* we let modal handlers get active area/region, also wm_paintcursor_test needs it */
+			CTX_wm_area_set(C, area_event_inside(C, event->x, event->y));
+			CTX_wm_region_set(C, region_event_inside(C, event->x, event->y));
 			
 			/* MVC demands to not draw in event handlers... but we need to leave it for ogl selecting etc */
 			wm_window_make_drawable(C, win);
@@ -871,22 +920,26 @@ void wm_event_do_handlers(bContext *C)
 				int doit= 0;
 				
 				/* XXX to solve, here screen handlers? */
-				if(!wm_event_always_pass(event))
+				if(event->type==MOUSEMOVE) {
 					ED_screen_set_subwinactive(win, event);	/* state variables in screen, cursors */
+					wm_paintcursor_test(C, event);
+				}
 				
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
-					if(wm_event_always_pass(event) || wm_event_prev_inside_i(event, &sa->totrct)) {
-						doit= 1;
+					if(wm_event_always_pass(event) || wm_event_inside_i(event, &sa->totrct)) {
+						
 						CTX_wm_area_set(C, sa);
+						CTX_wm_region_set(C, NULL);
 						action= wm_handlers_do(C, event, &sa->handlers);
 
 						if(wm_event_always_pass(event) || action==WM_HANDLER_CONTINUE) {
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
-								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct) || wm_event_prev_inside_i(event, &ar->winrct)) {
+								if(wm_event_always_pass(event) || wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
 									action= wm_handlers_do(C, event, &ar->handlers);
-									CTX_wm_region_set(C, NULL);
 
+									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
+									
 									if(!wm_event_always_pass(event)) {
 										if(action==WM_HANDLER_BREAK)
 											break;
@@ -894,21 +947,21 @@ void wm_event_do_handlers(bContext *C)
 								}
 							}
 						}
-
-						CTX_wm_area_set(C, NULL);
 						/* NOTE: do not escape on WM_HANDLER_BREAK, mousemove needs handled for previous area */
 					}
 				}
 				/* XXX hrmf, this gives reliable previous mouse coord for area change, feels bad? 
 				   doing it on ghost queue gives errors when mousemoves go over area borders */
-				if(doit) {
-					CTX_wm_window(C)->eventstate->prevx= event->x;
-					CTX_wm_window(C)->eventstate->prevy= event->y;
+				if(doit && win->screen->subwinactive != win->screen->mainwin) {
+					win->eventstate->prevx= event->x;
+					win->eventstate->prevy= event->y;
 				}
 			}
 			wm_event_free(event);
 			
 			CTX_wm_window_set(C, NULL);
+			CTX_wm_area_set(C, NULL);
+			CTX_wm_region_set(C, NULL);
 		}
 	}
 }

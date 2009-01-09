@@ -180,8 +180,8 @@ void ED_base_object_activate(bContext *C, Base *base)
 	Base *tbase;
 	
 	/* activating a non-mesh, should end a couple of modes... */
-	//	if(base && base->object->type!=OB_MESH)
-	// XXX		exit_paint_modes();
+	if(base && base->object->type!=OB_MESH)
+		ED_view3d_exit_paint_modes(C);
 	
 	/* sets scene->basact */
 	BASACT= base;
@@ -235,19 +235,6 @@ int object_data_is_libdata(Object *ob)
 
 
 
-void exit_paint_modes(void)
-{
-#if 0
-	if(G.f & G_VERTEXPAINT) set_vpaint();
-	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-	if(G.f & G_WEIGHTPAINT) set_wpaint();
-	if(G.f & G_SCULPTMODE) set_sculptmode();
-	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
-
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
-#endif
-}
-
 /* exported */
 void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
 {
@@ -284,7 +271,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 {
 	Object *ob;
 	
-	exit_paint_modes();
+//	ED_view3d_exit_paint_modes(C);
 
 // XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 	ob= add_object(scene, type);
@@ -362,7 +349,7 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 				}
 			}
 			
-			exit_paint_modes();
+//			ED_view3d_exit_paint_modes(C);
 
 			if(base->object->type==OB_LAMP) islamp= 1;
 
