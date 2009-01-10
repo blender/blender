@@ -3338,14 +3338,13 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 				if(inside || (block->flag & UI_BLOCK_LOOP)) {
 					if(event->val) {
 						but= ui_but_find_activated(ar);
-
 						if(but) {
-							if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) {
-								if(block->direction & UI_TOP) but= ui_but_next(but);
+							if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) {
+								if(block->direction & UI_DOWN) but= ui_but_next(but);
 								else but= ui_but_prev(but);
 							}
 							else {
-								if(block->direction & UI_TOP) but= ui_but_prev(but);
+								if(block->direction & UI_DOWN) but= ui_but_prev(but);
 								else but= ui_but_next(but);
 							}
 

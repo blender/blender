@@ -672,7 +672,6 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->direction= UI_TOP;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
@@ -1340,6 +1339,7 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiMenuBlockHandle *handle, void *arg
 	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
+	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
 
@@ -1503,6 +1503,7 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
+	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
 
