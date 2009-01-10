@@ -143,7 +143,6 @@ static void waitcursor() {}
 static int pupmenu() {return 0;}
 static int pupmenu_col() {return 0;}
 static int okee() {return 0;}
-static void EM_select_flush() {}
 
 /* port over here */
 static bContext *C;
@@ -465,7 +464,7 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 			if(index < hmd->totindex-1) index++;
 		}
 	}
-	EM_select_flush();
+	EM_select_flush(em);
 }
 
 static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
@@ -909,9 +908,9 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 	/*short mode=0;*/
 	
 	if(scene->id.lib) return;
-// XXX	if(obedit) {
-//		return; 
-//	}
+	if(scene->obedit) {
+		return; 
+	}
 	if(BASACT==0) return;
 
 	mode= pupmenu("Make Track %t|TrackTo Constraint %x1|LockTrack Constraint %x2|Old Track %x3");
@@ -925,7 +924,7 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
 					strcpy (con->name, "AutoTrack");
 
 					data = con->data;
@@ -938,7 +937,7 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 						data->reserved2 = UP_Y;
 					}
 
-// XXX					add_constraint_to_object(con, base->object);
+					add_constraint_to_object(con, base->object);
 				}
 			}
 		}
@@ -951,7 +950,7 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
 					strcpy (con->name, "AutoTrack");
 
 					data = con->data;
@@ -964,7 +963,7 @@ void make_track(Scene *scene, View3D *v3d, short mode)
 						data->lockflag = LOCK_Y;
 					}
 
-// XXX					add_constraint_to_object(con, base->object);
+					add_constraint_to_object(con, base->object);
 				}
 			}
 		}
@@ -1317,7 +1316,7 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 'g');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1368,7 +1367,7 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 'r');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1420,7 +1419,7 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 's');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1466,33 +1465,20 @@ void OBJECT_OT_clear_scale(wmOperatorType *ot)
 
 static int object_clear_origin_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	float *v1, *v3, mat[3][3];
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
-			if(ob->parent) {
-				v1= ob->loc;
-				v3= ob->parentinv[3];
-				
-				Mat3CpyMat4(mat, ob->parentinv);
-				VECCOPY(v3, v1);
-				v3[0]= -v3[0];
-				v3[1]= -v3[1];
-				v3[2]= -v3[2];
-				Mat3MulVecfl(mat, v3);
-			}
+		if(ob->parent) {
+			v1= ob->loc;
+			v3= ob->parentinv[3];
+			
+			Mat3CpyMat4(mat, ob->parentinv);
+			VECCOPY(v3, v1);
+			v3[0]= -v3[0];
+			v3[1]= -v3[1];
+			v3[2]= -v3[2];
+			Mat3MulVecfl(mat, v3);
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
@@ -1929,49 +1915,6 @@ void make_proxy(Scene *scene)
 #if 0
 oldcode()
 {
-	else if(mode==4) {
-		bConstraint *con;
-		bFollowPathConstraint *data;
-			
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					float cmat[4][4], vec[3];
-					
-// XXX						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
-					strcpy (con->name, "AutoPath");
-					
-					data = con->data;
-					data->tar = BASACT->object;
-					
-// XXX						add_constraint_to_object(con, base->object);
-					
-					get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(base->object));
-					VecSubf(vec, base->object->obmat[3], cmat[3]);
-					
-					base->object->loc[0] = vec[0];
-					base->object->loc[1] = vec[1];
-					base->object->loc[2] = vec[2];
-				}
-			}
-		}
-
-		if(mode==PARSKEL && base->object->type==OB_MESH && par->type == OB_ARMATURE) {
-			/* Prompt the user as to whether he wants to
-				* add some vertex groups based on the bones
-				* in the parent armature.
-				*/
-// XXX							create_vgroups_from_armature(base->object, par);
-
-			base->object->partype= PAROBJECT;
-			what_does_parent(scene, base->object);
-			Mat4One (base->object->parentinv);
-			base->object->partype= mode;
-		}
-		else
-			what_does_parent(scene, base->object, &workob);
-		Mat4Invert(base->object->parentinv, workob.obmat);
-	}
 }
 #endif
 
@@ -2066,13 +2009,51 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				else
 					ob->parsubstr[0]= 0;
 				
-				/* constraint XXX */
+				/* constraint */
 				if(partype==PAR_PATH_CONST) {
+					bConstraint *con;
+					bFollowPathConstraint *data;
+					float cmat[4][4], vec[3];
+					
+					con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+					strcpy (con->name, "AutoPath");
+					
+					data = con->data;
+					data->tar = par;
+					
+					add_constraint_to_object(con, ob);
+					
+					get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
+					VecSubf(vec, ob->obmat[3], cmat[3]);
+					
+					ob->loc[0] = vec[0];
+					ob->loc[1] = vec[1];
 				}
-				
-				/* calculate inverse parent matrix */
-				what_does_parent(scene, ob, &workob);
-				Mat4Invert(ob->parentinv, workob.obmat);
+				else if(partype==PAR_ARMATURE && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					
+					if(1) {
+						/* Prompt the user as to whether he wants to
+						* add some vertex groups based on the bones
+						* in the parent armature.
+						*/
+						create_vgroups_from_armature(scene, ob, par);
+						
+						/* get corrected inverse */
+						ob->partype= PAROBJECT;
+						what_does_parent(scene, ob, &workob);
+						
+						ob->partype= PARSKEL;
+					}
+					else
+						what_does_parent(scene, ob, &workob);
+					
+					Mat4Invert(ob->parentinv, workob.obmat);
+				}
+				else {
+					/* calculate inverse parent matrix */
+					what_does_parent(scene, ob, &workob);
+					Mat4Invert(ob->parentinv, workob.obmat);
+				}
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
@@ -2169,7 +2150,7 @@ static int make_track_exec(bContext *C, wmOperator *op)
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
 					strcpy (con->name, "AutoTrack");
 
 					data = con->data;
@@ -2182,7 +2163,7 @@ static int make_track_exec(bContext *C, wmOperator *op)
 						data->reserved2 = UP_Y;
 					}
 
-// XXX					add_constraint_to_object(con, base->object);
+					add_constraint_to_object(con, base->object);
 				}
 			}
 		}
@@ -2195,7 +2176,7 @@ static int make_track_exec(bContext *C, wmOperator *op)
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
 					strcpy (con->name, "AutoTrack");
 
 					data = con->data;
@@ -2208,7 +2189,7 @@ static int make_track_exec(bContext *C, wmOperator *op)
 						data->lockflag = LOCK_Y;
 					}
 
-// XXX					add_constraint_to_object(con, base->object);
+					add_constraint_to_object(con, base->object);
 				}
 			}
 		}
@@ -2508,7 +2489,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
-// XXX			recalc_editnormals();
+			recalc_editnormals(me->edit_mesh);
 			tot_change++;
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		}
@@ -2743,7 +2724,7 @@ void docenter(Scene *scene, View3D *v3d, int centermode)
 						/* Function to recenter armatures in editarmature.c 
 						 * Bone + object locations are handled there.
 						 */
-// XXX						docenter_armature(base->object, centermode);
+						docenter_armature(scene, v3d, base->object, centermode);
 						tot_change++;
 						
 						where_is_object(scene, base->object);

@@ -1408,6 +1408,7 @@ static float vert_weight(MDeformVert *dvert, int group)
 	}
 	return 0.0;
 }
+
 static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, short type, short axis, float obmat[][4])
 {
 	float vec[3]={0.0,0.0,0.0}, q1[4]={1,0,0,0},q2[4];
@@ -1542,6 +1543,7 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 			break;
 	}
 }
+
 static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump)
 {
 	if(par && clumpfac!=0.0){
@@ -1559,7 +1561,8 @@ static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clu
 		VecLerpf(state->co,state->co,par->co,clump);
 	}
 }
-int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
+
+int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase *lb)
 {
 	PartDeflect *pd;
 	ParticleEffectorCache *ec;
@@ -1717,7 +1720,7 @@ static void do_rough_end(float *loc, float t, float fac, float shape, ParticleKe
 
 	VECADD(state->co,state->co,rough);
 }
-static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
+static void do_path_effectors(Scene *scene, Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
 {
 	float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
 	ParticleKey eff_key;
@@ -1728,7 +1731,7 @@ static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleC
 	QUATCOPY(eff_key.rot,(ca-1)->rot);
 
 	pa= psys->particles+i;
-	do_effectors(i, pa, &eff_key, ob, psys, rootco, force, vel, dfra, cfra);
+	do_effectors(i, pa, &eff_key, scene, ob, psys, rootco, force, vel, dfra, cfra);
 
 	VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
 
@@ -2117,7 +2120,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	if(part->flag & PART_CHILD_EFFECT) {
 		for(k=0,state=keys; k<=ctx->steps; k++,state++) {
 			if(k) {
-				do_path_effectors(ob, psys, cpa->pa[0], state, k, ctx->steps, keys->co, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
+				do_path_effectors(ctx->scene, ob, psys, cpa->pa[0], state, k, ctx->steps, keys->co, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
 			}
 			else {
 				VecSubf(eff_vec,(state+1)->co,state->co);
@@ -2144,7 +2147,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		/* apply different deformations to the child path */
 		if(part->flag & PART_CHILD_EFFECT)
 			/* state is safe to cast, since only co and vel are used */
-			guided = do_guide((ParticleKey*)state, cpa->parent, t, &(psys->effectors));
+			guided = do_guide(ctx->scene, (ParticleKey*)state, cpa->parent, t, &(psys->effectors));
 
 		if(guided==0){
 			if(part->kink)
@@ -2575,12 +2578,12 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
 			if(!(psys->part->flag & PART_CHILD_EFFECT) && edit==0 && k)
-				do_path_effectors(ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
+				do_path_effectors(scene, ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
 
 			/* apply guide curves to path data */
 			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_EFFECT)==0)
 				/* ca is safe to cast, since only co and vel are used */
-				do_guide((ParticleKey*)ca, i, (float)k/(float)steps, &psys->effectors);
+				do_guide(scene, (ParticleKey*)ca, i, (float)k/(float)steps, &psys->effectors);
 
 			/* apply lattice */
 			if(psys->lattice && edit==0)
@@ -3468,7 +3471,7 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 				Mat4Mul3Vecfl(hairmat, state->vel);
 
 				if(psys->effectors.first && (part->flag & PART_CHILD_GUIDE)==0) {
-					do_guide(state, p, state->time, &psys->effectors);
+					do_guide(scene, state, p, state->time, &psys->effectors);
 					/* TODO: proper velocity handling */
 				}
 

@@ -3856,7 +3856,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	 * when parenting, or simply the original mesh coords.
 	 */
 
-	bArmature *arm= ob->data;
+	bArmature *arm= par->data;
 	Bone **bonelist, *bone;
 	bDeformGroup **dgrouplist, **dgroupflip;
 	bDeformGroup *dgroup, *curdg;
@@ -4020,7 +4020,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
 	 */
-	bArmature *arm= ob->data;
+	bArmature *arm= par->data;
 	short mode;
 
 	/* Prompt the user on whether/how they want the vertex groups
@@ -4030,6 +4030,9 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 				  "Name Groups %x2|"
                   "Create From Envelopes %x3|"
 				  "Create From Bone Heat %x4|");
+	
+	mode= 3; // XXX
+	
 	switch (mode) {
 	case 2:
 		/* Traverse the bone list, trying to create empty vertex 

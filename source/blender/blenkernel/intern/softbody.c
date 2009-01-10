@@ -3567,7 +3567,7 @@ static void springs_from_particles(Object *ob)
 	}
 }
 
-static void particles_to_softbody(Object *ob)
+static void particles_to_softbody(Scene *scene, Object *ob)
 {
 	SoftBody *sb;
 	BodyPoint *bp;
@@ -4111,7 +4111,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
 
 		if(sb->particles){
-			particles_to_softbody(ob);
+			particles_to_softbody(scene, ob);
 		}
 		else {
 			switch(ob->type) {

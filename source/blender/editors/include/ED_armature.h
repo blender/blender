@@ -95,6 +95,9 @@ struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 
 void transform_armature_mirror_update(struct Object *obedit);
+void clear_armature(struct Scene *scene, struct Object *ob, char mode);
+void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par);
+void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
 
 /* poseobject.c */
 void ED_armature_exit_posemode(struct Base *base);

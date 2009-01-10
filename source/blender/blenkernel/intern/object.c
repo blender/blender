@@ -117,7 +117,7 @@
 #include "GPU_material.h"
 
 /* Local function protos */
-static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
+static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
 float originmat[3][3];	/* after where_is_object(), can be used in other functions (bad!) */
 
@@ -1847,7 +1847,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 			else where_is_object_time(scene, par, ctime);
 		}
 		
-		solve_parenting(ob, par, ob->obmat, slowmat, 0);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 
 		if(pop) {
 			poplast(par);
@@ -1902,18 +1902,17 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
+static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
 {
 	float totmat[4][4];
 	float tmat[4][4];
 	float locmat[4][4];
 	float vec[3];
 	int ok;
-
+	
 	object_to_mat4(ob, locmat);
 	
 	if(ob->partype & PARSLOW) Mat4CpyMat4(slowmat, obmat);
-	
 
 	switch(ob->partype & PARTYPE) {
 	case PAROBJECT:
@@ -2036,7 +2035,7 @@ for a lamp that is the child of another object */
 	if(ob->parent) {
 		par= ob->parent;
 		
-		solve_parenting(ob, par, ob->obmat, slowmat, 1);
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 1);
 
 		if(ob->partype & PARSLOW) {
 
@@ -2273,7 +2272,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(scene, ob, ((Mesh*)ob->data)->edit_mesh, CD_MASK_BAREMESH);	// here was vieweditdatamask? XXX
+					// here was vieweditdatamask? XXX
+				if(ob==scene->obedit)
+					makeDerivedMesh(scene, ob, ((Mesh*)ob->data)->edit_mesh, CD_MASK_BAREMESH);
+				else
+					makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
 			}
 			else if(ob->type==OB_MBALL) {
 				makeDispListMBall(scene, ob);

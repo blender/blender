@@ -34,6 +34,7 @@ struct Object;
 struct bContext;
 struct Base;
 struct View3D;
+struct bConstraint;
 
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);
@@ -57,10 +58,14 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct Scene *scene, struct View3D *v3d, struct Base *base);
 
-
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);
 int object_is_libdata(struct Object *ob);
+
+/* constraints */
+struct bConstraint *add_new_constraint (short type);
+void add_constraint_to_object (struct bConstraint *con, struct Object *ob);
+
 
 #endif /* ED_OBJECT_H */
 

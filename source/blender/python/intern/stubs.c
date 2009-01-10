@@ -39,4 +39,5 @@ void BPY_clear_script() {}
 void BPY_free_compiled_text() {}
 void BPY_pyconstraint_eval() {}
 void BPY_pyconstraint_target() {}
-
+int BPY_is_pyconstraint() {return 0;}
+void BPY_pyconstraint_update() {}

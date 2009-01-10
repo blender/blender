@@ -87,6 +87,12 @@ bArmature *add_armature(char *name)
 	return arm;
 }
 
+bArmature *get_armature(Object *ob)
+{
+	if(ob->type==OB_ARMATURE)
+		return (bArmature *)ob->data;
+	return NULL;
+}
 
 void free_boneChildren(Bone *bone)
 { 

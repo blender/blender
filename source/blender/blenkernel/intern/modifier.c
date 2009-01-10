@@ -7318,7 +7318,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 				 if(emd->flag & eExplodeFlag_EdgeSplit){
 					 int *facepa = emd->facepa;
 					 DerivedMesh *splitdm=explodeModifier_splitEdges(emd,dm);
-					 DerivedMesh *explode=explodeModifier_explodeMesh(emd, psmd, scene, ob, splitdm);
+					 DerivedMesh *explode=explodeModifier_explodeMesh(emd, psmd, md->scene, ob, splitdm);
 
 					 MEM_freeN(emd->facepa);
 					 emd->facepa=facepa;
@@ -7326,7 +7326,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 					 return explode;
 				 }
 				 else
-					 return explodeModifier_explodeMesh(emd, psmd, scene, ob, derivedData);
+					 return explodeModifier_explodeMesh(emd, psmd, md->scene, ob, derivedData);
 	}
 	return derivedData;
 }
