@@ -72,7 +72,7 @@ enum {
 	TFM_BEVEL,
 	TFM_BWEIGHT,
 	TFM_ALIGN
-} TfmModesInputFlags;
+} TfmMode;
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
