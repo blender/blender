@@ -375,7 +375,8 @@ typedef struct TransformOrientation {
 } TransformOrientation;
 
 typedef struct VPaint {
-	float r, g, b, a;
+	float r, g, b, a;					/* paint color */
+	float weight;						/* weight paint */
 	float size;							/* of brush */
 	float gamma, mul;
 	short mode, flag;

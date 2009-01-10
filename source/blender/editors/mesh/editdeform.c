@@ -678,9 +678,8 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 }
 
 /* Only available in editmode */
-void assign_verts_defgroup (Object *obedit)
+void assign_verts_defgroup (Object *obedit, float weight)
 {
-	float editbutvweight;	/* XXX */
 	Object *ob;
 	EditVert *eve;
 	bDeformGroup *dg, *eg;
@@ -722,7 +721,7 @@ void assign_verts_defgroup (Object *obedit)
 					eg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 					/* Find the actual group */
 					if (eg==dg){
-						dvert->dw[i].weight=editbutvweight;
+						dvert->dw[i].weight= weight;
 						done=1;
 						break;
 					}
@@ -736,7 +735,7 @@ void assign_verts_defgroup (Object *obedit)
 					}
 					dvert->dw=newdw;
 
-					dvert->dw[dvert->totweight].weight= editbutvweight;
+					dvert->dw[dvert->totweight].weight= weight;
 					dvert->dw[dvert->totweight].def_nr= ob->actdef-1;
 
 					dvert->totweight++;
@@ -757,7 +756,7 @@ void assign_verts_defgroup (Object *obedit)
 			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 			for(a=0, bp= editLatt->def; a<tot; a++, bp++) {
 				if(bp->f1 & SELECT)
-					add_vert_defnr (ob, ob->actdef-1, a, editbutvweight, WEIGHT_REPLACE);
+					add_vert_defnr (ob, ob->actdef-1, a, weight, WEIGHT_REPLACE);
 			}
 		}	
 		break;
@@ -969,13 +968,14 @@ void vertexgroup_select_by_name(Object *ob, char *name)
  * and Lattices. (currently only restricted to those two)
  * It is only responsible for 
  */
-void vgroup_assign_with_menu(Object *ob)
+void vgroup_assign_with_menu(Scene *scene, Object *ob)
 {
+	VPaint *wp= scene->toolsettings->wpaint;
 	int defCount;
 	int mode;
 	
 	/* prevent crashes */
-	if (ob==NULL) return;
+	if (wp==NULL || ob==NULL) return;
 	
 	defCount= BLI_countlist(&ob->defbase);
 	
@@ -989,11 +989,11 @@ void vgroup_assign_with_menu(Object *ob)
 	switch (mode) {
 		case 1: /* add to new group */
 			add_defgroup(ob);
-			assign_verts_defgroup(ob);
+			assign_verts_defgroup(ob, wp->weight);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 2: /* add to current group */
-			assign_verts_defgroup(ob);
+			assign_verts_defgroup(ob, wp->weight);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 3:	/* remove from current group */

@@ -119,6 +119,7 @@ static VPaint *new_vpaint(int wpaint)
 	vp->flag= VP_AREA+VP_SOFT+VP_SPRAY;
 	
 	if(wpaint) {
+		vp->weight= 1.0f;
 		vp->a= 1.0f;
 		vp->flag= VP_AREA+VP_SOFT;
 	}
@@ -358,8 +359,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 void clear_wpaint_selectedfaces(Scene *scene)
 {
 	VPaint *wp= scene->toolsettings->wpaint;
-	float editbutvweight;
-	float paintweight= editbutvweight;
+	float paintweight= wp->weight;
 	Mesh *me;
 	MFace *mface;
 	Object *ob;
@@ -426,7 +426,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
 					if(dw) {
 						uw= verify_defweight(wp->wpaint_prev+faceverts[i], vgroup);
-						uw->weight= dw->weight; /* set the undio weight */
+						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
 						if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
@@ -881,11 +881,12 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 /* if mode==1: */
 /*     samples cursor location, and gives menu with vertex groups to activate */
 /* else */
-/*     sets editbutvweight to the closest weight value to vertex */
+/*     sets wp->weight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
 void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	ViewContext vc;
+	VPaint *wp= scene->toolsettings->wpaint;
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
@@ -965,7 +966,6 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		else {
 			DerivedMesh *dm;
 			MDeformWeight *dw;
-			float editbutvweight;
 			float w1, w2, w3, w4, co[3], fac;
 			
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -996,20 +996,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
 					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
 				}
 				else if(w2==fac) {
 					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
 				}
 				else if(w3==fac) {
 					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+					if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
 						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+						if(dw) wp->weight= dw->weight; else wp->weight= 0.0f;
 					}
 				}
 			}
@@ -1209,7 +1209,6 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
-	float editbutvweight= 1.0f; // XXX
 	
 	switch(event->type) {
 		case LEFTMOUSE:
@@ -1226,7 +1225,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			Object *ob= vc->obact;
 			Mesh *me= ob->data;
 			float mat[4][4];
-			float paintweight= editbutvweight; // XXX
+			float paintweight= wp->weight;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
 			short mval[2];
@@ -1283,7 +1282,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(wp->mode==VP_BLUR) 
 				paintweight= 0.0f;
 			else
-				paintweight= editbutvweight;
+				paintweight= wp->weight;
 			
 			for(index=0; index<totindex; index++) {
 				if(indexar[index] && indexar[index]<=me->totface) {
