@@ -83,6 +83,8 @@ void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userDa
 int view3d_test_clipping(struct View3D *v3d, float *vec);
 void view3d_align_axis_to_vector(struct Scene *scene, struct View3D *v3d, int axisidx, float vec[3]);
 
+void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
+
 /* backbuffer select and draw support */
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index));

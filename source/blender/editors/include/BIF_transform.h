@@ -116,11 +116,6 @@ void BIF_selectTransformOrientationFromIndex(int index);
 char * BIF_menustringTransformOrientation(char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation();
 
-/* Drawing callbacks */
-void BIF_drawConstraint(void);
-void BIF_drawPropCircle(void);
-void BIF_drawSnap(void);
-
 void BIF_getPropCenter(float *center);
 
 void BIF_TransformSetUndo(char *str);

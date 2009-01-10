@@ -53,7 +53,6 @@
 #include "DNA_view3d_types.h"
 
 //#include "BIF_screen.h"
-//#include "BIF_resources.h"
 //#include "BIF_mywindow.h"
 #include "BIF_gl.h"
 //#include "BIF_editaction.h"
@@ -89,6 +88,7 @@
 #include "ED_armature.h"
 #include "ED_view3d.h"
 #include "ED_mesh.h"
+#include "ED_space_api.h"
 
 //#include "BSE_editaction_types.h"
 //#include "BDR_unwrapper.h"
@@ -99,6 +99,8 @@
 #include "BLI_rand.h"
 
 #include "WM_types.h"
+
+#include "UI_resources.h"
 
 //#include "blendef.h"
 //
@@ -611,38 +613,44 @@ void recalcData(TransInfo *t)
 		reshadeall_displist(t->scene);
 }
 
-void drawLine(float *center, float *dir, char axis, short options)
+void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 {
-#if 0 // TRANSFORM_FIX_ME
-	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+	extern void make_axis_color(char *col, char *col2, char axis);	// view3d_draw.c
 	float v1[3], v2[3], v3[3];
 	char col[3], col2[3];
 	
-	//if(t->obedit) mymultmatrix(t->obedit->obmat);	// sets opengl viewing
-
-	VecCopyf(v3, dir);
-	VecMulf(v3, G.vd->far);
+	if (t->spacetype == SPACE_VIEW3D)
+	{
+		View3D *v3d = t->view;
+		
+		glPushMatrix();
+		
+		//if(t->obedit) glLoadMatrixf(t->obedit->obmat);	// sets opengl viewing
+		
 	
-	VecSubf(v2, center, v3);
-	VecAddf(v1, center, v3);
-
-	if (options & DRAWLIGHT) {
-		col[0] = col[1] = col[2] = 220;
-	}
-	else {
-		BIF_GetThemeColor3ubv(TH_GRID, col);
-	}
-	make_axis_color(col, col2, axis);
-	glColor3ubv((GLubyte *)col2);
-
-	setlinestyle(0);
-	glBegin(GL_LINE_STRIP); 
-		glVertex3fv(v1); 
-		glVertex3fv(v2); 
-	glEnd();
+		VecCopyf(v3, dir);
+		VecMulf(v3, v3d->far);
+		
+		VecSubf(v2, center, v3);
+		VecAddf(v1, center, v3);
 	
-	myloadmatrix(G.vd->viewmat);
-#endif
+		if (options & DRAWLIGHT) {
+			col[0] = col[1] = col[2] = 220;
+		}
+		else {
+			UI_GetThemeColor3ubv(TH_GRID, col);
+		}
+		make_axis_color(col, col2, axis);
+		glColor3ubv((GLubyte *)col2);
+	
+		setlinestyle(0);
+		glBegin(GL_LINE_STRIP); 
+			glVertex3fv(v1); 
+			glVertex3fv(v2); 
+		glEnd();
+		
+		glPopMatrix();
+	}
 }
 
 void resetTransRestrictions(TransInfo *t)
@@ -755,9 +763,12 @@ void postTrans (TransInfo *t)
 {
 	TransData *td;
 
-	G.moving = 0; // Set moving flag off (display as usual)
-
 	stopConstraint(t);
+	
+	if (t->draw_handle)
+	{
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
+	}
 	
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {

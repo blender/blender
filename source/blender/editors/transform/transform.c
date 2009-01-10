@@ -99,6 +99,8 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_space_api.h"
+
 #include "UI_view2d.h"
 #include "WM_types.h"
 #include "WM_api.h"
@@ -114,15 +116,6 @@
 //#include "mydevice.h"
 
 #include "transform.h"
-
-/******************************** Helper functions ************************************/
-
-/* GLOBAL Wrapper Fonctions */
-
-//void BIF_drawSnap()
-//{
-//	drawSnapping(&Trans);
-//}
 
 /* ************************** Dashed help line **************************** */
 
@@ -959,6 +952,15 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	return success;
 }
 
+void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+	
+	drawConstraint(t);
+	drawPropCircle(t);
+	drawSnapping(t);
+}
+
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
 	RNA_int_set(op->ptr, "mode", t->mode);
@@ -988,6 +990,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		//calc_manipulator_stats(curarea);
 		Mat3CpyMat4(t->spacemtx, v3d->twmat);
 		Mat3Ortho(t->spacemtx);
+		
+		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
 	}
 	else
 		Mat3One(t->spacemtx);

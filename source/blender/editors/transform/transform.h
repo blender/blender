@@ -241,6 +241,7 @@ typedef struct TransInfo {
 	struct Scene	*scene;
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;
+    void		*draw_handle;
 } TransInfo;
 
 
@@ -427,6 +428,9 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
+
+void drawPropCircle(TransInfo *t);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransGPactionData(TransInfo *t);
@@ -455,6 +459,8 @@ void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
+
+void drawConstraint(TransInfo *t);
 
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
@@ -522,7 +528,7 @@ void initTransInfo(struct bContext *C, TransInfo *t, struct wmEvent *event);
 void postTrans (TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
-void drawLine(float *center, float *dir, char axis, short options);
+void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);
 
 TransDataCurveHandleFlags *initTransDataCurveHandes(TransData *td, struct BezTriple *bezt);
 

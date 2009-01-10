@@ -76,13 +76,13 @@
 
 #include "BLI_arithb.h"
 
-//#include "BDR_drawobject.h"	/* drawcircball	*/
-//
 //#include "blendef.h"
 //
 //#include "mydevice.h"
 
 #include "WM_types.h"
+#include "UI_resources.h"
+
 
 #include "transform.h"
 
@@ -676,9 +676,8 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 
 /*----------------- DRAWING CONSTRAINTS -------------------*/
 
-void BIF_drawConstraint(void)
+void drawConstraint(TransInfo *t)
 {
-	TransInfo *t = BIF_GetTransInfo();
 	TransCon *tc = &(t->con);
 
 	if (t->spacetype!=SPACE_VIEW3D)
@@ -705,9 +704,9 @@ void BIF_drawConstraint(void)
 			convertViewVec(t, vec, (short)(t->mval[0] - t->con.imval[0]), (short)(t->mval[1] - t->con.imval[1]));
 			VecAddf(vec, vec, tc->center);
 
-			drawLine(tc->center, tc->mtx[0], 'x', 0);
-			drawLine(tc->center, tc->mtx[1], 'y', 0);
-			drawLine(tc->center, tc->mtx[2], 'z', 0);
+			drawLine(t, tc->center, tc->mtx[0], 'x', 0);
+			drawLine(t, tc->center, tc->mtx[1], 'y', 0);
+			drawLine(t, tc->center, tc->mtx[2], 'z', 0);
 
 			glColor3ubv((GLubyte *)col2);
 			
@@ -724,44 +723,53 @@ void BIF_drawConstraint(void)
 		}
 
 		if (tc->mode & CON_AXIS0) {
-			drawLine(tc->center, tc->mtx[0], 'x', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[0], 'x', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS1) {
-			drawLine(tc->center, tc->mtx[1], 'y', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[1], 'y', DRAWLIGHT);
 		}
 		if (tc->mode & CON_AXIS2) {
-			drawLine(tc->center, tc->mtx[2], 'z', DRAWLIGHT);
+			drawLine(t, tc->center, tc->mtx[2], 'z', DRAWLIGHT);
 		}
 	}
 }
 
 /* called from drawview.c, as an extra per-window draw option */
-void BIF_drawPropCircle()
+void drawPropCircle(TransInfo *t)
 {
-	TransInfo *t = BIF_GetTransInfo();
-
 	if (t->flag & T_PROP_EDIT) {
-		// TRANSFORM_FIX_ME
-#if 0
 		float tmat[4][4], imat[4][4];
 
-		BIF_ThemeColor(TH_GRID);
+		UI_ThemeColor(TH_GRID);
 		
-		/* if editmode we need to go into object space */
-		if(t->scene->obedit && t->spacetype == SPACE_VIEW3D)
-			mymultmatrix(t->scene->obedit->obmat);
+		if (t->spacetype == SPACE_VIEW3D)
+		{
+			View3D *v3d = t->view;
+			
+			Mat4CpyMat4(tmat, v3d->viewmat);
+			Mat4Invert(imat, tmat);
+		}
+		else
+		{
+			Mat4One(tmat);
+			Mat4One(imat);
+		}
+
 		
-		mygetmatrix(tmat);
-		Mat4Invert(imat, tmat);
+		if(t->obedit)
+		{
+			glPushMatrix();
+			glMultMatrixf(t->obedit->obmat); /* because t->center is in local space */
+		}
 
 		set_inverted_drawing(1);
 		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
 		set_inverted_drawing(0);
 		
-		/* if editmode we restore */
-		if(t->scene->obedit && t->spacetype == SPACE_VIEW3D)
-			myloadmatrix(G.vd->viewmat);
-#endif
+		if(t->obedit)
+		{
+			glPopMatrix();
+		}
 	}
 }
 
@@ -775,6 +783,7 @@ void BIF_getPropCenter(float *center)
 	else
 		center[0] = center[1] = center[2] = 0.0f;
 }
+
 static void drawObjectConstraint(TransInfo *t) {
 	int i;
 	TransData * td = t->data;
@@ -786,26 +795,26 @@ static void drawObjectConstraint(TransInfo *t) {
 	   Without drawing the first light, users have little clue what they are doing.
 	 */
 	if (t->con.mode & CON_AXIS0) {
-		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS1) {
-		drawLine(td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
 	}
 	if (t->con.mode & CON_AXIS2) {
-		drawLine(td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
+		drawLine(t, td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
 	}
 	
 	td++;
 
 	for(i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
-			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'x', 0);
 		}
 		if (t->con.mode & CON_AXIS1) {
-			drawLine(td->ob->obmat[3], td->axismtx[1], 'y', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[1], 'y', 0);
 		}
 		if (t->con.mode & CON_AXIS2) {
-			drawLine(td->ob->obmat[3], td->axismtx[2], 'z', 0);
+			drawLine(t, td->ob->obmat[3], td->axismtx[2], 'z', 0);
 		}
 	}
 }

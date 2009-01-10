@@ -52,7 +52,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 //#include "BIF_mywindow.h"
-//#include "BIF_resources.h"
 //#include "BIF_screen.h"
 //#include "BIF_editsima.h"
 //#include "BIF_drawimage.h"
@@ -67,10 +66,14 @@
 
 #include "ED_view3d.h"
 
+#include "WM_types.h"
+
+#include "UI_resources.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "transform.h"
-#include "WM_types.h"
+
 //#include "blendef.h" /* for selection modes */
 
 static EditVert *EM_get_vert_for_index(int x) {return 0;}	// XXX
@@ -127,41 +130,35 @@ void drawSnapping(TransInfo *t)
 		{
 		
 		char col[4] = {1, 0, 1};
-		//BIF_GetThemeColor3ubv(TH_TRANSFORM, col);
+		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 		glColor4ub(col[0], col[1], col[2], 128);
 		
 		if (t->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = t->view;
-			float unitmat[4][4];
+			float tmat[4][4], imat[4][4];
 			float size;
 			
 			glDisable(GL_DEPTH_TEST);
 	
 			size = get_drawsize(v3d, t->sa, t->tsnap.snapPoint);
 			
-			//size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
+			size *= 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 			
-			glPushMatrix();
-			
-			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
+			Mat4CpyMat4(tmat, v3d->viewmat);
+			Mat4Invert(imat, tmat);
+
+			drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size, imat);
 			
 			/* draw normal if needed */
 			if (usingSnappingNormal(t) && validSnappingNormal(t))
 			{
 				glBegin(GL_LINES);
-					glVertex3f(0, 0, 0);
-					glVertex3f(t->tsnap.snapNormal[0], t->tsnap.snapNormal[1], t->tsnap.snapNormal[2]);
+					glVertex3f(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
+					glVertex3f(	t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
+								t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
+								t->tsnap.snapPoint[2] + t->tsnap.snapNormal[2]);
 				glEnd();
 			}
-			
-			/* sets view screen aligned */
-			glRotatef( -360.0f*saacos(v3d->viewquat[0])/(float)M_PI, v3d->viewquat[1], v3d->viewquat[2], v3d->viewquat[3]);
-			
-			Mat4One(unitmat);
-			// TRANSFORM_FIX_ME
-			//drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
-			
-			glPopMatrix();
 			
 			if(v3d->zbuf)
 				glEnable(GL_DEPTH_TEST);
