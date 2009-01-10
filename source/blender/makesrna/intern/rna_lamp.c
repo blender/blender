@@ -52,7 +52,7 @@ static void *rna_Lamp_sunsky_settings_get(PointerRNA *ptr)
 
 #else
 
-static void rna_def_lamp_sunsky_settings(BlenderRNA *brna)
+static void rna_def_lamp_sunsky_settings(BlenderRNA *brna, StructRNA *parent)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -84,6 +84,7 @@ static void rna_def_lamp_sunsky_settings(BlenderRNA *brna)
 		
 	srna= RNA_def_struct(brna, "SunskySettings", NULL);
 	RNA_def_struct_sdna(srna, "Lamp");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Sun/Sky Settings", "Sun/Sky related settings for the lamp.");
 		
 	prop= RNA_def_property(srna, "sky_colorspace", PROP_ENUM, PROP_NONE);
@@ -173,7 +174,7 @@ static void rna_def_lamp_sunsky_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LAMP|ND_SKY, NULL);
 }
 
-void rna_def_lamp(BlenderRNA *brna)
+static StructRNA *rna_def_lamp(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -465,12 +466,15 @@ void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Lamp_sunsky_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Sun/Sky Settings", "Sun/Sky related settings for the lamp.");
 
+	return srna;
 }
 
 void RNA_def_lamp(BlenderRNA *brna)
 {
-	rna_def_lamp(brna);
-	rna_def_lamp_sunsky_settings(brna);
+	StructRNA *srna;
+	
+	srna= rna_def_lamp(brna);
+	rna_def_lamp_sunsky_settings(brna, srna);
 }
 
 #endif

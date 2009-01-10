@@ -247,7 +247,7 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex group.");
 }
 
-static void rna_def_object_game_settings(BlenderRNA *brna)
+static void rna_def_object_game_settings(BlenderRNA *brna, StructRNA *parent)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -272,6 +272,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ObjectGameSettings", NULL);
 	RNA_def_struct_sdna(srna, "Object");
+	RNA_def_struct_parent(srna, parent);
 	RNA_def_struct_ui_text(srna, "Object Game Settings", "Game engine related settings for the object.");
 
 	/* logic */
@@ -407,7 +408,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine.");
 }
 
-static void rna_def_object(BlenderRNA *brna)
+static StructRNA *rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -912,12 +913,16 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key index.");
+	
+	return srna;
 }
 
 void RNA_def_object(BlenderRNA *brna)
 {
-	rna_def_object(brna);
-	rna_def_object_game_settings(brna);
+	StructRNA *srna;
+	
+	srna= rna_def_object(brna);
+	rna_def_object_game_settings(brna, srna);
 	rna_def_vertex_group(brna);
 }
 
