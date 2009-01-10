@@ -374,7 +374,34 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
+typedef struct VPaint {
+	float r, g, b, a;
+	float size;							/* of brush */
+	float gamma, mul;
+	short mode, flag;
+	int tot, pad;						/* allocation size of prev buffers */
+	unsigned int *vpaint_prev;			/* previous mesh colors */
+	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
+	
+	void *paintcursor;					/* wm handle */
+} VPaint;
+
+/* VPaint flag */
+#define VP_COLINDEX	1
+#define VP_AREA		2
+#define VP_SOFT		4
+#define VP_NORMALS	8
+#define VP_SPRAY	16
+#define VP_MIRROR_X	32
+#define VP_HARD		64
+#define VP_ONLYVGROUP	128
+
+
+
 typedef struct ToolSettings {
+	VPaint *vpaint;		/* vertex paint */
+	VPaint *wpaint;		/* weight paint */
+	
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;

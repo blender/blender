@@ -2054,15 +2054,16 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me = ob->data;
 	float min[3], max[3];
-	int needMapping= 0; //
+	//int needMapping= 0; 
+	
+	Object *obact = scene->basact?scene->basact->object:NULL;
+	int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
+	int needMapping = editing && (ob==obact);
 	
 	clear_mesh_caches(ob);
 
-// XXX		Object *obact = scene->basact?scene->basact->object:NULL;
-//		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
-//		int needMapping = editing && (ob==obact);
-//		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
-	if(dataMask & CD_MASK_WEIGHTPAINT) {
+	if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
+//	if(dataMask & CD_MASK_WEIGHTPAINT) {
 		MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
 		int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
 		int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);

@@ -1629,7 +1629,6 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 /* ************* Slow Parent ******************* */
 static int object_set_slowparent_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 				

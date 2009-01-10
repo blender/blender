@@ -62,6 +62,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BKE_utildefines.h"
@@ -2542,9 +2543,10 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
 							arm->flag |= ARM_POSEMODE;
-						else if(G.f & G_WEIGHTPAINT)
-							arm->flag |= ARM_POSEMODE;
-					
+						else if(G.f & G_WEIGHTPAINT) {
+							if(OBACT && ob==modifiers_isDeformedByArmature(OBACT))
+								arm->flag |= ARM_POSEMODE;
+						}
 						draw_pose_paths(scene, v3d, ob);
 					}
 				}	

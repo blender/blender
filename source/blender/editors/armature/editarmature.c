@@ -99,10 +99,7 @@ static void error_libdata() {}
 static void BIF_undo_push() {}
 static void adduplicate() {}
 static void countall() {}
-static void vertexgroup_select_by_name() {}
 static void deselect_actionchannels() {}
-static void add_vert_to_defgroup() {}
-static void create_dverts() {}
 static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
@@ -3563,7 +3560,7 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 }
 
 /* called from editview.c, for mode-less pose selection */
-/* assumes scene obact and basact... XXX */
+/* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
 {
 	Object *ob= base->object;
@@ -3605,8 +3602,8 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		/* in weightpaint we select the associated vertex group too */
 		if (G.f & G_WEIGHTPAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
-				vertexgroup_select_by_name(ob, nearBone->name);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				vertexgroup_select_by_name(OBACT, nearBone->name);
+				DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 			}
 		}
 		

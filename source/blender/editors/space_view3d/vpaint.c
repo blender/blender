@@ -90,7 +90,7 @@
 
 #include "view3d_intern.h"
 
-	/* Gvp.mode */
+	/* vp->mode */
 #define VP_MIX	0
 #define VP_ADD	1
 #define VP_SUB	2
@@ -104,24 +104,32 @@
 /* XXX */
 static void BIF_undo_push() {}
 static void error() {}
-static int get_mbut() {return 0;}
 
-VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY, 0};
-VPaint Gwp= {1.0, 1.0, 1.0, 1.0, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, 0};
+static VPaint *new_vpaint(int wpaint)
+{
+	VPaint *vp= MEM_callocN(sizeof(VPaint), "VPaint");
+	
+	vp->r= 1.0f;
+	vp->g= 1.0f;
+	vp->b= 1.0f;
+	vp->a= 0.2f;
+	vp->size= 25.0f;
+	vp->gamma= vp->mul= 1.0f;
+	
+	vp->flag= VP_AREA+VP_SOFT+VP_SPRAY;
+	
+	if(wpaint) {
+		vp->a= 1.0f;
+		vp->flag= VP_AREA+VP_SOFT;
+	}
+	return vp;
+}
 
 static int *get_indexarray(void)
 {
 	return MEM_mallocN(sizeof(int)*MAXINDEX + 2, "vertexpaint");
 }
 
-void free_vertexpaint()
-{
-	
-	if(Gvp.vpaint_prev) MEM_freeN(Gvp.vpaint_prev);
-	Gvp.vpaint_prev= NULL;
-	
-	mesh_octree_table(NULL, NULL, NULL, 'e');
-}
 
 /* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
    so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
@@ -269,18 +277,18 @@ static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 	
 }
 
-static void copy_wpaint_prev (VPaint *vp, MDeformVert *dverts, int dcount)
+static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 {
-	if (vp->wpaint_prev) {
-		free_dverts(vp->wpaint_prev, vp->tot);
-		vp->wpaint_prev= NULL;
+	if (wp->wpaint_prev) {
+		free_dverts(wp->wpaint_prev, wp->tot);
+		wp->wpaint_prev= NULL;
 	}
 	
 	if(dverts && dcount) {
 		
-		vp->wpaint_prev = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaint prev");
-		vp->tot = dcount;
-		copy_dverts (vp->wpaint_prev, dverts, dcount);
+		wp->wpaint_prev = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaint prev");
+		wp->tot = dcount;
+		copy_dverts (wp->wpaint_prev, dverts, dcount);
 	}
 }
 
@@ -300,7 +308,7 @@ void clear_vpaint(Scene *scene)
 
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
-	paintcol= vpaint_get_current_col(&Gvp);
+	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
 
 	to= (unsigned int *)me->mcol;
 	a= 4*me->totface;
@@ -328,7 +336,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 	if(!me->mcol)
 		make_vertexcol(scene, 0);
 
-	paintcol= vpaint_get_current_col(&Gvp);
+	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
 
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
@@ -349,6 +357,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 /* fills in the selected faces with the current weight and vertex group */
 void clear_wpaint_selectedfaces(Scene *scene)
 {
+	VPaint *wp= scene->toolsettings->wpaint;
 	float editbutvweight;
 	float paintweight= editbutvweight;
 	Mesh *me;
@@ -377,7 +386,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	
 	/* directly copied from weight_paint, should probaby split into a seperate function */
 	/* if mirror painting, find the other group */		
-	if(Gwp.flag & VP_MIRROR_X) {
+	if(wp->flag & VP_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;
@@ -402,7 +411,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	}
 	/* end copy from weight_paint*/
 	
-	copy_wpaint_prev(&Gwp, me->dvert, me->totvert);
+	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
 	for(index=0; index<me->totface; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
@@ -416,20 +425,20 @@ void clear_wpaint_selectedfaces(Scene *scene)
 				if(!((me->dvert+faceverts[i])->flag)) {
 					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= verify_defweight(Gwp.wpaint_prev+faceverts[i], vgroup);
+						uw= verify_defweight(wp->wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undio weight */
 						dw->weight= paintweight;
 						
-						if(Gwp.flag & VP_MIRROR_X) {	/* x mirror painting */
+						if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
 							int j= mesh_get_x_mirror_vert(ob, faceverts[i]);
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
 									dw= verify_defweight(me->dvert+j, vgroup_mirror);
-									uw= verify_defweight(Gwp.wpaint_prev+j, vgroup_mirror);
+									uw= verify_defweight(wp->wpaint_prev+j, vgroup_mirror);
 								} else {
 									dw= verify_defweight(me->dvert+j, vgroup);
-									uw= verify_defweight(Gwp.wpaint_prev+j, vgroup);
+									uw= verify_defweight(wp->wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -449,7 +458,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	}
 	
 	MEM_freeN(indexar);
-	copy_wpaint_prev(&Gwp, NULL, 0);
+	copy_wpaint_prev(wp, NULL, 0);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Set vertex weight");
@@ -458,6 +467,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 
 void vpaint_dogamma(Scene *scene)
 {
+	VPaint *vp= scene->toolsettings->vpaint;
 	Mesh *me;
 	Object *ob;
 	float igam, fac;
@@ -470,11 +480,11 @@ void vpaint_dogamma(Scene *scene)
 	me= get_mesh(ob);
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
-	igam= 1.0/Gvp.gamma;
+	igam= 1.0/vp->gamma;
 	for(a=0; a<256; a++) {
 		
 		fac= ((float)a)/255.0;
-		fac= Gvp.mul*pow( fac, igam);
+		fac= vp->mul*pow( fac, igam);
 		
 		temp= 255.9*fac;
 		
@@ -498,6 +508,7 @@ void vpaint_dogamma(Scene *scene)
 /* used for both 3d view and image window */
 void sample_vpaint(Scene *scene, ARegion *ar)	/* frontbuf */
 {
+	VPaint *vp= scene->toolsettings->vpaint;
 	unsigned int col;
 	int x, y;
 	short mval[2];
@@ -519,9 +530,9 @@ void sample_vpaint(Scene *scene, ARegion *ar)	/* frontbuf */
 	cp = (char *)&col;
 	
 	if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT)) {
-		Gvp.r= cp[0]/255.0f;
-		Gvp.g= cp[1]/255.0f;
-		Gvp.b= cp[2]/255.0f;
+		vp->r= cp[0]/255.0f;
+		vp->g= cp[1]/255.0f;
+		vp->b= cp[2]/255.0f;
 	}
 	else {
 		Brush *brush= scene->toolsettings->imapaint.brush;
@@ -684,29 +695,29 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
+static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
 
-	if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
-	else if(Gvp.mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
-	else if(Gvp.mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
-	else if(Gvp.mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
-	else if(Gvp.mode==VP_LIGHTEN) *col= mcol_lighten( *col, paintcol, alpha);
-	else if(Gvp.mode==VP_DARKEN) *col= mcol_darken( *col, paintcol, alpha);
+	if(vp->mode==VP_MIX || vp->mode==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
+	else if(vp->mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
+	else if(vp->mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
+	else if(vp->mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
+	else if(vp->mode==VP_LIGHTEN) *col= mcol_lighten( *col, paintcol, alpha);
+	else if(vp->mode==VP_DARKEN) *col= mcol_darken( *col, paintcol, alpha);
 	
 	/* if no spray, clip color adding with colorig & orig alpha */
-	if((Gvp.flag & VP_SPRAY)==0) {
+	if((vp->flag & VP_SPRAY)==0) {
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*Gvp.a);
+		alpha= (int)(255.0*vp->a);
 		
-		if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
-		else if(Gvp.mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
-		else if(Gvp.mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
-		else if(Gvp.mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
-		else if(Gvp.mode==VP_LIGHTEN)  testcol= mcol_lighten( *colorig, paintcol, alpha);
-		else if(Gvp.mode==VP_DARKEN)   testcol= mcol_darken( *colorig, paintcol, alpha);
+		if(vp->mode==VP_MIX || vp->mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
+		else if(vp->mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
+		else if(vp->mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
+		else if(vp->mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
+		else if(vp->mode==VP_LIGHTEN)  testcol= mcol_lighten( *colorig, paintcol, alpha);
+		else if(vp->mode==VP_DARKEN)   testcol= mcol_darken( *colorig, paintcol, alpha);
 		
 		cp= (char *)col;
 		ct= (char *)&testcol;
@@ -802,49 +813,49 @@ static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], floa
 	return alpha;
 }
 
-static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
+static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
 {
 	
 	if(dw==NULL || uw==NULL) return;
 	
-	if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
+	if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
 		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
-	else if(Gwp.mode==VP_ADD)
+	else if(wp->mode==VP_ADD)
 		dw->weight += paintval*alpha;
-	else if(Gwp.mode==VP_SUB) 
+	else if(wp->mode==VP_SUB) 
 		dw->weight -= paintval*alpha;
-	else if(Gwp.mode==VP_MUL) 
+	else if(wp->mode==VP_MUL) 
 		/* first mul, then blend the fac */
 		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
-	else if(Gwp.mode==VP_LIGHTEN) {
+	else if(wp->mode==VP_LIGHTEN) {
 		if (dw->weight < paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
-	} else if(Gwp.mode==VP_DARKEN) {
+	} else if(wp->mode==VP_DARKEN) {
 		if (dw->weight > paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
 	}
 	CLAMP(dw->weight, 0.0f, 1.0f);
 	
 	/* if no spray, clip result with orig weight & orig alpha */
-	if((Gwp.flag & VP_SPRAY)==0) {
+	if((wp->flag & VP_SPRAY)==0) {
 		float testw=0.0f;
 		
-		alpha= Gwp.a;
-		if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
+		alpha= wp->a;
+		if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
-		else if(Gwp.mode==VP_ADD)
+		else if(wp->mode==VP_ADD)
 			testw = uw->weight + paintval*alpha;
-		else if(Gwp.mode==VP_SUB) 
+		else if(wp->mode==VP_SUB) 
 			testw = uw->weight - paintval*alpha;
-		else if(Gwp.mode==VP_MUL) 
+		else if(wp->mode==VP_MUL) 
 			/* first mul, then blend the fac */
 			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;		
-		else if(Gwp.mode==VP_LIGHTEN) {
+		else if(wp->mode==VP_LIGHTEN) {
 			if (uw->weight < paintval)
 				testw = paintval*alpha + uw->weight*(1.0-alpha);
 			else
 				testw = uw->weight;
-		} else if(Gwp.mode==VP_DARKEN) {
+		} else if(wp->mode==VP_DARKEN) {
 			if (uw->weight > paintval)
 				testw = paintval*alpha + uw->weight*(1.0-alpha);
 			else
@@ -872,7 +883,7 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 /* else */
 /*     sets editbutvweight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
-static void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
+void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	ViewContext vc;
 	Object *ob= OBACT;
@@ -1009,26 +1020,26 @@ static void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	
 }
 
-static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
+static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
 {
 	Mesh *me= ob->data;
-	MDeformWeight	*dw, *uw;
+	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
 	
-	if(Gwp.flag & VP_ONLYVGROUP) {
+	if(wp->flag & VP_ONLYVGROUP) {
 		dw= get_defweight(me->dvert+index, vgroup);
-		uw= get_defweight(Gwp.wpaint_prev+index, vgroup);
+		uw= get_defweight(wp->wpaint_prev+index, vgroup);
 	}
 	else {
 		dw= verify_defweight(me->dvert+index, vgroup);
-		uw= verify_defweight(Gwp.wpaint_prev+index, vgroup);
+		uw= verify_defweight(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
 	
-	wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+	wpaint_blend(wp, dw, uw, (float)alpha/255.0, paintweight);
 	
-	if(Gwp.flag & VP_MIRROR_X) {	/* x mirror painting */
+	if(wp->flag & VP_MIRROR_X) {	/* x mirror painting */
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
 			/* copy, not paint again */
@@ -1043,48 +1054,360 @@ static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paint
 }
 
 
-void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
+/* *************** set wpaint operator ****************** */
+/* retrieve whether cursor should be set or operator should be done */
+static int wp_poll(bContext *C)
 {
-	ViewContext vc;
-	float editbutvweight; // XXX
-	Object *ob; 
-	Mesh *me;
-	MFace *mface;
-	float mat[4][4], imat[4][4], paintweight, *vertexcosnos;
-	float vpimat[3][3];
-	int *indexar, index, totindex, alpha, totw;
-	int vgroup_mirror= -1;
-	short mval[2], mvalo[2], firsttime=1;
-	
-	if((G.f & G_WEIGHTPAINT)==0) return;
-	if(scene->obedit) return;
-// XXX	if(multires_level1_test()) return;
-	
-	ob= OBACT;
-	if(!ob || ob->id.lib) return;
+	if(G.f & G_WEIGHTPAINT) {
+		ScrArea *sa= CTX_wm_area(C);
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar= CTX_wm_region(C);
+			if(ar->regiontype==RGN_TYPE_WINDOW)
+				return 1;
+		}
+	}
+	return 0;
+}
 
+static void wp_drawcursor(bContext *C, int x, int y)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(200, 200, 255, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
+static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
+{		
+	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
+	VPaint *wp= scene->toolsettings->wpaint;
+	Mesh *me;
+	
 	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return;
+	if(ob->id.lib || me==NULL) return OPERATOR_CANCELLED;
+	
+	if(me && me->totface>=MAXINDEX) {
+		error("Maximum number of faces: %d", MAXINDEX-1);
+		G.f &= ~G_WEIGHTPAINT;
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
+	else G.f |= G_WEIGHTPAINT;
+	
+	
+	/* Weightpaint works by overriding colors in mesh,
+		* so need to make sure we recalc on enter and
+		* exit (exit needs doing regardless because we
+				* should redeform).
+		*/
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	
+	if(G.f & G_WEIGHTPAINT) {
+		Object *par;
+		
+		if(wp==NULL)
+			wp= scene->toolsettings->wpaint= new_vpaint(1);
+		
+		wp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor);
+		
+		mesh_octree_table(ob, NULL, NULL, 's');
+		
+		/* verify if active weight group is also active bone */
+		par= modifiers_isDeformedByArmature(ob);
+		if(par && (par->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
+				if(pchan->bone->flag & BONE_ACTIVE)
+					break;
+				if(pchan)
+					vertexgroup_select_by_name(ob, pchan->name);
+		}
+	}
+	else {
+		if(wp)
+			WM_paint_cursor_end(CTX_wm_manager(C), wp->paintcursor);
+		
+		mesh_octree_table(ob, NULL, NULL, 'e');
+	}
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_MODE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_wpaint_toggle(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Weight Paint Mode";
+	ot->idname= "VIEW3D_OT_wpaint_toggle";
+	
+	/* api callbacks */
+	ot->exec= set_wpaint;
+	ot->poll= ED_operator_object_active;
+	
+}
+
+/* ************ weight paint operator ********** */
+
+struct WPaintData {
+	ViewContext vc;
+	int *indexar;
+	int vgroup_mirror;
+	float *vertexcosnos;
+	float wpimat[3][3];
+};
+
+static void wpaint_exit(bContext *C, wmOperator *op)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	Object *ob= CTX_data_active_object(C);
+	struct WPaintData *wpd= op->customdata;
+	
+	if(wpd->vertexcosnos)
+		MEM_freeN(wpd->vertexcosnos);
+	MEM_freeN(wpd->indexar);
+	
+	/* frees prev buffer */
+	copy_wpaint_prev(ts->wpaint, NULL, 0);
+	
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+		
+		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_HAIR;
+					break;
+				}
+			}
+		}
+	}
+	
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	
+	ED_undo_push(C, "Weight Paint");
+	
+	MEM_freeN(wpd);
+	op->customdata= NULL;
+}
+
+
+static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *wp= ts->wpaint;
+	float editbutvweight= 1.0f; // XXX
+	
+	switch(event->type) {
+		case LEFTMOUSE:
+			if(event->val==0) { /* release */
+				wpaint_exit(C, op);
+				return OPERATOR_FINISHED;
+			}
+			/* pass on, first press gets painted too */
+			
+		case MOUSEMOVE: 
+		{
+			struct WPaintData *wpd= op->customdata;
+			ViewContext *vc= &wpd->vc;
+			Object *ob= vc->obact;
+			Mesh *me= ob->data;
+			float mat[4][4];
+			float paintweight= editbutvweight; // XXX
+			int *indexar= wpd->indexar;
+			int totindex, index, alpha, totw;
+			short mval[2];
+			
+			view3d_operator_needs_opengl(C);
+			
+			/* load projection matrix */
+			wmMultMatrix(ob->obmat);
+			wmGetSingleMatrix(mat);
+			wmLoadMatrix(wpd->vc.v3d->viewmat);
+			
+			MTC_Mat4SwapMat4(wpd->vc.v3d->persmat, mat);
+			
+			mval[0]= event->x - vc->ar->winrct.xmin;
+			mval[1]= event->y - vc->ar->winrct.ymin;
+			
+			/* which faces are involved */
+			if(wp->flag & VP_AREA) {
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->size);
+			}
+			else {
+				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+				if(indexar[0]) totindex= 1;
+				else totindex= 0;
+			}
+			
+			if(wp->flag & VP_COLINDEX) {
+				for(index=0; index<totindex; index++) {
+					if(indexar[index] && indexar[index]<=me->totface) {
+						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+						if(mface->mat_nr!=ob->actcol-1) {
+							indexar[index]= 0;
+						}
+					}					
+				}
+			}
+			
+			if((G.f & G_FACESELECT) && me->mface) {
+				for(index=0; index<totindex; index++) {
+					if(indexar[index] && indexar[index]<=me->totface) {
+						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+						if((mface->flag & ME_FACE_SEL)==0) {
+							indexar[index]= 0;
+						}
+					}					
+				}
+			}
+			
+			/* make sure each vertex gets treated only once */
+			/* and calculate filter weight */
+			totw= 0;
+			if(wp->mode==VP_BLUR) 
+				paintweight= 0.0f;
+			else
+				paintweight= editbutvweight;
+			
+			for(index=0; index<totindex; index++) {
+				if(indexar[index] && indexar[index]<=me->totface) {
+					MFace *mface= me->mface + (indexar[index]-1);
+					
+					(me->dvert+mface->v1)->flag= 1;
+					(me->dvert+mface->v2)->flag= 1;
+					(me->dvert+mface->v3)->flag= 1;
+					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+					
+					if(wp->mode==VP_BLUR) {
+						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
+						
+						if(wp->flag & VP_ONLYVGROUP)
+							dw_func= get_defweight;
+						
+						dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						if(mface->v4) {
+							dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
+							if(dw) {paintweight+= dw->weight; totw++;}
+						}
+					}
+				}
+			}
+			
+			if(wp->mode==VP_BLUR) 
+				paintweight/= (float)totw;
+			
+			for(index=0; index<totindex; index++) {
+				
+				if(indexar[index] && indexar[index]<=me->totface) {
+					MFace *mface= me->mface + (indexar[index]-1);
+					
+					if((me->dvert+mface->v1)->flag) {
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
+						if(alpha) {
+							do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
+						}
+						(me->dvert+mface->v1)->flag= 0;
+					}
+					
+					if((me->dvert+mface->v2)->flag) {
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
+						if(alpha) {
+							do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
+						}
+						(me->dvert+mface->v2)->flag= 0;
+					}
+					
+					if((me->dvert+mface->v3)->flag) {
+						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
+						if(alpha) {
+							do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
+						}
+						(me->dvert+mface->v3)->flag= 0;
+					}
+					
+					if((me->dvert+mface->v4)->flag) {
+						if(mface->v4) {
+							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+							if(alpha) {
+								do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+							}
+							(me->dvert+mface->v4)->flag= 0;
+						}
+					}
+				}
+			}
+			
+			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			
+			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+			ED_region_tag_redraw(vc->ar);
+		}
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *wp= ts->wpaint;
+	Object *ob= CTX_data_active_object(C);
+	struct WPaintData *wpd;
+	Mesh *me;
+	float mat[4][4], imat[4][4];
+	
+	if(scene->obedit) return OPERATOR_CANCELLED;
+	// XXX	if(multires_level1_test()) return;
+	
+	me= get_mesh(ob);
+	if(me==NULL || me->totface==0) return OPERATOR_CANCELLED;
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
-//	if (!me->dvert)
-//		create_dverts(&me->id);
+	if (!me->dvert)
+		create_dverts(&me->id);
 	
-//	if(qual & LR_CTRLKEY) {
-		sample_wpaint(scene, ar, v3d, 0);
-//		return;
-//	}
-//	if(qual & LR_SHIFTKEY) {
-//		sample_wpaint(scene, ar, v3d, 1);
-//		return;
-//	}
+	/* make customdata storage */
+	op->customdata= wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	view3d_set_viewcontext(C, &wpd->vc);
+	wpd->vgroup_mirror= -1;
+	
+	//	if(qual & LR_CTRLKEY) {
+	//		sample_wpaint(scene, ar, v3d, 0);
+	//		return;
+	//	}
+	//	if(qual & LR_SHIFTKEY) {
+	//		sample_wpaint(scene, ar, v3d, 1);
+	//		return;
+	//	}
 	
 	/* ALLOCATIONS! no return after this line */
-		/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
-	indexar= get_indexarray();
-	copy_wpaint_prev(&Gwp, me->dvert, me->totvert);
-
+	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	wpd->vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
+	wpd->indexar= get_indexarray();
+	copy_wpaint_prev(wp, me->dvert, me->totvert);
+	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef<=0) {
 		Object *modob;
@@ -1106,33 +1429,21 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 		add_defgroup(ob);
 	}	
 	
-	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
+	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
 	
-// XXX	persp(PERSP_VIEW);
 	/* imat for normals */
-	Mat4MulMat4(mat, ob->obmat, v3d->viewmat);
+	Mat4MulMat4(mat, ob->obmat, wpd->vc.v3d->viewmat);
 	Mat4Invert(imat, mat);
-	Mat3CpyMat4(vpimat, imat);
-	
-	/* load projection matrix */
-	wmMultMatrix(ob->obmat);
-	wmGetSingleMatrix(mat);
-	wmLoadMatrix(v3d->viewmat);
-	
-//	getmouseco_areawin(mvalo);
-	
-//	getmouseco_areawin(mval);
-	mvalo[0]= mval[0];
-	mvalo[1]= mval[1];
+	Mat3CpyMat4(wpd->wpimat, imat);
 	
 	/* if mirror painting, find the other group */
-	if(Gwp.flag & VP_MIRROR_X) {
+	if(wp->flag & VP_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
 		if(defgroup) {
 			bDeformGroup *curdef;
 			int actdef= 0;
 			char name[32];
-
+			
 			BLI_strncpy(name, defgroup->name, 32);
 			bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
 			
@@ -1146,232 +1457,34 @@ void weight_paint(Scene *scene, ARegion *ar, View3D *v3d)
 			}
 			
 			if(curdef && curdef!=defgroup)
-				vgroup_mirror= actdef;
+				wpd->vgroup_mirror= actdef;
 		}
 	}
 	
-	while (get_mbut() & 0) {
-//		getmouseco_areawin(mval);
-		
-		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			firsttime= 0;
-			
-			/* which faces are involved */
-			if(Gwp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(&vc, indexar, me->totface, mval[0], mval[1], Gwp.size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(&vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
-			
-			MTC_Mat4SwapMat4(v3d->persmat, mat);
-			
-			if(Gwp.flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-					
-						mface= ((MFace *)me->mface) + (indexar[index]-1);
-					
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-					
-						mface= ((MFace *)me->mface) + (indexar[index]-1);
-					
-						if((mface->flag & ME_FACE_SEL)==0) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			
-			/* make sure each vertex gets treated only once */
-			/* and calculate filter weight */
-			totw= 0;
-			if(Gwp.mode==VP_BLUR) 
-				paintweight= 0.0f;
-			else
-				paintweight= editbutvweight;
-			
-			for(index=0; index<totindex; index++) {
-				if(indexar[index] && indexar[index]<=me->totface) {
-					mface= me->mface + (indexar[index]-1);
-					
-					(me->dvert+mface->v1)->flag= 1;
-					(me->dvert+mface->v2)->flag= 1;
-					(me->dvert+mface->v3)->flag= 1;
-					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
-					
-					if(Gwp.mode==VP_BLUR) {
-						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
-						
-						if(Gwp.flag & VP_ONLYVGROUP)
-							dw_func= get_defweight;
-						
-						dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						if(mface->v4) {
-							dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
-							if(dw) {paintweight+= dw->weight; totw++;}
-						}
-					}
-				}
-			}
-			
-			if(Gwp.mode==VP_BLUR) 
-				paintweight/= (float)totw;
-			
-			for(index=0; index<totindex; index++) {
-				
-				if(indexar[index] && indexar[index]<=me->totface) {
-					mface= me->mface + (indexar[index]-1);
-					
-					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v1, mval);
-						if(alpha) {
-							do_weight_paint_vertex(ob, mface->v1, alpha, paintweight, vgroup_mirror);
-						}
-						(me->dvert+mface->v1)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v2, mval);
-						if(alpha) {
-							do_weight_paint_vertex(ob, mface->v2, alpha, paintweight, vgroup_mirror);
-						}
-						(me->dvert+mface->v2)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v3, mval);
-						if(alpha) {
-							do_weight_paint_vertex(ob, mface->v3, alpha, paintweight, vgroup_mirror);
-						}
-						(me->dvert+mface->v3)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v4)->flag) {
-						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(&Gwp, &vc, vpimat, vertexcosnos+6*mface->v4, mval);
-							if(alpha) {
-								do_weight_paint_vertex(ob, mface->v4, alpha, paintweight, vgroup_mirror);
-							}
-							(me->dvert+mface->v4)->flag= 0;
-						}
-					}
-				}
-			}
-			
-			MTC_Mat4SwapMat4(v3d->persmat, mat);
-			
-		}
-		
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			
-			if(Gwp.flag & (VP_AREA|VP_SOFT)) {
-				/* draw circle in backbuf! */
-// XXX				persp(PERSP_WIN);
-// XXX				fdrawXORcirc((float)mval[0], (float)mval[1], Gwp.size);
-// XXX				persp(PERSP_VIEW);
-			}
+	/* do paint once for click only paint */
+	wpaint_modal(C, op, event);
 	
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-		}
-	}
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
-	if(vertexcosnos)
-		MEM_freeN(vertexcosnos);
-	MEM_freeN(indexar);
-	copy_wpaint_prev(&Gwp, NULL, 0);
-
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-	/* and particles too */
-	if(ob->particlesystem.first) {
-		ParticleSystem *psys;
-		int i;
-
-		psys= ob->particlesystem.first;
-		while(psys) {
-			for(i=0; i<PSYS_TOT_VG; i++) {
-				if(psys->vgroup[i]==ob->actdef) {
-					psys->recalc |= PSYS_RECALC_HAIR;
-					break;
-				}
-			}
-
-			psys= psys->next;
-		}
-	}
-	
-	BIF_undo_push("Weight Paint");
+	return OPERATOR_RUNNING_MODAL;
 }
 
-void set_wpaint(bContext *C, wmOperator *op)		/* toggle */
-{		
-	Object *ob= CTX_data_active_object(C);
-	Scene *scene= CTX_data_scene(C);
-	Mesh *me;
+void VIEW3D_OT_wpaint(wmOperatorType *ot)
+{
 	
-	ob= OBACT;
-	if(!ob || ob->id.lib) return;
-	me= get_mesh(ob);
+	/* identifiers */
+	ot->name= "Weight Paint";
+	ot->idname= "VIEW3D_OT_wpaint";
 	
-	if(me && me->totface>=MAXINDEX) {
-		error("Maximum number of faces: %d", MAXINDEX-1);
-		G.f &= ~G_WEIGHTPAINT;
-		return;
-	}
+	/* api callbacks */
+	ot->invoke= wpaint_invoke;
+	ot->modal= wpaint_modal;
+	/* ot->exec= vpaint_exec; <-- needs stroke property */
+	ot->poll= wp_poll;
 	
-	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
-	else G.f |= G_WEIGHTPAINT;
-	
-	
-	/* Weightpaint works by overriding colors in mesh,
-		* so need to make sure we recalc on enter and
-		* exit (exit needs doing regardless because we
-				* should redeform).
-		*/
-	if (me) {
-		DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
-	}
-	
-	if(G.f & G_WEIGHTPAINT) {
-		Object *par;
-		
-		mesh_octree_table(ob, NULL, NULL, 's');
-		
-		/* verify if active weight group is also active bone */
-		par= modifiers_isDeformedByArmature(ob);
-		if(par && (par->flag & OB_POSEMODE)) {
-			bPoseChannel *pchan;
-			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
-				if(pchan->bone->flag & BONE_ACTIVE)
-					break;
-			//			if(pchan)
-			// XXX				vertexgroup_select_by_name(ob, pchan->name);
-		}
-	}
-	else {
-		mesh_octree_table(ob, NULL, NULL, 'e');
-	}
 }
+
 
 /* ************ set / clear vertex paint mode ********** */
 
@@ -1391,12 +1504,14 @@ static int vp_poll(bContext *C)
 
 static void vp_drawcursor(bContext *C, int x, int y)
 {
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	
 	glTranslatef((float)x, (float)y, 0.0f);
 	
 	glColor4ub(255, 255, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, Gvp.size, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->size, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
@@ -1407,6 +1522,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 {	
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
+	VPaint *vp= scene->toolsettings->vpaint;
 	Mesh *me;
 	
 	if(object_data_is_libdata(ob)) {
@@ -1425,19 +1541,26 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
 	
 	/* toggle: end vpaint */
-	if(G.f & G_VERTEXPAINT){
+	if(G.f & G_VERTEXPAINT) {
+		
 		G.f &= ~G_VERTEXPAINT;
 		
-		WM_paint_cursor_end(CTX_wm_manager(C), Gvp.paintcursor);
-		Gvp.paintcursor= NULL;
+		if(vp) {
+			WM_paint_cursor_end(CTX_wm_manager(C), vp->paintcursor);
+			vp->paintcursor= NULL;
+		}
 	}
 	else {
+		
 		G.f |= G_VERTEXPAINT;
 		/* Turn off weight painting */
 		if (G.f & G_WEIGHTPAINT)
 			set_wpaint(C, op);
 		
-		Gvp.paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor);
+		if(vp==NULL)
+			vp= scene->toolsettings->vpaint= new_vpaint(0);
+		
+		vp->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor);
 	}
 	
 	if (me)
@@ -1453,7 +1576,7 @@ void VIEW3D_OT_vpaint_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Vpaint mode";
+	ot->name= "Vertex Paint Mode";
 	ot->idname= "VIEW3D_OT_vpaint_toggle";
 	
 	/* api callbacks */
@@ -1481,8 +1604,7 @@ Operator->modal()
 
 For future:
   - implement a stroke event (or mousemove with past positons)
-  - revise whether customdata should be added in object, in set_vpaint
-  - store Gvp locally (in scene?)
+  - revise whether op->customdata should be added in object, in set_vpaint
 
 */
 
@@ -1496,6 +1618,7 @@ struct VPaintData {
 
 static void vpaint_exit(bContext *C, wmOperator *op)
 {
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	struct VPaintData *vpd= op->customdata;
 	
 	if(vpd->vertexcosnos)
@@ -1503,7 +1626,7 @@ static void vpaint_exit(bContext *C, wmOperator *op)
 	MEM_freeN(vpd->indexar);
 	
 	/* frees prev buffer */
-	copy_vpaint_prev(&Gvp, NULL, 0);
+	copy_vpaint_prev(ts->vpaint, NULL, 0);
 	
 	ED_undo_push(C, "Vertex Paint");
 	
@@ -1513,6 +1636,8 @@ static void vpaint_exit(bContext *C, wmOperator *op)
 
 static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *vp= ts->vpaint;
 	
 	switch(event->type) {
 		case LEFTMOUSE:
@@ -1544,8 +1669,8 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			mval[1]= event->y - vc->ar->winrct.ymin;
 				
 			/* which faces are involved */
-			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], Gvp.size);
+			if(vp->flag & VP_AREA) {
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1555,7 +1680,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
 			
-			if(Gvp.flag & VP_COLINDEX) {
+			if(vp->flag & VP_COLINDEX) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
 						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
@@ -1582,10 +1707,10 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(indexar[index] && indexar[index]<=me->totface) {
 					MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
 					unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-					unsigned int *mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
+					unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
 					int alpha;
 					
-					if(Gvp.mode==VP_BLUR) {
+					if(vp->mode==VP_BLUR) {
 						unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
 						if(mface->v4) {
 							unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
@@ -1597,18 +1722,18 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
-					if(alpha) vpaint_blend( mcol, mcolorig, vpd->paintcol, alpha);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
+					if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
-					if(alpha) vpaint_blend( mcol+1, mcolorig+1, vpd->paintcol, alpha);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
+					if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
-					if(alpha) vpaint_blend( mcol+2, mcolorig+2, vpd->paintcol, alpha);
+					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
+					if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
 					
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(&Gvp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
-						if(alpha) vpaint_blend( mcol+3, mcolorig+3, vpd->paintcol, alpha);
+						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
+						if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
 					}
 				}
 			}
@@ -1629,6 +1754,8 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *vp= ts->vpaint;
 	struct VPaintData *vpd;
 	Object *ob= CTX_data_active_object(C);
 	Mesh *me;
@@ -1647,10 +1774,10 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
 	vpd->indexar= get_indexarray();
-	vpd->paintcol= vpaint_get_current_col(&Gvp);
+	vpd->paintcol= vpaint_get_current_col(vp);
 	
 	/* for filtering */
-	copy_vpaint_prev(&Gvp, (unsigned int *)me->mcol, me->totface);
+	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
 	
 	/* some old cruft to sort out later */
 	Mat4MulMat4(mat, ob->obmat, vpd->vc.v3d->viewmat);
@@ -1670,7 +1797,7 @@ void VIEW3D_OT_vpaint(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Vpaint";
+	ot->name= "Vertex Paint";
 	ot->idname= "VIEW3D_OT_vpaint";
 	
 	/* api callbacks */

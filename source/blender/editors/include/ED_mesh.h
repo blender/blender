@@ -28,6 +28,7 @@
 #ifndef ED_MESH_H
 #define ED_MESH_H
 
+struct ID;
 struct View3D;
 struct ARegion;
 struct EditMesh;
@@ -130,12 +131,17 @@ int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short r
 #define WEIGHT_SUBTRACT 3
 
 void		add_defgroup (Object *ob);
-void		remove_vert_defgroup (Object *ob, struct bDeformGroup	*dg, int vertnum);
+void		create_dverts(struct ID *id);
+float		get_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
+void		remove_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
 void		remove_verts_defgroup (Object *obedit, int allverts);
-struct bDeformGroup *add_defgroup_name (Object *ob, char *name);
-struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
-struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
-bDeformGroup *add_defgroup_name (Object *ob, char *name);
+void		vertexgroup_select_by_name(Object *ob, char *name);
+void		add_vert_to_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum, 
+                           float weight, int assignmode);
+
+struct bDeformGroup		*add_defgroup_name (Object *ob, char *name);
+struct MDeformWeight	*verify_defweight (struct MDeformVert *dv, int defgroup);
+struct MDeformWeight	*get_defweight (struct MDeformVert *dv, int defgroup);
 
 
 #endif /* ED_MESH_H */

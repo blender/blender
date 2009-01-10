@@ -30,6 +30,7 @@
 #define ED_ANIM_API_H
 
 struct ID;
+struct Scene;
 struct ListBase;
 struct bContext;
 struct wmWindowManager;
@@ -321,8 +322,11 @@ void ANIM_nla_mapping_apply_ipo(struct Object *ob, struct Ipo *ipo, short restor
 
 /* --------- anim_deps.c, animation updates -------- */
 
-/* generic update flush, reads from Context screen (layers) and scene */
+	/* generic update flush, reads from Context screen (layers) and scene */
 void ED_anim_dag_flush_update(const struct bContext *C);
+	/* only flush object */
+void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
+	/* flush + do the actual update for all involved objects */
 void ED_update_for_newframe(const struct bContext *C, int mute);
 
 /* pose <-> action syncing */

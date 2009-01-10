@@ -52,6 +52,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
@@ -66,8 +67,10 @@
 #include "BIF_gl.h"
 
 #include "ED_armature.h"
+#include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_view3d.h"
 
 #include "armature_intern.h"
@@ -81,8 +84,6 @@ static void error() {};
 static void BIF_undo_push() {}
 static void countall() {}
 static void add_constraint() {}
-static void vertexgroup_select_by_name() {}
-static int screen_view3d_layers() {return 0;}
 static void select_actionchannel_by_name() {}
 static int autokeyframe_cfra_can_key() {return 0;}
 static void autokeyframe_pose_cb_func() {}
@@ -194,7 +195,7 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-void pose_calculate_path(Scene *scene, Object *ob)
+void pose_calculate_path(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -230,10 +231,10 @@ void pose_calculate_path(Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	}
 	else
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	
 	
 	/* malloc the path blocks */
@@ -288,7 +289,7 @@ void pose_calculate_path(Scene *scene, Object *ob)
 /* For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
  */
-void pose_recalculate_paths(Scene *scene, Object *ob)
+void pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -324,10 +325,10 @@ void pose_recalculate_paths(Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	}
 	else
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	
 	for (CFRA=sfra; CFRA<=efra; CFRA++) {
 		/* do all updates */
@@ -1628,7 +1629,7 @@ void pose_special_editmenu(Scene *scene)
 		pose_flip_names();
 	}
 	else if(nr==3) {
-		pose_calculate_path(ob);
+		pose_calculate_path(C, ob);
 	}
 	else if(nr==4) {
 		pose_clear_paths(ob);

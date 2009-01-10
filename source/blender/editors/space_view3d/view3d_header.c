@@ -142,9 +142,10 @@ void ED_view3d_exit_paint_modes(bContext *C)
 {
 	if(G.f & G_VERTEXPAINT)
 		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+	else if(G.f & G_VERTEXPAINT)
+		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-//	if(G.f & G_WEIGHTPAINT) set_wpaint();
 //	if(G.f & G_SCULPTMODE) set_sculptmode();
 //	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
 	
@@ -5434,7 +5435,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-// XXX				set_wpaint();
+				WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_POSEMODE_SEL) {

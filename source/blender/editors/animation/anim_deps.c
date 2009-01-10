@@ -89,6 +89,15 @@ void ED_anim_dag_flush_update(const bContext *C)
 	DAG_scene_flush_update(scene, screen_view3d_layers(screen), 0);
 }
 
+/* flushes changes from object to all relations in scene */
+void ED_anim_object_flush_update(const bContext *C, Object *ob)
+{
+	Scene *scene= CTX_data_scene(C);
+	bScreen *screen= CTX_wm_screen(C);
+	
+	DAG_object_update_flags(scene, ob, screen_view3d_layers(screen));
+}
+
 
 /* results in fully updated anim system */
 /* in future sound should be on WM level, only 1 sound can play! */

@@ -1067,14 +1067,14 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 					basact->flag|= SELECT;
 					basact->object->flag= basact->flag;
 					
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, basact->object);
+					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
+					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
 					if(G.f & G_WEIGHTPAINT) {
 						/* prevent activating */
 						basact= NULL;
 					}
-					
-					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, basact->object);
-					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 
 				}
 				/* prevent bone selecting to pass on to object selecting */
@@ -1449,7 +1449,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					while (base->selcol == (*col & 0xFFFF)) {	/* we got an object */
 						
 						if(*col & 0xFFFF0000) {					/* we got a bone */
-							bone = NULL; // XXX get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
+							bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
 							if(bone) {
 								if(selecting) {
 									bone->flag |= BONE_SELECTED;

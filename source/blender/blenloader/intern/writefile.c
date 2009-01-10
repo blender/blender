@@ -1472,6 +1472,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
+		if(sce->toolsettings->vpaint)
+			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
+		if(sce->toolsettings->wpaint)
+			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
 
 		for(a=0; a<MAX_MTEX; ++a)
 			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);

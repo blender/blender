@@ -167,7 +167,12 @@ void free_scene(Scene *sce)
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
 	
-	if(sce->toolsettings){
+	if(sce->toolsettings) {
+		if(sce->toolsettings->vpaint)
+			MEM_freeN(sce->toolsettings->vpaint);
+		if(sce->toolsettings->wpaint)
+			MEM_freeN(sce->toolsettings->wpaint);
+		
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
 	}

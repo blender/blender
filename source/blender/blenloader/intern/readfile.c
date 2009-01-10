@@ -3604,7 +3604,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
-
+	if(sce->toolsettings) {
+		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
+		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
+	}
 	sce->sculptdata.session= NULL;
 	/* SculptData textures */
 	for(a=0; a<MAX_MTEX; ++a)

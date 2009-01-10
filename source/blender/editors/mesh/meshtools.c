@@ -725,7 +725,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		 * we are using the undeformed coordinates*/
 		INIT_MINMAX(min, max);
 
-		if(me->edit_mesh==em) {
+		if(em && me->edit_mesh==em) {
 			EditVert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next)
@@ -766,7 +766,7 @@ intptr_t mesh_octree_table(Object *ob, EditMesh *em, float *co, char mode)
 		
 		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		if(me->edit_mesh==em) {
+		if(em && me->edit_mesh==em) {
 			EditVert *eve;
 
 			for(eve= em->verts.first; eve; eve= eve->next) {
