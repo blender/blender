@@ -114,7 +114,7 @@ static void rna_def_strip_element(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceElement", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Element", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Element", "Sequence strip data for a single frame.");
 	RNA_def_struct_sdna(srna, "StripElem");
 	
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
@@ -128,7 +128,7 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceCrop", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Crop", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Crop", "Cropping parameters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripCrop");
 
 	prop= RNA_def_property(srna, "top", PROP_INT, PROP_UNSIGNED);
@@ -154,7 +154,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceTransform", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Transform", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Transform", "Transform paramaters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripTransform");
 
 	prop= RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
@@ -174,7 +174,7 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Proxy", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Proxy", "Proxy parameters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripProxy");
 	
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
@@ -188,7 +188,7 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SequenceColorBalance", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Color Balance", "Color balance paramaters for a sequence strip.");
 	RNA_def_struct_sdna(srna, "StripColorBalance");
 
 	prop= RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR);
@@ -239,11 +239,11 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_CROSS, "CROSS", "Cross", ""}, 
 		{SEQ_ADD, "ADD", "Add", ""}, 
 		{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-		{SEQ_ALPHAOVER, "ALPHAOVER", "Alpha Over", ""}, 
-		{SEQ_ALPHAUNDER, "ALPHAUNDER", "Alpha Under", ""}, 
-		{SEQ_GAMCROSS, "GAMMACROSS", "Gamma Cross", ""}, 
+		{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
+		{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
+		{SEQ_GAMCROSS, "GAMMA_ACROSS", "Gamma Cross", ""}, 
 		{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-		{SEQ_OVERDROP, "OVERDROP", "Over Drop", ""}, 
+		{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
 		{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
 		{SEQ_WIPE, "WIPE", "Wipe", ""}, 
 		{SEQ_GLOW, "GLOW", "Glow", ""}, 
@@ -258,11 +258,11 @@ static void rna_def_sequence(BlenderRNA *brna)
 			{SEQ_CROSS, "CROSS", "Cross", ""}, 
 			{SEQ_ADD, "ADD", "Add", ""}, 
 			{SEQ_SUB, "SUBTRACT", "Subtract", ""}, 
-			{SEQ_ALPHAOVER, "ALPHAOVER", "Alpha Over", ""}, 
-			{SEQ_ALPHAUNDER, "ALPHAUNDER", "Alpha Under", ""}, 
-			{SEQ_GAMCROSS, "GAMCROSS", "Gamma Cross", ""}, 
+			{SEQ_ALPHAOVER, "ALPHA_OVER", "Alpha Over", ""}, 
+			{SEQ_ALPHAUNDER, "ALPHA_UNDER", "Alpha Under", ""}, 
+			{SEQ_GAMCROSS, "GAMMA_CROSS", "Gamma Cross", ""}, 
 			{SEQ_MUL, "MULTIPLY", "Multiply", ""}, 
-			{SEQ_OVERDROP, "OVERDROP", "Over Drop", ""}, 
+			{SEQ_OVERDROP, "OVER_DROP", "Over Drop", ""}, 
 			{SEQ_PLUGIN, "PLUGIN", "plugin", ""}, 
 			{SEQ_WIPE, "WIPE", "Wipe", ""}, 
 			{SEQ_GLOW, "GLOW", "Glow", ""}, 
@@ -273,7 +273,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
 	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -376,7 +376,7 @@ void rna_def_editor(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SequenceEditor", NULL);
-	RNA_def_struct_ui_text(srna, "Sequence Editor", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sequence Editor", "Sequence editing data for a Scene datablock.");
 	RNA_def_struct_sdna(srna, "Editing");
 
 	prop= RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
@@ -510,7 +510,7 @@ static void rna_def_image(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "ImageSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Image Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Image Sequence", "Sequence strip to load one or more images.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
@@ -534,7 +534,7 @@ static void rna_def_meta(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "MetaSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Meta Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Meta Sequence", "Sequence strip to group other strips as a single sequence strip.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop = RNA_def_property(srna, "sequences", PROP_COLLECTION, PROP_NONE);
@@ -553,7 +553,7 @@ static void rna_def_scene(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SceneSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Scene Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Scene Sequence", "Sequence strip to used the rendered image of a scene.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
@@ -570,7 +570,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "MovieSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Movie Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Movie Sequence", "Sequence strip to load a video.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "mpeg_preseek", PROP_INT, PROP_NONE);
@@ -597,7 +597,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SoundSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Sound Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Sound Sequence", "Sequence strip defining a sound to be played over a period of time.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
@@ -621,7 +621,7 @@ static void rna_def_effect(BlenderRNA *brna)
 	StructRNA *srna;
 
 	srna = RNA_def_struct(brna, "EffectSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Effect Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Effect Sequence", "Sequence strip applying an effect on the images created by other strips.");
 	RNA_def_struct_sdna(srna, "Sequence");
 
 	rna_def_proxy(srna);
@@ -633,7 +633,7 @@ static void rna_def_plugin(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "PluginSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Plugin Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Plugin Sequence", "Sequence strip applying an effect, loaded from an external plugin.");
 	RNA_def_struct_sdna_from(srna, "PluginSeq", "plugin");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
@@ -666,7 +666,7 @@ static void rna_def_wipe(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Wipe Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Wipe Sequence", "Sequence strip creating a wipe transition.");
 	RNA_def_struct_sdna_from(srna, "WipeVars", "effectdata");
 
 	prop= RNA_def_property(srna, "blur_width", PROP_FLOAT, PROP_UNSIGNED);
@@ -696,7 +696,7 @@ static void rna_def_glow(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "GlowSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Glow Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Glow Sequence", "Sequence strip creating a glow effect.");
 	RNA_def_struct_sdna_from(srna, "GlowVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
@@ -748,7 +748,7 @@ static void rna_def_transform(BlenderRNA *brna)
 	};
 
 	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Transform Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Transform Sequence", "Sequence strip applying affine transformations to other strips.");
 	RNA_def_struct_sdna_from(srna, "TransformVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "scale_start_x", PROP_FLOAT, PROP_UNSIGNED);
@@ -817,7 +817,7 @@ static void rna_def_solid_color(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Color Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single color.");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
@@ -831,7 +831,7 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "SpeedControlSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "SpeedControl Sequence", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "SpeedControl Sequence", "Sequence strip to control the speed of other strips.");
 	RNA_def_struct_sdna_from(srna, "SpeedControlVars", "effectdata");
 	
 	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);

@@ -51,13 +51,13 @@ void rna_def_action_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "action_group", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "grp");
 	RNA_def_property_struct_type(prop, "ActionGroup");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Action Group", "Action Group that this Action Channel belongs to.");
+	RNA_def_property_ui_text(prop, "Group", "Action Group that this Action Channel belongs to.");
 
-	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Ipo");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Ipo", "Ipo block this Action Channel uses.");	
@@ -68,31 +68,31 @@ void rna_def_action_channel(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ConstraintChannel");
 	RNA_def_property_ui_text(prop, "Constraint Channels", "Ipos of Constraints attached to this object or bone."); */
 
-	prop= RNA_def_property(srna, "action_channel_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "Action Channel is selected.");
 
-	prop= RNA_def_property(srna, "action_channel_highlighted", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "highlighted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_HILIGHTED);
 	RNA_def_property_ui_text(prop, "Highlighted", "Action Channel is highlighted.");
 
-	prop= RNA_def_property(srna, "action_channel_hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_HIDDEN);
 	RNA_def_property_ui_text(prop, "Hidden", "Action Channel is hidden.");
 
-	prop= RNA_def_property(srna, "action_channel_protected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "protected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_PROTECTED);
 	RNA_def_property_ui_text(prop, "Protected", "Action Channel is protected.");
 
-	prop= RNA_def_property(srna, "action_channel_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Action Channel is expanded.");
 
-	prop= RNA_def_property(srna, "action_channel_show_ipo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_ipo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_SHOWIPO);
 	RNA_def_property_ui_text(prop, "Show Ipo", "Action Channel's Ipos are visible.");
 
-	prop= RNA_def_property(srna, "action_channel_show_constraints", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "show_constraints", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACHAN_SHOWCONS);
 	RNA_def_property_ui_text(prop, "Show Constraints", "Action Channel's constraints are visible.");
 }
@@ -113,20 +113,20 @@ void rna_def_action_group(BlenderRNA *brna)
 	/* dna warns not to treat the Action Channel listbase in the Action Group struct like a
 	   normal listbase. I'll leave this here but comment out, for Joshua to review. He can 
  	   probably shed some more light on why this is */
-	/*prop= RNA_def_property(srna, "action_channels", PROP_COLLECTION, PROP_NONE);
+	/*prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
 	RNA_def_property_struct_type(prop, "ActionChannel");
-	RNA_def_property_ui_text(prop, "Action Channels", "DOC_BROKEN");*/
+	RNA_def_property_ui_text(prop, "Channels", "Action channels in this action.");*/
 
-	prop= RNA_def_property(srna, "action_group_selected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected.");
 
-	prop= RNA_def_property(srna, "action_group_protected", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "protected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
 	RNA_def_property_ui_text(prop, "Protected", "Action Group is protected.");
 
-	prop= RNA_def_property(srna, "action_group_expanded", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Action Group is expanded.");
 
@@ -147,15 +147,15 @@ void RNA_def_action(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bAction");
 	RNA_def_struct_ui_text(srna, "Action", "A collection of Ipos for animation.");
 
-	prop= RNA_def_property(srna, "action_channels", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
 	RNA_def_property_struct_type(prop, "ActionChannel");
-	RNA_def_property_ui_text(prop, "Action Channels", "The individual animation channels that make up the Action.");
+	RNA_def_property_ui_text(prop, "Channels", "The individual animation channels that make up the Action.");
 
-	prop= RNA_def_property(srna, "action_groups", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "groups", NULL);
 	RNA_def_property_struct_type(prop, "ActionGroup");
-	RNA_def_property_ui_text(prop, "Action Groups", "Convenient groupings of Action Channels.");
+	RNA_def_property_ui_text(prop, "Groups", "Convenient groupings of Action Channels.");
 
 	prop= RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);

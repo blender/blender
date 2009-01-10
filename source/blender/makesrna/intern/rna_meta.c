@@ -55,7 +55,7 @@ void rna_def_metaelement(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaElement", NULL);
-	RNA_def_struct_ui_text(srna, "Meta Element", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Meta Element", "Blobby element in a MetaBall datablock.");
 	RNA_def_struct_sdna(srna, "MetaElem");
 	
 	/* enums */
@@ -111,7 +111,7 @@ void rna_def_metaball(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaBall", "ID");
-	RNA_def_struct_ui_text(srna, "MetaBall", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "MetaBall", "Metaball datablock to defined blobby surfaces.");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "elems", NULL);

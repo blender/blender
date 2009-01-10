@@ -121,9 +121,9 @@ IDProperty *rna_idproperties_get(PointerRNA *ptr, int create)
 {
 	if(ptr->type->flag & STRUCT_ID)
 		return IDP_GetProperties(ptr->data, create);
-	else if(ptr->type == &RNA_IDPropertyGroup || ptr->type->from == &RNA_IDPropertyGroup)
+	else if(ptr->type == &RNA_IDPropertyGroup || ptr->type->base == &RNA_IDPropertyGroup)
 		return ptr->data;
-	else if(ptr->type->from == &RNA_OperatorProperties) {
+	else if(ptr->type->base == &RNA_OperatorProperties) {
 		if(create && !ptr->data) {
 			IDPropertyTemplate val;
 			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
@@ -234,11 +234,11 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			 (PropertyRNA*)&rna_IDProperty_double};
 
 		static PropertyRNA *arraytypemap[IDP_NUMTYPES] =
-			{NULL, (PropertyRNA*)&rna_IDProperty_intarray,
-			 (PropertyRNA*)&rna_IDProperty_floatarray,
+			{NULL, (PropertyRNA*)&rna_IDProperty_int_array,
+			 (PropertyRNA*)&rna_IDProperty_float_array,
 			 NULL, NULL, NULL,
 			 (PropertyRNA*)&rna_IDProperty_collection, NULL,
-			 (PropertyRNA*)&rna_IDProperty_doublearray};
+			 (PropertyRNA*)&rna_IDProperty_double_array};
 
 		IDProperty *idprop= (IDProperty*)(*prop);
 

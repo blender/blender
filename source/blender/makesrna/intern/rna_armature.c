@@ -97,7 +97,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Bone", NULL);
-	RNA_def_struct_ui_text(srna, "Bone", "member of the 'Armature' type");
+	RNA_def_struct_ui_text(srna, "Bone", "Bone in an Armature datablock.");
 	
 	/* pointers/collections */
 		/* parent (pointer) */
@@ -144,7 +144,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Connected", "When bone has a parent, bone's head is struck to the parent's tail.");
 	
 		// XXX should we define this in PoseChannel wrapping code instead? but PoseChannels directly get some of their flags from here...
-	prop= RNA_def_property(srna, "posechannel_hidden", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "pose_channel_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_HIDDEN_P);
 	RNA_def_property_ui_text(prop, "Pose Channel Hidden", "Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes).");
 	
@@ -246,14 +246,14 @@ void rna_def_armature(BlenderRNA *brna)
 		{ARM_B_BONE, "BBONE", "B-Bone", "Draw bones as boxes, showing subdivision and B-Splines"},
 		{ARM_ENVELOPE, "ENVELOPE", "Envelope", "Draw bones as extruded spheres, showing defomation influence volume."},
 		{0, NULL, NULL, NULL}};
-	static EnumPropertyItem prop_ghosttype_items[] = {
-		{ARM_GHOST_CUR, "CURRENTFRAME", "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
+	static EnumPropertyItem prop_ghost_type_items[] = {
+		{ARM_GHOST_CUR, "CURRENT_FRAME", "Around Current Frame", "Draw Ghosts of poses within a fixed number of frames around the current frame."},
 		{ARM_GHOST_RANGE, "RANGE", "In Range", "Draw Ghosts of poses within specified range."},
 		{ARM_GHOST_KEYS, "KEYS", "On Keyframes", "Draw Ghosts of poses on Keyframes."},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");
-	RNA_def_struct_ui_text(srna, "Armature", "'Object' containing a hierarchy of 'Bones', often used to rig characters");
+	RNA_def_struct_ui_text(srna, "Armature", "Armature datablock containing a hierarchy of bones, usually used for rigging characters.");
 	
 	RNA_def_struct_sdna(srna, "bArmature");
 	
@@ -268,8 +268,9 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Type", "");
 	
-	prop= RNA_def_property(srna, "ghosttype", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_ghosttype_items);
+	prop= RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");
+	RNA_def_property_enum_items(prop, prop_ghost_type_items);
 	RNA_def_property_ui_text(prop, "Ghost Drawing", "Method of Onion-skinning for active Action");
 	
 	/* Boolean values */

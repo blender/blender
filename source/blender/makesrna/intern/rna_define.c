@@ -166,7 +166,7 @@ static int rna_find_sdna_member(SDNA *sdna, const char *structname, const char *
 	return 0;
 }
 
-static int rna_validate_identifier(const char *identifier, char *error)
+static int rna_validate_identifier(const char *identifier, char *error, int property)
 {
 	int a=0;
 	
@@ -188,11 +188,18 @@ static int rna_validate_identifier(const char *identifier, char *error)
 		return 0;
 	}
 	
-	for(a=1; identifier[a] != '\0'; a++) {
+	for(a=0; identifier[a]; a++) {
+		if(DefRNA.preprocess && property) {
+			if(isalpha(identifier[a]) && isupper(identifier[a])) {
+				strcpy(error, "property names must contain lower case characters only");
+				return 0;
+			}
+		}
+		
 		if (identifier[a]=='_') {
 			continue;
 		}
-		
+
 		if (isalnum(identifier[a])==0) {
 			strcpy(error, "one of the characters failed an isalnum() check and is not an underscore");
 			return 0;
@@ -327,7 +334,8 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	
 	if(DefRNA.preprocess) {
 		char error[512];
-		if (rna_validate_identifier(identifier, error) == 0) {
+
+		if (rna_validate_identifier(identifier, error, 0) == 0) {
 			fprintf(stderr, "RNA_def_struct: struct identifier \"%s\" error - %s\n", identifier, error);
 			DefRNA.error= 1;
 		}
@@ -355,11 +363,11 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		srna->properties.first= srna->properties.last= NULL;
 
 		if(DefRNA.preprocess) {
-			srna->from= (StructRNA*)from;
+			srna->base= srnafrom;
 			dsfrom= rna_find_def_struct(srnafrom);
 		}
 		else
-			srna->from= srnafrom;
+			srna->base= srnafrom;
 	}
 
 	srna->identifier= identifier;
@@ -516,13 +524,21 @@ void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *pr
 		srna->nameproperty= prop;
 }
 
-void RNA_def_struct_parent(StructRNA *srna, StructRNA *parent)
+void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname)
 {
+	StructRNA *srnafrom;
 
-	if(DefRNA.preprocess)
-		srna->parent= (StructRNA*)parent->identifier;
-	else
-		srna->parent= parent;
+	/* find struct to derive from */
+	for(srnafrom= brna->structs.first; srnafrom; srnafrom=srnafrom->next)
+		if(strcmp(srnafrom->identifier, structname) == 0)
+			break;
+
+	if(!srnafrom) {
+		fprintf(stderr, "RNA_def_struct_nested: struct %s not found.\n", structname);
+		DefRNA.error= 1;
+	}
+
+	srna->nested= srnafrom;
 }
 
 void RNA_def_struct_flag(StructRNA *srna, int flag)
@@ -573,7 +589,7 @@ PropertyRNA *RNA_def_property(StructRNA *srna, const char *identifier, int type,
 	if(DefRNA.preprocess) {
 		char error[512];
 		
-		if (rna_validate_identifier(identifier, error) == 0) {
+		if (rna_validate_identifier(identifier, error, 1) == 0) {
 			fprintf(stderr, "RNA_def_property: property identifier \"%s\" - %s\n", identifier, error);
 			DefRNA.error= 1;
 		}

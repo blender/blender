@@ -76,8 +76,9 @@ void rna_def_bpoint(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "BPoint", NULL);
-	RNA_def_struct_ui_text(srna, "BPoint", "DOC_BROKEN");
+	srna= RNA_def_struct(brna, "CurvePoint", NULL);
+	RNA_def_struct_sdna(srna, "BPoint");
+	RNA_def_struct_ui_text(srna, "CurvePoint", "Curve point without handles.");
 
 	/* Boolean values */
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
@@ -128,8 +129,9 @@ void rna_def_beztriple(BlenderRNA *brna)
 		{IPO_BEZ, "BEZIER", "Bezier", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "BezTriple", NULL);
-	RNA_def_struct_ui_text(srna, "Bezier Triple", "DOC_BROKEN");
+	srna= RNA_def_struct(brna, "BezierCurvePoint", NULL);
+	RNA_def_struct_sdna(srna, "BezTriple");
+	RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles.");
 
 	/* Boolean values */
 	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
@@ -208,7 +210,7 @@ void rna_def_ipodriver(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "IpoDriver", NULL);
-	RNA_def_struct_ui_text(srna, "Ipo Driver", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Ipo Driver", "Driver for the ipo curve value based on an external value.");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -242,7 +244,7 @@ void rna_def_ipocurve(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "IpoCurve", NULL);
-	RNA_def_struct_ui_text(srna, "Ipo Curve", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Ipo Curve", "Ipo curve defining values of a period of time.");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
@@ -262,16 +264,16 @@ void rna_def_ipocurve(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "driver");
 	RNA_def_property_ui_text(prop, "Ipo Driver", "");
 
-	/* Collections */
-	prop= RNA_def_property(srna, "bpoints", PROP_COLLECTION, PROP_NONE);
+	/* Collections XXX */
+	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", "totvert");
-	RNA_def_property_struct_type(prop, "BPoint");
-	RNA_def_property_ui_text(prop, "BPoints", "");
+	RNA_def_property_struct_type(prop, "CurvePoint");
+	RNA_def_property_ui_text(prop, "Points", "");
 
-	prop= RNA_def_property(srna, "bezier_triples", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "bezier_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
-	RNA_def_property_struct_type(prop, "BezTriple");
-	RNA_def_property_ui_text(prop, "Bezier Triples", "");
+	RNA_def_property_struct_type(prop, "BezierCurvePoint");
+	RNA_def_property_ui_text(prop, "Bezier Points", "");
 }
 
 void rna_def_ipo(BlenderRNA *brna)
@@ -296,7 +298,7 @@ void rna_def_ipo(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Ipo", "ID");
-	RNA_def_struct_ui_text(srna, "Ipo", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Ipo", "Ipo datablock containing Ipo curves for animation of a datablock.");
 
 	/* Enums */
 	prop= RNA_def_property(srna, "block_type", PROP_ENUM, PROP_NONE);

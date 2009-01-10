@@ -40,11 +40,11 @@ void RNA_def_packedfile(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "PackedFile", NULL);
-	RNA_def_struct_ui_text(srna, "Packed File", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Packed File", "External file packed into the .blend file.");
 
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Size", "Size of Packed File.");
+	RNA_def_property_ui_text(prop, "Size", "Size of packed file in bytes.");
 
 }
 

@@ -83,7 +83,7 @@ void rna_def_constraint_basedata(BlenderRNA *brna)
 	
 	/* data */
 	srna= RNA_def_struct(brna, "Constraint", NULL );
-	RNA_def_struct_ui_text(srna, "Constraint", "alter the transformation of 'Objects' or 'Bones' from a number of predefined constraints");
+	RNA_def_struct_ui_text(srna, "Constraint", "Constraint modifying the transformation of objects and bones.");
 	RNA_def_struct_refine_func(srna, "rna_Constraint_refine");
 	RNA_def_struct_sdna(srna, "bConstraint");
 	

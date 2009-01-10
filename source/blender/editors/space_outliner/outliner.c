@@ -3183,7 +3183,9 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_FACESEL;
 	else if(rnatype == &RNA_MeshTextureFace)
 		return ICON_FACESEL_HLT;
-	else if(rnatype == &RNA_MeshVertexGroup)
+	else if(rnatype == &RNA_VertexGroup)
+		return ICON_VGROUP;
+	else if(rnatype == &RNA_VertexGroupElement)
 		return ICON_VGROUP;
 	else if(rnatype == &RNA_Curve)
 		return ICON_CURVE;
@@ -3199,6 +3201,16 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_BONE_DEHLT;
 	else if(rnatype == &RNA_Camera)
 		return ICON_CAMERA;
+	else if(rnatype == &RNA_LocalLamp)
+		return ICON_LAMP;
+	else if(rnatype == &RNA_AreaLamp)
+		return ICON_LAMP;
+	else if(rnatype == &RNA_SpotLamp)
+		return ICON_LAMP;
+	else if(rnatype == &RNA_SunLamp)
+		return ICON_LAMP;
+	else if(rnatype == &RNA_HemiLamp)
+		return ICON_LAMP;
 	else if(rnatype == &RNA_Lamp)
 		return ICON_LAMP;
 	else if(rnatype == &RNA_Group)
@@ -3210,6 +3222,12 @@ static int tselem_rna_icon(PointerRNA *ptr)
 	else if(rnatype == &RNA_Material)
 		return ICON_MATERIAL;
 	else if(rnatype == &RNA_Texture)
+		return ICON_TEXTURE;
+	else if(rnatype == &RNA_TextureSlot)
+		return ICON_TEXTURE;
+	else if(rnatype == &RNA_WorldTextureSlot)
+		return ICON_TEXTURE;
+	else if(rnatype == &RNA_MaterialTextureSlot)
 		return ICON_TEXTURE;
 	else if(rnatype == &RNA_Image)
 		return ICON_TEXTURE;
@@ -3253,7 +3271,7 @@ static int tselem_rna_icon(PointerRNA *ptr)
 		return ICON_RNA;
 	else if(rnatype == &RNA_CollectionProperty)
 		return ICON_RNA;
-	else if(rnatype == &RNA_ObjectGameSettings)
+	else if(rnatype == &RNA_GameObjectSettings)
 		return ICON_GAME;
 	else if(rnatype == &RNA_ScriptLink)
 		return ICON_PYTHON;

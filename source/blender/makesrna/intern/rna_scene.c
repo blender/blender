@@ -99,7 +99,7 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Scene", "ID");
-	RNA_def_struct_ui_text(srna, "Scene", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");

@@ -647,6 +647,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_VECTOR: return "PROP_VECTOR";
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_ROTATION: return "PROP_ROTATION";
+		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
 		default: return "PROP_UNKNOWN";
 	}
 }
@@ -880,10 +881,10 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 
 	fprintf(f, "(PropertyRNA*)&rna_%s_rna_properties,\n", srna->identifier);
 
-	if(srna->from) fprintf(f, "\t&RNA_%s,\n", (char*)srna->from);
+	if(srna->base) fprintf(f, "\t&RNA_%s,\n", srna->base->identifier);
 	else fprintf(f, "\tNULL,\n");
 
-	if(srna->parent) fprintf(f, "\t&RNA_%s,\n", (char*)srna->parent);
+	if(srna->nested) fprintf(f, "\t&RNA_%s,\n", srna->nested->identifier);
 	else fprintf(f, "\tNULL,\n");
 
 	fprintf(f, "\t%s,\n", rna_function_string(srna->refine));
@@ -908,6 +909,7 @@ typedef struct RNAProcessItem {
 
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
+	{"rna_texture.c", RNA_def_texture},
 	{"rna_action.c", RNA_def_action},
 	{"rna_actuator.c", RNA_def_actuator},
 	{"rna_armature.c", RNA_def_armature},
@@ -945,7 +947,6 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sensor.c", RNA_def_sensor},
 	{"rna_sequence.c", RNA_def_sequence},
 	{"rna_text.c", RNA_def_text},
-	{"rna_texture.c", RNA_def_texture},
 	{"rna_sound.c", RNA_def_sound},
 	{"rna_userdef.c", RNA_def_userdef},
 	{"rna_vfont.c", RNA_def_vfont},

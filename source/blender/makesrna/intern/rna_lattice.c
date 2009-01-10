@@ -106,7 +106,7 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_LatticePoint_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0);
-	RNA_def_property_struct_type(prop, "MeshVertexGroup");
+	RNA_def_property_struct_type(prop, "VertexGroupElement");
 	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this point is member of.");
 }
 
@@ -122,7 +122,7 @@ static void rna_def_lattice(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lattice", "ID");
-	RNA_def_struct_ui_text(srna, "Lattice", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Lattice", "Lattice datablock defining a grid for deforming other objects.");
 
 	prop= RNA_def_property(srna, "points_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pntsu");
@@ -160,7 +160,8 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	rna_def_ipo_common(srna);
 
-	prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "key");
 	RNA_def_property_ui_text(prop, "Shape Keys", "");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);

@@ -44,7 +44,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ImageUser", NULL);
-	RNA_def_struct_ui_text(srna, "Image User", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock.");
 
 	prop= RNA_def_property(srna, "auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
@@ -73,12 +73,12 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "The number of fields per rendered frame (2 fields is 1 image).");
 
-	prop= RNA_def_property(srna, "renderLayer", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "multilayer_layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Layer", "Layer in multilayer image.");
 
-	prop= RNA_def_property(srna, "renderPass", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "multilayer_pass", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "pass");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE); /* image_multi_cb */
 	RNA_def_property_ui_text(prop, "Pass", "Pass in multilayer image.");
@@ -112,7 +112,7 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Image", "ID");
-	RNA_def_struct_ui_text(srna, "Image", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image.");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");

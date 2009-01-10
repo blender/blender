@@ -252,7 +252,7 @@ void RNA_def_main(BlenderRNA *brna)
 	int i;
 	
 	srna= RNA_def_struct(brna, "Main", NULL);
-	RNA_def_struct_ui_text(srna, "Main", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Main", "Main data structure representing a .blend file and all its datablocks.");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_maxlength(prop, 240);

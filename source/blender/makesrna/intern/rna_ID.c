@@ -111,7 +111,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	/* this is struct is used for holding the virtual
 	 * PropertyRNA's for ID properties */
 	srna= RNA_def_struct(brna, "IDProperty", NULL);
-	RNA_def_struct_ui_text(srna, "ID Property", "stores arbitrary properties");
+	RNA_def_struct_ui_text(srna, "ID Property", "Property that stores arbitrary, user defined properties.");
 	
 	/* IDP_STRING */
 	prop= RNA_def_property(srna, "string", PROP_STRING, PROP_NONE);
@@ -121,7 +121,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "int", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
-	prop= RNA_def_property(srna, "intarray", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "int_array", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
 
@@ -129,7 +129,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "float", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
-	prop= RNA_def_property(srna, "floatarray", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "float_array", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
 
@@ -137,7 +137,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "double", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 
-	prop= RNA_def_property(srna, "doublearray", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "double_array", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 1);
 
@@ -156,7 +156,7 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	 * with native RNA properties. the builtin_properties will take
 	 * care of the properties here */
 	srna= RNA_def_struct(brna, "IDPropertyGroup", NULL);
-	RNA_def_struct_ui_text(srna, "ID Property Group", "a collection of properties");
+	RNA_def_struct_ui_text(srna, "ID Property Group", "Group of ID properties.");
 }
 
 static void rna_def_ID(BlenderRNA *brna)
@@ -165,8 +165,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ID", NULL);
-	RNA_def_struct_ui_text(srna, "ID", "Used as a basis for dealing with many types with unique names, garbage collection and linked libraries");
-	
+	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");
 	RNA_def_struct_flag(srna, STRUCT_ID);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 
@@ -199,7 +198,7 @@ static void rna_def_library(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Library", "ID");
-	RNA_def_struct_ui_text(srna, "Library", "reference to an external blend file");
+	RNA_def_struct_ui_text(srna, "Library", "External .blend file from which data is linked.");
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
@@ -209,10 +208,10 @@ static void rna_def_library(BlenderRNA *brna)
 void RNA_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
+
 	/* simple built-in unknown type */
 	srna= RNA_def_struct(brna, "UnknownType", NULL);
-	RNA_def_struct_ui_text(srna, "Unknown Type", "");
-	
+	RNA_def_struct_ui_text(srna, "Unknown Type", "Stub RNA type used for pointers to unknown or internal data.");
 
 	rna_def_ID(brna);
 	rna_def_ID_properties(brna);

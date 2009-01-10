@@ -47,7 +47,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 		{ACT_SOUND, "SOUND", "Sound", ""},
 		{ACT_PROPERTY, "PROPERTY", "Property", ""},
 		{ACT_CONSTRAINT, "CONSTRAINT", "Constraint", ""},
-		{ACT_EDIT_OBJECT, "EDITOBJECT", "Edit Object", ""},
+		{ACT_EDIT_OBJECT, "EDIT_OBJECT", "Edit Object", ""},
 		{ACT_SCENE, "SCENE", "Scene", ""},
 		{ACT_RANDOM, "RANDOM", "Random", ""},
 		{ACT_MESSAGE, "MESSAGE", "Message", ""},
@@ -55,19 +55,18 @@ void RNA_def_actuator(BlenderRNA *brna)
 		{ACT_CD, "CD", "CD", ""},
 		{ACT_GAME, "GAME", "Game", ""},
 		{ACT_VISIBILITY, "VISIBILITY", "Visibility", ""},
-		{ACT_2DFILTER, "TWODFILTER", "2D Filter", ""},
+		{ACT_2DFILTER, "FILTER_2D", "2D Filter", ""},
 		{ACT_PARENT, "PARENT", "Parent", ""},
-		{ACT_SHAPEACTION, "SHAPEACTION", "Shape Action", ""},
+		{ACT_SHAPEACTION, "SHAPE_ACTION", "Shape Action", ""},
 		{ACT_STATE, "STATE", "State", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Actuator", NULL);
-	RNA_def_struct_ui_text(srna, "Actuator", "logic brick to apply actions in the game engine");
+	RNA_def_struct_ui_text(srna, "Actuator", "Game engine logic brick to apply actions in the game engine.");
 	
 	RNA_def_struct_sdna(srna, "bActuator");
 
-	prop= RNA_def_property(srna, "actuator_name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "name");
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 
 	/* type is not editable, would need to do proper data free/alloc */

@@ -136,12 +136,12 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	
 	/* goal */
 	
-	prop= RNA_def_property(srna, "goal_minimum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mingoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Minimum", "Goal minimum, vertex group weights are scaled to match this range.");
 
-	prop= RNA_def_property(srna, "goal_maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Maximum", "Goal maximum, vertex group weights are scaled to match this range.");
@@ -214,7 +214,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Structural Stiffness", "Overall stiffness of structure.");
 
-	prop= RNA_def_property(srna, "structural_stiffness_maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "structural_stiffness_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_struct");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_struct_set", NULL);
@@ -229,7 +229,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Bending Stiffness", "Wrinkle coefficient (higher = less smaller but more big wrinkles).");
 
-	prop= RNA_def_property(srna, "bending_stiffness_maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "bending_stiffness_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_bend");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_ClothSettings_max_bend_set", NULL);
@@ -248,7 +248,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shear Stiffness", "Shear spring stiffness."); */
 
 	/* unused still
-	prop= RNA_def_property(srna, "shear_stiffness_maximum", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shear_stiffness_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_shear");
 	RNA_def_property_range(prop, 0.0f, upperLimitf);
 	RNA_def_property_ui_text(prop, "Shear Stiffness Maximum", "Maximum shear scaling value."); */
@@ -289,7 +289,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "ClothCollisionSettings", NULL);
-	RNA_def_struct_ui_text(srna, "Cloth Collision Settings", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Cloth Collision Settings", "Cloth simulation settings for self collision and collision with other objects.");
 	RNA_def_struct_sdna(srna, "ClothCollSettings");
 
 	/* general collision */
@@ -298,7 +298,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_COLLSETTINGS_FLAG_ENABLED);
 	RNA_def_property_ui_text(prop, "Enable Collision", "Enable collisions with other objects.");
 	
-	prop= RNA_def_property(srna, "minimum_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "epsilon");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
 	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance between collision objects before collision response takes in, can be changed for each frame.");
@@ -318,7 +318,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_COLLSETTINGS_FLAG_SELF);
 	RNA_def_property_ui_text(prop, "Enable Self Collision", "Enable self collisions.");
 	
-	prop= RNA_def_property(srna, "self_minimum_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "self_min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "selfepsilon");
 	RNA_def_property_range(prop, 0.5f, 1.0f);
 	RNA_def_property_ui_text(prop, "Self Minimum Distance", "0.5 means no distance at all, 1.0 is maximum distance");

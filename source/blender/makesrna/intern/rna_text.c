@@ -108,7 +108,7 @@ static void rna_def_text_line(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "TextLine", NULL);
-	RNA_def_struct_ui_text(srna, "Text Line", "Line of text.");
+	RNA_def_struct_ui_text(srna, "Text Line", "Line of text in a Text datablock.");
 	
 	prop= RNA_def_property(srna, "line", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -122,7 +122,7 @@ static void rna_def_text_marker(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "TextMarker", NULL);
-	RNA_def_struct_ui_text(srna, "Text Marker", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Text Marker", "Marker highlighting a portion of text in a Text datablock.");
 
 	prop= RNA_def_property(srna, "line", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "lineno");
@@ -162,7 +162,7 @@ static void rna_def_text(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "Text", "ID");
-	RNA_def_struct_ui_text(srna, "Text", "Text file datablock.");
+	RNA_def_struct_ui_text(srna, "Text", "Text datablock referencing an external or packed text file.");
 	
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Text_filename_get", "rna_Text_filename_length", "rna_Text_filename_set");
@@ -182,7 +182,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Lines", "Lines of text.");
 	
-	prop= RNA_def_property(srna, "current_line", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "current_line", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "curl");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "TextLine");
@@ -193,7 +193,7 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Current Character", "Index of current character in current line, and also start index of character in selection if one exists.");
 	
-	prop= RNA_def_property(srna, "selection_end_line", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "selection_end_line", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "sell");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "TextLine");

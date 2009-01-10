@@ -49,7 +49,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "PoseChannel", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
-	RNA_def_struct_ui_text(srna, "Pose Channel", "Member of the 'Pose' type.");
+	RNA_def_struct_ui_text(srna, "Pose Channel", "Channel defining pose data for a bone in a Pose.");
 
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "constraints", NULL);
@@ -108,7 +108,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation End Frame", "End frame of range of frames to use for Bone Path calculations.");
 
-	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone", "Bone associated with this Pose Channel.");
@@ -148,12 +148,12 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone.");
 
-	prop= RNA_def_property(srna, "ik_minimums", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "ik_min_limits", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "limitmin");
 	RNA_def_property_range(prop, -180.0f, 0.0f);
 	RNA_def_property_ui_text(prop, "IK Minimum Limits", "Minimum angles for IK Limit");
 
-	prop= RNA_def_property(srna, "ik_maximum", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "ik_max_limits", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "limitmax");
 	RNA_def_property_range(prop, 0.0f, 180.0f);
 	RNA_def_property_ui_text(prop, "IK Maximum Limits", "Maximum angles for IK Limit");

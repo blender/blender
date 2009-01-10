@@ -66,12 +66,12 @@ static int rna_Struct_name_length(PointerRNA *ptr)
 
 static void *rna_Struct_base_get(PointerRNA *ptr)
 {
-	return ((StructRNA*)ptr->data)->from;
+	return ((StructRNA*)ptr->data)->base;
 }
 
-static void *rna_Struct_parent_get(PointerRNA *ptr)
+static void *rna_Struct_nested_get(PointerRNA *ptr)
 {
-	return ((StructRNA*)ptr->data)->parent;
+	return ((StructRNA*)ptr->data)->nested;
 }
 
 static void *rna_Struct_name_property_get(PointerRNA *ptr)
@@ -411,7 +411,7 @@ static void rna_def_struct(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Struct", NULL);
-	RNA_def_struct_ui_text(srna, "Struct Definition", "RNA Structure definition");
+	RNA_def_struct_ui_text(srna, "Struct Definition", "RNA structure definition");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -435,11 +435,11 @@ static void rna_def_struct(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Struct_base_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Base", "Struct definition this is derived from.");
 
-	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "nested", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_pointer_funcs(prop, "rna_Struct_parent_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Parent", "Parent struct, used only for nested structs.");
+	RNA_def_property_pointer_funcs(prop, "rna_Struct_nested_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Nested", "Struct in which this struct is always nested, and to which it logically belongs.");
 
 	prop= RNA_def_property(srna, "name_property", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -470,16 +470,17 @@ static void rna_def_property(BlenderRNA *brna)
 	static EnumPropertyItem subtype_items[] = {
 		{PROP_NONE, "NONE", "None", ""},
 		{PROP_UNSIGNED, "UNSIGNED", "Unsigned Number", ""},
-		{PROP_FILEPATH, "FILEPATH", "File Path", ""},
-		{PROP_DIRPATH, "DIRPATH", "Directory Path", ""},
+		{PROP_FILEPATH, "FILE_PATH", "File Path", ""},
+		{PROP_DIRPATH, "DIRECTORY_PATH", "Directory Path", ""},
 		{PROP_COLOR, "COLOR", "Color", ""},
 		{PROP_VECTOR, "VECTOR", "Vector", ""},
 		{PROP_MATRIX, "MATRIX", "Matrix", ""},
 		{PROP_ROTATION, "ROTATION", "Rotation", ""},
+		{PROP_NEVER_NULL, "NEVER_NULL", "Never Null", ""},
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);
-	RNA_def_struct_ui_text(srna, "Property Definition", "DOC_BROKEN2");
+	RNA_def_struct_ui_text(srna, "Property Definition", "RNA property definition.");
 	RNA_def_struct_refine_func(srna, "rna_Property_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -509,7 +510,7 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
-	
+
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_editable_get", NULL);
@@ -587,7 +588,7 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Items", "Possible values for the property.");
 
 	srna= RNA_def_struct(brna, "EnumPropertyItem", NULL);
-	RNA_def_struct_ui_text(srna, "Enum Item Definition", "DOC_BROKEN3");
+	RNA_def_struct_ui_text(srna, "Enum Item Definition", "Definition of a choice in an RNA enum property.");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
@@ -633,42 +634,42 @@ void RNA_def_rna(BlenderRNA *brna)
 
 	/* BooleanProperty */
 	srna= RNA_def_struct(brna, "BooleanProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Boolean Definition", "DOC_BROKEN4");
+	RNA_def_struct_ui_text(srna, "Boolean Definition", "RNA boolean property definition.");
 	rna_def_number_property(srna, PROP_BOOLEAN);
 
 	/* IntProperty */
 	srna= RNA_def_struct(brna, "IntProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Int Definition", "DOC_BROKEN5");
+	RNA_def_struct_ui_text(srna, "Int Definition", "RNA integer number property definition.");
 	rna_def_number_property(srna, PROP_INT);
 
 	/* FloatProperty */
 	srna= RNA_def_struct(brna, "FloatProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Float Definition", "DOC_BROKEN6");
+	RNA_def_struct_ui_text(srna, "Float Definition", "RNA floating pointer number property definition.");
 	rna_def_number_property(srna, PROP_FLOAT);
 
 	/* StringProperty */
 	srna= RNA_def_struct(brna, "StringProperty", "Property");
-	RNA_def_struct_ui_text(srna, "String Definition", "DOC_BROKEN7");
+	RNA_def_struct_ui_text(srna, "String Definition", "RNA text string property definition.");
 	rna_def_string_property(srna);
 
 	/* EnumProperty */
 	srna= RNA_def_struct(brna, "EnumProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Enum Definition", "DOC_BROKEN8");
+	RNA_def_struct_ui_text(srna, "Enum Definition", "RNA enumeration property definition, to choose from a number of predefined options.");
 	rna_def_enum_property(brna, srna);
 
 	/* PointerProperty */
 	srna= RNA_def_struct(brna, "PointerProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Pointer Definition", "DOC_BROKEN9");
+	RNA_def_struct_ui_text(srna, "Pointer Definition", "RNA pointer property to point to another RNA struct.");
 	rna_def_pointer_property(srna, PROP_POINTER);
 
 	/* CollectionProperty */
 	srna= RNA_def_struct(brna, "CollectionProperty", "Property");
-	RNA_def_struct_ui_text(srna, "Collection Definition", "DOC_BROKEN10");
+	RNA_def_struct_ui_text(srna, "Collection Definition", "RNA collection property to define lists, arrays and mappings.");
 	rna_def_pointer_property(srna, PROP_COLLECTION);
 
 	/* Blender RNA */
 	srna= RNA_def_struct(brna, "BlenderRNA", NULL);
-	RNA_def_struct_ui_text(srna, "Blender RNA", "RNA Structures");
+	RNA_def_struct_ui_text(srna, "Blender RNA", "Blender RNA structure definitions.");
 
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);

@@ -30,8 +30,21 @@
 #include "rna_internal.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_texture_types.h"
 
 #ifdef RNA_RUNTIME
+
+static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Brush *brush= (Brush*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+}
+
+static void *rna_Brush_active_texture_get(PointerRNA *ptr)
+{
+	Brush *brush= (Brush*)ptr->data;
+	return brush->mtex[(int)brush->texact];
+}
 
 #else
 
@@ -51,7 +64,7 @@ void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
-	RNA_def_struct_ui_text(srna, "Brush", "stores brush setting for painting in the image view, sculpting and projection painting");
+	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting.");
 	
 	/* enums */
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
@@ -118,15 +131,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
 
 	/* texture */
-	prop= RNA_def_property(srna, "texture_slots", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "mtex", "");
-	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_ui_text(prop, "Textures Slots", "");
-
-	prop= RNA_def_property(srna, "active_texture", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "texact");
-	RNA_def_property_range(prop, 0, MAX_MTEX-1);
-	RNA_def_property_ui_text(prop, "Active Texture", "Active texture index.");
+	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "TextureSlot");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

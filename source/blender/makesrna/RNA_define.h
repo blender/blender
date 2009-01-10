@@ -43,7 +43,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname);
 void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const char *propname);
 void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop);
-void RNA_def_struct_parent(StructRNA *srna, StructRNA *parent);
+void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *structname);
 void RNA_def_struct_flag(StructRNA *srna, int flag);
 void RNA_def_struct_refine_func(StructRNA *srna, const char *refine);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);

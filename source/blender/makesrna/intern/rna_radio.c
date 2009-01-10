@@ -46,7 +46,7 @@ void RNA_def_radio(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Radiosity", NULL);
-	RNA_def_struct_ui_text(srna, "Radiosity", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Radiosity", "Settings for radiosity simulation of indirect diffuse lighting.");
 	RNA_def_struct_sdna(srna, "Radio");
 
 	/* Enums */

@@ -50,7 +50,7 @@ static void rna_def_collision(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "CollisionSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
-	RNA_def_struct_ui_text(srna, "Collision Settings", "Collision settings for physics simulation.");
+	RNA_def_struct_ui_text(srna, "Collision Settings", "Collision settings for object in physics simulation.");
 }
 
 static void rna_def_field(BlenderRNA *brna)
@@ -59,7 +59,7 @@ static void rna_def_field(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
-	RNA_def_struct_ui_text(srna, "Field Settings", "Field settings for physics simulation.");
+	RNA_def_struct_ui_text(srna, "Field Settings", "Field settings for an object in physics simulation.");
 }
 
 static void rna_def_game_softbody(BlenderRNA *brna)
