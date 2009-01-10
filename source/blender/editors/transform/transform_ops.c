@@ -108,8 +108,6 @@ static int transform_exec(bContext *C, wmOperator *op)
 	
 	transformEnd(C, t);
 
-	//ED_region_tag_redraw(CTX_wm_region(C));
-
 	transformops_exit(C, op);
 	
 	return OPERATOR_FINISHED;
@@ -138,6 +136,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	static float value[4] = {0, 0, 0};
+	static float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 	
 	/* identifiers */
 	ot->name   = "Transform";
@@ -157,6 +156,13 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "values", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_array_default(prop, value);
+
+	RNA_def_property(ot->srna, "constraint_orientation", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "constraint_mode", PROP_INT, PROP_NONE);
+
+	prop = RNA_def_property(ot->srna, "constraint_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_array(prop, 9);
+	RNA_def_property_float_array_default(prop, mtx);
 }
 
 void transform_operatortypes(void)

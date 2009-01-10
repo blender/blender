@@ -763,8 +763,6 @@ void postTrans (TransInfo *t)
 {
 	TransData *td;
 
-	stopConstraint(t);
-	
 	if (t->draw_handle)
 	{
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle);
