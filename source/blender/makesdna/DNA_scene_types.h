@@ -380,7 +380,7 @@ typedef struct VPaint {
 	float size;							/* of brush */
 	float gamma, mul;
 	short mode, flag;
-	int tot, pad;						/* allocation size of prev buffers */
+	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
 	
