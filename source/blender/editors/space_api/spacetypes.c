@@ -132,20 +132,22 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 typedef struct RegionDrawCB {
 	struct RegionDrawCB *next, *prev;
 	
-	void		(*draw)(const struct bContext *, struct ARegion *);	
+	void (*draw)(const struct bContext *, struct ARegion *, void *);	
+	void *customdata;
 	
 	int type;
 	
 } RegionDrawCB;
 
 void *ED_region_draw_cb_activate(ARegionType *art, 
-								 void	(*draw)(const struct bContext *, struct ARegion *),
-								 int type)
+								 void	(*draw)(const struct bContext *, struct ARegion *, void *),
+								 void *customdata, int type)
 {
 	RegionDrawCB *rdc= MEM_callocN(sizeof(RegionDrawCB), "RegionDrawCB");
 	
 	BLI_addtail(&art->drawcalls, rdc);
 	rdc->draw= draw;
+	rdc->customdata= customdata;
 	rdc->type= type;
 	
 	return rdc;
@@ -170,7 +172,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 	
 	for(rdc= ar->type->drawcalls.first; rdc; rdc= rdc->next) {
 		if(rdc->type==type)
-			rdc->draw(C, ar);
+			rdc->draw(C, ar, rdc->customdata);
 	}		
 }
 
