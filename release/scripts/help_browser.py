@@ -8,7 +8,7 @@ Tooltip: 'Show help information about a chosen installed script.'
 """
 
 __author__ = "Willian P. Germano"
-__version__ = "0.1 11/02/04"
+__version__ = "0.2 01/11/09"
 __email__ = ('scripts', 'Author, wgermano:ig*com*br')
 __url__ = ('blender', 'blenderartists.org')
 
@@ -47,8 +47,6 @@ Hotkeys:<br>
 # $Id$
 #
 # --------------------------------------------------------------------------
-# sysinfo.py version 0.1 Jun 09, 2004
-# --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # Copyright (C) 2004: Willian P. Germano, wgermano _at_ ig.com.br
@@ -69,6 +67,8 @@ Hotkeys:<br>
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
+# Thanks: Brendon Murphy (suggestion) and Kevin Morgan (implementation)
+# for the "run" button.
 
 import Blender
 from Blender import sys as bsys, Draw, Window, Registry
@@ -543,6 +543,7 @@ BEVT_GMENU = range(100, len_gmenus + 100)
 BEVT_VIEWSOURCE = 1
 BEVT_EXIT = 2
 BEVT_BACK = 3
+BEVT_EXEC = 4	# Executes Script
 
 # gui callbacks:
 
@@ -551,7 +552,7 @@ def gui(): # drawing the screen
 	global SCREEN, START_SCREEN, SCRIPT_SCREEN
 	global SCRIPT_INFO, AllGroups, GROUP_MENUS
 	global BEVT_EMAIL, BEVT_LINK
-	global BEVT_VIEWSOURCE, BEVT_EXIT, BEVT_BACK, BEVT_GMENU, BUT_GMENU
+	global BEVT_VIEWSOURCE, BEVT_EXIT, BEVT_BACK, BEVT_GMENU, BUT_GMENU, BEVT_EXEC
 	global PADDING, WIN_W, WIN_H, SCROLL_DOWN, COLUMNS, FMODE
 
 	theme = Theme.Get()[0]
@@ -674,8 +675,11 @@ def gui(): # drawing the screen
 				'View this script\'s source code in the Text Editor (hotkey: S)')
 			Draw.PushButton('exit', BEVT_EXIT, x + 45, 17, 45, bh,
 				'Exit from Scripts Help Browser (hotkey: Q)')
-			if not FMODE: Draw.PushButton('back', BEVT_BACK, x + 2*45, 17, 45, bh,
+			if not FMODE: 
+				Draw.PushButton('back', BEVT_BACK, x + 2*45, 17, 45, bh,
 				'Back to scripts selection screen (hotkey: ESC)')
+				Draw.PushButton('run script', BEVT_EXEC, x + 3*45, 17, 60, bh, 'Run this script')
+
 			BGL.glColor3ub(COL_TXTHI[0],COL_TXTHI[1], COL_TXTHI[2])
 			BGL.glRasterPos2i(x, 5)
 			Draw.Text('use the arrow keys or the mouse wheel to scroll text', 'small')
@@ -766,6 +770,14 @@ def button_event(evt): # gui button events
 			SCRIPT_INFO = None
 			SCROLL_DOWN = 0
 			Draw.Redraw()
+	elif evt == BEVT_EXEC: # Execute script
+		exec_line = ''
+		if SCRIPT_INFO.script.userdir:
+			exec_line = bsys.join(Blender.Get('uscriptsdir'), SCRIPT_INFO.script.fname)
+		else:
+			exec_line = bsys.join(Blender.Get('scriptsdir'), SCRIPT_INFO.script.fname)
+
+		Blender.Run(exec_line)
 
 keepon = True
 FMODE = False # called by Blender.ShowHelp(name) API function ?
