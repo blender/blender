@@ -3987,38 +3987,34 @@ static void createTransObject(bContext *C, TransInfo *t)
 	
 	TransData *td = NULL;
 	TransDataExtension *tx;
-	Object *ob;
-	Base *base;
 //	IpoKey *ik;
 //	ListBase elems;
 	
 	set_trans_object_base_flags(C, t);
 
 	/* count */	
-	for(base = sce->base.first; base; base= base->next) {
-		if TESTBASE(v3d, base) {
-			ob= base->object;
-			
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
+	{
 #if 0 // TRANSFORM_FIX_ME
-			/* store ipo keys? */
-			if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-				elems.first= elems.last= NULL;
-				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
-				
-				pushdata(&elems, sizeof(ListBase));
-				
-				for(ik= elems.first; ik; ik= ik->next)
-					t->total++;
-				
-				if(elems.first==NULL)
-					t->total++;
-			}
-#endif
-//			else {
+		/* store ipo keys? */
+		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+			elems.first= elems.last= NULL;
+			make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
+			
+			pushdata(&elems, sizeof(ListBase));
+			
+			for(ik= elems.first; ik; ik= ik->next)
 				t->total++;
-//			}
+			
+			if(elems.first==NULL)
+				t->total++;
 		}
+#endif
+//		else {
+			t->total++;
+//		}
 	}
+	CTX_DATA_END;
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -4029,97 +4025,97 @@ static void createTransObject(bContext *C, TransInfo *t)
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransOb");
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransObExtension");
 
-	for(base = sce->base.first; base; base= base->next) {
-		if TESTBASE(v3d, base) {
-			ob= base->object;
-			
-			td->flag = TD_SELECTED;
-			td->protectflag= ob->protectflag;
-			td->ext = tx;
-			
-			if (base->flag & BA_TRANSFORM_CHILD)
-			{
-				td->flag |= TD_NOCENTER;
-				td->flag |= TD_NO_LOC;
-			}
-			
-			/* select linked objects, but skip them later */
-			if (ob->id.lib != 0) {
-				td->flag |= TD_SKIP;
-			}
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
+	{
+		Object *ob= base->object;
+		
+		td->flag = TD_SELECTED;
+		td->protectflag= ob->protectflag;
+		td->ext = tx;
+		
+		if (base->flag & BA_TRANSFORM_CHILD)
+		{
+			td->flag |= TD_NOCENTER;
+			td->flag |= TD_NO_LOC;
+		}
+		
+		/* select linked objects, but skip them later */
+		if (ob->id.lib != 0) {
+			td->flag |= TD_SKIP;
+		}
 
-			/* store ipo keys? */
-			// TRANSFORM_FIX_ME
+		/* store ipo keys? */
+		// TRANSFORM_FIX_ME
 #if 0
-			if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+		if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+			
+			popfirst(&elems);	// bring back pushed listbase
+			
+			if(elems.first) {
+				int cfraont;
+				int ipoflag;
 				
-				popfirst(&elems);	// bring back pushed listbase
+				base->flag |= BA_DO_IPO+BA_WAS_SEL;
+				base->flag &= ~SELECT;
 				
-				if(elems.first) {
-					int cfraont;
-					int ipoflag;
+				cfraont= CFRA;
+				set_no_parent_ipo(1);
+				ipoflag= ob->ipoflag;
+				ob->ipoflag &= ~OB_OFFS_OB;
+				
+				/*
+				 * This is really EVIL code that pushes down Object values
+				 * (loc, dloc, orig, size, dsize, rot, drot)
+				 * */
+				 
+				pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
+				
+				for(ik= elems.first; ik; ik= ik->next) {
 					
-					base->flag |= BA_DO_IPO+BA_WAS_SEL;
-					base->flag &= ~SELECT;
+					/* weak... this doesn't correct for floating values, giving small errors */
+					CFRA= (int)(ik->val/t->scene->r.framelen);
 					
-					cfraont= CFRA;
-					set_no_parent_ipo(1);
-					ipoflag= ob->ipoflag;
-					ob->ipoflag &= ~OB_OFFS_OB;
+					do_ob_ipo(ob);
+					ObjectToTransData(C, t, td, ob);	// does where_is_object()
 					
-					/*
-					 * This is really EVIL code that pushes down Object values
-					 * (loc, dloc, orig, size, dsize, rot, drot)
-					 * */
-					 
-					pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
+					td->flag= TD_SELECTED;
 					
-					for(ik= elems.first; ik; ik= ik->next) {
-						
-						/* weak... this doesn't correct for floating values, giving small errors */
-						CFRA= (int)(ik->val/t->scene->r.framelen);
-						
-						do_ob_ipo(ob);
-						ObjectToTransData(C, t, td, ob);	// does where_is_object()
-						
-						td->flag= TD_SELECTED;
-						
-						td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
-						/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
-						ipokey_to_transdata(ik, td);
-						
-						td++;
-						tx++;
-						if(ik->next) td->ext= tx;	// prevent corrupting mem!
-					}
-					free_ipokey(&elems);
+					td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
+					/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
+					ipokey_to_transdata(ik, td);
 					
-					poplast(ob->loc);
-					set_no_parent_ipo(0);
-					
-					CFRA= cfraont;
-					ob->ipoflag= ipoflag;
-					
-					where_is_object(t->scene, ob);	// restore 
-				}
-				else {
-					ObjectToTransData(C, t, td, ob);
-					td->tdi = NULL;
-					td->val = NULL;
 					td++;
 					tx++;
+					if(ik->next) td->ext= tx;	// prevent corrupting mem!
 				}
+				free_ipokey(&elems);
+				
+				poplast(ob->loc);
+				set_no_parent_ipo(0);
+				
+				CFRA= cfraont;
+				ob->ipoflag= ipoflag;
+				
+				where_is_object(t->scene, ob);	// restore 
 			}
-#endif
-//			else {
+			else {
 				ObjectToTransData(C, t, td, ob);
 				td->tdi = NULL;
 				td->val = NULL;
 				td++;
 				tx++;
-//			}
+			}
 		}
+#endif
+//		else {
+			ObjectToTransData(C, t, td, ob);
+			td->tdi = NULL;
+			td->val = NULL;
+			td++;
+			tx++;
+//		}
 	}
+	CTX_DATA_END;
 }
 
 /* transcribe given node into TransData2D for Transforming */
