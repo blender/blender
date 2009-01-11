@@ -200,7 +200,7 @@ static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
 			bNodeType *type;
 			int script=0;
 			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
-				if( type->nclass == nodeclass ) {
+				if( type->nclass == nodeclass && type->name) {
 					if(type->type == NODE_DYNAMIC) {
 						uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
 							yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1.0f, (float)(NODE_DYNAMIC_MENU+script), "");
