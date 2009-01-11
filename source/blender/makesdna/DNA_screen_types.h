@@ -55,7 +55,8 @@ typedef struct bScreen {
 	short do_draw;						/* notifier for drawing edges */
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
 	short do_gesture;					/* notifier for gesture draw. */
-	short pad[3];
+	short swap;							/* indicator to survive swap-exchange systems */
+	short pad[2];
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
@@ -136,7 +137,7 @@ typedef struct ARegion {
 	float fsize;				/* current split size in float */
 	
 	short do_draw;				/* private, cached notifier events */
-	short pad;
+	short swap;					/* private, indicator to survive swap-exchange */
 	int pad1;
 	
 	struct ARegionType *type;	/* callbacks for this region type */
@@ -148,6 +149,11 @@ typedef struct ARegion {
 	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;
+
+/* swap */
+#define WIN_BACK_OK		1
+#define WIN_FRONT_OK	2
+#define WIN_EQUAL		3
 
 /* area->flag */
 #define HEADER_NO_PULLDOWN	1
@@ -167,11 +173,6 @@ typedef struct ARegion {
 #define SCREENNORMAL    0
 #define SCREENFULL      1
 #define SCREENAUTOPLAY  2
-
-/* sa->win_swap */
-#define WIN_FRONT_OK	1
-#define WIN_BACK_OK		2
-#define WIN_EQUAL		3
 
 /* Panel->snap - for snapping to screen edges */
 #define PNL_SNAP_NONE		0

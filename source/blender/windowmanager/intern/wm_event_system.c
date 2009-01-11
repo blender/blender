@@ -199,6 +199,68 @@ void wm_event_do_notifiers(bContext *C)
 	CTX_wm_window_set(C, NULL);
 }
 
+/* ********************* drawing, swap ****************** */
+
+static void wm_paintcursor_draw(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	
+	if(wm->paintcursors.first) {
+		wmWindow *win= CTX_wm_window(C);
+		wmPaintCursor *pc;
+		
+		for(pc= wm->paintcursors.first; pc; pc= pc->next) {
+			if(pc->poll(C)) {
+				ARegion *ar= CTX_wm_region(C);
+				pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin);
+			}
+		}
+	}
+}
+
+static void wm_window_swap_exchange(bContext *C, wmWindow *win)
+{
+	ARegion *ar;
+	ScrArea *sa;
+	
+	if(win->screen->swap==WIN_FRONT_OK) {
+		ED_screen_draw(win);
+		win->screen->swap= WIN_EQUAL;
+	}
+	else if(win->screen->swap==WIN_BACK_OK) {
+		win->screen->swap= WIN_FRONT_OK;
+	}
+	
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		
+		CTX_wm_area_set(C, sa);
+		
+		for(ar=sa->regionbase.first; ar; ar= ar->next) {
+			if(ar->swinid) {
+				if(ar->swap == WIN_BACK_OK) {
+					ar->swap = WIN_FRONT_OK;
+				}
+				else if(ar->swap == WIN_FRONT_OK) {
+					CTX_wm_region_set(C, ar);
+					
+					ED_region_do_draw(C, ar);
+					if(win->screen->subwinactive==ar->swinid)
+						wm_paintcursor_draw(C);
+					
+					ar->swap = WIN_EQUAL;
+					
+					CTX_wm_region_set(C, NULL);
+					printf("draws swap exchange %d\n", ar->swinid);
+				}
+			}
+		}
+		
+		CTX_wm_area_set(C, NULL);
+	}
+	
+	wm_window_swap_buffers(win);
+}
+
 /* mark area-regions to redraw if overlapped with rect */
 static void wm_flush_regions_down(bScreen *screen, rcti *dirty)
 {
@@ -277,23 +339,6 @@ static int wm_draw_update_test_window(wmWindow *win)
 	return 0;
 }
 
-static void wm_paintcursor_draw(bContext *C)
-{
-	wmWindowManager *wm= CTX_wm_manager(C);
-	
-	if(wm->paintcursors.first) {
-		wmWindow *win= CTX_wm_window(C);
-		wmPaintCursor *pc;
-		
-		for(pc= wm->paintcursors.first; pc; pc= pc->next) {
-			if(pc->poll(C)) {
-				ARegion *ar= CTX_wm_region(C);
-				pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin);
-			}
-		}
-	}
-}
-
 void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -355,7 +400,10 @@ void wm_draw_update(bContext *C)
 			if(win->screen->do_gesture)
 				wm_gesture_draw(win);
 
-			wm_window_swap_buffers(win);
+			if(G.f & G_SWAP_EXCHANGE)
+				wm_window_swap_exchange(C, win);
+			else 
+				wm_window_swap_buffers(win);
 
 			CTX_wm_window_set(C, NULL);
 		}

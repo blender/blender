@@ -124,7 +124,7 @@ typedef struct Global {
 
 /* G.f */
 #define G_RENDER_OGL	(1 <<  0)
-#define G_PLAYANIM		(1 <<  1)
+#define G_SWAP_EXCHANGE	(1 <<  1)
 /* also uses G_FILE_AUTOPLAY */
 #define G_RENDER_SHADOW	(1 <<  3)
 #define G_BACKBUFSEL	(1 <<  4)
