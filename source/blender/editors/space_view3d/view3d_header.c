@@ -142,7 +142,7 @@ void ED_view3d_exit_paint_modes(bContext *C)
 {
 	if(G.f & G_VERTEXPAINT)
 		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
-	else if(G.f & G_VERTEXPAINT)
+	else if(G.f & G_WEIGHTPAINT)
 		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
