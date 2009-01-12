@@ -43,6 +43,7 @@
 #include "BIF_editsound.h" // RFS: sound_open_hdaudio
 #include "BLI_blenlib.h"
 #include "BSE_sequence.h"
+#include "BSE_seqeffects.h"
 #include "Ipo.h"
 #include "blendef.h"  /* CLAMP */
 #include "BKE_utildefines.h"
@@ -116,12 +117,16 @@ static PyMethodDef BPy_SceneSeq_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+
 /* use to add a sequence to a scene or its listbase */
 static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 {
 	PyObject *py_data = NULL;
 	
 	Sequence *seq;
+	PyObject *pyob1= NULL, *pyob2= NULL, *pyob3= NULL; /* for effects */
+	int type;
+
 	int a;
 	Strip *strip;
 	StripElem *se;
@@ -130,17 +135,98 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 	if( !PyArg_ParseTuple( args, "Oii", &py_data, &start, &machine ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 			"expect sequence data then 2 ints - (seqdata, start, track)" );
-	
+
+	if (machine < 1 || machine >= MAXSEQ) {
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"track out of range" );
+	}
+
 	seq = alloc_sequence(seqbase, start, machine); /* warning, this sets last */
+
+
+	if (PyArg_ParseTuple( py_data, "iO!|O!O!", &type, &Sequence_Type, &pyob1, &Sequence_Type, &pyob2, &Sequence_Type, &pyob3)) {
 	
-	if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 2) {
+		struct SeqEffectHandle sh;
+		Sequence *seq1, *seq2= NULL, *seq3= NULL; /* for effects */
+
+		seq1= ((BPy_Sequence *)pyob1)->seq;
+		if(pyob2) seq2= ((BPy_Sequence *)pyob2)->seq;
+		if(pyob3) seq3= ((BPy_Sequence *)pyob3)->seq;
+
+		if (type <= SEQ_EFFECT || type > SEQ_EFFECT_MAX || type==SEQ_PLUGIN){
+			BLI_remlink(seqbase, seq);
+			free_sequence(seq);
+			
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"sequencer type out of range, expected a value from 9 to 29, plugins not supported");
+		}
+	
+
+		if (BLI_findindex(seqbase, seq1)==-1 || (seq2 && BLI_findindex(seqbase, seq2)==-1) || (seq3 && BLI_findindex(seqbase, seq3)==-1)) {
+			BLI_remlink(seqbase, seq);
+			free_sequence(seq);
+			
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"one of the given effect sequences wasnt in accessible at the same level as the sequence being added");
+		}
+
+		if ((seq2 && seq2==seq1) || (seq3 && (seq3==seq1 || seq3==seq2))) {
+			BLI_remlink(seqbase, seq);
+			free_sequence(seq);
+			
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"2 or more of the sequence arguments were the same");
+
+		}
+
+		/* allocate and initialize */
+		seq->type= type;
+
+		sh = get_sequence_effect(seq);
+
+		seq->seq1= seq1;
+		seq->seq2= seq2;
+		seq->seq3= seq3;
+
+		sh.init(seq);
+
+		if (!seq1) {
+			seq->len= 1;
+			seq->startstill= 25;
+			seq->endstill= 24;
+		}
+
+		calc_sequence(seq);
+
+		seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+		strip->len= seq->len;
+		strip->us= 1;
+		if(seq->len>0)
+			strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+#if 0
+		/* initialize plugin */
+		if(newseq->type == SEQ_PLUGIN) {
+			sh.init_plugin(seq, str);
+
+			if(newseq->plugin==0) {
+				BLI_remlink(ed->seqbasep, seq);
+				free_sequence(seq);
+				return 0;
+			}
+		}
+#endif
+
+		update_changed_seq_and_deps(seq, 1, 1);
+
+	} else if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 2) {
 		/* Image */
 		PyObject *list;
 		char *name;
 		
 		if (!PyArg_ParseTuple( py_data, "sO!", &name, &PyList_Type, &list)) {
 			BLI_remlink(seqbase, seq);
-			MEM_freeN(seq);
+			free_sequence(seq);
 			
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"images data needs to be a tuple of a string and a list of images - (path, [filenames...])" );
@@ -165,14 +251,15 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 	} else if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) == 3) {
 		float r,g,b;
 		SolidColorVars *colvars;
-		seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
-		colvars = (SolidColorVars *)seq->effectdata;
-		
+
 		if (!PyArg_ParseTuple( py_data, "fff", &r, &g, &b)) {
+			BLI_remlink(seqbase, seq);
+			free_sequence(seq);
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"color needs to be a tuple of 3 floats - (r,g,b)" );
 		}
-		
+
+		seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
 		seq->type= SEQ_COLOR;
 		
 		CLAMP(r,0,1);
@@ -199,7 +286,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 
 		if (!PyArg_ParseTuple( py_data, "ssss", &filename, &dir, &fullpath, &type )) {
 			BLI_remlink(seqbase, seq);
-			MEM_freeN(seq);
+			free_sequence(seq);
 			
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"movie/audio hd data needs to be a tuple of a string and a list of images - (filename, dir, fullpath, type)" );
@@ -215,7 +302,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 			struct anim * an = openanim(fullpath, IB_rect);
 			if(an==0) {
 				BLI_remlink(seqbase, seq);
-				MEM_freeN(seq);
+				free_sequence(seq);
 				
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"invalid movie strip" );
@@ -254,7 +341,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 			hdaudio = sound_open_hdaudio( fullpath );
 			if(hdaudio==0) {
 				BLI_remlink(seqbase, seq);
-				MEM_freeN(seq);
+				free_sequence(seq);
 				
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 					fullpath );
@@ -949,6 +1036,72 @@ static int setFlagAttr( BPy_Sequence *self, PyObject *value, void *type )
 	return 0;
 }
 
+static PyObject *getEffectSeq( BPy_Sequence *self, void *type )
+{
+	int t = GET_INT_FROM_POINTER(type);
+	Sequence *seq= NULL;
+	switch(t) {
+	case 1:
+		seq= self->seq->seq1;
+		break;
+	case 2:
+		seq= self->seq->seq2;
+		break;
+	case 3:
+		seq= self->seq->seq3;
+		break;
+	}
+
+	if (seq) {
+	    return Sequence_CreatePyObject(seq, NULL, self->scene); 
+	} else {
+		Py_RETURN_NONE;
+	}
+}
+
+
+/*
+ * set one of the effect sequences
+ */
+
+static int setEffectSeq( BPy_Sequence *self, PyObject *value, void *type )
+{
+	int t = GET_INT_FROM_POINTER(type);
+	Sequence **seq;
+	if ((value==Py_None || BPy_Sequence_Check(value))==0)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected Sequence or None" );
+	
+	switch(t) {
+	case 1:
+		seq= &self->seq->seq1;
+		break;
+	case 2:
+		seq= &self->seq->seq2;
+		break;
+	case 3:
+		seq= &self->seq->seq3;
+		break;
+	}
+
+	if (value==Py_None)
+		*seq= NULL;
+	else {
+		Sequence *newseq= ((BPy_Sequence *)value)->seq;
+		if (newseq==self->seq) {
+			return EXPP_ReturnIntError( PyExc_TypeError, "cannot set a sequence as its own effect" );
+		}
+
+		*seq= ((BPy_Sequence *)value)->seq;
+	}
+
+
+	calc_sequence(self->seq);
+	update_changed_seq_and_deps(self->seq, 1, 1);
+
+	return 0;
+}
+
 
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
@@ -1070,7 +1223,18 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "",
 	 (void *)SEQ_IPO_FRAME_LOCKED},
-	 
+	{"seq1",
+	 (getter)getEffectSeq, (setter)setEffectSeq,
+	 "",
+	 (void *)1},
+	{"seq2",
+	 (getter)getEffectSeq, (setter)setEffectSeq,
+	 "",
+	 (void *)2},
+	{"seq3",
+	 (getter)getEffectSeq, (setter)setEffectSeq,
+	 "",
+	 (void *)3},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
