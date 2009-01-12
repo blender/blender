@@ -5342,6 +5342,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	case B_HOME:
 		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 		break;
+	case B_REDR:
+		ED_area_tag_redraw(sa);
+		break;
 	case B_SCENELOCK:
 		if(v3d->scenelock) {
 			v3d->lay= scene->lay;
