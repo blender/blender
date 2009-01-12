@@ -111,6 +111,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
 	ar->v2d.keepzoom= 0;
 	ar->v2d.keeptot= 0;
+	ar->v2d.align= V2D_ALIGN_NO_NEG_Y;
 	
 	return (SpaceLink *)sseq;
 }

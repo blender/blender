@@ -5268,7 +5268,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom |= V2D_LOCKZOOM_Y;
 				ar->v2d.tot.ymin= ar->v2d.cur.ymin= -10.0;
 				ar->v2d.min[1]= ar->v2d.max[1]= 20.0;
-				//ar->v2d.flag |= V2D_IS_INITIALISED;
 			}
 				break;
 			case SPACE_IPO:
@@ -5300,7 +5299,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
 				ar->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
-				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_ACTION:
@@ -5326,7 +5324,6 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.keepzoom= V2D_LOCKZOOM_Y;
 				ar->v2d.align= V2D_ALIGN_NO_POS_Y;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
-				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
 			case SPACE_SEQ:
@@ -5336,6 +5333,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+				ar->v2d.align= V2D_ALIGN_NO_NEG_Y;
 				ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}

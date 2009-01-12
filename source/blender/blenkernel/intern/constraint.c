@@ -3389,7 +3389,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	dst->first= dst->last= NULL;
 	BLI_duplicatelist(dst, src);
 	
-	for (con=dst->first, srccon=src->first; con; srccon=srccon->next, con=con->next) {
+	for (con=dst->first, srccon=src->first; con && srccon; srccon=srccon->next, con=con->next) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 		
 		/* make a new copy of the constraint's data */

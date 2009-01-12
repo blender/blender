@@ -79,7 +79,7 @@ typedef struct bConstraintTypeInfo {
 	void (*relink_data)(struct bConstraint *con);
 		/* copy any special data that is allocated separately (optional) */
 	void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
-		/* set settings for data that will be used for bConstraint.data (memory already allocated) */
+		/* set settings for data that will be used for bConstraint.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *cdata);
 	
 	/* target handling function pointers */
