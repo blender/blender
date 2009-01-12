@@ -75,6 +75,9 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void snode_home(ScrArea *sa, ARegion *ar, SpaceNode *snode);
 void node_set_active(SpaceNode *snode, bNode *node);
 void node_deselectall(SpaceNode *snode, int swap);
+void node_shader_default(Material *ma);
+void node_composit_default(Scene *sce);
+void node_texture_default(Tex *tx);
 
 // XXXXXX
 

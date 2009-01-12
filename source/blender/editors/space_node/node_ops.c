@@ -27,6 +27,8 @@
  */
 
 #include "DNA_node_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 

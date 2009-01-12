@@ -488,7 +488,7 @@ static void texture_node_event(SpaceNode *snode, short event)
 	}
 }
 
-
+#endif /* 0  */
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
 void node_shader_default(Material *ma)
@@ -548,7 +548,7 @@ void node_composit_default(Scene *sce)
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
 	
-	ntreeCompositForceHidden(sce->nodetree);
+	// XXX ntreeCompositForceHidden(sce->nodetree);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -580,7 +580,6 @@ void node_texture_default(Tex *tx)
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
 	ntreeTexUpdatePreviews(tx->nodetree);
 }
-#endif
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
 void snode_set_context(SpaceNode *snode, Scene *scene)
