@@ -8,4 +8,9 @@ incs += ' ../../windowmanager #/intern/guardedalloc'
 incs += ' #/intern/guardedalloc #intern/bmfont'
 incs += ' ../../makesrna ../../python'
 
-env.BlenderLib ( 'bf_editors_object', sources, Split(incs), [], libtype=['core'], priority=[35] )
+defs = []
+
+if not env['WITH_BF_PYTHON']:
+	defs.append('DISABLE_PYTHON')
+
+env.BlenderLib ( 'bf_editors_object', sources, Split(incs), defs, libtype=['core'], priority=[35] )
