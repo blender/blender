@@ -104,6 +104,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
+	wmWindow *window=  CTX_wm_window(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
@@ -122,8 +123,31 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+	
+	//WM_event_add_modal_handler(C, &window->handlers, op);
 
-	return OPERATOR_FINISHED;
+	return /*OPERATOR_RUNNING_MODAL;*/ OPERATOR_FINISHED;
+}
+
+static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* execute the events */
+	switch (event->type) {
+		case MOUSEMOVE:
+			printf("%d %d\n", event->x, event->y);
+			break;
+		case SELECTMOUSE:
+			//if (event->val==0) {
+				/* calculate overall delta mouse-movement for redo */
+				printf("done translating\n");
+				//WM_cursor_restore(CTX_wm_window(C));
+				
+				return OPERATOR_FINISHED;
+			//}
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -184,6 +208,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= node_select_invoke;
 	ot->poll= ED_operator_node_active;
+	ot->modal= node_select_modal;
 	
 	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_select_items);

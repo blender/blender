@@ -125,13 +125,12 @@ static uiBlock *node_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 
 void do_node_addmenu(bContext *C, void *arg, int event)
 {
-	#if 0
 	// XXX enable
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	bNode *node;
-	float locx, locy;
-	short mval[2];
+	//float locx, locy;
+	//short mval[2];
 	
 	/* store selection in temp test flag */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -139,17 +138,17 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	toolbox_mousepos(mval, 0 ); /* get initial mouse position */
-	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node= node_add_node(snode, event, locx, locy);
+	// toolbox_mousepos(mval, 0 ); /* get initial mouse position */
+	// areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
+	// NODE_FIX_ME
+	node= node_add_node(snode, event, 0.0, 0.0);
 	
 	/* uses test flag */
 	// XXX snode_autoconnect(snode, node, NODE_TEST);
 		
 	// XXX addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 	
-	BIF_undo_push("Add Node");
-	#endif
+	// ED_undo_push("Add Node");
 }
 
 static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)

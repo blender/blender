@@ -321,6 +321,8 @@ static void set_node_imagepath(char *str)	/* called from fileselect */
 	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
 }
 
+#endif /* 0 */
+
 static bNode *snode_get_editgroup(SpaceNode *snode)
 {
 	bNode *gnode;
@@ -331,6 +333,8 @@ static bNode *snode_get_editgroup(SpaceNode *snode)
 			break;
 	return gnode;
 }
+
+#if 0
 
 /* node has to be of type 'render layers' */
 /* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
@@ -785,6 +789,7 @@ void node_ungroup(SpaceNode *snode)
 	}
 }
 
+#endif /* 0 */
 /* when links in groups change, inputs/outputs change, nodes added/deleted... */
 static void snode_verify_groups(SpaceNode *snode)
 {
@@ -797,6 +802,8 @@ static void snode_verify_groups(SpaceNode *snode)
 		nodeVerifyGroup((bNodeTree *)gnode->id);
 	
 }
+
+#if 0
 
 static void node_addgroup(SpaceNode *snode)
 {
@@ -1772,6 +1779,8 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 	ntreeSolveOrder(snode->edittree);
 }
 
+#endif /* 0 */
+
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 {
@@ -1784,7 +1793,7 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	}
 	else if(type>=NODE_GROUP_MENU) {
 		if(snode->edittree!=snode->nodetree) {
-			error("Can not add a Group in a Group");
+			// XXX error("Can not add a Group in a Group");
 			return NULL;
 		}
 		else {
@@ -1814,8 +1823,9 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		if(node->id)
 			id_us_plus(node->id);
 		
-		if(snode->nodetree->type==NTREE_COMPOSIT)
-			ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
+		// NODE_FIX_ME
+		// if(snode->nodetree->type==NTREE_COMPOSIT)
+		//	ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
 		
 		NodeTagChanged(snode->edittree, node);
 	}
@@ -1827,6 +1837,8 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	return node;
 }
+
+#if 0
 
 void node_mute(SpaceNode *snode)
 {

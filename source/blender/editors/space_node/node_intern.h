@@ -67,6 +67,7 @@ void draw_nodespace_back_pix(ScrArea *sa, SpaceNode *snode);
 
 /* node_edit.c */
 bNode *next_node(bNodeTree *ntree);
+bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void scale_node(SpaceNode *snode, bNode *node);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
