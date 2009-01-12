@@ -218,7 +218,7 @@ static struct Sequence *seq_stepdata__internal(struct BPathIterator *bpi, int st
 		if (bpi->seqdata.scene->ed) {
 			if (bpi->seqdata.seqar == NULL) {
 				/* allocate the sequencer array */
-				seq_array(bpi->seqdata.scene->ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq);		
+				seq_array(bpi->seqdata.scene->ed, &bpi->seqdata.seqar, &bpi->seqdata.totseq, 0);		
 				bpi->seqdata.seq = 0;
 			}
 			

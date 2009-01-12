@@ -1522,9 +1522,11 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				fac += 0.5f * dfac;
 				
 			/* draw vertical steps */
-			for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
-				scroll_printstr(vs, scene, (float)(vert.xmax)-14.0f, fac, val, grid->powery, vs->yunits, 'v');
-			}			
+			if (dfac != 0.0f) {
+				for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
+					scroll_printstr(vs, scene, (float)(vert.xmax)-14.0f, fac, val, grid->powery, vs->yunits, 'v');
+				}
+			}
 		}	
 		
 		/* decoration outer bevel line */

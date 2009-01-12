@@ -43,6 +43,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_sequence.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -111,8 +112,6 @@ static SpaceLink *sequencer_new(const bContext *C)
 	ar->v2d.keepzoom= 0;
 	ar->v2d.keeptot= 0;
 	
-	
-	
 	return (SpaceLink *)sseq;
 }
 
@@ -156,28 +155,6 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
-static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
-{
-	/* draw entirely, view changes should be handled here */
-	// SpaceSeq *sseq= (SpaceSeq*)CTX_wm_space_data(C);
-	View2D *v2d= &ar->v2d;
-	float col[3];
-	
-	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	UI_view2d_view_ortho(C, v2d);
-		
-	/* data... */
-	
-	
-	/* reset view matrix */
-	UI_view2d_view_restore(C);
-	
-	/* scrollers? */
-}
 
 void sequencer_operatortypes(void)
 {
@@ -241,7 +218,7 @@ void ED_spacetype_sequencer(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= sequencer_main_area_init;
-	art->draw= sequencer_main_area_draw;
+	art->draw= drawseqspace;
 	art->listener= sequencer_main_area_listener;
 	art->keymapflag= ED_KEYMAP_VIEW2D;
 
