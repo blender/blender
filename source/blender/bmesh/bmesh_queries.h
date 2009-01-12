@@ -5,7 +5,8 @@
 int BM_Count_Element(struct BMesh *bm, int type);
 int BM_Vert_In_Edge(struct BMEdge *e, struct BMVert *v);
 int BM_Vert_In_Face(struct BMFace *f, struct BMVert *v);
-int BM_Verts_In_Face(struct BMFace *f, struct BMVert **varr, int len);
+// int BM_Verts_In_Face(struct BMFace *f, struct BMVert **varr, int len);
+int BM_Verts_In_Face(struct BMesh *bm, struct BMFace *f, struct BMVert **varr, int len);
 int BM_Edge_In_Face(struct BMFace *f, struct BMEdge *e);
 int BM_Verts_In_Edge(struct BMVert *v1, struct BMVert *v2, BMEdge *e);
 
