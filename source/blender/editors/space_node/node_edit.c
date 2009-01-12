@@ -100,9 +100,19 @@
 #include "winlay.h"
 */
 
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+ 
+#include "node_intern.h"
 
 // XXX XXX XXX
 static void BIF_undo_push(char *s) {}
@@ -1876,7 +1886,6 @@ void node_adduplicate(SpaceNode *snode)
 	transform_nodes(snode->edittree, 'g', "Duplicate");
 }
 
-#if 0
 static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 {
 	bNode *newnode= NULL;
@@ -1909,8 +1918,6 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 		link->tosock= newnode->inputs.first;
 	}
 }
-
-#endif
 
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
@@ -2080,6 +2087,8 @@ static int node_add_link(SpaceNode *snode)
 	return 0;
 }
 
+#endif /* 0 */
+
 void node_delete(SpaceNode *snode)
 {
 	bNode *node, *next;
@@ -2103,10 +2112,12 @@ void node_delete(SpaceNode *snode)
 	}
 	
 	snode_verify_groups(snode);
-	snode_handle_recalc(snode);
-	BIF_undo_push("Delete nodes");
+	// NODE_FIX_ME
+	// snode_handle_recalc(snode);
+	// BIF_undo_push("Delete nodes");
 	// allqueue(REDRAWNODE, 1);
 }
+
 
 void node_hide(SpaceNode *snode)
 {
@@ -2129,9 +2140,11 @@ void node_hide(SpaceNode *snode)
 				node->flag &= ~NODE_HIDDEN;
 		}
 	}
-	BIF_undo_push("Hide nodes");
+	// BIF_undo_push("Hide nodes");
 	// allqueue(REDRAWNODE, 1);
 }
+
+#if 0
 
 void node_insert_key(SpaceNode *snode)
 {
@@ -2736,4 +2749,31 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		scrarea_queue_headredraw(sa);
 }
 #endif
+
+static int node_delete_selection_exec(bContext *C, wmOperator *op)
+{
+	wmWindow *window=  CTX_wm_window(C);
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	node_delete(snode);
+	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
+	return OPERATOR_FINISHED;
+}
+
+/* operators */
+
+void NODE_OT_delete_selection(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Delete";
+	ot->idname= "NODE_OT_delete_selection";
+	
+	/* api callbacks */
+	ot->exec= node_delete_selection_exec;
+	ot->poll= ED_operator_node_active;
+}
 

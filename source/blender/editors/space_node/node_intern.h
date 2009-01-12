@@ -59,6 +59,7 @@ void NODE_OT_extend_select(struct wmOperatorType *ot);
 void NODE_OT_toggle_visibility(struct wmOperatorType *ot);
 void NODE_OT_fit_all(struct wmOperatorType *ot);
 void NODE_OT_border_select(struct wmOperatorType *ot);
+void NODE_OT_delete_selection(struct wmOperatorType *ot);
 
 /* drawnode.c */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
