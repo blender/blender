@@ -755,11 +755,23 @@
 			Name="space_sequencer"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_scopes.c"
 				>
 			</File>
 			<File
@@ -852,6 +864,18 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\object\editconstraint.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editgroup.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editkey.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editlattice.c"
 				>
 			</File>
 			<File
@@ -984,6 +1008,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\armature\meshlaplacian.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\poselib.c"
 				>
 			</File>
 			<File
