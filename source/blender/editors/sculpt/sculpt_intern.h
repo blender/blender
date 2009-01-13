@@ -34,7 +34,6 @@
 #include "DNA_vec_types.h"
 #include "BKE_sculpt.h"
 
-struct uiBlock;
 struct BrushAction;
 struct Brush;
 struct IndexNode;
@@ -55,7 +54,7 @@ void sculpt_stroke_draw();
 void sculpt_radialcontrol_start(int mode);
 
 struct Brush *sculptmode_brush(void);
-void do_symmetrical_brush_actions(struct SculptData *sd, struct BrushAction *a, short *, short *);
+//void do_symmetrical_brush_actions(struct SculptData *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
 
 char sculpt_modifiers_active(struct Object *ob);
 void sculpt(SculptData *sd);

@@ -209,7 +209,7 @@ static StrokePoint *sculpt_stroke_apply_generic(SculptData *sd, SculptStroke *st
 		co[0] = p->x*v + p->next->x*u;
 		co[1] = p->y*v + p->next->y*u;
 
-		do_symmetrical_brush_actions(sd, a, co, NULL);
+		//do_symmetrical_brush_actions(sd, a, co, NULL);
 	}
 
 	return p ? p->next : NULL;

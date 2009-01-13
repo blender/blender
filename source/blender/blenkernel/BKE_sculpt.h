@@ -37,6 +37,7 @@ struct RadialControl;
 struct Scene;
 struct SculptData;
 struct SculptSession;
+struct StrokeCache;
 
 typedef struct SculptSession {
 	struct ProjVert *projverts;
@@ -69,6 +70,8 @@ typedef struct SculptSession {
 	struct RadialControl *radialcontrol;
 	
 	struct SculptStroke *stroke;
+
+	struct StrokeCache *cache;
 } SculptSession;
 
 void sculptdata_init(struct Scene *sce);

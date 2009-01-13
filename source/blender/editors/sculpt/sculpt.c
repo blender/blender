@@ -124,6 +124,13 @@ typedef struct BrushActionSymm {
 	float grab_delta[3];
 } BrushActionSymm;
 
+/* Cache stroke properties that don't change after
+   the initialization at the start of a stroke. Used because
+   RNA property lookup isn't particularly fast. */
+typedef struct StrokeCache {
+	float radius;
+} StrokeCache;
+
 typedef struct BrushAction {
 	BrushActionSymm symm;
 
@@ -134,7 +141,6 @@ typedef struct BrushAction {
 	short (*orig_norms)[3];
 
 	short mouse[2];
-	float size_3d;
 
 	float prev_radius;
 	float radius;
@@ -273,8 +279,6 @@ float get_depth(bContext *C, short x, short y)
 		ViewDepths *vd = ((View3D*)sa->spacedata.first)->depths;
 		
 		y -= CTX_wm_region(C)->winrct.ymin;
-
-		printf("x=%d, y=%d\n", x, y);
 
 		if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
 			return vd->depths[y * vd->w + x];
@@ -926,7 +930,7 @@ void sculpt_clear_damaged_areas(SculptSession *ss)
 	}
 }
 
-void do_brush_action(SculptData *sd, BrushAction *a)
+void do_brush_action(SculptData *sd, StrokeCache *cache, BrushAction *a)
 {
 	int i;
 	float av_dist;
@@ -950,7 +954,7 @@ void do_brush_action(SculptData *sd, BrushAction *a)
 				//vert= ss->vertexcosnos ? &ss->vertexcosnos[i*6] : a->verts[i].co;
 				vert= ss->mvert[i].co;
 				av_dist= VecLenf(a->symm.center_3d, vert);
-				if(av_dist < a->size_3d) {
+				if(av_dist < cache->radius) {
 					adata= (ActiveData*)MEM_mallocN(sizeof(ActiveData), "ActiveData");
 
 					adata->Index = i;
@@ -1033,7 +1037,7 @@ void calc_brushdata_symm(BrushAction *a, const char symm)
 	flip_coord(a->symm.grab_delta, symm);
 }
 
-void do_symmetrical_brush_actions(SculptData *sd, BrushAction *a, short co[2], short pr_co[2])
+void do_symmetrical_brush_actions(SculptData *sd, StrokeCache *cache, BrushAction *a, short co[2], short pr_co[2])
 {
 	const char symm = sd->flags & 7;
 	BrushActionSymm orig;
@@ -1041,7 +1045,7 @@ void do_symmetrical_brush_actions(SculptData *sd, BrushAction *a, short co[2], s
 
 	//init_brushaction(sd, a, co, pr_co);
 	orig = a->symm;
-	do_brush_action(sd, a);
+	do_brush_action(sd, cache, a);
 
 	for(i = 1; i <= symm; ++i) {
 		if(symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
@@ -1049,7 +1053,7 @@ void do_symmetrical_brush_actions(SculptData *sd, BrushAction *a, short co[2], s
 			a->symm = orig;
 
 			calc_brushdata_symm(a, i);
-			do_brush_action(sd, a);
+			do_brush_action(sd, cache, a);
 		}
 	}
 
@@ -1213,7 +1217,7 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
  	else
  		unproject(ss, brush_edge_loc, mouse[0] + size, mouse[1], mouse_depth);
  
-	a->size_3d = VecLenf(a->symm.center_3d, brush_edge_loc);
+	//a->size_3d = VecLenf(a->symm.center_3d, brush_edge_loc);
 
 	a->prev_radius = a->radius;
 
@@ -1644,6 +1648,21 @@ static int sculpt_load_mats(bContext *C, bglMats *mats)
 	mats->viewport[3] = ar->winy;	
 }
 
+/* Initialize stroke operator properties */
+static int sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event, SculptSession *ss)
+{
+	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	float brush_center[3], brush_edge[3];
+	float depth = get_depth(C, event->x, event->y);
+	float size = brush_size(sd, sd->brush);
+
+	unproject(ss, brush_center, event->x, event->y, depth);
+	unproject(ss, brush_edge, event->x + size, event->y, depth);
+
+	ss->cache->radius = VecLenf(brush_center, brush_edge);
+	RNA_float_set(op->ptr, "radius", ss->cache->radius);
+}
+
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
@@ -1662,11 +1681,14 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	sd->session->mvert = me->mvert;
 	sd->session->totvert = me->totvert;
 	sd->session->mats = MEM_callocN(sizeof(bglMats), "test sculpt mats");
+	sd->session->cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	
 	// XXX: temporary matrix stuff
 	sculpt_load_mats(C, sd->session->mats);
 
 	sculptmode_update_all_projverts(sd->session);
+
+	sculpt_brush_stroke_init(C, op, event, sd->session);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
@@ -1679,7 +1701,6 @@ static void sculpt_action_init(BrushAction *a)
 {
 	memset(a, 0, sizeof(BrushAction));
 	
-	a->size_3d = 0.25;
 	a->scale[0] = 1;
 	a->scale[1] = 1;
 	a->scale[2] = 1;
@@ -1695,14 +1716,12 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 	sculpt_action_init(&a);
 	unproject(sd->session, a.symm.center_3d, event->x, event->y, get_depth(C, event->x, event->y));
-	/*printf("depth=%f\n", get_depth(C, event->x, event->y));
-	  printvecf("center", a.symm.center_3d);*/
 
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", a.symm.center_3d);
 
-	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, &a, NULL, NULL);
+	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, sd->session->cache, &a, NULL, NULL);
 	//calc_damaged_verts(sd->session, &a);
 	BLI_freelistN(&sd->session->damaged_verts);
 
@@ -1734,7 +1753,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 		sculpt_action_init(&a);		
 		RNA_float_get_array(&itemptr, "location", a.symm.center_3d);
 
-		do_symmetrical_brush_actions(sd, &a, NULL, NULL);
+		do_symmetrical_brush_actions(sd, sd->session->cache, &a, NULL, NULL);
 		BLI_freelistN(&sd->session->damaged_verts);
 	}
 	RNA_END;
@@ -1764,6 +1783,15 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_property(ot->srna, "stroke", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorStrokeElement);
+
+	/* Brush radius measured in object space, projected from the brush setting in pixels */
+	prop= RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
+
+	/* If the object has a scaling factor, brushes also need to be scaled
+	   to work as expected. */
+	prop= RNA_def_property(ot->srna, "scale", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -1939,20 +1967,20 @@ void sculpt(SculptData *sd)
 						}
  					}
 					
-  					do_symmetrical_brush_actions(sd, a, mouse, NULL);
+  					//do_symmetrical_brush_actions(sd, a, mouse, NULL);
   				}
 				else {
 					if(smooth_stroke) {
 						sculpt_stroke_apply(sd, ss->stroke, a);
 					}
 					else if(sd->spacing==0 || spacing>sd->spacing) {
-						do_symmetrical_brush_actions(sd, a, mouse, NULL);
+						//do_symmetrical_brush_actions(sd, a, mouse, NULL);
 						spacing= 0;
 					}
 				}
 			}
 			else {
-				do_symmetrical_brush_actions(sd, a, mouse, mvalo);
+				//do_symmetrical_brush_actions(sd, a, mouse, mvalo);
 				unproject(ss, sd->pivot, mouse[0], mouse[1], a->depth);
 			}
 
