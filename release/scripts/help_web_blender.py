@@ -2,17 +2,17 @@
 
 """
 Name: 'Blender Website'
-Blender: 234
+Blender: 248
 Group: 'HelpWebsites'
 Tooltip: 'The official Blender website'
 """
 
 __author__ = "Matt Ebb"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.0.1"
 __bpydoc__ = """\
 This script opens the user's default web browser at Blender's main site,
-www.blender3d.org.
+www.blender.org.
 """
 
 
@@ -39,4 +39,4 @@ www.blender3d.org.
 # --------------------------------------------------------------------------
 
 import Blender, webbrowser
-webbrowser.open('http://www.blender3d.org/')
+webbrowser.open('http://www.blender.org/')
