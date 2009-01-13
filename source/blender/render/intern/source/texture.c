@@ -197,6 +197,23 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 		y= texvec[1];
 	}
 
+	if (tex->extend == TEX_REPEAT) {
+		if (x < -1.0 || x > 1.0) {
+			const float x2 = (x + 1.0)* 0.5;			/* to 0.0, 1.0 */
+			x = (x2 - floor(x2) - 0.5) * 2.0;	/* to -1.0, 1.0 */
+		}
+		if (y < -1.0 || y > 1.0) {
+			const float y2 = (y + 1.0)* 0.5;			/* to 0.0, 1.0 */
+			y = (y2 - floor(y2) - 0.5) * 2.0;	/* to -1.0, 1.0 */
+		}
+	} else if (tex->extend == TEX_CLIP) {
+		if (x < -1.0 || x > 1.0 || y < -1.0 || y > 1.0) {
+			texres->tin = 0.f;
+			BRICONT;
+			return TEX_INT;
+		}
+	}
+
 	if(tex->stype==TEX_LIN) {	/* lin */
 		texres->tin= (1.0+x)/2.0;
 	}

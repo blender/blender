@@ -7975,7 +7975,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				tex->vd->int_multiplier = 1.0;
 			}
 		}
-		
 	}
 	
 	/* set the curve radius interpolation to 2.47 default - easy */
@@ -8071,6 +8070,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				la->atm_distance_factor = 1.0;
 				la->sun_intensity = 1.0;
 			}
+		}
+	}
+	
+	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
+		Tex *tex;
+		
+		/* blend texture extrapolation */
+		for(tex=main->tex.first; tex; tex= tex->id.next) {
+			if (tex->type == TEX_BLEND)
+				tex->extend = TEX_EXTEND;
 		}
 	}
 	

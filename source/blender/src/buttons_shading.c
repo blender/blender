@@ -644,7 +644,13 @@ static void texture_panel_blend(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, (float)TEX_SPHERE, 0, 0, "Use progression with the shape of a sphere");
 	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, (float)TEX_HALO, 0, 0, "Use a quadratic progression with the shape of a sphere");
 	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, (float)TEX_RAD, 0, 0, "Use a polar progression");
+	uiBlockEndAlign(block);
 	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,120,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the color of the edge pixels");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,120,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Repeat",			121,120,63,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");	
+	uiBlockEndAlign(block);
 }
 
 /* newnoise: noisebasis menu string */
