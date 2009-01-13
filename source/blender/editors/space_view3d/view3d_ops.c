@@ -163,7 +163,8 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_wpaint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* TODO - this is just while we have no way to load a text datablock */
-	RNA_string_set(WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0)->ptr, "filename", "test.py");
+	km = WM_keymap_add_item(keymap, "SCRIPT_OT_run_pyfile", PKEY, KM_PRESS, 0, 0);
+	RNA_string_set(km->ptr, "filename", "test.py");
 
 	transform_keymap_for_space(wm, keymap, SPACE_VIEW3D);
 
