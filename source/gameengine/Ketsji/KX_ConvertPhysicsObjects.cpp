@@ -1084,7 +1084,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_bSoft = objprop->m_softbody;
 	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
 	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
-	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
+	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna,objprop->m_hasCompoundChildren);
 	// shapeInfo is reference counted, decrement now as we don't use it anymore
 	if (shapeInfo)
 		shapeInfo->Release();

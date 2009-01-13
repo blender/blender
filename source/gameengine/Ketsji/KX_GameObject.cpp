@@ -252,6 +252,20 @@ void KX_GameObject::SetParent(KX_Scene *scene, KX_GameObject* obj)
 		if (rootlist->RemoveValue(this))
 			// the object was in parent list, decrement ref count as it's now removed
 			Release();
+		// if the new parent is a compound object, add this object shape to the compound shape.
+		// step 0: verify this object has physical controller
+		if (m_pPhysicsController1)
+		{
+			// step 1: find the top parent (not necessarily obj)
+			KX_GameObject* rootobj = (KX_GameObject*)obj->GetSGNode()->GetRootSGParent()->GetSGClientObject();
+			// step 2: verify it has a physical controller and compound shape
+			if (rootobj != NULL && 
+				rootobj->m_pPhysicsController1 != NULL &&
+				rootobj->m_pPhysicsController1->IsCompound())
+			{
+				rootobj->m_pPhysicsController1->AddCompoundChild(m_pPhysicsController1);
+			}
+		}
 	}
 }
 
@@ -260,6 +274,8 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	// check on valid node in case a python controller holds a reference to a deleted object
 	if (GetSGNode() && GetSGNode()->GetSGParent())
 	{
+		// get the root object to remove us from compound object if needed
+		KX_GameObject* rootobj = (KX_GameObject*)GetSGNode()->GetRootSGParent()->GetSGClientObject();
 		// Set us to the right spot 
 		GetSGNode()->SetLocalScale(GetSGNode()->GetWorldScaling());
 		GetSGNode()->SetLocalOrientation(GetSGNode()->GetWorldOrientation());
@@ -275,6 +291,13 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 			rootlist->Add(AddRef());
 		if (m_pPhysicsController1) 
 		{
+			// in case this controller was added as a child shape to the parent
+			if (rootobj != NULL && 
+				rootobj->m_pPhysicsController1 != NULL &&
+				rootobj->m_pPhysicsController1->IsCompound())
+			{
+				rootobj->m_pPhysicsController1->RemoveCompoundChild(m_pPhysicsController1);
+			}
 			m_pPhysicsController1->RestoreDynamics();
 		}
 	}

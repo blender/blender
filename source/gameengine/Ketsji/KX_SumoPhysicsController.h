@@ -53,7 +53,7 @@ public:
 		class SM_Object* sumoObj,	
 		class PHY_IMotionState* motionstate
 		,bool dyna) 
-		: KX_IPhysicsController(dyna,NULL) ,
+		: KX_IPhysicsController(dyna,false,NULL) ,
 		  SumoPhysicsController(sumoScene,/*solidscene,*/sumoObj,motionstate,dyna)
 	{
 	};
@@ -78,6 +78,9 @@ public:
 
 	void	SuspendDynamics(bool);
 	void	RestoreDynamics();
+	virtual void    AddCompoundChild(KX_IPhysicsController* child) { }
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child) { }
+
 	virtual	void	getOrientation(MT_Quaternion& orn);
 	virtual	void setOrientation(const MT_Matrix3x3& orn);
 	

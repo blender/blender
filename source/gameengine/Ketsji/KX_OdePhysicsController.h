@@ -73,6 +73,8 @@ public:
 	virtual	MT_Scalar	GetMass();
 	virtual	MT_Vector3	getReactionForce();
 	virtual void	setRigidBody(bool rigid);
+	virtual void    AddCompoundChild(KX_IPhysicsController* child) { }
+	virtual void    RemoveCompoundChild(KX_IPhysicsController* child) { }
 
 	virtual void	SuspendDynamics(bool);
 	virtual void	RestoreDynamics();
