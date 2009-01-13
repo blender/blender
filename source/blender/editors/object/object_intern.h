@@ -29,6 +29,11 @@
 #define ED_OBJECT_INTERN_H
 
 struct wmOperatorType;
+struct KeyBlock;
+struct Lattice;
+struct Curve;
+struct Object;
+struct Mesh;
 
 /* internal exports only */
 #define CLEAR_OBJ_ROTATION 0
@@ -57,6 +62,22 @@ void OBJECT_OT_set_restrictview(struct wmOperatorType *ot);
 void OBJECT_OT_set_slowparent(struct wmOperatorType *ot);
 void OBJECT_OT_clear_slowparent(struct wmOperatorType *ot);
 void OBJECT_OT_set_center(struct wmOperatorType *ot);
+
+/* editkey.c */
+void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
+void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
+void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
+void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
+void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
+void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
+
+
+/* editlattice.c */
+void free_editLatt(Object *ob);
+void make_editLatt(Object *obedit);
+void load_editLatt(Object *obedit);
+void remake_editLatt(Object *obedit);
+
 
 #endif /* ED_OBJECT_INTERN_H */
 

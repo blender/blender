@@ -114,7 +114,6 @@
 
 
 /* pretty stupid */
-/*  extern Lattice *editLatt; already in BKE_lattice.h  */
 /* editcurve.c */
 extern ListBase editNurb;
 /* editmball.c */
@@ -1083,11 +1082,13 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 
 void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
 {
-	BPoint *bp = editLatt->def;
-	DispList *dl = find_displist(&vc->obedit->disp, DL_VERTS);
+	Object *obedit= vc->obedit;
+	Lattice *lt= obedit->data;
+	BPoint *bp = lt->editlatt->def;
+	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
 	float pmat[4][4], vmat[4][4];
-	int i, N = editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2];
 
 	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);

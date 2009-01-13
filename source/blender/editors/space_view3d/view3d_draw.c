@@ -2048,6 +2048,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	if (v3d->flag2 & V3D_DISPGP)
 //		draw_gpencil_3dview(ar, 0);
 
+	drawcursor(scene, ar, v3d);
+	
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(v3d);
 	else	

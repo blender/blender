@@ -116,8 +116,6 @@ void VIEW3D_OT_circle_select(struct wmOperatorType *ot);
 void VIEW3D_OT_borderselect(struct wmOperatorType *ot);
 void VIEW3D_OT_lasso_select(struct wmOperatorType *ot);
 
-void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
-
 /* vpaint.c */
 void VIEW3D_OT_vpaint_toggle(struct wmOperatorType *ot);
 void VIEW3D_OT_vpaint(struct wmOperatorType *ot);

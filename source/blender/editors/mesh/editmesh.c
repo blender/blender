@@ -2167,12 +2167,8 @@ int EM_vertColorCheck(EditMesh *em)
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)
 {
-	memset(vc, 0, sizeof(ViewContext));
-	vc->ar= CTX_wm_region(C);
-	vc->scene= CTX_data_scene(C);
-	vc->v3d= (View3D *)CTX_wm_space_data(C);
-	vc->obact= CTX_data_active_object(C);
-	vc->obedit= CTX_data_edit_object(C);
+	view3d_set_viewcontext(C, vc);
+	
 	if(vc->obedit) {
 		Mesh *me= vc->obedit->data;
 		vc->em= me->edit_mesh;

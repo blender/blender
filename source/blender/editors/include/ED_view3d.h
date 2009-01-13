@@ -93,6 +93,7 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 /* select */
 #define MAXPICKBUF      10000
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 /* modes */
 void ED_view3d_exit_paint_modes(struct bContext *C);

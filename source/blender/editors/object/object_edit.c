@@ -467,14 +467,14 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 	EM_select_flush(em);
 }
 
-static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
+static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
 {
 	BPoint *bp;
 	int *index, nr, totvert=0, a;
 	
 	/* count */
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+	bp= editlatt->def;
 	while(a--) {
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) totvert++;
@@ -489,8 +489,8 @@ static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+	bp= editlatt->def;
 	while(a--) {
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) {
@@ -507,14 +507,15 @@ static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 	return totvert;
 }
 
-static void select_editlattice_hook(HookModifierData *hmd)
+static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
+	Lattice *lt= obedit->data;
 	BPoint *bp;
 	int index=0, nr=0, a;
 	
 	/* count */
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	bp= lt->editlatt->def;
 	while(a--) {
 		if(hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
@@ -644,7 +645,10 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		case OB_SURF:
 			return return_editcurve_indexar(tot, indexar, cent_r);
 		case OB_LATTICE:
-			return return_editlattice_indexar(tot, indexar, cent_r);
+		{
+			Lattice *lt= obedit->data;
+			return return_editlattice_indexar(lt->editlatt, tot, indexar, cent_r);
+		}
 		default:
 			return 0;
 	}
@@ -701,7 +705,7 @@ void obedit_hook_select(Object *ob, HookModifierData *hmd)
 {
 	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
-	else if(ob->type==OB_LATTICE) select_editlattice_hook(hmd);
+	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(hmd);
 	else if(ob->type==OB_SURF) select_editcurve_hook(hmd);
 }
@@ -1813,9 +1817,10 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 		}
 	}
 	else if(obedit->type==OB_LATTICE) {
+		Lattice *lt= obedit->data;
 		
-		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		bp= editLatt->def;
+		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		bp= lt->editlatt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				if(v1==0) v1= nr;
@@ -2691,8 +2696,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		load_editText();
 	}
 	else if(obedit->type==OB_LATTICE) {
-//		load_editLatt();
-//		if(freedata) free_editLatt();
+		load_editLatt(obedit);
+		if(freedata) free_editLatt(obedit);
 	}
 	else if(obedit->type==OB_MBALL) {
 //		extern ListBase editelems;
@@ -2783,21 +2788,28 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editText();
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, ob);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editMball();
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, ob);
+		
 	}
 	else if(ob->type==OB_LATTICE) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editLatt();
+		ok= 1;
+		make_editLatt(ob);
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, ob);
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
 //		ok= 1;
 		scene->obedit= ob; // XXX for context
 // XXX		make_editNurb();
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, ob);
 	}
 	
 	if(ok) {
@@ -3404,11 +3416,12 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX			switch_direction_armature();
 	}
 	else if(obedit->type==OB_LATTICE) {
+		Lattice *lt= obedit->data;
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			BPoint *bp= editLatt->def;
+			int a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			BPoint *bp= lt->editlatt->def;
 			
 			while(a--) {
 				if(bp->f1 & SELECT)

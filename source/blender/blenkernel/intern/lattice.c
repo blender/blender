@@ -73,8 +73,6 @@
 
 //XXX #include "BIF_editdeform.h"
 
-Lattice *editLatt=0;
-
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
 {
 	if(res==1) {
@@ -233,6 +231,11 @@ void free_lattice(Lattice *lt)
 {
 	if(lt->def) MEM_freeN(lt->def);
 	if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+	if(lt->editlatt) {
+		if(lt->def) MEM_freeN(lt->def);
+		if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		MEM_freeN(lt->editlatt);
+	}
 }
 
 

@@ -1134,17 +1134,14 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 
 /* used by posemode as well editmode */
 /* only checks scene->basact! */
-static void *get_nearest_bone (Scene *scene, short findunsel)
+static void *get_nearest_bone (bContext *C, short findunsel)
 {
 	ViewContext vc;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
 	
-	memset(&vc, 0, sizeof(ViewContext));
-	vc.scene= scene;
-	vc.obedit= scene->obedit;
-	// XXX fill in further!
+	view3d_set_viewcontext(C, &vc);
 	
 	// rect.xmin= ... mouseco!
 	
@@ -1152,7 +1149,7 @@ static void *get_nearest_bone (Scene *scene, short findunsel)
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
 	if (hits>0)
-		return get_bone_from_selectbuffer(scene, scene->basact, buffer, hits, findunsel);
+		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel);
 	
 	return NULL;
 }
@@ -1346,18 +1343,16 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 }
 
 /* within active object context */
-void selectconnected_posearmature(Scene *scene)
+void selectconnected_posearmature(bContext *C)
 {
+	Object *ob= CTX_data_edit_object(C);
 	Bone *bone, *curBone, *next;
-	Object *ob= OBACT;
 	int shift= 0; // XXX
 	
-	if(!ob || !ob->pose) return;
-	
 	if (shift)
-		bone= get_nearest_bone(scene, 0);
+		bone= get_nearest_bone(C, 0);
 	else
-		bone = get_nearest_bone(scene, 1);
+		bone = get_nearest_bone(C, 1);
 	
 	if (!bone)
 		return;
@@ -1391,16 +1386,17 @@ void selectconnected_posearmature(Scene *scene)
 /* **************** EditMode stuff ********************** */
 
 /* called in space.c */
-void selectconnected_armature(Scene *scene, View3D *v3d, Object *obedit)
+void selectconnected_armature(bContext *C)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
 	EditBone *bone, *curBone, *next;
 	int shift= 0; // XXX
 
 	if (shift)
-		bone= get_nearest_bone(scene, 0);
+		bone= get_nearest_bone(C, 0);
 	else
-		bone= get_nearest_bone(scene, 1);
+		bone= get_nearest_bone(C, 1);
 
 	if (!bone)
 		return;
@@ -1721,12 +1717,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 	EditBone *nearBone = NULL, *ebone;
 	int	selmask;
 
-	memset(&vc, 0, sizeof(ViewContext));
-	vc.ar= CTX_wm_region(C);
-	vc.scene= CTX_data_scene(C);
-	vc.v3d= (View3D *)CTX_wm_space_data(C);
-	vc.obact= CTX_data_active_object(C);
-	vc.obedit= obedit; 
+	view3d_set_viewcontext(C, &vc);
 	
 	nearBone= get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {

@@ -1541,6 +1541,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_mesh(C, mval, extend);
 		else if(obedit->type==OB_ARMATURE)
 			mouse_armature(C, mval, extend);
+		else if(obedit->type==OB_LATTICE)
+			mouse_lattice(C, mval, extend);
 			
 	}
 	else 

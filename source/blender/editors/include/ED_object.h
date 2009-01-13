@@ -66,6 +66,12 @@ int object_is_libdata(struct Object *ob);
 struct bConstraint *add_new_constraint (short type);
 void add_constraint_to_object (struct bConstraint *con, struct Object *ob);
 
+/* editlattice.c */
+void mouse_lattice(struct bContext *C, short mval[2], int extend);
+
+/* keys */
+void insert_shapekey(struct Scene *scene, struct Object *ob);
+void delete_key(struct Scene *scene, struct Object *ob);
 
 #endif /* ED_OBJECT_H */
 
