@@ -1845,7 +1845,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	char retopo= 0, sculptparticle= 0;
+	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	
 	/* from now on all object derived meshes check this */
@@ -1982,9 +1982,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 			}
 		}
 	}
-	
+
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-//	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !obedit;
+	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	

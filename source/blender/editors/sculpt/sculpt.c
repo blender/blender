@@ -53,6 +53,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_color_types.h"
 
+#include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -72,7 +73,13 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+#include "ED_screen.h"
+#include "ED_sculpt.h"
+#include "ED_space_api.h"
 #include "sculpt_intern.h"
+#include "../space_view3d/view3d_intern.h" /* XXX: oh no, the next generation of bad level call! should move ViewDepths perhaps (also used for view matrices) */
 
 #include "IMB_imbuf_types.h"
 
@@ -254,24 +261,24 @@ void init_sculptmatrices()
 /* Uses window coordinates (x,y) to find the depth in the GL depth buffer. If
    available, G.vd->depths is used so that the brush doesn't sculpt on top of
    itself (G.vd->depths is only updated at the end of a brush stroke.) */
-float get_depth(short x, short y)
+float get_depth(bContext *C, short x, short y)
 {
-	/* XXX
 	float depth;
+	ScrArea *sa= CTX_wm_area(C);
 
-	if(x<0 || y<0) return 1;
-	if(x>=curarea->winx || y>=curarea->winy) return 1;
+	if(sa->spacetype==SPACE_VIEW3D) { // should check this in context instead?
+		ViewDepths *vd = ((View3D*)sa->spacedata.first)->depths;
+		
+		y -= CTX_wm_region(C)->winrct.ymin;
 
-	if(G.vd->depths && x<G.vd->depths->w && y<G.vd->depths->h)
-		return G.vd->depths->depths[y*G.vd->depths->w+x];
-	
-	x+= curarea->winrct.xmin;
-	y+= curarea->winrct.ymin;
-	
-	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+		printf("x=%d, y=%d\n", x, y);
 
-	return depth; */
-	return 0;
+		if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
+			return vd->depths[y * vd->w + x];
+	}
+
+	fprintf(stderr, "Error: Bad depth store!\n");
+	return 1;
 }
 
 /* Uses window coordinates (x,y) and depth component z to find a point in
@@ -336,13 +343,13 @@ char brush_size(SculptData *sd, Brush *b)
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
    special multiplier found experimentally to scale the strength factor. */
-float brush_strength(SculptData *sd, Brush *b, BrushAction *a)
+float brush_strength(SculptData *sd, BrushAction *a)
 {
-	float dir= b->flag & BRUSH_DIR_IN ? -1 : 1;
+	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
 	short activedevice= 0;/*XXX: get_activedevice(); */
 	float flip= a->flip ? -1:1;
-	float anchored = b->flag & BRUSH_ANCHORED ? 25 : 1;
+	float anchored = sd->brush->flag & BRUSH_ANCHORED ? 25 : 1;
 
 	const float strength_factor= sd->tablet_strength / 10.0f;
 
@@ -357,20 +364,20 @@ float brush_strength(SculptData *sd, Brush *b, BrushAction *a)
 		dir= -dir;
 #endif
 
-	switch(b->sculpt_tool){
+	switch(sd->brush->sculpt_tool){
 	case SCULPT_TOOL_DRAW:
 	case SCULPT_TOOL_LAYER:
-		return b->alpha / 5000.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
+		return sd->brush->alpha / 5000.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
 	case SCULPT_TOOL_SMOOTH:
-		return b->alpha / 50.0f * pressure * anchored;
+		return sd->brush->alpha / 50.0f * pressure * anchored;
 	case SCULPT_TOOL_PINCH:
-		return b->alpha / 1000.0f * dir * pressure * flip * anchored;
+		return sd->brush->alpha / 1000.0f * dir * pressure * flip * anchored;
 	case SCULPT_TOOL_GRAB:
 		return 1;
 	case SCULPT_TOOL_INFLATE:
-		return b->alpha / 5000.0f * dir * pressure * flip * anchored;
+		return sd->brush->alpha / 5000.0f * dir * pressure * flip * anchored;
 	case SCULPT_TOOL_FLATTEN:
-		return b->alpha / 500.0f * pressure * anchored;
+		return sd->brush->alpha / 500.0f * pressure * anchored;
 	default:
 		return 0;
 	}
@@ -580,7 +587,7 @@ void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, const Lis
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	const float bstr= brush_strength(sd, sd->brush, a);
+	const float bstr= brush_strength(sd, a);
 
 	calc_area_normal(sd, area_normal, a, NULL, active_verts);
 
@@ -880,6 +887,9 @@ void sculpt_add_damaged_rect(SculptSession *ss, BrushAction *a)
 				ss->projverts[i].inside= 1;
 			}
 		}
+		// XXX: remember to fix this!
+		// temporary pass
+		ss->projverts[i].inside = 1;
 	}
 }
 
@@ -921,7 +931,7 @@ void do_brush_action(SculptData *sd, BrushAction *a)
 	ActiveData *adata= 0;
 	float *vert;
 	Mesh *me= NULL; /*XXX: get_mesh(OBACT); */
-	const float bstrength= brush_strength(sd, sd->brush, a);
+	const float bstrength= brush_strength(sd, a);
 	KeyBlock *keyblock= NULL; /*XXX: ob_get_keyblock(OBACT); */
 	SculptSession *ss = sd->session;
 	Brush *b = sd->brush;
@@ -1026,7 +1036,7 @@ void do_symmetrical_brush_actions(SculptData *sd, BrushAction *a, short co[2], s
 	BrushActionSymm orig;
 	int i;
 
-	init_brushaction(sd, a, co, pr_co);
+	//init_brushaction(sd, a, co, pr_co);
 	orig = a->symm;
 	do_brush_action(sd, a);
 
@@ -1164,7 +1174,7 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 	SculptSession *ss = sd->session;
 	Brush *b = sd->brush;
 	Object *ob = NULL; /* XXX */
-	const float mouse_depth = get_depth(mouse[0], mouse[1]);
+	const float mouse_depth = 0; // XXX: get_depth(mouse[0], mouse[1]);
 	float brush_edge_loc[3], zero_loc[3], oldloc[3];
 	ModifierData *md;
 	int i;
@@ -1210,8 +1220,8 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
  		a->radius = size;
 
 	/* Set the pivot to allow the model to rotate around the center of the brush */
-	if(get_depth(mouse[0],mouse[1]) < 1.0)
-		VecCopyf(sd->pivot, a->symm.center_3d);
+	/*XXX: if(get_depth(mouse[0],mouse[1]) < 1.0)
+	  VecCopyf(sd->pivot, a->symm.center_3d); */
 
 	/* Now project the Up, Right, and Out normals from view to model coords */
 	unproject(ss, zero_loc, 0, 0, 0);
@@ -1596,6 +1606,174 @@ void sculptmode_correct_state(SculptData *sd)
 	if(!sd->session->vertex_users) calc_vertex_users(sd->session);
 }
 
+/**** Operator for applying a stroke (various attributes including mouse path)
+      using the current brush. ****/
+static int sculpt_brush_stroke_poll(bContext *C)
+{
+	// XXX: More to check for, of course
+
+	return G.f & G_SCULPTMODE;
+}
+
+static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
+{
+	BrushAction a;
+
+	a.symm.center_3d[0] = 0;
+	a.symm.center_3d[1] = 0;
+	a.symm.center_3d[2] = 0;
+
+	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, &a, NULL, NULL);
+
+	printf("brush stroke exec\n");
+}
+
+/* This is temporary, matrices should be data in operator for exec */
+static int sculpt_load_mats(bContext *C, bglMats *mats)
+{
+	View3D *v3d = ((View3D*)CTX_wm_area(C)->spacedata.first);
+	ARegion *ar = CTX_wm_region(C);
+	Object *ob= CTX_data_active_object(C);
+	float cpy[4][4];
+	int i, j;
+
+	view3d_operator_needs_opengl(C);
+
+	Mat4MulMat4(cpy, v3d->viewmat, ob->obmat);
+
+	for(i = 0; i < 4; ++i) {
+		for(j = 0; j < 4; ++j) {
+			mats->projection[i*4+j] = v3d->winmat[i][j];
+			mats->modelview[i*4+j] = cpy[i][j];
+		}
+	}
+
+	mats->viewport[0] = ar->winrct.xmin;
+	mats->viewport[1] = ar->winrct.ymin;
+	mats->viewport[2] = ar->winx;
+	mats->viewport[3] = ar->winy;	
+}
+
+static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Object *ob= CTX_data_active_object(C);
+	Mesh *me = get_mesh(ob);
+	ARegion *ar = CTX_wm_region(C);
+
+	// XXX: temporary, just add one brush here for testing
+	sd->brush = MEM_callocN(sizeof(Brush), "test sculpt brush");
+	sd->brush->size = 25;
+	sd->brush->alpha = 50;
+	sd->brush->sculpt_tool = SCULPT_TOOL_DRAW;
+
+	// XXX: temporary, much of sculptsession data should be in rna properties
+	sd->session = MEM_callocN(sizeof(SculptSession), "test sculpt session");
+	sd->session->mvert = me->mvert;
+	sd->session->totvert = me->totvert;
+	sd->session->mats = MEM_callocN(sizeof(bglMats), "test sculpt mats");
+	
+	// XXX: temporary matrix stuff
+	sculpt_load_mats(C, sd->session->mats);
+
+	sculptmode_update_all_projverts(sd->session);
+
+	/* add modal handler */
+	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	BrushAction a;
+	Object *ob= CTX_data_active_object(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	a.symm.center_3d[0] = 0;
+	a.symm.center_3d[1] = 0;
+	a.symm.center_3d[2] = 0;
+	unproject(sd->session, a.symm.center_3d, event->x, event->y, get_depth(C, event->x, event->y));
+	printf("depth=%f\n", get_depth(C, event->x, event->y));
+	printvecf("center", a.symm.center_3d);
+	a.size_3d = 0.25;
+	a.scale[0] = 1;
+	a.scale[1] = 1;
+	a.scale[2] = 1;
+	a.clip[0] = 0;
+	a.clip[1] = 0;
+	a.clip[2] = 0;
+
+	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, &a, NULL, NULL);
+	//calc_damaged_verts(sd->session, &a);
+	BLI_freelistN(&sd->session->damaged_verts);
+
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	ED_region_tag_redraw(ar);
+
+	/* Finished */
+	if(event->type == LEFTMOUSE && event->val == 0) {
+		View3D *v3d = ((View3D*)CTX_wm_area(C)->spacedata.first);
+		if(v3d->depths)
+			v3d->depths->damaged= 1;
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void SCULPT_OT_brush_stroke(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Sculpt Mode";
+	ot->idname= "SCULPT_OT_brush_stroke";
+	
+	/* api callbacks */
+	ot->invoke= sculpt_brush_stroke_invoke;
+	ot->modal= sculpt_brush_stroke_modal;
+	ot->exec= sculpt_brush_stroke_exec;
+	ot->poll= sculpt_brush_stroke_poll;
+	
+}
+
+/**** Toggle operator for turning sculpt mode on or off ****/
+
+static int sculpt_toggle_mode(bContext *C, wmOperator *op)
+{
+	if(G.f & G_SCULPTMODE) {
+		/* Leave sculptmode */
+		G.f &= ~G_SCULPTMODE;
+	}
+	else {
+		/* Enter sculptmode */
+
+		G.f |= G_SCULPTMODE;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void SCULPT_OT_toggle_mode(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sculpt Mode";
+	ot->idname= "SCULPT_OT_toggle_mode";
+	
+	/* api callbacks */
+	ot->exec= sculpt_toggle_mode;
+	ot->poll= ED_operator_object_active;
+	
+}
+
+void ED_operatortypes_sculpt()
+{
+	WM_operatortype_append(SCULPT_OT_brush_stroke);
+	WM_operatortype_append(SCULPT_OT_toggle_mode);
+}
+
 void sculpt(SculptData *sd)
 {
 	SculptSession *ss= sd->session;
@@ -1830,34 +2008,6 @@ void sculpt(SculptData *sd)
 
 	/* XXX: if(G.vd->depths) G.vd->depths->damaged= 1;
 	   allqueue(REDRAWVIEW3D, 0); */
-}
-
-void ED_sculpt_enter_sculptmode()
-{
-	G.f |= G_SCULPTMODE;
-
-	sculpt_init_session(NULL /*XXX*/);
-		
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-
-	active_ob = NULL;
-}
-
-void ED_sculpt_exit_sculptmode()
-{
-	Object *ob = NULL; /*XXX: OBACT; */
-	Mesh *me= get_mesh(ob);
-
-	multires_force_update(ob);
-		
-	G.f &= ~G_SCULPTMODE;
-
-	/* XXX: sculptsession_free(G.scene); */
-	if(me && me->pv) 
-		mesh_pmv_off(ob, me);
-
-	active_ob = NULL;
 }
 
 /* Partial Mesh Visibility */

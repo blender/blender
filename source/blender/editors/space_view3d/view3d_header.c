@@ -5408,9 +5408,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_SCULPTMODE)) {
 				v3d->flag &= ~V3D_MODE;
 				ED_view3d_exit_paint_modes(C);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
-// XXX				set_sculptmode();
+				WM_operator_name_call(C, "SCULPT_OT_toggle_mode", WM_OP_EXEC_REGION_WIN, NULL, NULL);
 			}
 		}
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {

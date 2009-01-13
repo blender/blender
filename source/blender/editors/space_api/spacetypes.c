@@ -89,6 +89,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_animchannels(); // XXX have this as part of anim() ones instead?
 	ED_operatortypes_object();
 	ED_operatortypes_mesh();
+	ED_operatortypes_sculpt();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
