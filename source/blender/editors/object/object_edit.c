@@ -902,93 +902,7 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 	BIF_undo_push("Add hook");
 }
 
-void make_track(Scene *scene, View3D *v3d, short mode)
-{
-	Base *base;
-	/*short mode=0;*/
-	
-	if(scene->id.lib) return;
-	if(scene->obedit) {
-		return; 
-	}
-	if(BASACT==0) return;
-
-	mode= pupmenu("Make Track %t|TrackTo Constraint %x1|LockTrack Constraint %x2|Old Track %x3");
-	if (mode == 0){
-		return;
-	}
-	else if (mode == 1){
-		bConstraint *con;
-		bTrackToConstraint *data;
-
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-					strcpy (con->name, "AutoTrack");
-
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->reserved1 = TRACK_nZ;
-						data->reserved2 = UP_Y;
-					}
-
-					add_constraint_to_object(con, base->object);
-				}
-			}
-		}
-
-	}
-	else if (mode == 2){
-		bConstraint *con;
-		bLockTrackConstraint *data;
-
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-					strcpy (con->name, "AutoTrack");
-
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->trackflag = TRACK_nZ;
-						data->lockflag = LOCK_Y;
-					}
-
-					add_constraint_to_object(con, base->object);
-				}
-			}
-		}
-
-	}
-	else if (mode == 3){
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					base->object->track= BASACT->object;
-					base->object->recalc |= OB_RECALC;
-				}
-			}
-		}
-	}
-
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_sort(scene);
-	
-	BIF_undo_push("Make Track");
-}
-
 /* ******************** clear parent operator ******************* */
-
 
 static EnumPropertyItem prop_clear_parent_types[] = {
 	{0, "CLEAR", "Clear Parent", ""},
@@ -2139,15 +2053,14 @@ static int make_track_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Base *base;
-	
+		
 	if(scene->id.lib) return OPERATOR_CANCELLED;
 
 	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
 		bConstraint *con;
 		bTrackToConstraint *data;
 
-		for(base= FIRSTBASE; base; base= base->next) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
 					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
@@ -2167,13 +2080,13 @@ static int make_track_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-
+		CTX_DATA_END;
 	}
 	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
-		for(base= FIRSTBASE; base; base= base->next) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
 					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
@@ -2193,10 +2106,10 @@ static int make_track_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-
+		CTX_DATA_END;
 	}
 	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
-		for(base= FIRSTBASE; base; base= base->next) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base!=BASACT) {
 					base->object->track= BASACT->object;
@@ -2204,6 +2117,7 @@ static int make_track_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
+		CTX_DATA_END;
 	}
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);	
@@ -2230,6 +2144,361 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_make_track_types);
+}
+/* ******************* Set Object Center ********************** */
+
+static EnumPropertyItem prop_set_center_types[] = {
+	{0, "CENTER", "ObData to Center", "Move object data around Object center"},
+	{1, "CENTERNEW", "Center New", "Move Object center to center of object data"},
+	{2, "CENTERCURSOR", "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{0, NULL, NULL, NULL}
+};
+
+/* 0 == do center, 1 == center new, 2 == center cursor */
+static int object_set_center_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	Object *obedit= CTX_data_edit_object(C);
+	Object *ob;
+	Mesh *me, *tme;
+	Curve *cu;
+/*	BezTriple *bezt;
+	BPoint *bp; */
+	Nurb *nu, *nu1;
+	EditVert *eve;
+	float cent[3], centn[3], min[3], max[3], omat[3][3];
+	int a, total= 0;
+	int centermode = RNA_enum_get(op->ptr, "type");
+	
+	/* keep track of what is changed */
+	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
+	MVert *mvert;
+
+	if(scene->id.lib || v3d==NULL) return OPERATOR_CANCELLED;
+	if (obedit && centermode > 0) return OPERATOR_CANCELLED;
+		
+	cent[0]= cent[1]= cent[2]= 0.0;	
+	
+	if(obedit) {
+
+		INIT_MINMAX(min, max);
+	
+		if(obedit->type==OB_MESH) {
+			Mesh *me= obedit->data;
+			
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+				if(v3d->around==V3D_CENTROID) {
+					total++;
+					VECADD(cent, cent, eve->co);
+				}
+				else {
+					DO_MINMAX(eve->co, min, max);
+				}
+			}
+			
+			if(v3d->around==V3D_CENTROID) {
+				VecMulf(cent, 1.0f/(float)total);
+			}
+			else {
+				cent[0]= (min[0]+max[0])/2.0f;
+				cent[1]= (min[1]+max[1])/2.0f;
+				cent[2]= (min[2]+max[2])/2.0f;
+			}
+			
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+				VecSubf(eve->co, eve->co, cent);			
+			}
+			
+			recalc_editnormals(me->edit_mesh);
+			tot_change++;
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		}
+	}
+	
+	/* reset flags */
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			base->object->flag &= ~OB_DONE;
+	}
+	CTX_DATA_END;
+	
+	for (me= G.main->mesh.first; me; me= me->id.next) {
+		me->flag &= ~ME_ISDONE;
+	}
+	
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if((base->object->flag & OB_DONE)==0) {
+			base->object->flag |= OB_DONE;
+				
+			if(base->object->id.lib) {
+				tot_lib_error++;
+			}
+			else if(obedit==0 && (me=get_mesh(base->object)) ) {
+				if (me->id.lib) {
+					tot_lib_error++;
+				} else {
+					if(centermode==2) {
+						VECCOPY(cent, give_cursor(scene, v3d));
+						Mat4Invert(base->object->imat, base->object->obmat);
+						Mat4MulVecfl(base->object->imat, cent);
+					} else {
+						INIT_MINMAX(min, max);
+						mvert= me->mvert;
+						for(a=0; a<me->totvert; a++, mvert++) {
+							DO_MINMAX(mvert->co, min, max);
+						}
+					
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
+					}
+
+					mvert= me->mvert;
+					for(a=0; a<me->totvert; a++, mvert++) {
+						VecSubf(mvert->co, mvert->co, cent);
+					}
+					
+					if (me->key) {
+						KeyBlock *kb;
+						for (kb=me->key->block.first; kb; kb=kb->next) {
+							float *fp= kb->data;
+							
+							for (a=0; a<kb->totelem; a++, fp+=3) {
+								VecSubf(fp, fp, cent);
+							}
+						}
+					}
+						
+					me->flag |= ME_ISDONE;
+						
+					if(centermode) {
+						Mat3CpyMat4(omat, base->object->obmat);
+						
+						VECCOPY(centn, cent);
+						Mat3MulVecfl(omat, centn);
+						base->object->loc[0]+= centn[0];
+						base->object->loc[1]+= centn[1];
+						base->object->loc[2]+= centn[2];
+						
+						where_is_object(scene, base->object);
+						ignore_parent_tx(scene, base->object);
+						
+						/* other users? */
+						CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+							ob = base->object;
+							if((ob->flag & OB_DONE)==0) {
+								tme= get_mesh(ob);
+								
+								if(tme==me) {
+									
+									ob->flag |= OB_DONE;
+									ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+
+									Mat3CpyMat4(omat, ob->obmat);
+									VECCOPY(centn, cent);
+									Mat3MulVecfl(omat, centn);
+									ob->loc[0]+= centn[0];
+									ob->loc[1]+= centn[1];
+									ob->loc[2]+= centn[2];
+									
+									where_is_object(scene, ob);
+									ignore_parent_tx(scene, ob);
+									
+									if(tme && (tme->flag & ME_ISDONE)==0) {
+										mvert= tme->mvert;
+										for(a=0; a<tme->totvert; a++, mvert++) {
+											VecSubf(mvert->co, mvert->co, cent);
+										}
+										
+										if (tme->key) {
+											KeyBlock *kb;
+											for (kb=tme->key->block.first; kb; kb=kb->next) {
+												float *fp= kb->data;
+												
+												for (a=0; a<kb->totelem; a++, fp+=3) {
+													VecSubf(fp, fp, cent);
+												}
+											}
+										}
+										
+										tme->flag |= ME_ISDONE;
+									}
+								}
+							}
+							
+							ob= ob->id.next;
+						}
+						CTX_DATA_END;
+					}
+					tot_change++;
+				}
+			}
+			else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
+				
+				/* totally weak code here... (ton) */
+				if(obedit==base->object) {
+					extern ListBase editNurb;
+					nu1= editNurb.first;
+					cu= obedit->data;
+				}
+				else {
+					cu= base->object->data;
+					nu1= cu->nurb.first;
+				}
+				
+				if (cu->id.lib) {
+					tot_lib_error++;
+				} else {
+					if(centermode==2) {
+						VECCOPY(cent, give_cursor(scene, v3d));
+						Mat4Invert(base->object->imat, base->object->obmat);
+						Mat4MulVecfl(base->object->imat, cent);
+
+						/* don't allow Z change if curve is 2D */
+						if( !( cu->flag & CU_3D ) )
+							cent[2] = 0.0;
+					} 
+					else {
+						INIT_MINMAX(min, max);
+						
+						nu= nu1;
+						while(nu) {
+							minmaxNurb(nu, min, max);
+							nu= nu->next;
+						}
+						
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
+					}
+					
+					nu= nu1;
+					while(nu) {
+						if( (nu->type & 7)==1) {
+							a= nu->pntsu;
+							while (a--) {
+								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
+								VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
+								VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+							}
+						}
+						else {
+							a= nu->pntsu*nu->pntsv;
+							while (a--)
+								VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
+						}
+						nu= nu->next;
+					}
+			
+					if(centermode && obedit==0) {
+						Mat3CpyMat4(omat, base->object->obmat);
+						
+						Mat3MulVecfl(omat, cent);
+						base->object->loc[0]+= cent[0];
+						base->object->loc[1]+= cent[1];
+						base->object->loc[2]+= cent[2];
+						
+						where_is_object(scene, base->object);
+						ignore_parent_tx(scene, base->object);
+					}
+					
+					tot_change++;
+					if(obedit) {
+						if (centermode==0) {
+							DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+						}
+						break;
+					}
+				}
+			}
+			else if(base->object->type==OB_FONT) {
+				/* get from bb */
+				
+				cu= base->object->data;
+				
+				if(cu->bb==0) {
+					/* do nothing*/
+				} else if (cu->id.lib) {
+					tot_lib_error++;
+				} else {
+					cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
+					cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height o above line */
+					
+					/* not really ok, do this better once! */
+					cu->xof /= cu->fsize;
+					cu->yof /= cu->fsize;
+
+					allqueue(REDRAWBUTSEDIT, 0);
+					tot_change++;
+				}
+			}
+			else if(base->object->type==OB_ARMATURE) {
+				bArmature *arm = base->object->data;
+				
+				if (arm->id.lib) {
+					tot_lib_error++;
+				} else if(arm->id.us>1) {
+					/*error("Can't apply to a multi user armature");
+					return;*/
+					tot_multiuser_arm_error++;
+				} else {
+					/* Function to recenter armatures in editarmature.c 
+					 * Bone + object locations are handled there.
+					 */
+					docenter_armature(scene, v3d, base->object, centermode);
+					tot_change++;
+					
+					where_is_object(scene, base->object);
+					ignore_parent_tx(scene, base->object);
+					
+					if(obedit) 
+						break;
+				}
+			}
+			base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+		}
+	}
+	CTX_DATA_END;
+	
+if (tot_change) {
+	ED_anim_dag_flush_update(C);
+	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Do Center");	
+	}
+	
+	/* Warn if any errors occured */
+	if (tot_lib_error+tot_multiuser_arm_error) {
+		char err[512];
+		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_multiuser_arm_error, tot_change);
+		
+		if (tot_lib_error)
+			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
+		if (tot_multiuser_arm_error)
+			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
+		
+		error(err);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+void OBJECT_OT_set_center(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Set Center";
+	ot->idname= "OBJECT_OT_set_center";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_set_center_exec;
+	
+	ot->poll= ED_operator_view3d_active;
+	ot->flag= OPTYPE_REGISTER;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_set_center_types);
 }
 
 
@@ -2434,354 +2703,6 @@ void check_editmode(int type)
 
 // XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
-
-/* 0 == do center, 1 == center new, 2 == center cursor */
-
-void docenter(Scene *scene, View3D *v3d, int centermode)
-{
-	Base *base;
-	Object *ob;
-	Mesh *me, *tme;
-	Curve *cu;
-/*	BezTriple *bezt;
-	BPoint *bp; */
-	Object *obedit= NULL; // XXX
-	Nurb *nu, *nu1;
-	EditVert *eve;
-	float cent[3], centn[3], min[3], max[3], omat[3][3];
-	int a, total= 0;
-	
-	/* keep track of what is changed */
-	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
-	MVert *mvert;
-
-	if(scene->id.lib || v3d==NULL) return;
-	
-	cent[0]= cent[1]= cent[2]= 0.0;
-	
-	if(obedit) {
-
-		INIT_MINMAX(min, max);
-	
-		if(obedit->type==OB_MESH) {
-			Mesh *me= obedit->data;
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
-				if(v3d->around==V3D_CENTROID) {
-					total++;
-					VECADD(cent, cent, eve->co);
-				}
-				else {
-					DO_MINMAX(eve->co, min, max);
-				}
-			}
-			
-			if(v3d->around==V3D_CENTROID) {
-				VecMulf(cent, 1.0f/(float)total);
-			}
-			else {
-				cent[0]= (min[0]+max[0])/2.0f;
-				cent[1]= (min[1]+max[1])/2.0f;
-				cent[2]= (min[2]+max[2])/2.0f;
-			}
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
-				VecSubf(eve->co, eve->co, cent);			
-			}
-			
-			recalc_editnormals(me->edit_mesh);
-			tot_change++;
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		}
-	}
-	
-	/* reset flags */
-	for (base=FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base))
-			base->object->flag &= ~OB_DONE;
-	}
-	
-	for (me= G.main->mesh.first; me; me= me->id.next) {
-		me->flag &= ~ME_ISDONE;
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if((base->object->flag & OB_DONE)==0) {
-				base->object->flag |= OB_DONE;
-				
-				if(base->object->id.lib) {
-					tot_lib_error++;
-				}
-				else if(obedit==0 && (me=get_mesh(base->object)) ) {
-					if (me->id.lib) {
-						tot_lib_error++;
-					} else {
-						if(centermode==2) {
-							VECCOPY(cent, give_cursor(scene, v3d));
-							Mat4Invert(base->object->imat, base->object->obmat);
-							Mat4MulVecfl(base->object->imat, cent);
-						} else {
-							INIT_MINMAX(min, max);
-							mvert= me->mvert;
-							for(a=0; a<me->totvert; a++, mvert++) {
-								DO_MINMAX(mvert->co, min, max);
-							}
-					
-							cent[0]= (min[0]+max[0])/2.0f;
-							cent[1]= (min[1]+max[1])/2.0f;
-							cent[2]= (min[2]+max[2])/2.0f;
-						}
-
-						mvert= me->mvert;
-						for(a=0; a<me->totvert; a++, mvert++) {
-							VecSubf(mvert->co, mvert->co, cent);
-						}
-						
-						if (me->key) {
-							KeyBlock *kb;
-							for (kb=me->key->block.first; kb; kb=kb->next) {
-								float *fp= kb->data;
-								
-								for (a=0; a<kb->totelem; a++, fp+=3) {
-									VecSubf(fp, fp, cent);
-								}
-							}
-						}
-						
-						me->flag |= ME_ISDONE;
-						
-						if(centermode) {
-							Mat3CpyMat4(omat, base->object->obmat);
-							
-							VECCOPY(centn, cent);
-							Mat3MulVecfl(omat, centn);
-							base->object->loc[0]+= centn[0];
-							base->object->loc[1]+= centn[1];
-							base->object->loc[2]+= centn[2];
-							
-							where_is_object(scene, base->object);
-							ignore_parent_tx(scene, base->object);
-							
-							/* other users? */
-							ob= G.main->object.first;
-							while(ob) {
-								if((ob->flag & OB_DONE)==0) {
-									tme= get_mesh(ob);
-									
-									if(tme==me) {
-										
-										ob->flag |= OB_DONE;
-										ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-
-										Mat3CpyMat4(omat, ob->obmat);
-										VECCOPY(centn, cent);
-										Mat3MulVecfl(omat, centn);
-										ob->loc[0]+= centn[0];
-										ob->loc[1]+= centn[1];
-										ob->loc[2]+= centn[2];
-										
-										where_is_object(scene, ob);
-										ignore_parent_tx(scene, ob);
-										
-										if(tme && (tme->flag & ME_ISDONE)==0) {
-											mvert= tme->mvert;
-											for(a=0; a<tme->totvert; a++, mvert++) {
-												VecSubf(mvert->co, mvert->co, cent);
-											}
-											
-											if (tme->key) {
-												KeyBlock *kb;
-												for (kb=tme->key->block.first; kb; kb=kb->next) {
-													float *fp= kb->data;
-													
-													for (a=0; a<kb->totelem; a++, fp+=3) {
-														VecSubf(fp, fp, cent);
-													}
-												}
-											}
-											
-											tme->flag |= ME_ISDONE;
-										}
-									}
-								}
-								
-								ob= ob->id.next;
-							}
-						}
-						tot_change++;
-					}
-				}
-				else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
-					
-					/* totally weak code here... (ton) */
-					if(obedit==base->object) {
-						extern ListBase editNurb;
-						nu1= editNurb.first;
-						cu= obedit->data;
-					}
-					else {
-						cu= base->object->data;
-						nu1= cu->nurb.first;
-					}
-					
-					if (cu->id.lib) {
-						tot_lib_error++;
-					} else {
-						if(centermode==2) {
-							VECCOPY(cent, give_cursor(scene, v3d));
-							Mat4Invert(base->object->imat, base->object->obmat);
-							Mat4MulVecfl(base->object->imat, cent);
-
-							/* don't allow Z change if curve is 2D */
-							if( !( cu->flag & CU_3D ) )
-								cent[2] = 0.0;
-						} 
-						else {
-							INIT_MINMAX(min, max);
-							
-							nu= nu1;
-							while(nu) {
-								minmaxNurb(nu, min, max);
-								nu= nu->next;
-							}
-							
-							cent[0]= (min[0]+max[0])/2.0f;
-							cent[1]= (min[1]+max[1])/2.0f;
-							cent[2]= (min[2]+max[2])/2.0f;
-						}
-						
-						nu= nu1;
-						while(nu) {
-							if( (nu->type & 7)==1) {
-								a= nu->pntsu;
-								while (a--) {
-									VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-									VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-									VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
-								}
-							}
-							else {
-								a= nu->pntsu*nu->pntsv;
-								while (a--)
-									VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
-							}
-							nu= nu->next;
-						}
-				
-						if(centermode && obedit==0) {
-							Mat3CpyMat4(omat, base->object->obmat);
-							
-							Mat3MulVecfl(omat, cent);
-							base->object->loc[0]+= cent[0];
-							base->object->loc[1]+= cent[1];
-							base->object->loc[2]+= cent[2];
-							
-							where_is_object(scene, base->object);
-							ignore_parent_tx(scene, base->object);
-						}
-						
-						tot_change++;
-						if(obedit) {
-							if (centermode==0) {
-								DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-							}
-							break;
-						}
-					}
-				}
-				else if(base->object->type==OB_FONT) {
-					/* get from bb */
-					
-					cu= base->object->data;
-					
-					if(cu->bb==0) {
-						/* do nothing*/
-					} else if (cu->id.lib) {
-						tot_lib_error++;
-					} else {
-						cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
-						cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
-						
-						/* not really ok, do this better once! */
-						cu->xof /= cu->fsize;
-						cu->yof /= cu->fsize;
-
-						allqueue(REDRAWBUTSEDIT, 0);
-						tot_change++;
-					}
-				}
-				else if(base->object->type==OB_ARMATURE) {
-					bArmature *arm = base->object->data;
-					
-					if (arm->id.lib) {
-						tot_lib_error++;
-					} else if(arm->id.us>1) {
-						/*error("Can't apply to a multi user armature");
-						return;*/
-						tot_multiuser_arm_error++;
-					} else {
-						/* Function to recenter armatures in editarmature.c 
-						 * Bone + object locations are handled there.
-						 */
-						docenter_armature(scene, v3d, base->object, centermode);
-						tot_change++;
-						
-						where_is_object(scene, base->object);
-						ignore_parent_tx(scene, base->object);
-						
-						if(obedit) 
-							break;
-					}
-				}
-				base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-			}
-		}
-	}
-	if (tot_change) {
-		ED_anim_dag_flush_update(C);
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Do Center");	
-	}
-	
-	/* Warn if any errors occured */
-	if (tot_lib_error+tot_multiuser_arm_error) {
-		char err[512];
-		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_multiuser_arm_error, tot_change);
-		
-		if (tot_lib_error)
-			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
-		if (tot_multiuser_arm_error)
-			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
-		
-		error(err);
-	}
-}
-
-void docenter_new(Scene *scene, View3D *v3d)
-{
-	if(scene->id.lib) return;
-
-	if(scene->obedit) { // XXX get from context
-		error("Unable to center new in Edit Mode");
-	}
-	else {
-		docenter(scene, v3d, 1);
-	}
-}
-
-void docenter_cursor(Scene *scene, View3D *v3d)
-{
-	if(scene->id.lib) return;
-
-	if(scene->obedit) { // XXX get from context
-		error("Unable to center cursor in Edit Mode");
-	}
-	else {
-		docenter(scene, v3d, 2);
-	}
-}
-
 void movetolayer(Scene *scene, View3D *v3d)
 {
 	Base *base;

@@ -55,6 +55,7 @@ void OBJECT_OT_clear_restrictview(struct wmOperatorType *ot);
 void OBJECT_OT_set_restrictview(struct wmOperatorType *ot);
 void OBJECT_OT_set_slowparent(struct wmOperatorType *ot);
 void OBJECT_OT_clear_slowparent(struct wmOperatorType *ot);
+void OBJECT_OT_set_center(struct wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

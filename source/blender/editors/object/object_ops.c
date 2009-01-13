@@ -81,6 +81,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_set_restrictview);
 	WM_operatortype_append(OBJECT_OT_set_slowparent);
 	WM_operatortype_append(OBJECT_OT_clear_slowparent);
+	WM_operatortype_append(OBJECT_OT_set_center);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -89,6 +90,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_toggle_editmode", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_set_center", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
