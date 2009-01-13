@@ -78,6 +78,15 @@ static SpaceLink *node_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+	/* channels */
+	ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
+	
+	BLI_addtail(&snode->regionbase, ar);
+	ar->regiontype= RGN_TYPE_CHANNELS;
+	ar->alignment= RGN_ALIGN_LEFT;
+	
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for node");
 	
@@ -134,6 +143,35 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 // XXX	snoden->gpd= gpencil_data_duplicate(snode->gpd);
 	
 	return (SpaceLink *)snoden;
+}
+
+static void node_channel_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
+}
+
+static void node_channel_area_draw(const bContext *C, ARegion *ar)
+{
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_SHADE2, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	
+	UI_view2d_view_ortho(C, v2d);
+	
+	/* data... */
+	
+	/* reset view matrix */
+	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 /* Initialise main area, setting handlers. */
@@ -257,11 +295,11 @@ void ED_spacetype_node(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
+	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
-//	art->init= node_channel_area_init;
-//	art->draw= node_channel_area_draw;
+	art->init= node_channel_area_init;
+	art->draw= node_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -5214,6 +5214,13 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 				break;
+			case SPACE_NODE:
+				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_LEFT;
+				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 			case SPACE_FILE:
 				/* channel (bookmarks/directories) region */
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");

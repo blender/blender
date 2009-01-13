@@ -154,6 +154,8 @@ typedef struct bNodeLink {
 	bNode *fromnode, *tonode;
 	bNodeSocket *fromsock, *tosock;
 	
+	int flag, pad;
+	
 } bNodeLink;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
