@@ -150,9 +150,48 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
 }
 
+
+/* A brush stroke is a list of changes to the brush that
+ * can occur during a stroke
+ *
+ *  o 3D location of the brush (stored as collection due to symmetry)
+ *  o Tablet pressure
+ *  o Direction flip
+ *  o Tool switch
+ *  o Time
+ */
+static void rna_def_operator_stroke_element(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
+	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
+
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	/*prop= RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Pressure", "");*/
+
+	/*prop= RNA_def_property(srna, "flip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_ui_text(prop, "Flip", "");*/
+
+	/* XXX: Tool (this will be for pressing a modifier key for a different brush,
+	        e.g. switching to a Smooth brush in the middle of the stroke */
+
+	/* XXX: Time (should be useful for airbrush mode) */
+}
+
 void RNA_def_brush(BlenderRNA *brna)
 {
 	rna_def_brush(brna);
+	rna_def_operator_stroke_element(brna);
 }
 
 #endif

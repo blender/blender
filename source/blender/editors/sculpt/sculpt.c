@@ -81,6 +81,9 @@
 #include "sculpt_intern.h"
 #include "../space_view3d/view3d_intern.h" /* XXX: oh no, the next generation of bad level call! should move ViewDepths perhaps (also used for view matrices) */
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h"
@@ -1615,19 +1618,6 @@ static int sculpt_brush_stroke_poll(bContext *C)
 	return G.f & G_SCULPTMODE;
 }
 
-static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
-{
-	BrushAction a;
-
-	a.symm.center_3d[0] = 0;
-	a.symm.center_3d[1] = 0;
-	a.symm.center_3d[2] = 0;
-
-	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, &a, NULL, NULL);
-
-	printf("brush stroke exec\n");
-}
-
 /* This is temporary, matrices should be data in operator for exec */
 static int sculpt_load_mats(bContext *C, bglMats *mats)
 {
@@ -1684,26 +1674,33 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* Temporary, most of brush action will become rna properties */
+static void sculpt_action_init(BrushAction *a)
+{
+	memset(a, 0, sizeof(BrushAction));
+	
+	a->size_3d = 0.25;
+	a->scale[0] = 1;
+	a->scale[1] = 1;
+	a->scale[2] = 1;
+}
+
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	PointerRNA itemptr;
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	BrushAction a;
 	Object *ob= CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	a.symm.center_3d[0] = 0;
-	a.symm.center_3d[1] = 0;
-	a.symm.center_3d[2] = 0;
+	sculpt_action_init(&a);
 	unproject(sd->session, a.symm.center_3d, event->x, event->y, get_depth(C, event->x, event->y));
-	printf("depth=%f\n", get_depth(C, event->x, event->y));
-	printvecf("center", a.symm.center_3d);
-	a.size_3d = 0.25;
-	a.scale[0] = 1;
-	a.scale[1] = 1;
-	a.scale[2] = 1;
-	a.clip[0] = 0;
-	a.clip[1] = 0;
-	a.clip[2] = 0;
+	/*printf("depth=%f\n", get_depth(C, event->x, event->y));
+	  printvecf("center", a.symm.center_3d);*/
+
+	/* Add to stroke */
+	RNA_collection_add(op->ptr, "stroke", &itemptr);
+	RNA_float_set_array(&itemptr, "location", a.symm.center_3d);
 
 	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, &a, NULL, NULL);
 	//calc_damaged_verts(sd->session, &a);
@@ -1724,9 +1721,36 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
+{
+	BrushAction a;
+	Object *ob= CTX_data_active_object(C);
+	ARegion *ar = CTX_wm_region(C);
+	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+
+	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+		float loc[3];
+
+		sculpt_action_init(&a);		
+		RNA_float_get_array(&itemptr, "location", a.symm.center_3d);
+
+		do_symmetrical_brush_actions(sd, &a, NULL, NULL);
+		BLI_freelistN(&sd->session->damaged_verts);
+	}
+	RNA_END;
+
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	ED_region_tag_redraw(ar);
+
+	return OPERATOR_FINISHED;
+}
+
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
-	
+	PropertyRNA *prop;
+
+	ot->flag |= OPTYPE_REGISTER;
+
 	/* identifiers */
 	ot->name= "Sculpt Mode";
 	ot->idname= "SCULPT_OT_brush_stroke";
@@ -1736,7 +1760,10 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->modal= sculpt_brush_stroke_modal;
 	ot->exec= sculpt_brush_stroke_exec;
 	ot->poll= sculpt_brush_stroke_poll;
-	
+
+	/* properties */
+	prop= RNA_def_property(ot->srna, "stroke", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorStrokeElement);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
