@@ -144,10 +144,19 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 	seq = alloc_sequence(seqbase, start, machine); /* warning, this sets last */
 
 
-	if (PyArg_ParseTuple( py_data, "iO!|O!O!", &type, &Sequence_Type, &pyob1, &Sequence_Type, &pyob2, &Sequence_Type, &pyob3)) {
+	if (PyTuple_Check(py_data) && PyTuple_GET_SIZE(py_data) >= 2 && BPy_Sequence_Check(PyTuple_GET_ITEM(py_data, 1))) {
 	
 		struct SeqEffectHandle sh;
 		Sequence *seq1, *seq2= NULL, *seq3= NULL; /* for effects */
+
+		if (!PyArg_ParseTuple( py_data, "iO!|O!O!", &type, &Sequence_Type, &pyob1, &Sequence_Type, &pyob2, &Sequence_Type, &pyob3)) {
+			BLI_remlink(seqbase, seq);
+			free_sequence(seq);
+			
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"effect stripts expected an effect type int and 1 to 3 sequence strips");
+		}
+
 
 		seq1= ((BPy_Sequence *)pyob1)->seq;
 		if(pyob2) seq2= ((BPy_Sequence *)pyob2)->seq;
@@ -260,6 +269,8 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		}
 
 		seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
+		colvars= (SolidColorVars *)seq->effectdata;
+
 		seq->type= SEQ_COLOR;
 		
 		CLAMP(r,0,1);
