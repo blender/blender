@@ -1064,7 +1064,153 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	RNA_def_property_enum_items(prop, prop_select_object_types);
 
 }
+/* ****** selection by links *******/
 
+static EnumPropertyItem prop_select_linked_types[] = {
+	{1, "IPO", "Object IPO", ""},
+	{2, "OBDATA", "Ob Data", ""},
+	{3, "MATERIAL", "Material", ""},
+	{4, "TEXTURE", "Texture", ""},
+	{5, "DUPGROUP", "Dupligroup", ""},
+	{6, "PARTICLE", "Particle System", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_select_linked_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	void *obdata = NULL;
+	Ipo *ipo = NULL;
+	Material *mat = NULL, *mat1;
+	Tex *tex=0;
+	int a, b;
+	int nr = RNA_enum_get(op->ptr, "type");
+	short changed = 0;
+	/* events (nr):
+	 * Object Ipo: 1
+	 * ObData: 2
+	 * Current Material: 3
+	 * Current Texture: 4
+	 * DupliGroup: 5
+	 * PSys: 6
+	 */
+	
+	
+	ob= OBACT;
+	if(ob==0) return OPERATOR_CANCELLED;
+	
+	if(nr==1) {
+		ipo= ob->ipo;
+		if(ipo==0) return OPERATOR_CANCELLED;
+	}
+	else if(nr==2) {
+		if(ob->data==0) return OPERATOR_CANCELLED;
+		obdata= ob->data;
+	}
+	else if(nr==3 || nr==4) {
+		mat= give_current_material(ob, ob->actcol);
+		if(mat==0) return OPERATOR_CANCELLED;
+		if(nr==4) {
+			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
+			if(tex==0) return OPERATOR_CANCELLED;
+		}
+	}
+	else if(nr==5) {
+		if(ob->dup_group==NULL) return OPERATOR_CANCELLED;
+	}
+	else if(nr==6) {
+		if(ob->particlesystem.first==NULL) return OPERATOR_CANCELLED;
+	}
+	else return OPERATOR_CANCELLED;
+	
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if (!(base->flag & SELECT)) {
+			if(nr==1) {
+				if(base->object->ipo==ipo) base->flag |= SELECT;
+				changed = 1;
+			}
+			else if(nr==2) {
+				if(base->object->data==obdata) base->flag |= SELECT;
+				changed = 1;
+			}
+			else if(nr==3 || nr==4) {
+				ob= base->object;
+				
+				for(a=1; a<=ob->totcol; a++) {
+					mat1= give_current_material(ob, a);
+					if(nr==3) {
+						if(mat1==mat) base->flag |= SELECT;
+						changed = 1;
+					}
+					else if(mat1 && nr==4) {
+						for(b=0; b<MAX_MTEX; b++) {
+							if(mat1->mtex[b]) {
+								if(tex==mat1->mtex[b]->tex) {
+									base->flag |= SELECT;
+									changed = 1;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			else if(nr==5) {
+				if(base->object->dup_group==ob->dup_group) {
+					 base->flag |= SELECT;
+					 changed = 1;
+				}
+			}
+			else if(nr==6) {
+				/* loop through other, then actives particles*/
+				ParticleSystem *psys;
+				ParticleSystem *psys_act;
+				
+				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
+					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+						if (psys->part == psys_act->part) {
+							base->flag |= SELECT;
+							changed = 1;
+							break;
+						}
+					}
+					
+					if (base->flag & SELECT) {
+						break;
+					}
+				}
+			}
+			base->object->flag= base->flag;
+		}
+	}
+	CTX_DATA_END;
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		ED_undo_push(C,"Select linked");
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_select_linked(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Select Linked";
+	ot->idname= "OBJECT_OT_select_linked";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_linked_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_select_linked_types);
+
+}
 /* ****** selection by layer *******/
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
@@ -2500,8 +2646,6 @@ void OBJECT_OT_set_center(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_set_center_types);
 }
-
-
 /* ******************* toggle editmode operator  ***************** */
 
 void ED_object_exit_editmode(bContext *C, int flag)
@@ -5487,8 +5631,6 @@ void make_local_menu(Scene *scene, View3D *v3d)
 	make_local(scene, v3d, mode);
 }
 
-
-
 /* This function duplicated the current visible selection, its used by Duplicate and Linked Duplicate
 Alt+D/Shift+D as well as Pythons Object.Duplicate(), it takes
 mode: 
@@ -5718,143 +5860,6 @@ void adduplicate(Scene *scene, View3D *v3d, int mode, int dupflag)
 		allqueue(REDRAWIPO, 0);	/* also oops */
 	}
 }
-
-
-void selectlinks(Scene *scene, View3D *v3d, int nr)
-{
-	Object *ob;
-	Base *base;
-	void *obdata = NULL;
-	Ipo *ipo = NULL;
-	Material *mat = NULL, *mat1;
-	Tex *tex=0;
-	int a, b;
-	short changed = 0;
-	/* events (nr):
-	 * Object Ipo: 1
-	 * ObData: 2
-	 * Current Material: 3
-	 * Current Texture: 4
-	 * DupliGroup: 5
-	 * PSys: 6
-	 */
-	
-	
-	ob= OBACT;
-	if(ob==0) return;
-	
-	if(nr==1) {
-		ipo= ob->ipo;
-		if(ipo==0) return;
-	}
-	else if(nr==2) {
-		if(ob->data==0) return;
-		obdata= ob->data;
-	}
-	else if(nr==3 || nr==4) {
-		mat= give_current_material(ob, ob->actcol);
-		if(mat==0) return;
-		if(nr==4) {
-			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
-			if(tex==0) return;
-		}
-	}
-	else if(nr==5) {
-		if(ob->dup_group==NULL) return;
-	}
-	else if(nr==6) {
-		if(ob->particlesystem.first==NULL) return;
-	}
-	else return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if (BASE_SELECTABLE(v3d, base) && !(base->flag & SELECT)) {
-			if(nr==1) {
-				if(base->object->ipo==ipo) base->flag |= SELECT;
-				changed = 1;
-			}
-			else if(nr==2) {
-				if(base->object->data==obdata) base->flag |= SELECT;
-				changed = 1;
-			}
-			else if(nr==3 || nr==4) {
-				ob= base->object;
-				
-				for(a=1; a<=ob->totcol; a++) {
-					mat1= give_current_material(ob, a);
-					if(nr==3) {
-						if(mat1==mat) base->flag |= SELECT;
-						changed = 1;
-					}
-					else if(mat1 && nr==4) {
-						for(b=0; b<MAX_MTEX; b++) {
-							if(mat1->mtex[b]) {
-								if(tex==mat1->mtex[b]->tex) {
-									base->flag |= SELECT;
-									changed = 1;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-			else if(nr==5) {
-				if(base->object->dup_group==ob->dup_group) {
-					 base->flag |= SELECT;
-					 changed = 1;
-				}
-			}
-			else if(nr==6) {
-				/* loop through other, then actives particles*/
-				ParticleSystem *psys;
-				ParticleSystem *psys_act;
-				
-				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
-					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
-						if (psys->part == psys_act->part) {
-							base->flag |= SELECT;
-							changed = 1;
-							break;
-						}
-					}
-					
-					if (base->flag & SELECT) {
-						break;
-					}
-				}
-			}
-			base->object->flag= base->flag;
-		}
-	}
-	
-	if (changed) {
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWDATASELECT, 0);
-		allqueue(REDRAWOOPS, 0);
-		BIF_undo_push("Select linked");
-	}
-}
-
-
-void selectlinks_menu(Scene *scene, View3D *v3d)
-{
-	Object *ob;
-	int nr;
-	
-	ob= OBACT;
-	if(ob==0) return;
-	
-	/* If you modify this menu, please remember to update view3d_select_linksmenu
-		* in header_view3d.c and the menu in toolbox.c
-		*/
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5|ParticleSystem%x6");
-	
-	if (nr <= 0) return;
-	
-	selectlinks(scene, v3d, nr);
-}
-
 
 void image_aspect(Scene *scene, View3D *v3d)
 {

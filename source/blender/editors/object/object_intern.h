@@ -47,6 +47,7 @@ void OBJECT_OT_select_invert(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
+void OBJECT_OT_select_linked(struct wmOperatorType *ot);
 void OBJECT_OT_clear_location(struct wmOperatorType *ot);
 void OBJECT_OT_clear_rotation(struct wmOperatorType *ot);
 void OBJECT_OT_clear_scale(struct wmOperatorType *ot);
