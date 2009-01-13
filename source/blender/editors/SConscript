@@ -10,10 +10,10 @@ SConscript(['datafiles/SConscript',
 			'armature/SConscript',
 			'mesh/SConscript',
 			'object/SConscript',
-			'curve/SConscript',
-			'gpencil/SConscript',
-			'physics/SConscript',
-			'preview/SConscript',
+			#'curve/SConscript', enable this when there is actually code in curve/
+			#'gpencil/SConscript', enable this when there is actually code in gpencil/
+			#'physics/SConscript', enable this when there is actually code in physics/
+			#'preview/SConscript', enable this when there is actually code in preview/
 			'space_buttons/SConscript',
 			'space_file/SConscript',
 			'space_image/SConscript',
