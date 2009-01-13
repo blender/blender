@@ -38,71 +38,71 @@
 
 /* ****************** types array for all composite nodes ****************** */
 
-bNodeType cmp_node_rlayers;
-bNodeType cmp_node_image;
-bNodeType cmp_node_texture;
-bNodeType cmp_node_value;
-bNodeType cmp_node_rgb;
-bNodeType cmp_node_curve_time;
+extern bNodeType cmp_node_rlayers;
+extern bNodeType cmp_node_image;
+extern bNodeType cmp_node_texture;
+extern bNodeType cmp_node_value;
+extern bNodeType cmp_node_rgb;
+extern bNodeType cmp_node_curve_time;
 
-bNodeType cmp_node_composite;
-bNodeType cmp_node_viewer;
-bNodeType cmp_node_splitviewer;
-bNodeType cmp_node_output_file;
+extern bNodeType cmp_node_composite;
+extern bNodeType cmp_node_viewer;
+extern bNodeType cmp_node_splitviewer;
+extern bNodeType cmp_node_output_file;
 
-bNodeType cmp_node_curve_rgb;
-bNodeType cmp_node_mix_rgb;
-bNodeType cmp_node_hue_sat;
-bNodeType cmp_node_brightcontrast;
-bNodeType cmp_node_gamma;
-bNodeType cmp_node_invert;
-bNodeType cmp_node_alphaover;
-bNodeType cmp_node_zcombine;
+extern bNodeType cmp_node_curve_rgb;
+extern bNodeType cmp_node_mix_rgb;
+extern bNodeType cmp_node_hue_sat;
+extern bNodeType cmp_node_brightcontrast;
+extern bNodeType cmp_node_gamma;
+extern bNodeType cmp_node_invert;
+extern bNodeType cmp_node_alphaover;
+extern bNodeType cmp_node_zcombine;
 
-bNodeType cmp_node_normal;
-bNodeType cmp_node_curve_vec;
-bNodeType cmp_node_map_value;
-bNodeType cmp_node_normalize;
+extern bNodeType cmp_node_normal;
+extern bNodeType cmp_node_curve_vec;
+extern bNodeType cmp_node_map_value;
+extern bNodeType cmp_node_normalize;
 
-bNodeType cmp_node_filter;
-bNodeType cmp_node_blur;
-bNodeType cmp_node_dblur;
-bNodeType cmp_node_bilateralblur;
-bNodeType cmp_node_vecblur;
-bNodeType cmp_node_dilateerode;
-bNodeType cmp_node_defocus;
+extern bNodeType cmp_node_filter;
+extern bNodeType cmp_node_blur;
+extern bNodeType cmp_node_dblur;
+extern bNodeType cmp_node_bilateralblur;
+extern bNodeType cmp_node_vecblur;
+extern bNodeType cmp_node_dilateerode;
+extern bNodeType cmp_node_defocus;
 
-bNodeType cmp_node_valtorgb;
-bNodeType cmp_node_rgbtobw;	
-bNodeType cmp_node_setalpha;
-bNodeType cmp_node_idmask;
-bNodeType cmp_node_math;
-bNodeType cmp_node_seprgba;
-bNodeType cmp_node_combrgba;
-bNodeType cmp_node_sephsva;
-bNodeType cmp_node_combhsva;
-bNodeType cmp_node_sepyuva;
-bNodeType cmp_node_combyuva;
-bNodeType cmp_node_sepycca;
-bNodeType cmp_node_combycca; 
-bNodeType cmp_node_premulkey;
+extern bNodeType cmp_node_valtorgb;
+extern bNodeType cmp_node_rgbtobw;	
+extern bNodeType cmp_node_setalpha;
+extern bNodeType cmp_node_idmask;
+extern bNodeType cmp_node_math;
+extern bNodeType cmp_node_seprgba;
+extern bNodeType cmp_node_combrgba;
+extern bNodeType cmp_node_sephsva;
+extern bNodeType cmp_node_combhsva;
+extern bNodeType cmp_node_sepyuva;
+extern bNodeType cmp_node_combyuva;
+extern bNodeType cmp_node_sepycca;
+extern bNodeType cmp_node_combycca; 
+extern bNodeType cmp_node_premulkey;
 
-bNodeType cmp_node_diff_matte;
-bNodeType cmp_node_chroma;
-bNodeType cmp_node_channel_matte;
-bNodeType cmp_node_color_spill;
-bNodeType cmp_node_luma_matte; 
+extern bNodeType cmp_node_diff_matte;
+extern bNodeType cmp_node_chroma;
+extern bNodeType cmp_node_channel_matte;
+extern bNodeType cmp_node_color_spill;
+extern bNodeType cmp_node_luma_matte; 
 
-bNodeType cmp_node_translate;
-bNodeType cmp_node_rotate;
-bNodeType cmp_node_scale;
-bNodeType cmp_node_flip;
-bNodeType cmp_node_crop;
-bNodeType cmp_node_displace;
-bNodeType cmp_node_mapuv;
+extern bNodeType cmp_node_translate;
+extern bNodeType cmp_node_rotate;
+extern bNodeType cmp_node_scale;
+extern bNodeType cmp_node_flip;
+extern bNodeType cmp_node_crop;
+extern bNodeType cmp_node_displace;
+extern bNodeType cmp_node_mapuv;
 
-bNodeType cmp_node_glare;
-bNodeType cmp_node_tonemap;
-bNodeType cmp_node_lensdist;
+extern bNodeType cmp_node_glare;
+extern bNodeType cmp_node_tonemap;
+extern bNodeType cmp_node_lensdist;
 
 #endif
