@@ -159,6 +159,20 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 /* ******************* editmesh_mods.c */
 
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
+void MESH_OT_select_more(struct wmOperatorType *ot);
+void MESH_OT_select_less(struct wmOperatorType *ot);
+void MESH_OT_selectswap_mesh(struct wmOperatorType *ot);
+void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
+void MESH_OT_selectconnected_mesh_all(struct wmOperatorType *ot);
+void MESH_OT_selectconnected_mesh(struct wmOperatorType *ot);
+void MESH_OT_hide_mesh(struct wmOperatorType *ot);
+void MESH_OT_reveal_mesh(struct wmOperatorType *ot);
+void MESH_OT_righthandfaces(struct wmOperatorType *ot);
+void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
+void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
+
+
+
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(int update);

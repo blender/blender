@@ -65,6 +65,29 @@
 void ED_operatortypes_mesh(void)
 {
 	WM_operatortype_append(MESH_OT_de_select_all);
+
+	WM_operatortype_append(MESH_OT_select_more);
+
+	WM_operatortype_append(MESH_OT_select_less);
+	
+	WM_operatortype_append(MESH_OT_selectswap_mesh);
+	
+	WM_operatortype_append(MESH_OT_select_non_manifold);
+	
+	WM_operatortype_append(MESH_OT_selectconnected_mesh_all);
+	
+	WM_operatortype_append(MESH_OT_selectconnected_mesh);
+	
+	WM_operatortype_append(MESH_OT_hide_mesh);
+	
+	WM_operatortype_append(MESH_OT_reveal_mesh);
+	
+	WM_operatortype_append(MESH_OT_righthandfaces);
+	
+	WM_operatortype_append(MESH_OT_select_linked_flat_faces);
+	
+	WM_operatortype_append(MESH_OT_select_sharp_edges);
+
 }
 
 /* note mesh keymap also for other space? */
@@ -74,6 +97,35 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	
+	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+
+	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_selectswap_mesh", IKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_select_non_manifold", MKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh_all", LKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_selectconnected_mesh", LKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_hide_mesh", HKEY, KM_PRESS, 0, 0);
+	
+	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_hide_mesh", HKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "swap", 1);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_reveal_mesh", HKEY, KM_PRESS, KM_ALT, 0);
+	
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_righthandfaces", NKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "select", 2);
+	
+	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_righthandfaces", NKEY, KM_PRESS, KM_CTRL, 0)->ptr, "select", 1);
+	
+	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_linked_flat_faces", FKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"fsharpness",135.0);
+	
+	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_select_sharp_edges", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"fsharpness",135.0);		
+	
+	
+	
+
 //	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }
 
