@@ -72,6 +72,8 @@ Brush *add_brush(char *name)
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
+	brush_curve_preset(brush, BRUSH_PRESET_SHARP);
+
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
 	brush_toggled_fake_user(brush);
@@ -222,8 +224,7 @@ void brush_toggled_fake_user(Brush *brush)
 	}
 }
 
-
-void sculpt_preset_curve(Brush *b, BrushCurvePreset preset)
+void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 {
 	CurveMap *cm = NULL;
 

@@ -31,7 +31,7 @@
 struct bContext;
 struct wmWindowManager;
 
-void ED_operatortypes_sculpt();
+void ED_operatortypes_sculpt(void);
 void ED_keymap_sculpt(wmWindowManager *wm);
 
 #endif

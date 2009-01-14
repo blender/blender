@@ -50,7 +50,7 @@ struct SculptStroke;
 void sculptmode_selectbrush_menu(void);
 void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
-void sculpt_stroke_draw();
+void sculpt_stroke_draw(struct SculptStroke *);
 void sculpt_radialcontrol_start(int mode);
 
 struct Brush *sculptmode_brush(void);
@@ -63,8 +63,8 @@ void sculpt(SculptData *sd);
 struct SculptStroke *sculpt_stroke_new(const int max);
 void sculpt_stroke_free(struct SculptStroke *);
 void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
-void sculpt_stroke_apply(struct SculptData *sd, struct SculptStroke *, struct BrushAction *);
-void sculpt_stroke_apply_all(struct SculptData *sd, struct SculptStroke *, struct BrushAction *);
+void sculpt_stroke_apply(struct SculptData *sd, struct SculptStroke *);
+void sculpt_stroke_apply_all(struct SculptData *sd, struct SculptStroke *);
 
 /* Partial Mesh Visibility */
 void sculptmode_pmv(int mode);
