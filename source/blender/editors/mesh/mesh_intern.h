@@ -94,6 +94,8 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 
 /* ******************* editmesh_add.c */
+void MESH_OT_add_primitive_plane(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
 
 
 /* ******************* editmesh_lib.c */
@@ -170,8 +172,6 @@ void MESH_OT_reveal_mesh(struct wmOperatorType *ot);
 void MESH_OT_righthandfaces(struct wmOperatorType *ot);
 void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
 void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
-
-
 
 
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);

@@ -1022,7 +1022,7 @@ void load_editMesh(Scene *scene, Object *ob)
 	ClothModifierData *clmd;
 	PTCacheID pid;
 	float *fp, *newkey, *oldkey, nor[3], cacheco[3], cachemat[4][4];
-	int i, a, ototvert, totedge=0, cacheedit= 0;
+	int i, a, ototvert, cacheedit= 0;
 	
 	/* this one also tests of edges are not in faces: */
 	/* eed->f2==0: not in face, f2==1: draw it */
@@ -1031,19 +1031,17 @@ void load_editMesh(Scene *scene, Object *ob)
 	/* eve->f2 : being used in vertexnormals */
 	edge_drawflags(em);
 	
-	eed= em->edges.first;
-	while(eed) {
-		totedge++;
-		eed= eed->next;
-	}
+	G.totvert= BLI_countlist(&em->verts);
+	G.totedge= BLI_countlist(&em->edges);
+	G.totface= BLI_countlist(&em->faces);
 	
 	/* new Vertex block */
 	if(G.totvert==0) mvert= NULL;
 	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
 
 	/* new Edge block */
-	if(totedge==0) medge= NULL;
-	else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
+	if(G.totedge==0) medge= NULL;
+	else medge= MEM_callocN(G.totedge*sizeof(MEdge), "loadeditMesh edge");
 	
 	/* new Face block */
 	if(G.totface==0) mface= NULL;
@@ -1064,7 +1062,7 @@ void load_editMesh(Scene *scene, Object *ob)
 
 	/* add new custom data */
 	me->totvert= G.totvert;
-	me->totedge= totedge;
+	me->totedge= G.totedge;
 	me->totface= G.totface;
 
 	CustomData_copy(&em->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
@@ -2096,21 +2094,24 @@ void EM_init_index_arrays(EditMesh *em, int forVert, int forEdge, int forFace)
 	int i;
 
 	if (forVert) {
-		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*G.totvert, "em_v_arr");
+		int tot= BLI_countlist(&em->verts);
+		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*tot, "em_v_arr");
 
 		for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
 			g_em_vert_array[i] = eve;
 	}
 
 	if (forEdge) {
-		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*G.totedge, "em_e_arr");
+		int tot= BLI_countlist(&em->edges);
+		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*tot, "em_e_arr");
 
 		for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
 			g_em_edge_array[i] = eed;
 	}
 
 	if (forFace) {
-		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*G.totface, "em_f_arr");
+		int tot= BLI_countlist(&em->faces);
+		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*tot, "em_f_arr");
 
 		for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
 			g_em_face_array[i] = efa;

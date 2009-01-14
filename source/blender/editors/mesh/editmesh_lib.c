@@ -1357,7 +1357,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 	short sel=0, del_old= 0, is_face_sel=0;
 	ModifierData *md;
 
-	if(em) return 0;
+	if(em==NULL) return 0;
 
 	md = obedit->modifiers.first;
 

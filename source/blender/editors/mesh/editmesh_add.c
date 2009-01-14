@@ -34,7 +34,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -43,11 +42,13 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
+#include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -57,8 +58,13 @@
 
 #include "BIF_retopo.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_mesh.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
+#include "ED_screen.h"
 
 #include "mesh_intern.h"
 
@@ -70,9 +76,6 @@ static void waitcursor() {}
 static void error() {}
 static int pupmenu() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}
-static int do_clever_numbuts() {return 0;}
-static void check_editmode() {}
-static void exit_editmode() {}
 /* XXX */
 
 static float icovert[12][3] = {
@@ -225,7 +228,7 @@ void add_click_mesh(Scene *scene, Object *obedit, EditMesh *em)
 		eve->f= SELECT;
 	}
 	
-	retopo_do_all();
+	//retopo_do_all();
 	
 	BIF_undo_push("Add vertex/edge/face");
 // XXX	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
@@ -756,37 +759,6 @@ void adduplicate_mesh(Scene *scene, Object *obedit, EditMesh *em)
 //	Transform();
 }
 
-/* check whether an object to add mesh to exists, if not, create one
-* returns 1 if new object created, else 0 */
-static int confirm_objectExists(Scene *scene, Object *obedit, Mesh **me, float mat[][3] )
-{
-	int newob = 0;
-	
-	/* if no obedit: new object and enter editmode */
-	if(obedit==NULL) {
-		/* add_object actually returns an object ! :-)
-		But it also stores the added object struct in
-		scene->basact->object (BASACT->object) */
-
-// XXX		add_object_draw(OB_MESH);
-
-		obedit= BASACT->object;
-		
-		where_is_object(scene, obedit);
-		
-		make_editMesh(scene, obedit); 
-		newob= 1;
-	}
-	*me = obedit->data;
-	
-	/* deselectall */
-	EM_clear_flag_all((*me)->edit_mesh, SELECT);
-	
-	/* imat and center and size */
-	Mat3CpyMat4(mat, obedit->obmat);
-	
-	return newob;
-}
 
 // HACK: these can also be found in cmoview.tga.c, but are here so that they can be found by linker
 // this hack is only used so that scons+mingw + split-sources hack works
@@ -934,29 +906,35 @@ signed char monkeyf[250][4]= {
 	// ------------------------------- end copied code
 
 
-void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot, int seg,
-		int subdiv, float dia, float d, int ext, int fill,
-        float cent[3])
+#define PRIM_PLANE	0
+#define PRIM_CUBE	1
+#define PRIM_CIRCLE	4
+#define PRIM_GRID	10
+
+static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int seg,
+		int subdiv, float dia, float depth, int ext, int fill)
 {
 	/*
 	 * type - for the type of shape
 	 * dia - the radius for cone,sphere cylinder etc.
-	 * d - depth for the cone
-	 * ext - ?
+	 * depth - 
+	 * ext - extrude
 	 * fill - end capping, and option to fill in circle
 	 * cent[3] - center of the data. 
 	 * */
-	
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float phi, phid, vec[3];
 	float q[4], cmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a, b;
+	
+	EM_clear_flag_all(em, SELECT);
 
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
 	switch(type) {
-	case 10: /*  grid */
+	case PRIM_GRID: /*  grid */
 		/* clear flags */
 		eve= em->verts.first;
 		while(eve) {
@@ -967,10 +945,10 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 		phi= 1.0; 
 		phid= 2.0/((float)tot-1);
 		for(a=0;a<tot;a++) {
-			vec[0]= cent[0]+dia*phi;
-			vec[1]= cent[1]- dia;
-			vec[2]= cent[2];
-			Mat3MulVecfl(imat,vec);
+			vec[0]= dia*phi;
+			vec[1]= - dia;
+			vec[2]= 0.0f;
+			Mat4MulVecfl(mat,vec);
 			eve= addvertlist(em, vec, NULL);
 			eve->f= 1+2+4;
 			if (a) {
@@ -981,7 +959,8 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 		/* extrude and translate */
 		vec[0]= vec[2]= 0.0;
 		vec[1]= dia*phid;
-		Mat3MulVecfl(imat, vec);
+		Mat4Mul3Vecfl(mat, vec);
+		
 		for(a=0;a<seg-1;a++) {
 			extrudeflag_vert(obedit, em, 2, nor);	// nor unused
 			translateflag(em, 2, vec);
@@ -1028,8 +1007,7 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & SELECT) {
-				VecAddf(eve->co,eve->co,cent);
-				Mat3MulVecfl(imat,eve->co);
+				Mat4MulVecfl(mat,eve->co);
 			}
 			eve= eve->next;
 		}
@@ -1070,8 +1048,7 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 			eve= em->verts.first;
 			while(eve) {
 				if(eve->f & 2) {
-					VecAddf(eve->co,eve->co,cent);
-					Mat3MulVecfl(imat,eve->co);
+					Mat4MulVecfl(mat,eve->co);
 				}
 				eve= eve->next;
 			}
@@ -1110,26 +1087,25 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 			/* and now do imat */
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->f & SELECT) {
-					VecAddf(eve->co,eve->co,cent);
-					Mat3MulVecfl(imat,eve->co);
+					Mat4MulVecfl(mat,eve->co);
 				}
 			}
 			recalc_editnormals(em);
 		}
 		break;
 	default: /* all types except grid, sphere... */
-		if(ext==0 && type!=7) d= 0;
+		if(ext==0 && type!=7) depth= 0.0f;
 	
 		/* vertices */
 		vtop= vdown= v1= v2= 0;
 		for(b=0; b<=ext; b++) {
 			for(a=0; a<tot; a++) {
 				
-				vec[0]= cent[0]+dia*sin(phi);
-				vec[1]= cent[1]+dia*cos(phi);
-				vec[2]= cent[2]+d;
+				vec[0]= dia*sin(phi);
+				vec[1]= dia*cos(phi);
+				vec[2]= depth;
 				
-				Mat3MulVecfl(imat, vec);
+				Mat4MulVecfl(mat, vec);
 				eve= addvertlist(em, vec, NULL);
 				eve->f= SELECT;
 				if(a==0) {
@@ -1138,20 +1114,20 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 				}
 				phi+=phid;
 			}
-			d= -d;
+			depth= -depth;
 		}
 		/* center vertices */
 		/* type 7, a cone can only have 1 one side filled
 		 * if the cone has no capping, dont add vtop */
 		if((fill && type>1) || type == 7) {
-			VECCOPY(vec,cent);
-			vec[2]-= -d;
-			Mat3MulVecfl(imat,vec);
+			vec[0]= vec[1]= 0.0f;
+			vec[2]-= -depth;
+			Mat4MulVecfl(mat, vec);
 			vdown= addvertlist(em, vec, NULL);
 			if((ext || type==7) && fill) {
-				VECCOPY(vec,cent);
-				vec[2]-= d;
-				Mat3MulVecfl(imat,vec);
+				vec[0]= vec[1]= 0.0f;
+				vec[2]-= depth;
+				Mat4MulVecfl(mat,vec);
 				vtop= addvertlist(em, vec, NULL);
 			}
 		} else {
@@ -1225,6 +1201,7 @@ void make_prim(Object *obedit, EditMesh *em, int type, float imat[3][3], int tot
 		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
 }
 
+#if 0
 void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, int type)
 {
 	Mesh *me;
@@ -1378,7 +1355,7 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, 
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	make_prim(obedit, em, type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
+	make_prim(obedit, type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
 
 	if(type<2) tot = totoud;
 
@@ -1398,4 +1375,101 @@ void add_primitiveMesh(Scene *scene, View3D *v3d, Object *obedit, EditMesh *em, 
 	
 	BIF_undo_push(undostr);
 }
+#endif
 
+/* uses context to figure out transform for primitive */
+/* returns standard diameter */
+static float new_primitive_matrix(bContext *C, float primmat[][4])
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
+	View3D *v3d = NULL;
+	float *curs, mat[3][3], vmat[3][3], cmat[3][3], imat[3][3];
+	
+	Mat4One(primmat);
+	
+	if(sa->spacetype==SPACE_VIEW3D)
+		v3d= sa->spacedata.first;
+	
+	if(v3d)
+		Mat3CpyMat4(vmat, v3d->viewmat);
+	else
+		Mat3One(vmat);
+	
+	/* inverse transform for view and object */
+	Mat3CpyMat4(mat, obedit->obmat);
+	Mat3MulMat3(cmat, vmat, mat);
+	Mat3Inv(imat, cmat);
+	Mat4CpyMat3(primmat, imat);
+
+	/* center */
+	curs= give_cursor(scene, v3d);
+	VECCOPY(primmat[3], curs);
+	Mat3Inv(imat, mat);
+	Mat3MulVecfl(imat, primmat[3]);
+	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
+	
+	if(v3d) return v3d->grid;
+	return 1.0f;
+}
+
+/* ********* add primitive operators ************* */
+
+static int add_primitive_plane_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	/* plane (diameter of 1.41 makes it unit size) */
+	dia*= sqrt(2.0f);
+	
+	make_prim(obedit, PRIM_PLANE, mat, 4, 0, 0, dia, 0.0f, 0, 1);
+	
+	ED_undo_push(C, "Add Plane");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_plane(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Plane";
+	ot->idname= "MESH_OT_add_primitive_plane";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_plane_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int add_primitive_grid_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	/* plane (diameter of 1.41 makes it unit size) */
+	dia*= sqrt(2.0f);
+	
+	make_prim(obedit, PRIM_GRID, mat, 10, 10, 0, dia, 0.0f, 0, 1);
+	
+	ED_undo_push(C, "Add Plane");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_grid(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Grid";
+	ot->idname= "MESH_OT_add_primitive_grid";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_grid_exec;
+	ot->poll= ED_operator_editmesh;
+}
