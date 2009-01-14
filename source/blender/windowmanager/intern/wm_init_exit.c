@@ -166,7 +166,6 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern ListBase editNurb;
 extern ListBase editelems;
 extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
@@ -222,9 +221,6 @@ void WM_exit(bContext *C)
 	free_actcopybuf();
 //	free_vertexpaint();
 //	free_imagepaint();
-	
-	/* editnurb can remain to exist outside editmode */
-	freeNurblist(&editNurb);
 	
 //	fsmenu_free();
 	
