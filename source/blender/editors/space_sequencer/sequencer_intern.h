@@ -37,8 +37,6 @@ struct SpaceSeq;
 struct ARegion;
 struct Scene;
 
-#define SEQ_ZOOM_FAC(szoom) (szoom > 0)? (szoom) : (szoom == 0)? (1.0) : (-1.0/szoom)
-
 /* sequencer_header.c */
 void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 

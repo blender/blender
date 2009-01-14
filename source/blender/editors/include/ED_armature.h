@@ -99,6 +99,9 @@ void clear_armature(struct Scene *scene, struct Object *ob, char mode);
 void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par);
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
 
+void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
+void unique_editbone_name (ListBase *edbo, char *name);
+
 /* poseobject.c */
 void ED_armature_exit_posemode(struct Base *base);
 void ED_armature_enter_posemode(struct Base *base);

@@ -3298,15 +3298,15 @@ static void do_view3d_edit_curve_controlpointsmenu(bContext *C, void *arg, int e
 		clear_tilt();
 		break;
 	case 2: /* Free */
-		sethandlesNurb(3);
+		sethandlesNurb(editnurb, 3);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* vector */
-		sethandlesNurb(2);
+		sethandlesNurb(editnurb, 2);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 4: /* smooth */
-		sethandlesNurb(1);
+		sethandlesNurb(editnurb, 1);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 5: /* make vertex parent */

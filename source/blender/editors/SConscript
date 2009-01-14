@@ -11,7 +11,7 @@ SConscript(['datafiles/SConscript',
 			'mesh/SConscript',
 			'object/SConscript',
 			'curve/SConscript',
-			#'gpencil/SConscript', enable this when there is actually code in gpencil/
+			'gpencil/SConscript',
 			#'physics/SConscript', enable this when there is actually code in physics/
 			#'preview/SConscript', enable this when there is actually code in preview/
 			'space_buttons/SConscript',

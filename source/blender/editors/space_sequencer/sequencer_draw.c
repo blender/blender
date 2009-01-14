@@ -60,6 +60,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_space_api.h"
+#include "ED_sequencer.h"
 #include "ED_types.h"
 
 #include "UI_interface.h"
