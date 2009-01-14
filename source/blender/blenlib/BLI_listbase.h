@@ -46,7 +46,6 @@ int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
-void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], short name_offs, short len);
 
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
