@@ -68,9 +68,6 @@
 
 /* globals */
 
-// XXX
-ListBase editNurb;
-
 /* local */
 int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
 			   short cox, short coy, 
@@ -2315,18 +2312,18 @@ void autocalchandlesNurb(Nurb *nu, int flag)
 	calchandlesNurb(nu);
 }
 
-void autocalchandlesNurb_all(int flag)
+void autocalchandlesNurb_all(ListBase *editnurb, int flag)
 {
 	Nurb *nu;
 	
-	nu= editNurb.first;
+	nu= editnurb->first;
 	while(nu) {
 		autocalchandlesNurb(nu, flag);
 		nu= nu->next;
 	}
 }
 
-void sethandlesNurb(short code)
+void sethandlesNurb(ListBase *editnurb, short code)
 {
 	/* code==1: set autohandle */
 	/* code==2: set vectorhandle */
@@ -2339,7 +2336,7 @@ void sethandlesNurb(short code)
 	short a, ok=0;
 
 	if(code==1 || code==2) {
-		nu= editNurb.first;
+		nu= editnurb->first;
 		while(nu) {
 			if( (nu->type & 7)==1) {
 				bezt= nu->bezt;
@@ -2363,7 +2360,7 @@ void sethandlesNurb(short code)
 	else {
 		/* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
 		
-		nu= editNurb.first;
+		nu= editnurb->first;
 		if (code == 5) {
 			ok = HD_ALIGN;
 		} else if (code == 6) {
@@ -2386,7 +2383,7 @@ void sethandlesNurb(short code)
 			if(ok) ok= HD_FREE;
 			else ok= HD_ALIGN;
 		}
-		nu= editNurb.first;
+		nu= editnurb->first;
 		while(nu) {
 			if( (nu->type & 7)==1) {
 				bezt= nu->bezt;
