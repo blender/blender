@@ -124,13 +124,25 @@ typedef struct BrushActionSymm {
 	float grab_delta[3];
 } BrushActionSymm;
 
+typedef enum StrokeFlags {
+	CLIP_X = 1,
+	CLIP_Y = 2,
+	CLIP_Z = 4
+} StrokeFlags;
+
 /* Cache stroke properties that don't change after
    the initialization at the start of a stroke. Used because
-   RNA property lookup isn't particularly fast. */
+   RNA property lookup isn't particularly fast.
+
+   For descriptions of these settings, check the operator properties.
+*/
 typedef struct StrokeCache {
 	float radius;
 	float scale[3];
 	float flip;
+	int flag;
+	float clip_tolerance[3];
+	int mouse[2];
 } StrokeCache;
 
 typedef struct BrushAction {
@@ -142,15 +154,10 @@ typedef struct BrushAction {
  	vec3f *mesh_store;
 	short (*orig_norms)[3];
 
-	short mouse[2];
-
 	float prev_radius;
 	float radius;
 
 	float *layer_disps;
-
-	char clip[3];
-	float cliptol[3];
 
 	float anchored_rot;
 
@@ -371,28 +378,28 @@ float brush_strength(SculptData *sd, StrokeCache *cache, BrushAction *a)
 	switch(sd->brush->sculpt_tool){
 	case SCULPT_TOOL_DRAW:
 	case SCULPT_TOOL_LAYER:
-		return sd->brush->alpha / 5000.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
+		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
 	case SCULPT_TOOL_SMOOTH:
-		return sd->brush->alpha / 50.0f * pressure * anchored;
+		return sd->brush->alpha / .5f * pressure * anchored;
 	case SCULPT_TOOL_PINCH:
-		return sd->brush->alpha / 1000.0f * dir * pressure * flip * anchored;
+		return sd->brush->alpha / 10.0f * dir * pressure * flip * anchored;
 	case SCULPT_TOOL_GRAB:
 		return 1;
 	case SCULPT_TOOL_INFLATE:
-		return sd->brush->alpha / 5000.0f * dir * pressure * flip * anchored;
+		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored;
 	case SCULPT_TOOL_FLATTEN:
-		return sd->brush->alpha / 500.0f * pressure * anchored;
+		return sd->brush->alpha / 5.0f * pressure * anchored;
 	default:
 		return 0;
 	}
 }
 
 /* For clipping against a mirror modifier */
-void sculpt_clip(const BrushAction *a, float *co, const float val[3])
+void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
 {
 	char i;
 	for(i=0; i<3; ++i) {
-		if(a->clip[i] && (fabs(co[i]) <= a->cliptol[i]))
+		if((cache->flag & (CLIP_X << i)) && (fabs(co[i]) <= cache->clip_tolerance[i]))
 			co[i]= 0.0f;
 		else
 			co[i]= val[i];
@@ -482,7 +489,7 @@ void do_draw_brush(SculptData *sd, SculptSession *ss, const BrushAction *a, cons
 		                     co[1]+area_normal[1]*node->Fade*ss->cache->scale[1],
 		                     co[2]+area_normal[2]*node->Fade*ss->cache->scale[2]};
 		                     
-		sculpt_clip(a, co, val);
+		sculpt_clip(ss->cache, co, val);
 		
 		node= node->next;
 	}
@@ -546,7 +553,7 @@ void do_smooth_brush(SculptSession *ss, const BrushAction *a, const ListBase* ac
 		const float val[3]= {co[0]+(avg.x-co[0])*node->Fade,
 		                     co[1]+(avg.y-co[1])*node->Fade,
 		                     co[2]+(avg.z-co[2])*node->Fade};
-		sculpt_clip(a, co, val);
+		sculpt_clip(ss->cache, co, val);
 		node= node->next;
 	}
 }
@@ -560,7 +567,7 @@ void do_pinch_brush(SculptSession *ss, const BrushAction *a, const ListBase* act
 		const float val[3]= {co[0]+(a->symm.center_3d[0]-co[0])*node->Fade,
 		                     co[1]+(a->symm.center_3d[1]-co[1])*node->Fade,
 		                     co[2]+(a->symm.center_3d[2]-co[2])*node->Fade};
-		sculpt_clip(a, co, val);
+		sculpt_clip(ss->cache, co, val);
 		node= node->next;
 	}
 }
@@ -580,7 +587,7 @@ void do_grab_brush(SculptData *sd, SculptSession *ss, BrushAction *a)
 		VecCopyf(add, grab_delta);
 		VecMulf(add, node->Fade);
 		VecAddf(add, add, co);
-		sculpt_clip(a, co, add);
+		sculpt_clip(ss->cache, co, add);
 
 		node= node->next;
 	}
@@ -616,7 +623,7 @@ void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, const Lis
 				const float val[3]= {a->mesh_store[node->Index].x+area_normal[0] * *disp*ss->cache->scale[0],
 				                     a->mesh_store[node->Index].y+area_normal[1] * *disp*ss->cache->scale[1],
 				                     a->mesh_store[node->Index].z+area_normal[2] * *disp*ss->cache->scale[2]};
-				sculpt_clip(a, co, val);
+				sculpt_clip(ss->cache, co, val);
 			}
 		}
 
@@ -642,7 +649,7 @@ void do_inflate_brush(SculptSession *ss, const BrushAction *a, const ListBase *a
 		add[2]*= ss->cache->scale[2];
 		VecAddf(add, add, co);
 		
-		sculpt_clip(a, co, add);
+		sculpt_clip(ss->cache, co, add);
 
 		node= node->next;
 	}
@@ -697,7 +704,7 @@ void do_flatten_brush(SculptData *sd, SculptSession *ss, const BrushAction *a, c
 		VecMulf(val, node->Fade);
 		VecAddf(val, val, co);
 		
-		sculpt_clip(a, co, val);
+		sculpt_clip(ss->cache, co, val);
 		
 		node= node->next;
 	}
@@ -846,8 +853,8 @@ float tex_strength(SculptData *sd, BrushAction *a, float *point, const float len
 				py %= sy-1;
 			avg= get_texcache_pixel_bilinear(ss, TC_SIZE*px/sx, TC_SIZE*py/sy);
 		} else {
-			float fx= (point_2d[0] - a->mouse[0]) / bsize;
-			float fy= (point_2d[1] - a->mouse[1]) / bsize;
+			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
+			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float flen= sqrtf(fx*fx + fy*fy);
@@ -1195,8 +1202,8 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 	   modelspace coords */
 	if(a->firsttime || !anchored) {
  		unproject(ss, a->symm.center_3d, mouse[0], mouse[1], mouse_depth);
- 		a->mouse[0] = mouse[0];
- 		a->mouse[1] = mouse[1];
+ 		/*a->mouse[0] = mouse[0];
+		  a->mouse[1] = mouse[1];*/
  	}
  
  	if(anchored) {
@@ -1237,22 +1244,7 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 	Normalize(a->symm.right);
 	Normalize(a->symm.out);
 	
-	/* Initialize mirror modifier clipping */
-	for(i=0; i<3; ++i) {
-		a->clip[i]= 0;
-		a->cliptol[i]= 0;
-	}
-	for(md= ob->modifiers.first; md; md= md->next) {
-		if(md->type==eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
-			const MirrorModifierData *mmd = (MirrorModifierData*) md;
-			
-			if(mmd->flag & MOD_MIR_CLIPPING) {
-				a->clip[mmd->axis]= 1;
-				if(mmd->tolerance > a->cliptol[mmd->axis])
-					a->cliptol[mmd->axis] = mmd->tolerance;
-			}
-		}
-	}
+
 
 	if(b->sculpt_tool == SCULPT_TOOL_GRAB) {
 		float gcenter[3];
@@ -1644,10 +1636,16 @@ static int sculpt_load_mats(bContext *C, bglMats *mats)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static int sculpt_update_cache_invariants(StrokeCache *cache, wmOperator *op)
+static int sculpt_update_cache_invariants(StrokeCache *cache, wmOperator *op, Object *ob)
 {
+
+	memset(cache, 0, sizeof(StrokeCache));
+
 	cache->radius = RNA_float_get(op->ptr, "radius");
 	RNA_float_get_array(op->ptr, "scale", cache->scale);
+	cache->flag = RNA_int_get(op->ptr, "flag");
+	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
+	RNA_int_get_array(op->ptr, "mouse", cache->mouse);
 }
 
 /* Initialize the stroke cache variants from operator properties */
@@ -1661,10 +1659,12 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event,
 {
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	Object *ob= CTX_data_active_object(C);
+	ModifierData *md;
 	float brush_center[3], brush_edge[3];
 	float depth = get_depth(C, event->x, event->y);
 	float size = brush_size(sd, sd->brush);
-	float scale[3];
+	float scale[3], clip_tolerance[3] = {0,0,0};
+	int mouse[2], flag = 0;
 
 	unproject(ss, brush_center, event->x, event->y, depth);
 	unproject(ss, brush_edge, event->x + size, event->y, depth);
@@ -1672,13 +1672,32 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event,
 	RNA_float_set(op->ptr, "radius", VecLenf(brush_center, brush_edge));
 
 	/* Set scaling adjustment */
-	
 	scale[0] = 1.0f / ob->size[0];
 	scale[1] = 1.0f / ob->size[1];
 	scale[2] = 1.0f / ob->size[2];
 	RNA_float_set_array(op->ptr, "scale", scale);
 
-	sculpt_update_cache_invariants(ss->cache, op);
+	/* Initialize mirror modifier clipping */
+	for(md= ob->modifiers.first; md; md= md->next) {
+		if(md->type==eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
+			const MirrorModifierData *mmd = (MirrorModifierData*) md;
+			
+			/* Mark each axis that needs clipping along with its tolerance */
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				flag |= CLIP_X << mmd->axis;
+				if(mmd->tolerance > clip_tolerance[mmd->axis])
+					clip_tolerance[mmd->axis] = mmd->tolerance;
+			}
+		}
+	}
+	RNA_int_set(op->ptr, "flag", flag);
+	RNA_float_set_array(op->ptr, "clip_tolerance", clip_tolerance);
+
+	mouse[0] = event->x;
+	mouse[1] = event->y;
+	RNA_int_set_array(op->ptr, "mouse", mouse);
+
+	sculpt_update_cache_invariants(ss->cache, op, ob);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1687,12 +1706,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	Object *ob= CTX_data_active_object(C);
 	Mesh *me = get_mesh(ob);
 	ARegion *ar = CTX_wm_region(C);
-
-	// XXX: temporary, just add one brush here for testing
-	sd->brush = MEM_callocN(sizeof(Brush), "test sculpt brush");
-	sd->brush->size = 25;
-	sd->brush->alpha = 50;
-	sd->brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
 	// XXX: temporary, much of sculptsession data should be in rna properties
 	sd->session = MEM_callocN(sizeof(SculptSession), "test sculpt session");
@@ -1763,7 +1776,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
-	sculpt_update_cache_invariants(sd->session->cache, op);
+	sculpt_update_cache_invariants(sd->session->cache, op, ob);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		float loc[3];
@@ -1786,7 +1799,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	float vecdefault[] = {0,0,0};
+	float vec3f_def[] = {0,0,0};
+	int vec2i_def[] = {0,0};
 
 	ot->flag |= OPTYPE_REGISTER;
 
@@ -1811,7 +1825,18 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	   to work as expected. */
 	prop= RNA_def_property(ot->srna, "scale", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, vecdefault);
+	RNA_def_property_float_array_default(prop, vec3f_def);
+
+	prop= RNA_def_property(ot->srna, "flag", PROP_INT, PROP_NONE);
+
+	prop= RNA_def_property(ot->srna, "clip_tolerance", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, vec3f_def);
+
+	/* The initial 2D location of the mouse */
+	prop= RNA_def_property(ot->srna, "mouse", PROP_INT, PROP_VECTOR);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_int_array_default(prop, vec2i_def);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -1826,6 +1851,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
+
+		/* Needed for testing, if there's no brush then create one */
+		CTX_data_scene(C)->sculptdata.brush = add_brush("test brush");
 	}
 
 	return OPERATOR_FINISHED;

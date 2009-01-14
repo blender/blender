@@ -70,6 +70,7 @@ Brush *add_brush(char *name)
 	brush->rate= 0.1f;
 	brush->innerradius= 0.5f;
 	brush->clone.alpha= 0.5;
+	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
