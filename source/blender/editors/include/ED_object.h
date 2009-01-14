@@ -69,9 +69,17 @@ void add_constraint_to_object (struct bConstraint *con, struct Object *ob);
 /* editlattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);
 
-/* keys */
+/* editkey.c */
 void insert_shapekey(struct Scene *scene, struct Object *ob);
 void delete_key(struct Scene *scene, struct Object *ob);
+void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
+void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
+void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
+void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
+void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
+void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
+
+
 
 #endif /* ED_OBJECT_H */
 

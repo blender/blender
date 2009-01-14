@@ -108,7 +108,6 @@
 
 #include "transform.h"
 
-extern ListBase editNurb;
 extern ListBase editelems;
 
 extern TransInfo Trans;	/* From transform.c */
@@ -424,7 +423,9 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->obedit) {
 		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
-			Nurb *nu= editNurb.first;
+			Curve *cu= t->obedit->data;
+			Nurb *nu= cu->editnurb->first;
+			
 			DAG_object_flush_update(G.scene, t->obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
 			if (t->state == TRANS_CANCEL) {

@@ -147,7 +147,6 @@
 //
 //#include "mydevice.h"
 
-extern ListBase editNurb;
 extern ListBase editelems;
 
 #include "transform.h"
@@ -1345,6 +1344,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 {
 	// TRANSFORM_FIX_ME
 #if 0
+	Object *obedit= CTX_data_edit_object(C);
+	Curve *cu= obedit->data;
 	TransData *td = NULL;
   	Nurb *nu;
 	BezTriple *bezt;
@@ -1354,8 +1355,11 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
+	/* to be sure */
+	if(cu->editnurb==NULL) return;
+	
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= cu->editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
@@ -1391,7 +1395,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Mat3Inv(smtx, mtx);
 	
     td = t->data;
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= cu->editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			TransData *head, *tail;
 			head = tail = td;

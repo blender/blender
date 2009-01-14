@@ -112,6 +112,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -526,15 +527,15 @@ static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 	}
 }
 
-static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
+static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, float *cent)
 {
-	extern ListBase editNurb;
+	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
 	int *index, a, nr, totvert=0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -561,7 +562,7 @@ static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -643,7 +644,7 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		}
 		case OB_CURVE:
 		case OB_SURF:
-			return return_editcurve_indexar(tot, indexar, cent_r);
+			return return_editcurve_indexar(obedit, tot, indexar, cent_r);
 		case OB_LATTICE:
 		{
 			Lattice *lt= obedit->data;
@@ -654,15 +655,15 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 	}
 }
 
-static void select_editcurve_hook(HookModifierData *hmd)
+static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
-	extern ListBase editNurb;
+	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
 	int index=0, a, nr=0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -706,8 +707,8 @@ void obedit_hook_select(Object *ob, HookModifierData *hmd)
 	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
-	else if(ob->type==OB_CURVE) select_editcurve_hook(hmd);
-	else if(ob->type==OB_SURF) select_editcurve_hook(hmd);
+	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
+	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
 }
 
 
@@ -1780,8 +1781,9 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 		}
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
-		extern ListBase editNurb;
-		nu= editNurb.first;
+		ListBase *editnurb= curve_get_editcurve(obedit);
+
+		nu= editnurb->first;
 		while(nu) {
 			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
@@ -2487,10 +2489,11 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 			}
 			else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
 				
-				/* totally weak code here... (ton) */
+				/* weak code here... (ton) */
 				if(obedit==base->object) {
-					extern ListBase editNurb;
-					nu1= editNurb.first;
+					ListBase *editnurb= curve_get_editcurve(obedit);
+
+					nu1= editnurb->first;
 					cu= obedit->data;
 				}
 				else {
@@ -2688,9 +2691,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			ED_armature_edit_free(obedit);
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-//		extern ListBase editNurb;
-//		load_editNurb();
-//		if(freedata) freeNurblist(&editNurb);
+		load_editNurb(obedit);
+		if(freedata) free_editNurb(obedit);
 	}
 	else if(obedit->type==OB_FONT && freedata) {
 //		load_editText();
@@ -2805,9 +2807,9 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, ob);
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
-//		ok= 1;
+		ok= 1;
 		scene->obedit= ob; // XXX for context
-// XXX		make_editNurb();
+		make_editNurb(ob);
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, ob);
 	}

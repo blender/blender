@@ -75,6 +75,7 @@
 #include "RNA_define.h"
 
 #include "ED_armature.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -1543,6 +1544,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_armature(C, mval, extend);
 		else if(obedit->type==OB_LATTICE)
 			mouse_lattice(C, mval, extend);
+		else if(ELEM(obedit->type, OB_CURVE, OB_SURF))
+			mouse_nurb(C, mval, extend);
 			
 	}
 	else 

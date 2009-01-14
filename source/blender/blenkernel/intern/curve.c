@@ -101,6 +101,12 @@ void free_curve(Curve *cu)
 	BLI_freelistN(&cu->bev);
 	freedisplist(&cu->disp);
 	
+	if(cu->editnurb) {
+		freeNurblist(cu->editnurb);
+		MEM_freeN(cu->editnurb);
+		cu->editnurb= NULL;
+	}
+
 	unlink_curve(cu);
 	
 	if(cu->mat) MEM_freeN(cu->mat);

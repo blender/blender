@@ -3426,7 +3426,7 @@ static void do_view3d_edit_curvemenu(bContext *C, void *arg, int event)
 	switch(event) {
 	
 	case 0: /* Undo Editing */
-		remake_editNurb();
+		remake_editNurb(ob);
 		break;
 	case 1: /* transformation properties */
 // XXX		mainqenter(NKEY, 1);

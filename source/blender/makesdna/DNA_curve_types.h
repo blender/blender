@@ -165,7 +165,11 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	short resolu_ren, resolv_ren;
-	int pad2;
+	
+	/* edit, index in nurb list */
+	int actnu;
+	/* edit, last selected bpoint */
+	BPoint *lastselbp;
 	
 	/* font part */
 	short len, lines, pos, spacemode;
@@ -189,7 +193,7 @@ typedef struct Curve {
 	int selstart, selend;	
 	
 	struct CharInfo *strinfo;	
-	struct CharInfo curinfo;	
+	struct CharInfo curinfo;
 } Curve;
 
 /* **************** CURVE ********************* */

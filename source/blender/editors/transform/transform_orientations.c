@@ -599,14 +599,14 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 				}
 			}
 		} /* end editmesh */
-		else if ELEM3(obedit->type, OB_CURVE, OB_SURF, OB_FONT)
+		else if ELEM(obedit->type, OB_CURVE, OB_SURF)
 		{
-			extern ListBase editNurb; /* BOOO! go away stupid extern */
+			Curve *cu= obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
 			
-			for (nu = editNurb.first; nu; nu = nu->next)
+			for (nu = cu->editnurb->first; nu; nu = nu->next)
 			{
 				/* only bezier has a normal */
 				if((nu->type & 7) == CU_BEZIER)

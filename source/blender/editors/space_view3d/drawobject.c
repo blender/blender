@@ -114,8 +114,6 @@
 
 
 /* pretty stupid */
-/* editcurve.c */
-extern ListBase editNurb;
 /* editmball.c */
 extern ListBase editelems;
 
@@ -1301,6 +1299,7 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 
 void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
+	Curve *cu= vc->obedit->data;
 	float pmat[4][4], vmat[4][4];
 	short s[2];
 	Nurb *nu;
@@ -1308,7 +1307,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 
 	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);
 
-	for (nu= editNurb.first; nu; nu=nu->next) {
+	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
