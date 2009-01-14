@@ -10,7 +10,7 @@ SConscript(['datafiles/SConscript',
 			'armature/SConscript',
 			'mesh/SConscript',
 			'object/SConscript',
-			#'curve/SConscript', enable this when there is actually code in curve/
+			'curve/SConscript',
 			#'gpencil/SConscript', enable this when there is actually code in gpencil/
 			#'physics/SConscript', enable this when there is actually code in physics/
 			#'preview/SConscript', enable this when there is actually code in preview/
