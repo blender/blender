@@ -74,10 +74,10 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	
 
 ///???
-#ifdef WIN32
+/*#ifdef WIN32
 	if (GetRigidBody() && !GetRigidBody()->isStaticObject())
 		GetRigidBody()->setLinearVelocity(startVel);
-#endif
+#endif*/
 
 }
 

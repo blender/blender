@@ -1129,7 +1129,7 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 	if (m_pPhysicsController1)
 	{
 		if (attr == "mass")
-			return PyFloat_FromDouble(GetPhysicsController()->GetMass());
+			return PyFloat_FromDouble(m_pPhysicsController1->GetMass());
 	}
 
 	if (attr == "parent")
@@ -1171,10 +1171,6 @@ PyObject* KX_GameObject::_getattr(const STR_String& attr)
 
 int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr method
 {
-	if (attr == "mass") {
-		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only");
-		return 1;
-	}
 	
 	if (attr == "parent") {
 		PyErr_SetString(PyExc_AttributeError, "attribute \"mass\" is read only\nUse setParent()");
@@ -1202,6 +1198,11 @@ int KX_GameObject::_setattr(const STR_String& attr, PyObject *value)	// _setattr
 			} else {
 				return 0;
 			}		
+		}
+		if (attr == "mass") {
+			if (m_pPhysicsController1)
+				m_pPhysicsController1->SetMass(val);
+			return 0;
 		}
 	}
 	

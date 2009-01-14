@@ -303,6 +303,25 @@ void    KX_BulletPhysicsController::RemoveCompoundChild(KX_IPhysicsController* c
 	GetPhysicsEnvironment()->enableCcdPhysicsController(childCtrl);
 }
 
+void KX_BulletPhysicsController::SetMass(MT_Scalar newmass)
+{
+	btRigidBody *body = GetRigidBody();
+	if (body && body->getActivationState() != DISABLE_SIMULATION && 
+		newmass>MT_EPSILON && GetMass()>MT_EPSILON)
+	{
+		btVector3 grav = body->getGravity();
+		btVector3 accel = grav / GetMass();
+		
+		btBroadphaseProxy* handle = body->getBroadphaseHandle();
+		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
+			newmass,
+			body->getCollisionFlags(),
+			handle->m_collisionFilterGroup, 
+			handle->m_collisionFilterMask);
+		body->setGravity(accel);
+	}
+}
+
 void	KX_BulletPhysicsController::SuspendDynamics(bool ghost)
 {
 	btRigidBody *body = GetRigidBody();
@@ -333,7 +352,7 @@ void	KX_BulletPhysicsController::RestoreDynamics()
 			m_savedCollisionFlags,
 			m_savedCollisionFilterGroup,
 			m_savedCollisionFilterMask);
-		GetRigidBody()->forceActivationState(m_savedActivationState);
+		body->forceActivationState(m_savedActivationState);
 	}
 }
 

@@ -133,10 +133,12 @@ KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
 
 KX_SCA_DynamicActuator::KX_SCA_DynamicActuator(SCA_IObject *gameobj,
 													   short dyn_operation,
+													   float setmass,
 													   PyTypeObject* T) : 
 
 	SCA_IActuator(gameobj, T),
-	m_dyn_operation(dyn_operation)
+	m_dyn_operation(dyn_operation),
+	m_setmass(setmass)
 {
 } /* End of constructor */
 
@@ -178,6 +180,9 @@ bool KX_SCA_DynamicActuator::Update()
 			break;
 		case 3:
 			controller->setRigidBody(false);
+			break;
+		case 4:
+			controller->SetMass(m_setmass);
 			break;
 	}
 
