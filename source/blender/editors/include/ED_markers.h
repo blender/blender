@@ -39,11 +39,13 @@ struct wmWindowManager;
 struct bContext;
 
 void draw_markers_time(const struct bContext *C, int flag);
+int find_nearest_marker_time(ListBase *markers, float dx);
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
 void ED_marker_operatortypes(void); 
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_marker_keymap(struct wmWindowManager *wm);
+
 
 #endif /* ED_MARKERS_H */
 

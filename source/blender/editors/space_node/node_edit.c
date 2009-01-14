@@ -2751,9 +2751,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 static int node_delete_selection_exec(bContext *C, wmOperator *op)
 {
-	wmWindow *window=  CTX_wm_window(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
+	
 	node_delete(snode);
 	ED_region_tag_redraw(ar);
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
@@ -2765,7 +2765,6 @@ static int node_delete_selection_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_delete_selection(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Delete";

@@ -135,8 +135,8 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static float value[4] = {0, 0, 0};
-	static float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
+	static const float value[4] = {0, 0, 0};
+	static const float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 	
 	/* identifiers */
 	ot->name   = "Transform";
@@ -162,7 +162,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 
 	prop = RNA_def_property(ot->srna, "constraint_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_array(prop, 9);
-	RNA_def_property_float_array_default(prop, mtx);
+	RNA_def_property_float_array_default(prop, mtx[0]);
 }
 
 void transform_operatortypes(void)

@@ -39,11 +39,12 @@
 
 #include "BIF_gl.h"
 
-#include "ED_screen.h"
-#include "ED_object.h"
-#include "ED_mesh.h"
-#include "ED_space_api.h"
 #include "ED_anim_api.h"
+#include "ED_mesh.h"
+#include "ED_object.h"
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_sculpt.h"
 
 
 ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)

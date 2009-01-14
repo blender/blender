@@ -126,7 +126,7 @@ static uiBlock *node_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 void do_node_addmenu(bContext *C, void *arg, int event)
 {
 	// XXX enable
-	ScrArea *curarea= CTX_wm_area(C);
+	// ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	bNode *node;
 	//float locx, locy;

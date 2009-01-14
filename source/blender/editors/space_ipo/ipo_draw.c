@@ -662,7 +662,7 @@ void drawipospace(ScrArea *sa, ARegion *ar)
 {
 	SpaceIpo *sipo= sa->spacedata.first;
 	//View2D *v2d= &ar->v2d;
-	EditIpo *ei;
+	//	EditIpo *ei;
 
 	
 	if(sipo->editipo) {

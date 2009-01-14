@@ -106,7 +106,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
-	wmWindow *window=  CTX_wm_window(C);
+	// XXX wmWindow *window=  CTX_wm_window(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;

@@ -567,7 +567,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-static int find_nearest_marker_time(ListBase *markers, float dx)
+int find_nearest_marker_time(ListBase *markers, float dx)
 {
 	TimeMarker *marker, *nearest= NULL;
 	float dist, min_dist= 1000000;

@@ -58,9 +58,10 @@
 #include "PIL_time.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
 #include "ED_keyframes_draw.h"
-#include "ED_gpencil.h"
+#include "ED_markers.h"
 #include "ED_util.h"
 #include "ED_types.h"
 
@@ -71,7 +72,6 @@ static void actdata_filter() {}
 static void BIF_undo_push() {}
 static void error() {}
 static void *get_action_context() {return NULL;}
-static int find_nearest_marker_time() {return 1;}
 /* XXX */
 
 
@@ -600,7 +600,7 @@ static short snap_gpf_cframe (bGPDframe *gpf, Scene *scene)
 static short snap_gpf_nearmarker (bGPDframe *gpf, Scene *scene)
 {
 	if (gpf->flag & GP_FRAME_SELECT)
-		gpf->framenum= (int)find_nearest_marker_time((float)gpf->framenum);
+		gpf->framenum= (int)find_nearest_marker_time(&scene->markers, (float)gpf->framenum);
 	return 0;
 }
 
