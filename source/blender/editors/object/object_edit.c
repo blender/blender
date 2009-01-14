@@ -1620,8 +1620,7 @@ static EnumPropertyItem prop_set_restrictview_types[] = {
 static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
-	short changed = 0, changed_act = 0;
+	short changed = 0;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
@@ -1631,8 +1630,7 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
 				if (base==BASACT) {
-					BASACT= NULL;
-					changed_act = 1;
+					ED_base_object_activate(C, NULL);
 				}
 			}
 		}
@@ -1652,9 +1650,6 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 		
-		if (changed_act) { /* these spaces depend on the active object */
-			WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
-		}
 	}
 
 	return OPERATOR_FINISHED;

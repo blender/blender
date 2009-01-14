@@ -5327,8 +5327,8 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Base *basact= scene->basact;
-	Object *ob= basact->object;
+	Base *basact= CTX_data_active_base(C);
+	Object *ob= CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl=0, shift=0; // XXX shift arg?
