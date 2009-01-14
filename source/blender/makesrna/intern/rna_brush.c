@@ -137,11 +137,26 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spacing_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACING_PRESSURE);
 	RNA_def_property_ui_text(prop, "Spacing Pressure", "Enable tablet pressure sensitivity for spacing.");
+
+	prop= RNA_def_property(srna, "rake", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
+	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction.");
+
+	prop= RNA_def_property(srna, "anchored", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
+	RNA_def_property_ui_text(prop, "Anchored", "Keep the brush anchored to the initial location.");
+
+	prop= RNA_def_property(srna, "flip_direction", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_DIR_IN);
+	RNA_def_property_ui_text(prop, "Flip Direction", "Move vertices in the opposite direction.");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
 	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position.");*/
+
+	prop= RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */
 	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "TextureSlot");
