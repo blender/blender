@@ -77,9 +77,6 @@ static void BIF_undo_push() {}
 static void error() {}
 /* XXX */
 
-extern ListBase editNurb; /* in editcurve.c */
-
-
 static void default_key_ipo(Scene *scene, Key *key)
 {
 	IpoCurve *icu;
@@ -387,7 +384,7 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 	
 	kb= add_keyblock(scene, key);
 	
-	if(editNurb.first) curve_to_key(cu, kb, &editNurb);
+	if(cu->editnurb->first) curve_to_key(cu, kb, cu->editnurb);
 	else curve_to_key(cu, kb, &cu->nurb);
 }
 
