@@ -196,6 +196,9 @@ IF(UNIX)
 
   SET(PLATFORM_LINKFLAGS "-pthread")
 
+  # Better warnings
+  SET(C_WARNINGS "-Wall -Wno-char-subscripts -W -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual -Wcast-align -Waggregate-return -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wnested-externs -Wredundant-decls")
+
   INCLUDE_DIRECTORIES(/usr/include /usr/local/include)
 ENDIF(UNIX)
 
@@ -453,7 +456,7 @@ ENDIF(WITH_GAMEENGINE)
 IF(WITH_BULLET)
   SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DWITH_BULLET ")
 ENDIF(WITH_BULLET)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 
 #-----------------------------------------------------------------------------
