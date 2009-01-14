@@ -129,6 +129,8 @@ typedef struct BrushActionSymm {
    RNA property lookup isn't particularly fast. */
 typedef struct StrokeCache {
 	float radius;
+	float scale[3];
+	float flip;
 } StrokeCache;
 
 typedef struct BrushAction {
@@ -146,7 +148,6 @@ typedef struct BrushAction {
 	float radius;
 
 	float *layer_disps;
-	char flip;
 
 	char clip[3];
 	float cliptol[3];
@@ -156,10 +157,6 @@ typedef struct BrushAction {
 	/* Grab brush */
 	ListBase grab_active_verts[8];
 	float depth;
-
-	/* Adjust brush strength along each axis
-	   to adjust for object scaling */
-	float scale[3];
 } BrushAction;
 
 typedef struct RectNode {
@@ -350,12 +347,12 @@ char brush_size(SculptData *sd, Brush *b)
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
    special multiplier found experimentally to scale the strength factor. */
-float brush_strength(SculptData *sd, BrushAction *a)
+float brush_strength(SculptData *sd, StrokeCache *cache, BrushAction *a)
 {
 	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
 	short activedevice= 0;/*XXX: get_activedevice(); */
-	float flip= a->flip ? -1:1;
+	float flip= cache->flip ? -1:1;
 	float anchored = sd->brush->flag & BRUSH_ANCHORED ? 25 : 1;
 
 	const float strength_factor= sd->tablet_strength / 10.0f;
@@ -481,9 +478,9 @@ void do_draw_brush(SculptData *sd, SculptSession *ss, const BrushAction *a, cons
 	while(node){
 		float *co= ss->mvert[node->Index].co;
 		
-		const float val[3]= {co[0]+area_normal[0]*node->Fade*a->scale[0],
-		                     co[1]+area_normal[1]*node->Fade*a->scale[1],
-		                     co[2]+area_normal[2]*node->Fade*a->scale[2]};
+		const float val[3]= {co[0]+area_normal[0]*node->Fade*ss->cache->scale[0],
+		                     co[1]+area_normal[1]*node->Fade*ss->cache->scale[1],
+		                     co[2]+area_normal[2]*node->Fade*ss->cache->scale[2]};
 		                     
 		sculpt_clip(a, co, val);
 		
@@ -594,7 +591,7 @@ void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, const Lis
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
-	const float bstr= brush_strength(sd, a);
+	const float bstr= brush_strength(sd, ss->cache, a);
 
 	calc_area_normal(sd, area_normal, a, NULL, active_verts);
 
@@ -616,9 +613,9 @@ void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, const Lis
 			}
 
 			{
-				const float val[3]= {a->mesh_store[node->Index].x+area_normal[0] * *disp*a->scale[0],
-				                     a->mesh_store[node->Index].y+area_normal[1] * *disp*a->scale[1],
-				                     a->mesh_store[node->Index].z+area_normal[2] * *disp*a->scale[2]};
+				const float val[3]= {a->mesh_store[node->Index].x+area_normal[0] * *disp*ss->cache->scale[0],
+				                     a->mesh_store[node->Index].y+area_normal[1] * *disp*ss->cache->scale[1],
+				                     a->mesh_store[node->Index].z+area_normal[2] * *disp*ss->cache->scale[2]};
 				sculpt_clip(a, co, val);
 			}
 		}
@@ -640,9 +637,9 @@ void do_inflate_brush(SculptSession *ss, const BrushAction *a, const ListBase *a
 		add[1]= no[1]/ 32767.0f;
 		add[2]= no[2]/ 32767.0f;
 		VecMulf(add, node->Fade);
-		add[0]*= a->scale[0];
-		add[1]*= a->scale[1];
-		add[2]*= a->scale[2];
+		add[0]*= ss->cache->scale[0];
+		add[1]*= ss->cache->scale[1];
+		add[2]*= ss->cache->scale[2];
 		VecAddf(add, add, co);
 		
 		sculpt_clip(a, co, add);
@@ -938,7 +935,7 @@ void do_brush_action(SculptData *sd, StrokeCache *cache, BrushAction *a)
 	ActiveData *adata= 0;
 	float *vert;
 	Mesh *me= NULL; /*XXX: get_mesh(OBACT); */
-	const float bstrength= brush_strength(sd, a);
+	const float bstrength= brush_strength(sd, cache, a);
 	KeyBlock *keyblock= NULL; /*XXX: ob_get_keyblock(OBACT); */
 	SculptSession *ss = sd->session;
 	Brush *b = sd->brush;
@@ -1185,12 +1182,10 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 	float brush_edge_loc[3], zero_loc[3], oldloc[3];
 	ModifierData *md;
 	int i;
-	const char flip = 0; /*XXX: (get_qual() == LR_SHIFTKEY); */
  	const int anchored = sd->brush->flag & BRUSH_ANCHORED;
  	short orig_mouse[2], dx=0, dy=0;
 	float size = brush_size(sd, b);
 
-	a->flip = flip;
 	a->symm.index = 0;
 
 	if(a->firsttime) 
@@ -1648,19 +1643,42 @@ static int sculpt_load_mats(bContext *C, bglMats *mats)
 	mats->viewport[3] = ar->winy;	
 }
 
+/* Initialize the stroke cache invariants from operator properties */
+static int sculpt_update_cache_invariants(StrokeCache *cache, wmOperator *op)
+{
+	cache->radius = RNA_float_get(op->ptr, "radius");
+	RNA_float_get_array(op->ptr, "scale", cache->scale);
+}
+
+/* Initialize the stroke cache variants from operator properties */
+static int sculpt_update_cache_variants(StrokeCache *cache, PointerRNA *ptr)
+{
+	cache->flip = RNA_boolean_get(ptr, "flip");
+}
+
 /* Initialize stroke operator properties */
 static int sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event, SculptSession *ss)
 {
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Object *ob= CTX_data_active_object(C);
 	float brush_center[3], brush_edge[3];
 	float depth = get_depth(C, event->x, event->y);
 	float size = brush_size(sd, sd->brush);
+	float scale[3];
 
 	unproject(ss, brush_center, event->x, event->y, depth);
 	unproject(ss, brush_edge, event->x + size, event->y, depth);
 
-	ss->cache->radius = VecLenf(brush_center, brush_edge);
-	RNA_float_set(op->ptr, "radius", ss->cache->radius);
+	RNA_float_set(op->ptr, "radius", VecLenf(brush_center, brush_edge));
+
+	/* Set scaling adjustment */
+	
+	scale[0] = 1.0f / ob->size[0];
+	scale[1] = 1.0f / ob->size[1];
+	scale[2] = 1.0f / ob->size[2];
+	RNA_float_set_array(op->ptr, "scale", scale);
+
+	sculpt_update_cache_invariants(ss->cache, op);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1700,10 +1718,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 static void sculpt_action_init(BrushAction *a)
 {
 	memset(a, 0, sizeof(BrushAction));
-	
-	a->scale[0] = 1;
-	a->scale[1] = 1;
-	a->scale[2] = 1;
 }
 
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -1720,6 +1734,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", a.symm.center_3d);
+	RNA_boolean_set(&itemptr, "flip", event->shift);
+	sculpt_update_cache_variants(sd->session->cache, &itemptr);
 
 	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, sd->session->cache, &a, NULL, NULL);
 	//calc_damaged_verts(sd->session, &a);
@@ -1747,11 +1763,14 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
+	sculpt_update_cache_invariants(sd->session->cache, op);
+
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		float loc[3];
 
 		sculpt_action_init(&a);		
 		RNA_float_get_array(&itemptr, "location", a.symm.center_3d);
+		sculpt_update_cache_variants(sd->session->cache, &itemptr);
 
 		do_symmetrical_brush_actions(sd, sd->session->cache, &a, NULL, NULL);
 		BLI_freelistN(&sd->session->damaged_verts);
@@ -1767,6 +1786,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
+	float vecdefault[] = {0,0,0};
 
 	ot->flag |= OPTYPE_REGISTER;
 
@@ -1791,7 +1811,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	   to work as expected. */
 	prop= RNA_def_property(ot->srna, "scale", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
-	
+	RNA_def_property_float_array_default(prop, vecdefault);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/
@@ -1914,11 +1934,6 @@ void sculpt(SculptData *sd)
 	if(modifier_calculations)
 		ss->vertexcosnos= mesh_get_mapped_verts_nors(NULL, ob); /* XXX: scene = ? */
 	sculptmode_update_all_projverts(ss);
-
-	/* Set scaling adjustment */
-	a->scale[0]= 1.0f / ob->size[0];
-	a->scale[1]= 1.0f / ob->size[1];
-	a->scale[2]= 1.0f / ob->size[2];
 
 	/* Capture original copy */
 	if(sd->flags & SCULPT_DRAW_FAST)

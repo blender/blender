@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_SCULPT_API_H
-#define ED_SCULPT_API_H
+#ifndef ED_SCULPT_H
+#define ED_SCULPT_H
 
 struct bContext;
 struct wmWindowManager;
