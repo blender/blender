@@ -245,6 +245,7 @@ PULIB += $(OCGDIR)/blender/ed_sculpt/libed_sculpt.a
 PULIB += $(OCGDIR)/blender/ed_animation/libed_animation.a
 PULIB += $(OCGDIR)/blender/ed_transform/libed_transform.a
 PULIB += $(OCGDIR)/blender/ed_util/libed_util.a
+PULIB += $(OCGDIR)/blender/ed_uvedit/libed_uvedit.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
