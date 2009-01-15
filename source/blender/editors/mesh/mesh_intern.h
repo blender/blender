@@ -112,19 +112,14 @@ extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);
 
 void EM_remove_selection(EditMesh *em, void *data, int type);
-void EM_set_actFace(EditMesh *em, EditFace *efa);
-void EM_select_face(EditFace *efa, int sel);
 void EM_clear_flag_all(EditMesh *em, int flag);
 void EM_set_flag_all(EditMesh *em, int flag);
-
-void EM_add_data_layer(EditMesh *em, CustomData *data, int type);
 
 void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
 void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
 
 int EM_nvertices_selected(EditMesh *em);
 int EM_nfaces_selected(EditMesh *em);
-float EM_face_area(EditFace *efa);
 float EM_face_perimeter(EditFace *efa);
 
 void EM_store_selection(EditMesh *em, void *data, int type);

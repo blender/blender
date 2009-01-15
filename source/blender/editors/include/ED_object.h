@@ -35,6 +35,10 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
+struct KeyBlock;
+struct Lattice;
+struct Mesh;
+struct Curve;
 
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);

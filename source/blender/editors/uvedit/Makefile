@@ -28,7 +28,7 @@
 #
 # Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_image
+LIBNAME = ed_uvedit
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
@@ -45,9 +45,8 @@ CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
-CPPFLAGS += -I../../python
-CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_OPENNL)/include
 
 # own include 
 

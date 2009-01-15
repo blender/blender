@@ -33,7 +33,9 @@ struct Object;
 struct Base;
 struct Bone;
 struct bArmature;
+struct bPoseChannel;
 struct ListBase;
+struct View3D;
 
 typedef struct EditBone
 {

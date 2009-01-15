@@ -392,6 +392,16 @@ struct Object *CTX_data_edit_object(const bContext *C)
 	return ctx_data_pointer_get(C, CTX_data_edit_object);
 }
 
+struct Image *CTX_data_edit_image(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_edit_image);
+}
+
+struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_edit_image_buffer);
+}
+
 /* data evaluation */
 
 float CTX_eval_frame(const bContext *C)

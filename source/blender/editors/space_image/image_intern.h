@@ -25,15 +25,51 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef ED_IMAGE_INTERN_H
 #define ED_IMAGE_INTERN_H
 
 /* internal exports only */
+struct bContext;
+struct ARegion;
+struct SpaceImage;
+struct Object;
+struct Image;
+struct ImBuf;
+struct wmOperatorType;
+struct Scene;
 
+/* space_image.c */
+struct Image *get_space_image(struct SpaceImage *sima);
+void set_space_image(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima);
+
+struct ImBuf *get_space_image_buffer(struct SpaceImage *sima);
+void get_space_image_size(struct SpaceImage *sima, int *width, int *height);
+void get_space_image_aspect(struct SpaceImage *sima, float *aspx, float *aspy);
+void get_space_image_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy);
+
+int get_space_image_show_render(struct SpaceImage *sima);
+int get_space_image_show_paint(struct SpaceImage *sima);
+int get_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit);
+int get_space_image_show_uvshadow(struct SpaceImage *sima, struct Object *obedit);
 
 /* image_header.c */
-void image_header_buttons(const bContext *C, ARegion *ar);
+void image_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+/* image_draw.c */
+void draw_image_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene);
+
+/* image_ops.c */
+void IMAGE_OT_view_all(struct wmOperatorType *ot);
+void IMAGE_OT_view_pan(struct wmOperatorType *ot);
+void IMAGE_OT_view_selected(struct wmOperatorType *ot);
+void IMAGE_OT_view_zoom(struct wmOperatorType *ot);
+void IMAGE_OT_view_zoom_in(struct wmOperatorType *ot);
+void IMAGE_OT_view_zoom_out(struct wmOperatorType *ot);
+void IMAGE_OT_view_zoom_ratio(struct wmOperatorType *ot);
+
+/* uvedit_draw.c */
+void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene *scene, struct Object *obedit);
 
 #endif /* ED_IMAGE_INTERN_H */
 

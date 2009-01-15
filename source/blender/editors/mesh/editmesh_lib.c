@@ -2133,7 +2133,7 @@ void EM_fgon_flags(EditMesh *em)
  * if do_face_idx_array is 0 it means we need to run it as well as freeing
  * */
 
-UvVertMap *make_uv_vert_map_EM(EditMesh *em, int selected, int do_face_idx_array, float *limit)
+UvVertMap *EM_make_uv_vert_map(EditMesh *em, int selected, int do_face_idx_array, float *limit)
 {
 	EditVert *ev;
 	EditFace *efa;
@@ -2251,12 +2251,12 @@ UvVertMap *make_uv_vert_map_EM(EditMesh *em, int selected, int do_face_idx_array
 	return vmap;
 }
 
-UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v)
+UvMapVert *EM_get_uv_map_vert(UvVertMap *vmap, unsigned int v)
 {
 	return vmap->vert[v];
 }
 
-void free_uv_vert_map_EM(UvVertMap *vmap)
+void EM_free_uv_vert_map(UvVertMap *vmap)
 {
 	if (vmap) {
 		if (vmap->vert) MEM_freeN(vmap->vert);

@@ -42,10 +42,10 @@
 #include "ED_anim_api.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_space_api.h"
-#include "ED_screen.h"
 #include "ED_sculpt.h"
-
+#include "ED_screen.h"
+#include "ED_space_api.h"
+#include "ED_uvedit.h"
 
 ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
 {
@@ -91,6 +91,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_object();
 	ED_operatortypes_mesh();
 	ED_operatortypes_sculpt();
+	ED_operatortypes_uvedit();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
@@ -112,6 +113,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_animchannels(wm);
 	ED_keymap_object(wm);
 	ED_keymap_mesh(wm);
+	ED_keymap_uvedit(wm);
 	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();

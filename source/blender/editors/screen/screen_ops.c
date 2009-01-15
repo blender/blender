@@ -26,10 +26,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
@@ -155,6 +157,20 @@ int ED_operator_editmesh(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+	return 0;
+}
+
+int ED_operator_uvedit(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= NULL;
+
+	if(obedit && obedit->type==OB_MESH)
+		em= ((Mesh *)obedit->data)->edit_mesh;
+
+    if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE)))
+		return 1;
+
 	return 0;
 }
 
