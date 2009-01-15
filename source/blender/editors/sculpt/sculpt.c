@@ -130,8 +130,7 @@ typedef enum StrokeFlags {
 	CLIP_Z = 4
 } StrokeFlags;
 
-/* Cache stroke properties that don't change after
-   the initialization at the start of a stroke. Used because
+/* Cache stroke properties. Used because
    RNA property lookup isn't particularly fast.
 
    For descriptions of these settings, check the operator properties.
@@ -147,6 +146,13 @@ typedef struct StrokeCache {
 	float true_location[3];
 	float location[3];
 	float flip;
+
+	/* Truly temporary storage that isn't saved as a property */
+	MVert *mvert; /* Can be either Mesh mverts or MultiresDM mverts */
+	int totvert; /* Number of mverts */
+	float *layer_disps; /* Displacements for each vertex */
+ 	float (*mesh_store)[3]; /* Copy of the mesh vertices' locations */
+	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
 } StrokeCache;
 
 typedef struct BrushAction {
@@ -154,14 +160,10 @@ typedef struct BrushAction {
 
 	char firsttime;
 
-	/* Some brushes need access to original mesh vertices */
- 	vec3f *mesh_store;
-	short (*orig_norms)[3];
-
 	float prev_radius;
 	float radius;
 
-	float *layer_disps;
+	//float *layer_disps;
 
 	float anchored_rot;
 
@@ -182,8 +184,6 @@ typedef struct ProjVert {
 	   containing the brush. */
 	char inside;
 } ProjVert;
-
-static Object *active_ob= NULL;
 
 /* vertex_users is an array of Lists that store all the faces that use a
    particular vertex. vertex_users is in the same order as mesh.mvert */
@@ -420,7 +420,7 @@ static void calc_area_normal(SculptData *sd, float out[3], BrushAction *a, const
 
 	if(sd->brush->flag & BRUSH_ANCHORED) {
 		for(; node; node = node->next)
-			add_norm_if(a->symm.out, out, out_flip, a->orig_norms[node->Index]);
+			add_norm_if(a->symm.out, out, out_flip, sd->session->cache->orig_norms[node->Index]);
 	}
 	else {
 		for(; node; node = node->next)
@@ -571,7 +571,7 @@ static void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, co
 	calc_area_normal(sd, area_normal, a, NULL, active_verts);
 
 	while(node){
-		float *disp= &a->layer_disps[node->Index];
+		float *disp= &ss->cache->layer_disps[node->Index];
 		
 		if((bstr > 0 && *disp < bstr) ||
 		  (bstr < 0 && *disp > bstr)) {
@@ -588,9 +588,9 @@ static void do_layer_brush(SculptData *sd, SculptSession *ss, BrushAction *a, co
 			}
 
 			{
-				const float val[3]= {a->mesh_store[node->Index].x+area_normal[0] * *disp*ss->cache->scale[0],
-				                     a->mesh_store[node->Index].y+area_normal[1] * *disp*ss->cache->scale[1],
-				                     a->mesh_store[node->Index].z+area_normal[2] * *disp*ss->cache->scale[2]};
+				const float val[3]= {ss->cache->mesh_store[node->Index][0]+area_normal[0] * *disp*ss->cache->scale[0],
+				                     ss->cache->mesh_store[node->Index][1]+area_normal[1] * *disp*ss->cache->scale[1],
+				                     ss->cache->mesh_store[node->Index][2]+area_normal[2] * *disp*ss->cache->scale[2]};
 				sculpt_clip(ss->cache, co, val);
 			}
 		}
@@ -1156,6 +1156,7 @@ static void sculptmode_update_tex(SculptData *sd)
 	}
 }
 
+#if 0
 /* pr_mouse is only used for the grab brush, can be NULL otherwise */
 static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short *pr_mouse)
 {
@@ -1227,30 +1228,31 @@ static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short
 		VecSubf(a->symm.grab_delta, gcenter, oldloc);*/
 	}
 	else if(b->sculpt_tool == SCULPT_TOOL_LAYER) {
-		if(!a->layer_disps)
-			a->layer_disps= MEM_callocN(sizeof(float)*ss->totvert,"Layer disps");
+		/*if(!a->layer_disps)
+		  a->layer_disps= MEM_callocN(sizeof(float)*ss->totvert,"Layer disps");*/
 	}
 
 	if(b->sculpt_tool == SCULPT_TOOL_LAYER || anchored) {
- 		if(!a->mesh_store) {
+ 		/*if(!a->mesh_store) {
  			a->mesh_store= MEM_mallocN(sizeof(vec3f) * ss->totvert, "Sculpt mesh store");
  			for(i = 0; i < ss->totvert; ++i)
  				VecCopyf(&a->mesh_store[i].x, ss->mvert[i].co);
-  		}
+				}*/
 
-		if(anchored && a->layer_disps)
-			memset(a->layer_disps, 0, sizeof(float) * ss->totvert);
+		/*if(anchored && a->layer_disps)
+		  memset(a->layer_disps, 0, sizeof(float) * ss->totvert);*/
 
-		if(anchored && !a->orig_norms) {
+		/*if(anchored && !a->orig_norms) {
 			a->orig_norms= MEM_mallocN(sizeof(short) * 3 * ss->totvert, "Sculpt orig norm");
 			for(i = 0; i < ss->totvert; ++i) {
 				a->orig_norms[i][0] = ss->mvert[i].no[0];
 				a->orig_norms[i][1] = ss->mvert[i].no[1];
 				a->orig_norms[i][2] = ss->mvert[i].no[2];
 			}
-		}
+			}*/
   	}
 }
+#endif
 
 /* XXX: Used anywhere?
 void sculptmode_set_strength(const int delta)
@@ -1597,8 +1599,11 @@ static void sculpt_load_mats(bContext *C, bglMats *mats)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(StrokeCache *cache, wmOperator *op)
+static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Object *ob)
 {
+	StrokeCache *cache = sd->session->cache;
+	int i;
+
 	memset(cache, 0, sizeof(StrokeCache));
 
 	cache->radius = RNA_float_get(op->ptr, "radius");
@@ -1607,6 +1612,25 @@ static void sculpt_update_cache_invariants(StrokeCache *cache, wmOperator *op)
 	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
 	RNA_int_get_array(op->ptr, "mouse", cache->mouse);
 	cache->depth = RNA_float_get(op->ptr, "depth");
+
+	/* Truly temporary data that isn't stored in properties */
+	cache->totvert = get_mesh(ob)->totvert; // XXX
+	cache->mvert = get_mesh(ob)->mvert; // XXX
+
+	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER) {
+		cache->layer_disps = MEM_callocN(sizeof(float) * cache->totvert, "layer brush displacements");
+		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * cache->totvert, "sculpt mesh vertices copy");
+		for(i = 0; i < cache->totvert; ++i)
+			VecCopyf(cache->mesh_store[i], cache->mvert[i].co);
+	}
+}
+
+static void sculpt_cache_free(StrokeCache *cache)
+{
+	if(cache->layer_disps)
+		MEM_freeN(cache->layer_disps);
+	if(cache->mesh_store)
+		MEM_freeN(cache->mesh_store);
 }
 
 /* Initialize the stroke cache variants from operator properties */
@@ -1667,7 +1691,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	/* Initial screen depth under the mouse */
 	RNA_int_set(op->ptr, "depth", depth);
 
-	sculpt_update_cache_invariants(ss->cache, op);
+	sculpt_update_cache_invariants(sd, op, ob);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1733,6 +1757,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 		if(v3d->depths)
 			v3d->depths->damaged= 1;
 
+		sculpt_cache_free(sd->session->cache);
+
 		return OPERATOR_FINISHED;
 	}
 
@@ -1746,7 +1772,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
-	sculpt_update_cache_invariants(sd->session->cache, op);
+	sculpt_update_cache_invariants(sd, op, ob);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_action_init(&a);		
@@ -1756,6 +1782,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&sd->session->damaged_verts);
 	}
 	RNA_END;
+
+	sculpt_cache_free(sd->session->cache);
 
 	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
 	ED_region_tag_redraw(ar);
@@ -1851,6 +1879,7 @@ void ED_operatortypes_sculpt()
 
 void sculpt(SculptData *sd)
 {
+#if 0
 	SculptSession *ss= sd->session;
 	Object *ob= NULL; /*XXX */
 	Mesh *me;
@@ -1966,14 +1995,14 @@ void sculpt(SculptData *sd)
 			if(sd->brush->sculpt_tool != SCULPT_TOOL_GRAB) {
 				if(anchored) {
  					/* Restore the mesh before continuing with anchored stroke */
- 					if(a->mesh_store) {
+ 					/*if(a->mesh_store) {
  						for(i = 0; i < ss->totvert; ++i) {
  							VecCopyf(ss->mvert[i].co, &a->mesh_store[i].x);
 							ss->mvert[i].no[0] = a->orig_norms[i][0];
 							ss->mvert[i].no[1] = a->orig_norms[i][1];
 							ss->mvert[i].no[2] = a->orig_norms[i][2];
 						}
- 					}
+						}*/
 					
   					//do_symmetrical_brush_actions(sd, a, mouse, NULL);
   				}
@@ -2050,9 +2079,9 @@ void sculpt(SculptData *sd)
 		BLI_freelistN(&ss->damaged_rects);
 	}
 
-	if(a->layer_disps) MEM_freeN(a->layer_disps);
-	if(a->mesh_store) MEM_freeN(a->mesh_store);
-	if(a->orig_norms) MEM_freeN(a->orig_norms);
+	//if(a->layer_disps) MEM_freeN(a->layer_disps);
+	//if(a->mesh_store) MEM_freeN(a->mesh_store);
+	//if(a->orig_norms) MEM_freeN(a->orig_norms);
 	for(i=0; i<8; ++i)
 		BLI_freelistN(&a->grab_active_verts[i]);
 	MEM_freeN(a);
@@ -2071,6 +2100,7 @@ void sculpt(SculptData *sd)
 
 	/* XXX: if(G.vd->depths) G.vd->depths->damaged= 1;
 	   allqueue(REDRAWVIEW3D, 0); */
+#endif
 }
 
 /* Partial Mesh Visibility */
