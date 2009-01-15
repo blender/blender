@@ -3053,7 +3053,6 @@ void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
 	ot->exec= toggle_editmode_exec;
 	
 	ot->poll= ED_operator_object_active;
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* *************************** */

@@ -53,6 +53,8 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+
 #include "screen_intern.h"	/* own module include */
 
 /* ************** Exported Poll tests ********************** */
@@ -1331,8 +1333,10 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
 	if(lastop) {
-		printf("repeat %s\n", lastop->type->idname);
-		lastop->type->exec(C, lastop);
+		if(lastop->type->poll==NULL || lastop->type->poll(C)) {
+			printf("repeat %s\n", lastop->type->idname);
+			lastop->type->exec(C, lastop);
+		}
 	}
 	
 	return OPERATOR_FINISHED;
@@ -1345,11 +1349,69 @@ void SCREEN_OT_repeat_last(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;	
 	ot->exec= repeat_last_exec;
 	
 	ot->poll= ED_operator_screenactive;
 	
+}
+
+static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *lastop;
+	int items, i;
+	char *menu, *p;
+	
+	items= BLI_countlist(&wm->operators);
+	if(items==0)
+		return OPERATOR_CANCELLED;
+	
+	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
+	
+	p= menu + sprintf(menu, "%s %%t", op->type->name);
+	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
+		p+= sprintf(p, "|%s %%x%d", lastop->type->name, i);
+	
+	uiPupmenuOperator(C, i/20, op, "index", menu);
+	MEM_freeN(menu);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int repeat_history_exec(bContext *C, wmOperator *op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	
+	op= BLI_findlink(&wm->operators, RNA_int_get(op->ptr, "index"));
+	if(op) {
+		/* let's put it as last operator in list */
+		BLI_remlink(&wm->operators, op);
+		BLI_addtail(&wm->operators, op);
+		
+		if(op->type->poll==NULL || op->type->poll(C)) {
+			printf("repeat %s\n", op->type->idname);
+			op->type->exec(C, op);
+		}
+	}
+					 
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_repeat_history(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Repeat History";
+	ot->idname= "SCREEN_OT_repeat_history";
+	
+	/* api callbacks */
+	ot->invoke= repeat_history_invoke;
+	ot->exec= repeat_history_exec;
+	
+	ot->poll= ED_operator_screenactive;
+	
+	prop= RNA_def_property(ot->srna, "index", PROP_ENUM, PROP_NONE);
 }
 
 /* ************** region split operator ***************************** */
@@ -1534,6 +1596,7 @@ void ED_operatortypes_screen(void)
 	/* generic UI stuff */
 	WM_operatortype_append(SCREEN_OT_actionzone);
 	WM_operatortype_append(SCREEN_OT_repeat_last);
+	WM_operatortype_append(SCREEN_OT_repeat_history);
 	
 	/* screen tools */
 	WM_operatortype_append(SCREEN_OT_area_move);
@@ -1564,8 +1627,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
@@ -1584,8 +1647,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 
 	/* undo */
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);

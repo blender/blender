@@ -102,7 +102,8 @@ void MESH_OT_add_primitive_tube(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_cone(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
-
+void MESH_OT_add_primitive_uv_sphere(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_ico_sphere(struct wmOperatorType *ot);
 
 /* ******************* editmesh_lib.c */
 void EM_stats_update(EditMesh *em);

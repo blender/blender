@@ -1103,7 +1103,9 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		}
 		break;
 	default: /* all types except grid, sphere... */
-		if(ext==0 && type!=7) depth= 0.0f;
+		if(type==PRIM_CONE);
+		else if(ext==0) 
+			depth= 0.0f;
 	
 		/* vertices */
 		vtop= vdown= v1= v2= 0;
@@ -1112,7 +1114,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 				
 				vec[0]= dia*sin(phi);
 				vec[1]= dia*cos(phi);
-				vec[2]= depth;
+				vec[2]= b?depth:-depth;
 				
 				Mat4MulVecfl(mat, vec);
 				eve= addvertlist(em, vec, NULL);
@@ -1123,19 +1125,19 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 				}
 				phi+=phid;
 			}
-			depth= -depth;
 		}
+			
 		/* center vertices */
-		/* type 7, a cone can only have 1 one side filled
+		/* type PRIM_CONE can only have 1 one side filled
 		 * if the cone has no capping, dont add vtop */
-		if((fill && type>1) || type == 7) {
+		if((fill && type>1) || type == PRIM_CONE) {
 			vec[0]= vec[1]= 0.0f;
-			vec[2]-= -depth;
+			vec[2]= -depth;
 			Mat4MulVecfl(mat, vec);
 			vdown= addvertlist(em, vec, NULL);
-			if((ext || type==7) && fill) {
+			if((ext || type==PRIM_CONE) && fill) {
 				vec[0]= vec[1]= 0.0f;
-				vec[2]-= depth;
+				vec[2]= depth;
 				Mat4MulVecfl(mat,vec);
 				vtop= addvertlist(em, vec, NULL);
 			}
@@ -1147,7 +1149,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		if(vdown) vdown->f= SELECT;
 	
 		/* top and bottom face */
-		if(fill || type==7) {
+		if(fill || type==PRIM_CONE) {
 			if(tot==4 && (type==0 || type==1)) {
 				v3= v1->next->next;
 				if(ext) v4= v2->next->next;
@@ -1173,7 +1175,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 				}
 			}
 		}
-		else if(type==4) {  /* we need edges for a circle */
+		else if(type==PRIM_CIRCLE) {  /* we need edges for a circle */
 			v3= v1;
 			for(a=1;a<tot;a++) {
 				addedgelist(em, v3, v3->next, NULL);
@@ -1192,7 +1194,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 			addfacelist(em, v3, v1, v2, v4, NULL, NULL);
 		}
-		else if(type==7 && fill) {
+		else if(type==PRIM_CONE && fill) {
 			/* add the bottom flat area of the cone
 			 * if capping is disabled dont bother */
 			v3= v1;
@@ -1433,7 +1435,6 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
-	
 	/* plane (diameter of 1.41 makes it unit size) */
 	dia*= sqrt(2.0f);
 	
@@ -1454,6 +1455,9 @@ void MESH_OT_add_primitive_plane(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_plane_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
@@ -1462,7 +1466,6 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
-	
 	/* plane (diameter of 1.41 makes it unit size) */
 	dia*= sqrt(2.0f);
 	
@@ -1483,6 +1486,9 @@ void MESH_OT_add_primitive_cube(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_cube_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
@@ -1491,10 +1497,10 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
+	dia *= RNA_float_get(op->ptr,"Radius");
 	
-	dia = RNA_float_get(op->ptr,"radius");
-	
-	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr,"vertices"), 0, 0, dia, 0.0f, 0, RNA_boolean_get(op->ptr, "fill"));
+	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr,"Vertices"), 0, 0, dia, 0.0f, 0, 
+			  RNA_boolean_get(op->ptr, "Fill"));
 	
 	ED_undo_push(C, "Add Circle");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1504,6 +1510,8 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_add_primitive_circle(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Add Circle";
 	ot->idname= "MESH_OT_add_primitive_circle";
@@ -1516,10 +1524,12 @@ void MESH_OT_add_primitive_circle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "fill", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "Vertices", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 32);
+	prop= RNA_def_property(ot->srna, "Radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	prop= RNA_def_property(ot->srna, "Fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_default(prop, 0);
 }
 
 static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
@@ -1528,11 +1538,10 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
+	dia *= RNA_float_get(op->ptr,"Radius");
 	
-	dia = RNA_float_get(op->ptr,"radius");
-	
-	// XXX cylinder turns out a bit wacky.. play with the cursor to get even more interesting stuff
-	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"vertices"),32, 2, dia, RNA_float_get(op->ptr,"depth"), 1, 1);
+	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"Vertices"), 0, 0, dia, 
+			  RNA_float_get(op->ptr,"Depth"), 1, 1);
 	
 	ED_undo_push(C, "Add Cylinder");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1542,6 +1551,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_add_primitive_cylinder(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Add Cylinder";
 	ot->idname= "MESH_OT_add_primitive_cylinder";
@@ -1554,10 +1565,12 @@ void MESH_OT_add_primitive_cylinder(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "Vertices", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 32);
+	prop= RNA_def_property(ot->srna, "Radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	prop= RNA_def_property(ot->srna, "Depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
 }
 
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
@@ -1566,10 +1579,10 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
+	dia *= RNA_float_get(op->ptr,"Radius");
 	
-	dia = RNA_float_get(op->ptr,"radius");
-	
-	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, 0);
+	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"Vertices"), 0, 0, dia, 
+			  RNA_float_get(op->ptr,"Depth"), 1, 0);
 	
 	ED_undo_push(C, "Add Tube");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1579,6 +1592,8 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_add_primitive_tube(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Add Tube";
 	ot->idname= "MESH_OT_add_primitive_tube";
@@ -1591,10 +1606,12 @@ void MESH_OT_add_primitive_tube(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "Vertices", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 32);
+	prop= RNA_def_property(ot->srna, "Radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	prop= RNA_def_property(ot->srna, "Depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
 }
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
@@ -1603,10 +1620,10 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
+	dia *= RNA_float_get(op->ptr,"Radius");
 	
-	dia = RNA_float_get(op->ptr,"radius");
-	
-	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, RNA_int_get(op->ptr,"cap_end"));
+	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr,"Vertices"), 0, 0, dia, 
+			  RNA_float_get(op->ptr,"Depth"), 0, RNA_int_get(op->ptr,"Cap_end"));
 	
 	ED_undo_push(C, "Add Cone");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1616,6 +1633,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_add_primitive_cone(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name= "Add Cone";
 	ot->idname= "MESH_OT_add_primitive_cone";
@@ -1628,11 +1647,14 @@ void MESH_OT_add_primitive_cone(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-
-	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "cap_end",PROP_INT, PROP_NONE);
+	prop= RNA_def_property(ot->srna, "Vertices", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 32);
+	prop= RNA_def_property(ot->srna, "Radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	prop= RNA_def_property(ot->srna, "Depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	prop= RNA_def_property(ot->srna, "Cap_end", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 1);
 }
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
@@ -1641,11 +1663,10 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	float dia, mat[4][4];
 	
 	dia= new_primitive_matrix(C, mat);
+	dia*= RNA_float_get(op->ptr, "Size");
 	
-	/* plane (diameter of 1.41 makes it unit size) */
-	dia*= sqrt(2.0f);
-	
-	make_prim(obedit, PRIM_GRID, mat, 10, 10, 0, dia, 0.0f, 0, 1);
+	make_prim(obedit, PRIM_GRID, mat, RNA_int_get(op->ptr, "X_Subdiv"), 
+			  RNA_int_get(op->ptr, "Y_Subdiv"), 0, dia, 0.0f, 0, 1);
 	
 	ED_undo_push(C, "Add Grid");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1655,6 +1676,8 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_add_primitive_grid(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Grid";
 	ot->idname= "MESH_OT_add_primitive_grid";
@@ -1662,16 +1685,27 @@ void MESH_OT_add_primitive_grid(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_grid_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	
+	/* props */
+	prop= RNA_def_property(ot->srna, "X_Subdiv", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 10);
+	prop= RNA_def_property(ot->srna, "Y_Subdiv", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 10);
+	prop= RNA_def_property(ot->srna, "Size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
 }
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	float dia, mat[4][4];
+	float mat[4][4];
 	
-	dia= new_primitive_matrix(C, mat);
+	new_primitive_matrix(C, mat);
 	
-	make_prim(obedit, PRIM_MONKEY, mat, 32, 32, 2, dia, 0.0f, 0, 0);
+	make_prim(obedit, PRIM_MONKEY, mat, 0, 0, 2, 0.0f, 0.0f, 0, 0);
 	
 	ED_undo_push(C, "Add Monkey");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1688,4 +1722,87 @@ void MESH_OT_add_primitive_monkey(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= add_primitive_monkey_exec;
 	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
+
+static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	dia*= RNA_float_get(op->ptr, "Size");
+
+	make_prim(obedit, PRIM_UVSPHERE, mat, RNA_int_get(op->ptr, "Rings"), 
+			  RNA_int_get(op->ptr, "Segments"), 0, dia, 0.0f, 0, 0);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_uv_sphere(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Add UV Sphere";
+	ot->idname= "MESH_OT_add_primitive_uv_sphere";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_uvsphere_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	
+	/* props */
+	prop= RNA_def_property(ot->srna, "Segments", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 32);
+	prop= RNA_def_property(ot->srna, "Rings", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 24);
+	prop= RNA_def_property(ot->srna, "Size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+}
+
+static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	dia*= RNA_float_get(op->ptr, "Size");
+	
+	make_prim(obedit, PRIM_ICOSPHERE, mat, 0, 0, 
+			  RNA_int_get(op->ptr, "Subdivision"), dia, 0.0f, 0, 0);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_ico_sphere(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Add Ico Sphere";
+	ot->idname= "MESH_OT_add_primitive_ico_sphere";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_icosphere_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+	
+	/* props */
+	prop= RNA_def_property(ot->srna, "Subdivision", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 2);
+	RNA_def_property_range(prop, 0.0, 6.0);
+	prop= RNA_def_property(ot->srna, "Size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+}
+
