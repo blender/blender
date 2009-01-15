@@ -83,6 +83,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_set_slowparent);
 	WM_operatortype_append(OBJECT_OT_clear_slowparent);
 	WM_operatortype_append(OBJECT_OT_set_center);
+	WM_operatortype_append(OBJECT_OT_make_dupli_real);
 }
 
 void ED_keymap_object(wmWindowManager *wm)

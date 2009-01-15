@@ -2293,6 +2293,44 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_make_track_types);
 }
+
+/* ************* Make Dupli Real ********* */
+
+static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	
+	clear_id_newpoins();
+		
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		make_object_duplilist_real(scene, v3d, base);
+	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);	
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	ED_undo_push(C,"Make duplicates real");	
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_make_dupli_real(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Make Dupli Real";
+	ot->idname= "OBJECT_OT_make_dupli_real";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_make_dupli_real_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+}
 /* ******************* Set Object Center ********************** */
 
 static EnumPropertyItem prop_set_center_types[] = {
