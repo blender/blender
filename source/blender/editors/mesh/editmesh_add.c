@@ -1604,7 +1604,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	
 	dia = RNA_float_get(op->ptr,"radius");
 	
-	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, RNA_int_get(op->ptr,"cap end"));
+	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, RNA_int_get(op->ptr,"cap_end"));
 	
 	ED_undo_push(C, "Add Cone");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -1630,7 +1630,7 @@ void MESH_OT_add_primitive_cone(wmOperatorType *ot)
 	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
 	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "cap end",PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "cap_end",PROP_INT, PROP_NONE);
 }
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)

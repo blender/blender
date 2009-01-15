@@ -200,6 +200,11 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 			continue;
 		}
 
+		if (identifier[a]==' ') {
+			strcpy(error, "spaces are not ok in identifier names");
+			return 0;
+		}
+
 		if (isalnum(identifier[a])==0) {
 			strcpy(error, "one of the characters failed an isalnum() check and is not an underscore");
 			return 0;

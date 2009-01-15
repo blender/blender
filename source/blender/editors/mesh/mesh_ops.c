@@ -136,7 +136,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_int_set(cone->ptr,"vertices",32);
 	RNA_float_set(cone->ptr,"radius",2);
 	RNA_float_set(cone->ptr,"depth",-3);
-	RNA_float_set(cone->ptr,"cap end",0);
+	RNA_float_set(cone->ptr,"cap_end",0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_grid", NINEKEY, KM_PRESS, KM_CTRL, 0);
 	
