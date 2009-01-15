@@ -347,11 +347,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if(butregion) {
 		/* XXX temp, region v2ds can be empty still */
 		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			short tx, ty;
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &tx, &ty);
-			x1= (int)tx; y1= (int)ty;
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &tx, &ty);
-			x2= (int)tx; y2= (int)ty;
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &x1, &y1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &x2, &y2);
 		}
 
 		x1 += butregion->winrct.xmin;

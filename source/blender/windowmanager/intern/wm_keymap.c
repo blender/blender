@@ -373,54 +373,54 @@ char *WM_key_event_string(short type)
 		break;
 
 	case PAD2:
-		return "Pad2";
+		return "Numpad 2";
 		break;
 	case PAD4:
-		return "Pad4";
+		return "Numpad 4";
 		break;
 	case PAD6:
-		return "Pad6";
+		return "Numpad 6";
 		break;
 	case PAD8:
-		return "Pad8";
+		return "Numpad 8";
 		break;
 	case PAD1:
-		return "Pad1";
+		return "Numpad 1";
 		break;
 	case PAD3:
-		return "Pad3";
+		return "Numpad 3";
 		break;
 	case PAD5:
-		return "Pad5";
+		return "Numpad 5";
 		break;
 	case PAD7:
-		return "Pad7";
+		return "Numpad 7";
 		break;
 	case PAD9:
-		return "Pad9";
+		return "Numpad 9";
 		break;
 
 	case PADPERIOD:
-		return "Padperiod";
+		return "Numpad .";
 		break;
 	case PADSLASHKEY:
-		return "Padslash";
+		return "Numpad /";
 		break;
 	case PADASTERKEY:
-		return "Padaster";
+		return "Numpad *";
 		break;
 
 	case PAD0:
-		return "Pad0";
+		return "Numpad 0";
 		break;
 	case PADMINUS:
-		return "Padminus";
+		return "Numpad -";
 		break;
 	case PADENTER:
-		return "Padenter";
+		return "Numpad Enter";
 		break;
 	case PADPLUSKEY:
-		return "Padplus";
+		return "Numpad +";
 		break;
 
 	case F1KEY:
@@ -507,7 +507,7 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	return str;
 }
 
-char *WM_key_event_operator_string(bContext *C, char *opname, int opcontext, char *str, int len)
+char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, char *str, int len)
 {
 	wmEventHandler *handler;
 	wmKeymapItem *kmi;

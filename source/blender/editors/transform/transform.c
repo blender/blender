@@ -244,7 +244,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		//uvco_to_areaco_noclip(v, adr);
 	}
 	else if(t->spacetype==SPACE_IPO) {
-		short out[2] = {0.0f, 0.0f};
+		int out[2] = {0, 0};
 		
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
 		adr[0]= out[0];

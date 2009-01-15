@@ -25,8 +25,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <string.h>
+#include <limits.h>
 #include <math.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -1703,7 +1704,7 @@ void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *viewx, float *vi
  *	- x,y 				= coordinates to convert
  *	- regionx,regiony 	= resultant coordinates 
  */
-void UI_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, short *regiony)
+void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *regionx, int *regiony)
 {
 	/* set initial value in case coordinate lies outside of bounds */
 	if (regionx)
@@ -1718,9 +1719,9 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, sho
 	/* check if values are within bounds */
 	if ((x>=0.0f) && (x<=1.0f) && (y>=0.0f) && (y<=1.0f)) {
 		if (regionx)
-			*regionx= (short)(v2d->mask.xmin + x*(v2d->mask.xmax-v2d->mask.xmin));
+			*regionx= (int)(v2d->mask.xmin + x*(v2d->mask.xmax-v2d->mask.xmin));
 		if (regiony)
-			*regiony= (short)(v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin));
+			*regiony= (int)(v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin));
 	}
 }
 
@@ -1730,7 +1731,7 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, short *regionx, sho
  *	- x,y 				= coordinates to convert
  *	- regionx,regiony 	= resultant coordinates 
  */
-void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, short *regiony)
+void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, int *regionx, int *regiony)
 {
 	/* step 1: express given coordinates as proportional values */
 	x= (x - v2d->cur.xmin) / (v2d->cur.xmax - v2d->cur.xmin);
@@ -1740,16 +1741,16 @@ void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, short *regionx, 
 	x= v2d->mask.xmin + x*(v2d->mask.xmax - v2d->mask.xmin);
 	y= v2d->mask.ymin + y*(v2d->mask.ymax - v2d->mask.ymin);
 	
-	/* although we don't clamp to lie within region bounds, we must avoid exceeding size of shorts */
+	/* although we don't clamp to lie within region bounds, we must avoid exceeding size of ints */
 	if (regionx) {
-		if (x < -32760) *regionx= -32760;
-		else if(x > 32760) *regionx= 32760;
-		else *regionx= (short)x;
+		if (x < INT_MIN) *regionx= INT_MIN;
+		else if(x > INT_MAX) *regionx= INT_MAX;
+		else *regionx= (int)x;
 	}
 	if (regiony) {
-		if (y < -32760) *regiony= -32760;
-		else if(y > 32760) *regiony= 32760;
-		else *regiony= (short)y;
+		if (y < INT_MIN) *regiony= INT_MIN;
+		else if(y > INT_MAX) *regiony= INT_MAX;
+		else *regiony= (int)y;
 	}
 }
 

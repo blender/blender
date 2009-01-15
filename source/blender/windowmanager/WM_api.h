@@ -77,7 +77,7 @@ ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid,
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
-char		*WM_key_event_operator_string(struct bContext *C, char *opname, int opcontext, char *str, int len);
+char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, char *str, int len);
 
 			/* handlers */
 

@@ -770,7 +770,8 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 		VecCopyf(p3d, &pt->x);
 	}
 	else {
-		short mval[2], mx, my;
+		short mval[2];
+		int mx, my;
 		float *fp= give_cursor(NULL, NULL); // XXX should be scene, v3d
 		float dvec[3];
 		
@@ -778,15 +779,13 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 		if (gps->flag & GP_STROKE_2DSPACE) {
 			// XXX
 			// View2D *v2d= spacelink_get_view2d(curarea->spacedata.first);
-			// UI_view2d_view_to_region(v2d, pt->x, pt->y, mval, mval+1);
+			// UI_view2d_view_to_region(v2d, pt->x, pt->y, &mx, &my);
 		}
 		else {
 			// XXX
-			// mval[0]= (short)(pt->x / 1000 * curarea->winx);
-			// mval[1]= (short)(pt->y / 1000 * curarea->winy);
+			// mx= (short)(pt->x / 1000 * curarea->winx);
+			// my= (short)(pt->y / 1000 * curarea->winy);
 		}
-		mx= mval[0]; 
-		my= mval[1];
 		
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
@@ -1551,7 +1550,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 {
 	bGPDspoint *pt1, *pt2;
 	View3D *v3d= NULL;
-	short x0=0, y0=0, x1=0, y1=0;
+	int x0=0, y0=0, x1=0, y1=0;
 	short xyval[2];
 	int i;
 	

@@ -525,7 +525,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	float v1[2], v2[2];
 	int len, size;
 	char str[32 + FILE_MAXDIR+FILE_MAXFILE], *strp;
-	short mval[2];
+	int mval[2];
 	
 	v1[1]= y1;
 	v2[1]= y2;

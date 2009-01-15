@@ -174,7 +174,7 @@ void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 	if(ot)
 		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
 	else
-		memset(ptr, 0, sizeof(*ptr));
+		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
 
 void WM_operator_properties_free(PointerRNA *ptr)
