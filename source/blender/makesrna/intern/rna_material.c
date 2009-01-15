@@ -296,7 +296,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reflect", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ray_mirror");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "", "Sets the amount mirror reflection for raytrace.");
+	RNA_def_property_ui_text(prop, "Reflect", "Sets the amount mirror reflection for raytrace.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	prop= RNA_def_property(srna, "fresnel", PROP_FLOAT, PROP_NONE);

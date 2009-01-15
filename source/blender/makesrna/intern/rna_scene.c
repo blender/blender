@@ -163,10 +163,10 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 
-	prop= RNA_def_property(srna, "proportional_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, prop_mode_items);
-	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional editing mode.");
+	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);

@@ -132,6 +132,7 @@ void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_scriptlink(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequence(struct BlenderRNA *brna);
+void RNA_def_space(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_sound(struct BlenderRNA *brna);

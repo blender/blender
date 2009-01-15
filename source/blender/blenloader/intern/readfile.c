@@ -1490,6 +1490,8 @@ static void lib_link_brush(FileData *fd, Main *main)
 				if(mtex)
 					mtex->tex= newlibadr_us(fd, brush->id.lib, mtex->tex);
 			}
+
+			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
 }
@@ -5237,6 +5239,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				break;
 		}
 	}
+
 	/* main region */
 	ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 	

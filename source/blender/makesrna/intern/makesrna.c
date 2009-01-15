@@ -579,7 +579,14 @@ static void rna_auto_types()
 	PropertyDefRNA *dp;
 
 	for(ds=DefRNA.structs.first; ds; ds=ds->next) {
+		/* DNA name for Screen is patched in 2.5, we do the reverse here .. */
+		if(ds->dnaname && strcmp(ds->dnaname, "Screen") == 0)
+			ds->dnaname= "bScreen";
+
 		for(dp=ds->properties.first; dp; dp=dp->next) {
+			if(dp->dnastructname && strcmp(dp->dnastructname, "Screen") == 0)
+				dp->dnastructname= "bScreen";
+
 			if(dp->dnatype) {
 				if(dp->prop->type == PROP_POINTER) {
 					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
@@ -946,6 +953,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_scriptlink.c", RNA_def_scriptlink},
 	{"rna_sensor.c", RNA_def_sensor},
 	{"rna_sequence.c", RNA_def_sequence},
+	{"rna_space.c", RNA_def_space},
 	{"rna_text.c", RNA_def_text},
 	{"rna_sound.c", RNA_def_sound},
 	{"rna_userdef.c", RNA_def_userdef},

@@ -431,6 +431,8 @@ typedef struct ToolSettings {
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
+	short uv_flag, uv_selectmode;
+	short uv_pad[2];
 
 	/* Auto-IK */
 	short autoik_chainlen;
@@ -837,6 +839,16 @@ typedef struct Scene {
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
+
+/* toolsettings->uv_flag */
+#define UV_SYNC_SELECTION	1
+#define UV_SHOW_SAME_IMAGE	2
+
+/* toolsettings->uv_selectmode */
+#define UV_SELECT_VERTEX	0
+#define UV_SELECT_EDGE		1 /* not implemented */
+#define UV_SELECT_FACE		2
+#define UV_SELECT_ISLAND	3
 
 /* toolsettings->edge_mode */
 #define EDGE_MODE_SELECT				0

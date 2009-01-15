@@ -580,8 +580,10 @@ int RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int index
 		return ((int*)IDP_Array(idprop))[index];
 	else if(bprop->getarray)
 		return bprop->getarray(ptr, index);
-	else
+	else if(bprop->defaultarray)
 		return bprop->defaultarray[index];
+	else
+		return 0;
 }
 
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
@@ -604,7 +606,10 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, int inde
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, bprop->defaultarray, sizeof(int)*prop->arraylength);
+			if(bprop->defaultarray)
+				memcpy(idprop->data.pointer, bprop->defaultarray, sizeof(int)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(int)*prop->arraylength);
 			((int*)idprop->data.pointer)[index]= value;
 		}
 	}
@@ -653,8 +658,10 @@ int RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int index)
 		return ((int*)IDP_Array(idprop))[index];
 	else if(iprop->getarray)
 		return iprop->getarray(ptr, index);
-	else
+	else if(iprop->defaultarray)
 		return iprop->defaultarray[index];
+	else
+		return 0.0f;
 }
 
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
@@ -677,7 +684,10 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, i
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, iprop->defaultarray, sizeof(int)*prop->arraylength);
+			if(iprop->defaultarray)
+				memcpy(idprop->data.pointer, iprop->defaultarray, sizeof(int)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(int)*prop->arraylength);
 			((int*)idprop->data.pointer)[index]= value;
 		}
 	}
@@ -739,8 +749,10 @@ float RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 	else if(fprop->getarray)
 		return fprop->getarray(ptr, index);
-	else
+	else if(fprop->defaultarray)
 		return fprop->defaultarray[index];
+	else
+		return 0.0f;
 }
 
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, float value)
@@ -768,7 +780,10 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index,
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
+			if(fprop->defaultarray)
+				memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(float)*prop->arraylength);
 			((float*)IDP_Array(idprop))[index]= value;
 		}
 	}

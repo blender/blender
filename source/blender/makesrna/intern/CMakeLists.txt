@@ -63,6 +63,7 @@ SET(DEFSRC
      rna_sensor.c
      rna_sequence.c
      rna_sound.c
+     rna_space.c
      rna_text.c
      rna_texture.c
      rna_userdef.c
@@ -109,6 +110,7 @@ SET(GENSRC
      rna_sensor_gen.c
      rna_sequence_gen.c
      rna_sound_gen.c
+     rna_space_gen.c
      rna_text_gen.c
      rna_texture_gen.c
      rna_userdef_gen.c
