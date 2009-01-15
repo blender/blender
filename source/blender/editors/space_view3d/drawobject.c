@@ -5272,15 +5272,13 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float 
 		bglVertex3fv(co);
 	}
 }
-static int bbs_mesh_verts(DerivedMesh *dm, int offset)
+static void bbs_mesh_verts(DerivedMesh *dm, int offset)
 {
 	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*)(intptr_t) offset);
 	bglEnd();
 	glPointSize(1.0);
-
-	return offset + G.totvert;
 }		
 
 static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
@@ -5295,11 +5293,9 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 		return 0;
 	}
 }
-static int bbs_mesh_wire(DerivedMesh *dm, int offset)
+static void bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*)(intptr_t) offset);
-
-	return offset + G.totedge;
 }		
 
 static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
@@ -5326,7 +5322,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, f
 }
 
 /* two options, facecolors or black */
-static int bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int facecol)
+static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int facecol)
 {
 	cpack(0);
 
@@ -5341,10 +5337,8 @@ static int bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh 
 			bglEnd();
 		}
 
-		return 1+G.totface;
 	} else {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0);
-		return 1;
 	}
 }
 
@@ -5390,16 +5384,23 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 
 			EM_init_index_arrays(em, 1, 1, 1);
 
-			em_solidoffs= bbs_mesh_solid_EM(scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
+			bbs_mesh_solid_EM(scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
+			if(scene->selectmode & SCE_SELECT_FACE)
+				em_solidoffs = 1+em->totface;
+			else
+				em_solidoffs= 1;
 			
 			bglPolygonOffset(v3d->dist, 1.0);
 			
 			// we draw edges always, for loop (select) tools
-			em_wireoffs= bbs_mesh_wire(dm, em_solidoffs);
-
+			bbs_mesh_wire(dm, em_solidoffs);
+			em_wireoffs= em_solidoffs + em->totedge;
+			
 			// we draw verts if vert select mode or if in transform (for snap).
-			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) 
-				em_vertoffs= bbs_mesh_verts(dm, em_wireoffs);
+			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
+				bbs_mesh_verts(dm, em_wireoffs);
+				em_vertoffs= em_wireoffs + em->totvert;
+			}
 			else em_vertoffs= em_wireoffs;
 			
 			bglPolygonOffset(v3d->dist, 0.0);

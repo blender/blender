@@ -1975,7 +1975,7 @@ static float *get_crazy_mapped_editverts(TransInfo *t)
 	/* now get the cage */
 	dm= editmesh_get_derived_cage(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
-	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
+	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_mesh->totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
 	
 	dm->release(dm);

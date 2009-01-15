@@ -52,7 +52,6 @@ typedef struct Global {
 
 	/* active pointers */
 	struct Main *main;
-	char editModeTitleExtra[64];
 	
 	/* fonts, allocated global data */
 	struct BMF_Font *font, *fonts, *fontss;
@@ -65,12 +64,7 @@ typedef struct Global {
 
 	/* strings of recent opend files */
 	struct ListBase recent_files;
-    
-	/* totals */
-	int totobj, totlamp, totobjsel, totcurve, totmesh;
-	int totbone, totbonesel;
-	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
-    
+        
 	short afbreek, moving;
 	short background;
 	short winpos, displaymode;	/* used to be in Render */
@@ -108,10 +102,6 @@ typedef struct Global {
 	/* Janco's playing ground */
 	struct bSoundListener* listener;
 
-	/* Test thingy for Nzc */
-	int compat;      /* toggle compatibility mode for edge rendering */
-	int notonlysolid;/* T-> also edge-render transparent faces       */
-	
 	/* ndof device found ? */
 	int ndofdevice;
 	

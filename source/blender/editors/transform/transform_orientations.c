@@ -480,7 +480,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 			}
 			else
 			{
-				if (G.totfacesel >= 1)
+				if (em->totfacesel >= 1)
 				{
 					EditFace *efa;
 					
@@ -496,7 +496,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					
 					result = ORIENTATION_FACE;
 				}
-				else if (G.totvertsel == 3)
+				else if (em->totvertsel == 3)
 				{
 					EditVert *v1 = NULL, *v2 = NULL, *v3 = NULL;
 					float cotangent[3];
@@ -522,7 +522,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 
 					/* if there's an edge available, use that for the tangent */
-					if (G.totedgesel >= 1)
+					if (em->totedgesel >= 1)
 					{
 						EditEdge *eed = NULL;
 	
@@ -536,7 +536,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 
 					result = ORIENTATION_FACE;
 				}
-				else if (G.totedgesel == 1)
+				else if (em->totedgesel == 1)
 				{
 					EditEdge *eed;
 
@@ -551,7 +551,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (G.totvertsel == 2)
+				else if (em->totvertsel == 2)
 				{
 					EditVert *v1 = NULL, *v2 = NULL;
 		
@@ -573,7 +573,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_EDGE;
 				}
-				else if (G.totvertsel == 1)
+				else if (em->totvertsel == 1)
 				{
 					for (eve = em->verts.first; eve; eve = eve->next)
 					{
@@ -584,7 +584,7 @@ int getTransformOrientation(bContext *C, float normal[3], float plane[3], int ac
 					}
 					result = ORIENTATION_VERT;
 				}
-				else if (G.totvertsel > 3)
+				else if (em->totvertsel > 3)
 				{
 					normal[0] = normal[1] = normal[2] = 0;
 					

@@ -344,7 +344,7 @@ void make_editNurb(Object *obedit)
 		
 		actkey = ob_get_keyblock(obedit);
 		if(actkey) {
-			strcpy(G.editModeTitleExtra, "(Key) ");
+			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
 			key_to_curve(actkey, cu, editnurb);
 		}
 	}

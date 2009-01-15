@@ -170,6 +170,8 @@ typedef struct EditMesh
 	short selectmode;
 	/* copy from object actcol */
 	short mat_nr;
+	/* stats */
+	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
 	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate

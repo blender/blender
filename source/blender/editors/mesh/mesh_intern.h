@@ -105,6 +105,8 @@ void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
 
 
 /* ******************* editmesh_lib.c */
+void EM_stats_update(EditMesh *em);
+
 extern void EM_fgon_flags(EditMesh *em);
 extern void EM_hide_reset(EditMesh *em);
 
@@ -119,7 +121,9 @@ void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVer
 void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
 
 int EM_nvertices_selected(EditMesh *em);
+int EM_nedges_selected(EditMesh *em);
 int EM_nfaces_selected(EditMesh *em);
+
 float EM_face_perimeter(EditFace *efa);
 
 void EM_store_selection(EditMesh *em, void *data, int type);

@@ -1411,11 +1411,12 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	}
 	else {	/* no editmode, unified for bones and objects */
 		Bone *bone;
+		Object *ob= OBACT;
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
 		short selecting = 0;
-		Object *ob= OBACT;
 		int bone_only;
+		int totobj= MAXPICKBUF;	// XXX solve later
 		
 		if((ob) && (ob->flag & OB_POSEMODE))
 			bone_only= 1;
@@ -1426,8 +1427,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			selecting = 1;
 		
 		/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
-		vbuffer = MEM_mallocN(4 * (G.totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
-		hits= view3d_opengl_select(&vc, vbuffer, 4*(G.totobj+MAXPICKBUF), &rect);
+		vbuffer = MEM_mallocN(4 * (totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
+		hits= view3d_opengl_select(&vc, vbuffer, 4*(totobj+MAXPICKBUF), &rect);
 		/*
 		LOGIC NOTES (theeth):
 		The buffer and ListBase have the same relative order, which makes the selection

@@ -390,6 +390,124 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 	BIF_undo_push("Delete object(s)");
 }
 
+static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+{
+	ID_NEW(*obpoin);
+}
+
+static void copy_object__forwardModifierLinks(void *userData, Object *ob,
+                                              ID **idpoin)
+{
+	/* this is copied from ID_NEW; it might be better to have a macro */
+	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
+}
+
+
+/* after copying objects, copied data should get new pointers */
+static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
+{
+	Base *base;
+	Object *ob;
+	Material *ma, *mao;
+	ID *id;
+	Ipo *ipo;
+	bActionStrip *strip;
+	int a;
+	
+	/* check object pointers */
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(TESTBASELIB(v3d, base)) {
+			ob= base->object;
+			relink_constraints(&ob->constraints);
+			if (ob->pose){
+				bPoseChannel *chan;
+				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
+				}
+			}
+			modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
+			ID_NEW(ob->proxy);
+			ID_NEW(ob->proxy_group);
+			
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next)
+					ID_NEW(amod->ob);
+			}
+		}
+	}
+	
+	/* materials */
+	if( dupflag & USER_DUP_MAT) {
+		mao= G.main->mat.first;
+		while(mao) {
+			if(mao->id.newid) {
+				
+				ma= (Material *)mao->id.newid;
+				
+				if(dupflag & USER_DUP_TEX) {
+					for(a=0; a<MAX_MTEX; a++) {
+						if(ma->mtex[a]) {
+							id= (ID *)ma->mtex[a]->tex;
+							if(id) {
+								ID_NEW_US(ma->mtex[a]->tex)
+								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
+								id->us--;
+							}
+						}
+					}
+				}
+				id= (ID *)ma->ipo;
+				if(id) {
+					ID_NEW_US(ma->ipo)
+					else ma->ipo= copy_ipo(ma->ipo);
+					id->us--;
+				}
+			}
+			mao= mao->id.next;
+		}
+	}
+	
+	/* lamps */
+	if( dupflag & USER_DUP_IPO) {
+		Lamp *la= G.main->lamp.first;
+		while(la) {
+			if(la->id.newid) {
+				Lamp *lan= (Lamp *)la->id.newid;
+				id= (ID *)lan->ipo;
+				if(id) {
+					ID_NEW_US(lan->ipo)
+					else lan->ipo= copy_ipo(lan->ipo);
+					id->us--;
+				}
+			}
+			la= la->id.next;
+		}
+	}
+	
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
+			Ipo *ipon= (Ipo *)ipo->id.newid;
+			IpoCurve *icu;
+			for(icu= ipon->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+	
+	set_sca_new_poins();
+	
+	clear_id_newpoins();
+	
+}
+
 static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
 {
 	EditVert *eve;
@@ -2295,6 +2413,48 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 }
 
 /* ************* Make Dupli Real ********* */
+static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
+{
+	Base *basen;
+	Object *ob;
+	ListBase *lb;
+	DupliObject *dob;
+	
+	if(!base && !(base = BASACT))
+		return;
+	
+	if(!(base->object->transflag & OB_DUPLI))
+		return;
+	
+	lb= object_duplilist(scene, base->object);
+	
+	for(dob= lb->first; dob; dob= dob->next) {
+		ob= copy_object(dob->ob);
+		/* font duplis can have a totcol without material, we get them from parent
+		* should be implemented better...
+		*/
+		if(ob->mat==NULL) ob->totcol= 0;
+		
+		basen= MEM_dupallocN(base);
+		basen->flag &= ~OB_FROMDUPLI;
+		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
+		basen->object= ob;
+		ob->ipo= NULL;		/* make sure apply works */
+		ob->parent= ob->track= NULL;
+		ob->disp.first= ob->disp.last= NULL;
+		ob->transflag &= ~OB_DUPLI;	
+		
+		Mat4CpyMat4(ob->obmat, dob->mat);
+		ED_object_apply_obmat(ob);
+	}
+	
+	copy_object_set_idnew(scene, v3d, 0);
+	
+	free_object_duplilist(lb);
+	
+	base->object->transflag &= ~OB_DUPLI;	
+}
+
 
 static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
 {
@@ -2707,7 +2867,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		if(retopo_mesh_paint_check())
 //			retopo_end_okee();
 		
-		if(G.totvert>MESH_MAX_VERTS) {
+		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
 		}
@@ -3570,7 +3730,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 
 				/* make a new copy of the mesh */
 				ob1->data= copy_mesh(me);
-				G.totmesh++;
 
 				/* make new mesh data from the original copy */
 				dm= mesh_get_derived_final(scene, ob1, CD_MASK_MESH);
@@ -3661,7 +3820,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 						mb->id.us--;
 						
 						ob1->data= add_mesh("Mesh");
-						G.totmesh++;
 						ob1->type= OB_MESH;
 						
 						me= ob1->data;
@@ -4836,248 +4994,6 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 		BIF_undo_push("Apply Objects Visual Transform");
 	}
 }
-
-static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
-{
-	ID_NEW(*obpoin);
-}
-
-static void copy_object__forwardModifierLinks(void *userData, Object *ob,
-                                              ID **idpoin)
-{
-	/* this is copied from ID_NEW; it might be better to have a macro */
-	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
-}
-
-
-/* after copying objects, copied data should get new pointers */
-static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
-{
-	Base *base;
-	Object *ob;
-	Material *ma, *mao;
-	ID *id;
-	Ipo *ipo;
-	bActionStrip *strip;
-	int a;
-	
-	/* check object pointers */
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			ob= base->object;
-			relink_constraints(&ob->constraints);
-			if (ob->pose){
-				bPoseChannel *chan;
-				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
-				}
-			}
-			modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
-			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
-			ID_NEW(ob->proxy);
-			ID_NEW(ob->proxy_group);
-			
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				bActionModifier *amod;
-				for(amod= strip->modifiers.first; amod; amod= amod->next)
-					ID_NEW(amod->ob);
-			}
-		}
-	}
-	
-	/* materials */
-	if( dupflag & USER_DUP_MAT) {
-		mao= G.main->mat.first;
-		while(mao) {
-			if(mao->id.newid) {
-				
-				ma= (Material *)mao->id.newid;
-				
-				if(dupflag & USER_DUP_TEX) {
-					for(a=0; a<MAX_MTEX; a++) {
-						if(ma->mtex[a]) {
-							id= (ID *)ma->mtex[a]->tex;
-							if(id) {
-								ID_NEW_US(ma->mtex[a]->tex)
-								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
-								id->us--;
-							}
-						}
-					}
-				}
-				id= (ID *)ma->ipo;
-				if(id) {
-					ID_NEW_US(ma->ipo)
-					else ma->ipo= copy_ipo(ma->ipo);
-					id->us--;
-				}
-			}
-			mao= mao->id.next;
-		}
-	}
-	
-	/* lamps */
-	if( dupflag & USER_DUP_IPO) {
-		Lamp *la= G.main->lamp.first;
-		while(la) {
-			if(la->id.newid) {
-				Lamp *lan= (Lamp *)la->id.newid;
-				id= (ID *)lan->ipo;
-				if(id) {
-					ID_NEW_US(lan->ipo)
-					else lan->ipo= copy_ipo(lan->ipo);
-					id->us--;
-				}
-			}
-			la= la->id.next;
-		}
-	}
-	
-	/* ipos */
-	ipo= G.main->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL && ipo->id.newid) {
-			Ipo *ipon= (Ipo *)ipo->id.newid;
-			IpoCurve *icu;
-			for(icu= ipon->curve.first; icu; icu= icu->next) {
-				if(icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo= ipo->id.next;
-	}
-	
-	set_sca_new_poins();
-	
-	clear_id_newpoins();
-	
-}
-
-
-void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
-{
-	Base *basen;
-	Object *ob;
-	ListBase *lb;
-	DupliObject *dob;
-	
-	if(!base && !(base = BASACT))
-		return;
-	
-	if(!(base->object->transflag & OB_DUPLI))
-		return;
-	
-	lb= object_duplilist(scene, base->object);
-	
-	for(dob= lb->first; dob; dob= dob->next) {
-		ob= copy_object(dob->ob);
-		/* font duplis can have a totcol without material, we get them from parent
-		* should be implemented better...
-		*/
-		if(ob->mat==NULL) ob->totcol= 0;
-		
-		basen= MEM_dupallocN(base);
-		basen->flag &= ~OB_FROMDUPLI;
-		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
-		basen->object= ob;
-		ob->ipo= NULL;		/* make sure apply works */
-		ob->parent= ob->track= NULL;
-		ob->disp.first= ob->disp.last= NULL;
-		ob->transflag &= ~OB_DUPLI;	
-		
-		Mat4CpyMat4(ob->obmat, dob->mat);
-		ED_object_apply_obmat(ob);
-	}
-	
-	copy_object_set_idnew(scene, v3d, 0);
-	
-	free_object_duplilist(lb);
-	
-	base->object->transflag &= ~OB_DUPLI;	
-}
-
-void make_duplilist_real(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	/*	extern ListBase duplilist; */
-	
-	if(okee("Make dupli objects real")==0) return;
-	
-	clear_id_newpoins();
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASE(v3d, base)) {
-			make_object_duplilist_real(scene, v3d, base);
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Make duplicates real");
-}
-
-void apply_object(Scene *scene, View3D *v3d)
-{
-	Object *ob;
-	int evt;
-	int shift= 0;
-	
-	if(scene->id.lib) return;
-	if(scene->obedit) return; // XXX get from context
-	
-	if(shift) {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if(ob->transflag & OB_DUPLI) {
-			make_duplilist_real(scene, v3d);
-		}
-		else {
-			if(okee("Apply deformation")) {
-// XXX				object_apply_deform(ob);
-				BIF_undo_push("Apply deformation");
-			}
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		
-	} 
-	else {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if ((ob->pose) && (ob->flag & OB_POSEMODE))
-			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
-		else
-			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2|Scale to ObData%x4|Rotation to ObData%x5");
-		if (evt==-1) return;
-		
-		switch (evt) {
-			case 1:
-				apply_objects_locrot(scene, v3d);
-				break;
-			case 2:
-				apply_objects_visual_tx(scene, v3d);
-				break;
-			case 3:
-// XXX				apply_armature_pose2bones();
-				break;
-			case 4:
-				apply_objects_scale(scene, v3d);
-				break;
-			case 5:
-				apply_objects_rot(scene, v3d);
-				break;
-		}
-	}
-}
-
-
-
 
 /* ************************************** */
 

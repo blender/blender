@@ -592,28 +592,28 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 	short nr, transmode= 0;
 
 	if(em->selectmode & SCE_SELECT_VERTEX) {
-		if(G.totvertsel==0) nr= 0;
-		else if(G.totvertsel==1) nr= 4;
-		else if(G.totedgesel==0) nr= 4;
-		else if(G.totfacesel==0) 
+		if(em->totvertsel==0) nr= 0;
+		else if(em->totvertsel==1) nr= 4;
+		else if(em->totedgesel==0) nr= 4;
+		else if(em->totfacesel==0) 
 			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
-		else if(G.totfacesel==1)
+		else if(em->totfacesel==1)
 			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
 		else 
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
-		if (G.totedgesel==0) nr = 0;
-		else if (G.totedgesel==1) nr = 3;
-		else if(G.totfacesel==0) nr = 3;
-		else if(G.totfacesel==1)
+		if (em->totedgesel==0) nr = 0;
+		else if (em->totedgesel==1) nr = 3;
+		else if(em->totfacesel==0) nr = 3;
+		else if(em->totfacesel==1)
 			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
 	}
 	else {
-		if (G.totfacesel == 0) nr = 0;
-		else if (G.totfacesel == 1) nr = 1;
+		if (em->totfacesel == 0) nr = 0;
+		else if (em->totfacesel == 1) nr = 1;
 		else
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
@@ -5839,7 +5839,7 @@ void region_to_loop(EditMesh *em)
 	EditEdge *eed;
 	EditFace *efa;
 	
-	if(G.totfacesel){
+	if(em->totfacesel){
 		for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
 		
 		for(efa=em->faces.first; efa; efa=efa->next){

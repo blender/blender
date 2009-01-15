@@ -1203,6 +1203,8 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			addfacelist(em, vtop, v1, v3, 0, NULL, NULL);
 		}
 	}
+	
+	EM_stats_update(em);
 	/* simple selection flush OK, based on fact it's a single model */
 	EM_select_flush(em); /* flushes vertex -> edge -> face selection */
 	
@@ -1662,7 +1664,6 @@ void MESH_OT_add_primitive_grid(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 }
 
-// XXX No monkey ?!
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -1682,7 +1683,7 @@ void MESH_OT_add_primitive_monkey(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Monkey";
-	ot->idname= "MESH_OT_add_monkey";
+	ot->idname= "MESH_OT_add_primitive_monkey";
 	
 	/* api callbacks */
 	ot->exec= add_primitive_monkey_exec;

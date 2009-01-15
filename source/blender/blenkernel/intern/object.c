@@ -886,13 +886,13 @@ void *add_wave()
 static void *add_obdata_from_type(int type)
 {
 	switch (type) {
-	case OB_MESH: G.totmesh++; return add_mesh("Mesh");
-	case OB_CURVE: G.totcurve++; return add_curve("Curve", OB_CURVE);
-	case OB_SURF: G.totcurve++; return add_curve("Surf", OB_SURF);
+	case OB_MESH: return add_mesh("Mesh");
+	case OB_CURVE: return add_curve("Curve", OB_CURVE);
+	case OB_SURF: return add_curve("Surf", OB_SURF);
 	case OB_FONT: return add_curve("Text", OB_FONT);
 	case OB_MBALL: return add_mball("Meta");
 	case OB_CAMERA: return add_camera("Camera");
-	case OB_LAMP: G.totlamp++; return add_lamp("Lamp");
+	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature("Armature");
@@ -929,7 +929,6 @@ Object *add_only_object(int type, char *name)
 	Object *ob;
 
 	ob= alloc_libblock(&G.main->object, ID_OB, name);
-	G.totobj++;
 
 	/* default object vars */
 	ob->type= type;

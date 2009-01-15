@@ -125,6 +125,7 @@ EditVert *addvertlist(EditMesh *em, float *vec, EditVert *example)
 
 	eve= callocvert(em, sizeof(EditVert), 1);
 	BLI_addtail(&em->verts, eve);
+	em->totvert++;
 	
 	if(vec) VECCOPY(eve->co, vec);
 
@@ -154,6 +155,8 @@ void free_editvert (EditMesh *em, EditVert *eve)
 	CustomData_em_free_block(&em->vdata, &eve->data);
 	if(eve->fast==0)
 		free(eve);
+	
+	em->totvert--;
 }
 
 
@@ -259,6 +262,7 @@ EditEdge *addedgelist(EditMesh *em, EditVert *v1, EditVert *v2, EditEdge *exampl
 		BLI_addtail(&em->edges, eed);
 		eed->dir= swap;
 		insert_hashedge(em, eed);
+		em->totedge++;
 		
 		/* copy edge data:
 		   rule is to do this with addedgelist call, before addfacelist */
@@ -276,9 +280,10 @@ EditEdge *addedgelist(EditMesh *em, EditVert *v1, EditVert *v2, EditEdge *exampl
 
 void remedge(EditMesh *em, EditEdge *eed)
 {
-
 	BLI_remlink(&em->edges, eed);
 	remove_hashedge(em, eed);
+	
+	em->totedge--;
 }
 
 void free_editedge(EditMesh *em, EditEdge *eed)
@@ -291,7 +296,6 @@ void free_editedge(EditMesh *em, EditEdge *eed)
 
 void free_editface(EditMesh *em, EditFace *efa)
 {
-
 	EM_remove_selection(em, efa, EDITFACE);
 	
 	if (em->act_face==efa) {
@@ -301,6 +305,8 @@ void free_editface(EditMesh *em, EditFace *efa)
 	CustomData_em_free_block(&em->fdata, &efa->data);
 	if(efa->fast==0)
 		free(efa);
+	
+	em->totface--;
 }
 
 void free_vertlist(EditMesh *em, ListBase *edve) 
@@ -316,6 +322,7 @@ void free_vertlist(EditMesh *em, ListBase *edve)
 		eve= next;
 	}
 	edve->first= edve->last= NULL;
+	em->totvert= em->totvertsel= 0;
 }
 
 void free_edgelist(EditMesh *em, ListBase *lb)
@@ -329,6 +336,7 @@ void free_edgelist(EditMesh *em, ListBase *lb)
 		eed= next;
 	}
 	lb->first= lb->last= NULL;
+	em->totedge= em->totedgesel= 0;
 }
 
 void free_facelist(EditMesh *em, ListBase *lb)
@@ -342,6 +350,7 @@ void free_facelist(EditMesh *em, ListBase *lb)
 		efa= next;
 	}
 	lb->first= lb->last= NULL;
+	em->totface= em->totfacesel= 0;
 }
 
 EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, EditFace *example, EditFace *exampleEdges)
@@ -394,7 +403,8 @@ EditFace *addfacelist(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Ed
 	}
 
 	BLI_addtail(&em->faces, efa);
-
+	em->totface++;
+	
 	if(efa->v4) {
 		CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
 		CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
@@ -562,7 +572,7 @@ void free_editMesh(EditMesh *em)
 	
 	mesh_octree_table(NULL, NULL, NULL, 'e');
 	
-	G.totvert= G.totface= 0;
+	em->totvert= em->totedge= em->totface= 0;
 
 // XXX	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 	em->retopo_paint_data= NULL;
@@ -828,9 +838,9 @@ void make_editMesh(Scene *scene, Object *ob)
 	
 	em->selectmode= scene->selectmode; // warning needs to be synced
 	em->act_face = NULL;
-	G.totvert= tot= me->totvert;
-	G.totedge= me->totedge;
-	G.totface= me->totface;
+	em->totvert= tot= me->totvert;
+	em->totedge= me->totedge;
+	em->totface= me->totface;
 	
 	if(tot==0) {
 		return;
@@ -1031,21 +1041,19 @@ void load_editMesh(Scene *scene, Object *ob)
 	/* eve->f2 : being used in vertexnormals */
 	edge_drawflags(em);
 	
-	G.totvert= BLI_countlist(&em->verts);
-	G.totedge= BLI_countlist(&em->edges);
-	G.totface= BLI_countlist(&em->faces);
+	EM_stats_update(em);
 	
 	/* new Vertex block */
-	if(G.totvert==0) mvert= NULL;
-	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
+	if(em->totvert==0) mvert= NULL;
+	else mvert= MEM_callocN(em->totvert*sizeof(MVert), "loadeditMesh vert");
 
 	/* new Edge block */
-	if(G.totedge==0) medge= NULL;
-	else medge= MEM_callocN(G.totedge*sizeof(MEdge), "loadeditMesh edge");
+	if(em->totedge==0) medge= NULL;
+	else medge= MEM_callocN(em->totedge*sizeof(MEdge), "loadeditMesh edge");
 	
 	/* new Face block */
-	if(G.totface==0) mface= NULL;
-	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh face");
+	if(em->totface==0) mface= NULL;
+	else mface= MEM_callocN(em->totface*sizeof(MFace), "loadeditMesh face");
 
 	/* lets save the old verts just in case we are actually working on
 	 * a key ... we now do processing of the keys at the end */
@@ -1061,9 +1069,9 @@ void load_editMesh(Scene *scene, Object *ob)
 	CustomData_free(&me->fdata, me->totface);
 
 	/* add new custom data */
-	me->totvert= G.totvert;
-	me->totedge= G.totedge;
-	me->totface= G.totface;
+	me->totvert= em->totvert;
+	me->totedge= em->totedge;
+	me->totface= em->totface;
 
 	CustomData_copy(&em->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
 	CustomData_copy(&em->edata, &me->edata, CD_MASK_MESH, CD_CALLOC, me->totedge);
@@ -1079,7 +1087,7 @@ void load_editMesh(Scene *scene, Object *ob)
 	a= 0;
 
 	/* check for point cache editing */
-	cacheedit= editmesh_pointcache_edit(scene, ob, G.totvert, &pid, cachemat, 1);
+	cacheedit= editmesh_pointcache_edit(scene, ob, em->totvert, &pid, cachemat, 1);
 
 	while(eve) {
 		if(cacheedit) {
@@ -1322,7 +1330,7 @@ void load_editMesh(Scene *scene, Object *ob)
 		currkey = me->key->block.first;
 		while(currkey) {
 			
-			fp= newkey= MEM_callocN(me->key->elemsize*G.totvert,  "currkey->data");
+			fp= newkey= MEM_callocN(me->key->elemsize*em->totvert,  "currkey->data");
 			oldkey = currkey->data;
 
 			eve= em->verts.first;
@@ -1356,7 +1364,7 @@ void load_editMesh(Scene *scene, Object *ob)
 				++mvert;
 				eve= eve->next;
 			}
-			currkey->totelem= G.totvert;
+			currkey->totelem= em->totvert;
 			if(currkey->data) MEM_freeN(currkey->data);
 			currkey->data = newkey;
 			
@@ -1673,7 +1681,7 @@ void separate_mesh_loose(Scene *scene, Object *obedit)
 		/* If the amount of vertices that is about to be split == the total amount 
 		   of verts in the mesh, it means that there is only 1 unconnected object, so we don't have to separate
 		*/
-		if(G.totvert==vertsep) done=1;				
+		if(em->totvert==vertsep) done=1;				
 		else{			
 			/* No splitting: select connected goes fine */
 			
@@ -2034,9 +2042,9 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	end_editmesh_fastmalloc();
 	if(evar) MEM_freeN(evar);
 	
-	G.totvert = um->totvert;
-	G.totedge = um->totedge;
-	G.totface = um->totface;
+	em->totvert = um->totvert;
+	em->totedge = um->totedge;
+	em->totface = um->totface;
 	/*restore stored editselections*/
 	if(um->totsel){
 		EM_init_index_arrays(em, 1,1,1);
@@ -2094,24 +2102,24 @@ void EM_init_index_arrays(EditMesh *em, int forVert, int forEdge, int forFace)
 	int i;
 
 	if (forVert) {
-		int tot= BLI_countlist(&em->verts);
-		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*tot, "em_v_arr");
+		em->totvert= BLI_countlist(&em->verts);
+		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*em->totvert, "em_v_arr");
 
 		for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
 			g_em_vert_array[i] = eve;
 	}
 
 	if (forEdge) {
-		int tot= BLI_countlist(&em->edges);
-		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*tot, "em_e_arr");
+		em->totedge= BLI_countlist(&em->edges);
+		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*em->totedge, "em_e_arr");
 
 		for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
 			g_em_edge_array[i] = eed;
 	}
 
 	if (forFace) {
-		int tot= BLI_countlist(&em->faces);
-		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*tot, "em_f_arr");
+		em->totface= BLI_countlist(&em->faces);
+		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*em->totface, "em_f_arr");
 
 		for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
 			g_em_face_array[i] = efa;

@@ -514,6 +514,13 @@ typedef struct SculptData
 	char pad[5];
 } SculptData;
 
+typedef struct bStats {
+	/* scene totals for visible layers */
+	int totobj, totlamp, totobjsel, totcurve, totmesh, totarmature;
+	int totvert, totface;
+} bStats;
+
+
 typedef struct Scene {
 	ID id;
 	struct Object *camera;
@@ -548,7 +555,8 @@ typedef struct Scene {
 	
 	struct GameFraming framing;
 
-	struct ToolSettings *toolsettings;
+	struct ToolSettings *toolsettings;		/* default allocated now */
+	struct SceneStats *stats;				/* default allocated now */
 
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */

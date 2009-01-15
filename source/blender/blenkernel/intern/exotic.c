@@ -2430,7 +2430,7 @@ static void write_videoscape_mesh(Scene *scene, Object *ob, char *str)
 
 	if(em) {
 
-		fprintf(fp, "%d\n", G.totvert);
+		fprintf(fp, "%d\n", em->totvert);
 	
 		tot= 0;
 		eve= em->verts.first;
@@ -3457,7 +3457,7 @@ static void dxf_get_mesh(Scene *scene, Mesh** m, Object** o, int noob)
 	} 
 	else {
 		*o = NULL;
-		*m = add_mesh("Mesh"); G.totmesh++;
+		*m = add_mesh("Mesh");
 
 		me = *m;
 		ob = *o;
@@ -4650,8 +4650,6 @@ static void dxf_read(Scene *scene, char *filename)
 						ob->dupsta= 1; ob->dupend= 100;
 						ob->recalc= OB_RECALC;	/* needed because of weird way of adding libdata directly */
 						
-						G.totobj++;
-
 						ob->data= obdata;
 						((ID*)ob->data)->us++;
 						

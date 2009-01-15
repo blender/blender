@@ -124,7 +124,7 @@ void EM_automerge(int update)
 //	  ) {
 //		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
 //		if (len) {
-//			G.totvert -= len; /* saves doing a countall */
+//			em->totvert -= len; /* saves doing a countall */
 //			if (update) {
 //				DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 //			}
@@ -365,9 +365,9 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 
 
 
-static unsigned int findnearestvert__backbufIndextest(unsigned int index)
+static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
-	EditMesh *em= NULL; // XXX
+	EditMesh *em= (EditMesh *)handle;
 	EditVert *eve = BLI_findlink(&em->verts, index-1);
 
 	if(eve && (eve->f & SELECT)) return 0;
@@ -389,8 +389,8 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		unsigned int index;
 		EditVert *eve;
 		
-		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
-		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
+		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, vc->em, findnearestvert__backbufIndextest); 
+		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL, NULL); 
 		
 		eve = BLI_findlink(&vc->em->verts, index-1);
 		
@@ -492,7 +492,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
+		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL, NULL);
 		EditEdge *eed = BLI_findlink(&vc->em->edges, index-1);
 
 		if (eed && distance<*dist) {
@@ -622,6 +622,9 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 	*eve= NULL;
 	*eed= NULL;
 	*efa= NULL;
+	
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(vc);
 	
 	if(em->selectmode & SCE_SELECT_VERTEX)
 		*eve= findnearestvert(vc, &dist, SELECT, 0);
@@ -1191,7 +1194,7 @@ void select_mesh_group_menu(EditMesh *em)
 		selcount= vertgroup_select(em, ret);
 		if (selcount) { /* update if data was selected */
 			EM_select_flush(em); /* so that selected verts, go onto select faces */
-			G.totvertsel += selcount;
+			em->totvertsel += selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Vertices");
 		}
@@ -1203,7 +1206,7 @@ void select_mesh_group_menu(EditMesh *em)
 		
 		if (selcount) { /* update if data was selected */
 			/*EM_select_flush(em);*/ /* dont use because it can end up selecting more edges and is not usefull*/
-			G.totedgesel+=selcount;
+			em->totedgesel+=selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Edges");
 		}
@@ -1213,7 +1216,7 @@ void select_mesh_group_menu(EditMesh *em)
 	if (ret<1000) {
 		selcount= facegroup_select(em, ret/100);
 		if (selcount) { /* update if data was selected */
-			G.totfacesel+=selcount;
+			em->totfacesel+=selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Faces");
 		}
@@ -1892,10 +1895,12 @@ void loop_multiselect(EditMesh *em, int looptype)
 	EditEdge **edarray;
 	int edindex, edfirstcount;
 	
-	/*edarray = MEM_mallocN(sizeof(*edarray)*G.totedgesel,"edge array");*/
-	edarray = MEM_mallocN(sizeof(EditEdge*)*G.totedgesel,"edge array");
+	/* sets em->totedgesel */
+	EM_nedges_selected(em);
+	
+	edarray = MEM_mallocN(sizeof(EditEdge*)*em->totedgesel,"edge array");
 	edindex = 0;
-	edfirstcount = G.totedgesel;
+	edfirstcount = em->totedgesel;
 	
 	for(eed=em->edges.first; eed; eed=eed->next){
 		if(eed->f&SELECT){
@@ -2465,7 +2470,7 @@ void hide_mesh(EditMesh *em, int swap)
 		}
 	}
 	
-	G.totedgesel= G.totfacesel= G.totvertsel= 0;
+	em->totedgesel= em->totfacesel= em->totvertsel= 0;
 //	if(EM_texFaceCheck())
 
 	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
