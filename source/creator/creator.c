@@ -785,10 +785,14 @@ int main(int argc, char **argv)
 				
 			case 't':
 				a++;
-				if(G.background) {
-					RE_set_max_threads(atoi(argv[a]));
+				if (a < argc) {
+					if(G.background) {
+						RE_set_max_threads(atoi(argv[a]));
+					} else {
+						printf("Warning: threads can only be set in background mode\n");
+					}
 				} else {
-					printf("Warning: threads can only be set in background mode\n");
+					printf("\nError: you must specify a number of threads between 0 and 8 '-t '.\n");
 				}
 				break;
 			case 'x': /* extension */

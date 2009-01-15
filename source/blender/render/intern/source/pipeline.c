@@ -2710,7 +2710,7 @@ void RE_set_max_threads(int threads)
 	} else if(threads>=1 && threads<=BLENDER_MAX_THREADS) {
 		commandline_threads= threads;
 	} else {
-		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
+		printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
 	}
 }
 
