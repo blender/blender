@@ -962,7 +962,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_world.c", RNA_def_world},	
 	{NULL, NULL}};
 
-static void rna_generate(BlenderRNA *brna, char *basedirectory, FILE *f, char *filename)
+static void rna_generate(BlenderRNA *brna, FILE *f, char *filename)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
@@ -1014,7 +1014,7 @@ static void make_bad_file(char *file)
 	fclose(fp);
 }
 
-static int rna_preprocess(char *basedirectory, char *outfile)
+static int rna_preprocess(char *outfile)
 {
 	BlenderRNA *brna;
 	StructDefRNA *ds;
@@ -1059,7 +1059,7 @@ static int rna_preprocess(char *basedirectory, char *outfile)
 				status = 1;
 			}
 			else {
-				rna_generate(brna, basedirectory, file, PROCESS_ITEMS[i].filename);
+				rna_generate(brna, file, PROCESS_ITEMS[i].filename);
 				fclose(file);
 
 				status= (DefRNA.error != 0);
@@ -1073,29 +1073,17 @@ static int rna_preprocess(char *basedirectory, char *outfile)
 	return status;
 }
 
-#ifndef BASE_HEADER
-#define BASE_HEADER "../"
-#endif
-
 int main(int argc, char **argv)
 {
 	int totblock, return_status = 0;
 
-	if (argc!=2 && argc!=3) {
-		printf("Usage: %s outdirectory/ [base directory]\n", argv[0]);
+	if (argc<2) {
+		printf("Usage: %s outdirectory/\n", argv[0]);
 		return_status = 1;
 	}
 	else {
-		char baseDirectory[256];
-
 		printf("Running makesrna, program versions %s\n",  RNA_VERSION_DATE);
-
-		if (argc==3)
-			strcpy(baseDirectory, argv[2]);
-		else
-			strcpy(baseDirectory, BASE_HEADER);
-
-		return_status= rna_preprocess(baseDirectory, argv[1]);
+		return_status= rna_preprocess(argv[1]);
 	}
 
 	totblock= MEM_get_memory_blocks_in_use();
