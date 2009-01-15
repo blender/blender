@@ -80,6 +80,48 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 
 #else
 
+void rna_def_sculptdata(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SculptData", NULL);
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Sculpt", "");
+
+	prop= RNA_def_property(srna, "symmetry_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);
+	RNA_def_property_ui_text(prop, "Symmetry X", "Mirror brush across the X axis.");
+
+	prop= RNA_def_property(srna, "symmetry_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Y);
+	RNA_def_property_ui_text(prop, "Symmetry Y", "Mirror brush across the Y axis.");
+
+	prop= RNA_def_property(srna, "symmetry_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Z);
+	RNA_def_property_ui_text(prop, "Symmetry Z", "Mirror brush across the Z axis.");
+
+	prop= RNA_def_property(srna, "lock_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_X);
+	RNA_def_property_ui_text(prop, "Lock X", "Disallow changes to the X axis of vertices.");
+
+	prop= RNA_def_property(srna, "lock_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_Y);
+	RNA_def_property_ui_text(prop, "Lock Y", "Disallow changes to the Y axis of vertices.");
+
+	prop= RNA_def_property(srna, "lock_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_Z);
+	RNA_def_property_ui_text(prop, "Lock Z", "Disallow changes to the Z axis of vertices.");
+
+	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_BRUSH);
+	RNA_def_property_ui_text(prop, "Show Brush", "");
+
+	prop= RNA_def_property(srna, "partial_redraw", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_FAST);
+	RNA_def_property_ui_text(prop, "Partial Redraw", "Optimize sculpting by only refreshing modified faces.");
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -97,7 +139,7 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, "CONFORMAL", "Conformal", ""},
 		{1, "ANGLEBASED", "Angle Based", ""}, 
 		{0, NULL, NULL, NULL}};
-	
+
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
 
@@ -168,6 +210,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radiosity", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "radio");
 	RNA_def_property_ui_text(prop, "Radiosity", "");
+
+	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "sculptdata");
+	RNA_def_property_struct_type(prop, "SculptData");
+	RNA_def_property_ui_text(prop, "Sculpt", "");
+
+	rna_def_sculptdata(brna);
 }
 
 #endif
