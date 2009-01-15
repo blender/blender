@@ -7,4 +7,4 @@ incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../makesrna'
 
-env.BlenderLib ( 'bf_editors_space_image', sources, Split(incs), [], libtype=['core'], priority=[45] )
+env.BlenderLib ( 'bf_editors_space_image', sources, Split(incs), [], libtype=['core'], priority=[40] )
