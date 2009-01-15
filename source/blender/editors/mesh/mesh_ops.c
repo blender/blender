@@ -77,13 +77,21 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked_flat_faces);
 	WM_operatortype_append(MESH_OT_select_sharp_edges);
 	WM_operatortype_append(MESH_OT_add_primitive_plane);
+	WM_operatortype_append(MESH_OT_add_primitive_cube);
+	WM_operatortype_append(MESH_OT_add_primitive_circle);
+	WM_operatortype_append(MESH_OT_add_primitive_cylinder);
+	WM_operatortype_append(MESH_OT_add_primitive_tube);
+	WM_operatortype_append(MESH_OT_add_primitive_cone);
 	WM_operatortype_append(MESH_OT_add_primitive_grid);
+	WM_operatortype_append(MESH_OT_add_primitive_monkey);
 
 }
 
 /* note mesh keymap also for other space? */
 void ED_keymap_mesh(wmWindowManager *wm)
 {
+	wmKeymapItem *circle,*cylinder,*tube, *cone;
+	
 	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	
 	/* selecting */
@@ -108,7 +116,31 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_plane", ZEROKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cube", ONEKEY, KM_PRESS, KM_CTRL, 0);
+	circle = WM_keymap_add_item(keymap, "MESH_OT_add_primitive_circle", TWOKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(circle->ptr,"vertices",32);
+	RNA_boolean_set(circle->ptr,"fill",1);
+	RNA_float_set(circle->ptr,"radius",2);
+	
+	cylinder = WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cylinder", THREEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(cylinder->ptr,"vertices",32);
+	RNA_float_set(cylinder->ptr,"radius",2);
+	RNA_float_set(cylinder->ptr,"depth",3);
+	
+	tube = WM_keymap_add_item(keymap, "MESH_OT_add_primitive_tube", FOURKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(tube->ptr,"vertices",32);
+	RNA_float_set(tube->ptr,"radius",2);
+	RNA_float_set(tube->ptr,"depth",3);
+	
+	cone = WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cone", FIVEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_int_set(cone->ptr,"vertices",32);
+	RNA_float_set(cone->ptr,"radius",2);
+	RNA_float_set(cone->ptr,"depth",-3);
+	RNA_float_set(cone->ptr,"cap end",0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_grid", NINEKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_monkey", SIXKEY, KM_PRESS, KM_CTRL, 0);
 
 }
 

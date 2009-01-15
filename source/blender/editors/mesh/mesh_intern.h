@@ -95,7 +95,13 @@ void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
 
 /* ******************* editmesh_add.c */
 void MESH_OT_add_primitive_plane(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cube(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_circle(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cylinder(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_tube(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cone(struct wmOperatorType *ot);
 void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
 
 
 /* ******************* editmesh_lib.c */

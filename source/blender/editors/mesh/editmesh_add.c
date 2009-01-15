@@ -44,6 +44,10 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_types.h"
+#include "RNA_define.h"
+#include "RNA_access.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -906,10 +910,15 @@ signed char monkeyf[250][4]= {
 	// ------------------------------- end copied code
 
 
-#define PRIM_PLANE	0
-#define PRIM_CUBE	1
-#define PRIM_CIRCLE	4
-#define PRIM_GRID	10
+#define PRIM_PLANE		0
+#define PRIM_CUBE		1
+#define PRIM_CIRCLE		4
+#define PRIM_CYLINDER 	5
+#define PRIM_CONE 		7
+#define PRIM_GRID		10
+#define PRIM_UVSPHERE	11
+#define PRIM_ICOSPHERE 	12
+#define PRIM_MONKEY		13
 
 static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int seg,
 		int subdiv, float dia, float depth, int ext, int fill)
@@ -966,7 +975,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			translateflag(em, 2, vec);
 		}
 		break;
-	case 11: /*  UVsphere */
+	case PRIM_UVSPHERE: /*  UVsphere */
 		
 		/* clear all flags */
 		eve= em->verts.first;
@@ -1012,7 +1021,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			eve= eve->next;
 		}
 		break;
-	case 12: /* Icosphere */
+	case PRIM_ICOSPHERE: /* Icosphere */
 		{
 			EditVert *eva[12];
 			EditEdge *eed;
@@ -1061,7 +1070,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 			}
 		}
 		break;
-	case 13: /* Monkey */
+	case PRIM_MONKEY: /* Monkey */
 		{
 			//extern int monkeyo, monkeynv, monkeynf;
 			//extern signed char monkeyf[][4];
@@ -1445,6 +1454,185 @@ void MESH_OT_add_primitive_plane(wmOperatorType *ot)
 	ot->poll= ED_operator_editmesh;
 }
 
+static int add_primitive_cube_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	/* plane (diameter of 1.41 makes it unit size) */
+	dia*= sqrt(2.0f);
+	
+	make_prim(obedit, PRIM_CUBE, mat, 4, 0, 0, dia, 1.0f, 1, 1);
+	
+	ED_undo_push(C, "Add Cube");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_cube(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Cube";
+	ot->idname= "MESH_OT_add_primitive_cube";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_cube_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int add_primitive_circle_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	dia = RNA_float_get(op->ptr,"radius");
+	
+	make_prim(obedit, PRIM_CIRCLE, mat, RNA_int_get(op->ptr,"vertices"), 0, 0, dia, 0.0f, 0, RNA_boolean_get(op->ptr, "fill"));
+	
+	ED_undo_push(C, "Add Circle");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_circle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Circle";
+	ot->idname= "MESH_OT_add_primitive_circle";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_circle_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "fill", PROP_BOOLEAN, PROP_NONE);
+}
+
+static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	dia = RNA_float_get(op->ptr,"radius");
+	
+	// XXX cylinder turns out a bit wacky.. play with the cursor to get even more interesting stuff
+	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"vertices"),32, 2, dia, RNA_float_get(op->ptr,"depth"), 1, 1);
+	
+	ED_undo_push(C, "Add Cylinder");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_cylinder(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Cylinder";
+	ot->idname= "MESH_OT_add_primitive_cylinder";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_cylinder_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
+}
+
+static int add_primitive_tube_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	dia = RNA_float_get(op->ptr,"radius");
+	
+	make_prim(obedit, PRIM_CYLINDER, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, 0);
+	
+	ED_undo_push(C, "Add Tube");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_tube(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Tube";
+	ot->idname= "MESH_OT_add_primitive_tube";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_tube_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
+}
+
+static int add_primitive_cone_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	dia = RNA_float_get(op->ptr,"radius");
+	
+	make_prim(obedit, PRIM_CONE, mat, RNA_int_get(op->ptr,"vertices"), 32, 2, dia, RNA_float_get(op->ptr,"depth")/2, 1, RNA_int_get(op->ptr,"cap end"));
+	
+	ED_undo_push(C, "Add Cone");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_cone(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Cone";
+	ot->idname= "MESH_OT_add_primitive_cone";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_cone_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	RNA_def_property(ot->srna, "vertices", PROP_INT, PROP_NONE);
+	RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property(ot->srna, "cap end",PROP_INT, PROP_NONE);
+}
+
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -1457,7 +1645,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	
 	make_prim(obedit, PRIM_GRID, mat, 10, 10, 0, dia, 0.0f, 0, 1);
 	
-	ED_undo_push(C, "Add Plane");	// Note this will become depricated 
+	ED_undo_push(C, "Add Grid");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1471,5 +1659,32 @@ void MESH_OT_add_primitive_grid(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_primitive_grid_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+// XXX No monkey ?!
+static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	float dia, mat[4][4];
+	
+	dia= new_primitive_matrix(C, mat);
+	
+	make_prim(obedit, PRIM_MONKEY, mat, 32, 32, 2, dia, 0.0f, 0, 0);
+	
+	ED_undo_push(C, "Add Monkey");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_add_primitive_monkey(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Monkey";
+	ot->idname= "MESH_OT_add_monkey";
+	
+	/* api callbacks */
+	ot->exec= add_primitive_monkey_exec;
 	ot->poll= ED_operator_editmesh;
 }
