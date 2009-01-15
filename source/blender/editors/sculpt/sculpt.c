@@ -136,16 +136,19 @@ typedef enum StrokeFlags {
    For descriptions of these settings, check the operator properties.
 */
 typedef struct StrokeCache {
+	/* Invariants */
 	float radius;
 	float scale[3];
 	int flag;
 	float clip_tolerance[3];
-	int mouse[2];
+	int initial_mouse[2];
 	float depth;
 
+	/* Variants */
 	float true_location[3];
 	float location[3];
 	float flip;
+	int mouse[2];
 
 	/* Truly temporary storage that isn't saved as a property */
 	MVert *mvert; /* Can be either Mesh mverts or MultiresDM mverts */
@@ -153,19 +156,14 @@ typedef struct StrokeCache {
 	float *layer_disps; /* Displacements for each vertex */
  	float (*mesh_store)[3]; /* Copy of the mesh vertices' locations */
 	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
+	int anchored_rotation; /* Texture rotation in anchored mode */
+	int pixel_radius, previous_pixel_radius;
 } StrokeCache;
 
 typedef struct BrushAction {
 	BrushActionSymm symm;
 
 	char firsttime;
-
-	float prev_radius;
-	float radius;
-
-	//float *layer_disps;
-
-	float anchored_rot;
 
 	/* Grab brush */
 	ListBase grab_active_verts[8];
@@ -790,8 +788,8 @@ static float tex_strength(SculptData *sd, BrushAction *a, float *point, const fl
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	}
 	else if(ss->texcache) {
-		const float bsize= a->radius * 2;
-		const float rot= to_rad(sculpt_tex_angle(sd)) + a->anchored_rot;
+		const float bsize= ss->cache->pixel_radius * 2;
+		const float rot= to_rad(sculpt_tex_angle(sd)) + ss->cache->anchored_rotation;
 		int px, py;
 		float flip[3], point_2d[2];
 
@@ -827,8 +825,8 @@ static float tex_strength(SculptData *sd, BrushAction *a, float *point, const fl
 				py %= sy-1;
 			avg= get_texcache_pixel_bilinear(ss, TC_SIZE*px/sx, TC_SIZE*py/sy);
 		} else {
-			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
-			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
+			float fx= (point_2d[0] - ss->cache->initial_mouse[0]) / bsize;
+			float fy= (point_2d[1] - ss->cache->initial_mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float flen= sqrtf(fx*fx + fy*fy);
@@ -852,7 +850,7 @@ static void sculpt_add_damaged_rect(SculptSession *ss, BrushAction *a)
 {
 	short p[2];
 	RectNode *rn= MEM_mallocN(sizeof(RectNode),"RectNode");
-	const float radius = a->radius > a->prev_radius ? a->radius : a->prev_radius;
+	const float radius = MAX2(ss->cache->pixel_radius, ss->cache->previous_pixel_radius);
 	unsigned i;
 
 	/* Find center */
@@ -1598,31 +1596,15 @@ static void sculpt_load_mats(bContext *C, bglMats *mats)
 	mats->viewport[3] = ar->winy;	
 }
 
-/* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Object *ob)
+static float unproject_brush_radius(SculptSession *ss, float offset)
 {
-	StrokeCache *cache = sd->session->cache;
-	int i;
+	float brush_edge[3];
 
-	memset(cache, 0, sizeof(StrokeCache));
+	/* In anchored mode, brush size changes with mouse loc, otherwise it's fixed using the brush radius */
+	unproject(ss, brush_edge, ss->cache->initial_mouse[0] + offset,
+		  ss->cache->initial_mouse[1], ss->cache->depth);
 
-	cache->radius = RNA_float_get(op->ptr, "radius");
-	RNA_float_get_array(op->ptr, "scale", cache->scale);
-	cache->flag = RNA_int_get(op->ptr, "flag");
-	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
-	RNA_int_get_array(op->ptr, "mouse", cache->mouse);
-	cache->depth = RNA_float_get(op->ptr, "depth");
-
-	/* Truly temporary data that isn't stored in properties */
-	cache->totvert = get_mesh(ob)->totvert; // XXX
-	cache->mvert = get_mesh(ob)->mvert; // XXX
-
-	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER) {
-		cache->layer_disps = MEM_callocN(sizeof(float) * cache->totvert, "layer brush displacements");
-		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * cache->totvert, "sculpt mesh vertices copy");
-		for(i = 0; i < cache->totvert; ++i)
-			VecCopyf(cache->mesh_store[i], cache->mvert[i].co);
-	}
+	return VecLenf(ss->cache->true_location, brush_edge);
 }
 
 static void sculpt_cache_free(StrokeCache *cache)
@@ -1631,13 +1613,69 @@ static void sculpt_cache_free(StrokeCache *cache)
 		MEM_freeN(cache->layer_disps);
 	if(cache->mesh_store)
 		MEM_freeN(cache->mesh_store);
+	if(cache->orig_norms)
+		MEM_freeN(cache->orig_norms);
+}
+
+/* Initialize the stroke cache invariants from operator properties */
+static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Object *ob)
+{
+	StrokeCache *cache = sd->session->cache;
+	int i;
+
+	memset(cache, 0, sizeof(StrokeCache));
+
+	RNA_float_get_array(op->ptr, "scale", cache->scale);
+	cache->flag = RNA_int_get(op->ptr, "flag");
+	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
+	RNA_int_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
+	cache->depth = RNA_float_get(op->ptr, "depth");
+
+	/* Truly temporary data that isn't stored in properties */
+	cache->totvert = get_mesh(ob)->totvert; // XXX
+	cache->mvert = get_mesh(ob)->mvert; // XXX
+
+	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER || (sd->brush->flag & BRUSH_ANCHORED)) {
+		cache->layer_disps = MEM_callocN(sizeof(float) * cache->totvert, "layer brush displacements");
+		cache->mesh_store= MEM_mallocN(sizeof(float) * 3 * cache->totvert, "sculpt mesh vertices copy");
+		for(i = 0; i < cache->totvert; ++i)
+			VecCopyf(cache->mesh_store[i], cache->mvert[i].co);
+
+		if(sd->brush->flag & BRUSH_ANCHORED) {
+			cache->orig_norms= MEM_mallocN(sizeof(short) * 3 * cache->totvert, "Sculpt orig norm");
+			for(i = 0; i < cache->totvert; ++i) {
+				cache->orig_norms[i][0] = cache->mvert[i].no[0];
+				cache->orig_norms[i][1] = cache->mvert[i].no[1];
+				cache->orig_norms[i][2] = cache->mvert[i].no[2];
+			}
+		}
+	}
+
+	unproject(sd->session, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
+	cache->radius = unproject_brush_radius(sd->session, brush_size(sd));
 }
 
 /* Initialize the stroke cache variants from operator properties */
-static void sculpt_update_cache_variants(StrokeCache *cache, PointerRNA *ptr)
+static void sculpt_update_cache_variants(SculptData *sd, PointerRNA *ptr)
 {
-	RNA_float_get_array(ptr, "location", cache->true_location);
+	StrokeCache *cache = sd->session->cache;
+
+	if(!(sd->brush->flag & BRUSH_ANCHORED))
+		RNA_float_get_array(ptr, "location", cache->true_location);
 	cache->flip = RNA_boolean_get(ptr, "flip");
+	RNA_int_get_array(ptr, "mouse", cache->mouse);
+	
+	cache->previous_pixel_radius = cache->pixel_radius;
+
+	/* Truly temporary data that isn't stored in properties */
+	if(sd->brush->flag & BRUSH_ANCHORED) {
+		int dx = cache->mouse[0] - cache->initial_mouse[0];
+		int dy = cache->mouse[1] - cache->initial_mouse[1];
+		cache->pixel_radius = sqrt(dx*dx + dy*dy);
+		cache->radius = unproject_brush_radius(sd->session, cache->pixel_radius);
+		cache->anchored_rotation = atan2(dy, dx);
+	} else
+ 		cache->pixel_radius = brush_size(sd);
 }
 
 /* Initialize stroke operator properties */
@@ -1646,20 +1684,9 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
-	float brush_center[3], brush_edge[3];
 	float depth = get_depth(C, event->x, event->y);
-	float size = brush_size(sd);
 	float scale[3], clip_tolerance[3] = {0,0,0};
 	int mouse[2], flag = 0;
-
-	unproject(ss, brush_center, event->x, event->y, depth);
-
-	/* In anchored mode, brush size changes with mouse loc, otherwise it's fixed using the brush radius */
-	unproject(ss, brush_edge,
-		  event->x + ((sd->brush->flag & BRUSH_ANCHORED) ? 0 : size),
-		  event->y, depth);
-
-	RNA_float_set(op->ptr, "radius", VecLenf(brush_center, brush_edge));
 
 	/* Set scaling adjustment */
 	scale[0] = 1.0f / ob->size[0];
@@ -1686,10 +1713,10 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	/* Initial mouse location */
 	mouse[0] = event->x;
 	mouse[1] = event->y;
-	RNA_int_set_array(op->ptr, "mouse", mouse);
+	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
-	RNA_int_set(op->ptr, "depth", depth);
+	RNA_float_set(op->ptr, "depth", depth);
 
 	sculpt_update_cache_invariants(sd, op, ob);
 }
@@ -1726,6 +1753,23 @@ static void sculpt_action_init(BrushAction *a)
 	memset(a, 0, sizeof(BrushAction));
 }
 
+
+static void sculpt_restore_mesh(SculptData *sd)
+{
+	StrokeCache *cache = sd->session->cache;
+	int i;
+	
+	/* Restore the mesh before continuing with anchored stroke */
+	if((sd->brush->flag & BRUSH_ANCHORED) && cache->mesh_store) {
+		for(i = 0; i < cache->totvert; ++i) {
+			VecCopyf(cache->mvert[i].co, cache->mesh_store[i]);
+			cache->mvert[i].no[0] = cache->orig_norms[i][0];
+			cache->mvert[i].no[1] = cache->orig_norms[i][1];
+			cache->mvert[i].no[2] = cache->orig_norms[i][2];
+		}
+	}
+}
+
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PointerRNA itemptr;
@@ -1734,6 +1778,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	Object *ob= CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	float center[3];
+	int mouse[2] = {event->x, event->y};
 
 	sculpt_action_init(&a);
 	unproject(sd->session, center, event->x, event->y, get_depth(C, event->x, event->y));
@@ -1741,9 +1786,11 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", center);
+	RNA_int_set_array(&itemptr, "mouse", mouse);
 	RNA_boolean_set(&itemptr, "flip", event->shift);
-	sculpt_update_cache_variants(sd->session->cache, &itemptr);
+	sculpt_update_cache_variants(sd, &itemptr);
 
+	sculpt_restore_mesh(sd);
 	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, sd->session->cache, &a);
 	//calc_damaged_verts(sd->session, &a);
 	BLI_freelistN(&sd->session->damaged_verts);
@@ -1776,8 +1823,9 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_action_init(&a);		
-		sculpt_update_cache_variants(sd->session->cache, &itemptr);
+		sculpt_update_cache_variants(sd, &itemptr);
 
+		sculpt_restore_mesh(sd);
 		do_symmetrical_brush_actions(sd, sd->session->cache, &a);
 		BLI_freelistN(&sd->session->damaged_verts);
 	}
@@ -1813,9 +1861,6 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "stroke", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorStrokeElement);
 
-	/* Brush radius measured in object space, projected from the brush setting in pixels */
-	prop= RNA_def_property(ot->srna, "radius", PROP_FLOAT, PROP_NONE);
-
 	/* If the object has a scaling factor, brushes also need to be scaled
 	   to work as expected. */
 	prop= RNA_def_property(ot->srna, "scale", PROP_FLOAT, PROP_VECTOR);
@@ -1830,7 +1875,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	RNA_def_property_float_array_default(prop, vec3f_def);
 
 	/* The initial 2D location of the mouse */
-	prop= RNA_def_property(ot->srna, "mouse", PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(ot->srna, "initial_mouse", PROP_INT, PROP_VECTOR);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_int_array_default(prop, vec2i_def);
 

@@ -143,7 +143,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rake", "Rotate the brush texture to match the stroke direction.");
 
 	prop= RNA_def_property(srna, "anchored", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RAKE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ANCHORED);
 	RNA_def_property_ui_text(prop, "Anchored", "Keep the brush anchored to the initial location.");
 
 	prop= RNA_def_property(srna, "flip_direction", PROP_BOOLEAN, PROP_NONE);
@@ -182,7 +182,8 @@ void rna_def_brush(BlenderRNA *brna)
 /* A brush stroke is a list of changes to the brush that
  * can occur during a stroke
  *
- *  o 3D location of the brush (stored as collection due to symmetry)
+ *  o 3D location of the brush
+ *  o 2D mouse location
  *  o Tablet pressure
  *  o Direction flip
  *  o Tool switch
@@ -200,6 +201,11 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_VECTOR);
+	RNA_def_property_flag(prop, PROP_IDPROPERTY);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_text(prop, "Mouse", "");
 
 	/*prop= RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
