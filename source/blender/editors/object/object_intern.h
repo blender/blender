@@ -63,7 +63,7 @@ void OBJECT_OT_set_slowparent(struct wmOperatorType *ot);
 void OBJECT_OT_clear_slowparent(struct wmOperatorType *ot);
 void OBJECT_OT_set_center(struct wmOperatorType *ot);
 void OBJECT_OT_make_dupli_real(struct wmOperatorType *ot);
-
+void OBJECT_OT_object_add(struct wmOperatorType *ot);
 
 /* editlattice.c */
 void free_editLatt(Object *ob);

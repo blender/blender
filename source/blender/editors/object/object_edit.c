@@ -266,54 +266,79 @@ void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
 	}
 }
 
+/* ******************* add object operator ****************** */
+
+static EnumPropertyItem prop_object_types[] = {
+	{OB_EMPTY, "EMPTY", "Empty", ""},
+	{OB_MESH, "MESH", "Mesh", ""},
+	{OB_CURVE, "CURVE", "Curve", ""},
+	{OB_SURF, "SURFACE", "Surface", ""},
+	{OB_FONT, "TEXT", "Text", ""},
+	{OB_MBALL, "META", "Meta", ""},
+	{OB_LAMP, "LAMP", "Lamp", ""},
+	{OB_CAMERA, "CAMERA", "Camera", ""},
+	{OB_ARMATURE, "ARMATURE", "Armature", ""},
+	{OB_LATTICE, "LATTICE", "Lattice", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
 
 void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
 {
-	Object *ob;
-	
-//	ED_view3d_exit_paint_modes(C);
+	/* keep here to get things compile, remove later */
+}
 
-// XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+static int object_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	View3D *v3d= NULL;
+	int type= RNA_int_get(op->ptr, "type");
+	
+	/* hrms, this is editor level operator */
+	ED_view3d_exit_paint_modes(C);
+	
+	if (CTX_data_edit_object(C)) 
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+	
+	/* deselects all, sets scene->basact */
 	ob= add_object(scene, type);
-//	ED_base_object_activate(C, BASACT);
+	/* editor level activate, notifiers */
+	ED_base_object_activate(C, BASACT);
+	
+	/* more editor stuff */
+	if(sa && sa->spacetype==SPACE_VIEW3D)
+		v3d= sa->spacedata.first;
 	ED_object_base_init_from_view(scene, v3d, BASACT);
 	
-	/* only undo pushes on objects without editmode... */
-	if(type==OB_EMPTY) BIF_undo_push("Add Empty");
-	else if(type==OB_LAMP) {
-		BIF_undo_push("Add Lamp");
-		reshadeall_displist(scene);	/* only frees */
-	}
-	else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
-	else if(type==OB_CAMERA) BIF_undo_push("Add Camera");
-		
-	allqueue(REDRAWVIEW3D, 0);
-
-// XXX	redraw_test_buttons(OBACT);
-
-	allqueue(REDRAWALL, 0);
-
-// XXX	deselect_all_area_oops();
-// XXX	set_select_flag_oops();
-	
 	DAG_scene_sort(scene);
-	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
-}
-
-void add_objectLamp(Scene *scene, View3D *v3d, short type)
-{
-	Lamp *la;
-
-	if(scene->obedit==NULL) { // XXX get from context
-		add_object_draw(scene, v3d, OB_LAMP);
-		ED_object_base_init_from_view(scene, v3d, BASACT);
-	}
 	
-	la = BASACT->object->data;
-	la->type = type;	
-
-	allqueue(REDRAWALL, 0);
+	return OPERATOR_FINISHED;
 }
+
+void OBJECT_OT_object_add(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Add Object";
+	ot->idname= "OBJECT_OT_object_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_add_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_object_types);
+}
+
+
+/* ******************************* */
 
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
@@ -1138,18 +1163,6 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 
 /* ***************************** */
 /* ****** Select by Type ****** */
-static EnumPropertyItem prop_select_object_types[] = {
-	{OB_EMPTY, "EMPTY", "Empty", ""},
-	{OB_MESH, "MESH", "Mesh", ""},
-	{OB_CURVE, "CURVE", "Curve", ""},
-	{OB_SURF, "SURFACE", "Surface", ""},
-	{OB_FONT, "TEXT", "Text", ""},
-	{OB_MBALL, "META", "Meta", ""},
-	{OB_LAMP, "LAMP", "Lamp", ""},
-	{OB_CAMERA, "CAMERA", "Camera", ""},
-	{OB_LATTICE, "LATTICE", "Lattice", ""},
-	{0, NULL, NULL, NULL}
-};
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
 {
@@ -1184,7 +1197,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	
 	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_object_types);
+	RNA_def_property_enum_items(prop, prop_object_types);
 
 }
 /* ****** selection by links *******/

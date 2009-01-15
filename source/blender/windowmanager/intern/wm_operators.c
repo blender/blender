@@ -195,14 +195,14 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
 	const EnumPropertyItem *item;
-	int totitem, i, len= strlen(op->type->name) + 5;
+	int totitem, i, len= strlen(op->type->name) + 8;
 	char *menu, *p;
 	
 	if(prop) {
 		RNA_property_enum_items(op->ptr, prop, &item, &totitem);
 		
 		for (i=0; i<totitem; i++)
-			len+= strlen(item[i].name) + 5;
+			len+= strlen(item[i].name) + 8;
 		
 		menu= MEM_callocN(len, "string");
 		
