@@ -40,8 +40,6 @@ struct StrokeCache;
 typedef struct SculptSession {
 	struct ProjVert *projverts;
 
-	struct bglMats *mats;
-
 	/* An array of lists; array is sized as
 	   large as the number of verts in the mesh,
 	   the list for each vert contains the index

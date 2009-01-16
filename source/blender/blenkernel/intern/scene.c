@@ -690,8 +690,6 @@ void sculptsession_free(Scene *sce)
 	if(ss) {
 		if(ss->projverts)
 			MEM_freeN(ss->projverts);
-		if(ss->mats)
-			MEM_freeN(ss->mats);
 
 		if(ss->radialcontrol)
 			MEM_freeN(ss->radialcontrol);

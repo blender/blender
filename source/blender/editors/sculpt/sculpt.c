@@ -146,6 +146,7 @@ typedef struct StrokeCache {
 	int first_time; /* Beginning of stroke may do some things special */
 
 	ViewContext vc;
+	bglMats *mats;
 
 	/* Mesh data can either come directly from a Mesh, or from a MultiresDM */
 	int multires; /* Special handling for multires meshes */
@@ -238,32 +239,32 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 
 /* Uses window coordinates (x,y) and depth component z to find a point in
    modelspace */
-static void unproject(SculptSession *ss, float out[3], const short x, const short y, const float z)
+static void unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
 {
 	double ux, uy, uz;
 
-        gluUnProject(x,y,z, ss->mats->modelview, ss->mats->projection,
-		     (GLint *)ss->mats->viewport, &ux, &uy, &uz );
+        gluUnProject(x,y,z, mats->modelview, mats->projection,
+		     (GLint *)mats->viewport, &ux, &uy, &uz );
 	out[0] = ux;
 	out[1] = uy;
 	out[2] = uz;
 }
 
 /* Convert a point in model coordinates to 2D screen coordinates. */
-static void projectf(SculptSession *ss, const float v[3], float p[2])
+static void projectf(bglMats *mats, const float v[3], float p[2])
 {
 	double ux, uy, uz;
 
-	gluProject(v[0],v[1],v[2], ss->mats->modelview, ss->mats->projection,
-		   (GLint *)ss->mats->viewport, &ux, &uy, &uz);
+	gluProject(v[0],v[1],v[2], mats->modelview, mats->projection,
+		   (GLint *)mats->viewport, &ux, &uy, &uz);
 	p[0]= ux;
 	p[1]= uy;
 }
 
-static void project(SculptSession *ss, const float v[3], short p[2])
+static void project(bglMats *mats, const float v[3], short p[2])
 {
 	float f[2];
-	projectf(ss, v, f);
+	projectf(mats, v, f);
 
 	p[0]= f[0];
 	p[1]= f[1];
@@ -778,7 +779,7 @@ static float tex_strength(SculptData *sd, float *point, const float len)
 		   that the brush texture will be oriented correctly. */
 		VecCopyf(flip, point);
 		flip_coord(flip, flip, ss->cache->symmetry);
-		projectf(ss, flip, point_2d);
+		projectf(ss->cache->mats, flip, point_2d);
 
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
@@ -834,7 +835,7 @@ static void sculpt_add_damaged_rect(SculptSession *ss)
 	unsigned i;
 
 	/* Find center */
-	project(ss, ss->cache->location, p);
+	project(ss->cache->mats, ss->cache->location, p);
 	rn->r.xmin= p[0] - radius;
 	rn->r.ymin= p[1] - radius;
 	rn->r.xmax= p[0] + radius;
@@ -1369,7 +1370,8 @@ static void sculptmode_update_all_projverts(SculptSession *ss)
 		ss->projverts = MEM_mallocN(sizeof(ProjVert)*ss->cache->totvert,"ProjVerts");
 
 	for(i=0; i<ss->cache->totvert; ++i) {
-		project(ss, ss->vertexcosnos ? &ss->vertexcosnos[i * 6] : ss->cache->mvert[i].co, ss->projverts[i].co);
+		project(ss->cache->mats, ss->vertexcosnos ? &ss->vertexcosnos[i * 6] : ss->cache->mvert[i].co,
+			ss->projverts[i].co);
 		ss->projverts[i].inside= 0;
 	}
 }
@@ -1543,30 +1545,24 @@ static int sculpt_brush_stroke_poll(bContext *C)
 	return G.f & G_SCULPTMODE;
 }
 
-/* This is temporary, matrices should be data in operator for exec */
-static void sculpt_load_mats(bContext *C, bglMats *mats)
+static void sculpt_load_mats(bglMats *mats, ViewContext *vc)
 {
-	View3D *v3d = ((View3D*)CTX_wm_area(C)->spacedata.first);
-	ARegion *ar = CTX_wm_region(C);
-	Object *ob= CTX_data_active_object(C);
 	float cpy[4][4];
 	int i, j;
 
-	view3d_operator_needs_opengl(C);
-
-	Mat4MulMat4(cpy, v3d->viewmat, ob->obmat);
+	Mat4MulMat4(cpy, vc->v3d->viewmat, vc->obact->obmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
-			mats->projection[i*4+j] = v3d->winmat[i][j];
+			mats->projection[i*4+j] = vc->v3d->winmat[i][j];
 			mats->modelview[i*4+j] = cpy[i][j];
 		}
 	}
 
-	mats->viewport[0] = ar->winrct.xmin;
-	mats->viewport[1] = ar->winrct.ymin;
-	mats->viewport[2] = ar->winx;
-	mats->viewport[3] = ar->winy;	
+	mats->viewport[0] = vc->ar->winrct.xmin;
+	mats->viewport[1] = vc->ar->winrct.ymin;
+	mats->viewport[2] = vc->ar->winx;
+	mats->viewport[3] = vc->ar->winy;	
 }
 
 static float unproject_brush_radius(SculptSession *ss, float offset)
@@ -1574,7 +1570,7 @@ static float unproject_brush_radius(SculptSession *ss, float offset)
 	float brush_edge[3];
 
 	/* In anchored mode, brush size changes with mouse loc, otherwise it's fixed using the brush radius */
-	unproject(ss, brush_edge, ss->cache->initial_mouse[0] + offset,
+	unproject(ss->cache->mats, brush_edge, ss->cache->initial_mouse[0] + offset,
 		  ss->cache->initial_mouse[1], ss->cache->depth);
 
 	return VecLenf(ss->cache->true_location, brush_edge);
@@ -1588,16 +1584,16 @@ static void sculpt_cache_free(StrokeCache *cache)
 		MEM_freeN(cache->mesh_store);
 	if(cache->orig_norms)
 		MEM_freeN(cache->orig_norms);
+	if(cache->mats)
+		MEM_freeN(cache->mats);
 	MEM_freeN(cache);
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Object *ob)
+static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op)
 {
 	StrokeCache *cache = sd->session->cache;
 	int i;
-
-	memset(cache, 0, sizeof(StrokeCache));
 
 	RNA_float_get_array(op->ptr, "scale", cache->scale);
 	cache->flag = RNA_int_get(op->ptr, "flag");
@@ -1607,7 +1603,10 @@ static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Objec
 
 	/* Truly temporary data that isn't stored in properties */
 
-	sculpt_update_mesh_elements(cache, ob);
+	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
+	sculpt_load_mats(cache->mats, &cache->vc);
+
+	sculpt_update_mesh_elements(cache, cache->vc.obact);
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER || (sd->brush->flag & BRUSH_ANCHORED)) {
@@ -1626,7 +1625,7 @@ static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op, Objec
 		}
 	}
 
-	unproject(sd->session, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
+	unproject(cache->mats, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
 	cache->radius = unproject_brush_radius(sd->session, brush_size(sd));
 	cache->first_time = 1;
 }
@@ -1656,7 +1655,7 @@ static void sculpt_update_cache_variants(SculptData *sd, PointerRNA *ptr)
 
 	/* Find the grab delta */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		unproject(sd->session, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
+		unproject(cache->mats, grab_location, cache->mouse[0], cache->mouse[1], cache->depth);
 		if(!cache->first_time)
 			VecSubf(cache->grab_delta, grab_location, cache->old_grab_location);
 		VecCopyf(cache->old_grab_location, grab_location);
@@ -1664,12 +1663,11 @@ static void sculpt_update_cache_variants(SculptData *sd, PointerRNA *ptr)
 }
 
 /* Initialize stroke operator properties */
-static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event, SculptSession *ss)
+static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmEvent *event, SculptSession *ss)
 {
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
-	ViewContext vc;
 	float scale[3], clip_tolerance[3] = {0,0,0};
 	int mouse[2], flag = 0;
 
@@ -1701,11 +1699,9 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
-	view3d_set_viewcontext(C, &vc);
-	RNA_float_set(op->ptr, "depth", read_cached_depth(&vc, event->x, event->y));
+	RNA_float_set(op->ptr, "depth", read_cached_depth(&sd->session->cache->vc, event->x, event->y));
 
-	sculpt_update_cache_invariants(sd, op, ob);
-	sd->session->cache->vc = vc;
+	sculpt_update_cache_invariants(sd, op);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1714,13 +1710,11 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 	// XXX: temporary, much of sculptsession data should be in rna properties
 	sd->session = MEM_callocN(sizeof(SculptSession), "test sculpt session");
-	sd->session->mats = MEM_callocN(sizeof(bglMats), "test sculpt mats");
 	sd->session->cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	
-	// XXX: temporary matrix stuff
-	sculpt_load_mats(C, sd->session->mats);
-
-	sculpt_brush_stroke_init(C, op, event, sd->session);
+	view3d_set_viewcontext(C, &sd->session->cache->vc);
+	view3d_operator_needs_opengl(C);
+	sculpt_brush_stroke_init_properties(C, op, event, sd->session);
 
 	sculptmode_update_all_projverts(sd->session);
 
@@ -1762,7 +1756,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	float center[3];
 	int mouse[2] = {event->x, event->y};
 
-	unproject(sd->session, center, event->x, event->y,
+	unproject(sd->session->cache->mats, center, event->x, event->y,
 		  read_cached_depth(&sd->session->cache->vc, event->x, event->y));
 
 	/* Add to stroke */
@@ -1800,7 +1794,9 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
-	sculpt_update_cache_invariants(sd, op, ob);
+	view3d_operator_needs_opengl(C);
+	view3d_set_viewcontext(C, &sd->session->cache->vc);
+	sculpt_update_cache_invariants(sd, op);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_update_cache_variants(sd, &itemptr);
