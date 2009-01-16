@@ -957,6 +957,52 @@ void sk_cutoutStroke(SK_Stroke *stk, int start, int end, float p_start[3], float
 	}
 }
 
+void sk_polygonizeStroke(SK_Stroke *stk, int start, int end)
+{
+	int offset;
+	int i;
+	
+	/* find first exact points outside of range */
+	for (;start > 0; start--)
+	{
+		if (stk->points[start].type == PT_EXACT)
+		{
+			break;
+		}
+	}
+	
+	for (;end < stk->nb_points - 1; end++)
+	{
+		if (stk->points[end].type == PT_EXACT)
+		{
+			break;
+		}
+	}
+	
+	offset = start + 1;
+	
+	for (i = start + 1; i < end; i++)
+	{
+		if (stk->points[i].type == PT_EXACT)
+		{
+			if (offset != i)
+			{
+				memcpy(stk->points + offset, stk->points + i, sizeof(SK_Point));
+			}
+
+			offset++;
+		}
+	}
+	
+	/* some points were removes, move end of array */
+	if (offset < end)
+	{
+		int size = stk->nb_points - end;
+		memmove(stk->points + offset, stk->points + end, size * sizeof(SK_Point));
+		stk->nb_points = offset + size;
+	}
+}
+
 void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 {
 	float normal[3], distance[3];
@@ -2509,7 +2555,7 @@ void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 	SK_Intersection *isect;
 	int command;
 	
-	command = pupmenu("Action %t|Flatten %x1|Cut Out %x2");
+	command = pupmenu("Action %t|Flatten %x1|Cut Out %x2|Polygonize %x3");
 	if(command < 1) return;
 
 	for (isect = gest->intersections.first; isect; isect = isect->next)
@@ -2527,6 +2573,9 @@ void sk_applyCommandGesture(SK_Gesture *gest, SK_Sketch *sketch)
 					break;
 				case 2:
 					sk_cutoutStroke(isect->stroke, isect->after, i2->before, isect->p, i2->p);
+					break;
+				case 3:
+					sk_polygonizeStroke(isect->stroke, isect->before, i2->after);
 					break;
 			}
 
