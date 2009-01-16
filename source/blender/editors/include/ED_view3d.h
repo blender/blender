@@ -61,6 +61,8 @@ void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, 
 
 /* Projection */
 
+float read_cached_depth(struct ViewContext *vc, int x, int y);
+
 void project_short(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
 void project_short_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
 

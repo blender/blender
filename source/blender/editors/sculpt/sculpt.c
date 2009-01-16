@@ -145,6 +145,8 @@ typedef struct StrokeCache {
 
 	int first_time; /* Beginning of stroke may do some things special */
 
+	ViewContext vc;
+
 	/* Mesh data can either come directly from a Mesh, or from a MultiresDM */
 	int multires; /* Special handling for multires meshes */
 	MVert *mvert;
@@ -233,32 +235,6 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
  *
  * Simple functions to get data from the GL
  */
-
-/* Uses window coordinates (x,y) to find the depth in the GL depth buffer. If
-   available, G.vd->depths is used so that the brush doesn't sculpt on top of
-   itself (G.vd->depths is only updated at the end of a brush stroke.) */
-static float get_depth(bContext *C, short x, short y)
-{
-	ScrArea *sa= CTX_wm_area(C);
-
-	if(sa->spacetype==SPACE_VIEW3D) { // should check this in context instead?
-		ViewDepths *vd = ((View3D*)sa->spacedata.first)->depths;
-		
-		y -= CTX_wm_region(C)->winrct.ymin;
-
-		if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
-			return vd->depths[y * vd->w + x];
-
-		if(!vd)
-			fprintf(stderr, "Error: Bad view3d!\n");
-		else if(!vd->depths)
-			fprintf(stderr, "Error: Bad depths copy!\n");
-		else
-			fprintf(stderr, "Error: Out of range: (%d,%d)\n", x, y);
-	}
-
-	return 1;
-}
 
 /* Uses window coordinates (x,y) and depth component z to find a point in
    modelspace */
@@ -1692,7 +1668,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
-	float depth = get_depth(C, event->x, event->y);
+	ViewContext vc;
 	float scale[3], clip_tolerance[3] = {0,0,0};
 	int mouse[2], flag = 0;
 
@@ -1724,9 +1700,11 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op, wmEvent *event
 	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
-	RNA_float_set(op->ptr, "depth", depth);
+	view3d_set_viewcontext(C, &vc);
+	RNA_float_set(op->ptr, "depth", read_cached_depth(&vc, event->x, event->y));
 
 	sculpt_update_cache_invariants(sd, op, ob);
+	sd->session->cache->vc = vc;
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1776,7 +1754,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	float center[3];
 	int mouse[2] = {event->x, event->y};
 
-	unproject(sd->session, center, event->x, event->y, get_depth(C, event->x, event->y));
+	unproject(sd->session, center, event->x, event->y,
+		  read_cached_depth(&sd->session->cache->vc, event->x, event->y));
 
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
