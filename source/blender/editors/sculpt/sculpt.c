@@ -248,9 +248,15 @@ static float get_depth(bContext *C, short x, short y)
 
 		if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
 			return vd->depths[y * vd->w + x];
+
+		if(!vd)
+			fprintf(stderr, "Error: Bad view3d!\n");
+		else if(!vd->depths)
+			fprintf(stderr, "Error: Bad depths copy!\n");
+		else
+			fprintf(stderr, "Error: Out of range: (%d,%d)\n", x, y);
 	}
 
-	fprintf(stderr, "Error: Bad depth store!\n");
 	return 1;
 }
 
