@@ -6317,7 +6317,7 @@ static int subdivide_multi_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"Number_of_cuts"), 0);
+	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
 		
 	ED_undo_push(C, "Subdivide Multi");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -6341,7 +6341,7 @@ void MESH_OT_subdivide_multi(wmOperatorType *ot)
 	/* props */
 
 	
-	RNA_def_property_int_default(RNA_def_property(ot->srna, "Number_of_cuts", PROP_INT, PROP_NONE), 4);
+	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
 }
 
 static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
@@ -6350,7 +6350,7 @@ static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr,"Rand_fac")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"Number_of_cuts"), 0);
+	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
 		
 	ED_undo_push(C, "Subdivide Multi Fractal");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -6371,11 +6371,9 @@ void MESH_OT_subdivide_multi_fractal(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
-	/* props */
-	
-	RNA_def_property_int_default(RNA_def_property(ot->srna, "Number_of_cuts", PROP_INT, PROP_NONE), 4);
-	RNA_def_property_float_default(RNA_def_property(ot->srna, "Rand_fac", PROP_FLOAT, PROP_NONE), 5.0);
-	
+	/* properties */
+	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
+	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
 }
 
 static int subdivide_smooth_exec(bContext *C, wmOperator *op)
@@ -6384,7 +6382,7 @@ static int subdivide_smooth_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 
-	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr,"Smooth"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 		
 	ED_undo_push(C, "Subdivide Smooth");	// Note this will become depricated 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -6406,5 +6404,5 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property_float_default(RNA_def_property(ot->srna, "Smooth", PROP_FLOAT, PROP_NONE), 5.0);
+	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
 }

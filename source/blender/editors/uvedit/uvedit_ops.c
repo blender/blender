@@ -477,7 +477,6 @@ static int mirror_exec(bContext *C, wmOperator *op)
 
 void UV_OT_mirror(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	static EnumPropertyItem axis_items[] = {
 		{'x', "MIRROR_X", "Mirror X", "Mirror UVs over X axis."},
 		{'y', "MIRROR_Y", "Mirror Y", "Mirror UVs over Y axis."},
@@ -493,10 +492,7 @@ void UV_OT_mirror(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, axis_items);
-	RNA_def_property_enum_default(prop, 'x');
-	RNA_def_property_ui_text(prop, "Axis", "Axis to mirror UV locations over.");
+	RNA_def_enum(ot->srna, "axis", axis_items, 'x', "Axis", "Axis to mirror UV locations over.");
 }
 
 /* ******************** align operator **************** */
@@ -600,7 +596,6 @@ static int align_exec(bContext *C, wmOperator *op)
 
 void UV_OT_align(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	static EnumPropertyItem axis_items[] = {
 		{'a', "ALIGN_AUTO", "Align Auto", "Automatically choose the axis on which there is most alignment already."},
 		{'x', "ALIGN_X", "Align X", "Align UVs on X axis."},
@@ -617,10 +612,7 @@ void UV_OT_align(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, axis_items);
-	RNA_def_property_enum_default(prop, 'a');
-	RNA_def_property_ui_text(prop, "Axis", "Axis to align UV locations on.");
+	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on.");
 }
 
 /* ******************** weld operator **************** */
@@ -817,8 +809,6 @@ static int stitch_exec(bContext *C, wmOperator *op)
 
 void UV_OT_stitch(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Stitch";
 	ot->idname= "UV_OT_stitch";
@@ -829,13 +819,8 @@ void UV_OT_stitch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "use_limit", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_default(prop, 1);
-	RNA_def_property_ui_text(prop, "Use Limit", "Stitch UVs within a specified limit distance.");
-
-	prop= RNA_def_property(ot->srna, "limit", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_float_default(prop, 20.0);
-	RNA_def_property_ui_text(prop, "Limit", "Limit distance in image pixels.");
+	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance.");
+	RNA_def_float(ot->srna, "limit", 20.0, 0.0f, FLT_MAX, "Limit", "Limit distance in image pixels.", -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */

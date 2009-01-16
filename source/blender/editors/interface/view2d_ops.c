@@ -254,8 +254,8 @@ void View2D_OT_view_pan(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
 /* ------------------ Scrollwheel Versions (2) ---------------------- */
@@ -300,8 +300,8 @@ void View2D_OT_view_scrollright(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
 
@@ -346,8 +346,8 @@ void View2D_OT_view_scrollleft(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
 
@@ -391,8 +391,8 @@ void View2D_OT_view_scrolldown(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
 
@@ -437,8 +437,8 @@ void View2D_OT_view_scrollup(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "deltax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "deltay", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
 }
 
 /* ********************************************************* */
@@ -537,8 +537,8 @@ void View2D_OT_view_zoomin(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
 }
 
 
@@ -573,8 +573,8 @@ void View2D_OT_view_zoomout(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	RNA_def_property(ot->srna, "zoomfacx", PROP_FLOAT, PROP_NONE);
-	RNA_def_property(ot->srna, "zoomfacy", PROP_FLOAT, PROP_NONE);
+	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
 }
 
 /* ********************************************************* */
@@ -796,8 +796,6 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void View2D_OT_view_zoom(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Zoom View";
 	ot->idname= "View2D_OT_view_zoom";
@@ -811,8 +809,8 @@ void View2D_OT_view_zoom(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
-	prop= RNA_def_property(ot->srna, "deltax", PROP_FLOAT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "deltay", PROP_FLOAT, PROP_NONE);
+	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "deltay", 0, -FLT_MAX, FLT_MAX, "Delta Y", "", -FLT_MAX, FLT_MAX);
 }
 
 /* ********************************************************* */
@@ -908,11 +906,11 @@ void View2D_OT_view_borderzoom(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ********************************************************* */

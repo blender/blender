@@ -134,7 +134,6 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	static const float value[4] = {0, 0, 0};
 	static const float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 	
@@ -150,19 +149,15 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_property(ot->srna, "mode", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "options", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mode", 0, INT_MIN, INT_MAX, "Mode", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "options", 0, INT_MIN, INT_MAX, "Options", "", INT_MIN, INT_MAX);
 	
-	prop = RNA_def_property(ot->srna, "values", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_float_array_default(prop, value);
+	RNA_def_float_vector(ot->srna, "values", 4, value, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
 
-	RNA_def_property(ot->srna, "constraint_orientation", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "constraint_mode", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "constraint_orientation", 0, INT_MIN, INT_MAX, "Constraint Orientation", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "constraint_mode", 0, INT_MIN, INT_MAX, "Constraint Mode", "", INT_MIN, INT_MAX);
 
-	prop = RNA_def_property(ot->srna, "constraint_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_array(prop, 9);
-	RNA_def_property_float_array_default(prop, mtx[0]);
+	RNA_def_float_matrix(ot->srna, "constraint_matrix", 9, mtx[0], -FLT_MAX, FLT_MAX, "Constraint Matrix", "", -FLT_MAX, FLT_MAX);
 }
 
 void transform_operatortypes(void)

@@ -711,23 +711,16 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_lasso_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	ot->name= "Lasso Select";
 	ot->idname= "VIEW3D_OT_lasso_select";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
 	ot->exec= view3d_lasso_select_exec;
-	
 	ot->poll= WM_operator_winactive;
 	
-	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
-	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, lasso_select_types);
-
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_enum(ot->srna, "type", lasso_select_types, 0, "Type", "");
 }
 
 
@@ -1499,8 +1492,6 @@ static EnumPropertyItem prop_select_types[] = {
 /* ****** Border Select ****** */
 void VIEW3D_OT_borderselect(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "VIEW3D_OT_borderselect";
@@ -1513,14 +1504,13 @@ void VIEW3D_OT_borderselect(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_types);
+	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
 
 /* ****** Mouse Select ****** */
@@ -1558,8 +1548,6 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Activate/Select";
 	ot->idname= "VIEW3D_OT_select";
@@ -1568,8 +1556,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->invoke= view3d_select_invoke;
 	ot->poll= ED_operator_view3d_active;
 
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_types);
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }
 
 
@@ -1795,9 +1783,8 @@ void VIEW3D_OT_circle_select(wmOperatorType *ot)
 	ot->exec= view3d_circle_select_exec;
 	ot->poll= ED_operator_view3d_active;
 	
-	RNA_def_property(ot->srna, "x", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "y", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "radius", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }

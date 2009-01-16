@@ -2506,7 +2506,7 @@ void MESH_OT_hide_mesh(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property(ot->srna, "swap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "swap", 0, "Swap", "");
 }
 
 void reveal_mesh(EditMesh *em)
@@ -2936,7 +2936,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
-	righthandfaces(em,RNA_float_get(op->ptr, "fsharpness"));
+	righthandfaces(em, RNA_float_get(op->ptr, "sharpness"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 	return OPERATOR_FINISHED;	
@@ -2955,8 +2955,8 @@ void MESH_OT_select_sharp_edges(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
-	/* props */
-	RNA_def_property(ot->srna, "fsharpness", PROP_FLOAT, PROP_NONE);
+	/* props XXX figure out? */
+	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, FLT_MAX);
 }
 
 
@@ -3108,7 +3108,7 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
 	
-	select_linked_flat_faces(em,RNA_float_get(op->ptr, "fsharpness"));
+	select_linked_flat_faces(em, RNA_float_get(op->ptr, "sharpness"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -3128,7 +3128,7 @@ void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property(ot->srna, "fsharpness", PROP_FLOAT, PROP_NONE);
+	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, FLT_MAX);
 }
 
 void select_non_manifold(EditMesh *em)
@@ -4028,7 +4028,7 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
-	righthandfaces(em,RNA_int_get(op->ptr, "select"));
+	righthandfaces(em, RNA_int_get(op->ptr, "select"));
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
 	return OPERATOR_FINISHED;	
@@ -4048,7 +4048,7 @@ void MESH_OT_righthandfaces(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property(ot->srna, "select", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "select", 0, INT_MIN, INT_MAX, "Select", "", INT_MIN, INT_MAX);
 }
 
 /* ********** ALIGN WITH VIEW **************** */

@@ -1818,7 +1818,6 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	float vec3f_def[] = {0,0,0};
 	int vec2i_def[] = {0,0};
 
@@ -1835,30 +1834,22 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->poll= sculpt_brush_stroke_poll;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "stroke", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_runtime(prop, &RNA_OperatorStrokeElement);
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 
 	/* If the object has a scaling factor, brushes also need to be scaled
 	   to work as expected. */
-	prop= RNA_def_property(ot->srna, "scale", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, vec3f_def);
+	RNA_def_float_vector(ot->srna, "scale", 3, vec3f_def, 0.0f, FLT_MAX, "Scale", "", 0.0f, 1000.0f);
 
-	prop= RNA_def_property(ot->srna, "flag", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "flag", 0, 0, INT_MAX, "flag", "", 0, INT_MAX);
 
 	/* For mirror modifiers */
-	prop= RNA_def_property(ot->srna, "clip_tolerance", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, vec3f_def);
+	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, vec3f_def, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
 
 	/* The initial 2D location of the mouse */
-	prop= RNA_def_property(ot->srna, "initial_mouse", PROP_INT, PROP_VECTOR);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_int_array_default(prop, vec2i_def);
+	RNA_def_int_vector(ot->srna, "initial_mouse", 2, vec2i_def, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 
 	/* The initial screen depth of the mouse */
-	prop= RNA_def_property(ot->srna, "depth", PROP_FLOAT, PROP_NONE);
-	
+	RNA_def_float(ot->srna, "depth", 0.0f, 0.0f, FLT_MAX, "depth", "", 0.0f, FLT_MAX);
 }
 
 /**** Toggle operator for turning sculpt mode on or off ****/

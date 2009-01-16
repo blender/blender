@@ -117,9 +117,9 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	
 	switch (select_type) {
 		case NODE_SELECT_MOUSE:
-			mval[0] = RNA_int_get(op->ptr, "mx");
-			mval[1] = RNA_int_get(op->ptr, "my");
-			extend = RNA_int_get(op->ptr, "extend");
+			mval[0] = RNA_int_get(op->ptr, "mouse_x");
+			mval[1] = RNA_int_get(op->ptr, "mouse_y");
+			extend = RNA_boolean_get(op->ptr, "extend");
 			node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
@@ -160,15 +160,15 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	
-	RNA_int_set(op->ptr, "mx", mval[0]);
-	RNA_int_set(op->ptr, "my", mval[1]);
+	RNA_int_set(op->ptr, "mouse_x", mval[0]);
+	RNA_int_set(op->ptr, "mouse_y", mval[1]);
 
 	return node_select_exec(C,op);
 }
 
 static int node_extend_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_int_set(op->ptr, "extend", KM_SHIFT);
+	RNA_boolean_set(op->ptr, "extend", KM_SHIFT);
 
 	return node_select_invoke(C, op, event);
 }
@@ -181,8 +181,6 @@ static EnumPropertyItem prop_select_items[] = {
 
 void NODE_OT_extend_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Activate/Select (Shift)";
 	ot->idname= "NODE_OT_extend_select";
@@ -191,18 +189,15 @@ void NODE_OT_extend_select(wmOperatorType *ot)
 	ot->invoke= node_extend_select_invoke;
 	ot->poll= ED_operator_node_active;
 	
-	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_items);
+	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
 void NODE_OT_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Activate/Select";
 	ot->idname= "NODE_OT_select";
@@ -212,12 +207,11 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->poll= ED_operator_node_active;
 	ot->modal= node_select_modal;
 	
-	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_items);
+	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
 /* ****** Border Select ****** */
@@ -263,8 +257,6 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_border_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "NODE_OT_border_select";
@@ -277,12 +269,11 @@ void NODE_OT_border_select(wmOperatorType *ot)
 	ot->poll= ED_operator_node_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_types);
+	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }

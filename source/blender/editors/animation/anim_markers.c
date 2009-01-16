@@ -304,7 +304,7 @@ static int ed_marker_move_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 		
 		/* reset frs delta */
-		RNA_int_set(op->ptr, "frs", 0);
+		RNA_int_set(op->ptr, "frames", 0);
 		
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -319,7 +319,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	int a, offs;
 	
-	offs= RNA_int_get(op->ptr, "frs");
+	offs= RNA_int_get(op->ptr, "frames");
 	for (a=0, marker= mm->markers->first; marker; marker= marker->next) {
 		if (marker->flag & SELECT) {
 			marker->frame= mm->oldframe[a] + offs;
@@ -331,8 +331,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 /* only for modal */
 static void ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
-	
-	RNA_int_set(op->ptr, "frs", 0);
+	RNA_int_set(op->ptr, "frames", 0);
 	ed_marker_move_apply(C, op);
 	ed_marker_move_exit(C, op);	
 	
@@ -383,7 +382,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 					apply_keyb_grid(evt->shift, evt->ctrl, &fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 				
 				offs= (int)fac;
-				RNA_int_set(op->ptr, "frs", offs);
+				RNA_int_set(op->ptr, "frames", offs);
 				ed_marker_move_apply(C, op);
 				
 				/* cruft below is for header print */
@@ -468,7 +467,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna storage */
-	RNA_def_property(ot->srna, "frs", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
 }
 
 /* ************************** duplicate markers *************************** */
@@ -542,7 +541,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna storage */
-	RNA_def_property(ot->srna, "frs", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
 }
 
 /* ************************** selection ************************************/
@@ -717,12 +716,11 @@ static void MARKER_OT_border_select(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
-	
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* *********************** (de)select all ***************** */
@@ -733,7 +731,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	TimeMarker *marker;
 	int select= RNA_int_get(op->ptr, "select_type");
 	
-	if(RNA_int_get(op->ptr, "select_swap")) {
+	if(RNA_boolean_get(op->ptr, "select_swap")) {
 		for(marker= markers->first; marker; marker= marker->next) {
 			if(marker->flag & SELECT)
 				break;
@@ -758,7 +756,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 
 static int ed_marker_select_all_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
-	RNA_int_set(op->ptr, "select_swap", 1);
+	RNA_boolean_set(op->ptr, "select_swap", 1);
 	
 	return ed_marker_select_all_exec(C, op);
 }
@@ -775,9 +773,8 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "select_swap", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "select_type", PROP_INT, PROP_NONE);
-	
+	RNA_def_boolean(ot->srna, "select_swap", 0, "Select Swap", "");
+	RNA_def_int(ot->srna, "select_type", 0, INT_MIN, INT_MAX, "Select Type", "", INT_MIN, INT_MAX);
 }
 
 /* ******************************* remove marker ***************** */

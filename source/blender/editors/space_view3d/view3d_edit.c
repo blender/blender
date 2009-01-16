@@ -660,7 +660,6 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "Rotate view";
 	ot->idname= "VIEW3D_OT_viewzoom";
@@ -671,7 +670,7 @@ void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 	ot->modal= viewzoom_modal;
 	ot->poll= ED_operator_view3d_active;
 
-	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
 static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
@@ -737,7 +736,6 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 
 void VIEW3D_OT_viewhome(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "View home";
 	ot->idname= "VIEW3D_OT_viewhome";
@@ -746,7 +744,7 @@ void VIEW3D_OT_viewhome(wmOperatorType *ot)
 	ot->exec= viewhome_exec;
 	ot->poll= ED_operator_view3d_active;
 
-	RNA_def_property(ot->srna, "center", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
 static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
@@ -936,7 +934,6 @@ static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *eve
 
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Set Render Border";
 	ot->idname= "VIEW3D_OT_render_border";
@@ -949,10 +946,10 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 }
 /* ********************* Border Zoom operator ****************** */
@@ -1112,10 +1109,10 @@ void VIEW3D_OT_border_zoom(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 }
 /* ********************* Changing view operator ****************** */
@@ -1176,7 +1173,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	static int perspo=V3D_PERSP;
 	int viewnum;
 
-	viewnum = RNA_enum_get(op->ptr, "viewnum");
+	viewnum = RNA_enum_get(op->ptr, "view");
 
 	/* Use this to test if we started out with a camera */
 
@@ -1328,9 +1325,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
-
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "View numpad";
 	ot->idname= "VIEW3D_OT_viewnumpad";
@@ -1340,8 +1334,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	prop = RNA_def_property(ot->srna, "viewnum", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_view_items);
+	RNA_def_enum(ot->srna, "view", prop_view_items, 0, "View", "");
 }
 
 /* ********************* set clipping operator ****************** */
@@ -1442,10 +1435,10 @@ void VIEW3D_OT_clipping(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* rna */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ********************* draw type operator ****************** */
@@ -1456,8 +1449,8 @@ static int view3d_drawtype_exec(bContext *C, wmOperator *op)
 	View3D *v3d= sa->spacedata.first;
 	int dt, dt_alt;
 
-	dt  = RNA_int_get(op->ptr, "drawtype");
-	dt_alt = RNA_int_get(op->ptr, "drawtype_alt");
+	dt  = RNA_int_get(op->ptr, "draw_type");
+	dt_alt = RNA_int_get(op->ptr, "draw_type_alternate");
 	
 	if (dt_alt != -1)
 	{
@@ -1488,8 +1481,6 @@ static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* toggles */
 void VIEW3D_OT_drawtype(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Change draw type";
 	ot->idname= "VIEW3D_OT_drawtype";
@@ -1500,10 +1491,9 @@ void VIEW3D_OT_drawtype(wmOperatorType *ot)
 
 	ot->poll= ED_operator_view3d_active;
 
-	/* rna */
-	RNA_def_property(ot->srna, "drawtype", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "drawtype_alt", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -1);
+	/* rna XXX should become enum */
+	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "draw_type_alternate", -1, INT_MIN, INT_MAX, "Draw Type Alternate", "", INT_MIN, INT_MAX);
 }
 
 /* ***************** 3d cursor cursor op ******************* */

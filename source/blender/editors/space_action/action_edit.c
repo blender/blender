@@ -693,8 +693,6 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_clean (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Clean Keyframes";
 	ot->idname= "ACT_OT_keyframes_clean";
@@ -708,8 +706,7 @@ void ACT_OT_keyframes_clean (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* properties */
-	prop= RNA_def_property(ot->srna, "threshold", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_default(prop, 0.001f);
+	RNA_def_float(ot->srna, "threshold", 0.001f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 1000.0f);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
@@ -897,8 +894,6 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_expotype (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
 	ot->idname= "ACT_OT_keyframes_expotype";
@@ -912,8 +907,7 @@ void ACT_OT_keyframes_expotype (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* id-props */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_actkeys_expo_types);
+	RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -978,8 +972,6 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_ipotype (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
 	ot->idname= "ACT_OT_keyframes_ipotype";
@@ -993,8 +985,7 @@ void ACT_OT_keyframes_ipotype (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* id-props */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_actkeys_ipo_types);
+	RNA_def_enum(ot->srna, "type", prop_actkeys_ipo_types, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1079,8 +1070,6 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_handletype (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
 	ot->idname= "ACT_OT_keyframes_handletype";
@@ -1094,8 +1083,7 @@ void ACT_OT_keyframes_handletype (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* id-props */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_actkeys_handletype_types);
+	RNA_def_enum(ot->srna, "type", prop_actkeys_handletype_types, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1249,8 +1237,6 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_snap (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Snap Keys";
 	ot->idname= "ACT_OT_keyframes_snap";
@@ -1264,8 +1250,7 @@ void ACT_OT_keyframes_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* id-props */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_actkeys_snap_types);
+	RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
@@ -1367,8 +1352,6 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_mirror (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Mirror Keys";
 	ot->idname= "ACT_OT_keyframes_mirror";
@@ -1382,8 +1365,7 @@ void ACT_OT_keyframes_mirror (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* id-props */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_actkeys_mirror_types);
+	RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
 }
 
 /* ************************************************************************** */

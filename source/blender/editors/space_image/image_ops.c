@@ -256,8 +256,6 @@ static int view_pan_cancel(bContext *C, wmOperator *op)
 
 void IMAGE_OT_view_pan(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "View Pan";
 	ot->idname= "IMAGE_OT_view_pan";
@@ -270,9 +268,8 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "offset", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Offset", "Offset in floating point units, 1.0 is the width and height of the image.");
+	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
+		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view zoom operator *********************/
@@ -371,8 +368,6 @@ static int view_zoom_cancel(bContext *C, wmOperator *op)
 
 void IMAGE_OT_view_zoom(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "View Zoom";
 	ot->idname= "IMAGE_OT_view_zoom";
@@ -385,8 +380,8 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 
 	/* properties */
-	prop= RNA_def_property(ot->srna, "factor", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out.");
+	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
+		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out.", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view all operator *********************/
@@ -582,8 +577,6 @@ static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 
 void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "View Zoom Ratio";
 	ot->idname= "IMAGE_OT_view_zoom_ratio";
@@ -593,8 +586,8 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 	
 	/* properties */
-	prop= RNA_def_property(ot->srna, "ratio", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.");
+	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
+		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
 }
 
 /* Image functions */

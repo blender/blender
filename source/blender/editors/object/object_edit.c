@@ -320,8 +320,6 @@ static int object_add_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_object_add(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Add Object";
 	ot->idname= "OBJECT_OT_object_add";
@@ -333,8 +331,7 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_object_types);
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
 }
 
 
@@ -1090,8 +1087,6 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_parent(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Clear parent";
 	ot->idname= "OBJECT_OT_clear_parent";
@@ -1103,8 +1098,7 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_clear_parent_types);
+	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** clear track operator ******************* */
@@ -1143,8 +1137,6 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_track(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Clear track";
 	ot->idname= "OBJECT_OT_clear_track";
@@ -1156,8 +1148,7 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_clear_track_types);
+	RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
 
@@ -1185,8 +1176,6 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Select By Type";
 	ot->idname= "OBJECT_OT_select_by_type";
@@ -1196,8 +1185,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->exec= object_select_by_type_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_object_types);
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
 
 }
 /* ****** selection by links *******/
@@ -1332,8 +1320,6 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Select Linked";
 	ot->idname= "OBJECT_OT_select_linked";
@@ -1343,8 +1329,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	ot->exec= object_select_linked_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_linked_types);
+	RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 
 }
 /* ****** selection by layer *******/
@@ -1369,8 +1354,6 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Selection by layer";
 	ot->idname= "OBJECT_OT_select_by_layer";
@@ -1380,11 +1363,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->exec= object_select_by_layer_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "layer", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_range(prop, 1, 20,1, 1);
-	RNA_def_property_ui_text(prop, "layer", "The layer to select objects in");
-	RNA_def_property_int_default(prop, 2);
-
+	RNA_def_int(ot->srna, "layer", 1, 1, 20, "Layer", "", 1, 20);
 }
 
 /* ****** invert selection *******/
@@ -1462,9 +1441,9 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
-	int percent;
+	float percent;
 	
-	percent = RNA_int_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if ((!base->flag & SELECT && (BLI_frand() * 100) < percent)) {
@@ -1481,8 +1460,6 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Random selection";
 	ot->idname= "OBJECT_OT_select_random";
@@ -1492,10 +1469,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->exec = object_select_random_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_range(prop, 1, 100,1, 1);
-	RNA_def_property_ui_text(prop, "Percent", "Max persentage that will be selected");
-	RNA_def_property_int_default(prop, 50);
+	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, FLT_MAX, "Percent", "1", 0.01f, 100.0f);
 }
 
 /* ******** Clear object Translation *********** */
@@ -1788,8 +1762,6 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set restrict view";
 	ot->idname= "OBJECT_OT_set_restrictview";
@@ -1799,8 +1771,7 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 	ot->exec= object_set_restrictview_exec;
 	ot->poll= ED_operator_view3d_active;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_set_restrictview_types);
+	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
 	
 }
 /* ************* Slow Parent ******************* */
@@ -2302,8 +2273,6 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void OBJECT_OT_make_parent(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Make parent";
 	ot->idname= "OBJECT_OT_make_parent";
@@ -2315,8 +2284,7 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_make_parent_types);
+	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
 /* *** make track ***** */
@@ -2408,8 +2376,6 @@ static int make_track_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_make_track(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Make Track";
 	ot->idname= "OBJECT_OT_make_track";
@@ -2421,8 +2387,7 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_make_track_types);
+	RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
 }
 
 /* ************* Make Dupli Real ********* */
@@ -2844,8 +2809,6 @@ if (tot_change) {
 }
 void OBJECT_OT_set_center(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set Center";
 	ot->idname= "OBJECT_OT_set_center";
@@ -2857,8 +2820,7 @@ void OBJECT_OT_set_center(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_set_center_types);
+	RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 }
 /* ******************* toggle editmode operator  ***************** */
 
