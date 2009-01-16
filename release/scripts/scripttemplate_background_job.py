@@ -15,7 +15,7 @@ script_data = \
 # This example also shows how you can parse command line options to python scripts.
 # 
 # Example usage for this test.
-#  blender -b -P $HOME/.blender/scripts/scripttemplate_background_job.py -- --text="Hello World" --render="/tmp/hello" --save="/tmp/hello.blend"
+#  blender -b -P $HOME/background_job.py -- --text="Hello World" --render="/tmp/hello" --save="/tmp/hello.blend"
 # 
 # Notice all python args are after the '--' argument.
 
@@ -90,7 +90,8 @@ def main():
 	
 
 	# Example background utility, add some text and renders or saves it (with options)
-	parser.add_option('-t', '--text', dest='body_text', help='This text will be used to render an image')
+	# Possible types are: string, int, long, choice, float and complex.
+	parser.add_option('-t', '--text', dest='body_text', help='This text will be used to render an image', type='string')
 
 	parser.add_option('-s', '--save', dest='save_path', help='Save the generated file to the specified path', metavar='FILE')
 	parser.add_option('-r', '--render', dest='render_path', help='Render an image to the specified path', metavar='FILE')
@@ -101,7 +102,7 @@ def main():
 		parser.print_help()
 		return
 
-	if not hasattr(options, 'body_text'):
+	if not options.body_text:
 		print 'Error: --text="some string" argument not given, aborting.\n'
 		parser.print_help()
 		return
