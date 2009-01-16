@@ -32,6 +32,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #ifdef RNA_RUNTIME
@@ -89,10 +90,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
 	
-	prop= RNA_def_property(srna, "protected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", POSE_LOCKED);
-	RNA_def_property_ui_text(prop, "Protected", "Protect channel from being transformed.");
-
 		// XXX note: bone groups are stored internally as bActionGroups :) - Aligorith
 	//prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
 	//RNA_def_property_int_sdna(prop, NULL, "agrp_index");
@@ -121,7 +118,19 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "child", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "PoseChannel");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_ui_text(prop, "Parent", "Child of this pose channel.");
+	RNA_def_property_ui_text(prop, "Child", "Child of this pose channel.");
+
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "loc");
+	RNA_def_property_ui_text(prop, "Location", "");
+
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "size");
+	RNA_def_property_ui_text(prop, "Scale", "");
+
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "quat");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation in Quaternions.");
 
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
 /*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
@@ -171,6 +180,20 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "custom", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Custom Object", "Object that defines custom draw type for this bone.");
 
+	prop= RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_VECTOR);
+	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface.");
+
+	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_VECTOR);
+	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface.");
+
+	prop= RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_VECTOR);
+	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
 }
 
 void RNA_def_pose(BlenderRNA *brna)
