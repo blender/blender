@@ -1583,7 +1583,7 @@ PropertyRNA *RNA_def_int_vector(StructRNA *srna, const char *identifier, int len
 	
 	prop= RNA_def_property(srna, identifier, PROP_INT, PROP_VECTOR);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_int_array_default(prop, default_value);
+	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1598,7 +1598,7 @@ PropertyRNA *RNA_def_int_array(StructRNA *srna, const char *identifier, int len,
 	
 	prop= RNA_def_property(srna, identifier, PROP_INT, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_int_array_default(prop, default_value);
+	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1613,7 +1613,7 @@ PropertyRNA *RNA_def_string(StructRNA *srna, const char *identifier, const char 
 	
 	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_NONE);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
-	RNA_def_property_string_default(prop, default_value);
+	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
@@ -1626,7 +1626,7 @@ PropertyRNA *RNA_def_string_file_path(StructRNA *srna, const char *identifier, c
 	
 	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_FILEPATH);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
-	RNA_def_property_string_default(prop, default_value);
+	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
@@ -1639,7 +1639,7 @@ PropertyRNA *RNA_def_string_dir_path(StructRNA *srna, const char *identifier, co
 	
 	prop= RNA_def_property(srna, identifier, PROP_STRING, PROP_DIRPATH);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
-	RNA_def_property_string_default(prop, default_value);
+	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
@@ -1651,7 +1651,7 @@ PropertyRNA *RNA_def_enum(StructRNA *srna, const char *identifier, EnumPropertyI
 	PropertyRNA *prop;
 	
 	prop= RNA_def_property(srna, identifier, PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, items);
+	if(items) RNA_def_property_enum_items(prop, items);
 	RNA_def_property_enum_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
@@ -1679,7 +1679,7 @@ PropertyRNA *RNA_def_float_vector(StructRNA *srna, const char *identifier, int l
 	
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_VECTOR);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_float_array_default(prop, default_value);
+	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1694,7 +1694,7 @@ PropertyRNA *RNA_def_float_color(StructRNA *srna, const char *identifier, int le
 	
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_COLOR);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_float_array_default(prop, default_value);
+	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1710,7 +1710,7 @@ PropertyRNA *RNA_def_float_matrix(StructRNA *srna, const char *identifier, int l
 	
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_MATRIX);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_float_array_default(prop, default_value);
+	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1725,7 +1725,7 @@ PropertyRNA *RNA_def_float_rotation(StructRNA *srna, const char *identifier, int
 	
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_ROTATION);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_float_array_default(prop, default_value);
+	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);
@@ -1740,7 +1740,7 @@ PropertyRNA *RNA_def_float_array(StructRNA *srna, const char *identifier, int le
 	
 	prop= RNA_def_property(srna, identifier, PROP_FLOAT, PROP_NONE);
 	if(len != 0) RNA_def_property_array(prop, len);
-	RNA_def_property_float_array_default(prop, default_value);
+	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 	RNA_def_property_ui_range(prop, softmin, softmax, 1, 3);

@@ -117,35 +117,35 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewhome", CKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "center", 1);
 
 	/* numpad view hotkeys*/
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_CAMERA);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_FRONT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_STEPDOWN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_RIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_STEPLEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD5, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_PERSPORTHO);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_STEPRIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_TOP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, 0, 0)->ptr, "viewnum", V3D_VIEW_STEPUP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_BACK);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_LEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_BOTTOM);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANDOWN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANLEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANRIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "viewnum", V3D_VIEW_PANUP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD0, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_CAMERA);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_FRONT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPDOWN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_RIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPLEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD5, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_PERSPORTHO);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPRIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, 0, 0)->ptr, "view", V3D_VIEW_STEPUP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD1, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_BACK);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD3, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_LEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_BOTTOM);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANDOWN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANLEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD6, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANRIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "view", V3D_VIEW_PANUP);
 
 	/* drawtype */
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
-	RNA_int_set(km->ptr, "drawtype", OB_SOLID);
-	RNA_int_set(km->ptr, "drawtype_alt", OB_WIRE);
+	RNA_int_set(km->ptr, "draw_type", OB_SOLID);
+	RNA_int_set(km->ptr, "draw°type_alternate", OB_WIRE);
 
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_ALT, 0);
-	RNA_int_set(km->ptr, "drawtype", OB_TEXTURE);
-	RNA_int_set(km->ptr, "drawtype_alt", OB_SOLID);
+	RNA_int_set(km->ptr, "draw_type", OB_TEXTURE);
+	RNA_int_set(km->ptr, "draw_type_alternate", OB_SOLID);
 
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_int_set(km->ptr, "drawtype", OB_SHADED);
-	RNA_int_set(km->ptr, "drawtype_alt", OB_WIRE);
+	RNA_int_set(km->ptr, "draw_type", OB_SHADED);
+	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
 
 	/* selection*/
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
