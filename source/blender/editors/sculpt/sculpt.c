@@ -1588,6 +1588,7 @@ static void sculpt_cache_free(StrokeCache *cache)
 		MEM_freeN(cache->mesh_store);
 	if(cache->orig_norms)
 		MEM_freeN(cache->orig_norms);
+	MEM_freeN(cache);
 }
 
 /* Initialize the stroke cache invariants from operator properties */
@@ -1745,6 +1746,13 @@ static void sculpt_restore_mesh(SculptData *sd)
 	}
 }
 
+static void sculpt_post_stroke_free(SculptSession *ss)
+{
+	//calc_damaged_verts(sd->session, &a);
+	BLI_freelistN(&ss->damaged_rects);
+	BLI_freelistN(&ss->damaged_verts);
+}
+
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PointerRNA itemptr;
@@ -1766,8 +1774,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 	sculpt_restore_mesh(sd);
 	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, sd->session->cache);
-	//calc_damaged_verts(sd->session, &a);
-	BLI_freelistN(&sd->session->damaged_verts);
+
+	sculpt_post_stroke_free(sd->session);
 
 	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
 	ED_region_tag_redraw(ar);
@@ -1799,7 +1807,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 		sculpt_restore_mesh(sd);
 		do_symmetrical_brush_actions(sd, sd->session->cache);
-		BLI_freelistN(&sd->session->damaged_verts);
+
+		sculpt_post_stroke_free(sd->session);
 	}
 	RNA_END;
 
