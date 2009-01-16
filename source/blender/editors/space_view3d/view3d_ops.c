@@ -75,6 +75,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_circle_select);
 	WM_operatortype_append(VIEW3D_OT_smoothview);
 	WM_operatortype_append(VIEW3D_OT_render_border);
+	WM_operatortype_append(VIEW3D_OT_border_zoom);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_lasso_select);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
@@ -155,6 +156,7 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_circle_select", CKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clipping", BKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_border_zoom", BKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_set_camera_to_view", PAD0, KM_PRESS, KM_ALT|KM_CTRL, 0);

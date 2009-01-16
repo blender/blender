@@ -81,6 +81,7 @@ void VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
 void VIEW3D_OT_clipping(struct wmOperatorType *ot);
 void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
+void VIEW3D_OT_border_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 /* drawobject.c */
