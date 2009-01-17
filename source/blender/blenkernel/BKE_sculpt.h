@@ -33,7 +33,7 @@
 struct NumInput;
 struct RadialControl;
 struct Scene;
-struct SculptData;
+struct Sculpt;
 struct SculptSession;
 struct StrokeCache;
 
@@ -65,10 +65,7 @@ typedef struct SculptSession {
 	struct StrokeCache *cache;
 } SculptSession;
 
-void sculptdata_init(struct Scene *sce);
-void sculptdata_free(struct Scene *sce);
-void sculptsession_free(struct Scene *sce);
+void sculptsession_free(struct Sculpt *sculpt);
 void sculpt_vertexusers_free(struct SculptSession *ss);
-void sculpt_reset_curve(struct SculptData *sd);
 
 #endif

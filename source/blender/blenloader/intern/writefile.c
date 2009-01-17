@@ -1477,9 +1477,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if(sce->toolsettings->wpaint)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
 
-		for(a=0; a<MAX_MTEX; ++a)
-			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
-
 		ed= sce->ed;
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);

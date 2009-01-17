@@ -37,7 +37,6 @@ struct Object;
 struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
-struct SculptData;
 struct RenderData;
 
 /* note; doesn't work when scene is empty */

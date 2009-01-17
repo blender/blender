@@ -43,7 +43,7 @@ struct Object;
 struct PartialVisibility;
 struct Scene;
 struct ScrArea;
-struct SculptData;
+struct Sculpt;
 struct SculptStroke;
 
 /* Interface */
@@ -54,17 +54,17 @@ void sculpt_stroke_draw(struct SculptStroke *);
 void sculpt_radialcontrol_start(int mode);
 
 struct Brush *sculptmode_brush(void);
-//void do_symmetrical_brush_actions(struct SculptData *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
+//void do_symmetrical_brush_actions(struct Sculpt *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
 
 char sculpt_modifiers_active(struct Object *ob);
-void sculpt(SculptData *sd);
+void sculpt(Sculpt *sd);
 
 /* Stroke */
 struct SculptStroke *sculpt_stroke_new(const int max);
 void sculpt_stroke_free(struct SculptStroke *);
 void sculpt_stroke_add_point(struct SculptStroke *, const short x, const short y);
-void sculpt_stroke_apply(struct SculptData *sd, struct SculptStroke *);
-void sculpt_stroke_apply_all(struct SculptData *sd, struct SculptStroke *);
+void sculpt_stroke_apply(struct Sculpt *sd, struct SculptStroke *);
+void sculpt_stroke_apply_all(struct Sculpt *sd, struct SculptStroke *);
 
 /* Partial Mesh Visibility */
 void sculptmode_pmv(int mode);

@@ -174,6 +174,10 @@ void free_scene(Scene *sce)
 			MEM_freeN(sce->toolsettings->vpaint);
 		if(sce->toolsettings->wpaint)
 			MEM_freeN(sce->toolsettings->wpaint);
+		if(sce->toolsettings->sculpt) {
+			sculptsession_free(sce->toolsettings->sculpt);
+			MEM_freeN(sce->toolsettings->sculpt);
+		}
 		
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
@@ -188,8 +192,6 @@ void free_scene(Scene *sce)
 		ntreeFreeTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 	}
-
-	sculptdata_free(sce);
 }
 
 Scene *add_scene(char *name)
@@ -303,8 +305,6 @@ Scene *add_scene(char *name)
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
-
-	sculptdata_init(sce);
 
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
@@ -653,60 +653,6 @@ void scene_add_render_layer(Scene *sce)
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
 }
 
-/* Initialize 'permanent' sculpt data that is saved with file kept after
-   switching out of sculptmode. */
-void sculptdata_init(Scene *sce)
-{
-	SculptData *sd;
-
-	if(!sce)
-		return;
-
-	sd= &sce->sculptdata;
-
-	memset(sd, 0, sizeof(SculptData));
-
-	/* XXX: create preset brushes here
-	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
-		sd->inflatebrush.size = sd->grabbrush.size =
-		sd->layerbrush.size = sd->flattenbrush.size = 50;
-	sd->drawbrush.strength = sd->smoothbrush.strength =
-		sd->pinchbrush.strength = sd->inflatebrush.strength =
-		sd->grabbrush.strength = sd->layerbrush.strength =
-		sd->flattenbrush.strength = 25;
-	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
-	sd->drawbrush.flag = sd->smoothbrush.flag =
-		sd->pinchbrush.flag = sd->inflatebrush.flag =
-		sd->layerbrush.flag = sd->flattenbrush.flag = 0;
-	sd->drawbrush.view= 0;
-	sd->brush_type= DRAW_BRUSH;
-	sd->texact= -1;
-	sd->texfade= 1;
-	sd->averaging= 1;
-	sd->texsep= 0;
-	sd->texrept= SCULPTREPT_DRAG;
-	sd->flags= SCULPT_DRAW_BRUSH;
-	sd->tablet_size=3;
-	sd->tablet_strength=10;
-	sd->rake=0;*/
-}
-
-void sculptdata_free(Scene *sce)
-{
-	SculptData *sd= &sce->sculptdata;
-	int a;
-
-	sculptsession_free(sce);
-
-	for(a=0; a<MAX_MTEX; a++) {
-		MTex *mtex= sd->mtex[a];
-		if(mtex) {
-			if(mtex->tex) mtex->tex->id.us--;
-			MEM_freeN(mtex);
-		}
-	}
-}
-
 void sculpt_vertexusers_free(SculptSession *ss)
 {
 	if(ss && ss->vertex_users){
@@ -718,9 +664,9 @@ void sculpt_vertexusers_free(SculptSession *ss)
 	}
 }
 
-void sculptsession_free(Scene *sce)
+void sculptsession_free(Sculpt *sculpt)
 {
-	SculptSession *ss= sce->sculptdata.session;
+	SculptSession *ss= sculpt->session;
 	if(ss) {
 		if(ss->projverts)
 			MEM_freeN(ss->projverts);
@@ -732,7 +678,7 @@ void sculptsession_free(Scene *sce)
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
 		MEM_freeN(ss);
-		sce->sculptdata.session= NULL;
+		sculpt->session= NULL;
 	}
 }
 

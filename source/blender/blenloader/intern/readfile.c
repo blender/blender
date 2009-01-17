@@ -3505,7 +3505,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Sequence *seq;
 	SceneRenderLayer *srl;
-	int a;
 	
 	sce= main->scene.first;
 	while(sce) {
@@ -3520,13 +3519,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
-
-			/* Sculptdata textures */
-			for(a=0; a<MAX_MTEX; ++a) {
-				MTex *mtex= sce->sculptdata.mtex[a];
-				if(mtex)
-					mtex->tex= newlibadr_us(fd, sce->id.lib, mtex->tex);
-			}
 
 			for(base= sce->base.first; base; base= next) {
 				next= base->next;
@@ -3593,7 +3585,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
-	int a;
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
@@ -3610,11 +3601,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->toolsettings) {
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
+		if(sce->toolsettings->sculpt)
+			sce->toolsettings->sculpt->session= NULL;
 	}
-	sce->sculptdata.session= NULL;
-	/* SculptData textures */
-	for(a=0; a<MAX_MTEX; ++a)
-		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;

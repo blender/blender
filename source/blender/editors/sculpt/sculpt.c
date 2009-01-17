@@ -276,7 +276,7 @@ static void project(bglMats *mats, const float v[3], short p[2])
    shrink the brush. Skipped for grab brush because only the first mouse down
    size is used, which is small if the user has just touched the pen to the
    tablet */
-static char brush_size(SculptData *sd)
+static char brush_size(Sculpt *sd)
 {
 	float size= sd->brush->size;
 #if 0
@@ -298,7 +298,7 @@ static char brush_size(SculptData *sd)
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
    special multiplier found experimentally to scale the strength factor. */
-static float brush_strength(SculptData *sd, StrokeCache *cache)
+static float brush_strength(Sculpt *sd, StrokeCache *cache)
 {
 	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
@@ -350,7 +350,7 @@ static void sculpt_clip(StrokeCache *cache, float *co, const float val[3])
 	}		
 }
 
-static void sculpt_axislock(SculptData *sd, float *co)
+static void sculpt_axislock(Sculpt *sd, float *co)
 {
 	if (sd->flags & (SCULPT_LOCK_X|SCULPT_LOCK_Y|SCULPT_LOCK_Z)) return;
 	/* XXX: if(G.vd->twmode == V3D_MANIP_LOCAL) { */
@@ -385,7 +385,7 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], cons
 
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
-static void calc_area_normal(SculptData *sd, float out[3], const ListBase* active_verts)
+static void calc_area_normal(Sculpt *sd, float out[3], const ListBase* active_verts)
 {
 	StrokeCache *cache = sd->session->cache;
 	ActiveData *node = active_verts->first;
@@ -419,7 +419,7 @@ static void calc_area_normal(SculptData *sd, float out[3], const ListBase* activ
 	Normalize(out);
 }
 
-static void do_draw_brush(SculptData *sd, SculptSession *ss, const ListBase* active_verts)
+static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_verts)
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
@@ -517,7 +517,7 @@ static void do_pinch_brush(SculptSession *ss, const ListBase* active_verts)
 	}
 }
 
-static void do_grab_brush(SculptData *sd, SculptSession *ss)
+static void do_grab_brush(Sculpt *sd, SculptSession *ss)
 {
 	ActiveData *node= ss->cache->grab_active_verts[ss->cache->symmetry].first;
 	float add[3];
@@ -539,7 +539,7 @@ static void do_grab_brush(SculptData *sd, SculptSession *ss)
 	
 }
 
-static void do_layer_brush(SculptData *sd, SculptSession *ss, const ListBase *active_verts)
+static void do_layer_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts)
 {
 	float area_normal[3];
 	ActiveData *node= active_verts->first;
@@ -623,7 +623,7 @@ static void calc_flatten_center(SculptSession *ss, ActiveData *node, float co[3]
 	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
-static void do_flatten_brush(SculptData *sd, SculptSession *ss, const ListBase *active_verts)
+static void do_flatten_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts)
 {
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
@@ -680,17 +680,19 @@ static void flip_coord(float out[3], float in[3], const char symm)
 }
 
 /* Use the warpfac field in MTex to store a rotation value for sculpt textures. Value is in degrees */
-static float sculpt_tex_angle(SculptData *sd)
+static float sculpt_tex_angle(Sculpt *sd)
 {
-	if(sd->texact!=-1 && sd->mtex[sd->texact])
-		return sd->mtex[sd->texact]->warpfac;
+	Brush *br = sd->brush;
+	if(br->texact!=-1 && br->mtex[br->texact])
+		return br->mtex[br->texact]->warpfac;
 	return 0;
 }
 
-static void set_tex_angle(SculptData *sd, const float f)
+static void set_tex_angle(Sculpt *sd, const float f)
 {
-	if(sd->texact != -1 && sd->mtex[sd->texact])
-		sd->mtex[sd->texact]->warpfac = f;
+	Brush *br = sd->brush;
+	if(br->texact != -1 && br->mtex[br->texact])
+		br->mtex[br->texact]->warpfac = f;
 }
 	
 static float to_rad(const float deg)
@@ -741,12 +743,13 @@ static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
-static float tex_strength(SculptData *sd, float *point, const float len)
+static float tex_strength(Sculpt *sd, float *point, const float len)
 {
 	SculptSession *ss= sd->session;
+	Brush *br = sd->brush;
 	float avg= 1;
 
-	if(sd->texact==-1 || !sd->mtex[sd->texact])
+	if(br->texact==-1 || !br->mtex[sd->texact])
 		avg= 1;
 	else if(sd->texrept==SCULPTREPT_3D) {
 		/* Get strength by feeding the vertex location directly
@@ -755,11 +758,11 @@ static float tex_strength(SculptData *sd, float *point, const float len)
 		const float factor= 0.01;
 		MTex mtex;
 		memset(&mtex,0,sizeof(MTex));
-		mtex.tex= sd->mtex[sd->texact]->tex;
+		mtex.tex= br->mtex[br->texact]->tex;
 		mtex.projx= 1;
 		mtex.projy= 2;
 		mtex.projz= 3;
-		VecCopyf(mtex.size, sd->mtex[sd->texact]->size);
+		VecCopyf(mtex.size, br->mtex[br->texact]->size);
 		VecMulf(mtex.size, factor);
 		if(!sd->texsep)
 			mtex.size[1]= mtex.size[2]= mtex.size[0];
@@ -782,8 +785,8 @@ static float tex_strength(SculptData *sd, float *point, const float len)
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
 		if(sd->texrept==SCULPTREPT_TILE) {
-			const int sx= (const int)sd->mtex[sd->texact]->size[0];
-			const int sy= (const int)sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
+			const int sx= (const int)br->mtex[br->texact]->size[0];
+			const int sy= (const int)sd->texsep ? br->mtex[br->texact]->size[1] : sx;
 			
 			float fx= point_2d[0];
 			float fy= point_2d[1];
@@ -885,7 +888,7 @@ static void sculpt_clear_damaged_areas(SculptSession *ss)
 	}
 }
 
-static void do_brush_action(SculptData *sd, StrokeCache *cache)
+static void do_brush_action(Sculpt *sd, StrokeCache *cache)
 {
 	SculptSession *ss = sd->session;
 	float av_dist;
@@ -989,7 +992,7 @@ static void calc_brushdata_symm(StrokeCache *cache, const char symm)
 	cache->symmetry= symm;
 }
 
-static void do_symmetrical_brush_actions(SculptData *sd, StrokeCache *cache)
+static void do_symmetrical_brush_actions(Sculpt *sd, StrokeCache *cache)
 {
 	const char symm = sd->flags & 7;
 	int i;
@@ -1074,10 +1077,11 @@ static void projverts_clear_inside(SculptSession *ss)
 		ss->projverts[i].inside = 0;
 }
 
-static void sculptmode_update_tex(SculptData *sd)
+static void sculptmode_update_tex(Sculpt *sd)
 {
 	SculptSession *ss= sd->session;
-	MTex *mtex = sd->mtex[sd->texact];
+	Brush *br = sd->brush;
+	MTex *mtex = br->mtex[br->texact];
 	TexResult texres;
 	float x, y, step=2.0/TC_SIZE, co[3];
 	int hasrgb, ix, iy;
@@ -1085,7 +1089,7 @@ static void sculptmode_update_tex(SculptData *sd)
 	memset(&texres, 0, sizeof(TexResult));
 	
 	/* Skip Default brush shape and non-textures */
-	if(sd->texact == -1 || !sd->mtex[sd->texact]) return;
+	if(br->texact == -1 || !br->mtex[sd->texact]) return;
 
 	if(ss->texcache) {
 		MEM_freeN(ss->texcache);
@@ -1096,7 +1100,7 @@ static void sculptmode_update_tex(SculptData *sd)
 	ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_w * ss->texcache_h, "Sculpt Texture cache");
 	
 	if(mtex && mtex->tex) {
-		BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
+		BKE_image_get_ibuf(br->mtex[br->texact]->tex->ima, NULL);
 		
 		/*do normalized cannonical view coords for texture*/
 		for (y=-1.0, iy=0; iy<TC_SIZE; iy++, y += step) {
@@ -1128,7 +1132,7 @@ static void sculptmode_update_tex(SculptData *sd)
 
 #if 0
 /* pr_mouse is only used for the grab brush, can be NULL otherwise */
-static void init_brushaction(SculptData *sd, BrushAction *a, short *mouse, short *pr_mouse)
+static void init_brushaction(Sculpt *sd, BrushAction *a, short *mouse, short *pr_mouse)
 {
 	SculptSession *ss = sd->session;
 	Brush *b = sd->brush;
@@ -1253,7 +1257,7 @@ static void sculpt_radialcontrol_callback(const int mode, const int val)
 /* Returns GL handle to brush texture */
 static GLuint sculpt_radialcontrol_calctex()
 {
-	SculptData *sd= sculpt_data();
+	Sculpt *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	int i, j;
 	const int tsz = TC_SIZE;
@@ -1288,7 +1292,7 @@ static GLuint sculpt_radialcontrol_calctex()
 
 void sculpt_radialcontrol_start(int mode)
 {
-	SculptData *sd = sculpt_data();
+	Sculpt *sd = sculpt_data();
 	SculptSession *ss = sculpt_session();
 	BrushData *br = sculptmode_brush();
 	int orig=1, max=100;
@@ -1343,7 +1347,7 @@ void sculptmode_selectbrush_menu(void)
 {
 	/* XXX: I guess menus belong elsewhere too?
 
-	SculptData *sd= sculpt_data();
+	Sculpt *sd= sculpt_data();
 	int val;
 	
 	pupmenu_set_active(sd->brush_type);
@@ -1511,7 +1515,7 @@ void sculptmode_draw_mesh(int only_damaged)
 
 /* XXX */
 #if 0
-static void sculpt_undo_push(SculptData *sd)
+static void sculpt_undo_push(Sculpt *sd)
 {
 	switch(sd->brush->sculpt_tool) {
 	case SCULPT_TOOL_DRAW:
@@ -1588,7 +1592,7 @@ static void sculpt_cache_free(StrokeCache *cache)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(SculptData *sd, bContext *C, wmOperator *op)
+static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *op)
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	int i;
@@ -1633,7 +1637,7 @@ static void sculpt_update_cache_invariants(SculptData *sd, bContext *C, wmOperat
 }
 
 /* Initialize the stroke cache variants from operator properties */
-static void sculpt_update_cache_variants(SculptData *sd, PointerRNA *ptr)
+static void sculpt_update_cache_variants(Sculpt *sd, PointerRNA *ptr)
 {
 	StrokeCache *cache = sd->session->cache;
 	float grab_location[3];
@@ -1667,7 +1671,7 @@ static void sculpt_update_cache_variants(SculptData *sd, PointerRNA *ptr)
 /* Initialize stroke operator properties */
 static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmEvent *event, SculptSession *ss)
 {
-	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
 	ViewContext vc;
@@ -1710,7 +1714,7 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_stroke_init_properties(C, op, event, sd->session);
@@ -1723,7 +1727,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void sculpt_restore_mesh(SculptData *sd)
+static void sculpt_restore_mesh(Sculpt *sd)
 {
 	StrokeCache *cache = sd->session->cache;
 	int i;
@@ -1749,7 +1753,7 @@ static void sculpt_post_stroke_free(SculptSession *ss)
 static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PointerRNA itemptr;
-	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob= CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	float center[3];
@@ -1766,7 +1770,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	sculpt_update_cache_variants(sd, &itemptr);
 
 	sculpt_restore_mesh(sd);
-	do_symmetrical_brush_actions(&CTX_data_scene(C)->sculptdata, sd->session->cache);
+	do_symmetrical_brush_actions(CTX_data_tool_settings(C)->sculpt, sd->session->cache);
 
 	sculpt_post_stroke_free(sd->session);
 
@@ -1789,7 +1793,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	ARegion *ar = CTX_wm_region(C);
-	SculptData *sd = &CTX_data_scene(C)->sculptdata;
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 	view3d_operator_needs_opengl(C);
 	sculpt_update_cache_invariants(sd, C, op);
@@ -1853,7 +1857,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 /* XXX: The code for drawing all the paint cursors is really the same, would be better to unify them */
 static void draw_paint_cursor(bContext *C, int x, int y)
 {
-	SculptData *sd= &CTX_data_scene(C)->sculptdata;
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 	
 	glTranslatef((float)x, (float)y, 0.0f);
 	
@@ -1867,30 +1871,40 @@ static void draw_paint_cursor(bContext *C, int x, int y)
 	glTranslatef((float)-x, (float)-y, 0.0f);
 }
 
+static void init_sculpt(ToolSettings *ts)
+{
+	ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
+
+	/* XXX: initialize persistent sculpt settings */
+}
+
 static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 {
-	Scene *sce = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
 
 	if(G.f & G_SCULPTMODE) {
 		/* Leave sculptmode */
 		G.f &= ~G_SCULPTMODE;
 
-		WM_paint_cursor_end(CTX_wm_manager(C), sce->sculptdata.session->cursor);
+		WM_paint_cursor_end(CTX_wm_manager(C), ts->sculpt->session->cursor);
 
-		sculptsession_free(sce);
+		sculptsession_free(ts->sculpt);
 	}
 	else {
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
 
-		sce->sculptdata.session = MEM_callocN(sizeof(SculptSession), "sculpt session");
+		if(!ts->sculpt)
+			init_sculpt(ts);
+
+		ts->sculpt->session = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
 		/* Needed for testing, if there's no brush then create one */
-		sce->sculptdata.brush = add_brush("test brush");
+		ts->sculpt->brush = add_brush("test brush");
 
 		/* Activate visible brush */
-		sce->sculptdata.session->cursor =
+		ts->sculpt->session->cursor =
 			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_brush_stroke_poll, draw_paint_cursor);
 	}
 
@@ -1915,7 +1929,7 @@ void ED_operatortypes_sculpt()
 	WM_operatortype_append(SCULPT_OT_toggle_mode);
 }
 
-void sculpt(SculptData *sd)
+void sculpt(Sculpt *sd)
 {
 #if 0
 	SculptSession *ss= sd->session;

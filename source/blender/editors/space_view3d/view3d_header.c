@@ -4843,10 +4843,9 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 
 uiBlock *view3d_sculpt_inputmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco= 0, menuwidth= 120;
-	SculptData *sd= &scene->sculptdata;
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 
 	block= uiBeginBlock(C, handle->region, "view3d_sculpt_inputmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_view3d_sculpt_inputmenu, NULL);
@@ -4866,7 +4865,7 @@ uiBlock *view3d_sculptmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unu
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	uiBlock *block;
-	SculptData *sd= &scene->sculptdata;
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 // XXX	const BrushData *br= sculptmode_brush();
 	short yco= 0, menuwidth= 120;
 	

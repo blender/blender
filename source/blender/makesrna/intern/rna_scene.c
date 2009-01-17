@@ -80,12 +80,12 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 
 #else
 
-void rna_def_sculptdata(BlenderRNA  *brna)
+void rna_def_sculpt(BlenderRNA  *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "SculptData", NULL);
+	srna= RNA_def_struct(brna, "Sculpt", NULL);
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Sculpt", "");
 
@@ -120,6 +120,22 @@ void rna_def_sculptdata(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "partial_redraw", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_FAST);
 	RNA_def_property_ui_text(prop, "Partial Redraw", "Optimize sculpting by only refreshing modified faces.");
+}
+
+void rna_def_tool_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ToolSettings", NULL);
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Tool Settings", "");
+	
+	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Sculpt");
+	RNA_def_property_ui_text(prop, "Sculpt", "");
+
+	rna_def_sculpt(brna);
 }
 
 void RNA_def_scene(BlenderRNA *brna)
@@ -211,12 +227,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "radio");
 	RNA_def_property_ui_text(prop, "Radiosity", "");
 
-	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "sculptdata");
-	RNA_def_property_struct_type(prop, "SculptData");
-	RNA_def_property_ui_text(prop, "Sculpt", "");
+	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
+	RNA_def_property_struct_type(prop, "ToolSettings");
+	RNA_def_property_ui_text(prop, "Tool Settings", "");
 
-	rna_def_sculptdata(brna);
+	rna_def_tool_settings(brna);
 }
 
 #endif

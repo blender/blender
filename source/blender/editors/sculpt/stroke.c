@@ -172,7 +172,7 @@ static float sculpt_stroke_final_length(SculptStroke *stroke)
 }
 
 /* If partial is nonzero, cuts off apply after that length has been processed */
-static StrokePoint *sculpt_stroke_apply_generic(SculptData *sd, SculptStroke *stroke, const int partial)
+static StrokePoint *sculpt_stroke_apply_generic(Sculpt *sd, SculptStroke *stroke, const int partial)
 {
 	const int sdspace = sd->spacing;
 	const short spacing = sdspace > 0 ? sdspace : 2;
@@ -215,7 +215,7 @@ static StrokePoint *sculpt_stroke_apply_generic(SculptData *sd, SculptStroke *st
 	return p ? p->next : NULL;
 }
 
-void sculpt_stroke_apply(SculptData *sd, SculptStroke *stroke)
+void sculpt_stroke_apply(Sculpt *sd, SculptStroke *stroke)
 {
 	/* TODO: make these values user-modifiable? */
 	const int partial_len = 100;
@@ -242,7 +242,7 @@ void sculpt_stroke_apply(SculptData *sd, SculptStroke *stroke)
 	}
 }
 
-void sculpt_stroke_apply_all(SculptData *sd, SculptStroke *stroke)
+void sculpt_stroke_apply_all(Sculpt *sd, SculptStroke *stroke)
 {
 	sculpt_stroke_create_final(stroke);
 

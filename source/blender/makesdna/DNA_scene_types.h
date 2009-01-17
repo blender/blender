@@ -375,6 +375,25 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
+struct SculptSession;
+typedef struct Sculpt
+{
+	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */	
+	/* Data stored only from entering sculptmode until exiting sculptmode */
+	struct SculptSession *session;
+	struct Brush *brush;
+
+	/* For rotating around a pivot point */
+	float pivot[3];
+	int flags;
+	/* For the Brush Shape */
+	short texact, texnr, spacing;
+	char texrept, texsep, averaging;
+	/* Control tablet input */
+	char tablet_size, tablet_strength;
+	char pad[5];
+} Sculpt;
+
 typedef struct VPaint {
 	float r, g, b, a;					/* paint color */
 	float weight;						/* weight paint */
@@ -399,10 +418,10 @@ typedef struct VPaint {
 #define VP_ONLYVGROUP	128
 
 
-
 typedef struct ToolSettings {
 	VPaint *vpaint;		/* vertex paint */
 	VPaint *wpaint;		/* weight paint */
+	Sculpt *sculpt;
 	
 	/* Subdivide Settings */
 	short cornertype;
@@ -483,38 +502,6 @@ typedef struct ToolSettings {
 	char edge_mode;
 } ToolSettings;
 
-struct SculptSession;
-typedef struct SculptData
-{
-	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */
-	
-	/* Data stored only from entering sculptmode until exiting sculptmode */
-	struct SculptSession *session;
-
-	/* Pointers to all of sculptmodes's textures */
-	struct MTex *mtex[18];
-
-	struct Brush *brush;
-
-	/* For rotating around a pivot point */
-	float pivot[3];
-
-	int flags;
-
-	/* For the Brush Shape */
-	short texact, texnr;
-	short spacing;
-	char texrept;
-	char texsep;
-
-	char averaging;
-	
-	/* Control tablet input */
-	char tablet_size, tablet_strength;
-
-	char pad[5];
-} SculptData;
-
 typedef struct bStats {
 	/* scene totals for visible layers */
 	int totobj, totlamp, totobjsel, totcurve, totmesh, totarmature;
@@ -578,9 +565,6 @@ typedef struct Scene {
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
 	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
-
-	/* Sculptmode data */
-	struct SculptData sculptdata;
 
 	/* frame step. */
 	int frame_step;
