@@ -840,10 +840,10 @@ typedef struct Scene {
 #define UV_SHOW_SAME_IMAGE	2
 
 /* toolsettings->uv_selectmode */
-#define UV_SELECT_VERTEX	0
-#define UV_SELECT_EDGE		1 /* not implemented */
-#define UV_SELECT_FACE		2
-#define UV_SELECT_ISLAND	3
+#define UV_SELECT_VERTEX	1
+#define UV_SELECT_EDGE		2 /* not implemented */
+#define UV_SELECT_FACE		4
+#define UV_SELECT_ISLAND	8
 
 /* toolsettings->edge_mode */
 #define EDGE_MODE_SELECT				0

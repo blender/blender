@@ -28,6 +28,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -50,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "IMB_imbuf_types.h" // XXX remove?
@@ -64,13 +66,13 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_view2d.h"
+
 #include "uvedit_intern.h"
 
 /* local prototypes */
 static void sel_uvco_inside_radius(SpaceImage *sima, Scene *scene, short sel, EditFace *efa, MTFace *tface, int index, float *offset, float *ell, short select_index);
 void uvedit_selectionCB(SpaceImage *sima, Scene *scene, ARegion *ar, short selecting, Object *obedit, short *mval, float rad); /* used in edit.c */
-void select_edgeloop_tface_uv(bContext *C, Scene *scene, Image *ima, Object *obedit, EditFace *startefa, int starta, int shift, int *flush);
-void select_linked_tface_uv(bContext *C, Scene *scene, Image *ima, Object *obedit, int mode);
 void uvface_setsel__internal(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, short select);
 
 /************************* state testing ************************/
@@ -187,9 +189,9 @@ void ED_uvedit_set_tile(Scene *scene, Object *obedit, Image *ima, int curtile, i
 	// XXX WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 }
 
-/*********************** connection testing *********************/
+/*********************** space conversion *********************/
 
-static void uvedit_connection_limit(bContext *C, float *limit, float pixellimit)
+static void uvedit_pixel_to_float(bContext *C, float *dist, float pixeldist)
 {
 	ImBuf *ibuf= CTX_data_edit_image_buffer(C);
 	float width, height;
@@ -203,8 +205,8 @@ static void uvedit_connection_limit(bContext *C, float *limit, float pixellimit)
 		height= 256.0f;
 	}
 
-	limit[0]= pixellimit/width;
-	limit[1]= pixellimit/height;
+	dist[0]= pixeldist/width;
+	dist[1]= pixeldist/height;
 }
 
 /*************** visibility and selection utilities **************/
@@ -247,6 +249,58 @@ void uvedit_face_deselect(Scene *scene, EditFace *efa, MTFace *tf)
 		EM_select_face(efa, 0);
 	else
 		tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+}
+
+int uvedit_edge_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
+{
+	int nvert= (efa->v4)? 4: 3;
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		if(scene->selectmode == SCE_SELECT_FACE)
+			return (efa->f & SELECT);
+		else if(scene->selectmode == SCE_SELECT_EDGE)
+			return (*(&efa->e1 + i))->f & SELECT;
+		else
+			return (((efa->v1 + i)->f & SELECT) && ((efa->v1 + (i+1)%nvert)->f & SELECT));
+	}
+	else
+		return (tf->flag & TF_SEL_MASK(i)) && (tf->flag & TF_SEL_MASK((i+1)%nvert));
+}
+
+void uvedit_edge_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
+{
+	int nvert= (efa->v4)? 4: 3;
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		if(scene->selectmode == SCE_SELECT_FACE)
+			EM_select_face(efa, 1);
+		else if(scene->selectmode == SCE_SELECT_EDGE)
+			EM_select_edge((*(&efa->e1 + i)), 1);
+		else {
+			(efa->v1 + i)->f |= SELECT;
+			(efa->v1 + (i+1)%nvert)->f |= SELECT;
+		}
+	}
+	else
+		tf->flag |= TF_SEL_MASK(i)|TF_SEL_MASK((i+1)%nvert);
+}
+
+void uvedit_edge_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
+{
+	int nvert= (efa->v4)? 4: 3;
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		if(scene->selectmode == SCE_SELECT_FACE)
+			EM_select_face(efa, 0);
+		else if(scene->selectmode == SCE_SELECT_EDGE)
+			EM_select_edge((*(&efa->e1 + i)), 0);
+		else {
+			(efa->v1 + i)->f &= ~SELECT;
+			(efa->v1 + (i+1)%nvert)->f &= ~SELECT;
+		}
+	}
+	else
+		tf->flag &= ~(TF_SEL_MASK(i)|TF_SEL_MASK((i+1)%nvert));
 }
 
 int uvedit_uv_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
@@ -443,6 +497,477 @@ void uvedit_constrain_square(Scene *scene, Image *ima, EditMesh *em)
 			}
 		}
 	}
+}
+
+/************************** find nearest ****************************/
+
+typedef struct NearestHit {
+	EditFace *efa;
+	MTFace *tf;
+
+	int vert, uv;
+	int edge, vert2;
+} NearestHit;
+
+static void find_nearest_uv_edge(Scene *scene, Image *ima, EditMesh *em, float co[2], NearestHit *hit)
+{
+	MTFace *tf;
+	EditFace *efa;
+	EditVert *eve;
+	float mindist, dist;
+	int i, nverts;
+
+	mindist= 1e10f;
+	memset(hit, 0, sizeof(*hit));
+
+	for(i=0, eve=em->verts.first; eve; eve=eve->next, i++)
+		eve->tmp.l = i;
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			nverts= efa->v4? 4: 3;
+
+			for(i=0; i<nverts; i++) {
+				dist= PdistVL2Dfl(co, tf->uv[i], tf->uv[(i+1)%nverts]);
+
+				if(dist < mindist) {
+					hit->tf= tf;
+					hit->efa= efa;
+					hit->edge= i;
+					mindist= dist;
+
+					hit->vert= (*(&efa->v1 + i))->tmp.l;
+					hit->vert2= (*(&efa->v1 + ((i+1)%nverts)))->tmp.l;
+				}
+			}
+		}
+	}
+}
+
+static void find_nearest_uv_face(Scene *scene, Image *ima, EditMesh *em, float co[2], NearestHit *hit)
+{
+	MTFace *tf;
+	EditFace *efa;
+	float mindist, dist, cent[2];
+	int i, nverts;
+
+	mindist= 1e10f;
+	memset(hit, 0, sizeof(*hit));
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			nverts= efa->v4? 4: 3;
+			cent[0]= cent[1]= 0.0f;
+
+			for(i=0; i<nverts; i++) {
+				cent[0] += tf->uv[i][0];
+				cent[1] += tf->uv[i][1];
+			}
+
+			cent[0] /= nverts;
+			cent[1] /= nverts;
+			dist= fabs(co[0]- cent[0]) + fabs(co[1]- cent[1]);
+
+			if(dist < mindist) {
+				hit->tf= tf;
+				hit->efa= efa;
+				mindist= dist;
+			}
+		}
+	}
+}
+
+static int nearest_uv_between(MTFace *tf, int nverts, int id, float co[2], float uv[2])
+{
+	float m[3], v1[3], v2[3], c1, c2;
+	int id1, id2;
+
+	id1= (id+nverts-1)%nverts;
+	id2= (id+nverts+1)%nverts;
+
+	m[0]= co[0]-uv[0];
+	m[1]= co[1]-uv[1];
+	Vec2Subf(v1, tf->uv[id1], tf->uv[id]);
+	Vec2Subf(v2, tf->uv[id2], tf->uv[id]);
+
+	/* m and v2 on same side of v-v1? */
+	c1= v1[0]*m[1] - v1[1]*m[0];
+	c2= v1[0]*v2[1] - v1[1]*v2[0];
+
+	if(c1*c2 < 0.0f)
+		return 0;
+
+	/* m and v1 on same side of v-v2? */
+	c1= v2[0]*m[1] - v2[1]*m[0];
+	c2= v2[0]*v1[1] - v2[1]*v1[0];
+
+	return (c1*c2 >= 0.0f);
+}
+
+static void find_nearest_uv_vert(Scene *scene, Image *ima, EditMesh *em, float co[2], float penalty[2], NearestHit *hit)
+{
+	EditFace *efa;
+	EditVert *eve;
+	MTFace *tf;
+	float mindist, dist;
+	int i, nverts;
+
+	mindist= 1e10f;
+	memset(hit, 0, sizeof(*hit));
+	
+	for(i=0, eve=em->verts.first; eve; eve=eve->next, i++)
+		eve->tmp.l = i;
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			nverts= efa->v4? 4: 3;
+
+			for(i=0; i<nverts; i++) {
+				if(penalty && uvedit_uv_selected(scene, efa, tf, i))
+					dist= fabs(co[0]-tf->uv[i][0])+penalty[0] + fabs(co[1]-tf->uv[i][1])+penalty[1];
+				else
+					dist= fabs(co[0]-tf->uv[i][0]) + fabs(co[1]-tf->uv[i][1]);
+
+				if(dist<=mindist) {
+					if(dist==mindist)
+						if(!nearest_uv_between(tf, nverts, i, co, tf->uv[i]))
+							continue;
+
+					mindist= dist;
+
+					hit->uv= i;
+					hit->tf= tf;
+					hit->efa= efa;
+
+					hit->vert= (*(&efa->v1 + i))->tmp.l;
+				}
+			}
+		}
+	}
+}
+
+/*********************** loop select ***********************/
+
+static void uv_vertex_loop_flag(UvMapVert *first)
+{
+	UvMapVert *iterv;
+	int count= 0;
+
+	for(iterv=first; iterv; iterv=iterv->next) {
+		if(iterv->separate && iterv!=first)
+			break;
+
+		count++;
+	}
+	
+	if(count < 5)
+		first->flag= 1;
+}
+
+static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, EditFace *efa, int a)
+{
+	UvMapVert *iterv, *first;
+	
+	first= EM_get_uv_map_vert(vmap, (*(&efa->v1 + a))->tmp.l);
+
+	for(iterv=first; iterv; iterv=iterv->next) {
+		if(iterv->separate)
+			first= iterv;
+		if(iterv->f == efa->tmp.l)
+			return first;
+	}
+	
+	return NULL;
+}
+
+static int uv_edge_tag_faces(UvMapVert *first1, UvMapVert *first2, int *totface)
+{
+	UvMapVert *iterv1, *iterv2;
+	EditFace *efa;
+	int tot = 0;
+
+	/* count number of faces this edge has */
+	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
+		if(iterv1->separate && iterv1 != first1)
+			break;
+
+		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
+			if(iterv2->separate && iterv2 != first2)
+				break;
+
+			if(iterv1->f == iterv2->f) {
+				/* if face already tagged, don't do this edge */
+				efa= EM_get_face_for_index(iterv1->f);
+				if(efa->f1)
+					return 0;
+
+				tot++;
+				break;
+			}
+		}
+	}
+
+	if(*totface == 0) /* start edge */
+		*totface= tot;
+	else if(tot != *totface) /* check for same number of faces as start edge */
+		return 0;
+
+	/* tag the faces */
+	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
+		if(iterv1->separate && iterv1 != first1)
+			break;
+
+		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
+			if(iterv2->separate && iterv2 != first2)
+				break;
+
+			if(iterv1->f == iterv2->f) {
+				efa= EM_get_face_for_index(iterv1->f);
+				efa->f1= 1;
+				break;
+			}
+		}
+	}
+
+	return 1;
+}
+
+static int select_edgeloop(Scene *scene, Image *ima, EditMesh *em, NearestHit *hit, float limit[2], int extend)
+{
+	EditVert *eve;
+	EditFace *efa;
+	MTFace *tf;
+	UvVertMap *vmap;
+	UvMapVert *iterv1, *iterv2;
+	int a, count, looking, nverts, starttotf, select;
+
+	/* setup */
+	EM_init_index_arrays(em, 0, 0, 1);
+	vmap= EM_make_uv_vert_map(em, 0, 0, limit);
+
+	for(count=0, eve=em->verts.first; eve; count++, eve= eve->next)
+		eve->tmp.l = count;
+
+	for(count=0, efa= em->faces.first; efa; count++, efa= efa->next) {
+		if(!extend) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			uvedit_face_deselect(scene, efa, tf);
+		}
+
+		efa->tmp.l= count;
+		efa->f1= 0;
+	}
+	
+	/* set flags for first face and verts */
+	nverts= (hit->efa->v4)? 4: 3;
+	iterv1= uv_vertex_map_get(vmap, hit->efa, hit->edge);
+	iterv2= uv_vertex_map_get(vmap, hit->efa, (hit->edge+1)%nverts);
+	uv_vertex_loop_flag(iterv1);
+	uv_vertex_loop_flag(iterv2);
+
+	starttotf= 0;
+	uv_edge_tag_faces(iterv1, iterv2, &starttotf);
+
+	/* sorry, first edge isnt even ok */
+	if(iterv1->flag==0 && iterv2->flag==0) looking= 0;
+	else looking= 1;
+
+	/* iterate */
+	while(looking) {
+		looking= 0;
+
+		/* find correct valence edges which are not tagged yet, but connect to tagged one */
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+			if(!efa->f1 && uvedit_face_visible(scene, ima, efa, tf)) {
+				nverts= (efa->v4)? 4: 3;
+				for(a=0; a<nverts; a++) {
+					/* check face not hidden and not tagged */
+					iterv1= uv_vertex_map_get(vmap, efa, a);
+					iterv2= uv_vertex_map_get(vmap, efa, (a+1)%nverts);
+
+					/* check if vertex is tagged and has right valence */
+					if(iterv1->flag || iterv2->flag) {
+						if(uv_edge_tag_faces(iterv1, iterv2, &starttotf)) {
+							looking= 1;
+							efa->f1= 1;
+
+							uv_vertex_loop_flag(iterv1);
+							uv_vertex_loop_flag(iterv2);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* do the actual select/deselect */
+	nverts= (hit->efa->v4)? 4: 3;
+	iterv1= uv_vertex_map_get(vmap, hit->efa, hit->edge);
+	iterv2= uv_vertex_map_get(vmap, hit->efa, (hit->edge+1)%nverts);
+	iterv1->flag= 1;
+	iterv2->flag= 1;
+
+	if(extend) {
+		tf= CustomData_em_get(&em->fdata, hit->efa->data, CD_MTFACE);
+
+		if(uvedit_uv_selected(scene, hit->efa, tf, hit->edge) && uvedit_uv_selected(scene, hit->efa, tf, hit->edge))
+			select= 0;
+		else
+			select= 1;
+	}
+	else
+		select= 1;
+	
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		nverts= (efa->v4)? 4: 3;
+		for(a=0; a<nverts; a++) {
+			iterv1= uv_vertex_map_get(vmap, efa, a);
+
+			if(iterv1->flag) {
+				if(select) uvedit_uv_select(scene, efa, tf, a);
+				else uvedit_uv_deselect(scene, efa, tf, a);
+			}
+		}
+	}
+
+	/* cleanup */
+	EM_free_uv_vert_map(vmap);
+	EM_free_index_arrays();
+
+	return (select)? 1: -1;
+}
+
+/*********************** linked select ***********************/
+
+static void select_linked(Scene *scene, Image *ima, EditMesh *em, float limit[2], NearestHit *hit, int extend)
+{
+	EditFace *efa;
+	MTFace *tf;
+	UvVertMap *vmap;
+	UvMapVert *vlist, *iterv, *startv;
+	int a, i, nverts, j, stacksize= 0, *stack;
+	char *flag;
+
+	vmap= EM_make_uv_vert_map(em, 1, 1, limit);
+	if(vmap == NULL)
+		return;
+
+	stack= MEM_mallocN(sizeof(*stack)* BLI_countlist(&em->faces), "UvLinkStack");
+	flag= MEM_callocN(sizeof(*flag)*BLI_countlist(&em->faces), "UvLinkFlag");
+
+	if(!hit) {
+		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+			if(uvedit_face_visible(scene, ima, efa, tf)) {
+				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
+					stack[stacksize]= a;
+					stacksize++;
+					flag[a]= 1;
+				}
+			}
+		}
+	}
+	else {
+		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			if(efa == hit->efa) {
+				stack[stacksize]= a;
+				stacksize++;
+				flag[a]= 1;
+				break;
+			}
+		}
+	}
+
+	while(stacksize > 0) {
+		stacksize--;
+		a= stack[stacksize];
+		
+		for(j=0, efa= em->faces.first; efa; efa= efa->next, j++)
+			if(j==a)
+				break;
+
+		nverts= efa->v4? 4: 3;
+
+		for(i=0; i<nverts; i++) {
+			/* make_uv_vert_map_EM sets verts tmp.l to the indicies */
+			vlist= EM_get_uv_map_vert(vmap, (*(&efa->v1 + i))->tmp.l);
+			
+			startv= vlist;
+
+			for(iterv=vlist; iterv; iterv=iterv->next) {
+				if(iterv->separate)
+					startv= iterv;
+				if(iterv->f == a)
+					break;
+			}
+
+			for(iterv=startv; iterv; iterv=iterv->next) {
+				if((startv != iterv) && (iterv->separate))
+					break;
+				else if(!flag[iterv->f]) {
+					flag[iterv->f]= 1;
+					stack[stacksize]= iterv->f;;
+					stacksize++;
+				}
+			}
+		}
+	}
+
+	if(!extend || hit) {
+		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if(flag[a])
+				tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			else
+				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		}
+	}
+	else if(extend && hit) {
+		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			if(flag[a]) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(efa->v4) {
+					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+						break;
+				}
+				else if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+					break;
+			}
+		}
+
+		if(efa) {
+			for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+				if(flag[a]) {
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
+		}
+		else {
+			for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+				if(flag[a]) {
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
+		}
+	}
+	
+	MEM_freeN(stack);
+	MEM_freeN(flag);
+	EM_free_uv_vert_map(vmap);
 }
 
 /* ******************** mirror operator **************** */
@@ -666,7 +1191,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		int a, vtot;
 
 		pixels= RNA_float_get(op->ptr, "limit");
-		uvedit_connection_limit(C, limit, pixels);
+		uvedit_pixel_to_float(C, limit, pixels);
 
 		EM_init_index_arrays(em, 0, 0, 1);
 		vmap= EM_make_uv_vert_map(em, 1, 0, limit);
@@ -941,328 +1466,200 @@ void UV_OT_de_select_all(wmOperatorType *ot)
 
 /* ******************** mouse select operator **************** */
 
-static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid, float **uv, float *uv2, int sticky)
+static int sticky_select(float *limit, int hitv[4], int v, float *hituv[4], float *uv, int sticky)
 {
 	int i;
-	for(i=0; i< 4; i++) {
-		if(hitarray[i] == vertexid) {
-			if(sticky == 2) {
-				if(fabs(uv[i][0]-uv2[0]) < limit[0] &&
-			    fabs(uv[i][1]-uv2[1]) < limit[1])
+
+	/* this function test if some vertex needs to selected
+	 * in addition to the existing ones due to sticky select */
+	if(sticky == SI_STICKY_DISABLE)
+		return 0;
+
+	for(i=0; i<4; i++) {
+		if(hitv[i] == v) {
+			if(sticky == SI_STICKY_LOC) {
+				if(fabs(hituv[i][0]-uv[0]) < limit[0] && fabs(hituv[i][1]-uv[1]) < limit[1])
 					return 1;
 			}
-			else return 1;
+			else if(sticky == SI_STICKY_VERTEX)
+				return 1;
 		}
 	}
+
 	return 0;
 }
 
-static void find_nearest_uv_edge(Scene *scene, Image *ima, Object *obedit, MTFace **nearesttf, EditFace **nearestefa, int *nearestedge)
+static int mouse_select(bContext *C, float co[2], int extend, int loop)
 {
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	MTFace *tf;
-	EditFace *efa;
-	float mvalf[2], v1[2], v2[2];
-	int i, nverts, mindist, dist, uval1[2], uval2[2];
-	short mval[2];
-
-	mval[0]= mval[1]= 0; // XXX getmouseco_areawin(mval);
-	mvalf[0]= mval[0];
-	mvalf[1]= mval[1];
-
-	mindist= 0x7FFFFFF;
-	*nearesttf= NULL;
-	*nearestefa= NULL;
-	*nearestedge= 0;
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			nverts= efa->v4? 4: 3;
-			for(i=0; i<nverts; i++) {
-				uval1[0]= uval1[1]= 0; // XXX uvco_to_areaco_noclip(tf->uv[i], uval1);
-				uval2[0]= uval2[1]= 0; // XXX uvco_to_areaco_noclip(tf->uv[(i+1)%nverts], uval2);
-
-				v1[0]= uval1[0];
-				v1[1]= uval1[1];
-				v2[0]= uval2[0];
-				v2[1]= uval2[1];
-
-				dist= PdistVL2Dfl(mvalf, v1, v2);
-				if(dist < mindist) {
-					*nearesttf= tf;
-					*nearestefa= efa;
-					*nearestedge= i;
-					mindist= dist;
-				}
-			}
-		}
-	}
-}
-
-static void find_nearest_tface(Scene *scene, Image *ima, Object *obedit, MTFace **nearesttf, EditFace **nearestefa)
-{
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	MTFace *tf;
-	EditFace *efa;
-	int i, nverts, mindist, dist, fcenter[2], uval[2];
-	short mval[2];
-
-	mval[0]= mval[1]= 0; // XXX getmouseco_areawin(mval);	
-
-	mindist= 0x7FFFFFF;
-	*nearesttf= NULL;
-	*nearestefa= NULL;
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			fcenter[0]= fcenter[1]= 0;
-			nverts= efa->v4? 4: 3;
-			for(i=0; i<nverts; i++) {
-				uval[0]= uval[0]= 0; // XXX uvco_to_areaco_noclip(tf->uv[i], uval);
-				fcenter[0] += uval[0];
-				fcenter[1] += uval[1];
-			}
-
-			fcenter[0] /= nverts;
-			fcenter[1] /= nverts;
-
-			dist= abs(mval[0]- fcenter[0])+ abs(mval[1]- fcenter[1]);
-			if(dist < mindist) {
-				*nearesttf= tf;
-				*nearestefa= efa;
-				mindist= dist;
-			}
-		}
-	}
-}
-
-static int nearest_uv_between(MTFace *tf, int nverts, int id, short *mval, int *uval)
-{
-	float m[3], v1[3], v2[3], c1, c2;
-	int id1, id2;
-
-	id1= (id+nverts-1)%nverts;
-	id2= (id+nverts+1)%nverts;
-
-	m[0] = (float)(mval[0]-uval[0]);
-	m[1] = (float)(mval[1]-uval[1]);
-	Vec2Subf(v1, tf->uv[id1], tf->uv[id]);
-	Vec2Subf(v2, tf->uv[id2], tf->uv[id]);
-
-	/* m and v2 on same side of v-v1? */
-	c1= v1[0]*m[1] - v1[1]*m[0];
-	c2= v1[0]*v2[1] - v1[1]*v2[0];
-
-	if(c1*c2 < 0.0f)
-		return 0;
-
-	/* m and v1 on same side of v-v2? */
-	c1= v2[0]*m[1] - v2[1]*m[0];
-	c2= v2[0]*v1[1] - v2[1]*v1[0];
-
-	return (c1*c2 >= 0.0f);
-}
-
-void find_nearest_uv(Scene *scene, Image *ima, Object *obedit, MTFace **nearesttf, EditFace **nearestefa, unsigned int *nearestv, int *nearestuv)
-{
+	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Image *ima= CTX_data_edit_image(C);
 	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
 	EditFace *efa;
 	MTFace *tf;
-	int i, nverts, mindist, dist, uval[2];
-	short mval[2];
-
-	mval[0]= mval[1]= 0; // XXX getmouseco_areawin(mval);	
-
-	mindist= 0x7FFFFFF;
-	if(nearesttf) *nearesttf= NULL;
-	if(nearestefa) *nearestefa= NULL;
-	
-	if(nearestv) {
-		EditVert *ev;
-		for(i=0, ev=em->verts.first; ev; ev = ev->next, i++)
-			ev->tmp.l = i;
-	}
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			nverts= efa->v4? 4: 3;
-			for(i=0; i<nverts; i++) {
-				uval[0]= uval[1]= 0; // XXX uvco_to_areaco_noclip(tf->uv[i], uval);
-				dist= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
-
-				if(uvedit_uv_selected(scene, efa, tf, i))
-					dist += 5;
-
-				if(dist<=mindist) {
-					if(dist==mindist)
-						if(!nearest_uv_between(tf, nverts, i, mval, uval))
-							continue;
-
-					mindist= dist;
-					*nearestuv= i;
-					
-					if(nearesttf)		*nearesttf= tf;
-					if(nearestefa)		*nearestefa= efa;
-					if(nearestv) {
-						if(i==0) *nearestv=  efa->v1->tmp.l;
-						else if(i==1) *nearestv=  efa->v2->tmp.l;
-						else if(i==2) *nearestv=  efa->v3->tmp.l;
-						else *nearestv=  efa->v4->tmp.l;
-					}
-				}
-			}
-		}
-	}
-}
-
-void mouse_select_sima(bContext *C, SpaceImage *sima, Scene *scene, Image *ima, Object *obedit)
-{
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	EditFace *efa;
-	MTFace *tf, *nearesttf;
-	EditFace *nearestefa=NULL;
-	int a, selectsticky, edgeloop, actface, nearestuv, nearestedge, i, shift, island=0;
-	char sticky= 0;
+	NearestHit hit;
+	int a, i, select, selectmode, sticky, sync, hitv[4], nvert;
 	int flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
-	unsigned int hitv[4], nearestv;
-	float *hituv[4], limit[2];
+	float limit[2], *hituv[4], penalty[2];
 	
-	if(!uvedit_test(obedit)) return;
+	uvedit_pixel_to_float(C, limit, 0.05f);
+	uvedit_pixel_to_float(C, penalty, 5.0f);
 
-	uvedit_connection_limit(C, limit, 0.05);
-	
-	edgeloop= 0; // XXX G.qual & LR_ALTKEY;
-	shift= 0; // XXX G.qual & LR_SHIFTKEY;
-	
+	/* retrieve operation mode */
 	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		/* copy from mesh */
-		if(scene->selectmode == SCE_SELECT_FACE) {
-			actface= 1;
-			sticky= 0;
-		}
-		else {
-			actface= scene->selectmode & SCE_SELECT_FACE;
-			sticky= 2;
-		}
+		sync= 1;
+
+		if(scene->selectmode & SCE_SELECT_FACE)
+			selectmode= UV_SELECT_FACE;
+		else if(scene->selectmode & SCE_SELECT_EDGE)
+			selectmode= UV_SELECT_EDGE;
+		else
+			selectmode= UV_SELECT_VERTEX;
+
+		sticky= SI_STICKY_DISABLE;
 	}
 	else {
-		/* normal operation */
-		actface= scene->toolsettings->uv_selectmode == UV_SELECT_FACE;
-		island= scene->toolsettings->uv_selectmode == UV_SELECT_ISLAND;
-		
-		switch(sima->sticky) {
-		case SI_STICKY_LOC:
-			sticky=2;
-			break;
-		case SI_STICKY_DISABLE:
-			sticky=0;
-			break;
-		case SI_STICKY_VERTEX:
-			if(0) // XXX G.qual & LR_CTRLKEY)
-				sticky=0;
-			else
-				sticky=1;
-			break;
-		}
+		sync= 0;
+		selectmode= scene->toolsettings->uv_selectmode;
+		sticky= sima->sticky;
+
+		/* XXX if(sticky == SI_STICKY_VERTEX && (G.qual & LR_CTRLKEY))
+			sticky= SI_STICKY_DISABLE;*/
 	}
 
-	if(edgeloop) {
-		find_nearest_uv_edge(scene, ima, obedit, &nearesttf, &nearestefa, &nearestedge);
-		if(nearesttf==NULL)
-			return;
-
-		select_edgeloop_tface_uv(C, scene, ima, obedit, nearestefa, nearestedge, shift, &flush);
+	/* find nearest element */
+	if(loop) {
+		/* find edge */
+		find_nearest_uv_edge(scene, ima, em, co, &hit);
+		if(hit.efa == NULL)
+			return OPERATOR_CANCELLED;
 	}
-	else if(actface) {
-		find_nearest_tface(scene, ima, obedit, &nearesttf, &nearestefa);
-		if(nearesttf==NULL)
-			return;
-		
-		EM_set_actFace(em, nearestefa);
+	else if(selectmode == UV_SELECT_VERTEX) {
+		/* find vertex */
+		find_nearest_uv_vert(scene, ima, em, co, penalty, &hit);
+		if(hit.efa == NULL)
+			return OPERATOR_CANCELLED;
 
+		/* mark 1 vertex as being hit */
 		for(i=0; i<4; i++)
-			hituv[i]= nearesttf->uv[i];
+			hitv[i]= 0xFFFFFFFF;
 
-		hitv[0]= nearestefa->v1->tmp.l;
-		hitv[1]= nearestefa->v2->tmp.l;
-		hitv[2]= nearestefa->v3->tmp.l;
+		hitv[hit.uv]= hit.vert;
+		hituv[hit.uv]= hit.tf->uv[hit.uv];
+	}
+	else if(selectmode == UV_SELECT_EDGE) {
+		/* find edge */
+		find_nearest_uv_edge(scene, ima, em, co, &hit);
+		if(hit.efa == NULL)
+			return OPERATOR_CANCELLED;
+
+		/* mark 2 edge vertices as being hit */
+		for(i=0; i<4; i++)
+			hitv[i]= 0xFFFFFFFF;
+
+		nvert= (hit.efa->v4)? 4: 3;
+
+		hitv[hit.edge]= hit.vert;
+		hitv[(hit.edge+1)%nvert]= hit.vert2;
+		hituv[hit.edge]= hit.tf->uv[hit.edge];
+		hituv[(hit.edge+1)%nvert]= hit.tf->uv[(hit.edge+1)%nvert];
+	}
+	else if(selectmode == UV_SELECT_FACE) {
+		/* find face */
+		find_nearest_uv_face(scene, ima, em, co, &hit);
+		if(hit.efa == NULL)
+			return OPERATOR_CANCELLED;
 		
-		if(nearestefa->v4)	hitv[3]= nearestefa->v4->tmp.l;
-		else				hitv[3]= 0xFFFFFFFF;
-	}
-	else if(island) {
+		/* make active */
+		EM_set_actFace(em, hit.efa);
 
-	}
-	else {
-		find_nearest_uv(scene, ima, obedit, &nearesttf, &nearestefa, &nearestv, &nearestuv);
-		if(nearesttf==NULL)
-			return;
+		/* mark all face vertices as being hit */
+		for(i=0; i<4; i++)
+			hituv[i]= hit.tf->uv[i];
 
-		if(sticky) {
-			for(i=0; i<4; i++)
-				hitv[i]= 0xFFFFFFFF;
-			hitv[nearestuv]= nearestv;
-			hituv[nearestuv]= nearesttf->uv[nearestuv];
-		}
+		hitv[0]= hit.efa->v1->tmp.l;
+		hitv[1]= hit.efa->v2->tmp.l;
+		hitv[2]= hit.efa->v3->tmp.l;
+		
+		if(hit.efa->v4)	hitv[3]= hit.efa->v4->tmp.l;
+		else hitv[3]= 0xFFFFFFFF;
 	}
+	else if(selectmode == UV_SELECT_ISLAND) {
+		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
 
-	if(island) {
-		if(shift) select_linked_tface_uv(C, scene, ima, obedit, 1);
-		else select_linked_tface_uv(C, scene, ima, obedit, 0);
+		if(hit.efa==NULL)
+			return OPERATOR_CANCELLED;
 	}
-	else if(!edgeloop && shift) {
-		/* (de)select face */
-		if(actface) {
-			if(uvedit_face_selected(scene, nearestefa, nearesttf)) {
-				uvedit_face_deselect(scene, nearestefa, nearesttf);
-				selectsticky= 0;
+	else
+		return OPERATOR_CANCELLED;
+
+	/* do selection */
+	if(loop) {
+		flush= select_edgeloop(scene, ima, em, &hit, limit, extend);
+	}
+	else if(selectmode == UV_SELECT_ISLAND) {
+		select_linked(scene, ima, em, limit, &hit, extend);
+	}
+	else if(extend) {
+		if(selectmode == UV_SELECT_VERTEX) {
+			/* (de)select uv vertex */
+			if(uvedit_uv_selected(scene, hit.efa, hit.tf, hit.uv)) {
+				uvedit_uv_deselect(scene, hit.efa, hit.tf, hit.uv);
+				select= 0;
 			}
 			else {
-				uvedit_face_select(scene, nearestefa, nearesttf);
-				selectsticky= 1;
-			}
-			flush = -1;
-		}
-		/* (de)select uv node */
-		else {
-			if(uvedit_uv_selected(scene, nearestefa, nearesttf, nearestuv)) {
-				uvedit_uv_deselect(scene, nearestefa, nearesttf, nearestuv);
-				selectsticky= 0;
-			}
-			else {
-				uvedit_uv_select(scene, nearestefa, nearesttf, nearestuv);
-				selectsticky= 1;
+				uvedit_uv_select(scene, hit.efa, hit.tf, hit.uv);
+				select= 1;
 			}
 			flush = 1;
 		}
+		else if(selectmode == UV_SELECT_EDGE) {
+			/* (de)select edge */
+			if(uvedit_edge_selected(scene, hit.efa, hit.tf, hit.edge)) {
+				uvedit_edge_deselect(scene, hit.efa, hit.tf, hit.edge);
+				select= 0;
+			}
+			else {
+				uvedit_edge_select(scene, hit.efa, hit.tf, hit.edge);
+				select= 1;
+			}
+			flush = 1;
+		}
+		else if(selectmode == UV_SELECT_FACE) {
+			/* (de)select face */
+			if(uvedit_face_selected(scene, hit.efa, hit.tf)) {
+				uvedit_face_deselect(scene, hit.efa, hit.tf);
+				select= 0;
+			}
+			else {
+				uvedit_face_select(scene, hit.efa, hit.tf);
+				select= 1;
+			}
+			flush = -1;
+		}
 
 		/* (de)select sticky uv nodes */
-		if(sticky || actface) {
+		if(sticky != SI_STICKY_DISABLE) {
 			EditVert *ev;
 			
 			for(a=0, ev=em->verts.first; ev; ev = ev->next, a++)
 				ev->tmp.l = a;
 			
 			/* deselect */
-			if(selectsticky==0) {
+			if(select==0) {
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
 					if(uvedit_face_visible(scene, ima, efa, tf)) {
-						/*if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;*/ /* TODO - deal with editmesh active face */
-						if(!sticky) continue;
-	
-						if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
+						if(sticky_select(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 							uvedit_uv_deselect(scene, efa, tf, 0);
-						if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
+						if(sticky_select(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
 							uvedit_uv_deselect(scene, efa, tf, 1);
-						if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
+						if(sticky_select(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
 							uvedit_uv_deselect(scene, efa, tf, 2);
 						if(efa->v4)
-							if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
+							if(sticky_select(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
 								uvedit_uv_deselect(scene, efa, tf, 3);
 					}
 				}
@@ -1272,81 +1669,273 @@ void mouse_select_sima(bContext *C, SpaceImage *sima, Scene *scene, Image *ima, 
 			else {
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
 					if(uvedit_face_visible(scene, ima, efa, tf)) {
-						if(!sticky) continue;
-						if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
+						if(sticky_select(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 							uvedit_uv_select(scene, efa, tf, 0);
-						if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
+						if(sticky_select(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
 							uvedit_uv_select(scene, efa, tf, 1);
-						if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
+						if(sticky_select(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
 							uvedit_uv_select(scene, efa, tf, 2);
 						if(efa->v4)
-							if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
+							if(sticky_select(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
 								uvedit_uv_select(scene, efa, tf, 3);
 					}
 				}
-				
-				if(actface)
-					EM_set_actFace(em, nearestefa);
 				
 				flush = 1;
 			}			
 		}
 	}
-	else if(!edgeloop) {
-		/* select face and deselect other faces */ 
-		if(actface) {
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				uvedit_face_deselect(scene, efa, tf);
-			}
-			if(nearesttf) {
-				uvedit_face_select(scene, nearestefa, nearesttf);
-				EM_set_actFace(em, nearestefa);
-			}
-				
-		}
-
-		/* deselect uvs, and select sticky uvs */
+	else {
+		/* deselect all */
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(!actface) uvedit_face_deselect(scene, efa, tf);
-				if(!sticky) continue;
-
-				if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
-					uvedit_uv_select(scene, efa, tf, 0);
-				if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
-					uvedit_uv_select(scene, efa, tf, 1);
-				if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
-					uvedit_uv_select(scene, efa, tf, 2);
-				if(efa->v4)
-					if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
-						uvedit_uv_select(scene, efa, tf, 3);
-				flush= 1;
-			}
+			uvedit_face_deselect(scene, efa, tf);
 		}
-		
-		if(!actface) {
-			uvedit_uv_select(scene, nearestefa, nearesttf, nearestuv);
+
+		if(selectmode == UV_SELECT_VERTEX) {
+			/* select vertex */
+			uvedit_uv_select(scene, hit.efa, hit.tf, hit.uv);
 			flush= 1;
+		}
+		else if(selectmode == UV_SELECT_EDGE) {
+			/* select edge */
+			uvedit_edge_select(scene, hit.efa, hit.tf, hit.edge);
+			flush= 1;
+		}
+		else if(selectmode == UV_SELECT_FACE) {
+			/* select face */
+			uvedit_face_select(scene, hit.efa, hit.tf);
+		}
+
+		/* select sticky uvs */
+		if(sticky != SI_STICKY_DISABLE) {
+			for(efa= em->faces.first; efa; efa= efa->next) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(uvedit_face_visible(scene, ima, efa, tf)) {
+					if(sticky == SI_STICKY_DISABLE) continue;
+
+					if(sticky_select(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
+						uvedit_uv_select(scene, efa, tf, 0);
+					if(sticky_select(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
+						uvedit_uv_select(scene, efa, tf, 1);
+					if(sticky_select(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
+						uvedit_uv_select(scene, efa, tf, 2);
+					if(efa->v4)
+						if(sticky_select(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
+							uvedit_uv_select(scene, efa, tf, 3);
+
+					flush= 1;
+				}
+			}
 		}
 	}
 	
-	// XXX force_draw(1);
-	
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(sync) {
 		/* flush for mesh selection */
 		if(scene->selectmode != SCE_SELECT_FACE) {
 			if(flush==1)		EM_select_flush(em);
 			else if(flush==-1)	EM_deselect_flush(em);
 		}
-		// XXX allqueue(REDRAWVIEW3D, 0); /* mesh selection has changed */
 	}
 	
+	// XXX force_draw(1);
 	// XXX BIF_undo_push("Select UV");
 	// XXX rightmouse_transform();
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
 }
+
+static int select_exec(bContext *C, wmOperator *op)
+{
+	float co[2];
+	int extend, loop;
+
+	RNA_float_get_array(op->ptr, "location", co);
+	extend= RNA_boolean_get(op->ptr, "extend");
+	loop= 0;
+
+	return mouse_select(C, co, extend, loop);
+}
+
+static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float co[2];
+	int x, y;
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+
+	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+	RNA_float_set_array(op->ptr, "location", co);
+
+	return select_exec(C, op);
+}
+
+void UV_OT_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select";
+	ot->idname= "UV_OT_select";
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* api callbacks */
+	ot->exec= select_exec;
+	ot->invoke= select_invoke;
+	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", 0,
+		"Extend", "Extend selection rather than clearing the existing selection.");
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+}
+
+/* ******************** loop select operator **************** */
+
+static int loop_select_exec(bContext *C, wmOperator *op)
+{
+	float co[2];
+	int extend, loop;
+
+	RNA_float_get_array(op->ptr, "location", co);
+	extend= RNA_boolean_get(op->ptr, "extend");
+	loop= 1;
+
+	return mouse_select(C, co, extend, loop);
+}
+
+static int loop_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	float co[2];
+	int x, y;
+
+	x= event->x - ar->winrct.xmin;
+	y= event->y - ar->winrct.ymin;
+
+	UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+	RNA_float_set_array(op->ptr, "location", co);
+
+	return loop_select_exec(C, op);
+}
+
+void UV_OT_loop_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Loop Select";
+	ot->idname= "UV_OT_loop_select";
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* api callbacks */
+	ot->exec= loop_select_exec;
+	ot->invoke= loop_select_invoke;
+	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", 0,
+		"Extend", "Extend selection rather than clearing the existing selection.");
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+}
+
+/* ******************** linked select operator **************** */
+
+static int select_linked_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Image *ima= CTX_data_edit_image(C);
+	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	float limit[2];
+	int extend;
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
+		return OPERATOR_CANCELLED;
+	}
+
+	extend= RNA_boolean_get(op->ptr, "extend");
+	uvedit_pixel_to_float(C, limit, 0.05f);
+	select_linked(scene, ima, em, limit, NULL, extend);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void UV_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked";
+	ot->idname= "UV_OT_select_linked";
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* api callbacks */
+	ot->exec= select_linked_exec;
+	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", 0,
+		"Extend", "Extend selection rather than clearing the existing selection.");
+}
+
+/* ******************** unlink selection operator **************** */
+
+static int unlink_selection_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Image *ima= CTX_data_edit_image(C);
+	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
+	EditFace *efa;
+	MTFace *tf;
+
+	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+
+		if(uvedit_face_visible(scene, ima, efa, tf)) {
+			if(efa->v4) {
+				if(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			}
+			else {
+				if(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3);
+			}
+		}
+	}
+	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void UV_OT_unlink_selection(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Unlink Selection";
+	ot->idname= "UV_OT_unlink_selection";
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* api callbacks */
+	ot->exec= unlink_selection_exec;
+	ot->poll= ED_operator_uvedit;
+}
+
+/* ******************** border select operator **************** */
 
 void borderselect_sima(bContext *C, SpaceImage *sima, Scene *scene, Image *ima, Object *obedit, short whichuvs)
 {
@@ -1780,184 +2369,6 @@ void uvedit_selectionCB(SpaceImage *sima, Scene *scene, ARegion *ar, short selec
 	}
 }
 
-void select_linked_tface_uv(bContext *C, Scene *scene, Image *ima, Object *obedit, int mode) /* TODO */
-{
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	EditFace *efa, *nearestefa=NULL;
-	MTFace *tf, *nearesttf=NULL;
-	UvVertMap *vmap;
-	UvMapVert *vlist, *iterv, *startv;
-	unsigned int *stack, stacksize= 0, nearestv;
-	char *flag;
-	int a, nearestuv, i, nverts, j;
-	float limit[2];
-
-	if(!uvedit_test(obedit)) return;
-
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		// XXX error("Can't select linked when Sync Mesh Selection is enabled");
-		return;
-	}
-	
-	if(mode == 2) {
-		nearesttf= NULL;
-		nearestuv= 0;
-	}
-	if(mode!=2) {
-		find_nearest_uv(scene, ima, obedit, &nearesttf, &nearestefa, &nearestv, &nearestuv);
-		if(nearesttf==NULL)
-			return;
-	}
-
-	uvedit_connection_limit(C, limit, 0.05);
-	vmap= EM_make_uv_vert_map(em, 1, 1, limit);
-	if(vmap == NULL)
-		return;
-
-	stack= MEM_mallocN(sizeof(*stack)* BLI_countlist(&em->faces), "UvLinkStack");
-	flag= MEM_callocN(sizeof(*flag)*BLI_countlist(&em->faces), "UvLinkFlag");
-
-	if(mode == 2) {
-		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(uvedit_face_visible(scene, ima, efa, tf)) {
-				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
-					stack[stacksize]= a;
-					stacksize++;
-					flag[a]= 1;
-				}
-			}
-		}
-	}
-	else {
-		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(tf == nearesttf) {
-				stack[stacksize]= a;
-				stacksize++;
-				flag[a]= 1;
-				break;
-			}
-		}
-	}
-
-	while(stacksize > 0) {
-		stacksize--;
-		a= stack[stacksize];
-		
-		for(j=0, efa= em->faces.first; efa; efa= efa->next, j++) {
-			if(j==a) {
-				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				break;
-			}
-		}
-
-		nverts= efa->v4? 4: 3;
-
-		for(i=0; i<nverts; i++) {
-			/* make_uv_vert_map_EM sets verts tmp.l to the indicies */
-			vlist= EM_get_uv_map_vert(vmap, (*(&efa->v1 + i))->tmp.l);
-			
-			startv= vlist;
-
-			for(iterv=vlist; iterv; iterv=iterv->next) {
-				if(iterv->separate)
-					startv= iterv;
-				if(iterv->f == a)
-					break;
-			}
-
-			for(iterv=startv; iterv; iterv=iterv->next) {
-				if((startv != iterv) && (iterv->separate))
-					break;
-				else if(!flag[iterv->f]) {
-					flag[iterv->f]= 1;
-					stack[stacksize]= iterv->f;;
-					stacksize++;
-				}
-			}
-		}
-	}
-
-	if(mode==0 || mode==2) {
-		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(flag[a])
-				tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-			else
-				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-		}
-	}
-	else if(mode==1) {
-		for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-			if(flag[a]) {
-				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(efa->v4) {
-					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
-						break;
-				}
-				else if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-					break;
-			}
-		}
-
-		if(efa) {
-			for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-				if(flag[a]) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				}
-			}
-		}
-		else {
-			for(a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
-				if(flag[a]) {
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-				}
-			}
-		}
-	}
-	
-	MEM_freeN(stack);
-	MEM_freeN(flag);
-	EM_free_uv_vert_map(vmap);
-
-	// XXX BIF_undo_push("Select linked UV");
-	// XXX scrarea_queue_winredraw(curarea);
-}
-
-void unlink_selection(Scene *scene, Image *ima, Object *obedit)
-{
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	EditFace *efa;
-	MTFace *tface;
-
-	if(!uvedit_test(obedit)) return;
-
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		; // XXX error("Can't select unlinked when Sync Mesh Selection is enabled");
-		return;
-	}
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if(uvedit_face_visible(scene, ima, efa, tface)) {
-			if(efa->v4) {
-				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-			}
-			else {
-				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3);
-			}
-		}
-	}
-	
-	// XXX BIF_undo_push("Unlink UV selection");
-	// XXX scrarea_queue_winredraw(curarea);
-}
-
 /* this function sets the selection on tagged faces
  * This is needed because setting the selection on a face is done in
  * a number of places but it also needs to respect the sticky modes
@@ -2026,7 +2437,7 @@ void uvface_setsel__internal(bContext *C, SpaceImage *sima, Scene *scene, Object
 		//EditVert *eve; /* removed vert counting for now */ 
 		//int a;
 		
-		uvedit_connection_limit(C, limit, 0.05);
+		uvedit_pixel_to_float(C, limit, 0.05);
 		
 		EM_init_index_arrays(em, 0, 0, 1);
 		vmap= EM_make_uv_vert_map(em, 0, 0, limit);
@@ -2159,214 +2570,16 @@ void select_pinned_tface_uv(Scene *scene, Image *ima, Object *obedit)
 	// XXX scrarea_queue_winredraw(curarea);
 }
 
-/* UV edge loop select, follows same rules as editmesh */
-
-static void uv_vertex_loop_flag(UvMapVert *first)
-{
-	UvMapVert *iterv;
-	int count= 0;
-
-	for(iterv=first; iterv; iterv=iterv->next) {
-		if(iterv->separate && iterv!=first)
-			break;
-
-		count++;
-	}
-	
-	if(count < 5)
-		first->flag= 1;
-}
-
-static UvMapVert *uv_vertex_map_get(UvVertMap *vmap, EditFace *efa, int a)
-{
-	UvMapVert *iterv, *first;
-	
-	first= EM_get_uv_map_vert(vmap, (*(&efa->v1 + a))->tmp.l);
-
-	for(iterv=first; iterv; iterv=iterv->next) {
-		if(iterv->separate)
-			first= iterv;
-		if(iterv->f == efa->tmp.l)
-			return first;
-	}
-	
-	return NULL;
-}
-
-static int uv_edge_tag_faces(UvMapVert *first1, UvMapVert *first2, int *totface)
-{
-	UvMapVert *iterv1, *iterv2;
-	EditFace *efa;
-	int tot = 0;
-
-	/* count number of faces this edge has */
-	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
-		if(iterv1->separate && iterv1 != first1)
-			break;
-
-		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
-			if(iterv2->separate && iterv2 != first2)
-				break;
-
-			if(iterv1->f == iterv2->f) {
-				/* if face already tagged, don't do this edge */
-				efa= EM_get_face_for_index(iterv1->f);
-				if(efa->f1)
-					return 0;
-
-				tot++;
-				break;
-			}
-		}
-	}
-
-	if(*totface == 0) /* start edge */
-		*totface= tot;
-	else if(tot != *totface) /* check for same number of faces as start edge */
-		return 0;
-
-	/* tag the faces */
-	for(iterv1=first1; iterv1; iterv1=iterv1->next) {
-		if(iterv1->separate && iterv1 != first1)
-			break;
-
-		for(iterv2=first2; iterv2; iterv2=iterv2->next) {
-			if(iterv2->separate && iterv2 != first2)
-				break;
-
-			if(iterv1->f == iterv2->f) {
-				efa= EM_get_face_for_index(iterv1->f);
-				efa->f1= 1;
-				break;
-			}
-		}
-	}
-
-	return 1;
-}
-
-void select_edgeloop_tface_uv(bContext *C, Scene *scene, Image *ima, Object *obedit, EditFace *startefa, int starta, int shift, int *flush)
-{
-	EditMesh *em= ((Mesh*)obedit->data)->edit_mesh;
-	EditVert *eve;
-	EditFace *efa;
-	MTFace *tface;
-	UvVertMap *vmap;
-	UvMapVert *iterv1, *iterv2;
-	float limit[2];
-	int a, count, looking, nverts, starttotface, select;
-	
-	if(!uvedit_test(obedit)) return;
-
-	/* setup */
-	EM_init_index_arrays(em, 0, 0, 1);
-
-	uvedit_connection_limit(C, limit, 0.05);
-	vmap= EM_make_uv_vert_map(em, 0, 0, limit);
-
-	for(count=0, eve=em->verts.first; eve; count++, eve= eve->next)
-		eve->tmp.l = count;
-
-	for(count=0, efa= em->faces.first; efa; count++, efa= efa->next) {
-		if(!shift) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			uvedit_face_deselect(scene, efa, tface);
-		}
-
-		efa->tmp.l= count;
-		efa->f1= 0;
-	}
-	
-	/* set flags for first face and verts */
-	nverts= (startefa->v4)? 4: 3;
-	iterv1= uv_vertex_map_get(vmap, startefa, starta);
-	iterv2= uv_vertex_map_get(vmap, startefa, (starta+1)%nverts);
-	uv_vertex_loop_flag(iterv1);
-	uv_vertex_loop_flag(iterv2);
-
-	starttotface= 0;
-	uv_edge_tag_faces(iterv1, iterv2, &starttotface);
-
-	/* sorry, first edge isnt even ok */
-	if(iterv1->flag==0 && iterv2->flag==0) looking= 0;
-	else looking= 1;
-
-	/* iterate */
-	while(looking) {
-		looking= 0;
-
-		/* find correct valence edges which are not tagged yet, but connect to tagged one */
-		for(efa= em->faces.first; efa; efa=efa->next) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-			if(!efa->f1 && uvedit_face_visible(scene, ima, efa, tface)) {
-				nverts= (efa->v4)? 4: 3;
-				for(a=0; a<nverts; a++) {
-					/* check face not hidden and not tagged */
-					iterv1= uv_vertex_map_get(vmap, efa, a);
-					iterv2= uv_vertex_map_get(vmap, efa, (a+1)%nverts);
-
-					/* check if vertex is tagged and has right valence */
-					if(iterv1->flag || iterv2->flag) {
-						if(uv_edge_tag_faces(iterv1, iterv2, &starttotface)) {
-							looking= 1;
-							efa->f1= 1;
-
-							uv_vertex_loop_flag(iterv1);
-							uv_vertex_loop_flag(iterv2);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/* do the actual select/deselect */
-	nverts= (startefa->v4)? 4: 3;
-	iterv1= uv_vertex_map_get(vmap, startefa, starta);
-	iterv2= uv_vertex_map_get(vmap, startefa, (starta+1)%nverts);
-	iterv1->flag= 1;
-	iterv2->flag= 1;
-
-	if(shift) {
-		tface= CustomData_em_get(&em->fdata, startefa->data, CD_MTFACE);
-		if(uvedit_uv_selected(scene, startefa, tface, starta) && uvedit_uv_selected(scene, startefa, tface, starta))
-			select= 0;
-		else
-			select= 1;
-	}
-	else
-		select= 1;
-	
-	if(select) *flush= 1;
-	else *flush= -1;
-
-	for(efa= em->faces.first; efa; efa=efa->next) {
-		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-		nverts= (efa->v4)? 4: 3;
-		for(a=0; a<nverts; a++) {
-			iterv1= uv_vertex_map_get(vmap, efa, a);
-
-			if(iterv1->flag) {
-				if(select) uvedit_uv_select(scene, efa, tface, a);
-				else uvedit_uv_deselect(scene, efa, tface, a);
-			}
-		}
-	}
-
-	/* cleanup */
-	EM_free_uv_vert_map(vmap);
-	EM_free_index_arrays();
-}
-
 /* ************************** registration **********************************/
 
 void ED_operatortypes_uvedit(void)
 {
 	WM_operatortype_append(UV_OT_de_select_all);
 	WM_operatortype_append(UV_OT_select_inverse);
+	WM_operatortype_append(UV_OT_select);
+	WM_operatortype_append(UV_OT_loop_select);
+	WM_operatortype_append(UV_OT_select_linked);
+	WM_operatortype_append(UV_OT_unlink_selection);
 
 	WM_operatortype_append(UV_OT_align);
 	WM_operatortype_append(UV_OT_mirror);
@@ -2378,6 +2591,14 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
 	
+	WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
+	// XXX not working?
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, KM_ALT)->ptr, "extend", 1);
+
+	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 

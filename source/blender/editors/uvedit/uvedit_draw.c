@@ -412,25 +412,26 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, EditMesh *em, MTFac
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
+	ToolSettings *settings;
 	EditMesh *em;
 	EditFace *efa, *efa_act;
 	MTFace *tf, *activetf = NULL;
 	DerivedMesh *finaldm, *cagedm;
 	char col1[4], col2[4];
 	float pointsize;
-	int drawfaces, lastsel, sel;
+	int drawfaces, interpedges, lastsel, sel;
 	Image *ima= sima->image;
  	
 	em= ((Mesh*)obedit->data)->edit_mesh;
 	activetf= EM_get_active_mtface(em, &efa_act, NULL, 0); /* will be set to NULL if hidden */
 
+	settings= scene->toolsettings;
+
 	drawfaces= draw_uvs_face_check(scene);
-	
-#if 0
-	calc_image_view(G.sima, 'f');	/* float */
-	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-	glLoadIdentity();
-#endif
+	if(settings->uv_flag & UV_SYNC_SELECTION)
+		interpedges= (scene->selectmode & SCE_SELECT_VERTEX);
+	else
+		interpedges= (settings->uv_selectmode == UV_SELECT_VERTEX);
 
 	/* 1. draw shadow mesh */
 	
@@ -442,7 +443,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			/* when sync selection is enabled, all faces are drawn (except for hidden)
 			 * so if cage is the same as the final, theres no point in drawing this */
-			if(!((scene->toolsettings->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
+			if(!((settings->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
 				draw_uvs_dm_shadow(finaldm);
 			
 			/* release derivedmesh again */
@@ -614,37 +615,75 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			glColor4ubv((unsigned char *)col2); 
 			
 			if(G.f & G_DRAWEDGES) {
-				glShadeModel(GL_SMOOTH);
 				UI_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
 				lastsel = sel = 0;
 
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					tf= (MTFace *)efa->tmp.p; /* visible faces cached */
+				if(interpedges) {
+					glShadeModel(GL_SMOOTH);
 
-					if(tf) {
-						glBegin(GL_LINE_LOOP);
-						sel = (uvedit_uv_selected(scene, efa, tf, 0) ? 1 : 0);
-						if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
-						glVertex2fv(tf->uv[0]);
-						
-						sel = uvedit_uv_selected(scene, efa, tf, 1) ? 1 : 0;
-						if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
-						glVertex2fv(tf->uv[1]);
-						
-						sel = uvedit_uv_selected(scene, efa, tf, 2) ? 1 : 0;
-						if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
-						glVertex2fv(tf->uv[2]);
-						
-						if(efa->v4) {
-							sel = uvedit_uv_selected(scene, efa, tf, 3) ? 1 : 0;
+					for(efa= em->faces.first; efa; efa= efa->next) {
+						tf= (MTFace *)efa->tmp.p; /* visible faces cached */
+
+						if(tf) {
+							glBegin(GL_LINE_LOOP);
+							sel = (uvedit_uv_selected(scene, efa, tf, 0)? 1 : 0);
 							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
-							glVertex2fv(tf->uv[3]);
+							glVertex2fv(tf->uv[0]);
+							
+							sel = uvedit_uv_selected(scene, efa, tf, 1)? 1 : 0;
+							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glVertex2fv(tf->uv[1]);
+							
+							sel = uvedit_uv_selected(scene, efa, tf, 2)? 1 : 0;
+							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glVertex2fv(tf->uv[2]);
+							
+							if(efa->v4) {
+								sel = uvedit_uv_selected(scene, efa, tf, 3)? 1 : 0;
+								if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+								glVertex2fv(tf->uv[3]);
+							}
+							
+							glEnd();
 						}
-						
-						glEnd();
+					}
+
+					glShadeModel(GL_FLAT);
+				}
+				else {
+					for(efa= em->faces.first; efa; efa= efa->next) {
+						tf= (MTFace *)efa->tmp.p; /* visible faces cached */
+
+						if(tf) {
+							glBegin(GL_LINES);
+							sel = (uvedit_edge_selected(scene, efa, tf, 0)? 1 : 0);
+							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glVertex2fv(tf->uv[0]);
+							glVertex2fv(tf->uv[1]);
+							
+							sel = uvedit_edge_selected(scene, efa, tf, 1)? 1 : 0;
+							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glVertex2fv(tf->uv[1]);
+							glVertex2fv(tf->uv[2]);
+							
+							sel = uvedit_edge_selected(scene, efa, tf, 2)? 1 : 0;
+							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glVertex2fv(tf->uv[2]);
+							
+							if(efa->v4) {
+								glVertex2fv(tf->uv[3]);
+
+								sel = uvedit_edge_selected(scene, efa, tf, 3)? 1 : 0;
+								if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+								glVertex2fv(tf->uv[3]);
+							}
+
+							glVertex2fv(tf->uv[0]);
+							
+							glEnd();
+						}
 					}
 				}
-				glShadeModel(GL_FLAT);
 			}
 			else {
 				/* no nice edges */

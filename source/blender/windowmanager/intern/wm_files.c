@@ -89,7 +89,7 @@
 /***/
 
 /* define for setting colors in theme below */
-#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+#define SETCOL(col, r, g, b, a)  {col[0]=r; col[1]=g; col[2]= b; col[3]= a;}
 
 /* patching UserDef struct and Themes */
 static void init_userdef_themes(void)
@@ -336,6 +336,18 @@ static void init_userdef_themes(void)
 		
 		/* adjust default interpolation for new IPO-curves */
 		U.ipo_new= BEZT_IPO_BEZ;
+	}
+	if (G.main->versionfile < 250) {
+		bTheme *btheme;
+
+		/* this was not properly initialized in 2.45 */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if(btheme->tima.face_dot[3]==0) {
+				SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+				SETCOL(btheme->tima.face_dot, 255, 133, 0, 255);
+				btheme->tima.facedot_size= 2;
+			}
+		}
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */

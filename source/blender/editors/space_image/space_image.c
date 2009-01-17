@@ -493,7 +493,7 @@ ImBuf *get_space_image_buffer(SpaceImage *sima)
 #endif
 			ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 
-		if(ibuf->rect || ibuf->rect_float)
+		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 	}
 

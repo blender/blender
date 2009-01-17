@@ -56,6 +56,10 @@ int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFac
 void uvedit_face_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
 void uvedit_face_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
 
+int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_edge_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_edge_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+
 int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
 void uvedit_uv_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
 void uvedit_uv_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);

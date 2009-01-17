@@ -223,12 +223,6 @@ static void do_selectmenu(bContext *C, void *arg, int event)
 	case 8: /* Border Select Pinned */
 		borderselect_sima(UV_SELECT_PINNED);
 		break;
-	case 2: /* Unlink Selection */
-		unlink_selection();
-		break;
-	case 3: /* Linked UVs */
-		select_linked_tface_uv(2);
-		break;
 	case 7: /* Pinned UVs */
 		select_pinned_tface_uv();
 		break;
@@ -1207,9 +1201,11 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_REDR, ICON_VERTEXSEL,
-				xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+				xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_REDR, ICON_EDGESEL,
+				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
 			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_REDR, ICON_FACESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
+				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
 
 			uiBlockEndAlign(block);
 		}
@@ -1218,6 +1214,8 @@ void image_header_buttons(const bContext *C, ARegion *ar)
 
 			uiDefIconButS(block, ROW, B_REDR, ICON_VERTEXSEL,
 				xco,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_VERTEX, 0, 0, "Vertex select mode");
+			uiDefIconButS(block, ROW, B_REDR, ICON_EDGESEL,
+				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_EDGE, 0, 0, "Edge select mode");
 			uiDefIconButS(block, ROW, B_REDR, ICON_FACESEL,
 				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_FACE, 0, 0, "Face select mode");
 			uiDefIconButS(block, ROW, B_REDR, ICON_MESH,

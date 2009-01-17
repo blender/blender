@@ -8492,8 +8492,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_versions_windowmanager_2_50(screen);
 		
 		/* struct audio data moved to renderdata */
-		for(scene= main->scene.first; scene; scene= scene->id.next)
+		for(scene= main->scene.first; scene; scene= scene->id.next) {
 			scene->r.audio = scene->audio;
+
+			if(!scene->toolsettings->uv_selectmode)
+				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
+		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
@@ -8501,7 +8505,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
-	}
+		}
+
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)

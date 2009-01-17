@@ -511,8 +511,10 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tima.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tima.vertex_select, 0xff, 0xff, 0x70, 255);
 	btheme->tima.vertex_size= 2;
+	btheme->tima.facedot_size= 2;
 	SETCOL(btheme->tima.face,   0, 50, 150, 40);
 	SETCOL(btheme->tima.face_select, 200, 100, 200, 80);
+	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
