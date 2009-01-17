@@ -127,8 +127,6 @@ void VIEW3D_OT_wpaint(struct wmOperatorType *ot);
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 
-void view3d_operator_needs_opengl(const struct bContext *C);
-
 int boundbox_clip(View3D *v3d, float obmat[][4], struct BoundBox *bb);
 
 void view3d_project_short_clip(struct ARegion *ar, View3D *v3d, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);

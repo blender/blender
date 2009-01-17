@@ -28,8 +28,6 @@
  *
  * Implements the Sculpt Mode tools
  *
- * BDR_sculptmode.h
- *
  */
 
 #include "MEM_guardedalloc.h"
@@ -79,8 +77,8 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
+#include "ED_view3d.h"
 #include "sculpt_intern.h"
-#include "../space_view3d/view3d_intern.h" /* XXX: oh no, the next generation of bad level call! should move ViewDepths perhaps (also used for view matrices) */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1714,10 +1712,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 {
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
-	// XXX: temporary, much of sculptsession data should be in rna properties
-	sd->session = MEM_callocN(sizeof(SculptSession), "test sculpt session");
-	sd->session->cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
-	
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_stroke_init_properties(C, op, event, sd->session);
 
@@ -1781,9 +1775,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 	/* Finished */
 	if(event->type == LEFTMOUSE && event->val == 0) {
-		View3D *v3d = ((View3D*)CTX_wm_area(C)->spacedata.first);
-		if(v3d->depths)
-			v3d->depths->damaged= 1;
+		request_depth_update(&sd->session->cache->vc);
 
 		sculpt_cache_free(sd->session->cache);
 
@@ -1858,19 +1850,48 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 /**** Toggle operator for turning sculpt mode on or off ****/
 
+/* XXX: The code for drawing all the paint cursors is really the same, would be better to unify them */
+static void draw_paint_cursor(bContext *C, int x, int y)
+{
+	SculptData *sd= &CTX_data_scene(C)->sculptdata;
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	glColor4ub(255, 100, 100, 128);
+	glEnable( GL_LINE_SMOOTH );
+	glEnable(GL_BLEND);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, sd->brush->size, 40);
+	glDisable(GL_BLEND);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glTranslatef((float)-x, (float)-y, 0.0f);
+}
+
 static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 {
+	Scene *sce = CTX_data_scene(C);
+
 	if(G.f & G_SCULPTMODE) {
 		/* Leave sculptmode */
 		G.f &= ~G_SCULPTMODE;
+
+		WM_paint_cursor_end(CTX_wm_manager(C), sce->sculptdata.session->cursor);
+
+		sculptsession_free(sce);
 	}
 	else {
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
 
+		sce->sculptdata.session = MEM_callocN(sizeof(SculptSession), "sculpt session");
+
 		/* Needed for testing, if there's no brush then create one */
-		CTX_data_scene(C)->sculptdata.brush = add_brush("test brush");
+		sce->sculptdata.brush = add_brush("test brush");
+
+		/* Activate visible brush */
+		sce->sculptdata.session->cursor =
+			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_brush_stroke_poll, draw_paint_cursor);
 	}
 
 	return OPERATOR_FINISHED;

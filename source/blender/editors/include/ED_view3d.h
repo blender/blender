@@ -59,9 +59,11 @@ float *give_cursor(struct Scene *scene, struct View3D *v3d);
 void initgrabz(struct View3D *v3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
 
-/* Projection */
-
+/* Depth buffer */
 float read_cached_depth(struct ViewContext *vc, int x, int y);
+void request_depth_update(struct ViewContext *vc);
+
+/* Projection */
 
 void project_short(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
 void project_short_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
@@ -97,7 +99,9 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 /* select */
 #define MAXPICKBUF      10000
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+
 void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
+void view3d_operator_needs_opengl(const struct bContext *C);
 
 /* XXX should move to arithb.c */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);

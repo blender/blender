@@ -55,7 +55,9 @@ typedef struct SculptSession {
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_w, texcache_h, *texcache;
-	
+
+	void *cursor; /* wm handle */
+
 	struct RadialControl *radialcontrol;
 	
 	struct SculptStroke *stroke;
