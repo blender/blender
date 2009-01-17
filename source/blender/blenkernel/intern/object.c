@@ -1867,7 +1867,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 #endif // XXX old animation system
 
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(&ob->id, &ob->adt, ctime, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
 	if(ob->parent) {
 		Object *par= ob->parent;

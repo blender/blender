@@ -1953,9 +1953,9 @@ static int object_modifiers_use_time(Object *ob)
 	return 0;
 }
 
+#if 0 // XXX old animation system
 static int exists_channel(Object *ob, char *name)
 {
-#if 0 // XXX old animation system
 	bActionStrip *strip;
 	
 	if(ob->action)
@@ -1965,15 +1965,17 @@ static int exists_channel(Object *ob, char *name)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
 		if(get_action_channel(strip->act, name))
 			return 1;
-#endif // XXX old animation system
 
 	return 0;
 }
+#endif // XXX old animation system
 
 
 static short animdata_use_time(AnimData *adt)
 {
 	NlaTrack *nlt;
+	
+	if(adt==NULL) return 0;
 	
 	/* check action - only if assigned, and it has anim curves */
 	if (adt->action && adt->action->curves.first)
@@ -2038,7 +2040,7 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}
 #endif // XXX old animation system
-	if(animdata_use_time(&ob->adt)) ob->recalc |= OB_RECALC;
+	if(animdata_use_time(ob->adt)) ob->recalc |= OB_RECALC;
 	
 	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;

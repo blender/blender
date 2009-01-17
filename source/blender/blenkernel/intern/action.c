@@ -95,7 +95,7 @@ nAction *add_empty_action(const char name[])
 // does copy_fcurve...
 void make_local_action(nAction *act)
 {
-	Object *ob;
+	// Object *ob;
 	nAction *actn;
 	int local=0, lib=0;
 	
@@ -149,15 +149,15 @@ void make_local_action(nAction *act)
 
 void free_action (nAction *act)
 {
-	FCurve *fcu, *fcn;
+	FCurve *fcu;
 	
 	/* sanity check */
 	if (act == NULL)
 		return;
 	
 	/* Free F-Curves */
-	for (fcu= act->curves.first; fcu; fcu= fcn) {
-		fcn= fcu->next;
+	while ((fcu= act->curves.first)) {
+		BLI_remlink(&act->curves, fcu);
 		free_fcurve(fcu);
 	}
 	
@@ -174,7 +174,7 @@ nAction *copy_action (nAction *src)
 {
 	nAction *dst = NULL;
 	//bActionChannel *dchan, *schan;
-	bActionGroup *dgrp, *sgrp;
+	// bActionGroup *dgrp, *sgrp;
 	
 	if (!src) return NULL;
 	
@@ -573,7 +573,7 @@ float get_action_frame_inv(Object *ob, float cframe)
 /* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
 {
-	FCurve *fcu;
+	// FCurve *fcu;
 	float min=999999999.0f, max=-999999999.0f;
 	int	foundvert=0;
 

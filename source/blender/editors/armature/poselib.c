@@ -193,7 +193,8 @@ bAction *poselib_init_new (Object *ob)
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
 		ob->poselib->id.us--;
-	ob->poselib= add_empty_action("PoseLib");
+	// XXX old anim stuff
+	// ob->poselib= add_empty_action("PoseLib");
 	
 	return ob->poselib;
 }
@@ -272,11 +273,11 @@ void poselib_validate_act (bAction *act)
 }
 
 /* ************************************************************* */
+#if 0 // XXX old animation system
 
 /* This function adds an ipo-curve of the right type where it's needed */
 static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
 {
-#if 0 // XXX old animation system
 	IpoCurve *icu;
 	
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
@@ -297,9 +298,8 @@ static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
 	}
 	
 	return icu;
-#endif // XXX old animation system
-	return NULL;
 }
+#endif // XXX old animation system
 
 /* This tool adds the current pose to the poselib 
  *	Note: Standard insertkey cannot be used for this due to its limitations
@@ -311,8 +311,8 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 	bPoseChannel *pchan;
 	TimeMarker *marker;
 	bAction *act;
-	bActionChannel *achan;
-	IpoCurve *icu;
+	// bActionChannel *achan;
+	// IpoCurve *icu;
 	int frame;
 	char name[64];
 	
@@ -430,7 +430,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bAction *act= (ob) ? ob->poselib : NULL;
-	bActionChannel *achan;
+	// bActionChannel *achan;
 	char *menustr;
 	int val;
 	

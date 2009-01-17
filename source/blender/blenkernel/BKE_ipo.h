@@ -35,6 +35,12 @@
 extern "C" {
 #endif
 
+	
+/* -------- IPO-Curve (Bezier) Calculations ---------- */
+
+void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
+	
+	
 #if 0 // XXX old animation system
 
 typedef struct CfraElem {

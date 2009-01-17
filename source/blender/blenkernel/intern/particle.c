@@ -3300,7 +3300,7 @@ float psys_get_child_time(ParticleSystem *psys, ChildParticle *cpa, float cfra)
 float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, float *pa_time)
 {
 	ParticleSettings *part = psys->part;
-	float size, time;
+	float size; // time XXX
 	
 	if(part->childtype==PART_CHILD_FACES){
 		size=part->size;

@@ -4215,7 +4215,7 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 	IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 	Material *ma=give_current_material(ob,part->omat);
 	int p;
-	float ipotime=cfra, disp, birthtime, dietime, *vg_size= NULL;
+	float disp, birthtime, dietime, *vg_size= NULL; // XXX ipotime=cfra
 
 	if(part->from!=PART_FROM_PARTICLE)
 		vg_size= psys_cache_vgroup(psmd->dm,psys,PSYS_VG_SIZE);

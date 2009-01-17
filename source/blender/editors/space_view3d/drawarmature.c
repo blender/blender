@@ -2024,8 +2024,8 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	bAction *act; // XXX old animsys - watch it!
-	bActionChannel *achan;
+	// bAction *act; // XXX old animsys - watch it!
+	// bActionChannel *achan;
 	ActKeyColumn *ak;
 	ListBase keys;
 	float *fp, *fp_start;

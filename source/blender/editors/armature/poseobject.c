@@ -86,7 +86,6 @@ static void BIF_undo_push() {}
 static void countall() {}
 static void add_constraint() {}
 static void select_actionchannel_by_name() {}
-static int autokeyframe_cfra_can_key() {return 0;}
 static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
@@ -1423,7 +1422,8 @@ void pose_movetolayer(Scene *scene)
 	}
 }
 
-
+#if 0
+// XXX old sys
 /* for use with pose_relax only */
 static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float *frame_prev, float *frame_next)
 {
@@ -1479,6 +1479,7 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 		return 1;
 	}
 }
+#endif
 
 void pose_relax(Scene *scene)
 {
@@ -1487,19 +1488,19 @@ void pose_relax(Scene *scene)
 	bAction *act;
 	bArmature *arm;
 	
-	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
+//	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
 	
 	bPoseChannel *pchan;
-	bActionChannel *achan;
-	float framef = F_CFRA;
-	float frame_prev, frame_next;
-	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
+//	bActionChannel *achan;
+//	float framef = F_CFRA;
+//	float frame_prev, frame_next;
+//	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
 	
 	int do_scale = 0;
 	int do_loc = 0;
 	int do_quat = 0;
 	int flag = 0;
-	int do_x, do_y, do_z;
+//	int do_x, do_y, do_z;
 	
 	if (!ob) return;
 	

@@ -255,10 +255,10 @@ static float actcopy_firstframe= 999999999.0f;
 // XXX find some header to put this in!
 void free_actcopybuf ()
 {
+#if 0 // XXX old animation system
 	bActionChannel *achan, *anext;
 	bConstraintChannel *conchan, *cnext;
 	
-#if 0 // XXX old animation system
 	for (achan= actcopybuf.first; achan; achan= anext) {
 		anext= achan->next;
 		
