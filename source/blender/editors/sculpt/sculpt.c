@@ -1590,10 +1590,12 @@ static void sculpt_cache_free(StrokeCache *cache)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op)
+static void sculpt_update_cache_invariants(SculptData *sd, bContext *C, wmOperator *op)
 {
-	StrokeCache *cache = sd->session->cache;
+	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	int i;
+
+	sd->session->cache = cache;
 
 	RNA_float_get_array(op->ptr, "scale", cache->scale);
 	cache->flag = RNA_int_get(op->ptr, "flag");
@@ -1602,6 +1604,8 @@ static void sculpt_update_cache_invariants(SculptData *sd, wmOperator *op)
 	cache->depth = RNA_float_get(op->ptr, "depth");
 
 	/* Truly temporary data that isn't stored in properties */
+
+	view3d_set_viewcontext(C, &cache->vc);
 
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
 	sculpt_load_mats(cache->mats, &cache->vc);
@@ -1668,6 +1672,7 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 	Object *ob= CTX_data_active_object(C);
 	ModifierData *md;
+	ViewContext vc;
 	float scale[3], clip_tolerance[3] = {0,0,0};
 	int mouse[2], flag = 0;
 
@@ -1699,9 +1704,10 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
-	RNA_float_set(op->ptr, "depth", read_cached_depth(&sd->session->cache->vc, event->x, event->y));
+	view3d_set_viewcontext(C, &vc);
+	RNA_float_set(op->ptr, "depth", read_cached_depth(&vc, event->x, event->y));
 
-	sculpt_update_cache_invariants(sd, op);
+	sculpt_update_cache_invariants(sd, C, op);
 }
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1712,7 +1718,6 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	sd->session = MEM_callocN(sizeof(SculptSession), "test sculpt session");
 	sd->session->cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	
-	view3d_set_viewcontext(C, &sd->session->cache->vc);
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_stroke_init_properties(C, op, event, sd->session);
 
@@ -1795,8 +1800,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	SculptData *sd = &CTX_data_scene(C)->sculptdata;
 
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &sd->session->cache->vc);
-	sculpt_update_cache_invariants(sd, op);
+	sculpt_update_cache_invariants(sd, C, op);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_update_cache_variants(sd, &itemptr);

@@ -137,7 +137,7 @@ void view3d_keymap(wmWindowManager *wm)
 	/* drawtype */
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, 0, 0);
 	RNA_int_set(km->ptr, "draw_type", OB_SOLID);
-	RNA_int_set(km->ptr, "draw°type_alternate", OB_WIRE);
+	RNA_int_set(km->ptr, "draw_type_alternate", OB_WIRE);
 
 	km = WM_keymap_add_item(keymap, "VIEW3D_OT_drawtype", ZKEY, KM_PRESS, KM_ALT, 0);
 	RNA_int_set(km->ptr, "draw_type", OB_TEXTURE);
