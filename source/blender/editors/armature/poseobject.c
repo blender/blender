@@ -36,6 +36,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -57,11 +58,11 @@
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-#include "BKE_ipo.h"
 
 #include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "BIF_gl.h"
@@ -851,6 +852,7 @@ void paste_posebuf (Scene *scene, int flip)
 					EulToQuat(eul, pchan->quat);
 				}
 				
+#if 0 // XXX old animation system
 				if (autokeyframe_cfra_can_key(ob)) {
 					ID *id= &ob->id;
 					
@@ -881,6 +883,7 @@ void paste_posebuf (Scene *scene, int flip)
 					if (chan->bone)
 						chan->bone->flag |= BONE_UNKEYED;
 				}
+#endif // XXX old animation system
 			}
 		}
 	}
@@ -1513,6 +1516,7 @@ void pose_relax(Scene *scene)
 		if (pchan->bone->layer & arm->layer) {
 			if (pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
+#if 0 // XXX old animation system
 				achan= get_action_channel(act, pchan->name);
 				
 				if (achan && achan->ipo) {
@@ -1563,6 +1567,8 @@ void pose_relax(Scene *scene)
 					/* apply BONE_TRANSFORM tag so that autokeying will pick it up */
 					pchan->bone->flag |= BONE_TRANSFORM;
 				}
+				
+#endif // XXX old animation system
 			}
 		}
 	}

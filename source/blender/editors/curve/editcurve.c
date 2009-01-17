@@ -46,7 +46,6 @@
 #include "BLI_rand.h"
 
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -59,7 +58,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_global.h"
@@ -77,7 +76,7 @@
 /* still need to eradicate a few :( */
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
 
-/* for curve objects in editmode that can have hidden handles - may use for IPO's later */
+/* for curve objects in editmode that can have hidden handles  */
 #define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* XXX */
@@ -4456,6 +4455,7 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 
 void default_curve_ipo(Scene *scene, Curve *cu)
 {
+#if 0 // XXX old animation system
 	IpoCurve *icu;
 	BezTriple *bezt;
 	
@@ -4486,6 +4486,7 @@ void default_curve_ipo(Scene *scene, Curve *cu)
 	bezt->h1= bezt->h2= HD_AUTO;
 	
 	calchandles_ipocurve(icu);
+#endif // XXX old animation system
 }
 
 void add_primitiveCurve(Scene *scene, int stype)

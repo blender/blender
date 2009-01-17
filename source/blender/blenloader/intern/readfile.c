@@ -8452,10 +8452,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		IpoCurve *icu;
 		
 		/* fix IPO-curves to work with new interpolation options */
-		for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
-			for (icu= ipo->curve.first; icu; icu= icu->next) 
-				set_interpolation_ipocurve(icu, icu->ipo);
-		}
+		//for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
+		//	for (icu= ipo->curve.first; icu; icu= icu->next) 
+		//		set_interpolation_ipocurve(icu, icu->ipo); // function removed (XXX add it here)
+		//}
 		
 		/* adjust default settings for Animation Editors */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {

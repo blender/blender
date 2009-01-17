@@ -38,12 +38,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -61,7 +60,7 @@
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -662,7 +661,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1011,7 +1010,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {

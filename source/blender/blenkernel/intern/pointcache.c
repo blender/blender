@@ -404,7 +404,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		*startframe= cache->startframe;
 		*endframe= cache->endframe;
 
-		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) {
+		// XXX ipoflag is depreceated - old animation system stuff
+		if (/*(ob->ipoflag & OB_OFFS_PARENT) &&*/ (ob->partype & PARSLOW)==0) {
 			offset= give_timeoffset(ob);
 
 			*startframe += (int)(offset+0.5f);

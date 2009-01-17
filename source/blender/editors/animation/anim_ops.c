@@ -52,6 +52,7 @@
 #include "WM_types.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframing.h" // XXX remove?
 #include "ED_markers.h"
 #include "ED_screen.h"
 
@@ -359,6 +360,10 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_previewrange_define);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
+	
+		// XXX this is used all over... maybe for screen instead?
+	WM_operatortype_append(ANIM_OT_insert_keyframe);
+	WM_operatortype_append(ANIM_OT_delete_keyframe);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

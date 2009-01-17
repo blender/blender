@@ -32,6 +32,7 @@
 #define DNA_LAMP_TYPES_H
 
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 
 #ifndef MAX_MTEX
@@ -39,11 +40,12 @@
 #endif
 
 struct MTex;
-struct Ipo;
 struct CurveMapping;
+struct Ipo;
 
 typedef struct Lamp {
 	ID id;
+	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, flag;
 	int mode;
@@ -103,7 +105,7 @@ typedef struct Lamp {
 	short YF_glowtype, YF_pad2;
 	
 	struct MTex *mtex[18];			/* MAX_MTEX */
-	struct Ipo *ipo;
+	struct Ipo *ipo;				// XXX depreceated... old animation system
 	
 	/* preview */
 	struct PreviewImage *preview;

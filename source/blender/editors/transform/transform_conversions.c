@@ -37,13 +37,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -81,8 +81,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
@@ -2698,16 +2698,16 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
-static void posttrans_icu_clean (IpoCurve *icu)
+static void posttrans_fcurve_clean (FCurve *fcu)
 {
 	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
 	
 	/* allocate memory for the cache */
 	// TODO: investigate using GHash for this instead?
-	if (icu->totvert == 0) 
+	if (fcu->totvert == 0) 
 		return;
-	selcache= MEM_callocN(sizeof(float)*icu->totvert, "IcuSelFrameNums");
+	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
 	len= 0;
 	index= 0;
 	
@@ -2717,8 +2717,8 @@ static void posttrans_icu_clean (IpoCurve *icu)
 	 */
 	 
 	/*	Loop 1: find selected keyframes   */
-	for (i = 0; i < icu->totvert; i++) {
-		BezTriple *bezt= &icu->bezt[i];
+	for (i = 0; i < fcu->totvert; i++) {
+		BezTriple *bezt= &fcu->bezt[i];
 		
 		if (BEZSELECTED(bezt)) {
 			selcache[index]= bezt->vec[1][0];
@@ -2729,14 +2729,14 @@ static void posttrans_icu_clean (IpoCurve *icu)
 	
 	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
 	if (len) {
-		for (i = 0; i < icu->totvert; i++) {
-			BezTriple *bezt= &icu->bezt[i];
+		for (i = 0; i < fcu->totvert; i++) {
+			BezTriple *bezt= &fcu->bezt[i];
 			
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
 					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-						delete_icu_key(icu, i, 0);
+						//delete_icu_key(icu, i, 0);
 						break;
 					}
 					else if (bezt->vec[1][0] > selcache[index])
@@ -2745,31 +2745,13 @@ static void posttrans_icu_clean (IpoCurve *icu)
 			}
 		}
 		
-		testhandles_ipocurve(icu);
+		testhandles_fcurve(fcu);
 	}
 	
 	/* free cache */
 	MEM_freeN(selcache);
 }
 
-/* Called by special_aftertrans_update to make sure selected keyframes replace
- * any other keyframes which may reside on that frame (that is not selected).
- * remake_action_ipos should have already been called 
- */
-static void posttrans_ipo_clean (Ipo *ipo)
-{
-	IpoCurve *icu;
-	
-	if (ipo == NULL)
-		return;
-	
-	/* loop through relevant data, removing keyframes from the ipocurves
-	 *  	- all keyframes are converted in/out of global time 
-	 */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		posttrans_icu_clean(icu);
-	}
-}
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
@@ -2782,7 +2764,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
@@ -2792,12 +2774,12 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			posttrans_icu_clean(ale->key_data);
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
+			//ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
+			posttrans_fcurve_clean(ale->key_data);
+			//ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		else 
-			posttrans_icu_clean(ale->key_data);
+			posttrans_fcurve_clean(ale->key_data);
 	}
 	
 	/* free temp data */
@@ -2820,16 +2802,16 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
-static int count_icu_keys(IpoCurve *icu, char side, float cfra)
+static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 {
 	BezTriple *bezt;
 	int i, count = 0;
 	
-	if (icu == NULL)
+	if (fcu == NULL)
 		return count;
 	
 	/* only include points that occur on the right side of cfra */
-	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		if (bezt->f2 & SELECT) {
 			/* fully select the other two keys */
 			bezt->f1 |= SELECT;
@@ -2885,15 +2867,15 @@ static void TimeToTransData(TransData *td, float *time, Object *ob)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
-static TransData *IcuToTransData(TransData *td, IpoCurve *icu, Object *ob, char side, float cfra)
+static TransData *FCurveToTransData(TransData *td, FCurve *fcu, Object *ob, char side, float cfra)
 {
 	BezTriple *bezt;
 	int i;
 	
-	if (icu == NULL)
+	if (fcu == NULL)
 		return td;
 		
-	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* only add selected keyframes (for now, proportional edit is not enabled) */
 		if (BEZSELECTED(bezt)) {
 			/* only add if on the right 'side' of the current frame */
@@ -2995,7 +2977,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
@@ -3026,7 +3008,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	count += count_gplayer_frames(ale->data, side, cfra);
 		//else
-			count += count_icu_keys(ale->key_data, side, cfra);
+			count += count_fcurve_keys(ale->key_data, side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3067,7 +3049,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//}
 		//else {
 			Object *nob= ANIM_nla_mapping_get(&ac, ale);
-			IpoCurve *icu= (IpoCurve *)ale->key_data;
+			FCurve *fcu= (FCurve *)ale->key_data;
 			
 			/* convert current-frame to action-time (slightly less accurate, espcially under
 			 * higher scaling ratios, but is faster than converting all points) 
@@ -3077,7 +3059,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			else
 				cfra = (float)CFRA;
 			
-			td= IcuToTransData(td, icu, nob, side, cfra);
+			td= FCurveToTransData(td, fcu, nob, side, cfra);
 		//}
 	}
 	
@@ -3701,20 +3683,6 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 #endif
 }
 
-/* very bad call!!! - copied from editnla.c!  */
-static void recalc_all_ipos(void)
-{
-	Ipo *ipo;
-	IpoCurve *icu;
-	
-	/* Go to each ipo */
-	for (ipo=G.main->ipo.first; ipo; ipo=ipo->id.next){
-		for (icu = ipo->curve.first; icu; icu=icu->next){
-			sort_time_ipocurve(icu);
-			testhandles_ipocurve(icu);
-		}
-	}
-}
 
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
@@ -3761,7 +3729,7 @@ void special_aftertrans_update(TransInfo *t)
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
@@ -3769,18 +3737,18 @@ void special_aftertrans_update(TransInfo *t)
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				Object *nob= ANIM_nla_mapping_get(&ac, ale);
-				IpoCurve *icu= (IpoCurve *)ale->key_data;
+				FCurve *fcu= (FCurve *)ale->key_data;
 				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (nob) {
-						ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
-						posttrans_icu_clean(icu);
-						ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
+						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
+						posttrans_fcurve_clean(fcu);
+						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
 					}
 					else
-						posttrans_icu_clean(icu);
+						posttrans_fcurve_clean(fcu);
 				}
 			}
 			
@@ -3810,6 +3778,7 @@ void special_aftertrans_update(TransInfo *t)
 			/* fix up the Ipocurves and redraw stuff */
 			Key *key= (Key *)ac.data;
 			
+#if 0 // XXX old animation system
 			if (key->ipo) {
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
@@ -3817,6 +3786,7 @@ void special_aftertrans_update(TransInfo *t)
 					posttrans_ipo_clean(key->ipo);
 				}
 			}
+#endif // XXX old animation system
 			
 			DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 		}
@@ -4206,12 +4176,14 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransIpoData(C, t); 
+		createTransIpoData(C, t);
+#if 0		
 		if (t->data && (t->flag & T_PROP_EDIT)) {
 			sort_trans_data(t);	// makes selected become first in array
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+#endif
 	}
 	else if(t->spacetype == SPACE_NODE) {
 		t->flag |= T_2D_EDIT|T_POINTS;

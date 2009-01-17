@@ -41,7 +41,6 @@
 #include "BLI_arithb.h"
 
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_plugin_types.h"
 #include "BKE_sequence.h"
 #include "BKE_texture.h"
@@ -2776,7 +2775,7 @@ static void store_icu_yrange_speed(struct Sequence * seq,
 void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 {
 	float facf0 = seq->facf0;
-	float ctime, div;
+	//float ctime, div;
 	int cfra;
 	float fallback_fac;
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
@@ -2801,8 +2800,8 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	
 	/* if there is no IPO, try to make retiming easy by stretching the
 	   strip */
-
-	if (!seq->ipo && seq->seq1 && seq->seq1->enddisp != seq->seq1->start
+	// XXX old animation system - seq
+	if (/*!seq->ipo &&*/ seq->seq1 && seq->seq1->enddisp != seq->seq1->start
 	    && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
@@ -2825,6 +2824,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
+#if 0 // XXX old animation system
 			if(seq->ipo) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
 					ctime = frame_to_float(scene, seq->startdisp + cfra);
@@ -2837,7 +2837,9 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 		
 				calc_ipo(seq->ipo, ctime/div);
 				execute_ipo((ID *)seq, seq->ipo);
-			} else {
+			} else 
+#endif // XXX old animation system
+			{
 				seq->facf0 = fallback_fac;
 			}
 			seq->facf0 *= v->globalSpeed;
@@ -2854,6 +2856,7 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 	} else {
 		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
+#if 0 // XXX old animation system
 			if(seq->ipo) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
 					ctime = frame_to_float(scene, seq->startdisp + cfra);
@@ -2867,11 +2870,12 @@ void sequence_effect_speed_rebuild_map(Scene *scene, Sequence * seq, int force)
 				calc_ipo(seq->ipo, ctime/div);
 				execute_ipo((ID *)seq, seq->ipo);
 			}
+#endif // XXX old animation system
 			
 			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
 				seq->facf0 *= v->length;
 			}
-			if (!seq->ipo) {
+			if (/*!seq->ipo*/ 1) { // XXX old animation system - seq
 				seq->facf0 = (float) cfra * fallback_fac;
 			}
 			seq->facf0 *= v->globalSpeed;

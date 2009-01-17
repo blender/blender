@@ -63,9 +63,6 @@
 //#include "BIF_meshtools.h"
 #include "BIF_retopo.h"
 
-//#include "BSE_editipo.h"
-//#include "BSE_editipo_types.h"
-
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -76,7 +73,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
@@ -585,6 +581,7 @@ void recalcData(TransInfo *t)
 			if(base->flag & BA_HAS_RECALC_DATA)
 				ob->recalc |= OB_RECALC_DATA;
 
+#if 0 // XXX old animation system
 			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
 			   unless we edit ipokeys */
 			if(base->flag & BA_DO_IPO) {
@@ -600,6 +597,7 @@ void recalcData(TransInfo *t)
 					}
 				}				
 			}
+#endif // XXX old animation system
 			
 			/* proxy exception */
 			if(ob->proxy)

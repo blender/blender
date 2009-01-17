@@ -46,7 +46,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
 #include "DNA_effect_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -82,7 +81,6 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -3040,7 +3038,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 				pa_time=(cfra-pa->time)/pa->lifetime;
 				pa_size=pa->size;
 
-				if((part->flag&PART_ABS_TIME)==0){				
+				if((part->flag&PART_ABS_TIME)==0){	
+#if 0 // XXX old animation system			
 					if(ma && ma->ipo){
 						IpoCurve *icu;
 
@@ -3067,6 +3066,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 								pa_size = icu->curval;
 						}
 					}
+#endif // XXX old animation system
 				}
 
 				r_tilt=1.0f+pa->r_ave[0];
@@ -3083,6 +3083,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 
 				if((part->flag&PART_ABS_TIME)==0) {
 					if(ma && ma->ipo){
+#if 0 // XXX old animation system
 						IpoCurve *icu;
 
 						/* correction for lifetime */
@@ -3096,6 +3097,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 							else if(icu->adrcode == MA_COL_B)
 								ma_b = icu->curval;
 						}
+#endif // XXX old animation system
 					}
 				}
 
@@ -4009,6 +4011,7 @@ static void draw_empty_cone (float size)
 /* draw points on curve speed handles */
 static void curve_draw_speed(Scene *scene, Object *ob)
 {
+#if 0 // XXX old animation system stuff
 	Curve *cu= ob->data;
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -4034,6 +4037,7 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 
 	glPointSize(1.0);
 	bglEnd();
+#endif // XXX old animation system stuff
 }
 
 
@@ -4267,9 +4271,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		Mat4One(tmat);
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 		
-		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+		//else 
 			force_val = pd->f_strength;
 		force_val*= 0.1;
 		drawcircball(GL_LINE_LOOP, vec, size, tmat);
@@ -4285,9 +4289,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else if (pd->forcefield == PFIELD_FORCE) {
 		float ffall_val;
 
-		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
+		//else 
 			ffall_val = pd->f_power;
 
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
@@ -4301,14 +4305,14 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		float ffall_val, force_val;
 
 		Mat4One(tmat);
-		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
+		//else 
 			ffall_val = pd->f_power;
 
-		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+		//else 
 			force_val = pd->f_strength;
 
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.7);
@@ -4326,9 +4330,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		if((cu->flag & CU_PATH) && cu->path && cu->path->data) {
 			float mindist, guidevec1[4], guidevec2[3];
 
-			if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-				mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-			else 
+			//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+			//	mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+			//else 
 				mindist = pd->f_strength;
 
 			/*path end*/
@@ -4697,10 +4701,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	static int warning_recursive= 0;
 	Object *ob;
 	Curve *cu;
-	float cfraont;
+	//float cfraont;
 	float vec1[3], vec2[3];
 	unsigned int col=0;
-	int sel, drawtype, colindex= 0, ipoflag;
+	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
 
@@ -4728,6 +4732,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw keys? */
+#if 0 // XXX old animation system
 	if(base==(scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(flag==0 && warning_recursive==0 && ob!=scene->obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
@@ -4800,6 +4805,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 	}
+#endif // XXX old animation system
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */

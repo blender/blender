@@ -41,7 +41,6 @@
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -89,7 +88,6 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_ipo.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -432,8 +430,10 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 	Object *ob;
 	Material *ma, *mao;
 	ID *id;
+#if 0 // XXX old animation system
 	Ipo *ipo;
 	bActionStrip *strip;
+#endif // XXX old animation system
 	int a;
 	
 	/* check object pointers */
@@ -453,11 +453,13 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 			ID_NEW(ob->proxy);
 			ID_NEW(ob->proxy_group);
 			
+#if 0 // XXX old animation system
 			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
 				bActionModifier *amod;
 				for(amod= strip->modifiers.first; amod; amod= amod->next)
 					ID_NEW(amod->ob);
 			}
+#endif // XXX old animation system
 		}
 	}
 	
@@ -481,17 +483,20 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 						}
 					}
 				}
+#if 0 // XXX old animation system
 				id= (ID *)ma->ipo;
 				if(id) {
 					ID_NEW_US(ma->ipo)
 					else ma->ipo= copy_ipo(ma->ipo);
 					id->us--;
 				}
+#endif // XXX old animation system
 			}
 			mao= mao->id.next;
 		}
 	}
 	
+#if 0 // XXX old animation system
 	/* lamps */
 	if( dupflag & USER_DUP_IPO) {
 		Lamp *la= G.main->lamp.first;
@@ -523,6 +528,7 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 		}
 		ipo= ipo->id.next;
 	}
+#endif // XXX old animation system
 	
 	set_sca_new_poins();
 	
@@ -1191,7 +1197,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 /* ****** selection by links *******/
 
 static EnumPropertyItem prop_select_linked_types[] = {
-	{1, "IPO", "Object IPO", ""},
+	{1, "IPO", "Object IPO", ""}, // XXX depreceated animation system stuff...
 	{2, "OBDATA", "Ob Data", ""},
 	{3, "MATERIAL", "Material", ""},
 	{4, "TEXTURE", "Texture", ""},
@@ -1205,7 +1211,6 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	void *obdata = NULL;
-	Ipo *ipo = NULL;
 	Material *mat = NULL, *mat1;
 	Tex *tex=0;
 	int a, b;
@@ -1224,9 +1229,11 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	ob= OBACT;
 	if(ob==0) return OPERATOR_CANCELLED;
 	
-	if(nr==1) {
-		ipo= ob->ipo;
-		if(ipo==0) return OPERATOR_CANCELLED;
+	if(nr==1) {	
+			// XXX old animation system
+		//ipo= ob->ipo;
+		//if(ipo==0) return OPERATOR_CANCELLED;
+		return OPERATOR_CANCELLED;
 	}
 	else if(nr==2) {
 		if(ob->data==0) return OPERATOR_CANCELLED;
@@ -1251,8 +1258,9 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (!(base->flag & SELECT)) {
 			if(nr==1) {
-				if(base->object->ipo==ipo) base->flag |= SELECT;
-				changed = 1;
+					// XXX old animation system
+				//if(base->object->ipo==ipo) base->flag |= SELECT;
+				//changed = 1;
 			}
 			else if(nr==2) {
 				if(base->object->data==obdata) base->flag |= SELECT;
@@ -2075,12 +2083,6 @@ void make_proxy(Scene *scene)
 }
 
 /* ******************** make parent operator *********************** */
-
-#if 0
-oldcode()
-{
-}
-#endif
 
 #define PAR_OBJECT		0
 #define PAR_ARMATURE	1
@@ -4422,10 +4424,6 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 				else if(event==22) {
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
-					if (U.dupflag& USER_DUP_IPO)
-						copy_constraint_channels(&base->object->constraintChannels, &ob->constraintChannels);
-					else
-						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels);
 					
 					do_scene_sort= 1;
 				}
@@ -4440,7 +4438,9 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 					}
 				}
 				else if(event==26) {
+#if 0 // XXX old animation system
 					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+#endif // XXX old animation system
 				}
 				else if(event==27) {	/* autosmooth */
 					if (base->object->type==OB_MESH) {
@@ -4657,12 +4657,14 @@ void make_links(Scene *scene, View3D *v3d, short event)
 						}
 					}
 				else if(event==4) {  /* ob ipo */
+#if 0 // XXX old animation system
 					if(obt->ipo) obt->ipo->id.us--;
 					obt->ipo= ob->ipo;
 					if(obt->ipo) {
 						id_us_plus((ID *)obt->ipo);
 						do_ob_ipo(scene, obt);
 					}
+#endif // XXX old animation system
 				}
 				else if(event==6) {
 					if(ob->dup_group) ob->dup_group->id.us--;
@@ -5044,7 +5046,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 	Object *ob;
 	Lamp *la;
 	Curve *cu;
-	Camera *cam;
+	//Camera *cam;
 	Base *base;
 	Mesh *me;
 	ID *id;
@@ -5074,8 +5076,8 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 					break;
 				case OB_MESH:
 					me= ob->data= copy_mesh(ob->data);
-					if(me && me->key)
-						ipo_idnew(me->key->ipo);	/* drivers */
+					//if(me && me->key)
+					//	ipo_idnew(me->key->ipo);	/* drivers */
 					break;
 				case OB_MBALL:
 					ob->data= copy_mball(ob->data);
@@ -5106,6 +5108,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 				
 			}
 			
+#if 0 // XXX old animation system
 			id= (ID *)ob->action;
 			if (id && id->us>1 && id->lib==NULL){
 				if(id->newid){
@@ -5150,7 +5153,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 				}
 				break;
 			}
-			
+#endif // XXX old animation system
 		}
 	}
 	
@@ -5163,6 +5166,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 
 void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 {
+#if 0 // XXX old animation system
 	Object *ob;
 	Base *base;
 	ID *id;
@@ -5180,6 +5184,7 @@ void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 			}
 		}
 	}
+#endif // XXX old animation system
 }
 
 void single_mat_users(Scene *scene, View3D *v3d, int flag)
@@ -5205,12 +5210,14 @@ void single_mat_users(Scene *scene, View3D *v3d, int flag)
 					
 						man->id.us= 0;
 						assign_material(ob, man, a);
-						
+	
+#if 0 // XXX old animation system						
 						if(ma->ipo) {
 							man->ipo= copy_ipo(ma->ipo);
 							ma->ipo->id.us--;
 							ipo_idnew(ma->ipo);	/* drivers */
 						}
+#endif // XXX old animation system
 						
 						for(b=0; b<MAX_MTEX; b++) {
 							if(ma->mtex[b] && ma->mtex[b]->tex) {
@@ -5394,7 +5401,7 @@ void single_user(Scene *scene, View3D *v3d)
 /* helper for below, ma was checked to be not NULL */
 static void make_local_makelocalmaterial(Material *ma)
 {
-	ID *id;
+	//ID *id;
 	int b;
 	
 	make_local_material(ma);
@@ -5405,8 +5412,10 @@ static void make_local_makelocalmaterial(Material *ma)
 		}
 	}
 	
+#if 0 // XXX old animation system
 	id= (ID *)ma->ipo;
-	if(id && id->lib) make_local_ipo(ma->ipo);	
+	if(id && id->lib) make_local_ipo(ma->ipo);
+#endif // XXX old animation system	
 	
 	/* nodetree? XXX */
 }
@@ -5415,7 +5424,7 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 {
 	Base *base;
 	Object *ob;
-	bActionStrip *strip;
+	//bActionStrip *strip;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
@@ -5467,9 +5476,10 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 					make_local_lamp((Lamp *)id);
 					
 					la= ob->data;
+#if 0 // XXX old animation system
 					id= (ID *)la->ipo;
 					if(id && id->lib) make_local_ipo(la->ipo);
-					
+#endif // XXX old animation system
 					break;
 				case OB_CAMERA:
 					make_local_camera((Camera *)id);
@@ -5486,8 +5496,10 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				case OB_FONT:
 					cu= (Curve *)id;
 					make_local_curve(cu);
+#if 0 // XXX old animation system
 					id= (ID *)cu->ipo;
 					if(id && id->lib) make_local_ipo(cu->ipo);
+#endif // XXX old animation system
 					make_local_key( cu->key );
 					break;
 				case OB_LATTICE:
@@ -5502,6 +5514,8 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				for(psys=ob->particlesystem.first; psys; psys=psys->next)
 					make_local_particlesettings(psys->part);
 			}
+			
+#if 0 // XXX old animation system
 			id= (ID *)ob->ipo;
 			if(id && id->lib) make_local_ipo(ob->ipo);
 
@@ -5512,6 +5526,7 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				if(strip->act && strip->act->id.lib)
 					make_local_action(strip->act);
 			}
+#endif // XXX old animation system
 		}
 	}
 
@@ -5622,7 +5637,7 @@ void adduplicate(Scene *scene, View3D *v3d, int mode, int dupflag)
 				if(BASACT==base) BASACT= basen;
 
 				/* duplicates using userflags */
-				
+#if 0 // XXX old animation system				
 				if(dupflag & USER_DUP_IPO) {
 					bConstraintChannel *chan;
 					id= (ID *)obn->ipo;
@@ -5652,6 +5667,7 @@ void adduplicate(Scene *scene, View3D *v3d, int mode, int dupflag)
 						id->us--;
 					}
 				}
+#endif // XXX old animation system
 				if(dupflag & USER_DUP_MAT) {
 					for(a=0; a<obn->totcol; a++) {
 						id= (ID *)obn->mat[a];
@@ -5862,6 +5878,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 
 void set_ob_ipoflags(Scene *scene, View3D *v3d)
 {
+#if 0 // XXX old animation system
 	Base *base;
 	int set= 1;
 	
@@ -5897,10 +5914,13 @@ void set_ob_ipoflags(Scene *scene, View3D *v3d)
 	allqueue (REDRAWACTION, 0);
 //	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+#endif // XXX old animation system
 }
+
 
 void select_select_keys(Scene *scene, View3D *v3d)
 {
+#if 0 // XXX old animation system
 	Base *base;
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -5943,7 +5963,7 @@ void select_select_keys(Scene *scene, View3D *v3d)
 	allqueue(REDRAWIPO, 0);
 
 	BIF_undo_push("Select keys");
-
+#endif  // XXX old animation system
 }
 
 

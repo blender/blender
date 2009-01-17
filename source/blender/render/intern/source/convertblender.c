@@ -1520,10 +1520,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if(part->bb_ob)
 		bb_ob=part->bb_ob;
 	
+#if 0 // XXX old animation system
 	if(ma->ipo){
 		calc_ipo(ma->ipo, cfra);
 		execute_ipo((ID *)ma, ma->ipo);
 	}
+#endif // XXX old animation system
 
 	RE_set_customdata_names(obr, &psmd->dm->faceData);
 	totuv=CustomData_number_of_layers(&psmd->dm->faceData,CD_MTFACE);
@@ -1563,10 +1565,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		}
 	}
 
+#if 0 // XXX old animation system
 	if(part->flag&PART_ABS_TIME && part->ipo){
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	if(part->flag&PART_GLOB_TIME)
 		cfra=bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
@@ -1684,6 +1688,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_time=(cfra-pa->time)/pa->lifetime;
 			if((part->flag&PART_ABS_TIME)==0){
+#if 0 // XXX old animation system
 				if(ma->ipo){
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f*pa_time);
@@ -1694,6 +1699,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
+#endif // XXX old animation system
 			}
 
 			hasize = ma->hasize;
@@ -1758,6 +1764,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_time=psys_get_child_time(psys, cpa, cfra);
 
 			if((part->flag&PART_ABS_TIME)==0){
+#if 0 // XXX old animation system
 				if(ma->ipo){
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f*pa_time);
@@ -1768,6 +1775,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
+#endif // XXX old animation system
 			}
 
 			pa_size=psys_get_child_size(psys, cpa, cfra, &pa_time);
@@ -2021,8 +2029,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
+#if 0 // XXX old animation system
 	if(ma) do_mat_ipo(re->scene, ma);
-
+#endif // XXX old animation system
+	
 	if(orco1)
 		MEM_freeN(orco);
 

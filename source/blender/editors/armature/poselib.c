@@ -82,8 +82,8 @@ static int extern_qread_ext() {return 0;}
 static void persptoetsen() {}
 static void headerprint() {}
 
-static void remake_action_ipos() {}
-static void verify_pchan2achan_grouping() {}
+static void remake_action_ipos() {} // xxx depreceated
+//static void verify_pchan2achan_grouping() {} // xxx depreceated
 static void action_set_activemarker() {}
 
 /* ******* XXX ********** */
@@ -276,6 +276,7 @@ void poselib_validate_act (bAction *act)
 /* This function adds an ipo-curve of the right type where it's needed */
 static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
 {
+#if 0 // XXX old animation system
 	IpoCurve *icu;
 	
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
@@ -296,6 +297,8 @@ static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
 	}
 	
 	return icu;
+#endif // XXX old animation system
+	return NULL;
 }
 
 /* This tool adds the current pose to the poselib 
@@ -385,6 +388,7 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 		/* check if available */
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
 			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
+#if 0 // XXX old animation system
 				/* make action-channel if needed (action groups are also created) */
 				achan= verify_action_channel(act, pchan->name);
 				verify_pchan2achan_grouping(act, pose, pchan->name);
@@ -409,6 +413,7 @@ void poselib_add_current_pose (Scene *scene, Object *ob, int val)
 				INSERT_KEY_ICU(AC_QUAT_X, pchan->quat[1])
 				INSERT_KEY_ICU(AC_QUAT_Y, pchan->quat[2])
 				INSERT_KEY_ICU(AC_QUAT_Z, pchan->quat[3])
+#endif // XXX old animation system
 			}
 		}
 	}
@@ -456,6 +461,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 	}
 	
 	/* remove relevant keyframes */
+#if 0 // XXX old animation system
 	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		Ipo *ipo= achan->ipo;
 		IpoCurve *icu;
@@ -472,6 +478,7 @@ void poselib_remove_pose (Object *ob, TimeMarker *marker)
 			}	
 		}
 	}
+#endif // XXX old animation system
 	
 	/* remove poselib from list */
 	BLI_freelinkN(&act->markers, marker);
@@ -687,10 +694,12 @@ static void poselib_apply_pose (tPoseLib_PreviewData *pld)
 						ok= 1;
 					
 					if (ok) {
+#if 0 // XXX old animation system
 						/* Evaluates and sets the internal ipo values	*/
 						calc_ipo(achan->ipo, (float)frame);
 						/* This call also sets the pchan flags */
 						execute_action_ipo(achan, pchan);
+#endif // XXX old animation system
 					}
 				}
 			}
@@ -719,6 +728,7 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 			pchan= get_pose_channel(pose, achan->name);
 			
 			if (pchan) {
+#if 0 // XXX old animation system	
 				// TODO: use a standard autokeying function in future (to allow autokeying-editkeys to work)
 				if (IS_AUTOKEY_MODE(NORMAL)) {
 					ID *id= &pld->ob->id;
@@ -750,6 +760,7 @@ static void poselib_keytag_pose (Scene *scene, tPoseLib_PreviewData *pld)
 					if (pchan->bone)
 						pchan->bone->flag |= BONE_UNKEYED;
 				}
+#endif // XXX old animation system	
 			}
 		}
 	}

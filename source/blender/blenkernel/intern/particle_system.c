@@ -42,11 +42,11 @@
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_ipo_types.h" // XXX old animation system stuff... to be removed!
 
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
@@ -68,7 +68,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
-#include "BKE_ipo.h"
 #include "BKE_softbody.h"
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
@@ -1528,7 +1527,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 	ParticleSettings *part;
 	ParticleTexture ptex;
 	Material *ma=0;
-	IpoCurve *icu=0;
+	//IpoCurve *icu=0; // XXX old animation system
 	int totpart;
 	float rand,length;
 
@@ -1569,11 +1568,13 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 		pa->lifetime=100.0f;
 	}
 	else{
+#if 0 // XXX old animation system
 		icu=find_ipocurve(psys->part->ipo,PART_EMIT_LIFE);
 		if(icu){
 			calc_icu(icu,100*ptex.time);
 			pa->lifetime*=icu->curval;
 		}
+#endif // XXX old animation system
 
 	/* need to get every rand even if we don't use them so that randoms don't affect eachother */
 		rand= BLI_frand();
@@ -1626,7 +1627,7 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 }
 static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd)
 {
-	IpoCurve *icu=0;
+	//IpoCurve *icu=0; // XXX old animation system
 	ParticleData *pa;
 	int p, totpart=psys->totpart;
 
@@ -1634,6 +1635,7 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 		initialize_particle(pa,p,ob,psys,psmd);
 	
 	if(psys->part->type != PART_FLUID) {
+#if 0 // XXX old animation system
 		icu=find_ipocurve(psys->part->ipo,PART_EMIT_FREQ);
 		if(icu){
 			float time=psys->part->sta, end=psys->part->end;
@@ -1641,6 +1643,7 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 
 			p=0;
 			pa=psys->particles;
+
 
 			calc_icu(icu,time);
 			v1=icu->curval;
@@ -1682,6 +1685,7 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 				pa->flag |= PARS_UNEXIST;
 			}
 		}
+#endif // XXX old animation system
 	}
 }
 /* sets particle to the emitter surface with initial velocity & rotation */
@@ -1691,7 +1695,7 @@ static void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys,
 	ParticleSettings *part;
 	ParticleTexture ptex;
 	ParticleKey state;
-	IpoCurve *icu=0;
+	//IpoCurve *icu=0; // XXX old animation system
 	float fac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],q2[4];
 	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
 	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
@@ -1834,11 +1838,13 @@ static void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys,
 	if(part->partfac!=0.0)
 		VECADDFAC(vel,vel,p_vel,part->partfac);
 
+#if 0 // XXX old animation system
 	icu=find_ipocurve(psys->part->ipo,PART_EMIT_VEL);
 	if(icu){
 		calc_icu(icu,100*((pa->time-part->sta)/(part->end-part->sta)));
 		ptex.ivel*=icu->curval;
 	}
+#endif // XXX old animation system
 
 	VecMulf(vel,ptex.ivel);
 	
@@ -1908,11 +1914,13 @@ static void reset_particle(Scene *scene, ParticleData *pa, ParticleSystem *psys,
 		Normalize(pa->state.ave);
 		VecMulf(pa->state.ave,part->avefac);
 
+#if 0 // XXX old animation system
 		icu=find_ipocurve(psys->part->ipo,PART_EMIT_AVE);
 		if(icu){
 			calc_icu(icu,100*((pa->time-part->sta)/(part->end-part->sta)));
 			VecMulf(pa->state.ave,icu->curval);
 		}
+#endif // XXX old animation system
 	}
 
 	pa->dietime = pa->time + pa->lifetime;
@@ -3928,12 +3936,12 @@ static void dynamics_step(Scene *scene, Object *ob, ParticleSystem *psys, Partic
 	ParticleSettings *part=psys->part;
 	KDTree *tree=0;
 	BoidVecFunc bvf;
-	IpoCurve *icu_esize=find_ipocurve(part->ipo,PART_EMIT_SIZE);
+	IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 	Material *ma=give_current_material(ob,part->omat);
 	float timestep;
 	int p, totpart;
 	/* current time */
-	float ctime, ipotime;
+	float ctime, ipotime; // XXX old animation system
 	/* frame & time changes */
 	float dfra, dtime, pa_dtime, pa_dfra=0.0;
 	float birthtime, dietime;
@@ -3946,12 +3954,14 @@ static void dynamics_step(Scene *scene, Object *ob, ParticleSystem *psys, Partic
 	timestep=psys_get_timestep(part);
 	dtime= dfra*timestep;
 	ctime= cfra*timestep;
-	ipotime= cfra;
+	ipotime= cfra; // XXX old animation system
 
+#if 0 // XXX old animation system
 	if(part->flag&PART_ABS_TIME && part->ipo){
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	if(dfra<0.0){
 		float *vg_size=0;
@@ -3962,11 +3972,13 @@ static void dynamics_step(Scene *scene, Object *ob, ParticleSystem *psys, Partic
 			if(pa->flag & PARS_UNEXIST) continue;
 
 			/* set correct ipo timing */
+#if 0 // XXX old animation system
 			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 				ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
 				calc_ipo(part->ipo, ipotime);
 				execute_ipo((ID *)part, part->ipo);
 			}
+#endif // XXX old animation system
 			pa->size=psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
 
 			reset_particle(scene, pa,psys,psmd,ob,dtime,cfra,vg_vel,vg_tan,vg_rot);
@@ -4024,11 +4036,13 @@ static void dynamics_step(Scene *scene, Object *ob, ParticleSystem *psys, Partic
 			copy_particle_key(&pa->prev_state,&pa->state,1);
 			
 			/* set correct ipo timing */
+#if 0 // XXX old animation system
 			if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 				ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
 				calc_ipo(part->ipo, ipotime);
 				execute_ipo((ID *)part, part->ipo);
 			}
+#endif // XXX old animation system
 			pa->size=psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
 
 			/* reactions can change birth time so they need to be checked first */
@@ -4198,7 +4212,7 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 	ParticleSettings *part=psys->part;
 	ParticleData *pa;
 	ParticleKey state;
-	IpoCurve *icu_esize=find_ipocurve(part->ipo,PART_EMIT_SIZE);
+	IpoCurve *icu_esize= NULL; //=find_ipocurve(part->ipo,PART_EMIT_SIZE); // XXX old animation system
 	Material *ma=give_current_material(ob,part->omat);
 	int p;
 	float ipotime=cfra, disp, birthtime, dietime, *vg_size= NULL;
@@ -4218,11 +4232,13 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 	disp= (float)get_current_display_percentage(psys)/50.0f-1.0f;
 
 	for(p=0, pa=psys->particles; p<psys->totpart; p++,pa++){
+#if 0 // XXX old animation system
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 			ipotime=100.0f*(cfra-pa->time)/pa->lifetime;
 			calc_ipo(part->ipo, ipotime);
 			execute_ipo((ID *)part, part->ipo);
 		}
+#endif // XXX old animation system
 		pa->size= psys_get_size(ob,ma,psmd,icu_esize,psys,part,pa,vg_size);
 
 		psys->lattice= psys_get_lattice(scene, ob, psys);
@@ -4437,10 +4453,12 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	BKE_ptcache_id_time(&pid, scene, 0.0f, &startframe, &endframe, NULL);
 
 	/* update ipo's */
+#if 0 // XXX old animation system
 	if((part->flag & PART_ABS_TIME) && part->ipo) {
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	/* hair if it's already done is handled separate */
 	if(part->type == PART_HAIR && (psys->flag & PSYS_HAIR_DONE)) {

@@ -49,7 +49,6 @@
 /* for dereferencing pointers */
 #include "DNA_ID.h"  
 #include "DNA_key_types.h"  
-#include "DNA_ipo_types.h"  
 #include "DNA_scene_types.h"  
 #include "DNA_vfont_types.h"  
 
@@ -57,7 +56,6 @@
 #include "BKE_curve.h"  
 #include "BKE_displist.h"  
 #include "BKE_global.h" 
-#include "BKE_ipo.h"  
 #include "BKE_key.h"  
 #include "BKE_library.h"  
 #include "BKE_main.h"  
@@ -85,8 +83,10 @@ void unlink_curve(Curve *cu)
 	cu->vfont= 0;
 	if(cu->key) cu->key->id.us--;
 	cu->key= 0;
+#if 0	// XXX old animation system
 	if(cu->ipo) cu->ipo->id.us--;
 	cu->ipo= 0;
+#endif	// XXX old animation system
 }
 
 
@@ -162,8 +162,10 @@ Curve *copy_curve(Curve *cu)
 	cun->bev.first= cun->bev.last= 0;
 	cun->path= 0;
 
+#if 0	// XXX old animation system
 	/* single user ipo too */
 	if(cun->ipo) cun->ipo= copy_ipo(cun->ipo);
+#endif // XXX old animation system
 
 	id_us_plus((ID *)cun->vfont);
 	id_us_plus((ID *)cun->vfontb);	
@@ -1981,7 +1983,7 @@ void makeBevelList(Object *ob)
  *		1: nothing,  1:auto,  2:vector,  3:aligned
  */
 
-/* mode: is not zero when IpoCurve, is 2 when forced horizontal for autohandles */
+/* mode: is not zero when FCurve, is 2 when forced horizontal for autohandles */
 void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 {
 	float *p1,*p2,*p3, pt[3];

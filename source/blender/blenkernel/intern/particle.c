@@ -46,7 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_ipo_types.h" 	// XXX old animation system stuff to remove!
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -65,7 +65,6 @@
 #include "BKE_displist.h"
 #include "BKE_particle.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_ipo.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_material.h"
@@ -1922,10 +1921,12 @@ int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, in
 	}
 
 	/* set correct ipo timing */
+#if 0 // XXX old animation system
 	if(part->flag&PART_ABS_TIME && part->ipo){
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	return 1;
 }
@@ -2040,11 +2041,13 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	keys->steps = ctx->steps;
 
 	/* correct child ipo timing */
+#if 0 // XXX old animation system
 	if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 		float dsta=part->end-part->sta;
 		calc_ipo(part->ipo, 100.0f*(ctx->cfra-(part->sta+dsta*cpa->rand[1]))/(part->lifetime*(1.0f - part->randlife*cpa->rand[0])));
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	/* get different child parameters from textures & vgroups */
 	ptex.length=part->length*(1.0f - part->randlength*cpa->rand[0]);
@@ -2922,7 +2925,9 @@ static void default_particle_settings(ParticleSettings *part)
 		part->boidfac[i]=0.5;
 	}
 
+#if 0 // XXX old animation system
 	part->ipo = NULL;
+#endif // XXX old animation system
 
 	part->simplify_refsize= 1920;
 	part->simplify_rate= 1.0f;
@@ -3257,10 +3262,12 @@ float psys_get_size(Object *ob, Material *ma, ParticleSystemModifierData *psmd, 
 		size=ptex.size;
 	}
 	
+#if 0 // XXX old animation system
 	if(icu_size){
 		calc_icu(icu_size,pa->time);
 		size*=icu_size->curval;
 	}
+#endif // XXX old animation system
 
 	if(vg_size)
 		size*=psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_size);
@@ -3298,6 +3305,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 	if(part->childtype==PART_CHILD_FACES){
 		size=part->size;
 
+#if 0 // XXX old animation system
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 			IpoCurve *icu;
 
@@ -3314,6 +3322,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 					size = icu->curval;
 			}
 		}
+#endif // XXX old animation system
 	}
 	else
 		size=psys->particles[cpa->parent].size;
@@ -3536,11 +3545,13 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 		}
 
 		/* correct child ipo timing */
+#if 0 // XXX old animation system
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 			calc_ipo(part->ipo, 100.0f*t);
 			execute_ipo((ID *)part, part->ipo);
 		}
-
+#endif // XXX old animation system
+		
 		/* get different child parameters from textures & vgroups */
 		ptex.clump=1.0;
 		ptex.kink=1.0;

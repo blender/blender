@@ -41,12 +41,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -64,7 +63,7 @@
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -110,11 +109,12 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= ANIM_nla_mapping_get(ac, ale);
-			Ipo *ipo= (Ipo *)ale->key_data; 
+			//Ipo *ipo= (Ipo *)ale->key_data;  // XXX fixme
 			float tmin, tmax;
 			
 			/* get range and apply necessary scaling before */
-			calc_ipo_range(ipo, &tmin, &tmax);
+			//calc_ipo_range(ipo, &tmin, &tmax);
+			tmin= tmax= 0.0f; // xxx
 			
 			if (nob) {
 				tmin= get_action_frame_inv(nob, tmin);
@@ -258,6 +258,7 @@ void free_actcopybuf ()
 	bActionChannel *achan, *anext;
 	bConstraintChannel *conchan, *cnext;
 	
+#if 0 // XXX old animation system
 	for (achan= actcopybuf.first; achan; achan= anext) {
 		anext= achan->next;
 		
@@ -279,6 +280,7 @@ void free_actcopybuf ()
 		
 		BLI_freelinkN(&actcopybuf, achan);
 	}
+#endif // XXX old animation system
 	
 	actcopybuf.first= actcopybuf.last= NULL;
 	actcopy_firstframe= 999999999.0f;
@@ -353,7 +355,7 @@ static short copy_action_keys (bAnimContext *ac)
 			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
 				if (BEZSELECTED(bezt)) {
 					/* add to buffer ipo-curve */
-					insert_bezt_icu(icn, bezt);
+					//insert_bezt_icu(icn, bezt); // XXX
 					
 					/* check if this is the earliest frame encountered so far */
 					if (bezt->vec[1][0] < actcopy_firstframe)
@@ -454,7 +456,8 @@ static short paste_action_keys (bAnimContext *ac)
 		/* loop over curves, pasting keyframes */
 		for (ico= ipo_src->curve.first; ico; ico= ico->next) {
 			/* get IPO-curve to paste to (IPO-curve might not exist for destination, so gets created) */
-			icu= verify_ipocurve(ale->id, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			//icu= verify_ipocurve(ale->id, ico->blocktype, actname, conname, NULL, ico->adrcode, 1);
+			
 			
 			if (icu) {
 				/* just start pasting, with the the first keyframe on the current frame, and so on */
@@ -465,7 +468,7 @@ static short paste_action_keys (bAnimContext *ac)
 					bezt->vec[2][0] += offset;
 					
 					/* insert the keyframe */
-					insert_bezt_icu(icu, bezt);
+					//insert_bezt_icu(icu, bezt); // XXX
 					
 					/* un-apply offset from src beztriple after copying */
 					bezt->vec[0][0] -= offset;
@@ -474,7 +477,7 @@ static short paste_action_keys (bAnimContext *ac)
 				}
 				
 				/* recalculate channel's handles? */
-				calchandles_ipocurve(icu);
+				//calchandles_fcurve(fcu);
 			}
 		}
 	}
@@ -600,7 +603,7 @@ static void delete_action_keys (bAnimContext *ac)
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	delete_gplayer_frames((bGPDlayer *)ale->data);
 		//else
-			delete_ipo_keys((Ipo *)ale->key_data);
+		//	delete_ipo_keys((Ipo *)ale->key_data); // XXX fixme for the new animsys...
 	}
 	
 	/* free filtered list */
@@ -652,12 +655,12 @@ static void clean_action_keys (bAnimContext *ac, float thresh)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_ONLYICU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and clean curves */
 	for (ale= anim_data.first; ale; ale= ale->next)
-		clean_ipo_curve((IpoCurve *)ale->key_data, thresh);
+		clean_fcurve((FCurve *)ale->key_data, thresh);
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
@@ -724,19 +727,19 @@ static void sample_action_keys (bAnimContext *ac)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and add keys between selected keyframes on every frame  */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		IpoCurve *icu= (IpoCurve *)ale->key_data;
+		FCurve *fcu= (FCurve *)ale->key_data;
 		BezTriple *bezt, *start=NULL, *end=NULL;
 		tempFrameValCache *value_cache, *fp;
 		int sfra, range;
 		int i, n;
 		
 		/* find selected keyframes... once pair has been found, add keyframes  */
-		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			/* check if selected, and which end this is */
 			if (BEZSELECTED(bezt)) {
 				if (start) {
@@ -755,19 +758,19 @@ static void sample_action_keys (bAnimContext *ac)
 						/* 	sample values 	*/
 						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
 							fp->frame= (float)(sfra + n);
-							fp->val= eval_icu(icu, fp->frame);
+							fp->val= evaluate_fcurve(fcu, fp->frame);
 						}
 						
 						/* 	add keyframes with these 	*/
 						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
-							insert_vert_icu(icu, fp->frame, fp->val, 1);
+							insert_vert_fcurve(fcu, fp->frame, fp->val, 1);
 						}
 						
 						/* free temp cache */
 						MEM_freeN(value_cache);
 						
 						/* as we added keyframes, we need to compensate so that bezt is at the right place */
-						bezt = icu->bezt + i + range - 1;
+						bezt = fcu->bezt + i + range - 1;
 						i += (range - 1);
 					}
 					
@@ -784,7 +787,7 @@ static void sample_action_keys (bAnimContext *ac)
 		}
 		
 		/* recalculate channel's handles? */
-		calchandles_ipocurve(icu);
+		calchandles_fcurve(fcu);
 	}
 	
 	/* admin and redraws */
@@ -1028,11 +1031,11 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 				toggle_cb= ANIM_editkeyframes_handles(HD_ALIGN);
 				
 			/* set handle-type */
-			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_ipocurve);
+			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_fcurve);
 		}
 		else {
 			/* directly set handle-type */
-			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_ipocurve);
+			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
 		}
 	}
 	
@@ -1183,7 +1186,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1198,13 +1201,13 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		
 		if (nob) {
 			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	BLI_freelistN(&anim_data);
 }
@@ -1304,7 +1307,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* mirror keyframes */
@@ -1313,13 +1316,13 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		
 		if (nob) {
 			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_ipocurve);
+			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	BLI_freelistN(&anim_data);
 }

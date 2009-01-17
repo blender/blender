@@ -368,7 +368,9 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 			else ok= 0;
 		}
 		if(ok) {
+#if 0 // XXX old animation system
 			do_ob_ipo(scene, ob);
+#endif // XXX old animation system
 			where_is_object_time(scene, ob, (float)scene->r.cfra);
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
 			Mat4CpyMat4(dob->omat, copyob.obmat);

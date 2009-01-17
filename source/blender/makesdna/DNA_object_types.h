@@ -35,6 +35,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
@@ -90,7 +91,8 @@ typedef struct BoundBox {
 
 typedef struct Object {
 	ID id;
-
+	AnimData adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
@@ -98,15 +100,15 @@ typedef struct Object {
 	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
 	/* proxy_from is set in target back to the proxy. */
 	struct Object *proxy, *proxy_group, *proxy_from;
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	struct Path *path;
 	struct BoundBox *bb;
-	struct bAction *action;	
+	struct bAction *action;	 // XXX depreceated... old animation system
 	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
 	
-	ListBase constraintChannels;
+	ListBase constraintChannels; // XXX depreceated... old animation system
 	ListBase effect;
 	ListBase disp;
 	ListBase defbase;
@@ -129,15 +131,15 @@ typedef struct Object {
 	short flag;			/* copy of Base */
 	short colbits;		/* when zero, from obdata */
 	
-	short transflag, ipoflag;	/* transformation and ipo settings */
+	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
-	short nlaflag, protectflag;	/* nlaflag defines NLA override, protectflag is bits to lock transform */
+	short nlaflag, ipoflag;		// xxx depreceated... old animation system
 	short ipowin, scaflag;		/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime; /* sf is time-offset, ctime is the objects current time */
+	float sf, ctime; /* sf is time-offset, ctime is the objects current time (XXX timing needs to be revised) */
 	
 	/* during realtime */
 
@@ -200,7 +202,7 @@ typedef struct Object {
 	float anisotropicFriction[3];
 
 	ListBase constraints;
-	ListBase nlastrips;
+	ListBase nlastrips;			// XXX depreceated... old animation system
 	ListBase hooks;
 	ListBase particlesystem;	/* particle systems */
 	
@@ -302,6 +304,7 @@ extern Object workob;
 #define OB_RENDER_DUPLI		4096
 
 /* (short) ipoflag */
+	// XXX depreceated - old animation system crap
 #define OB_DRAWKEY			1
 #define OB_DRAWKEYSEL		2
 #define OB_OFFS_OB			4
@@ -472,6 +475,7 @@ extern Object workob;
 #define OB_SHAPE_TEMPLOCK	2
 
 /* ob->nlaflag */
+	// XXX depreceated - old animation system
 #define OB_NLA_OVERRIDE		(1<<0)
 #define OB_NLA_COLLAPSED	(1<<1)
 

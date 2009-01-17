@@ -91,6 +91,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 {
 	/* action_select.c - selection tools */
 		/* click-select */
+		// TODO: column to alt, left-right to ctrl (for select-linked consistency)
 	WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "column_select", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ACT_OT_keyframes_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend_select", 1);

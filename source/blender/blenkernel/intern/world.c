@@ -76,7 +76,10 @@ void free_world(World *wrld)
 	}
 	BKE_previewimg_free(&wrld->preview);
 
+#if 0 // XXX old animation system
 	wrld->ipo= 0;
+#endif // XXX old animation system
+
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
 }
@@ -129,7 +132,10 @@ World *copy_world(World *wrld)
 #ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&wrld->scriptlink);
 #endif
+
+#if 0 // XXX old animation system
 	id_us_plus((ID *)wrldn->ipo);
+#endif // XXX old animation system
 	
 	return wrldn;
 }

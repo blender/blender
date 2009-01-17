@@ -38,6 +38,7 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 
 struct Radio;
 struct Object;
@@ -523,6 +524,8 @@ typedef struct bStats {
 
 typedef struct Scene {
 	ID id;
+	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	
 	struct Object *camera;
 	struct World *world;
 	

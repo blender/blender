@@ -77,6 +77,7 @@ static void BIF_undo_push() {}
 static void error() {}
 /* XXX */
 
+#if 0 // XXX old animation system
 static void default_key_ipo(Scene *scene, Key *key)
 {
 	IpoCurve *icu;
@@ -108,7 +109,7 @@ static void default_key_ipo(Scene *scene, Key *key)
 	
 	calchandles_ipocurve(icu);
 }
-
+#endif // XXX old animation system
 	
 
 /* **************************************** */
@@ -170,10 +171,11 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
 	
-	
+	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
 	if(key->type == KEY_RELATIVE) 
 		kb->pos= curpos+0.1;
 	else {
+#if 0 // XXX old animation system
 		curpos= bsystem_time(scene, 0, (float)CFRA, 0.0);
 		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
 			curpos /= 100.0;
@@ -181,6 +183,7 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 		kb->pos= curpos;
 		
 		sort_keys(key);
+#endif // XXX old animation system
 	}
 	return kb;
 }
@@ -195,8 +198,8 @@ void insert_meshkey(Scene *scene, Mesh *me, short rel)
 
 		if(rel)
 			me->key->type = KEY_RELATIVE;
-		else
-			default_key_ipo(scene, me->key);
+//		else
+//			default_key_ipo(scene, me->key); // XXX old animation system
 	}
 	key= me->key;
 	
@@ -254,7 +257,7 @@ void insert_lattkey(Scene *scene, Lattice *lt, short rel)
 	
 	if(lt->key==NULL) {
 		lt->key= add_key( (ID *)lt);
-		default_key_ipo(scene, lt->key);
+//		default_key_ipo(scene, lt->key); // XXX old animation system
 	}
 	key= lt->key;
 	
@@ -377,8 +380,8 @@ void insert_curvekey(Scene *scene, Curve *cu, short rel)
 
 		if (rel)
 			cu->key->type = KEY_RELATIVE;
-		else
-			default_key_ipo(scene, cu->key);
+//		else
+//			default_key_ipo(scene, cu->key);	// XXX old animation system
 	}
 	key= cu->key;
 	
@@ -414,7 +417,7 @@ void delete_key(Scene *scene, Object *ob)
 {
 	KeyBlock *kb, *rkb;
 	Key *key;
-	IpoCurve *icu;
+	//IpoCurve *icu;
 	
 	key= ob_get_key(ob);
 	if(key==NULL) return;
@@ -438,6 +441,7 @@ void delete_key(Scene *scene, Object *ob)
 				kb->adrcode--;
 		}
 		
+#if 0 // XXX old animation system
 		if(key->ipo) {
 			
 			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
@@ -450,7 +454,8 @@ void delete_key(Scene *scene, Object *ob)
 			for(icu= key->ipo->curve.first; icu; icu= icu->next) 
 				if(icu->adrcode>=ob->shapenr)
 					icu->adrcode--;
-		}		
+		}
+#endif // XXX old animation system		
 		
 		if(ob->shapenr>1) ob->shapenr--;
 	}

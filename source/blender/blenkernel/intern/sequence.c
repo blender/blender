@@ -33,14 +33,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ipo_types.h"
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_sequence.h"
 #include "BKE_utildefines.h"
@@ -790,11 +788,14 @@ static void do_effect(Scene *scene, int cfra, Sequence *seq, TStripElem * se)
 		return;
 	}
 
+#if 0 // XXX old animation system
 	if(seq->ipo && seq->ipo->curve.first) {
 		do_seq_ipo(scene, seq, cfra);
 		fac= seq->facf0;
 		facf= seq->facf1;
-	} else {
+	} else
+#endif // XXX old animation system	
+	{
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 	}
 
@@ -956,8 +957,8 @@ TStripElem *give_tstripelem(Sequence *seq, int cfra)
 	   alpha over mode...
 	*/
 	if (seq->blend_mode != SEQ_BLEND_REPLACE ||
-	    (seq->ipo && seq->ipo->curve.first && (
-		    !(seq->type & SEQ_EFFECT) || !seq->seq1))) {
+	    (/*seq->ipo && seq->ipo->curve.first &&*/ 
+		   (!(seq->type & SEQ_EFFECT) || !seq->seq1))) {
 		Strip * s = seq->strip;
 		if (cfra < seq->start) {
 			se = s->tstripdata_startstill;
@@ -1503,10 +1504,12 @@ static int input_have_to_preprocess(Scene *scene, Sequence * seq, TStripElem* se
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+#if 0 // XXX old animation system
 		if (seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
 			mul *= seq->facf0;
 		}
+#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1591,10 +1594,12 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 	mul = seq->mul;
 
 	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+#if 0 // XXX old animation system
 		if (seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
 			mul *= seq->facf0;
 		}
+#endif // XXX old animation system
 		mul *= seq->blend_opacity / 100.0;
 	}
 
@@ -1988,11 +1993,14 @@ static void do_effect_seq_recursively(Scene *scene, Sequence *seq, TStripElem *s
 	se->se2 = 0;
 	se->se3 = 0;
 
+#if 0 // XXX old animation system
 	if(seq->ipo && seq->ipo->curve.first) {
 		do_seq_ipo(scene, seq, cfra);
 		fac= seq->facf0;
 		facf= seq->facf1;
-	} else {
+	} else 
+#endif // XXX old animation system
+	{
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 	} 
 
@@ -2248,9 +2256,11 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		seq->facf0 = seq->facf1 = 1.0;
 
+#if 0 // XXX old animation system
 		if(seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
 		} 
+#endif
 
 		if( scene->r.mode & R_FIELDS ); else seq->facf0 = seq->facf1;
 

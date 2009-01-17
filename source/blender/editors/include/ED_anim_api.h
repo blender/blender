@@ -158,7 +158,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
 	ANIMFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
 	ANIMFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
-	ANIMFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
+	ANIMFILTER_ONLYFCU		= (1<<5),	/* only reference ipo-curves */
 	ANIMFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<7),	/* belongs to the active actiongroup */
 } eAnimFilter_Flags;

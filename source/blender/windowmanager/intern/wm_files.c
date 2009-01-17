@@ -49,7 +49,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
-#include "DNA_ipo_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_ipo_types.h" // XXX old animation system
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -334,7 +335,7 @@ static void init_userdef_themes(void)
 		U.gp_euclideandist= 2;
 		
 		/* adjust default interpolation for new IPO-curves */
-		U.ipo_new= IPO_BEZ;
+		U.ipo_new= BEZT_IPO_BEZ;
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */

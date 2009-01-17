@@ -43,6 +43,7 @@
 #endif
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"	
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
@@ -59,6 +60,7 @@
 
 #include "BKE_action.h"			
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_armature.h"		
 #include "BKE_colortools.h"
 #include "BKE_colortools.h"
@@ -577,22 +579,54 @@ static void scene_update(Scene *sce, unsigned int lay)
 		object_handle_update(sce, ob);   // bke_object.h
 		
 		/* only update layer when an ipo */
-		if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
-			base->lay= ob->lay;
-		}
+			// XXX old animation system
+		//if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
+		//	base->lay= ob->lay;
+		//}
 	}
+}
+
+/* This (evil) function is needed to cope with two legacy Blender rendering features
+ * mblur (motion blur that renders 'subframes' and blurs them together), and fields 
+ * rendering. Thus, the use of ugly globals from object.c
+ */
+// BAD... EVIL... JUJU...!!!!
+// XXX moved here temporarily
+float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in object.c */
+{
+	extern float bluroffs;	/* bad stuff borrowed from object.c */
+	extern float fieldoffs;
+	float ctime;
+	
+	ctime= (float)cfra;
+	ctime+= bluroffs+fieldoffs;
+	ctime*= scene->r.framelen;
+	
+	return ctime;
 }
 
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
+	float ctime = frame_to_float(sce, sce->r.cfra); 
 	
 	/* clears all BONE_UNKEYED flags for every pose's pchans */
-	framechange_poses_clear_unkeyed();
+	// xxx old animation system
+	//framechange_poses_clear_unkeyed();
 	
-	/* object ipos are calculated in where_is_object */
-	do_all_data_ipos(sce);
+	/* clear animation overrides */
+	// XXX TODO...
+	
+	/* All 'standard' (i.e. without any dependencies) animation is handled here,
+	 * with an 'local' to 'macro' order of evaluation. This should ensure that
+	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
+	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
+	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
+	 */
+	BKE_animsys_evaluate_all_animation(G.main, ctime);
+	
+	
 #ifndef DISABLE_PYTHON
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 #endif

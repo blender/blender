@@ -34,17 +34,18 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_ipo_types.h" // XXX to be phased out
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
@@ -218,16 +219,16 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	int filter;
 	
 	/* filter animation data */
-	filter= ANIMFILTER_ONLYICU;
+	filter= ANIMFILTER_ONLYFCU; 
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over ipo-curves that are likely to have been edited, and check them */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		IpoCurve *icu= ale->key_data;
+		FCurve *fcu= ale->key_data;
 		
 		/* make sure keyframes in IPO-curve are all in order, and handles are in valid positions */
-		sort_time_ipocurve(icu);
-		testhandles_ipocurve(icu);
+		sort_time_fcurve(fcu);
+		testhandles_fcurve(fcu);
 	}
 	
 	/* free temp data */
@@ -404,56 +405,6 @@ BeztEditFunc ANIM_editkeyframes_mirror(short type)
 	}
 }
 
-/* --------- */
-
-/* This function is called to calculate the average location of the
- * selected keyframes, and place the current frame at that location.
- *
- * It must be called like so:
- *	snap_cfra_ipo_keys(scene, NULL, -1); // initialise the static vars first
- *	for (ipo...) snap_cfra_ipo_keys(scene, ipo, 0); // sum up keyframe times
- *	snap_cfra_ipo_keys(scene, NULL, 1); // set current frame after taking average
- */
-// XXX this thing needs to be refactored!
-void snap_cfra_ipo_keys(BeztEditData *bed, Ipo *ipo, short mode)
-{
-	static int cfra;
-	static int tot;
-	
-	Scene *scene= bed->scene;
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int a;
-	
-	
-	if (mode == -1) {
-		/* initialise a new snap-operation */
-		cfra= 0;
-		tot= 0;
-	}
-	else if (mode == 1) {
-		/* set current frame - using average frame */
-		if (tot != 0)
-			CFRA = cfra / tot;
-	}
-	else {
-		/* loop through keys in ipo, summing the frame
-		 * numbers of those that are selected 
-		 */
-		if (ipo == NULL) 
-			return;
-		
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
-			for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
-				if (BEZSELECTED(bezt)) {
-					cfra += (int)floor(bezt->vec[1][0] + 0.5f);
-					tot++;
-				}
-			}
-		}
-	}	
-}
-
 /* ******************************************* */
 /* Settings */
 
@@ -548,7 +499,7 @@ void ANIM_editkeyframes_ipocurve_ipotype(IpoCurve *icu)
 	icu->ipo= IPO_MIXED;
 	
 	/* recalculate handles, as some changes may have occurred */
-	calchandles_ipocurve(icu);
+	//calchandles_ipocurve(icu);	// XXX
 }
 
 static short set_bezt_constant(BeztEditData *bed, BezTriple *bezt) 

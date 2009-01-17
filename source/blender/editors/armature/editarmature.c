@@ -99,8 +99,6 @@ static void error_libdata() {}
 static void BIF_undo_push() {}
 static void adduplicate() {}
 static void countall() {}
-static void deselect_actionchannels() {}
-static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */
@@ -599,7 +597,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 					
 					/* action constraint? */
 					if (con->type == CONSTRAINT_TYPE_ACTION) {
-						bActionConstraint *data= con->data;
+						bActionConstraint *data= con->data; // XXX old animation system
 						bAction *act;
 						bActionChannel *achan;
 						
@@ -1330,7 +1328,8 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 	if (!(bone->flag & BONE_CONNECTED))
 		return;
 	
-	select_actionchannel_by_name (ob->action, bone->name, !(shift));
+		// XXX old cruft! use notifiers instead
+	//select_actionchannel_by_name (ob->action, bone->name, !(shift));
 	
 	if (shift)
 		bone->flag &= ~BONE_SELECTED;
@@ -1359,7 +1358,8 @@ void selectconnected_posearmature(bContext *C)
 	
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
-		select_actionchannel_by_name (ob->action, curBone->name, !(shift));
+			// XXX old cruft! use notifiers instead
+		//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
 		if (shift)
 			curBone->flag &= ~BONE_SELECTED;
 		else
@@ -3568,7 +3568,9 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		if (!(extend) || (base != scene->basact)) {
 			ED_pose_deselectall(ob, 0, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			select_actionchannel_by_name(ob->action, nearBone->name, 1);
+			
+				// XXX old cruft! use notifiers instead
+			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
@@ -3579,14 +3581,18 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 				}
 				else {
 					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-					select_actionchannel_by_name(ob->action, nearBone->name, 0);
+					
+						// XXX old cruft! use notifiers instead
+					//select_actionchannel_by_name(ob->action, nearBone->name, 0);
 				}
 			}
 			else {
 				bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 				
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-				select_actionchannel_by_name(ob->action, nearBone->name, 1);
+				
+					// XXX old cruft! use notifiers instead
+				//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 			}
 		}
 		
@@ -3645,16 +3651,6 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 				else pchan->bone->flag &= ~BONE_ACTIVE;
 			}
 		}
-	}
-	
-	/* action editor */
-	if (test == 3) {
-		deselect_actionchannels(ob->action, 2); /* inverts selection */
-	}
-	else {
-		deselect_actionchannels(ob->action, 0);	/* deselects for sure */
-		if (selectmode == 1)
-			deselect_actionchannels(ob->action, 1);	/* swaps */
 	}
 	
 	countall();
@@ -4187,7 +4183,6 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 {
 	bArmature *arm= ob->data;
-	Ipo *ipo;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -4225,11 +4220,12 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 			/* we have the object using the armature */
 			if (arm==ob->data) {
 				Object *cob;
-				bAction  *act;
-				bActionChannel *achan;
-				bActionStrip *strip;
+				//bAction  *act;
+				//bActionChannel *achan;
+				//bActionStrip *strip;
 				
 				/* Rename action channel if necessary */
+#if 0 // XXX old animation system
 				act = ob->action;
 				if (act && !act->id.lib) {
 					/*	Find the appropriate channel */
@@ -4237,6 +4233,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 					if (achan) 
 						BLI_strncpy(achan->name, newname, MAXBONENAME);
 				}
+#endif // XXX old animation system
 		
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
@@ -4246,6 +4243,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 				}
 				
 				/* check all nla-strips too */
+#if 0 // XXX old animation system
 				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
 					/* Rename action channel if necessary */
 					act = strip->act;
@@ -4256,6 +4254,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 							BLI_strncpy(achan->name, newname, MAXBONENAME);
 					}
 				}
+#endif // XXX old animation system
 				
 				/* Update any object constraints to use the new bone name */
 				for (cob= G.main->object.first; cob; cob= cob->id.next) {
@@ -4290,6 +4289,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 		}
 		
 		/* do entire db - ipo's for the drivers */
+#if 0 // XXX old animation system
 		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
 			IpoCurve *icu;
 			
@@ -4310,6 +4310,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 				}
 			}			
 		}
+#endif // XXX old animation system
 	}
 }
 

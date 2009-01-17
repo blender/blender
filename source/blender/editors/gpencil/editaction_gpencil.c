@@ -50,7 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -68,10 +68,10 @@
 #include "gpencil_intern.h"
 
 /* XXX */
-static void actdata_filter() {}
+static void actdata_filter() {} // is now ANIM_animdata_filter()
 static void BIF_undo_push() {}
 static void error() {}
-static void *get_action_context() {return NULL;}
+static void *get_action_context() {return NULL;}  // is now ANIM_animdata_get_context()
 /* XXX */
 
 

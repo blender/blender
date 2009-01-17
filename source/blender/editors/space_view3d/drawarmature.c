@@ -64,7 +64,6 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_ipo.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -1742,7 +1741,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
 					
 					/* extra draw service for pose mode */
 					constflag= pchan->constflag;
-					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
+					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))	// XXX this is useless crap
 						constflag |= PCHAN_HAS_ACTION;
 					if (pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;
@@ -2025,7 +2024,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	bAction *act;
+	bAction *act; // XXX old animsys - watch it!
 	bActionChannel *achan;
 	ActKeyColumn *ak;
 	ListBase keys;
@@ -2173,12 +2172,15 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
 				if (arm->pathflag & ARM_PATH_KFRAS) {
 					/* build list of all keyframes in active action for pchan */
 					keys.first = keys.last = NULL;	
+					
+					#if 0 // XXX old animation system
 					act= ob->action;
 					if (act) {
 						achan= get_action_channel(act, pchan->name);
 						if (achan) 
 							ipo_to_keylist(achan->ipo, &keys, NULL, NULL);
 					}
+					#endif // XXX old animation system
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
 					UI_ThemeColor(TH_VERTEX_SELECT);
@@ -2294,7 +2296,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 		colfac = (end-CFRA)/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
-		do_all_pose_actions(scene, ob);
+		//do_all_pose_actions(scene, ob);  // XXX old animation system
 		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, base, OB_WIRE);
 	}
@@ -2319,14 +2321,14 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 {
 	Object *ob= base->object;
-	bAction *act= ob->action;
+	bAction *act= ob->action; // XXX old animsys stuff... watch it!
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	ListBase keys= {NULL, NULL};
 	ActKeysInc aki = {0, 0, 0};
 	ActKeyColumn *ak, *akn;
 	float start, end, range, colfac, i;
-	int cfrao, flago, ipoflago;
+	int cfrao, flago;
 	
 	aki.start= start = arm->ghostsf;
 	aki.end= end = arm->ghostef;
@@ -2351,7 +2353,6 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 	cfrao= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
-	ipoflago= ob->ipoflag; 
 	ob->ipoflag |= OB_DISABLE_PATH;
 	
 	/* copy the pose */
@@ -2371,7 +2372,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 		
 		CFRA= (int)ak->cfra;
 		
-		do_all_pose_actions(scene, ob);
+		//do_all_pose_actions(scene, ob);	// XXX old animation system
 		where_is_pose(scene, ob);
 		draw_pose_channels(scene, v3d, base, OB_WIRE);
 	}
@@ -2388,7 +2389,6 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
-	ob->ipoflag= ipoflago; 
 }
 
 /* draw ghosts around current frame
@@ -2399,13 +2399,13 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
-	bActionStrip *strip;
+	//bActionStrip *strip;
 	float cur, start, end, stepsize, range, colfac, actframe, ctime;
-	int cfrao, maptime, flago, ipoflago;
+	int cfrao, maptime, flago;
 	
 	/* pre conditions, get an action with sufficient frames */
-	if (ob->action==NULL)
-		return;
+	//if (ob->action==NULL)
+	//	return;
 
 	calc_action_range(ob->action, &start, &end, 0);
 	if (start == end)
@@ -2414,12 +2414,15 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 	stepsize= (float)(arm->ghostsize);
 	range= (float)(arm->ghostep)*stepsize + 0.5f;	/* plus half to make the for loop end correct */
 	
+#if 0 // XXX old animation system
 	/* we only map time for armature when an active strip exists */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
 		if (strip->flag & ACTSTRIP_ACTIVE)
 			break;
+#endif // XXX old animsys
 	
-	maptime= (strip!=NULL);
+	//maptime= (strip!=NULL);
+	maptime= 0;
 	
 	/* store values */
 	ob->flag &= ~OB_POSEMODE;
@@ -2428,8 +2431,6 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 	else actframe= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
-	ipoflago= ob->ipoflag; 
-	ob->ipoflag |= OB_DISABLE_PATH;
 	
 	/* copy the pose */
 	poseo= ob->pose;
@@ -2453,7 +2454,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			else CFRA= (int)floor(actframe+ctime);
 			
 			if (CFRA!=cfrao) {
-				do_all_pose_actions(scene, ob);
+				//do_all_pose_actions(scene, ob); // xxx old animation system crap
 				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, base, OB_WIRE);
 			}
@@ -2469,7 +2470,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			else CFRA= (int)floor(actframe-ctime);
 			
 			if (CFRA != cfrao) {
-				do_all_pose_actions(scene, ob);
+				//do_all_pose_actions(scene, ob); // XXX old animation system crap...
 				where_is_pose(scene, ob);
 				draw_pose_channels(scene, v3d, base, OB_WIRE);
 			}
@@ -2487,7 +2488,6 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
-	ob->ipoflag= ipoflago; 
 }
 
 /* ********************************** Armature Drawing - Main ************************* */

@@ -120,6 +120,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_object_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	
-
+	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
+	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe", IKEY, KM_PRESS, KM_ALT, 0);
 }
 

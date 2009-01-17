@@ -39,13 +39,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -68,14 +68,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_armature.h"
-#include "BKE_action.h"
-#include "BKE_bullet.h"
-#include "BKE_colortools.h"
-#include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_nla.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
@@ -85,6 +77,14 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 
+#include "BKE_armature.h"
+#include "BKE_action.h"
+#include "BKE_bullet.h"
+#include "BKE_colortools.h"
+#include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_nla.h"
+#include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
@@ -92,7 +92,6 @@
 #include "BKE_displist.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -249,8 +248,10 @@ void free_object(Object *ob)
 	ob->bb= 0;
 	if(ob->path) free_path(ob->path); 
 	ob->path= 0;
+#if 0 // XXX old animation system
 	if(ob->ipo) ob->ipo->id.us--;
 	if(ob->action) ob->action->id.us--;
+#endif // XXX old animation system
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
@@ -265,8 +266,9 @@ void free_object(Object *ob)
 	free_actuators(&ob->actuators);
 	
 	free_constraints(&ob->constraints);
-	free_constraint_channels(&ob->constraintChannels);
+#if 0 // XXX old animation system
 	free_nlastrips(&ob->nlastrips);
+#endif
 
 #ifndef DISABLE_PYTHON	
 	BPY_free_scriptlink(&ob->scriptlink);
@@ -300,11 +302,10 @@ void unlink_object(Scene *scene, Object *ob)
 	Scene *sce;
 	Curve *cu;
 	Tex *tex;
-	Ipo *ipo;
 	Group *group;
 	Camera *camera;
 	bConstraint *con;
-	bActionStrip *strip;
+	//bActionStrip *strip; // XXX animsys 
 	ModifierData *md;
 	int a;
 	
@@ -414,6 +415,7 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		
 		/* strips */
+#if 0 // XXX old animation system
 		for(strip= obt->nlastrips.first; strip; strip= strip->next) {
 			if(strip->object==ob)
 				strip->object= NULL;
@@ -425,6 +427,7 @@ void unlink_object(Scene *scene, Object *ob)
 						amod->ob= NULL;
 			}
 		}
+#endif // XXX old animation system
 
 		/* particle systems */
 		if(obt->particlesystem.first) {
@@ -520,6 +523,8 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		sce= sce->id.next;
 	}
+	
+#if 0 // XXX old animation system
 	/* ipos */
 	ipo= G.main->ipo.first;
 	while(ipo) {
@@ -532,6 +537,7 @@ void unlink_object(Scene *scene, Object *ob)
 		}
 		ipo= ipo->id.next;
 	}
+#endif // XXX old animation system
 	
 	/* screens */
 	sc= G.main->screen.first;
@@ -554,6 +560,7 @@ void unlink_object(Scene *scene, Object *ob)
 					}
 				}
 				else if(sl->spacetype==SPACE_IPO) {
+					// XXX animsys this is likely to change...
 					SpaceIpo *sipo= (SpaceIpo *)sl;
 					if(sipo->from == (ID *)ob) sipo->from= NULL;
 				}
@@ -636,7 +643,11 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(cam);
+	
+#if 0 // XXX old animation system
 	id_us_plus((ID *)camn->ipo);
+#endif // XXX old animation system
+
 #ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&camn->scriptlink);
 #endif	
@@ -783,7 +794,9 @@ Lamp *copy_lamp(Lamp *la)
 	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 	
+#if 0 // XXX old animation system
 	id_us_plus((ID *)lan->ipo);
+#endif // XXX old animation system
 
 	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
 #ifndef DISABLE_PYTHON
@@ -866,7 +879,10 @@ void free_lamp(Lamp *la)
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
+	
+#if 0 // XXX old animation system
 	la->ipo= 0;
+#endif // XXX old animation system
 
 	curvemapping_free(la->curfalloff);
 	
@@ -962,8 +978,12 @@ Object *add_only_object(int type, char *name)
 		ob->trackflag= OB_POSY;
 		ob->upflag= OB_POSZ;
 	}
+	
+#if 0 // XXX old animation system
 	ob->ipoflag = OB_OFFS_OB+OB_OFFS_PARENT;
 	ob->ipowin= ID_OB;	/* the ipowin shown */
+#endif // XXX old animation system
+	
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
 	ob->dupfacesca = 1.0;
@@ -1126,6 +1146,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
+#if 0 // XXX old animation system
 			/* note that we can't change lib linked ipo blocks. for making
 			 * proxies this still works correct however because the object
 			 * is changed to object->proxy_from when evaluating the driver. */
@@ -1136,6 +1157,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 						icu->driver->ob= obn;
 				}
 			}
+#endif // XXX old animation system
 			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);
@@ -1192,15 +1214,17 @@ Object *copy_object(Object *ob)
 			armature_rebuild_pose(obn, obn->data);
 	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
+#if 0 // XXX old animation system
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
-	copy_constraints (&obn->constraints, &ob->constraints);
-
-	clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels);
+#endif // XXX old animation system
+	copy_constraints(&obn->constraints, &ob->constraints);
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
+#if 0 // XXX old animation system
 	id_us_plus((ID *)obn->ipo);
 	id_us_plus((ID *)obn->action);
+#endif // XXX old animation system
 	id_us_plus((ID *)obn->dup_group);
 
 	for(a=0; a<obn->totcol; a++) id_us_plus((ID *)obn->mat[a]);
@@ -1227,21 +1251,25 @@ Object *copy_object(Object *ob)
 
 void expand_local_object(Object *ob)
 {
-	bActionStrip *strip;
+	//bActionStrip *strip;
 	ParticleSystem *psys;
 	int a;
-	
+
+#if 0 // XXX old animation system
 	id_lib_extern((ID *)ob->action);
 	id_lib_extern((ID *)ob->ipo);
+#endif // XXX old animation system
 	id_lib_extern((ID *)ob->data);
 	id_lib_extern((ID *)ob->dup_group);
 	
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
 	}
+#if 0 // XXX old animation system
 	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
 		id_lib_extern((ID *)strip->act);
 	}
+#endif // XXX old animation system
 	for(psys=ob->particlesystem.first; psys; psys=psys->next)
 		id_lib_extern((ID *)psys->part);
 }
@@ -1363,7 +1391,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
+#if 0 // XXX old animation system
 	ob->ipo= target->ipo;		/* libdata */
+#endif // XXX old animation system
 	
 	/* skip constraints, constraintchannels, nla? */
 	
@@ -1424,6 +1454,7 @@ void disable_speed_curve(int val)
 	no_speed_curve= val;
 }
 
+// XXX THIS CRUFT NEEDS SERIOUS RECODING ASAP!
 /* ob can be NULL */
 float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 {
@@ -1435,6 +1466,7 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 	/* global time */
 	cfra*= scene->r.framelen;	
 	
+#if 0 // XXX old animation system
 	if (ob) {
 		if (no_speed_curve==0 && ob->ipo)
 			cfra= calc_ipo_time(ob->ipo, cfra);
@@ -1443,6 +1475,7 @@ float bsystem_time(struct Scene *scene, Object *ob, float cfra, float ofs)
 		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
 			cfra-= give_timeoffset(ob);
 	}
+#endif // XXX old animation system
 	
 	cfra-= ofs;
 
@@ -1548,10 +1581,12 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	else if(enable_cu_speed) {
 		ctime= bsystem_time(scene, ob, (float)scene->r.cfra, 0.0);
 		
+#if 0 // XXX old animation system
 		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 			ctime /= cu->pathlen;
 			CLAMP(ctime, 0.0, 1.0);
 		}
+#endif // XXX old animation system
 	}
 	else {
 		ctime= scene->r.cfra - give_timeoffset(ob);
@@ -1766,6 +1801,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	}
 }
 
+// XXX what the hell is this?
 static int no_parent_ipo=0;
 void set_no_parent_ipo(int val)
 {
@@ -1795,7 +1831,7 @@ int during_scriptlink(void) {
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime, fac1, fac2, vec[3];
+	float stime=ctime, fac1, fac2, vec[3];
 	int a;
 	int pop; 
 	
@@ -1805,6 +1841,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
+#if 0 // XXX old animation system
 	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
 	stime= bsystem_time(scene, ob, ctime, 0.0);
 	if(stime != ob->ctime) {
@@ -1827,10 +1864,15 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
 	}
+#endif // XXX old animation system
+
+	/* execute drivers only, as animation has already been done */
+	BKE_animsys_evaluate_animdata(&ob->id, &ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
 	if(ob->parent) {
 		Object *par= ob->parent;
 		
+		// XXX depreceated - animsys
 		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= give_timeoffset(ob);
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
@@ -2019,7 +2061,7 @@ void where_is_object_simul(Scene *scene, Object *ob)
 for a lamp that is the child of another object */
 {
 	Object *par;
-	Ipo *ipo;
+	//Ipo *ipo;
 	float *fp1, *fp2;
 	float slowmat[4][4];
 	float fac1, fac2;
@@ -2028,8 +2070,9 @@ for a lamp that is the child of another object */
 	/* NO TIMEOFFS */
 	
 	/* no ipo! (because of dloc and realtime-ipos) */
-	ipo= ob->ipo;
-	ob->ipo= NULL;
+		// XXX old animation system
+	//ipo= ob->ipo;
+	//ob->ipo= NULL;
 
 	if(ob->parent) {
 		par= ob->parent;
@@ -2065,7 +2108,8 @@ for a lamp that is the child of another object */
 	}
 	
 	/*  WATCH IT!!! */
-	ob->ipo= ipo;
+		// XXX old animation system
+	//ob->ipo= ipo;
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
@@ -2287,14 +2331,22 @@ void object_handle_update(Scene *scene, Object *ob)
 				lattice_calc_modifiers(scene, ob);
 			}
 			else if(ob->type==OB_CAMERA) {
-				Camera *cam = (Camera *)ob->data;
-				calc_ipo(cam->ipo, frame_to_float(scene, scene->r.cfra));
-				execute_ipo(&cam->id, cam->ipo);
+				//Camera *cam = (Camera *)ob->data;
+				
+					// xxx old animation code here
+				//calc_ipo(cam->ipo, frame_to_float(scene, scene->r.cfra));
+				//execute_ipo(&cam->id, cam->ipo);
+				
+				// in new system, this has already been done! - aligorith
 			}
 			else if(ob->type==OB_LAMP) {
-				Lamp *la = (Lamp *)ob->data;
-				calc_ipo(la->ipo, frame_to_float(scene, scene->r.cfra));
-				execute_ipo(&la->id, la->ipo);
+				//Lamp *la = (Lamp *)ob->data;
+				
+					// xxx old animation code here
+				//calc_ipo(la->ipo, frame_to_float(scene, scene->r.cfra));
+				//execute_ipo(&la->id, la->ipo);
+				
+				// in new system, this has already been done! - aligorith
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this happens for reading old files and to match library armatures with poses */
@@ -2306,7 +2358,7 @@ void object_handle_update(Scene *scene, Object *ob)
 					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
 				}
 				else {
-					do_all_pose_actions(scene, ob);
+					//do_all_pose_actions(scene, ob);  // xxx old animation system
 					where_is_pose(scene, ob);
 				}
 			}

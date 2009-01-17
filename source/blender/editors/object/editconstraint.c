@@ -52,7 +52,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_ipo.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -71,63 +70,6 @@ static int okee() {return 0;}
 static int pupmenu() {return 0;}
 
 /* -------------- Get Active Constraint Data ---------------------- */
-
-ListBase *get_active_constraint_channels (Scene *scene, Object *ob, int forcevalid)
-{
-	char ipstr[64];
-	
-	if (ob == NULL)
-		return NULL;
-	
-	/* See if we are a bone constraint */
-	if (ob->flag & OB_POSEMODE) {
-		bActionChannel *achan;
-		bPoseChannel *pchan;
-		
-		pchan = get_active_posechannel(ob);
-		if (pchan) {
-			/* Make sure we have an action */
-			if (ob->action == NULL) {
-				if (forcevalid == 0)
-					return NULL;
-				
-				ob->action= add_empty_action("Action");
-			}
-			
-			/* Make sure we have an actionchannel */
-			achan = get_action_channel(ob->action, pchan->name);
-			if (achan == NULL) {
-				if (forcevalid == 0)
-					return NULL;
-				
-				achan = MEM_callocN (sizeof(bActionChannel), "ActionChannel");
-				
-				strcpy(achan->name, pchan->name);
-				sprintf(ipstr, "%s.%s", ob->action->id.name+2, achan->name);
-				ipstr[23]=0;
-				achan->ipo=	add_ipo(scene, ipstr, ID_AC);	
-				
-				BLI_addtail(&ob->action->chanbase, achan);
-			}
-			
-			return &achan->constraintChannels;
-		}
-		else 
-			return NULL;
-	}
-	/* else we return object constraints */
-	else {
-		if (ob->ipoflag & OB_ACTION_OB) {
-			bActionChannel *achan = get_action_channel(ob->action, "Object");
-			if (achan)
-				return &achan->constraintChannels;
-			else 
-				return NULL;
-		}
-		
-		return &ob->constraintChannels;
-	}
-}
 
 
 /* if object in posemode, active bone constraints, else object constraints */
@@ -170,10 +112,9 @@ bConstraint *get_active_constraint (Object *ob)
 bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
 {
 	bConstraint *con;
-	bConstraintChannel *chan;
 	
 	if (ob->flag & OB_POSEMODE) {
-		if (ob->action) {
+		//if (ob->action) { // XXX old animation system
 			bPoseChannel *pchan;
 			
 			pchan = get_active_posechannel(ob);
@@ -184,6 +125,7 @@ bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
 				}
 				
 				if (con) {
+#if 0 // XXX old animation system
 					bActionChannel *achan = get_action_channel(ob->action, pchan->name);
 					if (achan) {
 						for (chan= achan->constraintChannels.first; chan; chan= chan->next) {
@@ -192,9 +134,10 @@ bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
 						}
 						return chan;
 					}
+#endif // XXX old animation system
 				}
 			}
-		}
+		//} // xxx old animation system
 	}
 	else {
 		for (con= ob->constraints.first; con; con= con->next) {
@@ -203,6 +146,7 @@ bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
 		}
 		
 		if (con) {
+#if 0 // XXX old animation system
 			ListBase *lb= get_active_constraint_channels(scene, ob, 0);
 			
 			if (lb) {
@@ -213,6 +157,7 @@ bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
 				
 				return chan;
 			}
+#endif // XXX old animation system
 		}
 	}
 	
@@ -645,7 +590,6 @@ void ob_clear_constraints (Scene *scene)
 void rename_constraint (Object *ob, bConstraint *con, char *oldname)
 {
 	bConstraint *tcon;
-	bConstraintChannel *conchan;
 	ListBase *conlist= NULL;
 	int from_object= 0;
 	char *channame="";
@@ -686,24 +630,6 @@ void rename_constraint (Object *ob, bConstraint *con, char *oldname)
 	
 	/* first make sure it's a unique name within context */
 	unique_constraint_name (con, conlist);
-
-	/* own channels */
-	if (from_object) {
-		for (conchan= ob->constraintChannels.first; conchan; conchan= conchan->next) {
-			if ( strcmp(oldname, conchan->name)==0 )
-				BLI_strncpy(conchan->name, con->name, sizeof(conchan->name));
-		}
-	}
-	
-	/* own action */
-	if (ob->action) {
-		bActionChannel *achan= get_action_channel(ob->action, channame);
-		if (achan) {
-			conchan= get_constraint_channel(&achan->constraintChannels, oldname);
-			if (conchan)
-				BLI_strncpy(conchan->name, con->name, sizeof(conchan->name));
-		}
-	}
 }
 
 

@@ -31,15 +31,10 @@
 struct ListBase;
 struct ID;
 
-struct Ipo;
-struct IpoCurve;
+struct FCurve;
 struct BezTriple;
 
-/* ************ IPO/IPO-Curve Management ************** */
-// XXX these will need to be updated for RNA-IPO stuff
-
-struct Ipo *verify_ipo(struct ID *from, short blocktype, char actname[], char constname[], char bonename[], short add);
-struct IpoCurve *verify_ipocurve(struct ID *from, short blocktype, char actname[], char constname[], char bonename[], int adrcode, short add);
+struct wmOperatorType;
 
 /* ************ Keyframing Management **************** */
 
@@ -47,13 +42,13 @@ struct IpoCurve *verify_ipocurve(struct ID *from, short blocktype, char actname[
  *	Use this when validation of necessary animation data isn't necessary as it already
  * 	exists, and there is a beztriple that can be directly copied into the array.
  */
-int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
+int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
 
 /* Main Keyframing API call: 
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will insert a keyframe using the current value being keyframed.
  */
-void insert_vert_icu(struct IpoCurve *icu, float x, float y, short flag);
+void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
 
 
 /* flags for use by keyframe creation/deletion calls */
@@ -78,21 +73,20 @@ enum {
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-	// TODO: adapt this for new data-api -> this blocktype, etc. stuff is evil!
-short insertkey(struct ID *id, int blocktype, char *actname, char *constname, int adrcode, short flag);
+short insertkey(struct ID *id, const char rna_path[], int array_index, float cfra, short flag);
 
 /* Main Keyframing API call: 
  * 	Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
  */
-short deletekey(struct ID *id, int blocktype, char *actname, char *constname, int adrcode, short flag);
+short deletekey(struct ID *id, const char rna_path[], int array_index, float cfra, short flag);
 
 
-/* Main Keyframe Management calls: 
+/* Main Keyframe Management operators: 
  *	These handle keyframes management from various spaces. They will handle the menus 
  * 	required for each space.
  */
-void common_insertkey(const struct bContext *C);
-void common_deletekey(const struct bContext *C);
+void ANIM_OT_insert_keyframe(struct wmOperatorType *ot);
+void ANIM_OT_delete_keyframe(struct wmOperatorType *ot);
 
 /* ************ Auto-Keyframing ********************** */
 /* Notes:

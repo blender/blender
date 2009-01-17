@@ -35,6 +35,8 @@
 extern "C" {
 #endif
 
+#if 0 // XXX old animation system
+
 typedef struct CfraElem {
 	struct CfraElem *next, *prev;
 	float cfra;
@@ -144,6 +146,8 @@ void clear_delta_obipo(struct Ipo *ipo);
 
 short IPO_GetChannels(struct Ipo *ipo, short *channels);
 float IPO_GetFloatValue(struct Ipo *ipo, short c, float ctime);
+
+#endif // XXX old animation system
 
 #ifdef __cplusplus
 };
