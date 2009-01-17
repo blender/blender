@@ -64,7 +64,6 @@ void ED_object_base_init_from_view(struct Scene *scene, struct View3D *v3d, stru
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);
-int object_is_libdata(struct Object *ob);
 
 /* constraints */
 struct bConstraint *add_new_constraint (short type);

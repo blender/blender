@@ -448,6 +448,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 	if(ot->poll==NULL || ot->poll(C)) {
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 
+		if((G.f & G_DEBUG) && event->type!=MOUSEMOVE)
+			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
+		
 		/* XXX adding new operator could be function, only happens here now */
 		op->type= ot;
 		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
@@ -838,8 +841,6 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				
 				for(kmi= handler->keymap->first; kmi; kmi= kmi->next) {
 					if(wm_eventmatch(event, kmi)) {
-						if((G.f & G_DEBUG) && event->type!=MOUSEMOVE)
-							printf("handle evt %d win %d op %s\n", event->type, CTX_wm_screen(C)->subwinactive, kmi->idname); 
 						
 						event->keymap_idname= kmi->idname;	/* weak, but allows interactive callback to not use rawkey */
 						

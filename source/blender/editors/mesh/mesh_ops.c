@@ -57,7 +57,46 @@
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 
+#include "BIF_transform.h"
+
 #include "mesh_intern.h"
+
+
+static int mesh_add_duplicate_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)ob->data)->edit_mesh;
+
+	adduplicateflag(em, SELECT);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int mesh_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	mesh_add_duplicate_exec(C, op);
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void MESH_OT_add_duplicate(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Add Duplicate";
+	ot->idname= "MESH_OT_add_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= mesh_add_duplicate_invoke;
+	ot->exec= mesh_add_duplicate_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
 
 
 /* ************************** registration **********************************/
@@ -90,6 +129,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_add_primitive_monkey);
 	WM_operatortype_append(MESH_OT_add_primitive_uv_sphere);
 	WM_operatortype_append(MESH_OT_add_primitive_ico_sphere);
+	WM_operatortype_append(MESH_OT_add_duplicate);
 
 }
 
@@ -127,6 +167,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 
 	/* add */
+	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_plane", ZEROKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_cube", ONEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_add_primitive_circle", TWOKEY, KM_PRESS, KM_CTRL, 0);

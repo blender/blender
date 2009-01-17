@@ -1503,7 +1503,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
 	short mx, my, mval[2];
 //	short ctrl= 0; // XXX

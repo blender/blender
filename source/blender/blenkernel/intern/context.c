@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
@@ -162,6 +163,14 @@ SpaceLink *CTX_wm_space_data(const bContext *C)
 {
 	return (C->wm.area)? C->wm.area->spacedata.first: NULL;
 }
+
+View3D *CTX_wm_view3d(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 
 ARegion *CTX_wm_region(const bContext *C)
 {
@@ -365,6 +374,16 @@ ToolSettings *CTX_data_tool_settings(const bContext *C)
 int CTX_data_selected_nodes(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, CTX_data_selected_nodes, list);
+}
+
+int CTX_data_selected_editable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_editable_objects, list);
+}
+
+int CTX_data_selected_editable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_editable_bases, list);
 }
 
 int CTX_data_selected_objects(const bContext *C, ListBase *list)

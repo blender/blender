@@ -95,7 +95,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar= CTX_wm_region(C);
 	vc->scene= CTX_data_scene(C);
-	vc->v3d= (View3D *)CTX_wm_space_data(C);
+	vc->v3d= CTX_wm_view3d(C);
 	vc->obact= CTX_data_active_object(C);
 	vc->obedit= CTX_data_edit_object(C); 
 }
@@ -911,7 +911,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 {
 	ViewContext vc;
 	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
 	unsigned int buffer[4*MAXPICKBUF];

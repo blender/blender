@@ -85,6 +85,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_set_center);
 	WM_operatortype_append(OBJECT_OT_make_dupli_real);
 	WM_operatortype_append(OBJECT_OT_object_add);
+	WM_operatortype_append(OBJECT_OT_add_duplicate);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -119,6 +120,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_object_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);

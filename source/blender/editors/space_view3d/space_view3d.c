@@ -320,13 +320,25 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+static int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
 
 static int view3d_context(const bContext *C, const bContextDataMember *member, bContextDataResult *result)
 {
-	View3D *v3d= (View3D*)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
 
+	if(v3d==NULL) return 0;
+	
 	if(ELEM(member, CTX_data_selected_objects, CTX_data_selected_bases)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
@@ -341,11 +353,27 @@ static int view3d_context(const bContext *C, const bContextDataMember *member, b
 
 		return 1;
 	}
+	else if(ELEM(member, CTX_data_selected_editable_objects, CTX_data_selected_editable_bases)) {
+		for(base=scene->base.first; base; base=base->next) {
+			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if(0==object_is_libdata(base->object)) {
+						if(member == CTX_data_selected_editable_objects)
+							CTX_data_list_add(result, base->object);
+						else
+							CTX_data_list_add(result, base);
+					}
+				}
+			}
+		}
+		
+		return 1;
+	}
 	else if(ELEM(member, CTX_data_visible_objects, CTX_data_visible_bases)) {
 		for(base=scene->base.first; base; base=base->next) {
 			if(base->lay & v3d->lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
-					if(member == CTX_data_selected_objects)
+					if(member == CTX_data_visible_objects)
 						CTX_data_list_add(result, base->object);
 					else
 						CTX_data_list_add(result, base);

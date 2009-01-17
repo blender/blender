@@ -95,6 +95,7 @@ struct wmWindow *CTX_wm_window(const bContext *C);
 struct bScreen *CTX_wm_screen(const bContext *C);
 struct ScrArea *CTX_wm_area(const bContext *C);
 struct SpaceLink *CTX_wm_space_data(const bContext *C);
+struct View3D *CTX_wm_view3d(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct uiBlock *CTX_wm_ui_block(const bContext *C);
@@ -140,6 +141,9 @@ struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *bmain);
+
+int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
+int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);
 
 int CTX_data_selected_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_bases(const bContext *C, ListBase *list);
