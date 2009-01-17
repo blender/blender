@@ -478,6 +478,7 @@ static void node_join(BVHTree *tree, BVHNode *node)
 /*
  * Debug and information functions
  */
+#if 0
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
 	int i;
@@ -509,6 +510,7 @@ static void bvhtree_info(BVHTree *tree)
 
 //	bvhtree_print_tree(tree, tree->nodes[tree->totleaf], 0);
 }
+#endif
 
 #if 0
 
@@ -1238,7 +1240,7 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		int i;
 		float nearest[3];
 
-		if(data->proj[ node->main_axis ] <= node->children[0]->bv[node->main_axis*2+1])
+		if(data->proj[ (int)node->main_axis ] <= node->children[0]->bv[(int)node->main_axis*2+1])
 		{
 
 			for(i=0; i != node->totnode; i++)
@@ -1267,6 +1269,7 @@ static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 }
 
 
+#if 0
 static void NodeDistance_push_heap(NodeDistance *heap, int heap_size)
 PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
 
@@ -1350,7 +1353,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	if(heap != default_heap)
 		free(heap);
 }
-
+#endif
 
 int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nearest, BVHTree_NearestPointCallback callback, void *userdata)
 {
@@ -1463,7 +1466,7 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 	else
 	{
 		//pick loop direction to dive into the tree (based on ray direction and split axis)
-		if(data->ray_dot_axis[ node->main_axis ] > 0.0f)
+		if(data->ray_dot_axis[ (int)node->main_axis ] > 0.0f)
 		{
 			for(i=0; i != node->totnode; i++)
 			{

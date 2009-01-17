@@ -1416,7 +1416,7 @@ static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
 	
 	/* if ks is shapekey entry (this could be callled for separator before too!) */
 	if (ks->flag == -3)
-		sprintf(ks->name, newname);
+		BLI_strncpy(ks->name, newname, sizeof(ks->name));
 	
 	/* if it gets here, it's ok */
 	return 1;

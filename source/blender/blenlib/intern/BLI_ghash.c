@@ -253,7 +253,7 @@ int BLI_ghashIterator_isDone(GHashIterator *ghi) {
 /***/
 
 unsigned int BLI_ghashutil_ptrhash(void *key) {
-	return (unsigned int) key;
+	return (unsigned int)(intptr_t)key;
 }
 int BLI_ghashutil_ptrcmp(void *a, void *b) {
 	if (a==b)

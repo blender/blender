@@ -5366,7 +5366,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			}
 			case SPACE_FILE:
  			{
-				SpaceFile *sfile= (SpaceFile *)sl;
+				// SpaceFile *sfile= (SpaceFile *)sl;
 				ar->v2d.tot.xmin = ar->v2d.tot.ymin = 0;
 				ar->v2d.tot.xmax = ar->winx;
 				ar->v2d.tot.ymax = ar->winy;

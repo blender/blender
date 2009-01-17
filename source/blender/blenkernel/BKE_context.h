@@ -127,10 +127,10 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list); \
 	}
 
-#define CTX_DATA_COUNT(C, member, i) \
-	CTX_DATA_BEGIN(C, void*, unused, member) \
-		i++; \
-	CTX_DATA_END
+int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase*));
+
+#define CTX_DATA_COUNT(C, member) \
+	ctx_data_list_count(C, CTX_data_##member)
 
 /* Data Context Members */
 

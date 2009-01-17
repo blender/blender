@@ -34,7 +34,7 @@ float DenseSize(int n, float sum_nw);
 
 void superlu_abort_and_exit(char* msg)
 {
-    fprintf(stderr, msg);
+    fprintf(stderr, "%s", msg);
     exit (-1);
 }
 

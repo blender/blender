@@ -4263,6 +4263,7 @@ float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 	return lambda;
 }
 
+#if 0
 /* little sister we only need to know lambda */
 static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 {
@@ -4271,6 +4272,7 @@ static float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	VecSubf(h, p, l1);
 	return(Inpf(u,h)/Inpf(u,u));
 }
+#endif
 
 /* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
 void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
@@ -4423,7 +4425,7 @@ int IsPointInTri2D(float v0[2], float v1[2], float v2[2], float pt[2])
 		Vec2Copyf(v2_3d, v2);
 		
 		/* Doing this in 3D is not nice */
-		return LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, &uv);
+		return LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
 }
 
 /*
@@ -4505,6 +4507,7 @@ but see a 'spat' which is a deformed cube with paired parallel planes needs only
 	return 1;
 }
 
+#if 0
 /*adult sister defining the slice planes by the origin and the normal  
 NOTE |normal| may not be 1 but defining the thickness of the slice*/
 static int point_in_slice_as(float p[3],float origin[3],float normal[3])
@@ -4525,6 +4528,7 @@ static int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns
 	if (h < 0.0f || h > 1.0f) return 0;
 	return 1;
 }
+#endif
 
 
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])

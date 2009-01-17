@@ -558,7 +558,7 @@ cineonOpen(const char* filename) {
 	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
 	if (cineon->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * sizeof(unsigned short));
+				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
 		cineonClose(cineon);
 		return 0;
 	}
@@ -658,7 +658,7 @@ cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
 	if (cineon->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * sizeof(unsigned short));
+				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
 		cineonClose(cineon);
 		return 0;
 	}
@@ -744,7 +744,7 @@ cineonCreate(const char* filename, int width, int height, int depth) {
 	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
 	if (cineon->pixelBuffer == 0) {
 		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * sizeof(unsigned short));
+				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
 		cineonClose(cineon);
 		return 0;
 	}

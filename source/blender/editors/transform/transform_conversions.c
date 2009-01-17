@@ -4153,7 +4153,7 @@ void createTransNodeData(bContext *C, TransInfo *t)
 	TransData *td;
 	TransData2D *td2d;
 	
-	CTX_DATA_COUNT(C, selected_nodes, t->total)
+	t->total= CTX_DATA_COUNT(C, selected_nodes);
 	
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransNode TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode TransData2D");

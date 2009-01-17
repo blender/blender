@@ -8604,7 +8604,7 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 
 		if(mti->requiredDataMask) mask = mti->requiredDataMask(md);
 
-		BLI_linklist_prepend(&dataMasks, (void *)mask);
+		BLI_linklist_prepend(&dataMasks, SET_INT_IN_POINTER(mask));
 	}
 
 	/* build the list of required data masks - each mask in the list must
@@ -8615,14 +8615,14 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 	*/
 	for(curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
 		if(prev) {
-			CustomDataMask prev_mask = (CustomDataMask)prev->link;
-			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+			CustomDataMask prev_mask = (CustomDataMask)GET_INT_FROM_POINTER(prev->link);
+			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 
-			curr->link = (void *)(curr_mask | prev_mask);
+			curr->link = SET_INT_IN_POINTER(curr_mask | prev_mask);
 		} else {
-			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 
-			curr->link = (void *)(curr_mask | dataMask);
+			curr->link = SET_INT_IN_POINTER(curr_mask | dataMask);
 		}
 	}
 

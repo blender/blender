@@ -290,7 +290,7 @@ unsigned int SND_GetBitRate(void* sample)
 
 
 /* gets the length of the actual sample data (without the header) */
-unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
+unsigned int SND_GetNumberOfSamples(void* sample, unsigned int sample_length)
 {
 	unsigned int chunklength, length = 0, offset;
 	unsigned short block_align;
@@ -330,7 +330,7 @@ unsigned int SND_GetNumberOfSamples(void* sample, int sample_length)
 
 
 /* gets the size of the entire header (file - sampledata) */
-unsigned int SND_GetHeaderSize(void* sample, int sample_length)
+unsigned int SND_GetHeaderSize(void* sample, unsigned int sample_length)
 {
 	unsigned int chunklength, headersize = 0, offset = 16;
 	unsigned short block_align;

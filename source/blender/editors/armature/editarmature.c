@@ -747,7 +747,7 @@ int join_armature(Scene *scene, View3D *v3d)
 					joined_armature_fix_links(ob, base->object, pchan, curbone);
 					
 					/* Rename pchan */
-					sprintf(pchan->name, curbone->name);
+					BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
 					
 					/* Jump Ship! */
 					BLI_remlink(curarm->edbo, curbone);

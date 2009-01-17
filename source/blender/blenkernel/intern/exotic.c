@@ -3329,7 +3329,7 @@ static int read_groupf(char *str)
 }
 
 //XXX error() is now printf until we have a callback error
-#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);printf(errmsg); return;}
+#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);printf("%s", errmsg); return;}
 
 #define read_group(id,str) {id= read_groupf(str); id_test(id);}
 

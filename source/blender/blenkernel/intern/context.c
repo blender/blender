@@ -310,6 +310,16 @@ void CTX_data_list_add(bContextDataResult *result, void *data)
 	BLI_addtail(&result->list, link);
 }
 
+int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase*))
+{
+	ListBase list;
+
+	if(func(C, &list))
+		return BLI_countlist(&list);
+	else
+		return 0;
+}
+
 /* data context */
 
 Main *CTX_data_main(const bContext *C)

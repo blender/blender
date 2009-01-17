@@ -43,8 +43,6 @@
 #include "BLI_listbase.h"
 
 
-static int add_win32_extension(char *name);
-
 /* implementation */
 
 /* Ripped this from blender.c */
