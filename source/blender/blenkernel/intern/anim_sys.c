@@ -25,7 +25,7 @@
 /* AnimData API */
 
 /* Get AnimData from the given ID-block. In order for this to work, we assume that 
- * the AnimData block is stored immediately after the given ID-block in the struct,
+ * the AnimData pointer is stored immediately after the given ID-block in the struct,
  * as per IdAdtTemplate.
  */
 AnimData *BKE_animdata_from_id (ID *id)
@@ -36,7 +36,7 @@ AnimData *BKE_animdata_from_id (ID *id)
 		
 	/* only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate, and extract the
-	 * animdata that way
+	 * AnimData that way
 	 */
 	// TODO: finish adding this for the other blocktypes
 	switch (GS(id->name)) {
@@ -47,7 +47,7 @@ AnimData *BKE_animdata_from_id (ID *id)
 		case ID_SCE:
 		{
 			IdAdtTemplate *iat= (IdAdtTemplate *)id;
-			return &(iat->adt);
+			return iat->adt;
 		}
 			break;
 	}
@@ -55,6 +55,41 @@ AnimData *BKE_animdata_from_id (ID *id)
 	/* no AnimData (ID-block does not contain this data) */
 	return NULL;
 }
+
+/* Add AnimData to the given ID-block. In order for this to work, we assume that 
+ * the AnimData pointer is stored immediately after the given ID-block in the struct,
+ * as per IdAdtTemplate. Also note that 
+ */
+AnimData *BKE_id_add_animdata (ID *id)
+{
+	/* sanity check */
+	if (id == NULL)
+		return NULL;
+		
+	/* only some ID-blocks have this info for now, so we cast the 
+	 * types that do to be of type IdAdtTemplate, and add AnimData that
+	 * way
+	 */
+	// TODO: finish adding this for the other blocktypes
+	switch (GS(id->name)) {
+		case ID_OB:
+		case ID_KE:
+		case ID_MA: case ID_TE:
+		case ID_LA: case ID_CA: case ID_WO:
+		case ID_SCE:
+		{
+			IdAdtTemplate *iat= (IdAdtTemplate *)id;
+			
+			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+			return iat->adt;
+		}
+			break;
+	}
+	
+	/* no AnimData (ID-block does not contain this data) */
+	return NULL;
+}
+
 
 /* Obtain an RNA-Path from the given ID-block to the property of interest 
  *	- id: ID block that will be used as the 'root' of the path
@@ -541,8 +576,8 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	
 	/* objects */
 	for (id= main->object.first; id; id= id->next) {
-		IdAdtTemplate *iat= (IdAdtTemplate *)id;
-		BKE_animsys_evaluate_animdata(id, &iat->adt, ctime, ADT_RECALC_ANIM);
+		AnimData *adt= BKE_animdata_from_id(id);
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
 	}
 }
 

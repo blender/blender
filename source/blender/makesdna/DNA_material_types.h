@@ -32,7 +32,6 @@
 #define DNA_MATERIAL_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 #include "DNA_listBase.h"
 
@@ -44,13 +43,14 @@ struct MTex;
 struct ColorBand;
 struct Group;
 struct bNodeTree;
+struct AnimData;
 struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct Material {
 	ID id;
-	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short colormodel, flag;	
 	/* note, keep this below synced with render_types.h */

@@ -32,7 +32,6 @@
 #define DNA_CAMERA_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
@@ -45,7 +44,7 @@ struct Ipo;
 
 typedef struct Camera {
 	ID id;
-	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, flag;
 	float passepartalpha, angle;

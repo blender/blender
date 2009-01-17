@@ -5,6 +5,10 @@
 #ifndef DNA_ANIM_TYPES_H
 #define DNA_ANIM_TYPES_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 #include "DNA_curve_types.h"
@@ -579,9 +583,13 @@ enum {
  */
 typedef struct IdAdtTemplate {
 	ID id;
-	AnimData adt;
+	AnimData *adt;
 } IdAdtTemplate;
 
 /* ************************************************ */
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* DNA_ANIM_TYPES_H */

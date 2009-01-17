@@ -32,9 +32,9 @@
 #define DNA_WORLD_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 
+struct AnimData;
 struct Ipo;
 struct MTex;
 
@@ -49,7 +49,7 @@ struct MTex;
  * data and modeling data. */
 typedef struct World {
 	ID id;
-	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short colormodel, totex;
 	short texact, mistype;

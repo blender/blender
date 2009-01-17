@@ -35,7 +35,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
@@ -44,6 +43,7 @@ extern "C" {
 
 struct bPose;	
 struct Object;
+struct AnimData;
 struct Ipo;
 struct BoundBox;
 struct Path;
@@ -91,7 +91,7 @@ typedef struct BoundBox {
 
 typedef struct Object {
 	ID id;
-	AnimData adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */

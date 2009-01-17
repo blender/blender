@@ -16,6 +16,9 @@ struct AnimData;
 /* Get AnimData from the given ID-block. */
 struct AnimData *BKE_animdata_from_id(struct ID *id);
 
+/* Add AnimData to the given ID-block */
+struct AnimData *BKE_id_add_animdata(struct ID *id);
+
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's
 

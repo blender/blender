@@ -32,9 +32,9 @@
 #define DNA_TEXTURE_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_anim_types.h"
 #include "DNA_image_types.h"
 
+struct AnimData;
 struct Ipo;
 struct PluginTex;
 struct ColorBand;
@@ -130,7 +130,7 @@ typedef struct EnvMap {
 
 typedef struct Tex {
 	ID id;
-	struct AnimData adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	float noisesize, turbul;
 	float bright, contrast, rfac, gfac, bfac;

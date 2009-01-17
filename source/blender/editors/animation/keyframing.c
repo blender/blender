@@ -97,14 +97,24 @@ typedef struct bKeyingContext {
  * for the given Animation Data block 
  */
 // TODO: should we check if path is valid? For now, assume that it's already set OK by caller...
-FCurve *verify_fcurve (AnimData *adt, const char rna_path[], const int array_index, short add)
+FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
+	AnimData *adt;
 	nAction *act;
 	FCurve *fcu;
 	
 	/* sanity checks */
-	if ELEM(NULL, adt, rna_path)
+	if ELEM(NULL, id, rna_path)
 		return NULL;
+	
+	/* init animdata if none available yet */
+	adt= BKE_animdata_from_id(id);
+	if ((adt == NULL) && (add))
+		adt= BKE_id_add_animdata(id);
+	if (adt == NULL) { 
+		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+		return NULL;
+	}
 		
 	/* init action if none available yet */
 	// TODO: need some wizardry to handle NLA stuff correct
@@ -704,7 +714,6 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
-	AnimData *adt;
 	FCurve *fcu;
 	
 	/* validate pointer first - exit if failure*/
@@ -715,8 +724,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	}
 	
 	/* get F-Curve */
-	adt= BKE_animdata_from_id(id);
-	fcu= verify_fcurve(adt, rna_path, array_index, 1);
+	fcu= verify_fcurve(id, rna_path, array_index, 1);
 	
 	/* only continue if we have an F-Curve to add keyframe to */
 	if (fcu) {
@@ -802,8 +810,7 @@ short insertkey (ID *id, const char rna_path[], int array_index, float cfra, sho
  */
 short deletekey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
 {
-	AnimData *adt= BKE_animdata_from_id(id);
-	nAction *act;
+	AnimData *adt;
 	FCurve *fcu;
 	
 	/* get F-Curve
@@ -811,11 +818,12 @@ short deletekey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	 * 		so 'add' var must be 0
 	 */
 	// XXX we don't check the validity of the path here yet, but it should be ok...
-	fcu= verify_fcurve(adt, rna_path, array_index, 0);
-	act= adt->action;
+	fcu= verify_fcurve(id, rna_path, array_index, 0);
+	adt= BKE_animdata_from_id(id);
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
-	if (act && fcu) {
+	if (adt && adt->action && fcu) {
+		nAction *act= adt->action;
 		short found = -1;
 		int i;
 		
@@ -2107,12 +2115,13 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	{
 		Object *ob= base->object;
 		ID *id= (ID *)ob;
-		nAction *act= ob->adt.action;
 		FCurve *fcu, *fcn;
 		short success= 0;
 		
 		/* loop through all curves in animdata and delete keys on this frame */
-		if (act) {
+		if (ob->adt) {
+			nAction *act= ob->adt->action;
+			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
 				success+= deletekey(id, fcu->rna_path, fcu->array_index, cfra, 0);
@@ -2197,12 +2206,12 @@ short action_frame_has_keyframe (nAction *act, float frame, short filter)
 short object_frame_has_keyframe (Object *ob, float frame, short filter)
 {
 	/* error checking */
-	if (ob == NULL)
+	if (ELEM(NULL, ob, ob->adt))
 		return 0;
 	
 	/* check own animation data - specifically, the action it contains */
-	if (ob->adt.action) {
-		if (action_frame_has_keyframe(ob->adt.action, frame, filter))
+	if (ob->adt->action) {
+		if (action_frame_has_keyframe(ob->adt->action, frame, filter))
 			return 1;
 	}
 	
