@@ -2167,30 +2167,36 @@ void MESH_OT_selectconnected_mesh_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= selectconnected_mesh_all_exec;
 	ot->poll= ED_operator_editmesh;
+
 }
 
+/* *********** select connected ************* */
+
 // XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh if true
-void selectconnected_mesh(bContext *C)
+static int selectconnected_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	ViewContext vc;
 	EditVert *eve, *v1, *v2;
 	EditEdge *eed;
 	EditFace *efa;
-	short done=1, sel, toggle=0;
-	int shift= 0; // XXX
-		
+	short done=1, toggle=0;
+	int sel= !RNA_boolean_get(op->ptr, "deselect");
+	
+	/* unified_finednearest needs ogl */
+	view3d_operator_needs_opengl(C);
+	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
 	
-	if(vc.em->edges.first==0) return;
+	if(vc.em->edges.first==0) return OPERATOR_CANCELLED;
+	
+	vc.mval[0]= event->x - vc.ar->winrct.xmin;
+	vc.mval[1]= event->y - vc.ar->winrct.ymin;
 	
 	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
-		/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
-		return;
+		return OPERATOR_CANCELLED;
 	}
-	
-	sel= 1;
-	if(shift) sel=0;
 
 	/* clear test flags */
 	for(v1= vc.em->verts.first; v1; v1= v1->next) v1->f1= 0;
@@ -2243,14 +2249,6 @@ void selectconnected_mesh(bContext *C)
 	
 	BIF_undo_push("Select Linked");
 	
-}
-
-static int selectconnected_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	
-	selectconnected_mesh(C);
-	
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
 }
@@ -2262,9 +2260,13 @@ void MESH_OT_selectconnected_mesh(wmOperatorType *ot)
 	ot->idname= "MESH_OT_selectconnected_mesh";
 	
 	/* api callbacks */
-	ot->exec= selectconnected_mesh_exec;
+	ot->invoke= selectconnected_mesh_invoke;
 	ot->poll= ED_operator_editmesh;
+
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
 }
+
+/* ************************* */
 
 /* for use with selectconnected_delimit_mesh only! */
 #define is_edge_delimit_ok(eed) ((eed->tmp.l == 1) && (eed->seam==0))
