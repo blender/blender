@@ -66,6 +66,7 @@ OPTION(WITH_PYTHON		"Enable Embedded Python API"				ON)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
+OPTION(WITH_YAFRAY		"Enable Yafray (Renderer)"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
