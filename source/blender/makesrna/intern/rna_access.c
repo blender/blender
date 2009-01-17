@@ -511,18 +511,28 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	return !(flag & PROP_NOT_EDITABLE);
 }
 
-int RNA_property_evaluated(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int flag;
 
 	rna_idproperty_check(&prop, ptr);
+
+	if(prop->flag & PROP_NOT_ANIMATEABLE)
+		return 0;
 
 	if(prop->editable)
 		flag= prop->editable(ptr);
 	else
 		flag= prop->flag;
 
-	return (flag & PROP_EVALUATED);
+	return !(flag & PROP_NOT_EDITABLE);
+}
+
+int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
+{
+	/* would need to ask animation system */
+
+	return 0;
 }
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)

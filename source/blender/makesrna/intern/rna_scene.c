@@ -169,21 +169,21 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");

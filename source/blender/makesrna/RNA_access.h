@@ -327,12 +327,12 @@ void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPrope
 int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
 int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
-
 const char *RNA_property_ui_name(PointerRNA *ptr, PropertyRNA *prop);
 const char *RNA_property_ui_description(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
-int RNA_property_evaluated(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 

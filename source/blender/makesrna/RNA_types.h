@@ -72,18 +72,15 @@ typedef enum PropertySubType {
 
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
-	 * interface, evaluated means that the property is set
-	 * as part of an evaluation. these can change at runtime
-	 * the property flag contains the default. editable is
-	 * enabled by default except for collections. */
+	 * interface, properties are editable by default except
+	 * for pointers and collections. */
 	PROP_NOT_EDITABLE = 1,
-	PROP_EVALUATED = 2,
 
-	/* driveable means the property can be driven by some
+	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
-	 * in other words making the property evaluated.
-	 * enable by default except for pointers and collections. */
-	PROP_NOT_DRIVEABLE = 4,
+	 * properties are animateable by default except for pointers
+	 * and collections */
+	PROP_NOT_ANIMATEABLE = 2,
 
 #if 0
 	/* for pointers and collections, means that the struct
