@@ -1553,8 +1553,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 static void createTransLatticeVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt;
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1562,8 +1561,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	bp= editLatt->def;
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp = latt->def;
+	a  = latt->pntsu * latt->pntsv * latt->pntsw;
 	while(a--) {
 		if(bp->hide==0) {
 			if(bp->f1 & SELECT) countsel++;
@@ -1583,8 +1582,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	Mat3Inv(smtx, mtx);
 
 	td = t->data;
-	bp= editLatt->def;
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp = latt->def;
+	a  = latt->pntsu * latt->pntsv * latt->pntsw;
 	while(a--) {
 		if(propmode || (bp->f1 & SELECT)) {
 			if(bp->hide==0) {
@@ -1606,7 +1605,6 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 		}
 		bp++;
 	}
-#endif
 }
 
 /* ******************* particle edit **************** */
@@ -2342,8 +2340,8 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+#if 0 // TRANSFORM_FIX_ME
+	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTFace *tf;
@@ -2357,7 +2355,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if(is_uv_tface_editing_allowed()==0) return;
 
 	/* count */
-	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+	if (sima->flag & SI_BE_SQUARE && !propmode) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			/* store face pointer for second loop, prevent second lookup */
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2409,13 +2407,13 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	   treated just as if they were 3d verts */
 	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
 
-	if(G.sima->flag & SI_CLIP_UV)
+	if(sima->flag & SI_CLIP_UV)
 		t->flag |= T_CLIP_UV;
 
 	td= t->data;
 	td2d= t->data2d;
 	
-	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+	if (sima->flag & SI_BE_SQUARE && !propmode) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf=(MTFace *)efa->tmp.p;
 			if (tf) {
@@ -2474,7 +2472,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (G.sima->flag & SI_LIVE_UNWRAP)
+	if (sima->flag & SI_LIVE_UNWRAP)
 		unwrap_lscm_live_begin();
 #endif
 }

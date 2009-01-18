@@ -219,7 +219,7 @@ int calc_manipulator_stats(ScrArea *sa)
 	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel=0;
 
-	t = BIF_GetTransInfo();
+//XXX	t = BIF_GetTransInfo();
 	
 	/* transform widget matrix */
 	Mat4One(v3d->twmat);

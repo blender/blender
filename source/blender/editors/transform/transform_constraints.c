@@ -490,16 +490,16 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		Mat3CpyMat4(obmat, t->scene->obedit->obmat);
-		setConstraint(t, obmat, mode|CON_LOCAL, text);
+		setConstraint(t, obmat, mode, text);
 	}
 	else {
 		if (t->total == 1) {
-			setConstraint(t, t->data->axismtx, mode|CON_LOCAL, text);
+			setConstraint(t, t->data->axismtx, mode, text);
 		}
 		else {
 			strncpy(t->con.text + 1, text, 48);
 			Mat3CpyMat3(t->con.mtx, t->data->axismtx);
-			t->con.mode = mode|CON_LOCAL;
+			t->con.mode = mode;
 			getConstraintMatrix(t);
 
 			startConstraint(t);
@@ -869,7 +869,6 @@ void initSelectConstraint(TransInfo *t, float mtx[3][3])
 	Mat3CpyMat3(t->con.mtx, mtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
-	t->con.mode &= ~CON_LOCAL;
 
 	setNearestAxis(t);
 	t->con.drawExtra = NULL;

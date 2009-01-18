@@ -5821,7 +5821,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
-// XXX 			char *str_menu;
+ 			char *str_menu;
 			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
@@ -5865,13 +5865,13 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 			}
 			
-// XXX			if (v3d->twmode > (BIF_countTransformOrientation() - 1) + V3D_MANIP_CUSTOM) {
-//				v3d->twmode = 0;
-//			}
+			if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
+				v3d->twmode = 0;
+			}
 			
-// XXX			str_menu = BIF_menustringTransformOrientation("Orientation");
-//			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
-//			MEM_freeN(str_menu);
+			str_menu = BIF_menustringTransformOrientation(C, "Orientation");
+			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+			MEM_freeN(str_menu);
 			
 			xco+= 70;
 			uiBlockEndAlign(block);

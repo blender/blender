@@ -990,6 +990,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	t->mode = mode;
 
 	initTransInfo(C, t, event);					// internal data, mouse, vectors
+	
+	initTransformOrientation(C, t);
 
 	if(t->spacetype == SPACE_VIEW3D)
 	{
