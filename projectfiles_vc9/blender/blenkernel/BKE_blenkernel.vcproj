@@ -482,6 +482,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\anim_sys.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\armature.c"
 				>
 			</File>
@@ -595,6 +599,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\exotic.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fcurve.c"
 				>
 			</File>
 			<File
@@ -783,6 +791,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_animsys.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_armature.h"
 				>
 			</File>
@@ -888,6 +900,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_exotic.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_fcurve.h"
 				>
 			</File>
 			<File
