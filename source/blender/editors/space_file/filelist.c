@@ -491,6 +491,7 @@ static void *exec_loadimages(void *list_v)
 		IMB_freeImBuf(imb);
 	}
 	img->done=1;
+	return 0;
 }
 
 short filelist_changed(struct FileList* filelist)
