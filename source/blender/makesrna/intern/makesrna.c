@@ -977,6 +977,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sound.c", RNA_def_sound},
 	{"rna_userdef.c", RNA_def_userdef},
 	{"rna_vfont.c", RNA_def_vfont},
+	{"rna_vpaint.c", RNA_def_vpaint},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_world.c", RNA_def_world},	
 	{NULL, NULL}};

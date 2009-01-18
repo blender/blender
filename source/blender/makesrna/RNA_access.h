@@ -260,6 +260,7 @@ extern StructRNA RNA_UserPreferences;
 extern StructRNA RNA_UserSolidLight;
 extern StructRNA RNA_VectorFont;
 extern StructRNA RNA_VertexGroup;
+extern StructRNA RNA_VPaint;
 extern StructRNA RNA_VertexGroupElement;
 extern StructRNA RNA_WaveModifier;
 extern StructRNA RNA_WindowManager;

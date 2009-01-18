@@ -134,6 +134,10 @@ void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sculpt");
 	RNA_def_property_ui_text(prop, "Sculpt", "");
+	
+	prop= RNA_def_property(srna, "vpaint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "VPaint");
+	RNA_def_property_ui_text(prop, "Vertex Paint", "");
 
 	rna_def_sculpt(brna);
 }
