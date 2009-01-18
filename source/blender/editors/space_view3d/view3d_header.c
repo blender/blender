@@ -900,34 +900,14 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, uiMenuBlockHandle 
 	return block;
 }
 
-void do_view3d_select_objectmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-	
-	case 0: /* border select */
-		borderselect();
-		break;
-	case 1: /* Select/Deselect All */
-		deselectall();
-		break;
-	case 2: /* inverse */
-		selectswap();
-		break;
-	case 3: /* random */
-		selectrandom();
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
-
 static uiBlock *view3d_select_objectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
 	block= uiBeginBlock(C, handle->region, "view3d_select_objectmenu", UI_EMBOSSP, UI_HELV);
+	
+#if 0
 	uiBlockSetButmFunc(block, do_view3d_select_objectmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -945,6 +925,17 @@ static uiBlock *view3d_select_objectmenu(bContext *C, uiMenuBlockHandle *handle,
 	
 	uiDefIconTextBlockBut(block, view3d_select_object_linkedmenu, NULL, ICON_RIGHTARROW_THIN, "Linked", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_select_object_groupedmenu, NULL, ICON_RIGHTARROW_THIN, "Grouped", 0, yco-=20, 120, 19, "");
+#endif
+	uiDefMenuButO(block, "VIEW3D_OT_borderselect", "Border Select");
+	
+	uiDefMenuSep(block);
+	
+	uiDefMenuButO(block, "OBJECT_OT_de_select_all", "Select/Deselect All");
+	uiDefMenuButO(block, "OBJECT_OT_select_invert", "Inverse");
+	uiDefMenuButO(block, "OBJECT_OT_select_random", "Random");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_layer", "Select All by Layer");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_type", "Select All by Type");
+
 
 	if(handle->region->alignment==RGN_ALIGN_TOP) {
 		uiBlockSetDirection(block, UI_DOWN);

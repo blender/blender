@@ -1477,7 +1477,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		}
 		MEM_freeN(vbuffer);
 	}
-	
+	ED_undo_push(C,"Border Select");
 	return OPERATOR_FINISHED;
 } 
 
@@ -1542,6 +1542,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else 
 		mouse_select(C, mval, extend, 0);
 	
+	ED_undo_push(C,"Mouse Select");
 	/* allowing tweaks */
 	return OPERATOR_PASS_THROUGH;
 }
@@ -1770,6 +1771,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	}
 	
+	ED_undo_push(C,"Circle Select");
 	return OPERATOR_FINISHED;
 }
 

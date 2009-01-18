@@ -1157,6 +1157,7 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select By Type");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1337,6 +1338,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select By Layer");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1368,6 +1370,7 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Selection Invert");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1411,6 +1414,7 @@ static int object_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/* undo? */
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+	ED_undo_push(C,"(De)Select All");
 	
 	return OPERATOR_FINISHED;
 }
@@ -1443,6 +1447,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select Random");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -2760,7 +2765,7 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 if (tot_change) {
 	ED_anim_dag_flush_update(C);
 	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Do Center");	
+	ED_undo_push(C,"Do Center");	
 	}
 	
 	/* Warn if any errors occured */
