@@ -1939,7 +1939,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%s, ":"%s", RNA_property_boolean_get_array(ptr, prop, i) ? "True" : "False");
+				BLI_dynstr_appendf(dynstr, i?", %s":"%s", RNA_property_boolean_get_array(ptr, prop, i) ? "True" : "False");
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}
@@ -1951,19 +1951,19 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%d, ":"%d", RNA_property_int_get_array(ptr, prop, i));
+				BLI_dynstr_appendf(dynstr, i?", %d":"%d", RNA_property_int_get_array(ptr, prop, i));
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}
 		break;
 	case PROP_FLOAT:
 		if (len==0) {
-			BLI_dynstr_appendf(dynstr, "%f", RNA_property_float_get(ptr, prop));
+			BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get(ptr, prop));
 		}
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%f, ":"%f", RNA_property_float_get_array(ptr, prop, i));
+				BLI_dynstr_appendf(dynstr, i?", %g":"%g", RNA_property_float_get_array(ptr, prop, i));
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}

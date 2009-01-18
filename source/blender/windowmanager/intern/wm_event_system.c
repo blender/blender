@@ -448,7 +448,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 	if(ot->poll==NULL || ot->poll(C)) {
 		wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
 
-		if((G.f & G_DEBUG) && event->type!=MOUSEMOVE)
+		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
 		
 		/* XXX adding new operator could be function, only happens here now */
@@ -482,12 +482,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
-		if(G.f & G_DEBUG)
-			WM_operator_print(op);
-
-		if(!(retval & OPERATOR_RUNNING_MODAL))
+		if(!(retval & OPERATOR_RUNNING_MODAL)) {
 			if(reports==NULL && op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupmenuReports(C, op->reports);
+		
+		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
+			if(G.f & G_DEBUG)
+				WM_operator_print(op);
+		}
 
 		if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 			wm_operator_register(wm, op);
@@ -738,7 +740,12 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			if(!(retval & OPERATOR_RUNNING_MODAL))
 				if(op->reports->list.first)
 					uiPupmenuReports(C, op->reports);
-			
+
+			if (retval & OPERATOR_FINISHED) {
+				if(G.f & G_DEBUG)
+					WM_operator_print(op); /* todo - this print may double up, might want to check more flags then the FINISHED */
+			}			
+
 			if((retval & OPERATOR_FINISHED) && (ot->flag & OPTYPE_REGISTER)) {
 				wm_operator_register(CTX_wm_manager(C), op);
 				handler->op= NULL;
