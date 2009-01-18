@@ -246,12 +246,14 @@ void file_operatortypes(void)
 {
 	WM_operatortype_append(ED_FILE_OT_select);
 	WM_operatortype_append(ED_FILE_OT_select_bookmark);
+	WM_operatortype_append(ED_FILE_OT_loadimages);
 }
 
 void file_keymap(struct wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "File", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ED_FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 
 	keymap= WM_keymap_listbase(wm, "FileBookmark", SPACE_FILE, 0);
 	WM_keymap_add_item(keymap, "ED_FILE_OT_select_bookmark", SELECTMOUSE, KM_PRESS, 0, 0);

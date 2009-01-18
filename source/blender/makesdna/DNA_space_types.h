@@ -53,6 +53,7 @@ struct FileList;
 struct bGPdata;
 struct FileSelectParams;
 struct wmOperator;
+struct wmTimer;
 
 	/**
 	 * The base structure all the other spaces
@@ -174,6 +175,8 @@ typedef struct SpaceFile {
 	   on the cancel button.
 	*/
 	struct wmOperator *op; 
+
+	struct wmTimer *loadimage_timer;
 
 	/* view settings - XXX - move into own struct */
 	short prv_w;

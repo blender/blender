@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_storage_types.h"
+#include "BLI_threads.h"
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
@@ -65,6 +66,7 @@
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
+#include "DNA_listbase.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
@@ -90,6 +92,18 @@
 /* max length of library group name within filesel */
 #define GROUP_MAX 32
 
+static void *exec_loadimages(void *list_v);
+
+struct FileList;
+
+typedef struct FileImage {
+	struct FileImage *next, *prev;
+	int index;
+	short lock;
+	short done;
+	struct FileList* filelist;
+} FileImage;
+
 typedef struct FileList
 {
 	struct direntry *filelist;
@@ -106,6 +120,9 @@ typedef struct FileList
 	short prv_h;
 	short hide_dot;
 	unsigned int filter;
+	short changed;
+	ListBase loadimages;
+	ListBase threads;
 } FileList;
 
 int BIF_groupname_to_code(char *group)
@@ -325,7 +342,6 @@ void filelist_filter(FileList* filelist)
 
 void filelist_init_icons()
 {
-#if 0 /* XXX add icons here */
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
@@ -345,7 +361,6 @@ void filelist_init_icons()
 		}
 		IMB_freeImBuf(bbuf);
 	}
-#endif
 }
 
 void filelist_free_icons()
@@ -392,6 +407,9 @@ void filelist_free(struct FileList* filelist)
 		return;
 	}
 
+	BLI_end_threads(&filelist->threads);
+	BLI_freelistN(&filelist->loadimages);
+	
 	if (filelist->fidx) {
 		MEM_freeN(filelist->fidx);
 		filelist->fidx = NULL;
@@ -450,6 +468,63 @@ void filelist_imgsize(struct FileList* filelist, short w, short h)
 	filelist->prv_h = h;
 }
 
+
+static void *exec_loadimages(void *list_v)
+{
+	FileImage* img = (FileImage*)list_v;
+	struct FileList *filelist = img->filelist;
+
+	ImBuf *imb = NULL;
+	int fidx = img->index;
+	
+	if ( filelist->filelist[fidx].flags & IMAGEFILE ) {				
+		imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_IMAGE);
+	} else if ( filelist->filelist[fidx].flags & MOVIEFILE ) {				
+		imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_MOVIE);
+		if (!imb) {
+			/* remember that file can't be loaded via IMB_open_anim */
+			filelist->filelist[fidx].flags &= ~MOVIEFILE;
+			filelist->filelist[fidx].flags |= MOVIEFILE_ICON;
+		}
+	}
+	if (imb) {
+		IMB_freeImBuf(imb);
+	}
+	img->done=1;
+}
+
+short filelist_changed(struct FileList* filelist)
+{
+	return filelist->changed;
+}
+
+void filelist_loadimage_timer(struct FileList* filelist)
+{
+	FileImage *limg = filelist->loadimages.first;
+	short refresh=0;
+
+	// as long as threads are available and there is work to do
+	while (limg) {
+		if (BLI_available_threads(&filelist->threads)>0) {
+			if (!limg->lock) {
+				limg->lock=1;
+				BLI_insert_thread(&filelist->threads, limg);
+			}
+		}
+		if (limg->done) {
+			FileImage *oimg = limg;
+			BLI_remlink(&filelist->loadimages, oimg);
+			BLI_remove_thread(&filelist->threads, oimg);
+			limg = oimg->next;
+			MEM_freeN(oimg);
+			refresh = 1;
+		} else {
+			limg= limg->next;
+		}
+	}
+	filelist->changed=refresh;
+}
+
 void filelist_loadimage(struct FileList* filelist, int index)
 {
 	ImBuf *imb = NULL;
@@ -468,16 +543,9 @@ void filelist_loadimage(struct FileList* filelist, int index)
 	{
 		if (filelist->type != FILE_MAIN)
 		{
-			if ( filelist->filelist[fidx].flags & IMAGEFILE ) {				
-				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_IMAGE);
-			} else if ( filelist->filelist[fidx].flags & MOVIEFILE ) {				
-				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_MOVIE);
-				if (!imb) {
-					/* remember that file can't be loaded via IMB_open_anim */
-					filelist->filelist[fidx].flags &= ~MOVIEFILE;
-					filelist->filelist[fidx].flags |= MOVIEFILE_ICON;
-				}
-			}
+			if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {				
+				imb = IMB_thumb_read(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL);
+			} 
 			if (imb) {
 				if (imb->x > imb->y) {
 					scaledx = (float)imgwidth;
@@ -494,10 +562,26 @@ void filelist_loadimage(struct FileList* filelist, int index)
 				dy = imgheight - ey;
 				
 				IMB_scaleImBuf(imb, ex, ey);
-
-			} 
-			filelist->filelist[fidx].image = imb;
-			
+				filelist->filelist[fidx].image = imb;
+			} else {
+				/* prevent loading image twice */
+				FileImage* limg = filelist->loadimages.first;
+				short found= 0;
+				while(limg) {
+					if (limg->index == fidx) {
+						found= 1;
+						break;
+					}
+					limg= limg->next;
+				}
+				if (!found) {
+					FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
+					limg->index= fidx;
+					limg->lock= 0;
+					limg->filelist= filelist;
+					BLI_addtail(&filelist->loadimages, limg);
+				}
+			}		
 		}
 	}
 }
@@ -621,7 +705,10 @@ void filelist_readdir(struct FileList* filelist)
 		chdir(wdir);
 		filelist_setfiletypes(filelist, G.have_quicktime);
 		filelist_filter(filelist);
-
+		
+		if (!filelist->threads.first) {
+			BLI_init_threads(&filelist->threads, exec_loadimages, 2);
+		}
 	}
 }
 

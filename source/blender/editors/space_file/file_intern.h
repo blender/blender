@@ -49,5 +49,7 @@ void file_draw_fsmenu(const bContext *C, ARegion *ar);
 struct wmOperatorType;
 void ED_FILE_OT_select(struct wmOperatorType *ot);
 void ED_FILE_OT_select_bookmark(struct wmOperatorType *ot);
+void ED_FILE_OT_loadimages(struct wmOperatorType *ot);
+
 #endif /* ED_FILE_INTERN_H */
 
