@@ -141,9 +141,9 @@ static int retopo_mesh_paint_check() {return 0;}
 void ED_view3d_exit_paint_modes(bContext *C)
 {
 	if(G.f & G_VERTEXPAINT)
-		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	else if(G.f & G_WEIGHTPAINT)
-		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
 //	if(G.f & G_SCULPTMODE) set_sculptmode();
@@ -465,7 +465,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 // XXX		mainqenter(PADASTERKEY, 1);
 		break;
 	case 6: /* Center View and Cursor to Origin */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
 		curs= give_cursor(scene, v3d);
 		curs[0]=curs[1]=curs[2]= 0.0;
 		break;
@@ -550,10 +550,10 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		endlocalview(scene, sa);
 		break;
 	case 9: /* View All (Home) */
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 11: /* View Selected */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 13: /* Play Back Animation */
 		play_anim(0);
@@ -565,7 +565,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
-		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
 		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
@@ -5333,7 +5333,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 
 	switch(event) {
 	case B_HOME:
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case B_REDR:
 		ED_area_tag_redraw(sa);
@@ -5403,7 +5403,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
-				WM_operator_name_call(C, "SCULPT_OT_toggle_mode", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+				WM_operator_name_call(C, "SCULPT_OT_toggle_mode", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		}
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
@@ -5412,7 +5412,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
@@ -5431,7 +5431,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+				WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_POSEMODE_SEL) {

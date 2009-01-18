@@ -194,6 +194,11 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 		return NULL;
 	}
 	
+	if(ot->poll && (ot->poll(self->C) == 0)) {
+		PyErr_SetString( PyExc_SystemError, "Operator poll() function failed, context is incorrect");
+		return NULL;
+	}
+	
 	WM_operator_properties_create(&ptr, self->name);
 	
 	error_val= PYOP_props_from_dict(&ptr, kw);
@@ -203,7 +208,7 @@ static PyObject * pyop_func_call(BPy_OperatorFunc * self, PyObject *args, PyObje
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		WM_operator_name_call(self->C, self->name, WM_OP_EXEC_DEFAULT, &ptr, &reports);
+		WM_operator_call_py(self->C, ot, &ptr, &reports);
 
 		report_str= BKE_reports_string(&reports, RPT_ERROR);
 

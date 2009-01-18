@@ -440,41 +440,49 @@ int WM_operator_call(bContext *C, wmOperator *op)
 	return retval;
 }
 
-static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports)
+
+static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
+{
+	wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
+	
+	/* XXX adding new operator could be function, only happens here now */
+	op->type= ot;
+	BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
+	
+	/* initialize properties, either copy or create */
+	op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
+	if(properties && properties->data) {
+		op->properties= IDP_CopyProperty(properties->data);
+	}
+	else {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+	RNA_pointer_create(&wm->id, ot->srna, op->properties, op->ptr);
+
+	/* initialize error reports */
+	if (reports) {
+		op->reports= reports; /* must be initialized alredy */
+	}
+	else {
+		op->reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
+		BKE_reports_init(op->reports, RPT_STORE);
+	}
+	
+	return op;
+}
+
+static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_PASS_THROUGH;
 
 	if(ot->poll==NULL || ot->poll(C)) {
-		wmOperator *op= MEM_callocN(sizeof(wmOperator), ot->idname);	/* XXX operatortype names are static still. for debug */
-
+		wmOperator *op= wm_operator_create(wm, ot, properties, NULL);
+		
 		if((G.f & G_DEBUG) && event && event->type!=MOUSEMOVE)
 			printf("handle evt %d win %d op %s\n", event?event->type:0, CTX_wm_screen(C)->subwinactive, ot->idname); 
 		
-		/* XXX adding new operator could be function, only happens here now */
-		op->type= ot;
-		BLI_strncpy(op->idname, ot->idname, OP_MAX_TYPENAME);
-		
-		/* initialize properties, either copy or create */
-		op->ptr= MEM_callocN(sizeof(PointerRNA), "wmOperatorPtrRNA");
-		if(properties && properties->data) {
-			op->properties= IDP_CopyProperty(properties->data);
-		}
-		else {
-			IDPropertyTemplate val = {0};
-			op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
-		}
-		RNA_pointer_create(&wm->id, ot->srna, op->properties, op->ptr);
-
-		/* initialize error reports */
-		if (reports) {
-			op->reports= reports; /* must be initialized alredy */
-		}
-		else {
-			op->reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-			BKE_reports_init(op->reports, RPT_STORE);
-		}
-
 		if(op->type->invoke && event)
 			retval= (*op->type->invoke)(C, op, event);
 		else if(op->type->exec)
@@ -483,7 +491,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
 		if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			if(reports==NULL && op->reports->list.first) /* only show the report if the report list was not given in the function */
+			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupmenuReports(C, op->reports);
 		
 		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other WM_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
@@ -495,8 +503,6 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			wm_operator_register(wm, op);
 		}
 		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			if (reports)
-				op->reports= NULL; /* dont let the operator free reports passed to this function */
 			WM_operator_free(op);
 		}
 	}
@@ -505,7 +511,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 }
 
 /* invokes operator in context */
-int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties, ReportList *reports)
+int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring);
 	wmWindow *window= CTX_wm_window(C);
@@ -535,7 +541,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 						CTX_wm_region_set(C, ar1);
 				}
 				
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties);
 				
 				/* set region back */
 				CTX_wm_region_set(C, ar);
@@ -550,7 +556,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 				ARegion *ar= CTX_wm_region(C);
 
 				CTX_wm_region_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, event, properties, reports);
+				retval= wm_operator_invoke(C, ot, event, properties);
 				CTX_wm_region_set(C, ar);
 
 				return retval;
@@ -565,7 +571,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, window->eventstate, properties, reports);
+				retval= wm_operator_invoke(C, ot, window->eventstate, properties);
 				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
 
@@ -574,12 +580,31 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 			case WM_OP_EXEC_DEFAULT:
 				event= NULL;	/* pass on without break */
 			case WM_OP_INVOKE_DEFAULT:
-				return wm_operator_invoke(C, ot, event, properties, reports);
+				return wm_operator_invoke(C, ot, event, properties);
 		}
 	}
 	
 	return 0;
 }
+
+/* Similar to WM_operator_name_call called with WM_OP_EXEC_DEFAULT context.
+   - wmOperatorType is used instead of operator name since python alredy has the operator type
+   - poll() must be called by python before this runs.
+   - reports can be passed to this function (so python can report them as exceptions)
+*/
+int WM_operator_call_py(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports)
+{
+	wmWindowManager *wm=	CTX_wm_manager(C);
+	wmOperator *op=			wm_operator_create(wm, ot, properties, reports);
+	int retval=				op->type->exec(C, op);
+	
+	if (reports)
+		op->reports= NULL; /* dont let the operator free reports passed to this function */
+	WM_operator_free(op);
+	
+	return retval;
+}
+
 
 /* ********************* handlers *************** */
 
@@ -773,7 +798,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
 
 		if(ot)
-			retval= wm_operator_invoke(C, ot, event, properties, NULL);
+			retval= wm_operator_invoke(C, ot, event, properties);
 	}
 
 	if(retval & OPERATOR_PASS_THROUGH)

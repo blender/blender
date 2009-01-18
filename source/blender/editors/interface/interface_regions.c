@@ -1693,7 +1693,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 	const char *opname= arg;
 
 	if(opname && retval > 0)
-		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL, NULL);
+		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
 }
 
 static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)
