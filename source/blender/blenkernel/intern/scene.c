@@ -148,6 +148,8 @@ void free_scene(Scene *sce)
 #ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&sce->scriptlink);
 #endif
+
+	BKE_free_animdata((ID *)sce);
 	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
@@ -610,10 +612,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
 	float ctime = frame_to_float(sce, sce->r.cfra); 
-	
-	/* clears all BONE_UNKEYED flags for every pose's pchans */
-	// xxx old animation system
-	//framechange_poses_clear_unkeyed();
 	
 	/* clear animation overrides */
 	// XXX TODO...

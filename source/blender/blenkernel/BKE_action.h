@@ -40,7 +40,7 @@
  * The following structures are defined in DNA_action_types.h, and DNA_anim_types.h
  */
 
-struct nAction;
+struct bAction;
 struct bPose;
 struct bPoseChannel;
 struct Object;
@@ -52,23 +52,28 @@ struct ID;
 extern "C" {
 #endif
 
-struct nAction *add_empty_action(const char name[]);
+struct bAction *add_empty_action(const char name[]);
 	
 	/**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.
  */
 
-struct nAction *copy_action(struct nAction *src);
+struct bAction *copy_action(struct bAction *src);
 
 /**
  * Deallocate the action's channels including constraint channels.
  * does not free the action structure.
  */
-void free_action(struct nAction *act);
+void free_action(struct bAction *act);
 
 // XXX is this needed?
-void make_local_action(struct nAction *act);
+void make_local_action(struct bAction *act);
+	
+/**
+ * Some kind of bounding box operation on the action.
+ */
+void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 	
 /**
  * Removes and deallocates all channels from a pose.
@@ -115,21 +120,19 @@ struct bPoseChannel *verify_pose_channel(struct bPose* pose,
 void update_pose_constraint_flags(struct bPose *pose);
 
 /* clears BONE_UNKEYED flags for frame changing */
+// XXX to be depreceated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
-
-/**
- * Some kind of bounding box operation on the action.
- */
-void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 
 /**
  * Set the pose channels from the given action.
  */
+// XXX old crap
 void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
 
 /**
  * Get the effects of the given action using a workob 
  */
+// XXX old crap, used for action constraint though!
 void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
 
 /* exported for game engine */

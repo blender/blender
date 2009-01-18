@@ -248,10 +248,7 @@ void free_object(Object *ob)
 	ob->bb= 0;
 	if(ob->path) free_path(ob->path); 
 	ob->path= 0;
-#if 0 // XXX old animation system
-	if(ob->ipo) ob->ipo->id.us--;
-	if(ob->action) ob->action->id.us--;
-#endif // XXX old animation system
+	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
@@ -266,9 +263,6 @@ void free_object(Object *ob)
 	free_actuators(&ob->actuators);
 	
 	free_constraints(&ob->constraints);
-#if 0 // XXX old animation system
-	free_nlastrips(&ob->nlastrips);
-#endif
 
 #ifndef DISABLE_PYTHON	
 	BPY_free_scriptlink(&ob->scriptlink);
@@ -559,11 +553,6 @@ void unlink_object(Scene *scene, Object *ob)
 						if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
-				else if(sl->spacetype==SPACE_IPO) {
-					// XXX animsys this is likely to change...
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-					if(sipo->from == (ID *)ob) sipo->from= NULL;
-				}
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
 					Oops *oops;
@@ -643,10 +632,7 @@ Camera *copy_camera(Camera *cam)
 	Camera *camn;
 	
 	camn= copy_libblock(cam);
-	
-#if 0 // XXX old animation system
-	id_us_plus((ID *)camn->ipo);
-#endif // XXX old animation system
+	camn->adt= BKE_copy_animdata(cam->adt);
 
 #ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&camn->scriptlink);
@@ -862,6 +848,7 @@ void free_camera(Camera *ca)
 #ifndef DISABLE_PYTHON
 	BPY_free_scriptlink(&ca->scriptlink);
 #endif
+	BKE_free_animdata((ID *)ca);
 }
 
 void free_lamp(Lamp *la)
@@ -880,9 +867,7 @@ void free_lamp(Lamp *la)
 		if(mtex) MEM_freeN(mtex);
 	}
 	
-#if 0 // XXX old animation system
-	la->ipo= 0;
-#endif // XXX old animation system
+	BKE_free_animdata((ID *)la);
 
 	curvemapping_free(la->curfalloff);
 	

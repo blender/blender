@@ -39,6 +39,7 @@ struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
 struct bNodeGroup;
+struct AnimData;
 
 #define NODE_MAXSTR 32
 
@@ -162,6 +163,7 @@ typedef struct bNodeLink {
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
 	ID id;
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	ListBase nodes, links;
 	

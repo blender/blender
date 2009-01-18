@@ -79,6 +79,9 @@ void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
 void free_fcurve(struct FCurve *fcu);
 struct FCurve *copy_fcurve(struct FCurve *fcu);
 
+void free_fcurves(ListBase *list);
+void copy_fcurves(ListBase *dst, ListBase *src);
+
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
 

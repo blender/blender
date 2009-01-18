@@ -11,6 +11,7 @@ extern "C" {
 
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 
 /* ************************************************ */
@@ -262,85 +263,11 @@ enum {
 /* ************************************************ */
 /* 'Action' Datatypes */
 
-/* Groups -------------------------------------- */
-
-#if 0
-
-/* Action-Channel Group (agrp)
-
- * These are stored as a list per-Action, and are only used to 
- * group that Action's channels in an Animation Editor. 
- *
- * Even though all FCurves live in a big list per Action, each group they are in also
- * holds references to the achans within that list which belong to it. Care must be taken to
- * ensure that action-groups never end up being the sole 'owner' of a channel.
- * 
- * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
- * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
- * to Action-Groups.
+/* NOTE: Although these are part of the Animation System,
+ * they are not stored here... see DNA_action_types.h instead
  */
-typedef struct bActionGroup {
-	struct ActionGroup *next, *prev;
-	
-	ListBase channels;			/* Note: this must not be touched by standard listbase functions which would clear links to other channels */
-	
-	int flag;					/* settings for this action-group */
-	int customCol;				/* index of custom color set to use when used for bones (0=default - used for all old files, -1=custom set) */				
-	char name[64];				/* name of the group */
-	
-	ThemeWireColor cs;			/* color set to use when customCol == -1 */
-} bActionGroup;
 
-/* Action Group flags */
-enum {
-	AGRP_SELECTED 	= (1<<0),
-	AGRP_ACTIVE 	= (1<<1),
-	AGRP_PROTECTED 	= (1<<2),
-	AGRP_EXPANDED 	= (1<<3),
-	
-	AGRP_TEMP		= (1<<30),
-	AGRP_MOVED 		= (1<<31)
-} eActionGroup_Flag;
-
-#endif
-
-/* Actions -------------------------------------- */
-
-/* Action - reusable F-Curve 'bag'  (act) 
- *
- * This contains F-Curves that may affect settings from more than one ID blocktype and/or 
- * datablock (i.e. sub-data linked/used directly to the ID block that the animation data is linked to), 
- * but with the restriction that the other unrelated data (i.e. data that is not directly used or linked to
- * by the source ID block).
- *
- * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that 
- * affects a group of related settings (as defined by the user). 
- */
-// XXX use this as drop-in replacement at some point...
-typedef struct nAction {
-	ID 	id;				/* ID-serialisation for relinking */
-	
-	ListBase curves;	/* function-curves (FCurve) */
-	ListBase chanbase;	/* legacy data - Action Channels (bActionChannel) in pre-2.5 animation system */
-	ListBase groups;	/* groups of function-curves (bActionGroup) */
-	ListBase markers;	/* markers local to the Action (used to provide Pose-Libraries) */
-	
-	int flag;			/* settings for this action */
-	int active_marker;	/* index of the active marker */
-} nAction;
-
-
-/* Flags for the action */
-enum {
-		/* flags for displaying in UI */
-	ACT_EXPANDED 	= (1<<0),
-	ACT_SELECTED	= (1<<1),
-	
-		/* flags for evaluation/editing */
-	ACT_MUTED		= (1<<9),
-	ACT_PROTECTED	= (1<<10),
-} eAction_Flags;
-
+ 
 /* ************************************************ */
 /* Animation Reuse - i.e. users of Actions */
 
@@ -373,7 +300,7 @@ typedef struct AnimMapPair {
 typedef struct AnimMapper {
 	struct AnimMapper *next, *prev;
 	
-	nAction *target;		/* target action */
+	bAction *target;		/* target action */
 	ListBase mappings;		/* remapping table (bAnimMapPair) */
 } AnimMapper;
 
@@ -403,7 +330,7 @@ typedef struct AnimMapper {
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
 	
-	nAction *act;				/* Action that is referenced by this strip */
+	bAction *act;				/* Action that is referenced by this strip */
 	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
 	
 	ListBase modifiers;			/* NLA Modifiers */	
@@ -538,7 +465,7 @@ typedef struct AnimOverride {
  */
 typedef struct AnimData {	
 		/* active action - acts as the 'tweaking track' for the NLA */
-	nAction 	*action;		
+	bAction 	*action;		
 		/* remapping-info for active action - should only be used if needed 
 		 * (for 'foreign' actions that aren't working correctly) 
 		 */

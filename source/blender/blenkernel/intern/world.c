@@ -48,6 +48,7 @@
 #include "BKE_utildefines.h"
 
 #include "BKE_library.h"
+#include "BKE_animsys.h"
 #include "BKE_world.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -76,9 +77,7 @@ void free_world(World *wrld)
 	}
 	BKE_previewimg_free(&wrld->preview);
 
-#if 0 // XXX old animation system
-	wrld->ipo= 0;
-#endif // XXX old animation system
+	BKE_free_animdata((ID *)wrld);
 
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;

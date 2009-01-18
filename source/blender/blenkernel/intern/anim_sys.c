@@ -12,6 +12,7 @@
 #include "BLI_dynstr.h"
 
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
@@ -24,36 +25,52 @@
 /* ***************************************** */
 /* AnimData API */
 
+/* Getter/Setter -------------------------------------------- */
+
+/* Internal utility to check if ID can have AnimData */
+static short id_has_animdata (ID *id)
+{
+	/* sanity check */
+	if (id == NULL)
+		return 0;
+		
+	/* Only some ID-blocks have this info for now */
+	// TODO: finish adding this for the other blocktypes
+	switch (GS(id->name)) {
+			/* has AnimData */
+		case ID_OB:
+		case ID_CU:
+		case ID_KE:
+		case ID_MA: case ID_TE: case ID_NT:
+		case ID_LA: case ID_CA: case ID_WO:
+		case ID_SCE:
+		{
+			return 1;
+		}
+		
+			/* no AnimData */
+		default:
+			return 0;
+	}
+}
+
+
 /* Get AnimData from the given ID-block. In order for this to work, we assume that 
  * the AnimData pointer is stored immediately after the given ID-block in the struct,
  * as per IdAdtTemplate.
  */
 AnimData *BKE_animdata_from_id (ID *id)
 {
-	/* sanity check */
-	if (id == NULL)
-		return NULL;
-		
 	/* only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate, and extract the
 	 * AnimData that way
 	 */
-	// TODO: finish adding this for the other blocktypes
-	switch (GS(id->name)) {
-		case ID_OB:
-		case ID_KE:
-		case ID_MA: case ID_TE:
-		case ID_LA: case ID_CA: case ID_WO:
-		case ID_SCE:
-		{
-			IdAdtTemplate *iat= (IdAdtTemplate *)id;
-			return iat->adt;
-		}
-			break;
+	if (id_has_animdata(id)) {
+		IdAdtTemplate *iat= (IdAdtTemplate *)id;
+		return iat->adt;
 	}
-	
-	/* no AnimData (ID-block does not contain this data) */
-	return NULL;
+	else
+		return NULL;
 }
 
 /* Add AnimData to the given ID-block. In order for this to work, we assume that 
@@ -62,46 +79,81 @@ AnimData *BKE_animdata_from_id (ID *id)
  */
 AnimData *BKE_id_add_animdata (ID *id)
 {
-	/* sanity check */
-	if (id == NULL)
-		return NULL;
-		
-	/* only some ID-blocks have this info for now, so we cast the 
-	 * types that do to be of type IdAdtTemplate, and add AnimData that
-	 * way
+	/* Only some ID-blocks have this info for now, so we cast the 
+	 * types that do to be of type IdAdtTemplate, and add the AnimData
+	 * to it using the template
 	 */
-	// TODO: finish adding this for the other blocktypes
-	switch (GS(id->name)) {
-		case ID_OB:
-		case ID_KE:
-		case ID_MA: case ID_TE:
-		case ID_LA: case ID_CA: case ID_WO:
-		case ID_SCE:
-		{
-			IdAdtTemplate *iat= (IdAdtTemplate *)id;
-			
-			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
-			return iat->adt;
-		}
-			break;
+	if (id_has_animdata(id)) {
+		IdAdtTemplate *iat= (IdAdtTemplate *)id;
+		
+		iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		return iat->adt;
 	}
-	
-	/* no AnimData (ID-block does not contain this data) */
-	return NULL;
+	else 
+		return NULL;
 }
 
+/* Freeing -------------------------------------------- */
 
-/* Obtain an RNA-Path from the given ID-block to the property of interest 
- *	- id: ID block that will be used as the 'root' of the path
- *	- ptr: pointer to struct where setting is stored
- *	- prop: property to get path for
- */
-// TODO: should this be part of RNA Access API instead? or through editors only?
-char *BKE_animsys_get_rnapath (ID *id, PointerRNA *ptr, PropertyRNA *prop)
+/* Free AnimData used by the nominated ID-block, and clear ID-block's AnimData pointer */
+void BKE_free_animdata (ID *id)
 {
-	// FIXME: this could be quite messy to do right :/
-	return NULL;
+	/* Only some ID-blocks have this info for now, so we cast the 
+	 * types that do to be of type IdAdtTemplate
+	 */
+	if (id_has_animdata(id)) {
+		IdAdtTemplate *iat= (IdAdtTemplate *)id;
+		AnimData *adt= iat->adt;
+		
+		/* check if there's any AnimData to start with */
+		if (adt) {
+			/* unlink action (don't free, as it's in its own list) */
+			if (adt->action)
+				adt->action->id.us--;
+				
+			/* free drivers - stored as a list of F-Curves */
+			free_fcurves(&adt->drivers);
+			
+			/* free overrides */
+			// TODO...
+			
+			/* free animdata now */
+			MEM_freeN(adt);
+			iat->adt= NULL;
+		}
+	}
 }
+
+/* Freeing -------------------------------------------- */
+
+/* Make a copy of the given AnimData - to be used when copying datablocks */
+AnimData *BKE_copy_animdata (AnimData *adt)
+{
+	AnimData *dadt;
+	
+	/* sanity check before duplicating struct */
+	if (adt == NULL)
+		return NULL;
+	dadt= MEM_dupallocN(adt);
+	
+	/* make a copy of action - at worst, user has to delete copies... */
+	// XXX review this... it might not be optimal behaviour yet...
+	//id_us_plus((ID *)dadt->action);
+	dadt->action= copy_action(adt->action);
+	
+	/* duplicate NLA data */
+	// XXX todo...
+	
+	/* duplicate drivers (F-Curves) */
+	copy_fcurves(&dadt->drivers, &adt->drivers);
+	
+	/* don't copy overrides */
+	dadt->overrides.first= dadt->overrides.last= NULL;
+	
+	/* return */
+	return dadt;
+}
+
 
 /* ***************************************** */
 /* Evaluation Data-Setting Backend */
@@ -138,8 +190,7 @@ static void animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_in
 	if (RNA_path_resolve(ptr, path, &new_ptr, &prop)) 
 	{
 		/* set value - only for animatable numerical values */
-		// FIXME: probably 'editable' might not be enough in future...
-		if (RNA_property_editable(&new_ptr, prop)) 
+		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
 			switch (RNA_property_type(&new_ptr, prop)) 
 			{
@@ -244,7 +295,7 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 /* Actions Evaluation */
 
 /* Evaluate Action (F-Curve Bag) */
-static void animsys_evaluate_action (PointerRNA *ptr, nAction *act, AnimMapper *remap, float ctime)
+static void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -565,20 +616,46 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	ID *id;
 	
 	//printf("Evaluate all animation - %f \n", ctime);
-		
-	/* cameras */
+
+	/* macro for less typing */
+#define EVAL_ANIM_IDS(first) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM); \
+	}
+	
+	/* nodes */
+	// TODO...
 	
 	/* textures */
+	EVAL_ANIM_IDS(main->tex.first);
 	
 	/* lamps */
+	EVAL_ANIM_IDS(main->lamp.first);
 	
 	/* materials */
+	EVAL_ANIM_IDS(main->mat.first);
+	
+	/* cameras */
+	EVAL_ANIM_IDS(main->camera.first);
+	
+	/* shapekeys */
+	// TODO...
+	
+	/* curves */
+	// TODO...
+	
+	/* meshes */
+	// TODO...
 	
 	/* objects */
-	for (id= main->object.first; id; id= id->next) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
-	}
+	EVAL_ANIM_IDS(main->object.first);
+	
+	/* worlds */
+	EVAL_ANIM_IDS(main->world.first);
+	
+	/* scenes */
+	EVAL_ANIM_IDS(main->scene.first);
 }
 
 /* ***************************************** */ 

@@ -74,6 +74,7 @@
 #include "BKE_icons.h"
 #include "BKE_brush.h"
 #include "BKE_node.h"
+#include "BKE_animsys.h"
 
 
 /* ------------------------------------------------------------------------- */

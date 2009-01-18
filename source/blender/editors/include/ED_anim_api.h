@@ -181,6 +181,10 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
+		// XXX temp flags for things removed
+#define ACTC_SELECTED 1
+#define ACTC_EXPANDED 2
+		// XXX these need to be fixed
 #define SEL_ACTC(actc) ((actc->flag & ACTC_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACTC_EXPANDED))
 

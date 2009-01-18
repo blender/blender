@@ -81,9 +81,9 @@
 
 /* ***************** Library data level operations on action ************** */
 
-nAction *add_empty_action(const char name[])
+bAction *add_empty_action(const char name[])
 {
-	nAction *act;
+	bAction *act;
 	
 	act= alloc_libblock(&G.main->action, ID_AC, name);
 	act->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
@@ -93,10 +93,10 @@ nAction *add_empty_action(const char name[])
 }	
 
 // does copy_fcurve...
-void make_local_action(nAction *act)
+void make_local_action(bAction *act)
 {
 	// Object *ob;
-	nAction *actn;
+	bAction *actn;
 	int local=0, lib=0;
 	
 	if (act->id.lib==0) return;
@@ -147,19 +147,14 @@ void make_local_action(nAction *act)
 }
 
 
-void free_action (nAction *act)
+void free_action (bAction *act)
 {
-	FCurve *fcu;
-	
 	/* sanity check */
 	if (act == NULL)
 		return;
 	
 	/* Free F-Curves */
-	while ((fcu= act->curves.first)) {
-		BLI_remlink(&act->curves, fcu);
-		free_fcurve(fcu);
-	}
+	free_fcurves(&act->curves);
 	
 	/* Free groups */
 	if (act->groups.first)
@@ -170,39 +165,20 @@ void free_action (nAction *act)
 		BLI_freelistN(&act->markers);
 }
 
-nAction *copy_action (nAction *src)
+bAction *copy_action (bAction *src)
 {
-	nAction *dst = NULL;
-	//bActionChannel *dchan, *schan;
-	// bActionGroup *dgrp, *sgrp;
+	bAction *dst = NULL;
+	//bActionGroup *dgrp, *sgrp;	// XXX not used yet
 	
-	if (!src) return NULL;
-	
+	if (src == NULL) 
+		return NULL;
 	dst= copy_libblock(src);
 	
-	BLI_duplicatelist(&(dst->chanbase), &(src->chanbase));
-	BLI_duplicatelist(&(dst->groups), &(src->groups));
-	BLI_duplicatelist(&(dst->markers), &(src->markers));
+	BLI_duplicatelist(&dst->groups, &src->groups);	// XXX not used yet
+	BLI_duplicatelist(&dst->markers, &src->markers);
 	
-#if 0	// XXX old animation system
-	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next) {
-		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
-			if (dchan->grp == sgrp) {
-				dchan->grp= dgrp;
-				
-				if (dgrp->channels.first == schan)
-					dgrp->channels.first= dchan;
-				if (dgrp->channels.last == schan)
-					dgrp->channels.last= dchan;
-					
-				break;
-			}
-		}
-		
-		dchan->ipo = copy_ipo(dchan->ipo);
-		copy_constraint_channels(&dchan->constraintChannels, &schan->constraintChannels);
-	}
-#endif	// XXX old animation system
+	/* copy f-curves */
+	copy_fcurves(&dst->curves, &src->curves);
 	
 	dst->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
 	dst->id.us++;
@@ -219,12 +195,13 @@ bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 {
 	bPoseChannel *chan;
 
-	if(pose==NULL) return NULL;
+	if (pose==NULL) return NULL;
 	
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if(chan->name[0] == name[0])
+		if (chan->name[0] == name[0]) {
 			if (!strcmp (chan->name, name))
 				return chan;
+		}
 	}
 
 	return NULL;
@@ -236,11 +213,10 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 {
 	bPoseChannel *chan;
 	
-	if (!pose) {
+	if (pose == NULL)
 		return NULL;
-	}
 	
-	/*      See if this channel exists */
+	/* See if this channel exists */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		if (!strcmp (name, chan->name))
 			return chan;
@@ -249,10 +225,10 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	/* If not, create it and add it */
 	chan = MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel");
 	
-	strncpy (chan->name, name, 31);
+	strncpy(chan->name, name, 31);
 	/* init vars to prevent math errors */
-	chan->quat[0] = 1.0F;
-	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
+	chan->quat[0] = 1.0f;
+	chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
 	
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
@@ -285,7 +261,7 @@ bPoseChannel *get_active_posechannel (Object *ob)
 
 
 /* dst should be freed already, makes entire duplicate */
-void copy_pose(bPose **dst, bPose *src, int copycon)
+void copy_pose (bPose **dst, bPose *src, int copycon)
 {
 	bPose *outPose;
 	bPoseChannel	*pchan;

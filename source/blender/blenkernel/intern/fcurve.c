@@ -37,7 +37,7 @@
 
 /* ---------------------- Freeing --------------------------- */
 
-/* Frees the F-Curve itself too */
+/* Frees the F-Curve itself too, so make sure BLI_remlink is called before calling this... */
 void free_fcurve (FCurve *fcu) 
 {
 	if (fcu == NULL) 
@@ -61,6 +61,28 @@ void free_fcurve (FCurve *fcu)
 	MEM_freeN(fcu);
 }
 
+/* Frees a list of F-Curves */
+void free_fcurves (ListBase *list)
+{
+	FCurve *fcu, *fcn;
+	
+	/* sanity check */
+	if (list == NULL)
+		return;
+		
+	/* free data - no need to call remlink before freeing each curve, 
+	 * as we store reference to next, and freeing only touches the curve
+	 * it's given
+	 */
+	for (fcu= list->first; fcu; fcu= fcn) {
+		fcn= fcu->next;
+		free_fcurve(fcu);
+	}
+	
+	/* clear pointers just in case */
+	list->first= list->last= NULL;
+}	
+
 /* ---------------------- Copy --------------------------- */
 
 /* duplicate an F-Curve */
@@ -74,6 +96,7 @@ FCurve *copy_fcurve (FCurve *fcu)
 		
 	/* make a copy */
 	fcu_d= MEM_dupallocN(fcu);
+	fcu_d->next= fcu_d->prev= NULL;
 	
 	/* copy curve data */
 	fcu_d->bezt= MEM_dupallocN(fcu_d->bezt);
@@ -90,6 +113,25 @@ FCurve *copy_fcurve (FCurve *fcu)
 	
 	/* return new data */
 	return fcu_d;
+}
+
+/* duplicate a list of F-Curves */
+void copy_fcurves (ListBase *dst, ListBase *src)
+{
+	FCurve *dfcu, *sfcu;
+	
+	/* sanity checks */
+	if ELEM(NULL, dst, src)
+		return;
+	
+	/* clear destination list first */
+	dst->first= dst->last= NULL;
+	
+	/* copy one-by-one */
+	for (sfcu= src->first; sfcu; sfcu= sfcu->next) {
+		dfcu= copy_fcurve(sfcu);
+		BLI_addtail(dst, dfcu);
+	}
 }
 
 /* ---------------------- Relink --------------------------- */
@@ -1395,7 +1437,7 @@ void fcurve_free_modifiers (FCurve *fcu)
 	if (fcu == NULL)
 		return;
 	
-	/* free each modifier in order */
+	/* free each modifier in order - modifier is unlinked from list and freed */
 	for (fcm= fcu->modifiers.first; fcm; fcm= fmn) {
 		fmn= fcm->next;
 		fcurve_remove_modifier(fcu, fcm);
@@ -1472,6 +1514,7 @@ float evaluate_fcurve (FCurve *fcu, float evaltime)
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 		
 		/* only evaluate if there's a callback for this */
+		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier) {
 			if ((fcm->flag & FMODIFIER_FLAG_DISABLED) == 0)
 				fmi->evaluate_modifier(fcu, fcm, &cvalue, evaltime);

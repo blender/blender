@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -77,9 +78,7 @@ void free_key(Key *key)
 {
 	KeyBlock *kb;
 	
-#if 0 // XXX old animation system
-	if(key->ipo) key->ipo->id.us--;
-#endif // XXX old animation system
+	BKE_free_animdata((ID *)key);
 	
 	while( (kb= key->block.first) ) {
 		

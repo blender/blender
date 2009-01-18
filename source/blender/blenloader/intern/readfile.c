@@ -48,6 +48,7 @@
     #include <io.h> // for open close read
 #endif
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_ID.h"
@@ -105,6 +106,7 @@
 #include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_cdderivedmesh.h"
@@ -116,10 +118,10 @@
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h" /* give_parteff */
+#include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
@@ -3753,6 +3755,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 
    This is needed, to make Ipo-Pinning work for Sequence-Ipos...
 */
+// XXX old animation system - depreceated stuff...
 static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
 {
 	Sequence *seq;
@@ -9265,8 +9268,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 
 	expand_doit(fd, mainvar, ob->data);
+// XXX old animation system
 	expand_doit(fd, mainvar, ob->ipo);
 	expand_doit(fd, mainvar, ob->action);
+// XXX old animation system
 	expand_doit(fd, mainvar, ob->poselib);
 
 	for (md=ob->modifiers.first; md; md=md->next) {
@@ -9275,6 +9280,8 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	expand_pose(fd, mainvar, ob->pose);
 	expand_constraints(fd, mainvar, &ob->constraints);
+	
+// XXX old animation system
 	expand_constraint_channels(fd, mainvar, &ob->constraintChannels);
 
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -9282,6 +9289,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, strip->act);
 		expand_doit(fd, mainvar, strip->ipo);
 	}
+// XXX old animation system
 
 	for(a=0; a<ob->totcol; a++) {
 		expand_doit(fd, mainvar, ob->mat[a]);

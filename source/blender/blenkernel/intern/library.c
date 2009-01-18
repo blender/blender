@@ -359,7 +359,7 @@ static ID *alloc_libblock_notest(short type)
 			id = MEM_callocN(sizeof(bArmature), "armature");
 			break;
 		case ID_AC:
-			id = MEM_callocN(sizeof(nAction), "action"); // XXX animation system
+			id = MEM_callocN(sizeof(bAction), "action");
 			break;
 		case ID_NT:
 			id = MEM_callocN(sizeof(bNodeTree), "nodetree");
@@ -520,7 +520,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_armature((bArmature *)id);
 			break;
 		case ID_AC:
-			free_action((nAction *)id); // XXX animation system...
+			free_action((bAction *)id);
 			break;
 		case ID_NT:
 			ntreeFreeTree((bNodeTree *)id);

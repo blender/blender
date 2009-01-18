@@ -100,7 +100,7 @@ typedef struct bKeyingContext {
 FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
 	AnimData *adt;
-	nAction *act;
+	bAction *act;
 	FCurve *fcu;
 	
 	/* sanity checks */
@@ -823,7 +823,7 @@ short deletekey (ID *id, const char rna_path[], int array_index, float cfra, sho
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
 	if (adt && adt->action && fcu) {
-		nAction *act= adt->action;
+		bAction *act= adt->action;
 		short found = -1;
 		int i;
 		
@@ -2120,7 +2120,8 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 		
 		/* loop through all curves in animdata and delete keys on this frame */
 		if (ob->adt) {
-			nAction *act= ob->adt->action;
+			AnimData *adt= ob->adt;
+			bAction *act= adt->action;
 			
 			for (fcu= act->curves.first; fcu; fcu= fcn) {
 				fcn= fcu->next;
@@ -2163,7 +2164,7 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
 /* Checks whether an IPO-block has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
-short action_frame_has_keyframe (nAction *act, float frame, short filter)
+short action_frame_has_keyframe (bAction *act, float frame, short filter)
 {
 	FCurve *fcu;
 	
@@ -2206,11 +2207,11 @@ short action_frame_has_keyframe (nAction *act, float frame, short filter)
 short object_frame_has_keyframe (Object *ob, float frame, short filter)
 {
 	/* error checking */
-	if (ELEM(NULL, ob, ob->adt))
+	if (ob == NULL)
 		return 0;
 	
 	/* check own animation data - specifically, the action it contains */
-	if (ob->adt->action) {
+	if ((ob->adt) && (ob->adt->action)) {
 		if (action_frame_has_keyframe(ob->adt->action, frame, filter))
 			return 1;
 	}

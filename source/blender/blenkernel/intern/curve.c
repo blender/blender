@@ -52,6 +52,7 @@
 #include "DNA_scene_types.h"  
 #include "DNA_vfont_types.h"  
 
+#include "BKE_animsys.h"
 #include "BKE_anim.h"  
 #include "BKE_curve.h"  
 #include "BKE_displist.h"  
@@ -83,10 +84,6 @@ void unlink_curve(Curve *cu)
 	cu->vfont= 0;
 	if(cu->key) cu->key->id.us--;
 	cu->key= 0;
-#if 0	// XXX old animation system
-	if(cu->ipo) cu->ipo->id.us--;
-	cu->ipo= 0;
-#endif	// XXX old animation system
 }
 
 
@@ -105,6 +102,7 @@ void free_curve(Curve *cu)
 	}
 
 	unlink_curve(cu);
+	BKE_free_animdata((ID *)cu);
 	
 	if(cu->mat) MEM_freeN(cu->mat);
 	if(cu->str) MEM_freeN(cu->str);

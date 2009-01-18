@@ -47,6 +47,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"		
 
+#include "BKE_animsys.h"
 #include "BKE_blender.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -91,6 +92,8 @@ void free_material(Material *ma)
 	
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
+	
+	BKE_free_animdata((ID *)ma);
 	
 	BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
