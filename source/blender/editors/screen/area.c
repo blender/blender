@@ -597,6 +597,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 /* area vertices were set */
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
+	SpaceType *st;
 	ARegion *ar;
 	
 	sa1->headertype= sa2->headertype;
@@ -615,12 +616,14 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	}
 	
 	/* regions */
+	st= BKE_spacetype_from_id(sa1->spacetype);
 	for(ar= sa1->regionbase.first; ar; ar= ar->next)
-		BKE_area_region_free(sa1->type, ar);
+		BKE_area_region_free(st, ar);
 	BLI_freelistN(&sa1->regionbase);
 	
+	st= BKE_spacetype_from_id(sa2->spacetype);
 	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
-		ARegion *newar= BKE_area_region_copy(sa2->type, ar);
+		ARegion *newar= BKE_area_region_copy(st, ar);
 		BLI_addtail(&sa1->regionbase, newar);
 	}
 		
