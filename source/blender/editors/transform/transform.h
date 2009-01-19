@@ -442,7 +442,7 @@ void flushTransNodes(TransInfo *t);
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
-float get_drawsize(struct View3D *v3d, struct ScrArea *sa, float *co);
+float get_drawsize(struct ARegion *ar, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);

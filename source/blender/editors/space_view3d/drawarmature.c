@@ -1268,7 +1268,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	}
 }
 
-static void draw_custom_bone(Scene *scene, View3D *v3d, Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
+static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	if(ob==NULL) return;
 	
@@ -1283,7 +1283,7 @@ static void draw_custom_bone(Scene *scene, View3D *v3d, Object *ob, int dt, int 
 		glLoadName((GLuint) id|BONESEL_BONE);
 	}
 	
-	draw_object_instance(scene, v3d, ob, dt, armflag & ARM_POSEMODE);
+	draw_object_instance(scene, v3d, rv3d, ob, dt, armflag & ARM_POSEMODE);
 }
 
 
@@ -1513,7 +1513,7 @@ static void draw_pose_dofs(Object *ob)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
+static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -1590,7 +1590,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
 						if (pchan->bone->flag & BONE_DRAWWIRE) 
 							draw_wire= 1;
 						else
-							draw_custom_bone(scene, v3d, pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
 					}
 					else if (arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
@@ -1656,7 +1656,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
 							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 								flag &= ~BONE_CONNECTED;
 							
-							draw_custom_bone(scene, v3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
 							
 							glPopMatrix();
 						}
@@ -1684,7 +1684,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
 		}
 		/* if solid && posemode, we draw again with polygonoffset */
 		else if ((dt > OB_WIRE) && (arm->flag & ARM_POSEMODE)) {
-			bglPolygonOffset(v3d->dist, 1.0);
+			bglPolygonOffset(rv3d->dist, 1.0);
 		}
 		else {
 			/* and we use selection indices if not done yet */
@@ -1772,7 +1772,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, Base *base, int dt)
 		}
 		/* restore things */
 		if ((arm->drawtype!=ARM_LINE)&& (dt>OB_WIRE) && (arm->flag & ARM_POSEMODE))
-			bglPolygonOffset(v3d->dist, 0.0);
+			bglPolygonOffset(rv3d->dist, 0.0);
 	}	
 	
 	/* restore */
@@ -1849,7 +1849,7 @@ static void set_matrix_editbone(EditBone *eBone)
 	
 }
 
-static void draw_ebones(View3D *v3d, Object *ob, int dt)
+static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 {
 	EditBone *eBone;
 	bArmature *arm= ob->data;
@@ -1920,7 +1920,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 			index= 0;
 	}
 	else if (dt > OB_WIRE) 
-		bglPolygonOffset(v3d->dist, 1.0);
+		bglPolygonOffset(rv3d->dist, 1.0);
 	else if (arm->flag & ARM_EDITMODE) 
 		index= 0;	/* do selection codes */
 	
@@ -1971,7 +1971,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 	
 	/* restore */
 	if (arm->drawtype==ARM_LINE);
-	else if (dt>OB_WIRE) bglPolygonOffset(v3d->dist, 0.0);
+	else if (dt>OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0);
 	
 	/* finally names and axes */
 	if (arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) {
@@ -2020,7 +2020,7 @@ static void draw_ebones(View3D *v3d, Object *ob, int dt)
 /* draw bone paths
  *	- in view space 
  */
-static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
+static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
@@ -2035,7 +2035,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, Object *ob)
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	glPushMatrix();
-	glLoadMatrixf(v3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 	
 	/* version patch here - cannot access frame info from file reading */
 	if (arm->pathsize == 0) arm->pathsize= 1;
@@ -2257,7 +2257,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
 /* draw ghosts that occur within a frame range 
  * 	note: object should be in posemode 
  */
-static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
+static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2298,7 +2298,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 		
 		//do_all_pose_actions(scene, ob);  // XXX old animation system
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, base, OB_WIRE);
+		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2318,7 +2318,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, Base *base)
 /* draw ghosts on keyframes in action within range 
  *	- object should be in posemode 
  */
-static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
+static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
 	bAction *act= ob->action; // XXX old animsys stuff... watch it!
@@ -2374,7 +2374,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 		
 		//do_all_pose_actions(scene, ob);	// XXX old animation system
 		where_is_pose(scene, ob);
-		draw_pose_channels(scene, v3d, base, OB_WIRE);
+		draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2394,7 +2394,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, Base *base)
 /* draw ghosts around current frame
  * 	- object is supposed to be armature in posemode 
  */
-static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
+static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2456,7 +2456,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			if (CFRA!=cfrao) {
 				//do_all_pose_actions(scene, ob); // xxx old animation system crap
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, base, OB_WIRE);
+				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 			}
 		}
 		
@@ -2472,7 +2472,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 			if (CFRA != cfrao) {
 				//do_all_pose_actions(scene, ob); // XXX old animation system crap...
 				where_is_pose(scene, ob);
-				draw_pose_channels(scene, v3d, base, OB_WIRE);
+				draw_pose_channels(scene, v3d, rv3d, base, OB_WIRE);
 			}
 		}
 	}
@@ -2493,7 +2493,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, Base *base)
 /* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
-int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
+int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2517,7 +2517,7 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 	/* editmode? */
 	if(arm->edbo) {
 		arm->flag |= ARM_EDITMODE;
-		draw_ebones(v3d, ob, dt);
+		draw_ebones(v3d, rv3d, ob, dt);
 		arm->flag &= ~ARM_EDITMODE;
 	}
 	else{
@@ -2531,14 +2531,14 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 				}
 				else if(ob->flag & OB_POSEMODE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
-						draw_ghost_poses_range(scene, v3d, base);
+						draw_ghost_poses_range(scene, v3d, rv3d, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_KEYS) {
-						draw_ghost_poses_keys(scene, v3d, base);
+						draw_ghost_poses_keys(scene, v3d, rv3d, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
-							draw_ghost_poses(scene, v3d, base);
+							draw_ghost_poses(scene, v3d, rv3d, base);
 					}
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
@@ -2547,11 +2547,11 @@ int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag)
 							if(OBACT && ob==modifiers_isDeformedByArmature(OBACT))
 								arm->flag |= ARM_POSEMODE;
 						}
-						draw_pose_paths(scene, v3d, ob);
+						draw_pose_paths(scene, v3d, rv3d, ob);
 					}
 				}	
 			}
-			draw_pose_channels(scene, v3d, base, dt);
+			draw_pose_channels(scene, v3d, rv3d, base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if(ob->flag & OB_POSEMODE)

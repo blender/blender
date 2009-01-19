@@ -782,7 +782,7 @@ Material *gpu_active_node_material(Material *ma)
 	return ma;
 }
 
-void GPU_set_object_materials(View3D *v3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
+void GPU_set_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, Object *ob, int glsl, int *do_alpha_pass)
 {
 	extern Material defmaterial; /* from material.c */
 	Material *ma;
@@ -800,8 +800,8 @@ void GPU_set_object_materials(View3D *v3d, Scene *scene, Object *ob, int glsl, i
 	GMS.gscene = scene;
 	GMS.totmat= ob->totcol;
 	GMS.glay= v3d->lay;
-	GMS.gviewmat= v3d->viewmat;
-	GMS.gviewinv= v3d->viewinv;
+	GMS.gviewmat= rv3d->viewmat;
+	GMS.gviewinv= rv3d->viewinv;
 
 	GMS.alphapass = (v3d && v3d->transp);
 	if(do_alpha_pass)

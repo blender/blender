@@ -164,13 +164,13 @@ static void helpline(TransInfo *t, float *vec)
 void setTransformViewMatrices(TransInfo *t)
 {
 	if(t->spacetype==SPACE_VIEW3D) {
-		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 		
-		Mat4CpyMat4(t->viewmat, v3d->viewmat);
-		Mat4CpyMat4(t->viewinv, v3d->viewinv);
-		Mat4CpyMat4(t->persmat, v3d->persmat);
-		Mat4CpyMat4(t->persinv, v3d->persinv);
-		t->persp = v3d->persp;
+		Mat4CpyMat4(t->viewmat, rv3d->viewmat);
+		Mat4CpyMat4(t->viewinv, rv3d->viewinv);
+		Mat4CpyMat4(t->persmat, rv3d->persmat);
+		Mat4CpyMat4(t->persinv, rv3d->persinv);
+		t->persp = rv3d->persp;
 	}
 	else {
 		Mat4One(t->viewmat);
@@ -186,7 +186,7 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		window_to_3d(t->ar, t->view, vec, dx, dy);
+		window_to_3d(t->ar, vec, dx, dy);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		View2D *v2d = t->view;
@@ -230,7 +230,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 void projectIntView(TransInfo *t, float *vec, int *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_int_noclip(t->ar, t->view, vec, adr);
+		project_int_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
@@ -255,7 +255,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 void projectFloatView(TransInfo *t, float *vec, float *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_float_noclip(t->ar, t->view, vec, adr);
+		project_float_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
@@ -995,9 +995,9 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	if(t->spacetype == SPACE_VIEW3D)
 	{
-		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 		//calc_manipulator_stats(curarea);
-		Mat3CpyMat4(t->spacemtx, v3d->twmat);
+		Mat3CpyMat4(t->spacemtx, rv3d->twmat);
 		Mat3Ortho(t->spacemtx);
 		
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);

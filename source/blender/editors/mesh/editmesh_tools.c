@@ -688,15 +688,15 @@ void split_mesh(EditMesh *em)
 
 }
 
-void extrude_repeat_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float offs)
+void extrude_repeat_mesh(RegionView3D *rv3d, Object *obedit, EditMesh *em, int steps, float offs)
 {
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a;
 
 	/* dvec */
-	dvec[0]= v3d->persinv[2][0];
-	dvec[1]= v3d->persinv[2][1];
-	dvec[2]= v3d->persinv[2][2];
+	dvec[0]= rv3d->persinv[2][0];
+	dvec[1]= rv3d->persinv[2][1];
+	dvec[2]= rv3d->persinv[2][2];
 	Normalize(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
@@ -723,6 +723,7 @@ void extrude_repeat_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, f
 
 void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr, float *dvec, int mode)
 {
+	RegionView3D *rv3d= NULL; // XXX from context
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0, 0.0, 0.0};
 	float *curs, si,n[3],q[4],cmat[3][3],imat[3][3], tmat[3][3];
@@ -734,7 +735,7 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 	Mat3CpyMat4(bmat, obedit->obmat);
 	Mat3Inv(imat,bmat);
 
-	curs= give_cursor(NULL, v3d);
+	curs= give_cursor(NULL, v3d); // XXX
 	VECCOPY(cent, curs);
 	cent[0]-= obedit->obmat[3][0];
 	cent[1]-= obedit->obmat[3][1];
@@ -746,13 +747,13 @@ void spin_mesh(View3D *v3d, Object *obedit, EditMesh *em, int steps, float degr,
 //	if(scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
-		n[0]= v3d->viewinv[1][0];
-		n[1]= v3d->viewinv[1][1];
-		n[2]= v3d->viewinv[1][2];
+		n[0]= rv3d->viewinv[1][0];
+		n[1]= rv3d->viewinv[1][1];
+		n[2]= rv3d->viewinv[1][2];
 	} else {
-		n[0]= v3d->viewinv[2][0];
-		n[1]= v3d->viewinv[2][1];
-		n[2]= v3d->viewinv[2][2];
+		n[0]= rv3d->viewinv[2][0];
+		n[1]= rv3d->viewinv[2][1];
+		n[2]= rv3d->viewinv[2][2];
 	}
 	Normalize(n);
 

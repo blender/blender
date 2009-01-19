@@ -380,9 +380,9 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 					m_blendstart = curtime;
 				}
 				// only interested in shape channel
-				extract_ipochannels_from_action(&tchanbase, &key->id, m_action, "Shape", m_localtime);
+				// XXX extract_ipochannels_from_action(&tchanbase, &key->id, m_action, "Shape", m_localtime);
 		
-				if (!execute_ipochannels(&tchanbase)) {
+				if (0) { // XXX !execute_ipochannels(&tchanbase)) {
 					// no update, this is possible if action does not match the keys, stop the action
 					keepgoing = false;
 				} 

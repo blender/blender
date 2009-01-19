@@ -60,7 +60,7 @@ void ED_object_apply_obmat(struct Object *ob);
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
-void ED_object_base_init_from_view(struct Scene *scene, struct View3D *v3d, struct Base *base);
+void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
 
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);

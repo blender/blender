@@ -31,6 +31,7 @@
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
 struct View3D;
+struct RegionView3D;
 struct ViewContext;
 struct BPoint;
 struct Nurb;
@@ -49,6 +50,7 @@ typedef struct ViewContext {
 	Object *obedit;
 	struct ARegion *ar;
 	struct View3D *v3d;
+	struct RegionView3D *rv3d;
 	struct EditMesh *em;
 	short mval[2];
 } ViewContext;
@@ -56,8 +58,8 @@ typedef struct ViewContext {
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
-void initgrabz(struct View3D *v3d, float x, float y, float z);
-void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
+void initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
+void window_to_3d(struct ARegion *ar, float *vec, short mx, short my);
 
 /* Depth buffer */
 float read_cached_depth(struct ViewContext *vc, int x, int y);
@@ -65,14 +67,14 @@ void request_depth_update(struct ViewContext *vc);
 
 /* Projection */
 
-void project_short(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
-void project_short_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, short *adr);
+void project_short(struct ARegion *ar, float *vec, short *adr);
+void project_short_noclip(struct ARegion *ar, float *vec, short *adr);
 
-void project_int(struct ARegion *ar, struct View3D *v3d, float *vec, int *adr);
-void project_int_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, int *adr);
+void project_int(struct ARegion *ar, float *vec, int *adr);
+void project_int_noclip(struct ARegion *ar, float *vec, int *adr);
 
-void project_float(struct ARegion *ar, struct View3D *v3d, float *vec, float *adr);
-void project_float_noclip(struct ARegion *ar, struct View3D *v3d, float *vec, float *adr);
+void project_float(struct ARegion *ar, float *vec, float *adr);
+void project_float_noclip(struct ARegion *ar, float *vec, float *adr);
 
 void viewline(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, short mval[2], float ray_start[3], float ray_normal[3]);
@@ -84,8 +86,8 @@ void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData,
 void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
 
-int view3d_test_clipping(struct View3D *v3d, float *vec);
-void view3d_align_axis_to_vector(struct Scene *scene, struct View3D *v3d, int axisidx, float vec[3]);
+int view3d_test_clipping(struct RegionView3D *rv3d, float *vec);
+void view3d_align_axis_to_vector(struct View3D *v3d, struct RegionView3D *rv3d, int axisidx, float vec[3]);
 
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 

@@ -206,6 +206,7 @@ typedef struct ARegion {
 #define RGN_ALIGN_HSPLIT	5
 #define RGN_ALIGN_VSPLIT	6
 #define RGN_ALIGN_FLOAT		7
+#define RGN_ALIGN_QSPLIT	8
 
 /* region flag */
 #define RGN_FLAG_HIDDEN		1

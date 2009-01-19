@@ -150,6 +150,7 @@ static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
 		return (flags & eEdge_Select);
 	}
 }
+
 static int draw_tfaces3D__setSeamOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
@@ -166,6 +167,7 @@ static int draw_tfaces3D__setSeamOpts(void *userData, int index)
 		return 0;
 	}
 }
+
 static int draw_tfaces3D__setSelectOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
@@ -174,6 +176,7 @@ static int draw_tfaces3D__setSelectOpts(void *userData, int index)
 
 	return flags & eEdge_Select;
 }
+
 static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
@@ -186,6 +189,7 @@ static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 		return 0;
 	}
 }
+
 static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
@@ -196,7 +200,8 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 	else
 		return 0;
 }
-static void draw_tfaces3D(View3D *v3d, Object *ob, Mesh *me, DerivedMesh *dm)
+
+static void draw_tfaces3D(RegionView3D *rv3d, Object *ob, Mesh *me, DerivedMesh *dm)
 {
 	struct { Mesh *me; EdgeHash *eh; } data;
 
@@ -205,7 +210,7 @@ static void draw_tfaces3D(View3D *v3d, Object *ob, Mesh *me, DerivedMesh *dm)
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
-	bglPolygonOffset(v3d->dist, 1.0);
+	bglPolygonOffset(rv3d->dist, 1.0);
 
 		/* Draw (Hidden) Edges */
 	UI_ThemeColor(TH_EDGE_FACESEL);
@@ -232,7 +237,7 @@ static void draw_tfaces3D(View3D *v3d, Object *ob, Mesh *me, DerivedMesh *dm)
 		glDisable(GL_BLEND);
 	}
 	
-	bglPolygonOffset(v3d->dist, 1.0);
+	bglPolygonOffset(rv3d->dist, 1.0);
 
 		/* Draw Stippled Outline for selected faces */
 	glColor3ub(255, 255, 255);
@@ -242,7 +247,7 @@ static void draw_tfaces3D(View3D *v3d, Object *ob, Mesh *me, DerivedMesh *dm)
 
 	dm->drawMappedEdges(dm, draw_tfaces3D__setActiveOpts, &data);
 
-	bglPolygonOffset(v3d->dist, 0.0);	// resets correctly now, even after calling accumulated offsets
+	bglPolygonOffset(rv3d->dist, 0.0);	// resets correctly now, even after calling accumulated offsets
 
 	BLI_edgehash_free(data.eh, NULL);
 }
@@ -335,7 +340,7 @@ struct TextureDrawState {
 	unsigned char obcol[4];
 } Gtexdraw = {NULL, 0, 0, {0, 0, 0, 0}};
 
-static void draw_textured_begin(Scene *scene, View3D *v3d, Object *ob)
+static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
 	int istex, solidtex= 0;
@@ -348,7 +353,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, Object *ob)
 	}
 	else
 		/* draw with lights in the scene otherwise */
-		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, v3d->viewmat);
+		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat);
 	
 	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
 	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
@@ -540,7 +545,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm->release(ddm);
 }
 
-void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int faceselect)
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
 	Mesh *me= ob->data;
 	
@@ -549,7 +554,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 	else glFrontFace(GL_CCW);
 	
 	/* draw the textured mesh */
-	draw_textured_begin(scene, v3d, ob);
+	draw_textured_begin(scene, v3d, rv3d, ob);
 
 	if(me->edit_mesh) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
@@ -570,7 +575,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, 
 	
 	/* draw edges and selected faces over textured mesh */
 	if(!me->edit_mesh && faceselect)
-		draw_tfaces3D(v3d, ob, me, dm);
+		draw_tfaces3D(rv3d, ob, me, dm);
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);

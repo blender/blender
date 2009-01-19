@@ -66,53 +66,54 @@ static SpaceLink *view3d_new(const bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar;
-	View3D *vd;
+	View3D *v3d;
+	RegionView3D *rv3d;
 	
-	vd= MEM_callocN(sizeof(View3D), "initview3d");
-	vd->spacetype= SPACE_VIEW3D;
-	vd->blockscale= 0.7f;
-	vd->lay= vd->layact= 1;
+	v3d= MEM_callocN(sizeof(View3D), "initview3d");
+	v3d->spacetype= SPACE_VIEW3D;
+	v3d->blockscale= 0.7f;
+	v3d->lay= v3d->layact= 1;
 	if(scene) {
-		vd->lay= vd->layact= scene->lay;
-		vd->camera= scene->camera;
+		v3d->lay= v3d->layact= scene->lay;
+		v3d->camera= scene->camera;
 	}
-	vd->scenelock= 1;
-	vd->grid= 1.0f;
-	vd->gridlines= 16;
-	vd->gridsubdiv = 10;
-	vd->drawtype= OB_WIRE;
+	v3d->scenelock= 1;
+	v3d->grid= 1.0f;
+	v3d->gridlines= 16;
+	v3d->gridsubdiv = 10;
+	v3d->drawtype= OB_WIRE;
 	
-	vd->gridflag |= V3D_SHOW_X;
-	vd->gridflag |= V3D_SHOW_Y;
-	vd->gridflag |= V3D_SHOW_FLOOR;
-	vd->gridflag &= ~V3D_SHOW_Z;
+	v3d->gridflag |= V3D_SHOW_X;
+	v3d->gridflag |= V3D_SHOW_Y;
+	v3d->gridflag |= V3D_SHOW_FLOOR;
+	v3d->gridflag &= ~V3D_SHOW_Z;
 	
-	vd->depths= NULL;
-	
-	/* XXX move view data to region? */
-	vd->viewquat[0]= 1.0f;
-	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
-	vd->persp= 1;
-	vd->view= 7;
-	vd->dist= 10.0;
-	vd->lens= 35.0f;
-	vd->near= 0.01f;
-	vd->far= 500.0f;
+	v3d->lens= 35.0f;
+	v3d->near= 0.01f;
+	v3d->far= 500.0f;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");
 	
-	BLI_addtail(&vd->regionbase, ar);
+	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for view3d");
 	
-	BLI_addtail(&vd->regionbase, ar);
+	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	return (SpaceLink *)vd;
+	ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region view3d");
+	rv3d= ar->regiondata;
+	rv3d->viewquat[0]= 1.0f;
+	rv3d->persp= 1;
+	rv3d->view= 7;
+	rv3d->dist= 10.0;
+	Mat4One(rv3d->twmat);
+	
+	return (SpaceLink *)v3d;
 }
 
 /* not spacelink itself */
@@ -126,19 +127,8 @@ static void view3d_free(SpaceLink *sl)
 	}
 	
 	if(vd->localvd) MEM_freeN(vd->localvd);
-	if(vd->clipbb) MEM_freeN(vd->clipbb);
-	if(vd->depths) {
-		if(vd->depths->depths) MEM_freeN(vd->depths->depths);
-		MEM_freeN(vd->depths);
-		vd->depths= NULL;
-	}
-	
-// XXX	retopo_free_view_data(vd);
 	
 	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
-	if(vd->ri) { 
-// XXX		BIF_view3d_previewrender_free(vd);
-	}
 	
 }
 
@@ -157,8 +147,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	/* clear or remove stuff from old */
 	
 // XXX	BIF_view3d_previewrender_free(v3do);
-	v3do->depths= NULL;
-	v3do->retopo_view_data= NULL;
 	
 	if(v3do->localvd) {
 // XXX		restore_localviewdata(v3do);
@@ -174,8 +162,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3dn->bgpic= MEM_dupallocN(v3dn->bgpic);
 		if(v3dn->bgpic->ima) v3dn->bgpic->ima->id.us++;
 	}
-	v3dn->clipbb= MEM_dupallocN(v3dn->clipbb);
-	v3dn->ri= NULL;
 	v3dn->properties_storage= NULL;
 	
 	return (SpaceLink *)v3dn;
@@ -199,6 +185,54 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 }
+
+/* type callback, not region itself */
+static void view3d_main_area_free(ARegion *ar)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	
+	if(rv3d) {
+		if(rv3d->localvd) MEM_freeN(rv3d->localvd);
+		if(rv3d->clipbb) MEM_freeN(rv3d->clipbb);
+
+		// XXX	retopo_free_view_data(rv3d);
+		if(rv3d->ri) { 
+			// XXX		BIF_view3d_previewrender_free(rv3d);
+		}
+		
+		if(rv3d->depths) {
+			if(rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
+			MEM_freeN(rv3d->depths);
+		}
+		MEM_freeN(rv3d);
+		ar->regiondata= NULL;
+	}
+}
+
+/* copy regiondata */
+static void *view3d_main_area_duplicate(void *poin)
+{
+	if(poin) {
+		RegionView3D *rv3d= poin, *new;
+	
+		new= MEM_dupallocN(rv3d);
+		if(rv3d->localvd) 
+			new->localvd= MEM_dupallocN(rv3d->localvd);
+		if(rv3d->clipbb) 
+			new->clipbb= MEM_dupallocN(rv3d->clipbb);
+		
+		new->depths= NULL;
+		new->retopo_view_data= NULL;
+		new->ri= NULL;
+		new->gpd= NULL;
+		new->sms= NULL;
+		new->smooth_timer= NULL;
+		
+		return new;
+	}
+	return NULL;
+}
+
 
 static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 {
@@ -422,6 +456,8 @@ void ED_spacetype_view3d(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
+	art->free= view3d_main_area_free;
+	art->duplicate= view3d_main_area_duplicate;
 	art->listener= view3d_main_area_listener;
 	art->cursor= view3d_main_area_cursor;
 	BLI_addhead(&st->regiontypes, art);

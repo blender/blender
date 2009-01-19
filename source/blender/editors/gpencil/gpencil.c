@@ -763,7 +763,6 @@ void gpencil_delete_menu (void)
 static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float p3d[3])
 {
 	ARegion *ar= NULL; // XXX
-	View3D *v3d= NULL; // XXX
 	
 	if (gps->flag & GP_STROKE_3DSPACE) {
 		/* directly use 3d-coordinates */
@@ -790,8 +789,8 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 		/* convert screen coordinate to 3d coordinates 
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
-		project_short_noclip(ar, v3d, fp, mval);
-		window_to_3d(ar, v3d, dvec, mval[0]-mx, mval[1]-my);
+		project_short_noclip(ar, fp, mval);
+		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(p3d, fp, dvec);
 	}
 }
@@ -1037,6 +1036,7 @@ void gpencil_convert_operation (short mode)
 {
 	Scene *scene= NULL; // XXX
 	View3D *v3d= NULL; // XXX
+	RegionView3D *rv3d= NULL; // XXX
 	bGPdata *gpd;	
 	float *fp= give_cursor(scene, v3d);
 	
@@ -1045,7 +1045,7 @@ void gpencil_convert_operation (short mode)
 	if (gpd == NULL) return;
 	
 	/* initialise 3d-cursor correction globals */
-	initgrabz(v3d, fp[0], fp[1], fp[2]);
+	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
 	/* handle selection modes */
 	switch (mode) {
@@ -1195,7 +1195,6 @@ static short gp_stroke_filtermval (tGPsdata *p, short mval[2], short pmval[2])
 /* convert screen-coordinates to buffer-coordinates */
 static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 {
-	View3D *v3d= NULL; // XXX
 	bGPdata *gpd= p->gpd;
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
@@ -1215,8 +1214,8 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		 */
 		
 		/* method taken from editview.c - mouse_cursor() */
-		project_short_noclip(p->ar, v3d, fp, mval);
-		window_to_3d(p->ar, v3d, dvec, mval[0]-mx, mval[1]-my);
+		project_short_noclip(p->ar, fp, mval);
+		window_to_3d(p->ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(out, fp, dvec);
 	}
 	
@@ -1549,7 +1548,6 @@ static short gp_stroke_eraser_strokeinside (short mval[], short mvalo[], short r
 static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[], short rad, rcti *rect, bGPDframe *gpf, bGPDstroke *gps)
 {
 	bGPDspoint *pt1, *pt2;
-	View3D *v3d= NULL;
 	int x0=0, y0=0, x1=0, y1=0;
 	short xyval[2];
 	int i;
@@ -1563,7 +1561,7 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 	else if (gps->totpoints == 1) {
 		/* get coordinates */
 		if (gps->flag & GP_STROKE_3DSPACE) {
-			project_short(p->ar, v3d, &gps->points->x, xyval);
+			project_short(p->ar, &gps->points->x, xyval);
 			x0= xyval[0];
 			y0= xyval[1];
 		}
@@ -1609,11 +1607,11 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, short mval[], short mvalo[],
 			
 			/* get coordinates */
 			if (gps->flag & GP_STROKE_3DSPACE) {
-				project_short(p->ar, v3d, &pt1->x, xyval);
+				project_short(p->ar, &pt1->x, xyval);
 				x0= xyval[0];
 				y0= xyval[1];
 				
-				project_short(p->ar, v3d, &pt2->x, xyval);
+				project_short(p->ar, &pt2->x, xyval);
 				x1= xyval[0];
 				y1= xyval[1];
 			}
@@ -1881,8 +1879,10 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 			case SPACE_VIEW3D:
 			{
 				View3D *v3d= (View3D *)p->sa->spacedata.first;
+				RegionView3D *rv3d= NULL; // XXX
 				float *fp= give_cursor(p->scene, v3d);
-				initgrabz(v3d, fp[0], fp[1], fp[2]);
+				
+				initgrabz(rv3d, fp[0], fp[1], fp[2]);
 				
 				p->gpd->sbuffer_sflag |= GP_STROKE_3DSPACE;
 			}

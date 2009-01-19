@@ -135,16 +135,17 @@ void drawSnapping(TransInfo *t)
 		
 		if (t->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = t->view;
+			RegionView3D *rv3d= t->ar->regiondata;
 			float tmat[4][4], imat[4][4];
 			float size;
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = get_drawsize(v3d, t->sa, t->tsnap.snapPoint);
+			size = get_drawsize(t->ar, t->tsnap.snapPoint);
 			
 			size *= 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 			
-			Mat4CpyMat4(tmat, v3d->viewmat);
+			Mat4CpyMat4(tmat, rv3d->viewmat);
 			Mat4Invert(imat, tmat);
 
 			drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size, imat);
@@ -874,7 +875,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 								
 								new_depth = VecLenf(location, ray_start);					
 								
-								project_int(t->ar, t->view, location, screen_loc);
+								project_int(t->ar, location, screen_loc);
 								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 								
 								if (new_dist <= *dist && new_depth < *depth)
@@ -918,7 +919,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 									
 									new_depth = VecLenf(location, ray_start);					
 									
-									project_int(t->ar, t->view, location, screen_loc);
+									project_int(t->ar, location, screen_loc);
 									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 									
 									if (new_dist <= *dist && new_depth < *depth)
@@ -1010,7 +1011,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 								
 								new_depth = VecLenf(location, ray_start);					
 								
-								project_int(t->ar, t->view, location, screen_loc);
+								project_int(t->ar, location, screen_loc);
 								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 								
 								if (new_dist <= *dist && new_depth < *depth)
@@ -1130,7 +1131,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 									
 									new_depth = VecLenf(location, ray_start);					
 									
-									project_int(t->ar, t->view, location, screen_loc);
+									project_int(t->ar, location, screen_loc);
 									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 									
 									if (new_dist <= *dist && new_depth < *depth)

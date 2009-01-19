@@ -1347,10 +1347,10 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 
 /* ********************************************* */
 
-static float get_manipulator_drawsize(ScrArea *sa)
+static float get_manipulator_drawsize(ARegion *ar)
 {
-	View3D *v3d= sa->spacedata.first;
-	float size = get_drawsize(v3d, v3d->twmat[3]);
+	RegionView3D *rv3d= ar->regiondata;
+	float size = get_drawsize(ar, rv3d->twmat[3]);
 	
 	size*= (float)U.tw_size;
 

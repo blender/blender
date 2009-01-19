@@ -745,9 +745,9 @@ void drawPropCircle(TransInfo *t)
 		
 		if (t->spacetype == SPACE_VIEW3D)
 		{
-			View3D *v3d = t->view;
+			RegionView3D *rv3d = t->ar->regiondata;
 			
-			Mat4CpyMat4(tmat, v3d->viewmat);
+			Mat4CpyMat4(tmat, rv3d->viewmat);
 			Mat4Invert(imat, tmat);
 		}
 		else

@@ -4269,12 +4269,13 @@ void createTransData(bContext *C, TransInfo *t)
 #endif
 	else {
 		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 		
 		t->flag &= ~T_PROP_EDIT; /* no proportional edit in object mode */
 		createTransObject(C, t);
 		t->flag |= T_OBJECT;
 		
-		if((t->flag & T_OBJECT) && v3d->camera == OBACT && v3d->persp==V3D_CAMOB)
+		if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 		{
 			t->flag |= T_CAMERA;
 		}

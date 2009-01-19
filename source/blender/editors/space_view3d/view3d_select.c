@@ -80,6 +80,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_types.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -96,6 +97,7 @@ void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 	vc->ar= CTX_wm_region(C);
 	vc->scene= CTX_data_scene(C);
 	vc->v3d= CTX_wm_view3d(C);
+	vc->rv3d= vc->ar->regiondata;
 	vc->obact= CTX_data_active_object(C);
 	vc->obedit= CTX_data_edit_object(C); 
 }
@@ -310,10 +312,10 @@ static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		VECCOPY(vec, pchan->pose_head);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_short(vc->ar, vc->v3d, vec, sco1);
+		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, pchan->pose_tail);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_short(vc->ar, vc->v3d, vec, sco2);
+		project_short(vc->ar, vec, sco2);
 		
 		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) pchan->bone->flag |= BONE_SELECTED;
@@ -329,7 +331,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 	
 	for(base= vc->scene->base.first; base; base= base->next) {
 		if(base->lay & vc->v3d->lay) {
-			project_short(vc->ar, vc->v3d, base->object->obmat[3], &base->sx);
+			project_short(vc->ar, base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
 				if(select) ED_base_object_select(base, BA_SELECT);
@@ -572,10 +574,10 @@ static void do_lasso_select_armature(ViewContext *vc, short mcords[][2], short m
 
 		VECCOPY(vec, ebone->head);
 		Mat4MulVecfl(vc->obedit->obmat, vec);
-		project_short(vc->ar, vc->v3d, vec, sco1);
+		project_short(vc->ar, vec, sco1);
 		VECCOPY(vec, ebone->tail);
 		Mat4MulVecfl(vc->obedit->obmat, vec);
-		project_short(vc->ar, vc->v3d, vec, sco2);
+		project_short(vc->ar, vec, sco2);
 		
 		didpoint= 0;
 		if(lasso_inside(mcords, moves, sco1[0], sco1[1])) {
@@ -819,7 +821,7 @@ static Base *mouse_select_menu(ViewContext *vc, unsigned int *buffer, int hits, 
 			else {
 				int temp, dist=15;
 				
-				project_short(vc->ar, vc->v3d, base->object->obmat[3], &base->sx);
+				project_short(vc->ar, base->object->obmat[3], &base->sx);
 				
 				temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
 				if(temp<dist ) baseList[baseCount] = base;
@@ -937,7 +939,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 			base= startbase;
 			while(base) {
 				if (BASE_SELECTABLE(v3d, base)) {
-					project_short(ar, v3d, base->object->obmat[3], &base->sx);
+					project_short(ar, base->object->obmat[3], &base->sx);
 					
 					temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
 					if(base==BASACT) temp+=10;
@@ -1758,7 +1760,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(base->lay & v3d->lay) {
-				project_short(ar, v3d, base->object->obmat[3], &base->sx);
+				project_short(ar, base->object->obmat[3], &base->sx);
 				if(base->sx!=IS_CLIPPED) {
 					int dx= base->sx-x;
 					int dy= base->sy-y;

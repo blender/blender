@@ -177,14 +177,14 @@ static void uv_calc_center_vector(Scene *scene, View3D *v3d, float *result, Obje
 	}
 }
 
-static void uv_calc_map_matrix(float result[][4], View3D *v3d, Object *ob, float upangledeg, float sideangledeg, float radius)
+static void uv_calc_map_matrix(float result[][4], RegionView3D *rv3d, Object *ob, float upangledeg, float sideangledeg, float radius)
 {
 	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];
 	float sideangle= 0.0, upangle= 0.0;
 	int k;
 
 	/* get rotation of the current view matrix */
-	Mat4CpyMat4(viewmatrix,v3d->viewmat);
+	Mat4CpyMat4(viewmatrix, rv3d->viewmat);
 	/* but shifting */
 	for( k= 0; k< 4; k++) viewmatrix[3][k] =0.0;
 
@@ -219,6 +219,7 @@ static void uv_calc_map_matrix(float result[][4], View3D *v3d, Object *ob, float
 
 static void uv_calc_shift_project(ARegion *ar, View3D *v3d, float *target, float *shift, float rotmat[][4], int projectionmode, float *source, float *min, float *max)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	float pv[3];
 
 	VecSubf(pv, source, shift);
@@ -257,7 +258,7 @@ static void uv_calc_shift_project(ARegion *ar, View3D *v3d, float *target, float
         Mat4MulVec4fl(rotmat, pv4); 
 
 		/* almost project_short */
-	    Mat4MulVec4fl(v3d->persmat, pv4);
+	    Mat4MulVec4fl(rv3d->persmat, pv4);
 		if (fabs(pv4[3]) > 0.00001) { /* avoid division by zero */
 			target[0] = dx/2.0 + (dx/2.0)*pv4[0]/pv4[3];
 			target[1] = dy/2.0 + (dy/2.0)*pv4[1]/pv4[3];
@@ -368,6 +369,7 @@ static void default_uv(float uv[][2], float size)
 
 static void calculate_uv_map(Scene *scene, ARegion *ar, View3D *v3d, EditMesh *em, unsigned short mapmode)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	MTFace *tface;
 	Object *ob;
 	EditFace *efa;
@@ -412,7 +414,7 @@ static void calculate_uv_map(Scene *scene, ARegion *ar, View3D *v3d, EditMesh *e
 		max[0]= max[1]= -10000000.0;
 
 		cent[0] = cent[1] = cent[2] = 0.0; 
-		uv_calc_map_matrix(rotatematrix, v3d, ob, upangledeg, sideangledeg, 1.0f);
+		uv_calc_map_matrix(rotatematrix, rv3d, ob, upangledeg, sideangledeg, 1.0f);
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (efa->f & SELECT) {
@@ -475,7 +477,7 @@ static void calculate_uv_map(Scene *scene, ARegion *ar, View3D *v3d, EditMesh *e
 		if (scene->toolsettings->uvcalc_mapdir== 2)
 			Mat4One(rotatematrix);
 		else 
-			uv_calc_map_matrix(rotatematrix, v3d, ob, upangledeg,sideangledeg,radius);
+			uv_calc_map_matrix(rotatematrix, rv3d, ob, upangledeg,sideangledeg,radius);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (efa->f & SELECT) {
 				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);

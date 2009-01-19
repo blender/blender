@@ -1396,17 +1396,14 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
-	View3D *v3d = NULL;
+	View3D *v3d =CTX_wm_view3d(C);
+	ARegion *ar= CTX_wm_region(C);
 	float *curs, mat[3][3], vmat[3][3], cmat[3][3], imat[3][3];
 	
 	Mat4One(primmat);
 	
-	if(sa->spacetype==SPACE_VIEW3D)
-		v3d= sa->spacedata.first;
-	
-	if(v3d)
-		Mat3CpyMat4(vmat, v3d->viewmat);
+	if(ar)
+		Mat3CpyMat4(vmat, ((RegionView3D *)ar->regiondata)->viewmat);
 	else
 		Mat3One(vmat);
 	

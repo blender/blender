@@ -47,19 +47,6 @@
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 
-ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
-{
-	ARegionType *art;
-	
-	for(art= st->regiontypes.first; art; art= art->next)
-		if(art->regionid==regionid)
-			return art;
-	
-	printf("Error, region type missing in %s\n", st->name);
-	return st->regiontypes.first;
-}
-
-
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
 {

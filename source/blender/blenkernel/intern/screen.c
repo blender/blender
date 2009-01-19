@@ -82,6 +82,19 @@ SpaceType *BKE_spacetype_from_id(int spaceid)
 	return NULL;
 }
 
+ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
+{
+	ARegionType *art;
+	
+	for(art= st->regiontypes.first; art; art= art->next)
+		if(art->regionid==regionid)
+			return art;
+	
+	printf("Error, region type missing in %s\n", st->name);
+	return st->regiontypes.first;
+}
+
+
 const ListBase *BKE_spacetypes_list()
 {
 	return &spacetypes;
@@ -113,9 +126,9 @@ void BKE_spacedata_freelist(ListBase *lb)
 		SpaceType *st= BKE_spacetype_from_id(sl->spacetype);
 		
 		/* free regions for pushed spaces */
-		for(ar=sl->regionbase.first; ar; ar=ar->next) {
-			BKE_area_region_free(ar);
-		}
+		for(ar=sl->regionbase.first; ar; ar=ar->next)
+			BKE_area_region_free(st, ar);
+
 		BLI_freelistN(&sl->regionbase);
 		
 		if(st && st->free) 
@@ -125,19 +138,26 @@ void BKE_spacedata_freelist(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
-ARegion *BKE_area_region_copy(ARegion *ar)
+ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 {
 	ARegion *newar= MEM_dupallocN(ar);
 	Panel *pa, *newpa, *patab;
 	
+	newar->prev= newar->next= NULL;
 	newar->handlers.first= newar->handlers.last= NULL;
 	newar->uiblocks.first= newar->uiblocks.last= NULL;
 	newar->swinid= 0;
 	
-	/* XXX regiondata callback */
-	if(ar->regiondata)
-		newar->regiondata= MEM_dupallocN(ar->regiondata);
+	/* use optional regiondata callback */
+	if(ar->regiondata) {
+		ARegionType *art= BKE_regiontype_from_id(st, ar->regiontype);
 
+		if(art && art->duplicate)
+			newar->regiondata= art->duplicate(ar->regiondata);
+		else
+			newar->regiondata= MEM_dupallocN(ar->regiondata);
+	}
+	
 	newar->panels.first= newar->panels.last= NULL;
 	BLI_duplicatelist(&newar->panels, &ar->panels);
 	
@@ -160,7 +180,7 @@ ARegion *BKE_area_region_copy(ARegion *ar)
 
 
 /* from lb2 to lb1, lb1 is supposed to be free'd */
-static void region_copylist(ListBase *lb1, ListBase *lb2)
+static void region_copylist(SpaceType *st, ListBase *lb1, ListBase *lb2)
 {
 	ARegion *ar;
 	
@@ -168,7 +188,7 @@ static void region_copylist(ListBase *lb1, ListBase *lb2)
 	lb1->first= lb1->last= NULL;
 	
 	for(ar= lb2->first; ar; ar= ar->next) {
-		ARegion *arnew= BKE_area_region_copy(ar);
+		ARegion *arnew= BKE_area_region_copy(st, ar);
 		BLI_addtail(lb1, arnew);
 	}
 }
@@ -189,18 +209,21 @@ void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2)
 			
 			BLI_addtail(lb1, slnew);
 			
-			region_copylist(&slnew->regionbase, &sl->regionbase);
+			region_copylist(st, &slnew->regionbase, &sl->regionbase);
 		}
 	}
 }
 
 /* not region itself */
-void BKE_area_region_free(ARegion *ar)
+void BKE_area_region_free(SpaceType *st, ARegion *ar)
 {
+	if(st) {
+		ARegionType *art= BKE_regiontype_from_id(st, ar->regiontype);
+		
+		if(art && art->free)
+			art->free(ar);
+	}
 	if(ar) {
-		if(ar->type && ar->type->free)
-			ar->type->free(ar);
-
 		BLI_freelistN(&ar->panels);
 	}
 }
@@ -208,16 +231,16 @@ void BKE_area_region_free(ARegion *ar)
 /* not area itself */
 void BKE_screen_area_free(ScrArea *sa)
 {
-	ARegion *ar, *arn;
+	SpaceType *st= BKE_spacetype_from_id(sa->spacetype);
+	ARegion *ar;
 	
-	for(ar=sa->regionbase.first; ar; ar=arn) {
-		arn= ar->next;
-		BKE_area_region_free(ar);
-	}
+	for(ar=sa->regionbase.first; ar; ar=ar->next)
+		BKE_area_region_free(st, ar);
 
+	BLI_freelistN(&sa->regionbase);
+	
 	BKE_spacedata_freelist(&sa->spacedata);
 	
-	BLI_freelistN(&sa->regionbase);
 	BLI_freelistN(&sa->actionzones);
 	
 #ifndef DISABLE_PYTHON
@@ -229,12 +252,11 @@ void BKE_screen_area_free(ScrArea *sa)
 void free_screen(bScreen *sc)
 {
 	ScrArea *sa, *san;
-	ARegion *ar, *arn;
+	ARegion *ar;
 	
-	for(ar=sc->regionbase.first; ar; ar=arn) {
-		arn= ar->next;
-		BKE_area_region_free(ar);
-	}
+	for(ar=sc->regionbase.first; ar; ar=ar->next)
+		BKE_area_region_free(NULL, ar);
+
 	BLI_freelistN(&sc->regionbase);
 	
 	for(sa= sc->areabase.first; sa; sa= san) {

@@ -467,7 +467,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 		
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
-		if(data->vc.v3d->flag & V3D_CLIPPING) {
+		if(data->vc.rv3d->rflag & RV3D_CLIPPING) {
 			float labda= labda_PdistVL2Dfl(data->mval, v1, v2);
 			float vec[3];
 
@@ -476,7 +476,7 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
 			Mat4MulVecfl(data->vc.obedit->obmat, vec);
 
-			if(view3d_test_clipping(data->vc.v3d, vec)==0) {
+			if(view3d_test_clipping(data->vc.rv3d, vec)==0) {
 				data->dist = distance;
 				data->closest = eed;
 			}
@@ -4089,7 +4089,7 @@ static int mface_is_selected(MFace *mf)
 	 * which would use same as vertices method), then added
 	 * to interface! Hoera! - zr
 	 */
-void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
+void faceselect_align_view_to_selected(View3D *v3d, RegionView3D *rv3d, Mesh *me, int axis)
 {
 	float norm[3];
 	int i, totselected = 0;
@@ -4122,7 +4122,7 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 	if (totselected == 0)
 		error("No faces selected.");
 	else
-		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
+		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 }
 
 /* helper for below, to survive non-uniform scaled objects */
@@ -4146,7 +4146,7 @@ static void face_getnormal_obspace(Object *obedit, EditFace *efa, float *fno)
 }
 
 
-void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, int axis)
+void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, RegionView3D *rv3d, int axis)
 {
 	int nselverts= EM_nvertices_selected(em);
 	float norm[3]={0.0, 0.0, 0.0}; /* used for storing the mesh normal */
@@ -4167,7 +4167,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 
-		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
+		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	} 
 	else if (nselverts>2) {
 		float cent[3];
@@ -4192,7 +4192,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 		}
 
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
+		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	} 
 	else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
 		EditVert *eve, *leve= NULL;
@@ -4209,7 +4209,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
+		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	} 
 	else if (nselverts==1) { /* Align view to vert normal */ 
 		EditVert *eve;
@@ -4223,7 +4223,7 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, View3D *v3d, 
 			}
 		}
 		Mat4Mul3Vecfl(obedit->obmat, norm);
-		view3d_align_axis_to_vector(NULL, v3d, axis, norm);
+		view3d_align_axis_to_vector(v3d, rv3d, axis, norm);
 	}
 } 
 

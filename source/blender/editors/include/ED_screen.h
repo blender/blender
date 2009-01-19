@@ -53,7 +53,6 @@ void	ED_region_tag_redraw(struct ARegion *ar);
 /* spaces */
 void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
-struct	ARegionType *ED_regiontype_from_id(struct SpaceType *st, int regionid);
 int		ED_area_header_standardbuttons(const struct bContext *C, struct uiBlock *block, int yco);
 void	ED_area_overdraw(struct bContext *C);
 void	ED_area_overdraw_flush(struct bContext *C);

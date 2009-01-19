@@ -2023,7 +2023,7 @@ static EditBone *add_editbone(Object *obedit, char *name)
 	return bone;
 }
 
-static void add_primitive_bone(Scene *scene, View3D *v3d, short newob)
+static void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, short newob)
 {
 	Object *obedit= scene->obedit; // XXX get from context
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
@@ -2035,7 +2035,8 @@ static void add_primitive_bone(Scene *scene, View3D *v3d, short newob)
 	Mat4Invert(obedit->imat, obedit->obmat);
 	Mat4MulVecfl(obedit->imat, curs);
 
-	if ( !(newob) || (U.flag & USER_ADD_VIEWALIGNED) ) Mat3CpyMat4(obmat, v3d->viewmat);
+	if ( !(newob) || (U.flag & USER_ADD_VIEWALIGNED) ) 
+		Mat3CpyMat4(obmat, rv3d->viewmat);
 	else Mat3One(obmat);
 	
 	Mat3CpyMat4(viewmat, obedit->obmat);
@@ -2058,6 +2059,7 @@ static void add_primitive_bone(Scene *scene, View3D *v3d, short newob)
 
 void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 {
+	RegionView3D *rv3d= NULL; // XXX get from context
 	Object *obedit= scene->obedit; // XXX get from context
 	short newob=0;
 	
@@ -2071,7 +2073,7 @@ void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 	/* If we're not the "obedit", make a new object and enter editmode */
 	if (obedit==NULL) {
 		add_object(scene, OB_ARMATURE);
-		ED_object_base_init_from_view(scene, v3d, BASACT);
+		ED_object_base_init_from_view(NULL, BASACT);	// XXX NULL is C
 		obedit= BASACT->object;
 		
 		where_is_object(scene, obedit);
@@ -2082,7 +2084,7 @@ void add_primitiveArmature(Scene *scene, View3D *v3d, int type)
 	}
 	
 	/* no primitive support yet */
-	add_primitive_bone(scene, v3d, newob);
+	add_primitive_bone(scene, v3d, rv3d, newob);
 	
 	countall(); // flushes selection!
 
@@ -4815,7 +4817,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	}
 	
 	dst = add_object(scene, OB_ARMATURE);
-	ED_object_base_init_from_view(scene, NULL, scene->basact);
+	ED_object_base_init_from_view(NULL, scene->basact); 	// XXX NULL is C
 	obedit= scene->basact->object;
 	
 	/* Copy orientation from source */

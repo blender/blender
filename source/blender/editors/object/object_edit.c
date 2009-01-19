@@ -222,8 +222,10 @@ int object_data_is_libdata(Object *ob)
 
 
 /* exported */
-void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
+void ED_object_base_init_from_view(bContext *C, Base *base)
 {
+	View3D *v3d= CTX_wm_view3d(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= base->object;
 	
 	if (scene==NULL)
@@ -244,10 +246,14 @@ void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
 		}
 		
 		if (U.flag & USER_ADD_VIEWALIGNED) {
-			v3d->viewquat[0]= -v3d->viewquat[0];
-			
-			QuatToEul(v3d->viewquat, ob->rot);
-			v3d->viewquat[0]= -v3d->viewquat[0];
+			ARegion *ar= CTX_wm_region(C);
+			if(ar) {
+				RegionView3D *rv3d= ar->regiondata;
+				
+				rv3d->viewquat[0]= -rv3d->viewquat[0];
+				QuatToEul(rv3d->viewquat, ob->rot);
+				rv3d->viewquat[0]= -rv3d->viewquat[0];
+			}
 		}
 	}
 }
@@ -293,7 +299,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	ED_base_object_activate(C, BASACT);
 	
 	/* more editor stuff */
-	ED_object_base_init_from_view(scene, CTX_wm_view3d(C), BASACT);
+	ED_object_base_init_from_view(C, BASACT);
 	
 	DAG_scene_sort(scene);
 	

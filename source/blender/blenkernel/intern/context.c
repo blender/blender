@@ -171,6 +171,13 @@ View3D *CTX_wm_view3d(const bContext *C)
 	return NULL;
 }
 
+RegionView3D *CTX_wm_region_view3d(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
+		if(C->wm.region)
+			return C->wm.region->regiondata;
+	return NULL;
+}
 
 ARegion *CTX_wm_region(const bContext *C)
 {
