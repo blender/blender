@@ -1718,8 +1718,45 @@ static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
 	}
 }
 
-/* ************ READ ARMATURE ***************** */
+/* ************ READ ANIMATION STUFF ***************** */
 
+/* Legacy Data Support (for Version Patching) ----------------------------- */
+
+// XXX depreceated - old animation system
+static void lib_link_ipo(FileData *fd, Main *main)
+{
+	Ipo *ipo;
+
+	ipo= main->ipo.first;
+	while(ipo) {
+		if(ipo->id.flag & LIB_NEEDLINK) {
+			IpoCurve *icu;
+			for(icu= ipo->curve.first; icu; icu= icu->next) {
+				if(icu->driver)
+					icu->driver->ob= newlibadr(fd, ipo->id.lib, icu->driver->ob);
+			}
+			ipo->id.flag -= LIB_NEEDLINK;
+		}
+		ipo= ipo->id.next;
+	}
+}
+
+// XXX depreceated - old animation system
+static void direct_link_ipo(FileData *fd, Ipo *ipo)
+{
+	IpoCurve *icu;
+
+	link_list(fd, &(ipo->curve));
+	icu= ipo->curve.first;
+	while(icu) {
+		icu->bezt= newdataadr(fd, icu->bezt);
+		icu->bp= newdataadr(fd, icu->bp);
+		icu->driver= newdataadr(fd, icu->driver);
+		icu= icu->next;
+	}
+}
+
+// XXX depreceated - old animation system
 static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 {
 	bActionStrip *strip;
@@ -1734,6 +1771,18 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 	}
 }
 
+// XXX depreceated - old animation system
+static void direct_link_nlastrips(FileData *fd, ListBase *strips)
+{
+	bActionStrip *strip;
+	
+	link_list(fd, strips);
+	
+	for(strip= strips->first; strip; strip= strip->next)
+		link_list(fd, &strip->modifiers);
+}
+
+// XXX depreceated - old animation system
 static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbase)
 {
 	bConstraintChannel *chan;
@@ -1742,6 +1791,175 @@ static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbas
 		chan->ipo = newlibadr_us(fd, id->lib, chan->ipo);
 	}
 }
+
+/* Data Linking ----------------------------- */
+
+static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list) 
+{
+	FCurve *fcu;
+	FModifier *fcm;
+	
+	/* relink ID-block references... */
+	for (fcu= list->first; fcu; fcu= fcu->next) {
+		/* driver data */
+		if (fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
+			driver->id= newlibadr(fd, id->lib, driver->id); 
+			driver->id2= newlibadr(fd, id->lib, driver->id2); 
+		}
+		
+		/* modifiers */
+		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+			/* data for specific modifiers */
+			switch (fcm->type) {
+				case FMODIFIER_TYPE_PYTHON:
+				{
+					FMod_Python *data= (FMod_Python *)fcm->data;
+					data->script = newlibadr(fd, id->lib, data->script);
+				}
+					break;
+			}
+		}
+	}
+}
+
+static void direct_link_fcurves(FileData *fd, ListBase *list)
+{
+	FCurve *fcu;
+	FModifier *fcm;
+	
+	/* link F-Curve data to F-Curve again (non ID-libs) */
+	for (fcu= list->first; fcu; fcu= fcu->next) {
+		/* curve data */
+		fcu->bezt= newdataadr(fd, fcu->bezt);
+		fcu->fpt= newdataadr(fd, fcu->fpt);
+		
+		/* rna path */
+		fcu->rna_path= newdataadr(fd, fcu->rna_path);
+		
+		/* driver */
+		fcu->driver= newdataadr(fd, fcu->driver);
+		if (fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
+			
+			driver->rna_path= newdataadr(fd, driver->rna_path);
+			driver->rna_path2= newdataadr(fd, driver->rna_path2);
+		}
+		
+		/* modifiers */
+		link_list(fd, &fcu->modifiers);
+		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+			/* relink general data */
+			fcm->data = newdataadr(fd, fcm->data);
+			
+			/* do relinking of data for specific types */
+			switch (fcm->type) {
+				case FMODIFIER_TYPE_GENERATOR:
+				{
+					FMod_Generator *data= (FMod_Generator *)fcm->data;
+					
+					data->poly_coefficients= newdataadr(fd, data->poly_coefficients);
+				}
+					break;
+				case FMODIFIER_TYPE_PYTHON:
+				{
+					FMod_Python *data= (FMod_Python *)fcm->data;
+					
+					data->prop = newdataadr(fd, data->prop);
+					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+				}
+					break;
+			}
+		}
+	}
+}
+
+
+static void lib_link_action(FileData *fd, Main *main)
+{
+	bAction *act;
+	bActionChannel *chan;
+
+	for (act= main->action.first; act; act= act->id.next) {
+		if (act->id.flag & LIB_NEEDLINK) {
+			act->id.flag -= LIB_NEEDLINK;
+			
+// XXX depreceated - old animation system <<<
+			for (chan=act->chanbase.first; chan; chan=chan->next) {
+				chan->ipo= newlibadr_us(fd, act->id.lib, chan->ipo);
+				lib_link_constraint_channels(fd, &act->id, &chan->constraintChannels);
+			}
+// >>> XXX depreceated - old animation system
+			
+			lib_link_fcurves(fd, &act->id, &act->curves);
+		}
+	}
+}
+
+static void direct_link_action(FileData *fd, bAction *act)
+{
+	bActionChannel *achan; // XXX depreceated - old animation system
+	bActionGroup *agrp;
+
+	link_list(fd, &act->curves); // xxx - do we need to patch the data for this?
+	link_list(fd, &act->chanbase);
+	link_list(fd, &act->groups);
+	link_list(fd, &act->markers);
+
+// XXX depreceated - old animation system <<<
+	for (achan = act->chanbase.first; achan; achan=achan->next) {
+		achan->grp= newdataadr(fd, achan->grp);
+		
+		link_list(fd, &achan->constraintChannels);
+	}
+// >>> XXX depreceated - old animation system
+
+	direct_link_fcurves(fd, &act->curves);
+	
+	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
+		if (agrp->channels.first) {
+			agrp->channels.first= newdataadr(fd, agrp->channels.first);
+			agrp->channels.last= newdataadr(fd, agrp->channels.last);
+		}
+	}
+}
+
+/* ------- */
+
+static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
+{
+	if (adt == NULL)
+		return;
+	
+	/* link action data */
+	adt->action= newlibadr_us(fd, id->lib, adt->action);
+	
+	/* link drivers */
+	lib_link_fcurves(fd, id, &adt->drivers);
+	
+	/* overrides don't have lib-link for now, so no need to do anything */
+	
+	/* link NLA-data */
+	// TODO... 
+}
+
+static void direct_link_animdata(FileData *fd, AnimData *adt)
+{
+	/* NOTE: must have called newdataadr already before doing this... */
+	if (adt == NULL)
+		return;
+	
+	/* link drivers */
+	direct_link_fcurves(fd, &adt->drivers);
+	
+	/* link overrides */
+	// TODO...
+	
+	/* link NLA-data */
+	// TODO...
+}	
+
+/* ************ READ ARMATURE ***************** */
 
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 {
@@ -1754,7 +1972,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 			con->type= CONSTRAINT_TYPE_NULL;
 		}
 		/* own ipo, all constraints have it */
-		con->ipo= newlibadr_us(fd, id->lib, con->ipo);
+		con->ipo= newlibadr_us(fd, id->lib, con->ipo); // XXX depreceated - old animation system
 		
 		switch (con->type) {
 		case CONSTRAINT_TYPE_PYTHON:
@@ -1947,26 +2165,6 @@ static void lib_link_armature(FileData *fd, Main *main)
 	}
 }
 
-static void lib_link_action(FileData *fd, Main *main)
-{
-	bAction *act;
-	bActionChannel *chan;
-
-	act= main->action.first;
-	while(act) {
-		if(act->id.flag & LIB_NEEDLINK) {
-			act->id.flag -= LIB_NEEDLINK;
-			
-			for (chan=act->chanbase.first; chan; chan=chan->next) {
-				chan->ipo= newlibadr_us(fd, act->id.lib, chan->ipo);
-				lib_link_constraint_channels(fd, &act->id, &chan->constraintChannels);
-			}
-			
-		}
-		act= act->id.next;
-	}
-}
-
 static void direct_link_bones(FileData *fd, Bone* bone)
 {
 	Bone	*child;
@@ -1977,30 +2175,6 @@ static void direct_link_bones(FileData *fd, Bone* bone)
 
 	for (child=bone->childbase.first; child; child=child->next) {
 		direct_link_bones(fd, child);
-	}
-}
-
-
-static void direct_link_action(FileData *fd, bAction *act)
-{
-	bActionChannel *achan;
-	bActionGroup *agrp;
-
-	link_list(fd, &act->chanbase);
-	link_list(fd, &act->groups);
-	link_list(fd, &act->markers);
-
-	for (achan = act->chanbase.first; achan; achan=achan->next) {
-		achan->grp= newdataadr(fd, achan->grp);
-		
-		link_list(fd, &achan->constraintChannels);
-	}
-		
-	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
-		if (agrp->channels.first) {
-			agrp->channels.first= newdataadr(fd, agrp->channels.first);
-			agrp->channels.last= newdataadr(fd, agrp->channels.last);
-		}
 	}
 }
 
@@ -2027,13 +2201,14 @@ static void lib_link_camera(FileData *fd, Main *main)
 	ca= main->camera.first;
 	while(ca) {
 		if(ca->id.flag & LIB_NEEDLINK) {
-
-			ca->ipo= newlibadr_us(fd, ca->id.lib, ca->ipo);
+			if (ca->adt) lib_link_animdata(fd, &ca->id, ca->adt);
+			
+			ca->ipo= newlibadr_us(fd, ca->id.lib, ca->ipo); // XXX depreceated - old animation system
 			
 			ca->dof_ob= newlibadr_us(fd, ca->id.lib, ca->dof_ob);
 			
 			lib_link_scriptlink(fd, &ca->id, &ca->scriptlink);
-
+			
 			ca->id.flag -= LIB_NEEDLINK;
 		}
 		ca= ca->id.next;
@@ -2042,6 +2217,9 @@ static void lib_link_camera(FileData *fd, Main *main)
 
 static void direct_link_camera(FileData *fd, Camera *ca)
 {
+	ca->adt= newdataadr(fd, ca->adt);
+	direct_link_animdata(fd, ca->adt);
+	
 	direct_link_scriptlink(fd, &ca->scriptlink);
 }
 
@@ -2057,7 +2235,8 @@ static void lib_link_lamp(FileData *fd, Main *main)
 	la= main->lamp.first;
 	while(la) {
 		if(la->id.flag & LIB_NEEDLINK) {
-
+			if (la->adt) lib_link_animdata(fd, &la->id, la->adt);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= la->mtex[a];
 				if(mtex) {
@@ -2065,11 +2244,11 @@ static void lib_link_lamp(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, la->id.lib, mtex->object);
 				}
 			}
-
-			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo);
-
+			
+			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
+			
 			lib_link_scriptlink(fd, &la->id, &la->scriptlink);
-
+			
 			la->id.flag -= LIB_NEEDLINK;
 		}
 		la= la->id.next;
@@ -2079,7 +2258,10 @@ static void lib_link_lamp(FileData *fd, Main *main)
 static void direct_link_lamp(FileData *fd, Lamp *la)
 {
 	int a;
-
+	
+	la->adt= newdataadr(fd, la->adt);
+	direct_link_animdata(fd, la->adt);
+	
 	direct_link_scriptlink(fd, &la->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
@@ -2103,7 +2285,7 @@ static void lib_link_key(FileData *fd, Main *main)
 	while(key) {
 		if(key->id.flag & LIB_NEEDLINK) {
 
-			key->ipo= newlibadr_us(fd, key->id.lib, key->ipo);
+			key->ipo= newlibadr_us(fd, key->id.lib, key->ipo); // XXX depreceated - old animation system
 			key->from= newlibadr(fd, key->id.lib, key->from);
 
 			key->id.flag -= LIB_NEEDLINK;
@@ -2152,6 +2334,9 @@ static void direct_link_key(FileData *fd, Key *key)
 
 	link_list(fd, &(key->block));
 
+	key->adt= newdataadr(fd, key->adt);
+	direct_link_animdata(fd, key->adt);
+	
 	key->refkey= newdataadr(fd, key->refkey);
 
 	kb= key->block.first;
@@ -2179,7 +2364,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 
 			for(a=0; a<mb->totcol; a++) mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 
-			mb->ipo= newlibadr_us(fd, mb->id.lib, mb->ipo);
+			mb->ipo= newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX depreceated - old animation system
 
 			mb->id.flag -= LIB_NEEDLINK;
 		}
@@ -2210,9 +2395,10 @@ static void lib_link_world(FileData *fd, Main *main)
 	wrld= main->world.first;
 	while(wrld) {
 		if(wrld->id.flag & LIB_NEEDLINK) {
-
-			wrld->ipo= newlibadr_us(fd, wrld->id.lib, wrld->ipo);
-
+			if (wrld->adt) lib_link_animdata(fd, &wrld->id, wrld->adt);
+			
+			wrld->ipo= newlibadr_us(fd, wrld->id.lib, wrld->ipo); // XXX depreceated - old animation system
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= wrld->mtex[a];
 				if(mtex) {
@@ -2220,9 +2406,9 @@ static void lib_link_world(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, wrld->id.lib, mtex->object);
 				}
 			}
-
+			
 			lib_link_scriptlink(fd, &wrld->id, &wrld->scriptlink);
-
+			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
 		wrld= wrld->id.next;
@@ -2233,6 +2419,9 @@ static void direct_link_world(FileData *fd, World *wrld)
 {
 	int a;
 
+	wrld->adt= newdataadr(fd, wrld->adt);
+	direct_link_animdata(fd, wrld->adt);
+	
 	direct_link_scriptlink(fd, &wrld->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
@@ -2241,40 +2430,6 @@ static void direct_link_world(FileData *fd, World *wrld)
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
 
-
-/* ************ READ IPO ***************** */
-
-static void lib_link_ipo(FileData *fd, Main *main)
-{
-	Ipo *ipo;
-
-	ipo= main->ipo.first;
-	while(ipo) {
-		if(ipo->id.flag & LIB_NEEDLINK) {
-			IpoCurve *icu;
-			for(icu= ipo->curve.first; icu; icu= icu->next) {
-				if(icu->driver)
-					icu->driver->ob= newlibadr(fd, ipo->id.lib, icu->driver->ob);
-			}
-			ipo->id.flag -= LIB_NEEDLINK;
-		}
-		ipo= ipo->id.next;
-	}
-}
-
-static void direct_link_ipo(FileData *fd, Ipo *ipo)
-{
-	IpoCurve *icu;
-
-	link_list(fd, &(ipo->curve));
-	icu= ipo->curve.first;
-	while(icu) {
-		icu->bezt= newdataadr(fd, icu->bezt);
-		icu->bp= newdataadr(fd, icu->bp);
-		icu->driver= newdataadr(fd, icu->driver);
-		icu= icu->next;
-	}
-}
 
 /* ************ READ VFONT ***************** */
 
@@ -2434,7 +2589,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->vfonti= newlibadr_us(fd, cu->id.lib, cu->vfonti);
 			cu->vfontbi= newlibadr_us(fd, cu->id.lib, cu->vfontbi);
 
-			cu->ipo= newlibadr_us(fd, cu->id.lib, cu->ipo);
+			cu->ipo= newlibadr_us(fd, cu->id.lib, cu->ipo); // XXX depreceated - old animation system
 			cu->key= newlibadr_us(fd, cu->id.lib, cu->key);
 
 			cu->id.flag -= LIB_NEEDLINK;
@@ -2466,7 +2621,10 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 {
 	Nurb *nu;
 	TextBox *tb;
-
+	
+	cu->adt= newdataadr(fd, cu->adt);
+	direct_link_animdata(fd, cu->adt);
+	
 	cu->mat= newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
 	cu->str= newdataadr(fd, cu->str);
@@ -2540,6 +2698,9 @@ static void lib_link_texture(FileData *fd, Main *main)
 
 static void direct_link_texture(FileData *fd, Tex *tex)
 {
+	tex->adt= newdataadr(fd, tex->adt);
+	direct_link_animdata(fd, tex->adt);
+	
 	tex->plugin= newdataadr(fd, tex->plugin);
 	if(tex->plugin) {
 		tex->plugin->handle= 0;
@@ -2609,6 +2770,9 @@ static void direct_link_material(FileData *fd, Material *ma)
 {
 	int a;
 
+	ma->adt= newdataadr(fd, ma->adt);
+	direct_link_animdata(fd, ma->adt);
+	
 	for(a=0; a<MAX_MTEX; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
@@ -2641,7 +2805,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	part= main->particle.first;
 	while(part) {
 		if(part->id.flag & LIB_NEEDLINK) {
-			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo);
+			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo); // XXX depreceated - old animation system
 			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
@@ -2931,7 +3095,7 @@ static void lib_link_latt(FileData *fd, Main *main)
 	while(lt) {
 		if(lt->id.flag & LIB_NEEDLINK) {
 			
-			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo);
+			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo); // XXX depreceated - old animation system
 			lt->key= newlibadr_us(fd, lt->id.lib, lt->key);
 			
 			lt->id.flag -= LIB_NEEDLINK;
@@ -2982,11 +3146,15 @@ static void lib_link_object(FileData *fd, Main *main)
 	while(ob) {
 		if(ob->id.flag & LIB_NEEDLINK) {
 			if (ob->id.properties) IDP_LibLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (ob->adt) lib_link_animdata(fd, &ob->id, ob->adt);
+			
+// XXX depreceated - old animation system <<<			
+			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
+			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
+// >>> XXX depreceated - old animation system
 
 			ob->parent= newlibadr(fd, ob->id.lib, ob->parent);
 			ob->track= newlibadr(fd, ob->id.lib, ob->track);
-			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
-			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
 			ob->poselib= newlibadr_us(fd, ob->id.lib, ob->poselib);
 			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
 			
@@ -3005,7 +3173,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 			}
 			ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
-
+			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 			   
@@ -3022,15 +3190,18 @@ static void lib_link_object(FileData *fd, Main *main)
 				}
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
-
+			
 			ob->id.flag -= LIB_NEEDLINK;
 			/* if id.us==0 a new base will be created later on */
-
+			
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
 			lib_link_pose(fd, ob, ob->pose);
 			lib_link_constraints(fd, &ob->id, &ob->constraints);
-			lib_link_nlastrips(fd, &ob->id, &ob->nlastrips);
+			
+// XXX depreceated - old animation system <<<	
 			lib_link_constraint_channels(fd, &ob->id, &ob->constraintChannels);
+			lib_link_nlastrips(fd, &ob->id, &ob->nlastrips);
+// >>> XXX depreceated - old animation system
 
 			for(paf= ob->effect.first; paf; paf= paf->next) {
 				if(paf->type==EFF_PARTICLE) {
@@ -3301,16 +3472,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
-static void direct_link_nlastrips(FileData *fd, ListBase *strips)
-{
-	bActionStrip *strip;
-	
-	link_list(fd, strips);
-	
-	for(strip= strips->first; strip; strip= strip->next)
-		link_list(fd, &strip->modifiers);
-}
-
 static void direct_link_object(FileData *fd, Object *ob)
 {
 	PartEff *paf;
@@ -3324,13 +3485,18 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->flag &= ~OB_FROMGROUP;
 
 	ob->disp.first=ob->disp.last= NULL;
-
+	
+	ob->adt= newdataadr(fd, ob->adt);
+	direct_link_animdata(fd, ob->adt);
+	
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
 
 	link_list(fd, &ob->defbase);
+// XXX depreceated - old animation system <<<
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
+// >>> XXX depreceated - old animation system 
 
 	direct_link_scriptlink(fd, &ob->scriptlink);
 
@@ -3514,7 +3680,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
 			if (sce->id.properties) IDP_LibLinkProperty(sce->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-
+			if (sce->adt) lib_link_animdata(fd, &sce->id, sce->adt);
+			
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
@@ -3594,7 +3761,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->id.us= 1;
 
 	link_list(fd, &(sce->base));
-
+	
+	sce->adt= newdataadr(fd, sce->adt);
+	direct_link_animdata(fd, sce->adt);
+	
 	sce->basact= newdataadr(fd, sce->basact);
 
 	sce->radio= newdataadr(fd, sce->radio);
@@ -4490,7 +4660,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 	while(sound) {
 		if(sound->id.flag & LIB_NEEDLINK) {
 			sound->id.flag -= LIB_NEEDLINK;
-			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo);
+			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			sound->stream = 0;
 		}
 		sound= sound->id.next;
@@ -8874,14 +9044,9 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 	}
 }
 
-static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
-{
-	expand_doit(fd, mainvar, part->dup_ob);
-	expand_doit(fd, mainvar, part->dup_group);
-	expand_doit(fd, mainvar, part->eff_group);
-	expand_doit(fd, mainvar, part->bb_ob);
-}
 
+
+// XXX depreceated - old animation system
 static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 {
 	IpoCurve *icu;
@@ -8889,6 +9054,51 @@ static void expand_ipo(FileData *fd, Main *mainvar, Ipo *ipo)
 		if(icu->driver)
 			expand_doit(fd, mainvar, icu->driver->ob);
 	}
+}
+
+// XXX depreceated - old animation system
+static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *chanbase)
+{
+	bConstraintChannel *chan;
+	for (chan=chanbase->first; chan; chan=chan->next) {
+		expand_doit(fd, mainvar, chan->ipo);
+	}
+}
+
+// XXX depreceated - old animation system
+static void expand_action(FileData *fd, Main *mainvar, bAction *act)
+{
+	bActionChannel *chan;
+	
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
+		expand_doit(fd, mainvar, chan->ipo);
+		expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
+	}
+}
+
+static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
+{
+	FCurve *fcd;
+	
+	/* own action */
+	expand_doit(fd, mainvar, adt->action);
+	expand_action(fd, mainvar, adt->action);	// XXX this call is only used for patching old animation system
+	
+	/* drivers - assume that these F-Curves have driver data to be in this list... */
+	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
+		ChannelDriver *driver= fcd->driver;
+		
+		expand_doit(fd, mainvar, driver->id);
+		expand_doit(fd, mainvar, driver->id2);
+	}
+}	
+
+static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)
+{
+	expand_doit(fd, mainvar, part->dup_ob);
+	expand_doit(fd, mainvar, part->dup_group);
+	expand_doit(fd, mainvar, part->eff_group);
+	expand_doit(fd, mainvar, part->bb_ob);
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
@@ -8902,7 +9112,7 @@ static void expand_group(FileData *fd, Main *mainvar, Group *group)
 
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
-	expand_doit(fd, mainvar, key->ipo);
+	expand_doit(fd, mainvar, key->ipo); // XXX depreceated - old animation system
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
@@ -8918,7 +9128,10 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 {
 	expand_doit(fd, mainvar, tex->ima);
-	expand_doit(fd, mainvar, tex->ipo);
+	expand_doit(fd, mainvar, tex->ipo); // XXX depreceated - old animation system
+	
+	if(tex->adt)
+		expand_animdata(fd, mainvar, tex->adt);
 	
 	if(tex->nodetree)
 		expand_nodetree(fd, mainvar, tex->nodetree);
@@ -8945,7 +9158,10 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 		}
 	}
 	
-	expand_doit(fd, mainvar, ma->ipo);
+	expand_doit(fd, mainvar, ma->ipo); // XXX depreceated - old animation system
+	
+	if(ma->adt)
+		expand_animdata(fd, mainvar, ma->adt);
 	
 	if(ma->nodetree)
 		expand_nodetree(fd, mainvar, ma->nodetree);
@@ -8961,12 +9177,16 @@ static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)
 			expand_doit(fd, mainvar, la->mtex[a]->object);
 		}
 	}
-	expand_doit(fd, mainvar, la->ipo);
+	
+	expand_doit(fd, mainvar, la->ipo); // XXX depreceated - old animation system
+	
+	if (la->adt)
+		expand_animdata(fd, mainvar, la->adt);
 }
 
 static void expand_lattice(FileData *fd, Main *mainvar, Lattice *lt)
 {
-	expand_doit(fd, mainvar, lt->ipo);
+	expand_doit(fd, mainvar, lt->ipo); // XXX depreceated - old animation system
 	expand_doit(fd, mainvar, lt->key);
 }
 
@@ -8981,7 +9201,11 @@ static void expand_world(FileData *fd, Main *mainvar, World *wrld)
 			expand_doit(fd, mainvar, wrld->mtex[a]->object);
 		}
 	}
-	expand_doit(fd, mainvar, wrld->ipo);
+	
+	expand_doit(fd, mainvar, wrld->ipo); // XXX depreceated - old animation system
+	
+	if (wrld->adt)
+		expand_animdata(fd, mainvar, wrld->adt);
 }
 
 
@@ -9001,15 +9225,19 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 	for(a=0; a<cu->totcol; a++) {
 		expand_doit(fd, mainvar, cu->mat[a]);
 	}
+	
 	expand_doit(fd, mainvar, cu->vfont);
 	expand_doit(fd, mainvar, cu->vfontb);	
 	expand_doit(fd, mainvar, cu->vfonti);
 	expand_doit(fd, mainvar, cu->vfontbi);
 	expand_doit(fd, mainvar, cu->key);
-	expand_doit(fd, mainvar, cu->ipo);
+	expand_doit(fd, mainvar, cu->ipo); // XXX depreceated - old animation system
 	expand_doit(fd, mainvar, cu->bevobj);
 	expand_doit(fd, mainvar, cu->taperobj);
 	expand_doit(fd, mainvar, cu->textoncurve);
+	
+	if(cu->adt)
+		expand_animdata(fd, mainvar, cu->adt);
 }
 
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
@@ -9052,7 +9280,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
 		
 		if (curcon->ipo)
-			expand_doit(fd, mainvar, curcon->ipo);
+			expand_doit(fd, mainvar, curcon->ipo); // XXX depreceated - old animation system
 		
 		switch (curcon->type) {
 		case CONSTRAINT_TYPE_NULL:
@@ -9198,23 +9426,6 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 	}
 }
 
-static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *chanbase)
-{
-	bConstraintChannel *chan;
-	for (chan=chanbase->first; chan; chan=chan->next){
-		expand_doit(fd, mainvar, chan->ipo);
-	}
-}
-
-static void expand_action(FileData *fd, Main *mainvar, bAction *act)
-{
-	bActionChannel *chan;
-	for (chan=act->chanbase.first; chan; chan=chan->next) {
-		expand_doit(fd, mainvar, chan->ipo);
-		expand_constraint_channels(fd, mainvar, &chan->constraintChannels);
-	}
-}
-
 static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 {
 	if (md->type==eModifierType_Lattice) {
@@ -9268,20 +9479,19 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 
 	expand_doit(fd, mainvar, ob->data);
-// XXX old animation system
-	expand_doit(fd, mainvar, ob->ipo);
-	expand_doit(fd, mainvar, ob->action);
-// XXX old animation system
-	expand_doit(fd, mainvar, ob->poselib);
-
+	
 	for (md=ob->modifiers.first; md; md=md->next) {
 		expand_modifier(fd, mainvar, md);
 	}
 
 	expand_pose(fd, mainvar, ob->pose);
+	expand_doit(fd, mainvar, ob->poselib);
 	expand_constraints(fd, mainvar, &ob->constraints);
 	
-// XXX old animation system
+// XXX depreceated - old animation system (for version patching only) 
+	expand_doit(fd, mainvar, ob->ipo);
+	expand_doit(fd, mainvar, ob->action);
+	
 	expand_constraint_channels(fd, mainvar, &ob->constraintChannels);
 
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -9289,8 +9499,11 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, strip->act);
 		expand_doit(fd, mainvar, strip->ipo);
 	}
-// XXX old animation system
-
+// XXX depreceated - old animation system (for version patching only)
+	
+	if(ob->adt)
+		expand_animdata(fd, mainvar, ob->adt);
+	
 	for(a=0; a<ob->totcol; a++) {
 		expand_doit(fd, mainvar, ob->mat[a]);
 	}
@@ -9390,6 +9603,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
 	
+	if(sce->adt)
+		expand_animdata(fd, mainvar, sce->adt);
+	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);
 	
@@ -9397,17 +9613,19 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
 	}
-				
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
 {
-	expand_doit(fd, mainvar, ca->ipo);
+	expand_doit(fd, mainvar, ca->ipo); // XXX depreceated - old animation system
+	
+	if(ca->adt)
+		expand_animdata(fd, mainvar, ca->adt);
 }
 
 static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 {
-	expand_doit(fd, mainvar, snd->ipo);
+	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
 }
 
 
@@ -9474,7 +9692,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_armature(fd, mainvar, (bArmature *)id);
 						break;
 					case ID_AC:
-						expand_action(fd, mainvar, (bAction *)id);
+						expand_action(fd, mainvar, (bAction *)id); // XXX depreceated - old animation system
 						break;
 					case ID_GR:
 						expand_group(fd, mainvar, (Group *)id);
@@ -9486,7 +9704,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_brush(fd, mainvar, (Brush *)id);
 						break;
 					case ID_IP:
-						expand_ipo(fd, mainvar, (Ipo *)id);
+						expand_ipo(fd, mainvar, (Ipo *)id); // XXX depreceated - old animation system
 						break;
 					case ID_PA:
 						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);

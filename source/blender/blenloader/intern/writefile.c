@@ -799,7 +799,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 				/* firstly, just write the plain fmi->data struct */
 				writestruct(wd, DATA, fmi->structName, 1, fcm->data);
 				
-				/* do any constraint specific stuff */
+				/* do any modifier specific stuff */
 				switch (fcm->type) {
 					case FMODIFIER_TYPE_GENERATOR:
 					{
@@ -808,6 +808,15 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 						/* write polynomial coefficients array */
 						if (data->poly_coefficients)
 							writedata(wd, DATA, sizeof(float)*(data->poly_order+1), data->poly_coefficients);
+					}
+						break;
+					case FMODIFIER_TYPE_PYTHON:
+					{
+						FMod_Python *data = (FMod_Python *)fcm->data;
+						
+						/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+						 of library blocks that implement this.*/
+						IDP_WriteProperty(data->prop, wd);
 					}
 						break;
 				}
@@ -1008,11 +1017,13 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 		if(ob->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_OB, "Object", 1, ob);
-
+			
 			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
 			  of library blocks that implement this.*/
 			if (ob->id.properties) IDP_WriteProperty(ob->id.properties, wd);
-
+			
+			if (ob->adt) write_animdata(wd, ob->adt);
+			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
 			/* write_effects(wd, &ob->effect); */ /* not used anymore */
@@ -1078,7 +1089,9 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
 			if (key->id.properties) IDP_WriteProperty(key->id.properties, wd);
-
+			
+			if (key->adt) write_animdata(wd, key->adt);
+			
 			/* direct data */
 			kb= key->block.first;
 			while(kb) {
@@ -1104,7 +1117,9 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
 			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
-
+			
+			if (cam->adt) write_animdata(wd, cam->adt);
+			
 			/* direct data */
 			write_scriptlink(wd, &cam->scriptlink);
 		}
@@ -1155,12 +1170,12 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 		if(cu->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CU, "Curve", 1, cu);
-
+			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*cu->totcol, cu->mat);
 			if (cu->id.properties) IDP_WriteProperty(cu->id.properties, wd);
 			if (cu->adt) write_animdata(wd, cu->adt);
-
+			
 			if(cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
 				writestruct(wd, DATA, "CharInfo", cu->len, cu->strinfo);
@@ -1452,15 +1467,16 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
 			if (wrld->id.properties) IDP_WriteProperty(wrld->id.properties, wd);
-
+			
+			if (wrld->adt) write_animdata(wd, wrld->adt);
+			
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
-
+			
 			write_scriptlink(wd, &wrld->scriptlink);
-
+			
 			write_previews(wd, wrld->preview);
-
 		}
 		wrld= wrld->id.next;
 	}
@@ -1477,19 +1493,21 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
 			if (la->id.properties) IDP_WriteProperty(la->id.properties, wd);
-
+			
+			if (la->adt) write_animdata(wd, la->adt);
+			
 			/* direct data */
 			for(a=0; a<MAX_MTEX; a++) {
 				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
-
+			
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
 			
 			write_scriptlink(wd, &la->scriptlink);
-
+			
 			write_previews(wd, la->preview);
-
+			
 		}
 		la= la->id.next;
 	}
@@ -1507,21 +1525,22 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
-	int a;
 	
 	sce= scebase->first;
 	while(sce) {
 		/* write LibData */
 		writestruct(wd, ID_SCE, "Scene", 1, sce);
 		if (sce->id.properties) IDP_WriteProperty(sce->id.properties, wd);
-
+		
+		if (sce->adt) write_animdata(wd, sce->adt);
+		
 		/* direct data */
 		base= sce->base.first;
 		while(base) {
 			writestruct(wd, DATA, "Base", 1, base);
 			base= base->next;
 		}
-
+		
 		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
 		if(sce->toolsettings->vpaint)
@@ -1532,7 +1551,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		ed= sce->ed;
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);
-
+			
 			/* reset write flags too */
 			
 			SEQ_BEGIN(ed, seq) {
@@ -1540,11 +1559,11 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
-
+			
 			SEQ_BEGIN(ed, seq) {
 				if(seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
-
+					
 					if(seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					if(seq->effectdata) {
 						switch(seq->type){
@@ -1565,7 +1584,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 							break;
 						}
 					}
-
+					
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
 					if(seq->flag & SEQ_USE_CROP && strip->crop) {
@@ -1584,7 +1603,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
-
+					
 					strip->done= 1;
 				}
 			}
@@ -1688,36 +1707,36 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		writestruct(wd, ID_SCRN, "Screen", 1, sc);
 		if (sc->id.properties) 
 			IDP_WriteProperty(sc->id.properties, wd);
-
+		
 		/* direct data */
 		for(sv= sc->vertbase.first; sv; sv= sv->next)
 			writestruct(wd, DATA, "ScrVert", 1, sv);
-
+		
 		for(se= sc->edgebase.first; se; se= se->next) 
 			writestruct(wd, DATA, "ScrEdge", 1, se);
-
+		
 		for(sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
 			ARegion *ar;
-
+			
 			writestruct(wd, DATA, "ScrArea", 1, sa);
-
+			
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
 				writestruct(wd, DATA, "ARegion", 1, ar);
-
+				
 				for(pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
 			}
-
+			
 			/* space handler scriptlinks */
 			write_scriptlink(wd, &sa->scriptlink);
-
+			
 			sl= sa->spacedata.first;
 			while(sl) {
 				for(ar= sl->regionbase.first; ar; ar= ar->next)
 					writestruct(wd, DATA, "ARegion", 1, ar);
-
+				
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
 					writestruct(wd, DATA, "View3D", 1, v3d);
@@ -1743,7 +1762,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
 					Oops *oops;
-
+					
 					/* cleanup */
 					oops= so->oops.first;
 					while(oops) {
@@ -1754,10 +1773,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 						}
 						oops= oopsn;
 					}
-
+					
 					/* ater cleanup, because of listbase! */
 					writestruct(wd, DATA, "SpaceOops", 1, so);
-
+					
 					oops= so->oops.first;
 					while(oops) {
 						writestruct(wd, DATA, "Oops", 1, oops);
