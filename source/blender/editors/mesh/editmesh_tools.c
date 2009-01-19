@@ -6407,3 +6407,69 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 	/* props */
 	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
 }
+
+static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *lastop;
+	int items;
+	char *menu, *p;
+	
+	items = 4;
+	
+	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
+	
+	p= menu + sprintf(menu, "%s %%t", "subdiv");
+	p+= sprintf(p, "|%s %%x%d", "simple", 3);
+	p+= sprintf(p, "|%s %%x%d", "multi", 2);
+	p+= sprintf(p, "|%s %%x%d", "fractal", 1);
+	p+= sprintf(p, "|%s %%x%d", "smooth", 0);
+	
+	uiPupmenuOperator(C, 20, op, "index", menu);
+	MEM_freeN(menu);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int subdivs_exec(bContext *C, wmOperator *op)
+{	
+	switch(RNA_int_get(op->ptr, "index"))
+	{
+		case 3: // simple
+			subdivide_exec(C,op);
+			break;
+		case 2: // multi
+			subdivide_multi_exec(C,op);
+			break;
+		case 1: // fractal;
+			subdivide_multi_fractal_exec(C,op);
+			break;
+		case 0: //smooth
+			subdivide_smooth_exec(C,op);
+			break;
+	}
+					 
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_subdivs(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "subdivs";
+	ot->idname= "MESH_OT_subdivs";
+	
+	/* api callbacks */
+	ot->invoke= subdivs_invoke;
+	ot->exec= subdivs_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/*props */
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+	
+	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
+	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
+	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
+		
+}
