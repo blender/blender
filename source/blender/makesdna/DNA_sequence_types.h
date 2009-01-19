@@ -182,6 +182,11 @@ typedef struct Editing {
 	ListBase *seqbasep;
 	ListBase seqbase;
 	ListBase metastack;
+	
+	/* Context vars, used to be static */
+	Sequence *act_seq;
+	char act_imagedir[256];
+	char act_sounddir[256];
 } Editing;
 
 /* ************* Effect Variable Structs ********* */
@@ -254,7 +259,9 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_CROP                           131072
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
-#define SEQ_ACTIVE                            1048576
+
+/* deprecated, dont use a flag anymore*/
+/*#define SEQ_ACTIVE                            1048576*/
 
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2

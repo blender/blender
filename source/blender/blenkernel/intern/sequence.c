@@ -192,8 +192,6 @@ void seq_free_editing(Editing *ed)
 
 	if(ed==NULL)
 		return;
-	
-	//XXX set_last_seq(NULL); /* clear_last_seq doesnt work, it screws up free_sequence */
 
 	SEQ_BEGIN(ed, seq) {
 		seq_free_sequence(seq);

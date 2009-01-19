@@ -241,6 +241,9 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
+	if (snode->edittree == NULL) // XXX should this be in poll()? - campbell
+		return OPERATOR_FINISHED;
+
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
 			if(val==NODE_EXTEND)

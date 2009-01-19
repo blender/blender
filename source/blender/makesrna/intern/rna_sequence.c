@@ -296,10 +296,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "");
 
-	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_ACTIVE);
-	RNA_def_property_ui_text(prop, "Active", "");
-
 	prop= RNA_def_property(srna, "left_handle_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_LEFTSEL);
 	RNA_def_property_ui_text(prop, "Left Handle Selected", "");

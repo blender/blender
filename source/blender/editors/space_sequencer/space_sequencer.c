@@ -157,16 +157,6 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 }
 
 
-void sequencer_operatortypes(void)
-{
-	
-}
-
-void sequencer_keymap(struct wmWindowManager *wm)
-{
-	
-}
-
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -198,6 +188,17 @@ static void sequencer_header_area_draw(const bContext *C, ARegion *ar)
 static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_FRAME:
+				case ND_MARKERS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
 }
 
 /* only called once, from space/spacetypes.c */

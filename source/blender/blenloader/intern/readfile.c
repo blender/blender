@@ -3705,6 +3705,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 					MEM_freeN(base);
 				}
 			}
+			
+			if (sce->ed) {
+				Editing *ed= sce->ed;
+				ed->act_seq= NULL; //	ed->act_seq=  newlibadr(fd, ed->act_seq); // FIXME
+			}
 
 			SEQ_BEGIN(sce->ed, seq) {
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
@@ -3781,6 +3786,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
 		
 		ed= sce->ed= newdataadr(fd, sce->ed);
+		ed->act_seq= NULL; //		ed->act_seq=  newdataadr(fd, ed->act_seq); // FIXME
 
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
