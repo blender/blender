@@ -395,14 +395,14 @@ void edit2bmesh_exec(BMesh *bmesh, BMOperator *op)
 	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh);
 }
 
-BMesh *editmesh_to_bmesh(EditMesh *em, struct Scene *scene)
+BMesh *editmesh_to_bmesh(EditMesh *em)
 {
 	BMOperator conv;
 	BMesh *bm;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 
 	/*allocate a bmesh*/
-	bm = BM_Make_Mesh(allocsize, scene);
+	bm = BM_Make_Mesh(allocsize);
 
 	BMO_Init_Op(&conv, BMOP_FROM_EDITMESH);
 	BMO_Set_Pnt(&conv, BMOP_FROM_EDITMESH_EM, em);

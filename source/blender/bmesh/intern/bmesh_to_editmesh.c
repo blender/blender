@@ -201,8 +201,6 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 	if(bm->selectmode & BM_EDGE) em->selectmode |= SCE_SELECT_EDGE;
 	if(bm->selectmode & BM_FACE) em->selectmode |= SCE_SELECT_FACE;
 
-	bm->scene->selectmode = em->selectmode;
-
 	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm->pdata, &em->fdata, CD_MASK_BMESH, CD_CALLOC, 0);

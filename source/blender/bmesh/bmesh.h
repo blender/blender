@@ -118,7 +118,6 @@ typedef struct BMesh {
 	struct BMEdge **edar;
 	struct BMLoop **lpar;
 	struct BMFace **plar;
-	struct Scene *scene;
 	int vtarlen, edarlen, lparlen, plarlen;
 	int totvert, totedge, totface, totloop;	
 	int nextv, nexte, nextp, nextl;
@@ -170,7 +169,7 @@ typedef struct BMFace {
 void bmesh_error(void);
 
 /*Mesh Level Ops */
-struct BMesh *BM_Make_Mesh(int allocsize[4], struct Scene *scene);
+struct BMesh *BM_Make_Mesh(int allocsize[4]);
 void BM_Free_Mesh(struct BMesh *bm);
 void BM_Compute_Normals(struct BMesh *bm);
 
@@ -199,7 +198,7 @@ void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMV
 //void bmesh_data_interp_from_face(struct BMesh *bm, struct BMFace *source, struct BMFace *target);
 
 struct EditMesh;
-BMesh *editmesh_to_bmesh(struct EditMesh *em, struct Scene *scene);
+BMesh *editmesh_to_bmesh(struct EditMesh *em);
 struct EditMesh *bmesh_to_editmesh(BMesh *bm);
 
 /*include the rest of the API*/
