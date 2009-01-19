@@ -52,6 +52,7 @@
 #include "WM_types.h"
 
 #include "ED_anim_api.h"
+#include "ED_keyframing.h" // XXX remove?
 #include "ED_markers.h"
 #include "ED_screen.h"
 
@@ -189,8 +190,6 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void ANIM_OT_change_frame(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Change frame";
 	ot->idname= "ANIM_OT_change_frame";
@@ -202,7 +201,7 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->modal= change_frame_modal;
 
 	/* rna */
-	prop= RNA_def_property(ot->srna, "frame", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "frame", 0, 1, MAXFRAME, "Frame", "", 1, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/
@@ -251,11 +250,11 @@ void ANIM_OT_previewrange_define(wmOperatorType *ot)
 	
 	/* rna */
 		/* used to define frame range */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 		/* these are not used, but are needed by borderselect gesture operator stuff */
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ****************** clear preview range operator ****************************/
@@ -361,6 +360,10 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_previewrange_define);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
+	
+		// XXX this is used all over... maybe for screen instead?
+	WM_operatortype_append(ANIM_OT_insert_keyframe);
+	WM_operatortype_append(ANIM_OT_delete_keyframe);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

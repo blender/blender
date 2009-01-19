@@ -347,11 +347,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if(butregion) {
 		/* XXX temp, region v2ds can be empty still */
 		if(butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			short tx, ty;
-			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &tx, &ty);
-			x1= (int)tx; y1= (int)ty;
-			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &tx, &ty);
-			x2= (int)tx; y2= (int)ty;
+			UI_view2d_to_region_no_clip(&butregion->v2d, x1, y1, &x1, &y1);
+			UI_view2d_to_region_no_clip(&butregion->v2d, x2, y2, &x2, &y2);
 		}
 
 		x1 += butregion->winrct.xmin;
@@ -672,7 +669,6 @@ uiMenuBlockHandle *ui_menu_block_create(bContext *C, ARegion *butregion, uiBut *
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->direction= UI_TOP;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
@@ -1340,6 +1336,7 @@ uiBlock *ui_block_func_PUPMENU(bContext *C, uiMenuBlockHandle *handle, void *arg
 	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
+	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
 
@@ -1503,6 +1500,7 @@ uiBlock *ui_block_func_PUPMENUCOL(bContext *C, uiMenuBlockHandle *handle, void *
 	block= uiBeginBlock(C, handle->region, "menu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_NUMSELECT);
 	block->themecol= TH_MENU_ITEM;
+	block->direction= UI_DOWN;
 	
 	md= decompose_menu_string(info->instr);
 
@@ -1695,7 +1693,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 	const char *opname= arg;
 
 	if(opname && retval > 0)
-		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL, NULL);
+		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
 }
 
 static void vconfirm(bContext *C, char *opname, char *title, char *itemfmt, va_list ap)

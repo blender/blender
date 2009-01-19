@@ -546,7 +546,7 @@ DeleteEdge(
 
 		// edges[e] should already have been removed from the heap
 
-		MT_assert(edges[e].HeapPos() == 0xffffffff);
+		MT_assert(edges[e].HeapPos() == -1);
 
 		edges[e] = edges[last];
 		// also have to swap there heap positions.!!!!!

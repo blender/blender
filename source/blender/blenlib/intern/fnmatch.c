@@ -240,10 +240,7 @@ fnmatch (const char *pattern, const char *string, int flags)
 
 #else
 
-static void BLI_FNMATCH_C_IS_EMPTY_FOR_UNIX(void) 
-{
-  /*intentionally empty*/
-}
+/* intentionally empty for UNIX */
 
 #endif /* WIN32 */
 

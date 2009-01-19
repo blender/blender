@@ -200,14 +200,14 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 }
 
 
-static void draw_tile(short sx, short sy, short width, short height, int colorid)
+static void draw_tile(short sx, short sy, short width, short height, int colorid, int shade)
 {
 	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
 	glEnable(GL_BLEND);
 	glColor4ub(0, 0, 0, 100);
 	glDisable(GL_BLEND);
 	
-	UI_ThemeColor4(colorid);
+	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
 	glRecti(sx, sy - height, sx + width, sy);
 
@@ -264,14 +264,14 @@ static void file_draw_string(short sx, short sy, char* string, short width, shor
 static int file_view_rows(SpaceFile* sfile, View2D *v2d)
 {
 	int height= (v2d->cur.ymax - v2d->cur.ymin - 2*sfile->tile_border_y);
-	return height / (sfile->tile_h + sfile->tile_border_y);
+	return height / (sfile->tile_h + 2*sfile->tile_border_y);
 }
 
 /* returns max number of columns in view */
 static int file_view_columns(SpaceFile* sfile, View2D *v2d)
 {
 	int width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
-	return width / (sfile->tile_w + sfile->tile_border_x);
+	return width / (sfile->tile_w + 2*sfile->tile_border_x);
 }
 
 void file_calc_previews(const bContext *C, ARegion *ar)
@@ -285,16 +285,16 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	if (params->display) {
 		sfile->prv_w = 96;
 		sfile->prv_h = 96;
-		sfile->tile_border_x = 8;
-		sfile->tile_border_y = 8;
+		sfile->tile_border_x = 4;
+		sfile->tile_border_y = 4;
 		sfile->prv_border_x = 4;
 		sfile->prv_border_y = 4;
 		sfile->tile_w = sfile->prv_w + 2*sfile->prv_border_x;
-		sfile->tile_h = sfile->prv_h + 2*sfile->prv_border_y + U.fontsize*3/2;
+		sfile->tile_h = sfile->prv_h + 4*sfile->prv_border_y + U.fontsize*3/2;
 		width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->tile_border_x);
 		columns= file_view_columns(sfile, v2d);
 		rows= filelist_numfiles(sfile->files)/columns + 1; // XXX dirty, modulo is zero
-		height= rows*(sfile->tile_h+sfile->tile_border_y) + sfile->tile_border_y*2;
+		height= rows*(sfile->tile_h+2*sfile->tile_border_y) + sfile->tile_border_y*2;
 	} else {
 		sfile->prv_w = 0;
 		sfile->prv_h = 0;
@@ -307,7 +307,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 		height= v2d->cur.ymax - v2d->cur.ymin;
 		rows = file_view_rows(sfile, v2d);
 		columns = filelist_numfiles(sfile->files)/rows + 1; // XXX dirty, modulo is zero
-		width = columns * (sfile->tile_w + sfile->tile_border_x) + sfile->tile_border_x*2;
+		width = columns * (sfile->tile_w + 2*sfile->tile_border_x) + sfile->tile_border_x*2;
 	}
 
 	UI_view2d_totRect_set(v2d, width, height);
@@ -333,15 +333,12 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	int todo;
 	int offset;
 	int columns;
-	
+	int rows;
+
 	if (!files) return;
-	/* Reload directory */
-	BLI_strncpy(params->dir, filelist_dir(files), FILE_MAX);	
-	
+
 	type = filelist_gettype(files);	
-
 	filelist_imgsize(files,sfile->prv_w,sfile->prv_h);
-
 	numfiles = filelist_numfiles(files);
 	
 	todo = 0;
@@ -350,26 +347,26 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	sx = v2d->cur.xmin + sfile->tile_border_x;
 	sy = v2d->cur.ymax - sfile->tile_border_y;
 	columns = file_view_columns(sfile, v2d);
-	offset = columns*(-v2d->cur.ymax+sfile->tile_border_y)/sfile->tile_h;
+	rows = file_view_rows(sfile, v2d);
+
+	offset = columns*(-v2d->cur.ymax-sfile->tile_border_y)/(sfile->tile_h+sfile->tile_border_y);
 	offset = (offset/columns-1)*columns;
 	if (offset<0) offset=0;
-	for (i=offset; (i < numfiles); ++i)
+	for (i=offset; (i < numfiles) && (i < (offset+(rows+2)*columns)); ++i)
 	{
-		sx = v2d->tot.xmin + sfile->tile_border_x + ((i)%columns)*(sfile->tile_w+sfile->tile_border_x);
-		sy = v2d->tot.ymax - sfile->tile_border_y - ((i)/columns)*(sfile->tile_h+sfile->tile_border_y);
+		sx = v2d->tot.xmin + sfile->tile_border_x + ((i)%columns)*(sfile->tile_w+2*sfile->tile_border_x);
+		sy = v2d->tot.ymax - sfile->tile_border_y - ((i)/columns)*(sfile->tile_h+2*sfile->tile_border_y);
 		file = filelist_file(files, i);				
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx, sy+sfile->tile_border_y, sfile->tile_w, sfile->tile_h-sfile->tile_border_y, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
 		} else {
-			/*
-			colorid = TH_PANEL;
-			draw_tile(simasel, sx, sy, tilewidth, tileheight, colorid);
-			*/
+			colorid = TH_BACK;
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid, -5);
 		}
 
 #if 0
@@ -413,7 +410,7 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 				float fx = ((float)sfile->prv_w - (float)imb->x)/2.0f;
 				float fy = ((float)sfile->prv_h - (float)imb->y)/2.0f;
 				short dx = (short)(fx + 0.5f + sfile->prv_border_x);
-				short dy = (short)(fy + 0.5f + sfile->prv_border_y);
+				short dy = (short)(fy + 0.5f - sfile->prv_border_y);
 				
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);													
@@ -453,18 +450,13 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 			}
 		}
 			
-		file_draw_string(sx + sfile->prv_border_x, sy, file->relname, sfile->tile_w, sfile->tile_h);
-#if 0
-		if(do_load && (PIL_check_seconds_timer() - lasttime > 0.3)) {
-			lasttime= PIL_check_seconds_timer();
-			do_load = 0;
-		}
-#endif
+		file_draw_string(sx + sfile->prv_border_x, sy+U.fontsize*3/2, file->relname, sfile->tile_w, sfile->tile_h);
+
+		if (!sfile->loadimage_timer)
+			sfile->loadimage_timer= WM_event_add_window_timer(CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
+
 	}
-#if 0 // XXX solve with threads	or add notifier ??
-	if (!do_load && todo > 0) /* we broke off loading */
-		addafterqueue(sa->win, RENDERPREVIEW, 1);
-#endif
+
 }
 
 
@@ -481,6 +473,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	short type;
 	int i;
 	int rows;
+	float sw;
 
 	numfiles = filelist_numfiles(files);
 	type = filelist_gettype(files);	
@@ -512,10 +505,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		if (params->active_file == i) {
 			colorid = TH_ACTIVE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
 		} else if (file->flags & ACTIVE) {
 			colorid = TH_HILITE;
-			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid);
+			draw_tile(sx, sy, sfile->tile_w, sfile->tile_h, colorid,0);
 		} else {
 			/*
 			colorid = TH_PANEL;
@@ -548,10 +541,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				}
 			}
 		}
-
-		file_draw_string(sx, sy, file->relname, sfile->tile_w, sfile->tile_h);
-		file_draw_string(sx + sfile->tile_w - UI_GetStringWidth(G.font, file->size, 0), sy,
-			file->size, sfile->tile_w - UI_GetStringWidth(G.font, file->size, 0), sfile->tile_h);
+		
+		sw = UI_GetStringWidth(G.font, file->size, 0);
+		file_draw_string(sx, sy, file->relname, sfile->tile_w - sw - 2, sfile->tile_h);
+		file_draw_string(sx + sfile->tile_w - sw, sy, file->size, sfile->tile_w - sw, sfile->tile_h);
 	}
 }
 

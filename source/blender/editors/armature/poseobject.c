@@ -36,6 +36,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -52,22 +53,25 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-#include "BKE_ipo.h"
 
 #include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "BIF_gl.h"
 
 #include "ED_armature.h"
+#include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
+#include "ED_mesh.h"
 #include "ED_view3d.h"
 
 #include "armature_intern.h"
@@ -81,10 +85,7 @@ static void error() {};
 static void BIF_undo_push() {}
 static void countall() {}
 static void add_constraint() {}
-static void vertexgroup_select_by_name() {}
-static int screen_view3d_layers() {return 0;}
 static void select_actionchannel_by_name() {}
-static int autokeyframe_cfra_can_key() {return 0;}
 static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
@@ -194,7 +195,7 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
-void pose_calculate_path(Scene *scene, Object *ob)
+void pose_calculate_path(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -230,10 +231,10 @@ void pose_calculate_path(Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	}
 	else
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	
 	
 	/* malloc the path blocks */
@@ -288,7 +289,7 @@ void pose_calculate_path(Scene *scene, Object *ob)
 /* For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
  */
-void pose_recalculate_paths(Scene *scene, Object *ob)
+void pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -324,10 +325,10 @@ void pose_recalculate_paths(Scene *scene, Object *ob)
 	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
 	if ((ob->recalc & OB_RECALC)==0) {
 		ob->recalc |= OB_RECALC;
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	}
 	else
-		DAG_object_update_flags(scene, ob, screen_view3d_layers());
+		ED_anim_object_flush_update(C, ob);
 	
 	for (CFRA=sfra; CFRA<=efra; CFRA++) {
 		/* do all updates */
@@ -850,6 +851,7 @@ void paste_posebuf (Scene *scene, int flip)
 					EulToQuat(eul, pchan->quat);
 				}
 				
+#if 0 // XXX old animation system
 				if (autokeyframe_cfra_can_key(ob)) {
 					ID *id= &ob->id;
 					
@@ -880,6 +882,7 @@ void paste_posebuf (Scene *scene, int flip)
 					if (chan->bone)
 						chan->bone->flag |= BONE_UNKEYED;
 				}
+#endif // XXX old animation system
 			}
 		}
 	}
@@ -1419,7 +1422,8 @@ void pose_movetolayer(Scene *scene)
 	}
 }
 
-
+#if 0
+// XXX old sys
 /* for use with pose_relax only */
 static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float *frame_prev, float *frame_next)
 {
@@ -1475,6 +1479,7 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 		return 1;
 	}
 }
+#endif
 
 void pose_relax(Scene *scene)
 {
@@ -1483,19 +1488,19 @@ void pose_relax(Scene *scene)
 	bAction *act;
 	bArmature *arm;
 	
-	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
+//	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
 	
 	bPoseChannel *pchan;
-	bActionChannel *achan;
-	float framef = F_CFRA;
-	float frame_prev, frame_next;
-	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
+//	bActionChannel *achan;
+//	float framef = F_CFRA;
+//	float frame_prev, frame_next;
+//	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
 	
 	int do_scale = 0;
 	int do_loc = 0;
 	int do_quat = 0;
 	int flag = 0;
-	int do_x, do_y, do_z;
+//	int do_x, do_y, do_z;
 	
 	if (!ob) return;
 	
@@ -1512,6 +1517,7 @@ void pose_relax(Scene *scene)
 		if (pchan->bone->layer & arm->layer) {
 			if (pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
+#if 0 // XXX old animation system
 				achan= get_action_channel(act, pchan->name);
 				
 				if (achan && achan->ipo) {
@@ -1562,6 +1568,8 @@ void pose_relax(Scene *scene)
 					/* apply BONE_TRANSFORM tag so that autokeying will pick it up */
 					pchan->bone->flag |= BONE_TRANSFORM;
 				}
+				
+#endif // XXX old animation system
 			}
 		}
 	}
@@ -1628,7 +1636,7 @@ void pose_special_editmenu(Scene *scene)
 		pose_flip_names();
 	}
 	else if(nr==3) {
-		pose_calculate_path(ob);
+		pose_calculate_path(C, ob);
 	}
 	else if(nr==4) {
 		pose_clear_paths(ob);

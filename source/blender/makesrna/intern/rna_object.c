@@ -214,7 +214,7 @@ static void rna_Object_layer_set(PointerRNA *ptr, int index, int value)
 	}
 }
 
-static void rna_ObjectGameSettings_state_set(PointerRNA *ptr, int index, int value)
+static void rna_GameObjectSettings_state_set(PointerRNA *ptr, int index, int value)
 {
 	Object *ob= (Object*)ptr->data;
 
@@ -270,23 +270,24 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		//{OB_DYN_MESH, "DYNAMIC_MESH", "Dynamic Mesh", ""},
 		{0, NULL, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "ObjectGameSettings", NULL);
+	srna= RNA_def_struct(brna, "GameObjectSettings", NULL);
 	RNA_def_struct_sdna(srna, "Object");
-	RNA_def_struct_ui_text(srna, "Object Game Settings", "Game engine related settings for the object.");
+	RNA_def_struct_nested(brna, srna, "Object");
+	RNA_def_struct_ui_text(srna, "Game Object Settings", "Game engine related settings for the object.");
 
 	/* logic */
 
 	prop= RNA_def_property(srna, "sensors", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Sensor");
-	RNA_def_property_ui_text(prop, "Sensors", "DOC_BROKEN");
+	RNA_def_property_ui_text(prop, "Sensors", "Game engine sensor to detect events.");
 
 	prop= RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Controller");
-	RNA_def_property_ui_text(prop, "Controllers", "DOC_BROKEN");
+	RNA_def_property_ui_text(prop, "Controllers", "Game engine controllers to process events, connecting sensor to actuators.");
 
 	prop= RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Actuator");
-	RNA_def_property_ui_text(prop, "Actuators", "DOC_BROKEN");
+	RNA_def_property_ui_text(prop, "Actuators", "Game engine actuators to act on events.");
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
@@ -395,7 +396,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
 	RNA_def_property_array(prop, 30);
 	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed.");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_ObjectGameSettings_state_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_GameObjectSettings_state_set");
 
 	prop= RNA_def_property(srna, "initial_state", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "init_state", 1);
@@ -407,7 +408,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine.");
 }
 
-static void rna_def_object(BlenderRNA *brna)
+static StructRNA *rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -470,7 +471,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
-	RNA_def_struct_ui_text(srna, "Object", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 
 	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
@@ -615,12 +616,12 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
-	RNA_def_property_ui_text(prop, "Modifiers", "DOC_BROKEN");
+	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the Object.");
 
 	/* game engine */
 
-	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ObjectGameSettings");
+	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "GameObjectSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_game_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Game Settings", "Game engine related settings for the object.");
 
@@ -806,14 +807,14 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* script link */
 
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
 
 	/* drawing */
 
-	prop= RNA_def_property(srna, "maximum_draw_type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "max_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "dt");
 	RNA_def_property_enum_items(prop, drawtype_items);
 	RNA_def_property_ui_text(prop, "Maximum Draw Type",  "Maximum draw type to display object with in viewport.");
@@ -912,6 +913,8 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key index.");
+	
+	return srna;
 }
 
 void RNA_def_object(BlenderRNA *brna)

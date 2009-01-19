@@ -53,6 +53,7 @@ struct FileList;
 struct bGPdata;
 struct FileSelectParams;
 struct wmOperator;
+struct wmTimer;
 
 	/**
 	 * The base structure all the other spaces
@@ -175,6 +176,8 @@ typedef struct SpaceFile {
 	*/
 	struct wmOperator *op; 
 
+	struct wmTimer *loadimage_timer;
+
 	/* view settings - XXX - move into own struct */
 	short prv_w;
 	short prv_h;
@@ -222,30 +225,26 @@ typedef struct SpaceImage {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
 	int spacetype;
+
 	float blockscale;
-
 	short blockhandler[8];
-
-	View2D v2d; /* depricated, copied to region */
 	
 	struct Image *image;
 	struct ImageUser iuser;
 	
 	struct CurveMapping *cumap;
-	short mode, menunr;
-	short imanr;
+	short menunr, imanr, pad2;
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
-	short selectmode;
 	short imtypenr, lock;
-	short pin;
-	float zoom;
+	short pin, pad3;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
-	char pad[5];
+	char pad;
 	
 	float xof, yof;					/* user defined offset, image is centered */
+	float zoom, pad4;				/* user defined zoom level */
 	float centx, centy;				/* storage for offset while render drawing */
 	
 	struct bGPdata *gpd;			/* grease pencil data */
@@ -544,10 +543,6 @@ typedef struct SpaceImaSel {
 #define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
 #define FOLDERFILE			2048 /* represents folders for filtering */
 
-/* SpaceImage->mode */
-#define SI_TEXTURE		0
-#define SI_SHOW			1
-
 /* SpaceImage->dt_uv */
 #define SI_UVDT_OUTLINE	0
 #define SI_UVDT_DASH	1
@@ -564,12 +559,6 @@ typedef struct SpaceImaSel {
 #define SI_STICKY_LOC		0
 #define SI_STICKY_DISABLE	1
 #define SI_STICKY_VERTEX	2
-
-/* SpaceImage->selectmode */
-#define SI_SELECT_VERTEX	0
-#define SI_SELECT_EDGE		1 /* not implemented */
-#define SI_SELECT_FACE		2
-#define SI_SELECT_ISLAND	3
 
 /* SpaceImage->flag */
 #define SI_BE_SQUARE	1<<0
@@ -590,8 +579,8 @@ typedef struct SpaceImaSel {
 		/* next two for render window dislay */
 #define SI_PREVSPACE	1<<15
 #define SI_FULLWINDOW	1<<16
-#define SI_SYNC_UVSEL	1<<17
-#define SI_LOCAL_UV		1<<18
+#define SI_DEPRECATED4	1<<17
+#define SI_DEPRECATED5	1<<18
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
 #define SI_DRAW_TILE	1<<19 

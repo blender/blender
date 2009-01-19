@@ -211,7 +211,6 @@ static void count_bone_select(TransInfo *t, bArmature *arm, ListBase *lb, int do
 /* returns total items selected */
 int calc_manipulator_stats(ScrArea *sa)
 {
-	extern ListBase editNurb;
 	TransInfo *t;
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
@@ -220,7 +219,7 @@ int calc_manipulator_stats(ScrArea *sa)
 	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel=0;
 
-	t = BIF_GetTransInfo();
+//XXX	t = BIF_GetTransInfo();
 	
 	/* transform widget matrix */
 	Mat4One(v3d->twmat);
@@ -275,12 +274,13 @@ int calc_manipulator_stats(ScrArea *sa)
 				}
 			}
 		}
-		else if ELEM3(t->obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
+		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+			Curve *cu= t->obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
 			
-			nu= editNurb.first;
+			nu= cu->editnurb->first;
 			while(nu) {
 				if((nu->type & 7)==CU_BEZIER) {
 					bezt= nu->bezt;

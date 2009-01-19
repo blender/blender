@@ -360,6 +360,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
+	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
+	else bfd->globalf &= ~G_SWAP_EXCHANGE;
 
 	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 

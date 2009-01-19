@@ -524,7 +524,7 @@ static int animdata_filter_ipocurves (ListBase *anim_data, Ipo *ipo, int filter_
 		/* only work with this channel and its subchannels if it is editable */
 		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_ICU(icu)) {
 			/* only include this curve if selected or we are including all IPO-curves */
-			if (!(filter_mode & ANIMFILTER_SEL) || (filter_mode & ANIMFILTER_ONLYICU) || (SEL_ICU(icu))) {
+			if (!(filter_mode & ANIMFILTER_SEL) || (filter_mode & ANIMFILTER_ONLYFCU) || (SEL_ICU(icu))) {
 				/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
 				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, owner, ownertype);
 				
@@ -556,7 +556,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 			/* check if this achan should only be included if it is selected */
 			if (!(filter_mode & ANIMFILTER_SEL) || SEL_ACHAN(achan)) {
 				/* are we only interested in the ipo-curves? */
-				if ((filter_mode & ANIMFILTER_ONLYICU)==0) {
+				if ((filter_mode & ANIMFILTER_ONLYFCU)==0) {
 					ale= make_new_animlistelem(achan, ANIMTYPE_ACHAN, achan, ANIMTYPE_ACHAN);
 					
 					if (ale) {
@@ -572,7 +572,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 			}
 			
 			/* check if expanded - if not, continue on to next animion channel */
-			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ANIMFILTER_ONLYICU)==0) {
+			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ANIMFILTER_ONLYFCU)==0) {
 				/* only exit if we don't need to include constraint channels for group-channel keyframes */
 				if ( !(filter_mode & ANIMFILTER_IPOKEYS) || (achan->grp == NULL) || (EXPANDED_AGRP(achan->grp)==0) )
 					return items;
@@ -581,7 +581,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 			/* ipo channels */
 			if ((achan->ipo) && (filter_mode & ANIMFILTER_IPOKEYS)==0) {
 				/* include ipo-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && (filter_mode & ANIMFILTER_ONLYICU)==0) {
+				if ((filter_mode & ANIMFILTER_CHANNELS) && (filter_mode & ANIMFILTER_ONLYFCU)==0) {
 					ale= make_new_animlistelem(achan, ANIMTYPE_FILLIPO, achan, ANIMTYPE_ACHAN);
 					
 					if (ale) {
@@ -592,7 +592,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 				}
 				
 				/* add ipo-curve channels? */
-				if (FILTER_IPO_ACHAN(achan) || (filter_mode & ANIMFILTER_ONLYICU)) {
+				if (FILTER_IPO_ACHAN(achan) || (filter_mode & ANIMFILTER_ONLYFCU)) {
 					/* loop through ipo-curve channels, adding them */
 					items += animdata_filter_ipocurves(anim_data, achan->ipo, filter_mode, achan, ANIMTYPE_ACHAN, (owned)?(owner):(NULL));
 				}
@@ -601,7 +601,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 			/* constraint channels */
 			if (achan->constraintChannels.first) {
 				/* include constraint-expand widget? */
-				if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYICU)
+				if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYFCU)
 					 && !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 				{
 					ale= make_new_animlistelem(achan, ANIMTYPE_FILLCON, achan, ANIMTYPE_ACHAN);
@@ -614,7 +614,7 @@ static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *a
 				}
 				
 				/* add constraint channels? */
-				if (FILTER_CON_ACHAN(achan) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) {
+				if (FILTER_CON_ACHAN(achan) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
 					/* loop through constraint channels, checking and adding them */
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						/* only work with this channel and its subchannels if it is editable */
@@ -662,7 +662,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 	/* loop over groups */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* add this group as a channel first */
-		if (!(filter_mode & ANIMFILTER_ONLYICU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
+		if (!(filter_mode & ANIMFILTER_ONLYFCU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
 			/* check if filtering by selection */
 			if ( !(filter_mode & ANIMFILTER_SEL) || SEL_AGRP(agrp) ) {
 				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE);
@@ -691,7 +691,7 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
 			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( ((filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+				 ( ((filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 				   (!(filter_mode & ANIMFILTER_SEL) || (SEL_AGRP(agrp))) ) ) 
 			{
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
@@ -798,7 +798,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 	int items = 0;
 	
 	/* check if filtering types are appropriate */
-	if ( !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYICU|ANIMFILTER_ACTGROUPED)) ) 
+	if ( !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU|ANIMFILTER_ACTGROUPED)) ) 
 	{
 		/* special hack for fullscreen area (which must be this one then):
 		 * 	- we use the curarea->full as screen to get spaces from, since the
@@ -859,7 +859,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	int items = 0;
 	
 	/* include materials-expand widget? */
-	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYICU))) {
+	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
 		ale= make_new_animlistelem(ob, ANIMTYPE_FILLMATD, base, ANIMTYPE_OBJECT);
 		if (ale) {
 			BLI_addtail(anim_data, ale);
@@ -868,7 +868,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	}
 	
 	/* add materials? */
-	if (FILTER_MAT_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) {
+	if (FILTER_MAT_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
 		short a;
 		
 		/* for each material, either add channels separately, or as ipo-block */
@@ -889,7 +889,7 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 			}
 			
 			/* add material's ipo-curve channels? */
-			if ( (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+			if ( (FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 				  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 			{
 				items += animdata_filter_ipocurves(anim_data, ma->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ma);
@@ -919,7 +919,7 @@ static int animdata_filter_dopesheet_cam (ListBase *anim_data, bDopeSheet *ads, 
 	}
 	
 	/* add camera ipo-curve channels? */
-	if ( (FILTER_CAM_OBJD(ca) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+	if ( (FILTER_CAM_OBJD(ca) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
 		items += animdata_filter_ipocurves(anim_data, ca->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)ca);
@@ -946,7 +946,7 @@ static int animdata_filter_dopesheet_lamp (ListBase *anim_data, bDopeSheet *ads,
 	}
 	
 	/* add lamp ipo-curve channels? */
-	if ( (FILTER_LAM_OBJD(la) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+	if ( (FILTER_LAM_OBJD(la) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
 		items += animdata_filter_ipocurves(anim_data, la->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)la);
@@ -973,7 +973,7 @@ static int animdata_filter_dopesheet_curve (ListBase *anim_data, bDopeSheet *ads
 	}
 	
 	/* add curve ipo-curve channels? */
-	if ( (FILTER_CUR_OBJD(cu) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+	if ( (FILTER_CUR_OBJD(cu) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 		  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 	{
 		items += animdata_filter_ipocurves(anim_data, cu->ipo, filter_mode, base, ANIMTYPE_OBJECT, (ID *)cu);
@@ -992,7 +992,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	int items = 0;
 	
 	/* add this object as a channel first */
-	if (!(filter_mode & ANIMFILTER_ONLYICU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
+	if (!(filter_mode & ANIMFILTER_ONLYFCU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
 		/* check if filtering by selection */
 		if ( !(filter_mode & ANIMFILTER_SEL) || ((base->flag & SELECT) || (base == sce->basact)) ) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE);
@@ -1004,7 +1004,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	
 	/* if collapsed, don't go any further (unless adding keyframes only) */
-	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYICU)) )
+	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU)) )
 		return items;
 	
 	/* IPO? */
@@ -1019,7 +1019,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 		
 		/* add ipo-curve channels? */
-		if ( (FILTER_IPO_OBJC(ob) || (filter_mode & ANIMFILTER_ONLYICU)) && 
+		if ( (FILTER_IPO_OBJC(ob) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
 			  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 		{
 			items += animdata_filter_ipocurves(anim_data, ob->ipo, filter_mode, base, ANIMTYPE_OBJECT, NULL); // err... why not set ob?
@@ -1029,7 +1029,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* Action? */
 	if ((ob->action) && !(ads->filterflag & ADS_FILTER_NOACTS)) {
 		/* include animion-expand widget? */
-		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYICU))) {
+		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
 			ale= make_new_animlistelem(ob->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT);
 			if (ale) {
 				ale->id= (ID *)ob; // err.... is this a good idea?
@@ -1048,7 +1048,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	/* ShapeKeys? */
 	if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 		/* include shapekey-expand widget? */
-		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYICU))) {
+		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
 			ale= make_new_animlistelem(key, ANIMTYPE_DSSKEY, base, ANIMTYPE_OBJECT);
 			if (ale) {
 				BLI_addtail(anim_data, ale);
@@ -1057,7 +1057,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 		
 		/* add channels */
-		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) {
+		if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
 			items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT);
 		}
 	}
@@ -1096,7 +1096,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		bConstraintChannel *conchan;
 		
 		/* include constraint-expand widget? */
-		if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYICU)
+		if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYFCU)
 			 && !(filter_mode & ANIMFILTER_IPOKEYS) ) 
 		{
 			ale= make_new_animlistelem(ob, ANIMTYPE_FILLCOND, base, ANIMTYPE_OBJECT);
@@ -1107,7 +1107,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 		
 		/* add constraint channels? */
-		if (FILTER_CON_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYICU)) {
+		if (FILTER_CON_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
 			/* loop through constraint channels, checking and adding them */
 			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
 				/* only work with this channel and its subchannels if it is editable */

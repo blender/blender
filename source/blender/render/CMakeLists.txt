@@ -32,6 +32,11 @@ SET(INC
   ../quicktime ../include ../../kernel/gen_messaging ../yafray ../blenloader
 )
 
+IF(NOT WITH_YAFRAY)
+  ADD_DEFINITIONS(-DDISABLE_YAFRAY)
+ENDIF(WITH_YAFRAY)
+
+
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)

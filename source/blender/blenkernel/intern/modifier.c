@@ -7318,7 +7318,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 				 if(emd->flag & eExplodeFlag_EdgeSplit){
 					 int *facepa = emd->facepa;
 					 DerivedMesh *splitdm=explodeModifier_splitEdges(emd,dm);
-					 DerivedMesh *explode=explodeModifier_explodeMesh(emd, psmd, scene, ob, splitdm);
+					 DerivedMesh *explode=explodeModifier_explodeMesh(emd, psmd, md->scene, ob, splitdm);
 
 					 MEM_freeN(emd->facepa);
 					 emd->facepa=facepa;
@@ -7326,7 +7326,7 @@ static DerivedMesh * explodeModifier_applyModifier(
 					 return explode;
 				 }
 				 else
-					 return explodeModifier_explodeMesh(emd, psmd, scene, ob, derivedData);
+					 return explodeModifier_explodeMesh(emd, psmd, md->scene, ob, derivedData);
 	}
 	return derivedData;
 }
@@ -8604,7 +8604,7 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 
 		if(mti->requiredDataMask) mask = mti->requiredDataMask(md);
 
-		BLI_linklist_prepend(&dataMasks, (void *)mask);
+		BLI_linklist_prepend(&dataMasks, SET_INT_IN_POINTER(mask));
 	}
 
 	/* build the list of required data masks - each mask in the list must
@@ -8615,14 +8615,14 @@ LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 	*/
 	for(curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
 		if(prev) {
-			CustomDataMask prev_mask = (CustomDataMask)prev->link;
-			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+			CustomDataMask prev_mask = (CustomDataMask)GET_INT_FROM_POINTER(prev->link);
+			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 
-			curr->link = (void *)(curr_mask | prev_mask);
+			curr->link = SET_INT_IN_POINTER(curr_mask | prev_mask);
 		} else {
-			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+			CustomDataMask curr_mask = (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 
-			curr->link = (void *)(curr_mask | dataMask);
+			curr->link = SET_INT_IN_POINTER(curr_mask | dataMask);
 		}
 	}
 

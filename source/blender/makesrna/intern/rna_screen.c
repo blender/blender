@@ -34,177 +34,76 @@
 
 #ifdef RNA_RUNTIME
 
-
-static void *rna_Screen_scene_get(PointerRNA *ptr)
-{
-	bScreen *sc= (bScreen*)ptr->data;
-	return sc->scene;
-}
-
-static void rna_Screen_verts_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	bScreen *scr= (bScreen*)ptr->data;
-	rna_iterator_listbase_begin(iter, &scr->vertbase, NULL);
-}
-
-static void rna_Screen_edges_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	bScreen *scr= (bScreen*)ptr->data;
-	rna_iterator_listbase_begin(iter, &scr->edgebase, NULL);
-}
-
-static void rna_Screen_areas_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	bScreen *scr= (bScreen*)ptr->data;
-	rna_iterator_listbase_begin(iter, &scr->areabase, NULL);
-}
-
 #else
 
-static void RNA_def_vectypes(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	
-	srna= RNA_def_struct(brna, "vec2s", NULL);
-	RNA_def_struct_ui_text(srna, "vec2s", "DOC_BROKEN");
-	RNA_def_struct_sdna(srna, "vec2s");	
-}
-
-static void RNA_def_scrvert(BlenderRNA *brna)
+static void rna_def_scrarea(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "ScrVert", NULL);
-	RNA_def_struct_ui_text(srna, "Screen Vertex", "DOC_BROKEN");
-	RNA_def_struct_sdna(srna, "ScrVert");
-	
-	prop= RNA_def_property(srna, "Location", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Location", "Screen Vert Location");
-}
-
-static void RNA_def_scredge(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "ScrEdge", NULL);
-	RNA_def_struct_ui_text(srna, "Screen Edge", "DOC_BROKEN");
-	RNA_def_struct_sdna(srna, "ScrEdge");
-	
-	prop= RNA_def_property(srna, "start", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Edge Start", "Screen Edge Start");
-	
-	prop= RNA_def_property(srna, "end", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Edge End", "Screen Edge End");
-}
-
-static void RNA_def_scrarea(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "ScrArea", NULL);
-	RNA_def_struct_ui_text(srna, "Area", "DOC_BROKEN");
+	srna= RNA_def_struct(brna, "Area", NULL);
+	RNA_def_struct_ui_text(srna, "Area", "Area in a subdivided screen, containing an editor.");
 	RNA_def_struct_sdna(srna, "ScrArea");
-	
-	prop= RNA_def_property(srna, "v1", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v1->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Area v1", "Screen Area v1");
-	
-	prop= RNA_def_property(srna, "v2", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v2->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Area v2", "Screen Area v2");
-	
-	prop= RNA_def_property(srna, "v3", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v3->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Area v3", "Screen Area v3");
-	
-	prop= RNA_def_property(srna, "v4", PROP_INT, PROP_VECTOR);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_int_sdna(prop, NULL, "v4->vec.x");
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_text(prop, "Area v4", "Screen Area v4");
+
+	prop= RNA_def_property(srna, "spaces", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "spacedata", NULL);
+	RNA_def_property_struct_type(prop, "Space");
+	RNA_def_property_ui_text(prop, "Spaces", "Spaces contained in this area, the first space is active.");
+
+	prop= RNA_def_property(srna, "active_space", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "spacedata.first");
+	RNA_def_property_struct_type(prop, "Space");
+	RNA_def_property_ui_text(prop, "Active Space", "Space currently being displayed in this area.");
+
+	prop= RNA_def_property(srna, "regions", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "regionbase", NULL);
+	RNA_def_property_struct_type(prop, "Region");
+	RNA_def_property_ui_text(prop, "Regions", "Regions this area is subdivided in.");
 }
 
-static void RNA_def_panel(BlenderRNA *brna)
+static void rna_def_panel(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
 	srna= RNA_def_struct(brna, "Panel", NULL);
-	RNA_def_struct_ui_text(srna, "Panel", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Panel", "Buttons panel.");
 	RNA_def_struct_sdna(srna, "Panel");
 }
 
-static void RNA_def_region(BlenderRNA *brna)
+static void rna_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	
 	srna= RNA_def_struct(brna, "Region", NULL);
-	RNA_def_struct_ui_text(srna, "Area Region", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivid screen area.");
 	RNA_def_struct_sdna(srna, "ARegion");
 }
 
-static void RNA_def_bscreen(BlenderRNA *brna)
+static void rna_def_bscreen(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Screen", "ID");
-	RNA_def_struct_ui_text(srna, "Screen", "DOC_BROKEN");
-	RNA_def_struct_sdna(srna, "bScreen");
+	RNA_def_struct_sdna(srna, "Screen"); /* it is actually bScreen but for 2.5 the dna is patched! */
+	RNA_def_struct_ui_text(srna, "Screen", "Screen datablock, defining the layout of areas in a window.");
 	
-	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "Scene");
-	RNA_def_property_pointer_funcs(prop, "rna_Screen_scene_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Scene", "Active scene.");
+	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen.");
 	
-	prop= RNA_def_property(srna, "vertbase", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "ScrVert");
-	RNA_def_property_collection_funcs(prop, "rna_Screen_verts_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
-	RNA_def_property_ui_text(prop, "Verts", "All Screen Verts");
-	
-	prop= RNA_def_property(srna, "edgebase", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "ScrEdge");
-	RNA_def_property_collection_funcs(prop, "rna_Screen_edges_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
-	RNA_def_property_ui_text(prop, "Edges", "All Screen Edges");
-	
-	prop= RNA_def_property(srna, "areabase", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
-	RNA_def_property_struct_type(prop, "ScrArea");
-	RNA_def_property_collection_funcs(prop, "rna_Screen_areas_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
-	RNA_def_property_ui_text(prop, "Areas", "All Screen Areas");
+	prop= RNA_def_property(srna, "areas", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "areabase", NULL);
+	RNA_def_property_struct_type(prop, "Area");
+	RNA_def_property_ui_text(prop, "Areas", "Areas the screen is subdivided into.");
 }
 
 void RNA_def_screen(BlenderRNA *brna)
 {
-	RNA_def_bscreen(brna);
-	RNA_def_vectypes(brna);
-	RNA_def_scrvert(brna);
-	RNA_def_scredge(brna);
-	RNA_def_scrarea(brna);
-	RNA_def_panel(brna);
-	RNA_def_region(brna);
+	rna_def_bscreen(brna);
+	rna_def_scrarea(brna);
+	rna_def_panel(brna);
+	rna_def_region(brna);
 }
 
 #endif
-
 

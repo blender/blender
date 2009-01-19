@@ -66,21 +66,21 @@ void RNA_def_controller(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem controller_type_items[] ={
-		{CONT_LOGIC_AND, "LOGICAND", "Logic And", ""},
-		{CONT_LOGIC_OR, "LOGICOR", "Logic Or", ""},
-		{CONT_LOGIC_NAND, "LOGICNAND", "Logic Nand", ""},
-		{CONT_LOGIC_NOR, "LOGICNOR", "Logic Nor", ""},
-		{CONT_LOGIC_XOR, "LOGICXOR", "Logic Xor", ""},
-		{CONT_LOGIC_XNOR, "LOGICXNOR", "Logic Xnor", ""},
+		{CONT_LOGIC_AND, "LOGIC_AND", "Logic And", ""},
+		{CONT_LOGIC_OR, "LOGIC_OR", "Logic Or", ""},
+		{CONT_LOGIC_NAND, "LOGIC_NAND", "Logic Nand", ""},
+		{CONT_LOGIC_NOR, "LOGIC_NOR", "Logic Nor", ""},
+		{CONT_LOGIC_XOR, "LOGIC_XOR", "Logic Xor", ""},
+		{CONT_LOGIC_XNOR, "LOGIC_XNOR", "Logic Xnor", ""},
 		{CONT_EXPRESSION, "EXPRESSION", "Expression", ""},
 		{CONT_PYTHON, "PYTHON", "Python Script", ""},
 		{0, NULL, NULL, NULL}};
 
 	/* Controller */
 	srna= RNA_def_struct(brna, "Controller", NULL);
-	RNA_def_struct_ui_text(srna, "Controller", "logic brick to connect 'Sensors' to 'Actuators'");
 	RNA_def_struct_sdna(srna, "bController");
 	RNA_def_struct_refine_func(srna, "rna_Controller_refine");
+	RNA_def_struct_ui_text(srna, "Controller", "Game engine logic brick to process events, connecting sensors to actuators.");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
@@ -94,8 +94,8 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	/* Expression Controller */
 	srna= RNA_def_struct(brna, "ExpressionController", "Controller");
-	RNA_def_struct_ui_text(srna, "Expression Controller", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bExpressionCont", "data");
+	RNA_def_struct_ui_text(srna, "Expression Controller", "Controller passing on events based on the evaluation of an expression.");
 
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "str");
@@ -104,31 +104,31 @@ void RNA_def_controller(BlenderRNA *brna)
 
 	/* Python Controller */
 	srna= RNA_def_struct(brna, "PythonController", "Controller" );
-	RNA_def_struct_ui_text(srna, "Python Controller", "DOC_BROKEN");
 	RNA_def_struct_sdna_from(srna, "bPythonCont", "data");
+	RNA_def_struct_ui_text(srna, "Python Controller", "Controller executing a python script.");
 
 	prop= RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_ui_text(prop, "Python Text", "");
+	RNA_def_property_ui_text(prop, "Text", "Text datablock with the python script.");
 
 	/* Other Controllers */
 	srna= RNA_def_struct(brna, "AndController", "Controller");
-	RNA_def_struct_ui_text(srna, "And Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "And Controller", "Controller passing on events based on a logical AND operation.");
 	
 	srna= RNA_def_struct(brna, "OrController", "Controller");
-	RNA_def_struct_ui_text(srna, "Or Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Or Controller", "Controller passing on events based on a logical OR operation.");
 	
 	srna= RNA_def_struct(brna, "NorController", "Controller");
-	RNA_def_struct_ui_text(srna, "Nor Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Nor Controller", "Controller passing on events based on a logical NOR operation.");
 	
 	srna= RNA_def_struct(brna, "NandController", "Controller");
-	RNA_def_struct_ui_text(srna, "Nand Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Nand Controller", "Controller passing on events based on a logical NAND operation.");
 	
 	srna= RNA_def_struct(brna, "XorController", "Controller");
-	RNA_def_struct_ui_text(srna, "Xor Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Xor Controller", "Controller passing on events based on a logical XOR operation.");
 	
 	srna= RNA_def_struct(brna, "XnorController", "Controller");
-	RNA_def_struct_ui_text(srna, "Xnor Controller", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Xnor Controller", "Controller passing on events based on a logical XNOR operation.");
 }
 
 #endif

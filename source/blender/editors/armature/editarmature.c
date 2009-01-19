@@ -99,11 +99,6 @@ static void error_libdata() {}
 static void BIF_undo_push() {}
 static void adduplicate() {}
 static void countall() {}
-static void vertexgroup_select_by_name() {}
-static void deselect_actionchannels() {}
-static void add_vert_to_defgroup() {}
-static void create_dverts() {}
-static void select_actionchannel_by_name() {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */
@@ -602,7 +597,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 					
 					/* action constraint? */
 					if (con->type == CONSTRAINT_TYPE_ACTION) {
-						bActionConstraint *data= con->data;
+						bActionConstraint *data= con->data; // XXX old animation system
 						bAction *act;
 						bActionChannel *achan;
 						
@@ -750,7 +745,7 @@ int join_armature(Scene *scene, View3D *v3d)
 					joined_armature_fix_links(ob, base->object, pchan, curbone);
 					
 					/* Rename pchan */
-					sprintf(pchan->name, curbone->name);
+					BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
 					
 					/* Jump Ship! */
 					BLI_remlink(curarm->edbo, curbone);
@@ -1137,17 +1132,14 @@ static void *get_bone_from_selectbuffer(Scene *scene, Base *base, unsigned int *
 
 /* used by posemode as well editmode */
 /* only checks scene->basact! */
-static void *get_nearest_bone (Scene *scene, short findunsel)
+static void *get_nearest_bone (bContext *C, short findunsel)
 {
 	ViewContext vc;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
 	
-	memset(&vc, 0, sizeof(ViewContext));
-	vc.scene= scene;
-	vc.obedit= scene->obedit;
-	// XXX fill in further!
+	view3d_set_viewcontext(C, &vc);
 	
 	// rect.xmin= ... mouseco!
 	
@@ -1155,7 +1147,7 @@ static void *get_nearest_bone (Scene *scene, short findunsel)
 	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
 	if (hits>0)
-		return get_bone_from_selectbuffer(scene, scene->basact, buffer, hits, findunsel);
+		return get_bone_from_selectbuffer(vc.scene, vc.scene->basact, buffer, hits, findunsel);
 	
 	return NULL;
 }
@@ -1336,7 +1328,8 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 	if (!(bone->flag & BONE_CONNECTED))
 		return;
 	
-	select_actionchannel_by_name (ob->action, bone->name, !(shift));
+		// XXX old cruft! use notifiers instead
+	//select_actionchannel_by_name (ob->action, bone->name, !(shift));
 	
 	if (shift)
 		bone->flag &= ~BONE_SELECTED;
@@ -1349,25 +1342,24 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 }
 
 /* within active object context */
-void selectconnected_posearmature(Scene *scene)
+void selectconnected_posearmature(bContext *C)
 {
+	Object *ob= CTX_data_edit_object(C);
 	Bone *bone, *curBone, *next;
-	Object *ob= OBACT;
 	int shift= 0; // XXX
 	
-	if(!ob || !ob->pose) return;
-	
 	if (shift)
-		bone= get_nearest_bone(scene, 0);
+		bone= get_nearest_bone(C, 0);
 	else
-		bone = get_nearest_bone(scene, 1);
+		bone = get_nearest_bone(C, 1);
 	
 	if (!bone)
 		return;
 	
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
-		select_actionchannel_by_name (ob->action, curBone->name, !(shift));
+			// XXX old cruft! use notifiers instead
+		//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
 		if (shift)
 			curBone->flag &= ~BONE_SELECTED;
 		else
@@ -1394,16 +1386,17 @@ void selectconnected_posearmature(Scene *scene)
 /* **************** EditMode stuff ********************** */
 
 /* called in space.c */
-void selectconnected_armature(Scene *scene, View3D *v3d, Object *obedit)
+void selectconnected_armature(bContext *C)
 {
+	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
 	EditBone *bone, *curBone, *next;
 	int shift= 0; // XXX
 
 	if (shift)
-		bone= get_nearest_bone(scene, 0);
+		bone= get_nearest_bone(C, 0);
 	else
-		bone= get_nearest_bone(scene, 1);
+		bone= get_nearest_bone(C, 1);
 
 	if (!bone)
 		return;
@@ -1724,12 +1717,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 	EditBone *nearBone = NULL, *ebone;
 	int	selmask;
 
-	memset(&vc, 0, sizeof(ViewContext));
-	vc.ar= CTX_wm_region(C);
-	vc.scene= CTX_data_scene(C);
-	vc.v3d= (View3D *)CTX_wm_space_data(C);
-	vc.obact= CTX_data_active_object(C);
-	vc.obedit= obedit; 
+	view3d_set_viewcontext(C, &vc);
 	
 	nearBone= get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {
@@ -3563,7 +3551,7 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 }
 
 /* called from editview.c, for mode-less pose selection */
-/* assumes scene obact and basact... XXX */
+/* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
 {
 	Object *ob= base->object;
@@ -3580,7 +3568,9 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		if (!(extend) || (base != scene->basact)) {
 			ED_pose_deselectall(ob, 0, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			select_actionchannel_by_name(ob->action, nearBone->name, 1);
+			
+				// XXX old cruft! use notifiers instead
+			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
@@ -3591,22 +3581,26 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 				}
 				else {
 					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-					select_actionchannel_by_name(ob->action, nearBone->name, 0);
+					
+						// XXX old cruft! use notifiers instead
+					//select_actionchannel_by_name(ob->action, nearBone->name, 0);
 				}
 			}
 			else {
 				bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 				
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-				select_actionchannel_by_name(ob->action, nearBone->name, 1);
+				
+					// XXX old cruft! use notifiers instead
+				//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 			}
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
 		if (G.f & G_WEIGHTPAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
-				vertexgroup_select_by_name(ob, nearBone->name);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				vertexgroup_select_by_name(OBACT, nearBone->name);
+				DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 			}
 		}
 		
@@ -3657,16 +3651,6 @@ void ED_pose_deselectall (Object *ob, int test, int doundo)
 				else pchan->bone->flag &= ~BONE_ACTIVE;
 			}
 		}
-	}
-	
-	/* action editor */
-	if (test == 3) {
-		deselect_actionchannels(ob->action, 2); /* inverts selection */
-	}
-	else {
-		deselect_actionchannels(ob->action, 0);	/* deselects for sure */
-		if (selectmode == 1)
-			deselect_actionchannels(ob->action, 1);	/* swaps */
 	}
 	
 	countall();
@@ -3859,7 +3843,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	 * when parenting, or simply the original mesh coords.
 	 */
 
-	bArmature *arm= ob->data;
+	bArmature *arm= par->data;
 	Bone **bonelist, *bone;
 	bDeformGroup **dgrouplist, **dgroupflip;
 	bDeformGroup *dgroup, *curdg;
@@ -4023,7 +4007,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
 	 */
-	bArmature *arm= ob->data;
+	bArmature *arm= par->data;
 	short mode;
 
 	/* Prompt the user on whether/how they want the vertex groups
@@ -4033,6 +4017,9 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
 				  "Name Groups %x2|"
                   "Create From Envelopes %x3|"
 				  "Create From Bone Heat %x4|");
+	
+	mode= 3; // XXX
+	
 	switch (mode) {
 	case 2:
 		/* Traverse the bone list, trying to create empty vertex 
@@ -4196,7 +4183,6 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 {
 	bArmature *arm= ob->data;
-	Ipo *ipo;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -4234,11 +4220,12 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 			/* we have the object using the armature */
 			if (arm==ob->data) {
 				Object *cob;
-				bAction  *act;
-				bActionChannel *achan;
-				bActionStrip *strip;
+				//bAction  *act;
+				//bActionChannel *achan;
+				//bActionStrip *strip;
 				
 				/* Rename action channel if necessary */
+#if 0 // XXX old animation system
 				act = ob->action;
 				if (act && !act->id.lib) {
 					/*	Find the appropriate channel */
@@ -4246,6 +4233,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 					if (achan) 
 						BLI_strncpy(achan->name, newname, MAXBONENAME);
 				}
+#endif // XXX old animation system
 		
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
@@ -4255,6 +4243,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 				}
 				
 				/* check all nla-strips too */
+#if 0 // XXX old animation system
 				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
 					/* Rename action channel if necessary */
 					act = strip->act;
@@ -4265,6 +4254,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 							BLI_strncpy(achan->name, newname, MAXBONENAME);
 					}
 				}
+#endif // XXX old animation system
 				
 				/* Update any object constraints to use the new bone name */
 				for (cob= G.main->object.first; cob; cob= cob->id.next) {
@@ -4299,6 +4289,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 		}
 		
 		/* do entire db - ipo's for the drivers */
+#if 0 // XXX old animation system
 		for (ipo= G.main->ipo.first; ipo; ipo= ipo->id.next) {
 			IpoCurve *icu;
 			
@@ -4319,6 +4310,7 @@ void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
 				}
 			}			
 		}
+#endif // XXX old animation system
 	}
 }
 

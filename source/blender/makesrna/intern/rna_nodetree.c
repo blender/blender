@@ -51,29 +51,29 @@ static void rna_def_node(BlenderRNA *brna)
 		{SH_NODE_MATERIAL, "MATERIAL", "Material", ""},
 		{SH_NODE_RGB, "RGB", "RGB", ""},
 		{SH_NODE_VALUE, "VALUE", "Value", ""},
-		{SH_NODE_MIX_RGB, "MIXRGB", "Mix", ""},
-		{SH_NODE_VALTORGB, "VALTORGB", "Value to RGB", ""},
-		{SH_NODE_RGBTOBW, "RGBTOBW", "RGB to BW", ""},
+		{SH_NODE_MIX_RGB, "MIX_RGB", "Mix RGB", ""},
+		{SH_NODE_VALTORGB, "VALUE_TO_RGB", "Value to RGB", ""},
+		{SH_NODE_RGBTOBW, "RGB_TO_BW", "RGB to BW", ""},
 		{SH_NODE_TEXTURE, "TEXTURE", "Texture", ""},
 		{SH_NODE_NORMAL, "NORMAL", "Normal", ""},
 		{SH_NODE_GEOMETRY, "GEOMETRY", "Geometry", ""},
 		{SH_NODE_MAPPING, "MAPPING", "Mapping", ""},
-		{SH_NODE_CURVE_VEC, "CURVEVEC", "Vector Curves", ""},
-		{SH_NODE_CURVE_RGB, "CURVERGB", "RGB Curves", ""},
+		{SH_NODE_CURVE_VEC, "VECTOR_CURVES", "Vector Curves", ""},
+		{SH_NODE_CURVE_RGB, "RGB_CURVES", "RGB Curves", ""},
 		{SH_NODE_CAMERA, "CAMERA", "Camera", ""},
 		{SH_NODE_MATH, "MATH", "Math", ""},
-		{SH_NODE_VECT_MATH, "VECTMATH", "Vector Math", ""},
+		{SH_NODE_VECT_MATH, "VECTOR_MATH", "Vector Math", ""},
 		{SH_NODE_SQUEEZE, "SQUEEZE", "Squeeze", ""},
-		{SH_NODE_MATERIAL_EXT, "MATEXT", "Material Extended", ""},
+		{SH_NODE_MATERIAL_EXT, "MATERIAL_EXTENDED", "Material Extended", ""},
 		{SH_NODE_INVERT, "INVERT", "Invert", ""},
-		{SH_NODE_SEPRGB, "SEPRGB", "Seperate RGB", ""},
-		{SH_NODE_COMBRGB, "COMBRGB", "Combine RGB", ""},
-		{SH_NODE_HUE_SAT, "HUESAT", "Hue/Saturation", ""},
-		{NODE_DYNAMIC, "DYNAMIC", "Scripted Node", ""},
+		{SH_NODE_SEPRGB, "SEPARATE_RGB", "Seperate RGB", ""},
+		{SH_NODE_COMBRGB, "COMBINE_RGB", "Combine RGB", ""},
+		{SH_NODE_HUE_SAT, "HUE_SATURATION", "Hue/Saturation", ""},
+		{NODE_DYNAMIC, "SCRIPT", "Script", ""},
 		{0, NULL, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Node", NULL);
-	RNA_def_struct_ui_text(srna, "Node", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
 	RNA_def_struct_sdna(srna, "bNode");
 	
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
@@ -98,7 +98,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "NodeTree", "ID");
-	RNA_def_struct_ui_text(srna, "Node Tree", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing.");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 
 	prop= RNA_def_property(srna, "nodes", PROP_COLLECTION, PROP_NONE);

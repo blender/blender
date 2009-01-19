@@ -59,6 +59,64 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "mesh_intern.h"
 
+/* ****************** stats *************** */
+
+int EM_nfaces_selected(EditMesh *em)
+{
+	EditFace *efa;
+	int count= 0;
+	
+	for (efa= em->faces.first; efa; efa= efa->next)
+		if (efa->f & SELECT)
+			count++;
+	
+	em->totfacesel= count;
+	
+	return count;
+}
+
+int EM_nedges_selected(EditMesh *em)
+{
+	EditEdge *eed;
+	int count= 0;
+	
+	for (eed= em->edges.first; eed; eed= eed->next) 
+		if(eed->f & SELECT)
+			count++;
+	
+	em->totedgesel= count;
+	
+	return count;
+}
+
+int EM_nvertices_selected(EditMesh *em)
+{
+	EditVert *eve;
+	int count= 0;
+	
+	for (eve= em->verts.first; eve; eve= eve->next)
+		if (eve->f & SELECT)
+			count++;
+	
+	em->totvertsel= count;
+	
+	return count;
+}
+
+void EM_stats_update(EditMesh *em)
+{
+	
+	em->totvert= BLI_countlist(&em->verts);
+	em->totedge= BLI_countlist(&em->edges);
+	em->totface= BLI_countlist(&em->faces);
+	
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+}
+
+/* ************************************** */
+
 /* this replaces the active flag used in uv/face mode */
 void EM_set_actFace(EditMesh *em, EditFace *efa)
 {
@@ -404,41 +462,6 @@ int faceselectedAND(EditFace *efa, int flag)
 	}
 }
 
-int EM_nfaces_selected(EditMesh *em)
-{
-	EditFace *efa;
-	int count= 0;
-
-	for (efa= em->faces.first; efa; efa= efa->next)
-		if (efa->f & SELECT)
-			count++;
-
-	return count;
-}
-
-#if 0
-static int EM_nedges(EditMesh *em)
-{
-	EditEdge *eed;
-	int count= 0;
-
-	for (eed= em->edges.first; eed; eed= eed->next) count++;
-	return count;
-}
-#endif
-
-int EM_nvertices_selected(EditMesh *em)
-{
-	EditVert *eve;
-	int count= 0;
-
-	for (eve= em->verts.first; eve; eve= eve->next)
-		if (eve->f & SELECT)
-			count++;
-
-	return count;
-}
-
 void EM_clear_flag_all(EditMesh *em, int flag)
 {
 	EditVert *eve;
@@ -449,7 +472,10 @@ void EM_clear_flag_all(EditMesh *em, int flag)
 	for (eed= em->edges.first; eed; eed= eed->next) eed->f &= ~flag;
 	for (efa= em->faces.first; efa; efa= efa->next) efa->f &= ~flag;
 	
-	if(flag & SELECT) BLI_freelistN(&(em->selected));
+	if(flag & SELECT) {
+		BLI_freelistN(&(em->selected));
+		em->totvertsel= em->totedgesel= em->totfacesel= 0;
+	}
 }
 
 void EM_set_flag_all(EditMesh *em, int flag)
@@ -462,6 +488,11 @@ void EM_set_flag_all(EditMesh *em, int flag)
 	for (eed= em->edges.first; eed; eed= eed->next) if(eed->h==0) eed->f |= flag;
 	for (efa= em->faces.first; efa; efa= efa->next) if(efa->h==0) efa->f |= flag;
 	
+	if(flag & SELECT) {
+		em->totvertsel= em->totvert;
+		em->totedgesel= em->totedge;
+		em->totfacesel= em->totface;
+	}
 }
 
 /* flush for changes in vertices only */
@@ -484,6 +515,8 @@ void EM_deselect_flush(EditMesh *em)
 			else efa->f &= ~SELECT;
 		}
 	}
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 }
 
 
@@ -510,6 +543,8 @@ void EM_select_flush(EditMesh *em)
 			if(efa->v1->f & efa->v2->f & efa->v3->f & SELECT ) efa->f |= SELECT;
 		}
 	}
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 }
 
 /* when vertices or edges can be selected, also make fgon consistant */
@@ -634,6 +669,9 @@ void EM_selectmode_flush(EditMesh *em)
 	if(!(em->selectmode & SCE_SELECT_FACE))
 		check_fgons_selection(em);
 
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 }
 
 void EM_convertsel(EditMesh *em, short oldmode, short selectmode)
@@ -694,6 +732,10 @@ void EM_convertsel(EditMesh *em, short oldmode, short selectmode)
 	}
 	
 	check_fgons_selection(em);
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 }
 
 /* when switching select mode, makes sure selection is consistant for editing */
@@ -728,6 +770,10 @@ void EM_selectmode_set(EditMesh *em)
 		for(efa= em->faces.first; efa; efa= efa->next) 
 			if(efa->f & SELECT) EM_select_face(efa, 1);
 	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
 }
 
 /* paranoia check, actually only for entering editmode. rule:
@@ -1357,7 +1403,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 	short sel=0, del_old= 0, is_face_sel=0;
 	ModifierData *md;
 
-	if(em) return 0;
+	if(em==NULL) return 0;
 
 	md = obedit->modifiers.first;
 
@@ -2133,7 +2179,7 @@ void EM_fgon_flags(EditMesh *em)
  * if do_face_idx_array is 0 it means we need to run it as well as freeing
  * */
 
-UvVertMap *make_uv_vert_map_EM(EditMesh *em, int selected, int do_face_idx_array, float *limit)
+UvVertMap *EM_make_uv_vert_map(EditMesh *em, int selected, int do_face_idx_array, float *limit)
 {
 	EditVert *ev;
 	EditFace *efa;
@@ -2251,12 +2297,12 @@ UvVertMap *make_uv_vert_map_EM(EditMesh *em, int selected, int do_face_idx_array
 	return vmap;
 }
 
-UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v)
+UvMapVert *EM_get_uv_map_vert(UvVertMap *vmap, unsigned int v)
 {
 	return vmap->vert[v];
 }
 
-void free_uv_vert_map_EM(UvVertMap *vmap)
+void EM_free_uv_vert_map(UvVertMap *vmap)
 {
 	if (vmap) {
 		if (vmap->vert) MEM_freeN(vmap->vert);

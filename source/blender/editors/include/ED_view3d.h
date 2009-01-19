@@ -53,34 +53,15 @@ typedef struct ViewContext {
 	short mval[2];
 } ViewContext;
 
-typedef struct VPaint {
-	float r, g, b, a;
-	float size;			/* of brush */
-	float gamma, mul;
-	short mode, flag;
-	int tot, pad;						/* allocation size of prev buffers */
-	unsigned int *vpaint_prev;			/* previous mesh colors */
-	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
-	
-	void *paintcursor;					/* wm handle */
-} VPaint;
-
-/* Gvp.flag and Gwp.flag */
-#define VP_COLINDEX	1
-#define VP_AREA		2
-#define VP_SOFT		4
-#define VP_NORMALS	8
-#define VP_SPRAY	16
-#define VP_MIRROR_X	32
-#define VP_HARD		64
-#define VP_ONLYVGROUP	128
-
-
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
 void initgrabz(struct View3D *v3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, struct View3D *v3d, float *vec, short mx, short my);
+
+/* Depth buffer */
+float read_cached_depth(struct ViewContext *vc, int x, int y);
+void request_depth_update(struct ViewContext *vc);
 
 /* Projection */
 
@@ -106,14 +87,24 @@ void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userDa
 int view3d_test_clipping(struct View3D *v3d, float *vec);
 void view3d_align_axis_to_vector(struct Scene *scene, struct View3D *v3d, int axisidx, float vec[3]);
 
+void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
+
 /* backbuffer select and draw support */
+void view3d_validate_backbuf(struct ViewContext *vc);
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index));
+unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, 
+										void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* select */
 #define MAXPICKBUF      10000
 short view3d_opengl_select(struct ViewContext *vc, unsigned int *buffer, unsigned int bufsize, rcti *input);
+
+void view3d_set_viewcontext(struct bContext *C, struct ViewContext *vc);
+void view3d_operator_needs_opengl(const struct bContext *C);
+
+/* XXX should move to arithb.c */
+int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
 
 /* modes */
 void ED_view3d_exit_paint_modes(struct bContext *C);

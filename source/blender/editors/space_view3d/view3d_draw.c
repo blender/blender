@@ -802,7 +802,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 		}
 		
 		/* colour depends on whether there is a keyframe */
-	if (id_frame_has_keyframe((ID *)ob, frame_to_float(scene, CFRA), v3d->keyflags))
+	if (id_frame_has_keyframe((ID *)ob, /*frame_to_float(scene, CFRA)*/(float)(CFRA), v3d->keyflags))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -1128,7 +1128,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 }
 
-void check_backbuf(ViewContext *vc)
+void view3d_validate_backbuf(ViewContext *vc)
 {
 	if(vc->v3d->flag & V3D_NEEDBACKBUFDRAW)
 		backdrawview3d(vc->scene, vc->ar, vc->v3d);
@@ -1143,7 +1143,7 @@ unsigned int view3d_sample_backbuf(ViewContext *vc, int x, int y)
 	x+= vc->ar->winrct.xmin;
 	y+= vc->ar->winrct.ymin;
 	
-	check_backbuf(vc);
+	view3d_validate_backbuf(vc);
 
 	glReadPixels(x,  y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE,  &col);
 	glReadBuffer(GL_BACK);	
@@ -1172,7 +1172,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	
 	ibuf= IMB_allocImBuf((xmaxc-xminc+1), (ymaxc-yminc+1), 32, IB_rect,0);
 
-	check_backbuf(vc); 
+	view3d_validate_backbuf(vc); 
 	
 	glReadPixels(vc->ar->winrct.xmin+xminc, vc->ar->winrct.ymin+yminc, (xmaxc-xminc+1), (ymaxc-yminc+1), GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	glReadBuffer(GL_BACK);	
@@ -1207,7 +1207,9 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int view3d_sample_backbuf_rect(ViewContext *vc, short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index))
+unsigned int view3d_sample_backbuf_rect(ViewContext *vc, short mval[2], int size, 
+										unsigned int min, unsigned int max, int *dist, short strict, 
+										void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {
 	struct ImBuf *buf;
 	unsigned int *bufmin, *bufmax, *tbuf;
@@ -1242,7 +1244,7 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, short mval[2], int size
 			for(b=0; b<nr; b++, distance++) {
 				if (*tbuf && *tbuf>=min && *tbuf<max) { //we got a hit
 					if(strict){
-						indexok =  indextest(*tbuf - min+1);
+						indexok =  indextest(handle, *tbuf - min+1);
 						if(indexok){
 							*dist= (short) sqrt( (float)distance   );
 							index = *tbuf - min+1;
@@ -1845,7 +1847,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Scene *sce;
 	Base *base;
 	Object *ob;
-	char retopo= 0, sculptparticle= 0;
+	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	
 	/* from now on all object derived meshes check this */
@@ -1982,9 +1984,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 			}
 		}
 	}
-	
+
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-//	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !obedit;
+	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
@@ -2048,7 +2050,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 //	if (v3d->flag2 & V3D_DISPGP)
 //		draw_gpencil_3dview(ar, 0);
 
-	if(!(G.f & G_PLAYANIM)) drawcursor(scene, ar, v3d);
+	drawcursor(scene, ar, v3d);
+	
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(v3d);
 	else	

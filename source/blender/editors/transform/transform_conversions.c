@@ -37,13 +37,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -81,8 +81,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
@@ -147,7 +147,6 @@
 //
 //#include "mydevice.h"
 
-extern ListBase editNurb;
 extern ListBase editelems;
 
 #include "transform.h"
@@ -1345,6 +1344,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 {
 	// TRANSFORM_FIX_ME
 #if 0
+	Object *obedit= CTX_data_edit_object(C);
+	Curve *cu= obedit->data;
 	TransData *td = NULL;
   	Nurb *nu;
 	BezTriple *bezt;
@@ -1354,8 +1355,11 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
+	/* to be sure */
+	if(cu->editnurb==NULL) return;
+	
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= cu->editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
@@ -1391,7 +1395,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Mat3Inv(smtx, mtx);
 	
     td = t->data;
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= cu->editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			TransData *head, *tail;
 			head = tail = td;
@@ -1549,8 +1553,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 static void createTransLatticeVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+	Lattice *latt = ((Lattice*)t->obedit->data)->editlatt;
 	TransData *td = NULL;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1558,8 +1561,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	bp= editLatt->def;
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp = latt->def;
+	a  = latt->pntsu * latt->pntsv * latt->pntsw;
 	while(a--) {
 		if(bp->hide==0) {
 			if(bp->f1 & SELECT) countsel++;
@@ -1579,8 +1582,8 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 	Mat3Inv(smtx, mtx);
 
 	td = t->data;
-	bp= editLatt->def;
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	bp = latt->def;
+	a  = latt->pntsu * latt->pntsv * latt->pntsw;
 	while(a--) {
 		if(propmode || (bp->f1 & SELECT)) {
 			if(bp->hide==0) {
@@ -1602,7 +1605,6 @@ static void createTransLatticeVerts(bContext *C, TransInfo *t)
 		}
 		bp++;
 	}
-#endif
 }
 
 /* ******************* particle edit **************** */
@@ -1971,7 +1973,7 @@ static float *get_crazy_mapped_editverts(TransInfo *t)
 	/* now get the cage */
 	dm= editmesh_get_derived_cage(t->scene, t->obedit, me->edit_mesh, CD_MASK_BAREMESH);
 
-	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
+	vertexcos= MEM_mallocN(3*sizeof(float)*me->edit_mesh->totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
 	
 	dm->release(dm);
@@ -2338,8 +2340,8 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+#if 0 // TRANSFORM_FIX_ME
+	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTFace *tf;
@@ -2353,7 +2355,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if(is_uv_tface_editing_allowed()==0) return;
 
 	/* count */
-	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+	if (sima->flag & SI_BE_SQUARE && !propmode) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			/* store face pointer for second loop, prevent second lookup */
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2405,13 +2407,13 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	   treated just as if they were 3d verts */
 	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
 
-	if(G.sima->flag & SI_CLIP_UV)
+	if(sima->flag & SI_CLIP_UV)
 		t->flag |= T_CLIP_UV;
 
 	td= t->data;
 	td2d= t->data2d;
 	
-	if (G.sima->flag & SI_BE_SQUARE && !propmode) {
+	if (sima->flag & SI_BE_SQUARE && !propmode) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf=(MTFace *)efa->tmp.p;
 			if (tf) {
@@ -2470,7 +2472,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (G.sima->flag & SI_LIVE_UNWRAP)
+	if (sima->flag & SI_LIVE_UNWRAP)
 		unwrap_lscm_live_begin();
 #endif
 }
@@ -2694,16 +2696,16 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
-static void posttrans_icu_clean (IpoCurve *icu)
+static void posttrans_fcurve_clean (FCurve *fcu)
 {
 	float *selcache;	/* cache for frame numbers of selected frames (icu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
 	
 	/* allocate memory for the cache */
 	// TODO: investigate using GHash for this instead?
-	if (icu->totvert == 0) 
+	if (fcu->totvert == 0) 
 		return;
-	selcache= MEM_callocN(sizeof(float)*icu->totvert, "IcuSelFrameNums");
+	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
 	len= 0;
 	index= 0;
 	
@@ -2713,8 +2715,8 @@ static void posttrans_icu_clean (IpoCurve *icu)
 	 */
 	 
 	/*	Loop 1: find selected keyframes   */
-	for (i = 0; i < icu->totvert; i++) {
-		BezTriple *bezt= &icu->bezt[i];
+	for (i = 0; i < fcu->totvert; i++) {
+		BezTriple *bezt= &fcu->bezt[i];
 		
 		if (BEZSELECTED(bezt)) {
 			selcache[index]= bezt->vec[1][0];
@@ -2725,14 +2727,14 @@ static void posttrans_icu_clean (IpoCurve *icu)
 	
 	/* Loop 2: delete unselected keyframes on the same frames (if any keyframes were found) */
 	if (len) {
-		for (i = 0; i < icu->totvert; i++) {
-			BezTriple *bezt= &icu->bezt[i];
+		for (i = 0; i < fcu->totvert; i++) {
+			BezTriple *bezt= &fcu->bezt[i];
 			
 			if (BEZSELECTED(bezt) == 0) {
 				/* check beztriple should be removed according to cache */
 				for (index= 0; index < len; index++) {
 					if (IS_EQ(bezt->vec[1][0], selcache[index])) {
-						delete_icu_key(icu, i, 0);
+						//delete_icu_key(icu, i, 0);
 						break;
 					}
 					else if (bezt->vec[1][0] > selcache[index])
@@ -2741,31 +2743,13 @@ static void posttrans_icu_clean (IpoCurve *icu)
 			}
 		}
 		
-		testhandles_ipocurve(icu);
+		testhandles_fcurve(fcu);
 	}
 	
 	/* free cache */
 	MEM_freeN(selcache);
 }
 
-/* Called by special_aftertrans_update to make sure selected keyframes replace
- * any other keyframes which may reside on that frame (that is not selected).
- * remake_action_ipos should have already been called 
- */
-static void posttrans_ipo_clean (Ipo *ipo)
-{
-	IpoCurve *icu;
-	
-	if (ipo == NULL)
-		return;
-	
-	/* loop through relevant data, removing keyframes from the ipocurves
-	 *  	- all keyframes are converted in/out of global time 
-	 */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		posttrans_icu_clean(icu);
-	}
-}
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
@@ -2778,7 +2762,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
@@ -2788,12 +2772,12 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			posttrans_icu_clean(ale->key_data);
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
+			//ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
+			posttrans_fcurve_clean(ale->key_data);
+			//ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
 		}
 		else 
-			posttrans_icu_clean(ale->key_data);
+			posttrans_fcurve_clean(ale->key_data);
 	}
 	
 	/* free temp data */
@@ -2816,16 +2800,16 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
-static int count_icu_keys(IpoCurve *icu, char side, float cfra)
+static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 {
 	BezTriple *bezt;
 	int i, count = 0;
 	
-	if (icu == NULL)
+	if (fcu == NULL)
 		return count;
 	
 	/* only include points that occur on the right side of cfra */
-	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		if (bezt->f2 & SELECT) {
 			/* fully select the other two keys */
 			bezt->f1 |= SELECT;
@@ -2881,15 +2865,15 @@ static void TimeToTransData(TransData *td, float *time, Object *ob)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
-static TransData *IcuToTransData(TransData *td, IpoCurve *icu, Object *ob, char side, float cfra)
+static TransData *FCurveToTransData(TransData *td, FCurve *fcu, Object *ob, char side, float cfra)
 {
 	BezTriple *bezt;
 	int i;
 	
-	if (icu == NULL)
+	if (fcu == NULL)
 		return td;
 		
-	for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		/* only add selected keyframes (for now, proportional edit is not enabled) */
 		if (BEZSELECTED(bezt)) {
 			/* only add if on the right 'side' of the current frame */
@@ -2991,7 +2975,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
@@ -3022,7 +3006,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	count += count_gplayer_frames(ale->data, side, cfra);
 		//else
-			count += count_icu_keys(ale->key_data, side, cfra);
+			count += count_fcurve_keys(ale->key_data, side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3063,7 +3047,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//}
 		//else {
 			Object *nob= ANIM_nla_mapping_get(&ac, ale);
-			IpoCurve *icu= (IpoCurve *)ale->key_data;
+			FCurve *fcu= (FCurve *)ale->key_data;
 			
 			/* convert current-frame to action-time (slightly less accurate, espcially under
 			 * higher scaling ratios, but is faster than converting all points) 
@@ -3073,7 +3057,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			else
 				cfra = (float)CFRA;
 			
-			td= IcuToTransData(td, icu, nob, side, cfra);
+			td= FCurveToTransData(td, fcu, nob, side, cfra);
 		//}
 	}
 	
@@ -3697,20 +3681,6 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 #endif
 }
 
-/* very bad call!!! - copied from editnla.c!  */
-static void recalc_all_ipos(void)
-{
-	Ipo *ipo;
-	IpoCurve *icu;
-	
-	/* Go to each ipo */
-	for (ipo=G.main->ipo.first; ipo; ipo=ipo->id.next){
-		for (icu = ipo->curve.first; icu; icu=icu->next){
-			sort_time_ipocurve(icu);
-			testhandles_ipocurve(icu);
-		}
-	}
-}
 
 /* inserting keys, refresh ipo-keys, pointcache, redraw events... (ton) */
 /* note: transdata has been freed already! */
@@ -3757,7 +3727,7 @@ void special_aftertrans_update(TransInfo *t)
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYICU);
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
@@ -3765,18 +3735,18 @@ void special_aftertrans_update(TransInfo *t)
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				Object *nob= ANIM_nla_mapping_get(&ac, ale);
-				IpoCurve *icu= (IpoCurve *)ale->key_data;
+				FCurve *fcu= (FCurve *)ale->key_data;
 				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (nob) {
-						ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
-						posttrans_icu_clean(icu);
-						ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
+						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
+						posttrans_fcurve_clean(fcu);
+						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
 					}
 					else
-						posttrans_icu_clean(icu);
+						posttrans_fcurve_clean(fcu);
 				}
 			}
 			
@@ -3806,6 +3776,7 @@ void special_aftertrans_update(TransInfo *t)
 			/* fix up the Ipocurves and redraw stuff */
 			Key *key= (Key *)ac.data;
 			
+#if 0 // XXX old animation system
 			if (key->ipo) {
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 && 
 				     ((cancelled == 0) || (duplicate)) )
@@ -3813,6 +3784,7 @@ void special_aftertrans_update(TransInfo *t)
 					posttrans_ipo_clean(key->ipo);
 				}
 			}
+#endif // XXX old animation system
 			
 			DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 		}
@@ -3987,38 +3959,34 @@ static void createTransObject(bContext *C, TransInfo *t)
 	
 	TransData *td = NULL;
 	TransDataExtension *tx;
-	Object *ob;
-	Base *base;
 //	IpoKey *ik;
 //	ListBase elems;
 	
 	set_trans_object_base_flags(C, t);
 
 	/* count */	
-	for(base = sce->base.first; base; base= base->next) {
-		if TESTBASE(v3d, base) {
-			ob= base->object;
-			
+	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
+	{
 #if 0 // TRANSFORM_FIX_ME
-			/* store ipo keys? */
-			if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
-				elems.first= elems.last= NULL;
-				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
-				
-				pushdata(&elems, sizeof(ListBase));
-				
-				for(ik= elems.first; ik; ik= ik->next)
-					t->total++;
-				
-				if(elems.first==NULL)
-					t->total++;
-			}
-#endif
-//			else {
+		/* store ipo keys? */
+		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+			elems.first= elems.last= NULL;
+			make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
+			
+			pushdata(&elems, sizeof(ListBase));
+			
+			for(ik= elems.first; ik; ik= ik->next)
 				t->total++;
-//			}
+			
+			if(elems.first==NULL)
+				t->total++;
 		}
+#endif
+//		else {
+			t->total++;
+//		}
 	}
+	CTX_DATA_END;
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -4029,97 +3997,97 @@ static void createTransObject(bContext *C, TransInfo *t)
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransOb");
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransObExtension");
 
-	for(base = sce->base.first; base; base= base->next) {
-		if TESTBASE(v3d, base) {
-			ob= base->object;
-			
-			td->flag = TD_SELECTED;
-			td->protectflag= ob->protectflag;
-			td->ext = tx;
-			
-			if (base->flag & BA_TRANSFORM_CHILD)
-			{
-				td->flag |= TD_NOCENTER;
-				td->flag |= TD_NO_LOC;
-			}
-			
-			/* select linked objects, but skip them later */
-			if (ob->id.lib != 0) {
-				td->flag |= TD_SKIP;
-			}
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
+	{
+		Object *ob= base->object;
+		
+		td->flag = TD_SELECTED;
+		td->protectflag= ob->protectflag;
+		td->ext = tx;
+		
+		if (base->flag & BA_TRANSFORM_CHILD)
+		{
+			td->flag |= TD_NOCENTER;
+			td->flag |= TD_NO_LOC;
+		}
+		
+		/* select linked objects, but skip them later */
+		if (ob->id.lib != 0) {
+			td->flag |= TD_SKIP;
+		}
 
-			/* store ipo keys? */
-			// TRANSFORM_FIX_ME
+		/* store ipo keys? */
+		// TRANSFORM_FIX_ME
 #if 0
-			if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+		if((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
+			
+			popfirst(&elems);	// bring back pushed listbase
+			
+			if(elems.first) {
+				int cfraont;
+				int ipoflag;
 				
-				popfirst(&elems);	// bring back pushed listbase
+				base->flag |= BA_DO_IPO+BA_WAS_SEL;
+				base->flag &= ~SELECT;
 				
-				if(elems.first) {
-					int cfraont;
-					int ipoflag;
+				cfraont= CFRA;
+				set_no_parent_ipo(1);
+				ipoflag= ob->ipoflag;
+				ob->ipoflag &= ~OB_OFFS_OB;
+				
+				/*
+				 * This is really EVIL code that pushes down Object values
+				 * (loc, dloc, orig, size, dsize, rot, drot)
+				 * */
+				 
+				pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
+				
+				for(ik= elems.first; ik; ik= ik->next) {
 					
-					base->flag |= BA_DO_IPO+BA_WAS_SEL;
-					base->flag &= ~SELECT;
+					/* weak... this doesn't correct for floating values, giving small errors */
+					CFRA= (int)(ik->val/t->scene->r.framelen);
 					
-					cfraont= CFRA;
-					set_no_parent_ipo(1);
-					ipoflag= ob->ipoflag;
-					ob->ipoflag &= ~OB_OFFS_OB;
+					do_ob_ipo(ob);
+					ObjectToTransData(C, t, td, ob);	// does where_is_object()
 					
-					/*
-					 * This is really EVIL code that pushes down Object values
-					 * (loc, dloc, orig, size, dsize, rot, drot)
-					 * */
-					 
-					pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
+					td->flag= TD_SELECTED;
 					
-					for(ik= elems.first; ik; ik= ik->next) {
-						
-						/* weak... this doesn't correct for floating values, giving small errors */
-						CFRA= (int)(ik->val/t->scene->r.framelen);
-						
-						do_ob_ipo(ob);
-						ObjectToTransData(C, t, td, ob);	// does where_is_object()
-						
-						td->flag= TD_SELECTED;
-						
-						td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
-						/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
-						ipokey_to_transdata(ik, td);
-						
-						td++;
-						tx++;
-						if(ik->next) td->ext= tx;	// prevent corrupting mem!
-					}
-					free_ipokey(&elems);
+					td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
+					/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
+					ipokey_to_transdata(ik, td);
 					
-					poplast(ob->loc);
-					set_no_parent_ipo(0);
-					
-					CFRA= cfraont;
-					ob->ipoflag= ipoflag;
-					
-					where_is_object(t->scene, ob);	// restore 
-				}
-				else {
-					ObjectToTransData(C, t, td, ob);
-					td->tdi = NULL;
-					td->val = NULL;
 					td++;
 					tx++;
+					if(ik->next) td->ext= tx;	// prevent corrupting mem!
 				}
+				free_ipokey(&elems);
+				
+				poplast(ob->loc);
+				set_no_parent_ipo(0);
+				
+				CFRA= cfraont;
+				ob->ipoflag= ipoflag;
+				
+				where_is_object(t->scene, ob);	// restore 
 			}
-#endif
-//			else {
+			else {
 				ObjectToTransData(C, t, td, ob);
 				td->tdi = NULL;
 				td->val = NULL;
 				td++;
 				tx++;
-//			}
+			}
 		}
+#endif
+//		else {
+			ObjectToTransData(C, t, td, ob);
+			td->tdi = NULL;
+			td->val = NULL;
+			td++;
+			tx++;
+//		}
 	}
+	CTX_DATA_END;
 }
 
 /* transcribe given node into TransData2D for Transforming */
@@ -4153,7 +4121,7 @@ void createTransNodeData(bContext *C, TransInfo *t)
 	TransData *td;
 	TransData2D *td2d;
 	
-	CTX_DATA_COUNT(C, selected_nodes, t->total)
+	t->total= CTX_DATA_COUNT(C, selected_nodes);
 	
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransNode TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransNode TransData2D");
@@ -4206,12 +4174,14 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransIpoData(C, t); 
+		createTransIpoData(C, t);
+#if 0		
 		if (t->data && (t->flag & T_PROP_EDIT)) {
 			sort_trans_data(t);	// makes selected become first in array
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+#endif
 	}
 	else if(t->spacetype == SPACE_NODE) {
 		t->flag |= T_2D_EDIT|T_POINTS;

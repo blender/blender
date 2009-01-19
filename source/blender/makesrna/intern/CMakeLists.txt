@@ -63,6 +63,7 @@ SET(DEFSRC
      rna_sensor.c
      rna_sequence.c
      rna_sound.c
+     rna_space.c
      rna_text.c
      rna_texture.c
      rna_userdef.c
@@ -70,51 +71,7 @@ SET(DEFSRC
      rna_wm.c
      rna_world.c)
 
-SET(GENSRC
-     rna_action_gen.c
-     rna_actuator_gen.c
-     rna_armature_gen.c
-     rna_brush_gen.c
-     rna_camera_gen.c
-     rna_cloth_gen.c
-     rna_color_gen.c
-     rna_constraint_gen.c
-     rna_controller_gen.c
-     rna_curve_gen.c
-     rna_fluidsim_gen.c
-     rna_group_gen.c
-     rna_ID_gen.c
-     rna_image_gen.c
-     rna_ipo_gen.c
-     rna_key_gen.c
-     rna_lamp_gen.c
-     rna_lattice_gen.c
-     rna_main_gen.c
-     rna_material_gen.c
-     rna_mesh_gen.c
-     rna_meta_gen.c
-     rna_modifier_gen.c
-     rna_nodetree_gen.c
-     rna_object_gen.c
-     rna_object_force_gen.c
-     rna_packedfile_gen.c
-     rna_particle_gen.c
-     rna_pose_gen.c
-     rna_property_gen.c
-     rna_radio_gen.c
-     rna_rna_gen.c
-     rna_scene_gen.c
-     rna_screen_gen.c
-     rna_scriptlink_gen.c
-     rna_sensor_gen.c
-     rna_sequence_gen.c
-     rna_sound_gen.c
-     rna_text_gen.c
-     rna_texture_gen.c
-     rna_userdef_gen.c
-     rna_vfont_gen.c
-     rna_wm_gen.c
-     rna_world_gen.c)
+STRING(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 
 SET(SRC
      makesrna.c
@@ -133,7 +90,7 @@ TARGET_LINK_LIBRARIES(makesrna bf_dna)
 # Output rna_*_gen.c
 ADD_CUSTOM_COMMAND(
   OUTPUT ${GENSRC}
-  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/ ${CMAKE_SOURCE_DIR}/source/blender/makesrna/
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/
   DEPENDS makesrna
 )
 

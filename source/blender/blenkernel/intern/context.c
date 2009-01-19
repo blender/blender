@@ -31,6 +31,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_access.h"
@@ -162,6 +163,14 @@ SpaceLink *CTX_wm_space_data(const bContext *C)
 {
 	return (C->wm.area)? C->wm.area->spacedata.first: NULL;
 }
+
+View3D *CTX_wm_view3d(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 
 ARegion *CTX_wm_region(const bContext *C)
 {
@@ -310,6 +319,16 @@ void CTX_data_list_add(bContextDataResult *result, void *data)
 	BLI_addtail(&result->list, link);
 }
 
+int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase*))
+{
+	ListBase list;
+
+	if(func(C, &list))
+		return BLI_countlist(&list);
+	else
+		return 0;
+}
+
 /* data context */
 
 Main *CTX_data_main(const bContext *C)
@@ -357,6 +376,16 @@ int CTX_data_selected_nodes(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, CTX_data_selected_nodes, list);
 }
 
+int CTX_data_selected_editable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_editable_objects, list);
+}
+
+int CTX_data_selected_editable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, CTX_data_selected_editable_bases, list);
+}
+
 int CTX_data_selected_objects(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, CTX_data_selected_objects, list);
@@ -390,6 +419,16 @@ struct Base *CTX_data_active_base(const bContext *C)
 struct Object *CTX_data_edit_object(const bContext *C)
 {
 	return ctx_data_pointer_get(C, CTX_data_edit_object);
+}
+
+struct Image *CTX_data_edit_image(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_edit_image);
+}
+
+struct ImBuf *CTX_data_edit_image_buffer(const bContext *C)
+{
+	return ctx_data_pointer_get(C, CTX_data_edit_image_buffer);
 }
 
 /* data evaluation */

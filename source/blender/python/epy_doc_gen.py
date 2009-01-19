@@ -111,7 +111,7 @@ def rna2epy(target_path):
 		
 		# Now write children recursively
 		for child in structs:
-			if rna_struct == child.parent:
+			if rna_struct == child.nested:
 				write_struct(child, structs, ident + '\t')
 		
 	
@@ -155,7 +155,7 @@ def rna2epy(target_path):
 	
 	
 	for rna_struct in structs:
-		if rna_struct.parent:
+		if rna_struct.nested:
 			continue
 		
 		write_struct(rna_struct, structs, '')

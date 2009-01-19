@@ -233,6 +233,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
+	ar->swap= WIN_BACK_OK;
 }
 
 /* **********************************

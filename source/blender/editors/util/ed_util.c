@@ -58,6 +58,9 @@ void ED_editors_exit(bContext *C)
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	
+	/* global in meshtools... */
+	mesh_octree_table(ob, NULL, NULL, 'e');
+	
 	if(ob) {
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;

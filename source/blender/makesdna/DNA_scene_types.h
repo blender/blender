@@ -46,6 +46,7 @@ struct Scene;
 struct Image;
 struct Group;
 struct bNodeTree;
+struct AnimData;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -374,7 +375,54 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
+struct SculptSession;
+typedef struct Sculpt
+{
+	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */	
+	/* Data stored only from entering sculptmode until exiting sculptmode */
+	struct SculptSession *session;
+	struct Brush *brush;
+
+	/* For rotating around a pivot point */
+	float pivot[3];
+	int flags;
+	/* For the Brush Shape */
+	short texact, texnr, spacing;
+	char texrept, texsep, averaging;
+	/* Control tablet input */
+	char tablet_size, tablet_strength;
+	char pad[5];
+} Sculpt;
+
+typedef struct VPaint {
+	float r, g, b, a;					/* paint color */
+	float weight;						/* weight paint */
+	float size;							/* of brush */
+	float gamma, mul;
+	short mode, flag;
+	int tot;							/* allocation size of prev buffers */
+	unsigned int *vpaint_prev;			/* previous mesh colors */
+	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
+	
+	void *paintcursor;					/* wm handle */
+} VPaint;
+
+/* VPaint flag */
+#define VP_COLINDEX	1
+#define VP_AREA		2
+#define VP_SOFT		4
+#define VP_NORMALS	8
+#define VP_SPRAY	16
+#define VP_MIRROR_X	32
+#define VP_HARD		64
+#define VP_ONLYVGROUP	128
+
+
 typedef struct ToolSettings {
+	VPaint *vpaint;		/* vertex paint */
+	VPaint *wpaint;		/* weight paint */
+	Sculpt *sculpt;
+	
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
@@ -403,6 +451,8 @@ typedef struct ToolSettings {
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
+	short uv_flag, uv_selectmode;
+	short uv_pad[2];
 
 	/* Auto-IK */
 	short autoik_chainlen;
@@ -452,40 +502,17 @@ typedef struct ToolSettings {
 	char edge_mode;
 } ToolSettings;
 
-struct SculptSession;
-typedef struct SculptData
-{
-	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */
-	
-	/* Data stored only from entering sculptmode until exiting sculptmode */
-	struct SculptSession *session;
+typedef struct bStats {
+	/* scene totals for visible layers */
+	int totobj, totlamp, totobjsel, totcurve, totmesh, totarmature;
+	int totvert, totface;
+} bStats;
 
-	/* Pointers to all of sculptmodes's textures */
-	struct MTex *mtex[18];
-
-	struct Brush *brush;
-
-	/* For rotating around a pivot point */
-	float pivot[3];
-
-	int flags;
-
-	/* For the Brush Shape */
-	short texact, texnr;
-	short spacing;
-	char texrept;
-	char texsep;
-
-	char averaging;
-	
-	/* Control tablet input */
-	char tablet_size, tablet_strength;
-
-	char pad[5];
-} SculptData;
 
 typedef struct Scene {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
+	
 	struct Object *camera;
 	struct World *world;
 	
@@ -518,7 +545,8 @@ typedef struct Scene {
 	
 	struct GameFraming framing;
 
-	struct ToolSettings *toolsettings;
+	struct ToolSettings *toolsettings;		/* default allocated now */
+	struct SceneStats *stats;				/* default allocated now */
 
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
@@ -537,9 +565,6 @@ typedef struct Scene {
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
 	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
-
-	/* Sculptmode data */
-	struct SculptData sculptdata;
 
 	/* frame step. */
 	int frame_step;
@@ -809,6 +834,16 @@ typedef struct Scene {
 #define UVCALC_FILLHOLES			1
 #define UVCALC_NO_ASPECT_CORRECT	2	/* would call this UVCALC_ASPECT_CORRECT, except it should be default with old file */
 #define UVCALC_TRANSFORM_CORRECT	4	/* adjust UV's while transforming to avoid distortion */
+
+/* toolsettings->uv_flag */
+#define UV_SYNC_SELECTION	1
+#define UV_SHOW_SAME_IMAGE	2
+
+/* toolsettings->uv_selectmode */
+#define UV_SELECT_VERTEX	1
+#define UV_SELECT_EDGE		2 /* not implemented */
+#define UV_SELECT_FACE		4
+#define UV_SELECT_ISLAND	8
 
 /* toolsettings->edge_mode */
 #define EDGE_MODE_SELECT				0

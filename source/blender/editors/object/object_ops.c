@@ -73,6 +73,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_de_select_all);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
+	WM_operatortype_append(OBJECT_OT_select_linked);
 	WM_operatortype_append(OBJECT_OT_clear_location);
 	WM_operatortype_append(OBJECT_OT_clear_rotation);
 	WM_operatortype_append(OBJECT_OT_clear_scale);
@@ -81,6 +82,10 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_set_restrictview);
 	WM_operatortype_append(OBJECT_OT_set_slowparent);
 	WM_operatortype_append(OBJECT_OT_clear_slowparent);
+	WM_operatortype_append(OBJECT_OT_set_center);
+	WM_operatortype_append(OBJECT_OT_make_dupli_real);
+	WM_operatortype_append(OBJECT_OT_object_add);
+	WM_operatortype_append(OBJECT_OT_add_duplicate);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -89,6 +94,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_toggle_editmode", TABKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_set_center", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
@@ -98,6 +104,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
+	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_make_parent", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_parent", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_make_track", TKEY, KM_PRESS, KM_CTRL, 0);
@@ -110,6 +118,12 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_clear_restrictview", HKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_set_restrictview", HKEY, KM_PRESS, 0, 0);
-//	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	
+	WM_keymap_verify_item(keymap, "OBJECT_OT_object_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
+	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe", IKEY, KM_PRESS, KM_ALT, 0);
 }
 

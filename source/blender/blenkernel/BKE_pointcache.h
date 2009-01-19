@@ -58,7 +58,7 @@
 
 /* Structs */
 struct Object;
-struct Scene *scene;
+struct Scene;
 struct SoftBody;
 struct ParticleSystem;
 struct ClothModifierData;

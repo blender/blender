@@ -497,6 +497,24 @@ void window_to_3d(ARegion *ar, View3D *v3d, float *vec, short mx, short my)
 	vec[2]= (v3d->persinv[0][2]*dx + v3d->persinv[1][2]*dy);
 }
 
+float read_cached_depth(ViewContext *vc, int x, int y)
+{
+	ViewDepths *vd = vc->v3d->depths;
+		
+	y -= vc->ar->winrct.ymin;
+
+	if(vd && vd->depths && x > 0 && y > 0 && x < vd->w && y < vd->h)
+		return vd->depths[y * vd->w + x];
+	else
+		return 1;
+}
+
+void request_depth_update(ViewContext *vc)
+{
+	if(vc->v3d->depths)
+		vc->v3d->depths->damaged= 1;
+}
+
 void view3d_get_object_project_mat(View3D *v3d, Object *ob, float pmat[4][4], float vmat[4][4])
 {
 	Mat4MulMat4(vmat, ob->obmat, v3d->viewmat);

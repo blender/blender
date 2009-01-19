@@ -34,6 +34,11 @@ struct Object;
 struct bContext;
 struct Base;
 struct View3D;
+struct bConstraint;
+struct KeyBlock;
+struct Lattice;
+struct Mesh;
+struct Curve;
 
 void ED_operatortypes_object(void);
 void ED_keymap_object(struct wmWindowManager *wm);
@@ -57,10 +62,27 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct Scene *scene, struct View3D *v3d, struct Base *base);
 
-
 /* cleanup */
 int object_data_is_libdata(struct Object *ob);
-int object_is_libdata(struct Object *ob);
+
+/* constraints */
+struct bConstraint *add_new_constraint (short type);
+void add_constraint_to_object (struct bConstraint *con, struct Object *ob);
+
+/* editlattice.c */
+void mouse_lattice(struct bContext *C, short mval[2], int extend);
+
+/* editkey.c */
+void insert_shapekey(struct Scene *scene, struct Object *ob);
+void delete_key(struct Scene *scene, struct Object *ob);
+void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
+void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
+void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
+void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
+void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
+void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
+
+
 
 #endif /* ED_OBJECT_H */
 

@@ -40,15 +40,17 @@
 #endif
 
 struct MTex;
-struct Ipo;
 struct ColorBand;
 struct Group;
 struct bNodeTree;
+struct AnimData;
+struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct Material {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short colormodel, flag;	
 	/* note, keep this below synced with render_types.h */
@@ -113,7 +115,7 @@ typedef struct Material {
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;	
-	struct Ipo *ipo;
+	struct Ipo *ipo;		// XXX depreceated... old animation system
 	struct Group *group;	/* light group */
 	struct PreviewImage * preview;
 

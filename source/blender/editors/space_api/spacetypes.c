@@ -39,12 +39,13 @@
 
 #include "BIF_gl.h"
 
-#include "ED_screen.h"
-#include "ED_object.h"
-#include "ED_mesh.h"
-#include "ED_space_api.h"
 #include "ED_anim_api.h"
-
+#include "ED_mesh.h"
+#include "ED_object.h"
+#include "ED_sculpt.h"
+#include "ED_screen.h"
+#include "ED_space_api.h"
+#include "ED_uvedit.h"
 
 ARegionType *ED_regiontype_from_id(SpaceType *st, int regionid)
 {
@@ -89,6 +90,8 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_animchannels(); // XXX have this as part of anim() ones instead?
 	ED_operatortypes_object();
 	ED_operatortypes_mesh();
+	ED_operatortypes_sculpt();
+	ED_operatortypes_uvedit();
 	ui_view2d_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
@@ -110,6 +113,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_animchannels(wm);
 	ED_keymap_object(wm);
 	ED_keymap_mesh(wm);
+	ED_keymap_uvedit(wm);
 	UI_view2d_keymap(wm);
 
 	spacetypes = BKE_spacetypes_list();
@@ -132,20 +136,22 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 typedef struct RegionDrawCB {
 	struct RegionDrawCB *next, *prev;
 	
-	void		(*draw)(const struct bContext *, struct ARegion *);	
+	void (*draw)(const struct bContext *, struct ARegion *, void *);	
+	void *customdata;
 	
 	int type;
 	
 } RegionDrawCB;
 
 void *ED_region_draw_cb_activate(ARegionType *art, 
-								 void	(*draw)(const struct bContext *, struct ARegion *),
-								 int type)
+								 void	(*draw)(const struct bContext *, struct ARegion *, void *),
+								 void *customdata, int type)
 {
 	RegionDrawCB *rdc= MEM_callocN(sizeof(RegionDrawCB), "RegionDrawCB");
 	
 	BLI_addtail(&art->drawcalls, rdc);
 	rdc->draw= draw;
+	rdc->customdata= customdata;
 	rdc->type= type;
 	
 	return rdc;
@@ -170,7 +176,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 	
 	for(rdc= ar->type->drawcalls.first; rdc; rdc= rdc->next) {
 		if(rdc->type==type)
-			rdc->draw(C, ar);
+			rdc->draw(C, ar, rdc->customdata);
 	}		
 }
 

@@ -97,7 +97,6 @@ typedef struct ViewOpsData {
 	int origx, origy, oldx, oldy;
 	int origkey;
 
-	void *vh; // XXX temp
 } ViewOpsData;
 
 #define TRACKBALLSIZE  (1.1)
@@ -364,10 +363,6 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 		default:
 			if(event->type==vod->origkey && event->val==0) {
 
-				if(vod->vh) {
-					ED_region_draw_cb_exit(CTX_wm_region(C)->type, vod->vh);
-					ED_region_tag_redraw(CTX_wm_region(C));
-				}
 				MEM_freeN(vod);
 				op->customdata= NULL;
 
@@ -378,12 +373,6 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void vh_draw(const bContext *C, ARegion *ar)
-{
-	glColor3ub(100, 200, 100);
-	glRectf(-0.2,  -0.2,  0.2,  0.2); 
-}
-
 static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewOpsData *vod;
@@ -392,8 +381,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	viewops_data(C, op, event);
 	vod= op->customdata;
 
-	vod->vh= ED_region_draw_cb_activate(CTX_wm_region(C)->type, vh_draw, REGION_DRAW_POST);
-	
 	/* switch from camera view when: */
 	if(vod->v3d->persp != V3D_PERSP) {
 
@@ -673,7 +660,6 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "Rotate view";
 	ot->idname= "VIEW3D_OT_viewzoom";
@@ -684,7 +670,7 @@ void VIEW3D_OT_viewzoom(wmOperatorType *ot)
 	ot->modal= viewzoom_modal;
 	ot->poll= ED_operator_view3d_active;
 
-	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
 static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
@@ -750,7 +736,6 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 
 void VIEW3D_OT_viewhome(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "View home";
 	ot->idname= "VIEW3D_OT_viewhome";
@@ -759,7 +744,7 @@ void VIEW3D_OT_viewhome(wmOperatorType *ot)
 	ot->exec= viewhome_exec;
 	ot->poll= ED_operator_view3d_active;
 
-	RNA_def_property(ot->srna, "center", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
 static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
@@ -949,7 +934,6 @@ static int view3d_render_border_invoke(bContext *C, wmOperator *op, wmEvent *eve
 
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name= "Set Render Border";
 	ot->idname= "VIEW3D_OT_render_border";
@@ -962,10 +946,173 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+
+}
+/* ********************* Border Zoom operator ****************** */
+
+static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= sa->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+	
+	/* Zooms in on a border drawn by the user */
+	rcti rect;
+	float dvec[3], vb[2], xscale, yscale, scale;
+
+	/* SMOOTHVIEW */
+	float new_dist;
+	float new_ofs[3];
+
+	/* ZBuffer depth vars */
+	bglMats mats;
+	float depth, depth_close= MAXFLOAT;
+	int had_depth = 0;
+	double cent[2],  p[3];
+	int xs, ys;
+	
+	/* note; otherwise opengl won't work */
+	view3d_operator_needs_opengl(C);
+	
+	/* get border select values using rna */
+	rect.xmin= RNA_int_get(op->ptr, "xmin");
+	rect.ymin= RNA_int_get(op->ptr, "ymin");
+	rect.xmax= RNA_int_get(op->ptr, "xmax");
+	rect.ymax= RNA_int_get(op->ptr, "ymax");
+	
+	/* Get Z Depths, needed for perspective, nice for ortho */
+	bgl_get_mats(&mats);
+	draw_depth(scene, ar, v3d, NULL);
+
+	/* force updating */
+	if (v3d->depths) {
+		had_depth = 1;
+		v3d->depths->damaged = 1;
+	}
+
+	view3d_update_depths(ar, v3d);
+
+	/* Constrain rect to depth bounds */
+	if (rect.xmin < 0) rect.xmin = 0;
+	if (rect.ymin < 0) rect.ymin = 0;
+	if (rect.xmax >= v3d->depths->w) rect.xmax = v3d->depths->w-1;
+	if (rect.ymax >= v3d->depths->h) rect.ymax = v3d->depths->h-1;
+
+	/* Find the closest Z pixel */
+	for (xs=rect.xmin; xs < rect.xmax; xs++) {
+		for (ys=rect.ymin; ys < rect.ymax; ys++) {
+			depth= v3d->depths->depths[ys*v3d->depths->w+xs];
+			if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
+				if (depth_close > depth) {
+					depth_close = depth;
+				}
+			}
+		}
+	}
+
+	if (had_depth==0) {
+		MEM_freeN(v3d->depths->depths);
+		v3d->depths->depths = NULL;
+	}
+	v3d->depths->damaged = 1;
+
+	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
+	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
+
+	if (v3d->persp==V3D_PERSP) {
+		double p_corner[3];
+
+		/* no depths to use, we cant do anything! */
+		if (depth_close==MAXFLOAT)
+			return OPERATOR_CANCELLED;
+
+		/* convert border to 3d coordinates */
+		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) ||
+			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
+			return OPERATOR_CANCELLED;
+
+		dvec[0] = p[0]-p_corner[0];
+		dvec[1] = p[1]-p_corner[1];
+		dvec[2] = p[2]-p_corner[2];
+
+		new_dist = VecLength(dvec);
+		if(new_dist <= v3d->near*1.5) new_dist= v3d->near*1.5;
+
+		new_ofs[0] = -p[0];
+		new_ofs[1] = -p[1];
+		new_ofs[2] = -p[2];
+
+	} else { /* othographic */
+		/* find the current window width and height */
+		vb[0] = ar->winx;
+		vb[1] = ar->winy;
+
+		new_dist = v3d->dist;
+
+		/* convert the drawn rectangle into 3d space */
+		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
+			new_ofs[0] = -p[0];
+			new_ofs[1] = -p[1];
+			new_ofs[2] = -p[2];
+		} else {
+			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
+			new_ofs[0] = v3d->ofs[0];
+			new_ofs[1] = v3d->ofs[1];
+			new_ofs[2] = v3d->ofs[2];
+
+			initgrabz(v3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
+
+			window_to_3d(ar, v3d, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+			/* center the view to the center of the rectangle */
+			VecSubf(new_ofs, new_ofs, dvec);
+		}
+
+		/* work out the ratios, so that everything selected fits when we zoom */
+		xscale = ((rect.xmax-rect.xmin)/vb[0]);
+		yscale = ((rect.ymax-rect.ymin)/vb[1]);
+		scale = (xscale >= yscale)?xscale:yscale;
+
+		/* zoom in as required, or as far as we can go */
+		new_dist = ((new_dist*scale) >= 0.001*v3d->grid)? new_dist*scale:0.001*v3d->grid;
+	}
+
+	smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+static int view3d_border_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	
+	/* if in camera view do not exec the operator so we do not conflict with set render border*/
+	if (v3d->persp != V3D_CAMOB) return WM_border_select_invoke(C, op, event);	
+	else return OPERATOR_PASS_THROUGH;
+}
+void VIEW3D_OT_border_zoom(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Border Zoom";
+	ot->idname= "VIEW3D_OT_border_zoom";
+
+	/* api callbacks */
+	ot->invoke= view3d_border_zoom_invoke;
+	ot->exec= view3d_border_zoom_exec;
+	ot->modal= WM_border_select_modal;
+	
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna */
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 }
 /* ********************* Changing view operator ****************** */
@@ -1026,7 +1173,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	static int perspo=V3D_PERSP;
 	int viewnum;
 
-	viewnum = RNA_enum_get(op->ptr, "viewnum");
+	viewnum = RNA_enum_get(op->ptr, "view");
 
 	/* Use this to test if we started out with a camera */
 
@@ -1178,9 +1325,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
-
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "View numpad";
 	ot->idname= "VIEW3D_OT_viewnumpad";
@@ -1190,8 +1334,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	prop = RNA_def_property(ot->srna, "viewnum", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_view_items);
+	RNA_def_enum(ot->srna, "view", prop_view_items, 0, "View", "");
 }
 
 /* ********************* set clipping operator ****************** */
@@ -1292,10 +1435,10 @@ void VIEW3D_OT_clipping(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* rna */
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ********************* draw type operator ****************** */
@@ -1306,8 +1449,8 @@ static int view3d_drawtype_exec(bContext *C, wmOperator *op)
 	View3D *v3d= sa->spacedata.first;
 	int dt, dt_alt;
 
-	dt  = RNA_int_get(op->ptr, "drawtype");
-	dt_alt = RNA_int_get(op->ptr, "drawtype_alt");
+	dt  = RNA_int_get(op->ptr, "draw_type");
+	dt_alt = RNA_int_get(op->ptr, "draw_type_alternate");
 	
 	if (dt_alt != -1)
 	{
@@ -1338,8 +1481,6 @@ static int view3d_drawtype_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* toggles */
 void VIEW3D_OT_drawtype(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Change draw type";
 	ot->idname= "VIEW3D_OT_drawtype";
@@ -1350,135 +1491,9 @@ void VIEW3D_OT_drawtype(wmOperatorType *ot)
 
 	ot->poll= ED_operator_view3d_active;
 
-	/* rna */
-	RNA_def_property(ot->srna, "drawtype", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "drawtype_alt", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -1);
-}
-
-/* ********************************************************* */
-
-void view3d_border_zoom(Scene *scene, ARegion *ar, View3D *v3d)
-{
-
-	/* Zooms in on a border drawn by the user */
-	rcti rect;
-	short val;
-	float dvec[3], vb[2], xscale, yscale, scale;
-
-
-	/* SMOOTHVIEW */
-	float new_dist;
-	float new_ofs[3];
-
-	/* ZBuffer depth vars */
-	bglMats mats;
-	float depth, depth_close= MAXFLOAT;
-	int had_depth = 0;
-	double cent[2],  p[3];
-	int xs, ys;
-
-	/* Get the border input */
-	val = 0; // XXX get_border(&rect, 3);
-	if(!val) return;
-
-	/* Get Z Depths, needed for perspective, nice for ortho */
-	bgl_get_mats(&mats);
-	draw_depth(scene, ar, v3d, NULL);
-
-	/* force updating */
-	if (v3d->depths) {
-		had_depth = 1;
-		v3d->depths->damaged = 1;
-	}
-
-	view3d_update_depths(ar, v3d);
-
-	/* Constrain rect to depth bounds */
-	if (rect.xmin < 0) rect.xmin = 0;
-	if (rect.ymin < 0) rect.ymin = 0;
-	if (rect.xmax >= v3d->depths->w) rect.xmax = v3d->depths->w-1;
-	if (rect.ymax >= v3d->depths->h) rect.ymax = v3d->depths->h-1;
-
-	/* Find the closest Z pixel */
-	for (xs=rect.xmin; xs < rect.xmax; xs++) {
-		for (ys=rect.ymin; ys < rect.ymax; ys++) {
-			depth= v3d->depths->depths[ys*v3d->depths->w+xs];
-			if(depth < v3d->depths->depth_range[1] && depth > v3d->depths->depth_range[0]) {
-				if (depth_close > depth) {
-					depth_close = depth;
-				}
-			}
-		}
-	}
-
-	if (had_depth==0) {
-		MEM_freeN(v3d->depths->depths);
-		v3d->depths->depths = NULL;
-	}
-	v3d->depths->damaged = 1;
-
-	cent[0] = (((double)rect.xmin)+((double)rect.xmax)) / 2;
-	cent[1] = (((double)rect.ymin)+((double)rect.ymax)) / 2;
-
-	if (v3d->persp==V3D_PERSP) {
-		double p_corner[3];
-
-		/* no depths to use, we cant do anything! */
-		if (depth_close==MAXFLOAT)
-			return;
-
-		/* convert border to 3d coordinates */
-		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) ||
-			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
-			return;
-
-		dvec[0] = p[0]-p_corner[0];
-		dvec[1] = p[1]-p_corner[1];
-		dvec[2] = p[2]-p_corner[2];
-
-		new_dist = VecLength(dvec);
-		if(new_dist <= v3d->near*1.5) new_dist= v3d->near*1.5;
-
-		new_ofs[0] = -p[0];
-		new_ofs[1] = -p[1];
-		new_ofs[2] = -p[2];
-
-	} else { /* othographic */
-		/* find the current window width and height */
-		vb[0] = ar->winx;
-		vb[1] = ar->winy;
-
-		new_dist = v3d->dist;
-
-		/* convert the drawn rectangle into 3d space */
-		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
-			new_ofs[0] = -p[0];
-			new_ofs[1] = -p[1];
-			new_ofs[2] = -p[2];
-		} else {
-			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
-			new_ofs[0] = v3d->ofs[0];
-			new_ofs[1] = v3d->ofs[1];
-			new_ofs[2] = v3d->ofs[2];
-
-			initgrabz(v3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
-
-			window_to_3d(ar, v3d, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
-			/* center the view to the center of the rectangle */
-			VecSubf(new_ofs, new_ofs, dvec);
-		}
-
-		/* work out the ratios, so that everything selected fits when we zoom */
-		xscale = ((rect.xmax-rect.xmin)/vb[0]);
-		yscale = ((rect.ymax-rect.ymin)/vb[1]);
-		scale = (xscale >= yscale)?xscale:yscale;
-
-		/* zoom in as required, or as far as we can go */
-		new_dist = ((new_dist*scale) >= 0.001*v3d->grid)? new_dist*scale:0.001*v3d->grid;
-	}
-
-	smooth_view(NULL, NULL, NULL, new_ofs, NULL, &new_dist, NULL); // XXX
+	/* rna XXX should become enum */
+	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "draw_type_alternate", -1, INT_MIN, INT_MAX, "Draw Type Alternate", "", INT_MIN, INT_MAX);
 }
 
 /* ***************** 3d cursor cursor op ******************* */
@@ -1488,7 +1503,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	float dx, dy, fz, *fp = NULL, dvec[3], oldcurs[3];
 	short mx, my, mval[2];
 //	short ctrl= 0; // XXX

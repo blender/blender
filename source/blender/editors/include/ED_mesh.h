@@ -28,6 +28,7 @@
 #ifndef ED_MESH_H
 #define ED_MESH_H
 
+struct ID;
 struct View3D;
 struct ARegion;
 struct EditMesh;
@@ -41,6 +42,11 @@ struct ViewContext;
 struct bDeformGroup;
 struct MDeformWeight;
 struct MDeformVert;
+struct Scene;
+struct MCol;
+struct UvVertMap;
+struct UvMapVert;
+struct CustomData;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -78,9 +84,9 @@ void		ED_keymap_mesh(struct wmWindowManager *wm);
 void		ED_spacetypes_init(void);
 void		ED_keymap_mesh(struct wmWindowManager *wm);
 
-void		make_editMesh(Scene *scene, Object *ob);
-void		load_editMesh(Scene *scene, Object *ob);
-void		remake_editMesh(Scene *scene, Object *ob);
+void		make_editMesh(struct Scene *scene, Object *ob);
+void		load_editMesh(struct Scene *scene, Object *ob);
+void		remake_editMesh(struct Scene *scene, Object *ob);
 void		free_editMesh(struct EditMesh *em);
 
 void		recalc_editnormals(struct EditMesh *em);
@@ -99,12 +105,17 @@ void		undo_push_mesh(struct bContext *C, char *name);
 /* editmesh_lib.c */
 
 struct EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
+void             EM_set_actFace(struct EditMesh *em, struct EditFace *efa);
+float            EM_face_area(struct EditFace *efa);
+void             EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
 void		EM_select_edge(struct EditEdge *eed, int sel);
+void		EM_select_face(struct EditFace *efa, int sel);
 void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);
+void		EM_select_flush(struct EditMesh *em);
 void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
 			
 			/* exported to transform */
@@ -112,6 +123,9 @@ int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
 void		EM_editselection_normal(float *normal, struct EditSelection *ese);
 void		EM_editselection_plane(float *plane, struct EditSelection *ese);
 
+struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_face_idx_array, float *limit);
+struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
+void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
@@ -123,6 +137,9 @@ void		EM_free_backbuf(void);
 int			EM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
 
+/* editface.c */
+struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
+
 /* editdeform.c XXX rename functions? */
 
 #define WEIGHT_REPLACE 1
@@ -130,12 +147,17 @@ int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short r
 #define WEIGHT_SUBTRACT 3
 
 void		add_defgroup (Object *ob);
-void		remove_vert_defgroup (Object *ob, struct bDeformGroup	*dg, int vertnum);
+void		create_dverts(struct ID *id);
+float		get_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
+void		remove_vert_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum);
 void		remove_verts_defgroup (Object *obedit, int allverts);
-struct bDeformGroup *add_defgroup_name (Object *ob, char *name);
-struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
-struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
-bDeformGroup *add_defgroup_name (Object *ob, char *name);
+void		vertexgroup_select_by_name(Object *ob, char *name);
+void		add_vert_to_defgroup (Object *ob, struct bDeformGroup *dg, int vertnum, 
+                           float weight, int assignmode);
+
+struct bDeformGroup		*add_defgroup_name (Object *ob, char *name);
+struct MDeformWeight	*verify_defweight (struct MDeformVert *dv, int defgroup);
+struct MDeformWeight	*get_defweight (struct MDeformVert *dv, int defgroup);
 
 
 #endif /* ED_MESH_H */

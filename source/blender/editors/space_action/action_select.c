@@ -38,12 +38,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -61,7 +60,7 @@
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -338,7 +337,7 @@ void ACT_OT_keyframes_deselectall (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property(ot->srna, "invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -507,13 +506,13 @@ void ACT_OT_keyframes_borderselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 	
-	RNA_def_property(ot->srna, "axis_range", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -662,7 +661,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -728,8 +727,6 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
  
 void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACT_OT_keyframes_columnselect";
@@ -742,8 +739,7 @@ void ACT_OT_keyframes_columnselect (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_column_select_types);
+	RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1014,7 +1010,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYICU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1115,8 +1111,6 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ACT_OT_keyframes_clickselect";
@@ -1127,10 +1121,9 @@ void ACT_OT_keyframes_clickselect (wmOperatorType *ot)
 	
 	/* id-props */
 	// XXX should we make this into separate operators?
-	prop= RNA_def_property(ot->srna, "left_right", PROP_ENUM, PROP_NONE); // ALTKEY
-		//RNA_def_property_enum_items(prop, prop_actkeys_clickselect_items);
-	prop= RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY
-	prop= RNA_def_property(ot->srna, "column_select", PROP_BOOLEAN, PROP_NONE); // CTRLKEY
+	RNA_def_enum(ot->srna, "left_right", NULL /* XXX prop_actkeys_clickselect_items */, 0, "Left Right", ""); // ALTKEY
+	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column_select", 0, "Column Select", ""); // CTRLKEY
 }
 
 /* ************************************************************************** */

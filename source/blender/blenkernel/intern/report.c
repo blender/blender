@@ -245,7 +245,7 @@ void BKE_reports_print(ReportList *reports, ReportType level)
 	if (cstring == NULL)
 		return;
 	
-	printf(cstring);
+	printf("%s", cstring);
 	fflush(stdout);
 	MEM_freeN(cstring);
 }

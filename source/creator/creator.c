@@ -439,7 +439,9 @@ int main(int argc, char **argv)
 						printf("argv[%d] = %s\n", i, argv[i]);
 					}
 					break;
-            
+				case 'E':
+					G.f |= G_SWAP_EXCHANGE;
+					break;
 				case 'w':
 					/* with borders XXX OLD CRUFT!*/
 					break;

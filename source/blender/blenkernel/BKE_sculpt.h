@@ -30,26 +30,16 @@
 #ifndef BKE_SCULPT_H
 #define BKE_SCULPT_H
 
-struct MFace;
-struct MVert;
 struct NumInput;
 struct RadialControl;
 struct Scene;
-struct SculptData;
+struct Sculpt;
 struct SculptSession;
+struct StrokeCache;
 
 typedef struct SculptSession {
 	struct ProjVert *projverts;
 
-	struct bglMats *mats;
-
-	int multires;
-	int totvert;
-	int totface;
-	struct MVert *mvert;
-	struct MFace *mface;
-	float *face_normals;
-	
 	/* An array of lists; array is sized as
 	   large as the number of verts in the mesh,
 	   the list for each vert contains the index
@@ -65,16 +55,17 @@ typedef struct SculptSession {
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_w, texcache_h, *texcache;
-	
+
+	void *cursor; /* wm handle */
+
 	struct RadialControl *radialcontrol;
 	
 	struct SculptStroke *stroke;
+
+	struct StrokeCache *cache;
 } SculptSession;
 
-void sculptdata_init(struct Scene *sce);
-void sculptdata_free(struct Scene *sce);
-void sculptsession_free(struct Scene *sce);
+void sculptsession_free(struct Sculpt *sculpt);
 void sculpt_vertexusers_free(struct SculptSession *ss);
-void sculpt_reset_curve(struct SculptData *sd);
 
 #endif

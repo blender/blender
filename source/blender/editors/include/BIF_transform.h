@@ -72,7 +72,7 @@ enum {
 	TFM_BEVEL,
 	TFM_BWEIGHT,
 	TFM_ALIGN
-} TfmModesInputFlags;
+} TfmMode;
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
@@ -96,7 +96,6 @@ struct ScrArea;
 struct Base;
 struct Scene;
 
-struct TransInfo * BIF_GetTransInfo(void);
 void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
@@ -105,21 +104,17 @@ void BIF_setLocalLockConstraint(char axis, char *text);
 int BIF_snappingSupported(struct Object *obedit);
 
 struct TransformOrientation;
+struct bContext;
 
-void BIF_clearTransformOrientation(void);
-void BIF_removeTransformOrientation(struct TransformOrientation *ts);
-void BIF_manageTransformOrientation(int confirm, int set);
+void BIF_clearTransformOrientation(struct bContext *C);
+void BIF_removeTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
+void BIF_manageTransformOrientation(struct bContext *C, int confirm, int set);
 int BIF_menuselectTransformOrientation(void);
-void BIF_selectTransformOrientation(struct TransformOrientation *ts);
-void BIF_selectTransformOrientationFromIndex(int index);
+void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
+void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
-char * BIF_menustringTransformOrientation(char *title); /* the returned value was allocated and needs to be freed after use */
-int BIF_countTransformOrientation();
-
-/* Drawing callbacks */
-void BIF_drawConstraint(void);
-void BIF_drawPropCircle(void);
-void BIF_drawSnap(void);
+char * BIF_menustringTransformOrientation(const struct bContext *C, char *title); /* the returned value was allocated and needs to be freed after use */
+int BIF_countTransformOrientation(const struct bContext *C);
 
 void BIF_getPropCenter(float *center);
 

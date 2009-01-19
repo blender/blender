@@ -26,6 +26,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
+ *				Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -36,11 +37,10 @@
 #include "DNA_listBase.h"
 
 /**
- * The following structures are defined in DNA_action_types.h
+ * The following structures are defined in DNA_action_types.h, and DNA_anim_types.h
  */
 
 struct bAction;
-struct bActionChannel;
 struct bPose;
 struct bPoseChannel;
 struct Object;
@@ -53,6 +53,27 @@ extern "C" {
 #endif
 
 struct bAction *add_empty_action(const char name[]);
+	
+	/**
+ * Allocate a new bAction on the heap and copy 
+ * the contents of src into it. If src is NULL NULL is returned.
+ */
+
+struct bAction *copy_action(struct bAction *src);
+
+/**
+ * Deallocate the action's channels including constraint channels.
+ * does not free the action structure.
+ */
+void free_action(struct bAction *act);
+
+// XXX is this needed?
+void make_local_action(struct bAction *act);
+	
+/**
+ * Some kind of bounding box operation on the action.
+ */
+void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 	
 /**
  * Removes and deallocates all channels from a pose.
@@ -72,18 +93,6 @@ void free_pose(struct bPose *pose);
 void copy_pose(struct bPose **dst, struct bPose *src,
 			   int copyconstraints);
 
-/**
- * Deallocate the action's channels including constraint channels.
- * does not free the action structure.
- */
-void free_action(struct bAction * id);
-
-void make_local_action(struct bAction *act);
-
-/* only for armatures, doing pose actions only too */
-void do_all_pose_actions(struct Scene *scene, struct Object *);
-/* only for objects, doing only 1 channel */
-void do_all_object_actions(struct Scene *scene, struct Object *);
 
 
 /**
@@ -111,45 +120,20 @@ struct bPoseChannel *verify_pose_channel(struct bPose* pose,
 void update_pose_constraint_flags(struct bPose *pose);
 
 /* clears BONE_UNKEYED flags for frame changing */
+// XXX to be depreceated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
-
-/**
- * Allocate a new bAction on the heap and copy 
- * the contents of src into it. If src is NULL NULL is returned.
- */
-
-struct bAction *copy_action(struct bAction *src);
-
-/**
- * Some kind of bounding box operation on the action.
- */
-void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 
 /**
  * Set the pose channels from the given action.
  */
+// XXX old crap
 void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
 
 /**
  * Get the effects of the given action using a workob 
  */
+// XXX old crap, used for action constraint though!
 void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bAction *act, float cframe);
-
-/**
- * Iterate through the action channels of the action
- * and return the channel with the given name.
- * Returns NULL if no channel.
- */
-struct bActionChannel *get_action_channel(struct bAction *act,  const char *name);
-/**
- * Iterate through the action channels of the action
- * and return the channel with the given name.
- * Returns and adds new channel if no channel.
- */
-struct bActionChannel *verify_action_channel(struct bAction *act, const char *name);
-
-  /* baking */
-struct bAction *bake_obIPO_to_action(struct Object *ob);
 
 /* exported for game engine */
 void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
@@ -164,10 +148,7 @@ void rest_pose(struct bPose *pose);
 float get_action_frame(struct Object *ob, float cframe);
 /* map strip time to global time (frame nr)  */
 float get_action_frame_inv(struct Object *ob, float cframe);
-/* builds a list of NlaIpoChannel with ipo values to write in datablock */
-void extract_ipochannels_from_action(ListBase *lb, struct ID *id, struct bAction *act, const char *name, float ctime);
-/* write values returned by extract_ipochannels_from_action, returns the number of value written */
-int execute_ipochannels(ListBase *lb);
+
 
 /* functions used by the game engine */
 void game_copy_pose(struct bPose **dst, struct bPose *src);

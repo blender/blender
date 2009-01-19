@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
 
+struct AnimData;
 struct Ipo;
 struct MTex;
 
@@ -48,6 +49,7 @@ struct MTex;
  * data and modeling data. */
 typedef struct World {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short colormodel, totex;
 	short texact, mistype;
@@ -107,7 +109,7 @@ typedef struct World {
 	float *aosphere, *aotables;
 	
 	
-	struct Ipo *ipo;
+	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
 
 	/* previews */

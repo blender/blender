@@ -481,7 +481,7 @@ static void draw_ipocurve_repeat_normal (IpoCurve *icu, View2D *v2d, float cycxo
 				v4[0]= bezt->vec[1][0]+cycxofs;
 				v4[1]= bezt->vec[1][1]+cycyofs;
 				
-				correct_bezpart(v1, v2, v3, v4);
+// XXX old sys!				correct_bezpart(v1, v2, v3, v4);
 				
 				forward_diff_bezier(v1[0], v2[0], v3[0], v4[0], data, resol, 3);
 				forward_diff_bezier(v1[1], v2[1], v3[1], v4[1], data+1, resol, 3);
@@ -662,7 +662,7 @@ void drawipospace(ScrArea *sa, ARegion *ar)
 {
 	SpaceIpo *sipo= sa->spacedata.first;
 	//View2D *v2d= &ar->v2d;
-	EditIpo *ei;
+	//	EditIpo *ei;
 
 	
 	if(sipo->editipo) {

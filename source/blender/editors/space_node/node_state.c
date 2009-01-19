@@ -29,6 +29,8 @@
 #include <stdio.h>
 
 #include "DNA_node_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -156,8 +158,8 @@ static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	short mval[2];
 
-	mval[0] = RNA_int_get(op->ptr, "mx");
-	mval[1] = RNA_int_get(op->ptr, "my");
+	mval[0] = RNA_int_get(op->ptr, "mouse_x");
+	mval[1] = RNA_int_get(op->ptr, "mouse_y");
 	node_toggle_visibility(snode, ar, mval);
 
 	return OPERATOR_FINISHED;
@@ -171,16 +173,14 @@ static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *e
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	
-	RNA_int_set(op->ptr, "mx", mval[0]);
-	RNA_int_set(op->ptr, "my", mval[1]);
+	RNA_int_set(op->ptr, "mouse_x", mval[0]);
+	RNA_int_set(op->ptr, "mouse_y", mval[1]);
 
 	return node_toggle_visibility_exec(C,op);
 }
 
 void NODE_OT_toggle_visibility(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Toggle Visibility";
 	ot->idname= "NODE_OT_toggle_visibility";
@@ -189,8 +189,8 @@ void NODE_OT_toggle_visibility(wmOperatorType *ot)
 	ot->invoke= node_toggle_visibility_invoke;
 	ot->poll= ED_operator_node_active;
 	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
 static int node_fit_all_exec(bContext *C, wmOperator *op)

@@ -65,6 +65,17 @@
 static void BIF_undo_push() {}
 static void error() {}
 
+static Lattice *def_get_lattice(Object *ob)
+{
+	if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		if(lt->editlatt)
+			return lt->editlatt;
+		return lt;
+	}
+	return NULL;
+}
+
 /* only in editmode */
 void sel_verts_defgroup (Object *obedit, int select)
 {
@@ -103,14 +114,17 @@ void sel_verts_defgroup (Object *obedit, int select)
 	}
 		break;
 	case OB_LATTICE:
-		if(editLatt->dvert) {
+	{
+		Lattice *lt= def_get_lattice(ob);
+		
+		if(lt->dvert) {
 			BPoint *bp;
 			int a, tot;
 			
-			dvert= editLatt->dvert;
+			dvert= lt->dvert;
 
-			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+			tot= lt->pntsu*lt->pntsv*lt->pntsw;
+			for(a=0, bp= lt->def; a<tot; a++, bp++, dvert++) {
 				for (i=0; i<dvert->totweight; i++){
 					if (dvert->dw[i].def_nr == (ob->actdef-1)) {
 						if(select) bp->f1 |= SELECT;
@@ -120,7 +134,8 @@ void sel_verts_defgroup (Object *obedit, int select)
 					}
 				}
 			}
-		}	
+		}
+	}
 		break;
 		
 	default:
@@ -392,14 +407,15 @@ void del_defgroup (Object *ob)
 						dvert->dw[i].def_nr--;
 		}
 	}
-	else {
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= def_get_lattice(ob);
 		BPoint *bp;
-		MDeformVert *dvert= editLatt->dvert;
+		MDeformVert *dvert= lt->dvert;
 		int a, tot;
 		
 		if (dvert) {
-			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+			tot= lt->pntsu*lt->pntsv*lt->pntsw;
+			for(a=0, bp= lt->def; a<tot; a++, bp++, dvert++) {
 				for (i=0; i<dvert->totweight; i++){
 					if (dvert->dw[i].def_nr > (ob->actdef-1))
 						dvert->dw[i].def_nr--;
@@ -424,10 +440,11 @@ void del_defgroup (Object *ob)
 			CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 			me->dvert= NULL;
 		}
-		else {
-			if (editLatt->dvert) {
-				MEM_freeN(editLatt->dvert);
-				editLatt->dvert= NULL;
+		else if(ob->type==OB_LATTICE) {
+			Lattice *lt= def_get_lattice(ob);
+			if (lt->dvert) {
+				MEM_freeN(lt->dvert);
+				lt->dvert= NULL;
 			}
 		}
 	}
@@ -445,10 +462,11 @@ void del_all_defgroups (Object *ob)
 		CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 		me->dvert= NULL;
 	}
-	else {
-		if (editLatt->dvert) {
-			MEM_freeN(editLatt->dvert);
-			editLatt->dvert= NULL;
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= def_get_lattice(ob);
+		if (lt->dvert) {
+			MEM_freeN(lt->dvert);
+			lt->dvert= NULL;
 		}
 	}
 	
@@ -500,9 +518,8 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			dvert = ((Mesh*)ob->data)->dvert + vertnum;
 	}
 	else if(ob->type==OB_LATTICE) {
-		Lattice *lt= ob->data;
+		Lattice *lt= def_get_lattice(ob);
 		
-		if(lt->editlatt) lt= lt->editlatt;
 		if(lt->dvert)
 			dvert = lt->dvert + vertnum;
 	}
@@ -568,10 +585,8 @@ void add_vert_defnr (Object *ob, int def_nr, int vertnum,
 			dv = ((Mesh*)ob->data)->dvert + vertnum;
 	}
 	else if(ob->type==OB_LATTICE) {
-		Lattice *lt= ob->data;
+		Lattice *lt= def_get_lattice(ob);
 		
-		if(lt->editlatt) lt= lt->editlatt;
-			
 		if(lt->dvert)
 			dv = lt->dvert + vertnum;
 	}
@@ -678,9 +693,8 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 }
 
 /* Only available in editmode */
-void assign_verts_defgroup (Object *obedit)
+void assign_verts_defgroup (Object *obedit, float weight)
 {
-	float editbutvweight;	/* XXX */
 	Object *ob;
 	EditVert *eve;
 	bDeformGroup *dg, *eg;
@@ -722,7 +736,7 @@ void assign_verts_defgroup (Object *obedit)
 					eg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 					/* Find the actual group */
 					if (eg==dg){
-						dvert->dw[i].weight=editbutvweight;
+						dvert->dw[i].weight= weight;
 						done=1;
 						break;
 					}
@@ -736,7 +750,7 @@ void assign_verts_defgroup (Object *obedit)
 					}
 					dvert->dw=newdw;
 
-					dvert->dw[dvert->totweight].weight= editbutvweight;
+					dvert->dw[dvert->totweight].weight= weight;
 					dvert->dw[dvert->totweight].def_nr= ob->actdef-1;
 
 					dvert->totweight++;
@@ -748,18 +762,19 @@ void assign_verts_defgroup (Object *obedit)
 		break;
 	case OB_LATTICE:
 		{
+			Lattice *lt= def_get_lattice(ob);
 			BPoint *bp;
 			int a, tot;
 			
-			if(editLatt->dvert==NULL)
-				create_dverts(&editLatt->id);
+			if(lt->dvert==NULL)
+				create_dverts(&lt->id);
 			
-			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			for(a=0, bp= editLatt->def; a<tot; a++, bp++) {
+			tot= lt->pntsu*lt->pntsv*lt->pntsw;
+			for(a=0, bp= lt->def; a<tot; a++, bp++) {
 				if(bp->f1 & SELECT)
-					add_vert_defnr (ob, ob->actdef-1, a, editbutvweight, WEIGHT_REPLACE);
+					add_vert_defnr (ob, ob->actdef-1, a, weight, WEIGHT_REPLACE);
 			}
-		}	
+		}
 		break;
 	default:
 		printf ("Assigning deformation groups to unknown object type\n");
@@ -808,9 +823,7 @@ static float get_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			dvert = ((Mesh*)ob->data)->dvert + vertnum;
 	}
 	else if(ob->type==OB_LATTICE) {
-		Lattice *lt= ob->data;
-		
-		if(lt->editlatt) lt= lt->editlatt;
+		Lattice *lt= def_get_lattice(ob);
 		
 		if(lt->dvert)
 			dvert = lt->dvert + vertnum;
@@ -900,16 +913,19 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 	}
 		break;
 	case OB_LATTICE:
+	{
+		Lattice *lt= def_get_lattice(ob);
 		
-		if(editLatt->dvert) {
+		if(lt->dvert) {
 			BPoint *bp;
-			int a, tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			int a, tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				
-			for(a=0, bp= editLatt->def; a<tot; a++, bp++) {
+			for(a=0, bp= lt->def; a<tot; a++, bp++) {
 				if(allverts || (bp->f1 & SELECT))
 					remove_vert_defgroup (ob, dg, a);
 			}
 		}
+	}
 		break;
 		
 	default:
@@ -969,13 +985,14 @@ void vertexgroup_select_by_name(Object *ob, char *name)
  * and Lattices. (currently only restricted to those two)
  * It is only responsible for 
  */
-void vgroup_assign_with_menu(Object *ob)
+void vgroup_assign_with_menu(Scene *scene, Object *ob)
 {
+	VPaint *wp= scene->toolsettings->wpaint;
 	int defCount;
 	int mode;
 	
 	/* prevent crashes */
-	if (ob==NULL) return;
+	if (wp==NULL || ob==NULL) return;
 	
 	defCount= BLI_countlist(&ob->defbase);
 	
@@ -989,11 +1006,11 @@ void vgroup_assign_with_menu(Object *ob)
 	switch (mode) {
 		case 1: /* add to new group */
 			add_defgroup(ob);
-			assign_verts_defgroup(ob);
+			assign_verts_defgroup(ob, wp->weight);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 2: /* add to current group */
-			assign_verts_defgroup(ob);
+			assign_verts_defgroup(ob, wp->weight);
 			BIF_undo_push("Assign to vertex group");
 			break;
 		case 3:	/* remove from current group */

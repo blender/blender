@@ -78,6 +78,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -489,7 +490,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_camera((Camera*) id);
 			break;
 		case ID_IP:
-			free_ipo((Ipo *)id);
+			/*free_ipo((Ipo *)id);*/
 			break;
 		case ID_KE:
 			free_key((Key *)id);

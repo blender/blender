@@ -73,9 +73,9 @@ static void set_active_file_thumbs(SpaceFile *sfile, FileSelectParams* params, s
 	View2D* v2d = &ar->v2d;
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 	
-	offsetx = (x - (v2d->cur.xmin+sfile->tile_border_x))/(sfile->tile_w + sfile->tile_border_x);
-	offsety = (-y+sfile->tile_border_y)/(sfile->tile_h + sfile->tile_border_y);
-	columns = (v2d->cur.xmax - v2d->cur.xmin) / (sfile->tile_w+ sfile->tile_border_x);
+	offsetx = (x - (v2d->cur.xmin+sfile->tile_border_x))/(sfile->tile_w + 2*sfile->tile_border_x);
+	offsety = (v2d->tot.ymax - sfile->tile_border_y - y)/(sfile->tile_h + 2*sfile->tile_border_y);
+	columns = (v2d->cur.xmax - v2d->cur.xmin) / (sfile->tile_w+ 2*sfile->tile_border_x);
 	active_file = offsetx + columns*offsety;
 
 	if (active_file >= 0 && active_file < numfiles )
@@ -250,5 +250,35 @@ void ED_FILE_OT_select_bookmark(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= bookmark_select_invoke;
+	ot->poll= ED_operator_file_active;
+}
+
+
+static int loadimages_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= CTX_wm_region(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	if (sfile->files) {
+		filelist_loadimage_timer(sfile->files);
+		if (filelist_changed(sfile->files)) {
+			ED_area_tag_redraw(sa);
+		}
+	}
+
+	
+	return OPERATOR_FINISHED;
+}
+
+void ED_FILE_OT_loadimages(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Load Images";
+	ot->idname= "ED_FILE_OT_loadimages";
+	
+	/* api callbacks */
+	ot->invoke= loadimages_invoke;
+	
 	ot->poll= ED_operator_file_active;
 }

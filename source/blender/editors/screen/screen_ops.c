@@ -26,10 +26,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
@@ -50,6 +52,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "UI_interface.h"
 
 #include "screen_intern.h"	/* own module include */
 
@@ -155,6 +159,20 @@ int ED_operator_editmesh(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_MESH)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
+	return 0;
+}
+
+int ED_operator_uvedit(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= NULL;
+
+	if(obedit && obedit->type==OB_MESH)
+		em= ((Mesh *)obedit->data)->edit_mesh;
+
+    if(em && (em->faces.first) && (CustomData_has_layer(&em->fdata, CD_MTFACE)))
+		return 1;
+
 	return 0;
 }
 
@@ -600,8 +618,6 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 void SCREEN_OT_area_move(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Move area edges";
 	ot->idname= "SCREEN_OT_area_move";
@@ -614,9 +630,9 @@ void SCREEN_OT_area_move(wmOperatorType *ot)
 	ot->poll= ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
 
 	/* rna */
-	prop= RNA_def_property(ot->srna, "x", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "y", PROP_INT, PROP_NONE);
-	prop= RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
 /* ************** split area operator *********************************** */
@@ -684,7 +700,7 @@ static int area_split_init(bContext *C, wmOperator *op)
 	if(sa==NULL) return 0;
 	
 	/* required properties */
-	dir= RNA_enum_get(op->ptr, "dir");
+	dir= RNA_enum_get(op->ptr, "direction");
 	
 	/* minimal size */
 	if(dir=='v' && sa->winx < 2*AREAMINX) return 0;
@@ -739,8 +755,8 @@ static int area_split_apply(bContext *C, wmOperator *op)
 	float fac;
 	int dir;
 	
-	fac= RNA_float_get(op->ptr, "fac");
-	dir= RNA_enum_get(op->ptr, "dir");
+	fac= RNA_float_get(op->ptr, "factor");
+	dir= RNA_enum_get(op->ptr, "direction");
 
 	sd->narea= area_split(CTX_wm_window(C), sc, sd->sarea, dir, fac);
 	
@@ -802,13 +818,13 @@ static int area_split_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* prepare operator state vars */
 		if(sad->gesture_dir==AZONE_N || sad->gesture_dir==AZONE_S) {
 			dir= 'h';
-			RNA_float_set(op->ptr, "fac", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
+			RNA_float_set(op->ptr, "factor", ((float)(event->x - sad->sa1->v1->vec.x)) / (float)sad->sa1->winx);
 		}
 		else {
 			dir= 'v';
-			RNA_float_set(op->ptr, "fac", ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
+			RNA_float_set(op->ptr, "factor", ((float)(event->y - sad->sa1->v1->vec.y)) / (float)sad->sa1->winy);
 		}
-		RNA_enum_set(op->ptr, "dir", dir);
+		RNA_enum_set(op->ptr, "direction", dir);
 
 		/* general init, also non-UI case, adds customdata, sets area and defaults */
 		if(!area_split_init(C, op))
@@ -877,13 +893,13 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
-			dir= RNA_enum_get(op->ptr, "dir");
+			dir= RNA_enum_get(op->ptr, "direction");
 			
 			sd->delta= (dir == 'v')? event->x - sd->origval: event->y - sd->origval;
 			area_move_apply_do(C, sd->origval, sd->delta, dir, sd->bigger, sd->smaller);
 			
 			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
-			RNA_float_set(op->ptr, "fac", fac / (float)sd->origsize);
+			RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
 			
 			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 			break;
@@ -909,8 +925,6 @@ static EnumPropertyItem prop_direction_items[] = {
 
 void SCREEN_OT_area_split(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	ot->name = "Split area";
 	ot->idname = "SCREEN_OT_area_split";
 	
@@ -922,13 +936,8 @@ void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 	
 	/* rna */
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_direction_items);
-	RNA_def_property_enum_default(prop, 'h');
-
-	prop= RNA_def_property(ot->srna, "fac", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
+	RNA_def_float(ot->srna, "factor", 0.5f, 0.0, 1.0, "Factor", "", 0.0, 1.0);
 }
 
 /* ************** frame change operator ***************************** */
@@ -958,7 +967,7 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 
 	/* rna */
-	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
 /* ************** switch screen operator ***************************** */
@@ -1002,8 +1011,8 @@ void SCREEN_OT_screen_set(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "screen", PROP_POINTER, PROP_NONE);
-	RNA_def_property(ot->srna, "delta", PROP_INT, PROP_NONE);
+	RNA_def_pointer_runtime(ot->srna, "screen", &RNA_Screen, "Screen", "");
+	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
 /* ************** screen full-area operator ***************************** */
@@ -1284,8 +1293,6 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 /* Operator for joining two areas (space types) */
 void SCREEN_OT_area_join(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name= "Join area";
 	ot->idname= "SCREEN_OT_area_join";
@@ -1298,14 +1305,10 @@ void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 
 	/* rna */
-	prop= RNA_def_property(ot->srna, "x1", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -100);
-	prop= RNA_def_property(ot->srna, "y1", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -100);
-	prop= RNA_def_property(ot->srna, "x2", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -100);
-	prop= RNA_def_property(ot->srna, "y2", PROP_INT, PROP_NONE);
-	RNA_def_property_int_default(prop, -100);
+	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y1", -100, INT_MIN, INT_MAX, "Y 1", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "x2", -100, INT_MIN, INT_MAX, "X 2", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "y2", -100, INT_MIN, INT_MAX, "Y 2", "", INT_MIN, INT_MAX);
 }
 
 /* ************** repeat last operator ***************************** */
@@ -1315,8 +1318,10 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	wmOperator *lastop= CTX_wm_manager(C)->operators.last;
 	
 	if(lastop) {
-		printf("repeat %s\n", lastop->type->idname);
-		lastop->type->exec(C, lastop);
+		if(lastop->type->poll==NULL || lastop->type->poll(C)) {
+			printf("repeat %s\n", lastop->type->idname);
+			lastop->type->exec(C, lastop);
+		}
 	}
 	
 	return OPERATOR_FINISHED;
@@ -1329,11 +1334,67 @@ void SCREEN_OT_repeat_last(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_repeat_last";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;	
 	ot->exec= repeat_last_exec;
 	
 	ot->poll= ED_operator_screenactive;
 	
+}
+
+static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *lastop;
+	int items, i;
+	char *menu, *p;
+	
+	items= BLI_countlist(&wm->operators);
+	if(items==0)
+		return OPERATOR_CANCELLED;
+	
+	menu= MEM_callocN(items * OP_MAX_TYPENAME, "string");
+	
+	p= menu + sprintf(menu, "%s %%t", op->type->name);
+	for (i=items-1, lastop= wm->operators.last; lastop; lastop= lastop->prev, i--)
+		p+= sprintf(p, "|%s %%x%d", lastop->type->name, i);
+	
+	uiPupmenuOperator(C, i/20, op, "index", menu);
+	MEM_freeN(menu);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int repeat_history_exec(bContext *C, wmOperator *op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	
+	op= BLI_findlink(&wm->operators, RNA_int_get(op->ptr, "index"));
+	if(op) {
+		/* let's put it as last operator in list */
+		BLI_remlink(&wm->operators, op);
+		BLI_addtail(&wm->operators, op);
+		
+		if(op->type->poll==NULL || op->type->poll(C)) {
+			printf("repeat %s\n", op->type->idname);
+			op->type->exec(C, op);
+		}
+	}
+					 
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_repeat_history(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Repeat History";
+	ot->idname= "SCREEN_OT_repeat_history";
+	
+	/* api callbacks */
+	ot->invoke= repeat_history_invoke;
+	ot->exec= repeat_history_exec;
+	
+	ot->poll= ED_operator_screenactive;
+	
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
 }
 
 /* ************** region split operator ***************************** */
@@ -1344,7 +1405,7 @@ static int region_split_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	ARegion *newar= BKE_area_region_copy(ar);
-	int dir= RNA_enum_get(op->ptr, "dir");
+	int dir= RNA_enum_get(op->ptr, "direction");
 	
 	BLI_insertlinkafter(&sa->regionbase, CTX_wm_region(C), newar);
 	
@@ -1362,8 +1423,6 @@ static int region_split_exec(bContext *C, wmOperator *op)
 
 void SCREEN_OT_region_split(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Split Region";
 	ot->idname= "SCREEN_OT_region_split";
@@ -1373,9 +1432,7 @@ void SCREEN_OT_region_split(wmOperatorType *ot)
 	ot->exec= region_split_exec;
 	ot->poll= ED_operator_areaactive;
 	
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_direction_items);
-	RNA_def_property_enum_default(prop, 'h');
+	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
 }
 
 /* ************** region flip operator ***************************** */
@@ -1501,11 +1558,11 @@ void SCREEN_OT_border_select(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 }
 #endif
@@ -1518,6 +1575,7 @@ void ED_operatortypes_screen(void)
 	/* generic UI stuff */
 	WM_operatortype_append(SCREEN_OT_actionzone);
 	WM_operatortype_append(SCREEN_OT_repeat_last);
+	WM_operatortype_append(SCREEN_OT_repeat_history);
 	
 	/* screen tools */
 	WM_operatortype_append(SCREEN_OT_area_move);
@@ -1548,8 +1606,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);	/* action tria */ 
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE, 0, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_rip", RKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
@@ -1558,8 +1616,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 
 	 /* tests */
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0)->ptr, "dir", 'h');
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0)->ptr, "dir", 'v');
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0)->ptr, "direction", 'h');
+	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0)->ptr, "direction", 'v');
 	
 	/*frame offsets*/
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);
@@ -1568,8 +1626,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 
-	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 
 	/* undo */
 	WM_keymap_add_item(keymap, "ED_OT_undo", ZKEY, KM_PRESS, KM_CTRL, 0);

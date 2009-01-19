@@ -32,6 +32,7 @@
 struct bAnimContext;
 struct Ipo;
 struct IpoCurve;
+struct FCurve;
 struct BezTriple;
 struct Scene;
 
@@ -130,12 +131,12 @@ void ANIM_editkeyframes_ipocurve_ipotype(struct IpoCurve *icu);
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
 
-void delete_icu_key(struct IpoCurve *icu, int index, short do_recalc);
+void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
 void delete_ipo_keys(struct Ipo *ipo);
 void duplicate_ipo_keys(struct Ipo *ipo);
 
-void clean_ipo_curve(struct IpoCurve *icu, float thresh);
-void smooth_ipo_curve(struct IpoCurve *icu, short mode);
+void clean_fcurve(struct FCurve *fcu, float thresh);
+void smooth_fcurve(struct FCurve *fcu, short mode);
 
 /* ************************************************ */
 

@@ -35,6 +35,14 @@
 extern "C" {
 #endif
 
+	
+/* -------- IPO-Curve (Bezier) Calculations ---------- */
+
+void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
+	
+	
+#if 0 // XXX old animation system
+
 typedef struct CfraElem {
 	struct CfraElem *next, *prev;
 	float cfra;
@@ -144,6 +152,8 @@ void clear_delta_obipo(struct Ipo *ipo);
 
 short IPO_GetChannels(struct Ipo *ipo, short *channels);
 float IPO_GetFloatValue(struct Ipo *ipo, short c, float ctime);
+
+#endif // XXX old animation system
 
 #ifdef __cplusplus
 };

@@ -598,7 +598,7 @@ static void calculate_uv_map(Scene *scene, ARegion *ar, View3D *v3d, EditMesh *e
 
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
-MTFace *get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int sloppy)
+MTFace *EM_get_active_mtface(EditMesh *em, EditFace **act_efa, MCol **mcol, int sloppy)
 {
 	EditFace *efa = NULL;
 	

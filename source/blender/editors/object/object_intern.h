@@ -28,6 +28,13 @@
 #ifndef ED_OBJECT_INTERN_H
 #define ED_OBJECT_INTERN_H
 
+struct wmOperatorType;
+struct KeyBlock;
+struct Lattice;
+struct Curve;
+struct Object;
+struct Mesh;
+
 /* internal exports only */
 #define CLEAR_OBJ_ROTATION 0
 #define CLEAR_OBJ_LOCATION 1
@@ -35,24 +42,36 @@
 #define CLEAR_OBJ_ORIGIN 3
 
 /* object_edit.c */
-void OBJECT_OT_toggle_editmode(wmOperatorType *ot);
-void OBJECT_OT_make_parent(wmOperatorType *ot);
-void OBJECT_OT_clear_parent(wmOperatorType *ot);
-void OBJECT_OT_make_track(wmOperatorType *ot);
-void OBJECT_OT_clear_track(wmOperatorType *ot);
-void OBJECT_OT_de_select_all(wmOperatorType *ot);
-void OBJECT_OT_select_invert(wmOperatorType *ot);
-void OBJECT_OT_select_random(wmOperatorType *ot);
-void OBJECT_OT_select_by_type(wmOperatorType *ot);
-void OBJECT_OT_select_by_layer(wmOperatorType *ot);
-void OBJECT_OT_clear_location(wmOperatorType *ot);
-void OBJECT_OT_clear_rotation(wmOperatorType *ot);
-void OBJECT_OT_clear_scale(wmOperatorType *ot);
-void OBJECT_OT_clear_origin(wmOperatorType *ot);
-void OBJECT_OT_clear_restrictview(wmOperatorType *ot);
-void OBJECT_OT_set_restrictview(wmOperatorType *ot);
-void OBJECT_OT_set_slowparent(wmOperatorType *ot);
-void OBJECT_OT_clear_slowparent(wmOperatorType *ot);
+void OBJECT_OT_toggle_editmode(struct wmOperatorType *ot);
+void OBJECT_OT_make_parent(struct wmOperatorType *ot);
+void OBJECT_OT_clear_parent(struct wmOperatorType *ot);
+void OBJECT_OT_make_track(struct wmOperatorType *ot);
+void OBJECT_OT_clear_track(struct wmOperatorType *ot);
+void OBJECT_OT_de_select_all(struct wmOperatorType *ot);
+void OBJECT_OT_select_invert(struct wmOperatorType *ot);
+void OBJECT_OT_select_random(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
+void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
+void OBJECT_OT_select_linked(struct wmOperatorType *ot);
+void OBJECT_OT_clear_location(struct wmOperatorType *ot);
+void OBJECT_OT_clear_rotation(struct wmOperatorType *ot);
+void OBJECT_OT_clear_scale(struct wmOperatorType *ot);
+void OBJECT_OT_clear_origin(struct wmOperatorType *ot);
+void OBJECT_OT_clear_restrictview(struct wmOperatorType *ot);
+void OBJECT_OT_set_restrictview(struct wmOperatorType *ot);
+void OBJECT_OT_set_slowparent(struct wmOperatorType *ot);
+void OBJECT_OT_clear_slowparent(struct wmOperatorType *ot);
+void OBJECT_OT_set_center(struct wmOperatorType *ot);
+void OBJECT_OT_make_dupli_real(struct wmOperatorType *ot);
+void OBJECT_OT_object_add(struct wmOperatorType *ot);
+void OBJECT_OT_add_duplicate(struct wmOperatorType *ot);
+
+/* editlattice.c */
+void free_editLatt(Object *ob);
+void make_editLatt(Object *obedit);
+void load_editLatt(Object *obedit);
+void remake_editLatt(Object *obedit);
+
 
 #endif /* ED_OBJECT_INTERN_H */
 

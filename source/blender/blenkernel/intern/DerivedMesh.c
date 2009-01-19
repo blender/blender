@@ -1635,7 +1635,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 
 			/* create an orco derivedmesh in parallel */
-			mask= (CustomDataMask)curr->link;
+			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 			if(mask & CD_MASK_ORCO) {
 				if(!orcodm)
 					orcodm= create_orco_dm(ob, me, NULL);
@@ -1655,7 +1655,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			DM_set_only_copy(dm, mask);
 			
 			/* add an origspace layer if needed */
-			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 
@@ -1847,7 +1847,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 			}
 
 			/* create an orco derivedmesh in parallel */
-			mask= (CustomDataMask)curr->link;
+			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
 			if(mask & CD_MASK_ORCO) {
 				if(!orcodm)
 					orcodm= create_orco_dm(ob, ob->data, em);
@@ -1864,9 +1864,9 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 			}
 
 			/* set the DerivedMesh to only copy needed data */
-			DM_set_only_copy(dm, (CustomDataMask)curr->link);
+			DM_set_only_copy(dm, (CustomDataMask)GET_INT_FROM_POINTER(curr->link));
 
-			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 			
@@ -2054,15 +2054,16 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Mesh *me = ob->data;
 	float min[3], max[3];
-	int needMapping= 0; //
+	//int needMapping= 0; 
+	
+	Object *obact = scene->basact?scene->basact->object:NULL;
+	int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
+	int needMapping = editing && (ob==obact);
 	
 	clear_mesh_caches(ob);
 
-// XXX		Object *obact = scene->basact?scene->basact->object:NULL;
-//		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
-//		int needMapping = editing && (ob==obact);
-//		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
-	if(dataMask & CD_MASK_WEIGHTPAINT) {
+	if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
+//	if(dataMask & CD_MASK_WEIGHTPAINT) {
 		MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
 		int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
 		int prevactive = CustomData_get_active_layer(&me->fdata, CD_MCOL);

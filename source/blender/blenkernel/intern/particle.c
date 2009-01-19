@@ -46,7 +46,7 @@
 #include "DNA_object_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_ipo_types.h" 	// XXX old animation system stuff to remove!
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -65,7 +65,6 @@
 #include "BKE_displist.h"
 #include "BKE_particle.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_ipo.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_material.h"
@@ -1408,6 +1407,7 @@ static float vert_weight(MDeformVert *dvert, int group)
 	}
 	return 0.0;
 }
+
 static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, short type, short axis, float obmat[][4])
 {
 	float vec[3]={0.0,0.0,0.0}, q1[4]={1,0,0,0},q2[4];
@@ -1542,6 +1542,7 @@ static void do_prekink(ParticleKey *state, ParticleKey *par, float *par_rot, flo
 			break;
 	}
 }
+
 static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clumpfac, float clumppow, float pa_clump)
 {
 	if(par && clumpfac!=0.0){
@@ -1559,7 +1560,8 @@ static void do_clump(ParticleKey *state, ParticleKey *par, float time, float clu
 		VecLerpf(state->co,state->co,par->co,clump);
 	}
 }
-int do_guide(ParticleKey *state, int pa_num, float time, ListBase *lb)
+
+int do_guide(Scene *scene, ParticleKey *state, int pa_num, float time, ListBase *lb)
 {
 	PartDeflect *pd;
 	ParticleEffectorCache *ec;
@@ -1717,7 +1719,7 @@ static void do_rough_end(float *loc, float t, float fac, float shape, ParticleKe
 
 	VECADD(state->co,state->co,rough);
 }
-static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
+static void do_path_effectors(Scene *scene, Object *ob, ParticleSystem *psys, int i, ParticleCacheKey *ca, int k, int steps, float *rootco, float effector, float dfra, float cfra, float *length, float *vec)
 {
 	float force[3] = {0.0f,0.0f,0.0f}, vel[3] = {0.0f,0.0f,0.0f};
 	ParticleKey eff_key;
@@ -1728,7 +1730,7 @@ static void do_path_effectors(Object *ob, ParticleSystem *psys, int i, ParticleC
 	QUATCOPY(eff_key.rot,(ca-1)->rot);
 
 	pa= psys->particles+i;
-	do_effectors(i, pa, &eff_key, ob, psys, rootco, force, vel, dfra, cfra);
+	do_effectors(i, pa, &eff_key, scene, ob, psys, rootco, force, vel, dfra, cfra);
 
 	VecMulf(force, effector*pow((float)k / (float)steps, 100.0f * psys->part->eff_hair) / (float)steps);
 
@@ -1919,10 +1921,12 @@ int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, in
 	}
 
 	/* set correct ipo timing */
+#if 0 // XXX old animation system
 	if(part->flag&PART_ABS_TIME && part->ipo){
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	return 1;
 }
@@ -2037,11 +2041,13 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	keys->steps = ctx->steps;
 
 	/* correct child ipo timing */
+#if 0 // XXX old animation system
 	if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 		float dsta=part->end-part->sta;
 		calc_ipo(part->ipo, 100.0f*(ctx->cfra-(part->sta+dsta*cpa->rand[1]))/(part->lifetime*(1.0f - part->randlife*cpa->rand[0])));
 		execute_ipo((ID *)part, part->ipo);
 	}
+#endif // XXX old animation system
 
 	/* get different child parameters from textures & vgroups */
 	ptex.length=part->length*(1.0f - part->randlength*cpa->rand[0]);
@@ -2117,7 +2123,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	if(part->flag & PART_CHILD_EFFECT) {
 		for(k=0,state=keys; k<=ctx->steps; k++,state++) {
 			if(k) {
-				do_path_effectors(ob, psys, cpa->pa[0], state, k, ctx->steps, keys->co, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
+				do_path_effectors(ctx->scene, ob, psys, cpa->pa[0], state, k, ctx->steps, keys->co, pa_effector, 0.0f, ctx->cfra, &eff_length, eff_vec);
 			}
 			else {
 				VecSubf(eff_vec,(state+1)->co,state->co);
@@ -2144,7 +2150,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		/* apply different deformations to the child path */
 		if(part->flag & PART_CHILD_EFFECT)
 			/* state is safe to cast, since only co and vel are used */
-			guided = do_guide((ParticleKey*)state, cpa->parent, t, &(psys->effectors));
+			guided = do_guide(ctx->scene, (ParticleKey*)state, cpa->parent, t, &(psys->effectors));
 
 		if(guided==0){
 			if(part->kink)
@@ -2575,12 +2581,12 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++) {
 			/* apply effectors */
 			if(!(psys->part->flag & PART_CHILD_EFFECT) && edit==0 && k)
-				do_path_effectors(ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
+				do_path_effectors(scene, ob, psys, i, ca, k, steps, cache[i]->co, effector, dfra, cfra, &length, vec);
 
 			/* apply guide curves to path data */
 			if(edit==0 && psys->effectors.first && (psys->part->flag & PART_CHILD_EFFECT)==0)
 				/* ca is safe to cast, since only co and vel are used */
-				do_guide((ParticleKey*)ca, i, (float)k/(float)steps, &psys->effectors);
+				do_guide(scene, (ParticleKey*)ca, i, (float)k/(float)steps, &psys->effectors);
 
 			/* apply lattice */
 			if(psys->lattice && edit==0)
@@ -2919,7 +2925,9 @@ static void default_particle_settings(ParticleSettings *part)
 		part->boidfac[i]=0.5;
 	}
 
+#if 0 // XXX old animation system
 	part->ipo = NULL;
+#endif // XXX old animation system
 
 	part->simplify_refsize= 1920;
 	part->simplify_rate= 1.0f;
@@ -3254,10 +3262,12 @@ float psys_get_size(Object *ob, Material *ma, ParticleSystemModifierData *psmd, 
 		size=ptex.size;
 	}
 	
+#if 0 // XXX old animation system
 	if(icu_size){
 		calc_icu(icu_size,pa->time);
 		size*=icu_size->curval;
 	}
+#endif // XXX old animation system
 
 	if(vg_size)
 		size*=psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_size);
@@ -3290,11 +3300,12 @@ float psys_get_child_time(ParticleSystem *psys, ChildParticle *cpa, float cfra)
 float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, float *pa_time)
 {
 	ParticleSettings *part = psys->part;
-	float size, time;
+	float size; // time XXX
 	
 	if(part->childtype==PART_CHILD_FACES){
 		size=part->size;
 
+#if 0 // XXX old animation system
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 			IpoCurve *icu;
 
@@ -3311,6 +3322,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float cfra, 
 					size = icu->curval;
 			}
 		}
+#endif // XXX old animation system
 	}
 	else
 		size=psys->particles[cpa->parent].size;
@@ -3468,7 +3480,7 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 				Mat4Mul3Vecfl(hairmat, state->vel);
 
 				if(psys->effectors.first && (part->flag & PART_CHILD_GUIDE)==0) {
-					do_guide(state, p, state->time, &psys->effectors);
+					do_guide(scene, state, p, state->time, &psys->effectors);
 					/* TODO: proper velocity handling */
 				}
 
@@ -3533,11 +3545,13 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 		}
 
 		/* correct child ipo timing */
+#if 0 // XXX old animation system
 		if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 			calc_ipo(part->ipo, 100.0f*t);
 			execute_ipo((ID *)part, part->ipo);
 		}
-
+#endif // XXX old animation system
+		
 		/* get different child parameters from textures & vgroups */
 		ptex.clump=1.0;
 		ptex.kink=1.0;

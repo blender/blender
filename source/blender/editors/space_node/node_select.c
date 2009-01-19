@@ -29,6 +29,8 @@
 #include <stdio.h>
 
 #include "DNA_node_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -104,6 +106,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
+	// XXX wmWindow *window=  CTX_wm_window(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
@@ -114,16 +117,39 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	
 	switch (select_type) {
 		case NODE_SELECT_MOUSE:
-			mval[0] = RNA_int_get(op->ptr, "mx");
-			mval[1] = RNA_int_get(op->ptr, "my");
-			extend = RNA_int_get(op->ptr, "extend");
+			mval[0] = RNA_int_get(op->ptr, "mouse_x");
+			mval[1] = RNA_int_get(op->ptr, "mouse_y");
+			extend = RNA_boolean_get(op->ptr, "extend");
 			node_mouse_select(snode, ar, mval, extend);
 			break;
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+	
+	//WM_event_add_modal_handler(C, &window->handlers, op);
 
-	return OPERATOR_FINISHED;
+	return /*OPERATOR_RUNNING_MODAL;*/ OPERATOR_FINISHED;
+}
+
+static int node_select_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* execute the events */
+	switch (event->type) {
+		case MOUSEMOVE:
+			printf("%d %d\n", event->x, event->y);
+			break;
+		case SELECTMOUSE:
+			//if (event->val==0) {
+				/* calculate overall delta mouse-movement for redo */
+				printf("done translating\n");
+				//WM_cursor_restore(CTX_wm_window(C));
+				
+				return OPERATOR_FINISHED;
+			//}
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -134,15 +160,15 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mval[0]= event->x - ar->winrct.xmin;
 	mval[1]= event->y - ar->winrct.ymin;
 	
-	RNA_int_set(op->ptr, "mx", mval[0]);
-	RNA_int_set(op->ptr, "my", mval[1]);
+	RNA_int_set(op->ptr, "mouse_x", mval[0]);
+	RNA_int_set(op->ptr, "mouse_y", mval[1]);
 
 	return node_select_exec(C,op);
 }
 
 static int node_extend_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	RNA_int_set(op->ptr, "extend", KM_SHIFT);
+	RNA_boolean_set(op->ptr, "extend", KM_SHIFT);
 
 	return node_select_invoke(C, op, event);
 }
@@ -155,8 +181,6 @@ static EnumPropertyItem prop_select_items[] = {
 
 void NODE_OT_extend_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Activate/Select (Shift)";
 	ot->idname= "NODE_OT_extend_select";
@@ -165,18 +189,15 @@ void NODE_OT_extend_select(wmOperatorType *ot)
 	ot->invoke= node_extend_select_invoke;
 	ot->poll= ED_operator_node_active;
 	
-	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_items);
+	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
 void NODE_OT_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Activate/Select";
 	ot->idname= "NODE_OT_select";
@@ -184,13 +205,13 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= node_select_invoke;
 	ot->poll= ED_operator_node_active;
+	ot->modal= node_select_modal;
 	
-	prop = RNA_def_property(ot->srna, "select_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_items);
+	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
-	prop = RNA_def_property(ot->srna, "mx", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "my", PROP_INT, PROP_NONE);
-	prop = RNA_def_property(ot->srna, "extend", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
 /* ****** Border Select ****** */
@@ -236,8 +257,6 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 
 void NODE_OT_border_select(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "NODE_OT_border_select";
@@ -250,12 +269,11 @@ void NODE_OT_border_select(wmOperatorType *ot)
 	ot->poll= ED_operator_node_active;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_types);
+	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
 }

@@ -572,7 +572,7 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get mode, then rearrange channels */
-	mode= RNA_enum_get(op->ptr, "dir");
+	mode= RNA_enum_get(op->ptr, "direction");
 	rearrange_action_channels(&ac, mode);
 	
 	/* set notifier tha things have changed */
@@ -584,8 +584,6 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 
 void ANIM_OT_channels_move_up (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Move Channel(s) Up";
 	ot->idname= "ANIM_OT_channels_move_up";
@@ -598,15 +596,11 @@ void ANIM_OT_channels_move_up (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	// xxx add enum for this...
-	RNA_def_property_enum_default(prop, REARRANGE_ACTCHAN_UP);
+	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_UP, "Direction", "");
 }
 
 void ANIM_OT_channels_move_down (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Move Channel(s) Down";
 	ot->idname= "ANIM_OT_channels_move_down";
@@ -619,15 +613,11 @@ void ANIM_OT_channels_move_down (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	// xxx add enum for this...
-	RNA_def_property_enum_default(prop, REARRANGE_ACTCHAN_DOWN);
+	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_DOWN, "Direction", "");
 }
 
 void ANIM_OT_channels_move_top (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Move Channel(s) to Top";
 	ot->idname= "ANIM_OT_channels_move_to_top";
@@ -640,15 +630,11 @@ void ANIM_OT_channels_move_top (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	// xxx add enum for this...
-	RNA_def_property_enum_default(prop, REARRANGE_ACTCHAN_TOP);
+	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_TOP, "Direction", "");
 }
 
 void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Move Channel(s) to Bottom";
 	ot->idname= "ANIM_OT_channels_move_to_bottom";
@@ -661,9 +647,7 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	prop= RNA_def_property(ot->srna, "dir", PROP_ENUM, PROP_NONE);
-	// xxx add enum for this...
-	RNA_def_property_enum_default(prop, REARRANGE_ACTCHAN_BOTTOM);
+	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_BOTTOM, "Direction", "");
 }
 
 
@@ -825,8 +809,6 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 
 void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Enable Channel Setting";
 	ot->idname= "ANIM_OT_channels_enable_setting";
@@ -841,18 +823,13 @@ void ANIM_OT_channels_enable_setting (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
-	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_ADD);
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
 		/* setting to set */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Disable Channel Setting";
 	ot->idname= "ANIM_OT_channels_disable_setting";
@@ -867,18 +844,13 @@ void ANIM_OT_channels_disable_setting (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
-	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_CLEAR);
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
 		/* setting to set */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Toggle Channel Setting";
 	ot->idname= "ANIM_OT_channels_toggle_setting";
@@ -893,12 +865,9 @@ void ANIM_OT_channels_toggle_setting (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	prop= RNA_def_property(ot->srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_setflag_types);
-	RNA_def_property_enum_default(prop, ACHANNEL_SETFLAG_TOGGLE);
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
-	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_animchannel_settings_types);
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -937,7 +906,7 @@ void ANIM_OT_channels_deselectall (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_property(ot->srna, "invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -1083,11 +1052,11 @@ void ANIM_OT_channels_borderselect(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* rna */
-	RNA_def_property(ot->srna, "event_type", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "xmax", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymin", PROP_INT, PROP_NONE);
-	RNA_def_property(ot->srna, "ymax", PROP_INT, PROP_NONE);
+	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ******************** Mouse-Click Operator *********************** */
@@ -1486,8 +1455,8 @@ void ANIM_OT_channels_mouseclick (wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* id-props */
-	RNA_def_property(ot->srna, "extend_select", PROP_BOOLEAN, PROP_NONE); // SHIFTKEY
-	RNA_def_property(ot->srna, "select_children_only", PROP_BOOLEAN, PROP_NONE); // CTRLKEY|SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend_select", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "select_children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
 }
 
 /* ************************************************************************** */

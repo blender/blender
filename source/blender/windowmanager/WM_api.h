@@ -77,7 +77,7 @@ ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid,
 								 int spaceid, int regionid);
 
 char		*WM_key_event_string(short type);
-char		*WM_key_event_operator_string(struct bContext *C, char *opname, int opcontext, char *str, int len);
+char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, char *str, int len);
 
 			/* handlers */
 
@@ -126,7 +126,8 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void 
 int			WM_operatortype_remove(const char *idname);
 
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
-int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties, struct ReportList *reports);
+int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
+int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);

@@ -222,7 +222,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after->butm_func(C, after->butm_func_arg, after->a2);
 
 		if(after->opname)
-			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr, NULL);
+			WM_operator_name_call(C, after->opname, after->opcontext, after->opptr);
 		if(after->opptr) {
 			WM_operator_properties_free(after->opptr);
 			MEM_freeN(after->opptr);
@@ -3338,14 +3338,13 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiMenuBlockHandle *menu, i
 				if(inside || (block->flag & UI_BLOCK_LOOP)) {
 					if(event->val) {
 						but= ui_but_find_activated(ar);
-
 						if(but) {
-							if(ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) {
-								if(block->direction & UI_TOP) but= ui_but_next(but);
+							if(ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) {
+								if(block->direction & UI_DOWN) but= ui_but_next(but);
 								else but= ui_but_prev(but);
 							}
 							else {
-								if(block->direction & UI_TOP) but= ui_but_prev(but);
+								if(block->direction & UI_DOWN) but= ui_but_prev(but);
 								else but= ui_but_next(but);
 							}
 

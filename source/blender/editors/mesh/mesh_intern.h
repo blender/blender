@@ -95,9 +95,20 @@ int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
 void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 /* ******************* editmesh_add.c */
-
+void MESH_OT_add_primitive_plane(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cube(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_circle(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cylinder(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_tube(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_cone(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_grid(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_monkey(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_uv_sphere(struct wmOperatorType *ot);
+void MESH_OT_add_primitive_ico_sphere(struct wmOperatorType *ot);
 
 /* ******************* editmesh_lib.c */
+void EM_stats_update(EditMesh *em);
+
 extern void EM_fgon_flags(EditMesh *em);
 extern void EM_hide_reset(EditMesh *em);
 
@@ -105,20 +116,16 @@ extern int faceselectedOR(EditFace *efa, int flag);
 extern int faceselectedAND(EditFace *efa, int flag);
 
 void EM_remove_selection(EditMesh *em, void *data, int type);
-void EM_set_actFace(EditMesh *em, EditFace *efa);
-void EM_select_face(EditFace *efa, int sel);
 void EM_clear_flag_all(EditMesh *em, int flag);
-void EM_select_flush(EditMesh *em);
 void EM_set_flag_all(EditMesh *em, int flag);
-
-void EM_add_data_layer(EditMesh *em, CustomData *data, int type);
 
 void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
 void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
 
 int EM_nvertices_selected(EditMesh *em);
+int EM_nedges_selected(EditMesh *em);
 int EM_nfaces_selected(EditMesh *em);
-float EM_face_area(EditFace *efa);
+
 float EM_face_perimeter(EditFace *efa);
 
 void EM_store_selection(EditMesh *em, void *data, int type);
@@ -162,7 +169,17 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
 void MESH_OT_bmesh_test(struct wmOperatorType *ot);
-
+void MESH_OT_select_more(struct wmOperatorType *ot);
+void MESH_OT_select_less(struct wmOperatorType *ot);
+void MESH_OT_selectswap_mesh(struct wmOperatorType *ot);
+void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
+void MESH_OT_selectconnected_mesh_all(struct wmOperatorType *ot);
+void MESH_OT_selectconnected_mesh(struct wmOperatorType *ot);
+void MESH_OT_hide_mesh(struct wmOperatorType *ot);
+void MESH_OT_reveal_mesh(struct wmOperatorType *ot);
+void MESH_OT_righthandfaces(struct wmOperatorType *ot);
+void MESH_OT_select_linked_flat_faces(struct wmOperatorType *ot);
+void MESH_OT_select_sharp_edges(struct wmOperatorType *ot);
 extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
 void editmesh_select_by_material(EditMesh *em, int index);
@@ -193,6 +210,10 @@ int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, short immediate, float imperc);
 
+void MESH_OT_subdivide(struct wmOperatorType *ot);
+void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
+void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
+void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

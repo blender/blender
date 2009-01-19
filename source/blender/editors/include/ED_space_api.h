@@ -61,8 +61,8 @@ void ED_file_exit(void);
 #define REGION_DRAW_POST	0
 
 void *ED_region_draw_cb_activate(struct ARegionType *, 
-								 void	(*draw)(const struct bContext *, struct ARegion *),
-								 int type);
+								 void	(*draw)(const struct bContext *, struct ARegion *, void *),
+								 void *custumdata, int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);
 

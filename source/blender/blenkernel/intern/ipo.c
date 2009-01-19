@@ -28,6 +28,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#if 0 // XXX old animation system
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -838,6 +840,7 @@ void correct_bezpart (float *v1, float *v2, float *v3, float *v4)
  * It is primarily used for patching old files, but is also used in the interface
  * to make sure that all segments of the curve use the same interpolation.
  */
+// XXX move to readfile.c for patching old files only..
 void set_interpolation_ipocurve (IpoCurve *icu, short ipo)
 {
 	BezTriple *bezt;
@@ -2929,3 +2932,5 @@ float IPO_GetFloatValue (Ipo *ipo, IPO_Channel channel, float ctime)
 	/* return the value of this channel */
 	return ctime;
 }
+
+#endif // XXX old animation system

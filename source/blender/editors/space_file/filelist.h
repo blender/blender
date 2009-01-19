@@ -60,8 +60,9 @@ void				filelist_filter(struct FileList* filelist);
 void				filelist_swapselect(struct FileList* filelist);
 void				filelist_imgsize(struct FileList* filelist, short w, short h);
 void				filelist_loadimage(struct FileList* filelist, int index);
+void				filelist_loadimage_timer(struct FileList* filelist);
 struct ImBuf *		filelist_getimage(struct FileList* filelist, int index);
-
+short				filelist_changed(struct FileList* filelist);
 void				filelist_readdir(struct FileList* filelist);
 
 int					filelist_empty(struct FileList* filelist);

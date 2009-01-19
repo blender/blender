@@ -79,8 +79,8 @@ void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct Bez
 void calchandlesNurb( struct Nurb *nu);
 void testhandlesNurb( struct Nurb *nu);
 void autocalchandlesNurb( struct Nurb *nu, int flag);
-void autocalchandlesNurb_all(int flag);
-void sethandlesNurb(short code);
+void autocalchandlesNurb_all(ListBase *editnurb, int flag);
+void sethandlesNurb(ListBase *editnurb, short code);
 
 void switchdirectionNurb( struct Nurb *nu);
 

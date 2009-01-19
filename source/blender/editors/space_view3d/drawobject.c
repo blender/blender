@@ -46,7 +46,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
 #include "DNA_effect_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -82,7 +81,6 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -114,9 +112,6 @@
 
 
 /* pretty stupid */
-/*  extern Lattice *editLatt; already in BKE_lattice.h  */
-/* editcurve.c */
-extern ListBase editNurb;
 /* editmball.c */
 extern ListBase editelems;
 
@@ -1083,11 +1078,13 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 
 void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
 {
-	BPoint *bp = editLatt->def;
-	DispList *dl = find_displist(&vc->obedit->disp, DL_VERTS);
+	Object *obedit= vc->obedit;
+	Lattice *lt= obedit->data;
+	BPoint *bp = lt->editlatt->def;
+	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
 	float pmat[4][4], vmat[4][4];
-	int i, N = editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	int i, N = lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
 	short s[2];
 
 	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);
@@ -1300,6 +1297,7 @@ void mesh_foreachScreenFace(ViewContext *vc, void (*func)(void *userData, EditFa
 
 void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
+	Curve *cu= vc->obedit->data;
 	float pmat[4][4], vmat[4][4];
 	short s[2];
 	Nurb *nu;
@@ -1307,7 +1305,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 
 	view3d_get_object_project_mat(vc->v3d, vc->obedit, pmat, vmat);
 
-	for (nu= editNurb.first; nu; nu=nu->next) {
+	for (nu= cu->editnurb->first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
@@ -3040,7 +3038,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 				pa_time=(cfra-pa->time)/pa->lifetime;
 				pa_size=pa->size;
 
-				if((part->flag&PART_ABS_TIME)==0){				
+				if((part->flag&PART_ABS_TIME)==0){	
+#if 0 // XXX old animation system			
 					if(ma && ma->ipo){
 						IpoCurve *icu;
 
@@ -3067,6 +3066,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 								pa_size = icu->curval;
 						}
 					}
+#endif // XXX old animation system
 				}
 
 				r_tilt=1.0f+pa->r_ave[0];
@@ -3083,6 +3083,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 
 				if((part->flag&PART_ABS_TIME)==0) {
 					if(ma && ma->ipo){
+#if 0 // XXX old animation system
 						IpoCurve *icu;
 
 						/* correction for lifetime */
@@ -3096,6 +3097,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, Base *base, Part
 							else if(icu->adrcode == MA_COL_B)
 								ma_b = icu->curval;
 						}
+#endif // XXX old animation system
 					}
 				}
 
@@ -4009,6 +4011,7 @@ static void draw_empty_cone (float size)
 /* draw points on curve speed handles */
 static void curve_draw_speed(Scene *scene, Object *ob)
 {
+#if 0 // XXX old animation system stuff
 	Curve *cu= ob->data;
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -4034,6 +4037,7 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 
 	glPointSize(1.0);
 	bglEnd();
+#endif // XXX old animation system stuff
 }
 
 
@@ -4267,9 +4271,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		Mat4One(tmat);
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
 		
-		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+		//else 
 			force_val = pd->f_strength;
 		force_val*= 0.1;
 		drawcircball(GL_LINE_LOOP, vec, size, tmat);
@@ -4285,9 +4289,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else if (pd->forcefield == PFIELD_FORCE) {
 		float ffall_val;
 
-		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
+		//else 
 			ffall_val = pd->f_power;
 
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.5);
@@ -4301,14 +4305,14 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		float ffall_val, force_val;
 
 		Mat4One(tmat);
-		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+		//	ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, scene->r.cfra);
+		//else 
 			ffall_val = pd->f_power;
 
-		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-		else 
+		//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+		//	force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+		//else 
 			force_val = pd->f_strength;
 
 		UI_ThemeColorBlend(curcol, TH_BACK, 0.7);
@@ -4326,9 +4330,9 @@ static void draw_forcefield(Scene *scene, Object *ob)
 		if((cu->flag & CU_PATH) && cu->path && cu->path->data) {
 			float mindist, guidevec1[4], guidevec2[3];
 
-			if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-				mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
-			else 
+			//if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+			//	mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, scene->r.cfra);
+			//else 
 				mindist = pd->f_strength;
 
 			/*path end*/
@@ -4697,10 +4701,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	static int warning_recursive= 0;
 	Object *ob;
 	Curve *cu;
-	float cfraont;
+	//float cfraont;
 	float vec1[3], vec2[3];
 	unsigned int col=0;
-	int sel, drawtype, colindex= 0, ipoflag;
+	int /*sel, drawtype,*/ colindex= 0;
 	int i, selstart, selend, empty_object=0;
 	short dt, dtx, zbufoff= 0;
 
@@ -4728,6 +4732,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw keys? */
+#if 0 // XXX old animation system
 	if(base==(scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(flag==0 && warning_recursive==0 && ob!=scene->obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
@@ -4800,6 +4805,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 		}
 	}
+#endif // XXX old animation system
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
@@ -5272,15 +5278,13 @@ static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float 
 		bglVertex3fv(co);
 	}
 }
-static int bbs_mesh_verts(DerivedMesh *dm, int offset)
+static void bbs_mesh_verts(DerivedMesh *dm, int offset)
 {
 	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*)(intptr_t) offset);
 	bglEnd();
 	glPointSize(1.0);
-
-	return offset + G.totvert;
 }		
 
 static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
@@ -5295,11 +5299,9 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 		return 0;
 	}
 }
-static int bbs_mesh_wire(DerivedMesh *dm, int offset)
+static void bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*)(intptr_t) offset);
-
-	return offset + G.totedge;
 }		
 
 static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
@@ -5326,7 +5328,7 @@ static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, f
 }
 
 /* two options, facecolors or black */
-static int bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int facecol)
+static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh *dm, int facecol)
 {
 	cpack(0);
 
@@ -5341,10 +5343,8 @@ static int bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh 
 			bglEnd();
 		}
 
-		return 1+G.totface;
 	} else {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0);
-		return 1;
 	}
 }
 
@@ -5390,16 +5390,23 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob)
 
 			EM_init_index_arrays(em, 1, 1, 1);
 
-			em_solidoffs= bbs_mesh_solid_EM(scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
+			bbs_mesh_solid_EM(scene, v3d, ob, dm, scene->selectmode & SCE_SELECT_FACE);
+			if(scene->selectmode & SCE_SELECT_FACE)
+				em_solidoffs = 1+em->totface;
+			else
+				em_solidoffs= 1;
 			
 			bglPolygonOffset(v3d->dist, 1.0);
 			
 			// we draw edges always, for loop (select) tools
-			em_wireoffs= bbs_mesh_wire(dm, em_solidoffs);
-
+			bbs_mesh_wire(dm, em_solidoffs);
+			em_wireoffs= em_solidoffs + em->totedge;
+			
 			// we draw verts if vert select mode or if in transform (for snap).
-			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) 
-				em_vertoffs= bbs_mesh_verts(dm, em_wireoffs);
+			if(scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) {
+				bbs_mesh_verts(dm, em_wireoffs);
+				em_vertoffs= em_wireoffs + em->totvert;
+			}
 			else em_vertoffs= em_wireoffs;
 			
 			bglPolygonOffset(v3d->dist, 0.0);

@@ -75,7 +75,7 @@ static void do_node_selectmenu(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case 1: /* border select */
-			WM_operator_name_call(C, "NODE_OT_border_select", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
+			WM_operator_name_call(C, "NODE_OT_border_select", WM_OP_INVOKE_REGION_WIN, NULL);
 			break;
 		case 2: /* select/deselect all */
 			// XXX node_deselectall(snode, 1);
@@ -125,13 +125,12 @@ static uiBlock *node_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 
 void do_node_addmenu(bContext *C, void *arg, int event)
 {
-	#if 0
 	// XXX enable
-	ScrArea *curarea= CTX_wm_area(C);
+	// ScrArea *curarea= CTX_wm_area(C);
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	bNode *node;
-	float locx, locy;
-	short mval[2];
+	//float locx, locy;
+	//short mval[2];
 	
 	/* store selection in temp test flag */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -139,17 +138,17 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	toolbox_mousepos(mval, 0 ); /* get initial mouse position */
-	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node= node_add_node(snode, event, locx, locy);
+	// toolbox_mousepos(mval, 0 ); /* get initial mouse position */
+	// areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
+	// NODE_FIX_ME
+	node= node_add_node(snode, event, 0.0, 0.0);
 	
 	/* uses test flag */
 	// XXX snode_autoconnect(snode, node, NODE_TEST);
 		
 	// XXX addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 	
-	BIF_undo_push("Add Node");
-	#endif
+	// ED_undo_push("Add Node");
 }
 
 static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
@@ -200,7 +199,7 @@ static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
 			bNodeType *type;
 			int script=0;
 			for(a=0, type= ntree->alltypes.first; type; type=type->next) {
-				if( type->nclass == nodeclass ) {
+				if( type->nclass == nodeclass && type->name) {
 					if(type->type == NODE_DYNAMIC) {
 						uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, type->name, 0, 
 							yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1.0f, (float)(NODE_DYNAMIC_MENU+script), "");
@@ -592,13 +591,13 @@ static void do_node_viewmenu(bContext *C, void *arg, int event)
 	
 	switch(event) {
 		case 1: /* Zoom in */
-			WM_operator_name_call(C, "View2D_OT_view_zoomin", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+			WM_operator_name_call(C, "View2D_OT_view_zoomin", WM_OP_EXEC_REGION_WIN, NULL);
 			break;
 		case 2: /* View all */
-			WM_operator_name_call(C, "View2D_OT_view_zoomout", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+			WM_operator_name_call(C, "View2D_OT_view_zoomout", WM_OP_EXEC_REGION_WIN, NULL);
 			break;
 		case 3: /* View all */
-			WM_operator_name_call(C, "NODE_OT_fit_all", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+			WM_operator_name_call(C, "NODE_OT_fit_all", WM_OP_EXEC_REGION_WIN, NULL);
 			break;
 		case 4: /* Grease Pencil */
 			// XXX add_blockhandler(sa, NODES_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
@@ -651,7 +650,52 @@ static uiBlock *node_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_
 
 static void do_node_buttons(bContext *C, void *arg, int event)
 {
+	// NODE_FIX_ME : instead of using "current material/texture/scene" a la old buttons/G.scene
+	// have a panel from which enumerates textures, materials and scenes.
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	Material *ma;
+	Tex *tx;
+	
 	switch(event) {
+		case B_NODE_USEMAT:
+			ma= (Material *)snode->id;
+			if(ma) {
+				if(ma->use_nodes && ma->nodetree==NULL) {
+					node_shader_default(ma);
+					snode_set_context(snode, scene);
+				}
+				/* BIF_preview_changed(ID_MA);
+				allqueue(REDRAWNODE, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWIPO, 0);*/
+			}		
+			break;
+			
+		case B_NODE_USESCENE:
+			if(scene->use_nodes) {
+				if(scene->nodetree==NULL)
+					node_composit_default(scene);
+				// addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+			}
+			snode_set_context(snode, scene);
+			// allqueue(REDRAWNODE, 0);
+			break;
+			
+		case B_NODE_USETEX:
+			tx = (Tex *)snode->id;
+			if(tx) {
+				tx->type = 0;
+				if(tx->use_nodes && tx->nodetree==NULL) {
+					node_texture_default(tx);
+					snode_set_context(snode, scene);
+				}
+				/* BIF_preview_changed(ID_TE);
+				allqueue(REDRAWNODE, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWIPO, 0);*/
+			}
+			break;
 	}
 }
 

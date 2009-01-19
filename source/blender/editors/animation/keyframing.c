@@ -1,123 +1,48 @@
-/**
- * $Id: keyframing.c 17745 2008-12-08 09:16:09Z aligorith $
- *
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2008, Blender Foundation
- * This is a new part of Blender (with some old code)
- *
- * Contributor(s): Joshua Leung
- *
- * ***** END GPL LICENSE BLOCK *****
+/* Testing code for 2.5 animation system 
+ * Copyright 2009, Joshua Leung
  */
-
-
-
+ 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <math.h>
 #include <float.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
-#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 #include "BLI_dynstr.h"
 
-#include "DNA_listBase.h"
-#include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_fluidsim.h"
-#include "DNA_particle_types.h"
 #include "DNA_material_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sequence_types.h"
-#include "DNA_space_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_vec_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_context.h"
-#include "BKE_utildefines.h"
-#include "BKE_blender.h"
+#include "BKE_animsys.h"
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_constraint.h"
-#include "BKE_curve.h"
-#include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
+#include "BKE_utildefines.h"
+#include "BKE_context.h"
 #include "BKE_key.h"
-#include "BKE_object.h"
-#include "BKE_particle.h"
 #include "BKE_material.h"
-#include "BKE_modifier.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
+#include "ED_screen.h"
+#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#if 0 // XXX resolve these old dependencies!
-	#include "BIF_butspace.h"
-	#include "BIF_editaction.h"
-	#include "BIF_editkey.h"
-	#include "BIF_interface.h"
-	#include "BIF_mywindow.h"
-	#include "BIF_poseobject.h"
-	#include "BIF_screen.h"
-	#include "BIF_space.h"
-	#include "BIF_toolbox.h"
-	#include "BIF_toets.h"
-
-	#include "BSE_editipo.h"
-	#include "BSE_node.h"
-	#include "BSE_time.h"
-	#include "BSE_view.h"
-
-	#include "blendef.h"
-
-	#include "PIL_time.h"			/* sleep				*/
-	#include "mydevice.h"
-#endif // XXX resolve these old dependencies!
-
-/* ****************************************** */
-
-/* note for Joshua: add_ipo() wants scene pointer to init the view2d 'cur' for
-   the ipo data, which restores views. Needs to be resolved nicer? */
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_types.h"
 
 /* ************************************************** */
 /* LOCAL TYPES AND DEFINES */
@@ -130,34 +55,15 @@ typedef struct bCommonKeySrc {
 		
 		/* general data/destination-source settings */
 	ID *id;					/* id-block this comes from */
-	char *actname;			/* name of action channel */
-	char *constname;		/* name of constraint channel */
+	char *rna_path;			/* base path to use */	// xxx.... maybe we don't need this?
 	
-		/* general destination source settings */
-	Ipo *ipo;				/* ipo-block that id-block has (optional) */
-	bAction *act;			/* action-block that id-block has (optional) */
-	
-		/* pose-level settings */
-	bPoseChannel *pchan;	/* pose channel */
-		
-		/* buttons-window settings */
-	int map;				/* offset to apply to certain adrcodes */
+		/* specific cases */
+	bPoseChannel *pchan;	/* only needed when doing recalcs... */
 } bCommonKeySrc;
 
 /* -------------- Keying Sets ------------------- */
 
-/* storage for iterator for looping over keyingset channels */
-typedef struct bKS_AdrcodeGetter {
-	struct bKeyingSet *ks;		/* keyingset this applies to */
-	struct bCommonKeySrc *cks;	/* data to insert/delete keyframes... */
-	
-	short index;				/* index of current channel to resume from */
-	short tot;					/* index after which we start returning from some special collection */
-} bKS_AdrcodeGetter;
-
-/* flags to look out for in keyingset channels... */
-#define KAG_CHAN_EXTEND		(-1)
-
+#if 0 // XXX I'm not sure how these will work for now...
 
 /* keying set - a set of channels that will be keyframed together  */
 // TODO: move this to a header to allow custom sets someday?
@@ -168,11 +74,11 @@ typedef struct bKeyingSet {
 	short (*include_cb)(struct bKeyingSet *, const char *);
 	
 	char name[48];				/* name of keyingset */
-	int blocktype;				/* blocktype that all channels belong to */  // in future, this may be eliminated
+	int blocktype;				/* nearest ID-blocktype to where data can be found */
 	short flag;					/* flags to use when setting keyframes */
 	
 	short chan_num;				/* number of channels to insert keyframe in */
-	short adrcodes[32];			/* adrcodes for channels to insert keys for (ideally would be variable-len, but limit of 32 will suffice) */
+	char (*paths)[256];			/* adrcodes for channels to insert keys for (ideally would be variable-len, but limit of 32 will suffice) */
 } bKeyingSet;
 
 /* keying set context - an array of keying sets and the number of them */
@@ -182,282 +88,67 @@ typedef struct bKeyingContext {
 	int tot;					/* number of keyingsets in */
 } bKeyingContext;
 
+#endif
 
-/* ************************************************** */
-/* IPO DATA VERIFICATION */
-// XXX these will need to be modified for use with RNA-IPO...
+/* ******************************************* */
+/* Animation Data Validation */
 
-/* depending type, it returns ipo, if needed it creates one */
-/* returns either action ipo or "real" ipo */
-/* arguments define full context;
-   - *from has to be set always, to Object in case of Actions
-   - blocktype defines available channels of Ipo struct (blocktype ID_OB can be in action too)
-   - if actname, use this to locate actionchannel, and optional constname 
-   - if bonename, the constname is the ipo to the constraint
-*/
-
-/* note: check header_ipo.c, spaceipo_assign_ipo() too */
-Ipo *verify_ipo(ID *from, short blocktype, char actname[], char constname[], char bonename[], short add)
+/* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
+ * for the given Animation Data block 
+ */
+// TODO: should we check if path is valid? For now, assume that it's already set OK by caller...
+FCurve *verify_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
-	/* lib-linked data is not appropriate here */
-	if ((from==NULL) || (from->lib))
+	AnimData *adt;
+	bAction *act;
+	FCurve *fcu;
+	
+	/* sanity checks */
+	if ELEM(NULL, id, rna_path)
 		return NULL;
 	
-	/* first check action ipos */
-	if (actname && actname[0]) {
-		Object *ob= (Object *)from;
-		bActionChannel *achan;
-		
-		if (GS(from->name)!=ID_OB) {
-			printf("called ipo system for action with wrong base pointer\n");
-			return NULL;
-		}
-		
-		if ((ob->action==NULL) && (add))
-			ob->action= add_empty_action("Action");
-		
-		if (add)
-			achan= verify_action_channel(ob->action, actname);
-		else	
-			achan= get_action_channel(ob->action, actname);
-		
-		if (achan) {
-			/* automatically assign achan to act-group based on pchan's grouping */
-			//if ((blocktype == ID_PO) && (add))
-			//	verify_pchan2achan_grouping(ob->action, ob->pose, actname);
-			
-			/* constraint exception */
-			if (blocktype==ID_CO) {
-				bConstraintChannel *conchan;
-				
-				if (add)
-					conchan= verify_constraint_channel(&achan->constraintChannels, constname);
-				else
-					conchan= get_constraint_channel(&achan->constraintChannels, constname);
-					
-				if (conchan) {
-					if ((conchan->ipo==NULL) && (add))
-						conchan->ipo= add_ipo(NULL, "CoIpo", ID_CO);	
-					return conchan->ipo;
-				}
-			}
-			else {
-				if ((achan->ipo==NULL) && (add))
-					achan->ipo= add_ipo(NULL, "ActIpo", blocktype);
-				return achan->ipo;
-			}
-		}
+	/* init animdata if none available yet */
+	adt= BKE_animdata_from_id(id);
+	if ((adt == NULL) && (add))
+		adt= BKE_id_add_animdata(id);
+	if (adt == NULL) { 
+		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
+		return NULL;
 	}
-	else {
-		switch (GS(from->name)) {
-		case ID_OB:
-			{
-				Object *ob= (Object *)from;
-				
-				/* constraint exception */
-				if (blocktype==ID_CO) {
-					/* check the local constraint ipo */
-					if (bonename && bonename[0] && ob->pose) {
-						bPoseChannel *pchan= get_pose_channel(ob->pose, bonename);
-						bConstraint *con;
-						
-						for (con= pchan->constraints.first; con; con= con->next) {
-							if (strcmp(con->name, constname)==0)
-								break;
-						}
-						
-						if (con) {
-							if ((con->ipo==NULL) && (add))
-								con->ipo= add_ipo(NULL, "CoIpo", ID_CO);
-							return con->ipo;
-						}
-					}
-					else { /* the actionchannel */
-						bConstraintChannel *conchan;
-						
-						if (add)
-							conchan= verify_constraint_channel(&ob->constraintChannels, constname);
-						else
-							conchan= get_constraint_channel(&ob->constraintChannels, constname);
-							
-						if (conchan) {
-							if ((conchan->ipo==NULL) && (add))
-								conchan->ipo= add_ipo(NULL, "CoIpo", ID_CO);	
-							return conchan->ipo;
-						}
-					}
-				}
-				else if (blocktype==ID_OB) {
-					if ((ob->ipo==NULL) && (add))
-						ob->ipo= add_ipo(NULL, "ObIpo", ID_OB);
-					return ob->ipo;
-				}
-				else if (blocktype==ID_KE) {
-					Key *key= ob_get_key((Object *)from);
-					
-					if (key) {
-						if ((key->ipo==NULL) && (add))
-							key->ipo= add_ipo(NULL, "KeyIpo", ID_KE);
-						return key->ipo;
-					}
-					return NULL;
-				}
-				else if (blocktype== ID_FLUIDSIM) {
-					Object *ob= (Object *)from;
-
-					FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-					if(fluidmd) {
-						FluidsimSettings *fss= fluidmd->fss;
-						
-						if ((fss->ipo==NULL) && (add))
-							fss->ipo= add_ipo(NULL, "FluidsimIpo", ID_FLUIDSIM);
-						return fss->ipo;
-					}
-				}
-				else if(blocktype== ID_PA) {
-					Object *ob= (Object *)from;
-					ParticleSystem *psys= psys_get_current(ob);
-					
-					if (psys) {
-						if ((psys->part->ipo==NULL) && (add))
-							psys->part->ipo= add_ipo(NULL, "ParticleIpo", ID_PA);
-						return psys->part->ipo;
-					}
-					return NULL;
-				}
-			}
-			break;
-		case ID_MA:
-			{
-				Material *ma= (Material *)from;
-				
-				if ((ma->ipo==NULL) && (add))
-					ma->ipo= add_ipo(NULL, "MatIpo", ID_MA);
-				return ma->ipo;
-			}
-			break;
-		case ID_TE:
-			{
-				Tex *tex= (Tex *)from;
-				
-				if ((tex->ipo==NULL) && (add))
-					tex->ipo= add_ipo(NULL, "TexIpo", ID_TE);
-				return tex->ipo;
-			}
-			break;
-		case ID_SEQ:
-			{
-				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
-				
-				if ((seq->ipo==NULL) && (add))
-					seq->ipo= add_ipo(NULL, "SeqIpo", ID_SEQ);
-				//update_seq_ipo_rect(seq); // XXX
-				return seq->ipo;
-			}
-			break;
-		case ID_CU:
-			{
-				Curve *cu= (Curve *)from;
-				
-				if ((cu->ipo==NULL) && (add))
-					cu->ipo= add_ipo(NULL, "CuIpo", ID_CU);
-				return cu->ipo;
-			}
-			break;
-		case ID_WO:
-			{
-				World *wo= (World *)from;
-				
-				if ((wo->ipo==NULL) && (add))
-					wo->ipo= add_ipo(NULL, "WoIpo", ID_WO);
-				return wo->ipo;
-			}
-			break;
-		case ID_LA:
-			{
-				Lamp *la= (Lamp *)from;
-				
-				if ((la->ipo==NULL) && (add))
-					la->ipo= add_ipo(NULL, "LaIpo", ID_LA);
-				return la->ipo;
-			}
-			break;
-		case ID_CA:
-			{
-				Camera *ca= (Camera *)from;
-				
-				if ((ca->ipo==NULL) && (add))
-					ca->ipo= add_ipo(NULL, "CaIpo", ID_CA);
-				return ca->ipo;
-			}
-			break;
-		case ID_SO:
-			{
-#if 0 // depreceated
-				bSound *snd= (bSound *)from;
-				
-				if ((snd->ipo==NULL) && (add))
-					snd->ipo= add_ipo(NULL, "SndIpo", ID_SO);
-				return snd->ipo;
-#endif // depreceated
-			}	
-			break;
-		}
+		
+	/* init action if none available yet */
+	// TODO: need some wizardry to handle NLA stuff correct
+	if ((adt->action == NULL) && (add))
+		adt->action= add_empty_action("Action");
+	act= adt->action;
+		
+	/* try to find f-curve matching for this setting 
+	 *	- add if not found and allowed to add one
+	 *		TODO: add auto-grouping support? how this works will need to be resolved
+	 */
+	if (act)
+		fcu= list_find_fcurve(&act->curves, rna_path, array_index);
+	else
+		fcu= NULL;
+	
+	if ((fcu == NULL) && (add)) {
+		/* use default settings */
+		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
+		
+		fcu->flag |= (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES);
+		if (act->curves.first==NULL) 
+			fcu->flag |= FCURVE_ACTIVE;	/* first one added active */
+			
+		/* store path - make copy, and store that */
+		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->array_index= array_index;
+		
+		/* add curve */
+		BLI_addtail(&act->curves, fcu); // XXX it might be better to add this in order, for easier UI coding...
 	}
 	
-	return NULL;	
-}
-
-/* Returns and creates
- * Make sure functions check for NULL or they will crash!
- */
-IpoCurve *verify_ipocurve(ID *from, short blocktype, char actname[], char constname[], char bonename[], int adrcode, short add)
-{
-	Ipo *ipo;
-	IpoCurve *icu= NULL;
-	
-	/* return 0 if lib */
-	/* creates ipo too (if add) */
-	ipo= verify_ipo(from, blocktype, actname, constname, bonename, add);
-	
-	if ((ipo) && (ipo->id.lib==NULL) && (from->lib==NULL)) {
-		/* try to find matching curve */
-		icu= find_ipocurve(ipo, adrcode);
-		
-		/* make a new one if none found (and can add) */
-		if ((icu==NULL) && (add)) {
-			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-			
-			/* set default settings */
-			icu->flag |= (IPO_VISIBLE|IPO_AUTO_HORIZ);
-			if (ipo->curve.first==NULL) 
-				icu->flag |= IPO_ACTIVE;	/* first one added active */
-			
-			icu->blocktype= blocktype;
-			icu->adrcode= adrcode;
-			
-			set_icu_vars(icu);
-			
-			/* default curve interpolation - from userpref */
-			icu->ipo= U.ipo_new;
-			
-			/* add curve to IPO-block */
-			BLI_addtail(&ipo->curve, icu);
-			
-			/* special type-dependent stuff */
-			switch (GS(from->name)) {
-				case ID_SEQ: {
-					//Sequence *seq= (Sequence *)from;
-					
-					//update_seq_icu_rects(seq); // XXX
-					break;
-				}
-			}
-		}
-	}
-	
-	/* return ipo-curve */
-	return icu;
+	/* return the F-Curve */
+	return fcu;
 }
 
 /* ************************************************** */
@@ -544,54 +235,55 @@ static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen
 	return start;
 }
 
-/* This function adds a given BezTriple to an IPO-Curve. It will allocate 
+/* This function adds a given BezTriple to an F-Curve. It will allocate 
  * memory for the array if needed, and will insert the BezTriple into a
  * suitable place in chronological order.
  * 
- * NOTE: any recalculate of the IPO-Curve that needs to be done will need to 
+ * NOTE: any recalculate of the F-Curve that needs to be done will need to 
  * 		be done by the caller.
  */
-int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
+int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt)
 {
 	BezTriple *newb;
 	int i= 0;
 	
-	if (icu->bezt) {
+	if (fcu->bezt) {
 		short replace = -1;
-		i = binarysearch_bezt_index(icu->bezt, bezt->vec[1][0], icu->totvert, &replace);
+		i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 		
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			// FIXME: do not overwrite handletype if just replacing...?
-			if ((i >= 0) && (i < icu->totvert))
-				*(icu->bezt + i) = *bezt;
+			if ((i >= 0) && (i < fcu->totvert))
+				*(fcu->bezt + i) = *bezt;
 		}
 		else {
 			/* add new */
-			newb= MEM_callocN((icu->totvert+1)*sizeof(BezTriple), "beztriple");
+			newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
 			if (i > 0)
-				memcpy(newb, icu->bezt, i*sizeof(BezTriple));
+				memcpy(newb, fcu->bezt, i*sizeof(BezTriple));
 			
 			/* add beztriple to paste at index i */
 			*(newb + i)= *bezt;
 			
 			/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
-			if (i < icu->totvert) 
-				memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
+			if (i < fcu->totvert) 
+				memcpy(newb+i+1, fcu->bezt+i, (fcu->totvert-i)*sizeof(BezTriple));
 			
 			/* replace (+ free) old with new */
-			MEM_freeN(icu->bezt);
-			icu->bezt= newb;
+			MEM_freeN(fcu->bezt);
+			fcu->bezt= newb;
 			
-			icu->totvert++;
+			fcu->totvert++;
 		}
 	}
 	else {
-		icu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
-		*(icu->bezt)= *bezt;
-		icu->totvert= 1;
+		// TODO: need to check for old sample-data now...
+		fcu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
+		*(fcu->bezt)= *bezt;
+		fcu->totvert= 1;
 	}
 	
 	
@@ -607,10 +299,10 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
  * 
  * 'fast' - is only for the python API where importing BVH's would take an extreamly long time.
  */
-void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
+void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
 {
 	BezTriple beztr;
-	int a, h1, h2;
+	int a;
 	
 	/* set all three points, for nicer start position */
 	memset(&beztr, 0, sizeof(BezTriple));
@@ -620,12 +312,12 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 	beztr.vec[1][1]= y;
 	beztr.vec[2][0]= x;
 	beztr.vec[2][1]= y;
-	beztr.hide= IPO_BEZ;
+	beztr.ipo= U.ipo_new; /* use default interpolation mode here... */
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
-	beztr.h1= beztr.h2= HD_AUTO;
+	beztr.h1= beztr.h2= HD_AUTO; // XXX what about when we replace an old one?
 	
 	/* add temp beztriple to keyframes */
-	a= insert_bezt_icu(icu, &beztr);
+	a= insert_bezt_fcurve(fcu, &beztr);
 	
 	/* what if 'a' is a negative index? 
 	 * for now, just exit to prevent any segfaults
@@ -636,124 +328,33 @@ void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 	 *	- this is a hack to make importers faster
 	 *	- we may calculate twice (see editipo_changed(), due to autohandle needing two calculations)
 	 */
-	if (!fast) calchandles_ipocurve(icu);
+	if (!fast) calchandles_fcurve(fcu);
 	
 	/* set handletype and interpolation */
-	if (icu->totvert > 2) {
-		BezTriple *bezt= (icu->bezt + a);
+	if (fcu->totvert > 2) {
+		BezTriple *bezt= (fcu->bezt + a);
+		short h1, h2;
 		
 		/* set handles (autohandles by default) */
 		h1= h2= HD_AUTO;
 		
 		if (a > 0) h1= (bezt-1)->h2;
-		if (a < icu->totvert-1) h2= (bezt+1)->h1;
+		if (a < fcu->totvert-1) h2= (bezt+1)->h1;
 		
 		bezt->h1= h1;
 		bezt->h2= h2;
 		
-		/* set interpolation (if curve is using IPO_MIXED, then take from previous) */
-		if (icu->ipo == IPO_MIXED) {
-			if (a > 0) bezt->ipo= (bezt-1)->ipo;
-			else if (a < icu->totvert-1) bezt->ipo= (bezt+1)->ipo;
-		}
-		else
-			bezt->ipo= icu->ipo;
+		/* set interpolation from previous (if available) */
+		if (a > 0) bezt->ipo= (bezt-1)->ipo;
+		else if (a < fcu->totvert-1) bezt->ipo= (bezt+1)->ipo;
 			
 		/* don't recalculate handles if fast is set
 		 *	- this is a hack to make importers faster
 		 *	- we may calculate twice (see editipo_changed(), due to autohandle needing two calculations)
 		 */
-		if (!fast) calchandles_ipocurve(icu);
-	}
-	else {
-		BezTriple *bezt= (icu->bezt + a);
-		
-		/* set interpolation directly from ipo-curve */
-		bezt->ipo= icu->ipo;
+		if (!fast) calchandles_fcurve(fcu);
 	}
 }
-
-
-/* ------------------- Get Data ------------------------ */
-
-/* Get pointer to use to get values from */
-// FIXME: this should not be possible with Data-API
-static void *get_context_ipo_poin (ID *id, int blocktype, char *actname, char *constname, IpoCurve *icu, int *vartype)
-{
-	switch (blocktype) {
-		case ID_PO:  /* posechannel */
-			if (GS(id->name)==ID_OB) {
-				Object *ob= (Object *)id;
-				bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-				
-				if (pchan) {
-					if (ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z))
-						*vartype= IPO_FLOAT_DEGR;
-					else
-						*vartype= IPO_FLOAT;
-					return get_pchan_ipo_poin(pchan, icu->adrcode);
-				}
-			}
-			break;
-			
-		case ID_CO: /* constraint */
-			if ((GS(id->name)==ID_OB) && (constname && constname[0])) {
-				Object *ob= (Object *)id;
-				bConstraint *con;
-				
-				/* assume that we only want the influence (as only used for Constraint Channels) */
-				if ((ob->ipoflag & OB_ACTION_OB) && !strcmp(actname, "Object")) {
-					for (con= ob->constraints.first; con; con= con->next) {
-						if (strcmp(constname, con->name)==0) {
-							*vartype= IPO_FLOAT;
-							return &con->enforce;
-						}
-					}
-				}
-				else if (ob->pose) {
-					bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
-					
-					if (pchan) {
-						for (con= pchan->constraints.first; con; con= con->next) {
-							if (strcmp(constname, con->name)==0) {
-								*vartype= IPO_FLOAT;
-								return &con->enforce;
-							}
-						}
-					}
-				}
-			}
-			break;
-			
-		case ID_OB: /* object */
-			/* hack: layer channels for object need to be keyed WITHOUT localview flag...
-			 * tsk... tsk... why must we just dump bitflags upon users :/
-			 */
-			if ((GS(id->name)==ID_OB) && (icu->adrcode==OB_LAY)) {
-				Object *ob= (Object *)id;
-				static int layer = 0;
-				
-				/* init layer to be the object's layer var, then remove local view from it */
-				layer = ob->lay;
-				layer &= 0xFFFFFF;
-				*vartype= IPO_INT_BIT;
-				
-				/* return pointer to this static var 
-				 * 	- assumes that this pointer won't be stored for use later, so may not be threadsafe
-				 *	  if multiple keyframe calls are made, but that is unlikely to happen in the near future
-				 */
-				return (void *)(&layer);
-			}
-			/* no break here for other ob channel-types - as they can be done normally */
-		
-		default: /* normal data-source */
-			return get_ipo_poin(id, icu, vartype);
-	}
-
-	/* not valid... */
-	return NULL;
-}
-
 
 /* -------------- 'Smarter' Keyframing Functions -------------------- */
 /* return codes for new_key_needed */
@@ -770,19 +371,19 @@ enum {
  *	2. Keyframe to be added on frame where two keyframes are already situated
  *	3. Keyframe lies at point that intersects the linear line between two keyframes
  */
-static short new_key_needed (IpoCurve *icu, float cFrame, float nValue) 
+static short new_key_needed (FCurve *fcu, float cFrame, float nValue) 
 {
 	BezTriple *bezt=NULL, *prev=NULL;
 	int totCount, i;
 	float valA = 0.0f, valB = 0.0f;
 	
 	/* safety checking */
-	if (icu == NULL) return KEYNEEDED_JUSTADD;
-	totCount= icu->totvert;
+	if (fcu == NULL) return KEYNEEDED_JUSTADD;
+	totCount= fcu->totvert;
 	if (totCount == 0) return KEYNEEDED_JUSTADD;
 	
 	/* loop through checking if any are the same */
-	bezt= icu->bezt;
+	bezt= fcu->bezt;
 	for (i=0; i<totCount; i++) {
 		float prevPosi=0.0f, prevVal=0.0f;
 		float beztPosi=0.0f, beztVal=0.0f;
@@ -813,7 +414,7 @@ static short new_key_needed (IpoCurve *icu, float cFrame, float nValue)
 					float realVal;
 					
 					/* get real value of curve at that point */
-					realVal= eval_icu(icu, cFrame);
+					realVal= evaluate_fcurve(fcu, cFrame);
 					
 					/* compare whether it's the same as proposed */
 					if (IS_EQ(realVal, nValue)) 
@@ -859,7 +460,7 @@ static short new_key_needed (IpoCurve *icu, float cFrame, float nValue)
 	 * -> Otherwise, a keyframe is just added. 1.0 is added so that fake-2nd-to-last
 	 *	 keyframe is not equal to last keyframe.
 	 */
-	bezt= (icu->bezt + (icu->totvert - 1));
+	bezt= (fcu->bezt + (fcu->totvert - 1));
 	valA= bezt->vec[1][1];
 	
 	if (prev)
@@ -873,13 +474,49 @@ static short new_key_needed (IpoCurve *icu, float cFrame, float nValue)
 		return KEYNEEDED_JUSTADD;
 }
 
+/* ------------------ RNA Data-Access Functions ------------------ */
+
+/* Try to read value using RNA-properties obtained already */
+static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	float value= 0.0f;
+	
+	switch (RNA_property_type(ptr, prop)) {
+		case PROP_BOOLEAN:
+			if (RNA_property_array_length(ptr, prop))
+				value= (float)RNA_property_boolean_get_array(ptr, prop, index);
+			else
+				value= (float)RNA_property_boolean_get(ptr, prop);
+			break;
+		case PROP_INT:
+			if (RNA_property_array_length(ptr, prop))
+				value= (float)RNA_property_int_get_array(ptr, prop, index);
+			else
+				value= (float)RNA_property_int_get(ptr, prop);
+			break;
+		case PROP_FLOAT:
+			if (RNA_property_array_length(ptr, prop))
+				value= RNA_property_float_get_array(ptr, prop, index);
+			else
+				value= RNA_property_float_get(ptr, prop);
+			break;
+		case PROP_ENUM:
+			value= (float)RNA_property_enum_get(ptr, prop);
+			break;
+		default:
+			break;
+	}
+	
+	return value;
+}
+
 /* ------------------ 'Visual' Keyframing Functions ------------------ */
 
 /* internal status codes for visualkey_can_use */
 enum {
 	VISUALKEY_NONE = 0,
 	VISUALKEY_LOC,
-	VISUALKEY_ROT
+	VISUALKEY_ROT,
 };
 
 /* This helper function determines if visual-keyframing should be used when  
@@ -888,15 +525,16 @@ enum {
  * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying 
  * settings is on.
  */
-static short visualkey_can_use (ID *id, int blocktype, char *actname, char *constname, int adrcode)
+static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 {
-	Object *ob= NULL;
+	//Object *ob= NULL;
 	bConstraint *con= NULL;
 	short searchtype= VISUALKEY_NONE;
 	
+#if 0 //  XXX old animation system	
 	/* validate data */
 	if ((id == NULL) || (GS(id->name)!=ID_OB) || !(ELEM(blocktype, ID_OB, ID_PO))) 
-		return 0;
+		return 0;	
 	
 	/* get first constraint and determine type of keyframe constraints to check for*/
 	ob= (Object *)id;
@@ -918,6 +556,7 @@ static short visualkey_can_use (ID *id, int blocktype, char *actname, char *cons
 		else if (ELEM4(adrcode, AC_QUAT_W, AC_QUAT_X, AC_QUAT_Y, AC_QUAT_Z))
 			searchtype= VISUALKEY_ROT;
 	}
+#endif
 	
 	/* only search if a searchtype and initial constraint are available */
 	if (searchtype && con) {
@@ -976,10 +615,12 @@ static short visualkey_can_use (ID *id, int blocktype, char *actname, char *cons
 
 /* This helper function extracts the value to use for visual-keyframing 
  * In the event that it is not possible to perform visual keying, try to fall-back
- * to using the poin method. Assumes that all data it has been passed is valid.
+ * to using the default method. Assumes that all data it has been passed is valid.
  */
-static float visualkey_get_value (ID *id, int blocktype, char *actname, char *constname, int adrcode, IpoCurve *icu)
+// xxx... ptr here should be struct that data is in.... prop is the channel that's being used
+static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
+#if 0 // XXX old animation system
 	Object *ob;
 	void *poin = NULL;
 	int index, vartype;
@@ -1053,13 +694,10 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
 			return quat[index];
 		}
 	}
+#endif	// XXX old animation system
 	
-	/* as the function hasn't returned yet, try reading from poin */
-	poin= get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-	if (poin)
-		return read_ipo_poin(poin, vartype);
-	else
-		return 0.0;
+	/* as the function hasn't returned yet, read value from system in the default way */
+	return setting_get_rna_value(ptr, prop, array_index);
 }
 
 /* ------------------------- Insert Key API ------------------------- */
@@ -1072,25 +710,33 @@ static float visualkey_get_value (ID *id, int blocktype, char *actname, char *co
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrcode, short flag)
+short insertkey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
 {	
-	IpoCurve *icu;
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	FCurve *fcu;
 	
-	/* get ipo-curve */
-	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 1);
+	/* validate pointer first - exit if failure*/
+	RNA_id_pointer_create(id, &id_ptr);
+	if (RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) {
+		printf("Insert Key: Could not insert keyframe, as RNA Path is invalid for the given ID \n");
+		return 0;
+	}
 	
-	/* only continue if we have an ipo-curve to add keyframe to */
-	if (icu) {
-		float cfra =1.0f;//= frame_to_float(CFRA);
+	/* get F-Curve */
+	fcu= verify_fcurve(id, rna_path, array_index, 1);
+	
+	/* only continue if we have an F-Curve to add keyframe to */
+	if (fcu) {
 		float curval= 0.0f;
 		
 		/* apply special time tweaking */
+			// XXX check on this stuff...
 		if (GS(id->name) == ID_OB) {
-			Object *ob= (Object *)id;
+			//Object *ob= (Object *)id;
 			
 			/* apply NLA-scaling (if applicable) */
-			if (actname && actname[0]) 
-				cfra= get_action_frame(ob, cfra);
+			//cfra= get_action_frame(ob, cfra);
 			
 			/* ancient time-offset cruft */
 			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
@@ -1101,29 +747,17 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 		
 		/* obtain value to give keyframe */
 		if ( (flag & INSERTKEY_MATRIX) && 
-			 (visualkey_can_use(id, blocktype, actname, constname, adrcode)) ) 
+			 (visualkey_can_use(&ptr, prop)) ) 
 		{
 			/* visual-keying is only available for object and pchan datablocks, as 
 			 * it works by keyframing using a value extracted from the final matrix 
 			 * instead of using the kt system to extract a value.
 			 */
-			curval= visualkey_get_value(id, blocktype, actname, constname, adrcode, icu);
+			curval= visualkey_get_value(&ptr, prop, array_index);
 		}
 		else {
-			void *poin;
-			int vartype;
-			
-			/* get pointer to data to read from */
-			poin = get_context_ipo_poin(id, blocktype, actname, constname, icu, &vartype);
-			if (poin == NULL) {
-				printf("Insert Key: No pointer to variable obtained \n");
-				return 0;
-			}
-			
-			/* use kt's read_poin function to extract value (kt->read_poin should 
-			 * exist in all cases, but it never hurts to check)
-			 */
-			curval= read_ipo_poin(poin, vartype);
+			/* read value from system */
+			curval= setting_get_rna_value(&ptr, prop, array_index);
 		}
 		
 		/* only insert keyframes where they are needed */
@@ -1131,19 +765,19 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 			short insert_mode;
 			
 			/* check whether this curve really needs a new keyframe */
-			insert_mode= new_key_needed(icu, cfra, curval);
+			insert_mode= new_key_needed(fcu, cfra, curval);
 			
 			/* insert new keyframe at current frame */
 			if (insert_mode)
-				insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
+				insert_vert_fcurve(fcu, cfra, curval, (flag & INSERTKEY_FAST));
 			
 			/* delete keyframe immediately before/after newly added */
 			switch (insert_mode) {
 				case KEYNEEDED_DELPREV:
-					delete_icu_key(icu, icu->totvert-2, 1);
+					delete_fcurve_key(fcu, fcu->totvert-2, 1);
 					break;
 				case KEYNEEDED_DELNEXT:
-					delete_icu_key(icu, 1, 1);
+					delete_fcurve_key(fcu, 1, 1);
 					break;
 			}
 			
@@ -1153,7 +787,7 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 		}
 		else {
 			/* just insert keyframe */
-			insert_vert_icu(icu, cfra, curval, (flag & INSERTKEY_FAST));
+			insert_vert_fcurve(fcu, cfra, curval, (flag & INSERTKEY_FAST));
 			
 			/* return success */
 			return 1;
@@ -1163,7 +797,6 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	/* return failure */
 	return 0;
 }
-
 
 /* ************************************************** */
 /* KEYFRAME DELETION */
@@ -1175,31 +808,31 @@ short insertkey (ID *id, int blocktype, char *actname, char *constname, int adrc
  *	The flag argument is used for special settings that alter the behaviour of
  *	the keyframe deletion. These include the quick refresh options.
  */
-short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrcode, short flag)
+short deletekey (ID *id, const char rna_path[], int array_index, float cfra, short flag)
 {
-	Ipo *ipo;
-	IpoCurve *icu;
+	AnimData *adt;
+	FCurve *fcu;
 	
-	/* get ipo-curve 
-	 * Note: here is one of the places where we don't want new ipo + ipo-curve added!
+	/* get F-Curve
+	 * Note: here is one of the places where we don't want new Action + F-Curve added!
 	 * 		so 'add' var must be 0
 	 */
-	ipo= verify_ipo(id, blocktype, actname, constname, NULL, 0);
-	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode, 0);
+	// XXX we don't check the validity of the path here yet, but it should be ok...
+	fcu= verify_fcurve(id, rna_path, array_index, 0);
+	adt= BKE_animdata_from_id(id);
 	
 	/* only continue if we have an ipo-curve to remove keyframes from */
-	if (icu) {
-		float cfra = 1.0f;//frame_to_float(CFRA);
+	if (adt && adt->action && fcu) {
+		bAction *act= adt->action;
 		short found = -1;
 		int i;
 		
 		/* apply special time tweaking */
 		if (GS(id->name) == ID_OB) {
-			Object *ob= (Object *)id;
+			//Object *ob= (Object *)id;
 			
 			/* apply NLA-scaling (if applicable) */
-			if (actname && actname[0]) 
-				cfra= get_action_frame(ob, cfra);
+			//	cfra= get_action_frame(ob, cfra);
 			
 			/* ancient time-offset cruft */
 			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
@@ -1209,15 +842,16 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 		}
 		
 		/* try to find index of beztriple to get rid of */
-		i = binarysearch_bezt_index(icu->bezt, cfra, icu->totvert, &found);
+		i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
 		if (found) {			
-			/* delete the key at the index (will sanity check + do recalc afterwards ) */
-			delete_icu_key(icu, i, 1);
+			/* delete the key at the index (will sanity check + do recalc afterwards) */
+			delete_fcurve_key(fcu, i, 1);
 			
-			/* Only delete curve too if there isn't an ipo-driver still hanging around on an empty curve */
-			if (icu->totvert==0 && icu->driver==NULL) {
-				BLI_remlink(&ipo->curve, icu);
-				free_ipo_curve(icu);
+			/* Only delete curve too if there are no points (we don't need to check for drivers, as they're kept separate) */
+			// XXX how do we handle drivers then?
+			if (fcu->totvert == 0) {
+				BLI_remlink(&act->curves, fcu);
+				free_fcurve(fcu);
 			}
 			
 			/* return success */
@@ -1229,14 +863,16 @@ short deletekey (ID *id, int blocktype, char *actname, char *constname, int adrc
 	return 0;
 }
 
-/* ************************************************** */
-/* COMMON KEYFRAME MANAGEMENT (common_insertkey/deletekey) */
+/* ******************************************* */
+/* KEYFRAME MODIFICATION */
 
 /* mode for common_modifykey */
 enum {
 	COMMONKEY_MODE_INSERT = 0,
 	COMMONKEY_MODE_DELETE,
 } eCommonModifyKey_Modes;
+
+#if 0 // XXX old keyingsets code based on adrcodes... to be restored in due course
 
 /* --------- KeyingSet Adrcode Getters ------------ */
 
@@ -1416,7 +1052,7 @@ static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
 	
 	/* if ks is shapekey entry (this could be callled for separator before too!) */
 	if (ks->flag == -3)
-		sprintf(ks->name, newname);
+		BLI_strncpy(ks->name, newname, sizeof(ks->name));
 	
 	/* if it gets here, it's ok */
 	return 1;
@@ -2096,7 +1732,7 @@ static void commonkey_context_finish (const bContext *C, ListBase *sources)
 }
 
 /* flush refreshes after undo */
-static void commonkey_context_refresh (const bContext *C)
+static void commonkey_context_refresh (bContext *C)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	
@@ -2190,7 +1826,7 @@ static bKeyingSet *get_keyingset_fromcontext (bKeyingContext *ksc, short index)
 /* ---------------- Keyframe Management API -------------------- */
 
 /* Display a menu for handling the insertion of keyframes based on the active view */
-void common_modifykey (const bContext *C, short mode)
+void common_modifykey (bContext *C, short mode)
 {
 	ListBase dsources = {NULL, NULL};
 	bKeyingContext *ksc= NULL;
@@ -2349,46 +1985,178 @@ void common_modifykey (const bContext *C, short mode)
 					ob->pose->flag |= POSE_RECALCPATHS;
 					
 				/* clear unkeyed flag (it doesn't matter if it's set or not) */
-				if (pchan->bone)
-					pchan->bone->flag &= ~BONE_UNKEYED;
+					// XXX old animation system
+				//if (pchan->bone)
+				//	pchan->bone->flag &= ~BONE_UNKEYED;
 			}
+			
+			// XXX for new system, need to remove overrides
 		}
 	}
 	
 	/* apply post-keying flushes for this data sources */
 	commonkey_context_finish(C, &dsources);
-	ksc->lastused= ks;
 	
 	/* free temp data */
 	BLI_freelistN(&dsources);
-	
-	/* undo pushes */
-	if (mode == COMMONKEY_MODE_DELETE)
-		BLI_snprintf(buf, 64, "Delete %s Key", ks->name);
-	else
-		BLI_snprintf(buf, 64, "Insert %s Key", ks->name);
-	//BIF_undo_push(buf);
 	
 	/* queue updates for contexts */
 	commonkey_context_refresh(C);
 }
 
-/* ---- */
+#endif // XXX old keyingsets code based on adrcodes... to be restored in due course
 
-/* used to insert keyframes from any view */
-void common_insertkey (const bContext *C)
+/* Insert Key Operator ------------------------ */
+
+/* XXX WARNING:
+ * This is currently just a basic operator, which work in 3d-view context on objects only
+ * and will insert keyframes for a few settings only. This is until it becomes clear how
+ * to separate (or not) the process for RNA-path creation between context + keyingsets.
+ * 
+ * -- Joshua Leung, Jan 2009
+ */
+
+/* defines for basic insert-key testing operator  */
+	// XXX this will definitely be replaced
+EnumPropertyItem prop_insertkey_types[] = {
+	{0, "LOC", "Location", ""},
+	{1, "ROT", "Rotation", ""},
+	{2, "SCALE", "Scale", ""},
+	{3, "MAT_COL", "Active Material - Color", ""},
+	{0, NULL, NULL, NULL}
+};
+ 
+static int insert_key_exec (bContext *C, wmOperator *op)
 {
-	common_modifykey(C, COMMONKEY_MODE_INSERT);
+	Scene *scene= CTX_data_scene(C);
+	short mode= RNA_enum_get(op->ptr, "type");
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	
+	// XXX more comprehensive tests will be needed
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
+	{
+		Object *ob= base->object;
+		ID *id= (ID *)ob;
+		short success= 0;
+		
+		/* check which keyframing mode chosen for this object */
+		switch (mode) {
+			case 3: /* color of active material */
+				// NOTE: this is just a demo... but ideally we'd go through materials instead of active one only so reference stays same
+				success+= insertkey(id, "active_material.diffuse_color", 0, cfra, 0);
+				success+= insertkey(id, "active_material.diffuse_color", 1, cfra, 0);
+				success+= insertkey(id, "active_material.diffuse_color", 2, cfra, 0);
+				break;
+			case 2: /* scale */
+				success+= insertkey(id, "scale", 0, cfra, 0);
+				success+= insertkey(id, "scale", 1, cfra, 0);
+				success+= insertkey(id, "scale", 2, cfra, 0);
+			case 1: /* rotation */
+				success+= insertkey(id, "rotation", 0, cfra, 0);
+				success+= insertkey(id, "rotation", 1, cfra, 0);
+				success+= insertkey(id, "rotation", 2, cfra, 0);
+			default: /* location */
+				success+= insertkey(id, "location", 0, cfra, 0);
+				success+= insertkey(id, "location", 1, cfra, 0);
+				success+= insertkey(id, "location", 2, cfra, 0);
+				break;
+		}
+		
+		printf("Ob '%s' - Successfully added %d Keyframes \n", id->name+2, success);
+		
+		ob->recalc |= OB_RECALC_OB;
+	}
+	CTX_DATA_END;
+	
+	/* send updates */
+	ED_anim_dag_flush_update(C);	
+	ED_undo_push(C, "Insert Keyframe");
+	
+	if (mode == 3) // material color requires different notifiers
+		WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	else
+		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
 }
 
-/* used to insert keyframes from any view */
-void common_deletekey (const bContext *C)
+void ANIM_OT_insert_keyframe (wmOperatorType *ot)
 {
-	common_modifykey(C, COMMONKEY_MODE_DELETE);
+	PropertyRNA *prop;
+	
+	/* identifiers */
+	ot->name= "Insert Keyframe";
+	ot->idname= "ANIM_OT_insert_keyframe";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke; // XXX we will need our own one eventually, to cope with the dynamic menus...
+	ot->exec= insert_key_exec; 
+	
+	/* properties */
+		// XXX update this for the latest RNA stuff styles...
+	prop= RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_insertkey_types);
 }
 
+/* Delete Key Operator ------------------------ */
 
-/* ************************************************** */
+/* XXX WARNING:
+ * This is currently just a basic operator, which work in 3d-view context on objects only. 
+ * -- Joshua Leung, Jan 2009
+ */
+ 
+static int delete_key_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	
+	// XXX more comprehensive tests will be needed
+	CTX_DATA_BEGIN(C, Base*, base, selected_bases) 
+	{
+		Object *ob= base->object;
+		ID *id= (ID *)ob;
+		FCurve *fcu, *fcn;
+		short success= 0;
+		
+		/* loop through all curves in animdata and delete keys on this frame */
+		if (ob->adt) {
+			AnimData *adt= ob->adt;
+			bAction *act= adt->action;
+			
+			for (fcu= act->curves.first; fcu; fcu= fcn) {
+				fcn= fcu->next;
+				success+= deletekey(id, fcu->rna_path, fcu->array_index, cfra, 0);
+			}
+		}
+		
+		printf("Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		
+		ob->recalc |= OB_RECALC_OB;
+	}
+	CTX_DATA_END;
+	
+	/* send updates */
+	ED_anim_dag_flush_update(C);	
+	ED_undo_push(C, "Delete Keyframe");
+	
+		// XXX what if it was a material keyframe?
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_delete_keyframe (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Keyframe";
+	ot->idname= "ANIM_OT_delete_keyframe";
+	
+	/* callbacks */
+	ot->invoke= WM_operator_confirm; // XXX we will need our own one eventually, to cope with the dynamic menus...
+	ot->exec= delete_key_exec; 
+}
+
+/* ******************************************* */
 /* KEYFRAME DETECTION */
 
 /* --------------- API/Per-Datablock Handling ------------------- */
@@ -2396,64 +2164,38 @@ void common_deletekey (const bContext *C)
 /* Checks whether an IPO-block has a keyframe for a given frame 
  * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
  */
-short ipo_frame_has_keyframe (Ipo *ipo, float frame, short filter)
+short action_frame_has_keyframe (bAction *act, float frame, short filter)
 {
-	IpoCurve *icu;
+	FCurve *fcu;
 	
 	/* can only find if there is data */
-	if (ipo == NULL)
+	if (act == NULL)
 		return 0;
 		
 	/* if only check non-muted, check if muted */
-	if ((filter & ANIMFILTER_KEYS_MUTED) || (ipo->muteipo))
+	if ((filter & ANIMFILTER_KEYS_MUTED) || (act->flag & ACT_MUTED))
 		return 0;
 	
-	/* loop over IPO-curves, using binary-search to try to find matches 
+	/* loop over F-Curves, using binary-search to try to find matches 
 	 *	- this assumes that keyframes are only beztriples
 	 */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		/* only check if there are keyframes (currently only of type BezTriple) */
-		if (icu->bezt) {
+		if (fcu->bezt) {
 			/* we either include all regardless of muting, or only non-muted  */
-			if ((filter & ANIMFILTER_KEYS_MUTED) || (icu->flag & IPO_MUTE)==0) {
+			if ((filter & ANIMFILTER_KEYS_MUTED) || (fcu->flag & FCURVE_MUTED)==0) {
 				short replace = -1;
-				int i = binarysearch_bezt_index(icu->bezt, frame, icu->totvert, &replace);
+				int i = binarysearch_bezt_index(fcu->bezt, frame, fcu->totvert, &replace);
 				
 				/* binarysearch_bezt_index will set replace to be 0 or 1
 				 * 	- obviously, 1 represents a match
 				 */
 				if (replace) {			
 					/* sanity check: 'i' may in rare cases exceed arraylen */
-					if ((i >= 0) && (i < icu->totvert))
+					if ((i >= 0) && (i < fcu->totvert))
 						return 1;
 				}
 			}
-		}
-	}
-	
-	/* nothing found */
-	return 0;
-}
-
-/* Checks whether an action-block has a keyframe for a given frame 
- * Since we're only concerned whether a keyframe exists, we can simply loop until a match is found...
- */
-short action_frame_has_keyframe (bAction *act, float frame, short filter)
-{
-	bActionChannel *achan;
-	
-	/* error checking */
-	if (act == NULL)
-		return 0;
-		
-	/* check thorugh action-channels for match */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		/* we either include all regardless of muting, or only non-muted 
-		 *	- here we include 'hidden' channels in the muted definition
-		 */
-		if ((filter & ANIMFILTER_KEYS_MUTED) || (achan->flag & ACHAN_HIDDEN)==0) {
-			if (ipo_frame_has_keyframe(achan->ipo, frame, filter))
-				return 1;
 		}
 	}
 	
@@ -2468,35 +2210,9 @@ short object_frame_has_keyframe (Object *ob, float frame, short filter)
 	if (ob == NULL)
 		return 0;
 	
-	/* check for an action - actions take priority over normal IPO's */
-	if (ob->action) {
-		float aframe;
-		
-		/* apply nla-action scaling if needed */
-		if ((ob->nlaflag & OB_NLA_OVERRIDE) && (ob->nlastrips.first))
-			aframe= get_action_frame(ob, frame);
-		else
-			aframe= frame;
-		
-		/* priority check here goes to pose-channel checks (for armatures) */
-		if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-			/* only relevant check here is to only show active... */
-			if (filter & ANIMFILTER_KEYS_ACTIVE) {
-				bPoseChannel *pchan= get_active_posechannel(ob);
-				bActionChannel *achan= (pchan) ? get_action_channel(ob->action, pchan->name) : NULL;
-				
-				/* since we're only interested in whether the selected one has any keyframes... */
-				return (achan && ipo_frame_has_keyframe(achan->ipo, aframe, filter));
-			}
-		}
-		
-		/* for everything else, just use the standard test (only return if success) */
-		if (action_frame_has_keyframe(ob->action, aframe, filter))
-			return 1;
-	}
-	else if (ob->ipo) {
-		/* only return if success */
-		if (ipo_frame_has_keyframe(ob->ipo, frame, filter))
+	/* check own animation data - specifically, the action it contains */
+	if ((ob->adt) && (ob->adt->action)) {
+		if (action_frame_has_keyframe(ob->adt->action, frame, filter))
 			return 1;
 	}
 	
@@ -2548,39 +2264,31 @@ short object_frame_has_keyframe (Object *ob, float frame, short filter)
 /* Checks whether a keyframe exists for the given ID-block one the given frame */
 short id_frame_has_keyframe (ID *id, float frame, short filter)
 {
-	/* error checking */
+	/* sanity checks */
 	if (id == NULL)
 		return 0;
 	
-	/* check for a valid id-type */
+	/* perform special checks for 'macro' types */
 	switch (GS(id->name)) {
-			/* animation data-types */
-		case ID_IP:	/* ipo */
-			return ipo_frame_has_keyframe((Ipo *)id, frame, filter);
-		case ID_AC: /* action */
-			return action_frame_has_keyframe((bAction *)id, frame, filter);
-			
 		case ID_OB: /* object */
 			return object_frame_has_keyframe((Object *)id, frame, filter);
-			
-		case ID_MA: /* material */
-		{
-			Material *ma= (Material *)id;
-			
-			/* currently, material's only have an ipo-block */
-			return ipo_frame_has_keyframe(ma->ipo, frame, filter);
-		}
 			break;
 			
-		case ID_KE: /* shapekey */
+		case ID_SCE: /* scene */
+		// XXX TODO... for now, just use 'normal' behaviour
+		//	break;
+		
+		default: 	/* 'normal type' */
 		{
-			Key *key= (Key *)id;
+			AnimData *adt= BKE_animdata_from_id(id);
 			
-			/* currently, shapekey's only have an ipo-block */
-			return ipo_frame_has_keyframe(key->ipo, frame, filter);
+			/* only check keyframes in active action */
+			if (adt)
+				return action_frame_has_keyframe(adt->action, frame, filter);
 		}
 			break;
 	}
+	
 	
 	/* no keyframe found */
 	return 0;

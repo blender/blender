@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -1952,6 +1953,7 @@ static int object_modifiers_use_time(Object *ob)
 	return 0;
 }
 
+#if 0 // XXX old animation system
 static int exists_channel(Object *ob, char *name)
 {
 	bActionStrip *strip;
@@ -1963,14 +1965,34 @@ static int exists_channel(Object *ob, char *name)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
 		if(get_action_channel(strip->act, name))
 			return 1;
+
+	return 0;
+}
+#endif // XXX old animation system
+
+
+static short animdata_use_time(AnimData *adt)
+{
+	NlaTrack *nlt;
+	
+	if(adt==NULL) return 0;
+	
+	/* check action - only if assigned, and it has anim curves */
+	if (adt->action && adt->action->curves.first)
+		return 1;
+	
+	/* check NLA tracks + strips */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		if (nlt->strips.first)
+			return 1;
+	}
+	
 	return 0;
 }
 
 static void dag_object_time_update_flags(Object *ob)
 {
-	
-	if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-	else if(ob->constraints.first) {
+	if(ob->constraints.first) {
 		bConstraint *con;
 		for (con = ob->constraints.first; con; con=con->next) {
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -2000,6 +2022,7 @@ static void dag_object_time_update_flags(Object *ob)
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
 	}
 	
+#if 0 // XXX old animation system
 	if(ob->action || ob->nlastrips.first) {
 		/* since actions now are mixed, we set the recalcs on the safe side */
 		ob->recalc |= OB_RECALC_OB;
@@ -2016,6 +2039,8 @@ static void dag_object_time_update_flags(Object *ob)
 			}
 		}
 	}
+#endif // XXX old animation system
+	if(animdata_use_time(ob->adt)) ob->recalc |= OB_RECALC;
 	
 	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;

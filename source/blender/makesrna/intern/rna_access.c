@@ -121,9 +121,9 @@ IDProperty *rna_idproperties_get(PointerRNA *ptr, int create)
 {
 	if(ptr->type->flag & STRUCT_ID)
 		return IDP_GetProperties(ptr->data, create);
-	else if(ptr->type == &RNA_IDPropertyGroup || ptr->type->from == &RNA_IDPropertyGroup)
+	else if(ptr->type == &RNA_IDPropertyGroup || ptr->type->base == &RNA_IDPropertyGroup)
 		return ptr->data;
-	else if(ptr->type->from == &RNA_OperatorProperties) {
+	else if(ptr->type->base == &RNA_OperatorProperties) {
 		if(create && !ptr->data) {
 			IDPropertyTemplate val;
 			val.i = 0; /* silence MSVC warning about uninitialized var when debugging */
@@ -234,11 +234,11 @@ IDProperty *rna_idproperty_check(PropertyRNA **prop, PointerRNA *ptr)
 			 (PropertyRNA*)&rna_IDProperty_double};
 
 		static PropertyRNA *arraytypemap[IDP_NUMTYPES] =
-			{NULL, (PropertyRNA*)&rna_IDProperty_intarray,
-			 (PropertyRNA*)&rna_IDProperty_floatarray,
+			{NULL, (PropertyRNA*)&rna_IDProperty_int_array,
+			 (PropertyRNA*)&rna_IDProperty_float_array,
 			 NULL, NULL, NULL,
 			 (PropertyRNA*)&rna_IDProperty_collection, NULL,
-			 (PropertyRNA*)&rna_IDProperty_doublearray};
+			 (PropertyRNA*)&rna_IDProperty_double_array};
 
 		IDProperty *idprop= (IDProperty*)(*prop);
 
@@ -511,18 +511,28 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	return !(flag & PROP_NOT_EDITABLE);
 }
 
-int RNA_property_evaluated(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
 	int flag;
 
 	rna_idproperty_check(&prop, ptr);
+
+	if(prop->flag & PROP_NOT_ANIMATEABLE)
+		return 0;
 
 	if(prop->editable)
 		flag= prop->editable(ptr);
 	else
 		flag= prop->flag;
 
-	return (flag & PROP_EVALUATED);
+	return !(flag & PROP_NOT_EDITABLE);
+}
+
+int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
+{
+	/* would need to ask animation system */
+
+	return 0;
 }
 
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
@@ -580,8 +590,10 @@ int RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int index
 		return ((int*)IDP_Array(idprop))[index];
 	else if(bprop->getarray)
 		return bprop->getarray(ptr, index);
-	else
+	else if(bprop->defaultarray)
 		return bprop->defaultarray[index];
+	else
+		return 0;
 }
 
 void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
@@ -604,7 +616,10 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, int inde
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, bprop->defaultarray, sizeof(int)*prop->arraylength);
+			if(bprop->defaultarray)
+				memcpy(idprop->data.pointer, bprop->defaultarray, sizeof(int)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(int)*prop->arraylength);
 			((int*)idprop->data.pointer)[index]= value;
 		}
 	}
@@ -653,8 +668,10 @@ int RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int index)
 		return ((int*)IDP_Array(idprop))[index];
 	else if(iprop->getarray)
 		return iprop->getarray(ptr, index);
-	else
+	else if(iprop->defaultarray)
 		return iprop->defaultarray[index];
+	else
+		return 0.0f;
 }
 
 void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, int value)
@@ -677,7 +694,10 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, i
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, iprop->defaultarray, sizeof(int)*prop->arraylength);
+			if(iprop->defaultarray)
+				memcpy(idprop->data.pointer, iprop->defaultarray, sizeof(int)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(int)*prop->arraylength);
 			((int*)idprop->data.pointer)[index]= value;
 		}
 	}
@@ -739,8 +759,10 @@ float RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 	else if(fprop->getarray)
 		return fprop->getarray(ptr, index);
-	else
+	else if(fprop->defaultarray)
 		return fprop->defaultarray[index];
+	else
+		return 0.0f;
 }
 
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index, float value)
@@ -768,7 +790,10 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, int index,
 		if(group) {
 			idprop= IDP_New(IDP_ARRAY, val, (char*)prop->identifier);
 			IDP_AddToGroup(group, idprop);
-			memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
+			if(fprop->defaultarray)
+				memcpy(idprop->data.pointer, fprop->defaultarray, sizeof(float)*prop->arraylength);
+			else
+				memset(idprop->data.pointer, 0, sizeof(float)*prop->arraylength);
 			((float*)IDP_Array(idprop))[index]= value;
 		}
 	}
@@ -1914,7 +1939,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%s, ":"%s", RNA_property_boolean_get_array(ptr, prop, i) ? "True" : "False");
+				BLI_dynstr_appendf(dynstr, i?", %s":"%s", RNA_property_boolean_get_array(ptr, prop, i) ? "True" : "False");
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}
@@ -1926,19 +1951,19 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%d, ":"%d", RNA_property_int_get_array(ptr, prop, i));
+				BLI_dynstr_appendf(dynstr, i?", %d":"%d", RNA_property_int_get_array(ptr, prop, i));
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}
 		break;
 	case PROP_FLOAT:
 		if (len==0) {
-			BLI_dynstr_appendf(dynstr, "%f", RNA_property_float_get(ptr, prop));
+			BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get(ptr, prop));
 		}
 		else {
 			BLI_dynstr_append(dynstr, "(");
 			for(i=0; i<len; i++) {
-				BLI_dynstr_appendf(dynstr, i?"%f, ":"%f", RNA_property_float_get_array(ptr, prop, i));
+				BLI_dynstr_appendf(dynstr, i?", %g":"%g", RNA_property_float_get_array(ptr, prop, i));
 			}
 			BLI_dynstr_append(dynstr, ")");
 		}

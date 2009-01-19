@@ -31,16 +31,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "zlib.h"
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #include <io.h>
 #else
+#include <unistd.h> // for read close
 #include <sys/param.h>
 #endif
 

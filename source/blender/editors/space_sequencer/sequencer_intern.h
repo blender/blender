@@ -28,14 +28,34 @@
 #ifndef ED_SEQUENCER_INTERN_H
 #define ED_SEQUENCER_INTERN_H
 
-#define MAXSEQ          32
-
 /* internal exports only */
 
+struct Sequence;
+struct bContext;
+struct rctf;
+struct SpaceSeq;
+struct ARegion;
+struct Scene;
 
 /* sequencer_header.c */
-void sequencer_header_buttons(const bContext *C, ARegion *ar);
+void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 
+/* sequencer_draw.c */
+void drawseqspace(const struct bContext *C, struct ARegion *ar);
+
+/* sequencer_edit.c */
+int check_single_seq(struct Sequence *seq);
+int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
+int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
+void boundbox_seq(struct Scene *scene, struct rctf *rect);
+struct Sequence *get_last_seq(struct Scene *scene);
+
+/* sequencer_scope.c */
+struct ImBuf *make_waveform_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_sep_waveform_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_vectorscope_view_from_ibuf(struct ImBuf * ibuf);
+struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf * ibuf, float perc);
+struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 
 #endif /* ED_SEQUENCER_INTERN_H */
 

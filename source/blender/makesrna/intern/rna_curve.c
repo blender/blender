@@ -41,96 +41,6 @@ static int rna_Curve_texspace_editable(PointerRNA *ptr)
 
 #else
 
-static void rna_def_path(BlenderRNA *brna, StructRNA *srna);
-static void rna_def_nurbs(BlenderRNA *brna, StructRNA *srna);
-static void rna_def_font(BlenderRNA *brna, StructRNA *srna);
-
-void rna_def_curve(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "Curve", "ID");
-	RNA_def_struct_ui_text(srna, "Curve", "Curve Object Data for storing any number of bezier splines, nurbs or poly lines");
-	
-	rna_def_ipo_common(srna);
-	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
-
-	prop= RNA_def_property(srna, "key", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Shape Keys", "");
-	
-	rna_def_path(brna, srna);
-	rna_def_nurbs(brna, srna);
-	rna_def_font(brna, srna);
-	
-	/* Number values */
-	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "bevresol");
-	RNA_def_property_range(prop, 0, 32);
-	RNA_def_property_ui_text(prop, "Bevel Resolution", "Bevel resolution when depth is non-zero and no specific bevel object has been defined.");
-	
-	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "width");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor.");
-	
-	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ext1");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
-	
-	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ext2");
-	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object.");
-	
-	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_range(prop, 1, 1024);
-	RNA_def_property_ui_text(prop, "U Resolution", "Surface resolution in U direction.");
-	
-	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_range(prop, 1, 1024);
-	RNA_def_property_ui_text(prop, "V Resolution", "Surface resolution in V direction.");
-	
-	prop= RNA_def_property(srna, "resolution_u_rendering", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "U Resolution (Rendering)", "Surface resolution in U direction used while rendering. Zero skips this property.");
-	
-	prop= RNA_def_property(srna, "resolution_v_rendering", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "V Resolution (Rendering)", "Surface resolution in V direction used while rendering. Zero skips this property.");
-	
-	/* pointers */
-	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
-	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape.");
-	
-	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
-	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
-	
-	/* Flags */
-	prop= RNA_def_property(srna, "planar", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_3D);
-	RNA_def_property_ui_text(prop, "2D Curve", "Define curve in two dimensions only. Note that fill only works when this is enabled.");
-	
-	prop= RNA_def_property(srna, "front", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FRONT);
-	RNA_def_property_ui_text(prop, "Front", "Draw filled front for extruded/beveled curves.");
-	
-	prop= RNA_def_property(srna, "back", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BACK);
-	RNA_def_property_ui_text(prop, "Back", "Draw filled back for extruded/beveled curves.");
-	
-	prop= RNA_def_property(srna, "retopo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_RETOPO);
-	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
-}
-
 static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -253,16 +163,9 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tb");
 	RNA_def_property_ui_text(prop, "Textbox", "");
 	
-	/*
-	TODO: struct CharInfo curinfo;
-	
-	Obviously a pointer won't work in this case.
-	*/
-	/*
-	prop= RNA_def_property(srna, "curinfo", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "edit_format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curinfo");
-	RNA_def_property_ui_text(prop, "curinfo", "");
-	*/
+	RNA_def_property_ui_text(prop, "Edit Format", "Editing settings character formatting.");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "fast", PROP_BOOLEAN, PROP_NONE);
@@ -296,7 +199,7 @@ void rna_def_textbox(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "TextBox", NULL);
-	RNA_def_struct_ui_text(srna, "Text Box", "Bounding box for text layout");
+	RNA_def_struct_ui_text(srna, "Text Box", "Text bounding box for layout.");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
@@ -325,8 +228,9 @@ void rna_def_charinfo(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna= RNA_def_struct(brna, "CharInfo", NULL);
-	RNA_def_struct_ui_text(srna, "Character Info", "Specific properties per character");
+	srna= RNA_def_struct(brna, "TextCharacterFormat", NULL);
+	RNA_def_struct_sdna(srna, "CharInfo");
+	RNA_def_struct_ui_text(srna, "Text Character Format", "Text character formatting settings.");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "style", PROP_BOOLEAN, PROP_NONE);
@@ -350,6 +254,93 @@ void rna_def_charinfo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Wrap", "");
 }
 
+void rna_def_curve(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "Curve", "ID");
+	RNA_def_struct_ui_text(srna, "Curve", "Curve datablock storing curves, splines and NURBS.");
+	
+	rna_def_ipo_common(srna);
+	rna_def_texmat_common(srna, "rna_Curve_texspace_editable");
+
+	prop= RNA_def_property(srna, "shape_keys", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "key");
+	RNA_def_property_ui_text(prop, "Shape Keys", "");
+	
+	rna_def_path(brna, srna);
+	rna_def_nurbs(brna, srna);
+	rna_def_font(brna, srna);
+	
+	/* Number values */
+	prop= RNA_def_property(srna, "bevel_resolution", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "bevresol");
+	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_text(prop, "Bevel Resolution", "Bevel resolution when depth is non-zero and no specific bevel object has been defined.");
+	
+	prop= RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "width");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Width", "Scale the original width (1.0) based on given factor.");
+	
+	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ext1");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
+	
+	prop= RNA_def_property(srna, "bevel_depth", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ext2");
+	RNA_def_property_range(prop, 0.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Bevel Depth", "Bevel depth when not using a bevel object.");
+	
+	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolu");
+	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
+	
+	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolv");
+	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
+	
+	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
+	
+	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
+	
+	/* pointers */
+	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
+	RNA_def_property_ui_text(prop, "Bevel Object", "Curve object name that defines the bevel shape.");
+	
+	prop= RNA_def_property(srna, "taper_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "taperobj");
+	RNA_def_property_ui_text(prop, "Taper Object", "Curve object name that defines the taper (width).");
+	
+	/* Flags */
+	prop= RNA_def_property(srna, "curve_2d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_3D);
+	RNA_def_property_ui_text(prop, "2D Curve", "Define curve in two dimensions only. Note that fill only works when this is enabled.");
+	
+	prop= RNA_def_property(srna, "front", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FRONT);
+	RNA_def_property_ui_text(prop, "Front", "Draw filled front for extruded/beveled curves.");
+	
+	prop= RNA_def_property(srna, "back", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BACK);
+	RNA_def_property_ui_text(prop, "Back", "Draw filled back for extruded/beveled curves.");
+	
+	prop= RNA_def_property(srna, "retopo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_RETOPO);
+	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
+}
+
 void RNA_def_curve(BlenderRNA *brna)
 {
 	rna_def_curve(brna);
@@ -358,3 +349,4 @@ void RNA_def_curve(BlenderRNA *brna)
 }
 
 #endif
+

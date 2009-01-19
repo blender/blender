@@ -33,7 +33,9 @@ struct Object;
 struct Base;
 struct Bone;
 struct bArmature;
+struct bPoseChannel;
 struct ListBase;
+struct View3D;
 
 typedef struct EditBone
 {
@@ -91,10 +93,16 @@ void ED_armature_edit_remake(struct Object *obedit);
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
 void mouse_armature(struct bContext *C, short mval[2], int extend);
-
+struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 
 void transform_armature_mirror_update(struct Object *obedit);
+void clear_armature(struct Scene *scene, struct Object *ob, char mode);
+void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par);
+void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
+
+void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
+void unique_editbone_name (ListBase *edbo, char *name);
 
 /* poseobject.c */
 void ED_armature_exit_posemode(struct Base *base);

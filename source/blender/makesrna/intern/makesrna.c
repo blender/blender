@@ -176,6 +176,26 @@ static int rna_color_quantize(PropertyRNA *prop, PropertyDefRNA *dp)
 	return 0;
 }
 
+static const char *rna_function_string(void *func)
+{
+	return (func)? (const char*)func: "NULL";
+}
+
+static void rna_float_print(FILE *f, float num)
+{
+	if(num == -FLT_MAX) fprintf(f, "-FLT_MAX");
+	else if(num == FLT_MAX) fprintf(f, "FLT_MAX");
+	else if((int)num == num) fprintf(f, "%.1ff", num);
+	else fprintf(f, "%.10ff", num);
+}
+
+static void rna_int_print(FILE *f, int num)
+{
+	if(num == INT_MIN) fprintf(f, "INT_MIN");
+	else if(num == INT_MAX) fprintf(f, "INT_MAX");
+	else fprintf(f, "%d", num);
+}
+
 static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp)
 {
 	char *func;
@@ -219,8 +239,11 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 						fprintf(f, "	return (%s)%s((&data->%s)[index]);\n", rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname);
 				}
 				else {
-					if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-						fprintf(f, "	return (%s(data->%s[index] & %d) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
+					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
+						fprintf(f, "	return (%s(data->%s[index] & ", (dp->booleannegative)? "!": "", dp->dnaname);
+						rna_int_print(f, dp->booleanbit);
+						fprintf(f, ") != 0);\n");
+					}
 					else if(rna_color_quantize(prop, dp))
 						fprintf(f, "	return (%s)(data->%s[index]/255.0f);\n", rna_type_type(prop), dp->dnaname);
 					else
@@ -232,10 +255,16 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "static %s %s(PointerRNA *ptr)\n", rna_type_type(prop), func);
 				fprintf(f, "{\n");
 				rna_print_data_get(f, dp);
-				if(prop->type == PROP_BOOLEAN && dp->booleanbit)
-					fprintf(f, "	return (%s((data->%s) & %d) != 0);\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
-				else if(prop->type == PROP_ENUM && dp->enumbitflags)
-					fprintf(f, "	return ((data->%s) & %d);\n", dp->dnaname, rna_enum_bitmask(prop));
+				if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
+					fprintf(f, "	return (%s((data->%s) & ", (dp->booleannegative)? "!": "", dp->dnaname);
+					rna_int_print(f, dp->booleanbit);
+					fprintf(f, ") != 0);\n");
+				}
+				else if(prop->type == PROP_ENUM && dp->enumbitflags) {
+					fprintf(f, "	return ((data->%s) & ", dp->dnaname);
+					rna_int_print(f, rna_enum_bitmask(prop));
+					fprintf(f, ");\n");
+				}
 				else if(prop->type == PROP_POINTER && dp->dnapointerlevel == 0)
 					fprintf(f, "	return (%s)&(data->%s);\n", rna_type_type(prop), dp->dnaname);
 				else
@@ -246,26 +275,6 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 	}
 
 	return func;
-}
-
-static const char *rna_function_string(void *func)
-{
-	return (func)? (const char*)func: "NULL";
-}
-
-static void rna_float_print(FILE *f, float num)
-{
-	if(num == -FLT_MAX) fprintf(f, "-FLT_MAX");
-	else if(num == FLT_MAX) fprintf(f, "FLT_MAX");
-	else if((int)num == num) fprintf(f, "%.1ff", num);
-	else fprintf(f, "%.10ff", num);
-}
-
-static void rna_int_print(FILE *f, int num)
-{
-	if(num == INT_MIN) fprintf(f, "INT_MIN");
-	else if(num == INT_MAX) fprintf(f, "INT_MAX");
-	else fprintf(f, "%d", num);
 }
 
 static void rna_clamp_value(FILE *f, PropertyRNA *prop)
@@ -334,8 +343,12 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else {
 					if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-						fprintf(f, "	if(%svalue) data->%s[index] |= %d;\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
-						fprintf(f, "	else data->%s[index] &= ~%d;\n", dp->dnaname, dp->booleanbit);
+						fprintf(f, "	if(%svalue) data->%s[index] |= ", (dp->booleannegative)? "!": "", dp->dnaname);
+						rna_int_print(f, dp->booleanbit);
+						fprintf(f, ";\n");
+						fprintf(f, "	else data->%s[index] &= ~", dp->dnaname);
+						rna_int_print(f, dp->booleanbit);
+						fprintf(f, ";\n");
 					}
 					else if(rna_color_quantize(prop, dp)) {
 						fprintf(f, "	data->%s[index]= FTOCHAR(value);\n", dp->dnaname);
@@ -352,11 +365,17 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "{\n");
 				rna_print_data_get(f, dp);
 				if(prop->type == PROP_BOOLEAN && dp->booleanbit) {
-					fprintf(f, "	if(%svalue) data->%s |= %d;\n", (dp->booleannegative)? "!": "", dp->dnaname, dp->booleanbit);
-					fprintf(f, "	else data->%s &= ~%d;\n", dp->dnaname, dp->booleanbit);
+					fprintf(f, "	if(%svalue) data->%s |= ", (dp->booleannegative)? "!": "", dp->dnaname);
+					rna_int_print(f, dp->booleanbit);
+					fprintf(f, ";\n");
+					fprintf(f, "	else data->%s &= ~", dp->dnaname);
+					rna_int_print(f, dp->booleanbit);
+					fprintf(f, ";\n");
 				}
 				else if(prop->type == PROP_ENUM && dp->enumbitflags) {
-					fprintf(f, "	data->%s &= ~%d;\n", dp->dnaname, rna_enum_bitmask(prop));
+					fprintf(f, "	data->%s &= ~", dp->dnaname);
+					rna_int_print(f, rna_enum_bitmask(prop));
+					fprintf(f, ";\n");
 					fprintf(f, "	data->%s |= value;\n", dp->dnaname);
 				}
 				else {
@@ -579,7 +598,14 @@ static void rna_auto_types()
 	PropertyDefRNA *dp;
 
 	for(ds=DefRNA.structs.first; ds; ds=ds->next) {
+		/* DNA name for Screen is patched in 2.5, we do the reverse here .. */
+		if(ds->dnaname && strcmp(ds->dnaname, "Screen") == 0)
+			ds->dnaname= "bScreen";
+
 		for(dp=ds->properties.first; dp; dp=dp->next) {
+			if(dp->dnastructname && strcmp(dp->dnastructname, "Screen") == 0)
+				dp->dnastructname= "bScreen";
+
 			if(dp->dnatype) {
 				if(dp->prop->type == PROP_POINTER) {
 					PointerPropertyRNA *pprop= (PointerPropertyRNA*)dp->prop;
@@ -647,6 +673,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_VECTOR: return "PROP_VECTOR";
 		case PROP_MATRIX: return "PROP_MATRIX";
 		case PROP_ROTATION: return "PROP_ROTATION";
+		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
 		default: return "PROP_UNKNOWN";
 	}
 }
@@ -880,10 +907,10 @@ static void rna_generate_struct(BlenderRNA *brna, StructRNA *srna, FILE *f)
 
 	fprintf(f, "(PropertyRNA*)&rna_%s_rna_properties,\n", srna->identifier);
 
-	if(srna->from) fprintf(f, "\t&RNA_%s,\n", (char*)srna->from);
+	if(srna->base) fprintf(f, "\t&RNA_%s,\n", srna->base->identifier);
 	else fprintf(f, "\tNULL,\n");
 
-	if(srna->parent) fprintf(f, "\t&RNA_%s,\n", (char*)srna->parent);
+	if(srna->nested) fprintf(f, "\t&RNA_%s,\n", srna->nested->identifier);
 	else fprintf(f, "\tNULL,\n");
 
 	fprintf(f, "\t%s,\n", rna_function_string(srna->refine));
@@ -908,6 +935,7 @@ typedef struct RNAProcessItem {
 
 RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_ID.c", RNA_def_ID},
+	{"rna_texture.c", RNA_def_texture},
 	{"rna_action.c", RNA_def_action},
 	{"rna_actuator.c", RNA_def_actuator},
 	{"rna_armature.c", RNA_def_armature},
@@ -944,16 +972,17 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_scriptlink.c", RNA_def_scriptlink},
 	{"rna_sensor.c", RNA_def_sensor},
 	{"rna_sequence.c", RNA_def_sequence},
+	{"rna_space.c", RNA_def_space},
 	{"rna_text.c", RNA_def_text},
-	{"rna_texture.c", RNA_def_texture},
 	{"rna_sound.c", RNA_def_sound},
 	{"rna_userdef.c", RNA_def_userdef},
 	{"rna_vfont.c", RNA_def_vfont},
+	{"rna_vpaint.c", RNA_def_vpaint},
 	{"rna_wm.c", RNA_def_wm},
 	{"rna_world.c", RNA_def_world},	
 	{NULL, NULL}};
 
-static void rna_generate(BlenderRNA *brna, char *basedirectory, FILE *f, char *filename)
+static void rna_generate(BlenderRNA *brna, FILE *f, char *filename)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
@@ -1005,7 +1034,7 @@ static void make_bad_file(char *file)
 	fclose(fp);
 }
 
-static int rna_preprocess(char *basedirectory, char *outfile)
+static int rna_preprocess(char *outfile)
 {
 	BlenderRNA *brna;
 	StructDefRNA *ds;
@@ -1050,7 +1079,7 @@ static int rna_preprocess(char *basedirectory, char *outfile)
 				status = 1;
 			}
 			else {
-				rna_generate(brna, basedirectory, file, PROCESS_ITEMS[i].filename);
+				rna_generate(brna, file, PROCESS_ITEMS[i].filename);
 				fclose(file);
 
 				status= (DefRNA.error != 0);
@@ -1064,29 +1093,17 @@ static int rna_preprocess(char *basedirectory, char *outfile)
 	return status;
 }
 
-#ifndef BASE_HEADER
-#define BASE_HEADER "../"
-#endif
-
 int main(int argc, char **argv)
 {
 	int totblock, return_status = 0;
 
-	if (argc!=2 && argc!=3) {
-		printf("Usage: %s outdirectory/ [base directory]\n", argv[0]);
+	if (argc<2) {
+		printf("Usage: %s outdirectory/\n", argv[0]);
 		return_status = 1;
 	}
 	else {
-		char baseDirectory[256];
-
 		printf("Running makesrna, program versions %s\n",  RNA_VERSION_DATE);
-
-		if (argc==3)
-			strcpy(baseDirectory, argv[2]);
-		else
-			strcpy(baseDirectory, BASE_HEADER);
-
-		return_status= rna_preprocess(baseDirectory, argv[1]);
+		return_status= rna_preprocess(argv[1]);
 	}
 
 	totblock= MEM_get_memory_blocks_in_use();

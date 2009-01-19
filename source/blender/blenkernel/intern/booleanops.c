@@ -268,7 +268,6 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 				
 	// Initialize the mesh data associated with this object.						
 	ob_new->data= add_mesh("Mesh");
-	G.totmesh++;
 
 	// Finally assign the object type.
 	ob_new->type= OB_MESH;

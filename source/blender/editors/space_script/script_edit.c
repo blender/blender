@@ -75,7 +75,6 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 
 void SCRIPT_OT_run_pyfile(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name= "Run python file";
 	ot->idname= "SCRIPT_OT_run_pyfile";
@@ -84,5 +83,6 @@ void SCRIPT_OT_run_pyfile(wmOperatorType *ot)
 	ot->exec= run_pyfile_exec;
 	ot->poll= ED_operator_areaactive;
 
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_string_file_path(ot->srna, "filename", "", 512, "Filename", "");
 }
+

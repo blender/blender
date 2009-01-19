@@ -132,16 +132,19 @@ void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_scriptlink(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequence(struct BlenderRNA *brna);
+void RNA_def_space(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_sound(struct BlenderRNA *brna);
 void RNA_def_userdef(struct BlenderRNA *brna);
 void RNA_def_vfont(struct BlenderRNA *brna);
+void RNA_def_vpaint(struct BlenderRNA *brna);
 void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
 
 void rna_def_ipo_common(struct StructRNA *srna);
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
+void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *structname);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
@@ -160,13 +163,13 @@ void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, ch
 
 extern StringPropertyRNA rna_IDProperty_string;
 extern IntPropertyRNA rna_IDProperty_int;
-extern IntPropertyRNA rna_IDProperty_intarray;
+extern IntPropertyRNA rna_IDProperty_int_array;
 extern FloatPropertyRNA rna_IDProperty_float;
-extern FloatPropertyRNA rna_IDProperty_floatarray;
+extern FloatPropertyRNA rna_IDProperty_float_array;
 extern PointerPropertyRNA rna_IDProperty_group;
 extern CollectionPropertyRNA rna_IDProperty_collection;
 extern FloatPropertyRNA rna_IDProperty_double;
-extern FloatPropertyRNA rna_IDProperty_doublearray;
+extern FloatPropertyRNA rna_IDProperty_double_array;
 
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;

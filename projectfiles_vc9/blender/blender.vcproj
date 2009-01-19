@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="blender"
 	ProjectGUID="{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}"
 	RootNamespace="blender"

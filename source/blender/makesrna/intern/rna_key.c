@@ -201,7 +201,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL);
-	RNA_def_struct_ui_text(srna, "Shape Key Point", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Shape Key Point", "Point in a shape key.");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
@@ -209,7 +209,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Location", "");
 
 	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
-	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "Point in a shape key for curves.");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
@@ -221,7 +221,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tilt", "");
 
 	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
-	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for bezier curves.");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
@@ -256,7 +256,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 		{0, NULL, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
-	RNA_def_struct_ui_text(srna, "Shape Key", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
 	RNA_def_struct_sdna(srna, "KeyBlock");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -317,21 +317,21 @@ static void rna_def_key(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Key", "ID");
-	RNA_def_struct_ui_text(srna, "Key", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Key", "Shape keys datablock containing different shapes of geometric datablocks.");
 
-	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "reference_key", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_flag(prop, PROP_NOT_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "refkey");
 	RNA_def_property_ui_text(prop, "Reference Key", "");
 
-	prop= RNA_def_property(srna, "shape_keys", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "keys", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "block", NULL);
 	RNA_def_property_struct_type(prop, "ShapeKey");
-	RNA_def_property_ui_text(prop, "Shape Keys", "");
+	RNA_def_property_ui_text(prop, "Keys", "Shape keys.");
 
 	rna_def_ipo_common(srna);
 
-	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "from");
 	RNA_def_property_ui_text(prop, "User", "Datablock using these shape keys.");
 

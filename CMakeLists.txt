@@ -66,6 +66,7 @@ OPTION(WITH_PYTHON		"Enable Embedded Python API"				ON)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
+OPTION(WITH_YAFRAY		"Enable Yafray (Renderer)"				OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -195,6 +196,9 @@ IF(UNIX)
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DXP_UNIX -Wno-char-subscripts")
 
   SET(PLATFORM_LINKFLAGS "-pthread")
+
+  # Better warnings
+  SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Waggregate-return -Wnested-externs -Wdeclaration-after-statement")
 
   INCLUDE_DIRECTORIES(/usr/include /usr/local/include)
 ENDIF(UNIX)
@@ -453,7 +457,7 @@ ENDIF(WITH_GAMEENGINE)
 IF(WITH_BULLET)
   SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DWITH_BULLET ")
 ENDIF(WITH_BULLET)
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 
 #-----------------------------------------------------------------------------

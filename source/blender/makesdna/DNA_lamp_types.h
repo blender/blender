@@ -39,11 +39,13 @@
 #endif
 
 struct MTex;
-struct Ipo;
 struct CurveMapping;
+struct AnimData;
+struct Ipo;
 
 typedef struct Lamp {
 	ID id;
+	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	short type, flag;
 	int mode;
@@ -103,7 +105,7 @@ typedef struct Lamp {
 	short YF_glowtype, YF_pad2;
 	
 	struct MTex *mtex[18];			/* MAX_MTEX */
-	struct Ipo *ipo;
+	struct Ipo *ipo;				// XXX depreceated... old animation system
 	
 	/* preview */
 	struct PreviewImage *preview;

@@ -49,7 +49,7 @@ void RNA_def_group(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Group", "ID");
-	RNA_def_struct_ui_text(srna, "Group", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks.");
 
 	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");

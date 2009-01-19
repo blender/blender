@@ -606,6 +606,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_anim_types.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_armature_types.h"
 				>
 			</File>

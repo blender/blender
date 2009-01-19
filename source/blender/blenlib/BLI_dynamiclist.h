@@ -50,15 +50,16 @@ typedef struct DynamicList {
 	struct ListBase lb;		/* two way linked dynamic list */
 } DynamicList;
 
-struct DynamicList *BLI_dlist_from_listbase(struct ListBase *lb);
-struct ListBase *BLI_listbase_from_dlist(struct DynamicList *dlist, struct ListBase *lb);
-void * BLI_dlist_find_link(struct DynamicList *dlist, unsigned int index);
-unsigned int BLI_count_items(struct DynamicList *dlist);
-void BLI_dlist_free_item(struct DynamicList *dlist, unsigned int index);
-void BLI_dlist_rem_item(struct DynamicList *dlist, unsigned int index);
-void * BLI_dlist_add_item_index(struct DynamicList *dlist, void *item, unsigned int index);
-void BLI_dlist_destroy(struct DynamicList *dlist);
-void BLI_dlist_init(struct DynamicList *dlist);
-void BLI_dlist_reinit(struct DynamicList *dlist);
+/* note: 'index' is a string.h function, do not use in includes */
+struct DynamicList *BLI_dlist_from_listbase(struct ListBase *);
+struct ListBase *BLI_listbase_from_dlist(struct DynamicList *, struct ListBase *);
+void * BLI_dlist_find_link(struct DynamicList *, unsigned int);
+unsigned int BLI_count_items(struct DynamicList *);
+void BLI_dlist_free_item(struct DynamicList *, unsigned int);
+void BLI_dlist_rem_item(struct DynamicList *, unsigned int);
+void * BLI_dlist_add_item_index(struct DynamicList *, void *, unsigned int);
+void BLI_dlist_destroy(struct DynamicList *);
+void BLI_dlist_init(struct DynamicList *);
+void BLI_dlist_reinit(struct DynamicList *);
 
 #endif

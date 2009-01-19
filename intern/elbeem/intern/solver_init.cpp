@@ -1401,7 +1401,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 		debMsgStd("LbmFsgrSolver::initMovingObstacles",DM_MSG," obj "<<obj->getName()<<" skip:"<<skip<<", static:"<<staticInit<<" anim:"<<obj->getIsAnimated()<<" gid:"<<obj->getGeoInitId()<<" simgid:"<<mLbmInitId, 10);
 
 		if( (obj->getGeoInitType()&FGI_ALLBOUNDS) || 
-				(obj->getGeoInitType()&FGI_FLUID) && staticInit ) {
+				((obj->getGeoInitType()&FGI_FLUID) && staticInit) ) {
 
 			otype = ntype = CFInvalid;
 			switch(obj->getGeoInitType()) {

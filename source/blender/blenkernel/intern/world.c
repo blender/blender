@@ -48,6 +48,7 @@
 #include "BKE_utildefines.h"
 
 #include "BKE_library.h"
+#include "BKE_animsys.h"
 #include "BKE_world.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -76,7 +77,8 @@ void free_world(World *wrld)
 	}
 	BKE_previewimg_free(&wrld->preview);
 
-	wrld->ipo= 0;
+	BKE_free_animdata((ID *)wrld);
+
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
 }
@@ -129,7 +131,10 @@ World *copy_world(World *wrld)
 #ifndef DISABLE_PYTHON
 	BPY_copy_scriptlink(&wrld->scriptlink);
 #endif
+
+#if 0 // XXX old animation system
 	id_us_plus((ID *)wrldn->ipo);
+#endif // XXX old animation system
 	
 	return wrldn;
 }

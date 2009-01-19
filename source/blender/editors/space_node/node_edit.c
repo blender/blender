@@ -100,9 +100,19 @@
 #include "winlay.h"
 */
 
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+ 
+#include "node_intern.h"
 
 // XXX XXX XXX
 static void BIF_undo_push(char *s) {}
@@ -321,6 +331,8 @@ static void set_node_imagepath(char *str)	/* called from fileselect */
 	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
 }
 
+#endif /* 0 */
+
 static bNode *snode_get_editgroup(SpaceNode *snode)
 {
 	bNode *gnode;
@@ -331,6 +343,8 @@ static bNode *snode_get_editgroup(SpaceNode *snode)
 			break;
 	return gnode;
 }
+
+#if 0
 
 /* node has to be of type 'render layers' */
 /* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
@@ -474,7 +488,7 @@ static void texture_node_event(SpaceNode *snode, short event)
 	}
 }
 
-
+#endif /* 0  */
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
 void node_shader_default(Material *ma)
@@ -534,7 +548,7 @@ void node_composit_default(Scene *sce)
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
 	
-	ntreeCompositForceHidden(sce->nodetree);
+	// XXX ntreeCompositForceHidden(sce->nodetree);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -566,7 +580,6 @@ void node_texture_default(Tex *tx)
 	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
 	ntreeTexUpdatePreviews(tx->nodetree);
 }
-#endif
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
 void snode_set_context(SpaceNode *snode, Scene *scene)
@@ -785,6 +798,7 @@ void node_ungroup(SpaceNode *snode)
 	}
 }
 
+#endif /* 0 */
 /* when links in groups change, inputs/outputs change, nodes added/deleted... */
 static void snode_verify_groups(SpaceNode *snode)
 {
@@ -797,6 +811,8 @@ static void snode_verify_groups(SpaceNode *snode)
 		nodeVerifyGroup((bNodeTree *)gnode->id);
 	
 }
+
+#if 0
 
 static void node_addgroup(SpaceNode *snode)
 {
@@ -1772,6 +1788,8 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 	ntreeSolveOrder(snode->edittree);
 }
 
+#endif /* 0 */
+
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 {
@@ -1784,7 +1802,7 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	}
 	else if(type>=NODE_GROUP_MENU) {
 		if(snode->edittree!=snode->nodetree) {
-			error("Can not add a Group in a Group");
+			// XXX error("Can not add a Group in a Group");
 			return NULL;
 		}
 		else {
@@ -1814,8 +1832,9 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		if(node->id)
 			id_us_plus(node->id);
 		
-		if(snode->nodetree->type==NTREE_COMPOSIT)
-			ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
+		// NODE_FIX_ME
+		// if(snode->nodetree->type==NTREE_COMPOSIT)
+		//	ntreeCompositForceHidden(snode->edittree, scene); // XXX was G.scene
 		
 		NodeTagChanged(snode->edittree, node);
 	}
@@ -1827,6 +1846,8 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 	
 	return node;
 }
+
+#if 0
 
 void node_mute(SpaceNode *snode)
 {
@@ -1864,7 +1885,6 @@ void node_adduplicate(SpaceNode *snode)
 	transform_nodes(snode->edittree, 'g', "Duplicate");
 }
 
-#if 0
 static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 {
 	bNode *newnode= NULL;
@@ -1897,8 +1917,6 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 		link->tosock= newnode->inputs.first;
 	}
 }
-
-#endif
 
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
@@ -2068,6 +2086,8 @@ static int node_add_link(SpaceNode *snode)
 	return 0;
 }
 
+#endif /* 0 */
+
 void node_delete(SpaceNode *snode)
 {
 	bNode *node, *next;
@@ -2091,10 +2111,12 @@ void node_delete(SpaceNode *snode)
 	}
 	
 	snode_verify_groups(snode);
-	snode_handle_recalc(snode);
-	BIF_undo_push("Delete nodes");
+	// NODE_FIX_ME
+	// snode_handle_recalc(snode);
+	// BIF_undo_push("Delete nodes");
 	// allqueue(REDRAWNODE, 1);
 }
+
 
 void node_hide(SpaceNode *snode)
 {
@@ -2117,9 +2139,11 @@ void node_hide(SpaceNode *snode)
 				node->flag &= ~NODE_HIDDEN;
 		}
 	}
-	BIF_undo_push("Hide nodes");
+	// BIF_undo_push("Hide nodes");
 	// allqueue(REDRAWNODE, 1);
 }
+
+#if 0
 
 void node_insert_key(SpaceNode *snode)
 {
@@ -2724,4 +2748,30 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		scrarea_queue_headredraw(sa);
 }
 #endif
+
+static int node_delete_selection_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	node_delete(snode);
+	ED_region_tag_redraw(ar);
+	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL); /* Do we need to pass the scene? */
+
+	return OPERATOR_FINISHED;
+}
+
+/* operators */
+
+void NODE_OT_delete_selection(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Delete";
+	ot->idname= "NODE_OT_delete_selection";
+	
+	/* api callbacks */
+	ot->exec= node_delete_selection_exec;
+	ot->poll= ED_operator_node_active;
+}
 

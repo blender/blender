@@ -682,7 +682,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 				xs= (but->x1+but->x2- height)/2.0;
 			}
 		}
-		else if (but->type==BUTM ) {
+		else if (but->block->flag & UI_BLOCK_LOOP) {
 			xs= but->x1+1.0;
 		}
 		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
@@ -2362,7 +2362,7 @@ static void ui_draw_text_icon(uiBut *but)
 			/* text color, with pulldown item exception */
 			if(tog3);	// color already set
 			else if(but->dt==UI_EMBOSSP) {
-				if((but->flag & (UI_SELECT|UI_ACTIVE)) && but->type!=LABEL) {	// LABEL = title in pulldowns
+				if((but->flag & UI_ACTIVE) && but->type!=LABEL) {	// LABEL = title in pulldowns
 					UI_ThemeColorShadeAlpha(TH_MENU_TEXT_HI, 0, alpha_offs);
 				} else {
 					UI_ThemeColorShadeAlpha(TH_MENU_TEXT, 0, alpha_offs);

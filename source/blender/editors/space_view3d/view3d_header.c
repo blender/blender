@@ -141,10 +141,11 @@ static int retopo_mesh_paint_check() {return 0;}
 void ED_view3d_exit_paint_modes(bContext *C)
 {
 	if(G.f & G_VERTEXPAINT)
-		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	else if(G.f & G_WEIGHTPAINT)
+		WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
 //	if(G.f & G_TEXTUREPAINT) set_texturepaint();
-//	if(G.f & G_WEIGHTPAINT) set_wpaint();
 //	if(G.f & G_SCULPTMODE) set_sculptmode();
 //	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
 	
@@ -464,7 +465,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 // XXX		mainqenter(PADASTERKEY, 1);
 		break;
 	case 6: /* Center View and Cursor to Origin */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
 		curs= give_cursor(scene, v3d);
 		curs[0]=curs[1]=curs[2]= 0.0;
 		break;
@@ -549,10 +550,10 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		endlocalview(scene, sa);
 		break;
 	case 9: /* View All (Home) */
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 11: /* View Selected */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 13: /* Play Back Animation */
 		play_anim(0);
@@ -564,7 +565,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
-		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
 		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
@@ -899,34 +900,14 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, uiMenuBlockHandle 
 	return block;
 }
 
-void do_view3d_select_objectmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-	
-	case 0: /* border select */
-		borderselect();
-		break;
-	case 1: /* Select/Deselect All */
-		deselectall();
-		break;
-	case 2: /* inverse */
-		selectswap();
-		break;
-	case 3: /* random */
-		selectrandom();
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-#endif
-}
-
 static uiBlock *view3d_select_objectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
 	block= uiBeginBlock(C, handle->region, "view3d_select_objectmenu", UI_EMBOSSP, UI_HELV);
+	
+#if 0
 	uiBlockSetButmFunc(block, do_view3d_select_objectmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
@@ -944,6 +925,17 @@ static uiBlock *view3d_select_objectmenu(bContext *C, uiMenuBlockHandle *handle,
 	
 	uiDefIconTextBlockBut(block, view3d_select_object_linkedmenu, NULL, ICON_RIGHTARROW_THIN, "Linked", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_select_object_groupedmenu, NULL, ICON_RIGHTARROW_THIN, "Grouped", 0, yco-=20, 120, 19, "");
+#endif
+	uiDefMenuButO(block, "VIEW3D_OT_borderselect", "Border Select");
+	
+	uiDefMenuSep(block);
+	
+	uiDefMenuButO(block, "OBJECT_OT_de_select_all", "Select/Deselect All");
+	uiDefMenuButO(block, "OBJECT_OT_select_invert", "Inverse");
+	uiDefMenuButO(block, "OBJECT_OT_select_random", "Random");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_layer", "Select All by Layer");
+	uiDefMenuButO(block, "OBJECT_OT_select_by_type", "Select All by Type");
+
 
 	if(handle->region->alignment==RGN_ALIGN_TOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -3297,15 +3289,15 @@ static void do_view3d_edit_curve_controlpointsmenu(bContext *C, void *arg, int e
 		clear_tilt();
 		break;
 	case 2: /* Free */
-		sethandlesNurb(3);
+		sethandlesNurb(editnurb, 3);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* vector */
-		sethandlesNurb(2);
+		sethandlesNurb(editnurb, 2);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 4: /* smooth */
-		sethandlesNurb(1);
+		sethandlesNurb(editnurb, 1);
 		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		break;
 	case 5: /* make vertex parent */
@@ -3425,7 +3417,7 @@ static void do_view3d_edit_curvemenu(bContext *C, void *arg, int event)
 	switch(event) {
 	
 	case 0: /* Undo Editing */
-		remake_editNurb();
+		remake_editNurb(ob);
 		break;
 	case 1: /* transformation properties */
 // XXX		mainqenter(NKEY, 1);
@@ -4842,10 +4834,9 @@ void do_view3d_sculptmenu(bContext *C, void *arg, int event)
 
 uiBlock *view3d_sculpt_inputmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco= 0, menuwidth= 120;
-	SculptData *sd= &scene->sculptdata;
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 
 	block= uiBeginBlock(C, handle->region, "view3d_sculpt_inputmenu", UI_EMBOSSP, UI_HELV);
 	uiBlockSetButmFunc(block, do_view3d_sculpt_inputmenu, NULL);
@@ -4865,7 +4856,7 @@ uiBlock *view3d_sculptmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unu
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	uiBlock *block;
-	SculptData *sd= &scene->sculptdata;
+	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
 // XXX	const BrushData *br= sculptmode_brush();
 	short yco= 0, menuwidth= 120;
 	
@@ -5213,7 +5204,10 @@ static char *view3d_modeselect_pup(Scene *scene)
 
 	str += sprintf(str, "Mode: %%t");
 	
-	str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
+	if(ob)
+		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT);
+	else
+		str += sprintf(str, formatstr, " ", V3D_OBJECTMODE_SEL, ICON_OBJECT);
 	
 	if(ob==NULL) return string;
 	
@@ -5326,8 +5320,8 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Base *basact= scene->basact;
-	Object *ob= basact->object;
+	Base *basact= CTX_data_active_base(C);
+	Object *ob= CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl=0, shift=0; // XXX shift arg?
@@ -5339,7 +5333,10 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 
 	switch(event) {
 	case B_HOME:
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
+		break;
+	case B_REDR:
+		ED_area_tag_redraw(sa);
 		break;
 	case B_SCENELOCK:
 		if(v3d->scenelock) {
@@ -5404,9 +5401,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 			if (!(G.f & G_SCULPTMODE)) {
 				v3d->flag &= ~V3D_MODE;
 				ED_view3d_exit_paint_modes(C);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
-// XXX				set_sculptmode();
+				WM_operator_name_call(C, "SCULPT_OT_toggle_mode", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		}
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
@@ -5415,7 +5412,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				ED_view3d_exit_paint_modes(C);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL, NULL);
+				WM_operator_name_call(C, "VIEW3D_OT_vpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
@@ -5434,7 +5431,7 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
-// XXX				set_wpaint();
+				WM_operator_name_call(C, "VIEW3D_OT_wpaint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
 		} 
 		else if (v3d->modeselect == V3D_POSEMODE_SEL) {
@@ -5824,7 +5821,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
-// XXX 			char *str_menu;
+ 			char *str_menu;
 			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(C), xco,yco,XIC+10,YIC, &(v3d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
@@ -5868,13 +5865,13 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 				xco+= XIC;
 			}
 			
-// XXX			if (v3d->twmode > (BIF_countTransformOrientation() - 1) + V3D_MANIP_CUSTOM) {
-//				v3d->twmode = 0;
-//			}
+			if (v3d->twmode > (BIF_countTransformOrientation(C) - 1) + V3D_MANIP_CUSTOM) {
+				v3d->twmode = 0;
+			}
 			
-// XXX			str_menu = BIF_menustringTransformOrientation("Orientation");
-//			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
-//			MEM_freeN(str_menu);
+			str_menu = BIF_menustringTransformOrientation(C, "Orientation");
+			uiDefButS(block, MENU, B_MAN_MODE, str_menu,xco,yco,70,YIC, &v3d->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+			MEM_freeN(str_menu);
 			
 			xco+= 70;
 			uiBlockEndAlign(block);

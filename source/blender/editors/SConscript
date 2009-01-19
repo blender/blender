@@ -10,6 +10,10 @@ SConscript(['datafiles/SConscript',
 			'armature/SConscript',
 			'mesh/SConscript',
 			'object/SConscript',
+			'curve/SConscript',
+			'gpencil/SConscript',
+			#'physics/SConscript', enable this when there is actually code in physics/
+			#'preview/SConscript', enable this when there is actually code in preview/
 			'space_buttons/SConscript',
 			'space_file/SConscript',
 			'space_image/SConscript',
@@ -27,4 +31,5 @@ SConscript(['datafiles/SConscript',
 			'space_sequencer/SConscript',
 			'transform/SConscript',
 			'screen/SConscript',
-			'sculpt/SConscript'])
+			'sculpt/SConscript',
+			'uvedit/SConscript'])

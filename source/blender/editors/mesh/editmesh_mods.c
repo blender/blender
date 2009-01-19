@@ -125,7 +125,7 @@ void EM_automerge(int update)
 //	  ) {
 //		len = removedoublesflag(1, 1, scene->toolsettings->doublimit);
 //		if (len) {
-//			G.totvert -= len; /* saves doing a countall */
+//			em->totvert -= len; /* saves doing a countall */
 //			if (update) {
 //				DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 //			}
@@ -366,9 +366,9 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 
 
 
-static unsigned int findnearestvert__backbufIndextest(unsigned int index)
+static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int index)
 {
-	EditMesh *em= NULL; // XXX
+	EditMesh *em= (EditMesh *)handle;
 	EditVert *eve = BLI_findlink(&em->verts, index-1);
 
 	if(eve && (eve->f & SELECT)) return 0;
@@ -390,8 +390,8 @@ EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict)
 		unsigned int index;
 		EditVert *eve;
 		
-		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
-		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
+		if(strict) index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, vc->em, findnearestvert__backbufIndextest); 
+		else index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL, NULL); 
 		
 		eve = BLI_findlink(&vc->em->verts, index-1);
 		
@@ -493,7 +493,7 @@ EditEdge *findnearestedge(ViewContext *vc, int *dist)
 
 	if(vc->v3d->drawtype>OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
+		unsigned int index = view3d_sample_backbuf_rect(vc, vc->mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL, NULL);
 		EditEdge *eed = BLI_findlink(&vc->em->edges, index-1);
 
 		if (eed && distance<*dist) {
@@ -623,6 +623,9 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 	*eve= NULL;
 	*eed= NULL;
 	*efa= NULL;
+	
+	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
+	view3d_validate_backbuf(vc);
 	
 	if(em->selectmode & SCE_SELECT_VERTEX)
 		*eve= findnearestvert(vc, &dist, SELECT, 0);
@@ -1192,7 +1195,7 @@ void select_mesh_group_menu(EditMesh *em)
 		selcount= vertgroup_select(em, ret);
 		if (selcount) { /* update if data was selected */
 			EM_select_flush(em); /* so that selected verts, go onto select faces */
-			G.totvertsel += selcount;
+			em->totvertsel += selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Vertices");
 		}
@@ -1204,7 +1207,7 @@ void select_mesh_group_menu(EditMesh *em)
 		
 		if (selcount) { /* update if data was selected */
 			/*EM_select_flush(em);*/ /* dont use because it can end up selecting more edges and is not usefull*/
-			G.totedgesel+=selcount;
+			em->totedgesel+=selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Edges");
 		}
@@ -1214,7 +1217,7 @@ void select_mesh_group_menu(EditMesh *em)
 	if (ret<1000) {
 		selcount= facegroup_select(em, ret/100);
 		if (selcount) { /* update if data was selected */
-			G.totfacesel+=selcount;
+			em->totfacesel+=selcount;
 //			if (EM_texFaceCheck())
 			BIF_undo_push("Select Similar Faces");
 		}
@@ -1893,10 +1896,12 @@ void loop_multiselect(EditMesh *em, int looptype)
 	EditEdge **edarray;
 	int edindex, edfirstcount;
 	
-	/*edarray = MEM_mallocN(sizeof(*edarray)*G.totedgesel,"edge array");*/
-	edarray = MEM_mallocN(sizeof(EditEdge*)*G.totedgesel,"edge array");
+	/* sets em->totedgesel */
+	EM_nedges_selected(em);
+	
+	edarray = MEM_mallocN(sizeof(EditEdge*)*em->totedgesel,"edge array");
 	edindex = 0;
-	edfirstcount = G.totedgesel;
+	edfirstcount = em->totedgesel;
 	
 	for(eed=em->edges.first; eed; eed=eed->next){
 		if(eed->f&SELECT){
@@ -2098,7 +2103,7 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 //	rightmouse_transform();
 }
 
-
+// XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh_all if true
 void selectconnected_mesh_all(EditMesh *em)
 {
 	EditVert *v1,*v2;
@@ -2143,27 +2148,56 @@ void selectconnected_mesh_all(EditMesh *em)
 	BIF_undo_push("Select Connected (All)");
 }
 
-void selectconnected_mesh(bContext *C)
+static int selectconnected_mesh_all_exec(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	selectconnected_mesh_all(em);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_selectconnected_mesh_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select All of the Connected Mesh";
+	ot->idname= "MESH_OT_selectconnected_mesh_all";
+	
+	/* api callbacks */
+	ot->exec= selectconnected_mesh_all_exec;
+	ot->poll= ED_operator_editmesh;
+
+}
+
+/* *********** select connected ************* */
+
+// XXX should we use CTX_scene(C)->selectmode & SCE_SELECT_FACE like it was in the past ? calls selectconnected_delimit_mesh if true
+static int selectconnected_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
 	ViewContext vc;
 	EditVert *eve, *v1, *v2;
 	EditEdge *eed;
 	EditFace *efa;
-	short done=1, sel, toggle=0;
-	int shift= 0; // XXX
-		
+	short done=1, toggle=0;
+	int sel= !RNA_boolean_get(op->ptr, "deselect");
+	
+	/* unified_finednearest needs ogl */
+	view3d_operator_needs_opengl(C);
+	
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
 	
-	if(vc.em->edges.first==0) return;
+	if(vc.em->edges.first==0) return OPERATOR_CANCELLED;
+	
+	vc.mval[0]= event->x - vc.ar->winrct.xmin;
+	vc.mval[1]= event->y - vc.ar->winrct.ymin;
 	
 	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
-		/* error("Nothing indicated "); */ /* this is mostly annoying, eps with occluded geometry */
-		return;
+		return OPERATOR_CANCELLED;
 	}
-	
-	sel= 1;
-	if(shift) sel=0;
 
 	/* clear test flags */
 	for(v1= vc.em->verts.first; v1; v1= v1->next) v1->f1= 0;
@@ -2216,7 +2250,24 @@ void selectconnected_mesh(bContext *C)
 	
 	BIF_undo_push("Select Linked");
 	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
 }
+
+void MESH_OT_selectconnected_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Connected Mesh";
+	ot->idname= "MESH_OT_selectconnected_mesh";
+	
+	/* api callbacks */
+	ot->invoke= selectconnected_mesh_invoke;
+	ot->poll= ED_operator_editmesh;
+
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+}
+
+/* ************************* */
 
 /* for use with selectconnected_delimit_mesh only! */
 #define is_edge_delimit_ok(eed) ((eed->tmp.l == 1) && (eed->seam==0))
@@ -2422,13 +2473,44 @@ void hide_mesh(EditMesh *em, int swap)
 		}
 	}
 	
-	G.totedgesel= G.totfacesel= G.totvertsel= 0;
+	em->totedgesel= em->totfacesel= em->totvertsel= 0;
 //	if(EM_texFaceCheck())
 
 	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Hide");
 }
 
+static int hide_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	if (RNA_boolean_get(op->ptr, "swap"))
+		hide_mesh(em,1);
+	else
+		hide_mesh(em,0);
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_hide_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide vertice or Hide All of the Mesh";
+	ot->idname= "MESH_OT_hide_mesh";
+	
+	/* api callbacks */
+	ot->exec= hide_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "swap", 0, "Swap", "");
+}
 
 void reveal_mesh(EditMesh *em)
 {
@@ -2465,6 +2547,28 @@ void reveal_mesh(EditMesh *em)
 //	if (EM_texFaceCheck())
 //	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Reveal");
+}
+
+static int reveal_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	reveal_mesh(em);
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_reveal_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reveal the Mesh";
+	ot->idname= "MESH_OT_reveal_mesh";
+	
+	/* api callbacks */
+	ot->exec= reveal_mesh_exec;
+	ot->poll= ED_operator_editmesh;
 }
 
 void hide_tface_uv(EditMesh *em, int swap)
@@ -2728,7 +2832,7 @@ void select_faces_by_numverts(EditMesh *em, int numverts)
 		BIF_undo_push("Select non-Triangles/Quads");
 }
 
-void select_sharp_edges(EditMesh *em)
+void select_sharp_edges(EditMesh *em, float fsharpness)
 {
 	/* Find edges that have exactly two neighboring faces,
 	 * check the angle between those faces, and if angle is
@@ -2740,7 +2844,6 @@ void select_sharp_edges(EditMesh *em)
 	EditFace **efa2;
 	intptr_t edgecount = 0, i;
 	static short sharpness = 135;
-	float fsharpness;
 
 	if(em->selectmode==SCE_SELECT_FACE) {
 		error("Doesn't work in face selection mode");
@@ -2828,7 +2931,40 @@ void select_sharp_edges(EditMesh *em)
 	BIF_undo_push("Select Sharp Edges");
 }
 
-void select_linked_flat_faces(EditMesh *em)
+static int select_sharp_edges_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	
+	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
+	righthandfaces(em, RNA_float_get(op->ptr, "sharpness"));
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_sharp_edges(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Sharp Edges";
+	ot->idname= "MESH_OT_select_sharp_edges";
+	
+	/* api callbacks */
+	ot->exec= select_sharp_edges_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props XXX figure out? */
+	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
+}
+
+
+// XXX looks like more work is needed in order for this to work (see in function)
+void select_linked_flat_faces(EditMesh *em, float fsharpness)
 {
 	/* Find faces that are linked to selected faces that are 
 	 * relatively flat (angle between faces is higher than
@@ -2840,7 +2976,7 @@ void select_linked_flat_faces(EditMesh *em)
 	EditFace **efa2;
 	intptr_t edgecount = 0, i, faceselcount=0, faceselcountold=0;
 	static short sharpness = 135;
-	float fsharpness;
+	
 
 	if(em->selectmode!=SCE_SELECT_FACE) {
 		error("Only works in face selection mode");
@@ -2970,6 +3106,34 @@ void select_linked_flat_faces(EditMesh *em)
 	BIF_undo_push("Select Linked Flat Faces");
 }
 
+static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	select_linked_flat_faces(em, RNA_float_get(op->ptr, "sharpness"));
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_linked_flat_faces(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked Flat Faces";
+	ot->idname= "MESH_OT_select_linked_flat_faces";
+	
+	/* api callbacks */
+	ot->exec= select_linked_flat_faces_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
+}
+
 void select_non_manifold(EditMesh *em)
 {
 	EditVert *eve;
@@ -3041,6 +3205,28 @@ void select_non_manifold(EditMesh *em)
 	BIF_undo_push("Select Non Manifold");
 }
 
+static int select_non_manifold_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	select_non_manifold(em);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_non_manifold(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Non Manifold";
+	ot->idname= "MESH_OT_select_non_manifold";
+	
+	/* api callbacks */
+	ot->exec= select_non_manifold_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
 void selectswap_mesh(EditMesh *em) /* UI level */
 {
 	EditVert *eve;
@@ -3079,6 +3265,28 @@ void selectswap_mesh(EditMesh *em) /* UI level */
 	
 }
 
+static int selectswap_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	selectswap_mesh(em);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_selectswap_mesh(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Swap";
+	ot->idname= "MESH_OT_selectswap_mesh";
+	
+	/* api callbacks */
+	ot->exec= selectswap_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+}
+	
 /* ******************** (de)select all operator **************** */
 
 static int toggle_select_all_exec(bContext *C, wmOperator *op)
@@ -3119,7 +3327,7 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 	EditMesh *em2;
 	BMesh *bm;
 
-	bm = editmesh_to_bmesh(em, CTX_data_scene(C));
+	bm = editmesh_to_bmesh(em);
 
 	/*do stuff here, call bmop's.*/
 	//BMOP_DupeFromFlag(bm, BM_ALL, BM_SELECT);
@@ -3140,10 +3348,6 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 	*em = *em2;
 	MEM_freeN(em2);	
 	
-	G.totvert = bm->totvert;
-	G.totedge = bm->totedge;
-	G.totface = bm->totface;
-
 	BM_Free_Mesh(bm);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW|ND_TRANSFORM|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;
@@ -3201,13 +3405,30 @@ void EM_select_more(EditMesh *em)
 	}
 }
 
-void select_more(EditMesh *em)
+static int select_more(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EM_select_more(em);
 
 //	if (EM_texFaceCheck(em))
 
 	BIF_undo_push("Select More");
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_more(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select More";
+	ot->idname= "MESH_OT_select_more";
+
+	/* api callbacks */
+	ot->exec= select_more;
+	ot->poll= ED_operator_editmesh;
 }
 
 void EM_select_less(EditMesh *em)
@@ -3271,15 +3492,30 @@ void EM_select_less(EditMesh *em)
 	}
 }
 
-void select_less(EditMesh *em)
+static int select_less(bContext *C, wmOperator *op)
 {
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
 	EM_select_less(em);
-	
+
 	BIF_undo_push("Select Less");
 
 //	if (EM_texFaceCheck(em))
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;
 }
 
+void MESH_OT_select_less(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Less";
+	ot->idname= "MESH_OT_select_less";
+
+	/* api callbacks */
+	ot->exec= select_less;
+	ot->poll= ED_operator_editmesh;
+}
 
 void selectrandom_mesh(EditMesh *em) /* randomly selects a user-set % of vertices/edges/faces */
 {
@@ -3830,6 +4066,37 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 	waitcursor(0);
 }
 
+
+static int righthandfaces_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	/* 'standard' behaviour - check if selected, then apply relevant selection */
+	
+	// XXX we need a message here - for 1 its recalculate normals inside, for 2 its outside 
+	righthandfaces(em, RNA_int_get(op->ptr, "select"));
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_righthandfaces(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Manipulate Normals";
+	ot->idname= "MESH_OT_righthandfaces";
+	
+	/* api callbacks */
+	ot->exec= righthandfaces_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+	RNA_def_int(ot->srna, "select", 0, INT_MIN, INT_MAX, "Select", "", INT_MIN, INT_MAX);
+}
 
 /* ********** ALIGN WITH VIEW **************** */
 

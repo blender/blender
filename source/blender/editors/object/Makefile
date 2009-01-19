@@ -46,6 +46,7 @@ CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
+CPPFLAGS += -I../../python
 CPPFLAGS += -I../../imbuf
 
 # own include 

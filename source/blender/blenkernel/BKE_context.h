@@ -47,6 +47,8 @@ struct ScrArea;
 struct SpaceLink;
 struct StructRNA;
 struct ToolSettings;
+struct Image;
+struct ImBuf;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -93,6 +95,7 @@ struct wmWindow *CTX_wm_window(const bContext *C);
 struct bScreen *CTX_wm_screen(const bContext *C);
 struct ScrArea *CTX_wm_area(const bContext *C);
 struct SpaceLink *CTX_wm_space_data(const bContext *C);
+struct View3D *CTX_wm_view3d(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct uiBlock *CTX_wm_ui_block(const bContext *C);
@@ -125,10 +128,10 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list); \
 	}
 
-#define CTX_DATA_COUNT(C, member, i) \
-	CTX_DATA_BEGIN(C, void*, unused, member) \
-		i++; \
-	CTX_DATA_END
+int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase*));
+
+#define CTX_DATA_COUNT(C, member) \
+	ctx_data_list_count(C, CTX_data_##member)
 
 /* Data Context Members */
 
@@ -139,6 +142,9 @@ struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *bmain);
 
+int CTX_data_selected_editable_objects(const bContext *C, ListBase *list);
+int CTX_data_selected_editable_bases(const bContext *C, ListBase *list);
+
 int CTX_data_selected_objects(const bContext *C, ListBase *list);
 int CTX_data_selected_bases(const bContext *C, ListBase *list);
 
@@ -148,6 +154,9 @@ int CTX_data_visible_bases(const bContext *C, ListBase *list);
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);
 struct Object *CTX_data_edit_object(const bContext *C);
+
+struct Image *CTX_data_edit_image(const bContext *C);
+struct ImBuf *CTX_data_edit_image_buffer(const bContext *C);
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 

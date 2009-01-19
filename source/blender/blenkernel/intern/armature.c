@@ -87,6 +87,12 @@ bArmature *add_armature(char *name)
 	return arm;
 }
 
+bArmature *get_armature(Object *ob)
+{
+	if(ob->type==OB_ARMATURE)
+		return (bArmature *)ob->data;
+	return NULL;
+}
 
 void free_boneChildren(Bone *bone)
 { 
@@ -2224,9 +2230,6 @@ static void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, fl
 	/* Do constraints */
 	if (pchan->constraints.first) {
 		bConstraintOb *cob;
-		
-		/* local constraints */
-		do_constraint_channels(&pchan->constraints, NULL, ctime, 0);
 		
 		/* make a copy of location of PoseChannel for later */
 		VECCOPY(vec, pchan->pose_mat[3]);

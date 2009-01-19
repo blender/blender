@@ -198,6 +198,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_curve.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_datafiles.h"
 				>
 			</File>
@@ -206,11 +210,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_gpencil.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_keyframes_draw.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_keyframes_edit.h"
 				>
 			</File>
 			<File
@@ -242,6 +254,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_sculpt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_sequencer.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_space_api.h"
 				>
 			</File>
@@ -255,6 +275,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_uvedit.h"
 				>
 			</File>
 			<File
@@ -527,6 +551,10 @@
 			Name="space_ipo"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_ipo\ipo_header.c"
 				>
 			</File>
@@ -543,11 +571,27 @@
 			Name="space_image"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_image\image_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_image\image_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_panels.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_image\image_render.c"
 				>
 			</File>
 			<File
@@ -751,11 +795,23 @@
 			Name="space_sequencer"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_scopes.c"
 				>
 			</File>
 			<File
@@ -846,6 +902,22 @@
 		<Filter
 			Name="object"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editconstraint.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editgroup.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editkey.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\editlattice.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_edit.c"
 				>
@@ -979,6 +1051,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\armature\poselib.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\armature\poseobject.c"
 				>
 			</File>
@@ -1000,6 +1076,62 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\sculpt\stroke.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="uvedit"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_parametrizer.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_parametrizer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\uvedit\uvedit_unwrap_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="gpencil"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\drawgpencil.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\editaction_gpencil.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_intern.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="curve"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\curve\editcurve.c"
 				>
 			</File>
 		</Filter>

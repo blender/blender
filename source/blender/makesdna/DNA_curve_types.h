@@ -45,6 +45,7 @@ struct Ipo;
 struct Key;
 struct Material;
 struct VFont;
+struct AnimData;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
 #
@@ -135,6 +136,7 @@ typedef struct TextBox {
 
 typedef struct Curve {
 	ID id;
+	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
 	
 	struct BoundBox *bb;
 	
@@ -165,7 +167,11 @@ typedef struct Curve {
 	/* default */
 	short resolu, resolv;
 	short resolu_ren, resolv_ren;
-	int pad2;
+	
+	/* edit, index in nurb list */
+	int actnu;
+	/* edit, last selected bpoint */
+	BPoint *lastselbp;
 	
 	/* font part */
 	short len, lines, pos, spacemode;
@@ -189,7 +195,7 @@ typedef struct Curve {
 	int selstart, selend;	
 	
 	struct CharInfo *strinfo;	
-	struct CharInfo curinfo;	
+	struct CharInfo curinfo;
 } Curve;
 
 /* **************** CURVE ********************* */

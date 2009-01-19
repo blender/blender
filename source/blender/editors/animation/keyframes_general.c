@@ -35,16 +35,17 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_ipo_types.h" // XXX to be removed
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
@@ -69,25 +70,26 @@
  * Not recommended to be used many times successively. For that
  * there is delete_ipo_keys(). 
  */
-void delete_icu_key(IpoCurve *icu, int index, short do_recalc)
+void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 {
 	/* firstly check that index is valid */
 	if (index < 0) 
 		index *= -1;
-	if (icu == NULL) 
+	if (fcu == NULL) 
 		return;
-	if (index >= icu->totvert)
+	if (index >= fcu->totvert)
 		return;
 	
 	/*	Delete this key */
-	memmove(&icu->bezt[index], &icu->bezt[index+1], sizeof(BezTriple)*(icu->totvert-index-1));
-	icu->totvert--;
+	memmove(&fcu->bezt[index], &fcu->bezt[index+1], sizeof(BezTriple)*(fcu->totvert-index-1));
+	fcu->totvert--;
 	
 	/* recalc handles - only if it won't cause problems */
 	if (do_recalc)
-		calchandles_ipocurve(icu);
+		calchandles_fcurve(fcu);
 }
 
+#if 0 // XXX obsolete
 /* Delete selected keyframes in given IPO block */
 void delete_ipo_keys(Ipo *ipo)
 {
@@ -117,6 +119,7 @@ void delete_ipo_keys(Ipo *ipo)
 		}
 	}
 }
+#endif // XXX obsolete
 
 /* ---------------- */
 
@@ -160,26 +163,31 @@ void duplicate_ipo_keys(Ipo *ipo)
 /* **************************************************** */
 /* Various Tools */
 
+// XXX - stub... until keyframing code is fixed...
+static void insert_vert_fcu(FCurve *fcu, float x, float y, short flag)
+{
+}
+
 /* Basic IPO-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only */
-void clean_ipo_curve(IpoCurve *icu, float thresh)
+void clean_fcurve(FCurve *fcu, float thresh)
 {
 	BezTriple *old_bezts, *bezt, *beztn;
 	BezTriple *lastb;
 	int totCount, i;
 	
 	/* check if any points  */
-	if ((icu == NULL) || (icu->totvert <= 1)) 
+	if ((fcu == NULL) || (fcu->totvert <= 1)) 
 		return;
 	
 	/* make a copy of the old BezTriples, and clear IPO curve */
-	old_bezts = icu->bezt;
-	totCount = icu->totvert;	
-	icu->bezt = NULL;
-	icu->totvert = 0;
+	old_bezts = fcu->bezt;
+	totCount = fcu->totvert;	
+	fcu->bezt = NULL;
+	fcu->totvert = 0;
 	
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
-	insert_vert_icu(icu, bezt->vec[1][0], bezt->vec[1][1], 0);
+	insert_vert_fcu(fcu, bezt->vec[1][0], bezt->vec[1][1], 0);
 	
 	/* Loop through BezTriples, comparing them. Skip any that do 
 	 * not fit the criteria for "ok" points.
@@ -196,7 +204,7 @@ void clean_ipo_curve(IpoCurve *icu, float thresh)
 			beztn = NULL;
 			next[0] = next[1] = 0.0f;
 		}
-		lastb= (icu->bezt + (icu->totvert - 1));
+		lastb= (fcu->bezt + (fcu->totvert - 1));
 		bezt= (old_bezts + i);
 		
 		/* get references for quicker access */
@@ -216,7 +224,7 @@ void clean_ipo_curve(IpoCurve *icu, float thresh)
 				if (cur[1] > next[1]) {
 					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 						/* add new keyframe */
-						insert_vert_icu(icu, cur[0], cur[1], 0);
+						insert_vert_fcu(fcu, cur[0], cur[1], 0);
 					}
 				}
 			}
@@ -224,7 +232,7 @@ void clean_ipo_curve(IpoCurve *icu, float thresh)
 				/* only add if values are a considerable distance apart */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1], 0);
+					insert_vert_fcu(fcu, cur[0], cur[1], 0);
 				}
 			}
 		}
@@ -234,18 +242,18 @@ void clean_ipo_curve(IpoCurve *icu, float thresh)
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe*/
-					insert_vert_icu(icu, cur[0], cur[1], 0);
+					insert_vert_fcu(fcu, cur[0], cur[1], 0);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1], 0);
+					insert_vert_fcu(fcu, cur[0], cur[1], 0);
 				}
 			}
 			else {	
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1], 0);
+					insert_vert_fcu(fcu, cur[0], cur[1], 0);
 				}
 			}
 		}
@@ -264,8 +272,8 @@ typedef struct tSmooth_Bezt {
 } tSmooth_Bezt;
 
 /* Use a weighted moving-means method to reduce intensity of fluctuations */
-//mode= pupmenu("Smooth IPO%t|Tweak Points%x1|Flatten Handles%x2");
-void smooth_ipo_curve(IpoCurve *icu, short mode)
+//mode= pupmenu("Smooth F-Curve%t|Tweak Points%x1|Flatten Handles%x2");
+void smooth_fcurve(FCurve *fcu, short mode)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
@@ -273,8 +281,8 @@ void smooth_ipo_curve(IpoCurve *icu, short mode)
 	/* first loop through - count how many verts are selected, and fix up handles 
 	 *	this is done for both modes
 	 */
-	bezt= icu->bezt;
-	for (i=0; i < icu->totvert; i++, bezt++) {						
+	bezt= fcu->bezt;
+	for (i=0; i < fcu->totvert; i++, bezt++) {						
 		if (BEZSELECTED(bezt)) {							
 			/* line point's handles up with point's vertical position */
 			bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
@@ -296,8 +304,8 @@ void smooth_ipo_curve(IpoCurve *icu, short mode)
 			tsb= tarray= MEM_callocN(totSel*sizeof(tSmooth_Bezt), "tSmooth_Bezt Array");
 			
 			/* populate tarray with data of selected points */
-			bezt= icu->bezt;
-			for (i=0, x=0; (i < icu->totvert) && (x < totSel); i++, bezt++) {
+			bezt= fcu->bezt;
+			for (i=0, x=0; (i < fcu->totvert) && (x < totSel); i++, bezt++) {
 				if (BEZSELECTED(bezt)) {
 					/* tsb simply needs pointer to vec, and index */
 					tsb->h1 = &bezt->vec[0][1];
@@ -358,7 +366,7 @@ void smooth_ipo_curve(IpoCurve *icu, short mode)
 	}
 	
 	/* recalculate handles */
-	calchandles_ipocurve(icu);
+	calchandles_fcurve(fcu);
 }
 
 /* **************************************************** */

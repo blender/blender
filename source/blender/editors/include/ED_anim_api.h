@@ -30,6 +30,7 @@
 #define ED_ANIM_API_H
 
 struct ID;
+struct Scene;
 struct ListBase;
 struct bContext;
 struct wmWindowManager;
@@ -157,7 +158,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
 	ANIMFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
 	ANIMFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
-	ANIMFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
+	ANIMFILTER_ONLYFCU		= (1<<5),	/* only reference ipo-curves */
 	ANIMFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<7),	/* belongs to the active actiongroup */
 } eAnimFilter_Flags;
@@ -180,6 +181,10 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
+		// XXX temp flags for things removed
+#define ACTC_SELECTED 1
+#define ACTC_EXPANDED 2
+		// XXX these need to be fixed
 #define SEL_ACTC(actc) ((actc->flag & ACTC_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACTC_EXPANDED))
 
@@ -321,8 +326,11 @@ void ANIM_nla_mapping_apply_ipo(struct Object *ob, struct Ipo *ipo, short restor
 
 /* --------- anim_deps.c, animation updates -------- */
 
-/* generic update flush, reads from Context screen (layers) and scene */
+	/* generic update flush, reads from Context screen (layers) and scene */
 void ED_anim_dag_flush_update(const struct bContext *C);
+	/* only flush object */
+void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
+	/* flush + do the actual update for all involved objects */
 void ED_update_for_newframe(const struct bContext *C, int mute);
 
 /* pose <-> action syncing */

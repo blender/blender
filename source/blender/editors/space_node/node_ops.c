@@ -27,6 +27,8 @@
  */
 
 #include "DNA_node_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 
@@ -53,6 +55,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_toggle_visibility);
 	WM_operatortype_append(NODE_OT_fit_all);
 	WM_operatortype_append(NODE_OT_border_select);
+	WM_operatortype_append(NODE_OT_delete_selection);
 }
 
 void node_keymap(struct wmWindowManager *wm)
@@ -64,6 +67,7 @@ void node_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "NODE_OT_toggle_visibility", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_fit_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_border_select", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_delete_selection", XKEY, KM_PRESS, 0, 0);
 	
 	transform_keymap_for_space(wm, keymap, SPACE_NODE);
 }

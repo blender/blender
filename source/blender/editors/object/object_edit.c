@@ -41,7 +41,6 @@
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -89,7 +88,6 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_ipo.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -112,6 +110,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
+#include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -120,6 +119,8 @@
 #include "ED_view3d.h"
 
 #include "BMF_Api.h"
+
+#include "BIF_transform.h"
 
 #include "UI_interface.h"
 
@@ -143,7 +144,6 @@ static void waitcursor() {}
 static int pupmenu() {return 0;}
 static int pupmenu_col() {return 0;}
 static int okee() {return 0;}
-static void EM_select_flush() {}
 
 /* port over here */
 static bContext *C;
@@ -206,20 +206,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 }
 
 
-
-
-/*
- * Returns true if the Object is a from an external blend file (libdata)
- */
-int object_is_libdata(Object *ob)
-{
-	if (!ob) return 0;
-	if (ob->proxy) return 0;
-	if (ob->id.lib) return 1;
-	return 0;
-}
-
-
 /*
  * Returns true if the Object data is a from an external blend file (libdata)
  */
@@ -266,54 +252,72 @@ void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
 	}
 }
 
+/* ******************* add object operator ****************** */
+
+static EnumPropertyItem prop_object_types[] = {
+	{OB_EMPTY, "EMPTY", "Empty", ""},
+	{OB_MESH, "MESH", "Mesh", ""},
+	{OB_CURVE, "CURVE", "Curve", ""},
+	{OB_SURF, "SURFACE", "Surface", ""},
+	{OB_FONT, "TEXT", "Text", ""},
+	{OB_MBALL, "META", "Meta", ""},
+	{OB_LAMP, "LAMP", "Lamp", ""},
+	{OB_CAMERA, "CAMERA", "Camera", ""},
+	{OB_ARMATURE, "ARMATURE", "Armature", ""},
+	{OB_LATTICE, "LATTICE", "Lattice", ""},
+	{0, NULL, NULL, NULL}
+};
+
+
 
 void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
 {
+	/* keep here to get things compile, remove later */
+}
+
+static int object_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
 	Object *ob;
+	int type= RNA_int_get(op->ptr, "type");
 	
-//	ED_view3d_exit_paint_modes(C);
-
-// XXX	if (obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+	/* hrms, this is editor level operator */
+	ED_view3d_exit_paint_modes(C);
+	
+	if (CTX_data_edit_object(C)) 
+		ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
+	
+	/* deselects all, sets scene->basact */
 	ob= add_object(scene, type);
-//	ED_base_object_activate(C, BASACT);
-	ED_object_base_init_from_view(scene, v3d, BASACT);
+	/* editor level activate, notifiers */
+	ED_base_object_activate(C, BASACT);
 	
-	/* only undo pushes on objects without editmode... */
-	if(type==OB_EMPTY) BIF_undo_push("Add Empty");
-	else if(type==OB_LAMP) {
-		BIF_undo_push("Add Lamp");
-		reshadeall_displist(scene);	/* only frees */
-	}
-	else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
-	else if(type==OB_CAMERA) BIF_undo_push("Add Camera");
-		
-	allqueue(REDRAWVIEW3D, 0);
-
-// XXX	redraw_test_buttons(OBACT);
-
-	allqueue(REDRAWALL, 0);
-
-// XXX	deselect_all_area_oops();
-// XXX	set_select_flag_oops();
+	/* more editor stuff */
+	ED_object_base_init_from_view(scene, CTX_wm_view3d(C), BASACT);
 	
 	DAG_scene_sort(scene);
-	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
-}
-
-void add_objectLamp(Scene *scene, View3D *v3d, short type)
-{
-	Lamp *la;
-
-	if(scene->obedit==NULL) { // XXX get from context
-		add_object_draw(scene, v3d, OB_LAMP);
-		ED_object_base_init_from_view(scene, v3d, BASACT);
-	}
 	
-	la = BASACT->object->data;
-	la->type = type;	
-
-	allqueue(REDRAWALL, 0);
+	return OPERATOR_FINISHED;
 }
+
+void OBJECT_OT_object_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Object";
+	ot->idname= "OBJECT_OT_object_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_add_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
+}
+
+
+/* ******************************* */
 
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
@@ -388,6 +392,132 @@ void delete_obj(Scene *scene, View3D *v3d, int ok)
 	ED_anim_dag_flush_update(C);	
 
 	BIF_undo_push("Delete object(s)");
+}
+
+static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+{
+	ID_NEW(*obpoin);
+}
+
+static void copy_object__forwardModifierLinks(void *userData, Object *ob,
+                                              ID **idpoin)
+{
+	/* this is copied from ID_NEW; it might be better to have a macro */
+	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
+}
+
+
+/* after copying objects, copied data should get new pointers */
+static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
+{
+	Base *base;
+	Object *ob;
+	Material *ma, *mao;
+	ID *id;
+#if 0 // XXX old animation system
+	Ipo *ipo;
+	bActionStrip *strip;
+#endif // XXX old animation system
+	int a;
+	
+	/* check object pointers */
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(TESTBASELIB(v3d, base)) {
+			ob= base->object;
+			relink_constraints(&ob->constraints);
+			if (ob->pose){
+				bPoseChannel *chan;
+				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
+				}
+			}
+			modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
+			ID_NEW(ob->proxy);
+			ID_NEW(ob->proxy_group);
+			
+#if 0 // XXX old animation system
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next)
+					ID_NEW(amod->ob);
+			}
+#endif // XXX old animation system
+		}
+	}
+	
+	/* materials */
+	if( dupflag & USER_DUP_MAT) {
+		mao= G.main->mat.first;
+		while(mao) {
+			if(mao->id.newid) {
+				
+				ma= (Material *)mao->id.newid;
+				
+				if(dupflag & USER_DUP_TEX) {
+					for(a=0; a<MAX_MTEX; a++) {
+						if(ma->mtex[a]) {
+							id= (ID *)ma->mtex[a]->tex;
+							if(id) {
+								ID_NEW_US(ma->mtex[a]->tex)
+								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
+								id->us--;
+							}
+						}
+					}
+				}
+#if 0 // XXX old animation system
+				id= (ID *)ma->ipo;
+				if(id) {
+					ID_NEW_US(ma->ipo)
+					else ma->ipo= copy_ipo(ma->ipo);
+					id->us--;
+				}
+#endif // XXX old animation system
+			}
+			mao= mao->id.next;
+		}
+	}
+	
+#if 0 // XXX old animation system
+	/* lamps */
+	if( dupflag & USER_DUP_IPO) {
+		Lamp *la= G.main->lamp.first;
+		while(la) {
+			if(la->id.newid) {
+				Lamp *lan= (Lamp *)la->id.newid;
+				id= (ID *)lan->ipo;
+				if(id) {
+					ID_NEW_US(lan->ipo)
+					else lan->ipo= copy_ipo(lan->ipo);
+					id->us--;
+				}
+			}
+			la= la->id.next;
+		}
+	}
+	
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
+			Ipo *ipon= (Ipo *)ipo->id.newid;
+			IpoCurve *icu;
+			for(icu= ipon->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+#endif // XXX old animation system
+	
+	set_sca_new_poins();
+	
+	clear_id_newpoins();
+	
 }
 
 static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
@@ -465,17 +595,17 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 			if(index < hmd->totindex-1) index++;
 		}
 	}
-	EM_select_flush();
+	EM_select_flush(em);
 }
 
-static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
+static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
 {
 	BPoint *bp;
 	int *index, nr, totvert=0, a;
 	
 	/* count */
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+	bp= editlatt->def;
 	while(a--) {
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) totvert++;
@@ -490,8 +620,8 @@ static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= editlatt->pntsu*editlatt->pntsv*editlatt->pntsw;
+	bp= editlatt->def;
 	while(a--) {
 		if(bp->f1 & SELECT) {
 			if(bp->hide==0) {
@@ -508,14 +638,15 @@ static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 	return totvert;
 }
 
-static void select_editlattice_hook(HookModifierData *hmd)
+static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 {
+	Lattice *lt= obedit->data;
 	BPoint *bp;
 	int index=0, nr=0, a;
 	
 	/* count */
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	bp= editLatt->def;
+	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	bp= lt->editlatt->def;
 	while(a--) {
 		if(hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
@@ -526,15 +657,15 @@ static void select_editlattice_hook(HookModifierData *hmd)
 	}
 }
 
-static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
+static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, float *cent)
 {
-	extern ListBase editNurb;
+	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
 	int *index, a, nr, totvert=0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -561,7 +692,7 @@ static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -643,23 +774,26 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		}
 		case OB_CURVE:
 		case OB_SURF:
-			return return_editcurve_indexar(tot, indexar, cent_r);
+			return return_editcurve_indexar(obedit, tot, indexar, cent_r);
 		case OB_LATTICE:
-			return return_editlattice_indexar(tot, indexar, cent_r);
+		{
+			Lattice *lt= obedit->data;
+			return return_editlattice_indexar(lt->editlatt, tot, indexar, cent_r);
+		}
 		default:
 			return 0;
 	}
 }
 
-static void select_editcurve_hook(HookModifierData *hmd)
+static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
-	extern ListBase editNurb;
+	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
 	int index=0, a, nr=0;
 	
-	for(nu= editNurb.first; nu; nu= nu->next) {
+	for(nu= editnurb->first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
@@ -702,9 +836,9 @@ void obedit_hook_select(Object *ob, HookModifierData *hmd)
 {
 	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
-	else if(ob->type==OB_LATTICE) select_editlattice_hook(hmd);
-	else if(ob->type==OB_CURVE) select_editcurve_hook(hmd);
-	else if(ob->type==OB_SURF) select_editcurve_hook(hmd);
+	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
+	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
+	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);
 }
 
 
@@ -903,93 +1037,7 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 	BIF_undo_push("Add hook");
 }
 
-void make_track(Scene *scene, View3D *v3d, short mode)
-{
-	Base *base;
-	/*short mode=0;*/
-	
-	if(scene->id.lib) return;
-// XXX	if(obedit) {
-//		return; 
-//	}
-	if(BASACT==0) return;
-
-	mode= pupmenu("Make Track %t|TrackTo Constraint %x1|LockTrack Constraint %x2|Old Track %x3");
-	if (mode == 0){
-		return;
-	}
-	else if (mode == 1){
-		bConstraint *con;
-		bTrackToConstraint *data;
-
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-					strcpy (con->name, "AutoTrack");
-
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->reserved1 = TRACK_nZ;
-						data->reserved2 = UP_Y;
-					}
-
-// XXX					add_constraint_to_object(con, base->object);
-				}
-			}
-		}
-
-	}
-	else if (mode == 2){
-		bConstraint *con;
-		bLockTrackConstraint *data;
-
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-					strcpy (con->name, "AutoTrack");
-
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->trackflag = TRACK_nZ;
-						data->lockflag = LOCK_Y;
-					}
-
-// XXX					add_constraint_to_object(con, base->object);
-				}
-			}
-		}
-
-	}
-	else if (mode == 3){
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					base->object->track= BASACT->object;
-					base->object->recalc |= OB_RECALC;
-				}
-			}
-		}
-	}
-
-	allqueue(REDRAWOOPS, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_sort(scene);
-	
-	BIF_undo_push("Make Track");
-}
-
 /* ******************** clear parent operator ******************* */
-
 
 static EnumPropertyItem prop_clear_parent_types[] = {
 	{0, "CLEAR", "Clear Parent", ""},
@@ -1002,7 +1050,7 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 static int clear_parent_exec(bContext *C, wmOperator *op)
 {
 	
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
 		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
 			ob->parent= NULL;
@@ -1029,8 +1077,6 @@ static int clear_parent_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_parent(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Clear parent";
 	ot->idname= "OBJECT_OT_clear_parent";
@@ -1042,8 +1088,7 @@ void OBJECT_OT_clear_parent(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_clear_parent_types);
+	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** clear track operator ******************* */
@@ -1060,15 +1105,13 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 {
 	if(CTX_data_edit_object(C)) return OPERATOR_CANCELLED;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
-		/*if(TESTBASELIB(v3d, base)) {*/
-			ob->track= NULL;
-			ob->recalc |= OB_RECALC;
-			
-			if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
-				ED_object_apply_obmat(ob);
-			}			
-		/*}*/
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		ob->track= NULL;
+		ob->recalc |= OB_RECALC;
+		
+		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+			ED_object_apply_obmat(ob);
+		}			
 	}
 	CTX_DATA_END;
 
@@ -1082,8 +1125,6 @@ static int object_clear_track_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_clear_track(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Clear track";
 	ot->idname= "OBJECT_OT_clear_track";
@@ -1095,25 +1136,12 @@ void OBJECT_OT_clear_track(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_clear_track_types);
+	RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
 
 /* ***************************** */
 /* ****** Select by Type ****** */
-static EnumPropertyItem prop_select_object_types[] = {
-	{OB_EMPTY, "EMPTY", "Empty", ""},
-	{OB_MESH, "MESH", "Mesh", ""},
-	{OB_CURVE, "CURVE", "Curve", ""},
-	{OB_SURF, "SURFACE", "Surface", ""},
-	{OB_FONT, "TEXT", "Text", ""},
-	{OB_MBALL, "META", "Meta", ""},
-	{OB_LAMP, "LAMP", "Lamp", ""},
-	{OB_CAMERA, "CAMERA", "Camera", ""},
-	{OB_LATTICE, "LATTICE", "Lattice", ""},
-	{0, NULL, NULL, NULL}
-};
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
 {
@@ -1129,6 +1157,7 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select By Type");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1136,8 +1165,6 @@ static int object_select_by_type_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Select By Type";
 	ot->idname= "OBJECT_OT_select_by_type";
@@ -1147,11 +1174,155 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	ot->exec= object_select_by_type_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_select_object_types);
+	RNA_def_enum(ot->srna, "type", prop_object_types, 0, "Type", "");
 
 }
+/* ****** selection by links *******/
 
+static EnumPropertyItem prop_select_linked_types[] = {
+	{1, "IPO", "Object IPO", ""}, // XXX depreceated animation system stuff...
+	{2, "OBDATA", "Ob Data", ""},
+	{3, "MATERIAL", "Material", ""},
+	{4, "TEXTURE", "Texture", ""},
+	{5, "DUPGROUP", "Dupligroup", ""},
+	{6, "PARTICLE", "Particle System", ""},
+	{0, NULL, NULL, NULL}
+};
+
+static int object_select_linked_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	void *obdata = NULL;
+	Material *mat = NULL, *mat1;
+	Tex *tex=0;
+	int a, b;
+	int nr = RNA_enum_get(op->ptr, "type");
+	short changed = 0;
+	/* events (nr):
+	 * Object Ipo: 1
+	 * ObData: 2
+	 * Current Material: 3
+	 * Current Texture: 4
+	 * DupliGroup: 5
+	 * PSys: 6
+	 */
+	
+	
+	ob= OBACT;
+	if(ob==0) return OPERATOR_CANCELLED;
+	
+	if(nr==1) {	
+			// XXX old animation system
+		//ipo= ob->ipo;
+		//if(ipo==0) return OPERATOR_CANCELLED;
+		return OPERATOR_CANCELLED;
+	}
+	else if(nr==2) {
+		if(ob->data==0) return OPERATOR_CANCELLED;
+		obdata= ob->data;
+	}
+	else if(nr==3 || nr==4) {
+		mat= give_current_material(ob, ob->actcol);
+		if(mat==0) return OPERATOR_CANCELLED;
+		if(nr==4) {
+			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
+			if(tex==0) return OPERATOR_CANCELLED;
+		}
+	}
+	else if(nr==5) {
+		if(ob->dup_group==NULL) return OPERATOR_CANCELLED;
+	}
+	else if(nr==6) {
+		if(ob->particlesystem.first==NULL) return OPERATOR_CANCELLED;
+	}
+	else return OPERATOR_CANCELLED;
+	
+	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+		if (!(base->flag & SELECT)) {
+			if(nr==1) {
+					// XXX old animation system
+				//if(base->object->ipo==ipo) base->flag |= SELECT;
+				//changed = 1;
+			}
+			else if(nr==2) {
+				if(base->object->data==obdata) base->flag |= SELECT;
+				changed = 1;
+			}
+			else if(nr==3 || nr==4) {
+				ob= base->object;
+				
+				for(a=1; a<=ob->totcol; a++) {
+					mat1= give_current_material(ob, a);
+					if(nr==3) {
+						if(mat1==mat) base->flag |= SELECT;
+						changed = 1;
+					}
+					else if(mat1 && nr==4) {
+						for(b=0; b<MAX_MTEX; b++) {
+							if(mat1->mtex[b]) {
+								if(tex==mat1->mtex[b]->tex) {
+									base->flag |= SELECT;
+									changed = 1;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			else if(nr==5) {
+				if(base->object->dup_group==ob->dup_group) {
+					 base->flag |= SELECT;
+					 changed = 1;
+				}
+			}
+			else if(nr==6) {
+				/* loop through other, then actives particles*/
+				ParticleSystem *psys;
+				ParticleSystem *psys_act;
+				
+				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
+					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
+						if (psys->part == psys_act->part) {
+							base->flag |= SELECT;
+							changed = 1;
+							break;
+						}
+					}
+					
+					if (base->flag & SELECT) {
+						break;
+					}
+				}
+			}
+			base->object->flag= base->flag;
+		}
+	}
+	CTX_DATA_END;
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		ED_undo_push(C,"Select linked");
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked";
+	ot->idname= "OBJECT_OT_select_linked";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_linked_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+
+}
 /* ****** selection by layer *******/
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
@@ -1167,6 +1338,7 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select By Layer");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1174,8 +1346,6 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Selection by layer";
 	ot->idname= "OBJECT_OT_select_by_layer";
@@ -1185,11 +1355,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->exec= object_select_by_layer_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "layer", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_ui_range(prop, 1, 20,1, 1);
-	RNA_def_property_ui_text(prop, "layer", "The layer to select objects in");
-	RNA_def_property_int_default(prop, 2);
-
+	RNA_def_int(ot->srna, "layer", 1, 1, 20, "Layer", "", 1, 20);
 }
 
 /* ****** invert selection *******/
@@ -1204,6 +1370,7 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Selection Invert");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1247,6 +1414,7 @@ static int object_de_select_all_exec(bContext *C, wmOperator *op)
 	
 	/* undo? */
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+	ED_undo_push(C,"(De)Select All");
 	
 	return OPERATOR_FINISHED;
 }
@@ -1267,9 +1435,9 @@ void OBJECT_OT_de_select_all(wmOperatorType *ot)
 
 static int object_select_random_exec(bContext *C, wmOperator *op)
 {	
-	int percent;
+	float percent;
 	
-	percent = RNA_int_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent");
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if ((!base->flag & SELECT && (BLI_frand() * 100) < percent)) {
@@ -1279,6 +1447,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* undo? */
+	ED_undo_push(C,"Select Random");
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -1286,8 +1455,6 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Random selection";
 	ot->idname= "OBJECT_OT_select_random";
@@ -1297,10 +1464,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->exec = object_select_random_exec;
 	ot->poll= ED_operator_scene_editable;
 	
-	prop = RNA_def_property(ot->srna, "percent", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_range(prop, 1, 100,1, 1);
-	RNA_def_property_ui_text(prop, "Percent", "Max persentage that will be selected");
-	RNA_def_property_int_default(prop, 50);
+	RNA_def_float(ot->srna, "percent", 50.0f, 0.0f, FLT_MAX, "Percent", "1", 0.01f, 100.0f);
 }
 
 /* ******** Clear object Translation *********** */
@@ -1310,14 +1474,14 @@ static int object_clear_location_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if ((ob->flag & OB_POSEMODE)) {
 			/* only clear pose transforms if:
 			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 'g');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1361,14 +1525,14 @@ static int object_clear_rotation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if ((ob->flag & OB_POSEMODE)) {
 			/* only clear pose transforms if:
 			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 'r');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1413,14 +1577,14 @@ static int object_clear_scale_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	int armature_clear= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if ((ob->flag & OB_POSEMODE)) {
 			/* only clear pose transforms if:
 			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
 			 *	- with clearing transform of object being edited at the time
 			 */
 			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
+				clear_armature(scene, ob, 's');
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 		}
@@ -1466,33 +1630,20 @@ void OBJECT_OT_clear_scale(wmOperatorType *ot)
 
 static int object_clear_origin_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	float *v1, *v3, mat[3][3];
 	int armature_clear= 0;
 
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
-		if ((ob->flag & OB_POSEMODE)) {
-			/* only clear pose transforms if:
-			 *	- with a mesh in weightpaint mode, it's related armature needs to be cleared
-			 *	- with clearing transform of object being edited at the time
-			 */
-			if ((G.f & G_WEIGHTPAINT) || (ob==OBACT)) {
-// XXX				clear_armature(ob, mode);
-				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
-			}
-		}
-		else if((G.f & G_WEIGHTPAINT)==0) {
-			if(ob->parent) {
-				v1= ob->loc;
-				v3= ob->parentinv[3];
-				
-				Mat3CpyMat4(mat, ob->parentinv);
-				VECCOPY(v3, v1);
-				v3[0]= -v3[0];
-				v3[1]= -v3[1];
-				v3[2]= -v3[2];
-				Mat3MulVecfl(mat, v3);
-			}
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		if(ob->parent) {
+			v1= ob->loc;
+			v3= ob->parentinv[3];
+			
+			Mat3CpyMat4(mat, ob->parentinv);
+			VECCOPY(v3, v1);
+			v3[0]= -v3[0];
+			v3[1]= -v3[1];
+			v3[2]= -v3[2];
+			Mat3MulVecfl(mat, v3);
 		}
 		ob->recalc |= OB_RECALC_OB;
 	}
@@ -1569,8 +1720,7 @@ static EnumPropertyItem prop_set_restrictview_types[] = {
 static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
-	short changed = 0, changed_act = 0;
+	short changed = 0;
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
@@ -1580,8 +1730,7 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
 				if (base==BASACT) {
-					BASACT= NULL;
-					changed_act = 1;
+					ED_base_object_activate(C, NULL);
 				}
 			}
 		}
@@ -1601,9 +1750,6 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 		
-		if (changed_act) { /* these spaces depend on the active object */
-			WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, CTX_data_scene(C));
-		}
 	}
 
 	return OPERATOR_FINISHED;
@@ -1611,8 +1757,6 @@ static int object_set_restrictview_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Set restrict view";
 	ot->idname= "OBJECT_OT_set_restrictview";
@@ -1622,17 +1766,15 @@ void OBJECT_OT_set_restrictview(wmOperatorType *ot)
 	ot->exec= object_set_restrictview_exec;
 	ot->poll= ED_operator_view3d_active;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_set_restrictview_types);
+	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
 	
 }
 /* ************* Slow Parent ******************* */
 static int object_set_slowparent_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-				
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		
 		if(base->object->parent) base->object->partype |= PARSLOW;
 		base->object->recalc |= OB_RECALC_OB;
 		
@@ -1664,7 +1806,7 @@ static int object_clear_slowparent_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		if(base->object->parent) {
 			if(base->object->partype & PARSLOW) {
 				base->object->partype -= PARSLOW;
@@ -1731,8 +1873,9 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 		}
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
-		extern ListBase editNurb;
-		nu= editNurb.first;
+		ListBase *editnurb= curve_get_editcurve(obedit);
+
+		nu= editnurb->first;
 		while(nu) {
 			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
@@ -1768,9 +1911,10 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 		}
 	}
 	else if(obedit->type==OB_LATTICE) {
+		Lattice *lt= obedit->data;
 		
-		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		bp= editLatt->def;
+		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+		bp= lt->editlatt->def;
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				if(v1==0) v1= nr;
@@ -1927,55 +2071,6 @@ void make_proxy(Scene *scene)
 
 /* ******************** make parent operator *********************** */
 
-#if 0
-oldcode()
-{
-	else if(mode==4) {
-		bConstraint *con;
-		bFollowPathConstraint *data;
-			
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					float cmat[4][4], vec[3];
-					
-// XXX						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
-					strcpy (con->name, "AutoPath");
-					
-					data = con->data;
-					data->tar = BASACT->object;
-					
-// XXX						add_constraint_to_object(con, base->object);
-					
-					get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(base->object));
-					VecSubf(vec, base->object->obmat[3], cmat[3]);
-					
-					base->object->loc[0] = vec[0];
-					base->object->loc[1] = vec[1];
-					base->object->loc[2] = vec[2];
-				}
-			}
-		}
-
-		if(mode==PARSKEL && base->object->type==OB_MESH && par->type == OB_ARMATURE) {
-			/* Prompt the user as to whether he wants to
-				* add some vertex groups based on the bones
-				* in the parent armature.
-				*/
-// XXX							create_vgroups_from_armature(base->object, par);
-
-			base->object->partype= PAROBJECT;
-			what_does_parent(scene, base->object);
-			Mat4One (base->object->parentinv);
-			base->object->partype= mode;
-		}
-		else
-			what_does_parent(scene, base->object, &workob);
-		Mat4Invert(base->object->parentinv, workob.obmat);
-	}
-}
-#endif
-
 #define PAR_OBJECT		0
 #define PAR_ARMATURE	1
 #define PAR_BONE		2
@@ -2046,7 +2141,7 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* context itterator */
-	CTX_DATA_BEGIN(C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		
 		if(ob!=par) {
 			
@@ -2067,13 +2162,51 @@ static int make_parent_exec(bContext *C, wmOperator *op)
 				else
 					ob->parsubstr[0]= 0;
 				
-				/* constraint XXX */
+				/* constraint */
 				if(partype==PAR_PATH_CONST) {
+					bConstraint *con;
+					bFollowPathConstraint *data;
+					float cmat[4][4], vec[3];
+					
+					con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
+					strcpy (con->name, "AutoPath");
+					
+					data = con->data;
+					data->tar = par;
+					
+					add_constraint_to_object(con, ob);
+					
+					get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, scene->r.cfra - give_timeoffset(ob));
+					VecSubf(vec, ob->obmat[3], cmat[3]);
+					
+					ob->loc[0] = vec[0];
+					ob->loc[1] = vec[1];
 				}
-				
-				/* calculate inverse parent matrix */
-				what_does_parent(scene, ob, &workob);
-				Mat4Invert(ob->parentinv, workob.obmat);
+				else if(partype==PAR_ARMATURE && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					
+					if(1) {
+						/* Prompt the user as to whether he wants to
+						* add some vertex groups based on the bones
+						* in the parent armature.
+						*/
+						create_vgroups_from_armature(scene, ob, par);
+						
+						/* get corrected inverse */
+						ob->partype= PAROBJECT;
+						what_does_parent(scene, ob, &workob);
+						
+						ob->partype= PARSKEL;
+					}
+					else
+						what_does_parent(scene, ob, &workob);
+					
+					Mat4Invert(ob->parentinv, workob.obmat);
+				}
+				else {
+					/* calculate inverse parent matrix */
+					what_does_parent(scene, ob, &workob);
+					Mat4Invert(ob->parentinv, workob.obmat);
+				}
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
@@ -2129,8 +2262,6 @@ static int make_parent_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void OBJECT_OT_make_parent(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Make parent";
 	ot->idname= "OBJECT_OT_make_parent";
@@ -2142,8 +2273,7 @@ void OBJECT_OT_make_parent(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_make_parent_types);
+	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
 /* *** make track ***** */
@@ -2157,73 +2287,63 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int make_track_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	Base *base;
-	
-	if(scene->id.lib) return OPERATOR_CANCELLED;
-
+		
 	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
 		bConstraint *con;
 		bTrackToConstraint *data;
 
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-					strcpy (con->name, "AutoTrack");
+		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			if(base!=BASACT) {
+				con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+				strcpy (con->name, "AutoTrack");
 
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->reserved1 = TRACK_nZ;
-						data->reserved2 = UP_Y;
-					}
-
-// XXX					add_constraint_to_object(con, base->object);
+				data = con->data;
+				data->tar = BASACT->object;
+				base->object->recalc |= OB_RECALC;
+				
+				/* Lamp and Camera track differently by default */
+				if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+					data->reserved1 = TRACK_nZ;
+					data->reserved2 = UP_Y;
 				}
+
+				add_constraint_to_object(con, base->object);
 			}
 		}
-
+		CTX_DATA_END;
 	}
 	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-// XXX					con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-					strcpy (con->name, "AutoTrack");
+		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			if(base!=BASACT) {
+				con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+				strcpy (con->name, "AutoTrack");
 
-					data = con->data;
-					data->tar = BASACT->object;
-					base->object->recalc |= OB_RECALC;
-					
-					/* Lamp and Camera track differently by default */
-					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
-						data->trackflag = TRACK_nZ;
-						data->lockflag = LOCK_Y;
-					}
-
-// XXX					add_constraint_to_object(con, base->object);
+				data = con->data;
+				data->tar = BASACT->object;
+				base->object->recalc |= OB_RECALC;
+				
+				/* Lamp and Camera track differently by default */
+				if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
+					data->trackflag = TRACK_nZ;
+					data->lockflag = LOCK_Y;
 				}
+
+				add_constraint_to_object(con, base->object);
 			}
 		}
-
+		CTX_DATA_END;
 	}
 	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(TESTBASELIB(v3d, base)) {
-				if(base!=BASACT) {
-					base->object->track= BASACT->object;
-					base->object->recalc |= OB_RECALC;
-				}
+		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			if(base!=BASACT) {
+				base->object->track= BASACT->object;
+				base->object->recalc |= OB_RECALC;
 			}
 		}
+		CTX_DATA_END;
 	}
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);	
@@ -2235,8 +2355,6 @@ static int make_track_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_make_track(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name= "Make Track";
 	ot->idname= "OBJECT_OT_make_track";
@@ -2248,11 +2366,438 @@ void OBJECT_OT_make_track(wmOperatorType *ot)
 	ot->poll= ED_operator_scene_editable;
 	ot->flag= OPTYPE_REGISTER;
 	
-	prop = RNA_def_property(ot->srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_make_track_types);
+	RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
+}
+
+/* ************* Make Dupli Real ********* */
+static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
+{
+	Base *basen;
+	Object *ob;
+	ListBase *lb;
+	DupliObject *dob;
+	
+	if(!base && !(base = BASACT))
+		return;
+	
+	if(!(base->object->transflag & OB_DUPLI))
+		return;
+	
+	lb= object_duplilist(scene, base->object);
+	
+	for(dob= lb->first; dob; dob= dob->next) {
+		ob= copy_object(dob->ob);
+		/* font duplis can have a totcol without material, we get them from parent
+		* should be implemented better...
+		*/
+		if(ob->mat==NULL) ob->totcol= 0;
+		
+		basen= MEM_dupallocN(base);
+		basen->flag &= ~OB_FROMDUPLI;
+		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
+		basen->object= ob;
+		ob->ipo= NULL;		/* make sure apply works */
+		ob->parent= ob->track= NULL;
+		ob->disp.first= ob->disp.last= NULL;
+		ob->transflag &= ~OB_DUPLI;	
+		
+		Mat4CpyMat4(ob->obmat, dob->mat);
+		ED_object_apply_obmat(ob);
+	}
+	
+	copy_object_set_idnew(scene, v3d, 0);
+	
+	free_object_duplilist(lb);
+	
+	base->object->transflag &= ~OB_DUPLI;	
 }
 
 
+static int object_make_dupli_real_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	
+	clear_id_newpoins();
+		
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		make_object_duplilist_real(scene, v3d, base);
+	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_anim_dag_flush_update(C);	
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	ED_undo_push(C,"Make duplicates real");	
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_make_dupli_real(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Make Dupli Real";
+	ot->idname= "OBJECT_OT_make_dupli_real";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= object_make_dupli_real_exec;
+	
+	ot->poll= ED_operator_scene_editable;
+}
+/* ******************* Set Object Center ********************** */
+
+static EnumPropertyItem prop_set_center_types[] = {
+	{0, "CENTER", "ObData to Center", "Move object data around Object center"},
+	{1, "CENTERNEW", "Center New", "Move Object center to center of object data"},
+	{2, "CENTERCURSOR", "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{0, NULL, NULL, NULL}
+};
+
+/* 0 == do center, 1 == center new, 2 == center cursor */
+static int object_set_center_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= sa->spacedata.first;
+	Object *obedit= CTX_data_edit_object(C);
+	Object *ob;
+	Mesh *me, *tme;
+	Curve *cu;
+/*	BezTriple *bezt;
+	BPoint *bp; */
+	Nurb *nu, *nu1;
+	EditVert *eve;
+	float cent[3], centn[3], min[3], max[3], omat[3][3];
+	int a, total= 0;
+	int centermode = RNA_enum_get(op->ptr, "type");
+	
+	/* keep track of what is changed */
+	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
+	MVert *mvert;
+
+	if(scene->id.lib || v3d==NULL) return OPERATOR_CANCELLED;
+	if (obedit && centermode > 0) return OPERATOR_CANCELLED;
+		
+	cent[0]= cent[1]= cent[2]= 0.0;	
+	
+	if(obedit) {
+
+		INIT_MINMAX(min, max);
+	
+		if(obedit->type==OB_MESH) {
+			Mesh *me= obedit->data;
+			
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+				if(v3d->around==V3D_CENTROID) {
+					total++;
+					VECADD(cent, cent, eve->co);
+				}
+				else {
+					DO_MINMAX(eve->co, min, max);
+				}
+			}
+			
+			if(v3d->around==V3D_CENTROID) {
+				VecMulf(cent, 1.0f/(float)total);
+			}
+			else {
+				cent[0]= (min[0]+max[0])/2.0f;
+				cent[1]= (min[1]+max[1])/2.0f;
+				cent[2]= (min[2]+max[2])/2.0f;
+			}
+			
+			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
+				VecSubf(eve->co, eve->co, cent);			
+			}
+			
+			recalc_editnormals(me->edit_mesh);
+			tot_change++;
+			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		}
+	}
+	
+	/* reset flags */
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			base->object->flag &= ~OB_DONE;
+	}
+	CTX_DATA_END;
+	
+	for (me= G.main->mesh.first; me; me= me->id.next) {
+		me->flag &= ~ME_ISDONE;
+	}
+	
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if((base->object->flag & OB_DONE)==0) {
+			base->object->flag |= OB_DONE;
+				
+			if(obedit==NULL && (me=get_mesh(base->object)) ) {
+				if (me->id.lib) {
+					tot_lib_error++;
+				} else {
+					if(centermode==2) {
+						VECCOPY(cent, give_cursor(scene, v3d));
+						Mat4Invert(base->object->imat, base->object->obmat);
+						Mat4MulVecfl(base->object->imat, cent);
+					} else {
+						INIT_MINMAX(min, max);
+						mvert= me->mvert;
+						for(a=0; a<me->totvert; a++, mvert++) {
+							DO_MINMAX(mvert->co, min, max);
+						}
+					
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
+					}
+
+					mvert= me->mvert;
+					for(a=0; a<me->totvert; a++, mvert++) {
+						VecSubf(mvert->co, mvert->co, cent);
+					}
+					
+					if (me->key) {
+						KeyBlock *kb;
+						for (kb=me->key->block.first; kb; kb=kb->next) {
+							float *fp= kb->data;
+							
+							for (a=0; a<kb->totelem; a++, fp+=3) {
+								VecSubf(fp, fp, cent);
+							}
+						}
+					}
+						
+					me->flag |= ME_ISDONE;
+						
+					if(centermode) {
+						Mat3CpyMat4(omat, base->object->obmat);
+						
+						VECCOPY(centn, cent);
+						Mat3MulVecfl(omat, centn);
+						base->object->loc[0]+= centn[0];
+						base->object->loc[1]+= centn[1];
+						base->object->loc[2]+= centn[2];
+						
+						where_is_object(scene, base->object);
+						ignore_parent_tx(scene, base->object);
+						
+						/* other users? */
+						CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+							ob = base->object;
+							if((ob->flag & OB_DONE)==0) {
+								tme= get_mesh(ob);
+								
+								if(tme==me) {
+									
+									ob->flag |= OB_DONE;
+									ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+
+									Mat3CpyMat4(omat, ob->obmat);
+									VECCOPY(centn, cent);
+									Mat3MulVecfl(omat, centn);
+									ob->loc[0]+= centn[0];
+									ob->loc[1]+= centn[1];
+									ob->loc[2]+= centn[2];
+									
+									where_is_object(scene, ob);
+									ignore_parent_tx(scene, ob);
+									
+									if(tme && (tme->flag & ME_ISDONE)==0) {
+										mvert= tme->mvert;
+										for(a=0; a<tme->totvert; a++, mvert++) {
+											VecSubf(mvert->co, mvert->co, cent);
+										}
+										
+										if (tme->key) {
+											KeyBlock *kb;
+											for (kb=tme->key->block.first; kb; kb=kb->next) {
+												float *fp= kb->data;
+												
+												for (a=0; a<kb->totelem; a++, fp+=3) {
+													VecSubf(fp, fp, cent);
+												}
+											}
+										}
+										
+										tme->flag |= ME_ISDONE;
+									}
+								}
+							}
+							
+							ob= ob->id.next;
+						}
+						CTX_DATA_END;
+					}
+					tot_change++;
+				}
+			}
+			else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
+				
+				/* weak code here... (ton) */
+				if(obedit==base->object) {
+					ListBase *editnurb= curve_get_editcurve(obedit);
+
+					nu1= editnurb->first;
+					cu= obedit->data;
+				}
+				else {
+					cu= base->object->data;
+					nu1= cu->nurb.first;
+				}
+				
+				if (cu->id.lib) {
+					tot_lib_error++;
+				} else {
+					if(centermode==2) {
+						VECCOPY(cent, give_cursor(scene, v3d));
+						Mat4Invert(base->object->imat, base->object->obmat);
+						Mat4MulVecfl(base->object->imat, cent);
+
+						/* don't allow Z change if curve is 2D */
+						if( !( cu->flag & CU_3D ) )
+							cent[2] = 0.0;
+					} 
+					else {
+						INIT_MINMAX(min, max);
+						
+						nu= nu1;
+						while(nu) {
+							minmaxNurb(nu, min, max);
+							nu= nu->next;
+						}
+						
+						cent[0]= (min[0]+max[0])/2.0f;
+						cent[1]= (min[1]+max[1])/2.0f;
+						cent[2]= (min[2]+max[2])/2.0f;
+					}
+					
+					nu= nu1;
+					while(nu) {
+						if( (nu->type & 7)==1) {
+							a= nu->pntsu;
+							while (a--) {
+								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
+								VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
+								VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+							}
+						}
+						else {
+							a= nu->pntsu*nu->pntsv;
+							while (a--)
+								VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
+						}
+						nu= nu->next;
+					}
+			
+					if(centermode && obedit==0) {
+						Mat3CpyMat4(omat, base->object->obmat);
+						
+						Mat3MulVecfl(omat, cent);
+						base->object->loc[0]+= cent[0];
+						base->object->loc[1]+= cent[1];
+						base->object->loc[2]+= cent[2];
+						
+						where_is_object(scene, base->object);
+						ignore_parent_tx(scene, base->object);
+					}
+					
+					tot_change++;
+					if(obedit) {
+						if (centermode==0) {
+							DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+						}
+						break;
+					}
+				}
+			}
+			else if(base->object->type==OB_FONT) {
+				/* get from bb */
+				
+				cu= base->object->data;
+				
+				if(cu->bb==0) {
+					/* do nothing*/
+				} else if (cu->id.lib) {
+					tot_lib_error++;
+				} else {
+					cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
+					cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height o above line */
+					
+					/* not really ok, do this better once! */
+					cu->xof /= cu->fsize;
+					cu->yof /= cu->fsize;
+
+					allqueue(REDRAWBUTSEDIT, 0);
+					tot_change++;
+				}
+			}
+			else if(base->object->type==OB_ARMATURE) {
+				bArmature *arm = base->object->data;
+				
+				if (arm->id.lib) {
+					tot_lib_error++;
+				} else if(arm->id.us>1) {
+					/*error("Can't apply to a multi user armature");
+					return;*/
+					tot_multiuser_arm_error++;
+				} else {
+					/* Function to recenter armatures in editarmature.c 
+					 * Bone + object locations are handled there.
+					 */
+					docenter_armature(scene, v3d, base->object, centermode);
+					tot_change++;
+					
+					where_is_object(scene, base->object);
+					ignore_parent_tx(scene, base->object);
+					
+					if(obedit) 
+						break;
+				}
+			}
+			base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+		}
+	}
+	CTX_DATA_END;
+	
+if (tot_change) {
+	ED_anim_dag_flush_update(C);
+	allqueue(REDRAWVIEW3D, 0);
+	ED_undo_push(C,"Do Center");	
+	}
+	
+	/* Warn if any errors occured */
+	if (tot_lib_error+tot_multiuser_arm_error) {
+		char err[512];
+		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_multiuser_arm_error, tot_change);
+		
+		if (tot_lib_error)
+			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
+		if (tot_multiuser_arm_error)
+			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
+		
+		error(err);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+void OBJECT_OT_set_center(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Center";
+	ot->idname= "OBJECT_OT_set_center";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_set_center_exec;
+	
+	ot->poll= ED_operator_view3d_active;
+	ot->flag= OPTYPE_REGISTER;
+	
+	RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+}
 /* ******************* toggle editmode operator  ***************** */
 
 void ED_object_exit_editmode(bContext *C, int flag)
@@ -2273,7 +2818,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 //		if(retopo_mesh_paint_check())
 //			retopo_end_okee();
 		
-		if(G.totvert>MESH_MAX_VERTS) {
+		if(me->edit_mesh->totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
 		}
@@ -2290,16 +2835,15 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			ED_armature_edit_free(obedit);
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-//		extern ListBase editNurb;
-//		load_editNurb();
-//		if(freedata) freeNurblist(&editNurb);
+		load_editNurb(obedit);
+		if(freedata) free_editNurb(obedit);
 	}
 	else if(obedit->type==OB_FONT && freedata) {
 //		load_editText();
 	}
 	else if(obedit->type==OB_LATTICE) {
-//		load_editLatt();
-//		if(freedata) free_editLatt();
+		load_editLatt(obedit);
+		if(freedata) free_editLatt(obedit);
 	}
 	else if(obedit->type==OB_MBALL) {
 //		extern ListBase editelems;
@@ -2390,21 +2934,28 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editText();
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, ob);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
 //		ok= 1;
 // XXX		make_editMball();
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, ob);
+		
 	}
 	else if(ob->type==OB_LATTICE) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editLatt();
+		ok= 1;
+		make_editLatt(ob);
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_LATTICE, ob);
 	}
 	else if(ob->type==OB_SURF || ob->type==OB_CURVE) {
-//		ok= 1;
+		ok= 1;
 		scene->obedit= ob; // XXX for context
-// XXX		make_editNurb();
+		make_editNurb(ob);
+		
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_CURVE, ob);
 	}
 	
 	if(ok) {
@@ -2440,7 +2991,6 @@ void OBJECT_OT_toggle_editmode(wmOperatorType *ot)
 	ot->exec= toggle_editmode_exec;
 	
 	ot->poll= ED_operator_object_active;
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* *************************** */
@@ -2454,354 +3004,6 @@ void check_editmode(int type)
 
 // XXX	ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
-
-/* 0 == do center, 1 == center new, 2 == center cursor */
-
-void docenter(Scene *scene, View3D *v3d, int centermode)
-{
-	Base *base;
-	Object *ob;
-	Mesh *me, *tme;
-	Curve *cu;
-/*	BezTriple *bezt;
-	BPoint *bp; */
-	Object *obedit= NULL; // XXX
-	Nurb *nu, *nu1;
-	EditVert *eve;
-	float cent[3], centn[3], min[3], max[3], omat[3][3];
-	int a, total= 0;
-	
-	/* keep track of what is changed */
-	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
-	MVert *mvert;
-
-	if(scene->id.lib || v3d==NULL) return;
-	
-	cent[0]= cent[1]= cent[2]= 0.0;
-	
-	if(obedit) {
-
-		INIT_MINMAX(min, max);
-	
-		if(obedit->type==OB_MESH) {
-			Mesh *me= obedit->data;
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
-				if(v3d->around==V3D_CENTROID) {
-					total++;
-					VECADD(cent, cent, eve->co);
-				}
-				else {
-					DO_MINMAX(eve->co, min, max);
-				}
-			}
-			
-			if(v3d->around==V3D_CENTROID) {
-				VecMulf(cent, 1.0f/(float)total);
-			}
-			else {
-				cent[0]= (min[0]+max[0])/2.0f;
-				cent[1]= (min[1]+max[1])/2.0f;
-				cent[2]= (min[2]+max[2])/2.0f;
-			}
-			
-			for(eve= me->edit_mesh->verts.first; eve; eve= eve->next) {
-				VecSubf(eve->co, eve->co, cent);			
-			}
-			
-// XXX			recalc_editnormals();
-			tot_change++;
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		}
-	}
-	
-	/* reset flags */
-	for (base=FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base))
-			base->object->flag &= ~OB_DONE;
-	}
-	
-	for (me= G.main->mesh.first; me; me= me->id.next) {
-		me->flag &= ~ME_ISDONE;
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if((base->object->flag & OB_DONE)==0) {
-				base->object->flag |= OB_DONE;
-				
-				if(base->object->id.lib) {
-					tot_lib_error++;
-				}
-				else if(obedit==0 && (me=get_mesh(base->object)) ) {
-					if (me->id.lib) {
-						tot_lib_error++;
-					} else {
-						if(centermode==2) {
-							VECCOPY(cent, give_cursor(scene, v3d));
-							Mat4Invert(base->object->imat, base->object->obmat);
-							Mat4MulVecfl(base->object->imat, cent);
-						} else {
-							INIT_MINMAX(min, max);
-							mvert= me->mvert;
-							for(a=0; a<me->totvert; a++, mvert++) {
-								DO_MINMAX(mvert->co, min, max);
-							}
-					
-							cent[0]= (min[0]+max[0])/2.0f;
-							cent[1]= (min[1]+max[1])/2.0f;
-							cent[2]= (min[2]+max[2])/2.0f;
-						}
-
-						mvert= me->mvert;
-						for(a=0; a<me->totvert; a++, mvert++) {
-							VecSubf(mvert->co, mvert->co, cent);
-						}
-						
-						if (me->key) {
-							KeyBlock *kb;
-							for (kb=me->key->block.first; kb; kb=kb->next) {
-								float *fp= kb->data;
-								
-								for (a=0; a<kb->totelem; a++, fp+=3) {
-									VecSubf(fp, fp, cent);
-								}
-							}
-						}
-						
-						me->flag |= ME_ISDONE;
-						
-						if(centermode) {
-							Mat3CpyMat4(omat, base->object->obmat);
-							
-							VECCOPY(centn, cent);
-							Mat3MulVecfl(omat, centn);
-							base->object->loc[0]+= centn[0];
-							base->object->loc[1]+= centn[1];
-							base->object->loc[2]+= centn[2];
-							
-							where_is_object(scene, base->object);
-							ignore_parent_tx(scene, base->object);
-							
-							/* other users? */
-							ob= G.main->object.first;
-							while(ob) {
-								if((ob->flag & OB_DONE)==0) {
-									tme= get_mesh(ob);
-									
-									if(tme==me) {
-										
-										ob->flag |= OB_DONE;
-										ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-
-										Mat3CpyMat4(omat, ob->obmat);
-										VECCOPY(centn, cent);
-										Mat3MulVecfl(omat, centn);
-										ob->loc[0]+= centn[0];
-										ob->loc[1]+= centn[1];
-										ob->loc[2]+= centn[2];
-										
-										where_is_object(scene, ob);
-										ignore_parent_tx(scene, ob);
-										
-										if(tme && (tme->flag & ME_ISDONE)==0) {
-											mvert= tme->mvert;
-											for(a=0; a<tme->totvert; a++, mvert++) {
-												VecSubf(mvert->co, mvert->co, cent);
-											}
-											
-											if (tme->key) {
-												KeyBlock *kb;
-												for (kb=tme->key->block.first; kb; kb=kb->next) {
-													float *fp= kb->data;
-													
-													for (a=0; a<kb->totelem; a++, fp+=3) {
-														VecSubf(fp, fp, cent);
-													}
-												}
-											}
-											
-											tme->flag |= ME_ISDONE;
-										}
-									}
-								}
-								
-								ob= ob->id.next;
-							}
-						}
-						tot_change++;
-					}
-				}
-				else if (ELEM(base->object->type, OB_CURVE, OB_SURF)) {
-					
-					/* totally weak code here... (ton) */
-					if(obedit==base->object) {
-						extern ListBase editNurb;
-						nu1= editNurb.first;
-						cu= obedit->data;
-					}
-					else {
-						cu= base->object->data;
-						nu1= cu->nurb.first;
-					}
-					
-					if (cu->id.lib) {
-						tot_lib_error++;
-					} else {
-						if(centermode==2) {
-							VECCOPY(cent, give_cursor(scene, v3d));
-							Mat4Invert(base->object->imat, base->object->obmat);
-							Mat4MulVecfl(base->object->imat, cent);
-
-							/* don't allow Z change if curve is 2D */
-							if( !( cu->flag & CU_3D ) )
-								cent[2] = 0.0;
-						} 
-						else {
-							INIT_MINMAX(min, max);
-							
-							nu= nu1;
-							while(nu) {
-								minmaxNurb(nu, min, max);
-								nu= nu->next;
-							}
-							
-							cent[0]= (min[0]+max[0])/2.0f;
-							cent[1]= (min[1]+max[1])/2.0f;
-							cent[2]= (min[2]+max[2])/2.0f;
-						}
-						
-						nu= nu1;
-						while(nu) {
-							if( (nu->type & 7)==1) {
-								a= nu->pntsu;
-								while (a--) {
-									VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-									VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-									VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
-								}
-							}
-							else {
-								a= nu->pntsu*nu->pntsv;
-								while (a--)
-									VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
-							}
-							nu= nu->next;
-						}
-				
-						if(centermode && obedit==0) {
-							Mat3CpyMat4(omat, base->object->obmat);
-							
-							Mat3MulVecfl(omat, cent);
-							base->object->loc[0]+= cent[0];
-							base->object->loc[1]+= cent[1];
-							base->object->loc[2]+= cent[2];
-							
-							where_is_object(scene, base->object);
-							ignore_parent_tx(scene, base->object);
-						}
-						
-						tot_change++;
-						if(obedit) {
-							if (centermode==0) {
-								DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-							}
-							break;
-						}
-					}
-				}
-				else if(base->object->type==OB_FONT) {
-					/* get from bb */
-					
-					cu= base->object->data;
-					
-					if(cu->bb==0) {
-						/* do nothing*/
-					} else if (cu->id.lib) {
-						tot_lib_error++;
-					} else {
-						cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
-						cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
-						
-						/* not really ok, do this better once! */
-						cu->xof /= cu->fsize;
-						cu->yof /= cu->fsize;
-
-						allqueue(REDRAWBUTSEDIT, 0);
-						tot_change++;
-					}
-				}
-				else if(base->object->type==OB_ARMATURE) {
-					bArmature *arm = base->object->data;
-					
-					if (arm->id.lib) {
-						tot_lib_error++;
-					} else if(arm->id.us>1) {
-						/*error("Can't apply to a multi user armature");
-						return;*/
-						tot_multiuser_arm_error++;
-					} else {
-						/* Function to recenter armatures in editarmature.c 
-						 * Bone + object locations are handled there.
-						 */
-// XXX						docenter_armature(base->object, centermode);
-						tot_change++;
-						
-						where_is_object(scene, base->object);
-						ignore_parent_tx(scene, base->object);
-						
-						if(obedit) 
-							break;
-					}
-				}
-				base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
-			}
-		}
-	}
-	if (tot_change) {
-		ED_anim_dag_flush_update(C);
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push("Do Center");	
-	}
-	
-	/* Warn if any errors occured */
-	if (tot_lib_error+tot_multiuser_arm_error) {
-		char err[512];
-		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_multiuser_arm_error, tot_change);
-		
-		if (tot_lib_error)
-			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
-		if (tot_multiuser_arm_error)
-			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
-		
-		error(err);
-	}
-}
-
-void docenter_new(Scene *scene, View3D *v3d)
-{
-	if(scene->id.lib) return;
-
-	if(scene->obedit) { // XXX get from context
-		error("Unable to center new in Edit Mode");
-	}
-	else {
-		docenter(scene, v3d, 1);
-	}
-}
-
-void docenter_cursor(Scene *scene, View3D *v3d)
-{
-	if(scene->id.lib) return;
-
-	if(scene->obedit) { // XXX get from context
-		error("Unable to center cursor in Edit Mode");
-	}
-	else {
-		docenter(scene, v3d, 2);
-	}
-}
-
 void movetolayer(Scene *scene, View3D *v3d)
 {
 	Base *base;
@@ -3359,11 +3561,12 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX			switch_direction_armature();
 	}
 	else if(obedit->type==OB_LATTICE) {
+		Lattice *lt= obedit->data;
 		static float weight= 1.0f;
 		{ // XXX
 // XXX		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
-			int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			BPoint *bp= editLatt->def;
+			int a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+			BPoint *bp= lt->editlatt->def;
 			
 			while(a--) {
 				if(bp->f1 & SELECT)
@@ -3477,7 +3680,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 
 				/* make a new copy of the mesh */
 				ob1->data= copy_mesh(me);
-				G.totmesh++;
 
 				/* make new mesh data from the original copy */
 				dm= mesh_get_derived_final(scene, ob1, CD_MASK_MESH);
@@ -3568,7 +3770,6 @@ void convertmenu(Scene *scene, View3D *v3d)
 						mb->id.us--;
 						
 						ob1->data= add_mesh("Mesh");
-						G.totmesh++;
 						ob1->type= OB_MESH;
 						
 						me= ob1->data;
@@ -4197,10 +4398,6 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 				else if(event==22) {
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints);
-					if (U.dupflag& USER_DUP_IPO)
-						copy_constraint_channels(&base->object->constraintChannels, &ob->constraintChannels);
-					else
-						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels);
 					
 					do_scene_sort= 1;
 				}
@@ -4215,7 +4412,9 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 					}
 				}
 				else if(event==26) {
+#if 0 // XXX old animation system
 					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+#endif // XXX old animation system
 				}
 				else if(event==27) {	/* autosmooth */
 					if (base->object->type==OB_MESH) {
@@ -4432,12 +4631,14 @@ void make_links(Scene *scene, View3D *v3d, short event)
 						}
 					}
 				else if(event==4) {  /* ob ipo */
+#if 0 // XXX old animation system
 					if(obt->ipo) obt->ipo->id.us--;
 					obt->ipo= ob->ipo;
 					if(obt->ipo) {
 						id_us_plus((ID *)obt->ipo);
 						do_ob_ipo(scene, obt);
 					}
+#endif // XXX old animation system
 				}
 				else if(event==6) {
 					if(ob->dup_group) ob->dup_group->id.us--;
@@ -4744,248 +4945,6 @@ void apply_objects_visual_tx( Scene *scene, View3D *v3d )
 	}
 }
 
-static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
-{
-	ID_NEW(*obpoin);
-}
-
-static void copy_object__forwardModifierLinks(void *userData, Object *ob,
-                                              ID **idpoin)
-{
-	/* this is copied from ID_NEW; it might be better to have a macro */
-	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
-}
-
-
-/* after copying objects, copied data should get new pointers */
-static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
-{
-	Base *base;
-	Object *ob;
-	Material *ma, *mao;
-	ID *id;
-	Ipo *ipo;
-	bActionStrip *strip;
-	int a;
-	
-	/* check object pointers */
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			ob= base->object;
-			relink_constraints(&ob->constraints);
-			if (ob->pose){
-				bPoseChannel *chan;
-				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
-				}
-			}
-			modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
-			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
-			ID_NEW(ob->proxy);
-			ID_NEW(ob->proxy_group);
-			
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				bActionModifier *amod;
-				for(amod= strip->modifiers.first; amod; amod= amod->next)
-					ID_NEW(amod->ob);
-			}
-		}
-	}
-	
-	/* materials */
-	if( dupflag & USER_DUP_MAT) {
-		mao= G.main->mat.first;
-		while(mao) {
-			if(mao->id.newid) {
-				
-				ma= (Material *)mao->id.newid;
-				
-				if(dupflag & USER_DUP_TEX) {
-					for(a=0; a<MAX_MTEX; a++) {
-						if(ma->mtex[a]) {
-							id= (ID *)ma->mtex[a]->tex;
-							if(id) {
-								ID_NEW_US(ma->mtex[a]->tex)
-								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
-								id->us--;
-							}
-						}
-					}
-				}
-				id= (ID *)ma->ipo;
-				if(id) {
-					ID_NEW_US(ma->ipo)
-					else ma->ipo= copy_ipo(ma->ipo);
-					id->us--;
-				}
-			}
-			mao= mao->id.next;
-		}
-	}
-	
-	/* lamps */
-	if( dupflag & USER_DUP_IPO) {
-		Lamp *la= G.main->lamp.first;
-		while(la) {
-			if(la->id.newid) {
-				Lamp *lan= (Lamp *)la->id.newid;
-				id= (ID *)lan->ipo;
-				if(id) {
-					ID_NEW_US(lan->ipo)
-					else lan->ipo= copy_ipo(lan->ipo);
-					id->us--;
-				}
-			}
-			la= la->id.next;
-		}
-	}
-	
-	/* ipos */
-	ipo= G.main->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL && ipo->id.newid) {
-			Ipo *ipon= (Ipo *)ipo->id.newid;
-			IpoCurve *icu;
-			for(icu= ipon->curve.first; icu; icu= icu->next) {
-				if(icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo= ipo->id.next;
-	}
-	
-	set_sca_new_poins();
-	
-	clear_id_newpoins();
-	
-}
-
-
-void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
-{
-	Base *basen;
-	Object *ob;
-	ListBase *lb;
-	DupliObject *dob;
-	
-	if(!base && !(base = BASACT))
-		return;
-	
-	if(!(base->object->transflag & OB_DUPLI))
-		return;
-	
-	lb= object_duplilist(scene, base->object);
-	
-	for(dob= lb->first; dob; dob= dob->next) {
-		ob= copy_object(dob->ob);
-		/* font duplis can have a totcol without material, we get them from parent
-		* should be implemented better...
-		*/
-		if(ob->mat==NULL) ob->totcol= 0;
-		
-		basen= MEM_dupallocN(base);
-		basen->flag &= ~OB_FROMDUPLI;
-		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
-		basen->object= ob;
-		ob->ipo= NULL;		/* make sure apply works */
-		ob->parent= ob->track= NULL;
-		ob->disp.first= ob->disp.last= NULL;
-		ob->transflag &= ~OB_DUPLI;	
-		
-		Mat4CpyMat4(ob->obmat, dob->mat);
-		ED_object_apply_obmat(ob);
-	}
-	
-	copy_object_set_idnew(scene, v3d, 0);
-	
-	free_object_duplilist(lb);
-	
-	base->object->transflag &= ~OB_DUPLI;	
-}
-
-void make_duplilist_real(Scene *scene, View3D *v3d)
-{
-	Base *base;
-	/*	extern ListBase duplilist; */
-	
-	if(okee("Make dupli objects real")==0) return;
-	
-	clear_id_newpoins();
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASE(v3d, base)) {
-			make_object_duplilist_real(scene, v3d, base);
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Make duplicates real");
-}
-
-void apply_object(Scene *scene, View3D *v3d)
-{
-	Object *ob;
-	int evt;
-	int shift= 0;
-	
-	if(scene->id.lib) return;
-	if(scene->obedit) return; // XXX get from context
-	
-	if(shift) {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if(ob->transflag & OB_DUPLI) {
-			make_duplilist_real(scene, v3d);
-		}
-		else {
-			if(okee("Apply deformation")) {
-// XXX				object_apply_deform(ob);
-				BIF_undo_push("Apply deformation");
-			}
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		
-	} 
-	else {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if ((ob->pose) && (ob->flag & OB_POSEMODE))
-			evt = pupmenu("Apply Object%t|Current Pose as RestPose%x3");
-		else
-			evt = pupmenu("Apply Object%t|Scale and Rotation to ObData%x1|Visual Transform to Objects Loc/Scale/Rot%x2|Scale to ObData%x4|Rotation to ObData%x5");
-		if (evt==-1) return;
-		
-		switch (evt) {
-			case 1:
-				apply_objects_locrot(scene, v3d);
-				break;
-			case 2:
-				apply_objects_visual_tx(scene, v3d);
-				break;
-			case 3:
-// XXX				apply_armature_pose2bones();
-				break;
-			case 4:
-				apply_objects_scale(scene, v3d);
-				break;
-			case 5:
-				apply_objects_rot(scene, v3d);
-				break;
-		}
-	}
-}
-
-
-
-
 /* ************************************** */
 
 
@@ -5061,7 +5020,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 	Object *ob;
 	Lamp *la;
 	Curve *cu;
-	Camera *cam;
+	//Camera *cam;
 	Base *base;
 	Mesh *me;
 	ID *id;
@@ -5091,8 +5050,8 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 					break;
 				case OB_MESH:
 					me= ob->data= copy_mesh(ob->data);
-					if(me && me->key)
-						ipo_idnew(me->key->ipo);	/* drivers */
+					//if(me && me->key)
+					//	ipo_idnew(me->key->ipo);	/* drivers */
 					break;
 				case OB_MBALL:
 					ob->data= copy_mball(ob->data);
@@ -5123,6 +5082,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 				
 			}
 			
+#if 0 // XXX old animation system
 			id= (ID *)ob->action;
 			if (id && id->us>1 && id->lib==NULL){
 				if(id->newid){
@@ -5167,7 +5127,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 				}
 				break;
 			}
-			
+#endif // XXX old animation system
 		}
 	}
 	
@@ -5180,6 +5140,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 
 void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 {
+#if 0 // XXX old animation system
 	Object *ob;
 	Base *base;
 	ID *id;
@@ -5197,6 +5158,7 @@ void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 			}
 		}
 	}
+#endif // XXX old animation system
 }
 
 void single_mat_users(Scene *scene, View3D *v3d, int flag)
@@ -5222,12 +5184,14 @@ void single_mat_users(Scene *scene, View3D *v3d, int flag)
 					
 						man->id.us= 0;
 						assign_material(ob, man, a);
-						
+	
+#if 0 // XXX old animation system						
 						if(ma->ipo) {
 							man->ipo= copy_ipo(ma->ipo);
 							ma->ipo->id.us--;
 							ipo_idnew(ma->ipo);	/* drivers */
 						}
+#endif // XXX old animation system
 						
 						for(b=0; b<MAX_MTEX; b++) {
 							if(ma->mtex[b] && ma->mtex[b]->tex) {
@@ -5411,7 +5375,7 @@ void single_user(Scene *scene, View3D *v3d)
 /* helper for below, ma was checked to be not NULL */
 static void make_local_makelocalmaterial(Material *ma)
 {
-	ID *id;
+	//ID *id;
 	int b;
 	
 	make_local_material(ma);
@@ -5422,8 +5386,10 @@ static void make_local_makelocalmaterial(Material *ma)
 		}
 	}
 	
+#if 0 // XXX old animation system
 	id= (ID *)ma->ipo;
-	if(id && id->lib) make_local_ipo(ma->ipo);	
+	if(id && id->lib) make_local_ipo(ma->ipo);
+#endif // XXX old animation system	
 	
 	/* nodetree? XXX */
 }
@@ -5432,7 +5398,7 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 {
 	Base *base;
 	Object *ob;
-	bActionStrip *strip;
+	//bActionStrip *strip;
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
 	Lamp *la;
@@ -5484,9 +5450,10 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 					make_local_lamp((Lamp *)id);
 					
 					la= ob->data;
+#if 0 // XXX old animation system
 					id= (ID *)la->ipo;
 					if(id && id->lib) make_local_ipo(la->ipo);
-					
+#endif // XXX old animation system
 					break;
 				case OB_CAMERA:
 					make_local_camera((Camera *)id);
@@ -5503,8 +5470,10 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				case OB_FONT:
 					cu= (Curve *)id;
 					make_local_curve(cu);
+#if 0 // XXX old animation system
 					id= (ID *)cu->ipo;
 					if(id && id->lib) make_local_ipo(cu->ipo);
+#endif // XXX old animation system
 					make_local_key( cu->key );
 					break;
 				case OB_LATTICE:
@@ -5519,6 +5488,8 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				for(psys=ob->particlesystem.first; psys; psys=psys->next)
 					make_local_particlesettings(psys->part);
 			}
+			
+#if 0 // XXX old animation system
 			id= (ID *)ob->ipo;
 			if(id && id->lib) make_local_ipo(ob->ipo);
 
@@ -5529,6 +5500,7 @@ void make_local(Scene *scene, View3D *v3d, int mode)
 				if(strip->act && strip->act->id.lib)
 					make_local_action(strip->act);
 			}
+#endif // XXX old animation system
 		}
 	}
 
@@ -5586,374 +5558,256 @@ void make_local_menu(Scene *scene, View3D *v3d)
 	make_local(scene, v3d, mode);
 }
 
+/* ************************ ADD DUPLICATE ******************** */
 
-
-/* This function duplicated the current visible selection, its used by Duplicate and Linked Duplicate
-Alt+D/Shift+D as well as Pythons Object.Duplicate(), it takes
-mode: 
-	0: Duplicate with transform, Redraw.
-	1: Duplicate, no transform, Redraw
-	2: Duplicate, no transform, no redraw (Only used by python)
-if true the user will not be dropped into grab mode directly after and..
-dupflag: a flag made from constants declared in DNA_userdef_types.h
+/* 
+	dupflag: a flag made from constants declared in DNA_userdef_types.h
 	The flag tells adduplicate() weather to copy data linked to the object, or to reference the existing data.
 	U.dupflag for default operations or you can construct a flag as python does
 	if the dupflag is 0 then no data will be copied (linked duplicate) */
 
-void adduplicate(Scene *scene, View3D *v3d, int mode, int dupflag)
+static int add_duplicate_exec(bContext *C, wmOperator *op)
 {
-	Base *base, *basen;
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	Base *basen;
 	Material ***matarar;
 	Object *ob, *obn;
 	ID *id;
+	int dupflag= U.dupflag;
 	int a, didit;
 	
-	if(scene->id.lib) return;
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
 	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASE(v3d, base)) {
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		
-			ob= base->object;
-			if(ob->flag & OB_POSEMODE) {
-				; /* nothing? */
-			}
-			else {
-				obn= copy_object(ob);
-				obn->recalc |= OB_RECALC;
-				
-				basen= MEM_mallocN(sizeof(Base), "duplibase");
-				*basen= *base;
-				BLI_addhead(&scene->base, basen);	/* addhead: prevent eternal loop */
-				basen->object= obn;
-				base->flag &= ~SELECT;
-				
-				if(basen->flag & OB_FROMGROUP) {
-					Group *group;
-					for(group= G.main->group.first; group; group= group->id.next) {
-						if(object_in_group(ob, group))
-							add_to_group(group, obn);
-					}
-					obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
+		ob= base->object;
+		if(ob->flag & OB_POSEMODE) {
+			; /* nothing? */
+		}
+		else {
+			obn= copy_object(ob);
+			obn->recalc |= OB_RECALC;
+			
+			basen= MEM_mallocN(sizeof(Base), "duplibase");
+			*basen= *base;
+			BLI_addhead(&scene->base, basen);	/* addhead: prevent eternal loop */
+			basen->object= obn;
+			base->flag &= ~SELECT;
+			
+			if(basen->flag & OB_FROMGROUP) {
+				Group *group;
+				for(group= G.main->group.first; group; group= group->id.next) {
+					if(object_in_group(ob, group))
+						add_to_group(group, obn);
 				}
-				
-				if(BASACT==base) BASACT= basen;
+				obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
+			}
+			
+			if(BASACT==base)
+				ED_base_object_activate(C, basen);
 
-				/* duplicates using userflags */
+			/* duplicates using userflags */
+#if 0 // XXX old animation system				
+			if(dupflag & USER_DUP_IPO) {
+				bConstraintChannel *chan;
+				id= (ID *)obn->ipo;
 				
-				if(dupflag & USER_DUP_IPO) {
-					bConstraintChannel *chan;
-					id= (ID *)obn->ipo;
-					
+				if(id) {
+					ID_NEW_US( obn->ipo)
+					else obn->ipo= copy_ipo(obn->ipo);
+					id->us--;
+				}
+				/* Handle constraint ipos */
+				for (chan=obn->constraintChannels.first; chan; chan=chan->next){
+					id= (ID *)chan->ipo;
 					if(id) {
-						ID_NEW_US( obn->ipo)
-						else obn->ipo= copy_ipo(obn->ipo);
-						id->us--;
-					}
-					/* Handle constraint ipos */
-					for (chan=obn->constraintChannels.first; chan; chan=chan->next){
-						id= (ID *)chan->ipo;
-						if(id) {
-							ID_NEW_US( chan->ipo)
-							else chan->ipo= copy_ipo(chan->ipo);
-							id->us--;
-						}
-					}
-				}
-				if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
-					id= (ID *)obn->action;
-					if (id){
-						ID_NEW_US(obn->action)
-						else{
-							obn->action= copy_action(obn->action);
-						}
+						ID_NEW_US( chan->ipo)
+						else chan->ipo= copy_ipo(chan->ipo);
 						id->us--;
 					}
 				}
-				if(dupflag & USER_DUP_MAT) {
-					for(a=0; a<obn->totcol; a++) {
-						id= (ID *)obn->mat[a];
-						if(id) {
-							ID_NEW_US(obn->mat[a])
-							else obn->mat[a]= copy_material(obn->mat[a]);
-							id->us--;
-						}
+			}
+			if(dupflag & USER_DUP_ACT){ /* Not buttons in the UI to modify this, add later? */
+				id= (ID *)obn->action;
+				if (id){
+					ID_NEW_US(obn->action)
+					else{
+						obn->action= copy_action(obn->action);
+					}
+					id->us--;
+				}
+			}
+#endif // XXX old animation system
+			if(dupflag & USER_DUP_MAT) {
+				for(a=0; a<obn->totcol; a++) {
+					id= (ID *)obn->mat[a];
+					if(id) {
+						ID_NEW_US(obn->mat[a])
+						else obn->mat[a]= copy_material(obn->mat[a]);
+						id->us--;
 					}
 				}
-				
-				id= obn->data;
-				didit= 0;
-				
-				switch(obn->type) {
-				case OB_MESH:
-					if(dupflag & USER_DUP_MESH) {
-						ID_NEW_US2( obn->data )
-						else {
-							obn->data= copy_mesh(obn->data);
-							
-							if(obn->fluidsimSettings) {
-							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
-							}
-							
-							didit= 1;
+			}
+			
+			id= obn->data;
+			didit= 0;
+			
+			switch(obn->type) {
+			case OB_MESH:
+				if(dupflag & USER_DUP_MESH) {
+					ID_NEW_US2( obn->data )
+					else {
+						obn->data= copy_mesh(obn->data);
+						
+						if(obn->fluidsimSettings) {
+						obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
 						}
-						id->us--;
+						
+						didit= 1;
 					}
-					break;
-				case OB_CURVE:
-					if(dupflag & USER_DUP_CURVE) {
-						ID_NEW_US2(obn->data )
-						else {
-							obn->data= copy_curve(obn->data);
-							didit= 1;
-						}
-						id->us--;
+					id->us--;
+				}
+				break;
+			case OB_CURVE:
+				if(dupflag & USER_DUP_CURVE) {
+					ID_NEW_US2(obn->data )
+					else {
+						obn->data= copy_curve(obn->data);
+						didit= 1;
 					}
-					break;
-				case OB_SURF:
-					if(dupflag & USER_DUP_SURF) {
-						ID_NEW_US2( obn->data )
-						else {
-							obn->data= copy_curve(obn->data);
-							didit= 1;
-						}
-						id->us--;
+					id->us--;
+				}
+				break;
+			case OB_SURF:
+				if(dupflag & USER_DUP_SURF) {
+					ID_NEW_US2( obn->data )
+					else {
+						obn->data= copy_curve(obn->data);
+						didit= 1;
 					}
-					break;
-				case OB_FONT:
-					if(dupflag & USER_DUP_FONT) {
-						ID_NEW_US2( obn->data )
-						else {
-							obn->data= copy_curve(obn->data);
-							didit= 1;
-						}
-						id->us--;
+					id->us--;
+				}
+				break;
+			case OB_FONT:
+				if(dupflag & USER_DUP_FONT) {
+					ID_NEW_US2( obn->data )
+					else {
+						obn->data= copy_curve(obn->data);
+						didit= 1;
 					}
-					break;
-				case OB_MBALL:
-					if(dupflag & USER_DUP_MBALL) {
-						ID_NEW_US2(obn->data )
-						else {
-							obn->data= copy_mball(obn->data);
-							didit= 1;
-						}
-						id->us--;
+					id->us--;
+				}
+				break;
+			case OB_MBALL:
+				if(dupflag & USER_DUP_MBALL) {
+					ID_NEW_US2(obn->data )
+					else {
+						obn->data= copy_mball(obn->data);
+						didit= 1;
 					}
-					break;
-				case OB_LAMP:
-					if(dupflag & USER_DUP_LAMP) {
-						ID_NEW_US2(obn->data )
-						else obn->data= copy_lamp(obn->data);
-						id->us--;
-					}
-					break;
+					id->us--;
+				}
+				break;
+			case OB_LAMP:
+				if(dupflag & USER_DUP_LAMP) {
+					ID_NEW_US2(obn->data )
+					else obn->data= copy_lamp(obn->data);
+					id->us--;
+				}
+				break;
 
-				case OB_ARMATURE:
-					obn->recalc |= OB_RECALC_DATA;
-					if(obn->pose) obn->pose->flag |= POSE_RECALC;
-					
-					if(dupflag & USER_DUP_ARM) {
-						ID_NEW_US2(obn->data )
-						else {
-							obn->data= copy_armature(obn->data);
-							armature_rebuild_pose(obn, obn->data);
-							didit= 1;
-						}
-						id->us--;
+			case OB_ARMATURE:
+				obn->recalc |= OB_RECALC_DATA;
+				if(obn->pose) obn->pose->flag |= POSE_RECALC;
+				
+				if(dupflag & USER_DUP_ARM) {
+					ID_NEW_US2(obn->data )
+					else {
+						obn->data= copy_armature(obn->data);
+						armature_rebuild_pose(obn, obn->data);
+						didit= 1;
 					}
-					
-					break;
-					
-				case OB_LATTICE:
-					if(dupflag!=0) {
-						ID_NEW_US2(obn->data )
-						else obn->data= copy_lattice(obn->data);
-						id->us--;
-					}
-					break;
-				case OB_CAMERA:
-					if(dupflag!=0) {
-						ID_NEW_US2(obn->data )
-						else obn->data= copy_camera(obn->data);
-						id->us--;
-					}
-					break;
+					id->us--;
 				}
 				
-				if(dupflag & USER_DUP_MAT) {
-					matarar= give_matarar(obn);
-					if(didit && matarar) {
-						for(a=0; a<obn->totcol; a++) {
-							id= (ID *)(*matarar)[a];
-							if(id) {
-								ID_NEW_US( (*matarar)[a] )
-								else (*matarar)[a]= copy_material((*matarar)[a]);
-								
-								id->us--;
-							}
+				break;
+				
+			case OB_LATTICE:
+				if(dupflag!=0) {
+					ID_NEW_US2(obn->data )
+					else obn->data= copy_lattice(obn->data);
+					id->us--;
+				}
+				break;
+			case OB_CAMERA:
+				if(dupflag!=0) {
+					ID_NEW_US2(obn->data )
+					else obn->data= copy_camera(obn->data);
+					id->us--;
+				}
+				break;
+			}
+			
+			if(dupflag & USER_DUP_MAT) {
+				matarar= give_matarar(obn);
+				if(didit && matarar) {
+					for(a=0; a<obn->totcol; a++) {
+						id= (ID *)(*matarar)[a];
+						if(id) {
+							ID_NEW_US( (*matarar)[a] )
+							else (*matarar)[a]= copy_material((*matarar)[a]);
+							
+							id->us--;
 						}
 					}
 				}
 			}
-						
 		}
 	}
+	CTX_DATA_END;
 
 	copy_object_set_idnew(scene, v3d, dupflag);
 
 	DAG_scene_sort(scene);
 	ED_anim_dag_flush_update(C);	
 
-	if(mode==0) {
-// XX		BIF_TransformSetUndo("Add Duplicate");
-//		initTransform(TFM_TRANSLATION, CTX_NONE);
-//		Transform();
-	}
-	// XXX ED_base_object_activate(C, BASACT);
-	if(mode!=2) { /* mode of 2 is used by python to avoid unrequested redraws */
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWACTION, 0);	/* also oops */
-		allqueue(REDRAWIPO, 0);	/* also oops */
-	}
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+
+	return OPERATOR_FINISHED;
 }
 
-
-void selectlinks(Scene *scene, View3D *v3d, int nr)
+static int add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Object *ob;
-	Base *base;
-	void *obdata = NULL;
-	Ipo *ipo = NULL;
-	Material *mat = NULL, *mat1;
-	Tex *tex=0;
-	int a, b;
-	short changed = 0;
-	/* events (nr):
-	 * Object Ipo: 1
-	 * ObData: 2
-	 * Current Material: 3
-	 * Current Texture: 4
-	 * DupliGroup: 5
-	 * PSys: 6
-	 */
 	
+	add_duplicate_exec(C, op);
 	
-	ob= OBACT;
-	if(ob==0) return;
-	
-	if(nr==1) {
-		ipo= ob->ipo;
-		if(ipo==0) return;
-	}
-	else if(nr==2) {
-		if(ob->data==0) return;
-		obdata= ob->data;
-	}
-	else if(nr==3 || nr==4) {
-		mat= give_current_material(ob, ob->actcol);
-		if(mat==0) return;
-		if(nr==4) {
-			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
-			if(tex==0) return;
-		}
-	}
-	else if(nr==5) {
-		if(ob->dup_group==NULL) return;
-	}
-	else if(nr==6) {
-		if(ob->particlesystem.first==NULL) return;
-	}
-	else return;
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if (BASE_SELECTABLE(v3d, base) && !(base->flag & SELECT)) {
-			if(nr==1) {
-				if(base->object->ipo==ipo) base->flag |= SELECT;
-				changed = 1;
-			}
-			else if(nr==2) {
-				if(base->object->data==obdata) base->flag |= SELECT;
-				changed = 1;
-			}
-			else if(nr==3 || nr==4) {
-				ob= base->object;
-				
-				for(a=1; a<=ob->totcol; a++) {
-					mat1= give_current_material(ob, a);
-					if(nr==3) {
-						if(mat1==mat) base->flag |= SELECT;
-						changed = 1;
-					}
-					else if(mat1 && nr==4) {
-						for(b=0; b<MAX_MTEX; b++) {
-							if(mat1->mtex[b]) {
-								if(tex==mat1->mtex[b]->tex) {
-									base->flag |= SELECT;
-									changed = 1;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-			else if(nr==5) {
-				if(base->object->dup_group==ob->dup_group) {
-					 base->flag |= SELECT;
-					 changed = 1;
-				}
-			}
-			else if(nr==6) {
-				/* loop through other, then actives particles*/
-				ParticleSystem *psys;
-				ParticleSystem *psys_act;
-				
-				for(psys=base->object->particlesystem.first; psys; psys=psys->next) {
-					for(psys_act=ob->particlesystem.first; psys_act; psys_act=psys_act->next) {
-						if (psys->part == psys_act->part) {
-							base->flag |= SELECT;
-							changed = 1;
-							break;
-						}
-					}
-					
-					if (base->flag & SELECT) {
-						break;
-					}
-				}
-			}
-			base->object->flag= base->flag;
-		}
-	}
-	
-	if (changed) {
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWDATASELECT, 0);
-		allqueue(REDRAWOOPS, 0);
-		BIF_undo_push("Select linked");
-	}
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
 }
 
-
-void selectlinks_menu(Scene *scene, View3D *v3d)
+void OBJECT_OT_add_duplicate(wmOperatorType *ot)
 {
-	Object *ob;
-	int nr;
 	
-	ob= OBACT;
-	if(ob==0) return;
+	/* identifiers */
+	ot->name= "Add Duplicate";
+	ot->idname= "OBJECT_OT_add_duplicate";
 	
-	/* If you modify this menu, please remember to update view3d_select_linksmenu
-		* in header_view3d.c and the menu in toolbox.c
-		*/
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5|ParticleSystem%x6");
+	/* api callbacks */
+	ot->invoke= add_duplicate_invoke;
+	ot->exec= add_duplicate_exec;
 	
-	if (nr <= 0) return;
+	ot->poll= ED_operator_scene_editable;
 	
-	selectlinks(scene, v3d, nr);
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
+
+/* ********************** */
 
 void image_aspect(Scene *scene, View3D *v3d)
 {
@@ -6018,6 +5872,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 
 void set_ob_ipoflags(Scene *scene, View3D *v3d)
 {
+#if 0 // XXX old animation system
 	Base *base;
 	int set= 1;
 	
@@ -6053,10 +5908,13 @@ void set_ob_ipoflags(Scene *scene, View3D *v3d)
 	allqueue (REDRAWACTION, 0);
 //	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
+#endif // XXX old animation system
 }
+
 
 void select_select_keys(Scene *scene, View3D *v3d)
 {
+#if 0 // XXX old animation system
 	Base *base;
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -6099,7 +5957,7 @@ void select_select_keys(Scene *scene, View3D *v3d)
 	allqueue(REDRAWIPO, 0);
 
 	BIF_undo_push("Select keys");
-
+#endif  // XXX old animation system
 }
 
 

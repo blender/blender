@@ -719,17 +719,17 @@ void GHOST_WindowX11::netwmMaximized(bool set)
 bool GHOST_WindowX11::netwmIsMaximized(void) const
 {
 	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret;
+	unsigned long bytes_after, num_ret, i;
 	Atom type_ret;
 	bool st;
-	int format_ret, count, i;
+	int format_ret, ret, count;
 
 	prop_ret = NULL;
 	st = False;
-	i = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
 			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
 			&num_ret, &bytes_after, &prop_ret);
-	if ((i == Success) && (prop_ret) && (format_ret == 32)) {
+	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		count = 0;
 		for (i = 0; i < num_ret; i++) {
 			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_horz)
@@ -775,17 +775,17 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
 bool GHOST_WindowX11::netwmIsFullScreen(void) const
 {
 	unsigned char *prop_ret;
-	unsigned long bytes_after, num_ret;
+	unsigned long bytes_after, num_ret, i;
 	Atom type_ret;
 	bool st;
-	int format_ret, i;
+	int format_ret, ret;
 
 	prop_ret = NULL;
 	st = False;
-	i = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
 			0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
 			&num_ret, &bytes_after, &prop_ret);
-	if ((i == Success) && (prop_ret) && (format_ret == 32)) {
+	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		for (i = 0; i < num_ret; i++) {
 			if (((unsigned long *) prop_ret)[i] == m_system->m_net_fullscreen) {
 				st = True;
@@ -868,7 +868,6 @@ GHOST_TSuccess GHOST_WindowX11::setState(GHOST_TWindowState state)
 {
 	GHOST_TWindowState cur_state;
 	bool is_max, is_full, is_motif_full;
-	int icccm_state;
 
 	cur_state = getState();
         if (state == (int)cur_state)

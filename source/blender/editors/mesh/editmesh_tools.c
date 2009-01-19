@@ -52,6 +52,11 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_key_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "RNA_types.h"
+#include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -74,12 +79,15 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "BMF_Api.h"
 
 #include "ED_mesh.h"
 #include "ED_view3d.h"
+#include "ED_util.h"
+#include "ED_screen.h"
 
 #include "mesh_intern.h"
 
@@ -592,28 +600,28 @@ void extrude_mesh(Object *obedit, EditMesh *em)
 	short nr, transmode= 0;
 
 	if(em->selectmode & SCE_SELECT_VERTEX) {
-		if(G.totvertsel==0) nr= 0;
-		else if(G.totvertsel==1) nr= 4;
-		else if(G.totedgesel==0) nr= 4;
-		else if(G.totfacesel==0) 
+		if(em->totvertsel==0) nr= 0;
+		else if(em->totvertsel==1) nr= 4;
+		else if(em->totedgesel==0) nr= 4;
+		else if(em->totfacesel==0) 
 			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
-		else if(G.totfacesel==1)
+		else if(em->totfacesel==1)
 			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
 		else 
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
 	else if(em->selectmode & SCE_SELECT_EDGE) {
-		if (G.totedgesel==0) nr = 0;
-		else if (G.totedgesel==1) nr = 3;
-		else if(G.totfacesel==0) nr = 3;
-		else if(G.totfacesel==1)
+		if (em->totedgesel==0) nr = 0;
+		else if (em->totedgesel==1) nr = 3;
+		else if(em->totfacesel==0) nr = 3;
+		else if(em->totfacesel==1)
 			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
 		else
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
 	}
 	else {
-		if (G.totfacesel == 0) nr = 0;
-		else if (G.totfacesel == 1) nr = 1;
+		if (em->totfacesel == 0) nr = 0;
+		else if (em->totfacesel == 1) nr = 1;
 		else
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
@@ -5839,7 +5847,7 @@ void region_to_loop(EditMesh *em)
 	EditEdge *eed;
 	EditFace *efa;
 	
-	if(G.totfacesel){
+	if(em->totfacesel){
 		for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
 		
 		for(efa=em->faces.first; efa; efa=efa->next){
@@ -6276,4 +6284,125 @@ void mesh_mirror_colors(EditMesh *em)
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 		BIF_undo_push("Mirror Color face");
 	}
+}
+
+static int subdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
+		
+	ED_undo_push(C, "Subdivide");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_subdivide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide";
+	ot->idname= "MESH_OT_subdivide";
+	
+	/* api callbacks */
+	ot->exec= subdivide_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int subdivide_multi_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	
+	esubdivideflag(obedit, em, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
+		
+	ED_undo_push(C, "Subdivide Multi");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_subdivide_multi(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Multi";
+	ot->idname= "MESH_OT_subdivide_multi";
+	
+	/* api callbacks */
+	ot->exec= subdivide_multi_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+
+	
+	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
+}
+
+static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
+	esubdivideflag(obedit, em, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
+		
+	ED_undo_push(C, "Subdivide Multi Fractal");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_subdivide_multi_fractal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Multi Fractal";
+	ot->idname= "MESH_OT_subdivide_multi_fractal";
+	
+	/* api callbacks */
+	ot->exec= subdivide_multi_fractal_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "number_cuts", 4, 0, 100, "Number of Cuts", "", 0, INT_MAX);
+	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
+}
+
+static int subdivide_smooth_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+
+	esubdivideflag(obedit, em, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+		
+	ED_undo_push(C, "Subdivide Smooth");	// Note this will become depricated 
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_subdivide_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Subdivide Smooth";
+	ot->idname= "MESH_OT_subdivide_smooth";
+	
+	/* api callbacks */
+	ot->exec= subdivide_smooth_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+	
+	/* props */
+	RNA_def_float(ot->srna, "smoothness", 5.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
 }

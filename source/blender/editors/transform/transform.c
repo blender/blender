@@ -99,6 +99,8 @@
 #include "ED_view3d.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_space_api.h"
+
 #include "UI_view2d.h"
 #include "WM_types.h"
 #include "WM_api.h"
@@ -114,15 +116,6 @@
 //#include "mydevice.h"
 
 #include "transform.h"
-
-/******************************** Helper functions ************************************/
-
-/* GLOBAL Wrapper Fonctions */
-
-//void BIF_drawSnap()
-//{
-//	drawSnapping(&Trans);
-//}
 
 /* ************************** Dashed help line **************************** */
 
@@ -251,7 +244,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		//uvco_to_areaco_noclip(v, adr);
 	}
 	else if(t->spacetype==SPACE_IPO) {
-		short out[2] = {0.0f, 0.0f};
+		int out[2] = {0, 0};
 		
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
 		adr[0]= out[0];
@@ -717,9 +710,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
-							if (event->keymodifier == 0)
+							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, (CON_AXIS0), "along %s X");
-							else if (event->keymodifier == KM_SHIFT)
+							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, (CON_AXIS1|CON_AXIS2), "locking %s X");
 						}
 					}
@@ -729,9 +722,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 						setConstraint(t, mati, (CON_AXIS0), "along X axis");
 					}
 					else {
-						if (event->keymodifier == 0)
+						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 							setConstraint(t, mati, (CON_AXIS0), "along global X");
-						else if (event->keymodifier == KM_SHIFT)
+						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 							setConstraint(t, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
 					}
 				}
@@ -749,9 +742,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 							stopConstraint(t);
 						}
 						else {
-							if (event->keymodifier == 0)
+							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, (CON_AXIS1), "along %s Y");
-							else if (event->keymodifier == KM_SHIFT)
+							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 						}
 					}
@@ -761,9 +754,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 						setConstraint(t, mati, (CON_AXIS1), "along Y axis");
 					}
 					else {
-						if (event->keymodifier == 0)
+						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 							setConstraint(t, mati, (CON_AXIS1), "along global Y");
-						else if (event->keymodifier == KM_SHIFT)
+						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 							setConstraint(t, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
 					}
 				}
@@ -777,16 +770,16 @@ void transformEvent(TransInfo *t, wmEvent *event)
 						stopConstraint(t);
 					}
 					else {
-						if (event->keymodifier == 0)
+						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 							setUserConstraint(t, (CON_AXIS2), "along %s Z");
-						else if ((event->keymodifier == KM_SHIFT) && ((t->flag & T_2D_EDIT)==0))
+						else if ((t->modifiers & MOD_CONSTRAINT_PLANE) && ((t->flag & T_2D_EDIT)==0))
 							setUserConstraint(t, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
 				}
 				else if ((t->flag & T_2D_EDIT)==0) {
-					if (event->keymodifier == 0)
+					if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 						setConstraint(t, mati, (CON_AXIS2), "along global Z");
-					else if (event->keymodifier == KM_SHIFT)
+					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 						setConstraint(t, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
 				}
 				t->redraw = 1;
@@ -959,11 +952,27 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 	return success;
 }
 
+void drawTransform(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+	
+	drawConstraint(t);
+	drawPropCircle(t);
+	drawSnapping(t);
+}
+
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 {
+	short twmode= (t->spacetype==SPACE_VIEW3D)? ((View3D*)t->view)->twmode: V3D_MANIP_GLOBAL;
+
 	RNA_int_set(op->ptr, "mode", t->mode);
 	RNA_int_set(op->ptr, "options", t->options);
 	RNA_float_set_array(op->ptr, "values", t->values);
+
+	
+	RNA_int_set(op->ptr, "constraint_mode", t->con.mode);
+	RNA_int_set(op->ptr, "constraint_orientation", twmode);
+	RNA_float_set_array(op->ptr, "constraint_matrix", (float*)t->con.mtx);
 }
 
 void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
@@ -981,6 +990,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	t->mode = mode;
 
 	initTransInfo(C, t, event);					// internal data, mouse, vectors
+	
+	initTransformOrientation(C, t);
 
 	if(t->spacetype == SPACE_VIEW3D)
 	{
@@ -988,6 +999,8 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		//calc_manipulator_stats(curarea);
 		Mat3CpyMat4(t->spacemtx, v3d->twmat);
 		Mat3Ortho(t->spacemtx);
+		
+		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
 	}
 	else
 		Mat3One(t->spacemtx);
@@ -1101,6 +1114,19 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		QUATCOPY(t->values, values); /* vec-4 */
 	}
 
+	/* Constraint init from operator */
+	{
+		t->con.mode = RNA_int_get(op->ptr, "constraint_mode");
+		
+		if (t->con.mode & CON_APPLY)
+		{
+			//int options = RNA_int_get(op->ptr, "options");
+			RNA_float_get_array(op->ptr, "constraint_matrix", (float*)t->spacemtx);
+			
+			setUserConstraint(t, t->con.mode, "%s");		
+		}
+
+	}
 }
 
 void transformApply(bContext *C, TransInfo *t)

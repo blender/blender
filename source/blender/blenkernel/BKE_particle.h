@@ -152,6 +152,7 @@ typedef struct ParticleEdit{
 
 typedef struct ParticleThreadContext {
 	/* shared */
+	struct Scene *scene;
 	struct Object *ob;
 	struct DerivedMesh *dm;
 	struct ParticleSystemModifierData *psmd;
@@ -243,7 +244,7 @@ void psys_find_parents(struct Object *ob, struct ParticleSystemModifierData *psm
 
 void psys_cache_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
 void psys_cache_child_paths(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float cfra, int editupdate);
-int do_guide(struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
+int do_guide(struct Scene *scene, struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);
 float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra);
@@ -294,9 +295,8 @@ void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_
 
 /* particle_system.c */
 void initialize_particle(struct ParticleData *pa, int p, struct Object *ob, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd);
-void reset_particle(struct ParticleData *pa, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd, struct Object *ob, float dtime, float cfra, float *vg_vel, float *vg_tan, float *vg_rot);
 
-void do_effectors(int pa_no, struct ParticleData *pa, struct ParticleKey *state, struct Object *ob, struct ParticleSystem *psys, float *texco, float *force_field, float *vel,float framestep, float cfra);
+void do_effectors(int pa_no, struct ParticleData *pa, struct ParticleKey *state, struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float *texco, float *force_field, float *vel,float framestep, float cfra);
 
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);

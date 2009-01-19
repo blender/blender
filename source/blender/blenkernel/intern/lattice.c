@@ -42,7 +42,6 @@
 #include "BLI_arithb.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -60,7 +59,6 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -72,8 +70,6 @@
 #include "BKE_utildefines.h"
 
 //XXX #include "BIF_editdeform.h"
-
-Lattice *editLatt=0;
 
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
 {
@@ -215,7 +211,9 @@ Lattice *copy_lattice(Lattice *lt)
 	ltn= copy_libblock(lt);
 	ltn->def= MEM_dupallocN(lt->def);
 		
+#if 0 // XXX old animation system
 	id_us_plus((ID *)ltn->ipo);
+#endif // XXX old animation system
 
 	ltn->key= copy_key(ltn->key);
 	if(ltn->key) ltn->key->from= (ID *)ltn;
@@ -233,6 +231,11 @@ void free_lattice(Lattice *lt)
 {
 	if(lt->def) MEM_freeN(lt->def);
 	if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+	if(lt->editlatt) {
+		if(lt->def) MEM_freeN(lt->def);
+		if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		MEM_freeN(lt->editlatt);
+	}
 }
 
 
@@ -561,13 +564,16 @@ static int calc_curve_deform(Scene *scene, Object *par, float *co, short axis, C
 			fac= (cd->dloc[index])/(cu->path->totdist) + (co[index]-cd->dmin[index])/(cu->path->totdist);
 	}
 	
+#if 0 // XXX old animation system
 	/* we want the ipo to work on the default 100 frame range, because there's no  
 	   actual time involved in path position */
+	// huh? by WHY!!!!???? - Aligorith
 	if(cu->ipo) {
 		fac*= 100.0f;
 		if(calc_ipo_spec(cu->ipo, CU_SPEED, &fac)==0)
 			fac/= 100.0;
 	}
+#endif // XXX old animation system
 	
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
 		float q[4], mat[3][3], quat[4];

@@ -80,6 +80,68 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 
 #else
 
+void rna_def_sculpt(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Sculpt", NULL);
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Sculpt", "");
+
+	prop= RNA_def_property(srna, "symmetry_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);
+	RNA_def_property_ui_text(prop, "Symmetry X", "Mirror brush across the X axis.");
+
+	prop= RNA_def_property(srna, "symmetry_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Y);
+	RNA_def_property_ui_text(prop, "Symmetry Y", "Mirror brush across the Y axis.");
+
+	prop= RNA_def_property(srna, "symmetry_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_Z);
+	RNA_def_property_ui_text(prop, "Symmetry Z", "Mirror brush across the Z axis.");
+
+	prop= RNA_def_property(srna, "lock_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_X);
+	RNA_def_property_ui_text(prop, "Lock X", "Disallow changes to the X axis of vertices.");
+
+	prop= RNA_def_property(srna, "lock_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_Y);
+	RNA_def_property_ui_text(prop, "Lock Y", "Disallow changes to the Y axis of vertices.");
+
+	prop= RNA_def_property(srna, "lock_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_LOCK_Z);
+	RNA_def_property_ui_text(prop, "Lock Z", "Disallow changes to the Z axis of vertices.");
+
+	prop= RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_BRUSH);
+	RNA_def_property_ui_text(prop, "Show Brush", "");
+
+	prop= RNA_def_property(srna, "partial_redraw", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DRAW_FAST);
+	RNA_def_property_ui_text(prop, "Partial Redraw", "Optimize sculpting by only refreshing modified faces.");
+}
+
+void rna_def_tool_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ToolSettings", NULL);
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Tool Settings", "");
+	
+	prop= RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Sculpt");
+	RNA_def_property_ui_text(prop, "Sculpt", "");
+	
+	prop= RNA_def_property(srna, "vpaint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "VPaint");
+	RNA_def_property_ui_text(prop, "Vertex Paint", "");
+
+	rna_def_sculpt(brna);
+}
+
 void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -97,9 +159,9 @@ void RNA_def_scene(BlenderRNA *brna)
 		{0, "CONFORMAL", "Conformal", ""},
 		{1, "ANGLEBASED", "Angle Based", ""}, 
 		{0, NULL, NULL, NULL}};
-	
+
 	srna= RNA_def_struct(brna, "Scene", "ID");
-	RNA_def_struct_ui_text(srna, "Scene", "DOC_BROKEN");
+	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
 
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Active Camera", "Active camera used for rendering the scene.");
@@ -121,27 +183,27 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
 
-	prop= RNA_def_property(srna, "proportional_mode", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, prop_mode_items);
-	RNA_def_property_ui_text(prop, "Proportional Mode", "Proportional editing mode.");
+	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NOT_DRIVEABLE);
+	RNA_def_property_flag(prop, PROP_NOT_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
@@ -168,6 +230,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radiosity", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "radio");
 	RNA_def_property_ui_text(prop, "Radiosity", "");
+
+	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
+	RNA_def_property_struct_type(prop, "ToolSettings");
+	RNA_def_property_ui_text(prop, "Tool Settings", "");
+
+	rna_def_tool_settings(brna);
 }
 
 #endif

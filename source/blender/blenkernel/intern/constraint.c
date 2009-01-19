@@ -80,157 +80,6 @@
 #endif
 
 
-/* ******************* Constraint Channels ********************** */
-/* Constraint Channels exist in one of two places:
- *	- Under Action Channels in an Action  (act->chanbase->achan->constraintChannels)
- *	- Under Object without Object-level Action yet (ob->constraintChannels)
- * 
- * The main purpose that Constraint Channels serve is to act as a link
- * between an IPO-block (which provides values to interpolate between for some settings)
- */
-
-/* ------------ Data Management ----------- */
- 
-/* Free constraint channels, and reduce the number of users of the related ipo-blocks */
-void free_constraint_channels (ListBase *chanbase)
-{
-	bConstraintChannel *chan;
-	
-	for (chan=chanbase->first; chan; chan=chan->next) {
-		if (chan->ipo) {
-			chan->ipo->id.us--;
-		}
-	}
-	
-	BLI_freelistN(chanbase);
-}
-
-/* Make a copy of the constraint channels from dst to src, and also give the
- * new constraint channels their own copy of the original's IPO.
- */
-void copy_constraint_channels (ListBase *dst, ListBase *src)
-{
-	bConstraintChannel *dchan, *schan;
-	
-	dst->first = dst->last = NULL;
-	BLI_duplicatelist(dst, src);
-	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
-		dchan->ipo = copy_ipo(schan->ipo);
-	}
-}
-
-/* Make a copy of the constraint channels from dst to src, but make the
- * new constraint channels use the same IPO-data as their twin.
- */
-void clone_constraint_channels (ListBase *dst, ListBase *src)
-{
-	bConstraintChannel *dchan, *schan;
-	
-	dst->first = dst->last = NULL;
-	BLI_duplicatelist(dst, src);
-	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
-		id_us_plus((ID *)dchan->ipo);
-	}
-}
-
-/* ------------- Constraint Channel Tools ------------ */
-
-/* Find the constraint channel with a given name */
-bConstraintChannel *get_constraint_channel (ListBase *list, const char name[])
-{
-	bConstraintChannel *chan;
-
-	if (list) {
-		for (chan = list->first; chan; chan=chan->next) {
-			if (!strcmp(name, chan->name)) {
-				return chan;
-			}
-		}
-	}
-	
-	return NULL;
-}
-
-/* Find or create a new constraint channel */
-bConstraintChannel *verify_constraint_channel (ListBase *list, const char name[])
-{
-	bConstraintChannel *chan;
-	
-	chan= get_constraint_channel(list, name);
-	
-	if (chan == NULL) {
-		chan= MEM_callocN(sizeof(bConstraintChannel), "new constraint channel");
-		BLI_addtail(list, chan);
-		strcpy(chan->name, name);
-	}
-	
-	return chan;
-}
-
-/* --------- Constraint Channel Evaluation/Execution --------- */
-
-/* IPO-system call: calculate IPO-block for constraint channels, and flush that
- * info onto the corresponding constraint.
- */
-void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime, short onlydrivers)
-{
-	bConstraint *con;
-	
-	/* for each Constraint, calculate its Influence from the corresponding ConstraintChannel */
-	for (con=conbase->first; con; con=con->next) {
-		Ipo *ipo= NULL;
-		
-		if (con->flag & CONSTRAINT_OWN_IPO)
-			ipo= con->ipo;
-		else {
-			bConstraintChannel *chan = get_constraint_channel(chanbase, con->name);
-			if (chan) ipo= chan->ipo;
-		}
-		
-		if (ipo) {
-			IpoCurve *icu;
-			
-			calc_ipo(ipo, ctime);
-			
-			for (icu=ipo->curve.first; icu; icu=icu->next) {
-				if (!onlydrivers || icu->driver) {
-					switch (icu->adrcode) {
-						case CO_ENFORCE:
-						{
-							/* Influence is clamped to 0.0f -> 1.0f range */
-							con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
-						}
-							break;
-						case CO_HEADTAIL:
-						{
-							/* we need to check types of constraints that can get this here, as user
-							 * may have created an IPO-curve for this from IPO-editor but for a constraint
-							 * that cannot support this
-							 */
-							switch (con->type) {
-								/* supported constraints go here... */
-								case CONSTRAINT_TYPE_LOCLIKE:
-								case CONSTRAINT_TYPE_TRACKTO:
-								case CONSTRAINT_TYPE_MINMAX:
-								case CONSTRAINT_TYPE_STRETCHTO:
-								case CONSTRAINT_TYPE_DISTLIMIT:
-									con->headtail = icu->curval;
-									break;
-									
-								default:
-									/* not supported */
-									break;
-							}
-						}
-							break;
-					}
-				}
-			}
-		}
-	}
-}
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will
@@ -1303,10 +1152,12 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		if (cu->path && cu->path->data) {
 			curvetime= bsystem_time(cob->scene, ct->tar, (float)ctime, 0.0) - data->offset;
 			
+#if 0 // XXX old animation system
 			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 				curvetime /= cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
+#endif // XXX old animation system
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
 				if (data->followflag) {
@@ -2053,7 +1904,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
 			Object workob;
 			/* evaluate using workob */
-			what_does_obaction(cob->scene, cob->ob, &workob, data->act, t);
+			//what_does_obaction(cob->scene, cob->ob, &workob, data->act, t); // FIXME: missing func...
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
@@ -3389,7 +3240,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	dst->first= dst->last= NULL;
 	BLI_duplicatelist(dst, src);
 	
-	for (con=dst->first, srccon=src->first; con; srccon=srccon->next, con=con->next) {
+	for (con=dst->first, srccon=src->first; con && srccon; srccon=srccon->next, con=con->next) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 		
 		/* make a new copy of the constraint's data */
@@ -3550,7 +3401,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		if (con->enforce == 0.0f) continue;
 		
 		/* influence of constraint
-		 * 	- value should have been set from IPO's/Constraint Channels already 
+		 * 	- value should have been set from animation data already
 		 */
 		enf = con->enforce;
 		

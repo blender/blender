@@ -40,10 +40,16 @@
 struct SpaceLink;
 struct Object;
 
-/* -------------- Poses ----------------- */
+/* ************************************************ */
+/* Poses */
 
-/* PoseChannel stores the results of Actions (ipos) and transform information 
-   with respect to the restposition of Armature bones */
+/* PoseChannel ------------------------------------ */
+
+/* PoseChannel 
+ *
+ * A PoseChannel stores the results of Actions and transform information 
+ * with respect to the restposition of Armature bones 
+ */
 typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
 	ListBase			constraints;/* Constraints that act on this PoseChannel */
@@ -94,7 +100,63 @@ typedef struct bPoseChannel {
 	struct Object *custom;			/* draws custom object instead of this channel */
 } bPoseChannel;
 
-/* Pose-Object. It is only found under ob->pose. It is not library data, even
+
+/* PoseChannel (transform) flags */
+enum {
+	POSE_LOC		=	0x0001,
+	POSE_ROT		=	0x0002,
+	POSE_SIZE		=	0x0004,
+	POSE_IK_MAT		=	0x0008,
+	POSE_UNUSED2	=	0x0010,
+	POSE_UNUSED3	=	0x0020,
+	POSE_UNUSED4	=	0x0040,
+	POSE_UNUSED5	=	0x0080,
+	POSE_HAS_IK		=	0x0100,
+	POSE_CHAIN		=	0x0200,
+	POSE_DONE		=   0x0400,
+	POSE_KEY		=	0x1000,
+	POSE_STRIDE		=	0x2000
+} ePchan_Flag;
+
+/* PoseChannel constflag (constraint detection) */
+enum {
+	PCHAN_HAS_IK		= (1<<0),
+	PCHAN_HAS_CONST		= (1<<1),
+		/* only used for drawing Posemode, not stored in channel */
+	PCHAN_HAS_ACTION	= (1<<2),
+	PCHAN_HAS_TARGET	= (1<<3),
+		/* only for drawing Posemode too */
+	PCHAN_HAS_STRIDE	= (1<<4)
+} ePchan_ConstFlag;
+
+/* PoseChannel->ikflag */
+enum {
+	BONE_IK_NO_XDOF = (1<<0),
+	BONE_IK_NO_YDOF = (1<<1),
+	BONE_IK_NO_ZDOF = (1<<2),
+
+	BONE_IK_XLIMIT	= (1<<3),
+	BONE_IK_YLIMIT	= (1<<4),
+	BONE_IK_ZLIMIT	= (1<<5),
+	
+	BONE_IK_NO_XDOF_TEMP = (1<<10),
+	BONE_IK_NO_YDOF_TEMP = (1<<11),
+	BONE_IK_NO_ZDOF_TEMP = (1<<12)
+} ePchan_IkFlag;
+
+/* PoseChannel->rotmode */
+enum {
+		/* quaternion rotations (default, and for older Blender versions) */
+	PCHAN_ROT_QUAT	= 0,
+		/* euler rotations (xyz only) */
+	PCHAN_ROT_EUL,
+} ePchan_RotMode;
+
+/* Pose ------------------------------------ */
+
+/* Pose-Object. 
+ *
+ * It is only found under ob->pose. It is not library data, even
  * though there is a define for it (hack for the outliner).
  */
 typedef struct bPose {
@@ -114,15 +176,33 @@ typedef struct bPose {
 } bPose;
 
 
-/* ------------- Action  ---------------- */
+/* Pose->flag */
+enum {
+		/* results in armature_rebuild_pose being called */
+	POSE_RECALC = (1<<0),
+		/* prevents any channel from getting overridden by anim from IPO */
+	POSE_LOCKED	= (1<<1),
+		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
+	POSE_DO_UNLOCK	= (1<<2),
+		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
+	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
+		/* recalculate bone paths */
+	POSE_RECALCPATHS = (1<<4),
+} ePose_Flags;
 
-/* Action-Channel Group. These are stored as a list per-Action, and are only used to 
- * group that Action's Action-Channels when displayed in the Action Editor. 
+/* ************************************************ */
+/* Action */
+
+/* Groups -------------------------------------- */
+
+/* Action-Channel Group (agrp)
+
+ * These are stored as a list per-Action, and are only used to 
+ * group that Action's channels in an Animation Editor. 
  *
- * Even though all Action-Channels live in a big list per Action, each group they are in also
+ * Even though all FCurves live in a big list per Action, each group they are in also
  * holds references to the achans within that list which belong to it. Care must be taken to
  * ensure that action-groups never end up being the sole 'owner' of a channel.
- *
  * 
  * This is also exploited for bone-groups. Bone-Groups are stored per bPose, and are used 
  * primarily to colour bones in the 3d-view. There are other benefits too, but those are mostly related
@@ -131,51 +211,67 @@ typedef struct bPose {
 typedef struct bActionGroup {
 	struct bActionGroup *next, *prev;
 	
-	ListBase channels;			/* Note: this must not be touched by standard listbase functions */
+	ListBase channels;			/* Note: this must not be touched by standard listbase functions which would clear links to other channels */
 	
 	int flag;					/* settings for this action-group */
 	int customCol;				/* index of custom color set to use when used for bones (0=default - used for all old files, -1=custom set) */				
-	char name[32];				/* name of the group */
+	char name[64];				/* name of the group */
 	
 	ThemeWireColor cs;			/* color set to use when customCol == -1 */
 } bActionGroup;
 
-/* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
- * Constraint Channels in certain situations. 
- *
- * Action-Channels can only belong to one group at a time, but they still live the Action's
- * list of achans (to preserve backwards compatability, and also minimise the code
- * that would need to be recoded). Grouped achans are stored at the start of the list, according
- * to the position of the group in the list, and their position within the group. 
- */
-typedef struct bActionChannel {
-	struct bActionChannel	*next, *prev;
-	bActionGroup 			*grp;					/* Action Group this Action Channel belongs to */
+/* Action Group flags */
+enum {
+	AGRP_SELECTED 	= (1<<0),
+	AGRP_ACTIVE 	= (1<<1),
+	AGRP_PROTECTED 	= (1<<2),
+	AGRP_EXPANDED 	= (1<<3),
 	
-	struct Ipo				*ipo;					/* IPO block this action channel references */
-	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
-	
-	int		flag;			/* settings accessed via bitmapping */
-	char	name[32];		/* channel name */
-	int		temp;			/* temporary setting - may be used to indicate group that channel belongs to during syncing  */
-} bActionChannel;
+	AGRP_TEMP		= (1<<30),
+	AGRP_MOVED 		= (1<<31)
+} eActionGroup_Flag;
 
-/* Action. A recyclable block that contains a series of Action Channels (ipo), which define 
- * a clip of reusable animation for use in the NLA.
+
+/* Actions -------------------------------------- */
+
+/* Action - reusable F-Curve 'bag'  (act) 
+ *
+ * This contains F-Curves that may affect settings from more than one ID blocktype and/or 
+ * datablock (i.e. sub-data linked/used directly to the ID block that the animation data is linked to), 
+ * but with the restriction that the other unrelated data (i.e. data that is not directly used or linked to
+ * by the source ID block).
+ *
+ * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data), that 
+ * affects a group of related settings (as defined by the user). 
  */
+// XXX use this as drop-in replacement at some point...
 typedef struct bAction {
-	ID				id;
+	ID 	id;				/* ID-serialisation for relinking */
 	
-	ListBase		chanbase;	/* Action Channels in this Action */
-	ListBase 		groups;		/* Action Groups in the Action */
-	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
+	ListBase curves;	/* function-curves (FCurve) */
+	ListBase chanbase;	/* legacy data - Action Channels (bActionChannel) in pre-2.5 animation system */
+	ListBase groups;	/* groups of function-curves (bActionGroup) */
+	ListBase markers;	/* markers local to the Action (used to provide Pose-Libraries) */
 	
-	int active_marker;			/* Index of active-marker (first marker = 1) */
-	int flag;					/* flags for this action */
+	int flag;			/* settings for this action */
+	int active_marker;	/* index of the active marker */
 } bAction;
 
 
-/* ------------- Action Editor --------------------- */
+/* Flags for the action */
+enum {
+		/* flags for displaying in UI */
+	ACT_EXPANDED 	= (1<<0),
+	ACT_SELECTED	= (1<<1),
+	
+		/* flags for evaluation/editing */
+	ACT_MUTED		= (1<<9),
+	ACT_PROTECTED	= (1<<10),
+} eAction_Flags;
+
+
+/* ************************************************ */
+/* Action/Dopesheet Editor */
 
 /* Storage for Dopesheet/Grease-Pencil Editor data */
 typedef struct bDopeSheet {
@@ -186,62 +282,6 @@ typedef struct bDopeSheet {
 	int flag;				/* standard flags */
 } bDopeSheet;
 
-/* Action Editor Space. This is defined here instead of in DNA_space_types.h */
-typedef struct SpaceAction {
-	struct SpaceLink *next, *prev;
-	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
-
-	short blockhandler[8];
-
-	View2D v2d;					/* depricated, copied to region */
-	
-	bAction		*action;		/* the currently active action */
-	bDopeSheet 	ads;			/* the currently active context (when not showing action) */
-	
-	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
-	short flag, actnr; 			/* flag: bitmapped settings; */
-	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
-	short actwidth;				/* width of the left-hand side name panel (in pixels?) */  // XXX depreceated!
-	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
-} SpaceAction;
-
-
-/* -------------- Action Flags -------------- */
-
-/* Action Channel flags */
-typedef enum ACHAN_FLAG {
-	ACHAN_SELECTED	= (1<<0),
-	ACHAN_HILIGHTED = (1<<1),
-	ACHAN_HIDDEN	= (1<<2),
-	ACHAN_PROTECTED = (1<<3),
-	ACHAN_EXPANDED 	= (1<<4),
-	ACHAN_SHOWIPO	= (1<<5),
-	ACHAN_SHOWCONS 	= (1<<6),
-	ACHAN_MOVED     = (1<<31),
-} ACHAN_FLAG; 
-
-
-/* Action Group flags */
-typedef enum AGRP_FLAG {
-	AGRP_SELECTED 	= (1<<0),
-	AGRP_ACTIVE 	= (1<<1),
-	AGRP_PROTECTED 	= (1<<2),
-	AGRP_EXPANDED 	= (1<<3),
-	
-	AGRP_TEMP		= (1<<30),
-	AGRP_MOVED 		= (1<<31)
-} AGRP_FLAG;
-
-
-/* 'Action' Channel flags */
-typedef enum ACT_FLAG {
-	ACTC_SELECTED	= (1<<0),
-	ACTC_EXPANDED	= (1<<1),
-} ACT_FLAG;
-
-/* ------------ DopeSheet Flags ------------------ */
 
 /* DopeSheet filter-flag */
 typedef enum DOPESHEET_FILTERFLAG {
@@ -270,10 +310,31 @@ typedef enum DOPESHEET_FILTERFLAG {
 	
 //} DOPESHEET_FLAG;
 
-/* ------------ Action Editor Flags -------------- */
+
+
+/* Action Editor Space. This is defined here instead of in DNA_space_types.h */
+typedef struct SpaceAction {
+	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;
+
+	short blockhandler[8];
+
+	View2D v2d;					/* depricated, copied to region */
+	
+	bAction		*action;		/* the currently active action */
+	bDopeSheet 	ads;			/* the currently active context (when not showing action) */
+	
+	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
+	short flag, actnr; 			/* flag: bitmapped settings; */
+	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
+	short actwidth;				/* width of the left-hand side name panel (in pixels?) */  // XXX depreceated!
+	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
+} SpaceAction;
 
 /* SpaceAction flag */
-typedef enum SACTION_FLAG {
+enum {
 		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
 		/* show sliders (if relevant) */
@@ -292,10 +353,11 @@ typedef enum SACTION_FLAG {
 	SACTION_NODRAWGCOLORS = (1<<7),
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
-} SACTION_FLAG;	
+} eSAction_Flag;	
 
 /* SpaceAction Mode Settings */
-typedef enum SACTCONT_MODES {
+// XXX should this be used by other editors too?
+enum  {
 		/* action (default) */
 	SACTCONT_ACTION	= 0,
 		/* editing of shapekey's IPO block */
@@ -303,11 +365,11 @@ typedef enum SACTCONT_MODES {
 		/* editing of gpencil data */
 	SACTCONT_GPENCIL,
 		/* dopesheet */
-	SACTCONT_DOPESHEET
-} SACTCONTEXT_MODES;
+	SACTCONT_DOPESHEET,
+} eAnimEdit_Context;
 
-/* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
-typedef enum SACTSNAP_MODES {
+/* SpaceAction AutoSnap Settings (also used by other Animation Editors) */
+enum {
 		/* no auto-snap */
 	SACTSNAP_OFF = 0,	
 		/* snap to 1.0 frame/second intervals */
@@ -316,75 +378,47 @@ typedef enum SACTSNAP_MODES {
 	SACTSNAP_FRAME,
 		/* snap to nearest marker */
 	SACTSNAP_MARKER,
-} SACTSNAP_MODES;	
- 
- 
-/* --------- Pose Flags --------------- */
+} eAnimEdit_AutoSnap;
 
-/* Pose->flag */
-typedef enum POSE_FLAG {
-		/* results in armature_rebuild_pose being called */
-	POSE_RECALC = (1<<0),
-		/* prevents any channel from getting overridden by anim from IPO */
-	POSE_LOCKED	= (1<<1),
-		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-	POSE_DO_UNLOCK	= (1<<2),
-		/* pose has constraints which depend on time (used when depsgraph updates for a new frame) */
-	POSE_CONSTRAINTS_TIMEDEPEND = (1<<3),
-		/* recalculate bone paths */
-	POSE_RECALCPATHS = (1<<4),
-} POSE_FLAG;
 
-/* PoseChannel (transform) flags */
-enum	{
-	POSE_LOC		=	0x0001,
-	POSE_ROT		=	0x0002,
-	POSE_SIZE		=	0x0004,
-	POSE_IK_MAT		=	0x0008,
-	POSE_UNUSED2	=	0x0010,
-	POSE_UNUSED3	=	0x0020,
-	POSE_UNUSED4	=	0x0040,
-	POSE_UNUSED5	=	0x0080,
-	POSE_HAS_IK		=	0x0100,
-	POSE_CHAIN		=	0x0200,
-	POSE_DONE		=   0x0400,
-	POSE_KEY		=	0x1000,
-	POSE_STRIDE		=	0x2000
-};
+/* ************************************************ */
+/* Legacy Data */
 
-/* PoseChannel constflag (constraint detection) */
-typedef enum PCHAN_CONSTFLAG {
-	PCHAN_HAS_IK		= (1<<0),
-	PCHAN_HAS_CONST		= (1<<1),
-		/* only used for drawing Posemode, not stored in channel */
-	PCHAN_HAS_ACTION	= (1<<2),
-	PCHAN_HAS_TARGET	= (1<<3),
-		/* only for drawing Posemode too */
-	PCHAN_HAS_STRIDE	= (1<<4)
-} PCHAN_CONSTFLAG;
-
-/* PoseChannel->ikflag */
-typedef enum PCHAN_IKFLAG {
-	BONE_IK_NO_XDOF = (1<<0),
-	BONE_IK_NO_YDOF = (1<<1),
-	BONE_IK_NO_ZDOF = (1<<2),
-
-	BONE_IK_XLIMIT	= (1<<3),
-	BONE_IK_YLIMIT	= (1<<4),
-	BONE_IK_ZLIMIT	= (1<<5),
+/* WARNING: Action Channels are now depreceated... they were part of the old animation system!
+ * 		  (ONLY USED FOR DO_VERSIONS...)
+ * 
+ * Action Channels belong to Actions. They are linked with an IPO block, and can also own 
+ * Constraint Channels in certain situations. 
+ *
+ * Action-Channels can only belong to one group at a time, but they still live the Action's
+ * list of achans (to preserve backwards compatability, and also minimise the code
+ * that would need to be recoded). Grouped achans are stored at the start of the list, according
+ * to the position of the group in the list, and their position within the group. 
+ */
+typedef struct bActionChannel {
+	struct bActionChannel	*next, *prev;
+	bActionGroup 			*grp;					/* Action Group this Action Channel belongs to */
 	
-	BONE_IK_NO_XDOF_TEMP = (1<<10),
-	BONE_IK_NO_YDOF_TEMP = (1<<11),
-	BONE_IK_NO_ZDOF_TEMP = (1<<12)
-} PCHAN_IKFLAG;
+	struct Ipo				*ipo;					/* IPO block this action channel references */
+	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
+	
+	int		flag;			/* settings accessed via bitmapping */
+	char	name[32];		/* channel name */
+	int		temp;			/* temporary setting - may be used to indicate group that channel belongs to during syncing  */
+} bActionChannel;
 
-/* PoseChannel->rotmode */
-typedef enum PCHAN_ROTMODE {
-		/* quaternion rotations (default, and for older Blender versions) */
-	PCHAN_ROT_QUAT	= 0,
-		/* euler rotations (xyz only) */
-	PCHAN_ROT_EUL,
-} PCHAN_ROTMODE;
+/* Action Channel flags (ONLY USED FOR DO_VERSIONS...) */
+typedef enum ACHAN_FLAG {
+	ACHAN_SELECTED	= (1<<0),
+	ACHAN_HILIGHTED = (1<<1),
+	ACHAN_HIDDEN	= (1<<2),
+	ACHAN_PROTECTED = (1<<3),
+	ACHAN_EXPANDED 	= (1<<4),
+	ACHAN_SHOWIPO	= (1<<5),
+	ACHAN_SHOWCONS 	= (1<<6),
+	ACHAN_MOVED     = (1<<31),
+} ACHAN_FLAG; 
+
 
 #endif
 

@@ -458,10 +458,12 @@ void RE_SetCamera(Render *re, Object *camera)
 		 * Need to update the camera early because it's used for projection matrices
 		 * and other stuff BEFORE the animation update loop is done 
 		 * */
+#if 0 // XXX old animation system
 		if(cam->ipo) {
 			calc_ipo(cam->ipo, frame_to_float(re->scene, re->r.cfra));
 			execute_ipo(&cam->id, cam->ipo);
 		}
+#endif // XXX old animation system
 		lens= cam->lens;
 		shiftx=cam->shiftx;
 		shifty=cam->shifty;
