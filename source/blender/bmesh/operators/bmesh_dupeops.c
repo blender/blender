@@ -146,7 +146,6 @@ static void copy_mesh(BMesh *source, BMesh *target)
 	}
 	edar = MEM_callocN(sizeof(BMEdge*) * maxlength, "BM copy mesh edge pointer array");
 	
-
 	/*first we dupe all flagged faces and their elements from source*/
 	for(f = BMIter_New(&faces, source, BM_FACES, source); f; f= BMIter_Step(&faces)){
 		if(BMO_TestFlag(source, (BMHeader*)f, DUPE_INPUT)){
@@ -204,6 +203,7 @@ static void copy_mesh(BMesh *source, BMesh *target)
 	if(edar)
 		MEM_freeN(edar);
 }
+
 /*
 BMesh *bmesh_make_mesh_from_mesh(BMesh *bm, int allocsize[4])
 {
@@ -274,6 +274,20 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, dupeop, BMOP_DUPE_NEW, DUPE_NEW, BM_VERT|BM_EDGE|BM_FACE);
 }
 
+/*executes the duplicate operation, feeding elements of 
+  type flag etypeflag and header flag flag to it.  note,
+  to get more useful information (such as the mapping from
+  original to new elements) you should run the dupe op manually.*/
+void BMOP_DupeFromFlag(BMesh *bm, int etypeflag, int flag)
+{
+	BMOperator dupeop;
+
+	BMO_Init_Op(&dupeop, BMOP_DUPE);
+	BMO_HeaderFlag_To_Slot(bm, &dupeop, BMOP_DUPE_MULTIN, flag, etypeflag);
+
+	BMO_Exec_Op(bm, &dupeop);
+	BMO_Finish_Op(bm, &dupeop);
+}
 
 /*
  * Split Operator
@@ -303,10 +317,10 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, BMOP_DUPE);
 	BMO_Init_Op(&delop, BMOP_DEL);
+	
+	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, DEL_FACES);
 
-	BMO_Set_Int(&delop, BMOP_DEL_CONTEXT, BMOP_DEL_FACES);
-
-	BMO_CopySlot(&dupeop, &delop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
+	BMO_CopySlot(splitop, &dupeop, BMOP_SPLIT_MULTIN, BMOP_DUPE_MULTIN);
 	BMO_Exec_Op(bm, &dupeop);
 
 	/*connect outputs of dupe to delete*/
@@ -317,12 +331,15 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_CopySlot(&dupeop, splitop, BMOP_DUPE_NEW, BMOP_SPLIT_MULTOUT);
 
 	/*cleanup*/
-	BMO_Finish_Op(bm, &dupeop);
 	BMO_Finish_Op(bm, &delop);
+	BMO_Finish_Op(bm, &dupeop);
 }
 
 #define DEL_INPUT		1
 #define DEL_WIREVERT	2
+
+static void delete_verts(BMesh *bm);
+static void delete_context(BMesh *bm, int type);
 
 void delop_exec(BMesh *bm, BMOperator *op)
 {
@@ -330,6 +347,8 @@ void delop_exec(BMesh *bm, BMOperator *op)
 
 	/*Mark Buffers*/
 	BMO_Flag_Buffer(bm, delop, BMOP_DEL_MULTIN, DEL_INPUT);
+
+	delete_context(bm, op->slots[BMOP_DEL_CONTEXT].data.i);
 }
 
 static void delete_verts(BMesh *bm)
@@ -353,9 +372,9 @@ static void delete_verts(BMesh *bm)
 		}
 	}
 
-	remove_tagged_faces(bm, DEL_INPUT);
-	remove_tagged_edges(bm, DEL_INPUT);
-	remove_tagged_verts(bm, DEL_INPUT);
+	BM_remove_tagged_faces(bm, DEL_INPUT);
+	BM_remove_tagged_edges(bm, DEL_INPUT);
+	BM_remove_tagged_verts(bm, DEL_INPUT);
 }
 
 static void delete_edges(BMesh *bm){
@@ -372,26 +391,19 @@ static void delete_edges(BMesh *bm){
 			}
 		}
 	}
-	remove_tagged_faces(bm, DEL_INPUT);
-	remove_tagged_edges(bm, DEL_INPUT);
+	BM_remove_tagged_faces(bm, DEL_INPUT);
+	BM_remove_tagged_edges(bm, DEL_INPUT);
 }
 
 /*you need to make remove tagged verts/edges/faces
 	api functions that take a filter callback.....
 	and this new filter type will be for opstack flags.
-	This is because the remove_taggedXXX functions bypass iterator API.
+	This is because the BM_remove_taggedXXX functions bypass iterator API.
 		 -Ops dont care about 'UI' considerations like selection state, hide state, ect. If you want to work on unhidden selections for instance,
 		 copy output from a 'select context' operator to another operator....
 */
 
 /*Break this into smaller functions*/
-
-#define DEL_VERTS		1
-#define DEL_EDGES		2
-#define DEL_ONLYFACES	3
-#define DEL_EDGESFACES	4
-#define DEL_FACES		5
-#define DEL_ALL			6
 
 static void delete_context(BMesh *bm, int type){
 	BMVert *v;
@@ -417,17 +429,17 @@ static void delete_context(BMesh *bm, int type){
 			if(BMO_TestFlag(bm, (BMHeader*)v, DEL_INPUT) && (!(v->edge)))
 				BMO_SetFlag(bm, (BMHeader*)v, DEL_WIREVERT);
 		}
-		remove_tagged_verts(bm, DEL_WIREVERT);
+		BM_remove_tagged_verts(bm, DEL_WIREVERT);
 	}
 	else if(type == DEL_EDGESFACES) delete_edges(bm);
-	else if(type == DEL_ONLYFACES) remove_tagged_faces(bm, DEL_INPUT);
+	else if(type == DEL_ONLYFACES) BM_remove_tagged_faces(bm, DEL_INPUT);
 	else if(type == DEL_FACES){
 		/*go through and mark all edges and all verts of all faces for delete*/
 		for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
 			if(BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){
 				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e = BMIter_Step(&edges))
 					BMO_SetFlag(bm, (BMHeader*)e, DEL_INPUT);
-				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, v); v; v = BMIter_Step(&verts))
+				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v = BMIter_Step(&verts))
 					BMO_SetFlag(bm, (BMHeader*)v, DEL_INPUT);
 			}
 		}
@@ -436,16 +448,16 @@ static void delete_context(BMesh *bm, int type){
 			if(!BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){
 				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e= BMIter_Step(&edges))
 					BMO_ClearFlag(bm, (BMHeader*)e, DEL_INPUT);
-				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, v); v; v= BMIter_Step(&verts))
+				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v= BMIter_Step(&verts))
 					BMO_ClearFlag(bm, (BMHeader*)v, DEL_INPUT);
 			}
 		}
 		/*now delete marked faces*/
-		remove_tagged_faces(bm, DEL_INPUT);
+		BM_remove_tagged_faces(bm, DEL_INPUT);
 		/*delete marked edges*/
-		remove_tagged_edges(bm, DEL_INPUT);
+		BM_remove_tagged_edges(bm, DEL_INPUT);
 		/*remove loose vertices*/
-		remove_tagged_verts(bm, DEL_INPUT);
+		BM_remove_tagged_verts(bm, DEL_INPUT);
 	}
 	/*does this option even belong in here?*/
 	else if(type == DEL_ALL){
@@ -456,8 +468,8 @@ static void delete_context(BMesh *bm, int type){
 		for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts))
 			BMO_SetFlag(bm, (BMHeader*)v, DEL_INPUT);
 		
-		remove_tagged_faces(bm, DEL_INPUT);
-		remove_tagged_edges(bm, DEL_INPUT);
-		remove_tagged_verts(bm, DEL_INPUT);
+		BM_remove_tagged_faces(bm, DEL_INPUT);
+		BM_remove_tagged_edges(bm, DEL_INPUT);
+		BM_remove_tagged_verts(bm, DEL_INPUT);
 	}
 }

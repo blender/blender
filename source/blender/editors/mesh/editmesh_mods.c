@@ -82,6 +82,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "bmesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -3108,6 +3109,54 @@ void MESH_OT_de_select_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
+	ot->poll= ED_operator_editmesh;
+}
+
+static int bmesh_test_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= ((Mesh *)obedit->data)->edit_mesh;
+	EditMesh *em2;
+	BMesh *bm;
+
+	bm = editmesh_to_bmesh(em, CTX_data_scene(C));
+
+	/*do stuff here, call bmop's.*/
+	//BMOP_DupeFromFlag(bm, BM_ALL, BM_SELECT);
+	{
+			BMOperator op;
+
+			BMO_Init_Op(&op, BMOP_SPLIT);
+			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_SPLIT_MULTIN, BM_SELECT, BM_ALL);
+
+			BMO_Exec_Op(bm, &op);
+			BMO_Finish_Op(bm, &op);
+	}
+	em2 = bmesh_to_editmesh(bm);
+	
+	/*free em's data, then copy the contents of the em2 struct
+	  to em, then free the em2 struct.*/
+	free_editMesh(em);
+	*em = *em2;
+	MEM_freeN(em2);	
+	
+	G.totvert = bm->totvert;
+	G.totedge = bm->totedge;
+	G.totface = bm->totface;
+
+	BM_Free_Mesh(bm);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW|ND_TRANSFORM|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_bmesh_test(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "bmesh test op";
+	ot->idname= "MESH_OT_bmesh_test";
+	
+	/* api callbacks */
+	ot->exec= bmesh_test_exec;
 	ot->poll= ED_operator_editmesh;
 }
 

@@ -22,10 +22,13 @@ const int BMOP_OPSLOT_TYPEINFO[BMOP_OPSLOT_TYPES] = {
 	sizeof(int),
 	sizeof(float),
 	sizeof(void*),
+	0, /* unused */
+	0, /* unused */
+	0, /* unused */
 	sizeof(float)*3,
-	sizeof(int),
-	sizeof(float),
-	sizeof(void*)
+	sizeof(int),	/* int buffer */
+	sizeof(float),	/* float buffer */
+	sizeof(void*)	/* pointer buffer */
 };
 
 /*
@@ -455,17 +458,17 @@ static void alloc_flag_layer(BMesh *bm)
 	/*now go through and memcpy all the flags. Loops don't get a flag layer at this time...*/
 	for(v = BMIter_New(&verts, bm, BM_VERTS, bm); v; v = BMIter_Step(&verts)){
 		oldflags = v->head.flags;
-		v->head.flags = BLI_mempool_alloc(bm->flagpool);
+		v->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(v->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags); /*dont know if this memcpy usage is correct*/
 	}
 	for(e = BMIter_New(&edges, bm, BM_EDGES, bm); e; e = BMIter_Step(&edges)){
 		oldflags = e->head.flags;
-		e->head.flags = BLI_mempool_alloc(bm->flagpool);
+		e->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(e->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 	for(f = BMIter_New(&faces, bm, BM_FACES, bm); f; f = BMIter_Step(&faces)){
 		oldflags = f->head.flags;
-		f->head.flags = BLI_mempool_alloc(bm->flagpool);
+		f->head.flags = BLI_mempool_calloc(bm->flagpool);
 		memcpy(f->head.flags, oldflags, sizeof(BMFlagLayer)*bm->totflags);
 	}
 	bm->totflags++;

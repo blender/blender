@@ -65,6 +65,7 @@
 void ED_operatortypes_mesh(void)
 {
 	WM_operatortype_append(MESH_OT_de_select_all);
+	WM_operatortype_append(MESH_OT_bmesh_test);
 }
 
 /* note mesh keymap also for other space? */
@@ -73,6 +74,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "EditMesh", 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_de_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_bmesh_test", DKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_bmesh_test", TKEY, KM_PRESS, 0, 0);
 	
 //	RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_viewzoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 }

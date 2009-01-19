@@ -2446,7 +2446,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	
 	BMO_Set_PntBuf(&subdop, BMOP_ESUBDIVIDE_EDGES, list, tot);
 	BMO_Exec_Op(bm, &subdop);
-	
+	BMO_Finish_Op(bm, &subdop);
+
 	free_editMesh(G.editMesh);
 	bmesh_to_editmesh(bm);
 	BM_Free_Mesh(bm);

@@ -358,9 +358,9 @@ BMesh *editmesh_to_bmesh_intern(EditMesh *em, BMesh *bm) {
 
 	/*copy over selection mode*/
 	bm->selectmode = 0;
-	if(bm->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
-	if(bm->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
-	if(bm->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
+	if(em->selectmode & SCE_SELECT_VERTEX) bm->selectmode |= BM_VERT;
+	if(em->selectmode & SCE_SELECT_EDGE) bm->selectmode |= BM_EDGE;
+	if(em->selectmode & SCE_SELECT_FACE) bm->selectmode |= BM_FACE;
 
 
 	/*begin editloop*/
@@ -395,14 +395,14 @@ void edit2bmesh_exec(BMesh *bmesh, BMOperator *op)
 	editmesh_to_bmesh_intern(op->slots[BMOP_FROM_EDITMESH_EM].data.p, bmesh);
 }
 
-BMesh *editmesh_to_bmesh(EditMesh *em)
+BMesh *editmesh_to_bmesh(EditMesh *em, struct Scene *scene)
 {
 	BMOperator conv;
 	BMesh *bm;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
 
 	/*allocate a bmesh*/
-	bm = BM_Make_Mesh(allocsize);
+	bm = BM_Make_Mesh(allocsize, scene);
 
 	BMO_Init_Op(&conv, BMOP_FROM_EDITMESH);
 	BMO_Set_Pnt(&conv, BMOP_FROM_EDITMESH_EM, em);

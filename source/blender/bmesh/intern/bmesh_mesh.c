@@ -97,7 +97,7 @@ int bmesh_test_sysflag(BMHeader *head, int flag)
  *
 */
 
-BMesh *BM_Make_Mesh(int allocsize[4])
+BMesh *BM_Make_Mesh(int allocsize[4], struct Scene *scene)
 {
 	/*allocate the structure*/
 	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
@@ -106,6 +106,7 @@ BMesh *BM_Make_Mesh(int allocsize[4])
 	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize[1], allocsize[1]);
 	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize[2], allocsize[2]);
 	bm->ppool = BLI_mempool_create(sizeof(BMFace), allocsize[3], allocsize[3]);
+	bm->scene = scene;
 
 	/*allocate one flag pool that we dont get rid of.*/
 	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512);

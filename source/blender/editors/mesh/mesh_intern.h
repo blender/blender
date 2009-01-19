@@ -161,6 +161,7 @@ extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 /* ******************* editmesh_mods.c */
 
 void MESH_OT_de_select_all(struct wmOperatorType *ot);
+void MESH_OT_bmesh_test(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 extern void EM_automerge(int update);

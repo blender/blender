@@ -6,14 +6,16 @@
 #define BMOP_OPSLOT_INT			0
 #define BMOP_OPSLOT_FLT			1
 #define BMOP_OPSLOT_PNT			2
-#define BMOP_OPSLOT_VEC			3
+#define BMOP_OPSLOT_VEC			6
 
 /*after BMOP_OPSLOT_VEC, everything is 
-  dynamically allocated arrays*/
-#define BMOP_OPSLOT_INT_BUF		10	
-#define BMOP_OPSLOT_FLT_BUF		11		
-#define BMOP_OPSLOT_PNT_BUF		12
-#define BMOP_OPSLOT_TYPES		13
+  dynamically allocated arrays.  we
+  leave a space in the identifiers
+  for future growth.*/
+#define BMOP_OPSLOT_INT_BUF		7
+#define BMOP_OPSLOT_FLT_BUF		8		
+#define BMOP_OPSLOT_PNT_BUF		9
+#define BMOP_OPSLOT_TYPES		10
 
 typedef struct BMOpSlot{
 	int slottype;
@@ -69,8 +71,9 @@ int BMO_TestFlag(struct BMesh *bm, void *element, int flag);
 int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
+void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 
-/*--------------------begin operator defines------------------------*/
+/*------------begin operator defines (see bmesh_opdefines.c too)------------*/
 /*split op*/
 #define BMOP_SPLIT				0
 
@@ -98,6 +101,13 @@ enum {
 	BMOP_DEL_CONTEXT,
 	BMOP_DEL_TOTSLOT,
 };
+
+#define DEL_VERTS		1
+#define DEL_EDGES		2
+#define DEL_ONLYFACES	3
+#define DEL_EDGESFACES	4
+#define DEL_FACES		5
+#define DEL_ALL			6
 
 /*BMOP_DEL_CONTEXT*/
 enum {
@@ -133,5 +143,13 @@ enum {
 
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
+
+/*------specific operator helper functions-------*/
+
+/*executes the duplicate operation, feeding elements of 
+  type flag etypeflag and header flag flag to it.  note,
+  to get more useful information (such as the mapping from
+  original to new elements) you should run the dupe op manually.*/
+void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 
 #endif
