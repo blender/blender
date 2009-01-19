@@ -437,6 +437,8 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 
+	if(v3d==NULL) return;
+	
 	switch(v3d->twmode) {
 	case V3D_MANIP_GLOBAL:
 		strcpy(t->spacename, "global");
