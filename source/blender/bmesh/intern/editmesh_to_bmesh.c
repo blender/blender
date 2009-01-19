@@ -59,7 +59,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 		texpoly->tile = texface->tile;
 		texpoly->unwrap = texface->unwrap;
 		
-		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); f; j++, f=BMIter_Step(&iter)) {
+		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); l; j++, l=BMIter_Step(&iter)) {
 			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPUV, i);
 			mloopuv->uv[0] = texface->uv[j][0];
 			mloopuv->uv[1] = texface->uv[j][1];
@@ -68,7 +68,7 @@ static void editmesh_corners_to_loops(BMesh *bm, CustomData *facedata, void *fac
 	}
 	for(i=0; i < numCol; i++){
 		mcol = CustomData_em_get_n(facedata, face_block, CD_MCOL, i);
-		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); f; j++, f=BMIter_Step(&iter)) {
+		for (j=0, l=BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f); l; j++, l=BMIter_Step(&iter)) {
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->data, CD_MLOOPCOL, i);
 			mloopcol->r = mcol[j].r;
 			mloopcol->g = mcol[j].g;
