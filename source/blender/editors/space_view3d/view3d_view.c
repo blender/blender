@@ -983,6 +983,37 @@ static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short 
 	}
 }
 
+#define QUATSET(a, b, c, d, e)	a[0]=b; a[1]=c; a[2]=d; a[3]=e; 
+
+static void view3d_viewlock(RegionView3D *rv3d)
+{
+	switch(rv3d->view) {
+	case V3D_VIEW_BOTTOM :
+		QUATSET(rv3d->viewquat,0.0, -1.0, 0.0, 0.0);
+		break;
+		
+	case V3D_VIEW_BACK:
+		QUATSET(rv3d->viewquat,0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0));
+		break;
+		
+	case V3D_VIEW_LEFT:
+		QUATSET(rv3d->viewquat,0.5, -0.5, 0.5, 0.5);
+		break;
+		
+	case V3D_VIEW_TOP:
+		QUATSET(rv3d->viewquat,1.0, 0.0, 0.0, 0.0);
+		break;
+		
+	case V3D_VIEW_FRONT:
+		QUATSET(rv3d->viewquat,(float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0);
+		break;
+		
+	case V3D_VIEW_RIGHT:
+		QUATSET(rv3d->viewquat, 0.5, -0.5, -0.5, -0.5);
+		break;
+	}
+}
+
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
@@ -997,6 +1028,8 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		}
 	}
 	else {
+		if(rv3d->viewlock)
+			view3d_viewlock(rv3d);
 		
 		QuatToMat4(rv3d->viewquat, rv3d->viewmat);
 		if(rv3d->persp==V3D_PERSP) rv3d->viewmat[3][2]-= rv3d->dist;

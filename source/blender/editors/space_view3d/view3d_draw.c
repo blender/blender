@@ -646,24 +646,31 @@ static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	char *name = NULL;
 	
 	switch (rv3d->view) {
-		case 1:
-			if (rv3d->persp == V3D_ORTHO)
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
-			else
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
+		case V3D_VIEW_FRONT:
+			if (rv3d->persp == V3D_ORTHO) name = "Front Ortho";
+			else name = "Front Persp";
 			break;
-		case 3:
-			if (rv3d->persp == V3D_ORTHO)
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
-			else
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
+		case V3D_VIEW_BACK:
+			if (rv3d->persp == V3D_ORTHO) name = "Back Ortho";
+			else name = "Back Persp";
 			break;
-		case 7:
-			if (rv3d->persp == V3D_ORTHO)
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
-			else
-				name = (rv3d->rflag & RV3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
+		case V3D_VIEW_TOP:
+			if (rv3d->persp == V3D_ORTHO) name = "Top Ortho";
+			else name = "Top Persp";
 			break;
+		case V3D_VIEW_BOTTOM:
+			if (rv3d->persp == V3D_ORTHO) name = "Bottom Ortho";
+			else name = "Bottom Persp";
+			break;
+		case V3D_VIEW_RIGHT:
+			if (rv3d->persp == V3D_ORTHO) name = "Right Ortho";
+			else name = "Right Persp";
+			break;
+		case V3D_VIEW_LEFT:
+			if (rv3d->persp == V3D_ORTHO) name = "Left Ortho";
+			else name = "Left Persp";
+			break;
+			
 		default:
 			if (rv3d->persp==V3D_CAMOB) {
 				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {

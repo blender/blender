@@ -87,7 +87,7 @@ typedef struct RegionView3D {
 	short camzoom, viewbut;
 	int pad1;
 	
-	short rflag, pad2;
+	short rflag, viewlock;
 	short persp;
 	short view;
 	
@@ -199,9 +199,12 @@ typedef struct View3D {
 #define V3D_DRAW_CENTERS	32768
 
 /* RegionView3d->rflag */
-#define RV3D_OPP_DIRECTION_NAME		1
 #define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
+
+/* RegionView3d->viewlock */
+#define RV3D_LOCKED			1
+#define RV3D_BOXVIEW		2
 
 /* View3d->flag2 (short) */
 #define V3D_SOLID_TEX			8

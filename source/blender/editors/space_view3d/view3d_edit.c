@@ -83,9 +83,67 @@
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
+/* sync ortho view of region to others, for view transforms */
+static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
+{
+	ARegion *artest;
+	RegionView3D *rv3d= ar->regiondata;
+	
+	for(artest= sa->regionbase.first; artest; artest= artest->next) {
+		if(artest!=ar && artest->regiontype==RGN_TYPE_WINDOW) {
+			RegionView3D *rv3dtest= artest->regiondata;
+			
+			if(rv3dtest->viewlock) {
+				rv3dtest->dist= rv3d->dist;
+
+				if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM) ) {
+					if( ELEM(rv3dtest->view, V3D_VIEW_FRONT, V3D_VIEW_BACK))
+						rv3dtest->ofs[0]= rv3d->ofs[0];
+					else if( ELEM(rv3dtest->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT))
+						rv3dtest->ofs[1]= rv3d->ofs[1];
+				}
+				else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK) ) {
+					if( ELEM(rv3dtest->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM))
+						rv3dtest->ofs[0]= rv3d->ofs[0];
+					else if( ELEM(rv3dtest->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT))
+						rv3dtest->ofs[2]= rv3d->ofs[2];
+				}
+				else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT) ) {
+					if( ELEM(rv3dtest->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM))
+						rv3dtest->ofs[1]= rv3d->ofs[1];
+					if( ELEM(rv3dtest->view, V3D_VIEW_FRONT, V3D_VIEW_BACK))
+						rv3dtest->ofs[2]= rv3d->ofs[2];
+				}
+				
+				ED_region_tag_redraw(artest);
+			}
+		}
+	}
+}
+
+/* for home, center etc */
+static void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
+{
+	ARegion *artest;
+	RegionView3D *rv3d= ar->regiondata;
+	
+	for(artest= sa->regionbase.first; artest; artest= artest->next) {
+		if(artest!=ar && artest->regiontype==RGN_TYPE_WINDOW) {
+			RegionView3D *rv3dtest= artest->regiondata;
+			
+			if(rv3dtest->viewlock) {
+				rv3dtest->dist= rv3d->dist;
+				VECCOPY(rv3dtest->ofs, rv3d->ofs);
+				ED_region_tag_redraw(artest);
+			}
+		}
+	}
+}
+
 /* ************************** init for view ops **********************************/
 
 typedef struct ViewOpsData {
+	ScrArea *sa;
 	ARegion *ar;
 	RegionView3D *rv3d;
 
@@ -137,6 +195,7 @@ static void viewops_data(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* store data */
 	op->customdata= vod;
+	vod->sa= CTX_wm_area(C);
 	vod->ar= CTX_wm_region(C);
 	vod->rv3d= rv3d= vod->ar->regiondata;
 	vod->dist0= rv3d->dist;
@@ -168,12 +227,12 @@ static const float thres = 0.93f; //cos(20 deg);
 
 static float snapquats[39][6] = {
 	/*{q0, q1, q3, q4, view, oposite_direction}*/
-{COS45, -SIN45, 0.0, 0.0, 1, 0},  //front
-{0.0, 0.0, -SIN45, -SIN45, 1, 1}, //back
-{1.0, 0.0, 0.0, 0.0, 7, 0},       //top
-{0.0, -1.0, 0.0, 0.0, 7, 1},      //bottom
-{0.5, -0.5, -0.5, -0.5, 3, 0},    //left
-{0.5, -0.5, 0.5, 0.5, 3, 1},      //right
+{COS45, -SIN45, 0.0, 0.0, V3D_VIEW_FRONT, 0},  //front
+{0.0, 0.0, -SIN45, -SIN45, V3D_VIEW_BACK, 0}, //back
+{1.0, 0.0, 0.0, 0.0, V3D_VIEW_TOP, 0},       //top
+{0.0, -1.0, 0.0, 0.0, V3D_VIEW_BOTTOM, 0},      //bottom
+{0.5, -0.5, -0.5, -0.5, V3D_VIEW_LEFT, 0},    //left
+{0.5, -0.5, 0.5, 0.5, V3D_VIEW_RIGHT, 0},      //right
 
 	/* some more 45 deg snaps */
 {0.65328145027160645, -0.65328145027160645, 0.27059805393218994, 0.27059805393218994, 0, 0},
@@ -326,7 +385,6 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
 		for (i = 0 ; i < 39; i++){
 			float snapmat[3][3];
 			float view = (int)snapquats[i][4];
-			float oposite_dir = (int)snapquats[i][5];
 
 			QuatToMat3(snapquats[i], snapmat);
 
@@ -337,13 +395,6 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y, int ctrl)
 				QUATCOPY(rv3d->viewquat, snapquats[i]);
 
 				rv3d->view = view;
-				if (view){
-					if (oposite_dir){
-						rv3d->rflag |= RV3D_OPP_DIRECTION_NAME;
-					}else{
-						rv3d->rflag &= ~RV3D_OPP_DIRECTION_NAME;
-					}
-				}
 
 				break;
 			}
@@ -380,8 +431,12 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	ViewOpsData *vod;
 
+	if(rv3d->viewlock)
+		return OPERATOR_CANCELLED;
+	
 	/* makes op->customdata */
 	viewops_data(C, op, event);
 	vod= op->customdata;
@@ -434,6 +489,9 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 
 		window_to_3d(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
 		VecAddf(vod->rv3d->ofs, vod->rv3d->ofs, dvec);
+		
+		if(vod->rv3d->viewlock)
+			view3d_boxview_sync(vod->sa, vod->ar);
 	}
 
 	vod->oldx= x;
@@ -591,6 +649,9 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 
 // XXX	if(vod->rv3d->persp==V3D_ORTHO || vod->rv3d->persp==V3D_CAMOB) preview3d_event= 0;
 
+	if(vod->rv3d->viewlock)
+		view3d_boxview_sync(vod->sa, vod->ar);
+
 	ED_region_tag_redraw(vod->ar);
 }
 
@@ -640,6 +701,9 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 		else if(rv3d->dist> 0.001*v3d->grid) rv3d->dist*=.83333f;
 	}
 
+	if(rv3d->viewlock)
+		view3d_boxview_sync(CTX_wm_area(C), CTX_wm_region(C));
+	
 	ED_region_tag_redraw(CTX_wm_region(C));
 
 	return OPERATOR_FINISHED;
@@ -737,6 +801,9 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 		}
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	
+	if(rv3d->viewlock)
+		view3d_boxview_copy(CTX_wm_area(C), ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -866,6 +933,8 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+	if(rv3d->viewlock)
+		view3d_boxview_copy(CTX_wm_area(C), ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -1088,6 +1157,9 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 
 	smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
 	
+	if(rv3d->viewlock)
+		view3d_boxview_sync(CTX_wm_area(C), ar);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1150,11 +1222,27 @@ static void axis_set_view(bContext *C, float q1, float q2, float q3, float q4, s
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	float new_quat[4];
 	
+	if(rv3d->viewlock) {
+		/* only pass on if */
+		if(rv3d->view==V3D_VIEW_FRONT && view==V3D_VIEW_BACK);
+		else if(rv3d->view==V3D_VIEW_BACK && view==V3D_VIEW_FRONT);
+		else if(rv3d->view==V3D_VIEW_RIGHT && view==V3D_VIEW_LEFT);
+		else if(rv3d->view==V3D_VIEW_LEFT && view==V3D_VIEW_RIGHT);
+		else if(rv3d->view==V3D_VIEW_BOTTOM && view==V3D_VIEW_TOP);
+		else if(rv3d->view==V3D_VIEW_TOP && view==V3D_VIEW_BOTTOM);
+		else return;
+	}
+	
 	new_quat[0]= q1; new_quat[1]= q2;
 	new_quat[2]= q3; new_quat[3]= q4;
 	
 	rv3d->view= view;
-	
+
+	if(rv3d->viewlock) {
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return;
+	}
+
 	if (rv3d->persp==V3D_CAMOB && v3d->camera) {
 
 		if (U.uiflag & USER_AUTOPERSP) rv3d->persp= V3D_ORTHO;
@@ -1187,85 +1275,81 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 	/* Use this to test if we started out with a camera */
 
-	/* Indicate that this view is inverted,
-	 * but only if it actually _was_ inverted (jobbe) */
-	if (viewnum == V3D_VIEW_BOTTOM || viewnum == V3D_VIEW_BACK || viewnum == V3D_VIEW_LEFT)
-		rv3d->rflag |= RV3D_OPP_DIRECTION_NAME;
-	else if (viewnum != V3D_VIEW_PERSPORTHO)
-			rv3d->rflag &= ~RV3D_OPP_DIRECTION_NAME;
-
 	switch (viewnum) {
 		case V3D_VIEW_BOTTOM :
-			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, 7, perspo);
+			axis_set_view(C, 0.0, -1.0, 0.0, 0.0, viewnum, perspo);
 			break;
 
 		case V3D_VIEW_BACK:
-			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), 1, perspo);
+			axis_set_view(C, 0.0, 0.0, (float)-cos(M_PI/4.0), (float)-cos(M_PI/4.0), viewnum, perspo);
 			break;
 
 		case V3D_VIEW_LEFT:
-			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, 3, perspo);
+			axis_set_view(C, 0.5, -0.5, 0.5, 0.5, viewnum, perspo);
 			break;
 
 		case V3D_VIEW_TOP:
-			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, 7, perspo);
+			axis_set_view(C, 1.0, 0.0, 0.0, 0.0, viewnum, perspo);
 			break;
 
 		case V3D_VIEW_FRONT:
-			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, 1, perspo);
+			axis_set_view(C, (float)cos(M_PI/4.0), (float)-sin(M_PI/4.0), 0.0, 0.0, viewnum, perspo);
 			break;
 
 		case V3D_VIEW_RIGHT:
-			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, 3, perspo);
+			axis_set_view(C, 0.5, -0.5, -0.5, -0.5, viewnum, perspo);
 			break;
 
 		case V3D_VIEW_PERSPORTHO:
+			if(rv3d->viewlock==0) {
+				if(rv3d->persp!=V3D_ORTHO) 
+					rv3d->persp=V3D_ORTHO;
+				else rv3d->persp=V3D_PERSP;
 
-			if(rv3d->persp!=V3D_ORTHO) 
-				rv3d->persp=V3D_ORTHO;
-			else rv3d->persp=V3D_PERSP;
-
-			ED_region_tag_redraw(ar);
+				ED_region_tag_redraw(ar);
+			}
 			break;
 
 		case V3D_VIEW_CAMERA:
-			/* lastview -  */
+			if(rv3d->viewlock==0) {
+				/* lastview -  */
 
-			if(rv3d->persp != V3D_CAMOB) {
-				/* store settings of current view before allowing overwriting with camera view */
-				QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
-				rv3d->lview= rv3d->view;
-				rv3d->lpersp= rv3d->persp;
-				
-#if 0
-				if(G.qual==LR_ALTKEY) {
-					if(oldcamera && is_an_active_object(oldcamera)) {
-						v3d->camera= oldcamera;
+				if(rv3d->persp != V3D_CAMOB) {
+					/* store settings of current view before allowing overwriting with camera view */
+					QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
+					rv3d->lview= rv3d->view;
+					rv3d->lpersp= rv3d->persp;
+					
+	#if 0
+					if(G.qual==LR_ALTKEY) {
+						if(oldcamera && is_an_active_object(oldcamera)) {
+							v3d->camera= oldcamera;
+						}
+						handle_view3d_lock();
 					}
-					handle_view3d_lock();
-				}
-#endif
-				
-				if(BASACT) {
-					/* check both G.vd as G.scene cameras */
-					if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
-						v3d->camera= OBACT;
+	#endif
+					
+					if(BASACT) {
+						/* check both G.vd as G.scene cameras */
+						if((v3d->camera==NULL || scene->camera==NULL) && OBACT->type==OB_CAMERA) {
+							v3d->camera= OBACT;
+							/*handle_view3d_lock();*/
+						}
+					}
+					
+					if(v3d->camera==NULL) {
+						v3d->camera= scene_find_camera(scene);
 						/*handle_view3d_lock();*/
 					}
+					rv3d->persp= V3D_CAMOB;
+					smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
+					
 				}
-				
-				if(v3d->camera==NULL) {
-					v3d->camera= scene_find_camera(scene);
-					/*handle_view3d_lock();*/
+				else{
+					/* return to settings of last view */
+					/* does smooth_view too */
+					axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp);
 				}
-				rv3d->persp= V3D_CAMOB;
-				smooth_view(C, NULL, v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, &v3d->lens);
-				
-			}
-			else{
-				/* return to settings of last view */
-				/* does smooth_view too */
-				axis_set_view(C, rv3d->lviewquat[0], rv3d->lviewquat[1], rv3d->lviewquat[2], rv3d->lviewquat[3], rv3d->lview, rv3d->lpersp);
 			}
 			break;
 
@@ -1273,35 +1357,37 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 		case V3D_VIEW_STEPRIGHT:
 		case V3D_VIEW_STEPUP:
 		case V3D_VIEW_STEPDOWN:
+			if(rv3d->viewlock==0) {
 
-			if(rv3d->persp != V3D_CAMOB) {
-				if(viewnum == V3D_VIEW_STEPLEFT || viewnum == V3D_VIEW_STEPRIGHT) {
-					/* z-axis */
-					phi= (float)(M_PI/360.0)*U.pad_rot_angle;
-					if(viewnum == V3D_VIEW_STEPRIGHT) phi= -phi;
-					si= (float)sin(phi);
-					q1[0]= (float)cos(phi);
-					q1[1]= q1[2]= 0.0;
-					q1[3]= si;
-					QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
-					rv3d->view= 0;
-				}
-				if(viewnum == V3D_VIEW_STEPDOWN || viewnum == V3D_VIEW_STEPUP) {
-					/* horizontal axis */
-					VECCOPY(q1+1, rv3d->viewinv[0]);
+				if(rv3d->persp != V3D_CAMOB) {
+					if(viewnum == V3D_VIEW_STEPLEFT || viewnum == V3D_VIEW_STEPRIGHT) {
+						/* z-axis */
+						phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+						if(viewnum == V3D_VIEW_STEPRIGHT) phi= -phi;
+						si= (float)sin(phi);
+						q1[0]= (float)cos(phi);
+						q1[1]= q1[2]= 0.0;
+						q1[3]= si;
+						QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+						rv3d->view= 0;
+					}
+					if(viewnum == V3D_VIEW_STEPDOWN || viewnum == V3D_VIEW_STEPUP) {
+						/* horizontal axis */
+						VECCOPY(q1+1, rv3d->viewinv[0]);
 
-					Normalize(q1+1);
-					phi= (float)(M_PI/360.0)*U.pad_rot_angle;
-					if(viewnum == V3D_VIEW_STEPDOWN) phi= -phi;
-					si= (float)sin(phi);
-					q1[0]= (float)cos(phi);
-					q1[1]*= si;
-					q1[2]*= si;
-					q1[3]*= si;
-					QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
-					rv3d->view= 0;
+						Normalize(q1+1);
+						phi= (float)(M_PI/360.0)*U.pad_rot_angle;
+						if(viewnum == V3D_VIEW_STEPDOWN) phi= -phi;
+						si= (float)sin(phi);
+						q1[0]= (float)cos(phi);
+						q1[1]*= si;
+						q1[2]*= si;
+						q1[3]*= si;
+						QuatMul(rv3d->viewquat, rv3d->viewquat, q1);
+						rv3d->view= 0;
+					}
+					ED_region_tag_redraw(ar);
 				}
-				ED_region_tag_redraw(ar);
 			}
 			break;
 
@@ -1319,6 +1405,9 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 			rv3d->ofs[0]+= vec[0];
 			rv3d->ofs[1]+= vec[1];
 			rv3d->ofs[2]+= vec[2];
+
+			if(rv3d->viewlock)
+				view3d_boxview_sync(CTX_wm_area(C), ar);
 
 			ED_region_tag_redraw(ar);
 			break;

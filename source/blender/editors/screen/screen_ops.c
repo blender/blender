@@ -1469,6 +1469,26 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 			BLI_addtail(&sa->regionbase, newar);
 		}
 		
+		/* lock views and set them */
+		if(sa->spacetype==SPACE_VIEW3D) {
+			RegionView3D *rv3d;
+			
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_FRONT; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_TOP; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_RIGHT; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->view= V3D_VIEW_CAMERA; rv3d->persp= V3D_CAMOB;
+		}
+		
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	}
 	
