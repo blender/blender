@@ -60,9 +60,12 @@
 
 void sequencer_operatortypes(void)
 {
+	/* sequencer_edit.c */
 	WM_operatortype_append(SEQUENCER_OT_cut);
 	WM_operatortype_append(SEQUENCER_OT_mute);
 	WM_operatortype_append(SEQUENCER_OT_unmute);
+	
+	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_deselect_all);
 	WM_operatortype_append(SEQUENCER_OT_select_invert);
 	WM_operatortype_append(SEQUENCER_OT_select);
@@ -71,11 +74,21 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_pick_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
 	WM_operatortype_append(SEQUENCER_OT_borderselect);
+	
+	/* sequencer_add.c */
+	WM_operatortype_append(SEQUENCER_OT_add_color_strip);
+	WM_operatortype_append(SEQUENCER_OT_add_scene_strip);
 }
 
 void sequencer_keymap(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Sequencer", SPACE_SEQ, 0);
+	
+	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_color_strip", RKEY, KM_PRESS, 0, 0); // XXX JUST FOR TESTING
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_scene_strip", TKEY, KM_PRESS, 0, 0); // XXX JUST FOR TESTING
+	
+	
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_deselect_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);

@@ -294,7 +294,7 @@ static int sequencer_select_invert_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= scene->ed;
 	Sequence *seq;
-	int desel = 0;
+	
 
 	for(seq= ed->seqbasep->first; seq; seq=seq->next) {
 		if (seq->flag & SELECT) {

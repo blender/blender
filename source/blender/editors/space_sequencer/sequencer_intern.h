@@ -44,6 +44,7 @@ void sequencer_header_buttons(const struct bContext *C, struct ARegion *ar);
 void drawseqspace(const struct bContext *C, struct ARegion *ar);
 
 /* sequencer_edit.c */
+struct View2D;
 int check_single_seq(struct Sequence *seq);
 int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
 int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
@@ -54,9 +55,13 @@ struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *
 struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence *test, int lr, int sel);
 void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
-
+int event_to_efftype(int event);
 void set_last_seq(struct Scene *scene, struct Sequence *seq);
+int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3);
+struct Sequence *alloc_sequence(struct ListBase *lb, int cfra, int machine);
 
+int test_overlap_seq(struct Scene *scene, struct Sequence *test);
+void shuffle_seq(struct Scene *scene, struct Sequence *test);
 
 /* operators */
 struct wmOperatorType;
@@ -64,6 +69,8 @@ struct wmWindowManager;
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
+
+/* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_select(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_more(struct wmOperatorType *ot);
@@ -72,6 +79,13 @@ void SEQUENCER_OT_select_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_pick_linked(struct wmOperatorType *ot);
 void SEQUENCER_OT_borderselect(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
+
+
+/* sequencer_select.c */
+void SEQUENCER_OT_add_color_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot);
+
+
 
 /* RNA enums, just to be more readable */
 enum {
