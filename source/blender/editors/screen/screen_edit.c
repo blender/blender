@@ -990,7 +990,6 @@ void ED_screen_draw(wmWindow *win)
 	
 	if(G.f & G_DEBUG) printf("draw screen\n");
 	win->screen->do_draw= 0;
-	win->screen->swap= WIN_BACK_OK;
 }
 
 /* make this screen usable */

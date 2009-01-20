@@ -143,28 +143,18 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 
 /* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
 /* only exported for WM */
-void ED_area_overdraw_flush(bContext *C)
+void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 {
-	ScrArea *sa;
+	AZone *az;
 	
-	for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next) {
-		ARegion *ar;
-		
-		for(ar= sa->regionbase.first; ar; ar= ar->next) {
-			if(ar->do_draw) {
-				AZone *az;
-				
-				for(az= sa->actionzones.first; az; az= az->next) {
-					int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
-		
-					/* test if inside */
-					if(BLI_in_rcti(&ar->winrct, xs, ys)) {
-						az->do_draw= 1;
-					}
-				}
-			}
+	for(az= sa->actionzones.first; az; az= az->next) {
+		int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
+
+		/* test if inside */
+		if(BLI_in_rcti(&ar->winrct, xs, ys)) {
+			az->do_draw= 1;
 		}
-	}	
+	}
 }
 
 /* only exported for WM */
@@ -233,7 +223,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
-	ar->swap= WIN_BACK_OK;
 }
 
 /* **********************************

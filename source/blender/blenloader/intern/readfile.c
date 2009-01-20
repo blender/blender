@@ -3999,6 +3999,9 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
+
+		win->drawtex= 0;
+		win->drawmethod= 0;
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
@@ -4448,6 +4451,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->headerstr= NULL;
 	ar->swinid= 0;
 	ar->type= NULL;
+	ar->swap= 0;
 }
 
 /* for the saved 2.50 files without regiondata */

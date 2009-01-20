@@ -55,7 +55,7 @@ void	ED_spacetypes_init(void);
 void	ED_spacetypes_keymap(struct wmWindowManager *wm);
 int		ED_area_header_standardbuttons(const struct bContext *C, struct uiBlock *block, int yco);
 void	ED_area_overdraw(struct bContext *C);
-void	ED_area_overdraw_flush(struct bContext *C);
+void	ED_area_overdraw_flush(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
 
 
 /* areas */
