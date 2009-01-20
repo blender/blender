@@ -1229,11 +1229,15 @@ void ed_screen_set(bContext *C, bScreen *sc)
 void ed_screen_fullarea(bContext *C)
 {
 	bScreen *sc, *oldscreen;
-	ScrArea *newa, *old;
-	short fulltype;
+	ScrArea *sa= CTX_wm_area(C);
 	
-	if(CTX_wm_area(C)->full) {
-		sc= CTX_wm_area(C)->full;		/* the old screen to restore */
+	if(sa==NULL) {
+		return;
+	}
+	else if(sa->full) {
+		short fulltype;
+		
+		sc= sa->full;		/* the old screen to restore */
 		oldscreen= CTX_wm_screen(C);	/* the one disappearing */
 		
 		fulltype = sc->full;
@@ -1242,6 +1246,8 @@ void ed_screen_fullarea(bContext *C)
 		   is set */
 		
 		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FILE_AUTOPLAY) == 0) {
+			ScrArea *old;
+			
 			sc->full= 0;
 			
 			/* find old area */
@@ -1270,6 +1276,8 @@ void ed_screen_fullarea(bContext *C)
 		}
 	}
 	else {
+		ScrArea *newa;
+		
 		oldscreen= CTX_wm_screen(C);
 
 		/* is there only 1 area? */

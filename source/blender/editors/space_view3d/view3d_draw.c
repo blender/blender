@@ -364,13 +364,15 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	
 	/* center cross */
-	if(rv3d->view==3) make_axis_color(col, col2, 'y');
+	if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+		make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'x');
 	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
-	if(rv3d->view==7) make_axis_color(col, col2, 'y');
+	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+		make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'z');
 	glColor3ubv((GLubyte *)col2);
 
@@ -632,9 +634,12 @@ static void draw_view_icon(RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
-	if(rv3d->view==7) icon= ICON_AXIS_TOP;
-	else if(rv3d->view==1) icon= ICON_AXIS_FRONT;
-	else if(rv3d->view==3) icon= ICON_AXIS_SIDE;
+	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+		icon= ICON_AXIS_TOP;
+	else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) 
+		icon= ICON_AXIS_FRONT;
+	else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+		icon= ICON_AXIS_SIDE;
 	else return ;
 	
 	glEnable(GL_BLEND);
