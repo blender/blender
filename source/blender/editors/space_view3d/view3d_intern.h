@@ -134,8 +134,6 @@ void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, flo
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
 void view3d_get_object_project_mat(RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
 
-int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
-
 void initlocalview(Scene *scene, struct ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
 void endlocalview(Scene *scene, ScrArea *sa);

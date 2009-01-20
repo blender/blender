@@ -281,6 +281,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+		case NC_GROUP:
+			/* all group ops for now */
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_MATERIAL:
 			switch(wmn->data) {
 				case ND_SHADING_DRAW:

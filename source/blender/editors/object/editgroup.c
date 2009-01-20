@@ -97,7 +97,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_undo_push(C,"Add To Active Group");
 
-	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 
@@ -149,7 +149,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_undo_push(C,"Remove From Active Group");
 
-	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 
@@ -185,7 +185,7 @@ static int group_remove_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_undo_push(C,"Remove From Group");
 
-	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 
@@ -223,7 +223,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_undo_push(C,"Create Group");
 
-	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 

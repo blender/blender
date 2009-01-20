@@ -235,6 +235,7 @@ PULIB += $(OCGDIR)/blender/ed_image/libed_image.a
 PULIB += $(OCGDIR)/blender/ed_ipo/libed_ipo.a
 PULIB += $(OCGDIR)/blender/ed_outliner/libed_outliner.a
 PULIB += $(OCGDIR)/blender/ed_time/libed_time.a
+PULIB += $(OCGDIR)/blender/ed_preview/libed_preview.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_object/libed_object.a
