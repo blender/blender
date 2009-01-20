@@ -611,7 +611,7 @@ static StructRNA *rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "constraint_channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "constraintChannels", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType");
+	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraint Channels", "Ipo curves for the object constraints.");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
