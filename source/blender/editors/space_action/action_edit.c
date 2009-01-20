@@ -109,11 +109,11 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			Object *nob= ANIM_nla_mapping_get(ac, ale);
-			//Ipo *ipo= (Ipo *)ale->key_data;  // XXX fixme
+			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
 			/* get range and apply necessary scaling before */
-			//calc_ipo_range(ipo, &tmin, &tmax);
+			calc_fcurve_range(fcu, &tmin, &tmax);
 			tmin= tmax= 0.0f; // xxx
 			
 			if (nob) {
@@ -608,7 +608,7 @@ static void delete_action_keys (bAnimContext *ac)
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	delete_gplayer_frames((bGPDlayer *)ale->data);
 		//else
-		//	delete_ipo_keys((Ipo *)ale->key_data); // XXX fixme for the new animsys...
+			delete_fcurve_keys((FCurve *)ale->key_data); // XXX... this doesn't delete empty curves anymore
 	}
 	
 	/* free filtered list */

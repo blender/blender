@@ -198,7 +198,7 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 		
 		/* figure out what to return */
 		if (ac->datatype == ANIMCONT_ACTION) {
-			*par= ale->owner; /* assume that this is an action channel */
+			*par= ale->owner; /* assume that this is an action group */
 			*ret_type= ale->type;
 			data = ale->data;
 		}
@@ -863,11 +863,11 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	else if (agrp) {
 		for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
-			ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	}
 	else if (act) {
 		for (fcu= act->curves.first; fcu; fcu= fcu->next)
-			ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	}
 	else if (ob) {
 		AnimData *adt;
@@ -875,12 +875,13 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		/* Object's own animation */
 		if (ob->adt && ob->adt->action) {
 			adt= ob->adt;
+			act= adt->action;
 			
 			selxa= get_action_frame(ob, selx); // xxx
 			bed.f1= selxa;
 			
 			for (fcu= act->curves.first; fcu; fcu= fcu->next)
-			ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, select_cb, NULL);
+				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 		}
 		
 		/* 'Sub-Object' animation data */

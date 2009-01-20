@@ -126,20 +126,10 @@ BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
 void delete_fcurve_keys(struct FCurve *fcu);
-void duplicate_ipo_keys(struct Ipo *ipo);
+void duplicate_fcurve_keys(struct FCurve *fcu); // XXX fixme...
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
 void smooth_fcurve(struct FCurve *fcu, short mode);
-
-/* ************************************************ */
-
-// XXX all of these funcs should be depreceated or at least renamed!
-
-/* in keyframes_edit.c */
-short is_ipo_key_selected(struct Ipo *ipo);
-void set_ipo_key_selection(struct Ipo *ipo, short sel);
-
-
 
 /* ************************************************ */
 

@@ -85,6 +85,9 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
 
+/* get the time extents for F-Curve */
+void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);
+
 /* -------- Curve Sanity --------  */
 
 void calchandles_fcurve(struct FCurve *fcu);
