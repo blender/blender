@@ -72,6 +72,9 @@ void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
 void remake_editLatt(Object *obedit);
 
+/* editgroup.c */
+void GROUP_OT_group_create(struct wmOperatorType *ot);
+void GROUP_OT_group_remove(struct wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

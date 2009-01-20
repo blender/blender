@@ -42,7 +42,23 @@
 #include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_main.h"
+
+#include "ED_view3d.h"
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_types.h"
+#include "ED_util.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "object_intern.h"
 
@@ -51,22 +67,6 @@ static void BIF_undo_push() {}
 static void error() {}
 static int pupmenu() {return 0;}
 static int pupmenu_col() {return 0;}
-
-void add_selected_to_group(Scene *scene, View3D *v3d, Group *group)
-{
-	Base *base;
-	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASE(v3d, base)) {
-			add_to_group(group, base->object);
-			base->object->flag |= OB_FROMGROUP;
-			base->flag |= OB_FROMGROUP;
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Add to Group");
-}
 
 void add_selected_to_act_ob_groups(Scene *scene, View3D *v3d)
 {
@@ -100,14 +100,17 @@ void add_selected_to_act_ob_groups(Scene *scene, View3D *v3d)
 	BIF_undo_push("Add to Active Objects Group");
 }
 
-
-void rem_selected_from_all_groups(Scene *scene, View3D *v3d)
+static int group_remove_exec(bContext *C, wmOperator *op)
 {
-	Base *base;
-	Group *group;
+	Group *group= NULL;
+	Group *group_array[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	int gid,i=0; //group id
+
+	gid = RNA_int_get(op->ptr, "GID");
 	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASE(v3d, base)) {
+	/*remove from all groups*/
+	if (gid == 26) {
+		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			group = NULL;
 			while( (group = find_group(base->object, group)) ) {
 				rem_from_group(group, base->object);
@@ -115,22 +118,46 @@ void rem_selected_from_all_groups(Scene *scene, View3D *v3d)
 			base->object->flag &= ~OB_FROMGROUP;
 			base->flag &= ~OB_FROMGROUP;
 		}
+		CTX_DATA_END;
 	}
+	else {		
+		/* build array of the groups that are in menu*/
+		for(group= G.main->group.first; group && i<24; group= group->id.next) {
+			if(group->id.lib==NULL) {
+				GroupObject *go;
+				for(go= group->gobject.first; go; go= go->next) {
+					if(go->ob->id.flag & LIB_DOIT) {
+						group_array[i] = group;
+						i++;
+						break; /* Only want to know if this group should go in the list*/
+					}
+				}
+			}
+		}
 	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Remove from Group");
+		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+			/* if we are removed and are not in any group, set our flag */
+			if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
+				base->object->flag &= ~OB_FROMGROUP;
+				base->flag &= ~OB_FROMGROUP;
+			}
+		}
+		CTX_DATA_END;
+	}
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Remove From Group");
+
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+
 }
-
-
-void rem_selected_from_group(Scene *scene, View3D *v3d)
+static int group_remove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	char menutext[30+(22*22)], *menupt;
-	int i=0;
-	short ret;
 	Group *group= NULL;
-	Object *ob;
-	Base *base;
-	Group *group_array[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	char *menutext= MEM_callocN(30+(22*22), "group rem menu"), *menupt;
+	int i = 0;
 	
 	/* UnSet Tags for Objects and Groups */
 	for(group= G.main->group.first; group; group= group->id.next) {
@@ -138,25 +165,27 @@ void rem_selected_from_group(Scene *scene, View3D *v3d)
 			group->id.flag &= ~LIB_DOIT;
 		}
 	}
-	for(ob=G.main->object.first; ob; ob= ob->id.next) {
+	CTX_DATA_BEGIN(C, Object*, ob, visible_objects) {
 		ob->id.flag &= ~LIB_DOIT;
 	}
+	CTX_DATA_END;
 	
 	/* Not tag selected objects */
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASELIB(v3d, base)) {
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			base->object->id.flag |= LIB_DOIT;
-		}
 	}
+	CTX_DATA_END;
 	
 	menupt = menutext;
+	
+	menupt += sprintf(menupt, "Remove From %%t|");
+	
 	/* Build a list of groups that contain selected objects */
 	for(group= G.main->group.first; group && i<24; group= group->id.next) {
 		if(group->id.lib==NULL) {
 			GroupObject *go;
 			for(go= group->gobject.first; go; go= go->next) {
 				if(go->ob->id.flag & LIB_DOIT) {
-					group_array[i] = group;
 					menupt += sprintf(menupt, "|%s", group->id.name+2);
 					i++;
 					break; /* Only want to know if this group should go in the list*/
@@ -164,81 +193,92 @@ void rem_selected_from_group(Scene *scene, View3D *v3d)
 			}
 		}
 	}
-	
+	menupt += sprintf(menupt, "|%s %%x%d", "ALL", 26);
 	/* do we have any groups? */
-	if (group_array[0] == NULL) {
-		error("Object selection contains no groups");
-	} else {
-		ret = pupmenu(menutext);
-		if (ret==-1) {
-			return;
-		} else { 
-			group = group_array[ret-1];
-			for(base=FIRSTBASE; base; base= base->next) {
-				if (TESTBASELIB(v3d, base)) {
-					/* if we are removed and are not in any group, set our flag */
-					if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
-						base->object->flag &= ~OB_FROMGROUP;
-						base->flag &= ~OB_FROMGROUP;
-					}
-				}
-			}
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Remove from Group");
-}
-
-void group_operation(Scene *scene, View3D *v3d, int mode)
-{
-	Group *group= NULL;
-	
-	/* are there existing groups? */
-	for(group= G.main->group.first; group; group= group->id.next)
-		if(group->id.lib==NULL)
-			break;
-	
-	if(mode>0) {
-		if(group==NULL || mode==1) group= add_group( "Group" );
-		if(mode==3) {
-			int tot= BLI_countlist(&G.main->group);
-			char *strp= MEM_callocN(tot*32 + 32, "group menu"), *strp1;
-			
-			strp1= strp;
-			for(tot=1, group= G.main->group.first; group; group= group->id.next, tot++) {
-				if(group->id.lib==NULL) {
-					strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
-				}
-			}
-			tot= pupmenu_col(strp, 20);
-			MEM_freeN(strp);
-			if(tot>0) group= BLI_findlink(&G.main->group, tot-1);
-			else return;
-		}
+	if (i = 0) error("Object selection contains no groups");
+	else	uiPupmenuOperator(C, 0, op, "GID", menutext);
 		
-		if(mode==4) add_selected_to_act_ob_groups(scene, v3d);
-		else if(mode==1 || mode==3) add_selected_to_group(scene, v3d, group);
-		else if(mode==2) rem_selected_from_all_groups(scene, v3d);
-		else if(mode==5) rem_selected_from_group(scene, v3d);
-	}
+	MEM_freeN(menutext);
+	return OPERATOR_RUNNING_MODAL;
 }
-
-void group_operation_with_menu(Scene *scene, View3D *v3d)
+void GROUP_OT_group_remove(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "remove Selected from group";
+	ot->idname= "GROUP_OT_group_remove";
+	
+	/* api callbacks */
+	ot->invoke = group_remove_invoke;
+	ot->exec= group_remove_exec;	
+	ot->poll= ED_operator_scene_editable;
+	
+	RNA_def_int(ot->srna, "GID", 0, INT_MIN, INT_MAX, "Group", "", INT_MIN, INT_MAX);
+}
+static int group_create_exec(bContext *C, wmOperator *op)
 {
 	Group *group= NULL;
-	int mode;
+	int gid; //group id
 	
+	gid = RNA_int_get(op->ptr, "GID");
+	
+	if(gid>0) group= BLI_findlink(&G.main->group, gid-1);
+	else if (gid == 0 ) group= add_group( "Group" );
+	else return OPERATOR_CANCELLED;
+	
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		add_to_group(group, base->object);
+		base->object->flag |= OB_FROMGROUP;
+		base->flag |= OB_FROMGROUP;
+		base->object->recalc= OB_RECALC_OB;
+	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Add to Group");
+
+	WM_event_add_notifier(C, NC_SCENE, CTX_data_scene(C));
+	
+	return OPERATOR_FINISHED;
+
+}
+static int group_create_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Group *group= NULL;
+	int tot= BLI_countlist(&G.main->group);
+	char *strp= MEM_callocN(tot*32 + 32, "group menu"), *strp1;
+
 	/* are there existing groups? */
 	for(group= G.main->group.first; group; group= group->id.next)
 		if(group->id.lib==NULL)
 			break;
+	strp1= strp;
+	strp1 += sprintf(strp1, "Add To %%t|");
 	
-	if(group)
-		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to Active Objects Groups %x4|Add to New Group %x1|Remove from Group %x5|Remove from All Groups %x2");
-	else
-		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from All Groups %x2");
+	strp1 += sprintf(strp1, "%s %%x%d|", "ADD NEW", 0);
 	
-	group_operation(scene, v3d, mode);
+	for(tot=1, group= G.main->group.first; group; group= group->id.next, tot++) {
+		if(group->id.lib==NULL) {
+			strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
+		}
+	}
+	uiPupmenuOperator(C, 0, op, "GID", strp);
+	MEM_freeN(strp);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+void GROUP_OT_group_create(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Add Selected to group";
+	ot->idname= "GROUP_OT_group_create";
+	
+	/* api callbacks */
+	ot->invoke = group_create_invoke;
+	ot->exec= group_create_exec;	
+	ot->poll= ED_operator_scene_editable;
+	
+	RNA_def_int(ot->srna, "GID", 0, INT_MIN, INT_MAX, "Group", "", INT_MIN, INT_MAX);
 }
 
