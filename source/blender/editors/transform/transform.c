@@ -273,10 +273,8 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 	}
 }
 
-void convertVecToDisplayNum(float *vec, float *num)
+void applyAspectRatio(TransInfo *t, float *vec)
 {
-	VECCOPY(num, vec);
-
 #if 0 // TRANSFORM_FIX_ME
 	TransInfo *t = BIF_GetTransInfo();
 
@@ -287,24 +285,20 @@ void convertVecToDisplayNum(float *vec, float *num)
 			int width, height;
 			transform_width_height_tface_uv(&width, &height);
 
-			num[0] *= width;
-			num[1] *= height;
+			vec[0] *= width;
+			vec[1] *= height;
 		}
 
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-		num[0] /= aspx;
-		num[1] /= aspy;
+		vec[0] /= aspx;
+		vec[1] /= aspy;
 	}
 #endif
 }
 
-void convertDisplayNumToVec(float *num, float *vec)
+void removeAspectRatio(TransInfo *t, float *vec)
 {
-	VECCOPY(vec, num);
-
 #if 0 // TRANSFORM_FIX_ME
-	TransInfo *t = BIF_GetTransInfo();
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
@@ -2828,16 +2822,18 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
 	char distvec[20];
 	char autoik[20];
-	float dvec[3];
 	float dist;
 	
-	convertVecToDisplayNum(vec, dvec);
-
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
 		dist = VecLength(t->num.val);
 	}
 	else {
+		float dvec[3];
+
+		VECCOPY(dvec, vec);
+		applyAspectRatio(t, dvec);
+
 		dist = VecLength(vec);
 		sprintf(&tvec[0], "%.4f", dvec[0]);
 		sprintf(&tvec[20], "%.4f", dvec[1]);
@@ -2965,6 +2961,11 @@ int Translation(TransInfo *t, short mval[2])
 		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
+		if (hasNumInput(&t->num))
+		{
+			removeAspectRatio(t, t->values);
+		}
+		
 		applySnapping(t, t->values);
 		headerTranslation(t, t->values, str);
 	}

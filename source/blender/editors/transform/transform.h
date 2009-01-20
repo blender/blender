@@ -352,8 +352,8 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy);
 void projectIntView(TransInfo *t, float *vec, int *adr);
 void projectFloatView(TransInfo *t, float *vec, float *adr);
 
-void convertVecToDisplayNum(float *vec, float *num);
-void convertDisplayNumToVec(float *num, float *vec);
+void applyAspectRatio(TransInfo *t, float *vec);
+void removeAspectRatio(TransInfo *t, float *vec);
 
 void initWarp(TransInfo *t);
 int handleEventWarp(TransInfo *t, struct wmEvent *event);

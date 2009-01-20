@@ -132,8 +132,6 @@ void applyNumInput(NumInput *n, float *vec)
 	float val[3];
 
 	if (hasNumInput(n)) {
-		convertDisplayNumToVec(n->val, val);
-
 		for (j=0; j<=n->idx_max; j++) {
 			/* if AFFECTALL and no number typed and cursor not on number, use first number */
 			if (n->flag & NUM_AFFECT_ALL && n->idx != j && n->ctrl[j] == 0)
