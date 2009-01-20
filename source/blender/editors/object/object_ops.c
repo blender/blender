@@ -88,6 +88,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_add_duplicate);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_group_remove);
+	WM_operatortype_append(GROUP_OT_objects_add_active);
+	WM_operatortype_append(GROUP_OT_objects_remove_active);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -130,5 +132,8 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_group_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_group_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+
 }
 
