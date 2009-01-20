@@ -92,7 +92,7 @@ typedef struct RegionView3D {
 	short view;
 	
 	/* user defined clipping planes */
-	float clip[4][4];
+	float clip[6][4];
 	struct BoundBox *clipbb;	
 	
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */

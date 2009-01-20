@@ -1453,10 +1453,31 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 	/* some rules... */
 	if(ar->regiontype!=RGN_TYPE_WINDOW)
 		BKE_report(op->reports, RPT_ERROR, "Only window region can be 4-splitted");
+	else if(ar->alignment==RGN_ALIGN_QSPLIT) {
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *arn;
+		
+		/* keep current region */
+		ar->alignment= 0;
+		
+		if(sa->spacetype==SPACE_VIEW3D) {
+			RegionView3D *rv3d= ar->regiondata;
+			rv3d->viewlock= 0;
+		}
+		
+		for(ar= sa->regionbase.first; ar; ar= arn) {
+			arn= ar->next;
+			if(ar->alignment==RGN_ALIGN_QSPLIT) {
+				ED_region_exit(C, ar);
+				BKE_area_region_free(sa->type, ar);
+				BLI_remlink(&sa->regionbase, ar);
+				MEM_freeN(ar);
+			}
+		}
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	}
 	else if(ar->next)
 		BKE_report(op->reports, RPT_ERROR, "Only last region can be 4-splitted");
-	else if(ar->alignment==RGN_ALIGN_QSPLIT)
-		BKE_report(op->reports, RPT_ERROR, "Cannot split further");
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		ARegion *newar;

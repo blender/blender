@@ -83,6 +83,87 @@
 
 /* ********************** view3d_edit: view manipulations ********************* */
 
+/* ********************* box view support ***************** */
+
+static void view3d_boxview_clip(ScrArea *sa)
+{
+	ARegion *ar;
+	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "clipbb");
+	float clip[6][4];
+	float x1, y1, z1, ofs[3];
+	int val;
+	
+	/* create bounding box */
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			RegionView3D *rv3d= ar->regiondata;
+			
+			if(rv3d->viewlock) {
+				if(ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) {
+					if(ar->winx>ar->winy) x1= rv3d->dist;
+					else x1= ar->winx*rv3d->dist/ar->winy;
+					
+					if(ar->winx>ar->winy) y1= ar->winy*rv3d->dist/ar->winx;
+					else y1= rv3d->dist;
+					
+					ofs[0]= rv3d->ofs[0];
+					ofs[1]= rv3d->ofs[1];
+				}
+				else if(ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) {
+					ofs[2]= rv3d->ofs[2];
+					
+					if(ar->winx>ar->winy) z1= ar->winy*rv3d->dist/ar->winx;
+					else z1= rv3d->dist;
+				}
+			}
+		}
+	}
+	
+	for(val=0; val<8; val++) {
+		if(ELEM4(val, 0, 3, 4, 7))
+			bb->vec[val][0]= -x1 - ofs[0];
+		else
+			bb->vec[val][0]=  x1 - ofs[0];
+		
+		if(ELEM4(val, 0, 1, 4, 5))
+			bb->vec[val][1]= -y1 - ofs[1];
+		else
+			bb->vec[val][1]=  y1 - ofs[1];
+		
+		if(val > 3)
+			bb->vec[val][2]= -z1 - ofs[2];
+		else
+			bb->vec[val][2]=  z1 - ofs[2];
+	}	
+	
+	/* normals for plane equations */
+	CalcNormFloat(bb->vec[0], bb->vec[1], bb->vec[4], clip[0]);
+	CalcNormFloat(bb->vec[1], bb->vec[2], bb->vec[5], clip[1]);
+	CalcNormFloat(bb->vec[2], bb->vec[3], bb->vec[6], clip[2]);
+	CalcNormFloat(bb->vec[3], bb->vec[0], bb->vec[7], clip[3]);
+	CalcNormFloat(bb->vec[4], bb->vec[5], bb->vec[6], clip[4]);
+	CalcNormFloat(bb->vec[0], bb->vec[2], bb->vec[1], clip[5]);
+	
+	/* then plane equations */
+	for(val=0; val<5; val++) {
+		clip[val][3]= - clip[val][0]*bb->vec[val][0] - clip[val][1]*bb->vec[val][1] - clip[val][2]*bb->vec[val][2];
+	}
+	clip[5][3]= - clip[5][0]*bb->vec[0][0] - clip[5][1]*bb->vec[0][1] - clip[5][2]*bb->vec[0][2];
+	
+	/* create bounding box */
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			RegionView3D *rv3d= ar->regiondata;
+			
+			if(rv3d->viewlock) {
+				rv3d->rflag |= RV3D_CLIPPING;
+				memcpy(rv3d->clip, clip, sizeof(clip));
+			}
+		}
+	}
+	MEM_freeN(bb);
+}
+
 /* sync ortho view of region to others, for view transforms */
 static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 {
@@ -119,6 +200,7 @@ static void view3d_boxview_sync(ScrArea *sa, ARegion *ar)
 			}
 		}
 	}
+	view3d_boxview_clip(sa);
 }
 
 /* for home, center etc */
@@ -138,6 +220,7 @@ static void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 			}
 		}
 	}
+	view3d_boxview_clip(sa);
 }
 
 /* ************************** init for view ops **********************************/
@@ -487,7 +570,7 @@ static void viewmove_apply(ViewOpsData *vod, int x, int y)
 	else {
 		float dvec[3];
 
-		window_to_3d(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
+		window_to_3d_delta(vod->ar, dvec, x-vod->oldx, y-vod->oldy);
 		VecAddf(vod->rv3d->ofs, vod->rv3d->ofs, dvec);
 		
 		if(vod->rv3d->viewlock)
@@ -575,7 +658,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 
 		/* Project cursor position into 3D space */
 		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
-		window_to_3d(ar, dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
+		window_to_3d_delta(ar, dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
 
 		/* Calculate view target position for dolly */
 		tvec[0] = -(tpos[0] + dvec[0]);
@@ -1141,7 +1224,7 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 
 			initgrabz(rv3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
 
-			window_to_3d(ar, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+			window_to_3d_delta(ar, dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
 			/* center the view to the center of the rectangle */
 			VecSubf(new_ofs, new_ofs, dvec);
 		}
@@ -1398,10 +1481,10 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 
 			initgrabz(rv3d, 0.0, 0.0, 0.0);
 
-			if(viewnum == V3D_VIEW_PANRIGHT) window_to_3d(ar, vec, -32, 0);
-			else if(viewnum == V3D_VIEW_PANLEFT) window_to_3d(ar, vec, 32, 0);
-			else if(viewnum == V3D_VIEW_PANUP) window_to_3d(ar, vec, 0, -25);
-			else if(viewnum == V3D_VIEW_PANDOWN) window_to_3d(ar, vec, 0, 25);
+			if(viewnum == V3D_VIEW_PANRIGHT) window_to_3d_delta(ar, vec, -32, 0);
+			else if(viewnum == V3D_VIEW_PANLEFT) window_to_3d_delta(ar, vec, 32, 0);
+			else if(viewnum == V3D_VIEW_PANUP) window_to_3d_delta(ar, vec, 0, -25);
+			else if(viewnum == V3D_VIEW_PANDOWN) window_to_3d_delta(ar, vec, 0, 25);
 			rv3d->ofs[0]+= vec[0];
 			rv3d->ofs[1]+= vec[1];
 			rv3d->ofs[2]+= vec[2];
@@ -1612,7 +1695,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(mval[0]!=IS_CLIPPED) {
 		
-		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
+		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(fp, fp, dvec);
 	}
 	else {

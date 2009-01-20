@@ -132,7 +132,7 @@ static void get_view_aligned_coordinate(float *fp, short mval[2])
 // XXX	initgrabz(fp[0], fp[1], fp[2]);
 	
 //	if(mval[0]!=IS_CLIPPED) {
-//		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
+//		window_to_3d_delta(dvec, mval[0]-mx, mval[1]-my);
 //		VecSubf(fp, fp, dvec);
 //	}
 }

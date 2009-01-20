@@ -186,7 +186,7 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		window_to_3d(t->ar, vec, dx, dy);
+		window_to_3d_delta(t->ar, vec, dx, dy);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		View2D *v2d = t->view;

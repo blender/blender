@@ -481,11 +481,28 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
 }
 
+/* always call initgrabz */
 void window_to_3d(ARegion *ar, float *vec, short mx, short my)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	
-	/* always call initgrabz */
+	float dx= ((float)(mx-(ar->winx/2)))*rv3d->zfac/(ar->winx/2);
+	float dy= ((float)(my-(ar->winy/2)))*rv3d->zfac/(ar->winy/2);
+	
+	float fz= rv3d->persmat[0][3]*vec[0]+ rv3d->persmat[1][3]*vec[1]+ rv3d->persmat[2][3]*vec[2]+ rv3d->persmat[3][3];
+	fz= fz/rv3d->zfac;
+	
+	vec[0]= (rv3d->persinv[0][0]*dx + rv3d->persinv[1][0]*dy+ rv3d->persinv[2][0]*fz)-rv3d->ofs[0];
+	vec[1]= (rv3d->persinv[0][1]*dx + rv3d->persinv[1][1]*dy+ rv3d->persinv[2][1]*fz)-rv3d->ofs[1];
+	vec[2]= (rv3d->persinv[0][2]*dx + rv3d->persinv[1][2]*dy+ rv3d->persinv[2][2]*fz)-rv3d->ofs[2];
+	
+}
+
+/* always call initgrabz */
+/* only to detect delta motion */
+void window_to_3d_delta(ARegion *ar, float *vec, short mx, short my)
+{
+	RegionView3D *rv3d= ar->regiondata;
 	float dx, dy;
 	
 	dx= 2.0f*mx*rv3d->zfac/ar->winx;
@@ -1028,6 +1045,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		}
 	}
 	else {
+		/* should be moved to better initialize later on XXX */
 		if(rv3d->viewlock)
 			view3d_viewlock(rv3d);
 		

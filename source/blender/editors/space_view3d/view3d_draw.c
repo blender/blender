@@ -149,26 +149,30 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 {
 	BoundBox *bb= rv3d->clipbb;
 	
-	UI_ThemeColorShade(TH_BACK, -8);
-	
-	glBegin(GL_QUADS);
-	
-	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
-	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
-	glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
-	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
-	glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
-	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
-	
-	glEnd();
+	if(bb) {
+		UI_ThemeColorShade(TH_BACK, -8);
+		
+		glBegin(GL_QUADS);
+		
+		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
+		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
+		glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
+		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
+		glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
+		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
+		
+		glEnd();
+	}
 }
 
 void view3d_set_clipping(RegionView3D *rv3d)
 {
 	double plane[4];
-	int a;
+	int a, tot=4;
 	
-	for(a=0; a<4; a++) {
+	if(rv3d->viewlock) tot= 6;
+	
+	for(a=0; a<tot; a++) {
 		QUATCOPY(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0+a, plane);
 		glEnable(GL_CLIP_PLANE0+a);
@@ -179,7 +183,7 @@ void view3d_clr_clipping(void)
 {
 	int a;
 	
-	for(a=0; a<4; a++) {
+	for(a=0; a<6; a++) {
 		glDisable(GL_CLIP_PLANE0+a);
 	}
 }
@@ -1327,7 +1331,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 		
 		/* calc window coord */
 		initgrabz(rv3d, 0.0, 0.0, 0.0);
-		window_to_3d(ar, vec, 1, 0);
+		window_to_3d_delta(ar, vec, 1, 0);
 		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
 		fac= 1.0/fac;
 		

@@ -1081,7 +1081,7 @@ void calculateCenter(TransInfo *t)
 
 	if(t->spacetype==SPACE_VIEW3D)
 	{
-		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
+		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d_delta() */
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			float vec[3];

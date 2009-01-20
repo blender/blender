@@ -790,7 +790,7 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 		 *	- method taken from editview.c - mouse_cursor() 
 		 */
 		project_short_noclip(ar, fp, mval);
-		window_to_3d(ar, dvec, mval[0]-mx, mval[1]-my);
+		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(p3d, fp, dvec);
 	}
 }
@@ -1215,7 +1215,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		
 		/* method taken from editview.c - mouse_cursor() */
 		project_short_noclip(p->ar, fp, mval);
-		window_to_3d(p->ar, dvec, mval[0]-mx, mval[1]-my);
+		window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(out, fp, dvec);
 	}
 	
