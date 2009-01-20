@@ -2804,7 +2804,7 @@ void initTranslation(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 	
-	t->ndof.axis = 1|2|4;
+	t->ndof.axis = (t->flag & T_2D_EDIT)? 1|2: 1|2|4;
 
 	if(t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
