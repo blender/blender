@@ -1169,7 +1169,6 @@ int transformEnd(bContext *C, TransInfo *t)
 		{
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
-			viewRedrawForce(C, t);
 		}
 		else
 		{
@@ -1195,6 +1194,8 @@ int transformEnd(bContext *C, TransInfo *t)
 			else ED_undo_push(C, transform_to_undostr(t));
 		}
 		t->undostr= NULL;
+
+		viewRedrawForce(C, t);
 	}
 	
 	return exit_code;
