@@ -30,8 +30,6 @@
 #define ED_KEYFRAMES_EDIT_H
 
 struct bAnimContext;
-struct Ipo;
-struct IpoCurve;
 struct FCurve;
 struct BezTriple;
 struct Scene;
@@ -99,15 +97,14 @@ typedef struct BeztEditData {
 /* ------- Function Pointer Typedefs ---------------- */
 
 	/* callback function that refreshes the IPO curve after use */
-typedef void (*IcuEditFunc)(struct IpoCurve *icu);
+typedef void (*FcuEditFunc)(struct FCurve *fcu);
 	/* callback function that operates on the given BezTriple */
 typedef short (*BeztEditFunc)(BeztEditData *bed, struct BezTriple *bezt);
 
 /* ---------------- Looping API --------------------- */
 
 /* functions for looping over keyframes */
-short ANIM_icu_keys_bezier_loop(BeztEditData *bed, struct IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
-short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, struct Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb);
+short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, struct FCurve *Fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb);
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
@@ -124,15 +121,11 @@ BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 
-/* ---------- IpoCurve Callbacks ------------ */
-
-void ANIM_editkeyframes_ipocurve_ipotype(struct IpoCurve *icu);
-
 /* ************************************************ */
 /* Destructive Editing API (keyframes_general.c) */
 
 void delete_fcurve_key(struct FCurve *fcu, int index, short do_recalc);
-void delete_ipo_keys(struct Ipo *ipo);
+void delete_fcurve_keys(struct FCurve *fcu);
 void duplicate_ipo_keys(struct Ipo *ipo);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
@@ -146,7 +139,6 @@ void smooth_fcurve(struct FCurve *fcu, short mode);
 short is_ipo_key_selected(struct Ipo *ipo);
 void set_ipo_key_selection(struct Ipo *ipo, short sel);
 
-void setexprap_ipoloop(struct Ipo *ipo, short code);
 
 
 /* ************************************************ */

@@ -42,11 +42,11 @@
 #include "BLI_arithb.h"
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -102,24 +102,6 @@
 
 /* -------------------------- Internal Tools -------------------------------- */
 
-/* set the given Action Channel to be the 'active' one in its Action */
-static void action_set_active_achan (bAction *act, bActionChannel *achan)
-{
-	bActionChannel *chan;
-	
-	/* sanity check */
-	if (act == NULL)
-		return;
-	
-	/* clear active flag on all others */
-	for (chan= act->chanbase.first; chan; chan= chan->next)
-		chan->flag &= ~ACHAN_HILIGHTED;
-		
-	/* set the given Action Channel to be the active one */
-	if (achan)
-		achan->flag |= ACHAN_HILIGHTED;
-}
-
 /* set the given Action Group to be the 'active' one in its Action */
 static void action_set_active_agrp (bAction *act, bActionGroup *agrp)
 {
@@ -153,9 +135,6 @@ void ANIM_action_set_active_channel (void *data, short datatype, void *channel_d
 		return;
 		
 	switch (channel_type) {
-		case ANIMTYPE_ACHAN:
-			action_set_active_achan((bAction *)data, (bActionChannel *)channel_data);
-			break;
 		case ANIMTYPE_GROUP:
 			action_set_active_agrp((bAction *)data, (bActionGroup *)channel_data);
 			break;
@@ -190,23 +169,15 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
 				case ANIMTYPE_FILLACTD:
-					if (ale->flag & ACTC_SELECTED)
+					if (ale->flag & ACT_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
 				case ANIMTYPE_GROUP:
 					if (ale->flag & AGRP_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
-				case ANIMTYPE_ACHAN:
-					if (ale->flag & ACHAN_SELECTED) 
-						sel= ACHANNEL_SETFLAG_CLEAR;
-					break;
-				case ANIMTYPE_CONCHAN:
-					if (ale->flag & CONSTRAINT_CHANNEL_SELECT) 
-						sel= ACHANNEL_SETFLAG_CLEAR;
-					break;
-				case ANIMTYPE_ICU:
-					if (ale->flag & IPO_SELECT)
+				case ANIMTYPE_FCURVE:
+					if (ale->flag & FCURVE_SELECTED)
 						sel= ACHANNEL_SETFLAG_CLEAR;
 					break;
 			}
@@ -229,7 +200,7 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 			{
 				bAction *act= (bAction *)ale->data;
 				
-				ACHANNEL_SET_FLAG(act, sel, ACTC_SELECTED);
+				ACHANNEL_SET_FLAG(act, sel, ACT_SELECTED);
 			}
 				break;
 			case ANIMTYPE_GROUP:
@@ -240,29 +211,12 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 				agrp->flag &= ~AGRP_ACTIVE;
 			}
 				break;
-			case ANIMTYPE_ACHAN:
+			case ANIMTYPE_FCURVE:
 			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
+				FCurve *fcu= (FCurve *)ale->data;
 				
-				ACHANNEL_SET_FLAG(achan, sel, ACHAN_SELECTED);
-				
-				//select_poseelement_by_name(achan->name, sel); // XXX
-				achan->flag &= ~ACHAN_HILIGHTED;
-			}
-				break;
-			case ANIMTYPE_CONCHAN:
-			{
-				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
-				
-				ACHANNEL_SET_FLAG(conchan, sel, CONSTRAINT_CHANNEL_SELECT);
-			}
-				break;
-			case ANIMTYPE_ICU:
-			{
-				IpoCurve *icu= (IpoCurve *)ale->data;
-				
-				ACHANNEL_SET_FLAG(icu, sel, IPO_SELECT);
-				icu->flag &= ~IPO_ACTIVE;
+				ACHANNEL_SET_FLAG(fcu, sel, FCURVE_SELECTED);
+				fcu->flag &= ~FCURVE_ACTIVE;
 			}
 				break;
 		}
@@ -277,6 +231,8 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 
 /* ****************** Rearrange Channels Operator ******************* */
 /* This operator only works for Action Editor mode for now, as having it elsewhere makes things difficult */
+
+#if 0 // XXX old animation system - needs to be updated for new system...
 
 /* constants for channel rearranging */
 /* WARNING: don't change exising ones without modifying rearrange func accordingly */
@@ -650,6 +606,7 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", NULL /* XXX add enum for this */, REARRANGE_ACTCHAN_BOTTOM, "Direction", "");
 }
 
+#endif // XXX old animation system - needs to be updated for new system...
 
 /* ********************** Set Flags Operator *********************** */
 
@@ -704,60 +661,16 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode)
 				}
 			}
 				break;
-			case ANIMTYPE_ACHAN:
+			case ANIMTYPE_FCURVE:
 			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				
-				/* 'protect' and 'mute' */
-				if ((setting == ACHANNEL_SETTING_MUTE) && (achan->ipo)) {
-					Ipo *ipo= achan->ipo;
-					
-					/* mute */
-					if (mode == 0)
-						ipo->muteipo= 0;
-					else if (mode == 1)
-						ipo->muteipo= 1;
-					else if (mode == 2) 
-						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
-				}
-				else if (setting == ACHANNEL_SETTING_PROTECT) {
-					/* protected */
-					ACHANNEL_SET_FLAG(achan, mode, ACHAN_PROTECTED);
-				}
-			}
-				break;
-			case ANIMTYPE_CONCHAN:
-			{
-				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
-				
-				/* 'protect' and 'mute' */
-				if ((setting == ACHANNEL_SETTING_MUTE) && (conchan->ipo)) {
-					Ipo *ipo= conchan->ipo;
-					
-					/* mute */
-					if (mode == 0)
-						ipo->muteipo= 0;
-					else if (mode == 1)
-						ipo->muteipo= 1;
-					else if (mode == 2) 
-						ipo->muteipo= (ipo->muteipo) ? 0 : 1;
-				}
-				else if (setting == ACHANNEL_SETTING_PROTECT) {
-					/* protect */
-					ACHANNEL_SET_FLAG(conchan, mode, CONSTRAINT_CHANNEL_PROTECTED);
-				}
-			}
-				break;
-			case ANIMTYPE_ICU:
-			{
-				IpoCurve *icu= (IpoCurve *)ale->data;
+				FCurve *fcu= (FCurve *)ale->data;
 				
 				/* mute */
 				if (setting == ACHANNEL_SETTING_MUTE) {
-					ACHANNEL_SET_FLAG(icu, mode, IPO_MUTE);
+					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_MUTED);
 				}
 				else if (setting == ACHANNEL_SETTING_PROTECT) {
-					ACHANNEL_SET_FLAG(icu, mode, IPO_PROTECT);
+					ACHANNEL_SET_FLAG(fcu, mode, FCURVE_PROTECTED);
 				}
 			}
 				break;
@@ -954,28 +867,11 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					agrp->flag &= ~AGRP_ACTIVE;
 				}
 					break;
-				case ANIMTYPE_ACHAN: /* action channel */
-				case ANIMTYPE_FILLIPO: /* expand ipo curves = action channel */
-				case ANIMTYPE_FILLCON: /* expand constraint channels = action channel */
+				case ANIMTYPE_FCURVE: /* F-Curve channel */
 				{
-					bActionChannel *achan= (bActionChannel *)ale->data;
+					FCurve *fcu = (FCurve *)ale->data;
 					
-					ACHANNEL_SET_FLAG(achan, selectmode, ACHAN_SELECTED);
-					achan->flag &= ~ACHAN_HILIGHTED;
-				}
-					break;
-				case ANIMTYPE_CONCHAN: /* constraint channel */
-				{
-					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
-					
-					ACHANNEL_SET_FLAG(conchan, selectmode, CONSTRAINT_CHANNEL_SELECT);
-				}
-					break;
-				case ANIMTYPE_ICU: /* ipo-curve channel */
-				{
-					IpoCurve *icu = (IpoCurve *)ale->data;
-					
-					ACHANNEL_SET_FLAG(icu, selectmode, IPO_SELECT);
+					ACHANNEL_SET_FLAG(fcu, selectmode, FCURVE_SELECTED);
 				}
 					break;
 				case ANIMTYPE_GPLAYER: /* grease-pencil layer */
@@ -985,14 +881,6 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 					ACHANNEL_SET_FLAG(gpl, selectmode, GP_LAYER_SELECT);
 				}
 					break;
-			}
-			
-			/* select action-channel 'owner' */
-			if ((ale->owner) && (ale->ownertype == ANIMTYPE_ACHAN)) {
-				bActionChannel *achano= (bActionChannel *)ale->owner;
-				
-				ACHANNEL_SET_FLAG(achano, selectmode, ACHAN_SELECTED);
-				achano->flag &= ~ACHAN_HILIGHTED;
 			}
 		}
 		
@@ -1074,7 +962,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
-	filter= (ANIMFILTER_FORDRAWING | ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
 	filter= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */
@@ -1106,7 +994,7 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			
 			if (x < 16) {
 				/* toggle expand */
-				ob->nlaflag ^= OB_ADS_COLLAPSED;
+				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX 
 			}
 			else {
 				/* set selection status */
@@ -1134,28 +1022,16 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			}
 		}
 			break;
-		case ANIMTYPE_FILLIPOD:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWIPO;
-		}
-			break;
 		case ANIMTYPE_FILLACTD:
 		{
 			bAction *act= (bAction *)ale->data;
-			act->flag ^= ACTC_EXPANDED;
-		}
-			break;
-		case ANIMTYPE_FILLCOND:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWCONS;
+			act->flag ^= ACT_EXPANDED;
 		}
 			break;
 		case ANIMTYPE_FILLMATD:
 		{
 			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWMATS;
+			ob->nlaflag ^= OB_ADS_SHOWMATS;	// XXX 
 		}
 			break;
 				
@@ -1235,152 +1111,59 @@ static void mouse_anim_channels (bAnimContext *ac, float x, int channel_index, s
 			}
 		}
 			break;
-		case ANIMTYPE_ACHAN:
-			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				short offset= (ac->datatype == ANIMCONT_DOPESHEET)? 21 : 0;
-				
-				if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-					/* toggle protect */
-					achan->flag ^= ACHAN_PROTECTED;
-				}
-				else if ((x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) && (achan->ipo)) {
-					/* toggle mute */
-					achan->ipo->muteipo = (achan->ipo->muteipo)? 0: 1;
-				}
-				else if (x <= (offset+17)) {
-					/* toggle expand */
-					achan->flag ^= ACHAN_EXPANDED;
-				}				
-				else {
-					/* select/deselect achan */		
-					if (selectmode == SELECT_INVERT) {
-						/* invert selection of this channel only */
-						achan->flag ^= ACHAN_SELECTED;
-					}
-					else {
-						/* replace, so make sure only this channel is selected after everything has happened) */
-						ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-						achan->flag |= ACHAN_SELECTED;
-					}
-					
-					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
-					 * we can make this channel the 'active' one in that action
-					 */
-					if ((achan->flag & ACHAN_SELECTED) && (ac->datatype == ANIMCONT_ACTION))
-						action_set_active_achan((bAction *)ac->data, achan);
-				}
+		case ANIMTYPE_FCURVE: 
+		{
+			FCurve *fcu= (FCurve *)ale->data;
+			
+			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
+				/* toggle protection */
+				fcu->flag ^= FCURVE_PROTECTED;
 			}
-				break;
-		case ANIMTYPE_FILLIPO:
-			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				
-				achan->flag ^= ACHAN_SHOWIPO;
-				
-				if ((x > 24) && (achan->flag & ACHAN_SHOWIPO)) {
-					/* select+make active achan */		
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					achan->flag |= ACHAN_SELECTED;
-					
-					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
-					 * we can make this channel the 'active' one in that action
-					 */
-					if (ac->datatype == ANIMCONT_ACTION)
-						action_set_active_achan((bAction *)ac->data, achan);
-				}	
+			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
+				/* toggle mute */
+				fcu->flag ^= FCURVE_MUTED;
 			}
+			else {
+				/* select/deselect */
+				fcu->flag ^= FCURVE_SELECTED;
+			}
+		}
 			break;
-		case ANIMTYPE_FILLCON:
-			{
-				bActionChannel *achan= (bActionChannel *)ale->data;
-				
-				achan->flag ^= ACHAN_SHOWCONS;
-				
-				if ((x > 24) && (achan->flag & ACHAN_SHOWCONS)) {
-					/* select+make active achan */	
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					achan->flag |= ACHAN_SELECTED;
-					
-					/* if channel is selected now, and we're in Action Editor mode (so that we have pointer to active action),
-					 * we can make this channel the 'active' one in that action
-					 */
-					if (ac->datatype == ANIMCONT_ACTION)
-						action_set_active_achan((bAction *)ac->data, achan);
-				}	
-			}
-			break;
-		case ANIMTYPE_ICU: 
-			{
-				IpoCurve *icu= (IpoCurve *)ale->data;
-				
-				if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-					/* toggle protection */
-					icu->flag ^= IPO_PROTECT;
-				}
-				else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
-					/* toggle mute */
-					icu->flag ^= IPO_MUTE;
-				}
-				else {
-					/* select/deselect */
-					icu->flag ^= IPO_SELECT;
-				}
-			}
-			break;
-		case ANIMTYPE_CONCHAN:
-			{
-				bConstraintChannel *conchan= (bConstraintChannel *)ale->data;
-				
-				if (x >= (ACHANNEL_NAMEWIDTH-16)) {
-					/* toggle protection */
-					conchan->flag ^= CONSTRAINT_CHANNEL_PROTECTED;
-				}
-				else if ((x >= (ACHANNEL_NAMEWIDTH-32)) && (conchan->ipo)) {
-					/* toggle mute */
-					conchan->ipo->muteipo = (conchan->ipo->muteipo)? 0: 1;
-				}
-				else {
-					/* select/deselect */
-					conchan->flag ^= CONSTRAINT_CHANNEL_SELECT;
-				}
-			}
-				break;
 		case ANIMTYPE_GPDATABLOCK:
-			{
-				bGPdata *gpd= (bGPdata *)ale->data;
-				
-				/* toggle expand */
-				gpd->flag ^= GP_DATA_EXPAND;
-			}
-				break;
+		{
+			bGPdata *gpd= (bGPdata *)ale->data;
+			
+			/* toggle expand */
+			gpd->flag ^= GP_DATA_EXPAND;
+		}
+			break;
 		case ANIMTYPE_GPLAYER:
-			{
+		{
 #if 0 // XXX future of this is unclear
-				bGPdata *gpd= (bGPdata *)ale->owner;
-				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				
-				if (x >= (ACHANNEL_NAMEWIDTH-16)) {
-					/* toggle lock */
-					gpl->flag ^= GP_LAYER_LOCKED;
-				}
-				else if (x >= (ACHANNEL_NAMEWIDTH-32)) {
-					/* toggle hide */
-					gpl->flag ^= GP_LAYER_HIDE;
-				}
-				else {
-					/* select/deselect */
-					//if (G.qual & LR_SHIFTKEY) {
-						//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
-					//}
-					//else {
-						//deselect_gpencil_layers(data, 0);
-						//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
-					//}
-				}
-#endif // XXX future of this is unclear
+			bGPdata *gpd= (bGPdata *)ale->owner;
+			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			
+			if (x >= (ACHANNEL_NAMEWIDTH-16)) {
+				/* toggle lock */
+				gpl->flag ^= GP_LAYER_LOCKED;
 			}
-				break;
+			else if (x >= (ACHANNEL_NAMEWIDTH-32)) {
+				/* toggle hide */
+				gpl->flag ^= GP_LAYER_HIDE;
+			}
+			else {
+				/* select/deselect */
+				//if (G.qual & LR_SHIFTKEY) {
+					//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+				//}
+				//else {
+					//deselect_gpencil_layers(data, 0);
+					//select_gplayer_channel(gpd, gpl, SELECT_INVERT);
+				//}
+			}
+#endif // XXX future of this is unclear
+		}
+			break;
 		case ANIMTYPE_SHAPEKEY:
 			/* TODO: shapekey channels cannot be selected atm... */
 			break;
@@ -1472,10 +1255,11 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_disable_setting);
 	WM_operatortype_append(ANIM_OT_channels_toggle_setting);
 	
-	WM_operatortype_append(ANIM_OT_channels_move_up);
-	WM_operatortype_append(ANIM_OT_channels_move_down);
-	WM_operatortype_append(ANIM_OT_channels_move_top);
-	WM_operatortype_append(ANIM_OT_channels_move_bottom);
+		// XXX these need to be updated for new system... todo...
+	//WM_operatortype_append(ANIM_OT_channels_move_up);
+	//WM_operatortype_append(ANIM_OT_channels_move_down);
+	//WM_operatortype_append(ANIM_OT_channels_move_top);
+	//WM_operatortype_append(ANIM_OT_channels_move_bottom);
 }
 
 void ED_keymap_animchannels(wmWindowManager *wm)
@@ -1502,10 +1286,10 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_disable_setting", WKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* rearranging - actions only */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_move_down", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_top", PAGEUPKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_bottom", PAGEDOWNKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);
+	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_down", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0);
+	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_top", PAGEUPKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_to_bottom", PAGEDOWNKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 }
 
 /* ************************************************************************** */

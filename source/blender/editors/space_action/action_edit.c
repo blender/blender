@@ -97,7 +97,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	int filter;
 	
 	/* get data to filter, from Action or Dopesheet */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
@@ -293,6 +293,7 @@ void free_actcopybuf ()
  */
 static short copy_action_keys (bAnimContext *ac)
 {
+#if 0 // XXX old animation system
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -372,6 +373,7 @@ static short copy_action_keys (bAnimContext *ac)
 	
 	/* free temp memory */
 	BLI_freelistN(&anim_data);
+#endif // XXX old animation system
 	
 	/* everything went fine */
 	return 0;
@@ -379,6 +381,7 @@ static short copy_action_keys (bAnimContext *ac)
 
 static short paste_action_keys (bAnimContext *ac)
 {
+#if 0 // XXX old animation system
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
@@ -495,6 +498,8 @@ static short paste_action_keys (bAnimContext *ac)
 	}
 #endif
 
+#endif // XXX old animation system
+
 	return 0;
 }
 
@@ -595,7 +600,7 @@ static void delete_action_keys (bAnimContext *ac)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and delete selected keys */
@@ -655,7 +660,7 @@ static void clean_action_keys (bAnimContext *ac, float thresh)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_ONLYFCU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and clean curves */
@@ -727,7 +732,7 @@ static void sample_action_keys (bAnimContext *ac)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and add keys between selected keyframes on every frame  */
@@ -837,12 +842,12 @@ void ACT_OT_keyframes_sample (wmOperatorType *ot)
 
 /* ******************** Set Extrapolation-Type Operator *********************** */
 
+// XXX rename this operator...
+
 /* defines for set extrapolation-type for selected keyframes tool */
 EnumPropertyItem prop_actkeys_expo_types[] = {
-	{IPO_HORIZ, "CONSTANT", "Constant", ""},
-	{IPO_DIR, "DIRECTIONAL", "Extrapolation", ""},
-	{IPO_CYCL, "CYCLIC", "Cyclic", ""},
-	{IPO_CYCLX, "CYCLIC_EXTRAPOLATION", "Cyclic Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", "Constant Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", "Linear Extrapolation", ""},
 	{0, NULL, NULL, NULL}
 };
 
@@ -854,14 +859,14 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop through setting mode per ipo-curve 
-	 * Note: setting is on IPO-curve level not keyframe, so no need for Keyframe-Editing API
-	 */
-	for (ale= anim_data.first; ale; ale= ale->next)
-		setexprap_ipoloop(ale->key_data, mode);
+	/* loop through setting mode per F-Curve */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->data;
+		fcu->extend= mode;
+	}
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
@@ -917,9 +922,9 @@ void ACT_OT_keyframes_expotype (wmOperatorType *ot)
 
 /* defines for set ipo-type for selected keyframes tool */
 EnumPropertyItem prop_actkeys_ipo_types[] = {
-	{IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
-	{IPO_LIN, "LINEAR", "Linear Interpolation", ""},
-	{IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
+	{BEZT_IPO_CONST, "CONSTANT", "Constant Interpolation", ""},
+	{BEZT_IPO_LIN, "LINEAR", "Linear Interpolation", ""},
+	{BEZT_IPO_BEZ, "BEZIER", "Bezier Interpolation", ""},
 	{0, NULL, NULL, NULL}
 };
 
@@ -932,14 +937,14 @@ static void setipo_action_keys(bAnimContext *ac, short mode)
 	BeztEditFunc set_cb= ANIM_editkeyframes_ipo(mode);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting BezTriple interpolation
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, ANIM_editkeyframes_ipocurve_ipotype);
+		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
@@ -1012,7 +1017,7 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 	BeztEditFunc set_cb= ANIM_editkeyframes_handles(mode);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through setting flags for handles 
@@ -1025,17 +1030,17 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 			/* check which type of handle to set (free or aligned) 
 			 *	- check here checks for handles with free alignment already
 			 */
-			if (ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
+			if (ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
 				toggle_cb= ANIM_editkeyframes_handles(HD_FREE);
 			else
 				toggle_cb= ANIM_editkeyframes_handles(HD_ALIGN);
 				
 			/* set handle-type */
-			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_fcurve);
+			ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_fcurve);
 		}
 		else {
 			/* directly set handle-type */
-			ANIM_ipo_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
+			ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
 		}
 	}
 	
@@ -1127,11 +1132,11 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	memset(&bed, 0, sizeof(BeztEditData));
 	
 	/* loop over action data, averaging values */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
 	
 	BLI_freelistN(&anim_data);
 	
@@ -1186,7 +1191,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing callbacks */
@@ -1200,14 +1205,14 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	BLI_freelistN(&anim_data);
 }
@@ -1307,7 +1312,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* mirror keyframes */
@@ -1315,14 +1320,14 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 0, 1); 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_ipocurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
 		else 
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
 	BLI_freelistN(&anim_data);
 }

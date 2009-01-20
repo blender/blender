@@ -46,6 +46,7 @@
 /* Types --------------------------------------------------------------- */
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -65,7 +66,7 @@
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -89,29 +90,6 @@
 #include "ED_keyframes_draw.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
-
-
-#if 0 // XXX old includes for reference only
-	#include "BIF_editaction.h"
-	#include "BIF_editkey.h"
-	#include "BIF_editnla.h"
-	#include "BIF_drawgpencil.h"
-	#include "BIF_keyframing.h"
-	#include "BIF_language.h"
-	#include "BIF_space.h"
-	
-	#include "BDR_editcurve.h"
-	#include "BDR_gpencil.h"
-
-	#include "BSE_drawnla.h"
-	#include "BSE_drawipo.h"
-	#include "BSE_drawview.h"
-	#include "BSE_editaction_types.h"
-	#include "BSE_editipo.h"
-	#include "BSE_headerbuttons.h"
-	#include "BSE_time.h"
-	#include "BSE_view.h"
-#endif // XXX old defines for reference only
 
 /* *************************** Keyframe Drawing *************************** */
 
@@ -155,7 +133,7 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 		akn->sel = 0;
 }
 
-static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index)
+static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 {
 	/* The equivilant of add_to_cfra_elem except this version 
 	 * makes ActKeyBlocks - one of the two datatypes required
@@ -167,10 +145,10 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	int v;
 	
 	/* get beztriples */
-	beztn= (icu->bezt + index);
+	beztn= (fcu->bezt + index);
 	
 	/* we need to go through all beztriples, as they may not be in order (i.e. during transform) */
-	for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
+	for (v=0, bezt=fcu->bezt; v < fcu->totvert; v++, bezt++) {
 		/* skip if beztriple is current */
 		if (v != index) {
 			/* check if beztriple is immediately before */
@@ -365,24 +343,12 @@ void draw_object_channel(gla2DDrawInfo *di, ActKeysInc *aki, Object *ob, float y
 	BLI_freelistN(&blocks);
 }
 
-void draw_ipo_channel(gla2DDrawInfo *di, ActKeysInc *aki, Ipo *ipo, float ypos)
+void draw_fcurve_channel(gla2DDrawInfo *di, ActKeysInc *aki, FCurve *fcu, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	ipo_to_keylist(ipo, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
-	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
-}
-
-void draw_icu_channel(gla2DDrawInfo *di, ActKeysInc *aki, IpoCurve *icu, float ypos)
-{
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	icu_to_keylist(icu, &keys, &blocks, aki);
+	fcurve_to_keylist(fcu, &keys, &blocks, aki);
 	draw_keylist(di, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
@@ -426,7 +392,6 @@ void draw_gpl_channel(gla2DDrawInfo *di, ActKeysInc *aki, bGPDlayer *gpl, float 
 
 void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-	bConstraintChannel *conchan;
 	Key *key= ob_get_key(ob);
 
 	if (ob) {
@@ -441,14 +406,11 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		else
 			filterflag= 0;
 		
-		/* Add object keyframes */
-		if ((ob->ipo) && !(filterflag & ADS_FILTER_NOIPOS))
-			ipo_to_keylist(ob->ipo, keys, blocks, aki);
-		
 		/* Add action keyframes */
-		if ((ob->action) && !(filterflag & ADS_FILTER_NOACTS))
-			action_nlascaled_to_keylist(ob, ob->action, keys, blocks, aki);
+		if ((ob->adt && ob->adt->action) /*&& !(filterflag & ADS_FILTER_NOACTS)*/)
+			action_nlascaled_to_keylist(ob, ob->adt->action, keys, blocks, aki);
 		
+#if 0 // XXX old animation system
 		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
 		if ((key && key->ipo) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
 			ipo_to_keylist(key->ipo, keys, blocks, aki);
@@ -489,14 +451,7 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 			}
 				break;
 		}
-		
-		/* Add constraint keyframes */
-		if (!(filterflag & ADS_FILTER_NOCONSTRAINTS)) {
-			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks, aki);		
-			}
-		}
+#endif // XXX old animation system
 	}
 }
 
@@ -524,22 +479,22 @@ static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
 	return 1;
 }
 
-void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void fcurve_to_keylist(FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
 	BezTriple *bezt;
 	ActKeyColumn *ak, *ak2;
 	ActKeyBlock *ab, *ab2;
 	int v;
 	
-	if (icu && icu->totvert) {
+	if (fcu && fcu->totvert) {
 		/* loop through beztriples, making ActKeys and ActKeyBlocks */
-		bezt= icu->bezt;
+		bezt= fcu->bezt;
 		
-		for (v=0; v<icu->totvert; v++, bezt++) {
+		for (v=0; v < fcu->totvert; v++, bezt++) {
 			/* only if keyframe is in range (optimisation) */
 			if (bezt_in_aki_range(aki, bezt)) {
 				add_bezt_to_keycolumnslist(keys, bezt);
-				if (blocks) add_bezt_to_keyblockslist(blocks, icu, v);
+				if (blocks) add_bezt_to_keyblockslist(blocks, fcu, v);
 			}
 		}
 		
@@ -579,64 +534,33 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks, ActKeysInc 
 	}
 }
 
-void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
-{
-	IpoCurve *icu;
-	
-	if (ipo) {
-		for (icu= ipo->curve.first; icu; icu= icu->next)
-			icu_to_keylist(icu, keys, blocks, aki);
-	}
-}
-
 void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	FCurve *fcu;
 
 	if (agrp) {
-		/* loop through action channels */
-		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-			if (VISIBLE_ACHAN(achan)) {
-				/* firstly, add keys from action channel's ipo block */
-				if (achan->ipo)
-					ipo_to_keylist(achan->ipo, keys, blocks, aki);
-				
-				/* then, add keys from constraint channels */
-				for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-					if (conchan->ipo)
-						ipo_to_keylist(conchan->ipo, keys, blocks, aki);
-				}
-			}
+		/* loop through F-Curves */
+		for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
+			fcurve_to_keylist(fcu, keys, blocks, aki);
 		}
 	}
 }
 
 void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	FCurve *fcu;
 
 	if (act) {
-		/* loop through action channels */
-		for (achan= act->chanbase.first; achan; achan= achan->next) {
-			/* firstly, add keys from action channel's ipo block */
-			if (achan->ipo)
-				ipo_to_keylist(achan->ipo, keys, blocks, aki);
-			
-			/* then, add keys from constraint channels */
-			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo)
-					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
-			}
+		/* loop through F-Curves */
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			fcurve_to_keylist(fcu, keys, blocks, aki);
 		}
 	}
 }
 
 void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	FCurve *fcu;
 	Object *oldob= NULL;
 	
 	/* although apply and clearing NLA-scaling pre-post creating keylist does impact on performance,
@@ -650,27 +574,13 @@ void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListB
 			aki->ob= ob;
 		}
 		
-		/* loop through action channels */
-		for (achan= act->chanbase.first; achan; achan= achan->next) {
-			/* firstly, add keys from action channel's ipo block 
-			 *	- scaling correction only does times for center-points, so should be faster
-			 */
-			if (achan->ipo) {
-				ANIM_nla_mapping_apply_ipo(ob, achan->ipo, 0, 1);
-				ipo_to_keylist(achan->ipo, keys, blocks, aki);
-				ANIM_nla_mapping_apply_ipo(ob, achan->ipo, 1, 1);
-			}
-			
-			/* then, add keys from constraint channels 
-			 *	- scaling correction only does times for center-points, so should be faster
-			 */
-			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo) {
-					ANIM_nla_mapping_apply_ipo(ob, conchan->ipo, 0, 1);
-					ipo_to_keylist(conchan->ipo, keys, blocks, aki);
-					ANIM_nla_mapping_apply_ipo(ob, conchan->ipo, 1, 1);
-				}
-			}
+		/* loop through F-Curves 
+		 *	- scaling correction only does times for center-points, so should be faster
+		 */
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {	
+			ANIM_nla_mapping_apply_fcurve(ob, fcu, 0, 1);
+			fcurve_to_keylist(fcu, keys, blocks, aki);
+			ANIM_nla_mapping_apply_fcurve(ob, fcu, 1, 1);
 		}
 		
 		/* if 'aki' is provided, restore ob */

@@ -38,9 +38,11 @@ extern "C" {
 	
 /* -------- IPO-Curve (Bezier) Calculations ---------- */
 
+// xxx perhaps this should be in curve api not in anim api
 void correct_bezpart(float *v1, float *v2, float *v3, float *v4);
 	
-	
+
+// XXX this file will soon be depreceated...
 #if 0 // XXX old animation system
 
 typedef struct CfraElem {

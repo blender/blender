@@ -40,8 +40,8 @@ struct View2D;
 struct gla2DDrawInfo;
 struct Object;
 struct bActionGroup;
-struct Ipo;
-struct IpoCurve;
+struct FCurve;
+struct IpoCurve; // xxx
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -74,7 +74,7 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
 	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-	ANIMCONT_IPO,			/* single IPO (Ipo) */
+	ANIMCONT_IPO,			/* single IPO (Ipo) */		// XXX
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -109,13 +109,9 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_OBJECT,
 	ANIMTYPE_GROUP,
-	
-	ANIMTYPE_FILLIPO,
-	ANIMTYPE_FILLCON,
+	ANIMTYPE_FCURVE,
 	
 	ANIMTYPE_FILLACTD,
-	ANIMTYPE_FILLIPOD,
-	ANIMTYPE_FILLCOND,
 	ANIMTYPE_FILLMATD,
 	
 	ANIMTYPE_DSMAT,
@@ -124,13 +120,8 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
 	
-	ANIMTYPE_ACHAN,
-	ANIMTYPE_CONCHAN,
-	ANIMTYPE_CONCHAN2,
-	ANIMTYPE_ICU,
-	ANIMTYPE_IPO,
+	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
 	
-	ANIMTYPE_SHAPEKEY,
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
 } eAnim_ChannelType;
@@ -138,8 +129,7 @@ typedef enum eAnim_ChannelType {
 /* types of keyframe data in bAnimListElem */
 typedef enum eAnim_KeyType {
 	ALE_NONE = 0,		/* no keyframe data */
-	ALE_IPO,			/* IPO block */
-	ALE_ICU,			/* IPO-Curve block */
+	ALE_FCURVE,			/* F-Curve */
 	ALE_GPFRAME,		/* Grease Pencil Frames */
 	
 	// XXX the following are for summaries... should these be kept?
@@ -156,23 +146,20 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
 	ANIMFILTER_SEL			= (1<<1),	/* should channels be selected */
 	ANIMFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
-	ANIMFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
-	ANIMFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
-	ANIMFILTER_ONLYFCU		= (1<<5),	/* only reference ipo-curves */
-	ANIMFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
-	ANIMFILTER_ACTGROUPED	= (1<<7),	/* belongs to the active actiongroup */
+	ANIMFILTER_CURVESONLY	= (1<<3),	/* don't include summary-channels, etc. */
+	ANIMFILTER_CHANNELS		= (1<<4),	/* make list for interface drawing */
+	ANIMFILTER_ACTGROUPED	= (1<<5),	/* belongs to the active actiongroup */
 } eAnimFilter_Flags;
 
 
 /* ---------- Flag Checking Macros ------------ */
+// xxx check on all of these flags again...
 
 /* Dopesheet only */
 	/* 'Object' channels */
 #define SEL_OBJC(base) ((base->flag & SELECT))
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
 	/* 'Sub-object' channels (flags stored in Object block) */
-#define FILTER_IPO_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWIPO))
-#define FILTER_CON_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWCONS)) 
 #define FILTER_MAT_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWMATS))
 	/* 'Sub-object' channels (flags stored in Data block) */
 #define FILTER_SKE_OBJD(key) ((key->flag & KEYBLOCK_DS_EXPAND))
@@ -181,31 +168,17 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
-		// XXX temp flags for things removed
-#define ACTC_SELECTED 1
-#define ACTC_EXPANDED 2
-		// XXX these need to be fixed
-#define SEL_ACTC(actc) ((actc->flag & ACTC_SELECTED))
-#define EXPANDED_ACTC(actc) ((actc->flag & ACTC_EXPANDED))
+#define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
+#define EXPANDED_ACTC(actc) ((actc->flag & ACT_EXPANDED))
 
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
 #define EXPANDED_AGRP(agrp) (agrp->flag & AGRP_EXPANDED)
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
-	/* Action Channel Settings */
-#define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
-#define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
-#define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
-#define SEL_ACHAN(achan) ((achan->flag & ACHAN_SELECTED) || (achan->flag & ACHAN_HILIGHTED))
-#define FILTER_IPO_ACHAN(achan) ((achan->flag & ACHAN_SHOWIPO))
-#define FILTER_CON_ACHAN(achan) ((achan->flag & ACHAN_SHOWCONS))
-	/* Constraint Channel Settings */
-#define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
-#define SEL_CONCHAN(conchan) (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-	/* IPO Curve Channels */
-#define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
-#define SEL_ICU(icu) (icu->flag & IPO_SELECT)
+	/* F-Curve Channels */
+#define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
+#define SEL_FCU(fcu) (fcu->flag & (FCURVE_ACTIVE|FCURVE_SELECTED))
 
 /* Grease Pencil only */
 	/* Grease Pencil datablock settings */
@@ -301,7 +274,7 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* anim_ipo_utils.c */
 
 int geticon_ipo_blocktype(short blocktype);
-char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob);
+char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob); // XXX 
 
 unsigned int ipo_rainbow(int cur, int tot);
 
@@ -316,8 +289,7 @@ struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
-void ANIM_nla_mapping_apply_ipocurve(struct Object *ob, struct IpoCurve *icu, short restore, short only_keys);
-void ANIM_nla_mapping_apply_ipo(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
+void ANIM_nla_mapping_apply_fcurve(struct Object *ob, struct FCurve *fcu, short restore, short only_keys);
 
 /* ------------- xxx macros ----------------------- */
 

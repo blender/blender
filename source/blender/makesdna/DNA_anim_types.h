@@ -204,6 +204,9 @@ typedef struct FPoint {
 typedef struct FCurve {
 	struct FCurve *next, *prev;
 	
+		/* group */
+	bActionGroup *grp;		/* group that F-Curve belongs to */
+	
 		/* driver settings */
 	ChannelDriver *driver;	/* only valid for drivers (i.e. stored in AnimData not Actions) */
 		/* evaluation settings */

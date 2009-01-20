@@ -46,11 +46,11 @@
 /* Types --------------------------------------------------------------- */
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -65,7 +65,7 @@
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -408,7 +408,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	int items, height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
 	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -482,40 +482,6 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					
 					sel = SEL_ACTC(act);
 					strcpy(name, "Action");
-				}
-					break;
-				case ANIMTYPE_FILLIPOD: /* ipo (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_IPO;
-					
-					if (FILTER_IPO_OBJC(ob))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					//sel = SEL_OBJC(base);
-					strcpy(name, "IPO Curves");
-				}
-					break;
-				case ANIMTYPE_FILLCOND: /* constraint channels (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_CONSTRAINT;
-					
-					if (FILTER_CON_OBJC(ob))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					//sel = SEL_OBJC(base);
-					strcpy(name, "Constraints");
 				}
 					break;
 				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
@@ -647,83 +613,9 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					strcpy(name, agrp->name);
 				}
 					break;
-				case ANIMTYPE_ACHAN: /* action channel */
+				case ANIMTYPE_FCURVE: /* F-Curve channel */
 				{
-					bActionChannel *achan= (bActionChannel *)ale->data;
-					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
-					
-					indent = 0;
-					special = -1;
-					
-					offset= (ale->id) ? 21 : 0;
-					
-					if (EXPANDED_ACHAN(achan))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					if (EDITABLE_ACHAN(achan))
-						protect = ICON_UNLOCKED;
-					else
-						protect = ICON_LOCKED;
-						
-					if (achan->ipo) {
-						if (achan->ipo->muteipo)
-							mute = ICON_MUTE_IPO_ON;
-						else
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					sel = SEL_ACHAN(achan);
-					strcpy(name, achan->name);
-				}
-					break;
-				case ANIMTYPE_CONCHAN: /* constraint channel */
-				{
-					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
-					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
-					
-					if (ale->id) {
-						if (ale->ownertype == ANIMTYPE_ACHAN) {
-							/* for constraint channels under Action in Dopesheet */
-							indent= 2;
-							offset= 21;
-						}
-						else {
-							/* for constraint channels under Object in Dopesheet */
-							indent= 2;
-							offset = 0;
-						}
-					}
-					else {
-						/* for normal constraint channels in Action Editor */
-						indent= 2;
-						offset= 0;
-					}
-					
-					if (EDITABLE_CONCHAN(conchan))
-						protect = ICON_UNLOCKED;
-					else
-						protect = ICON_LOCKED;
-						
-					if (conchan->ipo) {
-						if (conchan->ipo->muteipo)
-							mute = ICON_MUTE_IPO_ON;
-						else
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					sel = SEL_CONCHAN(conchan);
-					strcpy(name, conchan->name);
-				}
-					break;
-				case ANIMTYPE_ICU: /* ipo-curve channel */
-				{
-					IpoCurve *icu = (IpoCurve *)ale->data;
+					FCurve *fcu = (FCurve *)ale->data;
 					
 					indent = 2;
 					protect = -1; // for now, until this can be supported by others
@@ -732,7 +624,7 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					grp= ale->grp;
 					
 					if (ale->id) {
-						if ((GS(ale->id->name)==ID_MA) || (ale->ownertype == ANIMTYPE_ACHAN))
+						if (GS(ale->id->name) == ID_MA)
 							offset= 21;
 						else
 							offset= 0;
@@ -740,66 +632,22 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else
 						offset= 0;
 					
-					if (icu->flag & IPO_MUTE)
+					if (fcu->flag & FCURVE_MUTED)
 						mute = ICON_MUTE_IPO_ON;
 					else	
 						mute = ICON_MUTE_IPO_OFF;
 						
-					if (EDITABLE_ICU(icu))
+					if (EDITABLE_FCU(fcu))
 						protect = ICON_UNLOCKED;
 					else
 						protect = ICON_LOCKED;
 					
-					sel = SEL_ICU(icu);
-					if (saction->pin)
-						strcpy(name, getname_ipocurve(icu, NULL)); // xxx func to eventually eliminate
-					else
-						strcpy(name, getname_ipocurve(icu, ac->obact)); // xxx func to eventually eliminate
+					sel = SEL_FCU(fcu);
+					
+					// for now, we just print the full path... this needs more work!
+					sprintf(name, "%s[%d]", fcu->rna_path, fcu->array_index);
 				}
 					break;
-				case ANIMTYPE_FILLIPO: /* ipo expand widget */
-				{
-					bActionChannel *achan = (bActionChannel *)ale->data;
-					
-					indent = 1;
-					special = geticon_ipo_blocktype(achan->ipo->blocktype); // xxx func to eventually eliminate
-					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
-					
-					offset= (ale->id) ? 21 : 0;
-					
-					if (FILTER_IPO_ACHAN(achan))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					sel = SEL_ACHAN(achan);
-					strcpy(name, "IPO Curves");
-				}
-					break;
-				case ANIMTYPE_FILLCON: /* constraint expand widget */
-				{
-					bActionChannel *achan = (bActionChannel *)ale->data;
-					
-					indent = 1;
-					special = ICON_CONSTRAINT;
-					
-					group= (ale->grp) ? 1 : 0;
-					grp= ale->grp;
-					
-					offset= (ale->id) ? 21 : 0;
-					
-					if (FILTER_CON_ACHAN(achan))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					sel = SEL_ACHAN(achan);
-					strcpy(name, "Constraint");
-				}
-					break;
-				
 				
 				case ANIMTYPE_SHAPEKEY: /* shapekey channel */
 				{
@@ -1138,7 +986,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	}
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_FORDRAWING|ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
 	items= ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -1185,22 +1033,10 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						sel = SEL_AGRP(agrp);
 					}
 						break;
-					case ANIMTYPE_ACHAN:
+					case ANIMTYPE_FCURVE:
 					{
-						bActionChannel *achan = (bActionChannel *)ale->data;
-						sel = SEL_ACHAN(achan);
-					}
-						break;
-					case ANIMTYPE_CONCHAN:
-					{
-						bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
-						sel = SEL_CONCHAN(conchan);
-					}
-						break;
-					case ANIMTYPE_ICU:
-					{
-						IpoCurve *icu = (IpoCurve *)ale->data;
-						sel = SEL_ICU(icu);
+						FCurve *fcu = (FCurve *)ale->data;
+						sel = SEL_FCU(fcu);
 					}
 						break;
 					case ANIMTYPE_GPLAYER:
@@ -1221,10 +1057,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							else glColor4ub(col1b[0], col1b[1], col1b[2], 0x22); 
 						}
 							break;
-							
-						case ANIMTYPE_FILLIPOD:
-						case ANIMTYPE_FILLACTD:
-						case ANIMTYPE_FILLCOND:
+						
 						case ANIMTYPE_DSSKEY:
 						{
 							if (sel) glColor4ub(col2b[0], col2b[1], col2b[2], 0x45); 
@@ -1321,11 +1154,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					case ALE_GROUP:
 						draw_agroup_channel(di, aki, ale->data, y);
 						break;
-					case ALE_IPO:
-						draw_ipo_channel(di, aki, ale->key_data, y);
-						break;
-					case ALE_ICU:
-						draw_icu_channel(di, aki, ale->key_data, y);
+					case ALE_FCURVE:
+						draw_fcurve_channel(di, aki, ale->key_data, y);
 						break;
 					case ALE_GPFRAME:
 						draw_gpl_channel(di, aki, ale->data, y);

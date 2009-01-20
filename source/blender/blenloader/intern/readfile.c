@@ -1837,6 +1837,9 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		/* rna path */
 		fcu->rna_path= newdataadr(fd, fcu->rna_path);
 		
+		/* group */
+		fcu->grp= newdataadr(fd, fcu->grp);
+		
 		/* driver */
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
@@ -1917,10 +1920,8 @@ static void direct_link_action(FileData *fd, bAction *act)
 	direct_link_fcurves(fd, &act->curves);
 	
 	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
-		if (agrp->channels.first) {
-			agrp->channels.first= newdataadr(fd, agrp->channels.first);
-			agrp->channels.last= newdataadr(fd, agrp->channels.last);
-		}
+		agrp->channels.first= newdataadr(fd, agrp->channels.first);
+		agrp->channels.last= newdataadr(fd, agrp->channels.last);
 	}
 }
 

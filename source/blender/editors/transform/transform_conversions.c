@@ -2762,7 +2762,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, act, ANIMCONT_ACTION);
 	
 	/* loop through relevant data, removing keyframes from the ipo-blocks that were attached 
@@ -2975,7 +2975,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
 		
 	/* which side of the current frame should be allowed */
@@ -3727,7 +3727,7 @@ void special_aftertrans_update(TransInfo *t)
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ONLYFCU);
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&anim_data, filter, ac.data, ac.datatype);
@@ -3741,9 +3741,9 @@ void special_aftertrans_update(TransInfo *t)
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (nob) {
-						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 0, 1); 
+						ANIM_nla_mapping_apply_fcurve(nob, fcu, 0, 1); 
 						posttrans_fcurve_clean(fcu);
-						//ANIM_nla_mapping_apply_ipocurve(nob, icu, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(nob, fcu, 1, 1);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
