@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -1185,9 +1186,10 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
-		if (depth_close==MAXFLOAT)
+		if (depth_close==MAXFLOAT){
+			BKE_report(op->reports, RPT_ERROR, "Depth Too Large");
 			return OPERATOR_CANCELLED;
-
+		}
 		/* convert border to 3d coordinates */
 		if ((	!gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) ||
 			(	!gluUnProject((double)rect.xmin, (double)rect.ymin, depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p_corner[0], &p_corner[1], &p_corner[2])))
