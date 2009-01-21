@@ -158,62 +158,6 @@ Sequence *get_forground_frame_seq(Scene *scene, int frame)
 	return best_seq;
 }
 
-/* seq funcs's for transforming internally
- notice the difference between start/end and left/right.
- 
- left and right are the bounds at which the sequence is rendered,
-start and end are from the start and fixed length of the sequence.
-*/
-int seq_tx_get_start(Sequence *seq) {
-	return seq->start;
-}
-int seq_tx_get_end(Sequence *seq)
-{
-	return seq->start+seq->len;
-}
-
-int seq_tx_get_final_left(Sequence *seq, int metaclip)
-{
-	if (metaclip && seq->tmp) {
-		/* return the range clipped by the parents range */
-		return MAX2( seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
-	} else {
-		return (seq->start - seq->startstill) + seq->startofs;
-	}
-	
-}
-int seq_tx_get_final_right(Sequence *seq, int metaclip)
-{
-	if (metaclip && seq->tmp) {
-		/* return the range clipped by the parents range */
-		return MIN2( seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
-	} else {
-		return ((seq->start+seq->len) + seq->endstill) - seq->endofs;	
-	}
-}
-
-void seq_tx_set_final_left(Sequence *seq, int val)
-{
-	if (val < (seq)->start) {
-		seq->startstill = abs(val - (seq)->start);
-				(seq)->startofs = 0;
-	} else {
-		seq->startofs = abs(val - (seq)->start);
-		seq->startstill = 0;
-	}
-}
-
-void seq_tx_set_final_right(Sequence *seq, int val)
-{
-	if (val > (seq)->start + (seq)->len) {
-		seq->endstill = abs(val - (seq->start + (seq)->len));
-		(seq)->endofs = 0;
-	} else {
-		seq->endofs = abs(val - ((seq)->start + (seq)->len));
-		seq->endstill = 0;
-	}
-}
-
 /* check if one side can be transformed */
 int seq_tx_check_left(Sequence *seq)
 {
@@ -249,34 +193,6 @@ void seq_rectf(Sequence *seq, rctf *rectf)
 	if(seq->endstill) rectf->xmax= seq->start+seq->len;
 	else rectf->xmax= seq->enddisp;
 	rectf->ymax= seq->machine+0.8;
-}
-
-/* used so we can do a quick check for single image seq
-   since they work a bit differently to normal image seq's (during transform) */
-int check_single_seq(Sequence *seq)
-{
-	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
-		return 1;
-	else
-		return 0;
-}
-
-static void fix_single_image_seq(Sequence *seq)
-{
-	int left, start, offset;
-	if (!check_single_seq(seq))
-		return;
-	
-	/* make sure the image is always at the start since there is only one,
-	   adjusting its start should be ok */
-	left = seq_tx_get_final_left(seq, 0);
-	start = seq->start;
-	if (start != left) {
-		offset = left - start;
-		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq, 0) - offset );
-		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq, 0) - offset );
-		seq->start += offset;
-	}
 }
 
 int test_overlap_seq(Scene *scene, Sequence *test)
@@ -1824,50 +1740,6 @@ static int seq_get_snaplimit(View2D *v2d)
 	return (int)(x - xmouse);
 }
 
-/* use to impose limits when dragging/extending - so impossible situations dont happen */
-static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
-{
-	if(leftflag) {
-		if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_final_right(seq, 0)) {
-			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
-		}
-		
-		if (check_single_seq(seq)==0) {
-			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
-				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
-			}
-			
-			/* dosnt work now - TODO */
-			/*
-			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
-				int ofs;
-				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
-				seq->start -= ofs;
-				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs );
-			}*/
-			
-		}
-	}
-	
-	if(rightflag) {
-		if (seq_tx_get_final_right(seq, 0) <=  seq_tx_get_final_left(seq, 0)) {
-			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
-		}
-									
-		if (check_single_seq(seq)==0) {
-			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
-				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
-			}
-		}
-	}
-	
-	/* sounds cannot be extended past their endpoints */
-	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
-		seq->startstill= 0;
-		seq->endstill= 0;
-	}
-}
-
 static int can_transform_seq_test_func(Sequence * seq)
 {
 	if((seq->flag & SELECT) && !(seq->depth==0 && seq->flag & SEQ_LOCK)) {
@@ -2171,7 +2043,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 							myofs = (ts->endstill - ts->endofs);
 							seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
 						}
-						transform_grab_xlimits(seq, sel_flag & SEQ_LEFTSEL, sel_flag & SEQ_RIGHTSEL);
+						seq_tx_handle_xlimits(seq, sel_flag & SEQ_LEFTSEL, sel_flag & SEQ_RIGHTSEL);
 						
 						if( (sel_flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
 							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
@@ -2247,7 +2119,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 										also include the startstill so the contense dosnt go outside the bounds, 
 										if the seq->startofs is 0 then its ignored */
 										
-										/* TODO remove, add check to transform_grab_xlimits, works ok for now */
+										/* TODO remove, add check to seq_tx_handle_xlimits, works ok for now */
 										if (xnew + seq->startstill > final_right-1) {
 											xnew = (final_right-1) - seq->startstill;
 										}
@@ -2258,7 +2130,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 										/* done with unique stuff */
 										
 										seq_tx_set_final_left(seq, xnew);
-										transform_grab_xlimits(seq, 1, 0);
+										seq_tx_handle_xlimits(seq, 1, 0);
 										
 										/* Special case again - setting the end back to what it was */
 										seq_tx_set_final_right(seq, final_right);
@@ -2267,20 +2139,20 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 										myofs = (ts->endstill - ts->endofs);
 										xnew = ts->start + seq->len + (myofs + ix);
 										seq_tx_set_final_right(seq, xnew);
-										transform_grab_xlimits(seq, 0, 1);
+										seq_tx_handle_xlimits(seq, 0, 1);
 									}
 								} else { /* R */
 									if (move_left) {
 										myofs = (ts->startofs - ts->startstill);
 										xnew = ts->start + (myofs + ix);
 										seq_tx_set_final_left(seq, xnew);
-										transform_grab_xlimits(seq, 1, 0);
+										seq_tx_handle_xlimits(seq, 1, 0);
 									}
 									if (move_right) {
 										myofs = (ts->endstill - ts->endofs);
 										xnew = ts->start + seq->len + (myofs + ix);
 										seq_tx_set_final_right(seq, xnew);
-										transform_grab_xlimits(seq, 0, 1);
+										seq_tx_handle_xlimits(seq, 0, 1);
 									}
 								}
 							}
@@ -2431,7 +2303,7 @@ void transform_seq(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mode, int cont
 			/* fixes single image strips - makes sure their start is not out of bounds
 			ideally this would be done during transform since data is rendered at that time
 			however it ends up being a lot messier! - Campbell */
-			fix_single_image_seq(seq);
+			fix_single_seq(seq);
 			
 			if(seq->type == SEQ_META) {
 				calc_sequence(seq);
@@ -2574,7 +2446,7 @@ void seq_snap(Scene *scene, short event)
 				} else { /* SEQ_RIGHTSEL */
 					seq_tx_set_final_right(seq, CFRA);
 				}
-				transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+				seq_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
 			}
 			calc_sequence(seq);
 		}

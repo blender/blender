@@ -997,7 +997,7 @@ static int sequencer_add_color_strip_exec(bContext *C, wmOperator *op)
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = end_frame-start_frame; /* Color strips are different in that they can be any length */
+	strip->len = seq->len = 1; /* Color strips are different in that they can be any length */
 	strip->us= 1;
 	
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
@@ -1005,6 +1005,8 @@ static int sequencer_add_color_strip_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", seq->name);
 	RNA_float_get_array(op->ptr, "color", colvars->col);
 	
+	seq_tx_set_final_right(seq, end_frame);
+
 	calc_sequence_disp(seq);
 	sort_seq(scene);
 	

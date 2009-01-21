@@ -43,7 +43,15 @@
 #undef PyLong_Check
 #define PyLong_Check PyInt_Check
 
+
+#ifdef PyUnicode_FromString
+#undef PyUnicode_FromString
+#endif
 #define PyUnicode_FromString PyString_FromString
+
+#ifdef PyUnicode_FromFormat
+#undef PyUnicode_FromFormat
+#endif
 #define PyUnicode_FromFormat PyString_FromFormat
 
 #endif

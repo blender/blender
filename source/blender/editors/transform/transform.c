@@ -225,6 +225,17 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
 	}
+	else if(t->spacetype==SPACE_SEQ) {
+		View2D *v2d = &t->ar->v2d;
+		float divx, divy;
+
+		divx= v2d->mask.xmax-v2d->mask.xmin;
+		divy= v2d->mask.ymax-v2d->mask.ymin;
+
+		vec[0]= (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
+		vec[1]= (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
 }
 
 void projectIntView(TransInfo *t, float *vec, int *adr)
@@ -338,6 +349,10 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	{
 		//ED_area_tag_redraw(t->sa);
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+	}
+	else if(t->spacetype == SPACE_SEQ)
+	{
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, NULL);
 	}
 #if 0 // TRANSFORM_FIX_ME
 	else if (t->spacetype==SPACE_IMAGE) {

@@ -166,3 +166,14 @@ void sequence_effect_speed_rebuild_map(struct Scene *scene, struct Sequence *seq
 // extern
 struct SeqEffectHandle get_sequence_effect(struct Sequence *seq);
 int get_sequence_effect_num_inputs(int seq_type);
+
+/* for transform but also could use elsewhere */
+int seq_tx_get_start(struct Sequence *seq);
+int seq_tx_get_end(struct Sequence *seq);
+int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
+int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
+void seq_tx_set_final_left(struct Sequence *seq, int val);
+void seq_tx_set_final_right(struct Sequence *seq, int val);
+void seq_tx_handle_xlimits(struct Sequence *seq, int leftflag, int rightflag);
+int check_single_seq(struct Sequence *seq);
+void fix_single_seq(struct Sequence *seq);

@@ -41,6 +41,8 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
+#include "BIF_transform.h" /* transform keymap */
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -116,5 +118,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_borderselect", BKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_verify_item(keymap, "ANIM_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
+	
+	transform_keymap_for_space(wm, keymap, SPACE_SEQ);
 }
 

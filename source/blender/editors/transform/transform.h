@@ -150,6 +150,11 @@ typedef struct TransDataCurveHandleFlags {
 	char *h1, *h2;
 } TransDataCurveHandleFlags;
 
+/* for sequencer transform */
+typedef struct TransDataSeq {
+	struct Sequence *seq;
+	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
+} TransDataSeq;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -438,6 +443,7 @@ void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 void flushTransNodes(TransInfo *t);
+void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);

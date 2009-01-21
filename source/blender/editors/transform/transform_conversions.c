@@ -59,6 +59,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -91,6 +92,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_sequence.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
@@ -2300,6 +2302,48 @@ void flushTransNodes(TransInfo *t)
 	}
 }
 
+/* *** SEQUENCE EDITOR *** */
+void flushTransSeq(TransInfo *t)
+{
+	int a, new_frame;
+	TransData *td= t->data;
+	TransData2D *td2d= t->data2d;
+	TransDataSeq *tdsq= NULL;
+	Sequence *seq;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0; a<t->total; a++, td++, td2d++) {
+
+		tdsq= (TransDataSeq *)td->extra;
+		seq= tdsq->seq;
+		new_frame= (int)(td2d->loc[0] + 0.5f);
+
+		/* TODO, only use seq flags for non nested strips
+		 * seq_tx_handle_xlimits used below is only correct when your not using metastrips.
+		 * meta children should ignore those flags
+		 */
+
+		switch (tdsq->sel_flag) {
+		case SELECT:
+			seq->start= new_frame;
+			seq->machine= (int)(td2d->loc[1] + 0.5f);
+			break;
+		case SEQ_LEFTSEL: /* no vertical transform  */
+			seq_tx_set_final_left(seq, new_frame);
+			seq_tx_handle_xlimits(seq, seq->flag&SEQ_LEFTSEL, seq->flag&SEQ_RIGHTSEL);
+			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			break;
+		case SEQ_RIGHTSEL: /* no vertical transform  */
+			seq_tx_set_final_right(seq, new_frame);
+			seq_tx_handle_xlimits(seq, seq->flag&SEQ_LEFTSEL, seq->flag&SEQ_RIGHTSEL);
+			fix_single_seq(seq); /* todo - move this into aftertrans update? - old seq tx needed it anyway */
+			break;
+		}
+		
+		calc_sequence(seq);
+	}
+}
+
 /* ********************* UV ****************** */
 
 static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
@@ -3218,6 +3262,106 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list)
 	return 0;
 }
 
+
+
+static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq *tdsq, Sequence *seq, int sel_flag)
+{
+	switch(sel_flag) {
+	case SELECT:
+		td2d->loc[0] = seq->start; /* hold original location */
+		break;
+	case SEQ_LEFTSEL:
+		td2d->loc[0] = seq_tx_get_final_left(seq, 0);
+		break;
+	case SEQ_RIGHTSEL:
+		td2d->loc[0] = seq_tx_get_final_right(seq, 0);
+		break;
+	}
+
+	td2d->loc[1] = seq->machine; /* channel - Y location */
+	td2d->loc[2] = 0.0f;
+	td2d->loc2d = NULL;
+
+	
+	tdsq->sel_flag= sel_flag;
+	tdsq->seq= seq;
+	
+	td->extra= (void *)tdsq; /* allow us to update the strip from here */
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	td->flag |= TD_SELECTED;
+	td->dist= 0.0;
+
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
+
+	return td;
+}
+
+static void createTransSeqData(bContext *C, TransInfo *t)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	TransData *td = NULL;
+	TransData2D *td2d= NULL;
+	TransDataSeq *tdsq= NULL;
+
+	Sequence *seq;
+
+	int count=0;
+	float cfra;
+
+	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
+		if (seq->flag & SELECT) {
+			if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+				count += 2; /* transform both sides of the strip (not all that common) */
+			}
+			else {
+				count += 1;
+			}
+		}
+	}
+
+	/* stop if trying to build list if nothing selected */
+	if (count == 0) {
+		return;
+	}
+
+	/* allocate memory for data */
+	t->total= count;
+
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransSeq TransData");
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransSeq TransData2D");
+	tdsq = t->customData= MEM_callocN(t->total*sizeof(TransDataSeq), "TransSeq TransDataSeq");
+
+	/* loop 2: build transdata array */
+	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
+		if (seq->flag & SELECT) {
+			if (seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
+				if (seq->flag & SEQ_LEFTSEL) {
+					SeqToTransData(td++, td2d++, tdsq++, seq, SEQ_LEFTSEL);
+				}
+				if (seq->flag & SEQ_RIGHTSEL) {
+					SeqToTransData(td++, td2d++, tdsq++, seq, SEQ_RIGHTSEL);
+				}
+			}
+			else {
+				SeqToTransData(td++, td2d++, tdsq++, seq, SELECT);
+			}
+		}
+	}
+}
+
+
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *ob) 
 {
@@ -3704,8 +3848,11 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 	}
-	
-	if (t->spacetype == SPACE_ACTION) {
+
+	if (t->spacetype == SPACE_SEQ) {
+		MEM_freeN(t->customData);
+	}
+	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
 		bAnimContext ac;
@@ -4171,6 +4318,11 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_POINTS|T_2D_EDIT;
 		// TRANSFORM_FIX_ME
 		//createTransNlaData(C, t);
+	}
+	else if (t->spacetype == SPACE_SEQ) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		t->num.flag |= NUM_NO_FRACTION; /* sequencer has no use for floating point transformations */
+		createTransSeqData(C, t);
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		t->flag |= T_POINTS|T_2D_EDIT;

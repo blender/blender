@@ -188,12 +188,12 @@ static void sequencer_header_area_draw(const bContext *C, ARegion *ar)
 static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_MARKERS:
+				case ND_SEQUENCER:
 					ED_region_tag_redraw(ar);
 					break;
 			}

@@ -466,6 +466,9 @@ void recalcData(TransInfo *t)
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
+	else if (t->spacetype==SPACE_SEQ) {
+		flushTransSeq(t);
+	}
 	else if (t->obedit) {
 		if (t->obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {

@@ -3064,3 +3064,132 @@ void do_render_seq(RenderResult *rr, int cfra)
 }
 
 #endif
+
+/* seq funcs's for transforming internally
+ notice the difference between start/end and left/right.
+
+ left and right are the bounds at which the sequence is rendered,
+start and end are from the start and fixed length of the sequence.
+*/
+int seq_tx_get_start(Sequence *seq) {
+	return seq->start;
+}
+int seq_tx_get_end(Sequence *seq)
+{
+	return seq->start+seq->len;
+}
+
+int seq_tx_get_final_left(Sequence *seq, int metaclip)
+{
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MAX2( seq_tx_get_final_left(seq, 0), seq_tx_get_final_left((Sequence *)seq->tmp, 1) );
+	} else {
+		return (seq->start - seq->startstill) + seq->startofs;
+	}
+
+}
+int seq_tx_get_final_right(Sequence *seq, int metaclip)
+{
+	if (metaclip && seq->tmp) {
+		/* return the range clipped by the parents range */
+		return MIN2( seq_tx_get_final_right(seq, 0), seq_tx_get_final_right((Sequence *)seq->tmp, 1) );
+	} else {
+		return ((seq->start+seq->len) + seq->endstill) - seq->endofs;
+	}
+}
+
+void seq_tx_set_final_left(Sequence *seq, int val)
+{
+	if (val < (seq)->start) {
+		seq->startstill = abs(val - (seq)->start);
+				(seq)->startofs = 0;
+	} else {
+		seq->startofs = abs(val - (seq)->start);
+		seq->startstill = 0;
+	}
+}
+
+void seq_tx_set_final_right(Sequence *seq, int val)
+{
+	if (val > (seq)->start + (seq)->len) {
+		seq->endstill = abs(val - (seq->start + (seq)->len));
+		(seq)->endofs = 0;
+	} else {
+		seq->endofs = abs(val - ((seq)->start + (seq)->len));
+		seq->endstill = 0;
+	}
+}
+
+/* used so we can do a quick check for single image seq
+   since they work a bit differently to normal image seq's (during transform) */
+int check_single_seq(Sequence *seq)
+{
+	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
+		return 1;
+	else
+		return 0;
+}
+
+/* use to impose limits when dragging/extending - so impossible situations dont happen
+ * Cant use the SEQ_LEFTSEL and SEQ_LEFTSEL directly because the strip may be in a metastrip */
+void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
+{
+	if(leftflag) {
+		if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_final_right(seq, 0)) {
+			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq, 0)-1);
+		}
+
+		if (check_single_seq(seq)==0) {
+			if (seq_tx_get_final_left(seq, 0) >= seq_tx_get_end(seq)) {
+				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
+			}
+
+			/* dosnt work now - TODO */
+			/*
+			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
+				int ofs;
+				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
+				seq->start -= ofs;
+				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs );
+			}*/
+
+		}
+	}
+
+	if(rightflag) {
+		if (seq_tx_get_final_right(seq, 0) <=  seq_tx_get_final_left(seq, 0)) {
+			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0)+1);
+		}
+
+		if (check_single_seq(seq)==0) {
+			if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_start(seq)) {
+				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
+			}
+		}
+	}
+
+	/* sounds cannot be extended past their endpoints */
+	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+		seq->startstill= 0;
+		seq->endstill= 0;
+	}
+}
+
+void fix_single_seq(Sequence *seq)
+{
+	int left, start, offset;
+	if (!check_single_seq(seq))
+		return;
+
+	/* make sure the image is always at the start since there is only one,
+	   adjusting its start should be ok */
+	left = seq_tx_get_final_left(seq, 0);
+	start = seq->start;
+	if (start != left) {
+		offset = left - start;
+		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq, 0) - offset );
+		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq, 0) - offset );
+		seq->start += offset;
+	}
+}
