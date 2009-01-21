@@ -3,6 +3,20 @@
 
 #include <stdio.h>
 
+BMOpDefine def_makefgonsop = {
+	{0},
+	bmesh_make_fgons_exec,
+	BMOP_MAKE_FGONS_TOTSLOT,
+	0
+};
+
+BMOpDefine def_dissolvevertsop = {
+	{BMOP_OPSLOT_PNT_BUF},
+	dissolveverts_exec,
+	BMOP_DISVERTS_TOTSLOT,
+	0
+};
+
 BMOpDefine def_dissolvefacesop = {
 	{BMOP_OPSLOT_PNT_BUF},
 	dissolvefaces_exec,
@@ -70,6 +84,8 @@ BMOpDefine *opdefines[] = {
 	&def_subdop,
 	&def_triangop,
 	&def_dissolvefacesop,
+	&def_dissolvevertsop,
+	&def_makefgonsop,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

@@ -40,9 +40,10 @@
  *	1 for success, 0 for failure.
  */
 
-void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
+void BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	BMFace *f, *f2;
 	BMEdge *e, *keepedge=NULL, *baseedge=NULL;
+	BMLoop *loop;
 	int done, len;
 
 	if(BM_Nonmanifold_Vert(bm, v)) return;
@@ -50,6 +51,7 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 	if(v->edge){
 		/*v->edge we keep, what else?*/
 		e = v->edge;
+		len = 0;
 		do{
 			e = bmesh_disk_nextedge(e,v);
 			if(!(BM_Edge_Share_Faces(e, v->edge))){
@@ -57,9 +59,30 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 				baseedge = v->edge;
 				break;
 			}
+			len++;
 		}while(e != v->edge);
 	}
 	
+	/*this code for handling 2 and 3-valence verts
+	  may be totally bad.*/
+	if (keepedge == NULL && len == 3) {
+		/*handle specific case for three-valence.  solve it by
+		  increasing valence to four.  this may be hackish. . .*/
+		loop = e->loop;
+		if (loop->v == v) loop = (BMLoop*) loop->head.next;
+		BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL, 0);
+
+		BM_Dissolve_Disk(bm, v);
+		return;
+	} else if (keepedge == NULL && len == 2) {
+		/*handle two-valence*/
+		f = v->edge->loop->f;
+		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
+		/*collapse the vertex*/
+		BM_Collapse_Vert(bm, v->edge, v, 1.0, 0);
+		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
+	}
+
 	if(keepedge){
 		done = 0;
 		while(!done){
@@ -74,14 +97,18 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
 					done = 0;
 					break;
 				}
+				e = bmesh_disk_nextedge(e, v);
 			}while(e != v->edge);
 		}
 
 		/*get remaining two faces*/
 		f = v->edge->loop->f;
-		f2 = ((BMLoop*)f->loopbase->radial.next->data)->f;
+		f2 = ((BMLoop*)v->edge->loop->radial.next->data)->f;
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, baseedge, v, 1.0, 0);
+
+		/*join two remaining faces*/
+		BM_Join_Faces(bm, f, f2, NULL, 0, 0);
 	}
 }
 

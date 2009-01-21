@@ -224,6 +224,9 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 		bmeshface_to_editface(bm, em, f, evlist, numCol, numTex);
 			
 	MEM_freeN(evlist);
+
+	EM_fgon_flags(em);
+
 	return em;
 }
 
@@ -232,15 +235,52 @@ void bmesh2edit_exec(BMesh *bmesh, BMOperator *op)
 	BMO_Set_Pnt(op, BMOP_TO_EDITMESH_EMOUT, bmesh_to_editmesh_intern(bmesh));
 }
 
+#define FACE_NGON	1
+
+void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
+{
+	BMOperator triop;
+	BMFace *face;
+	BMIter iter;
+	BMEdge *edge;
+	BMOpSlot *eout;
+	int i;
+
+	BMO_Init_Op(&triop, BMOP_TRIANGULATE);
+	
+	/*HACK: I don't know if this'll conflict with other flags at all!*/
+	for (face = BMIter_New(&iter, bmesh, BM_FACES, NULL); face; face=BMIter_Step(&iter)) {
+		if (face->len > 4) {
+			BMO_SetFlag(bmesh, face, FACE_NGON);
+		}
+	}
+
+	BMO_Flag_To_Slot(bmesh, &triop, BMOP_TRIANG_FACEIN, FACE_NGON, BM_FACE);
+	BMO_Exec_Op(bmesh, &triop);
+
+	eout = BMO_GetSlot(&triop, BMOP_TRIANG_NEW_EDGES);
+	for (i=0; i<eout->len; i++) {
+		edge = ((BMEdge**)eout->data.buf)[i];
+		edge->head.flag |= BM_FGON;
+	}
+
+	BMO_Finish_Op(bmesh, &triop);
+}
+
 EditMesh *bmesh_to_editmesh(BMesh *bmesh)
 {
-	BMOperator conv;
+	BMOperator conv, makefgon;
 	EditMesh *em;
+	
+	/*first fgon-afy the mesh*/
+	BMO_Init_Op(&makefgon, BMOP_MAKE_FGONS);
+	BMO_Exec_Op(bmesh, &makefgon);
+	BMO_Finish_Op(bmesh, &makefgon);
 
 	BMO_Init_Op(&conv, BMOP_TO_EDITMESH);
 	BMO_Exec_Op(bmesh, &conv);
 	em = conv.slots[BMOP_TO_EDITMESH_EMOUT].data.p;
 	BMO_Finish_Op(bmesh, &conv);
-
+	
 	return em;
 }

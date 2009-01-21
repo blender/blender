@@ -431,7 +431,7 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 				return 1;
 			}
 			l = (BMLoop*)(l->radial.next->data);
-		}while(l != f->loopbase);
+		}while(l != e1->loop);
 	}
 	return 0;
 }

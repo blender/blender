@@ -15,5 +15,7 @@ void edit2bmesh_exec(BMesh *bmesh, BMOperator *op);
 void bmesh2edit_exec(BMesh *bmesh, BMOperator *op);
 void triangulate_exec(BMesh *bmesh, BMOperator *op);
 void dissolvefaces_exec(BMesh *bmesh, BMOperator *op);
+void dissolveverts_exec(BMesh *bmesh, BMOperator *op);
+void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op);
 
 #endif

@@ -3329,18 +3329,48 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 
 	bm = editmesh_to_bmesh(em);
 
-	/*do stuff here, call bmop's.*/
-	//BMOP_DupeFromFlag(bm, BM_ALL, BM_SELECT);
+#if 1
+	/*dissolve vert test*/
 	{
 			BMOperator op;
+			BMOpSlot *eoutput, *foutput;
+			int i;
+			
+			BMO_Init_Op(&op, BMOP_DISSOLVE_VERTS);
+			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_DISVERTS_VERTIN, BM_SELECT, BM_VERT);
+			BMO_Exec_Op(bm, &op);
+			
+			BMO_Finish_Op(bm, &op);			
+	}
+#endif
 
+#if 0
+	/*triangulator test code*/
+	{
+			BMOperator op;
+			BMOpSlot *eoutput, *foutput;
+			int i;
+			
 			BMO_Init_Op(&op, BMOP_TRIANGULATE);
 			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_TRIANG_FACEIN, BM_SELECT, BM_FACE);
-
 			BMO_Exec_Op(bm, &op);
+			
+			eoutput = BMO_GetSlot(&op, BMOP_TRIANG_NEW_EDGES);
+			foutput = BMO_GetSlot(&op, BMOP_TRIANG_NEW_FACES);
+			
+			/*select new faces/edges*/
+			for (i=0; i<eoutput->len; i++) {
+				BM_Select(bm, ((void**)eoutput->data.buf)[i], 1);
+			}
+			
+			for (i=0; i<foutput->len; i++) {
+				BM_Select(bm, ((void**)foutput->data.buf)[i], 1);
+			}
+			
 			BMO_Finish_Op(bm, &op);
 			
 	}
+#endif
 	em2 = bmesh_to_editmesh(bm);
 	
 	/*free em's data, then copy the contents of the em2 struct

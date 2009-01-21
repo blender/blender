@@ -33,6 +33,6 @@ void triangulate_exec(BMesh *bmesh, BMOperator *op)
 		if (projverts != projectverts) MEM_freeN(projverts);
 	}
 	
-	BMO_Flag_To_Slot(bmesh, op, BMOP_NEW_EDGES, EDGE_NEW, BM_EDGE);
-	BMO_Flag_To_Slot(bmesh, op, BMOP_NEW_FACES, FACE_NEW, BM_FACE);
+	BMO_Flag_To_Slot(bmesh, op, BMOP_TRIANG_NEW_EDGES, EDGE_NEW, BM_EDGE);
+	BMO_Flag_To_Slot(bmesh, op, BMOP_TRIANG_NEW_FACES, FACE_NEW, BM_FACE);
 }

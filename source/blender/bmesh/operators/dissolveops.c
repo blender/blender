@@ -24,3 +24,27 @@ void dissolvefaces_exec(BMesh *bmesh, BMOperator *op)
 	  that goes over inner vertices of a contiguously-flagged region?  then you
 	  could just use dissolve disk on them.*/
 }
+
+void dissolveverts_exec(BMesh *bmesh, BMOperator *op)
+{
+	BMOpSlot *vinput;
+	BMVert *vert;
+	int i;
+	
+	vinput = BMO_GetSlot(op, BMOP_DISVERTS_VERTIN);
+
+	/*
+	BMO_Flag_Buffer(bmesh, op, BMOP_DISVERTS_VERTIN, VERT_MARK);
+
+	for (vert=BMIter_New(&iter, bmesh, BM_VERTS, NULL); vert; vert=BMIter_Step(&iter)) {
+		if (BMO_TestFlag(bmesh, vert, VERT_MARK)) {
+			BM_Dissolve_Disk(bmesh, vert);
+		}
+	}
+	*/
+
+	for (i=0; i<vinput->len; i++) {
+		vert = ((BMVert**)vinput->data.p)[i];
+		BM_Dissolve_Disk(bmesh, vert);
+	}
+}
