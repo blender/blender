@@ -66,6 +66,9 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_cut);
 	WM_operatortype_append(SEQUENCER_OT_mute);
 	WM_operatortype_append(SEQUENCER_OT_unmute);
+	WM_operatortype_append(SEQUENCER_OT_add_duplicate);
+	WM_operatortype_append(SEQUENCER_OT_delete);
+	WM_operatortype_append(SEQUENCER_OT_separate_images);
 	
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_deselect_all);
@@ -103,6 +106,13 @@ void sequencer_keymap(wmWindowManager *wm)
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT, 0)->ptr, "type", SEQ_SELECTED);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "type", SEQ_UNSELECTED);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_separate_images", YKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "type", 1);

@@ -69,6 +69,10 @@ struct wmWindowManager;
 void SEQUENCER_OT_cut(struct wmOperatorType *ot);
 void SEQUENCER_OT_mute(struct wmOperatorType *ot);
 void SEQUENCER_OT_unmute(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_duplicate(struct wmOperatorType *ot);
+void SEQUENCER_OT_delete(struct wmOperatorType *ot);
+void SEQUENCER_OT_separate_images(struct wmOperatorType *ot);
+
 
 /* sequencer_select.c */
 void SEQUENCER_OT_deselect_all(struct wmOperatorType *ot);

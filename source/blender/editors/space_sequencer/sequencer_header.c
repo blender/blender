@@ -651,8 +651,9 @@ void sequencer_header_buttons(const bContext *C, ARegion *ar)
 		}
 	} else {
 		/* ZOOM and BORDER */
-		uiBlockBeginAlign(block);
 		static int viewmovetemp; // XXX dummy var
+		
+		uiBlockBeginAlign(block);
 		uiDefIconButI(block, TOG, B_VIEW2DZOOM,
 			      ICON_VIEWZOOM,
 			      xco,0,XIC,YIC, &viewmovetemp,

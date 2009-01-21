@@ -67,6 +67,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -979,61 +980,6 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 	}
 }
 
-void del_seq(Scene *scene)
-{
-	Sequence *seq;
-	MetaStack *ms;
-	Editing *ed;
-	int nothingSelected = TRUE;
-
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	seq=get_last_seq(scene);
-	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
-		nothingSelected = FALSE;
-	} else {
-		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-			if (seq->flag & SELECT) {
-				nothingSelected = FALSE;
-				break;
-			}
-		}
-	}
-	
-	if(nothingSelected || okee("Erase selected")==0) return;
-
-	/* free imbufs of all dependent strips */
-	for(seq=ed->seqbasep->first; seq; seq=seq->next)
-		if(seq->flag & SELECT)
-			update_changed_seq_and_deps(scene, seq, 1, 0);
-
-	/* for effects, try to find a replacement input */
-	for(seq=ed->seqbasep->first; seq; seq=seq->next)
-		if((seq->type & SEQ_EFFECT) && !(seq->flag & SELECT))
-			del_seq_find_replace_recurs(scene, seq);
-
-	/* delete all selected strips */
-	recurs_del_seq_flag(scene, ed->seqbasep, SELECT, 0);
-
-	/* updates lengths etc */
-	seq= ed->seqbasep->first;
-	while(seq) {
-		calc_sequence(seq);
-		seq= seq->next;
-	}
-
-	/* free parent metas */
-	ms= ed->metastack.last;
-	while(ms) {
-		ms->parseq->strip->len= 0;		/* force new alloc */
-		calc_sequence(ms->parseq);
-		ms= ms->prev;
-	}
-
-	BIF_undo_push("Delete Strip(s), Sequencer");
-}
-
 static Sequence *dupli_seq(Sequence *seq) 
 {
 	Sequence *seqn = MEM_dupallocN(seq);
@@ -1366,23 +1312,6 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 		seq = seq_next;
 	}
 	return did_something;
-}
-
-void add_duplicate_seq(Scene *scene)
-{
-	Editing *ed;
-	ListBase new;
-
-	ed= scene->ed;
-	if(ed==NULL) return;
-
-	new.first= new.last= 0;
-
-	recurs_dupli_seq(scene, ed->seqbasep, &new);
-	addlisttolist(ed->seqbasep, &new);
-
-	BIF_undo_push("Add Duplicate, Sequencer");
-	transform_seq_nomarker('g', 0);
 }
 
 int insert_gap(Scene *scene, int gap, int cfra)
@@ -2355,75 +2284,6 @@ void _transform_seq_nomarker_(Scene *scene, SpaceSeq *sseq, View2D *v2d, int mod
 	sseq->flag = flag_back;
 }
 
-void seq_separate_images(Scene *scene)
-{
-	Editing *ed;
-	Sequence *seq, *seq_new, *seq_next;
-	Strip *strip_new;
-	StripElem *se, *se_new;
-	int start_ofs, cfra, frame_end;	
-	static int step= 1;
-	
-//	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);
-//	if (!do_clever_numbuts("Separate Images", 1, REDRAW))
-//		return;
-	
-	ed= scene->ed;
-	if(ed==NULL) return;
-	
-	seq= ed->seqbasep->first;
-	
-	while (seq) {
-		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
-			/* remove seq so overlap tests dont conflict,
-			see seq_free_sequence below for the real free'ing */
-			seq_next = seq->next;
-			BLI_remlink(ed->seqbasep, seq); 
-			if(seq->ipo) seq->ipo->id.us--;
-			
-			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
-			frame_end = seq_tx_get_final_right(seq, 0);
-			
-			while (cfra < frame_end) {
-				/* new seq */
-				se = give_stripelem(seq, cfra);
-				
-				seq_new= alloc_sequence(((Editing *)scene->ed)->seqbasep, start_ofs, seq->machine);
-				seq_new->type= SEQ_IMAGE;
-				seq_new->len = 1;
-				seq_new->endstill = step-1;
-				
-				/* new strip */
-				seq_new->strip= strip_new= MEM_callocN(sizeof(Strip)*1, "strip");
-				strip_new->len= 1;
-				strip_new->us= 1;
-				strncpy(strip_new->dir, seq->strip->dir, FILE_MAXDIR-1);
-				
-				/* new stripdata */
-				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
-				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
-				calc_sequence(seq_new);
-				seq_new->flag &= ~SEQ_OVERLAP;
-				if (test_overlap_seq(scene, seq_new)) {
-					shuffle_seq(scene, seq_new);
-				}
-				
-				cfra++;
-				start_ofs += step;
-			}
-			
-			seq_free_sequence(seq);
-			seq = seq->next;
-		} else {
-			seq = seq->next;
-		}
-	}
-	
-	/* as last: */
-	sort_seq(scene);
-	BIF_undo_push("Separate Image Strips, Sequencer");
-}
-
 void seq_snap(Scene *scene, short event)
 {
 	Editing *ed;
@@ -2718,3 +2578,210 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "side", prop_cut_side_types, SEQ_LEFT, "Side", "The side that remains selected after cutting");
 }
 
+/* duplicate operator */
+static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+
+	ListBase new;
+
+	new.first= new.last= 0;
+
+	recurs_dupli_seq(scene, ed->seqbasep, &new);
+	addlisttolist(ed->seqbasep, &new);
+
+	ED_undo_push(C, "Cut Strips, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	sequencer_add_duplicate_exec(C, op);
+
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_add_duplicate(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Add Duplicate";
+	ot->idname= "SEQUENCER_OT_add_duplicate";
+
+	/* api callbacks */
+	ot->invoke= sequencer_add_duplicate_invoke;
+	ot->exec= sequencer_add_duplicate_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+/* delete operator */
+static int sequencer_delete_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	Sequence *seq;
+	MetaStack *ms;
+	int nothingSelected = TRUE;
+
+
+	seq=get_last_seq(scene);
+	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
+		nothingSelected = FALSE;
+	} else {
+		for (seq = ed->seqbasep->first; seq; seq = seq->next) {
+			if (seq->flag & SELECT) {
+				nothingSelected = FALSE;
+				break;
+			}
+		}
+	}
+
+	if (nothingSelected)
+		return OPERATOR_FINISHED;
+
+	/* free imbufs of all dependent strips */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if(seq->flag & SELECT)
+			update_changed_seq_and_deps(scene, seq, 1, 0);
+
+	/* for effects, try to find a replacement input */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if((seq->type & SEQ_EFFECT) && !(seq->flag & SELECT))
+			del_seq_find_replace_recurs(scene, seq);
+
+	/* delete all selected strips */
+	recurs_del_seq_flag(scene, ed->seqbasep, SELECT, 0);
+
+	/* updates lengths etc */
+	seq= ed->seqbasep->first;
+	while(seq) {
+		calc_sequence(seq);
+		seq= seq->next;
+	}
+
+	/* free parent metas */
+	ms= ed->metastack.last;
+	while(ms) {
+		ms->parseq->strip->len= 0;		/* force new alloc */
+		calc_sequence(ms->parseq);
+		ms= ms->prev;
+	}
+
+	ED_undo_push(C, "Delete Strip(s), Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+void SEQUENCER_OT_delete(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Erase Strips";
+	ot->idname= "SEQUENCER_OT_delete";
+
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= sequencer_delete_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
+
+
+/* separate_images operator */
+static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	Sequence *seq, *seq_new, *seq_next;
+	Strip *strip_new;
+	StripElem *se, *se_new;
+	int start_ofs, cfra, frame_end;
+	static int step= 1;
+
+//	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);
+//	if (!do_clever_numbuts("Separate Images", 1, REDRAW))
+//		return;
+
+	seq= ed->seqbasep->first;
+
+	while (seq) {
+		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
+			/* remove seq so overlap tests dont conflict,
+			see seq_free_sequence below for the real free'ing */
+			seq_next = seq->next;
+			BLI_remlink(ed->seqbasep, seq);
+			if(seq->ipo) seq->ipo->id.us--;
+
+			start_ofs = cfra = seq_tx_get_final_left(seq, 0);
+			frame_end = seq_tx_get_final_right(seq, 0);
+
+			while (cfra < frame_end) {
+				/* new seq */
+				se = give_stripelem(seq, cfra);
+
+				seq_new= alloc_sequence(((Editing *)scene->ed)->seqbasep, start_ofs, seq->machine);
+				seq_new->type= SEQ_IMAGE;
+				seq_new->len = 1;
+				seq_new->endstill = step-1;
+
+				/* new strip */
+				seq_new->strip= strip_new= MEM_callocN(sizeof(Strip)*1, "strip");
+				strip_new->len= 1;
+				strip_new->us= 1;
+				strncpy(strip_new->dir, seq->strip->dir, FILE_MAXDIR-1);
+
+				/* new stripdata */
+				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
+				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
+				calc_sequence(seq_new);
+				seq_new->flag &= ~SEQ_OVERLAP;
+				if (test_overlap_seq(scene, seq_new)) {
+					shuffle_seq(scene, seq_new);
+				}
+
+				cfra++;
+				start_ofs += step;
+			}
+
+			seq_free_sequence(seq);
+			seq = seq->next;
+		} else {
+			seq = seq->next;
+		}
+	}
+
+	/* as last: */
+	sort_seq(scene);
+	
+	ED_undo_push(C, "Separate Image Strips, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+
+void SEQUENCER_OT_separate_images(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Separate Images";
+	ot->idname= "SEQUENCER_OT_separate_images";
+
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= sequencer_separate_images_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+}
