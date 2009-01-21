@@ -1149,6 +1149,48 @@ void free_uv_vert_map(UvVertMap *vmap)
 	}
 }
 
+/* Generates a map where the key is the vertex and the value is a list
+   of faces that use that vertex as a corner. The lists are allocated
+   from one memory pool. */
+void create_vert_face_map(ListBase **map, IndexNode **mem, const MFace *mface, const int totvert, const int totface)
+{
+	int i,j;
+	IndexNode *node = NULL;
+	
+	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
+	(*mem) = MEM_callocN(sizeof(IndexNode) * totface*4, "vert face map mem");
+	node = *mem;
+	
+	/* Find the users */
+	for(i = 0; i < totface; ++i){
+		for(j = 0; j < (mface[i].v4?4:3); ++j, ++node) {
+			node->index = i;
+			BLI_addtail(&(*map)[((unsigned int*)(&mface[i]))[j]], node);
+		}
+	}
+}
+
+/* Generates a map where the key is the vertex and the value is a list
+   of edges that use that vertex as an endpoint. The lists are allocated
+   from one memory pool. */
+void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, const int totvert, const int totedge)
+{
+	int i, j;
+	IndexNode *node = NULL;
+ 
+	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert edge map");
+	(*mem) = MEM_callocN(sizeof(IndexNode) * totedge * 2, "vert edge map mem");
+	node = *mem;
+       
+	/* Find the users */
+	for(i = 0; i < totedge; ++i){
+		for(j = 0; j < 2; ++j, ++node) {
+			node->index = i;
+			BLI_addtail(&(*map)[((unsigned int*)(&medge[i].v1))[j]], node);
+		}
+	}
+}
+
 /* Partial Mesh Visibility */
 PartialVisibility *mesh_pmv_copy(PartialVisibility *pmv)
 {

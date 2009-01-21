@@ -38,16 +38,6 @@ typedef struct MultiresSubsurf {
 	struct Mesh *me;
 } MultiresSubsurf;
 
-typedef struct IndexNode {
-	struct IndexNode *next, *prev;
-	int index;
-} IndexNode;
-
-void create_vert_face_map(ListBase **map, IndexNode **mem, const struct MFace *mface,
-			  const int totvert, const int totface);
-void create_vert_edge_map(ListBase **map, IndexNode **mem, const struct MEdge *medge,
-			  const int totvert, const int totedge);
-
 /* MultiresDM */
 struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
 struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);

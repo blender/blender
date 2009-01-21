@@ -181,32 +181,6 @@ typedef struct ProjVert {
 	char inside;
 } ProjVert;
 
-/* vertex_users is an array of Lists that store all the faces that use a
-   particular vertex. vertex_users is in the same order as mesh.mvert */
-static void calc_vertex_users(SculptSession *ss)
-{
-	int i,j;
-	IndexNode *node= NULL;
-	StrokeCache *cache = ss->cache;
-
-	sculpt_vertexusers_free(ss);
-	
-	/* For efficiency, use vertex_users_mem as a memory pool (may be larger
-	   than necessary if mesh has triangles, but only one alloc is needed.) */
-	ss->vertex_users= MEM_callocN(sizeof(ListBase) * cache->totvert, "vertex_users");
-	ss->vertex_users_size= cache->totvert;
-	ss->vertex_users_mem= MEM_callocN(sizeof(IndexNode)*cache->totface*4, "vertex_users_mem");
-	node= ss->vertex_users_mem;
-
-	/* Find the users */
-	for(i=0; i<cache->totface; ++i){
-		for(j=0; j<(cache->mface[i].v4?4:3); ++j, ++node) {
-			node->index=i;
-			BLI_addtail(&ss->vertex_users[((unsigned int*)(&cache->mface[i]))[j]], node);
-		}
-	}
-}
-
 /* ===== INTERFACE =====
  */
 
@@ -326,7 +300,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 	case SCULPT_TOOL_LAYER:
 		return sd->brush->alpha / 50.0f * dir * pressure * flip * anchored; /*XXX: not sure why? multiplied by G.vd->grid */;
 	case SCULPT_TOOL_SMOOTH:
-		return sd->brush->alpha / .5f * pressure * anchored;
+		return sd->brush->alpha / .5 * pressure * anchored;
 	case SCULPT_TOOL_PINCH:
 		return sd->brush->alpha / 10.0f * dir * pressure * flip * anchored;
 	case SCULPT_TOOL_GRAB:
@@ -449,8 +423,8 @@ static void do_draw_brush(Sculpt *sd, SculptSession *ss, const ListBase* active_
 static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 {
 	int i, skip= -1, total=0;
-	IndexNode *node= ss->vertex_users[vert].first;
-	char ncount= BLI_countlist(&ss->vertex_users[vert]);
+	IndexNode *node= ss->fmap[vert].first;
+	char ncount= BLI_countlist(&ss->fmap[vert]);
 	MFace *f;
 
 	avg[0] = avg[1] = avg[2] = 0;
@@ -472,7 +446,7 @@ static void neighbor_average(SculptSession *ss, float avg[3], const int vert)
 		}
 
 		for(i=0; i<(f->v4?4:3); ++i) {
-			if(i != skip && (ncount!=2 || BLI_countlist(&ss->vertex_users[(&f->v1)[i]]) <= 2)) {
+			if(i != skip && (ncount!=2 || BLI_countlist(&ss->fmap[(&f->v1)[i]]) <= 2)) {
 				VecAddf(avg, avg, ss->cache->mvert[(&f->v1)[i]].co);
 				++total;
 			}
@@ -1000,7 +974,7 @@ static void do_symmetrical_brush_actions(Sculpt *sd, StrokeCache *cache)
 	int i;
 
 	/* Brush spacing: only apply dot if next dot is far enough away */
-	if(sd->brush->spacing > 0 && !(sd->brush->flag & BRUSH_ANCHORED) && !cache->first_time) {
+	if((sd->brush->flag & BRUSH_SPACE) && !(sd->brush->flag & BRUSH_ANCHORED) && !cache->first_time) {
 		int dx = cache->last_dot[0] - cache->mouse[0];
 		int dy = cache->last_dot[1] - cache->mouse[1];
 		if(sqrt(dx*dx+dy*dy) < sd->brush->spacing)
@@ -1052,7 +1026,7 @@ static void update_damaged_vert(SculptSession *ss, ListBase *lb)
        
 	for(vert= lb->first; vert; vert= vert->next) {
 		vec3f norm= {0,0,0};		
-		IndexNode *face= ss->vertex_users[vert->Index].first;
+		IndexNode *face= ss->fmap[vert->Index].first;
 
 		while(face){
 			float *fn = NULL;
@@ -1419,8 +1393,10 @@ static struct MultiresModifierData *sculpt_multires_active(Object *ob)
 	return NULL;
 }
 
-static void sculpt_update_mesh_elements(StrokeCache *cache, Object *ob)
+static void sculpt_update_mesh_elements(SculptSession *ss, Object *ob)
 {
+	StrokeCache *cache = ss->cache;
+
 	if(sculpt_multires_active(ob)) {
 		DerivedMesh *dm = mesh_get_derived_final(NULL, ob, CD_MASK_BAREMESH); /* XXX scene=? */
 		cache->multires = 1;
@@ -1438,6 +1414,11 @@ static void sculpt_update_mesh_elements(StrokeCache *cache, Object *ob)
 		cache->mvert = me->mvert;
 		cache->mface = me->mface;
 		cache->face_normals = NULL;
+	}
+
+	if(cache->totvert != ss->fmap_size) {
+		create_vert_face_map(&ss->fmap, &ss->fmap_mem, cache->mface, cache->totvert, cache->totface);
+		ss->fmap_size = cache->totvert;
 	}
 }
 
@@ -1621,7 +1602,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 	cache->mats = MEM_callocN(sizeof(bglMats), "sculpt bglMats");
 	sculpt_load_mats(cache->mats, &cache->vc);
 
-	sculpt_update_mesh_elements(cache, cache->vc.obact);
+	sculpt_update_mesh_elements(sd->session, cache->vc.obact);
 
 	/* Make copies of the mesh vertex locations and normals for some tools */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_LAYER || (sd->brush->flag & BRUSH_ANCHORED)) {
@@ -1906,13 +1887,6 @@ static void draw_paint_cursor(bContext *C, int x, int y)
 	glTranslatef((float)-x, (float)-y, 0.0f);
 }
 
-static void init_sculpt(ToolSettings *ts)
-{
-	ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
-
-	/* XXX: initialize persistent sculpt settings */
-}
-
 static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -1931,12 +1905,23 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
-
+		
+		/* Create persistent sculpt mode data */
 		if(!ts->sculpt)
-			init_sculpt(ts);
+			ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
 
+		/* Create sculpt mode session data */
+		if(ts->sculpt->session)
+			MEM_freeN(ts->sculpt->session);
 		ts->sculpt->session = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
+		/* Activate visible brush */
+		ts->sculpt->session->cursor =
+			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_brush_stroke_poll, draw_paint_cursor);
+
+
+
+		/* XXX: testing */
 		/* Needed for testing, if there's no brush then create one */
 		ts->sculpt->brush = add_brush("test brush");
 		/* Also for testing, set the brush texture to the first available one */
@@ -1947,10 +1932,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			mtex->tex = G.main->tex.first;
 			mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
 		}
-
-		/* Activate visible brush */
-		ts->sculpt->session->cursor =
-			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_brush_stroke_poll, draw_paint_cursor);
 	}
 
 	return OPERATOR_FINISHED;
