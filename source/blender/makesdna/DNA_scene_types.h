@@ -387,10 +387,10 @@ typedef struct Sculpt
 	float pivot[3];
 	int flags;
 	/* For the Brush Shape */
-	short texact, texnr;
-	char texrept, texsep;
+	char texsep;
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
+	char pad[5];
 } Sculpt;
 
 typedef struct VPaint {
@@ -810,10 +810,6 @@ typedef struct Scene {
 #define SCULPT_LOCK_X       64
 #define SCULPT_LOCK_Y      128
 #define SCULPT_LOCK_Z      256
-/* SculptData.texrept */
-#define SCULPTREPT_DRAG 1
-#define SCULPTREPT_TILE 2
-#define SCULPTREPT_3D   3
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1

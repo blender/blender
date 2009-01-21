@@ -750,9 +750,9 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 	Brush *br = sd->brush;
 	float avg= 1;
 
-	if(br->texact==-1 || !br->mtex[sd->texact])
+	if(br->texact==-1 || !br->mtex[br->texact])
 		avg= 1;
-	else if(sd->texrept==SCULPTREPT_3D) {
+	else if(br->tex_mode==BRUSH_TEX_3D) {
 		/* Get strength by feeding the vertex location directly
 		   into a texture */
 		float jnk;
@@ -785,7 +785,7 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
-		if(sd->texrept==SCULPTREPT_TILE) {
+		if(br->tex_mode==BRUSH_TEX_TILE) {
 			const int sx= (const int)br->mtex[br->texact]->size[0];
 			const int sy= (const int)sd->texsep ? br->mtex[br->texact]->size[1] : sx;
 			
@@ -808,8 +808,8 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 				py %= sy-1;
 			avg= get_texcache_pixel_bilinear(ss, TC_SIZE*px/sx, TC_SIZE*py/sy);
 		} else {
-			float fx= (point_2d[0] - ss->cache->initial_mouse[0]) / bsize;
-			float fy= (point_2d[1] - ss->cache->initial_mouse[1]) / bsize;
+			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
+			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
 
 			float angle= atan2(fy, fx) - rot;
 			float flen= sqrtf(fx*fx + fy*fy);
@@ -1087,7 +1087,7 @@ static void projverts_clear_inside(SculptSession *ss)
 		ss->projverts[i].inside = 0;
 }
 
-static void sculptmode_update_tex(Sculpt *sd)
+static void sculpt_update_tex(Sculpt *sd)
 {
 	SculptSession *ss= sd->session;
 	Brush *br = sd->brush;
@@ -1099,7 +1099,7 @@ static void sculptmode_update_tex(Sculpt *sd)
 	memset(&texres, 0, sizeof(TexResult));
 	
 	/* Skip Default brush shape and non-textures */
-	if(br->texact == -1 || !br->mtex[sd->texact]) return;
+	if(br->texact == -1 || !br->mtex[br->texact]) return;
 
 	if(ss->texcache) {
 		MEM_freeN(ss->texcache);
@@ -1274,7 +1274,7 @@ static GLuint sculpt_radialcontrol_calctex()
 	float *texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
 	GLuint tex;
 
-	if(sd->texrept!=SCULPTREPT_3D)
+	if(sd->tex_mode!=SCULPTREPT_3D)
 		sculptmode_update_tex();
 	for(i=0; i<tsz; ++i)
 		for(j=0; j<tsz; ++j) {
@@ -1729,6 +1729,11 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 	sculptmode_update_all_projverts(sd->session);
 
+	/* TODO: Shouldn't really have to do this at the start of every
+	   stroke, but sculpt would need some sort of notification when
+	   changes are made to the texture. */
+	sculpt_update_tex(sd);
+
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	
@@ -1805,6 +1810,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	view3d_operator_needs_opengl(C);
 	sculpt_update_cache_invariants(sd, C, op);
+	sculpt_update_tex(sd);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		sculpt_update_cache_variants(sd, &itemptr);
@@ -1899,6 +1905,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		sculptsession_free(ts->sculpt);
 	}
 	else {
+		MTex *mtex; // XXX: temporary
+
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
@@ -1910,6 +1918,15 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 
 		/* Needed for testing, if there's no brush then create one */
 		ts->sculpt->brush = add_brush("test brush");
+		/* Also for testing, set the brush texture to the first available one */
+		if(G.main->tex.first) {
+			mtex = MEM_callocN(sizeof(MTex), "test mtex");
+			ts->sculpt->brush->texact = 0;
+			ts->sculpt->brush->mtex[0] = mtex;
+			mtex->tex = G.main->tex.first;
+			mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
+		}
+		
 
 		/* Activate visible brush */
 		ts->sculpt->session->cursor =
@@ -1997,7 +2014,7 @@ void sculpt(Sculpt *sd)
 
 	/* Init texture
 	   FIXME: Shouldn't be doing this every time! */
-	if(sd->texrept!=SCULPTREPT_3D)
+	if(sd->tex_mode!=SCULPTREPT_3D)
 		sculptmode_update_tex(sd);
 
 	/*XXX: getmouseco_areawin(mouse); */

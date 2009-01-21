@@ -62,6 +62,11 @@ void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", "Erase Alpha", "Erase alpha while painting."},
 		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", "Add Alpha", "Add alpha while painting."},
 		{0, NULL, NULL, NULL}};
+	static EnumPropertyItem prop_texture_mode_items[] = {
+		{BRUSH_TEX_DRAG, "TEX_DRAG", "Drag", ""},
+		{BRUSH_TEX_TILE, "TEX_TILE", "Tile", ""},
+		{BRUSH_TEX_3D, "TEX_3D", "3D", ""},
+		{0, NULL, NULL, NULL}};
 	static EnumPropertyItem prop_sculpt_tool_items[] = {
 		{SCULPT_TOOL_DRAW, "DRAW", "Draw", ""},
 		{SCULPT_TOOL_SMOOTH, "SMOOTH", "Smooth", ""},
@@ -79,6 +84,11 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_blend_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode.");
+
+	prop= RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
+	RNA_def_property_enum_items(prop, prop_texture_mode_items);
+	RNA_def_property_ui_text(prop, "Texture Mode", "");
 
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_sculpt_tool_items);
