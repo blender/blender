@@ -146,7 +146,7 @@ typedef struct StrokeCache {
 	ViewContext vc;
 	bglMats *mats;
 
-	/* Mesh data can either come directly from a Mesh, or from a MultiresDM */
+	/* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
 	int multires; /* Special handling for multires meshes */
 	MVert *mvert;
 	MFace *mface;
@@ -163,6 +163,7 @@ typedef struct StrokeCache {
 	float old_grab_location[3];
 	int symmetry; /* Symmetry index between 0 and 7 */
 	float view_normal[3], view_normal_symmetry[3];
+	int last_dot[2]; /* Last location of stroke application */
 } StrokeCache;
 
 typedef struct RectNode {
@@ -997,14 +998,23 @@ static void do_symmetrical_brush_actions(Sculpt *sd, StrokeCache *cache)
 	const char symm = sd->flags & 7;
 	int i;
 
-	VecCopyf(sd->session->cache->location, sd->session->cache->true_location);
-	VecCopyf(sd->session->cache->grab_delta_symmetry, sd->session->cache->grab_delta);
-	sd->session->cache->symmetry = 0;
+	/* Brush spacing: only apply dot if next dot is far enough away */
+	if(sd->brush->spacing > 0 && !(sd->brush->flag & BRUSH_ANCHORED) && !cache->first_time) {
+		int dx = cache->last_dot[0] - cache->mouse[0];
+		int dy = cache->last_dot[1] - cache->mouse[1];
+		if(sqrt(dx*dx+dy*dy) < sd->brush->spacing)
+			return;
+	}
+	memcpy(cache->last_dot, cache->mouse, sizeof(int) * 2);
+
+	VecCopyf(cache->location, cache->true_location);
+	VecCopyf(cache->grab_delta_symmetry, cache->grab_delta);
+	cache->symmetry = 0;
 	do_brush_action(sd, cache);
 
 	for(i = 1; i <= symm; ++i) {
 		if(symm & i && (symm != 5 || i != 3) && (symm != 6 || (i != 3 && i != 5))) {
-			calc_brushdata_symm(sd->session->cache, i);
+			calc_brushdata_symm(cache, i);
 			do_brush_action(sd, cache);
 		}
 	}
@@ -1542,9 +1552,7 @@ static void sculpt_undo_push(Sculpt *sd)
       using the current brush. ****/
 static int sculpt_brush_stroke_poll(bContext *C)
 {
-	// XXX: More to check for, of course
-
-	return G.f & G_SCULPTMODE;
+	return G.f & G_SCULPTMODE && CTX_wm_area(C)->spacetype == SPACE_VIEW3D;
 }
 
 static void sculpt_load_mats(bglMats *mats, ViewContext *vc)

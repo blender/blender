@@ -174,7 +174,7 @@ static float sculpt_stroke_final_length(SculptStroke *stroke)
 /* If partial is nonzero, cuts off apply after that length has been processed */
 static StrokePoint *sculpt_stroke_apply_generic(Sculpt *sd, SculptStroke *stroke, const int partial)
 {
-	const int sdspace = sd->spacing;
+	const int sdspace = 0; //XXX: sd->spacing;
 	const short spacing = sdspace > 0 ? sdspace : 2;
 	const int dots = sculpt_stroke_final_length(stroke) / spacing;
 	int i;

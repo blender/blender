@@ -387,11 +387,10 @@ typedef struct Sculpt
 	float pivot[3];
 	int flags;
 	/* For the Brush Shape */
-	short texact, texnr, spacing;
-	char texrept, texsep, averaging;
+	short texact, texnr;
+	char texrept, texsep;
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
-	char pad[5];
 } Sculpt;
 
 typedef struct VPaint {
