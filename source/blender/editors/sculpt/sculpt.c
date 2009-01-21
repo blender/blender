@@ -156,7 +156,7 @@ typedef struct StrokeCache {
 	float *layer_disps; /* Displacements for each vertex */
  	float (*mesh_store)[3]; /* Copy of the mesh vertices' locations */
 	short (*orig_norms)[3]; /* Copy of the mesh vertices' normals */
-	int anchored_rotation; /* Texture rotation in anchored mode */
+	float rotation; /* Texture rotation (radians) for anchored and rake modes */
 	int pixel_radius, previous_pixel_radius;
 	ListBase grab_active_verts[8]; /* The same list of verts is used throught grab stroke */
 	float grab_delta[3], grab_delta_symmetry[3];
@@ -164,6 +164,7 @@ typedef struct StrokeCache {
 	int symmetry; /* Symmetry index between 0 and 7 */
 	float view_normal[3], view_normal_symmetry[3];
 	int last_dot[2]; /* Last location of stroke application */
+	int last_rake[2]; /* Last location of updating rake rotation */
 } StrokeCache;
 
 typedef struct RectNode {
@@ -772,7 +773,7 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 	}
 	else if(ss->texcache) {
 		const float bsize= ss->cache->pixel_radius * 2;
-		const float rot= to_rad(sculpt_tex_angle(sd)) + ss->cache->anchored_rotation;
+		const float rot= to_rad(sculpt_tex_angle(sd)) + ss->cache->rotation;
 		int px, py;
 		float flip[3], point_2d[2];
 
@@ -1641,6 +1642,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, bContext *C, wmOperator *
 
 	unproject(cache->mats, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
 	cache->radius = unproject_brush_radius(sd->session, brush_size(sd));
+	cache->rotation = 0;
 	cache->first_time = 1;
 }
 
@@ -1649,23 +1651,42 @@ static void sculpt_update_cache_variants(Sculpt *sd, PointerRNA *ptr)
 {
 	StrokeCache *cache = sd->session->cache;
 	float grab_location[3];
+	int dx, dy;
 
 	if(!(sd->brush->flag & BRUSH_ANCHORED))
 		RNA_float_get_array(ptr, "location", cache->true_location);
 	cache->flip = RNA_boolean_get(ptr, "flip");
 	RNA_int_get_array(ptr, "mouse", cache->mouse);
 	
-	cache->previous_pixel_radius = cache->pixel_radius;
-
 	/* Truly temporary data that isn't stored in properties */
+
+	cache->previous_pixel_radius = cache->pixel_radius;
+	cache->pixel_radius = brush_size(sd);
+
 	if(sd->brush->flag & BRUSH_ANCHORED) {
-		int dx = cache->mouse[0] - cache->initial_mouse[0];
-		int dy = cache->mouse[1] - cache->initial_mouse[1];
+		dx = cache->mouse[0] - cache->initial_mouse[0];
+		dy = cache->mouse[1] - cache->initial_mouse[1];
 		cache->pixel_radius = sqrt(dx*dx + dy*dy);
 		cache->radius = unproject_brush_radius(sd->session, cache->pixel_radius);
-		cache->anchored_rotation = atan2(dy, dx);
-	} else
- 		cache->pixel_radius = brush_size(sd);
+		cache->rotation = atan2(dy, dx);
+	}
+	else if(sd->brush->flag & BRUSH_RAKE) {
+		int update;
+
+		dx = cache->last_rake[0] - cache->mouse[0];
+		dy = cache->last_rake[1] - cache->mouse[1];
+
+		update = dx*dx + dy*dy > 100;
+
+		/* To prevent jitter, only update the angle if the mouse has moved over 10 pixels */
+		if(update && !cache->first_time)
+			cache->rotation = M_PI_2 + atan2(dy, dx);
+
+		if(update || cache->first_time) {
+			cache->last_rake[0] = cache->mouse[0];
+			cache->last_rake[1] = cache->mouse[1];
+		}
+	}
 
 	/* Find the grab delta */
 	if(sd->brush->sculpt_tool == SCULPT_TOOL_GRAB) {
@@ -1926,7 +1947,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			mtex->tex = G.main->tex.first;
 			mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
 		}
-		
 
 		/* Activate visible brush */
 		ts->sculpt->session->cursor =
