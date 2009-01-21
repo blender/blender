@@ -5,7 +5,49 @@ from SCA_IActuator import *
 class BL_ActionActuator(SCA_IActuator):
 	"""
 	Action Actuators apply an action to an actor.
+	
+	@ivar action: The name of the action to set as the current action.
+	@type action: string
+	@ivar start: Specifies the starting frame of the animation.
+	@type start: float
+	@type end: Specifies the ending frame of the animation.
+	@type end: float
+	@ivar blendin: Specifies the number of frames of animation to generate when making transitions between actions.
+	@type blendin: float
+	@ivar priority: Sets the priority of this actuator. Actuators will lower
+		                 priority numbers will override actuators with higher
+		                 numbers.
+	@type priority: integer
+	@ivar frame: Sets the current frame for the animation.
+	@type frame: float
+	@ivar property: Sets the property to be used in FromProp playback mode.
+	@type property: string
+	@ivar blendTime: Sets the internal frame timer. This property must be in
+						the range from 0.0 to 1.0.
+	@type blendTime: float
+	@ivar type: The operation mode of the actuator.
+					KX_ACTIONACT_PLAY, KX_ACTIONACT_PROPERTY, KX_ACTIONACT_FLIPPER,
+					KX_ACTIONACT_LOOPSTOP, KX_ACTIONACT_LOOPEND
+	@type type: integer
+	@ivar continue: The actions continue option, True or False.
+					When True, the action will always play from where last left off,
+					otherwise negative events to this actuator will reset it to its start frame.
+	@type: boolean
+	@ivar frameProperty: The name of the property that is set to the current frame number.
+	@type frameProperty: string
 	"""
+	def setChannel(channel, matrix, mode = False):
+		"""
+		@param channel: A string specifying the name of the bone channel.
+		@type channel: string
+		@param matrix: A 4x4 matrix specifying the overriding transformation
+		               as an offset from the bone's rest position.
+		@type matrix: list [[float]]
+		@param mode: True for armature/world space, False for bone space
+		@type mode: boolean
+		"""
+
+	#--The following methods are deprecated--
 	def setAction(action, reset = True):
 		"""
 		Sets the current action.
@@ -153,16 +195,6 @@ class BL_ActionActuator(SCA_IActuator):
 		Returns the name of the property to be used in FromProp mode.
 		
 		@rtype: string
-		"""
-	def setChannel(channel, matrix, mode = False):
-		"""
-		@param channel: A string specifying the name of the bone channel.
-		@type channel: string
-		@param matrix: A 4x4 matrix specifying the overriding transformation
-		               as an offset from the bone's rest position.
-		@type matrix: list [[float]]
-		@param mode: True for armature/world space, False for bone space
-		@type mode: boolean
 		"""
 	def setFrameProperty(prop):
 		"""

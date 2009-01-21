@@ -81,6 +81,7 @@ public:
 	
 	void SetBlendTime (float newtime);
 
+	//Deprecated ----->
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetAction);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendin);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetPriority);
@@ -90,7 +91,6 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetFrameProperty);
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetBlendtime);
-	KX_PYMETHOD_DOC(BL_ActionActuator,SetChannel);
 
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetAction);
 	KX_PYMETHOD_DOC(BL_ActionActuator,GetBlendin);
@@ -105,8 +105,12 @@ public:
 	KX_PYMETHOD_DOC(BL_ActionActuator,SetType);
 	KX_PYMETHOD_NOARGS(BL_ActionActuator,GetContinue);
 	KX_PYMETHOD_O(BL_ActionActuator,SetContinue);
+	//<-----
+
+	KX_PYMETHOD_DOC(BL_ActionActuator,setChannel);
 
 	virtual PyObject* _getattr(const STR_String& attr);
+	virtual int _setattr(const STR_String& attr, PyObject* value);
 
 	enum ActionActType
 	{
@@ -117,6 +121,46 @@ public:
 		KX_ACT_ACTION_PROPERTY = 6
 	};
 
+	/* attribute check */
+	static int CheckFrame(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		if (act->m_localtime < act->m_startframe)
+			act->m_localtime = act->m_startframe;
+		else if (act->m_localtime > act->m_endframe)
+			act->m_localtime = act->m_endframe;
+
+		return 0;
+	}
+
+	static int CheckBlendTime(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		if (act->m_blendframe < act->m_blendin)
+			act->m_blendframe = act->m_blendin;
+
+		return 0;
+	}
+
+	static int CheckType(void *self, const PyAttributeDef*)
+	{
+		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
+
+		switch (act->m_playtype) {
+			case KX_ACT_ACTION_PLAY:
+			case KX_ACT_ACTION_FLIPPER:
+			case KX_ACT_ACTION_LOOPSTOP:
+			case KX_ACT_ACTION_LOOPEND:
+			case KX_ACT_ACTION_PROPERTY:
+				return 0;
+			default:
+				PyErr_SetString(PyExc_ValueError, "invalid type supplied");
+				return 1;
+		}
+
+	}
 protected:
 
 	void SetStartTime(float curtime);
@@ -141,7 +185,7 @@ protected:
 	float	m_stridelength;
 	short	m_playtype;
 	short	m_priority;
-	short	m_end_reset;
+	bool	m_end_reset;
 	struct bPose* m_pose;
 	struct bPose* m_blendpose;
 	struct bPose* m_userpose;
