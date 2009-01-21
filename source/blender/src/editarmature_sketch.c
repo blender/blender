@@ -1258,7 +1258,8 @@ void drawSubdividedStrokeBy(BArcIterator *iter, NextSubdivisionFunc next_subdivi
 	iter->head(iter);
 	VECCOPY(head, iter->p);
 	
-	glColor3f(0, 1, 1);
+	glColor3f(0, 1, 0);
+	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE) * 2);
 	glBegin(GL_POINTS);
 	
 	index = next_subdividion(iter, bone_start, end, head, tail);
@@ -1273,6 +1274,7 @@ void drawSubdividedStrokeBy(BArcIterator *iter, NextSubdivisionFunc next_subdivi
 	}
 	
 	glEnd();
+	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 }
 
 void sk_drawStrokeSubdivision(SK_Stroke *stk)

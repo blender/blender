@@ -816,16 +816,20 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 							/* SET bone link to bone corresponding to pchan */
 							EditBone *link = BLI_ghash_lookup(rg->bones_map, pchan->name);
 							
-							/* for pole targets, link to parent bone instead, if possible */
-							if (con->type == CONSTRAINT_TYPE_KINEMATIC && target_index == 1)
+							/* Making sure bone is in this armature */
+							if (link != NULL)
 							{
-								if (link->parent && BLI_ghash_haskey(rg->bones_map, link->parent->name))
+								/* for pole targets, link to parent bone instead, if possible */
+								if (con->type == CONSTRAINT_TYPE_KINEMATIC && target_index == 1)
 								{
-									link = link->parent;
+									if (link->parent && BLI_ghash_haskey(rg->bones_map, link->parent->name))
+									{
+										link = link->parent;
+									}
 								}
+								
+								found = RIG_parentControl(ctrl, link);
 							}
-							
-							found = RIG_parentControl(ctrl, link);
 						}
 					}
 					
