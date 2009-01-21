@@ -349,7 +349,8 @@ static int wm_mainfile_exec(bContext *C, wmOperator *op)
 	
 	WM_read_file(C, filename, op->reports);
 	
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	// XXX wm in context is not set correctly after WM_read_file -> crash
+	// WM_event_add_notifier(C, NC_WINDOW, NULL);
 
 	return 0;
 }
@@ -361,6 +362,50 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_mainfile_invoke;
 	ot->exec= wm_mainfile_exec;
+	ot->poll= WM_operator_winactive;
+	
+	ot->flag= 0;
+	
+	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+
+}
+
+static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceFile *sfile;
+	
+	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
+
+	/* settings for filebrowser */
+	sfile= (SpaceFile*)CTX_wm_space_data(C);
+	sfile->op = op;
+	// XXX replace G.sce
+	ED_fileselect_set_params(sfile, FILE_BLENDER, "Save As", G.sce, 0, 0, 0);
+
+	/* screen and area have been reset already in ED_screen_full_newspace */
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
+{
+	char filename[FILE_MAX];
+	RNA_string_get(op->ptr, "filename", filename);
+	
+	WM_write_file(C, filename, op->reports);
+	
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return 0;
+}
+
+static void WM_OT_save_as_mainfile(wmOperatorType *ot)
+{
+	ot->name= "Open Blender File";
+	ot->idname= "WM_OT_save_as_mainfile";
+	
+	ot->invoke= wm_save_as_mainfile_invoke;
+	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
 	ot->flag= 0;
@@ -829,6 +874,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_tweak_gesture);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
+	WM_operatortype_append(WM_OT_save_as_mainfile);
 }
 
 /* default keymap for windows and screens, only call once per WM */
@@ -841,6 +887,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 }
