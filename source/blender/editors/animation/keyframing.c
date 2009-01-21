@@ -2051,10 +2051,12 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 				success+= insertkey(id, "scale", 0, cfra, 0);
 				success+= insertkey(id, "scale", 1, cfra, 0);
 				success+= insertkey(id, "scale", 2, cfra, 0);
+				break;
 			case 1: /* rotation */
 				success+= insertkey(id, "rotation", 0, cfra, 0);
 				success+= insertkey(id, "rotation", 1, cfra, 0);
 				success+= insertkey(id, "rotation", 2, cfra, 0);
+				break;
 			default: /* location */
 				success+= insertkey(id, "location", 0, cfra, 0);
 				success+= insertkey(id, "location", 1, cfra, 0);
