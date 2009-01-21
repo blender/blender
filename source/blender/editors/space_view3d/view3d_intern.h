@@ -87,21 +87,21 @@ void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
-void draw_object_instance(Scene *scene, View3D *v3d, Object *ob, int dt, int outline);
-void draw_object_backbufsel(Scene *scene, View3D *v3d, Object *ob);
+void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int dt, int outline);
+void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob);
 void drawaxes(float size, int flag, char drawtype);
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, Base *base, int dt, int flag);
+int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag);
 
 /* drawmesh.c */
-void draw_mesh_textured(Scene *scene, View3D *v3d, Object *ob, struct DerivedMesh *dm, int faceselect);
+void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, struct DerivedMesh *dm, int faceselect);
 
 /* view3d_draw.c */
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
 void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void *));
 void view3d_clr_clipping(void);
-void view3d_set_clipping(View3D *v3d);
+void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);
 void make_axis_color(char *col, char *col2, char axis);
 void calc_viewborder(Scene *scene, struct ARegion *ar, View3D *v3d, rctf *viewborder_r);
@@ -127,14 +127,12 @@ void VIEW3D_OT_wpaint(struct wmOperatorType *ot);
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 
-int boundbox_clip(View3D *v3d, float obmat[][4], struct BoundBox *bb);
+int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
-void view3d_project_short_clip(struct ARegion *ar, View3D *v3d, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
+void view3d_project_short_clip(struct ARegion *ar, float *vec, short *adr, float projmat[4][4], float wmat[4][4]);
 void view3d_project_short_noclip(struct ARegion *ar, float *vec, short *adr, float mat[4][4]);
 void view3d_project_float(struct ARegion *a, float *vec, float *adr, float mat[4][4]);
-void view3d_get_object_project_mat(View3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
-
-int get_view3d_viewplane(View3D *v3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
+void view3d_get_object_project_mat(RegionView3D *v3d, struct Object *ob, float pmat[4][4], float vmat[4][4]);
 
 void initlocalview(Scene *scene, struct ARegion *ar, View3D *v3d);
 void restore_localviewdata(View3D *vd);
@@ -144,8 +142,8 @@ void centerview(struct ARegion *ar, View3D *v3d);
 
 void smooth_view(struct bContext *C, Object *, Object *, float *ofs, float *quat, float *dist, float *lens);
 
-void setwinmatrixview3d(View3D *v3d, int winx, int winy, rctf *rect);	/* rect: for picking */
-void setviewmatrixview3d(Scene *scene, View3D *v3d);
+void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
+void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 #endif /* ED_VIEW3D_INTERN_H */
 

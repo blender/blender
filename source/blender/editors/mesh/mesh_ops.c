@@ -118,6 +118,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_subdivide_multi);
 	WM_operatortype_append(MESH_OT_subdivide_multi_fractal);
 	WM_operatortype_append(MESH_OT_subdivide_smooth);
+	WM_operatortype_append(MESH_OT_subdivs);
 	WM_operatortype_append(MESH_OT_select_linked_flat_faces);
 	WM_operatortype_append(MESH_OT_select_sharp_edges);
 	WM_operatortype_append(MESH_OT_add_primitive_plane);
@@ -162,10 +163,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_righthandfaces", NKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "select", 2);
 	RNA_int_set(WM_keymap_add_item(keymap, "MESH_OT_righthandfaces", NKEY, KM_PRESS, KM_CTRL, 0)->ptr, "select", 1);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_subdivide", WKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_subdivs", WKEY, KM_PRESS, 0, 0); // this is the menu
+	/*WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_subdivide_multi_fractal", WKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_subdivide_smooth", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);*/
+	
+	
 
 	/* add */
 	WM_keymap_add_item(keymap, "MESH_OT_add_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);

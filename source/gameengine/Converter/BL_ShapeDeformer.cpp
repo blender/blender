@@ -116,11 +116,11 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 
 		for (it=m_shapeDrivers.begin(); it!=m_shapeDrivers.end(); it++) {
 			// no need to set a specific time: this curve has a driver
-			IpoCurve *icu = *it;
-			calc_icu(icu, 1.0f);
-			poin = get_ipo_poin((ID*)m_bmesh->key, icu, &type);
-			if (poin) 
-				write_ipo_poin(poin, type, icu->curval);
+			// XXX IpoCurve *icu = *it;
+			//calc_icu(icu, 1.0f);
+			//poin = get_ipo_poin((ID*)m_bmesh->key, icu, &type);
+			//if (poin) 
+			//	write_ipo_poin(poin, type, icu->curval);
 		}
 
 		ForceUpdate();

@@ -42,39 +42,35 @@
 #include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
+#include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
+
+#include "ED_view3d.h"
+#include "ED_space_api.h"
+#include "ED_screen.h"
+#include "ED_types.h"
+#include "ED_util.h"
+
+#include "UI_interface.h"
+#include "UI_resources.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "object_intern.h"
 
-/* XXX */
-static void BIF_undo_push() {}
-static void error() {}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-
-void add_selected_to_group(Scene *scene, View3D *v3d, Group *group)
+static int objects_add_active_exec(bContext *C, wmOperator *op)
 {
-	Base *base;
-	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASE(v3d, base)) {
-			add_to_group(group, base->object);
-			base->object->flag |= OB_FROMGROUP;
-			base->flag |= OB_FROMGROUP;
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Add to Group");
-}
-
-void add_selected_to_act_ob_groups(Scene *scene, View3D *v3d)
-{
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= OBACT, *obt;
-	Base *base;
 	Group *group;
+	int ok = 0;
 	
-	if (!ob) return;
+	if (!ob) return OPERATOR_CANCELLED;
 	
 	/* linking to same group requires its own loop so we can avoid
 	   looking up the active objects groups each time */
@@ -83,162 +79,167 @@ void add_selected_to_act_ob_groups(Scene *scene, View3D *v3d)
 	while(group) {
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
-			base= FIRSTBASE;
-			while(base) {
-				if(TESTBASE(v3d, base)) {
-					obt= base->object;
-					add_to_group(group, obt);
-					obt->flag |= OB_FROMGROUP;
-					base->flag |= OB_FROMGROUP;
-				}
-				base= base->next;
+			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+				obt= base->object;
+				add_to_group(group, obt);
+				obt->flag |= OB_FROMGROUP;
+				base->flag |= OB_FROMGROUP;
+				base->object->recalc= OB_RECALC_OB;
+				ok = 1;
 			}
+			CTX_DATA_END;
 		}
 		group= group->id.next;
 	}
-	DAG_scene_sort(scene);
-	BIF_undo_push("Add to Active Objects Group");
+	
+	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
+	
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Add To Active Group");
+
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+
 }
 
-
-void rem_selected_from_all_groups(Scene *scene, View3D *v3d)
+void GROUP_OT_objects_add_active(wmOperatorType *ot)
 {
-	Base *base;
+	
+	/* identifiers */
+	ot->name= "Add Selected To Active Group";
+	ot->idname= "GROUP_OT_objects_add_active";
+	
+	/* api callbacks */
+	ot->exec= objects_add_active_exec;	
+	ot->poll= ED_operator_scene_editable;
+}
+
+static int objects_remove_active_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= OBACT, *obt;
 	Group *group;
+	int ok = 0;
 	
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASE(v3d, base)) {
-			group = NULL;
-			while( (group = find_group(base->object, group)) ) {
-				rem_from_group(group, base->object);
+	if (!ob) return OPERATOR_CANCELLED;
+	
+	/* linking to same group requires its own loop so we can avoid
+	   looking up the active objects groups each time */
+
+	group= G.main->group.first;
+	while(group) {
+		if(object_in_group(ob, group)) {
+			/* Assign groups to selected objects */
+			CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+				obt= base->object;
+				rem_from_group(group, obt);
+				obt->flag &= ~OB_FROMGROUP;
+				base->flag &= ~OB_FROMGROUP;
+				base->object->recalc= OB_RECALC_OB;
+				ok = 1;
 			}
-			base->object->flag &= ~OB_FROMGROUP;
-			base->flag &= ~OB_FROMGROUP;
+			CTX_DATA_END;
 		}
+		group= group->id.next;
 	}
 	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Remove from Group");
+	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
+	
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Remove From Active Group");
+
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+
 }
 
-
-void rem_selected_from_group(Scene *scene, View3D *v3d)
+void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 {
-	char menutext[30+(22*22)], *menupt;
-	int i=0;
-	short ret;
-	Group *group= NULL;
-	Object *ob;
-	Base *base;
-	Group *group_array[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	
-	/* UnSet Tags for Objects and Groups */
-	for(group= G.main->group.first; group; group= group->id.next) {
-		if(group->id.lib==NULL) {
-			group->id.flag &= ~LIB_DOIT;
-		}
-	}
-	for(ob=G.main->object.first; ob; ob= ob->id.next) {
-		ob->id.flag &= ~LIB_DOIT;
-	}
+	/* identifiers */
+	ot->name= "Remove Selected From active group";
+	ot->idname= "GROUP_OT_objects_remove_active";
 	
-	/* Not tag selected objects */
-	for(base=FIRSTBASE; base; base= base->next) {
-		if (TESTBASELIB(v3d, base)) {
-			base->object->id.flag |= LIB_DOIT;
-		}
-	}
-	
-	menupt = menutext;
-	/* Build a list of groups that contain selected objects */
-	for(group= G.main->group.first; group && i<24; group= group->id.next) {
-		if(group->id.lib==NULL) {
-			GroupObject *go;
-			for(go= group->gobject.first; go; go= go->next) {
-				if(go->ob->id.flag & LIB_DOIT) {
-					group_array[i] = group;
-					menupt += sprintf(menupt, "|%s", group->id.name+2);
-					i++;
-					break; /* Only want to know if this group should go in the list*/
-				}
-			}
-		}
-	}
-	
-	/* do we have any groups? */
-	if (group_array[0] == NULL) {
-		error("Object selection contains no groups");
-	} else {
-		ret = pupmenu(menutext);
-		if (ret==-1) {
-			return;
-		} else { 
-			group = group_array[ret-1];
-			for(base=FIRSTBASE; base; base= base->next) {
-				if (TESTBASELIB(v3d, base)) {
-					/* if we are removed and are not in any group, set our flag */
-					if(rem_from_group(group, base->object) && find_group(base->object, NULL)==NULL) {
-						base->object->flag &= ~OB_FROMGROUP;
-						base->flag &= ~OB_FROMGROUP;
-					}
-				}
-			}
-		}
-	}
-	
-	DAG_scene_sort(scene);
-	BIF_undo_push("Remove from Group");
+	/* api callbacks */
+	ot->exec= objects_remove_active_exec;	
+	ot->poll= ED_operator_scene_editable;
 }
 
-void group_operation(Scene *scene, View3D *v3d, int mode)
+static int group_remove_exec(bContext *C, wmOperator *op)
 {
 	Group *group= NULL;
-	
-	/* are there existing groups? */
-	for(group= G.main->group.first; group; group= group->id.next)
-		if(group->id.lib==NULL)
-			break;
-	
-	if(mode>0) {
-		if(group==NULL || mode==1) group= add_group( "Group" );
-		if(mode==3) {
-			int tot= BLI_countlist(&G.main->group);
-			char *strp= MEM_callocN(tot*32 + 32, "group menu"), *strp1;
-			
-			strp1= strp;
-			for(tot=1, group= G.main->group.first; group; group= group->id.next, tot++) {
-				if(group->id.lib==NULL) {
-					strp1 += sprintf(strp1, "%s %%x%d|", group->id.name+2, tot);
-				}
-			}
-			tot= pupmenu_col(strp, 20);
-			MEM_freeN(strp);
-			if(tot>0) group= BLI_findlink(&G.main->group, tot-1);
-			else return;
+
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		group = NULL;
+		while( (group = find_group(base->object, group)) ) {
+			rem_from_group(group, base->object);
 		}
+		base->object->flag &= ~OB_FROMGROUP;
+		base->flag &= ~OB_FROMGROUP;
+		base->object->recalc= OB_RECALC_OB;
+	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Remove From Group");
+
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+
+}
+
+void GROUP_OT_group_remove(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "remove Selected from group";
+	ot->idname= "GROUP_OT_group_remove";
+	
+	/* api callbacks */
+	ot->exec= group_remove_exec;	
+	ot->poll= ED_operator_scene_editable;
+}
+
+static int group_create_exec(bContext *C, wmOperator *op)
+{
+	Group *group= NULL;
+	char gid[32]; //group id
+	
+	RNA_string_get(op->ptr, "GID", gid);
+	
+	group= add_group(gid);
 		
-		if(mode==4) add_selected_to_act_ob_groups(scene, v3d);
-		else if(mode==1 || mode==3) add_selected_to_group(scene, v3d, group);
-		else if(mode==2) rem_selected_from_all_groups(scene, v3d);
-		else if(mode==5) rem_selected_from_group(scene, v3d);
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		add_to_group(group, base->object);
+		base->object->flag |= OB_FROMGROUP;
+		base->flag |= OB_FROMGROUP;
+		base->object->recalc= OB_RECALC_OB;
 	}
+	CTX_DATA_END;
+
+	DAG_scene_sort(CTX_data_scene(C));
+	ED_undo_push(C,"Create Group");
+
+	WM_event_add_notifier(C, NC_GROUP|NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+
 }
 
-void group_operation_with_menu(Scene *scene, View3D *v3d)
+void GROUP_OT_group_create(wmOperatorType *ot)
 {
-	Group *group= NULL;
-	int mode;
 	
-	/* are there existing groups? */
-	for(group= G.main->group.first; group; group= group->id.next)
-		if(group->id.lib==NULL)
-			break;
+	/* identifiers */
+	ot->name= "Create New Group";
+	ot->idname= "GROUP_OT_group_create";
 	
-	if(group)
-		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to Active Objects Groups %x4|Add to New Group %x1|Remove from Group %x5|Remove from All Groups %x2");
-	else
-		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from All Groups %x2");
+	/* api callbacks */
+	ot->exec= group_create_exec;	
+	ot->poll= ED_operator_scene_editable;
 	
-	group_operation(scene, v3d, mode);
+	RNA_def_string(ot->srna, "GID", "Group", 32, "Name", "Name of the new group");
 }
 

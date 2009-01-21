@@ -781,7 +781,7 @@ static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], floa
 	short vertco[2];
 	
 	if(vp->flag & VP_SOFT) {
-	 	project_short_noclip(vc->ar, vc->v3d, vert_nor, vertco);
+	 	project_short_noclip(vc->ar, vert_nor, vertco);
 		dx= mval[0]-vertco[0];
 		dy= mval[1]-vertco[1];
 		
@@ -975,20 +975,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 			else {
 				/* calc 3 or 4 corner weights */
 				dm->getVertCo(dm, mface->v1, co);
-				project_short_noclip(ar, v3d, co, sco);
+				project_short_noclip(ar, co, sco);
 				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v2, co);
-				project_short_noclip(ar, v3d, co, sco);
+				project_short_noclip(ar, co, sco);
 				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				dm->getVertCo(dm, mface->v3, co);
-				project_short_noclip(ar, v3d, co, sco);
+				project_short_noclip(ar, co, sco);
 				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				
 				if(mface->v4) {
 					dm->getVertCo(dm, mface->v4, co);
-					project_short_noclip(ar, v3d, co, sco);
+					project_short_noclip(ar, co, sco);
 					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
 				}
 				else w4= 1.0e10;
@@ -1235,9 +1235,9 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* load projection matrix */
 			wmMultMatrix(ob->obmat);
 			wmGetSingleMatrix(mat);
-			wmLoadMatrix(wpd->vc.v3d->viewmat);
+			wmLoadMatrix(wpd->vc.rv3d->viewmat);
 			
-			MTC_Mat4SwapMat4(wpd->vc.v3d->persmat, mat);
+			MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
 			
 			mval[0]= event->x - vc->ar->winrct.xmin;
 			mval[1]= event->y - vc->ar->winrct.ymin;
@@ -1357,7 +1357,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 			
-			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
 			ED_region_tag_redraw(vc->ar);
@@ -1431,7 +1431,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
 	
 	/* imat for normals */
-	Mat4MulMat4(mat, ob->obmat, wpd->vc.v3d->viewmat);
+	Mat4MulMat4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
 	Mat4Invert(imat, mat);
 	Mat3CpyMat4(wpd->wpimat, imat);
 	
@@ -1662,7 +1662,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* load projection matrix */
 			wmMultMatrix(ob->obmat);
 			wmGetSingleMatrix(mat);
-			wmLoadMatrix(vc->v3d->viewmat);
+			wmLoadMatrix(vc->rv3d->viewmat);
 			
 			mval[0]= event->x - vc->ar->winrct.xmin;
 			mval[1]= event->y - vc->ar->winrct.ymin;
@@ -1677,7 +1677,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				else totindex= 0;
 			}
 			
-			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 			if(vp->flag & VP_COLINDEX) {
 				for(index=0; index<totindex; index++) {
@@ -1737,7 +1737,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				}
 			}
 						
-			MTC_Mat4SwapMat4(vc->v3d->persmat, mat);
+			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 			do_shared_vertexcol(me);
 			
@@ -1779,7 +1779,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
 	
 	/* some old cruft to sort out later */
-	Mat4MulMat4(mat, ob->obmat, vpd->vc.v3d->viewmat);
+	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
 	Mat4Invert(imat, mat);
 	Mat3CpyMat4(vpd->vpimat, imat);
 	

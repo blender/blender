@@ -100,6 +100,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
+#include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_softbody.h"
@@ -222,8 +223,10 @@ int object_data_is_libdata(Object *ob)
 
 
 /* exported */
-void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
+void ED_object_base_init_from_view(bContext *C, Base *base)
 {
+	View3D *v3d= CTX_wm_view3d(C);
+	Scene *scene= CTX_data_scene(C);
 	Object *ob= base->object;
 	
 	if (scene==NULL)
@@ -244,10 +247,14 @@ void ED_object_base_init_from_view(Scene *scene, View3D *v3d, Base *base)
 		}
 		
 		if (U.flag & USER_ADD_VIEWALIGNED) {
-			v3d->viewquat[0]= -v3d->viewquat[0];
-			
-			QuatToEul(v3d->viewquat, ob->rot);
-			v3d->viewquat[0]= -v3d->viewquat[0];
+			ARegion *ar= CTX_wm_region(C);
+			if(ar) {
+				RegionView3D *rv3d= ar->regiondata;
+				
+				rv3d->viewquat[0]= -rv3d->viewquat[0];
+				QuatToEul(rv3d->viewquat, ob->rot);
+				rv3d->viewquat[0]= -rv3d->viewquat[0];
+			}
 		}
 	}
 }
@@ -293,7 +300,7 @@ static int object_add_exec(bContext *C, wmOperator *op)
 	ED_base_object_activate(C, BASACT);
 	
 	/* more editor stuff */
-	ED_object_base_init_from_view(scene, CTX_wm_view3d(C), BASACT);
+	ED_object_base_init_from_view(C, BASACT);
 	
 	DAG_scene_sort(scene);
 	
@@ -1103,8 +1110,10 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_clear_track_exec(bContext *C, wmOperator *op)
 {
-	if(CTX_data_edit_object(C)) return OPERATOR_CANCELLED;
-
+	if(CTX_data_edit_object(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		return OPERATOR_CANCELLED;
+	}
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
@@ -1210,7 +1219,10 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	
 	
 	ob= OBACT;
-	if(ob==0) return OPERATOR_CANCELLED;
+	if(ob==0){ 
+		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		return OPERATOR_CANCELLED;
+	}
 	
 	if(nr==1) {	
 			// XXX old animation system
@@ -2479,9 +2491,14 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
 	MVert *mvert;
 
-	if(scene->id.lib || v3d==NULL) return OPERATOR_CANCELLED;
-	if (obedit && centermode > 0) return OPERATOR_CANCELLED;
-		
+	if(scene->id.lib || v3d==NULL){
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed on Lib data");
+		 return OPERATOR_CANCELLED;
+	}
+	if (obedit && centermode > 0) {
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		return OPERATOR_CANCELLED;
+	}	
 	cent[0]= cent[1]= cent[2]= 0.0;	
 	
 	if(obedit) {
@@ -2762,23 +2779,19 @@ static int object_set_center_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-if (tot_change) {
-	ED_anim_dag_flush_update(C);
-	allqueue(REDRAWVIEW3D, 0);
-	ED_undo_push(C,"Do Center");	
-	}
+	if (tot_change) {
+		ED_anim_dag_flush_update(C);
+		allqueue(REDRAWVIEW3D, 0);
+		ED_undo_push(C,"Do Center");	
+		}
 	
 	/* Warn if any errors occured */
 	if (tot_lib_error+tot_multiuser_arm_error) {
-		char err[512];
-		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_multiuser_arm_error, tot_change);
-		
+		BKE_reportf(op->reports, RPT_WARNING, "%i Object(s) Not Centered, %i Changed:",tot_lib_error+tot_multiuser_arm_error, tot_change);		
 		if (tot_lib_error)
-			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
+			BKE_reportf(op->reports, RPT_WARNING, "|%i linked library objects",tot_lib_error);
 		if (tot_multiuser_arm_error)
-			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
-		
-		error(err);
+			BKE_reportf(op->reports, RPT_WARNING, "|%i multiuser armature object(s)",tot_multiuser_arm_error);
 	}
 	
 	return OPERATOR_FINISHED;

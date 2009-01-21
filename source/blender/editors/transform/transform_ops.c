@@ -180,7 +180,7 @@ static int transform_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void TFM_OT_transform(struct wmOperatorType *ot)
 {
-	static const float value[4] = {0, 0, 0};
+	static const float value[4] = {0, 0, 0, 0};
 	static const float mtx[3][3] = {{1, 0, 0},{0, 1, 0},{0, 0, 1}};
 	static EnumPropertyItem transform_mode_types[] = {
 			{TFM_INIT, "INIT", "Init", ""},

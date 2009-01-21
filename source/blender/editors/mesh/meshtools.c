@@ -437,6 +437,7 @@ static int float_sort(const void *v1, const void *v2)
 
 void sort_faces(Scene *scene, View3D *v3d)
 {
+	RegionView3D *rv3d= NULL; // get from context 
 	Object *ob= OBACT;
 	Mesh *me;
 	CustomDataLayer *layer;
@@ -490,7 +491,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 		float cur[3];
 		
 		if (event == 1)
-			Mat4MulMat4(mat, OBACT->obmat, v3d->viewmat); /* apply the view matrix to the object matrix */
+			Mat4MulMat4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
 		else if (event == 2) { /* sort from cursor */
 			if( v3d && v3d->localview ) {
 				VECCOPY(cur, v3d->cursor);

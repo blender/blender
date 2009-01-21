@@ -1692,6 +1692,32 @@ static void write_windowmanagers(WriteData *wd, ListBase *lb)
 	}
 }
 
+static void write_region(WriteData *wd, ARegion *ar, int spacetype)
+{	
+	writestruct(wd, DATA, "ARegion", 1, ar);
+	
+	if(ar->regiondata) {
+		switch(spacetype) {
+			case SPACE_VIEW3D:
+				if(ar->regiontype==RGN_TYPE_WINDOW) {
+					RegionView3D *rv3d= ar->regiondata;
+					writestruct(wd, DATA, "RegionView3D", 1, rv3d);
+					
+					if(rv3d->localvd)
+						writestruct(wd, DATA, "RegionView3D", 1, rv3d->localvd);
+					if(rv3d->clipbb) 
+						writestruct(wd, DATA, "BoundBox", 1, rv3d->clipbb);
+
+				}
+				else
+					printf("regiondata write missing!\n");
+				break;
+			default:
+				printf("regiondata write missing!\n");
+		}
+	}
+}
+
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
 	bScreen *sc;
@@ -1723,7 +1749,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			writestruct(wd, DATA, "ScrArea", 1, sa);
 			
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
-				writestruct(wd, DATA, "ARegion", 1, ar);
+				write_region(wd, ar, sa->spacetype);
 				
 				for(pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
@@ -1735,14 +1761,13 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 			sl= sa->spacedata.first;
 			while(sl) {
 				for(ar= sl->regionbase.first; ar; ar= ar->next)
-					writestruct(wd, DATA, "ARegion", 1, ar);
+					write_region(wd, ar, sl->spacetype);
 				
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
-					if(v3d->clipbb) writestruct(wd, DATA, "BoundBox", 1, v3d->clipbb);
 					if(v3d->gpd) write_gpencil(wd, v3d->gpd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {

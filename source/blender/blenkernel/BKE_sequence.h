@@ -146,6 +146,7 @@ struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, 
 struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, struct Sequence *seq);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown);
 void calc_sequence(struct Sequence *seq);
+void calc_sequence_disp(struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
 void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq);
 void sort_seq(struct Scene *scene);

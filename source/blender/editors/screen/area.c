@@ -143,28 +143,18 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 
 /* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
 /* only exported for WM */
-void ED_area_overdraw_flush(bContext *C)
+void ED_area_overdraw_flush(bContext *C, ScrArea *sa, ARegion *ar)
 {
-	ScrArea *sa;
+	AZone *az;
 	
-	for(sa= CTX_wm_screen(C)->areabase.first; sa; sa= sa->next) {
-		ARegion *ar;
-		
-		for(ar= sa->regionbase.first; ar; ar= ar->next) {
-			if(ar->do_draw) {
-				AZone *az;
-				
-				for(az= sa->actionzones.first; az; az= az->next) {
-					int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
-		
-					/* test if inside */
-					if(BLI_in_rcti(&ar->winrct, xs, ys)) {
-						az->do_draw= 1;
-					}
-				}
-			}
+	for(az= sa->actionzones.first; az; az= az->next) {
+		int xs= (az->x1+az->x2)/2, ys= (az->y1+az->y2)/2;
+
+		/* test if inside */
+		if(BLI_in_rcti(&ar->winrct, xs, ys)) {
+			az->do_draw= 1;
 		}
-	}	
+	}
 }
 
 /* only exported for WM */
@@ -233,7 +223,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	ED_region_pixelspace(ar);
 	
 	ar->do_draw= 0;
-	ar->swap= WIN_BACK_OK;
 }
 
 /* **********************************
@@ -298,7 +287,7 @@ static int rct_fits(rcti *rect, char dir, int size)
 	}
 }
 
-static void region_rect_recursive(ARegion *ar, rcti *remainder)
+static void region_rect_recursive(ARegion *ar, rcti *remainder, int quad)
 {
 	int prefsizex, prefsizey;
 	
@@ -307,7 +296,8 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 	
 	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
-	if(ar->next==NULL)
+	/* user errors */
+	if(ar->next==NULL && ar->alignment!=RGN_ALIGN_QSPLIT)
 		ar->alignment= RGN_ALIGN_NONE;
 	
 	prefsizex= ar->type->minsizex;
@@ -372,7 +362,7 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			}
 		}
 	}
-	else {
+	else if(ar->alignment==RGN_ALIGN_VSPLIT || ar->alignment==RGN_ALIGN_HSPLIT) {
 		/* percentage subdiv*/
 		ar->winrct= *remainder;
 		
@@ -395,11 +385,55 @@ static void region_rect_recursive(ARegion *ar, rcti *remainder)
 			}
 		}
 	}
+	else if(ar->alignment==RGN_ALIGN_QSPLIT) {
+		ar->winrct= *remainder;
+		
+		/* test if there's still 4 regions left */
+		if(quad==0) {
+			ARegion *artest= ar->next;
+			int count= 1;
+			
+			while(artest) {
+				artest->alignment= RGN_ALIGN_QSPLIT;
+				artest= artest->next;
+				count++;
+			}
+			
+			if(count!=4) {
+				/* let's stop adding regions */
+				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				printf("region quadsplit failed\n");
+			}
+			else quad= 1;
+		}
+		if(quad) {
+			if(quad==1) { /* left bottom */
+				ar->winrct.xmax = (remainder->xmin + remainder->xmax)/2;
+				ar->winrct.ymax = (remainder->ymin + remainder->ymax)/2;
+			}
+			else if(quad==2) { /* left top */
+				ar->winrct.xmax = (remainder->xmin + remainder->xmax)/2;
+				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax)/2;
+			}
+			else if(quad==3) { /* right bottom */
+				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax)/2;
+				ar->winrct.ymax = (remainder->ymin + remainder->ymax)/2;
+			}
+			else {	/* right top */
+				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax)/2;
+				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax)/2;
+				BLI_init_rcti(remainder, 0, 0, 0, 0);
+			}
+
+			quad++;
+		}
+	}
+	
 	/* for speedup */
 	ar->winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	ar->winy= ar->winrct.ymax - ar->winrct.ymin + 1;
 	
-	region_rect_recursive(ar->next, remainder);
+	region_rect_recursive(ar->next, remainder, quad);
 }
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
@@ -508,14 +542,14 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	}
 	
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		ar->type= ED_regiontype_from_id(sa->type, ar->regiontype);
+		ar->type= BKE_regiontype_from_id(sa->type, ar->regiontype);
 	
 	/* area sizes */
 	area_calc_totrct(sa, win->sizex, win->sizey);
 	
 	/* region rect sizes */
 	rect= sa->totrct;
-	region_rect_recursive(sa->regionbase.first, &rect);
+	region_rect_recursive(sa->regionbase.first, &rect, 0);
 	
 	/* default area handlers */
 	ed_default_handlers(wm, &sa->handlers, sa->type->keymapflag);
@@ -552,6 +586,7 @@ void ED_region_init(bContext *C, ARegion *ar)
 /* area vertices were set */
 void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
+	SpaceType *st;
 	ARegion *ar;
 	
 	sa1->headertype= sa2->headertype;
@@ -569,11 +604,15 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 		BKE_spacedata_copylist(&sa1->spacedata, &sa2->spacedata);
 	}
 	
-	/* regions... XXX */
+	/* regions */
+	st= BKE_spacetype_from_id(sa1->spacetype);
+	for(ar= sa1->regionbase.first; ar; ar= ar->next)
+		BKE_area_region_free(st, ar);
 	BLI_freelistN(&sa1->regionbase);
 	
+	st= BKE_spacetype_from_id(sa2->spacetype);
 	for(ar= sa2->regionbase.first; ar; ar= ar->next) {
-		ARegion *newar= BKE_area_region_copy(ar);
+		ARegion *newar= BKE_area_region_copy(st, ar);
 		BLI_addtail(&sa1->regionbase, newar);
 	}
 		

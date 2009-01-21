@@ -68,6 +68,7 @@ SET(DEFSRC
      rna_texture.c
      rna_userdef.c
      rna_vfont.c
+     rna_vpaint.c
      rna_wm.c
      rna_world.c)
 

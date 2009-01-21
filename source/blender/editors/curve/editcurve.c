@@ -2827,6 +2827,7 @@ void mouse_nurb(bContext *C, short mval[2], int extend)
 static void spin_nurb(Scene *scene, Object *obedit, float *dvec, short mode)
 {
 	ListBase *editnurb= curve_get_editcurve(obedit);
+	RegionView3D *rv3d= NULL; // XXX
 	View3D *v3d= NULL; // XXX
 	Nurb *nu;
 	float *curs, si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
@@ -2837,7 +2838,7 @@ static void spin_nurb(Scene *scene, Object *obedit, float *dvec, short mode)
 	if(v3d==0 || obedit==0 || obedit->type!=OB_SURF) return;
 	if( (v3d->lay & obedit->lay)==0 ) return;
 
-	if (mode != 2) Mat3CpyMat4(persmat, v3d->viewmat);
+	if (mode != 2) Mat3CpyMat4(persmat, rv3d->viewmat);
 	else Mat3One(persmat);
 	Mat3Inv(persinv, persmat);
 
@@ -2854,9 +2855,9 @@ static void spin_nurb(Scene *scene, Object *obedit, float *dvec, short mode)
 		n[0]=n[1]= 0.0;
 		n[2]= 1.0;
 	} else {
-		n[0]= v3d->viewinv[2][0];
-		n[1]= v3d->viewinv[2][1];
-		n[2]= v3d->viewinv[2][2];
+		n[0]= rv3d->viewinv[2][0];
+		n[1]= rv3d->viewinv[2][1];
+		n[2]= rv3d->viewinv[2][2];
 		Normalize(n);
 	}
 
@@ -4062,6 +4063,7 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 	Object *obedit= scene->obedit; // XXX
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	View3D *v3d= NULL; // XXX
+	RegionView3D *rv3d= NULL; // XXX
 	static int xzproj= 0;
 	Nurb *nu = NULL;
 	BezTriple *bezt;
@@ -4084,7 +4086,8 @@ Nurb *addNurbprim(Scene *scene, int type, int stype, int newname)
 		cent[2]-= obedit->obmat[3][2];
 		
 		if (v3d) {
-			if ( !(newname) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(imat, v3d->viewmat);
+			if ( !(newname) || U.flag & USER_ADD_VIEWALIGNED) 
+				Mat3CpyMat4(imat, rv3d->viewmat);
 			else Mat3One(imat);
 			Mat3MulVecfl(imat, cent);
 			Mat3MulMat3(cmat, imat, mat);
@@ -4515,7 +4518,7 @@ void add_primitiveCurve(Scene *scene, int stype)
 	/* if no obedit: new object and enter editmode */
 	if(obedit==NULL) {
 // XXX		add_object_draw(OB_CURVE);
-		ED_object_base_init_from_view(scene, v3d, BASACT);
+		ED_object_base_init_from_view(NULL, BASACT); // NULL is C
 		obedit= BASACT->object;
 		
 		where_is_object(scene, obedit);
@@ -4558,7 +4561,6 @@ void add_primitiveNurb(Scene *scene, int type)
 {
 	Object *obedit= scene->obedit; // XXX
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	View3D *v3d= NULL; // XXX
 	Nurb *nu;
 	int newname= 0;
 	
@@ -4569,7 +4571,7 @@ void add_primitiveNurb(Scene *scene, int type)
 	/* if no obedit: new object and enter editmode */
 	if(obedit==0) {
 // XXX		add_object_draw(OB_SURF);
-		ED_object_base_init_from_view(scene, v3d, BASACT);
+		ED_object_base_init_from_view(NULL, BASACT); // NULL is C
 		 obedit= BASACT->object;
 		
 		where_is_object(scene, obedit);

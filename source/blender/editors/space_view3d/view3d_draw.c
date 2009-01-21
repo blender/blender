@@ -145,31 +145,35 @@ void circ(float x, float y, float rad)
 
 /* ********* custom clipping *********** */
 
-static void view3d_draw_clipping(View3D *v3d)
+static void view3d_draw_clipping(RegionView3D *rv3d)
 {
-	BoundBox *bb= v3d->clipbb;
+	BoundBox *bb= rv3d->clipbb;
 	
-	UI_ThemeColorShade(TH_BACK, -8);
-	
-	glBegin(GL_QUADS);
-	
-	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
-	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
-	glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
-	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
-	glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
-	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
-	
-	glEnd();
+	if(bb) {
+		UI_ThemeColorShade(TH_BACK, -8);
+		
+		glBegin(GL_QUADS);
+		
+		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
+		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
+		glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
+		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
+		glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
+		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
+		
+		glEnd();
+	}
 }
 
-void view3d_set_clipping(View3D *v3d)
+void view3d_set_clipping(RegionView3D *rv3d)
 {
 	double plane[4];
-	int a;
+	int a, tot=4;
 	
-	for(a=0; a<4; a++) {
-		QUATCOPY(plane, v3d->clip[a]);
+	if(rv3d->viewlock) tot= 6;
+	
+	for(a=0; a<tot; a++) {
+		QUATCOPY(plane, rv3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0+a, plane);
 		glEnable(GL_CLIP_PLANE0+a);
 	}
@@ -179,22 +183,22 @@ void view3d_clr_clipping(void)
 {
 	int a;
 	
-	for(a=0; a<4; a++) {
+	for(a=0; a<6; a++) {
 		glDisable(GL_CLIP_PLANE0+a);
 	}
 }
 
-int view3d_test_clipping(View3D *v3d, float *vec)
+int view3d_test_clipping(RegionView3D *rv3d, float *vec)
 {
 	/* vec in world coordinates, returns 1 if clipped */
 	float view[3];
 	
 	VECCOPY(view, vec);
 	
-	if(0.0f < v3d->clip[0][3] + INPR(view, v3d->clip[0]))
-		if(0.0f < v3d->clip[1][3] + INPR(view, v3d->clip[1]))
-			if(0.0f < v3d->clip[2][3] + INPR(view, v3d->clip[2]))
-				if(0.0f < v3d->clip[3][3] + INPR(view, v3d->clip[3]))
+	if(0.0f < rv3d->clip[0][3] + INPR(view, rv3d->clip[0]))
+		if(0.0f < rv3d->clip[1][3] + INPR(view, rv3d->clip[1]))
+			if(0.0f < rv3d->clip[2][3] + INPR(view, rv3d->clip[2]))
+				if(0.0f < rv3d->clip[3][3] + INPR(view, rv3d->clip[3]))
 					return 0;
 	
 	return 1;
@@ -252,6 +256,7 @@ void make_axis_color(char *col, char *col2, char axis)
 static void drawgrid(ARegion *ar, View3D *v3d)
 {
 	/* extern short bgpicmode; */
+	RegionView3D *rv3d= ar->regiondata;
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
 	char col[3], col2[3];
@@ -259,7 +264,7 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
-	Mat4MulVec4fl(v3d->persmat, vec4);
+	Mat4MulVec4fl(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -273,7 +278,7 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	vec4[0]=vec4[1]=v3d->grid; 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
-	Mat4MulVec4fl(v3d->persmat, vec4);
+	Mat4MulVec4fl(rv3d->persmat, vec4);
 	fx= vec4[0]; 
 	fy= vec4[1]; 
 	fw= vec4[3];
@@ -359,13 +364,15 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	
 	/* center cross */
-	if(v3d->view==3) make_axis_color(col, col2, 'y');
+	if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+		make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'x');
 	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)ar->winx,  y); 
 	
-	if(v3d->view==7) make_axis_color(col, col2, 'y');
+	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+		make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'z');
 	glColor3ubv((GLubyte *)col2);
 
@@ -506,7 +513,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	/* we dont want the clipping for cursor */
 	flag= v3d->flag;
 	v3d->flag= 0;
-	project_short(ar, v3d, give_cursor(scene, v3d), co);
+	project_short(ar, give_cursor(scene, v3d), co);
 	v3d->flag= flag;
 	
 	mx = co[0];
@@ -530,7 +537,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 }
 
 /* Draw a live substitute of the view icon, which is always shown */
-static void draw_view_axis(View3D *v3d)
+static void draw_view_axis(RegionView3D *rv3d)
 {
 	const float k = U.rvisize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
@@ -558,7 +565,7 @@ static void draw_view_axis(View3D *v3d)
 	/* X */
 	vec[0] = vec[3] = 1;
 	vec[1] = vec[2] = 0;
-	QuatMulVecf(v3d->viewquat, vec);
+	QuatMulVecf(rv3d->viewquat, vec);
 	
 	make_axis_color((char *)gridcol, (char *)col, 'x');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -579,7 +586,7 @@ static void draw_view_axis(View3D *v3d)
 	/* Y */
 	vec[1] = vec[3] = 1;
 	vec[0] = vec[2] = 0;
-	QuatMulVecf(v3d->viewquat, vec);
+	QuatMulVecf(rv3d->viewquat, vec);
 	
 	make_axis_color((char *)gridcol, (char *)col, 'y');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -600,7 +607,7 @@ static void draw_view_axis(View3D *v3d)
 	/* Z */
 	vec[2] = vec[3] = 1;
 	vec[1] = vec[0] = 0;
-	QuatMulVecf(v3d->viewquat, vec);
+	QuatMulVecf(rv3d->viewquat, vec);
 	
 	make_axis_color((char *)gridcol, (char *)col, 'z');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
@@ -623,13 +630,16 @@ static void draw_view_axis(View3D *v3d)
 }
 
 
-static void draw_view_icon(View3D *v3d)
+static void draw_view_icon(RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
-	if(v3d->view==7) icon= ICON_AXIS_TOP;
-	else if(v3d->view==1) icon= ICON_AXIS_FRONT;
-	else if(v3d->view==3) icon= ICON_AXIS_SIDE;
+	if( ELEM(rv3d->view, V3D_VIEW_TOP, V3D_VIEW_BOTTOM)) 
+		icon= ICON_AXIS_TOP;
+	else if( ELEM(rv3d->view, V3D_VIEW_FRONT, V3D_VIEW_BACK)) 
+		icon= ICON_AXIS_FRONT;
+	else if( ELEM(rv3d->view, V3D_VIEW_RIGHT, V3D_VIEW_LEFT)) 
+		icon= ICON_AXIS_SIDE;
 	else return ;
 	
 	glEnable(GL_BLEND);
@@ -640,31 +650,38 @@ static void draw_view_icon(View3D *v3d)
 	glDisable(GL_BLEND);
 }
 
-char *view3d_get_name(View3D *v3d)
+static char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 {
 	char *name = NULL;
 	
-	switch (v3d->view) {
-		case 1:
-			if (v3d->persp == V3D_ORTHO)
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
-			else
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
+	switch (rv3d->view) {
+		case V3D_VIEW_FRONT:
+			if (rv3d->persp == V3D_ORTHO) name = "Front Ortho";
+			else name = "Front Persp";
 			break;
-		case 3:
-			if (v3d->persp == V3D_ORTHO)
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
-			else
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
+		case V3D_VIEW_BACK:
+			if (rv3d->persp == V3D_ORTHO) name = "Back Ortho";
+			else name = "Back Persp";
 			break;
-		case 7:
-			if (v3d->persp == V3D_ORTHO)
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
-			else
-				name = (v3d->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
+		case V3D_VIEW_TOP:
+			if (rv3d->persp == V3D_ORTHO) name = "Top Ortho";
+			else name = "Top Persp";
 			break;
+		case V3D_VIEW_BOTTOM:
+			if (rv3d->persp == V3D_ORTHO) name = "Bottom Ortho";
+			else name = "Bottom Persp";
+			break;
+		case V3D_VIEW_RIGHT:
+			if (rv3d->persp == V3D_ORTHO) name = "Right Ortho";
+			else name = "Right Persp";
+			break;
+		case V3D_VIEW_LEFT:
+			if (rv3d->persp == V3D_ORTHO) name = "Left Ortho";
+			else name = "Left Persp";
+			break;
+			
 		default:
-			if (v3d->persp==V3D_CAMOB) {
+			if (rv3d->persp==V3D_CAMOB) {
 				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = v3d->camera->data;
@@ -673,7 +690,7 @@ char *view3d_get_name(View3D *v3d)
 					name = "Object as Camera";
 				}
 			} else { 
-				name = (v3d->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
+				name = (rv3d->persp == V3D_ORTHO) ? "User Ortho" : "User Persp";
 			}
 			break;
 	}
@@ -683,7 +700,8 @@ char *view3d_get_name(View3D *v3d)
 
 static void draw_viewport_name(ARegion *ar, View3D *v3d)
 {
-	char *name = view3d_get_name(v3d);
+	RegionView3D *rv3d= ar->regiondata;
+	char *name = view3d_get_name(v3d, rv3d);
 	char *printable = NULL;
 	
 	if (v3d->localview) {
@@ -841,6 +859,7 @@ static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2
 
 void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
 	
@@ -854,7 +873,7 @@ void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
 		* with multiple keypad presses (ton)
 		*/
 	
-	zoomfac= (M_SQRT2 + v3d->camzoom/50.0);
+	zoomfac= (M_SQRT2 + rv3d->camzoom/50.0);
 	zoomfac= (zoomfac*zoomfac)*0.25;
 	
 	size[0]= size[0]*zoomfac;
@@ -866,8 +885,8 @@ void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
 	viewborder_r->xmax= viewborder_r->xmin + size[0];
 	viewborder_r->ymax= viewborder_r->ymin + size[1];
 	
-	dx= ar->winx*v3d->camdx*zoomfac*2.0f;
-	dy= ar->winy*v3d->camdy*zoomfac*2.0f;
+	dx= ar->winx*rv3d->camdx*zoomfac*2.0f;
+	dy= ar->winy*rv3d->camdy*zoomfac*2.0f;
 	
 	/* apply offset */
 	viewborder_r->xmin-= dx;
@@ -888,15 +907,16 @@ void calc_viewborder(Scene *scene, ARegion *ar, View3D *v3d, rctf *viewborder_r)
 	}
 }
 
-void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar, View3D *v3d)
+void view3d_set_1_to_1_viewborder(Scene *scene, ARegion *ar)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	float size[2];
 	int im_width= (scene->r.size*scene->r.xsch)/100;
 	
 	view3d_get_viewborder_size(scene, ar, size);
 	
-	v3d->camzoom= (sqrt(4.0*im_width/size[0]) - M_SQRT2)*50.0;
-	v3d->camzoom= CLAMPIS(v3d->camzoom, -30, 300);
+	rv3d->camzoom= (sqrt(4.0*im_width/size[0]) - M_SQRT2)*50.0;
+	rv3d->camzoom= CLAMPIS(rv3d->camzoom, -30, 300);
 }
 
 
@@ -1047,6 +1067,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base;
 
 /*for 2.43 release, don't use glext and just define the constant.
@@ -1099,14 +1120,14 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		glDisable(GL_DEPTH_TEST);
 	}
 	
-	if(v3d->flag & V3D_CLIPPING)
-		view3d_set_clipping(v3d);
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_set_clipping(rv3d);
 	
 	G.f |= G_BACKBUFSEL;
 	
 	base= (scene->basact);
 	if(base && (base->lay & v3d->lay)) {
-		draw_object_backbufsel(scene, v3d, base->object);
+		draw_object_backbufsel(scene, v3d, rv3d, base->object);
 	}
 
 	v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
@@ -1116,7 +1137,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
 
-	if(v3d->flag & V3D_CLIPPING)
+	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 
 #ifdef GL_MULTISAMPLE_ARB
@@ -1279,6 +1300,7 @@ exit:
 
 static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	BGpic *bgpic;
 	Image *ima;
 	ImBuf *ibuf= NULL;
@@ -1299,7 +1321,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	if(ibuf->rect==NULL)
 		IMB_rect_from_float(ibuf);
 	
-	if(v3d->persp==2) {
+	if(rv3d->persp==2) {
 		rctf vb;
 		
 		calc_viewborder(scene, ar, v3d, &vb);
@@ -1313,15 +1335,15 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 		float sco[2];
 		
 		/* calc window coord */
-		initgrabz(v3d, 0.0, 0.0, 0.0);
-		window_to_3d(ar, v3d, vec, 1, 0);
+		initgrabz(rv3d, 0.0, 0.0, 0.0);
+		window_to_3d_delta(ar, vec, 1, 0);
 		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
 		fac= 1.0/fac;
 		
 		asp= ( (float)ibuf->y)/(float)ibuf->x;
 		
 		vec[0] = vec[1] = vec[2] = 0.0;
-		view3d_project_float(ar, vec, sco, v3d->persmat);
+		view3d_project_float(ar, vec, sco, rv3d->persmat);
 		cx = sco[0];
 		cy = sco[1];
 		
@@ -1463,6 +1485,7 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
  */
 static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
 {	
+	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
@@ -1523,9 +1546,9 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			}
 			if(use_displist) {
 				wmMultMatrix(dob->mat);
-				if(boundbox_clip(v3d, dob->mat, bb))
+				if(boundbox_clip(rv3d, dob->mat, bb))
 					glCallList(displist);
-				wmLoadMatrix(v3d->viewmat);
+				wmLoadMatrix(rv3d->viewmat);
 			}
 			else {
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
@@ -1562,10 +1585,12 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 
 void view3d_update_depths(ARegion *ar, View3D *v3d)
 {
+	RegionView3D *rv3d= ar->regiondata;
+	
 	/* Create storage for, and, if necessary, copy depth buffer */
-	if(!v3d->depths) v3d->depths= MEM_callocN(sizeof(ViewDepths),"ViewDepths");
-	if(v3d->depths) {
-		ViewDepths *d= v3d->depths;
+	if(!rv3d->depths) rv3d->depths= MEM_callocN(sizeof(ViewDepths),"ViewDepths");
+	if(rv3d->depths) {
+		ViewDepths *d= rv3d->depths;
 		if(d->w != ar->winx ||
 		   d->h != ar->winy ||
 		   !d->depths) {
@@ -1621,6 +1646,7 @@ static void draw_sculpt_depths(Scene *scene, ARegion *ar, View3D *v3d)
 
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 {
+	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	Scene *sce;
 	short zbuf, flag;
@@ -1635,20 +1661,20 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
 	
-	setwinmatrixview3d(v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d);	/* note: calls where_is_object for camera... */
+	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
-	Mat4Invert(v3d->persinv, v3d->persmat);
-	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	Mat4Invert(rv3d->persinv, rv3d->persmat);
+	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	wmLoadMatrix(v3d->viewmat);
+	wmLoadMatrix(rv3d->viewmat);
 //	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 	
-	if(v3d->flag & V3D_CLIPPING) {
-		view3d_set_clipping(v3d);
+	if(rv3d->rflag & RV3D_CLIPPING) {
+		view3d_set_clipping(rv3d);
 	}
 	
 	v3d->zbuf= TRUE;
@@ -1842,8 +1868,8 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;	/* XXX get from region */
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *sce;
 	Base *base;
 	Object *ob;
@@ -1871,27 +1897,27 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 	
-	setwinmatrixview3d(v3d, ar->winx, ar->winy, NULL);	/* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d);	/* note: calls where_is_object for camera... */
+	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
 	
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3d->winmat);
-	Mat4Invert(v3d->persinv, v3d->persmat);
-	Mat4Invert(v3d->viewinv, v3d->viewmat);
+	Mat4MulMat4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	Mat4Invert(rv3d->persinv, rv3d->persmat);
+	Mat4Invert(rv3d->viewinv, rv3d->viewmat);
 	
 	/* calculate pixelsize factor once, is used for lamps and obcenters */
 	{
 		float len1, len2, vec[3];
 		
-		VECCOPY(vec, v3d->persinv[0]);
+		VECCOPY(vec, rv3d->persinv[0]);
 		len1= Normalize(vec);
-		VECCOPY(vec, v3d->persinv[1]);
+		VECCOPY(vec, rv3d->persinv[1]);
 		len2= Normalize(vec);
 		
-		v3d->pixsize= 2.0f*(len1>len2?len1:len2);
+		rv3d->pixsize= 2.0f*(len1>len2?len1:len2);
 		
 		/* correct for window size */
-		if(ar->winx > ar->winy) v3d->pixsize/= (float)ar->winx;
-		else v3d->pixsize/= (float)ar->winy;
+		if(ar->winx > ar->winy) rv3d->pixsize/= (float)ar->winx;
+		else rv3d->pixsize/= (float)ar->winy;
 	}
 	
 	if(v3d->drawtype > OB_WIRE) {
@@ -1909,10 +1935,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	}
 	
-	wmLoadMatrix(v3d->viewmat);
+	wmLoadMatrix(rv3d->viewmat);
 	
-	if(v3d->flag & V3D_CLIPPING)
-		view3d_draw_clipping(v3d);
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_draw_clipping(rv3d);
 	
 	/* set zbuffer after we draw clipping region */
 	if(v3d->drawtype > OB_WIRE) {
@@ -1923,9 +1949,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	v3d->gridview= v3d->grid;
 	
-	if(v3d->view==0 || v3d->persp!=0) {
+	if(rv3d->view==0 || rv3d->persp!=0) {
 		drawfloor(scene, v3d);
-		if(v3d->persp==2) {
+		if(rv3d->persp==2) {
 			if(scene->world) {
 				if(scene->world->mode & WO_STARS) {
 					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
@@ -1940,17 +1966,17 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		drawgrid(ar, v3d);
 		/* XXX make function? replaces persp(1) */
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(v3d->winmat);
+		wmLoadMatrix(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(v3d->viewmat);
+		wmLoadMatrix(rv3d->viewmat);
 		
 		if(v3d->flag & V3D_DISPBGPIC) {
 			draw_bgpic(scene, ar, v3d);
 		}
 	}
 	
-	if(v3d->flag & V3D_CLIPPING)
-		view3d_set_clipping(v3d);
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_set_clipping(rv3d);
 	
 	/* draw set first */
 	if(scene->set) {
@@ -2020,7 +2046,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	if(v3d->flag & V3D_CLIPPING)
+	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
 //	BIF_draw_manipulator(ar);
@@ -2043,8 +2069,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* Draw particle edit brush XXX (removed) */
 	
-	if(v3d->persp>1) drawviewborder(scene, ar, v3d);
-	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode(ar);
+	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
+	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
 	
 	/* draw grease-pencil stuff */
 //	if (v3d->flag2 & V3D_DISPGP)
@@ -2053,9 +2079,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	drawcursor(scene, ar, v3d);
 	
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
-		draw_view_axis(v3d);
+		draw_view_axis(rv3d);
 	else	
-		draw_view_icon(v3d);
+		draw_view_icon(rv3d);
 	
 	/* XXX removed viewport fps */
 	if(U.uiflag & USER_SHOW_VIEWPORTNAME) {

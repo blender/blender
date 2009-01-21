@@ -1053,8 +1053,9 @@ void calculateCenter(TransInfo *t)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;
+			RegionView3D *rv3d = t->ar->regiondata;
 			
-			if(v3d->camera == OBACT && v3d->persp==V3D_CAMOB)
+			if(v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 			{
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
@@ -1080,17 +1081,17 @@ void calculateCenter(TransInfo *t)
 
 	if(t->spacetype==SPACE_VIEW3D)
 	{
-		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
+		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d_delta() */
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			float vec[3];
 			
 			VECCOPY(vec, t->center);
 			Mat4MulVecfl(ob->obmat, vec);
-			initgrabz(t->view, vec[0], vec[1], vec[2]);
+			initgrabz(t->ar->regiondata, vec[0], vec[1], vec[2]);
 		}
 		else {
-			initgrabz(t->view, t->center[0], t->center[1], t->center[2]);
+			initgrabz(t->ar->regiondata, t->center[0], t->center[1], t->center[2]);
 		} 
 	}
 }
@@ -1200,23 +1201,24 @@ TransInfo *BIF_GetTransInfo()
 	return NULL;
 }
 
-float get_drawsize(View3D *v3d, ScrArea *sa, float *co)
+float get_drawsize(ARegion *ar, float *co)
 {
+	RegionView3D *rv3d= ar->regiondata;
 	float size, vec[3], len1, len2;
 	
 	/* size calculus, depending ortho/persp settings, like initgrabz() */
-	size= v3d->persmat[0][3]*co[0]+ v3d->persmat[1][3]*co[1]+ v3d->persmat[2][3]*co[2]+ v3d->persmat[3][3];
+	size= rv3d->persmat[0][3]*co[0]+ rv3d->persmat[1][3]*co[1]+ rv3d->persmat[2][3]*co[2]+ rv3d->persmat[3][3];
 	
-	VECCOPY(vec, v3d->persinv[0]);
+	VECCOPY(vec, rv3d->persinv[0]);
 	len1= Normalize(vec);
-	VECCOPY(vec, v3d->persinv[1]);
+	VECCOPY(vec, rv3d->persinv[1]);
 	len2= Normalize(vec);
 	
 	size*= 0.01f*(len1>len2?len1:len2);
 
 	/* correct for window size to make widgets appear fixed size */
-	if(sa->winx > sa->winy) size*= 1000.0f/(float)sa->winx;
-	else size*= 1000.0f/(float)sa->winy;
+	if(ar->winx > ar->winy) size*= 1000.0f/(float)ar->winx;
+	else size*= 1000.0f/(float)ar->winy;
 
 	return size;
 }

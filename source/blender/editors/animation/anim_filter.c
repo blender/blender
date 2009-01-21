@@ -49,6 +49,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
@@ -147,8 +148,8 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 		case SACTCONT_ACTION: /* 'Action Editor' */
 			/* if not pinned, sync with active object */
 			if (saction->pin == 0) {
-				if (ac->obact)
-					saction->action = ac->obact->action;
+				if (ac->obact && ac->obact->adt)
+					saction->action = ac->obact->adt->action;
 				else
 					saction->action= NULL;
 			}
@@ -269,6 +270,9 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 /* ************************************************************ */
 /* Blender Data <-- Filter --> Channels to be operated on */
 
+/* quick macro to test if AnimData is usable */
+#define ANIMDATA_HAS_KEYS(id) ((id)->adt && (id)->adt->action)
+
 /* ----------- 'Private' Stuff --------------- */
 
 /* this function allocates memory for a new bAnimListElem struct for the 
@@ -288,9 +292,9 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		ale->owner= owner;
 		ale->ownertype= ownertype;
 		
-		if ((owner) && (ownertype == ANIMTYPE_ACHAN)) {
-			bActionChannel *ochan= (bActionChannel *)owner;
-			ale->grp= ochan->grp;
+		if ((owner) && (ownertype == ANIMTYPE_FCURVE)) {
+			FCurve *ofcu= (FCurve *)owner;
+			ale->grp= ofcu->grp;
 		}
 		else 
 			ale->grp= NULL;
@@ -318,26 +322,6 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_ACT;
 			}
 				break;
-			case ANIMTYPE_FILLIPOD:
-			{
-				Object *ob= (Object *)data;
-				
-				ale->flag= FILTER_IPO_OBJC(ob);
-				
-				ale->key_data= ob->ipo;
-				ale->datatype= ALE_IPO;
-			}
-				break;
-			case ANIMTYPE_FILLCOND:
-			{
-				Object *ob= (Object *)data;
-				
-				ale->flag= FILTER_CON_OBJC(ob);
-				
-				ale->key_data= NULL;
-				ale->datatype= ALE_NONE;
-			}
-				break;
 			case ANIMTYPE_FILLMATD:
 			{
 				Object *ob= (Object *)data;
@@ -352,51 +336,56 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 			case ANIMTYPE_DSMAT:
 			{
 				Material *ma= (Material *)data;
+				AnimData *adt= ma->adt;
 				
 				ale->flag= FILTER_MAT_OBJD(ma);
 				
-				ale->key_data= ma->ipo;
-				ale->datatype= ALE_IPO;
+				ale->key_data= adt->action;
+				ale->datatype= ALE_ACT;
 			}
 				break;
 			case ANIMTYPE_DSLAM:
 			{
 				Lamp *la= (Lamp *)data;
+				AnimData *adt= la->adt;
 				
 				ale->flag= FILTER_LAM_OBJD(la);
 				
-				ale->key_data= la->ipo;
-				ale->datatype= ALE_IPO;
+				ale->key_data= adt->action;
+				ale->datatype= ALE_ACT;
 			}
 				break;
 			case ANIMTYPE_DSCAM:
 			{
 				Camera *ca= (Camera *)data;
+				AnimData *adt= ca->adt;
 				
 				ale->flag= FILTER_CAM_OBJD(ca);
 				
-				ale->key_data= ca->ipo;
-				ale->datatype= ALE_IPO;
+				ale->key_data= adt->action;
+				ale->datatype= ALE_ACT;
 			}
 				break;
 			case ANIMTYPE_DSCUR:
 			{
 				Curve *cu= (Curve *)data;
+				AnimData *adt= cu->adt;
 				
 				ale->flag= FILTER_CUR_OBJD(cu);
 				
-				ale->key_data= cu->ipo;
-				ale->datatype= ALE_IPO;
+				ale->key_data= adt->action;
+				ale->datatype= ALE_ACT;
 			}
 				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
+				AnimData *adt= key->adt;
 				
-				ale->flag= FILTER_SKE_OBJD(key);
+				ale->flag= FILTER_SKE_OBJD(key); 
 				
-				ale->key_data= key->ipo;
-				ale->datatype= ALE_IPO;
+				ale->key_data= adt->action;
+				ale->datatype= ALE_ACT;
 			}
 				break;
 				
@@ -410,86 +399,14 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_GROUP;
 			}
 				break;
-			case ANIMTYPE_ACHAN:
+			case ANIMTYPE_FCURVE:
 			{
-				bActionChannel *achan= (bActionChannel *)data;
+				FCurve *fcu= (FCurve *)data;
 				
-				ale->flag= achan->flag;
+				ale->flag= fcu->flag;
 				
-				if (achan->ipo) {
-					ale->key_data= achan->ipo;
-					ale->datatype= ALE_IPO;
-				}
-				else {
-					ale->key_data= NULL;
-					ale->datatype= ALE_NONE;
-				}
-			}	
-				break;
-			case ANIMTYPE_CONCHAN:
-			case ANIMTYPE_CONCHAN2:
-			{
-				bConstraintChannel *conchan= (bConstraintChannel *)data;
-				
-				ale->flag= conchan->flag;
-				
-				if (datatype == ANIMTYPE_CONCHAN2) {
-					/* CONCHAN2 is a hack so that constraint-channels keyframes can be edited */
-					if (conchan->ipo) {
-						ale->key_data= conchan->ipo;
-						ale->datatype= ALE_IPO;
-					}
-					else {
-						ale->key_data= NULL;
-						ale->datatype= ALE_NONE;
-					}
-				}
-				else {
-					if ((conchan->ipo) && (conchan->ipo->curve.first)) {
-						/* we assume that constraint ipo blocks only have 1 curve:
-						 * INFLUENCE, so we pretend that a constraint channel is 
-						 * really just a Ipo-Curve channel instead.
-						 */
-						ale->key_data= conchan->ipo->curve.first;
-						ale->datatype= ALE_ICU;
-					}
-					else {
-						ale->key_data= NULL;
-						ale->datatype= ALE_NONE;
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_ICU:
-			{
-				IpoCurve *icu= (IpoCurve *)data;
-				
-				ale->flag= icu->flag;
-				
-				ale->key_data= icu;
-				ale->datatype= ALE_ICU;
-			}
-				break;
-			case ANIMTYPE_FILLIPO:
-			case ANIMTYPE_FILLCON:
-			{
-				bActionChannel *achan= (bActionChannel *)data;
-				
-				if (datatype == ANIMTYPE_FILLIPO)
-					ale->flag= FILTER_IPO_ACHAN(achan);
-				else
-					ale->flag= FILTER_CON_ACHAN(achan);
-					
-				ale->key_data= NULL;
-				ale->datatype= ALE_NONE;
-			}
-				break;
-			case ANIMTYPE_IPO:
-			{
-				ale->flag= 0;
-				
-				ale->key_data= data;
-				ale->datatype= ALE_IPO;
+				ale->key_data= fcu;
+				ale->datatype= ALE_FCURVE;
 			}
 				break;
 			
@@ -512,21 +429,23 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
-// FIXME: use this...
-static int animdata_filter_ipocurves (ListBase *anim_data, Ipo *ipo, int filter_mode, void *owner, short ownertype, ID *owner_id)
+
+static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
 	bAnimListElem *ale = NULL;
-	IpoCurve *icu;
+	FCurve *fcu;
 	int items = 0;
 	
-	/* loop over ipo curves - assume that the caller of this has already checked that these should be included */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
+	/* loop over F-Curves - assume that the caller of this has already checked that these should be included 
+	 * NOTE: we need to check if the F-Curves belong to the same group, as this gets called for groups too...
+	 */
+	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
 		/* only work with this channel and its subchannels if it is editable */
-		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_ICU(icu)) {
-			/* only include this curve if selected or we are including all IPO-curves */
-			if (!(filter_mode & ANIMFILTER_SEL) || (filter_mode & ANIMFILTER_ONLYFCU) || (SEL_ICU(icu))) {
+		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
+			/* only include this curve if selected */
+			if (!(filter_mode & ANIMFILTER_SEL) || (SEL_FCU(fcu))) {
 				/* owner/ownertype will be either object or action-channel, depending if it was dopesheet or part of an action */
-				ale= make_new_animlistelem(icu, ANIMTYPE_ICU, owner, ownertype);
+				ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, fcu, ANIMTYPE_FCURVE);
 				
 				if (ale) {
 					/* ID will only be Object if data to write to directly belongs there, otherwise, another pointer will be used */
@@ -542,127 +461,19 @@ static int animdata_filter_ipocurves (ListBase *anim_data, Ipo *ipo, int filter_
 	return items;
 }
 
-static int animdata_filter_actionchannel (ListBase *anim_data, bActionChannel *achan, int filter_mode, void *owner, short ownertype)
-{
-	bAnimListElem *ale = NULL;
-	bConstraintChannel *conchan;
-	short owned= (owner && ownertype)? 1 : 0;
-	int items = 0;
-	
-	/* only work with this channel and its subchannels if it is visible */
-	if (!(filter_mode & ANIMFILTER_VISIBLE) || VISIBLE_ACHAN(achan)) {
-		/* only work with this channel and its subchannels if it is editable */
-		if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_ACHAN(achan)) {
-			/* check if this achan should only be included if it is selected */
-			if (!(filter_mode & ANIMFILTER_SEL) || SEL_ACHAN(achan)) {
-				/* are we only interested in the ipo-curves? */
-				if ((filter_mode & ANIMFILTER_ONLYFCU)==0) {
-					ale= make_new_animlistelem(achan, ANIMTYPE_ACHAN, achan, ANIMTYPE_ACHAN);
-					
-					if (ale) {
-						if (owned) ale->id= owner;
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-			}
-			else {
-				/* for insert key... this check could be improved */
-				//return;  // FIXME...
-			}
-			
-			/* check if expanded - if not, continue on to next animion channel */
-			if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ANIMFILTER_ONLYFCU)==0) {
-				/* only exit if we don't need to include constraint channels for group-channel keyframes */
-				if ( !(filter_mode & ANIMFILTER_IPOKEYS) || (achan->grp == NULL) || (EXPANDED_AGRP(achan->grp)==0) )
-					return items;
-			}
-				
-			/* ipo channels */
-			if ((achan->ipo) && (filter_mode & ANIMFILTER_IPOKEYS)==0) {
-				/* include ipo-expand widget? */
-				if ((filter_mode & ANIMFILTER_CHANNELS) && (filter_mode & ANIMFILTER_ONLYFCU)==0) {
-					ale= make_new_animlistelem(achan, ANIMTYPE_FILLIPO, achan, ANIMTYPE_ACHAN);
-					
-					if (ale) {
-						if (owned) ale->id= owner;
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-				
-				/* add ipo-curve channels? */
-				if (FILTER_IPO_ACHAN(achan) || (filter_mode & ANIMFILTER_ONLYFCU)) {
-					/* loop through ipo-curve channels, adding them */
-					items += animdata_filter_ipocurves(anim_data, achan->ipo, filter_mode, achan, ANIMTYPE_ACHAN, (owned)?(owner):(NULL));
-				}
-			}
-			
-			/* constraint channels */
-			if (achan->constraintChannels.first) {
-				/* include constraint-expand widget? */
-				if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYFCU)
-					 && !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-				{
-					ale= make_new_animlistelem(achan, ANIMTYPE_FILLCON, achan, ANIMTYPE_ACHAN);
-					
-					if (ale) {
-						if (owned) ale->id= owner;
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
-				}
-				
-				/* add constraint channels? */
-				if (FILTER_CON_ACHAN(achan) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
-					/* loop through constraint channels, checking and adding them */
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-						/* only work with this channel and its subchannels if it is editable */
-						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
-							/* check if this conchan should only be included if it is selected */
-							if (!(filter_mode & ANIMFILTER_SEL) || SEL_CONCHAN(conchan)) {
-								if (filter_mode & ANIMFILTER_IPOKEYS) {
-									ale= make_new_animlistelem(conchan, ANIMTYPE_CONCHAN2, achan, ANIMTYPE_ACHAN);
-									
-									if (ale) {
-										if (owned) ale->id= owner;
-										BLI_addtail(anim_data, ale);
-										items++;
-									}
-								}
-								else {
-									ale= make_new_animlistelem(conchan, ANIMTYPE_CONCHAN, achan, ANIMTYPE_ACHAN);
-									
-									if (ale) {
-										if (owned) ale->id= owner;
-										BLI_addtail(anim_data, ale);
-										items++;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}		
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
-
 static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter_mode, void *owner, short ownertype)
 {
 	bAnimListElem *ale=NULL;
 	bActionGroup *agrp;
-	bActionChannel *achan, *lastchan=NULL;
+	FCurve *lastchan=NULL;
 	short owned= (owner && ownertype) ? 1 : 0;
 	int items = 0;
 	
 	/* loop over groups */
+	//	 XXX in future, we need to be prepared for nestled groups...
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* add this group as a channel first */
-		if (!(filter_mode & ANIMFILTER_ONLYFCU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
+		if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 			/* check if filtering by selection */
 			if ( !(filter_mode & ANIMFILTER_SEL) || SEL_AGRP(agrp) ) {
 				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE);
@@ -685,19 +496,18 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 			 *	- groups show a "summary" of keyframes beside their name which must accessable for tools which handle keyframes
 			 *	- groups can be collapsed (and those tools which are only interested in channels rely on knowing that group is closed)
 			 *
-			 * cases when we should include animion-channels and so-forth inside group:
+			 * cases when we should include F-Curves inside group:
 			 *	- we don't care about visibility
 			 *	- group is expanded
 			 *	- we're interested in keyframes, but not if they appear in selected channels
 			 */
 			if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || 
-				 ( ((filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-				   (!(filter_mode & ANIMFILTER_SEL) || (SEL_AGRP(agrp))) ) ) 
+				 ( (!(filter_mode & ANIMFILTER_SEL) || (SEL_AGRP(agrp))) && 
+				   (filter_mode & ANIMFILTER_CURVESONLY) ) ) 
 			{
-				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {					
-					for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-						items += animdata_filter_actionchannel(anim_data, achan, filter_mode, owner, ownertype);
-					}
+				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
+					// XXX the 'owner' info here needs review...
+					items += animdata_filter_fcurves(anim_data, agrp->channels.first, agrp, filter_mode, ((owned)?owner:NULL));
 					
 					/* remove group from filtered list if last element is group 
 					 * (i.e. only if group had channels, which were all hidden)
@@ -714,11 +524,10 @@ static int animdata_filter_action (ListBase *anim_data, bAction *act, int filter
 		}
 	}
 	
-	/* loop over un-grouped animion channels (only if we're not only considering those channels in the animive group) */
+	/* loop over un-grouped F-Curves (only if we're not only considering those channels in the animive group) */
 	if (!(filter_mode & ANIMFILTER_ACTGROUPED))  {
-		for (achan=(lastchan)?(lastchan->next):(act->chanbase.first); achan; achan=achan->next) {
-			items += animdata_filter_actionchannel(anim_data, achan, filter_mode, owner, ownertype);
-		}
+		// XXX the 'owner' info here needs review...
+		items += animdata_filter_fcurves(anim_data, (lastchan)?(lastchan->next):(act->curves.first), NULL, filter_mode, ((owned)?owner:NULL));
 	}
 	
 	/* return the number of items added to the list */
@@ -729,12 +538,12 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 {
 	bAnimListElem *ale;
 	KeyBlock *kb;
-	IpoCurve *icu;
+	//FCurve *fcu;
 	short owned= (owner && ownertype)? 1 : 0;
 	int i, items=0;
 	
 	/* are we filtering for display or editing */
-	if (filter_mode & ANIMFILTER_FORDRAWING) {
+	if (filter_mode & ANIMFILTER_CHANNELS) {
 		/* for display - loop over shapekeys, adding ipo-curve references where needed */
 		kb= key->block.first;
 		
@@ -750,6 +559,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 			ale->datatype= ALE_NONE;
 			ale->index = i;
 			
+#if 0 // XXX fixme... old system
 			if (key->ipo) {
 				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
 					if (icu->adrcode == i) {
@@ -759,6 +569,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 					}
 				}
 			}
+#endif // XXX fixme... old system
 			
 			if (owned) ale->id= owner;
 			
@@ -767,6 +578,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 		}
 	}
 	else {
+#if 0 // XXX fixme... old system
 		/* loop over ipo curves if present - for editing */
 		if (key->ipo) {
 			if (filter_mode & ANIMFILTER_IPOKEYS) {
@@ -781,6 +593,7 @@ static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_m
 				items += animdata_filter_ipocurves(anim_data, key->ipo, filter_mode, key, ANIMTYPE_SHAPEKEY, (owned)?(owner):(NULL));
 			}
 		}
+#endif // XXX fixme... old system
 	}
 	
 	/* return the number of items added to the list */
@@ -798,7 +611,6 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 	int items = 0;
 	
 	/* check if filtering types are appropriate */
-	if ( !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU|ANIMFILTER_ACTGROUPED)) ) 
 	{
 		/* special hack for fullscreen area (which must be this one then):
 		 * 	- we use the curarea->full as screen to get spaces from, since the
@@ -817,7 +629,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 			if (gpd == NULL) continue;
 			
 			/* add gpd as channel too (if for drawing, and it has layers) */
-			if ((filter_mode & ANIMFILTER_FORDRAWING) && (gpd->layers.first)) {
+			if ((filter_mode & ANIMFILTER_CHANNELS) && (gpd->layers.first)) {
 				/* add to list */
 				ale= make_new_animlistelem(gpd, ANIMTYPE_GPDATABLOCK, sa, ANIMTYPE_SPECIALDATA);
 				if (ale) {
@@ -852,6 +664,7 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 }
 #endif 
 
+#if 0 // XXX old anim sys
 static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
@@ -982,17 +795,18 @@ static int animdata_filter_dopesheet_curve (ListBase *anim_data, bDopeSheet *ads
 	/* return the number of items added to the list */
 	return items;
 }
+#endif // XXX old anim sys
 
 static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
 	Scene *sce= (Scene *)ads->source;
 	Object *ob= base->object;
-	Key *key= ob_get_key(ob);
+//	Key *key= ob_get_key(ob);
 	int items = 0;
 	
 	/* add this object as a channel first */
-	if (!(filter_mode & ANIMFILTER_ONLYFCU) && !(filter_mode & ANIMFILTER_IPOKEYS)) {
+	if ((filter_mode & ANIMFILTER_CURVESONLY) == 0) {
 		/* check if filtering by selection */
 		if ( !(filter_mode & ANIMFILTER_SEL) || ((base->flag & SELECT) || (base == sce->basact)) ) {
 			ale= make_new_animlistelem(base, ANIMTYPE_OBJECT, NULL, ANIMTYPE_NONE);
@@ -1004,33 +818,16 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	
 	/* if collapsed, don't go any further (unless adding keyframes only) */
-	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU)) )
+	if ( (EXPANDED_OBJC(ob) == 0) && !(filter_mode & ANIMFILTER_CURVESONLY) )
 		return items;
 	
-	/* IPO? */
-	if ((ob->ipo) && !(ads->filterflag & ADS_FILTER_NOIPOS)) {		
-		/* include ipo-expand widget? */
-		if (filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_IPOKEYS)) {
-			ale= make_new_animlistelem(ob, ANIMTYPE_FILLIPOD, base, ANIMTYPE_OBJECT);
-			if (ale) {
-				BLI_addtail(anim_data, ale);
-				items++;
-			}
-		}
-		
-		/* add ipo-curve channels? */
-		if ( (FILTER_IPO_OBJC(ob) || (filter_mode & ANIMFILTER_ONLYFCU)) && 
-			  !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-		{
-			items += animdata_filter_ipocurves(anim_data, ob->ipo, filter_mode, base, ANIMTYPE_OBJECT, NULL); // err... why not set ob?
-		}
-	}
-	
 	/* Action? */
-	if ((ob->action) && !(ads->filterflag & ADS_FILTER_NOACTS)) {
-		/* include animion-expand widget? */
-		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_IPOKEYS|ANIMFILTER_ONLYFCU))) {
-			ale= make_new_animlistelem(ob->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT);
+	if (ANIMDATA_HAS_KEYS(ob) /*&& !(ads->filterflag & ADS_FILTER_NOACTS)*/) {
+		AnimData *adt= ob->adt;
+		
+		/* include action-expand widget? */
+		if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & (ANIMFILTER_CURVESONLY))) {
+			ale= make_new_animlistelem(adt->action, ANIMTYPE_FILLACTD, base, ANIMTYPE_OBJECT);
 			if (ale) {
 				ale->id= (ID *)ob; // err.... is this a good idea?
 				BLI_addtail(anim_data, ale);
@@ -1038,13 +835,14 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			}
 		}
 		
-		/* add ipo-curve channels? */
-		if (EXPANDED_ACTC(ob->action) || !(filter_mode & (ANIMFILTER_CHANNELS|ANIMFILTER_FORDRAWING))) {
+		/* add F-Curve channels? */
+		if (EXPANDED_ACTC(adt->action) || !(filter_mode & ANIMFILTER_CHANNELS)) {
 			// need to make the ownertype normal object here... (maybe type should be a separate one for clarity?)
-			items += animdata_filter_action(anim_data, ob->action, filter_mode, ob, ANIMTYPE_OBJECT); 
+			items += animdata_filter_action(anim_data, adt->action, filter_mode, ob, ANIMTYPE_OBJECT); 
 		}
 	}
 	
+#if 0 // XXX fixme... 
 	/* ShapeKeys? */
 	if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 		/* include shapekey-expand widget? */
@@ -1090,51 +888,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 			break;
 	}
-	
-	/* Constraint Channels? */
-	if ((ob->constraintChannels.first) && !(ads->filterflag & ADS_FILTER_NOCONSTRAINTS)) {
-		bConstraintChannel *conchan;
-		
-		/* include constraint-expand widget? */
-		if ( (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_ONLYFCU)
-			 && !(filter_mode & ANIMFILTER_IPOKEYS) ) 
-		{
-			ale= make_new_animlistelem(ob, ANIMTYPE_FILLCOND, base, ANIMTYPE_OBJECT);
-			if (ale) {
-				BLI_addtail(anim_data, ale);
-				items++;
-			}
-		}
-		
-		/* add constraint channels? */
-		if (FILTER_CON_OBJC(ob) || (filter_mode & ANIMFILTER_IPOKEYS) || (filter_mode & ANIMFILTER_ONLYFCU)) {
-			/* loop through constraint channels, checking and adding them */
-			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next) {
-				/* only work with this channel and its subchannels if it is editable */
-				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_CONCHAN(conchan)) {
-					/* check if this conchan should only be included if it is selected */
-					if (!(filter_mode & ANIMFILTER_SEL) || SEL_CONCHAN(conchan)) {
-						if (filter_mode & ANIMFILTER_IPOKEYS) {
-							ale= make_new_animlistelem(conchan, ANIMTYPE_CONCHAN2, base, ANIMTYPE_OBJECT);
-							if (ale) {
-								ale->id= (ID *)ob;
-								BLI_addtail(anim_data, ale);
-								items++;
-							}
-						}
-						else {
-							ale= make_new_animlistelem(conchan, ANIMTYPE_CONCHAN, base, ANIMTYPE_OBJECT);
-							if (ale) {
-								ale->id= (ID *)ob;
-								BLI_addtail(anim_data, ale);
-								items++;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+#endif // XXX fixme...
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1159,7 +913,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short ipoOk, actOk, constsOk, keyOk, dataOk;
+			short actOk, keyOk, dataOk;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1192,28 +946,26 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				}
 				
 				/* check filters for datatypes */
-				ipoOk= ((ob->ipo) && !(ads->filterflag & ADS_FILTER_NOIPOS));
-				actOk= ((ob->action) && !(ads->filterflag & ADS_FILTER_NOACTS));
-				constsOk= ((ob->constraintChannels.first) && !(ads->filterflag & ADS_FILTER_NOCONSTRAINTS));
+				actOk= (ANIMDATA_HAS_KEYS(ob) /*&& !(ads->filterflag & ADS_FILTER_NOACTS)*/);
 				keyOk= ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS));
 				
 				switch (ob->type) {
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
 						Camera *ca= (Camera *)ob->data;
-						dataOk= ((ca->ipo) && !(ads->filterflag & ADS_FILTER_NOCAM));						
+						dataOk= (ANIMDATA_HAS_KEYS(ca) && !(ads->filterflag & ADS_FILTER_NOCAM));						
 					}
 						break;
 					case OB_LAMP: /* ---------- Lamp ----------- */
 					{
 						Lamp *la= (Lamp *)ob->data;
-						dataOk= ((la->ipo) && !(ads->filterflag & ADS_FILTER_NOLAM));
+						dataOk= (ANIMDATA_HAS_KEYS(la) && !(ads->filterflag & ADS_FILTER_NOLAM));
 					}
 						break;
 					case OB_CURVE: /* -------- Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
-						dataOk= ((cu->ipo) && !(ads->filterflag & ADS_FILTER_NOCUR));
+						dataOk= (ANIMDATA_HAS_KEYS(cu) && !(ads->filterflag & ADS_FILTER_NOCUR));
 					}
 						break;
 					default: /* --- other --- */
@@ -1222,33 +974,31 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				}
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!ipoOk && !actOk && !constsOk && !keyOk && !dataOk)
+				if (!actOk && !keyOk && !dataOk)
 					continue;
 			}
 			else {
 				/* check data-types */
-				ipoOk= (ob->ipo != NULL);
-				actOk= (ob->action != NULL);
-				constsOk= (ob->constraintChannels.first != NULL);
+				actOk= ANIMDATA_HAS_KEYS(ob);
 				keyOk= (key != NULL);
 				
 				switch (ob->type) {
 					case OB_CAMERA: /* ------- Camera ------------ */
 					{
 						Camera *ca= (Camera *)ob->data;
-						dataOk= (ca->ipo != NULL);						
+						dataOk= ANIMDATA_HAS_KEYS(ca);						
 					}
 						break;
 					case OB_LAMP: /* ---------- Lamp ----------- */
 					{
 						Lamp *la= (Lamp *)ob->data;
-						dataOk= (la->ipo != NULL);
+						dataOk= ANIMDATA_HAS_KEYS(la);
 					}
 						break;
 					case OB_CURVE: /* -------- Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
-						dataOk= (cu->ipo != NULL);
+						dataOk= ANIMDATA_HAS_KEYS(cu);
 					}
 						break;
 					default: /* --- other --- */
@@ -1257,7 +1007,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				}
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!ipoOk && !actOk && !constsOk && !keyOk && !dataOk)
+				if (!actOk && !keyOk && !dataOk)
 					continue;
 			}
 			
@@ -1316,17 +1066,6 @@ int ANIM_animdata_filter (ListBase *anim_data, int filter_mode, void *data, shor
 			if (ale->type == ANIMTYPE_NONE) {
 				items--;
 				BLI_freelinkN(anim_data, ale);
-			}
-			
-			if (filter_mode & ANIMFILTER_IPOKEYS) {
-				if (ale->datatype != ALE_IPO) {
-					items--;
-					BLI_freelinkN(anim_data, ale);
-				}
-				else if (ale->key_data == NULL) {
-					items--;
-					BLI_freelinkN(anim_data, ale);
-				}
 			}
 		}
 	}

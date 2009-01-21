@@ -210,6 +210,7 @@ int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		
 void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, short immediate, float imperc);
 
+void MESH_OT_subdivs(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
 void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);

@@ -71,80 +71,37 @@ typedef struct BGpic {
 
 /* ********************************* */
 
-/* 3D ViewPort Struct */
-typedef struct View3D {
-	struct SpaceLink *next, *prev;
-	ListBase regionbase;		/* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale;
+typedef struct RegionView3D {
 	
-	short blockhandler[8];
-
 	float winmat[4][4];
 	float viewmat[4][4];
 	float viewinv[4][4];
 	float persmat[4][4];
 	float persinv[4][4];
-	
-	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
-	int lay_used; /* used while drawing */
+	float twmat[4][4];	/* transform widget */
 
+	float viewquat[4], dist, zfac;	/* zfac is initgrabz() result */
+	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
+	float pixsize;
+	float ofs[3];
+	short camzoom, viewbut;
+	int pad1;
+	
+	short rflag, viewlock;
 	short persp;
 	short view;
-
-	struct Object *camera, *ob_centre;
-	struct BGpic *bgpic;
-	struct View3D *localvd;
+	
+	/* user defined clipping planes */
+	float clip[6][4];
+	struct BoundBox *clipbb;	
+	
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
+	
+	struct RegionView3D *localvd;
 	struct RenderInfo *ri;
 	struct RetopoViewData *retopo_view_data;
 	struct ViewDepths *depths;
 	
-	char ob_centre_bone[32];		/* optional string for armature bone to define center */
-	
-	/**
-	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURE */
-	short drawtype;
-	short localview;
-	int lay, layact;
-	short scenelock, around, camzoom;
-	
-	char pivot_last, pad1; /* pivot_last is for rotating around the last edited element */
-	
-	float lens, grid, gridview, pixsize, near, far;
-	float camdx, camdy;		/* camera view offsets, 1.0 = viewplane moves entire width/height */
-	float ofs[3], cursor[3];
-
-	short gridlines, viewbut;
-	short gridflag;
-	short modeselect, menunr, texnr;
-	
-	/* transform widget info */
-	short twtype, twmode, twflag, twdrawflag;
-	float twmat[4][4];
-	
-	/* user defined clipping planes */
-	float clip[4][4];
-	
-	struct BoundBox *clipbb;
-	
-	/* afterdraw, for xray & transparent */
-	struct ListBase afterdraw;
-	/* drawflags, denoting state */
-	short zbuf, transp, xray;
-
-	short flag, flag2;
-	
-	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
-	
-	short keyflags;		/* flags for display of keyframes */
-	
-	char ndofmode;	/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
-	char ndoffilter;		/*filter for 6DOF devices 0 normal, 1 dominant */
-	
-	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
-	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
-
 	/* animated smooth view */
 	struct SmoothViewStore *sms;
 	struct wmTimer *smooth_timer;
@@ -152,11 +109,76 @@ typedef struct View3D {
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;
+	int pad3;
+	
+} RegionView3D;
+
+/* 3D ViewPort Struct */
+typedef struct View3D {
+	struct SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;
+	short blockhandler[8];
+	
+	float viewquat[4], dist, pad1;	/* XXX depricated */
+	
+	int lay_used; /* used while drawing */
+	
+	short persp;	/* XXX depricated */
+	short view;	/* XXX depricated */
+	
+	struct Object *camera, *ob_centre;
+	struct BGpic *bgpic;
+	struct View3D *localvd;
+	
+	char ob_centre_bone[32];		/* optional string for armature bone to define center */
+	
+	int lay, layact;
+	
+	/**
+	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
+	 * OB_SHADED or OB_TEXTURE */
+	short drawtype;
+	short localview;
+	short scenelock, around, pad3;
+	short flag, flag2;
+	
+	short pivot_last; /* pivot_last is for rotating around the last edited element */
+	
+	float lens, grid, gridview, padf, near, far;
+	float ofs[3];			/* XXX depricated */
+	float cursor[3];
+
+	short gridlines, pad4;
+	short gridflag;
+	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
+	short modeselect;
+	short keyflags;		/* flags for display of keyframes */
+	
+	/* transform widget info */
+	short twtype, twmode, twflag, twdrawflag;
 	
 	/* customdata flags from modes */
 	unsigned int customdata_mask;
+	
+	/* afterdraw, for xray & transparent */
+	struct ListBase afterdraw;
+	
+	/* drawflags, denoting state */
+	short zbuf, transp, xray;
+
+	char ndofmode;			/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
+	char ndoffilter;		/* filter for 6DOF devices 0 normal, 1 dominant */
+	
+	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
+	
+	/* XXX depricated? */
+	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
+
 } View3D;
 
+/* XXX this needs cleaning */
 
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
@@ -174,14 +196,17 @@ typedef struct View3D {
 #define V3D_SELECT_OUTLINE	2048
 #define V3D_ZBUF_SELECT		4096
 #define V3D_GLOBAL_STATS	8192
-#define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
+/* RegionView3d->rflag */
+#define RV3D_FLYMODE				2
+#define RV3D_CLIPPING				4
+
+/* RegionView3d->viewlock */
+#define RV3D_LOCKED			1
+#define RV3D_BOXVIEW		2
+
 /* View3d->flag2 (short) */
-#define V3D_MODE2			(32)
-#define V3D_OPP_DIRECTION_NAME	1
-#define V3D_FLYMODE				2
-#define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 

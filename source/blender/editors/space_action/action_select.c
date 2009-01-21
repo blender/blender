@@ -88,7 +88,8 @@
  * keyframe to where the mouse clicked, 
  */
 // XXX port this to new listview code...
-static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx, short *sel, short *ret_type, bActionChannel **par)
+// XXX just merge this into the existing code!
+static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx, short *sel, short *ret_type, bActionGroup **par)
 {
 	ListBase anim_data = {NULL, NULL};
 	ListBase anim_keys = {NULL, NULL};
@@ -100,134 +101,127 @@ static void *get_nearest_action_key (bAnimContext *ac, int mval[2], float *selx,
 	rctf rectf;
 	void *data = NULL;
 	float xmin, xmax, x, y;
-	int clickmin, clickmax;
+	int channel_index;
 	short found = 0;
 	
-	/* action-channel */
+	/* action-group */
 	*par= NULL;
 	
+	
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
-    clickmin = (int) ((-y) / (ACHANNEL_STEP));
-	clickmax = clickmin;
+	UI_view2d_listview_view_to_cell(v2d, 0, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	
 	/* x-range to check is +/- 7 on either side of mouse click (size of keyframe icon) */
 	UI_view2d_region_to_view(v2d, mval[0]-7, mval[1], &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(v2d, mval[0]+7, mval[1], &rectf.xmax, &rectf.ymax);
 	
-	if (clickmax < 0) {
-		*ret_type= ANIMTYPE_NONE;
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* get channel */
+	ale= BLI_findlink(&anim_data, channel_index);
+	if (ale == NULL) {
+		/* channel not found */
+		printf("Error: animation channel (index = %d) not found in mouse_action_keys() \n", channel_index);
+		
+		BLI_freelistN(&anim_data);
 		return NULL;
 	}
 	
-	/* filter data */
-	filter= (ANIMFILTER_FORDRAWING | ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
-	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
-	
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		if (clickmax < 0) 
-			break;
-		if (clickmin <= 0) {
-			/* found match - must return here... */
-			Object *nob= ANIM_nla_mapping_get(ac, ale);
-			ActKeysInc *aki= init_aki_data(ac, ale);
-			
-			/* apply NLA-scaling correction? */
-			if (nob) {
-				xmin= get_action_frame(nob, rectf.xmin);
-				xmax= get_action_frame(nob, rectf.xmax);
-			}
-			else {
-				xmin= rectf.xmin;
-				xmax= rectf.xmax;
-			}
-			
-			/* make list of keyframes */
-			if (ale->key_data) {
-				switch (ale->datatype) {
-					case ALE_OB:
-					{
-						Object *ob= (Object *)ale->key_data;
-						ob_to_keylist(ob, &anim_keys, NULL, aki);
-					}
-						break;
-					case ALE_ACT:
-					{
-						bAction *act= (bAction *)ale->key_data;
-						action_to_keylist(act, &anim_keys, NULL, aki);
-					}
-						break;
-					case ALE_IPO:
-					{
-						Ipo *ipo= (Ipo *)ale->key_data;
-						ipo_to_keylist(ipo, &anim_keys, NULL, aki);
-					}
-						break;
-					case ALE_ICU:
-					{
-						IpoCurve *icu= (IpoCurve *)ale->key_data;
-						icu_to_keylist(icu, &anim_keys, NULL, aki);
-					}
-						break;
+	{
+		/* found match - must return here... */
+		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		ActKeysInc *aki= init_aki_data(ac, ale);
+		
+		/* apply NLA-scaling correction? */
+		if (nob) {
+			xmin= get_action_frame(nob, rectf.xmin);
+			xmax= get_action_frame(nob, rectf.xmax);
+		}
+		else {
+			xmin= rectf.xmin;
+			xmax= rectf.xmax;
+		}
+		
+		/* make list of keyframes */
+		if (ale->key_data) {
+			switch (ale->datatype) {
+				case ALE_OB:
+				{
+					Object *ob= (Object *)ale->key_data;
+					ob_to_keylist(ob, &anim_keys, NULL, aki);
 				}
-			}
-			else if (ale->type == ANIMTYPE_GROUP) {
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				agroup_to_keylist(agrp, &anim_keys, NULL, aki);
-			}
-			else if (ale->type == ANIMTYPE_GPDATABLOCK) {
-				/* cleanup */
-				BLI_freelistN(&anim_data);
-				
-				/* this channel currently doens't have any keyframes... must ignore! */
-				*ret_type= ANIMTYPE_NONE;
-				return NULL;
-			}
-			else if (ale->type == ANIMTYPE_GPLAYER) {
-				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				gpl_to_keylist(gpl, &anim_keys, NULL, aki);
-			}
-			
-			/* loop through keyframes, finding one that was clicked on */
-			for (ak= anim_keys.first; ak; ak= ak->next) {
-				if (IN_RANGE(ak->cfra, xmin, xmax)) {
-					*selx= ak->cfra;
-					found= 1;
 					break;
+				case ALE_ACT:
+				{
+					bAction *act= (bAction *)ale->key_data;
+					action_to_keylist(act, &anim_keys, NULL, aki);
 				}
+					break;
+				case ALE_FCURVE:
+				{
+					FCurve *fcu= (FCurve *)ale->key_data;
+					fcurve_to_keylist(fcu, &anim_keys, NULL, aki);
+				}
+					break;
 			}
-			/* no matching keyframe found - set to mean frame value so it doesn't actually select anything */
-			if (found == 0)
-				*selx= ((xmax+xmin) / 2);
-			
-			/* figure out what to return */
-			if (ac->datatype == ANIMCONT_ACTION) {
-				*par= ale->owner; /* assume that this is an action channel */
-				*ret_type= ale->type;
-				data = ale->data;
-			}
-			else if (ac->datatype == ANIMCONT_SHAPEKEY) {
-				data = ale->key_data;
-				*ret_type= ANIMTYPE_ICU;
-			}
-			else if (ac->datatype == ANIMCONT_DOPESHEET) {
-				data = ale->data;
-				*ret_type= ale->type;
-			}
-			else if (ac->datatype == ANIMCONT_GPENCIL) {
-				data = ale->data;
-				*ret_type= ANIMTYPE_GPLAYER;
-			}
-			
-			/* cleanup tempolary lists */
-			BLI_freelistN(&anim_keys);
-			anim_keys.first = anim_keys.last = NULL;
-			
+		}
+		else if (ale->type == ANIMTYPE_GROUP) {
+			bActionGroup *agrp= (bActionGroup *)ale->data;
+			agroup_to_keylist(agrp, &anim_keys, NULL, aki);
+		}
+		else if (ale->type == ANIMTYPE_GPDATABLOCK) {
+			/* cleanup */
 			BLI_freelistN(&anim_data);
 			
-			return data;
+			/* this channel currently doens't have any keyframes... must ignore! */
+			*ret_type= ANIMTYPE_NONE;
+			return NULL;
 		}
-		--clickmin;
-		--clickmax;
+		else if (ale->type == ANIMTYPE_GPLAYER) {
+			bGPDlayer *gpl= (bGPDlayer *)ale->data;
+			gpl_to_keylist(gpl, &anim_keys, NULL, aki);
+		}
+		
+		/* loop through keyframes, finding one that was clicked on */
+		for (ak= anim_keys.first; ak; ak= ak->next) {
+			if (IN_RANGE(ak->cfra, xmin, xmax)) {
+				*selx= ak->cfra;
+				found= 1;
+				break;
+			}
+		}
+		/* no matching keyframe found - set to mean frame value so it doesn't actually select anything */
+		if (found == 0)
+			*selx= ((xmax+xmin) / 2);
+		
+		/* figure out what to return */
+		if (ac->datatype == ANIMCONT_ACTION) {
+			*par= ale->owner; /* assume that this is an action group */
+			*ret_type= ale->type;
+			data = ale->data;
+		}
+		else if (ac->datatype == ANIMCONT_SHAPEKEY) {
+			data = ale->key_data;
+			*ret_type= ANIMTYPE_FCURVE;
+		}
+		else if (ac->datatype == ANIMCONT_DOPESHEET) {
+			data = ale->data;
+			*ret_type= ale->type;
+		}
+		else if (ac->datatype == ANIMCONT_GPENCIL) {
+			data = ale->data;
+			*ret_type= ANIMTYPE_GPLAYER;
+		}
+		
+		/* cleanup tempolary lists */
+		BLI_freelistN(&anim_keys);
+		anim_keys.first = anim_keys.last = NULL;
+		
+		BLI_freelistN(&anim_data);
+		
+		return data;
 	}
 	
 	/* cleanup */
@@ -262,14 +256,21 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
+	BeztEditData bed;
+	BeztEditFunc test_cb, sel_cb;
+	
 	/* determine type-based settings */
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	
 	/* filter data */
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
+	
+	/* init BezTriple looping data */
+	memset(&bed, 0, sizeof(BeztEditData));
+	test_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* See if we should be selecting or deselecting */
 	if (test) {
@@ -281,20 +282,23 @@ static void deselect_action_keys (bAnimContext *ac, short test, short sel)
 				//}
 			}
 			else {
-				if (is_ipo_key_selected(ale->key_data)) {
-					sel= 0;
+				if (ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, test_cb, NULL)) {
+					sel= SELECT_SUBTRACT;
 					break;
 				}
 			}
 		}
 	}
-		
+	
+	/* convert sel to selectmode, and use that to get editor */
+	sel_cb= ANIM_editkeyframes_select(sel);
+	
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		//if (ale->type == ACTTYPE_GPLAYER)
 		//	set_gplayer_frame_selection(ale->data, sel);
 		//else
-			set_ipo_key_selection(ale->key_data, sel);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
 	}
 	
 	/* Cleanup */
@@ -313,9 +317,9 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_action_keys(&ac, 0, 2);
+		deselect_action_keys(&ac, 0, SELECT_INVERT);
 	else
-		deselect_action_keys(&ac, 1, 1);
+		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier tha things have changed */
 	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
@@ -413,22 +417,15 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 		{
 			/* loop over data selecting */
 			if (ale->key_data) {
-				if (ale->datatype == ALE_IPO)
-					ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-				else if (ale->datatype == ALE_ICU)
-					ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+				if (ale->datatype == ALE_FCURVE)
+					ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			}
 			else if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= ale->data;
-				bActionChannel *achan;
-				bConstraintChannel *conchan;
+				FCurve *fcu;
 				
-				for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-					ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
-					
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-						ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-				}
+				for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) 
+					ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 			}
 			//else if (ale->type == ANIMTYPE_GPLAYER) {
 			//	borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
@@ -561,7 +558,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	bed.f2= max;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* select keys in-between */
@@ -569,12 +566,12 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {	
-			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 0, 1);
-			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
-			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		else {
-			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, select_cb, NULL);
 		}
 	}
 	
@@ -624,11 +621,11 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				//	gplayer_make_cfra_list(ale->data, &elems, 1);
 			}
 			else {
-				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+				filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 				ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale= anim_data.first; ale; ale= ale->next)
-					ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
+					ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_to_cfraelem, NULL);
 			}
 			BLI_freelistN(&anim_data);
 			break;
@@ -661,7 +658,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
+			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -678,7 +675,7 @@ static void columnselect_action_keys (bAnimContext *ac, short mode)
 				bed.f1= ce->cfra;
 			
 			/* select elements with frame number matching cfraelem */
-			ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {
@@ -770,10 +767,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	bDopeSheet *ads= NULL;
 	bAction	*act= NULL;
 	bActionGroup *agrp= NULL;
-	bActionChannel *achan= NULL;
-	bConstraintChannel *conchan= NULL;
-	Ipo *ipo= NULL;
-	IpoCurve *icu= NULL;
+	FCurve *fcu= NULL;
 	bGPdata *gpd = NULL;
 	bGPDlayer *gpl = NULL;
 	
@@ -792,23 +786,18 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		gpd= (bGPdata *)ac->data;
 	
 	/* get channel and selection info */
-	anim_channel= get_nearest_action_key(ac, mval, &selx, &sel, &chan_type, &achan);
+	anim_channel= get_nearest_action_key(ac, mval, &selx, &sel, &chan_type, &agrp); // xxx...
 	if (anim_channel == NULL) 
 		return;
 	
 	switch (chan_type) {
-		case ANIMTYPE_ICU:
-			icu= (IpoCurve *)anim_channel;
-			break;
-		case ANIMTYPE_CONCHAN:
-			conchan= (bConstraintChannel *)anim_channel;
-			break;
-		case ANIMTYPE_ACHAN:
-			achan= (bActionChannel *)anim_channel;
+		case ANIMTYPE_FCURVE:
+			fcu= (FCurve *)anim_channel;
 			break;
 		case ANIMTYPE_GROUP:
 			agrp= (bActionGroup *)anim_channel;
 			break;
+#if 0 // XXX fixme
 		case ANIMTYPE_DSMAT:
 			ipo= ((Material *)anim_channel)->ipo;
 			break;
@@ -824,11 +813,9 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 		case ANIMTYPE_DSSKEY:
 			ipo= ((Key *)anim_channel)->ipo;
 			break;
+#endif // XXX fixme
 		case ANIMTYPE_FILLACTD:
 			act= (bAction *)anim_channel;
-			break;
-		case ANIMTYPE_FILLIPOD:
-			ipo= ((Object *)anim_channel)->ipo;
 			break;
 		case ANIMTYPE_OBJECT:
 			ob= ((Base *)anim_channel)->object;
@@ -844,17 +831,13 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	if (selectmode == SELECT_REPLACE) {
 		selectmode = SELECT_ADD;
 		
-		deselect_action_keys(ac, 0, 0);
+		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 		
 		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
-			/* Highlight either an Action-Channel or Action-Group */
-			if (achan) {
-				achan->flag |= ACHAN_SELECTED;
-				ANIM_action_set_active_channel(ac->data, ac->datatype, achan, ANIMTYPE_ACHAN);
-			}
-			else if (agrp) {
+			/* Highlight Action-Group? */
+			if (agrp) {
 				agrp->flag |= AGRP_SELECTED;
 				ANIM_action_set_active_channel(ac->data, ac->datatype, agrp, ANIMTYPE_GROUP);
 			}	
@@ -875,56 +858,34 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short selectmode)
 	bed.f1= selx;
 	
 	/* apply selection to keyframes */
-	if (icu)
-		ANIM_icu_keys_bezier_loop(&bed, icu, ok_cb, select_cb, NULL);
-	else if (ipo)
-		ANIM_ipo_keys_bezier_loop(&bed, ipo, ok_cb, select_cb, NULL);
-	else if (conchan)
-		ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-	else if (achan)
-		ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
+	// XXX use more generic code looper for this stuff...
+	if (fcu)
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	else if (agrp) {
-		for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-			ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
-			
-			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-		}
+		for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	}
 	else if (act) {
-		for (achan= act->chanbase.first; achan; achan= achan->next) {
-			ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
-			
-			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-		}
+		for (fcu= act->curves.first; fcu; fcu= fcu->next)
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 	}
 	else if (ob) {
-		if (ob->ipo) {
-			bed.f1= selx;
-			ANIM_ipo_keys_bezier_loop(&bed, ob->ipo, ok_cb, select_cb, NULL);
-		}
+		AnimData *adt;
 		
-		if (ob->action) {
-			selxa= get_action_frame(ob, selx);
+		/* Object's own animation */
+		if (ob->adt && ob->adt->action) {
+			adt= ob->adt;
+			act= adt->action;
+			
+			selxa= get_action_frame(ob, selx); // xxx
 			bed.f1= selxa;
 			
-			for (achan= ob->action->chanbase.first; achan; achan= achan->next) {
-				ANIM_ipo_keys_bezier_loop(&bed, achan->ipo, ok_cb, select_cb, NULL);
-				
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-					ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-			}
+			for (fcu= act->curves.first; fcu; fcu= fcu->next)
+				ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
 		}
 		
-		if (ob->constraintChannels.first) {
-			bed.f1= selx;
-			
-			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
-				ANIM_ipo_keys_bezier_loop(&bed, conchan->ipo, ok_cb, select_cb, NULL);
-		}
-		
-		// FIXME: add data ipos too...
+		/* 'Sub-Object' animation data */
+		// TODO...
 	}
 	//else if (gpl)
 	//	select_gpencil_frame(gpl, (int)selx, selectmode);
@@ -944,7 +905,7 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	/* if select mode is replace, deselect all keyframes first */
 	if (select_mode==SELECT_REPLACE) {
 		select_mode=SELECT_ADD;
-		deselect_action_keys(ac, 0, 0);
+		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
 	/* set callbacks and editing data */
@@ -965,7 +926,7 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_IPOKEYS);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 		
 	/* select keys on the side where most data occurs */
@@ -973,14 +934,14 @@ static void selectkeys_leftright (bAnimContext *ac, short leftright, short selec
 		Object *nob= ANIM_nla_mapping_get(ac, ale);
 		
 		if (nob) {
-			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 0, 1);
-			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_ipo(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
-			ANIM_ipo_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
 	/* Cleanup */
@@ -1010,7 +971,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 	if (ac->datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ONLYFCU);
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1023,7 +984,7 @@ static void mouse_columnselect_action_keys (bAnimContext *ac, float selx)
 			bed.f1= selx;
 		
 		/* select elements with frame number matching cfraelem */
-		ANIM_icu_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
+		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			
 #if 0 // XXX reenable when Grease Pencil stuff is back
 			if (ale->type == ANIMTYPE_GPLAYER) {

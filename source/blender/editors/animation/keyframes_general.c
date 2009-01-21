@@ -89,73 +89,62 @@ void delete_fcurve_key(FCurve *fcu, int index, short do_recalc)
 		calchandles_fcurve(fcu);
 }
 
-#if 0 // XXX obsolete
-/* Delete selected keyframes in given IPO block */
-void delete_ipo_keys(Ipo *ipo)
+/* Delete selected keyframes in given F-Curve */
+void delete_fcurve_keys(FCurve *fcu)
 {
-	IpoCurve *icu, *next;
 	int i;
 	
-	if (ipo == NULL)
-		return;
-	
-	for (icu= ipo->curve.first; icu; icu= next) {
-		/* store pointer to next ipo-curve, as we may delete the current one */
-		next = icu->next;
-		
-		/* Delete selected BezTriples */
-		for (i=0; i<icu->totvert; i++) {
-			if (icu->bezt[i].f2 & SELECT) {
-				memmove(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
-				icu->totvert--;
-				i--;
-			}
-		}
-		
-		/* Only delete if there isn't an ipo-driver still hanging around on an empty curve */
-		if ((icu->totvert==0) && (icu->driver==NULL)) {
-			BLI_remlink(&ipo->curve, icu);
-			free_ipo_curve(icu);
+	/* Delete selected BezTriples */
+	for (i=0; i < fcu->totvert; i++) {
+		if (fcu->bezt[i].f2 & SELECT) {
+			memmove(&fcu->bezt[i], &fcu->bezt[i+1], sizeof(BezTriple)*(fcu->totvert-i-1));
+			fcu->totvert--;
+			i--;
 		}
 	}
+	
+#if 0 // XXX for now, we don't get rid of empty curves...
+	/* Only delete if there isn't an ipo-driver still hanging around on an empty curve */
+	if ((icu->totvert==0) && (icu->driver==NULL)) {
+		BLI_remlink(&ipo->curve, icu);
+		free_ipo_curve(icu);
+	}
+#endif 
 }
-#endif // XXX obsolete
 
 /* ---------------- */
 
-/* duplicate selected keyframes for the given IPO block */
-void duplicate_ipo_keys(Ipo *ipo)
+/* duplicate selected keyframes for the given F-Curve */
+void duplicate_fcurve_keys(FCurve *fcu)
 {
-	IpoCurve *icu;
 	BezTriple *newbezt;
 	int i;
 
-	if (ipo == NULL)
+	if (fcu == NULL)
 		return;
-
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		for (i=0; i<icu->totvert; i++) {
-			/* If a key is selected */
-			if (icu->bezt[i].f2 & SELECT) {
-				/* Expand the list */
-				newbezt = MEM_callocN(sizeof(BezTriple) * (icu->totvert+1), "beztriple");
-				
-				memcpy(newbezt, icu->bezt, sizeof(BezTriple) * (i+1));
-				memcpy(newbezt+i+1, icu->bezt+i, sizeof(BezTriple));
-				memcpy(newbezt+i+2, icu->bezt+i+1, sizeof (BezTriple) *(icu->totvert-(i+1)));
-				icu->totvert++;
-				
-				/* reassign pointers... (free old, and add new) */
-				MEM_freeN(icu->bezt);
-				icu->bezt=newbezt;
-				
-				/* Unselect the current key*/
-				BEZ_DESEL(&icu->bezt[i]);
-				i++;
-				
-				/* Select the copied key */
-				BEZ_SEL(&icu->bezt[i]);
-			}
+	
+	// XXX this does not take into account sample data...
+	for (i=0; i < fcu->totvert; i++) {
+		/* If a key is selected */
+		if (fcu->bezt[i].f2 & SELECT) {
+			/* Expand the list */
+			newbezt = MEM_callocN(sizeof(BezTriple) * (fcu->totvert+1), "beztriple");
+			
+			memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i+1));
+			memcpy(newbezt+i+1, fcu->bezt+i, sizeof(BezTriple));
+			memcpy(newbezt+i+2, fcu->bezt+i+1, sizeof (BezTriple) *(fcu->totvert-(i+1)));
+			fcu->totvert++;
+			
+			/* reassign pointers... (free old, and add new) */
+			MEM_freeN(fcu->bezt);
+			fcu->bezt=newbezt;
+			
+			/* Unselect the current key */
+			BEZ_DESEL(&fcu->bezt[i]);
+			i++;
+			
+			/* Select the copied key */
+			BEZ_SEL(&fcu->bezt[i]);
 		}
 	}
 }

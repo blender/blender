@@ -111,6 +111,7 @@ static BlendFileData *load_game_data(char *filename)
 }
 
 extern "C" void StartKetsjiShell(struct ScrArea *area,
+								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie1,
 								 struct SpaceIpo *sipo,
@@ -140,6 +141,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	do
 	{
 		View3D *v3d= (View3D*) area->spacedata.first;
+		RegionView3D *rv3d= ar->regiondata;
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -224,7 +226,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		for (i = 0; i < 16; i++)
 		{
-			float *viewmat_linear= (float*) v3d->viewmat;
+			float *viewmat_linear= (float*) rv3d->viewmat;
 			viewmat.setElem(i, viewmat_linear[i]);
 		}
 		for (i = 0; i < 16; i++)
@@ -234,7 +236,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		}
 		
 		if(v3d->persp==V3D_CAMOB) {
-			camzoom = (1.41421 + (v3d->camzoom / 50.0));
+			camzoom = (1.41421 + (rv3d->camzoom / 50.0));
 			camzoom *= camzoom;
 		}
 		else
@@ -541,6 +543,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 }
 
 extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
+								 struct ARegion *ar,
 								 char* scenename,
 								 struct Main* maggie,
 								 struct SpaceIpo *sipo,

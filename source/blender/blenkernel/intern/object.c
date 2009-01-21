@@ -546,11 +546,11 @@ void unlink_object(Scene *scene, Object *ob)
 
 					if(v3d->camera==ob) {
 						v3d->camera= NULL;
-						if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
+						// XXX if(v3d->persp==V3D_CAMOB) v3d->persp= V3D_PERSP;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
 						v3d->localvd->camera= NULL;
-						if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
+						// XXX if(v3d->localvd->persp==V3D_CAMOB) v3d->localvd->persp= V3D_PERSP;
 					}
 				}
 				else if(sl->spacetype==SPACE_OOPS) {

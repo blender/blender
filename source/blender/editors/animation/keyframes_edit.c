@@ -76,10 +76,10 @@
 
 /* --------------------------- Base Functions ------------------------------------ */
 
-/* This function is used to loop over BezTriples in the given IpoCurve, applying a given 
- * operation on them, and optionally applies an IPO-curve validate function afterwards.
+/* This function is used to loop over BezTriples in the given F-Curve, applying a given 
+ * operation on them, and optionally applies an F-Curve validation function afterwards.
  */
-short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb) 
+short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb) 
 {
     BezTriple *bezt;
 	int b;
@@ -90,7 +90,7 @@ short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc b
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
 		if (bezt_ok) {
-			for (b=0, bezt=icu->bezt; b < icu->totvert; b++, bezt++) {
+			for (b=0, bezt=fcu->bezt; b < fcu->totvert; b++, bezt++) {
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
 				if (bezt_ok(bed, bezt)) {
 					/* Exit with return-code '1' if function returns positive
@@ -101,7 +101,7 @@ short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc b
 			}
 		}
 		else {
-			for (b=0, bezt=icu->bezt; b < icu->totvert; b++, bezt++) {
+			for (b=0, bezt=fcu->bezt; b < fcu->totvert; b++, bezt++) {
 				/* Exit with return-code '1' if function returns positive
 				 * This is useful if finding if some BezTriple satisfies a condition.
 				 */
@@ -110,68 +110,38 @@ short ANIM_icu_keys_bezier_loop(BeztEditData *bed, IpoCurve *icu, BeztEditFunc b
 		}
     }
 
-    /* if ipocurve_function has been specified then execute it */
-    if (icu_cb)
-        icu_cb(icu);
+    /* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
+    if (fcu_cb)
+        fcu_cb(fcu);
 	
 	/* done */	
-    return 0;
-}
-
-/* This function is used to loop over the IPO curves in the given IPO (and subsequently the keyframes in them) */
-short ANIM_ipo_keys_bezier_loop(BeztEditData *bed, Ipo *ipo, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
-{
-    IpoCurve *icu;
-	
-	/* Sanity check */
-	if (ipo == NULL)
-		return 0;
-	
-    /* Loop through each curve in the Ipo */
-    for (icu= ipo->curve.first; icu; icu=icu->next) {
-        if (ANIM_icu_keys_bezier_loop(bed, icu, bezt_ok, bezt_cb, icu_cb))
-            return 1;
-    }
-
     return 0;
 }
 
 /* -------------------------------- Further Abstracted ----------------------------- */
 
 /* This function is used to loop over the keyframe data in an Action Group */
-static short agrp_keys_bezier_loop(BeztEditData *bed, bActionGroup *agrp, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+static short agrp_keys_bezier_loop(BeztEditData *bed, bActionGroup *agrp, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb)
 {
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	FCurve *fcu;
 	
 	/* only iterate over the action-channels and their sub-channels that are in this group */
-	for (achan= agrp->channels.first; achan && achan->grp==agrp; achan= achan->next) {
-		if (ANIM_ipo_keys_bezier_loop(bed, achan->ipo, bezt_ok, bezt_cb, icu_cb))
+	for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
+		if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
 			return 1;
-		
-		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-			if (ANIM_ipo_keys_bezier_loop(bed, conchan->ipo, bezt_ok, bezt_cb, icu_cb))
-				return 1;
-		}
 	}
 	
 	return 0;
 }
 
-/* This function is used to loop over the keyframe data in an Action Group */
-static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+/* This function is used to loop over the keyframe data in an Action */
+static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb)
 {
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	FCurve *fcu;
 	
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		if (ANIM_ipo_keys_bezier_loop(bed, achan->ipo, bezt_ok, bezt_cb, icu_cb))
-			return 1;
-		
-		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-			if (ANIM_ipo_keys_bezier_loop(bed, conchan->ipo, bezt_ok, bezt_cb, icu_cb))
-				return 1;
-		}
+	/* just loop through all F-Curves */
+	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb);
 	}
 	
 	return 0;
@@ -181,7 +151,7 @@ static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc 
 
 
 /* This function is used to apply operation to all keyframes, regardless of the type */
-short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, IcuEditFunc icu_cb)
+short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb)
 {
 	/* sanity checks */
 	if (ale == NULL)
@@ -190,18 +160,16 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 	/* method to use depends on the type of keyframe data */
 	switch (ale->datatype) {
 		/* direct keyframe data (these loops are exposed) */
-		case ALE_ICU: /* ipo-curve */
-			return ANIM_icu_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
-		case ALE_IPO: /* ipo */
-			return ANIM_ipo_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, icu_cb);
+		case ALE_FCURVE: /* F-Curve */
+			return ANIM_fcurve_keys_bezier_loop(bed, ale->key_data, bezt_ok, bezt_cb, fcu_cb);
 		
 		/* indirect 'summaries' (these are not exposed directly) 
 		 * NOTE: must keep this code in sync with the drawing code and also the filtering code!
 		 */
 		case ALE_GROUP: /* action group */
-			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, icu_cb);
+			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 		case ALE_ACT: /* action */
-			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, icu_cb);
+			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 	}
 	
 	return 0;
@@ -219,7 +187,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	int filter;
 	
 	/* filter animation data */
-	filter= ANIMFILTER_ONLYFCU; 
+	filter= ANIMFILTER_CURVESONLY; 
 	ANIM_animdata_filter(&anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over ipo-curves that are likely to have been edited, and check them */
@@ -489,19 +457,6 @@ BeztEditFunc ANIM_editkeyframes_handles(short code)
 
 /* ------- */
 
-/* IPO-curve sanity callback - the name of this is a bit unwieldy, by is best to keep this in style... */
-// was called set_ipocurve_mixed()
-void ANIM_editkeyframes_ipocurve_ipotype(IpoCurve *icu)
-{
-	/* Sets the type of the IPO curve to mixed, as some (selected)
-	 * keyframes were set to other interpolation types
-	 */
-	icu->ipo= IPO_MIXED;
-	
-	/* recalculate handles, as some changes may have occurred */
-	//calchandles_ipocurve(icu);	// XXX
-}
-
 static short set_bezt_constant(BeztEditData *bed, BezTriple *bezt) 
 {
 	if (bezt->f2 & SELECT) 
@@ -535,16 +490,6 @@ BeztEditFunc ANIM_editkeyframes_ipo(short code)
 		default: /* bezier */
 			return set_bezt_bezier;
 	}
-}
-
-// XXX will we keep this?
-void setexprap_ipoloop(Ipo *ipo, short code)
-{
-	IpoCurve *icu;
-	
-	/* Loop through each curve in the Ipo */
-	for (icu=ipo->curve.first; icu; icu=icu->next)
-		icu->extrap= code;
 }
 
 /* ******************************************* */
@@ -593,73 +538,3 @@ BeztEditFunc ANIM_editkeyframes_select(short selectmode)
 			return select_bezier_add;
 	}
 }
-
-
-short is_ipo_key_selected(Ipo *ipo)
-{
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int i;
-	
-	if (ipo == NULL)
-		return 0;
-	
-	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
-			if (BEZSELECTED(bezt))
-				return 1;
-		}
-	}
-	
-	return 0;
-}
-
-// XXX although this is still needed, it should be removed!
-void set_ipo_key_selection(Ipo *ipo, short sel)
-{
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int i;
-	
-	if (ipo == NULL)
-		return;
-	
-	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		for (i=0, bezt=icu->bezt; i<icu->totvert; i++, bezt++) {
-			if (sel == 2) {
-				BEZ_INVSEL(bezt);
-			}
-			else if (sel == 1) {
-				BEZ_SEL(bezt);
-			}
-			else {
-				BEZ_DESEL(bezt);
-			}
-		}
-	}
-}
-
-// XXX port this over to the new system!
-// err... this is this still used?
-int fullselect_ipo_keys(Ipo *ipo)
-{
-	IpoCurve *icu;
-	int tvtot = 0;
-	int i;
-	
-	if (!ipo)
-		return tvtot;
-	
-	for (icu=ipo->curve.first; icu; icu=icu->next) {
-		for (i=0; i<icu->totvert; i++) {
-			if (icu->bezt[i].f2 & SELECT) {
-				tvtot+=3;
-				icu->bezt[i].f1 |= SELECT;
-				icu->bezt[i].f3 |= SELECT;
-			}
-		}
-	}
-	
-	return tvtot;
-}
-

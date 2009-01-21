@@ -29,9 +29,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -45,7 +45,7 @@
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -128,7 +128,9 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	if (flag & DRAWCFRA_SHOW_TIMEOFS) {
 		Object *ob= (scene->basact) ? (scene->basact->object) : 0;
-		if ((ob) && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0)) {
+		
+		// XXX ob->ipoflag is depreceated!
+		if ((ob) && (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)!=0.0f)) {
 			vec[0]-= give_timeoffset(ob); /* could avoid calling twice */
 			
 			UI_ThemeColorShade(TH_CFRAME, -30);
@@ -294,11 +296,11 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 
 
 
-/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO-Curve 
- *	- restore = whether to map points back to ipo-time 
+/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve 
+ *	- restore = whether to map points back to non-mapped time 
  * 	- only_keys = whether to only adjust the location of the center point of beztriples
  */
-void ANIM_nla_mapping_apply_ipocurve(Object *ob, IpoCurve *icu, short restore, short only_keys)
+void ANIM_nla_mapping_apply_fcurve(Object *ob, FCurve *fcu, short restore, short only_keys)
 {
 	BeztEditData bed;
 	BeztEditFunc map_cb;
@@ -317,25 +319,8 @@ void ANIM_nla_mapping_apply_ipocurve(Object *ob, IpoCurve *icu, short restore, s
 	else
 		map_cb= bezt_nlamapping_apply;
 	
-	/* apply to IPO curve */
-	ANIM_icu_keys_bezier_loop(&bed, icu, NULL, map_cb, NULL);
+	/* apply to F-Curve */
+	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, map_cb, NULL);
 } 
-
-/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block
- * 	- restore = whether to map points back to ipo-time 
- * 	- only_keys = whether to only adjust the location of the center point of beztriples
- */
-// was called actstrip_map_ipo_keys()
-void ANIM_nla_mapping_apply_ipo(Object *ob, Ipo *ipo, short restore, short only_keys)
-{
-	IpoCurve *icu;
-	
-	if (ipo == NULL) return;
-	
-	/* loop through all ipo curves, adjusting the times of the selected keys */
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		ANIM_nla_mapping_apply_ipocurve(ob, icu, restore, only_keys);
-	}
-}
 
 /* *************************************************** */

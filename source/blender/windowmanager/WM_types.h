@@ -144,6 +144,7 @@ typedef struct wmNotifier {
 #define	NC_MATERIAL			(5<<24)
 #define	NC_TEXTURE			(6<<24)
 #define	NC_LAMP				(7<<24)
+#define	NC_GROUP			(8<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000

@@ -352,8 +352,8 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy);
 void projectIntView(TransInfo *t, float *vec, int *adr);
 void projectFloatView(TransInfo *t, float *vec, float *adr);
 
-void convertVecToDisplayNum(float *vec, float *num);
-void convertDisplayNumToVec(float *num, float *vec);
+void applyAspectRatio(TransInfo *t, float *vec);
+void removeAspectRatio(TransInfo *t, float *vec);
 
 void initWarp(TransInfo *t);
 int handleEventWarp(TransInfo *t, struct wmEvent *event);
@@ -442,7 +442,7 @@ void flushTransNodes(TransInfo *t);
 /*********************** exported from transform_manipulator.c ********** */
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
-float get_drawsize(struct View3D *v3d, struct ScrArea *sa, float *co);
+float get_drawsize(struct ARegion *ar, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);

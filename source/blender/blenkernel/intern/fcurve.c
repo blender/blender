@@ -169,6 +169,37 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	return NULL;
 }
 
+/* Calculate the extents of F-Curve's keyframes */
+void calc_fcurve_range (FCurve *fcu, float *start, float *end)
+{
+	float min=999999999.0f, max=-999999999.0f;
+	short foundvert=0;
+
+	if (fcu->totvert) {
+		if (fcu->bezt) {
+			min= MIN2(min, fcu->bezt[0].vec[1][0]);
+			max= MAX2(max, fcu->bezt[fcu->totvert-1].vec[1][0]);
+		}
+		else if (fcu->fpt) {
+			min= MIN2(min, fcu->fpt[0].vec[0]);
+			max= MAX2(max, fcu->fpt[fcu->totvert-1].vec[0]);
+		}
+		
+		foundvert=1;
+	}
+	
+	/* minimum length is 1 frame */
+	if (foundvert) {
+		if (min == max) max += 1.0f;
+		*start= min;
+		*end= max;
+	}
+	else {
+		*start= 0.0f;
+		*end= 1.0f;
+	}
+}
+
 /* ***************************** Keyframe Column Tools ********************************* */
 
 /* add a BezTriple to a column */

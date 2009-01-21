@@ -118,9 +118,6 @@ static void allqueue(int x, int y) {}
 static void persptoetsen(int x) {}
 static void fly(void) {}
 static void editmesh_align_view_to_selected(void *x, int y) {}
-static void play_anim(int x) {}
-static void add_blockhandler(void *x, int y, int z) {}
-static void toggle_blockhandler(void *x, int y, int z) {}
 static void countall(void) {}
 extern void borderselect();
 static int retopo_mesh_paint_check() {return 0;}
@@ -188,13 +185,14 @@ static void do_view3d_buttons(bContext *C, void *arg, int event);
 #define B_LAY		201
 
 
-/* temp hack to get the region window */
-static ARegion *ed_regionwin(ScrArea *sa)
+static RegionView3D *wm_region_view3d(const bContext *C)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar;
+	/* XXX handle foursplit? */
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_WINDOW)
-			return ar;
+			return ar->regiondata;
 	return NULL;
 }
 
@@ -252,7 +250,6 @@ void do_layer_buttons(bContext *C, short event)
 static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 {
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= (View3D*)CTX_wm_space_data(C);
 	Base *base;
 	int i=1;
 	
@@ -260,31 +257,16 @@ static void do_view3d_view_camerasmenu(bContext *C, void *arg, int event)
 		/* Set Active Object as Active Camera */
 		/* XXX ugly hack alert */
 //		G.qual |= LR_CTRLKEY;
-		persptoetsen(PAD0);
+//		persptoetsen(PAD0);
 //		G.qual &= ~LR_CTRLKEY;
 	} else {
-		/* store settings of current view before allowing overwriting with camera view */
-		/* this is a copy of the code in toets.c */
-		if(v3d->persp != V3D_CAMOB) {
-			QUATCOPY(v3d->lviewquat, v3d->viewquat);
-			v3d->lview= v3d->view;
-			v3d->lpersp= v3d->persp;
-		}
 
 		for( base = FIRSTBASE; base; base = base->next ) {
 			if (base->object->type == OB_CAMERA) {
 				i++;
 				
 				if (event==i) {
-					
-					if (v3d->camera == base->object && v3d->persp==V3D_CAMOB)
-						return;
-					
-					/* XXX handle smooth view */
-					v3d->camera= base->object;
-					handle_view3d_lock();
-					v3d->persp= V3D_CAMOB;
-					v3d->view= 0;
+					/* XXX use api call! */
 					
 					break;
 				}
@@ -514,40 +496,25 @@ static uiBlock *view3d_view_spacehandlers(bContext *C, uiMenuBlockHandle *handle
 
 static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 {
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
 	
 	switch(event) {
 	case 0: /* User */
-		v3d->viewbut = 0;
-		v3d->persp = V3D_PERSP;
 		break;
 	case 1: /* Camera */
-		persptoetsen(PAD0);
 		break;
 	case 2: /* Top */
-		persptoetsen(PAD7);
 		break;
 	case 3: /* Front */
-		persptoetsen(PAD1);
 		break;
 	case 4: /* Side */
-		persptoetsen(PAD3);
 		break;
 	case 5: /* Perspective */
-		v3d->persp=V3D_PERSP;
 		break;
 	case 6: /* Orthographic */
-		v3d->persp=V3D_ORTHO;
 		break;
 	case 7: /* Local View */
-		v3d->localview= 1;
-		initlocalview(scene, ed_regionwin(sa), v3d);
 		break;
 	case 8: /* Global View */
-		v3d->localview= 0;
-		endlocalview(scene, sa);
 		break;
 	case 9: /* View All (Home) */
 		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
@@ -556,28 +523,27 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 13: /* Play Back Animation */
-		play_anim(0);
 		break;
 	case 15: /* Background Image... */
-		add_blockhandler(sa, VIEW3D_HANDLER_BACKGROUND, UI_PNL_UNSTOW);
+//		add_blockhandler(sa, VIEW3D_HANDLER_BACKGROUND, UI_PNL_UNSTOW);
 		break;
 	case 16: /* View  Panel */
-		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+//		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
 		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
-		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
+//		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
 		break;
 	case 19: /* zoom within border */
 //		view3d_border_zoom();
 		break;
 	case 20: /* Transform  Space Panel */
-		add_blockhandler(sa, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
+//		add_blockhandler(sa, VIEW3D_HANDLER_TRANSFORM, UI_PNL_UNSTOW);
 		break;	
 	case 21: /* Grease Pencil */
-		add_blockhandler(sa, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
+//		add_blockhandler(sa, VIEW3D_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
 		break;		
 	case 22: /* View all layers */
 		do_layer_buttons(C, -2);
@@ -590,6 +556,7 @@ static uiBlock *view3d_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 {
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
+	RegionView3D *rv3d= wm_region_view3d(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -604,24 +571,24 @@ static uiBlock *view3d_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if ((v3d->viewbut == 0) && !(v3d->persp == V3D_CAMOB)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	if ((rv3d->viewbut == 0) && !(rv3d->persp == V3D_CAMOB)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "User",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "User",						0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	if (v3d->persp == V3D_CAMOB) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	if (rv3d->persp == V3D_CAMOB) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Camera|NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Camera|NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	if (v3d->viewbut == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Top|NumPad 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	if (rv3d->viewbut == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Top|NumPad 7",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Top|NumPad 7",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	if (v3d->viewbut == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Front|NumPad 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	if (rv3d->viewbut == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Front|NumPad 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Front|NumPad 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	if (v3d->viewbut == 3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Side|NumPad 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	if (rv3d->viewbut == 3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Side|NumPad 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Side|NumPad 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	
 	uiDefIconTextBlockBut(block, view3d_view_camerasmenu, NULL, ICON_RIGHTARROW_THIN, "Cameras", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(v3d->persp==V3D_PERSP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	if(rv3d->persp==V3D_PERSP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Perspective|NumPad 5",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	if(v3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	if(rv3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Orthographic|NumPad 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -643,11 +610,11 @@ static uiBlock *view3d_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(v3d->flag & V3D_CLIPPING)
+	if(rv3d->rflag & RV3D_CLIPPING)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
-	if (v3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Within Border...|Shift B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
+	if (rv3d->persp==V3D_ORTHO) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Zoom Within Border...|Shift B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
@@ -675,9 +642,9 @@ static uiBlock *view3d_viewmenu(bContext *C, uiMenuBlockHandle *handle, void *ar
 	return block;
 }
 
+#if 0
 void do_view3d_select_object_typemenu(bContext *C, void *arg, int event)
 {
-#if 0
 
 	extern void selectall_type(short obtype);
 	
@@ -717,7 +684,6 @@ void do_view3d_select_object_typemenu(bContext *C, void *arg, int event)
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-#endif
 }
 
 static uiBlock *view3d_select_object_typemenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -749,6 +715,7 @@ static uiBlock *view3d_select_object_typemenu(bContext *C, uiMenuBlockHandle *ha
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+
 
 void do_view3d_select_object_layermenu(bContext *C, void *arg, int event)
 {
@@ -821,7 +788,6 @@ static uiBlock *view3d_select_object_layermenu(bContext *C, uiMenuBlockHandle *h
 
 void do_view3d_select_object_linkedmenu(bContext *C, void *arg, int event)
 {
-#if 0
 	switch(event) {
 	case 1: /* Object Ipo */
 	case 2: /* ObData */
@@ -832,7 +798,6 @@ void do_view3d_select_object_linkedmenu(bContext *C, void *arg, int event)
 	}
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-#endif
 }
 
 static uiBlock *view3d_select_object_linkedmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -855,7 +820,7 @@ static uiBlock *view3d_select_object_linkedmenu(bContext *C, uiMenuBlockHandle *
 
 void do_view3d_select_object_groupedmenu(bContext *C, void *arg, int event)
 {
-#if 0
+
 	switch(event) {
 	case 1: /* Children */
 	case 2: /* Immediate Children */
@@ -872,7 +837,7 @@ void do_view3d_select_object_groupedmenu(bContext *C, void *arg, int event)
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-#endif
+
 }
 
 static uiBlock *view3d_select_object_groupedmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
@@ -900,10 +865,12 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, uiMenuBlockHandle 
 	return block;
 }
 
+#endif
+
 static uiBlock *view3d_select_objectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	uiBlock *block;
-	short yco= 0, menuwidth=120;
+//	short yco= 0, menuwidth=120;
 	
 	block= uiBeginBlock(C, handle->region, "view3d_select_objectmenu", UI_EMBOSSP, UI_HELV);
 	
@@ -4852,7 +4819,6 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, uiMenuBlockHandle *handle, void *a
 
 uiBlock *view3d_sculptmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
-	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	uiBlock *block;
@@ -5357,19 +5323,9 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 		
 	case B_VIEWBUT:
 	
-		if(v3d->viewbut==1) persptoetsen(PAD7);
-		else if(v3d->viewbut==2) persptoetsen(PAD1);
-		else if(v3d->viewbut==3) persptoetsen(PAD3);
-		break;
 
 	case B_PERSP:
 	
-		if(v3d->persp==V3D_CAMOB) persptoetsen(PAD0);
-		else {
-			if (v3d->persp==V3D_ORTHO)			v3d->persp = V3D_PERSP; 
-			else if (v3d->persp==V3D_PERSP)	v3d->persp = V3D_ORTHO;
-			persptoetsen(PAD5);
-		}
 		
 		break;
 	case B_VIEWRENDER:
@@ -5585,20 +5541,21 @@ static void do_view3d_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-static void view3d_header_pulldowns(const bContext *C, uiBlock *block, View3D *v3d, Object *ob, int *xcoord, int yco)
+static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *ob, int *xcoord, int yco)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	RegionView3D *rv3d= wm_region_view3d(C);
 	short xmax, xco= *xcoord;
+	
 	
 	/* pull down menus */
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	
 	/* compensate for local mode when setting up the viewing menu/iconrow values */
-	if(v3d->view==7) v3d->viewbut= 1;
-	else if(v3d->view==1) v3d->viewbut= 2;
-	else if(v3d->view==3) v3d->viewbut= 3;
-	else v3d->viewbut= 0;
-	
+	if(rv3d->view==7) rv3d->viewbut= 1;
+	else if(rv3d->view==1) rv3d->viewbut= 2;
+	else if(rv3d->view==3) rv3d->viewbut= 3;
+	else rv3d->viewbut= 0;
 	
 	/* the 'xmax - 3' rather than xmax is to prevent some weird flickering where the highlighted
 	 * menu is drawn wider than it should be. The ypos of -2 is to make it properly fill the
@@ -5746,7 +5703,7 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	xco= ED_area_header_standardbuttons(C, block, yco);
 
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
-		view3d_header_pulldowns(C, block, v3d, ob, &xco, yco);
+		view3d_header_pulldowns(C, block, ob, &xco, yco);
 
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);

@@ -36,7 +36,7 @@ extern "C" {
 static const int BL_MAX_CHANNELS = 32;
 
 float BL_ScalarInterpolator::GetValue(float currentTime) const {
-	return IPO_GetFloatValue(m_blender_ipo, m_channel, currentTime);
+	return 0; // XXX IPO_GetFloatValue(m_blender_ipo, m_channel, currentTime);
 }
 
  
@@ -44,7 +44,7 @@ float BL_ScalarInterpolator::GetValue(float currentTime) const {
 BL_InterpolatorList::BL_InterpolatorList(struct Ipo *ipo) {
 	IPO_Channel channels[BL_MAX_CHANNELS];
 
-	int num_channels = IPO_GetChannels(ipo, channels);
+	int num_channels = 0; // XXX IPO_GetChannels(ipo, channels);
 
 	int i;
 

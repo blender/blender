@@ -238,7 +238,7 @@ ARegion *ui_add_temporary_region(bScreen *sc)
 void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
 	ED_region_exit(C, ar);
-	BKE_area_region_free(ar);
+	BKE_area_region_free(NULL, ar);		/* NULL: no spacetype */
 	BLI_freelinkN(&sc->regionbase, ar);
 }
 

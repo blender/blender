@@ -164,13 +164,13 @@ static void helpline(TransInfo *t, float *vec)
 void setTransformViewMatrices(TransInfo *t)
 {
 	if(t->spacetype==SPACE_VIEW3D) {
-		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 		
-		Mat4CpyMat4(t->viewmat, v3d->viewmat);
-		Mat4CpyMat4(t->viewinv, v3d->viewinv);
-		Mat4CpyMat4(t->persmat, v3d->persmat);
-		Mat4CpyMat4(t->persinv, v3d->persinv);
-		t->persp = v3d->persp;
+		Mat4CpyMat4(t->viewmat, rv3d->viewmat);
+		Mat4CpyMat4(t->viewinv, rv3d->viewinv);
+		Mat4CpyMat4(t->persmat, rv3d->persmat);
+		Mat4CpyMat4(t->persinv, rv3d->persinv);
+		t->persp = rv3d->persp;
 	}
 	else {
 		Mat4One(t->viewmat);
@@ -186,7 +186,7 @@ void setTransformViewMatrices(TransInfo *t)
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		window_to_3d(t->ar, t->view, vec, dx, dy);
+		window_to_3d_delta(t->ar, vec, dx, dy);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		View2D *v2d = t->view;
@@ -230,7 +230,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 void projectIntView(TransInfo *t, float *vec, int *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_int_noclip(t->ar, t->view, vec, adr);
+		project_int_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
@@ -255,7 +255,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 void projectFloatView(TransInfo *t, float *vec, float *adr)
 {
 	if (t->spacetype==SPACE_VIEW3D) {
-		project_float_noclip(t->ar, t->view, vec, adr);
+		project_float_noclip(t->ar, vec, adr);
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
@@ -273,10 +273,8 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 	}
 }
 
-void convertVecToDisplayNum(float *vec, float *num)
+void applyAspectRatio(TransInfo *t, float *vec)
 {
-	VECCOPY(num, vec);
-
 #if 0 // TRANSFORM_FIX_ME
 	TransInfo *t = BIF_GetTransInfo();
 
@@ -287,24 +285,20 @@ void convertVecToDisplayNum(float *vec, float *num)
 			int width, height;
 			transform_width_height_tface_uv(&width, &height);
 
-			num[0] *= width;
-			num[1] *= height;
+			vec[0] *= width;
+			vec[1] *= height;
 		}
 
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-		num[0] /= aspx;
-		num[1] /= aspy;
+		vec[0] /= aspx;
+		vec[1] /= aspy;
 	}
 #endif
 }
 
-void convertDisplayNumToVec(float *num, float *vec)
+void removeAspectRatio(TransInfo *t, float *vec)
 {
-	VECCOPY(vec, num);
-
 #if 0 // TRANSFORM_FIX_ME
-	TransInfo *t = BIF_GetTransInfo();
-
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		float aspx, aspy;
 
@@ -995,9 +989,9 @@ void initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	if(t->spacetype == SPACE_VIEW3D)
 	{
-		View3D *v3d = t->view;
+		RegionView3D *rv3d = t->ar->regiondata;
 		//calc_manipulator_stats(curarea);
-		Mat3CpyMat4(t->spacemtx, v3d->twmat);
+		Mat3CpyMat4(t->spacemtx, rv3d->twmat);
 		Mat3Ortho(t->spacemtx);
 		
 		t->draw_handle = ED_region_draw_cb_activate(t->ar->type, drawTransform, t, REGION_DRAW_POST);
@@ -1169,7 +1163,6 @@ int transformEnd(bContext *C, TransInfo *t)
 		{
 			exit_code = OPERATOR_CANCELLED;
 			restoreTransObjects(t);	// calls recalcData()
-			viewRedrawForce(C, t);
 		}
 		else
 		{
@@ -1195,6 +1188,8 @@ int transformEnd(bContext *C, TransInfo *t)
 			else ED_undo_push(C, transform_to_undostr(t));
 		}
 		t->undostr= NULL;
+
+		viewRedrawForce(C, t);
 	}
 	
 	return exit_code;
@@ -2803,7 +2798,7 @@ void initTranslation(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 	
-	t->ndof.axis = 1|2|4;
+	t->ndof.axis = (t->flag & T_2D_EDIT)? 1|2: 1|2|4;
 
 	if(t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
@@ -2827,16 +2822,18 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
 	char distvec[20];
 	char autoik[20];
-	float dvec[3];
 	float dist;
 	
-	convertVecToDisplayNum(vec, dvec);
-
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
 		dist = VecLength(t->num.val);
 	}
 	else {
+		float dvec[3];
+
+		VECCOPY(dvec, vec);
+		applyAspectRatio(t, dvec);
+
 		dist = VecLength(vec);
 		sprintf(&tvec[0], "%.4f", dvec[0]);
 		sprintf(&tvec[20], "%.4f", dvec[1]);
@@ -2964,6 +2961,11 @@ int Translation(TransInfo *t, short mval[2])
 		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
+		if (hasNumInput(&t->num))
+		{
+			removeAspectRatio(t, t->values);
+		}
+		
 		applySnapping(t, t->values);
 		headerTranslation(t, t->values, str);
 	}

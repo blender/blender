@@ -1837,6 +1837,9 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		/* rna path */
 		fcu->rna_path= newdataadr(fd, fcu->rna_path);
 		
+		/* group */
+		fcu->grp= newdataadr(fd, fcu->grp);
+		
 		/* driver */
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
@@ -1917,10 +1920,8 @@ static void direct_link_action(FileData *fd, bAction *act)
 	direct_link_fcurves(fd, &act->curves);
 	
 	for (agrp = act->groups.first; agrp; agrp= agrp->next) {
-		if (agrp->channels.first) {
-			agrp->channels.first= newdataadr(fd, agrp->channels.first);
-			agrp->channels.last= newdataadr(fd, agrp->channels.last);
-		}
+		agrp->channels.first= newdataadr(fd, agrp->channels.first);
+		agrp->channels.last= newdataadr(fd, agrp->channels.last);
 	}
 }
 
@@ -3705,6 +3706,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 					MEM_freeN(base);
 				}
 			}
+			
+			if (sce->ed) {
+				Editing *ed= sce->ed;
+				ed->act_seq= NULL; //	ed->act_seq=  newlibadr(fd, ed->act_seq); // FIXME
+			}
 
 			SEQ_BEGIN(sce->ed, seq) {
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
@@ -3781,6 +3787,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
 		
 		ed= sce->ed= newdataadr(fd, sce->ed);
+		ed->act_seq= NULL; //		ed->act_seq=  newdataadr(fd, ed->act_seq); // FIXME
 
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
@@ -3992,6 +3999,9 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
 		win->subwindows.first= win->subwindows.last= NULL;
+
+		win->drawtex= 0;
+		win->drawmethod= 0;
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
@@ -4101,8 +4111,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
 						}
-						v3d->depths= NULL;
-						v3d->ri= NULL;
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
@@ -4409,7 +4417,7 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 	}
 }
 
-static void direct_link_region(FileData *fd, ARegion *ar)
+static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 {
 	Panel *pa;
 
@@ -4421,13 +4429,50 @@ static void direct_link_region(FileData *fd, ARegion *ar)
 		pa->sortcounter= 0;
 		pa->activedata= NULL;
 	}
-
+	
+	ar->regiondata= newdataadr(fd, ar->regiondata);
+	if(ar->regiondata) {
+		if(spacetype==SPACE_VIEW3D) {
+			RegionView3D *rv3d= ar->regiondata;
+			
+			rv3d->localvd= newdataadr(fd, rv3d->localvd);
+			rv3d->clipbb= newdataadr(fd, rv3d->clipbb);
+			
+			rv3d->depths= NULL;
+			rv3d->retopo_view_data= NULL;
+			rv3d->ri= NULL;
+			rv3d->sms= NULL;
+			rv3d->smooth_timer= NULL;
+		}
+	}
+	
 	ar->handlers.first= ar->handlers.last= NULL;
 	ar->uiblocks.first= ar->uiblocks.last= NULL;
 	ar->headerstr= NULL;
-	ar->regiondata= NULL;
 	ar->swinid= 0;
 	ar->type= NULL;
+	ar->swap= 0;
+}
+
+/* for the saved 2.50 files without regiondata */
+/* and as patch for 2.48 and older */
+static void view3d_split_250(View3D *v3d, ListBase *regions)
+{
+	ARegion *ar;
+	
+	for(ar= regions->first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_WINDOW && ar->regiondata==NULL) {
+			RegionView3D *rv3d;
+			
+			rv3d= ar->regiondata= MEM_callocN(sizeof(RegionView3D), "region v3d");
+			rv3d->persp= v3d->persp;
+			rv3d->view= v3d->view;
+			rv3d->dist= v3d->dist;
+			VECCOPY(rv3d->ofs, v3d->ofs);
+			QUATCOPY(rv3d->viewquat, v3d->viewquat);
+			Mat4One(rv3d->twmat);
+		}
+	}
 }
 
 static void direct_link_screen(FileData *fd, bScreen *sc)
@@ -4482,6 +4527,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		sa->handlers.first= sa->handlers.last= NULL;
 		sa->type= NULL;	/* spacetype callbacks */
 		
+		for(ar= sa->regionbase.first; ar; ar= ar->next)
+			direct_link_region(fd, ar, sa->spacetype);
+		
 		/* accident can happen when read/save new file with older version */
 		/* 2.50: we now always add spacedata for info */
 		if(sa->spacedata.first==NULL) {
@@ -4489,12 +4537,15 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			sa->spacetype= SPACE_INFO;
 			BLI_addtail(&sa->spacedata, sinfo);
 		}
+		/* add local view3d too */
+		else if(sa->spacetype==SPACE_VIEW3D)
+			view3d_split_250(sa->spacedata.first, &sa->regionbase);
 		
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
 			link_list(fd, &(sl->regionbase));
 
 			for(ar= sl->regionbase.first; ar; ar= ar->next)
-				direct_link_region(fd, ar);
+				direct_link_region(fd, ar, sl->spacetype);
 
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
@@ -4507,11 +4558,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
-				v3d->clipbb= newdataadr(fd, v3d->clipbb);
-				v3d->retopo_view_data= NULL;
 				v3d->properties_storage= NULL;
-				v3d->sms= NULL;
-				v3d->smooth_timer= NULL;
+				
+				view3d_split_250(v3d, &sl->regionbase);
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -4560,9 +4609,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				}
 			}
 		}
-		
-		for(ar= sa->regionbase.first; ar; ar= ar->next)
-			direct_link_region(fd, ar);
 		
 		sa->actionzones.first= sa->actionzones.last= NULL;
 
@@ -5412,7 +5458,12 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 	
 	if(sl) {
 		/* if active spacetype has view2d data, copy that over to main region */
+		/* and we split view3d */
 		switch(sl->spacetype) {
+			case SPACE_VIEW3D:
+				view3d_split_250((View3D *)sl, lb);
+				break;		
+						
 			case SPACE_OOPS:
 			{
 				SpaceOops *soops= (SpaceOops *)sl;
@@ -8679,7 +8730,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
 		}
-
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)

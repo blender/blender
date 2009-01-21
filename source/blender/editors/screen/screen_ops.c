@@ -34,6 +34,7 @@
 #include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -1402,21 +1403,28 @@ void SCREEN_OT_repeat_history(wmOperatorType *ot)
 /* insert a region in the area region list */
 static int region_split_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	ARegion *newar= BKE_area_region_copy(ar);
-	int dir= RNA_enum_get(op->ptr, "direction");
 	
-	BLI_insertlinkafter(&sa->regionbase, CTX_wm_region(C), newar);
+	if(ar->regiontype==RGN_TYPE_HEADER)
+		BKE_report(op->reports, RPT_ERROR, "Cannot split header");
+	else if(ar->alignment==RGN_ALIGN_QSPLIT)
+		BKE_report(op->reports, RPT_ERROR, "Cannot split further");
+	else {
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *newar= BKE_area_region_copy(sa->type, ar);
+		int dir= RNA_enum_get(op->ptr, "type");
 	
-	newar->alignment= ar->alignment;
-	
-	if(dir=='h')
-		ar->alignment= RGN_ALIGN_HSPLIT;
-	else
-		ar->alignment= RGN_ALIGN_VSPLIT;
-	
-	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+		BLI_insertlinkafter(&sa->regionbase, ar, newar);
+		
+		newar->alignment= ar->alignment;
+		
+		if(dir=='h')
+			ar->alignment= RGN_ALIGN_HSPLIT;
+		else
+			ar->alignment= RGN_ALIGN_VSPLIT;
+		
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	}
 	
 	return OPERATOR_FINISHED;
 }
@@ -1428,12 +1436,100 @@ void SCREEN_OT_region_split(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_split";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= region_split_exec;
 	ot->poll= ED_operator_areaactive;
 	
-	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
+	RNA_def_enum(ot->srna, "type", prop_direction_items, 'h', "Direction", "");
 }
+
+/* ************** region four-split operator ***************************** */
+
+/* insert a region in the area region list */
+static int region_foursplit_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	
+	/* some rules... */
+	if(ar->regiontype!=RGN_TYPE_WINDOW)
+		BKE_report(op->reports, RPT_ERROR, "Only window region can be 4-splitted");
+	else if(ar->alignment==RGN_ALIGN_QSPLIT) {
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *arn;
+		
+		/* keep current region */
+		ar->alignment= 0;
+		
+		if(sa->spacetype==SPACE_VIEW3D) {
+			RegionView3D *rv3d= ar->regiondata;
+			rv3d->viewlock= 0;
+		}
+		
+		for(ar= sa->regionbase.first; ar; ar= arn) {
+			arn= ar->next;
+			if(ar->alignment==RGN_ALIGN_QSPLIT) {
+				ED_region_exit(C, ar);
+				BKE_area_region_free(sa->type, ar);
+				BLI_remlink(&sa->regionbase, ar);
+				MEM_freeN(ar);
+			}
+		}
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	}
+	else if(ar->next)
+		BKE_report(op->reports, RPT_ERROR, "Only last region can be 4-splitted");
+	else {
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *newar;
+		int count;
+		
+		ar->alignment= RGN_ALIGN_QSPLIT;
+		
+		for(count=0; count<3; count++) {
+			newar= BKE_area_region_copy(sa->type, ar);
+			BLI_addtail(&sa->regionbase, newar);
+		}
+		
+		/* lock views and set them */
+		if(sa->spacetype==SPACE_VIEW3D) {
+			RegionView3D *rv3d;
+			
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_FRONT; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_TOP; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->viewlock= RV3D_LOCKED; rv3d->view= V3D_VIEW_RIGHT; rv3d->persp= V3D_ORTHO;
+			
+			ar= ar->next;
+			rv3d= ar->regiondata;
+			rv3d->view= V3D_VIEW_CAMERA; rv3d->persp= V3D_CAMOB;
+		}
+		
+		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+	}
+	
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_region_foursplit(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Split Region in 4 Parts";
+	ot->idname= "SCREEN_OT_region_foursplit";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= region_foursplit_exec;
+	ot->poll= ED_operator_areaactive;
+}
+
+
 
 /* ************** region flip operator ***************************** */
 
@@ -1583,6 +1679,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_area_join);
 	WM_operatortype_append(SCREEN_OT_area_rip);
 	WM_operatortype_append(SCREEN_OT_region_split);
+	WM_operatortype_append(SCREEN_OT_region_foursplit);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
@@ -1616,8 +1713,8 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 
 	 /* tests */
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0)->ptr, "direction", 'h');
-	RNA_enum_set(WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0)->ptr, "direction", 'v');
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_split", SKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_foursplit", SKEY, KM_PRESS, KM_CTRL|KM_ALT|KM_SHIFT, 0);
 	
 	/*frame offsets*/
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", TIMER0, KM_ANY, KM_ANY, 0);

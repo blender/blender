@@ -795,6 +795,10 @@
 			Name="space_sequencer"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_add.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_draw.c"
 				>
 			</File>
@@ -811,7 +815,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_ops.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_scopes.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_sequencer\sequencer_select.c"
 				>
 			</File>
 			<File
@@ -1132,6 +1144,18 @@
 			>
 			<File
 				RelativePath="..\..\..\source\blender\editors\curve\editcurve.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="preview"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\preview\previewrender.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\preview\previewrender_intern.h"
 				>
 			</File>
 		</Filter>

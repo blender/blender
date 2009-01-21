@@ -105,6 +105,10 @@ typedef struct ARegionType {
 	
 	void		(*free)(struct ARegion *);
 
+	/* split region, copy data optionally */
+	void		*(*duplicate)(void *);
+
+	
 	/* register operator types on startup */
 	void		(*operatortypes)(void);
 	/* add own items to keymap */
@@ -127,6 +131,7 @@ typedef struct ARegionType {
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);
+struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
 void BKE_spacetypes_free(void);	/* only for quitting blender */
@@ -136,8 +141,8 @@ void BKE_spacedata_freelist(ListBase *lb);
 void BKE_spacedata_copylist(ListBase *lb1, ListBase *lb2);
 
 /* area/regions */
-struct ARegion *BKE_area_region_copy(struct ARegion *ar);
-void	BKE_area_region_free(struct ARegion *ar);
+struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
+void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 
 void BKE_screen_area_free(struct ScrArea *sa);
 

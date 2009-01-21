@@ -1552,11 +1552,11 @@ static void sculpt_load_mats(bglMats *mats, ViewContext *vc)
 	float cpy[4][4];
 	int i, j;
 
-	Mat4MulMat4(cpy, vc->v3d->viewmat, vc->obact->obmat);
+	Mat4MulMat4(cpy, vc->rv3d->viewmat, vc->obact->obmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
-			mats->projection[i*4+j] = vc->v3d->winmat[i][j];
+			mats->projection[i*4+j] = vc->rv3d->winmat[i][j];
 			mats->modelview[i*4+j] = cpy[i][j];
 		}
 	}

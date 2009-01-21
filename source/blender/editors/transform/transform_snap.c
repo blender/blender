@@ -65,6 +65,7 @@
 #include "BKE_context.h"
 
 #include "ED_view3d.h"
+#include "ED_mesh.h"
 
 #include "WM_types.h"
 
@@ -75,12 +76,6 @@
 #include "transform.h"
 
 //#include "blendef.h" /* for selection modes */
-
-static EditVert *EM_get_vert_for_index(int x) {return 0;}	// XXX
-static EditEdge *EM_get_edge_for_index(int x) {return 0;}	// XXX
-static EditFace *EM_get_face_for_index(int x) {return 0;}	// XXX
-static void EM_init_index_arrays(int x, int y, int z) {} // XXX
-static void EM_free_index_arrays(void) {}		// XXX
 
 /********************* PROTOTYPES ***********************/
 
@@ -135,16 +130,17 @@ void drawSnapping(TransInfo *t)
 		
 		if (t->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = t->view;
+			RegionView3D *rv3d= t->ar->regiondata;
 			float tmat[4][4], imat[4][4];
 			float size;
 			
 			glDisable(GL_DEPTH_TEST);
 	
-			size = get_drawsize(v3d, t->sa, t->tsnap.snapPoint);
+			size = get_drawsize(t->ar, t->tsnap.snapPoint);
 			
 			size *= 0.5f * UI_GetThemeValuef(TH_VERTEX_SIZE);
 			
-			Mat4CpyMat4(tmat, v3d->viewmat);
+			Mat4CpyMat4(tmat, rv3d->viewmat);
 			Mat4Invert(imat, tmat);
 
 			drawcircball(GL_LINE_LOOP, t->tsnap.snapPoint, size, imat);
@@ -515,7 +511,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			int found = 0;
 			int dist = 40; // Use a user defined value here
 			
-			found = snapObjects(t, &dist, vec, no, t->mode);
+			found = snapObjects(t, &dist, vec, no, t->tsnap.mode);
 			if (found == 1)
 			{
 				float tangent[3];
@@ -549,7 +545,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			int found = 0;
 			int dist = 40; // Use a user defined value here
 
-			found = snapObjects(t, &dist, vec, no, t->mode);
+			found = snapObjects(t, &dist, vec, no, t->tsnap.mode);
 			if (found == 1)
 			{
 				VECCOPY(t->tsnap.snapPoint, vec);
@@ -763,7 +759,7 @@ void TargetSnapClosest(TransInfo *t)
 }
 /*================================================================*/
 
-int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth, short EditMesh)
+int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, EditMesh *em, float obmat[][4], float ray_start[3], float ray_normal[3], short mval[2], float *loc, float *no, int *dist, float *depth)
 {
 	int retval = 0;
 	int totvert = dm->getNumVerts(dm);
@@ -807,10 +803,10 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 					int index = 0;
 					int i;
 					
-					if (EditMesh)
+					if (em != NULL)
 					{
 						index_array = dm->getFaceDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(0, 0, 1);
+						EM_init_index_arrays(em, 0, 0, 1);
 					}
 					
 					for( i = 0; i < totface; i++) {
@@ -821,7 +817,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						
 						test = 1; /* reset for every face */
 					
-						if (EditMesh)
+						if (em != NULL)
 						{
 							if (index_array)
 							{
@@ -874,7 +870,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 								
 								new_depth = VecLenf(location, ray_start);					
 								
-								project_int(t->ar, t->view, location, screen_loc);
+								project_int(t->ar, location, screen_loc);
 								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 								
 								if (new_dist <= *dist && new_depth < *depth)
@@ -918,7 +914,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 									
 									new_depth = VecLenf(location, ray_start);					
 									
-									project_int(t->ar, t->view, location, screen_loc);
+									project_int(t->ar, location, screen_loc);
 									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 									
 									if (new_dist <= *dist && new_depth < *depth)
@@ -939,7 +935,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						}
 					}
 					
-					if (EditMesh)
+					if (em != NULL)
 					{
 						EM_free_index_arrays();
 					}
@@ -952,10 +948,10 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 					int index = 0;
 					int i;
 					
-					if (EditMesh)
+					if (em != NULL)
 					{
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(1, 0, 0);
+						EM_init_index_arrays(em, 1, 0, 0);
 					}
 					
 					for( i = 0; i < totvert; i++) {
@@ -964,7 +960,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						
 						test = 1; /* reset for every vert */
 					
-						if (EditMesh)
+						if (em != NULL)
 						{
 							if (index_array)
 							{
@@ -1010,7 +1006,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 								
 								new_depth = VecLenf(location, ray_start);					
 								
-								project_int(t->ar, t->view, location, screen_loc);
+								project_int(t->ar, location, screen_loc);
 								new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 								
 								if (new_dist <= *dist && new_depth < *depth)
@@ -1030,7 +1026,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						}
 					}
 
-					if (EditMesh)
+					if (em != NULL)
 					{
 						EM_free_index_arrays();
 					}
@@ -1045,10 +1041,10 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 					int index = 0;
 					int i;
 					
-					if (EditMesh)
+					if (em != NULL)
 					{
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EM_init_index_arrays(0, 1, 0);
+						EM_init_index_arrays(em, 0, 1, 0);
 					}
 					
 					for( i = 0; i < totedge; i++) {
@@ -1057,7 +1053,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						
 						test = 1; /* reset for every vert */
 					
-						if (EditMesh)
+						if (em != NULL)
 						{
 							if (index_array)
 							{
@@ -1130,7 +1126,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 									
 									new_depth = VecLenf(location, ray_start);					
 									
-									project_int(t->ar, t->view, location, screen_loc);
+									project_int(t->ar, location, screen_loc);
 									new_dist = abs(screen_loc[0] - mval[0]) + abs(screen_loc[1] - mval[1]);
 									
 									if (new_dist <= *dist && new_depth < *depth)
@@ -1162,7 +1158,7 @@ int snapDerivedMesh(TransInfo *t, Object *ob, DerivedMesh *dm, float obmat[][4],
 						}
 					}
 
-					if (EditMesh)
+					if (em != NULL)
 					{
 						EM_free_index_arrays();
 					}
@@ -1193,7 +1189,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 		
 		dm = editmesh_get_derived_cage(t->scene, t->obedit, em, CD_MASK_BAREMESH);
 		
-		retval = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 1);
+		retval = snapDerivedMesh(t, ob, dm, em, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth);
 		
 		dm->release(dm);
 	}
@@ -1219,7 +1215,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 						DerivedMesh *dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
 						int val;
 						
-						val = snapDerivedMesh(t, ob, dm, dupli_ob->mat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 0);
+						val = snapDerivedMesh(t, ob, dm, NULL, dupli_ob->mat, ray_start, ray_normal, t->mval, loc, no, dist, &depth);
 	
 						retval = retval || val;
 	
@@ -1234,7 +1230,7 @@ int snapObjects(TransInfo *t, int *dist, float *loc, float *no, int mode) {
 				DerivedMesh *dm = mesh_get_derived_final(t->scene, ob, CD_MASK_BAREMESH);
 				int val;
 				
-				val = snapDerivedMesh(t, ob, dm, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth, 0);
+				val = snapDerivedMesh(t, ob, dm, NULL, ob->obmat, ray_start, ray_normal, t->mval, loc, no, dist, &depth);
 				
 				retval = retval || val;
 				
