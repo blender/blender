@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_draw.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_event_system.c"
 				>
 			</File>
