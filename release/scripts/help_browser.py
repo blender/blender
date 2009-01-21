@@ -8,7 +8,7 @@ Tooltip: 'Show help information about a chosen installed script.'
 """
 
 __author__ = "Willian P. Germano"
-__version__ = "0.2 01/11/09"
+__version__ = "0.3 01/21/09"
 __email__ = ('scripts', 'Author, wgermano:ig*com*br')
 __url__ = ('blender', 'blenderartists.org')
 
@@ -68,7 +68,8 @@ Hotkeys:<br>
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 # Thanks: Brendon Murphy (suggestion) and Kevin Morgan (implementation)
-# for the "run" button.
+# for the "run" button; Jean-Michel Soler for pointing a parsing error
+# with multilines using triple single quotes.
 
 import Blender
 from Blender import sys as bsys, Draw, Window, Registry
@@ -355,7 +356,12 @@ def parse_pyobj(var, lines, i):
 			l = "ERROR"
 
 	elif l[0] == "'":
-		if l[-1] == '\\':
+		if l[1:3] == "''": # '''
+			if l.find("'''", 3) < 0: # multiline
+				l2, i = parse_pyobj_close("'''", lines, i)
+				if l[-1] == '\\': l = l[:-1]
+				l = "%s%s" % (l, l2)
+		elif l[-1] == '\\':
 			l2, i = parse_pyobj_close("'", lines, i)
 			l = "%s%s" % (l, l2)
 		elif l[-1] == "'" and l[-2] !=  '\\': # single line: '...'
