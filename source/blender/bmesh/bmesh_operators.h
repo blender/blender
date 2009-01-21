@@ -137,8 +137,22 @@ enum {
 #define BMOP_ESUBDIVIDE_EDGES	0
 #define BMOP_ESUBDIVIDE_TOTSLOT	1
 
+/*triangulate*/
+#define BMOP_TRIANGULATE		6
+
+#define BMOP_TRIANG_FACEIN		0
+#define BMOP_NEW_EDGES			1
+#define BMOP_NEW_FACES			2
+#define BMOP_TRIANG_TOTSLOT		3
+
+/*dissolve faces*/
+#define BMOP_DISSOLVE_FACES		7
+
+#define BMOP_DISFACES_FACEIN	0
+#define BMOP_DISFACES_TOTSLOT	1
+
 /*keep this updated!*/
-#define BMOP_TOTAL_OPS				6
+#define BMOP_TOTAL_OPS			8
 /*-------------------------------end operator defines-------------------------------*/
 
 extern BMOpDefine *opdefines[];

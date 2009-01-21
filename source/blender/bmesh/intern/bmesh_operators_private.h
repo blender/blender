@@ -13,5 +13,7 @@ void delop_exec(struct BMesh *bm, struct BMOperator *op);
 void esubdivide_exec(BMesh *bmesh, BMOperator *op);
 void edit2bmesh_exec(BMesh *bmesh, BMOperator *op);
 void bmesh2edit_exec(BMesh *bmesh, BMOperator *op);
+void triangulate_exec(BMesh *bmesh, BMOperator *op);
+void dissolvefaces_exec(BMesh *bmesh, BMOperator *op);
 
 #endif

@@ -364,10 +364,10 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3])
  * -Modify this to try and find ears that will not create a non-manifold face after conversion back to editmesh
  *
 */
-void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3])
+void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int newedgeflag, int newfaceflag)
 {
 	int i, done;
-	BMLoop *l, *nextloop;
+	BMLoop *l, *newl, *nextloop;
 
 	/*copy vertex coordinates to vertspace array*/
 	i = 0;
@@ -386,9 +386,11 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3])
 	while(!done){
 		done = 1;
 		l = find_ear(f, projectverts);
-		if(l){
+		if(l && l->head.prev != l->head.next && f->len > 3){
 			done = 0;
-			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, 0);
+			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);
+			BMO_SetFlag(bm, newl->e, newedgeflag);
+			BMO_SetFlag(bm, f, newfaceflag);
 		}
 	}
 
@@ -396,7 +398,9 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		l = f->loopbase;
 		while (l->f->len > 3){
 			nextloop = ((BMLoop*)(l->head.next->next->next));
-			bmesh_sfme(bm, l->f, l->v,nextloop->v, 0);
+			bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
+			BMO_SetFlag(bm, newl->e, newedgeflag);
+			BMO_SetFlag(bm, f, newfaceflag);
 			l = nextloop;
 		}
 	}

@@ -3334,8 +3334,8 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 	{
 			BMOperator op;
 
-			BMO_Init_Op(&op, BMOP_ESUBDIVIDE);
-			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_ESUBDIVIDE_EDGES, BM_SELECT, BM_EDGE);
+			BMO_Init_Op(&op, BMOP_TRIANGULATE);
+			BMO_HeaderFlag_To_Slot(bm, &op, BMOP_TRIANG_FACEIN, BM_SELECT, BM_FACE);
 
 			BMO_Exec_Op(bm, &op);
 			BMO_Finish_Op(bm, &op);

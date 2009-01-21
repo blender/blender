@@ -3,6 +3,22 @@
 
 #include <stdio.h>
 
+BMOpDefine def_dissolvefacesop = {
+	{BMOP_OPSLOT_PNT_BUF},
+	dissolvefaces_exec,
+	BMOP_DISFACES_TOTSLOT,
+	0
+};
+
+BMOpDefine def_triangop = {
+	{BMOP_OPSLOT_PNT_BUF, 
+	 BMOP_OPSLOT_PNT_BUF,
+	 BMOP_OPSLOT_PNT_BUF},
+	triangulate_exec,
+	BMOP_TRIANG_TOTSLOT,
+	0
+};
+
 BMOpDefine def_subdop = {
 	{BMOP_OPSLOT_PNT_BUF},
 	esubdivide_exec,
@@ -52,6 +68,8 @@ BMOpDefine *opdefines[] = {
 	&def_edit2bmesh,
 	&def_bmesh2edit,
 	&def_subdop,
+	&def_triangop,
+	&def_dissolvefacesop,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

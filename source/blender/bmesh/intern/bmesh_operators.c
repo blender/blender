@@ -318,9 +318,9 @@ static void *alloc_slot_buffer(BMOperator *op, int slotcode, int len){
 
 /*
  *
- * BMO_FLAG_TO_SLOT
+ * BMO_HEADERFLAG_TO_SLOT
  *
- * Copies elements of a certain type, which have a certain flag set 
+ * Copies elements of a certain type, which have a certain header flag set 
  * into an output slot for an operator.
  *
 */
@@ -366,6 +366,14 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, i
 	}
 }
 
+/*
+ *
+ * BMO_FLAG_TO_SLOT
+ *
+ * Copies elements of a certain type, which have a certain flag set 
+ * into an output slot for an operator.
+ *
+*/
 void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, int slotcode, int flag, int type)
 {
 	BMIter elements;
