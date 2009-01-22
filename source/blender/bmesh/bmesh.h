@@ -107,7 +107,7 @@ typedef struct BMNode {
 	void *data;
 } BMNode;
 
-struct Scene;
+struct bmop_error;
 typedef struct BMesh {
 	ListBase verts, edges, polys;
 	struct BLI_mempool *vpool;
@@ -126,6 +126,7 @@ typedef struct BMesh {
 	struct BLI_mempool *flagpool;					/*memory pool for dynamically allocated flag layers*/
 	int stackdepth;									/*current depth of operator stack*/
 	int totflags, walkers;							/*total number of tool flag layers*/
+	ListBase errorstack; /*privately used by the operator error reporting system*/
 } BMesh;
 
 typedef struct BMVert {	

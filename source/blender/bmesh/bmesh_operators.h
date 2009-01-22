@@ -30,6 +30,30 @@ typedef struct BMOpSlot{
 	} data;
 }BMOpSlot;
 
+/*these macros are used for iterating over slot buffers.
+  for example:
+  int i;
+
+  for (ptr=BMOS_IterNewP(i, slot); ptr; ptr=BMOS_IterStepP(i, slot)) {
+  }
+
+  int ival;
+  for (ival=BMOS_IterNewI(i, slot); !BMOS_IterDoneI(i, slot); ival=BMOS_IterStepI(i, slot) {
+  }
+*/
+/*remember, the ',' operator executes all expressions seperated by ','
+  (left to right) but uses the value of the right-most one.*/
+#define BMOS_IterNewP(stateint, slot)	(stateint = 0, slot->len>0 ? *(void**)slot->data.p : NULL)
+#define BMOS_IterStepP(stateint, slot)	(stateint++,stateint>=slot->len ? NULL : ((void**)slot->data.buf)[stateint])
+
+#define BMOS_IterNewF(stateint, slot)	(stateint = 0, slot->len>0 ? *(float*)slot->data.p : NULL)
+#define BMOS_IterDoneF(stateint, slot)	(stateint >= slot->len)
+#define BMOS_IterStepF(stateint, slot)	(stateint++,stateint>=slot->len ? NULL : ((float*)slot->data.buf)[stateint])
+
+#define BMOS_IterNewI(stateint, slot)	(stateint = 0, slot->len>0 ? *(int*)slot->data.p : NULL)
+#define BMOS_IterDoneI(stateint, slot)	(stateint >= slot->len)
+#define BMOS_IterStepI(stateint, slot)	(stateint++,stateint>=slot->len ? NULL : ((int*)slot->data.buf)[stateint])
+
 /*operators represent logical, executable mesh modules.*/
 #define BMOP_MAX_SLOTS			16		/*way more than probably needed*/
 
@@ -72,6 +96,26 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
 void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag);
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, int slotcode, int flag, int type);
+
+/*if msg is null, then the default message for the errorcode is used*/
+void BMOP_RaiseError(BMesh *bm, int errcode, char *msg);
+/*returns error code or 0 if no error*/
+int BMOP_GetError(BMesh *bm, char **msg);
+/*returns 1 if there was an error*/
+int BMOP_CheckError(BMesh *bm);
+int BMOP_PopError(BMesh *bm, char **msg);
+
+/*------ error code defines -------*/
+
+/*error messages*/
+#define BMERR_SELF_INTERSECTING	1
+
+static char *bmop_error_messages[] = {
+	0,
+	"Self intersection error",
+};
+
+#define BMERR_TOTAL (sizeof(error_messages) / sizeof(void*) - 1)
 
 /*------------begin operator defines (see bmesh_opdefines.c too)------------*/
 /*split op*/

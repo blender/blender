@@ -250,8 +250,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	einput = BMO_GetSlot(op, BMOP_ESUBDIVIDE_EDGES);
 
 	/*first go through and split edges*/
-	for (i=0; i<einput->len; i++) {
-		edge = ((BMEdge**)einput->data.p)[i];
+	for (edge=BMOS_IterNewP(i, einput); edge; edge = BMOS_IterStepP(i, einput)) {
 		v1 = BM_Split_Edge(bmesh, edge->v1, edge, &nedge, 0.5, 1);
 		BMO_SetFlag(bmesh, v1, SUBD_SPLIT);
 		BMO_SetFlag(bmesh, nedge, SUBD_SPLIT);
