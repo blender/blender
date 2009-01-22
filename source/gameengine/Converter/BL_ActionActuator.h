@@ -32,6 +32,7 @@
 
 #include "GEN_HashedPtr.h"
 #include "SCA_IActuator.h"
+#include "DNA_actuator_types.h"
 #include "MT_Point3.h"
 
 class BL_ActionActuator : public SCA_IActuator  
@@ -112,15 +113,6 @@ public:
 	virtual PyObject* _getattr(const STR_String& attr);
 	virtual int _setattr(const STR_String& attr, PyObject* value);
 
-	enum ActionActType
-	{
-		KX_ACT_ACTION_PLAY = 0,
-		KX_ACT_ACTION_FLIPPER = 2,
-		KX_ACT_ACTION_LOOPSTOP,
-		KX_ACT_ACTION_LOOPEND,
-		KX_ACT_ACTION_PROPERTY = 6
-	};
-
 	/* attribute check */
 	static int CheckFrame(void *self, const PyAttributeDef*)
 	{
@@ -138,7 +130,7 @@ public:
 	{
 		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
 
-		if (act->m_blendframe < act->m_blendin)
+		if (act->m_blendframe > act->m_blendin)
 			act->m_blendframe = act->m_blendin;
 
 		return 0;
@@ -149,11 +141,11 @@ public:
 		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
 
 		switch (act->m_playtype) {
-			case KX_ACT_ACTION_PLAY:
-			case KX_ACT_ACTION_FLIPPER:
-			case KX_ACT_ACTION_LOOPSTOP:
-			case KX_ACT_ACTION_LOOPEND:
-			case KX_ACT_ACTION_PROPERTY:
+			case ACT_ACTION_PLAY:
+			case ACT_ACTION_FLIPPER:
+			case ACT_ACTION_LOOP_STOP:
+			case ACT_ACTION_LOOP_END:
+			case ACT_ACTION_FROM_PROP:
 				return 0;
 			default:
 				PyErr_SetString(PyExc_ValueError, "invalid type supplied");

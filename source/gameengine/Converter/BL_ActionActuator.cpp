@@ -39,10 +39,9 @@
 #include "BL_SkinDeformer.h"
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
-#include "DNA_action_types.h"
 #include "DNA_nla_types.h"
-#include "DNA_actuator_types.h"
 #include "BKE_action.h"
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -51,7 +50,6 @@
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
-
 #include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
@@ -843,11 +841,11 @@ PyObject* BL_ActionActuator::PySetType(PyObject* self,
     }
 
 	switch (typeArg) {
-	case KX_ACT_ACTION_PLAY:
-	case KX_ACT_ACTION_FLIPPER:
-	case KX_ACT_ACTION_LOOPSTOP:
-	case KX_ACT_ACTION_LOOPEND:
-	case KX_ACT_ACTION_PROPERTY:
+	case ACT_ACTION_PLAY:
+	case ACT_ACTION_FLIPPER:
+	case ACT_ACTION_LOOP_STOP:
+	case ACT_ACTION_LOOP_END:
+	case ACT_ACTION_FROM_PROP:
 		m_playtype = typeArg;
 		break;
 	default:
@@ -1033,7 +1031,7 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("frameProperty", 0, 31, false, BL_ActionActuator, m_framepropname),
 	KX_PYATTRIBUTE_BOOL_RW("continue", BL_ActionActuator, m_end_reset),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ActionActuator, m_blendframe, CheckBlendTime),
-	KX_PYATTRIBUTE_ENUM_RW_CHECK("type",0,100,false,BL_ActionActuator,m_playtype,CheckType),
+	KX_PYATTRIBUTE_SHORT_RW_CHECK("type",0,100,false,BL_ActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel
 };
 
