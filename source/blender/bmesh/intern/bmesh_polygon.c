@@ -61,11 +61,11 @@ static int point_in_triangle(float *v1, float *v2, float *v3, float *pt)
  * projected to the x/y plane
  *
 */
-static int convexangle(float *__v1, float *__v2, float *__v3)
+static int convexangle(float *v1t, float *v2t, float *v3t)
 {
 	float v1[3], v3[3], n[3];
-	VecSubf(v1, __v1, __v2);
-	VecSubf(v3, __v3, __v2);
+	VecSubf(v1, v1t, v2t);
+	VecSubf(v3, v3t, v2t);
 
 	Normalize(v1);
 	Normalize(v3);
@@ -224,15 +224,17 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 {
 
 	float up[3] = {0.0,0.0,1.0}, axis[3], angle, q[4];
+	float mat[3][3];
 	int i;
 
 	Crossf(axis, up, normal);
 	angle = VecAngle2(normal, up);
 	
 	AxisAngleToQuat(q, axis, angle);
-	
+	QuatToMat3(q, mat);
+
 	for(i = 0;  i < nverts;  i++)
-		QuatMulVecf(q, verts[i]);
+		Mat3MulVecfl(mat, verts[i]);
 }
 
 /*
@@ -316,7 +318,6 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3])
 	float angle, bestangle = 180.0f;
 	int isear;
 	
-
 	l = f->loopbase;
 	do{
 		isear = 1;
@@ -324,17 +325,21 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3])
 		v1 = ((BMLoop*)(l->head.prev))->v;
 		v2 = l->v;
 		v3 = ((BMLoop*)(l->head.next))->v;
-		if(convexangle(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2])){
+
+		if (BM_Edge_Exist(v1, v3)) isear = 0;
+
+		if(isear && convexangle(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2])){
 			for(l2 = ((BMLoop*)(l->head.next->next)); l2 != ((BMLoop*)(l->head.prev)); l2 = ((BMLoop*)(l2->head.next)) ){
 				if(point_in_triangle(verts[v1->head.eflag2], verts[v2->head.eflag2],verts[v3->head.eflag2], l2->v->co)){
 					isear = 0;
 					break;
 				}
 			}
-		}
+		} else isear = 0;
+
 		if(isear){
 			angle = VecAngle3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-			if((!bestear) && angle < bestangle){
+			if(!bestear || angle < bestangle){
 				bestear = l;
 				bestangle = angle;
 			}
@@ -379,14 +384,16 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 		l = (BMLoop*)(l->head.next);
 	}while(l != f->loopbase);
 	
+	bmesh_update_face_normal(bm, f, projectverts);
+
 	compute_poly_plane(projectverts, i);
 	poly_rotate_plane(f->no, projectverts, i);
 
 	done = 0;
-	while(!done){
+	while(!done && f->len > 3){
 		done = 1;
 		l = find_ear(f, projectverts);
-		if(l && l->head.prev != l->head.next && f->len > 3){
+		if(l) {
 			done = 0;
 			f = bmesh_sfme(bm, f, ((BMLoop*)(l->head.prev))->v, ((BMLoop*)(l->head.next))->v, &newl);
 			BMO_SetFlag(bm, newl->e, newedgeflag);
@@ -397,7 +404,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int new
 	if (f->len > 3){
 		l = f->loopbase;
 		while (l->f->len > 3){
-			nextloop = ((BMLoop*)(l->head.next->next->next));
+			nextloop = ((BMLoop*)(l->head.next->next));
 			bmesh_sfme(bm, l->f, l->v,nextloop->v, &newl);
 			BMO_SetFlag(bm, newl->e, newedgeflag);
 			BMO_SetFlag(bm, f, newfaceflag);

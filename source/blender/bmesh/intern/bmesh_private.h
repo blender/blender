@@ -58,6 +58,17 @@ void bmesh_set_sysflag(struct BMHeader *element, int flag);
 void bmesh_clear_sysflag(struct BMHeader *element, int flag);
 int bmesh_test_sysflag(struct BMHeader *element, int flag);
 
+/*NOTE: ensure different parts of the API do not conflict
+  on using this!*/
+/*used to access the index member of the current flag layer.
+  actual functions are only defined if the below macro versions
+  are not.*/
+void bmesh_api_setindex(BMesh *bm, BMHeader *head, int i);
+int bmesh_api_getindex(BMesh *bm, BMHeader *head);
+
+#define bmesh_api_setindex(bm, head, i) ((head)->flags[bm->stackdepth-1].pflag = i)
+#define bmesh_api_getindex(bm, head) ((head)->flags[bm->stackdepth-1].pflag)
+
 /*Polygon Utilities ? FIXME... where do these each go?*/
 /*newedgeflag sets a flag layer flag, obviously not the header flag.*/
 void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3], int newedgeflag, int newfaceflag);

@@ -3380,6 +3380,9 @@ static int bmesh_test_exec(bContext *C, wmOperator *op)
 	MEM_freeN(em2);	
 	
 	BM_Free_Mesh(bm);
+
+	BIF_undo_push("BMesh Test");
+
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW|ND_TRANSFORM|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;
 }

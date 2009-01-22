@@ -116,7 +116,6 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 	return 0;
 }
 
-
 /*
  * BMESH VERTS IN EDGE
  *
