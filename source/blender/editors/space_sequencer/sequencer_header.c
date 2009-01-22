@@ -161,8 +161,8 @@ static void do_selectmenu(bContext *C, void *arg, int event)
 static uiBlock *seq_selectmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceSeq *sseq= sa->spacedata.first;
-	View2D *v2d= UI_view2d_fromcontext(C);
+
+
 
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -234,7 +234,7 @@ static uiBlock *seq_markermenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 {
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceSeq *sseq= sa->spacedata.first;
-	View2D *v2d= UI_view2d_fromcontext(C);
+
 
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -281,7 +281,7 @@ static uiBlock *seq_markermenu(bContext *C, uiMenuBlockHandle *handle, void *arg
 }
 
 
-static void do_seq_addmenu_effectmenu(void *arg, int event)
+static void do_seq_addmenu_effectmenu(bContext *C, void *arg, int event)
 {
 #if 0
 	switch(event)
@@ -363,39 +363,34 @@ static uiBlock *seq_addmenu_effectmenu(bContext *C, uiMenuBlockHandle *handle, v
 	return block;
 }
 
-
 static void do_addmenu(bContext *C, void *arg, int event)
-{
-#if 0
+{	
 	switch(event)
 	{
-	case 0:
-		add_sequence(SEQ_IMAGE);
+	case SEQ_COLOR:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_color_strip", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
-	case 1:
-		add_sequence(SEQ_MOVIE);
+	case SEQ_SCENE:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_scene_strip", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
-	case 2:
-		add_sequence(SEQ_RAM_SOUND);
+	case SEQ_MOVIE:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_movie_strip", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
-	case 3:
-		add_sequence(SEQ_HD_SOUND);
+	case SEQ_RAM_SOUND:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_sound_strip", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
-	case 4:
-		add_sequence(SEQ_SCENE);
-		break;
-	case 5:
-		add_sequence(SEQ_MOVIE_AND_HD_SOUND);
+	case SEQ_IMAGE:
+		WM_operator_name_call(C, "SEQUENCER_OT_add_image_strip", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
 	}
-#endif
+	// XXX todo: SEQ_HD_SOUND and SEQ_MOVIE_AND_HD_SOUND
 }
 
 static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceSeq *sseq= sa->spacedata.first;
-	View2D *v2d= UI_view2d_fromcontext(C);
+
+
 
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -410,18 +405,18 @@ static uiBlock *seq_addmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_un
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 #ifdef WITH_FFMPEG
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (RAM)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (RAM)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_RAM_SOUND, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_HD_SOUND, "");
 #else
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (Wav)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Audio (Wav)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_RAM_SOUND, "");
 #endif
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scene", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_SCENE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_IMAGE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_MOVIE, "");
 #ifdef WITH_FFMPEG
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie + Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Movie + Audio (HD)", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_MOVIE_AND_HD_SOUND, "");
 #endif
-	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Color", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, SEQ_COLOR, "");
 
 
 	if(sa->headertype==HEADERTOP) {
@@ -447,8 +442,8 @@ static void do_editmenu(bContext *C, void *arg, int event)
 static uiBlock *seq_editmenu(bContext *C, uiMenuBlockHandle *handle, void *arg_unused)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceSeq *sseq= sa->spacedata.first;
-	View2D *v2d= UI_view2d_fromcontext(C);
+
+
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= scene->ed;
 

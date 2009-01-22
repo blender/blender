@@ -83,6 +83,7 @@
 #include "ED_types.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_fileselect.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -95,14 +96,14 @@ static void BIF_undo_push() {}
 static void error() {}
 static void waitcursor() {}
 static void activate_fileselect() {}
-static void std_rmouse_transform() {}
-static int get_mbut() {return 0;}
+
+
 static int pupmenu() {return 0;}
 static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
-static void *find_nearest_marker() {return NULL;}
-static void deselect_markers() {}
-static void transform_markers() {}
+
+
+
+
 static void transform_seq_nomarker() {}
 	
 	
@@ -947,26 +948,58 @@ void add_sequence(Scene *scene, View2D *v2d, int type)
 }
 
 
+/* Generic functions, reused by add strip operators */
+static void sequencer_generic_props__internal(wmOperatorType *ot, int do_filename, int do_endframe)
+{
+	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", "Name of the new sequence strip");
+	RNA_def_int(ot->srna, "start_frame", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
+	
+	if (do_endframe)
+		RNA_def_int(ot->srna, "end_frame", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
+	
+	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
+	
+	if (do_filename)
+		RNA_def_string(ot->srna, "filename", "", FILE_MAX, "Scene Name", "full path to load the strip data from");
+	
+	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
+}
 
+static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, wmEvent *event, int do_endframe)
+{
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
+	
+	short mval[2];	
+	float mval_v2d[2];
 
+	mval[0]= event->x - ar->winrct.xmin;
+	mval[1]= event->y - ar->winrct.ymin;
+	
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mval_v2d[0], &mval_v2d[1]);
+	
+	RNA_int_set(op->ptr, "channel", (int)mval_v2d[1]+0.5f);
+	RNA_int_set(op->ptr, "start_frame", (int)mval_v2d[0]);
+	if (do_endframe)
+		RNA_int_set(op->ptr, "end_frame", (int)mval_v2d[0] + 25); // XXX arbitary but ok for now.
+	
+}
 
+static void sequencer_generic_filesel__internal(bContext *C, wmOperator *op, char *title, char *path)
+{	
+	SpaceFile *sfile;
 
+	ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_FILE);
 
+	/* settings for filebrowser */
+	sfile= (SpaceFile*)CTX_wm_space_data(C);
+	sfile->op = op;
+	ED_fileselect_set_params(sfile, FILE_BLENDER, title, path, 0, 0, 0);
 
+	/* screen and area have been reset already in ED_screen_full_newspace */
+}
 
-
-
-
-
-
-
-static const char sequencer_add_name_doc[] = "Name of the new sequence strip";
-static const char sequencer_add_start_frame_doc[] = "Start frame of the sequence strip";
-static const char sequencer_add_end_frame_doc[] = "End frame for the color strip";
-static const char sequencer_add_channel_doc[] = "Channel to place this strip into";
-
-
-
+/* add operators */
 static int sequencer_add_color_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1010,6 +1043,11 @@ static int sequencer_add_color_strip_exec(bContext *C, wmOperator *op)
 	calc_sequence_disp(seq);
 	sort_seq(scene);
 	
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		deselect_all_seq(scene);
+		set_last_seq(scene, seq);
+		seq->flag |= SELECT;
+	}
 	ED_undo_push(C, "Add Color Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -1020,30 +1058,7 @@ static int sequencer_add_color_strip_exec(bContext *C, wmOperator *op)
 /* add color */
 static int sequencer_add_color_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-
-	ARegion *ar= CTX_wm_region(C);
-	View2D *v2d= UI_view2d_fromcontext(C);
-	
-	short mval[2];	
-	float mval_v2d[2];
-	
-	int start_frame, end_frame, channel;
-
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mval_v2d[0], &mval_v2d[1]);
-	
-	start_frame= (int)mval_v2d[0];
-	end_frame= start_frame+25;
-	channel= (int)mval_v2d[1]+0.5f;
-	
-	RNA_int_set(op->ptr, "start_frame", start_frame);
-	RNA_int_set(op->ptr, "end_frame", end_frame);
-	RNA_int_set(op->ptr, "channel", channel);
-	
-	/* color can be left default */
-
+	sequencer_generic_invoke_xy__internal(C, op, event, 1);
 	return sequencer_add_color_strip_exec(C, op);
 }
 
@@ -1061,10 +1076,7 @@ void SEQUENCER_OT_add_color_strip(struct wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", sequencer_add_name_doc);
-	RNA_def_int(ot->srna, "start_frame", 0, INT_MIN, INT_MAX, "Start Frame", sequencer_add_start_frame_doc, INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "end_frame", 0, INT_MIN, INT_MAX, "End Frame", sequencer_add_end_frame_doc, INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
-	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", sequencer_add_channel_doc, 1, MAXSEQ);
+	sequencer_generic_props__internal(ot, 0, 1);
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color", 0.0f, 1.0f);
 }
 
@@ -1116,6 +1128,12 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	calc_sequence_disp(seq);
 	sort_seq(scene);
 	
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		deselect_all_seq(scene);
+		set_last_seq(scene, seq);
+		seq->flag |= SELECT;
+	}
+	
 	ED_undo_push(C, "Add Scene Strip, Sequencer");
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -1125,30 +1143,10 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
-	View2D *v2d= UI_view2d_fromcontext(C);
-	
-	short mval[2];	
-	float mval_v2d[2];
-	
-	int start_frame, channel;
-
-	mval[0]= event->x - ar->winrct.xmin;
-	mval[1]= event->y - ar->winrct.ymin;
-	
-	UI_view2d_region_to_view(v2d, mval[0], mval[1], &mval_v2d[0], &mval_v2d[1]);
-	
-	start_frame= (int)mval_v2d[0];
-	channel= (int)mval_v2d[1]+0.5f;
-	
-	
-	RNA_int_set(op->ptr, "start_frame", start_frame);
-	RNA_int_set(op->ptr, "channel", channel);
+	sequencer_generic_invoke_xy__internal(C, op, event, 0);
 	
 	/* scene can be left default */
 	RNA_string_set(op->ptr, "scene", "Scene"); // XXX should popup a menu but ton says 2.5 will have some better feature for this
-
 
 	return sequencer_add_scene_strip_exec(C, op);
 }
@@ -1168,9 +1166,290 @@ void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot)
 	ot->poll= ED_operator_sequencer_active;
 	ot->flag= OPTYPE_REGISTER;
 
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", sequencer_add_name_doc);
-	RNA_def_int(ot->srna, "start_frame", 0, INT_MIN, INT_MAX, "Start Frame", sequencer_add_start_frame_doc, INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", sequencer_add_channel_doc, 1, MAXSEQ);
+	sequencer_generic_props__internal(ot, 0, 0);
 	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene Name", "Scene name to add as a strip");
+}
+
+/* add movie operator */
+static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	struct anim *an;
+	char filename[FILE_MAX];
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+	
+	int start_frame, channel; /* operator props */
+	
+	start_frame= RNA_int_get(op->ptr, "start_frame");
+	channel= RNA_int_get(op->ptr, "channel");
+	
+	RNA_string_get(op->ptr, "filename", filename);
+	
+	an = openanim(filename, IB_rect);
+
+	if (an==NULL) {
+		BKE_reportf(op->reports, RPT_ERROR, "Filename \"%s\" could not be loaded as a movie", filename);
+		return OPERATOR_CANCELLED;
+	}
+	
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel); /* warning, this sets last */
+	
+	seq->type= SEQ_MOVIE;
+	seq->anim= an;
+	seq->anim_preseek = IMB_anim_get_preseek(an);
+	
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = IMB_anim_get_duration( an ); 
+	strip->us= 1;
+	
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	
+	BLI_split_dirfile_basic(filename, strip->dir, se->name);
+
+	RNA_string_get(op->ptr, "name", seq->name);
+	
+	calc_sequence_disp(seq);
+	sort_seq(scene);
+
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		deselect_all_seq(scene);
+		set_last_seq(scene, seq);
+		seq->flag |= SELECT;
+	}
+	
+	ED_undo_push(C, "Add Movie Strip, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static int sequencer_add_movie_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{	
+	sequencer_generic_invoke_xy__internal(C, op, event, 0);
+	sequencer_generic_filesel__internal(C, op, "Load Movie", "/");
+	return OPERATOR_RUNNING_MODAL;	
+	//return sequencer_add_movie_strip_exec(C, op);
+}
+
+
+void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Add Movie Strip";
+	ot->idname= "SEQUENCER_OT_add_movie_strip";
+
+	/* api callbacks */
+	ot->invoke= sequencer_add_movie_strip_invoke;
+	ot->exec= sequencer_add_movie_strip_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+	
+	sequencer_generic_props__internal(ot, 1, 0);
+}
+
+
+/* add sound operator */
+static int sequencer_add_sound_strip_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	bSound *sound;
+
+	char filename[FILE_MAX];
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+	
+	int start_frame, channel; /* operator props */
+	
+	start_frame= RNA_int_get(op->ptr, "start_frame");
+	channel= RNA_int_get(op->ptr, "channel");
+	
+	RNA_string_get(op->ptr, "filename", filename);
+
+// XXX	sound= sound_new_sound(filename);
+	sound= NULL;
+
+	if (sound==NULL || sound->sample->type == SAMPLE_INVALID) {
+		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (sound==NULL || sound->sample->bits != 16) {
+		BKE_report(op->reports, RPT_ERROR, "Only 16 bit audio is supported");
+		return OPERATOR_CANCELLED;
+	}
+	
+	sound->flags |= SOUND_FLAGS_SEQUENCE;
+// XXX	audio_makestream(sound);
+	
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel); /* warning, this sets last */
+	
+	seq->type= SEQ_RAM_SOUND;
+	seq->sound= sound;
+	
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = (int) ( ((float)(sound->streamlen-1) / ( (float)scene->r.audio.mixrate*4.0 ))* FPS);
+	strip->us= 1;
+	
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	
+	BLI_split_dirfile_basic(filename, strip->dir, se->name);
+
+	RNA_string_get(op->ptr, "name", seq->name);
+	
+	calc_sequence_disp(seq);
+	sort_seq(scene);
+	
+	/* last active name */
+	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		deselect_all_seq(scene);
+		set_last_seq(scene, seq);
+		seq->flag |= SELECT;
+	}
+
+	ED_undo_push(C, "Add Sound Strip, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static int sequencer_add_sound_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	sequencer_generic_invoke_xy__internal(C, op, event, 0);
+	sequencer_generic_filesel__internal(C, op, "Load Sound", ed->act_sounddir);
+	return OPERATOR_RUNNING_MODAL;
+	//return sequencer_add_sound_strip_exec(C, op);
+}
+
+
+void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Add Sound Strip";
+	ot->idname= "SEQUENCER_OT_add_sound_strip";
+
+	/* api callbacks */
+	ot->invoke= sequencer_add_sound_strip_invoke;
+	ot->exec= sequencer_add_sound_strip_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+
+	sequencer_generic_props__internal(ot, 1, 0);
+}
+
+/* add image operator */
+static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+
+
+	int tot_images= 1; //XXX FIXME, we need string arrays!
+	//int a;
+
+	char filename[FILE_MAX];
+
+	Sequence *seq;	/* generic strip vars */
+	Strip *strip;
+	StripElem *se;
+	
+	int start_frame, channel; /* operator props */
+	
+	start_frame= RNA_int_get(op->ptr, "start_frame");
+	channel= RNA_int_get(op->ptr, "channel");
+	
+	RNA_string_get(op->ptr, "filename", filename);
+
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel); /* warning, this sets last */
+	
+	seq->type= SEQ_IMAGE;
+	
+	/* basic defaults */
+	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len = seq->len = tot_images;	
+	strip->us= 1;
+	
+	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	
+
+	BLI_split_dirfile_basic(filename, strip->dir, se->name); // XXX se->name assignment should be moved into the loop below
+
+#if 0 // XXX
+	for(a=0; a<seq->len; a++) {
+	   strncpy(se->name, name, FILE_MAXFILE-1);
+	   se++;
+	}
+#endif
+
+	RNA_string_get(op->ptr, "name", seq->name);
+	
+	calc_sequence_disp(seq);
+	sort_seq(scene);
+	
+	/* last active name */
+	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
+	
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		deselect_all_seq(scene);
+		set_last_seq(scene, seq);
+		seq->flag |= SELECT;
+	}
+
+	ED_undo_push(C, "Add Image Strip, Sequencer");
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= scene->ed;
+	
+	sequencer_generic_invoke_xy__internal(C, op, event, 0);
+	sequencer_generic_filesel__internal(C, op, "Load Image", ed->act_imagedir);
+	return OPERATOR_RUNNING_MODAL;
+	
+	//return sequencer_add_image_strip_exec(C, op);
+}
+
+
+void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Add Image Strip";
+	ot->idname= "SEQUENCER_OT_add_image_strip";
+
+	/* api callbacks */
+	ot->invoke= sequencer_add_image_strip_invoke;
+	ot->exec= sequencer_add_image_strip_exec;
+
+	ot->poll= ED_operator_sequencer_active;
+	ot->flag= OPTYPE_REGISTER;
+	
+	sequencer_generic_props__internal(ot, 1, 0);
 }
 

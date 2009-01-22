@@ -90,24 +90,12 @@
 /* own include */
 #include "sequencer_intern.h"
 static void BIF_undo_push() {}
-static void error() {}
-static void waitcursor() {}
-static void activate_fileselect() {}
 static void std_rmouse_transform() {}
-static int get_mbut() {return 0;}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
 static void *find_nearest_marker() {return NULL;}
 static void deselect_markers() {}
-static void transform_markers() {}
 static void transform_seq_nomarker() {}
 	
 	
-	
-	
-	
-
 
 /****** TODO - bring back into operators ******* */
 void select_channel_direction(Scene *scene, Sequence *test,int lr) {

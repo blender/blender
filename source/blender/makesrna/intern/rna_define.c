@@ -742,6 +742,12 @@ void RNA_def_property_array(PropertyRNA *prop, int arraylength)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
+	if(arraylength<0) {
+		fprintf(stderr, "RNA_def_property_array: %s.%s, array length must be zero of greater.\n", srna->identifier, prop->identifier);
+		DefRNA.error= 1;
+		return;
+	}
+
 	switch(prop->type) {
 		case PROP_BOOLEAN:
 		case PROP_INT:

@@ -73,8 +73,6 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 	
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-	
 	/* identifiers */
 	ot->name   = "Select Orientation";
 	ot->idname = "TFM_OT_select_orientation";
@@ -84,8 +82,7 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	prop = RNA_def_property(ot->srna, "orientation", PROP_INT, PROP_NONE);
-	RNA_def_property_array(prop, -1);
+	RNA_def_int(ot->srna, "orientation", -1, INT_MIN, INT_MAX, "Orientation", "DOC_BROKEN", INT_MIN, INT_MAX);
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)

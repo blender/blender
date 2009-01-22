@@ -88,8 +88,9 @@ void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
 /* sequencer_select.c */
 void SEQUENCER_OT_add_color_strip(struct wmOperatorType *ot);
 void SEQUENCER_OT_add_scene_strip(struct wmOperatorType *ot);
-
-
+void SEQUENCER_OT_add_movie_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_sound_strip(struct wmOperatorType *ot);
+void SEQUENCER_OT_add_image_strip(struct wmOperatorType *ot);
 
 /* RNA enums, just to be more readable */
 enum {
