@@ -43,7 +43,8 @@ void dissolveverts_exec(BMesh *bmesh, BMOperator *op)
 	}
 	*/
 
-	for (vert=BMOS_IterNewP(i, vinput); vert; vert = BMOS_IterStepP(i, vinput)) {
+	for (i=0; i<vinput->len; i++) {
+		vert = ((BMVert**)vinput->data.p)[i];
 		BM_Dissolve_Disk(bmesh, vert);
 	}
 }
