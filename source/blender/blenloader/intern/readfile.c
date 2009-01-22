@@ -122,6 +122,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
+#include "BKE_ipo.h" 
 #include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
@@ -1823,6 +1824,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 	}
 }
 
+/* NOTE: this assumes that link_list has already been called on the list */
 static void direct_link_fcurves(FileData *fd, ListBase *list)
 {
 	FCurve *fcu;
@@ -1904,8 +1906,8 @@ static void direct_link_action(FileData *fd, bAction *act)
 	bActionChannel *achan; // XXX depreceated - old animation system
 	bActionGroup *agrp;
 
-	link_list(fd, &act->curves); // xxx - do we need to patch the data for this?
-	link_list(fd, &act->chanbase);
+	link_list(fd, &act->curves);
+	link_list(fd, &act->chanbase); // XXX depreceated - old animation system
 	link_list(fd, &act->groups);
 	link_list(fd, &act->markers);
 
@@ -1951,6 +1953,7 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 		return;
 	
 	/* link drivers */
+	link_list(fd, &adt->drivers);
 	direct_link_fcurves(fd, &adt->drivers);
 	
 	/* link overrides */
@@ -8665,14 +8668,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if (main->versionfile < 248 || (main->versionfile == 248 && main->subversionfile < 3)) {
 		bScreen *sc;
-		Ipo *ipo;
-		IpoCurve *icu;
-		
-		/* fix IPO-curves to work with new interpolation options */
-		//for (ipo=main->ipo.first; ipo; ipo= ipo->id.next) {
-		//	for (icu= ipo->curve.first; icu; icu= icu->next) 
-		//		set_interpolation_ipocurve(icu, icu->ipo); // function removed (XXX add it here)
-		//}
 		
 		/* adjust default settings for Animation Editors */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -8719,10 +8714,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(screen= main->screen.first; screen; screen= screen->id.next)
 			do_versions_windowmanager_2_50(screen);
 		
+		/* old Animation System (using IPO's) needs to be converted to the new Animato system 
+		 * (NOTE: conversion code in blenkernel/intern/ipo.c for now)
+		 */
+		//do_versions_ipos_to_animato(main);
+		
 		/* struct audio data moved to renderdata */
 		for(scene= main->scene.first; scene; scene= scene->id.next) {
 			scene->r.audio = scene->audio;
-
+			
 			if(!scene->toolsettings->uv_selectmode)
 				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
 		}
@@ -8836,7 +8836,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_material(fd, main);
 	lib_link_texture(fd, main);
 	lib_link_image(fd, main);
-	lib_link_ipo(fd, main);
+	lib_link_ipo(fd, main);		// XXX depreceated... still needs to be maintained for version patches still
 	lib_link_key(fd, main);
 	lib_link_world(fd, main);
 	lib_link_lamp(fd, main);
@@ -9136,7 +9136,6 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 	
 	/* own action */
 	expand_doit(fd, mainvar, adt->action);
-	expand_action(fd, mainvar, adt->action);	// XXX this call is only used for patching old animation system
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
@@ -9167,6 +9166,9 @@ static void expand_group(FileData *fd, Main *mainvar, Group *group)
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
 	expand_doit(fd, mainvar, key->ipo); // XXX depreceated - old animation system
+	
+	if(key->adt)
+		expand_animdata(fd, mainvar, key->adt);
 }
 
 static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)

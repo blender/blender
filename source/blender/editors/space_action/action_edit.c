@@ -255,32 +255,15 @@ static float actcopy_firstframe= 999999999.0f;
 // XXX find some header to put this in!
 void free_actcopybuf ()
 {
-#if 0 // XXX old animation system
-	bActionChannel *achan, *anext;
-	bConstraintChannel *conchan, *cnext;
+	FCurve *fcu, *fcn;
 	
-	for (achan= actcopybuf.first; achan; achan= anext) {
-		anext= achan->next;
-		
-		if (achan->ipo) {
-			free_ipo(achan->ipo);
-			MEM_freeN(achan->ipo);
-		}
-		
-		for (conchan=achan->constraintChannels.first; conchan; conchan=cnext) {
-			cnext= conchan->next;
-			
-			if (conchan->ipo) {
-				free_ipo(conchan->ipo);
-				MEM_freeN(conchan->ipo);
-			}
-			
-			BLI_freelinkN(&achan->constraintChannels, conchan);
-		}
-		
-		BLI_freelinkN(&actcopybuf, achan);
+	/* free_fcurve() frees F-Curve memory too, but we don't need to do remlink first, as we're freeing all 
+	 * channels anyway, and the freeing func only cares about the data it's given
+	 */
+	for (fcu= actcopybuf.first; fcu; fcu= fcn) {
+		fcn= fcu->next;
+		free_fcurve(fcu);
 	}
-#endif // XXX old animation system
 	
 	actcopybuf.first= actcopybuf.last= NULL;
 	actcopy_firstframe= 999999999.0f;
@@ -292,7 +275,7 @@ void free_actcopybuf ()
  * Only the selected action channels gets their selected keyframes copied.
  */
 static short copy_action_keys (bAnimContext *ac)
-{
+{	
 #if 0 // XXX old animation system
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;

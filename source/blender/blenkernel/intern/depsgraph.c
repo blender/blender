@@ -303,50 +303,66 @@ DagForest * dag_init()
 	return forest;
 }
 
-static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int isdata)
+/* isdata = object data... */
+// XXX this needs to be extended to be more flexible (so that not only objects are evaluated via depsgraph)...
+static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node, int isdata)
 {
-	IpoCurve *icu;
+	FCurve *fcu;
 	DagNode *node1;
 	
-	for(icu= ipo->curve.first; icu; icu= icu->next) {
-		if(icu->driver) {
-
-			if (icu->driver->type == IPO_DRIVER_TYPE_PYTHON) {
-
-				if ((icu->driver->flag & IPO_DRIVER_FLAG_INVALID) || (icu->driver->name[0] == '\0'))
-					continue; /* empty or invalid expression */
+	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
+		ChannelDriver *driver= fcu->driver;
+		
+		if (driver->type == DRIVER_TYPE_PYTHON) {
+			/* PyDriver / 'Expression' */
+			
+			/* skip if invalid in some way */
+			if ((driver->flag & DRIVER_FLAG_INVALID) || (driver->expression[0] == '\0'))
+				continue;
 #ifndef DISABLE_PYTHON
-				else {
-					/* now we need refs to all objects mentioned in this
-					 * pydriver expression, to call 'dag_add_relation'
-					 * for each of them */
-					Object **obarray = BPY_pydriver_get_objects(icu->driver);
-					if (obarray) {
-						Object *ob, **oba = obarray;
-
-						while (*oba) {
-							ob = *oba;
-							node1 = dag_get_node(dag, ob);
-							if (ob->type == OB_ARMATURE)
-								dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Python Ipo Driver");
-							else
-								dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Python Ipo Driver");
-							oba++;
-						}
-
-						MEM_freeN(obarray);
+			else {
+				/* now we need refs to all objects mentioned in this
+				 * pydriver expression, to call 'dag_add_relation'
+				 * for each of them */
+				Object **obarray = BPY_pydriver_get_objects(fcu->driver);
+				if (obarray) {
+					Object *ob, **oba = obarray;
+					
+					while (*oba) {
+						ob = *oba;
+						node1 = dag_get_node(dag, ob);
+						if (ob->type == OB_ARMATURE)
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Python Driver");
+						else
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Python Driver");
+						oba++;
 					}
+					
+					MEM_freeN(obarray);
 				}
+			}
 #endif /* DISABLE_PYTHON */
-			}
-			else if (icu->driver->ob) {
-				node1 = dag_get_node(dag, icu->driver->ob);
-				if(icu->driver->blocktype==ID_AR)
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
-				else
-					dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
-			}
 		}
+		else if (driver->type == DRIVER_TYPE_ROTDIFF) {
+			// XXX rotational difference 
+		}
+		else {
+			/* normal channel-drives-channel */
+			node1 = dag_get_node(dag, driver->id);	// XXX we assume that id is an object...
+			
+			// XXX what happens for bone drivers?
+			dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
+		}
+#if 0 // XXX old 'normal' type
+
+		else if (icu->driver->ob) {
+			node1 = dag_get_node(dag, icu->driver->ob);
+			if(icu->driver->blocktype==ID_AR)
+				dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Ipo Driver");
+			else
+				dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Ipo Driver");
+		}
+#endif // XXX old 'normal' type
 	}
 }
 
@@ -371,7 +387,6 @@ static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Objec
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, Object *ob, int mask)
 {
 	bConstraint *con;
-	bConstraintChannel *conchan;
 	DagNode * node;
 	DagNode * node2;
 	DagNode * node3;
@@ -426,6 +441,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	}
 	
 	/* driver dependencies, nla modifiers */
+#if 0 // XXX old animation system
 	if(ob->ipo) 
 		dag_add_driver_relation(ob->ipo, dag, node, 0);
 	
@@ -466,6 +482,14 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			}
 		}
 	}
+#endif // XXX old animation system
+	if (ob->adt)
+		dag_add_driver_relation(ob->adt, dag, node, (ob->type == OB_ARMATURE)); // XXX isdata arg here doesn't give an accurate picture of situation
+		
+	key= ob_get_key(ob);
+	if (key && key->adt)
+		dag_add_driver_relation(key->adt, dag, node, 1);
+
 	if (ob->modifiers.first) {
 		ModifierData *md;
 		
@@ -515,11 +539,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB, "Proxy");
 		/* inverted relation, so addtoroot shouldn't be set to zero */
 	}
+	
+
 	if (ob->type==OB_CAMERA) {
 		Camera *cam = (Camera *)ob->data;
-		if (cam->ipo) {
-			dag_add_driver_relation(cam->ipo, dag, node, 1);
-		}
+		if (cam->adt)
+			dag_add_driver_relation(cam->adt, dag, node, 1);
 		if (cam->dof_ob) {
 			node2 = dag_get_node(dag, cam->dof_ob);
 			dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Camera DoF");
@@ -527,10 +552,10 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	}
 	if (ob->type==OB_LAMP) {
 		Lamp *la = (Lamp *)ob->data;
-		if (la->ipo) {
-			dag_add_driver_relation(la->ipo, dag, node, 1);
-		}
+		if (la->adt)
+			dag_add_driver_relation(la->adt, dag, node, 1);
 	}
+	
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 			GroupObject *go;
@@ -566,9 +591,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			node2 = dag_get_node(dag, cu->taperobj);
 			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Taper");
 		}
-		if(cu->ipo)
-			dag_add_driver_relation(cu->ipo, dag, node, 1);
-
+		if (cu->adt)
+			dag_add_driver_relation(cu->adt, dag, node, 1);
 	}
 	else if(ob->type==OB_FONT) {
 		Curve *cu= ob->data;
@@ -1953,24 +1977,6 @@ static int object_modifiers_use_time(Object *ob)
 	return 0;
 }
 
-#if 0 // XXX old animation system
-static int exists_channel(Object *ob, char *name)
-{
-	bActionStrip *strip;
-	
-	if(ob->action)
-		if(get_action_channel(ob->action, name))
-			return 1;
-	
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(get_action_channel(strip->act, name))
-			return 1;
-
-	return 0;
-}
-#endif // XXX old animation system
-
-
 static short animdata_use_time(AnimData *adt)
 {
 	NlaTrack *nlt;
@@ -2023,14 +2029,8 @@ static void dag_object_time_update_flags(Object *ob)
 	}
 	
 #if 0 // XXX old animation system
-	if(ob->action || ob->nlastrips.first) {
-		/* since actions now are mixed, we set the recalcs on the safe side */
-		ob->recalc |= OB_RECALC_OB;
-		if(ob->type==OB_ARMATURE)
-			ob->recalc |= OB_RECALC_DATA;
-		else if(exists_channel(ob, "Shape"))
-			ob->recalc |= OB_RECALC_DATA;
-		else if(ob->dup_group) {
+	if(ob->nlastrips.first) {
+		if(ob->dup_group) {
 			bActionStrip *strip;
 			/* this case is for groups with nla, whilst nla target has no action or nla */
 			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
@@ -2041,6 +2041,7 @@ static void dag_object_time_update_flags(Object *ob)
 	}
 #endif // XXX old animation system
 	if(animdata_use_time(ob->adt)) ob->recalc |= OB_RECALC;
+	if((ob->adt) && (ob->type==OB_ARMATURE)) ob->recalc |= OB_RECALC_DATA;
 	
 	if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
@@ -2316,6 +2317,7 @@ void DAG_pose_sort(Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
+#if 0 // XXX old animation system... driver stuff to watch out for
 			if(con->ipo) {
 				IpoCurve *icu;
 				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
@@ -2327,7 +2329,7 @@ void DAG_pose_sort(Object *ob)
 						if(target) {
 							node2 = dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "Ipo Driver");
-
+							
 							/* uncommented this line, results in dependencies
 							 * not being added properly for this constraint,
 							 * what is the purpose of this? - brecht */
@@ -2336,6 +2338,7 @@ void DAG_pose_sort(Object *ob)
 					}
 				}
 			}
+#endif // XXX old animation system... driver stuff to watch out for
 			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);

@@ -1190,7 +1190,7 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 			cycles= data->after_cycles;
 		}
 	}
-	if ELEM3(0, side, mode, cycles)
+	if ELEM(0, side, mode)
 		return;
 		
 	/* extrapolation mode is 'cyclic' - find relative place within a cycle */
@@ -1209,7 +1209,12 @@ static void fcm_cycles_evaluate (FCurve *fcu, FModifier *fcm, float *cvalue, flo
 		if (cycdx == 0)
 			return;
 		/* check that cyclic is still enabled for the specified time */
-		if ( ((float)side * (evaltime - ofs) / cycdx) > cycles )
+		if (cycles == 0) {
+			/* catch this case so that we don't exit when we have cycles=0
+			 * as this indicates infinite cycles...
+			 */
+		}
+		else if ( ((float)side * (evaltime - ofs) / cycdx) > cycles )
 			return;
 		
 		

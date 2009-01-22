@@ -1058,6 +1058,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						}
 							break;
 						
+						case ANIMTYPE_FILLACTD:
+						case ANIMTYPE_FILLMATD:
 						case ANIMTYPE_DSSKEY:
 						{
 							if (sel) glColor4ub(col2b[0], col2b[1], col2b[2], 0x45); 

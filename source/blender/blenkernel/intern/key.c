@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -1367,6 +1368,10 @@ int do_ob_key(Scene *scene, Object *ob)
 			execute_ipo((ID *)key, key->ipo);
 		}
 #endif // XXX old animation system
+		/* do shapekey local drivers */
+		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
+		printf("ob %s - do shapekey drivers \n", ob->id.name+2);
+		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);
 		else if(ob->type==OB_CURVE) return do_curve_key(scene, ob->data);
