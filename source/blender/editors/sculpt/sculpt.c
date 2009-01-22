@@ -77,6 +77,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 #include "sculpt_intern.h"
 
@@ -137,6 +138,7 @@ typedef struct StrokeCache {
 	float true_location[3];
 	float location[3];
 	float flip;
+	float pressure;
 	int mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
@@ -180,31 +182,6 @@ typedef struct ProjVert {
 	   containing the brush. */
 	char inside;
 } ProjVert;
-
-/* ===== INTERFACE =====
- */
-
-/* XXX: this can probably removed entirely */
-#if 0
-void sculptmode_rem_tex(void *junk0,void *junk1)
-{
-	MTex *mtex= G.scene->sculptdata.mtex[G.scene->sculptdata.texact];
-	if(mtex) {
-		SculptSession *ss= sculpt_session();
-		if(mtex->tex) mtex->tex->id.us--;
-		MEM_freeN(mtex);
-		G.scene->sculptdata.mtex[G.scene->sculptdata.texact]= NULL;
-		/* Clear brush preview */
-		if(ss->texcache) {
-			MEM_freeN(ss->texcache);
-			ss->texcache= NULL;
-		}
-		// XXX BIF_undo_push("Unlink brush texture");
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWOOPS, 0);
-	}
-}
-#endif
 
 /* ===== OPENGL =====
  *
@@ -255,19 +232,10 @@ static void project(bglMats *mats, const float v[3], short p[2])
 static char brush_size(Sculpt *sd)
 {
 	float size= sd->brush->size;
-#if 0
-	float pressure= 0; /* XXX: get_pressure(); */
-	short activedevice= 0; /* XXX: get_activedevice(); */
 	
-	if(b->sculpt_tool!=SCULPT_TOOL_GRAB) {
-		const float size_factor= sd->tablet_size / 10.0f;
-		
-		/* XXX: tablet stuff
-		if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
-			size*= sd->tablet_size==0?1:
-			(1-size_factor) + pressure*size_factor;*/
-	}
-#endif
+	if((sd->brush->sculpt_tool != SCULPT_TOOL_GRAB) && (sd->brush->flag & BRUSH_SIZE_PRESSURE))
+		size *= sd->session->cache->pressure;
+
 	return size;
 }
 
@@ -278,23 +246,12 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache)
 {
 	float dir= sd->brush->flag & BRUSH_DIR_IN ? -1 : 1;
 	float pressure= 1;
-	/* short activedevice= 0;XXX: get_activedevice(); */
 	float flip= cache->flip ? -1:1;
 	float anchored = sd->brush->flag & BRUSH_ANCHORED ? 25 : 1;
 
-	/* XXX: tablet stuff */
-#if 0
-	const float strength_factor= sd->tablet_strength / 10.0f;
-
-	if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
-		pressure= sd->sculptdata.tablet_strength==0?1:
-			(1-strength_factor) + 1/*XXX: get_pressure()*/ *strength_factor;
+	if(sd->brush->flag & BRUSH_ALPHA_PRESSURE)
+		pressure *= cache->pressure;
 	
-	/* Flip direction for eraser */
-	if(activedevice==DEV_ERASER)
-		dir= -dir;
-#endif
-
 	switch(sd->brush->sculpt_tool){
 	case SCULPT_TOOL_DRAW:
 	case SCULPT_TOOL_LAYER:
@@ -1115,104 +1072,6 @@ static void sculpt_update_tex(Sculpt *sd)
 	}
 }
 
-#if 0
-/* pr_mouse is only used for the grab brush, can be NULL otherwise */
-static void init_brushaction(Sculpt *sd, BrushAction *a, short *mouse, short *pr_mouse)
-{
-	SculptSession *ss = sd->session;
-	Brush *b = sd->brush;
-	const float mouse_depth = 0; // XXX: get_depth(mouse[0], mouse[1]);
-	float brush_edge_loc[3], zero_loc[3];
-	int i;
- 	const int anchored = sd->brush->flag & BRUSH_ANCHORED;
- 	short orig_mouse[2], dx=0, dy=0;
-	float size = brush_size(sd);
-
-	a->symm.index = 0;
-	
-	/* Convert the location and size of the brush to
-	   modelspace coords */
-	if(a->firsttime || !anchored) {
- 		//unproject(ss, a->symm.center_3d, mouse[0], mouse[1], mouse_depth);
- 		/*a->mouse[0] = mouse[0];
-		  a->mouse[1] = mouse[1];*/
- 	}
- 
- 	if(anchored) {
- 		//project(ss, a->symm.center_3d, orig_mouse);
- 		dx = mouse[0] - orig_mouse[0];
- 		dy = mouse[1] - orig_mouse[1];
- 	}
- 
- 	if(anchored) {
- 		//unproject(ss, brush_edge_loc, mouse[0], mouse[1], a->depth);
- 		a->anchored_rot = atan2(dy, dx);
- 	}
- 	else
- 		unproject(ss, brush_edge_loc, mouse[0] + size, mouse[1], mouse_depth);
- 
-	//a->size_3d = VecLenf(a->symm.center_3d, brush_edge_loc);
-
-	a->prev_radius = a->radius;
-
-	if(anchored)
- 		a->radius = sqrt(dx*dx + dy*dy);
- 	else
- 		a->radius = size;
-
-	/* Set the pivot to allow the model to rotate around the center of the brush */
-	/*XXX: if(get_depth(mouse[0],mouse[1]) < 1.0)
-	  VecCopyf(sd->pivot, a->symm.center_3d); */
-
-	/* Now project the Up, Right, and Out normals from view to model coords */
-	unproject(ss, zero_loc, 0, 0, 0);
-	unproject(ss, a->symm.up, 0, -1, 0);
-	unproject(ss, a->symm.right, 1, 0, 0);
-	unproject(ss, a->symm.out, 0, 0, -1);
-	VecSubf(a->symm.up, a->symm.up, zero_loc);
-	VecSubf(a->symm.right, a->symm.right, zero_loc);
-	VecSubf(a->symm.out, a->symm.out, zero_loc);
-	Normalize(a->symm.up);
-	Normalize(a->symm.right);
-	Normalize(a->symm.out);
-	
-
-
-	if(b->sculpt_tool == SCULPT_TOOL_GRAB) {
-		//float gcenter[3];
-
-		/* Find the delta */
-		/*unproject(ss, gcenter, mouse[0], mouse[1], a->depth);
-		unproject(ss, oldloc, pr_mouse[0], pr_mouse[1], a->depth);
-		VecSubf(a->symm.grab_delta, gcenter, oldloc);*/
-	}
-	else if(b->sculpt_tool == SCULPT_TOOL_LAYER) {
-		/*if(!a->layer_disps)
-		  a->layer_disps= MEM_callocN(sizeof(float)*cache->totvert,"Layer disps");*/
-	}
-
-	if(b->sculpt_tool == SCULPT_TOOL_LAYER || anchored) {
- 		/*if(!a->mesh_store) {
- 			a->mesh_store= MEM_mallocN(sizeof(vec3f) * cache->totvert, "Sculpt mesh store");
- 			for(i = 0; i < cache->totvert; ++i)
- 				VecCopyf(&a->mesh_store[i].x, cache->mvert[i].co);
-				}*/
-
-		/*if(anchored && a->layer_disps)
-		  memset(a->layer_disps, 0, sizeof(float) * cache->totvert);*/
-
-		/*if(anchored && !a->orig_norms) {
-			a->orig_norms= MEM_mallocN(sizeof(short) * 3 * cache->totvert, "Sculpt orig norm");
-			for(i = 0; i < cache->totvert; ++i) {
-				a->orig_norms[i][0] = cache->mvert[i].no[0];
-				a->orig_norms[i][1] = cache->mvert[i].no[1];
-				a->orig_norms[i][2] = cache->mvert[i].no[2];
-			}
-			}*/
-  	}
-}
-#endif
-
 /* XXX: Used anywhere?
 void sculptmode_set_strength(const int delta)
 {
@@ -1305,28 +1164,6 @@ void sculpt_radialcontrol_start(int mode)
 	}
 }
 #endif
-
-/* XXX: drawing code to go elsewhere!
-void sculpt_paint_brush(char clear)
-{
-	if(sculpt_data()->flags & SCULPT_SCULPT_TOOL_DRAW) {
-		static short mvalo[2];
-		short mval[2];
-		const short rad= sculptmode_brush()->size;
-
-		getmouseco_areawin(mval);
-		
-		persp(PERSP_WIN);
-		if(clear)
-			fdrawXORcirc(mval[0], mval[1], rad);
-		else
-			draw_sel_circle(mval, mvalo, rad, rad, 0);
-		
-		mvalo[0]= mval[0];
-		mvalo[1]= mval[1];
-	}
-}
-*/
 
 void sculptmode_selectbrush_menu(void)
 {
@@ -1505,30 +1342,27 @@ void sculptmode_draw_mesh(int only_damaged)
 }
 #endif
 
-/* XXX */
-#if 0
-static void sculpt_undo_push(Sculpt *sd)
+static void sculpt_undo_push(bContext *C, Sculpt *sd)
 {
 	switch(sd->brush->sculpt_tool) {
 	case SCULPT_TOOL_DRAW:
-		BIF_undo_push("Draw Brush"); break;
+		ED_undo_push(C, "Draw Brush"); break;
 	case SCULPT_TOOL_SMOOTH:
-		BIF_undo_push("Smooth Brush"); break;
+		ED_undo_push(C, "Smooth Brush"); break;
 	case SCULPT_TOOL_PINCH:
-		BIF_undo_push("Pinch Brush"); break;
+		ED_undo_push(C, "Pinch Brush"); break;
 	case SCULPT_TOOL_INFLATE:
-		BIF_undo_push("Inflate Brush"); break;
+		ED_undo_push(C, "Inflate Brush"); break;
 	case SCULPT_TOOL_GRAB:
-		BIF_undo_push("Grab Brush"); break;
+		ED_undo_push(C, "Grab Brush"); break;
 	case SCULPT_TOOL_LAYER:
-		BIF_undo_push("Layer Brush"); break;
+		ED_undo_push(C, "Layer Brush"); break;
 	case SCULPT_TOOL_FLATTEN:
- 		BIF_undo_push("Flatten Brush"); break;
+ 		ED_undo_push(C, "Flatten Brush"); break;
 	default:
-		BIF_undo_push("Sculpting"); break;
+		ED_undo_push(C, "Sculpting"); break;
 	}
 }
-#endif
 
 /**** Operator for applying a stroke (various attributes including mouse path)
       using the current brush. ****/
@@ -1798,6 +1632,8 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 
 		sculpt_cache_free(sd->session->cache);
 
+		sculpt_undo_push(C, sd);
+
 		return OPERATOR_FINISHED;
 	}
 
@@ -1828,6 +1664,8 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
 	ED_region_tag_redraw(ar);
+
+	sculpt_undo_push(C, sd);
 
 	return OPERATOR_FINISHED;
 }

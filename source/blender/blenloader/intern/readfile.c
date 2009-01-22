@@ -3779,6 +3779,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->toolsettings) {
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
+		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
 		if(sce->toolsettings->sculpt)
 			sce->toolsettings->sculpt->session= NULL;
 	}

@@ -1547,6 +1547,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
 		if(sce->toolsettings->wpaint)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
+		if(sce->toolsettings->sculpt)
+			writestruct(wd, DATA, "Sculpt", 1, sce->toolsettings->sculpt);
 
 		ed= sce->ed;
 		if(ed) {
