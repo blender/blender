@@ -49,22 +49,6 @@ void bmesh_error(void)
 	printf("BM modelling error!");
 }
 
-#ifndef bmesh_api_setindex
-/*NOTE: ensure different parts of the API do not conflict
-  on using this!*/
-void bmesh_api_setindex(BMesh *bm, BMHeader *head, int i)
-{
-	head->flags[bm->stackdepth-1].pflag = i;
-}
-#endif
-
-#ifndef bmesh_api_getindex
-int bmesh_api_getindex(BMesh *bm, BMHeader *head)
-{
-	return head->flags[bm->stackdepth-1].pflag;
-}
-#endif
-
 /*
  * BMESH SET SYSFLAG
  *
