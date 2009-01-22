@@ -3689,6 +3689,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
+			if(sce->toolsettings->sculpt)
+				sce->toolsettings->sculpt->brush=
+					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
 
 			for(base= sce->base.first; base; base= next) {
 				next= base->next;
@@ -3781,7 +3784,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
 		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
 		if(sce->toolsettings->sculpt)
-			sce->toolsettings->sculpt->session= NULL;
+			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
 
 	if(sce->ed) {

@@ -98,9 +98,6 @@
 /* Number of vertices to average in order to determine the flatten distance */
 #define FLATTEN_SAMPLE_SIZE 10
 
-/* Texture cache size */
-#define TC_SIZE 256
-
 /* ===== STRUCTS =====
  *
  */
@@ -642,28 +639,28 @@ static float to_deg(const float rad)
 static unsigned char get_texcache_pixel(const SculptSession *ss, int px, int py)
 {
 	unsigned *p;
-	p = ss->texcache + py * ss->texcache_w + px;
+	p = ss->texcache + py * ss->texcache_side + px;
 	return ((unsigned char*)(p))[0];
 }
 
 static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float v)
 {
 	int x, y, x2, y2;
-	const int tc_max = TC_SIZE - 1;
+	const int tc_max = ss->texcache_side - 1;
 	float urat, vrat, uopp;
 
 	if(u < 0) u = 0;
-	else if(u >= TC_SIZE) u = tc_max;
+	else if(u >= ss->texcache_side) u = tc_max;
 	if(v < 0) v = 0;
-	else if(v >= TC_SIZE) v = tc_max;
+	else if(v >= ss->texcache_side) v = tc_max;
 
 	x = floor(u);
 	y = floor(v);
 	x2 = x + 1;
 	y2 = y + 1;
 
-	if(x2 > TC_SIZE) x2 = tc_max;
-	if(y2 > TC_SIZE) y2 = tc_max;
+	if(x2 > ss->texcache_side) x2 = tc_max;
+	if(y2 > ss->texcache_side) y2 = tc_max;
 	
 	urat = u - x;
 	vrat = v - y;
@@ -738,7 +735,7 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 				px %= sx-1;
 			if(sy != 1)
 				py %= sy-1;
-			avg= get_texcache_pixel_bilinear(ss, TC_SIZE*px/sx, TC_SIZE*py/sy);
+			avg= get_texcache_pixel_bilinear(ss, ss->texcache_side*px/sx, ss->texcache_side*py/sy);
 		} else {
 			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
 			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
@@ -749,7 +746,7 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 			fx = flen * cos(angle) + 0.5;
 			fy = flen * sin(angle) + 0.5;
 
-			avg= get_texcache_pixel_bilinear(ss, fx * TC_SIZE, fy * TC_SIZE);
+			avg= get_texcache_pixel_bilinear(ss, fx * ss->texcache_side, fy * ss->texcache_side);
 		}
 	}
 
@@ -1025,7 +1022,6 @@ static void sculpt_update_tex(Sculpt *sd)
 	Brush *br = sd->brush;
 	MTex *mtex = br->mtex[br->texact];
 	TexResult texres;
-	float x, y, step=2.0/TC_SIZE, co[3];
 	int hasrgb, ix, iy;
 
 	memset(&texres, 0, sizeof(TexResult));
@@ -1037,16 +1033,22 @@ static void sculpt_update_tex(Sculpt *sd)
 		MEM_freeN(ss->texcache);
 		ss->texcache= NULL;
 	}
-	
-	ss->texcache_w = ss->texcache_h = TC_SIZE;
-	ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_w * ss->texcache_h, "Sculpt Texture cache");
-	
+
+	/* Need to allocate a bigger buffer for bigger brush size */
+	ss->texcache_side = sd->brush->size * 2;
+	if(!ss->texcache || ss->texcache_side > ss->texcache_actual) {
+		ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_side * ss->texcache_side, "Sculpt Texture cache");
+		ss->texcache_actual = ss->texcache_side;
+	}
+
 	if(mtex && mtex->tex) {
+		float x, y, step = 2.0 / ss->texcache_side, co[3];
+
 		BKE_image_get_ibuf(br->mtex[br->texact]->tex->ima, NULL);
 		
 		/*do normalized cannonical view coords for texture*/
-		for (y=-1.0, iy=0; iy<TC_SIZE; iy++, y += step) {
-			for (x=-1.0, ix=0; ix<TC_SIZE; ix++, x += step) {
+		for (y=-1.0, iy=0; iy<ss->texcache_side; iy++, y += step) {
+			for (x=-1.0, ix=0; ix<ss->texcache_side; ix++, x += step) {
 				co[0]= x;
 				co[1]= y;
 				co[2]= 0.0f;
@@ -1063,10 +1065,10 @@ static void sculpt_update_tex(Sculpt *sd)
 					              texres.tg + 0.2 * texres.tb);
 
 				texres.tin = texres.tin * 255.0;
-				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+1] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+2] = (char)texres.tin;
-				((char*)ss->texcache)[(iy*TC_SIZE+ix)*4+3] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*ss->texcache_side+ix)*4] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*ss->texcache_side+ix)*4+1] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*ss->texcache_side+ix)*4+2] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*ss->texcache_side+ix)*4+3] = (char)texres.tin;
 			}
 		}
 	}
@@ -1104,7 +1106,7 @@ static GLuint sculpt_radialcontrol_calctex()
 	Sculpt *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	int i, j;
-	const int tsz = TC_SIZE;
+	const int tsz = ss->texcache_side;
 	float *texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
 	GLuint tex;
 
@@ -1648,6 +1650,7 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 
 	view3d_operator_needs_opengl(C);
 	sculpt_update_cache_invariants(sd, C, op);
+	sculptmode_update_all_projverts(sd->session);
 	sculpt_update_tex(sd);
 
 	RNA_BEGIN(op->ptr, itemptr, "stroke") {
@@ -1736,6 +1739,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		WM_paint_cursor_end(CTX_wm_manager(C), ts->sculpt->session->cursor);
 
 		sculptsession_free(ts->sculpt);
+
+		ED_undo_push(C, "Exit sculpt");
 	}
 	else {
 		MTex *mtex; // XXX: temporary
@@ -1770,6 +1775,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			mtex->tex = G.main->tex.first;
 			mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
 		}
+
+		ED_undo_push(C, "Enter sculpt");
 	}
 
 	return OPERATOR_FINISHED;

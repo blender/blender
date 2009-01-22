@@ -51,7 +51,7 @@ typedef struct SculptSession {
 	ListBase damaged_verts;
 	
 	/* Used to cache the render of the active texture */
-	unsigned int texcache_w, texcache_h, *texcache;
+	unsigned int texcache_side, *texcache, texcache_actual;
 
 	void *cursor; /* wm handle */
 
