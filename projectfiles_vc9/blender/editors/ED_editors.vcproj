@@ -327,6 +327,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\datafiles\preview.blend.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\datafiles\prvicons.c"
 				>
 			</File>

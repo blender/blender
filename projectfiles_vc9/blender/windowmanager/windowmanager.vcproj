@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_jobs.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_keymap.c"
 				>
 			</File>
