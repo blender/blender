@@ -996,7 +996,6 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 {
 	ShaderPreview *sp= customdata;
 	Render *re;
-	RenderStats *rstats;
 	Scene *sce;
 	char name [32];
 
@@ -1034,12 +1033,6 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 		RE_test_break_cb(re, sp, shader_preview_break);
 	}
 
-	/* enforce preview image clear */
-//	if(GS(sp->id->name)==ID_MA) {
-//		Material *ma= (Material *)sp->id;
-//		ntreeClearPreview(ma->nodetree);
-//	}
-
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
 	RE_Database_FromScene(re, sce, 1);
@@ -1053,17 +1046,6 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 		//if(ri->rect==NULL)
 		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
-	}
-	else {
-		rstats= RE_GetStats(re);
-		
-		if(rstats->totpart==rstats->partsdone && rstats->partsdone) {
-			// allqueues
-		}
-		else {
-			//			if(pr_method==PR_DRAW_RENDER && qtest())
-			//				addafterqueue(area->win, RENDERPREVIEW, 1);
-		}
 	}
 
 	/* unassign the pointers, reset vars */
@@ -1101,7 +1083,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, in
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL);
-	WM_jobs_callbacks(steve, shader_preview_startjob, NULL, shader_preview_update);
+	WM_jobs_callbacks(steve, shader_preview_startjob, shader_preview_update);
 	
 	WM_jobs_start(steve);
 }

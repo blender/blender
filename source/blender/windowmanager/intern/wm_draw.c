@@ -338,7 +338,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	else {
 		GLint format;
 
-		glGenTextures(1, &win->drawtex);
+		glGenTextures(1, (GLuint *)&win->drawtex);
 
 		if(!win->drawtex) {
 			/* not the typical failure case but we handle it anyway */
@@ -363,7 +363,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		if(format != GL_RGB8) {
 			/* proxy texture is only guaranteed to test for the cases that
 			 * there is only one texture in use, which may not be the case */
-			glDeleteTextures(1, &win->drawtex);
+			glDeleteTextures(1, (GLuint *)&win->drawtex);
 
 			win->drawmethod= USER_DRAW_OVERLAP_ALL;
 			wm_method_draw_overlap_all(C, win);
@@ -380,7 +380,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		if(glGetError() == GL_OUT_OF_MEMORY) {
 			/* not sure if this works everywhere .. */
-			glDeleteTextures(1, &win->drawtex);
+			glDeleteTextures(1, (GLuint *)&win->drawtex);
 
 			win->drawmethod= USER_DRAW_OVERLAP_ALL;
 			wm_method_draw_overlap_all(C, win);

@@ -85,7 +85,7 @@ struct wmJob {
 	/* job originating from, keep track of this when deleting windows */
 	wmWindow *win;
 	
-	/* should store entire own context, for start, free or listeners */
+	/* should store entire own context, for start, update, free */
 	void *customdata;
 	void (*startjob)(void *, short *stop, short *do_update);
 	void (*free)(void *);
@@ -95,9 +95,6 @@ struct wmJob {
 	wmTimer *wt;
 	/* the notifier event timers should send */
 	unsigned int note;
-	
-	/* managing */
-	void (*listener)(struct wmJob *, struct wmNotifier *);
 	
 	/* update gets called if thread defines so, and max once per timerstep */
 	/* no drawing, send notifiers! */
@@ -161,11 +158,9 @@ void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note)
 
 void WM_jobs_callbacks(wmJob *steve, 
 					   void (*startjob)(void *, short *, short *),
-					   void (*listener)(struct wmJob *, struct wmNotifier *), 
 					   void (*update)(void  *))
 {
 	steve->startjob= startjob;
-	steve->listener= listener;
 	steve->update= update;
 }
 

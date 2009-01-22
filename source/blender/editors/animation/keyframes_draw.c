@@ -392,7 +392,7 @@ void draw_gpl_channel(gla2DDrawInfo *di, ActKeysInc *aki, bGPDlayer *gpl, float 
 
 void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
 {
-	Key *key= ob_get_key(ob);
+//	Key *key= ob_get_key(ob);
 
 	if (ob) {
 		bDopeSheet *ads= (aki)? (aki->ads) : NULL;

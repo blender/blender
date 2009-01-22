@@ -180,7 +180,6 @@ void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *))
 void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note);
 void		WM_jobs_callbacks(struct wmJob *, 
 							  void (*startjob)(void *, short *, short *),
-							  void (*listener)(struct wmJob *, struct wmNotifier *), 
 							  void (*update)(void *));
 
 void		WM_jobs_start(struct wmJob *);

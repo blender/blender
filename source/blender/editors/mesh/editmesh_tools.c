@@ -89,6 +89,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "ED_util.h"
 #include "ED_screen.h"
 
+#include "UI_interface.h"
+
 #include "mesh_intern.h"
 
 /* XXX */
@@ -6410,8 +6412,6 @@ void MESH_OT_subdivide_smooth(wmOperatorType *ot)
 
 static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *lastop;
 	int items;
 	char *menu, *p;
 	
